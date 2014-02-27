@@ -28,8 +28,10 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ModelFactory::ModelFactory(CoreFactorySPtr factory, SchedulerSPtr scheduler)
+ModelFactory::ModelFactory(CoreFactorySPtr factory,
+                           SchedulerSPtr scheduler)
 : m_factory(factory)
+, m_scheduler(scheduler)
 , m_channelRepresentationFactory(new RepresentationFactoryGroup(scheduler))
 , m_segmentationRepresentationFactory(new RepresentationFactoryGroup(scheduler))
 {
@@ -147,9 +149,9 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output:
 }
 
 //------------------------------------------------------------------------
-ChannelExtensionSPtr ModelFactory::createChannelExtension(QString type, const State& state)
+ChannelExtensionSPtr ModelFactory::createChannelExtension(const ChannelExtension::Type &type)
 {
-  return m_factory->createChannelExtension(type, state);
+  return m_factory->createChannelExtension(type);
 }
 
 //------------------------------------------------------------------------
@@ -161,9 +163,9 @@ SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filte
 }
 
 //------------------------------------------------------------------------
-SegmentationExtensionSPtr ModelFactory::createSegmentationExtension(QString type, const State& state)
+SegmentationExtensionSPtr ModelFactory::createSegmentationExtension(const SegmentationExtension::Type &type)
 {
-  return m_factory->createSegmentationExtension(type, state);
+  return m_factory->createSegmentationExtension(type);
 }
 
 //------------------------------------------------------------------------

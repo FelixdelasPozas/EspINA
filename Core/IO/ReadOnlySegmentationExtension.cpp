@@ -22,9 +22,11 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ReadOnlySegmentationExtension::ReadOnlySegmentationExtension(SegmentationExtension::Type type,
-                                                             const State                &state)
-: m_type(type)
+ReadOnlySegmentationExtension::ReadOnlySegmentationExtension(const SegmentationExtension::Type &type,
+                                                             const SegmentationExtension::InfoCache& cache,
+                                                             const State& state)
+: SegmentationExtension(cache)
+, m_type(type)
 , m_state(state)
 {
 }

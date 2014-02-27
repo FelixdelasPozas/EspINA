@@ -28,7 +28,7 @@ EspINA::CoreFactorySPtr EspINA::espinaCoreFactory(SchedulerSPtr scheduler)
 {
   CoreFactorySPtr factory{new CoreFactory(scheduler)};
 
-  factory->registerExtensionFactory(ChannelExtensionFactorySPtr{new DefaultChannelExtensionFactory()});
+  factory->registerExtensionFactory(ChannelExtensionFactorySPtr{new DefaultChannelExtensionFactory(scheduler)});
 
   return factory;
 }

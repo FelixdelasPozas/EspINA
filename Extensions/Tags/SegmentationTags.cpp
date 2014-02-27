@@ -26,7 +26,7 @@
 */
 
 
-#include "TagExtension.h"
+#include "SegmentationTags.h"
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Segmentation.h>
 
@@ -36,19 +36,9 @@ using namespace EspINA;
 const QString                        SegmentationTags::TYPE = "SegmentationTags";
 const SegmentationExtension::InfoTag SegmentationTags::TAGS = "Tags";
 
-const QString                        SegmentationTags::FILE = "SegmentationTags/SegmentationTags.csv";
-
-// const std::string FILE_VERSION = SegmentationTagsID.toStdString() + " 1.0\n";
-// const char SEP = ',';
-// 
-
-// QStringList SegmentationTags::s_availableTags;
-// 
-// QStringListModel SegmentationTags::TagModel;
-// 
-
 //------------------------------------------------------------------------
-SegmentationTags::SegmentationTags()
+SegmentationTags::SegmentationTags(const InfoCache &infoCache)
+: SegmentationExtension(infoCache)
 {
 }
 
@@ -140,126 +130,6 @@ void SegmentationTags::updateAvailableTags()
 
 }
 
-//------------------------------------------------------------------------
-SegmentationTagsSPtr EspINA::tagsExtension(SegmentationAdapterPtr segmentation)
-{
-  auto extension = segmentation->extension(SegmentationTags::TYPE);
-
-  return std::dynamic_pointer_cast<SegmentationTags>(extension);
-}
-
-
-// //------------------------------------------------------------------------
-// void SegmentationTags::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
-// {
-//   QString header(file.readLine());
-//   if (header.toStdString() == FILE_VERSION)
-//   {
-//     char buffer[1024];
-//     while (file.readLine(buffer, sizeof(buffer)) > 0)
-//     {
-//       QString line(buffer);
-//       QStringList fields = line.split(SEP, QString::SkipEmptyParts);
-// 
-//       SegmentationPtr extensionSegmentation = NULL;
-//       int i = 0;
-//       while (!extensionSegmentation && i < model->segmentations().size())
-//       {
-//         SegmentationSPtr segmentation = model->segmentations()[i];
-//         if ( segmentation->filter()->id()       == fields[0]
-//           && segmentation->outputId()           == fields[1].toInt()
-//           && segmentation->filter()->cacheDir() == tmpDir)
-//         {
-//           extensionSegmentation = segmentation.get();
-//         }
-//         i++;
-//       }
-//       if (extensionSegmentation)
-//       {
-//         ExtensionData &data = s_cache[extensionSegmentation].Data;
-//         for (int t = 2; t < fields.size(); ++t)
-//         {
-//           data.Tags << fields[t].trimmed().toLower();
-//         }
-//       }
-//     }
-//   }
-// 
-//   updateAvailableTags();
-// }
-// 
-// //------------------------------------------------------------------------
-// // It's declared static to avoid collisions with other functions with same
-// // signature in different compilation units
-// static bool invalidData(SegmentationPtr seg)
-// {
-//   bool invalid = false;
-// 
-//   if (seg->hasInformationExtension(SegmentationTagsID))
-//   {
-//     SegmentationTags *extension = dynamic_cast<SegmentationTags *>(
-//       seg->informationExtension(SegmentationTagsID));
-// 
-//     invalid = extension->tags().isEmpty();
-//   }
-// 
-//   return invalid;
-// }
-// 
-// //------------------------------------------------------------------------
-// bool SegmentationTags::saveCache(Snapshot &snapshot)
-// {
-//   s_cache.purge(invalidData);
-// 
-//   if (s_cache.isEmpty())
-//     return false;
-// 
-//   std::ostringstream cache;
-//   cache << FILE_VERSION;
-// 
-//   foreach(SegmentationPtr segmentation, s_cache.keys())
-//   {
-//     ExtensionData &data = s_cache[segmentation].Data;
-// 
-//     cache << segmentation->filter()->id().toStdString();
-//     cache << SEP << segmentation->outputId();
-// 
-//     cache << SEP << data.Tags.join(",").toStdString();
-// 
-//     cache << std::endl;
-//   }
-// 
-//   snapshot << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
-// 
-//   return true;
-// 
-// }
-// 
-// //------------------------------------------------------------------------
-// Segmentation::InformationExtension SegmentationTags::clone()
-// {
-//   return new SegmentationTags();
-// }
-// 
-// //------------------------------------------------------------------------
-// void SegmentationTags::initialize()
-// {
-//   s_cache.markAsClean(m_segmentation);
-// }
-// 
-// //------------------------------------------------------------------------
-// void SegmentationTags::invalidate(SegmentationPtr segmentation)
-// {
-//   if (!segmentation)
-//     segmentation = m_segmentation;
-// 
-//   if (segmentation)
-//   {
-//     s_cache.markAsDirty(segmentation);
-//   }
-// }
-// 
-
 // //------------------------------------------------------------------------
 // void SegmentationTags::updateAvailableTags()
 // {
@@ -281,5 +151,3 @@ SegmentationTagsSPtr EspINA::tagsExtension(SegmentationAdapterPtr segmentation)
 //     TagModel.setStringList(s_availableTags);
 //   }
 // }
-// 
-// 

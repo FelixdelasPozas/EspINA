@@ -28,7 +28,7 @@ class DummySegmentationExtension
   public:
     const SegmentationExtension::Type TYPE = "DummySegmentationExtension";
   public:
-    DummySegmentationExtension() {
+    DummySegmentationExtension() : SegmentationExtension(InfoCache()) {
       updateInfoCache("Tag1", "prueba1");
       updateInfoCache("Tag2", "prueba2");
     };

@@ -43,13 +43,24 @@ TaskProgress::TaskProgress(TaskSPtr task)
           this, SLOT(onCancel()));
   connect(m_task.get(), SIGNAL(progress(int)),
           this, SLOT(updateProgress(int)));
+
+  updateProgress(0);
 }
 
+//------------------------------------------------------------------------
 TaskProgress::~TaskProgress()
 {
 }
 
+//------------------------------------------------------------------------
+void TaskProgress::showEvent(QShowEvent *event)
+{
+  QWidget::showEvent(event);
+  updateProgress(m_progressBar->value());
+}
 
+
+//------------------------------------------------------------------------
 void TaskProgress::updateProgress(int value)
 {
   QString text = m_task->description();
@@ -67,7 +78,10 @@ void TaskProgress::updateProgress(int value)
   m_progressBar->setValue(value);
 }
 
+//------------------------------------------------------------------------
 void TaskProgress::onCancel()
 {
   m_task->abort();
+
+  emit aborted();
 }

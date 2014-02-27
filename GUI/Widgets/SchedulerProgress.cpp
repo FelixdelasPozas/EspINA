@@ -62,7 +62,10 @@ throw (Duplicated_Task_Exception)
 {
   if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
 
-  m_tasks[task] = TaskProgressSPtr{new TaskProgress(task)};
+  TaskProgressSPtr taskProgress{new TaskProgress(task)};
+  m_tasks[task] = taskProgress;
+  connect(taskProgress.get(), SIGNAL(aborted()),
+          this, SLOT(onProgressAborted()));
 
   m_notification->layout()->addWidget(m_tasks[task].get());
 
@@ -82,11 +85,10 @@ void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 
     m_tasks[task]->setParent(0); // In case the notification are is open
     m_tasks.remove(task);
-
-    updateNotificationWidget();
-
-    updateProgress();
   }
+
+  updateNotificationWidget();
+  updateProgress();
 }
 
 //------------------------------------------------------------------------
@@ -125,6 +127,14 @@ void SchedulerProgress::updateProgress()
   m_progressBar->setValue(total);
 
   setVisible(0 != total);
+}
+
+//------------------------------------------------------------------------
+void SchedulerProgress::onProgressAborted()
+{
+  auto taskProgress = dynamic_cast<TaskProgress *>(sender());
+
+  onTaskRemoved(taskProgress->task());
 }
 
 

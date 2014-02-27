@@ -60,8 +60,8 @@ const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid
 
 //TODO: Review values to be used from new ITK version
 //------------------------------------------------------------------------
-MorphologicalInformation::MorphologicalInformation(const State &state,
-                                                   const SegmentationExtension::InfoCache &cache)
+MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::InfoCache &cache,
+                                                   const State &state)
 : SegmentationExtension(cache)
 , m_statistic(nullptr)
 , m_validFeret(false)

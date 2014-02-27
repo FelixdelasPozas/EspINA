@@ -178,7 +178,7 @@ void SeedGrowSegmentationFilter::execute()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute(Output::Id id)
 {
-  qDebug() << "SGS Execute";
+  //qDebug() << "SGS Execute";
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
   auto input = volumetricData(m_inputs[0]->output());

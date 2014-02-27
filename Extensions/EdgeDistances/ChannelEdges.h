@@ -48,8 +48,8 @@ namespace EspINA
 
   public:
     explicit ChannelEdges(SchedulerSPtr   scheduler = SchedulerSPtr(),
-                          const State     &state    = State(),
-                          const InfoCache &cache    = InfoCache());
+                          const InfoCache &cache    = InfoCache(),
+                          const State     &state    = State());
     virtual ~ChannelEdges();
 
     virtual Type type() const

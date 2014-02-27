@@ -24,13 +24,21 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr DefaultChannelExtensionFactory::createChannelExtension(const ChannelExtension::Type type, const State& state) const
+DefaultChannelExtensionFactory::DefaultChannelExtensionFactory(SchedulerSPtr scheduler)
+: m_scheduler(scheduler)
+{
+}
+
+//-----------------------------------------------------------------------------
+ChannelExtensionSPtr DefaultChannelExtensionFactory::createChannelExtension(const ChannelExtension::Type      &type,
+                                                                            const ChannelExtension::InfoCache &cache,
+                                                                            const State& state) const
 {
   ChannelExtensionSPtr extension;
 
   if (ChannelEdges::TYPE == type)
   {
-    extension = ChannelExtensionSPtr{new ChannelEdges()};
+    extension = ChannelExtensionSPtr{new ChannelEdges(m_scheduler, cache, state)};
   }
 
   return extension;

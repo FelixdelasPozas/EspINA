@@ -477,20 +477,12 @@ void Panel::createCountingFrame()
       channel->addExtension(m_manager->createExtension(m_scheduler));
     }
 
-    auto segmentations = QueryAdapter::segmentationsOnChannelSample(channel);
+    Nm inclusion[3] = {0, 0, 0};
+    Nm exclusion[3] = {0, 0, 0};
 
-    ComputeOptimalMarginsSPtr task(new ComputeOptimalMargins<ChannelAdapterPtr>(channel, segmentations, m_scheduler));
+    auto extension = retrieveExtension<CountingFrameExtension>(channel);
 
-    connect(task.get(), SIGNAL(finished()),
-            this,       SLOT(onCreateCountingFrameFinished()));
-    connect(task.get(), SIGNAL(progress(int)),
-            this,       SLOT(reportProgess(int)));
-
-    m_pendingCFs << PendingCF(type, constraint, task);
-
-    Task::submit(task);
-
-    reportProgess(0);
+    extension->createCountingFrame(type, inclusion, exclusion, constraint);
 
     //m_gui->createCF->setEnabled(false);
   }
@@ -503,19 +495,19 @@ void Panel::resetActiveCountingFrame()
 {
   if (m_activeCF)
   {
-//     Nm inclusion[3];
-//     Nm exclusion[3];
-//
-//     QApplication::setOverrideCursor(Qt::WaitCursor);
-//
-//     auto channel = m_activeCF->extension()->extendedItem();
-//
-//     computeOptimalMargins(channel, inclusion, exclusion);
-//     memset(exclusion, 0, 3*sizeof(Nm));
-//
-//     m_activeCF->setMargins(inclusion, exclusion);
-//
-//     QApplication::restoreOverrideCursor();
+    auto channel       = m_activeCF->channel();
+    auto segmentations = Query::segmentationsOnChannelSample(channel);
+
+    ComputeOptimalMarginsSPtr task(new ComputeOptimalMarginsTask(channel, segmentations, m_scheduler));
+
+    connect(task.get(), SIGNAL(finished()),
+            this,       SLOT(onMarginsComputed()));
+//     connect(task.get(), SIGNAL(progress(int)),
+//             this,       SLOT(reportProgess(int)));
+
+    m_pendingCFs << PendingCF(m_activeCF, task);
+
+    Task::submit(task);
   }
 }
 
@@ -853,7 +845,7 @@ void Panel::exclusionMargins(double values[3])
 }
 
 //------------------------------------------------------------------------
-void Panel::onCreateCountingFrameFinished()
+void Panel::onMarginsComputed()
 {
   TaskPtr task = dynamic_cast<TaskPtr>(sender());
 
@@ -875,16 +867,13 @@ void Panel::onCreateCountingFrameFinished()
 
   m_pendingCFs.removeOne(pendingCF);
 
-  Nm inclusion[3];
-  Nm exclusion[3];
+  Nm inclusion[3] = {0, 0, 0};
+  Nm exclusion[3] = {0, 0 ,0};
 
   auto channel = optimalMargins->channel();
   optimalMargins->inclusion(inclusion);
-  optimalMargins->exclusion(exclusion);
 
-  auto extension = countingFrameExtensionPtr(channel->extension(CountingFrameExtension::TYPE));
-  extension->createCountingFrame(pendingCF.Type, inclusion, exclusion, pendingCF.Constraint);
-
+  pendingCF.CF->setMargins(inclusion, exclusion);
   //m_gui->createCF->setEnabled(m_pendingCFs.isEmpty());
 }
 
@@ -901,7 +890,7 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 
   updateTable();
 
-  m_viewManager->addWidget(cf);
+  //m_viewManager->addWidget(cf);
 
   m_activeCF = cf; // To make applyCategoryConstraint work
 

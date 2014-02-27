@@ -28,7 +28,7 @@ class DummySegmentationExtension
   public:
     const SegmentationExtension::Type TYPE = "DummySegmentationExtension";
   public:
-    DummySegmentationExtension() {};
+    DummySegmentationExtension() : SegmentationExtension(InfoCache()) {};
     virtual ~DummySegmentationExtension() {};
 
     virtual bool invalidateOnChange() const

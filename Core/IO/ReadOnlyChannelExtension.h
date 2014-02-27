@@ -28,8 +28,9 @@ namespace EspINA {
   : public ChannelExtension
   {
   public:
-    explicit ReadOnlyChannelExtension(ChannelExtension::Type type,
-                                  const State               &state=State());
+    explicit ReadOnlyChannelExtension(const ChannelExtension::Type       type,
+                                      const ChannelExtension::InfoCache &cache,
+                                      const State &state);
 
     virtual ChannelExtension::Type type() const
     { return m_type; }

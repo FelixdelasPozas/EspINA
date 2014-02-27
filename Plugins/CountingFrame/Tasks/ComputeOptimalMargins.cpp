@@ -20,26 +20,29 @@
 namespace EspINA
 {
   //------------------------------------------------------------------------
-  template <typename T>
-  ComputeOptimalMargins<T>::ComputeOptimalMargins(T        channel,
-                                                  SegmentationAdapterSList segmentations,
+  template <typename C, typename S>
+  ComputeOptimalMargins<C, S>::ComputeOptimalMargins(C channel,
+                                                  S segmentations,
                                                   SchedulerSPtr            scheduler)
   : Task(scheduler)
   , m_channel(channel)
   , m_segmentations(segmentations)
   {
     setDescription("Computing Optimal Margins");
+
+    memset(m_inclusion, 0, 3*sizeof(Nm));
+    memset(m_exclusion, 0, 3*sizeof(Nm));
   }
 
   //------------------------------------------------------------------------
-  template <typename T>
-  ComputeOptimalMargins<T>::~ComputeOptimalMargins()
+  template <typename C, typename S>
+  ComputeOptimalMargins<C, S>::~ComputeOptimalMargins()
   {
   }
 
   //------------------------------------------------------------------------
-  template <typename T>
-  void ComputeOptimalMargins<T>::run()
+  template <typename C, typename S>
+  void ComputeOptimalMargins<C, S>::run()
   {
     auto spacing = m_channel->output()->spacing();
 

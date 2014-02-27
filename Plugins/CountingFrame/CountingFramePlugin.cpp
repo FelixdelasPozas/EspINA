@@ -3,7 +3,7 @@
 #include "Panel.h"
 #include "CountingFrameRenderer.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
-#include "Extensions/CountingFrameFactory.h"
+#include "Extensions/CountingFrameFactories.h"
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -58,7 +58,7 @@ ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() co
 {
   ChannelExtensionFactorySList factories;
 
-  factories << ChannelExtensionFactorySPtr{new CountingFrameFactory(&m_manager, m_scheduler)};
+  factories << ChannelExtensionFactorySPtr{new ChannelExtensionFactoryCF(&m_manager, m_scheduler)};
 
   return factories;
 }
@@ -67,6 +67,8 @@ ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() co
 SegmentationExtensionFactorySList CountingFramePlugin::segmentationExtensionFactories() const
 {
   SegmentationExtensionFactorySList factories;
+
+  factories << SegmentationExtensionFactorySPtr{new SegmentationExtensionFactoryCF()};
 
   return factories;
 }

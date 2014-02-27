@@ -28,9 +28,16 @@ namespace EspINA {
   : public ChannelExtensionFactory
   {
   public:
-    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type, const State &state = State()) const;
+    explicit DefaultChannelExtensionFactory(SchedulerSPtr scheduler);
+
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
+                                                        const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
+                                                        const State& state = State()) const;
 
     virtual ChannelExtensionTypeList providedExtensions() const;
+
+  private:
+    SchedulerSPtr m_scheduler;
   };
 } // namespace EspINA
 

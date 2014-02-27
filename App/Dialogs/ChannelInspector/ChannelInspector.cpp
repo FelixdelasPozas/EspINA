@@ -15,7 +15,10 @@
 #include <Core/EspinaTypes.h>
 #include <App/IO/ChannelReader.h>
 #include <Core/Utils/NmVector3.h>
+#include <Core/Analysis/Query.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/ExtensionUtils.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 
 // Qt
@@ -152,14 +155,14 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
   if (edgesExtension)
     channelEdgesExtension = std::dynamic_pointer_cast<ChannelEdges>(edgesExtension);
 
-  m_adaptiveEdgesEnabled = (edgesExtension != nullptr) && !channelEdgesExtension->useDistanceToBounds();
+  m_useDistanceToEdges = (edgesExtension != nullptr) && !channelEdgesExtension->useDistanceToBounds();
 
-  radioStackEdges->setChecked(!m_adaptiveEdgesEnabled);
-  radioImageEdges->setChecked(m_adaptiveEdgesEnabled);
-  colorBox->setEnabled(m_adaptiveEdgesEnabled);
-  colorLabel->setEnabled(m_adaptiveEdgesEnabled);
-  thresholdBox->setEnabled(m_adaptiveEdgesEnabled);
-  thresholdLabel->setEnabled(m_adaptiveEdgesEnabled);
+  radioStackEdges->setChecked(!m_useDistanceToEdges);
+  radioImageEdges->setChecked(m_useDistanceToEdges);
+  colorBox->setEnabled(m_useDistanceToEdges);
+  colorLabel->setEnabled(m_useDistanceToEdges);
+  thresholdBox->setEnabled(m_useDistanceToEdges);
+  thresholdLabel->setEnabled(m_useDistanceToEdges);
 
   connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
   connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
@@ -493,7 +496,7 @@ void ChannelInspector::radioEdgesChanged(bool value)
 
   changeEdgeDetectorBgColor(m_backgroundColor);
 
-  m_edgesModified = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
+  m_edgesModified = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
                     (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value())) ||
                     (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
 }
@@ -501,7 +504,7 @@ void ChannelInspector::radioEdgesChanged(bool value)
 //------------------------------------------------------------------------
 void ChannelInspector::changeEdgeDetectorBgColor(int value)
 {
-  bool enabled = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
+  bool enabled = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
                  (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value()));
 
   QPixmap image(":espina/edges-image.png");
@@ -519,7 +522,7 @@ void ChannelInspector::changeEdgeDetectorBgColor(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::changeEdgeDetectorThreshold(int value)
 {
-  bool enabled = (radioImageEdges->isChecked() != m_adaptiveEdgesEnabled) ||
+  bool enabled = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
                  (radioImageEdges->isChecked() && (m_threshold != thresholdBox->value()));
 
   m_edgesModified = enabled;
@@ -528,36 +531,29 @@ void ChannelInspector::changeEdgeDetectorThreshold(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::applyEdgesChanges()
 {
-//   ChannelExtensionSPtr extension = m_channel->extension(ChannelEdges::TYPE);
-//   if (extension != nullptr)
-//   {
-//     ChannelEdgesSPtr adaptiveEdges = std::dynamic_pointer_cast<ChannelEdges>(extension);
-//
-//     for (auto segmentation: m_model->segmentations())
-//     {
-//       // TODO Invalidate distances if border has changed (it can be done inside EdgeDistance)
-// //       if (segmentation->hasExtension(EdgeDistance::TYPE))
-// //       {
-// //         auto segExtension = segmentation->extension(EdgeDistance::TYPE);
-// //         Q_ASSERT(segExtension);
-// //         EdgeDistance *distanceExt = edgeDistance(segExtension.get());
-// //         distanceExt->invalidate();
-// //       }
-//     }
-//
-//     m_channel->deleteExtension(extension);
-//   }
-//
-//   if (radioImageEdges->isChecked())
-//   {
-//     m_adaptiveEdgesEnabled = true;
-//     m_backgroundColor = colorBox->value();
-//     m_threshold = thresholdBox->value();
-//
-//     m_channel->addExtension(ChannelExtensionSPtr(new ChannelEdges(m_scheduler)));
-//   }
-//   else
-//     m_adaptiveEdgesEnabled = false;
-//
-//   m_edgesModified = false;
+  ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
+
+  for (auto segmentation: m_model->segmentations())
+  {
+    if (segmentation->hasExtension(EdgeDistance::TYPE))
+    {
+      auto distanceExtension = retrieveExtension<EdgeDistance>(segmentation);
+      Q_ASSERT(distanceExtension);
+      distanceExtension->invalidate();
+    }
+  }
+
+
+  if (radioImageEdges->isChecked())
+  {
+    m_useDistanceToEdges = true;
+    m_backgroundColor = colorBox->value();
+    m_threshold = thresholdBox->value();
+  }
+  else
+    m_useDistanceToEdges = false;
+
+  edgesExtension->setUseDistanceToBounds(!m_useDistanceToEdges);
+
+  m_edgesModified = false;
 }

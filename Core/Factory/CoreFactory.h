@@ -58,19 +58,45 @@ namespace EspINA
 
     ChannelSPtr createChannel(FilterSPtr filter, Output::Id id) const;
 
+    /** \brief Registers channel extension factory
+     *
+     *  From now on, CoreFactory can create all the channel extensions provided by
+     *  the registered factory
+     */
     void registerExtensionFactory(ChannelExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
+    /** \brief Returns the list of channel extensions types this factory can create
+     *
+     *  Extension state is restored using cache and state data
+     */
     ChannelExtensionTypeList availableChannelExtensions() const;
 
-    ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type, const State &state = State());
+    /** \brief Create an extension instance of the given type
+     *
+     *  Extension state is restored using cache and state data
+     */
+    ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
+                                                const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
+                                                const State &state = State());
 
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id id) const;
 
+    /** \brief Registers segmentation extension factory
+     *
+     *  From now on, CoreFactory can create all the segmentation extensions provided by
+     *  the registered factory
+     */
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
     SegmentationExtensionTypeList availableSegmentationExtensions() const;
 
-    SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type, const State &state = State());
+    /** \brief Create an extension instance of the given type
+     *
+     *  Extension state is restored using cache and state data
+     */
+    SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                          const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
+                                                          const State &state = State());
 
     void setPresistentStorage(TemporalStorageSPtr storage)
     { m_defaultStorage = storage; }

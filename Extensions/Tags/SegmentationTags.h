@@ -25,8 +25,8 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef ESPINA_TAG_EXTENSION_H
-#define ESPINA_TAG_EXTENSION_H
+#ifndef ESPINA_SEGMENTATION_TAGS
+#define ESPINA_SEGMENTATION_TAGS
 
 #include "Extensions/EspinaExtensions_Export.h"
 
@@ -42,15 +42,13 @@ namespace EspINA
   class EspinaExtensions_EXPORT SegmentationTags
   : public SegmentationExtension
   {
-    const static QString FILE;
-
   public:
     static const InfoTag TAGS;
     static const Type    TYPE;
 
     //static QStringListModel TagModel;
   public:
-    explicit SegmentationTags();
+    explicit SegmentationTags(const InfoCache& infoCache);
     virtual ~SegmentationTags();
 
     virtual Type type() const
@@ -103,8 +101,6 @@ namespace EspINA
   using SegmentationTagsPtr  = SegmentationTags *;
   using SegmentationTagsSPtr = std::shared_ptr<SegmentationTags>;
 
-  SegmentationTagsSPtr EspinaExtensions_EXPORT tagsExtension(SegmentationAdapterPtr segmentation);
-
 } // namespace EspINA
 
-#endif // TAGEXTENSION_H
+#endif // ESPINA_SEGMENTATION_TAGS

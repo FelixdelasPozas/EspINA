@@ -15,9 +15,6 @@ set (ESPINA_VERSION_MAJOR 2)
 set (ESPINA_VERSION_MINOR 0)
 set (ESPINA_VERSION_PATCH 0)
 
-
-set (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
-
 # Configure Doxygen API Documentation
 set (BUILD_DOCUMENTATION CACHE BOOL "Build EspINA API Documentation")
 

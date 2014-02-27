@@ -28,7 +28,9 @@ namespace EspINA {
   : public SegmentationExtensionFactory
   {
   public:
-    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type type, const State &state = State()) const;
+    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                                  const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
+                                                                  const State& state = State()) const;
 
     virtual SegmentationExtensionTypeList providedExtensions() const;
   };

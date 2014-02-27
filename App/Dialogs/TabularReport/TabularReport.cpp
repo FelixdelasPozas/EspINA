@@ -409,7 +409,7 @@ void TabularReport::createCategoryEntry(const QString &category)
   {
     Entry *entry = new Entry(category, m_model, m_factory);
 
-    InformationProxy *infoProxy = new InformationProxy();
+    InformationProxy *infoProxy = new InformationProxy(m_factory->scheduler());
     infoProxy->setCategory(category);
     infoProxy->setFilter(&m_filter);
     infoProxy->setSourceModel(m_model);

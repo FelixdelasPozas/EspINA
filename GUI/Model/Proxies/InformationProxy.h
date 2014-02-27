@@ -35,8 +35,12 @@ namespace EspINA
   : public QAbstractProxyModel
   {
     Q_OBJECT
+
+    class InformationFetcher;
+    using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
+
   public:
-    explicit InformationProxy();
+    explicit InformationProxy(SchedulerSPtr scheduler);
     virtual ~InformationProxy();
 
     virtual void setSourceModel(ModelAdapterSPtr sourceModel);
@@ -82,8 +86,12 @@ namespace EspINA
 
     void sourceModelReset();
 
+    void ontaskFininished();
+
   private:
     bool acceptSegmentation(const SegmentationAdapterPtr segmentation) const;
+
+    QModelIndex index(const ItemAdapterPtr segmentation, int col = 0);
 
   private:
     ModelAdapterSPtr m_model;
@@ -93,6 +101,9 @@ namespace EspINA
     SegmentationExtension::InfoTagList m_tags;
 
     ItemAdapterList m_elements;
+
+    SchedulerSPtr m_scheduler;
+    mutable QMap<SegmentationAdapterPtr, InformationFetcherSPtr> m_pendingInformation;
   };
 } // namespace EspINA
 

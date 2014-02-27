@@ -41,8 +41,8 @@ namespace EspINA
     static const InfoTag BOTTOM_DISTANCE;
     static const InfoTag BACK_DISTANCE;
 
-    explicit EdgeDistance(const State     &state = State(),
-                          const InfoCache &cache = InfoCache());
+    explicit EdgeDistance(const InfoCache &cache = InfoCache(),
+                          const State     &state = State());
     virtual ~EdgeDistance();
 
     virtual Type type() const
@@ -73,11 +73,8 @@ namespace EspINA
   private:
     void updateDistances() const;
 
-    void setDistances(Nm distances[6]);
-
   private:
-    mutable bool m_init;
-    mutable Nm   m_distances[6];
+    QMutex     m_mutex;
 
     friend class ChannelEdges;
   };

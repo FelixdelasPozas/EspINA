@@ -43,7 +43,7 @@ int channel_delete_extension(int argc, char** argv )
     bool Invalidated;
   public:
     explicit DummyExtension() 
-    : Initialized{false}, ValidChannel{false}, Invalidated{false} {}
+    : ChannelExtension(InfoCache()), Initialized{false}, ValidChannel{false}, Invalidated{false} {}
 
     virtual InfoTagList availableInformations() const { return InfoTagList(); }
     virtual QVariant cacheFail(const QString& tag) const { return QVariant(); }

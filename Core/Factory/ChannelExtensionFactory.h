@@ -29,9 +29,14 @@ namespace EspINA
   class EspinaCore_EXPORT ChannelExtensionFactory
   {
   public:
+    struct Extension_Not_Provided_Exception {};
+
+  public:
     virtual ~ChannelExtensionFactory() {}
 
-    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type type, const State &state = State()) const = 0;
+    virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
+                                                        const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache() ,
+                                                        const State                       &state = State()) const = 0;
 
     virtual ChannelExtensionTypeList providedExtensions() const = 0 ;
   };

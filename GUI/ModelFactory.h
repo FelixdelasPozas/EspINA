@@ -53,7 +53,8 @@ namespace EspINA
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
-    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(), SchedulerSPtr scheduler = SchedulerSPtr());
+    explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(),
+                          SchedulerSPtr scheduler = SchedulerSPtr());
     ~ModelFactory();
 
     void registerAnalysisReader(AnalysisReaderPtr reader);
@@ -90,11 +91,11 @@ namespace EspINA
 
     ChannelAdapterSPtr createChannel(FilterAdapterSPtr filter, Output::Id output) const;
 
-    ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type, const State &state = State());
+    ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type &type);
 
     SegmentationAdapterSPtr createSegmentation(FilterAdapterSPtr filter, Output::Id output) const;
 
-    SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type, const State &state = State());
+    SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type &type);
 
     SampleAdapterSPtr adaptSample(SampleSPtr sample) const;
 
@@ -110,8 +111,12 @@ namespace EspINA
     RepresentationFactorySPtr segmentationRepresentationFactory() const
     { return m_segmentationRepresentationFactory; }
 
+    SchedulerSPtr scheduler() const
+    { return m_scheduler; }
+
   private:
     CoreFactorySPtr m_factory;
+    SchedulerSPtr   m_scheduler;
     RepresentationFactoryGroupSPtr m_channelRepresentationFactory;
     RepresentationFactoryGroupSPtr m_segmentationRepresentationFactory;
 

@@ -29,7 +29,9 @@ namespace EspINA {
   : public SegmentationExtension
   {
   public:
-    explicit ReadOnlySegmentationExtension(SegmentationExtension::Type type, const State &state = State());
+    explicit ReadOnlySegmentationExtension(const SegmentationExtension::Type      &type,
+                                           const SegmentationExtension::InfoCache &cache,
+                                           const State &state);
 
     virtual SegmentationExtension::Type type() const
     { return m_type; }

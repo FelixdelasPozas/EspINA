@@ -50,6 +50,15 @@ namespace EspINA {
     int progress()
     { return m_progressBar->value(); }
 
+    TaskSPtr task() const
+    { return m_task; }
+
+  signals:
+    void aborted();
+
+  protected:
+    virtual void showEvent(QShowEvent *event);
+
   private slots:
     void updateProgress(int value);
     void onCancel();

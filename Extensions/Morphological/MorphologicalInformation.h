@@ -41,8 +41,8 @@ namespace EspINA
     static const Type TYPE;
 
   public:
-    explicit MorphologicalInformation(const State     &state = State(),
-                                      const InfoCache &cache = InfoCache());
+    explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
+                                      const State     &state = State());
 
     virtual ~MorphologicalInformation();
 

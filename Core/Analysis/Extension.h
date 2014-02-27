@@ -80,6 +80,12 @@ namespace EspINA
 
     virtual InfoTagList availableInformations() const = 0;
 
+    InfoTagList readyInformation() const
+    {
+      QMutexLocker lock(&m_mutex);
+      return m_infoCache.keys();
+    }
+
     QVariant information(const InfoTag &tag) const
     {
       Q_ASSERT(availableInformations().contains(tag));
@@ -98,7 +104,7 @@ namespace EspINA
     { return QString(); }
 
   protected:
-    Extension(InfoCache infoCache = InfoCache())
+    Extension(const InfoCache &infoCache)
     : m_extendedItem{nullptr}
     , m_infoCache{infoCache}
     {}
@@ -149,16 +155,18 @@ namespace EspINA
   {
     Q_OBJECT
 
-  protected:
-    ChannelExtension(InfoCache infoCache = InfoCache())
-    : Extension<Channel>(infoCache)
-    {}
-
-  protected slots:
+  public slots:
     virtual void invalidate()
     {
       Extension<Channel>::invalidate();
     }
+
+  protected:
+    ChannelExtension(const InfoCache &infoCache)
+    : Extension<Channel>(infoCache)
+    {}
+
+    //friend class Channel;
   };
 
   using ChannelExtensionPtr      = ChannelExtension *;
@@ -175,16 +183,19 @@ namespace EspINA
   public:
     virtual bool validCategory(const QString &classificationName) const = 0;
 
-  protected:
-    SegmentationExtension(InfoCache infoCache = InfoCache())
-    : Extension<Segmentation>(infoCache)
-    {}
-
-  protected slots:
+  public slots:
     virtual void invalidate()
     {
       Extension<Segmentation>::invalidate();
     }
+
+  protected:
+    SegmentationExtension(const InfoCache &infoCache)
+    : Extension<Segmentation>(infoCache)
+    {}
+
+
+    //friend class Segmentation;
   };
 
   using SegmentationExtensionPtr      = SegmentationExtension *;

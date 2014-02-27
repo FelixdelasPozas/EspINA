@@ -46,7 +46,8 @@ const char SEP = ';';
 CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager,
                                                SchedulerSPtr         scheduler,
                                                const State          &state)
-: m_manager(manager)
+: ChannelExtension(InfoCache())
+, m_manager(manager)
 , m_scheduler(scheduler)
 , m_prevState(state)
 {

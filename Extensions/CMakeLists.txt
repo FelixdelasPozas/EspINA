@@ -21,7 +21,7 @@ set (EXTENSIONS_SOURCES
   EdgeDistances/EdgesAnalyzer.cpp
   EdgeDistances/EdgeDistance.cpp
   Morphological/MorphologicalInformation.cpp
-  Tags/TagExtension.cpp
+  Tags/SegmentationTags.cpp
   )
 
 set(EXTENSIONS_EXTERNAL_LIBS

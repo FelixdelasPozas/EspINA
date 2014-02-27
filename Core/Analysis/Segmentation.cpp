@@ -141,15 +141,21 @@ Snapshot Segmentation::snapshot() const
       stream.writeStartElement("Extension");
       stream.writeAttribute("Type", extension->type());
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
-      for(auto tag : extension->availableInformations())
+      for(auto tag : extension->readyInformation())
       {
         stream.writeStartElement("Info");
         stream.writeAttribute("Name", tag);
         stream.writeCharacters(extension->information(tag).toString());
         stream.writeEndElement();
       }
-      stream.writeCharacters(extension->state());
-      //stream.writeEndElement();
+      auto state = extension->state();
+      if (!state.isEmpty())
+      {
+        stream.writeStartElement("State");
+        stream.writeCharacters(state);
+        stream.writeEndElement();
+      }
+      stream.writeEndElement();
 
       for(auto data: extension->snapshot())
       {

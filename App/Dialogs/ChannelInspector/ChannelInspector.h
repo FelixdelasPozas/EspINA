@@ -75,7 +75,7 @@ namespace EspINA
     View2D            *m_view;
     HueSelector       *m_hueSelector;
 
-    bool m_adaptiveEdgesEnabled;
+    bool m_useDistanceToEdges;
     int  m_backgroundColor;
     int  m_threshold;
 

@@ -244,11 +244,6 @@ private:
   //-----------------------------------------------------------------------------
   SegmentationSPtr createSegmentation(DirectedGraph::Vertex   roVertex)
   {
-    if (roVertex->name() == "Asymmetric 597")
-    {
-      qDebug() << "Te pille";
-    }
-
     auto roOutput = findOutput(roVertex);
 
     auto filter   = roOutput.first;
@@ -380,70 +375,129 @@ private:
   }
 
   //-----------------------------------------------------------------------------
+  void createChannelExtension(ChannelSPtr channel,
+                              const ChannelExtension::Type &type,
+                              const ChannelExtension::InfoCache &cache,
+                              const State &state)
+  {
+    ChannelExtensionSPtr extension;
+    try
+    {
+      extension = m_factory->createChannelExtension(type, cache, state);
+      qDebug() << "Creating Channel Extension" << type;
+    } catch (CoreFactory::Unknown_Type_Exception &e)
+    {
+      qDebug() << "Creating ReadOnlyChannelExtension" << type;
+      extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type, cache, state)};
+    }
+    Q_ASSERT(extension);
+    channel->addExtension(extension);
+  }
+
+  //-----------------------------------------------------------------------------
   void loadExtensions(ChannelSPtr channel)
   {
     QString xmlFile = ChannelExtension::ExtensionFilePath(channel.get());
 
-    QByteArray extenions = channel->storage()->snapshot(xmlFile);
+    QByteArray extensions = channel->storage()->snapshot(xmlFile);
 
-    QXmlStreamReader xml(extenions);
+    QXmlStreamReader xml(extensions);
 
-    //qDebug() << "Looking for" << channel->name() << "extensions:";
+    auto type  = QString();
+    auto cache = ChannelExtension::InfoCache();
+    auto state = State();
+
     while (!xml.atEnd())
     {
       xml.readNextStartElement();
-      if (xml.isStartElement() && xml.name() != "Channel")
+      if (xml.isStartElement())
       {
-        QString type  = xml.attributes().value("Type").toString();
-        State   state = xml.readElementText();
-
-        //qDebug() << " - " << type << " found";
-        //qDebug() << " * State: \n" << state;
-
-        ChannelExtensionSPtr extension;
-        try
+        if (xml.name() == "Extension")
         {
-          extension = m_factory->createChannelExtension(type, state);
-        } catch (CoreFactory::Unknown_Type_Exception &e)
-        {
-          extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type, state)};
+          type  = xml.attributes().value("Type").toString();
+          cache = ChannelExtension::InfoCache();
+          state = State();
         }
-        Q_ASSERT(extension);
-        channel->addExtension(extension);
+        else if (xml.name() == "Info")
+        {
+          QString name = xml.attributes().value("Name").toString();
+          cache[name]  = xml.readElementText();
+        }
+        else if (xml.name() == "State")
+        {
+          state = xml.readElementText();
+        }
+      }
+      else if (xml.isEndElement() && xml.name() == "Extension")
+      {
+        createChannelExtension(channel, type, cache, state);
       }
     }
+
+    if (xml.hasError()) qDebug() << xml.errorString();
+  }
+
+  //-----------------------------------------------------------------------------
+  void createSegmentationExtension(SegmentationSPtr segmentation,
+                              const SegmentationExtension::Type &type,
+                              const SegmentationExtension::InfoCache &cache,
+                              const State &state)
+  {
+    SegmentationExtensionSPtr extension;
+    try
+    {
+      extension = m_factory->createSegmentationExtension(type, cache, state);
+      qDebug() << "Creating Channel Extension" << type;
+    } catch (CoreFactory::Unknown_Type_Exception &e)
+    {
+      qDebug() << "Creating ReadOnlySegmentationExtension" << type;
+      extension = SegmentationExtensionSPtr{new ReadOnlySegmentationExtension(type, cache, state)};
+    }
+    Q_ASSERT(extension);
+    segmentation->addExtension(extension);
   }
 
   //-----------------------------------------------------------------------------
   void loadExtensions(SegmentationSPtr segmentation)
   {
     QString xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
-    QByteArray extenions = segmentation->storage()->snapshot(xmlFile);
+    QByteArray extensions = segmentation->storage()->snapshot(xmlFile);
 
-    QXmlStreamReader xml(extenions);
+    QXmlStreamReader xml(extensions);
 
     //qDebug() << "Looking for" << segmentation->name() << "extensions:";
+    auto type  = QString();
+    auto cache = SegmentationExtension::InfoCache();
+    auto state = State();
+
     while (!xml.atEnd())
     {
       xml.readNextStartElement();
-      if (xml.isStartElement() && xml.name() != "Segmentation")
+      if (xml.isStartElement())
       {
-        QString type  = xml.attributes().value("Type").toString();
-        State   state = xml.readElementText();
-        //qDebug() << " - " << type << " found";
-
-        SegmentationExtensionSPtr extension;
-        try
+        if (xml.name() == "Extension")
         {
-          extension = m_factory->createSegmentationExtension(type, state);
-        } catch (CoreFactory::Unknown_Type_Exception &e)
-        {
-          extension = SegmentationExtensionSPtr{new ReadOnlySegmentationExtension(type, state)};
+          type  = xml.attributes().value("Type").toString();
+          cache = SegmentationExtension::InfoCache();
+          state = State();
         }
-        Q_ASSERT(extension);
-        segmentation->addExtension(extension);
+        else if (xml.name() == "Info")
+        {
+          QString name = xml.attributes().value("Name").toString().replace("_", " ");
+          cache[name]  = xml.readElementText();
+        }
+        else if (xml.name() == "State")
+        {
+          state = xml.readElementText();
+        }
+      }
+      else if (xml.isEndElement() && xml.name() == "Extension")
+      {
+        createSegmentationExtension(segmentation, type, cache, state);
       }
     }
+
+    if (xml.hasError()) qDebug() << xml.errorString();
   }
 
 

@@ -36,6 +36,7 @@ const char SEP = ',';
 
 //------------------------------------------------------------------------
 VisualizationState::VisualizationState()
+: SegmentationExtension(InfoCache())
 {
 }
 

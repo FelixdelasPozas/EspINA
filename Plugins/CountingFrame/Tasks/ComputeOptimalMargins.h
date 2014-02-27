@@ -32,17 +32,17 @@
 namespace EspINA
 {
 
-  template <typename T>
+  template <typename C, typename S>
   class ComputeOptimalMargins
   : public Task
   {
   public:
-    explicit ComputeOptimalMargins(T                        channel,
-                                   SegmentationAdapterSList segmentations,
-                                   SchedulerSPtr            scheduler = SchedulerSPtr());
+    explicit ComputeOptimalMargins(C channel,
+                                   S segmentations,
+                                   SchedulerSPtr scheduler = SchedulerSPtr());
     virtual ~ComputeOptimalMargins();
 
-    T channel() const
+    C channel() const
     { return m_channel;}
 
     void inclusion(Nm value[3]) const
@@ -55,8 +55,8 @@ namespace EspINA
     virtual void run();
 
   private:
-    T                        m_channel;
-    SegmentationAdapterSList m_segmentations;
+    C m_channel;
+    S m_segmentations;
 
     Nm m_inclusion[3];
     Nm m_exclusion[3];

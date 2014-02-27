@@ -58,8 +58,8 @@ const char SEP = ',';
 
 //-----------------------------------------------------------------------------
 ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
-                           const State                       &state,
-                           const ChannelExtension::InfoCache &cache)
+                           const ChannelExtension::InfoCache &cache,
+                           const State                       &state)
 : ChannelExtension(cache)
 , m_backgroundColor(-1)
 , m_computedVolume(0)

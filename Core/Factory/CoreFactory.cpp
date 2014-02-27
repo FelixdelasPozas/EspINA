@@ -111,13 +111,15 @@ ChannelExtensionTypeList CoreFactory::availableChannelExtensions() const
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr CoreFactory::createChannelExtension(ChannelExtension::Type type, const State& state)
+ChannelExtensionSPtr CoreFactory::createChannelExtension(const ChannelExtension::Type      &type,
+                                                         const ChannelExtension::InfoCache &cache,
+                                                         const State &state)
 {
   ChannelExtensionSPtr extension;
 
   if (m_channelExtensionFactories.contains(type))
   {
-    extension = m_channelExtensionFactories[type]->createChannelExtension(type, state);
+    extension = m_channelExtensionFactories[type]->createChannelExtension(type, cache, state);
   } else
   {
     throw Unknown_Type_Exception();
@@ -157,13 +159,15 @@ SegmentationExtensionTypeList CoreFactory::availableSegmentationExtensions() con
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(SegmentationExtension::Type type, const State& state)
+SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                                   const SegmentationExtension::InfoCache &cache,
+                                                                   const State &state)
 {
   SegmentationExtensionSPtr extension;
 
   if (m_segmentationExtensionFactories.contains(type))
   {
-    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type, state);
+    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type, cache, state);
   } else
   {
     throw Unknown_Type_Exception();

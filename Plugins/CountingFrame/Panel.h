@@ -71,7 +71,7 @@ namespace EspINA
 
     void showInfo(CountingFrame *cf);
 
-    void onCreateCountingFrameFinished();
+    void onMarginsComputed();
 
     void onCountingFrameCreated(CountingFrame *cf);
 
@@ -136,24 +136,23 @@ namespace EspINA
     CountingFrameList m_countingFrames;
     CountingFrame    *m_activeCF;
 
-    using ComputeOptimalMarginsSPtr = std::shared_ptr<ComputeOptimalMargins<ChannelAdapterPtr>>;
+    using ComputeOptimalMarginsTask = ComputeOptimalMargins<ChannelPtr, SegmentationSList>;
+    using ComputeOptimalMarginsSPtr = std::shared_ptr<ComputeOptimalMarginsTask>;
 
     struct PendingCF
     {
-      CFType  Type;
-      QString Constraint;
+      CountingFrame *CF;
       ComputeOptimalMarginsSPtr Task;
 
       PendingCF(){}
 
-      PendingCF(CFType type, QString constraint, ComputeOptimalMarginsSPtr task)
-      : Type(type)
-      , Constraint(constraint)
+      PendingCF(CountingFrame *cf, ComputeOptimalMarginsSPtr task)
+      : CF(cf)
       , Task(task){}
 
       bool operator==(const PendingCF &rhs)
       {
-        return Type == rhs.Type && Constraint == rhs.Constraint && Task == rhs.Task;
+        return CF == rhs.CF && Task == rhs.Task;
       }
     };
 

@@ -34,7 +34,8 @@ namespace EspINA {
       Q_OBJECT
 
     public:
-      CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler, const State& state = State()) const;
+      CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler,
+                                                 const State& state = State()) const;
 
 //       void createAdaptiveCF(ChannelAdapterPtr channel,
 //                             Nm inclusion[3],

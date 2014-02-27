@@ -46,7 +46,7 @@ namespace EspINA
     static InfoTag cfTag(CountingFrame *cf);
 
   public:
-    explicit StereologicalInclusion();
+    explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
 
     virtual ~StereologicalInclusion();
 

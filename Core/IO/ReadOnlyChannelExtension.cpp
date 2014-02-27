@@ -22,8 +22,11 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ReadOnlyChannelExtension::ReadOnlyChannelExtension(ChannelExtension::Type type, const State& state)
-: m_type(type)
+ReadOnlyChannelExtension::ReadOnlyChannelExtension(const ChannelExtension::Type type,
+                                                   const ChannelExtension::InfoCache &cache,
+                                                   const State &state)
+: ChannelExtension(cache)
+, m_type(type)
 , m_state(state)
 {
 }

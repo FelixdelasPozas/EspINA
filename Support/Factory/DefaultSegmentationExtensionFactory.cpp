@@ -21,21 +21,28 @@
 
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
+#include <Extensions/Tags/SegmentationTags.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type type, const State& state) const
+SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                                                           const SegmentationExtension::InfoCache &cache,
+                                                                                           const State& state) const
 {
   SegmentationExtensionSPtr extension;
 
   if (EdgeDistance::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new EdgeDistance()};
+    extension = SegmentationExtensionSPtr{new EdgeDistance(cache, state)};
   }
   else if (MorphologicalInformation::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new MorphologicalInformation()};
+    extension = SegmentationExtensionSPtr{new MorphologicalInformation(cache, state)};
+  }
+  else if (SegmentationTags::TYPE == type)
+  {
+    extension = SegmentationExtensionSPtr{new SegmentationTags(cache)};
   }
 
   return extension;

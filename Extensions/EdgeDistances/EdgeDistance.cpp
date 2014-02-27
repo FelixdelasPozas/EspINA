@@ -20,6 +20,7 @@
 #include "EdgeDistance.h"
 
 #include "ChannelEdges.h"
+#include <Extensions/ExtensionUtils.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
@@ -38,9 +39,8 @@ const SegmentationExtension::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Dis
 const SegmentationExtension::InfoTag EdgeDistance::BACK_DISTANCE   = "Back Distance";
 
 //-----------------------------------------------------------------------------
-EdgeDistance::EdgeDistance(const State& state, const SegmentationExtension::InfoCache& cache)
+EdgeDistance::EdgeDistance(const SegmentationExtension::InfoCache& cache, const State& state)
 : SegmentationExtension(cache)
-, m_init(false)
 {
 }
 
@@ -91,115 +91,50 @@ QVariant EdgeDistance::cacheFail(const QString& tag) const
 {
   updateDistances();
 
-  updateInfoCache(LEFT_DISTANCE  , m_distances[0]);
-  updateInfoCache(RIGHT_DISTANCE , m_distances[1]);
-  updateInfoCache(TOP_DISTANCE   , m_distances[2]);
-  updateInfoCache(BOTTOM_DISTANCE, m_distances[3]);
-  updateInfoCache(FRONT_DISTANCE , m_distances[4]);
-  updateInfoCache(BACK_DISTANCE  , m_distances[5]);
-
-  if (LEFT_DISTANCE == tag)
-    return m_distances[0];
-  if (RIGHT_DISTANCE == tag)
-    return m_distances[1];
-  if (TOP_DISTANCE == tag)
-    return m_distances[2];
-  if (BOTTOM_DISTANCE == tag)
-    return m_distances[3];
-  if (FRONT_DISTANCE == tag)
-    return m_distances[4];
-  if (BACK_DISTANCE == tag)
-    return m_distances[5];
-
-  return QVariant();
+  return cachedInfo(tag);
 }
-
-//-----------------------------------------------------------------------------
-// void EdgeDistance::loadCache(QuaZipFile  &file,
-//                              const QDir  &tmpDir,
-//                              IEspinaModel *model)
-// {
-//   QString header(file.readLine());
-//   if (header.toStdString() == FILE_VERSION)
-//   {
-//     char buffer[1024];
-//     while (file.readLine(buffer, sizeof(buffer)) > 0)
-//     {
-//       QString line(buffer);
-//       QStringList fields = line.split(SEP);
-// 
-//       SegmentationPtr extensionSegmentation = NULL;
-//       int i = 0;
-//       while (!extensionSegmentation && i < model->segmentations().size())
-//       {
-//         SegmentationSPtr segmentation = model->segmentations()[i];
-//         if ( segmentation->filter()->id()  == fields[0]
-//           && segmentation->outputId()         == fields[1].toInt()
-//           && segmentation->filter()->cacheDir() == tmpDir)
-//         {
-//           extensionSegmentation = segmentation.get();
-//         }
-//         i++;
-//       }
-//       if (extensionSegmentation)
-//       {
-//         ExtensionData &data = s_cache[extensionSegmentation].Data;
-// 
-//         for(i=0; i<6; i++)
-//         {
-//           data.Distances[i] = fields[2+i].toDouble();
-//         }
-//       } else
-//       {
-//         qWarning() << EdgeDistanceID << "Invalid Cache Entry:" << line;
-//       }
-//     }
-//   }
-// }
-
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::edgeDistance(Nm distances[6]) const
 {
-  if (!m_init) updateDistances();
-
-  memcpy(distances, m_distances, 6*sizeof(Nm));
+  distances[0] = information(LEFT_DISTANCE).toDouble();
+  distances[1] = information(RIGHT_DISTANCE).toDouble();
+  distances[2] = information(TOP_DISTANCE).toDouble();
+  distances[3] = information(BOTTOM_DISTANCE).toDouble();
+  distances[4] = information(FRONT_DISTANCE).toDouble();
+  distances[5] = information(BACK_DISTANCE).toDouble();
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
+  QMutexLocker lock(&m_mutex);
   auto channels = Query::channels(m_extendedItem);
 
   if (channels.size() == 1)
   {
+    Nm distances[6];
     auto channel = channels.first();
-    if (!channel->hasExtension(ChannelEdges::TYPE))
-    {
-      ChannelEdgesSPtr extension{new ChannelEdges()};
-      channel->addExtension(extension);
-    }
-    ChannelEdgesPtr edgesExtension = channelEdgesExtension(channel->extension(ChannelEdges::TYPE).get());
-    Q_ASSERT(edgesExtension);
+
+    ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
 
     if (edgesExtension->useDistanceToBounds())
     {
-      edgesExtension->distanceToBounds(m_extendedItem, m_distances);
+      edgesExtension->distanceToBounds(m_extendedItem, distances);
     }
     else
     {
-      edgesExtension->distanceToEdges(m_extendedItem, m_distances);
+      edgesExtension->distanceToEdges(m_extendedItem, distances);
     }
+
+    updateInfoCache(LEFT_DISTANCE  , distances[0]);
+    updateInfoCache(RIGHT_DISTANCE , distances[1]);
+    updateInfoCache(TOP_DISTANCE   , distances[2]);
+    updateInfoCache(BOTTOM_DISTANCE, distances[3]);
+    updateInfoCache(FRONT_DISTANCE , distances[4]);
+    updateInfoCache(BACK_DISTANCE  , distances[5]);
   }
-
-  m_init = true;
-}
-
-//-----------------------------------------------------------------------------
-void EdgeDistance::setDistances(Nm distances[6])
-{
-  memcpy(m_distances, distances, 6*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------

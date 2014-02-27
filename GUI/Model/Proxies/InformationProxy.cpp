@@ -21,9 +21,48 @@
 
 using namespace EspINA;
 
+class InformationProxy::InformationFetcher
+: public Task
+{
+public:
+  InformationFetcher(SegmentationAdapterPtr segmentation,
+                     const SegmentationExtension::InfoTagList &tags,
+                     SchedulerSPtr scheduler)
+  : Task(scheduler)
+  , Segmentation(segmentation)
+  , m_tags(tags)
+  {
+    auto id = Segmentation->data(Qt::DisplayRole).toString();
+    setDescription(tr("%1 information").arg(id));
+  }
+
+  SegmentationAdapterPtr Segmentation;
+
+protected:
+  virtual void run()
+  {
+    for (int i = 0; i < m_tags.size(); ++i)
+    {
+      if (!canExecute()) break;
+
+      auto tag = m_tags[i];
+      if (tag != "Name" && tag != "Category")
+      {
+        Segmentation->information(m_tags[i]);
+      }
+
+      emit progress((100.0*i)/m_tags.size());
+    }
+  }
+
+private:
+  const SegmentationExtension::InfoTagList m_tags;
+};
+
 //------------------------------------------------------------------------
-InformationProxy::InformationProxy()
+InformationProxy::InformationProxy(SchedulerSPtr scheduler)
 : QAbstractProxyModel()
+, m_scheduler(scheduler)
 {
 }
 
@@ -203,7 +242,21 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
     if (segmentation->informationTags().contains(tag))
     {
-      return segmentation->information(tag);
+      if (!m_pendingInformation.contains(segmentation)
+       || m_pendingInformation[segmentation]->isAborted())
+      {
+        InformationFetcherSPtr task{new InformationFetcher(segmentation, m_tags, m_scheduler)};
+        m_pendingInformation[segmentation] = task;
+        connect(task.get(), SIGNAL(finished()),
+                this, SLOT(ontaskFininished()));
+        Task::submit(task);
+      } else if (m_pendingInformation[segmentation]->hasFinished())
+      {
+        return segmentation->information(tag);
+      }
+
+      return "Computing";
+
     } else
     {
       return tr("Unavailable");
@@ -235,6 +288,11 @@ void InformationProxy::setFilter(const SegmentationAdapterList *filter)
 void InformationProxy::setInformationTags(const SegmentationExtension::InfoTagList tags)
 {
   beginResetModel();
+  for (auto task : m_pendingInformation)
+  {
+    task->abort();
+  }
+  m_pendingInformation.clear();
   m_tags = tags;
   endResetModel();
 }
@@ -350,6 +408,18 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 }
 
 //------------------------------------------------------------------------
+void InformationProxy::ontaskFininished()
+{
+  auto task = dynamic_cast<InformationFetcher *>(sender());
+  Q_ASSERT(task);
+
+  auto firstColumn = index(task->Segmentation);
+  auto lastColumn  = index(task->Segmentation, rowCount() - 1);
+
+  emit dataChanged(firstColumn, lastColumn);
+}
+
+//------------------------------------------------------------------------
 void InformationProxy::sourceModelReset()
 {
   beginResetModel();
@@ -364,4 +434,12 @@ bool InformationProxy::acceptSegmentation(const SegmentationAdapterPtr segmentat
 {
   return segmentation->category()->classificationName() == m_category
       && (m_filter->isEmpty() || m_filter->contains(segmentation));
+}
+
+//------------------------------------------------------------------------
+QModelIndex InformationProxy::index(const ItemAdapterPtr segmentation, int col)
+{
+  int row = m_elements.indexOf(segmentation);
+
+  return index(row, col);
 }

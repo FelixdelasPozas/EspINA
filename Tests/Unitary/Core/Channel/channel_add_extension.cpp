@@ -42,7 +42,7 @@ int channel_add_extension(int argc, char** argv )
     bool ValidChannel;
   public:
     explicit DummyExtension() 
-    : Initialized{false}, ValidChannel{false} {}
+    : ChannelExtension(InfoCache()), Initialized{false}, ValidChannel{false} {}
 
     virtual InfoTagList availableInformations() const { return InfoTagList(); }
     virtual QVariant cacheFail(const QString& tag) const { return QVariant(); }

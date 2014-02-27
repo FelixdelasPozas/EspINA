@@ -184,8 +184,8 @@ QVariant SegmentationAdapter::data(int role) const
       return isVisible() ? Qt::Checked : Qt::Unchecked;
     case TypeRole:
       return typeId(Type::SEGMENTATION);
-//     case SegmentationNumberRole:
-//       return number();
+    case NumberRole:
+      return number();
     default:
       return QVariant();
   }
@@ -227,8 +227,9 @@ bool SegmentationAdapter::setData(const QVariant& value, int role)
     case Qt::CheckStateRole:
       setVisible(value.toBool());
       return true;
-    case SelectionRole:
-      setSelected(value.toBool());
+    case TypeRole: // Before it had the same value but it was SelectionRole
+      Q_ASSERT(false);
+      //setSelected(value.toBool());
       return true;
     default:
       return false;

@@ -69,7 +69,7 @@ set (LOCAL_SOURCES
   CountingFrames/vtkCountingFrameSliceWidget.cpp
   Dialogs/CFTypeSelectorDialog.cpp
   Extensions/CountingFrameExtension.cpp
-  Extensions/CountingFrameFactory.cpp
+  Extensions/CountingFrameFactories.cpp
   Extensions/StereologicalInclusion.cpp
   Tasks/ApplyCountingFrame.cpp
   Panel.cpp

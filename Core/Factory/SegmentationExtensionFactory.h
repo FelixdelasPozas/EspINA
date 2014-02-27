@@ -28,9 +28,14 @@ namespace EspINA
   class EspinaCore_EXPORT SegmentationExtensionFactory
   {
   public:
+    struct Extension_Not_Provided_Exception {};
+
+  public:
     virtual ~SegmentationExtensionFactory() {}
 
-    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type type, const State &state = State()) const = 0;
+    virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
+                                                                  const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache() ,
+                                                                  const State                            &state = State()) const = 0;
 
     virtual SegmentationExtensionTypeList providedExtensions() const = 0 ;
   };

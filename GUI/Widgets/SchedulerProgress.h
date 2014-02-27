@@ -42,9 +42,16 @@ namespace EspINA {
 
   private slots:
     void onTaskAdded  (TaskSPtr task) throw (Duplicated_Task_Exception);
+
     void onTaskRemoved(TaskSPtr task);
+
     void showTaskProgress(bool visible);
+
     void updateProgress();
+
+    // Aborting a task will remove it from the scheduler progress
+    // but the task may remain executing until task abort is handled
+    void onProgressAborted();
 
   private:
     void updateNotificationWidget();

@@ -21,6 +21,7 @@
 #include "CountingFrameExtension.h"
 #include "CountingFrames/CountingFrame.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
@@ -55,8 +56,9 @@ SegmentationExtension::InfoTag StereologicalInclusion::cfTag(CountingFrame *cf)
 }
 
 //------------------------------------------------------------------------
-StereologicalInclusion::StereologicalInclusion()
-: m_isInitialized(false)
+StereologicalInclusion::StereologicalInclusion(const Extension< Segmentation >::InfoCache& infoCache)
+: SegmentationExtension(infoCache)
+, m_isInitialized(false)
 , m_isUpdated(false)
 , m_isExcluded(false)
 {
@@ -219,6 +221,10 @@ void StereologicalInclusion::evaluateCountingFrames()
 //------------------------------------------------------------------------
 void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 {
+  auto tag = cfTag(cf);
+
+  updateInfoCache(tag, QVariant());
+
   // Compute CF's exclusion value
   bool excluded = isExcludedByCountingFrame(cf);
 
@@ -237,7 +243,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
   {
     QMutexLocker lock(&m_mutex);
 
-    updateInfoCache(cfTag(cf), info);
+    updateInfoCache(tag, info);
 
     m_exclusionCFs[cf] = excluded;
 
@@ -254,7 +260,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
       i++;
     }
 
-    m_isExcluded = excluded || isOnEdge();
+    m_isExcluded = excluded;// || isOnEdge();
   }
 }
 
@@ -417,10 +423,9 @@ void StereologicalInclusion::checkSampleCountingFrames()
     {
       if (channel->hasExtension(CountingFrameExtension::TYPE))
       {
-        auto extension = channel->extension(CountingFrameExtension::TYPE);
-        auto cfExtension = std::dynamic_pointer_cast<CountingFrameExtension>(extension);
+        auto extension = retrieveExtension<CountingFrameExtension>(channel);
 
-        for (auto cf : cfExtension->countingFrames())
+        for (auto cf : extension->countingFrames())
         {
           addCountingFrame(cf);
         }

@@ -147,7 +147,7 @@ namespace EspINA
     // TODO: extract region of sparse volume as vtkImageData
     // TODO: iterators?
     // TODO: fitToContent()
-    // TODO: snapshot(), editedregionSnapshot()
+    // TODO: editedregionSnapshot()
     // TODO: volumen 3d itkVolumeType to SparseVolume (algoritmo de octree)
     // ------------------------------------------------------------------------
 
@@ -181,7 +181,7 @@ namespace EspINA
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 
-    void compact();
+    VolumeBoundsList compact();
 
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels
@@ -685,9 +685,9 @@ namespace EspINA
     using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
     Snapshot snapshot;
 
-    compact();
+    auto compactedBounds = compact();
 
-    for(int i = 0; i < m_blocks.size(); ++i)
+    for(int i = 0; i < compactedBounds.size(); ++i)
     {
       VolumeWriter::Pointer writer = VolumeWriter::New();
 
@@ -699,22 +699,16 @@ namespace EspINA
       QString mhd = name + ".mhd";
       QString raw = name + ".raw";
 
-      ImageBlock * block = dynamic_cast<ImageBlock *>(m_blocks[i].get());
-      Q_ASSERT(block);
+      auto volume = itkImage(compactedBounds[i].bounds());
+      bool releaseFlag = volume->GetReleaseDataFlag();
+      volume->ReleaseDataFlagOff();
+      writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+      writer->SetInput(volume);
+      writer->Write();
+      volume->SetReleaseDataFlag(releaseFlag);
 
-      if (block)
-      {
-        auto volume = block->m_image;
-        bool releaseFlag = volume->GetReleaseDataFlag();
-        volume->ReleaseDataFlagOff();
-        writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
-        writer->SetInput(volume);
-        writer->Write();
-        volume->SetReleaseDataFlag(releaseFlag);
-
-        snapshot << SnapshotData(mhd, storage->snapshot(mhd));
-        snapshot << SnapshotData(raw, storage->snapshot(raw));
-      }
+      snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+      snapshot << SnapshotData(raw, storage->snapshot(raw));
     }
 
     return snapshot;
@@ -752,12 +746,25 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  void SparseVolume<T>::compact()
+  VolumeBoundsList SparseVolume<T>::compact()
   {
+    if (m_blocks.empty())
+    {
+      return VolumeBoundsList();
+    }
     // if the last block hasn't been modified then return without doing the compact
     // procedure because we assume the blocks have been compacted before.
-    m_blocks[m_blocks.size()-1]->isLocked();
-      return;
+    if (m_blocks[m_blocks.size()-1]->isLocked())
+    {
+      VolumeBoundsList currentBounds;
+
+      for (auto block : m_blocks)
+      {
+        currentBounds << block->bounds();
+      }
+
+      return currentBounds;
+    }
 
     using SplitBounds = QPair<VolumeBounds, int>;
 
@@ -837,7 +844,9 @@ namespace EspINA
       }
 
       if (!empty)
+      {
         nonEmptyBounds << bounds;
+      }
       // blockImages << itkImage(bounds);
     }
 
@@ -860,7 +869,9 @@ namespace EspINA
         for (int j = 0; j < blockBounds.size(); ++j)
         {
           if (i == j)
+          {
             continue;
+          }
 
           if (areAdjacent(blockBounds[i], blockBounds[j]))
           {
@@ -877,9 +888,13 @@ namespace EspINA
         }
 
       for(auto element: joinedElements)
+      {
         blockBounds.removeOne(element);
+      }
       for(auto joined: joinedBlocks)
+      {
         blockBounds << joined;
+      }
 
       joinedBlocks.clear();
       joinedElements.clear();
@@ -889,21 +904,14 @@ namespace EspINA
     int finalSize = blockBounds.size();
     std::cout << initialSize << " initial blocks reduced to " << finalSize << " blocks -> " << 100 - (finalSize *100 / initialSize) << "% reduction." << std::endl;
     for (int i = 0; i < blockBounds.size(); ++i)
+    {
       for (int j = i+1; j < blockBounds.size(); ++j)
       {
         Q_ASSERT(!intersect(blockBounds[i], blockBounds[j]));
       }
-
-    QList<typename T::Pointer> blockImages;
-    for (auto block: blockBounds)
-      blockImages << itkImage(block.bounds());
-
-    m_blocks.clear();
-
-    for(auto image : blockImages)
-    {
-      setBlock(image, true);
     }
+
+    return blockBounds;
   }
 
   using SparseVolumePtr  = SparseVolume<itkVolumeType> *;
