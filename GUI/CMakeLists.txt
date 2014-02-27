@@ -18,9 +18,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/CrosshairRepresentation.h
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
-  Representations/Renderers/ContourRenderer.h
   Representations/Renderers/Renderer.h
-  Representations/Renderers/VolumetricGPURenderer.h
   Representations/RepresentationEmptySettings.h
   Representations/SliceRepresentationSettings.h
   Representations/SmoothedMeshRepresentation.h
@@ -31,6 +29,7 @@ qt4_wrap_cpp(GUI_MOC
   View/RenderView.h
   View/Selection.h
   View/View2D.h
+  View/ViewRendererMenu.h
   View/View3D.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
@@ -93,6 +92,7 @@ set (GUI_SOURCES
   Representations/Renderers/MeshRenderer.cpp
   Representations/Renderers/SmoothedMeshRenderer.cpp
   Representations/Renderers/Renderer.cpp
+  Representations/Renderers/RepresentationRenderer.cpp
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp
   Representations/Representation.cpp
@@ -112,6 +112,7 @@ set (GUI_SOURCES
   View/RenderView.cpp
   View/Selection.cpp
   View/View2D.cpp
+  View/ViewRendererMenu.cpp
   View/View2DState.cpp
   View/View3D.cpp
   View/Widgets/Contour/vtkVoxelContour2D.cpp
