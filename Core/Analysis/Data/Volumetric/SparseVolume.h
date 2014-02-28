@@ -429,7 +429,6 @@ namespace EspINA
     image->GetLargestPossibleRegion().Print(std::cout);
     region.Print(std::cout);
     */
-
     updateBlocksBoundingBox(block->bounds());
   }
 
@@ -553,13 +552,15 @@ namespace EspINA
     if (!intersect(m_bounds, requestedBounds))
       return;
 
-    VolumeBounds inputBounds = volumeBounds<T>(volume, bounds);
+    VolumeBounds largestBounds = volumeBounds<T>(volume, volume->GetLargestPossibleRegion());
 
-    VolumeBounds drawBounds  = intersection(m_bounds, inputBounds);
+    VolumeBounds inputBounds   = volumeBounds<T>(volume, bounds);
+
+    VolumeBounds drawBounds    = intersection(m_bounds, inputBounds);
 
     typename T::Pointer block;
 
-    if (drawBounds != inputBounds)
+    if (drawBounds != largestBounds)
     {
       using ExtractorType = itk::ExtractImageFilter<T,T>;
 
