@@ -210,6 +210,7 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
   }
 
   // Okay, adjust the representation
+  self->SetHighlighted(true);
   double e[2];
   e[0] = static_cast<double>(X);
   e[1] = static_cast<double>(Y);

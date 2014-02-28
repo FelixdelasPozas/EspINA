@@ -216,8 +216,6 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
   this->InvisibleProperty->SetAmbient(0.0);
   this->InvisibleProperty->SetDiffuse(0.0);
   this->InvisibleProperty->SetOpacity(0);
-
-  SetHighlighted(false);
 }
 
 //----------------------------------------------------------------------------
@@ -390,7 +388,6 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
   path = this->EdgePicker->GetPath();
   if ( path != NULL )
   {
-    SetHighlighted(true);
     this->LastPicker = this->EdgePicker;
     this->ValidPick = 1;
 
@@ -419,7 +416,6 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
   }
   else
   {
-    SetHighlighted(false);
     this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
   }
   return this->InteractionState;
