@@ -141,15 +141,6 @@ bool AdaptiveCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
   return false;
 }
 
-
-//-----------------------------------------------------------------------------
-void AdaptiveCountingFrame::setEnabled(bool enable)
-{
-  Q_ASSERT(false);
-}
-
-#include <QDebug>
-
 //-----------------------------------------------------------------------------
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {

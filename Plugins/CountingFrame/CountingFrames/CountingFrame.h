@@ -121,6 +121,8 @@ namespace CF {
 
     void setVisible(bool visible);
 
+    void setEnabled(bool enable);
+
     bool isVisible() const
     { return m_visible; }
 
@@ -200,6 +202,7 @@ namespace CF {
 
     Id   m_id;
     bool m_visible;
+    bool m_enable;
     bool m_highlight;
 
     Nm m_inclusion[3];

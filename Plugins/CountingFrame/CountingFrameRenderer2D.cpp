@@ -86,7 +86,7 @@ void CountingFrameRenderer2D::hide()
     return;
 
   for(auto cf: m_insertedCFs)
-    m_view->removeWidget(cf);
+    cf->setEnabled(false);
 
   if (!m_insertedCFs.empty())
     emit renderRequested();
@@ -99,9 +99,7 @@ void CountingFrameRenderer2D::show()
     return;
 
   for(auto cf: m_insertedCFs)
-  {
-    m_view->addWidget(cf);
-  }
+    cf->setEnabled(true);
 
   if (!m_insertedCFs.empty())
     emit renderRequested();

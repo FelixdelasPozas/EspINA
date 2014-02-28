@@ -141,15 +141,6 @@ bool OrtogonalCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
 }
 
 //-----------------------------------------------------------------------------
-void OrtogonalCountingFrame::setEnabled(bool enable)
-{
-  Q_ASSERT(false);
-}
-
-
-#include <QDebug>
-
-//-----------------------------------------------------------------------------
 void OrtogonalCountingFrame::updateCountingFrameImplementation()
 {
   Nm Left   = m_bounds[0] + m_inclusion[0];

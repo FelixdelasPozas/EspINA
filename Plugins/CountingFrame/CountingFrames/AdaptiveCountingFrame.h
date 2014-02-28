@@ -56,8 +56,6 @@ namespace EspINA
       virtual bool processEvent(vtkRenderWindowInteractor* iren,
                                 long unsigned int event);
 
-      virtual void setEnabled(bool enable);
-
       virtual void updateCountingFrameImplementation();
 
     protected:

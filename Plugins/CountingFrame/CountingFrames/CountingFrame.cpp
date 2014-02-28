@@ -37,6 +37,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 , m_scheduler(scheduler)
 , m_extension(extension)
 , m_visible(true)
+, m_enable(true)
 , m_highlight(false)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
@@ -110,7 +111,20 @@ void CountingFrame::setVisible(bool visible)
 
   for (auto wa : m_widgets2D.values())
   {
-    wa->widget()->SetEnabled(m_visible);
+    wa->widget()->SetEnabled(m_visible && m_enable);
+  }
+
+  emit changedVisibility();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::setEnabled(bool enable)
+{
+  m_enable = enable;
+
+  for (auto wa : m_widgets2D.values())
+  {
+    wa->widget()->SetEnabled(m_visible && m_enable);
   }
 
   emit changedVisibility();
