@@ -60,6 +60,7 @@ namespace EspINA
 
   public:
     explicit Output(FilterPtr filter, const Output::Id& id);
+    virtual ~Output();
 
     FilterPtr filter() const
     { return m_filter; }

@@ -60,11 +60,11 @@ namespace EspINA {
 
     /// Convenience method
     OutputSPtr output()
-    { return m_filter->output(m_viewItem->outputId()); }
+    { return m_viewItem->output(); }
 
     /// Convenience method
     const OutputSPtr output() const
-    { return m_filter->output(m_viewItem->outputId()); }
+    { return m_viewItem->output(); }
 
     DataSPtr get(Data::Type type)
     { return m_viewItem->data(type); }

@@ -52,6 +52,12 @@ Output::Output(FilterPtr filter, const Output::Id& id)
 }
 
 //----------------------------------------------------------------------------
+Output::~Output()
+{
+}
+
+
+//----------------------------------------------------------------------------
 void Output::setSpacing(const NmVector3& spacing)
 {
   if (m_spacing != spacing)

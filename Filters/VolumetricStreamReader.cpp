@@ -34,7 +34,6 @@ using namespace EspINA;
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
 {
-
 }
 
 //----------------------------------------------------------------------------

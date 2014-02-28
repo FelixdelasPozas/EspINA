@@ -69,6 +69,13 @@ InformationProxy::InformationProxy(SchedulerSPtr scheduler)
 //------------------------------------------------------------------------
 InformationProxy::~InformationProxy()
 {
+  for (auto task : m_pendingInformation)
+  {
+    if (!task->hasFinished())
+    {
+      task->abort();
+    }
+  }
 }
 
 //------------------------------------------------------------------------

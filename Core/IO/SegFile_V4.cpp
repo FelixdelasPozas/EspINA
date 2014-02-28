@@ -161,7 +161,10 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
       // Here it is safe to create the outputs because they already existed
       // In addition, it may be the case an update couldn't be executed if
       // traceability was disabled
-      inputFilter->m_outputs[id] = OutputSPtr{new Output(inputFilter.get(), id)};
+      if (!inputFilter->m_outputs.contains(id))
+      {
+        inputFilter->m_outputs[id] = OutputSPtr{new Output(inputFilter.get(), id)};
+      }
 
       inputs << getInput(inputFilter, id);
     }
