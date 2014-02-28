@@ -1,7 +1,8 @@
 #include "CountingFramePlugin.h"
 
 #include "Panel.h"
-#include "CountingFrameRenderer.h"
+#include "CountingFrameRenderer3D.h"
+#include "CountingFrameRenderer2D.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
 #include "Extensions/CountingFrameFactories.h"
 
@@ -58,7 +59,7 @@ ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() co
 {
   ChannelExtensionFactorySList factories;
 
-  factories << ChannelExtensionFactorySPtr{new ChannelExtensionFactoryCF(&m_manager, m_scheduler)};
+  factories << ChannelExtensionFactorySPtr{new ChannelExtensionFactoryCF(const_cast<CountingFrameManager *>(&m_manager), m_scheduler)};
 
   return factories;
 }
@@ -78,7 +79,8 @@ RendererSList CountingFramePlugin::renderers()
 {
   RendererSList renderers;
 
-  renderers << RendererSPtr(new CountingFrameRenderer(m_manager));
+  renderers << RendererSPtr(new CountingFrameRenderer3D(m_manager));
+  renderers << RendererSPtr(new CountingFrameRenderer2D(m_manager));
 
   return renderers;
 }
@@ -88,7 +90,5 @@ SettingsPanelSList CountingFramePlugin::settingsPanels()
 {
   return SettingsPanelSList();
 }
-
-
 
 Q_EXPORT_PLUGIN2(CountingFramePlugin, EspINA::CF::CountingFramePlugin)

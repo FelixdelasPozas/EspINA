@@ -34,12 +34,12 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
                              SchedulerSPtr           scheduler)
 : INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
+, m_scheduler(scheduler)
+, m_extension(extension)
 , m_visible(true)
 , m_highlight(false)
-, m_extension(extension)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
-, m_scheduler(scheduler)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
@@ -108,9 +108,9 @@ void CountingFrame::setVisible(bool visible)
 {
   m_visible = visible;
 
-  for (auto widget2D : m_widgets2D)
+  for (auto wa : m_widgets2D.values())
   {
-    widget2D->SetEnabled(m_visible);
+    wa->widget()->SetEnabled(m_visible);
   }
 
   emit changedVisibility();
@@ -121,9 +121,9 @@ void CountingFrame::setHighlighted(bool highlight)
 {
   m_highlight = highlight;
 
-  for (auto widget2D : m_widgets2D)
+  for (auto wa : m_widgets2D.values())
   {
-    widget2D->SetHighlighted(m_highlight);
+    wa->widget()->SetHighlighted(m_highlight);
   }
 }
 
@@ -170,12 +170,12 @@ void CountingFrame::updateCountingFrame()
   updateCountingFrameImplementation();
   m_mutex.unlock();
 
-  for(vtkCountingFrameWidget *widget : m_widgets2D)
+  for(auto wa : m_widgets2D.values())
   {
-    widget->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+    wa->widget()->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
   }
 
-  for(vtkCountingFrameWidget *widget : m_widgets3D)
+  for(vtkCountingFrameWidget *widget : m_widgets3D.values())
   {
     widget->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
   }

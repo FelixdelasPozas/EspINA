@@ -15,35 +15,38 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef ESPINA_COUNTING_FRAME_RENDERER_H
-#define ESPINA_COUNTING_FRAME_RENDERER_H
 
+#ifndef ESPINA_COUNTING_FRAME_3D_RENDERER_H
+#define ESPINA_COUNTING_FRAME_3D_RENDERER_H
+
+// Plugin
 #include "CountingFramePlugin_Export.h"
 #include <GUI/Representations/Renderers/Renderer.h>
-
 #include "CountingFrameManager.h"
 
+// Qt
 #include <QMap>
 
 class vtkAbstractWidget;
 
 namespace EspINA
 {
-  namespace CF {
+  namespace CF
+  {
 
-    class CountingFramePlugin_EXPORT CountingFrameRenderer
+    class CountingFramePlugin_EXPORT CountingFrameRenderer3D
     : public Renderer
     {
       Q_OBJECT
     public:
-      explicit CountingFrameRenderer(CountingFrameManager &cfManager);
-      virtual ~CountingFrameRenderer();
+      explicit CountingFrameRenderer3D(CountingFrameManager &cfManager);
+      virtual ~CountingFrameRenderer3D();
 
       virtual const QIcon icon() const
       { return QIcon(":/apply.svg"); }
 
       virtual const QString name() const
-      { return tr("Counting Frame");}
+      { return tr("Counting Frame 3D");}
 
       virtual const QString tooltip() const
       { return tr("Stereological Counting Frame");}
@@ -58,6 +61,8 @@ namespace EspINA
 
       virtual unsigned int numberOfvtkActors();
 
+      virtual void setView(RenderView *view);
+
       public slots:
         void visibilityChanged();
 
@@ -70,10 +75,12 @@ namespace EspINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
+      void createWidget(CountingFrame *);
+
       CountingFrameManager &m_cfManager;
       QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
     };
   } // namespace CF
 } // namespace EspINA
 
-#endif // ESPINA_COUNTING_FRAME_RENDERER_H
+#endif // ESPINA_COUNTING_FRAME_3D_RENDERER_H

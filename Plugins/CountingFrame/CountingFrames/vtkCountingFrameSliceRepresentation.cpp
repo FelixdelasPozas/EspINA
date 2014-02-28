@@ -191,31 +191,33 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
   this->InclusionEdgeProperty->SetRepresentationToSurface();
   this->InclusionEdgeProperty->SetOpacity(1.0);
   this->InclusionEdgeProperty->SetColor(0.0,1.0,0.0);
-  this->InclusionEdgeProperty->SetLineWidth(2.0);
+  this->InclusionEdgeProperty->SetLineWidth(1.0);
 
   this->ExclusionEdgeProperty = vtkProperty::New();
   this->ExclusionEdgeProperty->SetRepresentationToSurface();
   this->ExclusionEdgeProperty->SetOpacity(1.0);
   this->ExclusionEdgeProperty->SetColor(1.0,0.0,0.0);
-  this->ExclusionEdgeProperty->SetLineWidth(2.0);
+  this->ExclusionEdgeProperty->SetLineWidth(1.0);
 
   // Selected Edge properties
   this->SelectedInclusionProperty = vtkProperty::New();
   this->SelectedInclusionProperty->SetRepresentationToSurface();
   this->SelectedInclusionProperty->SetOpacity(1.0);
   this->SelectedInclusionProperty->SetColor(0.0,1.0,0.0);
-  this->SelectedInclusionProperty->SetLineWidth(3.0);
+  this->SelectedInclusionProperty->SetLineWidth(2.0);
   this->SelectedExclusionProperty = vtkProperty::New();
   this->SelectedExclusionProperty->SetRepresentationToSurface();
   this->SelectedExclusionProperty->SetOpacity(1.0);
   this->SelectedExclusionProperty->SetColor(1.0,0.0,0.0);
-  this->SelectedExclusionProperty->SetLineWidth(3.0);
+  this->SelectedExclusionProperty->SetLineWidth(2.0);
 
   this->InvisibleProperty = vtkProperty::New();
   this->InvisibleProperty->SetRepresentationToWireframe();
   this->InvisibleProperty->SetAmbient(0.0);
   this->InvisibleProperty->SetDiffuse(0.0);
   this->InvisibleProperty->SetOpacity(0);
+
+  SetHighlighted(false);
 }
 
 //----------------------------------------------------------------------------
@@ -340,7 +342,6 @@ void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
     this->SelectedInclusionProperty->SetLineStipplePattern(0x0ff0);
     this->SelectedExclusionProperty->SetLineStipplePattern(0x0ff0);
   }
-
 }
 
 //----------------------------------------------------------------------------
@@ -389,6 +390,7 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
   path = this->EdgePicker->GetPath();
   if ( path != NULL )
   {
+    SetHighlighted(true);
     this->LastPicker = this->EdgePicker;
     this->ValidPick = 1;
 
@@ -417,6 +419,7 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
   }
   else
   {
+    SetHighlighted(false);
     this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
   }
   return this->InteractionState;

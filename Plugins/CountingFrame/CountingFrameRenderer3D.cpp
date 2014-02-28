@@ -15,12 +15,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "CountingFrameRenderer.h"
 
+// Plugin
+#include "CountingFrameRenderer3D.h"
 #include "CountingFrames/CountingFrame.h"
 #include <GUI/View/View3D.h>
 
-
+// VTK
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>
 #include <vtkAbstractWidget.h>
@@ -30,7 +31,7 @@ using namespace EspINA;
 using namespace EspINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrameRenderer::CountingFrameRenderer(CountingFrameManager& cfManager)
+CountingFrameRenderer3D::CountingFrameRenderer3D(CountingFrameManager& cfManager)
 : m_cfManager(cfManager)
 {
   connect(&m_cfManager, SIGNAL(countingFrameCreated(CountingFrame*)),
@@ -40,12 +41,14 @@ CountingFrameRenderer::CountingFrameRenderer(CountingFrameManager& cfManager)
 }
 
 //-----------------------------------------------------------------------------
-CountingFrameRenderer::~CountingFrameRenderer()
+CountingFrameRenderer3D::~CountingFrameRenderer3D()
 {
+  for(auto cf: m_widgets.keys())
+    onCountingFrameDeleted(cf);
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::hide()
+void CountingFrameRenderer3D::hide()
 {
   if (!m_enable)
     return;
@@ -68,29 +71,23 @@ void CountingFrameRenderer::hide()
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::show()
+void CountingFrameRenderer3D::show()
 {
   if (m_enable)
     return;
 
   bool updated = false;
-  auto volView = dynamic_cast<View3D *>(m_view);
+
   for(auto cf : m_widgets.keys())
   {
     if (m_widgets[cf] == nullptr)
-    {
-      auto rw         = m_view->renderWindow();
-      auto interactor = rw->GetInteractor();
-
-      m_widgets[cf] = cf->createWidget(volView);
-      m_widgets[cf]->SetInteractor(interactor);
-    }
+      createWidget(cf);
 
     bool visible = cf->isVisible();
     if (visible)
     {
       m_widgets[cf]->SetEnabled(true);
-      volView->addActor(m_widgets[cf]->GetRepresentation());
+      m_view->addActor(m_widgets[cf]->GetRepresentation());
     }
 
     updated |= visible;
@@ -101,28 +98,22 @@ void CountingFrameRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int CountingFrameRenderer::numberOfvtkActors()
+unsigned int CountingFrameRenderer3D::numberOfvtkActors()
 {
   return m_enable? m_cfManager.countingFrames().size() * 2 : 0; // m_boundingRegion & m_representation vtkPolyDatas...
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::onCountingFrameCreated(CountingFrame *cf)
+void CountingFrameRenderer3D::onCountingFrameCreated(CountingFrame *cf)
 {
   if (!m_view)
     return;
 
   if (m_enable)
   {
-    auto rw         = m_view->renderWindow();
-    auto interactor = rw->GetInteractor();
-    auto volView = dynamic_cast<View3D *>(m_view);
-
-    m_widgets[cf] = cf->createWidget(volView);
-    m_widgets[cf]->SetInteractor(interactor);
-
+    createWidget(cf);
     m_widgets[cf]->SetEnabled(true);
-    volView->addActor(m_widgets[cf]->GetRepresentation());
+    m_view->addActor(m_widgets[cf]->GetRepresentation());
     emit renderRequested();
   }
   else
@@ -134,7 +125,7 @@ void CountingFrameRenderer::onCountingFrameCreated(CountingFrame *cf)
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::onCountingFrameDeleted(CountingFrame *cf)
+void CountingFrameRenderer3D::onCountingFrameDeleted(CountingFrame *cf)
 {
   if (m_widgets.contains(cf))
   {
@@ -143,8 +134,7 @@ void CountingFrameRenderer::onCountingFrameDeleted(CountingFrame *cf)
       bool visible = cf->isVisible();
       if (visible && m_enable)
       {
-        auto volView = dynamic_cast<View3D *>(m_view);
-        volView->removeActor(m_widgets[cf]->GetRepresentation());
+        m_view->removeActor(m_widgets[cf]->GetRepresentation());
         m_widgets[cf]->SetEnabled(false);
         emit renderRequested();
       }
@@ -155,13 +145,13 @@ void CountingFrameRenderer::onCountingFrameDeleted(CountingFrame *cf)
 }
 
 //-----------------------------------------------------------------------------
-RendererSPtr CountingFrameRenderer::clone()
+RendererSPtr CountingFrameRenderer3D::clone()
 {
-  return RendererSPtr(new CountingFrameRenderer(m_cfManager));
+  return RendererSPtr(new CountingFrameRenderer3D(m_cfManager));
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameRenderer::visibilityChanged()
+void CountingFrameRenderer3D::visibilityChanged()
 {
   if (!m_enable)
     return;
@@ -173,27 +163,42 @@ void CountingFrameRenderer::visibilityChanged()
   bool visible = cf->isVisible();
   if (m_widgets[cf] != nullptr)
   {
-    auto volView = dynamic_cast<View3D *>(m_view);
     if (visible)
-      volView->addActor(m_widgets[cf]->GetRepresentation());
+      m_view->addActor(m_widgets[cf]->GetRepresentation());
     else
-      volView->removeActor(m_widgets[cf]->GetRepresentation());
+      m_view->removeActor(m_widgets[cf]->GetRepresentation());
     m_widgets[cf]->SetEnabled(visible);
   }
   else
   {
     if (visible)
     {
-      auto rw         = m_view->renderWindow();
-      auto interactor = rw->GetInteractor();
-      auto volView = dynamic_cast<View3D *>(m_view);
-
-      m_widgets[cf] = cf->createWidget(volView);
-      m_widgets[cf]->SetInteractor(interactor);
+      createWidget(cf);
       m_widgets[cf]->SetEnabled(true);
-      volView->addActor(m_widgets[cf]->GetRepresentation());
+      m_view->addActor(m_widgets[cf]->GetRepresentation());
     }
   }
 
   emit renderRequested();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameRenderer3D::setView(RenderView *view)
+{
+  m_view = view;
+
+  auto existingCFs = m_cfManager.countingFrames();
+  for(auto cf: existingCFs)
+    onCountingFrameCreated(cf);
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameRenderer3D::createWidget(CountingFrame* cf)
+{
+  auto view3d     = dynamic_cast<View3D *>(m_view);
+  auto rw         = m_view->renderWindow();
+  auto interactor = rw->GetInteractor();
+
+  m_widgets[cf] = cf->create3DWidget(view3d);
+  m_widgets[cf]->SetInteractor(interactor);
 }

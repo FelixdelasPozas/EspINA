@@ -22,6 +22,7 @@
 #include "CountingFramePlugin_Export.h"
 
 #include "vtkCountingFrameWidget.h"
+#include <vtkWidgetRepresentation.h>
 
 class vtkPolyData;
 class vtkCountingFrameSliceRepresentation;

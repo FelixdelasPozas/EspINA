@@ -171,10 +171,7 @@ void DefaultView::initView2D(View2D *view)
   connect(view, SIGNAL(sliceChanged(Plane, Nm)),
           this, SLOT(changePlanePosition(Plane, Nm)));
   view->setContextualMenu(m_contextMenu);
-  RendererSList renderers;
-  renderers << RendererSPtr(new SliceRenderer());
-  renderers << RendererSPtr(new ContourRenderer());
-  view->setRenderers(renderers);
+  view->setRenderers(m_renderers);
 //   view->setColorEngine(m_viewManager->colorEngine());
 //   view->setSelector(m_viewManager->selector());
 }

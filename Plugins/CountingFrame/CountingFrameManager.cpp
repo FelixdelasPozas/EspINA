@@ -31,7 +31,7 @@ using namespace EspINA::CF;
 CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,
                                                                  const State& state) const
 {
-  return CountingFrameExtensionSPtr{new CountingFrameExtension(this, scheduler, state)};
+  return CountingFrameExtensionSPtr{new CountingFrameExtension(const_cast<CountingFrameManager *>(this), scheduler, state)};
 }
 
 // //------------------------------------------------------------------------
@@ -102,6 +102,8 @@ void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 void CountingFrameManager::unregisterCountingFrame(CountingFrame* cf)
 {
   m_countingFrames.remove(cf);
+
+  emit countingFrameDeleted(cf);
 }
 
 
@@ -122,7 +124,7 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
 CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
 {
   QRegExp cardinalityRegExp("\\([0-9]+\\)");
-  QString cardinalityStrippedId = id.replace(cardinalityRegExp, "").trimmed();
+  QString cardinalityStrippedId = QString(id).replace(cardinalityRegExp, "").trimmed();
 
   QString suggestedId = cardinalityStrippedId;
 

@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <vtkRenderWindow.h>
 #include "vtkCountingFrame3DWidget.h"
 #include <GUI/View/View2D.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
@@ -56,7 +57,7 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
 //     w->EnabledOn();
 //     w->Delete();
 //   }
-  foreach(vtkAbstractWidget *w, m_widgets3D)
+  for(auto w: m_widgets3D.values())
   {
     w->EnabledOn();
     w->Delete();
@@ -66,13 +67,16 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget* AdaptiveCountingFrame::createWidget(View3D *view)
+vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
 {
+  if (m_widgets3D.keys().contains(view))
+    return m_widgets3D[view];
+
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
   wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
 
-  m_widgets3D << wa;
+  m_widgets3D[view] = wa;
 
   return wa;
 }
@@ -101,28 +105,34 @@ vtkAbstractWidget* AdaptiveCountingFrame::createWidget(View3D *view)
 //-----------------------------------------------------------------------------
 SliceWidget* AdaptiveCountingFrame::createSliceWidget(View2D *view)
 {
-  auto wa = new CountingFrame2DWidgetAdapter();
-  Q_ASSERT(wa);
-  wa->AddObserver(vtkCommand::EndInteractionEvent, this);
-  wa->SetPlane(view->plane());
-  wa->SetSlicingStep(m_channel->output()->spacing());
-  wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+  if (!m_widgets2D.keys().contains(view))
+  {
+    auto wa = new CountingFrame2DWidgetAdapter();
+    Q_ASSERT(wa);
+    wa->AddObserver(vtkCommand::EndInteractionEvent, this);
+    wa->SetPlane(view->plane());
+    wa->SetSlicingStep(m_channel->output()->spacing());
+    wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+    wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
+    wa->SetEnabled(true);
 
-  m_widgets2D << wa;
+    m_widgets2D[view] = new CountingFrameSliceWidget(wa);
+  }
 
-  return new CountingFrameSliceWidget(wa);
+  return m_widgets2D[view];
 }
 
 //-----------------------------------------------------------------------------
 bool AdaptiveCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
                                           long unsigned int event)
 {
-  foreach(CountingFrame2DWidgetAdapter *wa, m_widgets2D)
+  for(auto wa: m_widgets2D.values())
   {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
+    if (wa->widget()->GetInteractor() == iren)
+      return wa->widget()->ProcessEventsHandler(event);
   }
-  foreach(CountingFrame3DWidgetAdapter *wa, m_widgets3D)
+
+  for(auto wa: m_widgets3D.values())
   {
     if (wa->GetInteractor() == iren)
       return wa->ProcessEventsHandler(event);

@@ -49,8 +49,7 @@ namespace EspINA
     virtual QString typeName() const { return ORTOGONAL_CF; }
 
     // Implements EspinaWidget interface
-    virtual vtkAbstractWidget *create3DWidget(View3D *view) { return nullptr; };
-    virtual vtkAbstractWidget *createWidget(View3D *view);
+    virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
     virtual SliceWidget *createSliceWidget(View2D *view);
 

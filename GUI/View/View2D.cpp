@@ -703,7 +703,8 @@ void View2D::resetCamera()
 //-----------------------------------------------------------------------------
 void View2D::addWidget(EspinaWidget *eWidget)
 {
-  Q_ASSERT(!m_widgets.contains(eWidget));
+  if(m_widgets.contains(eWidget))
+    return;
 
   SliceWidget *sWidget = eWidget->createSliceWidget(this);
   if (!sWidget)

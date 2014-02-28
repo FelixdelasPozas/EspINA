@@ -63,8 +63,9 @@ namespace CF {
     public:
       explicit CountingFrameSliceWidget(vtkCountingFrameSliceWidget *widget)
       : SliceWidget(widget)
-      , m_slicedWidget(widget)
-      {}
+      {
+        m_slicedWidget = dynamic_cast<CountingFrame2DWidgetAdapter *>(widget);
+      }
 
       virtual void setSlice(Nm pos, Plane plane)
       {
@@ -72,8 +73,11 @@ namespace CF {
         SliceWidget::setSlice(pos, plane);
       }
 
+      CountingFrame2DWidgetAdapter *widget() const
+      { return m_slicedWidget; }
+
     private:
-      vtkCountingFrameSliceWidget *m_slicedWidget;
+      CountingFrame2DWidgetAdapter *m_slicedWidget;
     };
 
   public:
@@ -148,7 +152,7 @@ namespace CF {
      */
     virtual vtkSmartPointer<vtkPolyData> region() const
     {
-      QMutexLocker lock(&m_mutex);
+      QMutexLocker lock(const_cast<QMutex *>(&m_mutex));
       return m_countingFrame;
     }
 
@@ -165,7 +169,7 @@ namespace CF {
 
     QString categoryConstraint() const { return m_categoryConstraint; }
 
-    virtual vtkAbstractWidget *createWidget(View3D *view) = 0;
+    virtual vtkAbstractWidget *create3DWidget(View3D *view) = 0;
 
     void apply();
 
@@ -206,8 +210,8 @@ namespace CF {
 
     const QString m_categoryConstraint;
 
-    QList<CountingFrame2DWidgetAdapter *> m_widgets2D;
-    QList<CountingFrame3DWidgetAdapter *> m_widgets3D;
+    QMap<View2D *, CountingFrameSliceWidget *> m_widgets2D;
+    QMap<View3D *, CountingFrame3DWidgetAdapter *> m_widgets3D;
 
     ApplyCountingFrameSPtr m_applyCountingFrame;
   };

@@ -758,8 +758,10 @@ void View3D::updateRenderersControls()
   if(m_numEnabledRenderers == 0)
     resetCamera();
 
-  m_numEnabledRenderers = numEnabledRenderersForViewItem(RenderableType::CHANNEL) +
-                          numEnabledRenderersForViewItem(RenderableType::SEGMENTATION);
+  m_numEnabledRenderers = 0;
+  for(RendererSPtr render: m_renderers)
+    if(!render->isHidden())
+      ++m_numEnabledRenderers;
 }
 
 //-----------------------------------------------------------------------------

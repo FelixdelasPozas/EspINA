@@ -43,7 +43,8 @@ ModelAdapter::~ModelAdapter()
 //------------------------------------------------------------------------
 void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 {
-  reset();
+  // TODO: REVIEW -> Disabled, messed with loaded view widgets, not needed?
+  // reset();
 
   QMap<FilterSPtr, FilterAdapterSPtr>       filters;
 

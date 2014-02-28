@@ -154,7 +154,7 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
         qWarning() << "Invalid CF Extension state:\n" << m_prevState;
       } else
       {
-        CFType type = params[TYPE_POS].toInt();
+        CFType type = static_cast<CFType>(params[TYPE_POS].toInt());
 
         Nm inclusion[3];
         Nm exclusion[3];
