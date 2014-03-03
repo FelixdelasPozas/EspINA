@@ -31,12 +31,17 @@ public:
   : Task(scheduler)
   , Segmentation(segmentation)
   , m_tags(tags)
+  , m_progress(0)
   {
     auto id = Segmentation->data(Qt::DisplayRole).toString();
     setDescription(tr("%1 information").arg(id));
+    setHidden(true);
   }
 
   SegmentationAdapterPtr Segmentation;
+
+  int currentProgress() const
+  { return m_progress; }
 
 protected:
   virtual void run()
@@ -51,12 +56,14 @@ protected:
         Segmentation->information(m_tags[i]);
       }
 
-      emit progress((100.0*i)/m_tags.size());
+      m_progress = (100.0*i)/m_tags.size();
+      emit progress(m_progress);
     }
   }
 
 private:
   const SegmentationExtension::InfoTagList m_tags;
+  int   m_progress;
 };
 
 //------------------------------------------------------------------------
@@ -231,7 +238,26 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   auto segmentation = segmentationPtr(proxyItem);
 
   if (role == Qt::TextAlignmentRole)
+  {
     return Qt::AlignRight;
+  }
+
+  if (role == Qt::UserRole && proxyIndex.column() == 0)
+  {
+    const int HIDE_PROGRESS = -1;
+    int progress = HIDE_PROGRESS;
+
+    if (m_pendingInformation.contains(segmentation))
+    {
+
+      InformationFetcherSPtr task = m_pendingInformation[segmentation];
+
+      progress = task->hasFinished()?HIDE_PROGRESS:task->currentProgress();
+    }
+
+    return progress;
+  }
+
 
   if (role == Qt::DisplayRole && !m_tags.isEmpty())
   {
@@ -254,8 +280,10 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
       {
         InformationFetcherSPtr task{new InformationFetcher(segmentation, m_tags, m_scheduler)};
         m_pendingInformation[segmentation] = task;
+        connect(task.get(), SIGNAL(progress(int)),
+                this, SLOT(onProgessReported(int)));
         connect(task.get(), SIGNAL(finished()),
-                this, SLOT(ontaskFininished()));
+                this, SLOT(onTaskFininished()));
         Task::submit(task);
       } else if (m_pendingInformation[segmentation]->hasFinished())
       {
@@ -414,14 +442,30 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
   }
 }
 
+
 //------------------------------------------------------------------------
-void InformationProxy::ontaskFininished()
+void InformationProxy::onProgessReported(int progress)
 {
   auto task = dynamic_cast<InformationFetcher *>(sender());
   Q_ASSERT(task);
 
   auto firstColumn = index(task->Segmentation);
   auto lastColumn  = index(task->Segmentation, rowCount() - 1);
+
+  emit dataChanged(firstColumn, lastColumn);
+}
+
+//------------------------------------------------------------------------
+void InformationProxy::onTaskFininished()
+{
+  auto task = dynamic_cast<InformationFetcher *>(sender());
+  Q_ASSERT(task);
+
+  auto firstColumn = index(task->Segmentation);
+  auto lastColumn  = index(task->Segmentation, rowCount() - 1);
+
+  firstColumn = index(0, 0);
+  lastColumn  = index(rowCount(), 0);
 
   emit dataChanged(firstColumn, lastColumn);
 }

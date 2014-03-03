@@ -265,11 +265,6 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   m_viewManager->focusViewsOn(center);
 }
 
-// //------------------------------------------------------------------------
-// void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
-// {
-// }
-// 
 //------------------------------------------------------------------------
 void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QItemSelection deselected)
 {

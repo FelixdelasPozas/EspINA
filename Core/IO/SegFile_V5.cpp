@@ -384,10 +384,10 @@ private:
     try
     {
       extension = m_factory->createChannelExtension(type, cache, state);
-      qDebug() << "Creating Channel Extension" << type;
+      //qDebug() << "Creating Channel Extension" << type;
     } catch (CoreFactory::Unknown_Type_Exception &e)
     {
-      qDebug() << "Creating ReadOnlyChannelExtension" << type;
+      //qDebug() << "Creating ReadOnlyChannelExtension" << type;
       extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type, cache, state)};
     }
     Q_ASSERT(extension);
@@ -409,7 +409,7 @@ private:
 
     while (!xml.atEnd())
     {
-      xml.readNextStartElement();
+      xml.readNext();
       if (xml.isStartElement())
       {
         if (xml.name() == "Extension")
@@ -447,10 +447,10 @@ private:
     try
     {
       extension = m_factory->createSegmentationExtension(type, cache, state);
-      qDebug() << "Creating Channel Extension" << type;
+      //qDebug() << "Creating Channel Extension" << type;
     } catch (CoreFactory::Unknown_Type_Exception &e)
     {
-      qDebug() << "Creating ReadOnlySegmentationExtension" << type;
+      //qDebug() << "Creating ReadOnlySegmentationExtension" << type;
       extension = SegmentationExtensionSPtr{new ReadOnlySegmentationExtension(type, cache, state)};
     }
     Q_ASSERT(extension);
@@ -472,7 +472,7 @@ private:
 
     while (!xml.atEnd())
     {
-      xml.readNextStartElement();
+      xml.readNext();
       if (xml.isStartElement())
       {
         if (xml.name() == "Extension")

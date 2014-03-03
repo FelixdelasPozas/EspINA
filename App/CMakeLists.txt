@@ -77,7 +77,7 @@ qt4_wrap_ui (ESPINA_UI
 #   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/About/AboutDialog.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
-  Dialogs/TabularReport/TabularReport.ui
+  Dialogs/TabularReport/TabularReportEntry.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui

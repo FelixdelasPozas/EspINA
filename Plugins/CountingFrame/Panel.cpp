@@ -950,6 +950,7 @@ void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
         for (auto cf : cfExtension->countingFrames())
         {
           sterologicalExtension->addCountingFrame(cf);
+          cf->apply();
         }
       }
     }

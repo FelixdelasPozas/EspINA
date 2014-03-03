@@ -35,11 +35,52 @@
 #include <QFileDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QItemDelegate>
 
 using namespace EspINA;
 using namespace xlslib_core;
 
 const QString SEGMENTATION_GROUP = "Segmentation";
+
+class InformationDelegate
+: public QItemDelegate
+{
+  virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+  {
+    if (index.column() == 0)
+    {
+      int progress = index.data(Qt::UserRole).toInt();
+      if (progress >= 0)
+      {
+        // Set up a QStyleOptionProgressBar to precisely mimic the
+        // environment of a progress bar.
+        QStyleOptionProgressBar progressBarOption;
+        progressBarOption.state = QStyle::State_Enabled;
+        progressBarOption.direction = QApplication::layoutDirection();
+        progressBarOption.rect = option.rect;
+        progressBarOption.fontMetrics = QApplication::fontMetrics();
+        progressBarOption.minimum = 0;
+        progressBarOption.maximum = 100;
+        progressBarOption.textAlignment = Qt::AlignCenter;
+        progressBarOption.textVisible = true;
+
+        progressBarOption.progress = progress;
+        progressBarOption.text = QString("%1%%").arg(progressBarOption.progress);
+
+//         progressBarOption.text = QString("%1: %2%%").arg(index.data(Qt::DisplayRole).toString())
+//                                                     .arg(progressBarOption.progress);
+
+        // Draw the progress bar onto the view.
+        QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
+
+        return;
+      }
+    }
+
+    QItemDelegate::paint(painter, option, index);
+
+  }
+};
 
 //------------------------------------------------------------------------
 TabularReport::Entry::Entry(const QString   &category,
@@ -54,6 +95,7 @@ TabularReport::Entry::Entry(const QString   &category,
   setupUi(this);
 
   tableView->horizontalHeader()->setMovable(true);
+  tableView->setItemDelegate(new InformationDelegate());
 
   connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
           this, SLOT(saveSelectedInformation()));

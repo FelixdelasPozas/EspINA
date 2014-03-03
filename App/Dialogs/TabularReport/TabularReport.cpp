@@ -225,23 +225,25 @@ void TabularReport::updateRepresentation(const QModelIndex &index)
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(SegmentationAdapterList selection)
 {
-  if (!isVisible())
+  if (!isVisible() || signalsBlocked())
     return;
 
+  blockSignals(true);
   for (int i = 0; i < m_tabs->count(); ++i)
   {
     Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     QTableView *tableView = entry->tableView;
 
-    tableView->blockSignals(true);
-    tableView->selectionModel()->blockSignals(true);
-    tableView->selectionModel()->reset();
-    tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+//     tableView->blockSignals(true);
+//     tableView->selectionModel()->blockSignals(true);
+//     tableView->selectionModel()->reset();
+    tableView->selectionModel()->clear();
+//     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
   }
 
   for(auto segmentation : selection)
   {
-    Entry *entry = NULL;
+    Entry *entry = nullptr;
     int i = 0;
     for (i = 0; i < m_tabs->count(); ++i)
     {
@@ -281,18 +283,24 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
     Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     QTableView *tableView = entry->tableView;
 
-    tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    tableView->selectionModel()->blockSignals(false);
-    tableView->blockSignals(false);
+//     tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+//     tableView->selectionModel()->blockSignals(false);
+//     tableView->blockSignals(false);
 
     // Update all visible items
     tableView->viewport()->update();
   }
+  blockSignals(false);
 }
 
 //------------------------------------------------------------------------
 void TabularReport::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
+  if (signalsBlocked())
+  {
+    return;
+  }
+
   ViewItemAdapterList selection;
 
   if (m_multiSelection)
@@ -340,7 +348,9 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     }
   }
 
+  blockSignals(true);
   m_viewManager->setSelection(selection);
+  blockSignals(false);
 }
 
 //------------------------------------------------------------------------

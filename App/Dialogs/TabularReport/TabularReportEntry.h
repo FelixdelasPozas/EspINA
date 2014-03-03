@@ -30,7 +30,7 @@
 #define ESPINA_TABULAR_REPORT_ENTRY_H
 
 #include <App/Dialogs/TabularReport/TabularReport.h>
-#include <ui_TabularReport.h>
+#include <ui_TabularReportEntry.h>
 
 #include <GUI/Model/Proxies/InformationProxy.h>
 #include <GUI/Widgets/InformationSelector.h>
@@ -45,7 +45,7 @@ namespace EspINA
 
   class TabularReport::Entry
   : public QWidget
-  , public Ui_TabularReport
+  , public Ui_TabularReportEntry
   {
     Q_OBJECT
   public:

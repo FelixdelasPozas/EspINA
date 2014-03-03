@@ -86,7 +86,9 @@ namespace EspINA
 
     void sourceModelReset();
 
-    void ontaskFininished();
+    void onProgessReported(int progress);
+
+    void onTaskFininished();
 
   private:
     bool acceptSegmentation(const SegmentationAdapterPtr segmentation) const;

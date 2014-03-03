@@ -34,11 +34,11 @@ SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentatio
 
   if (EdgeDistance::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new EdgeDistance(cache, state)};
+    extension = SegmentationExtensionSPtr{new EdgeDistance(/*cache, state*/)};
   }
   else if (MorphologicalInformation::TYPE == type)
   {
-    extension = SegmentationExtensionSPtr{new MorphologicalInformation(cache, state)};
+    extension = SegmentationExtensionSPtr{new MorphologicalInformation(/*cache, state*/)};
   }
   else if (SegmentationTags::TYPE == type)
   {
