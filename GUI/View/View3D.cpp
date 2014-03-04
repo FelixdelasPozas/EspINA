@@ -852,3 +852,28 @@ RendererSList View3D::renderers() const
 {
   return m_renderers;
 }
+
+//-----------------------------------------------------------------------------
+void View3D::activateRender(const QString &rendererName)
+{
+  for(auto action: m_renderConfig.menu()->actions())
+    if (action->text() == rendererName)
+      action->setChecked(true);
+
+  for(auto renderer: m_renderers)
+    if (renderer->name() == rendererName)
+      renderer->setEnable(true);
+}
+
+//-----------------------------------------------------------------------------
+void View3D::deactivateRender(const QString &rendererName)
+{
+  for(auto action: m_renderConfig.menu()->actions())
+    if (action->text() == rendererName)
+      action->setChecked(false);
+
+  for(auto renderer: m_renderers)
+    if (renderer->name() == rendererName)
+      renderer->setEnable(false);
+}
+

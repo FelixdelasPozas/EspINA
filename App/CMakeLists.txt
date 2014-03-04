@@ -31,6 +31,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
+  Menus/RenderersMenu.h
 #   Settings/Editor/SettingsPanel.h
 #   Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
@@ -122,6 +123,7 @@ set (ESPINA_SOURCES
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
+  Menus/RenderersMenu.cpp
   Settings/DefaultView/DefaultViewSettingsPanel.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp

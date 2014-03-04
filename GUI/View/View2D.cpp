@@ -1645,3 +1645,27 @@ RendererSList View2D::renderers() const
 
   return genericRenderers;
 }
+
+//-----------------------------------------------------------------------------
+void View2D::activateRender(const QString &rendererName)
+{
+  for(auto action: m_renderConfig->menu()->actions())
+    if (action->text() == rendererName)
+      action->setChecked(true);
+
+  for(auto renderer: m_renderers)
+    if (renderer->name() == rendererName)
+      renderer->setEnable(true);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::deactivateRender(const QString &rendererName)
+{
+  for(auto action: m_renderConfig->menu()->actions())
+    if (action->text() == rendererName)
+      action->setChecked(false);
+
+  for(auto renderer: m_renderers)
+    if (renderer->name() == rendererName)
+      renderer->setEnable(false);
+}

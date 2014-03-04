@@ -26,8 +26,10 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+#include <Menus/RenderersMenu.h>
 #include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
+
 
 // Forward-declaration
 class QMainWindow;
@@ -45,7 +47,7 @@ namespace EspINA
                          ViewManagerSPtr     viewManager,
                          QUndoStack         *undoStack,
                          const RendererSList &renderers,
-                         QMainWindow         *parent=0
+                         QMainWindow        *parent=0
     );
     virtual ~DefaultView();
 
@@ -144,6 +146,7 @@ namespace EspINA
     QAction     *m_showRuler, *m_showThumbnail;
 
     ContextualMenuSPtr m_contextMenu;
+    RenderersMenu *m_renderersMenu;
   };
 
 

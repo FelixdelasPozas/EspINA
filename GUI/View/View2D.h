@@ -142,6 +142,9 @@ namespace EspINA
 
     virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
 
+    void activateRender(const QString &rendererName);
+    void deactivateRender(const QString &rendererName);
+
   public slots:
     /// Show/Hide Preprocessing
     void setShowPreprocessing(bool visible);

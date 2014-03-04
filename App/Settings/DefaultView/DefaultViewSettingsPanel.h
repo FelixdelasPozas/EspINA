@@ -24,9 +24,11 @@
 #include <Support/Settings/SettingsPanel.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+#include <Menus/RenderersMenu.h>
 #include <Settings/View2D/View2DRenderersPanel.h>
 #include <Settings/View2D/View2DSettingsPanel.h>
 #include <Settings/View3D/View3DSettingsPanel.h>
+
 
 namespace EspINA {
 
@@ -38,7 +40,8 @@ namespace EspINA {
                                       View2D* viewXZ,
                                       View2D* viewYZ,
                                       View3D* view3D,
-                                      RendererSList renderers);
+                                      RendererSList renderers,
+                                      RenderersMenu *menu);
 
     virtual const QString shortDescription()
     { return QObject::tr("View"); }
@@ -70,6 +73,7 @@ namespace EspINA {
     View2DSettingsPanel  *m_panelXY, *m_panelXZ, *m_panelYZ;
     View3DSettingsPanel  *m_panel3D;
     View2DRenderersPanel *m_panel2D;
+    RenderersMenu        *m_menu;
   };
 }
 

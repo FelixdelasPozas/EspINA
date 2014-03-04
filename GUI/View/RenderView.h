@@ -159,6 +159,9 @@ namespace EspINA
 
     void setSegmentationsVisibility(bool visibility);
 
+    virtual void activateRender(const QString &rendererName) = 0;
+    virtual void deactivateRender(const QString &rendererName) = 0;
+
   public slots:
     virtual void updateView() = 0;
 

@@ -237,6 +237,14 @@ void DefaultView::createViewMenu(QMenu* menu)
   //renderMenu->addSeparator();
   menu->addMenu(renderMenu);
 
+  m_renderersMenu = new RenderersMenu(m_viewManager, this);
+  for(auto renderer: m_view3D->renderers())
+    m_renderersMenu->addRenderer(renderer);
+  for(auto renderer: m_viewXY->renderers())
+    m_renderersMenu->addRenderer(renderer);
+
+  menu->addMenu(m_renderersMenu);
+
   QSettings settings(CESVIMA, ESPINA);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
 
@@ -284,7 +292,7 @@ void DefaultView::setModel(QAbstractItemModel* model)
 //-----------------------------------------------------------------------------
 SettingsPanelSPtr DefaultView::settingsPanel()
 {
-  return SettingsPanelSPtr(new DefaultViewSettingsPanel(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, m_renderers));
+  return SettingsPanelSPtr(new DefaultViewSettingsPanel(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, m_renderers, m_renderersMenu));
 }
 
 //-----------------------------------------------------------------------------

@@ -31,12 +31,14 @@ DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
                                                    View2D* viewXZ,
                                                    View2D* viewYZ,
                                                    View3D* view3D,
-                                                   RendererSList renderers)
+                                                   RendererSList renderers,
+                                                   RenderersMenu *menu)
 : m_viewXY(viewXY)
 , m_viewXZ(viewXZ)
 , m_viewYZ(viewYZ)
 , m_view3D(view3D)
 , m_renderers(renderers)
+, m_menu(menu)
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;
@@ -100,6 +102,20 @@ void DefaultViewSettingsPanel::acceptChanges()
   m_panelYZ->acceptChanges();
   m_panel3D->acceptChanges();
   m_panel2D->acceptChanges();
+
+  m_menu->clear();
+  for(auto renderer: m_view3D->renderers())
+  {
+    m_menu->addRenderer(renderer);
+    m_view3D->deactivateRender(renderer->name());
+  }
+  for(auto renderer: m_viewXY->renderers())
+  {
+    m_menu->addRenderer(renderer);
+    m_viewXY->activateRender(renderer->name());
+    m_viewXZ->activateRender(renderer->name());
+    m_viewYZ->activateRender(renderer->name());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -121,5 +137,5 @@ bool DefaultViewSettingsPanel::modified() const
 //-----------------------------------------------------------------------------
 SettingsPanelPtr DefaultViewSettingsPanel::clone()
 {
-  return new DefaultViewSettingsPanel(m_viewXY, m_viewYZ, m_viewXZ, m_view3D, m_renderers);
+  return new DefaultViewSettingsPanel(m_viewXY, m_viewYZ, m_viewXZ, m_view3D, m_renderers, m_menu);
 }

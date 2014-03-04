@@ -78,6 +78,15 @@ namespace EspINA
     void unregisterView(RenderView*     view);
     void unregisterView(View2D*         view);
 
+    QList<RenderView*> renderViews()
+    { return m_renderViews; }
+
+    QList<SelectableView*> selectableViews()
+    { return m_espinaViews; }
+
+    QList<View2D *> sliceViews()
+    { return m_sliceViews; }
+
   private:
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
