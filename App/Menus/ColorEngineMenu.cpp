@@ -92,7 +92,7 @@ void ColorEngineMenu::setColorEngine(QAction* action)
   QSettings settings(CESVIMA, ESPINA);
 
   QStringList activeActions;
-  foreach(QAction *action, m_availableEngines.keys())
+  for(auto action: m_availableEngines.keys())
   {
     if (action->isChecked())
       activeActions << action->text();

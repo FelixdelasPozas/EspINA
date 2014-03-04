@@ -34,6 +34,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Settings/Editor/SettingsPanel.h
 #   Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
+  Settings/View2D/View2DRenderersPanel.h
 #   Settings/VOI/SettingsPanel.h
 #   Toolbars/Composition/CompositionToolBar.h
 #   Toolbars/Editor/EditorToolBar.h
@@ -128,6 +129,7 @@ set (ESPINA_SOURCES
 #   Settings/SeedGrowSegmentation/SettingsPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
+  Settings/View2D/View2DRenderersPanel.cpp
 #   Settings/VOI/SettingsPanel.cpp
 #   Toolbars/Composition/CompositionToolBar.cpp
 #   Toolbars/Editor/EditorToolBar.cpp

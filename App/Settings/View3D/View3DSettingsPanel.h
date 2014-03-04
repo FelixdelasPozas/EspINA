@@ -21,6 +21,7 @@
 #define ESPINA_VIEW_3D_SETTINGS_PANEL_H
 
 #include <Support/Settings/SettingsPanel.h>
+#include <GUI/Widgets/RenderersSelector.h>
 #include "ui_View3DSettingsPanel.h"
 
 #include <GUI/View/View3D.h>
@@ -54,23 +55,10 @@ namespace EspINA
 
     virtual SettingsPanelPtr clone();
 
-  private slots:
-    void onActivateRenderersDropped();
-
-    void onAvailableRenderersDropped();
-
-    void activateRenderers();
-
-    void deactivateRenderers();
-
-    void moveSelection(QListView *source, QListView *destination);
-
-  private:
-    RendererSPtr renderer(const QString &name) const;
-
   private:
     const RendererSList &m_renderers;
-    View3D *m_view;
+    View3D              *m_view;
+    RenderersSelector   *m_rendererSelector;
   };
 
 } // namespace EspINA

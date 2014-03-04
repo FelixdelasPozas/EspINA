@@ -107,7 +107,9 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
                      << "Volumetric"
                      << "Volumetric GPU"
                      << "Mesh"
-                     << "Smoothed Mesh";
+                     << "Smoothed Mesh"
+                     << "Slice"
+                     << "Contour";
 
     settings.setValue(RENDERERS, defaultRenderers);
   }
@@ -124,6 +126,9 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   }
 
   m_view3D->setRenderers(activeRenderers);
+  m_viewXY->setRenderers(activeRenderers);
+  m_viewXZ->setRenderers(activeRenderers);
+  m_viewYZ->setRenderers(activeRenderers);
 
   connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
@@ -150,9 +155,11 @@ DefaultView::~DefaultView()
   QStringList activeRenderersNames;
 
   for(auto renderer : m_view3D->renderers())
-  {
     activeRenderersNames << renderer->name();
-  }
+
+  for(auto renderer : m_viewXY->renderers())
+    activeRenderersNames << renderer->name();
+
   settings.setValue(RENDERERS, activeRenderersNames);
   settings.sync();
 }
@@ -171,7 +178,6 @@ void DefaultView::initView2D(View2D *view)
   connect(view, SIGNAL(sliceChanged(Plane, Nm)),
           this, SLOT(changePlanePosition(Plane, Nm)));
   view->setContextualMenu(m_contextMenu);
-  view->setRenderers(m_renderers);
 //   view->setColorEngine(m_viewManager->colorEngine());
 //   view->setSelector(m_viewManager->selector());
 }

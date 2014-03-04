@@ -41,6 +41,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/NoteEditor.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
+  Widgets/RenderersSelector.h
   Widgets/SchedulerProgress.h
   Widgets/SpinBoxAction.h
   Widgets/SliderAction.h
@@ -54,6 +55,7 @@ qt4_wrap_ui (GUI_UI
   Representations/ContourRepresentationSettings.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
+  Widgets/RenderersSelector.ui
   Widgets/TagSelector.ui
   Widgets/SchedulerProgress.ui
   Widgets/TaskProgress.ui
@@ -127,6 +129,7 @@ set (GUI_SOURCES
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 
   Widgets/QComboTreeView.cpp
+  Widgets/RenderersSelector.cpp
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp

@@ -30,65 +30,19 @@ View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& rend
 
   showAxis->setVisible(false);
 
-  QStandardItemModel *active, *available;
+  QStringList activeRenderersList;
+  for(auto renderer: m_view->renderers())
+    activeRenderersList << renderer->name();
 
-  active    = new QStandardItemModel(this);
-  available = new QStandardItemModel(this);
+  m_rendererSelector = new RenderersSelector(m_renderers, activeRenderersList, RendererTypes(RendererType::RENDERER_VIEW3D));
 
-  for(auto renderer : m_renderers)
-  {
-    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
-      continue;
-
-    QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
-    item->setDropEnabled(false);
-    item->setDragEnabled(true);
-    item->setToolTip(renderer->tooltip());
-
-    bool isActive = false;
-    for(auto activeRenderer : m_view->renderers())
-    {
-      if (renderer->name() == activeRenderer->name()) isActive = true;
-    }
-
-    if (isActive)
-    {
-      active->appendRow(item);
-      deactivate->setEnabled(true);
-    }
-    else
-    {
-      available->appendRow(item);
-      activate->setEnabled(true);
-    }
-  }
-
-  activeRenderers->setModel(active);
-  availableRenderers->setModel(available);
-
-  connect(activeRenderers->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-          this, SLOT(onActivateRenderersDropped()));
-  connect(availableRenderers->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-          this, SLOT(onAvailableRenderersDropped()));
-
-  connect(activate, SIGNAL(clicked(bool)),
-          this, SLOT(activateRenderers()));
-  connect(deactivate, SIGNAL(clicked(bool)),
-          this, SLOT(deactivateRenderers()));
+  layout()->addWidget(m_rendererSelector);
 }
 
 //-----------------------------------------------------------------------------
 void View3DSettingsPanel::acceptChanges()
 {
-  RendererSList renderers;
-
-  QAbstractItemModel *activeModel = activeRenderers->model();
-  for(int i=0; i < activeModel->rowCount(); i++)
-  {
-    renderers << renderer(activeModel->index(i,0).data().toString());
-  }
-
-  m_view->setRenderers(renderers);
+  m_view->setRenderers(m_rendererSelector->getActiveRenderers());
 }
 
 //-----------------------------------------------------------------------------
@@ -102,16 +56,11 @@ bool View3DSettingsPanel::modified() const
 {
   QSet<QString> current, previous;
 
-  QAbstractItemModel *activeModel = activeRenderers->model();
-  for(int i=0; i < activeModel->rowCount(); i++)
-  {
-    current << activeModel->index(i,0).data().toString();
-  }
+  for(auto renderer: m_view->renderers())
+    previous << renderer->name();
 
-  for(auto activeRenderer : m_view->renderers())
-  {
-    previous << activeRenderer->name();
-  }
+  for(auto renderer: m_rendererSelector->getActiveRenderers())
+    current << renderer->name();
 
   return current != previous;
 }
@@ -121,70 +70,4 @@ bool View3DSettingsPanel::modified() const
 SettingsPanelPtr View3DSettingsPanel::clone()
 {
   return new View3DSettingsPanel(m_view, m_renderers);
-}
-
-//-----------------------------------------------------------------------------
-void View3DSettingsPanel::onActivateRenderersDropped()
-{
-  int activeRows    = activeRenderers->model()->rowCount();
-  int availableRows = availableRenderers->model()->rowCount();
-
-  activate  ->setEnabled((availableRows - activeRows) > 0);
-  deactivate->setEnabled(activeRows > 0);
-}
-
-//-----------------------------------------------------------------------------
-void View3DSettingsPanel::onAvailableRenderersDropped()
-{
-  int activeRows    = activeRenderers->model()->rowCount();
-  int availableRows = availableRenderers->model()->rowCount();
-
-  activate  ->setEnabled(availableRows  > 0);
-  deactivate->setEnabled((activeRows - availableRows) > 0);
-}
-
-//-----------------------------------------------------------------------------
-void View3DSettingsPanel::activateRenderers()
-{
-  moveSelection(availableRenderers, activeRenderers);
-  activate->setEnabled(availableRenderers->model()->rowCount() > 0);
-  deactivate->setEnabled(true);
-}
-
-//-----------------------------------------------------------------------------
-void View3DSettingsPanel::deactivateRenderers()
-{
-  moveSelection(activeRenderers, availableRenderers);
-  activate->setEnabled(true);
-  deactivate->setEnabled(activeRenderers->model()->rowCount() > 0);
-}
-
-//-----------------------------------------------------------------------------
-void View3DSettingsPanel::moveSelection(QListView *source, QListView *destination)
-{
-  auto sourceModel      = dynamic_cast<QStandardItemModel *>(source->model());
-  auto destinationModel = dynamic_cast<QStandardItemModel *>(destination->model());
-  for(auto index : source->selectionModel()->selectedIndexes())
-  {
-    auto item = sourceModel->item(index.row());
-    destinationModel->appendRow(item->clone());
-    sourceModel->removeRow(index.row());
-  }
-}
-
-//-----------------------------------------------------------------------------
-RendererSPtr View3DSettingsPanel::renderer(const QString& name) const
-{
-  RendererSPtr result;
-
-  for(auto renderer : m_renderers)
-  {
-    if (renderer->name() == name)
-    {
-      result = renderer;
-      break;
-    }
-  }
-
-  return result;
 }

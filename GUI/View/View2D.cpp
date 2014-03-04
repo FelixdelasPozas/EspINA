@@ -208,12 +208,27 @@ void View2D::setInvertSliceOrder(bool value)
 //-----------------------------------------------------------------------------
 void View2D::setRenderers(RendererSList renderers)
 {
-  for(auto renderer: renderers)
+  QStringList oldRenderersNames, newRenderersNames;
+
+  for (auto renderer: m_renderers)
+    oldRenderersNames << renderer->name();
+
+  for (auto renderer: renderers)
+    newRenderersNames << renderer->name();
+
+  // remove controls of unused renderers
+  for (auto renderer : m_renderers)
+    if (!newRenderersNames.contains(renderer->name()))
+      removeRendererControls(renderer->name());
+
+  // add controls for new renderers
+  for (auto renderer: renderers)
   {
-    if (canRender(renderer, RendererType::RENDERER_VIEW2D))
-    {
+    if (!canRender(renderer, RendererType::RENDERER_VIEW2D))
+      continue;
+
+    if (!oldRenderersNames.contains(renderer->name()))
       addRendererControls(renderer->clone());
-    }
   }
 }
 

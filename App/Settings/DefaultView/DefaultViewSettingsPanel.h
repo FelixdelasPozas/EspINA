@@ -20,10 +20,11 @@
 #ifndef ESPINA_DEFAULT_VIEWSETTINGS_PANEL_H
 #define ESPINA_DEFAULT_VIEWSETTINGS_PANEL_H
 
+// EspINA
 #include <Support/Settings/SettingsPanel.h>
-
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+#include <Settings/View2D/View2DRenderersPanel.h>
 #include <Settings/View2D/View2DSettingsPanel.h>
 #include <Settings/View3D/View3DSettingsPanel.h>
 
@@ -66,8 +67,9 @@ namespace EspINA {
 
     Nm m_slicingStep;
 
-    View2DSettingsPanel *m_panelXY, *m_panelXZ, *m_panelYZ;
-    View3DSettingsPanel *m_panel3D;
+    View2DSettingsPanel  *m_panelXY, *m_panelXZ, *m_panelYZ;
+    View3DSettingsPanel  *m_panel3D;
+    View2DRenderersPanel *m_panel2D;
   };
 }
 

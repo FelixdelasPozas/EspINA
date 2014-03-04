@@ -34,6 +34,8 @@ CountingFrameRenderer2D::CountingFrameRenderer2D(CountingFrameManager& cfManager
           this, SLOT(onCountingFrameCreated(CountingFrame*)));
   connect(&m_cfManager, SIGNAL(countingFrameDeleted(CountingFrame*)),
           this, SLOT(onCountingFrameDeleted(CountingFrame*)));
+
+  m_enable = true;
 }
 
 //-----------------------------------------------------------------------------

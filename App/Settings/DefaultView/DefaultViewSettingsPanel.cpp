@@ -17,8 +17,10 @@
  *
  */
 
+// EspINA
 #include "DefaultViewSettingsPanel.h"
 
+// Qt
 #include <QVBoxLayout>
 #include <QGroupBox>
 
@@ -31,14 +33,29 @@ DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
                                                    View3D* view3D,
                                                    RendererSList renderers)
 : m_viewXY(viewXY)
-, m_viewYZ(viewYZ)
 , m_viewXZ(viewXZ)
+, m_viewYZ(viewYZ)
 , m_view3D(view3D)
 , m_renderers(renderers)
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;
   QVBoxLayout *groupLayout;
+
+  QStringList activeRenderers;
+  for(auto renderer: m_viewXY->renderers())
+    activeRenderers << renderer->name();
+
+  QList<View2D*> view2dList;
+  view2dList << viewXY << viewXZ << viewYZ;
+
+  // 2D Renderers selector
+  m_panel2D = new View2DRenderersPanel(m_renderers, activeRenderers, RendererTypes(RendererType::RENDERER_VIEW2D), view2dList);
+  group = new QGroupBox(m_panel2D->shortDescription());
+  groupLayout = new QVBoxLayout();
+  groupLayout->addWidget(m_panel2D);
+  group->setLayout(groupLayout);
+  layout->addWidget(group);
 
   // Axial View
   m_panelXY = new View2DSettingsPanel(m_viewXY);
@@ -82,6 +99,7 @@ void DefaultViewSettingsPanel::acceptChanges()
   m_panelXZ->acceptChanges();
   m_panelYZ->acceptChanges();
   m_panel3D->acceptChanges();
+  m_panel2D->acceptChanges();
 }
 
 //-----------------------------------------------------------------------------
@@ -96,7 +114,8 @@ bool DefaultViewSettingsPanel::modified() const
   return m_panelXY->modified()
       || m_panelXZ->modified()
       || m_panelYZ->modified()
-      || m_panel3D->modified();
+      || m_panel3D->modified()
+      || m_panel2D->modified();
 }
 
 //-----------------------------------------------------------------------------

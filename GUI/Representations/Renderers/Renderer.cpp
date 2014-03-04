@@ -24,3 +24,14 @@ bool EspINA::canRender(RendererSPtr renderer, RendererType type)
   return renderer->renderType().testFlag(type);
 }
 
+//-----------------------------------------------------------------------------
+bool EspINA::canRender(RendererSPtr renderer, RendererTypes types)
+{
+  bool result = false;
+  renderer->renderType();
+  for (auto flag: { RendererType::RENDERER_UNDEFINED_VIEW, RendererType::RENDERER_VIEW2D, RendererType::RENDERER_VIEW3D } )
+    if (types.testFlag(flag) && renderer->renderType().testFlag(flag))
+      result |= true;
+
+  return result;
+}
