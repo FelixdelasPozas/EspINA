@@ -65,7 +65,7 @@ class InformationDelegate
         progressBarOption.textVisible = true;
 
         progressBarOption.progress = progress;
-        progressBarOption.text = QString("%1%%").arg(progressBarOption.progress);
+        progressBarOption.text = QString("%1%").arg(progressBarOption.progress);
 
 //         progressBarOption.text = QString("%1: %2%%").arg(index.data(Qt::DisplayRole).toString())
 //                                                     .arg(progressBarOption.progress);

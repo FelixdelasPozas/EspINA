@@ -139,19 +139,19 @@ namespace EspINA
    *  In case just the bounds have one value in common, both
    *  bounds must be inclussive
    */
-  bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2);
+  bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return the bounds which belong both to b1 and b2
    *
    *  In case just the bounds have one value in common, both
    *  bounds must be inclussive
    */
-  Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2);
+  Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return the minimum bouds containing b1 and b2
    *
    */
-  Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2);
+  Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return whether a bound is contained inside another
    *

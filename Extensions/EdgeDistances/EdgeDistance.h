@@ -24,6 +24,7 @@
 
 #include <Core/Analysis/Extension.h>
 #include <Core/Utils/Spatial.h>
+#include <QMutex>
 
 namespace EspINA
 {
@@ -74,7 +75,7 @@ namespace EspINA
     void updateDistances() const;
 
   private:
-    QMutex     m_mutex;
+    QMutex m_mutex;
 
     friend class ChannelEdges;
   };

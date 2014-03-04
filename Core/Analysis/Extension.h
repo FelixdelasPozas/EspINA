@@ -25,7 +25,7 @@
 #include "Core/EspinaTypes.h"
 #include <Core/Analysis/Persistent.h>
 #include <QVariant>
-#include <QMutex>
+#include <QReadWriteLock>
 
 namespace EspINA
 {
@@ -82,7 +82,8 @@ namespace EspINA
 
     InfoTagList readyInformation() const
     {
-      QMutexLocker lock(&m_mutex);
+      QReadLocker locker(&m_lock);
+
       return m_infoCache.keys();
     }
 
@@ -90,7 +91,7 @@ namespace EspINA
     {
       Q_ASSERT(availableInformations().contains(tag));
 
-      QVariant info = m_infoCache.value(tag, QVariant());
+      QVariant info = cachedInfo(tag);
 
       if (!info.isValid())
       {
@@ -126,27 +127,31 @@ namespace EspINA
 
     QVariant cachedInfo(const InfoTag &tag)
     {
-      QMutexLocker lock(&m_mutex);
+      QReadLocker locker(&m_lock);
+
       return m_infoCache.value(tag, QVariant());
     }
 
     void updateInfoCache(const InfoTag &tag, const QVariant &value)
     {
-      QMutexLocker lock(&m_mutex);
+      QWriteLocker locker(&m_lock);
+
       m_infoCache[tag] = value;
     }
 
   protected:
     virtual void invalidate()
     {
-      QMutexLocker lock(&m_mutex);
+      QWriteLocker locker(&m_lock);
+
       m_infoCache.clear();
     }
 
   protected:
     T *m_extendedItem;
 
-    QMutex  m_mutex;
+  private:
+    QReadWriteLock m_lock;
     mutable InfoCache m_infoCache;
   };
 

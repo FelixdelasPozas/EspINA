@@ -38,19 +38,30 @@ public:
   virtual QWidget* createWidget(QWidget *parent);
 
   void addAction(QAction *action);
+
   void setDefaultAction(QAction *action);
+
   QAction* getCurrentAction();
+
   QString getCurrentActionAsQString();
+
   void cancel() {emit cancelAction();}
+
   bool isChecked();
+
   void setChecked(bool value);
+
   void setIcon(const QIcon &);
+
   void setEnabled(bool);
+
   bool isEnabled() const;
 
 protected slots:
   void actionTriggered(QAction *action);
+
   void onActionCanceled();
+
   void destroySignalEmmited();
 
 signals:
@@ -63,6 +74,7 @@ private:
   int                   m_defaultAction;
   ActionSelectorWidget *m_button;
   bool                  m_enabled;
+  bool                  m_checked;
 };
 
 #endif // ESPINA_ACTION_SELECTOR_H

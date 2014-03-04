@@ -272,7 +272,9 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   if (!segmentationCategory.startsWith(cf->categoryConstraint()))
     return true;
 
-  Bounds inputBB = m_extendedItem->output()->bounds();
+  auto output  = m_extendedItem->output();
+  auto inputBB = output->bounds();
+  auto spacing = output->spacing();
   //qDebug() << "Input:" << inputBB.toString();
 
   auto          region       = cf->region();
@@ -291,7 +293,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   //qDebug() << "Region:" << regionBB.toString();
 
   // If there is no intersection (nor is inside), then it is excluded
-  if (!intersect(inputBB, regionBB))
+  if (!intersect(inputBB, regionBB, spacing))
     return true;
 
   bool collisionDected = false;
@@ -313,7 +315,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     //qDebug() << " - interscetion:" << intersection(inputBB, faceBB).toString();
     //qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
 
-    if (intersect(inputBB, faceBB) && isRealCollision(intersection(inputBB, faceBB)))
+    if (intersect(inputBB, faceBB, spacing) && isRealCollision(intersection(inputBB, faceBB, spacing)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == cf->EXCLUSION_FACE)
         return true;
@@ -332,7 +334,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
       slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
 
     Bounds sliceBB = pointBounds(slicePoints);
-    if (intersect(inputBB, sliceBB) && isRealCollision(intersection(inputBB, sliceBB)))
+    if (intersect(inputBB, sliceBB, spacing) && isRealCollision(intersection(inputBB, sliceBB, spacing)))
       return false;//;
   }
 

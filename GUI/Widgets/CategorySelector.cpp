@@ -48,9 +48,20 @@ QWidget* CategorySelector::createWidget(QWidget* parent)
   connect(m_model.get(), SIGNAL(modelReset()),
           this,          SLOT(resetRootItem()));
 
+  connect(categorySelector, SIGNAL(destroyed(QObject*)),
+          this, SLOT(onWidgetDestroyed(QObject *)));
+
   categorySelected(categorySelector->currentModelIndex());
 
+  m_pool << categorySelector;
+
   return categorySelector;
+}
+
+//------------------------------------------------------------------------
+void CategorySelector::onWidgetDestroyed(QObject *object)
+{
+  m_pool.removeOne(object);
 }
 
 //------------------------------------------------------------------------
@@ -71,5 +82,9 @@ void CategorySelector::categorySelected(const QModelIndex& index)
 //------------------------------------------------------------------------
 void CategorySelector::resetRootItem()
 {
-  //categorySelector->setRootModelIndex(m_model->taxonomyRoot());
+  for (auto object : m_pool)
+  {
+    auto categorySelector = dynamic_cast<QComboTreeView *>(object);
+    categorySelector->setRootModelIndex(m_model->classificationRoot());
+  }
 }

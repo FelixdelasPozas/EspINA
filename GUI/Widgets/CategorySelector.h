@@ -47,10 +47,12 @@ namespace EspINA
 
   private slots:
     void categorySelected(const QModelIndex& index);
+    void onWidgetDestroyed(QObject* object);
     void resetRootItem();
 
   private:
     ModelAdapterSPtr m_model;
+    QList<QObject *> m_pool;
 
     CategoryAdapterSPtr m_selectedCategory;
   };

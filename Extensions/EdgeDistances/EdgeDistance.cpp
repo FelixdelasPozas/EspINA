@@ -109,31 +109,36 @@ void EdgeDistance::edgeDistance(Nm distances[6]) const
 void EdgeDistance::updateDistances() const
 {
   //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
-  QMutexLocker lock(&m_mutex);
-  auto channels = Query::channels(m_extendedItem);
-
-  if (channels.size() == 1)
+  // Preven updating if all available information is already computed
+  if (readyInformation().size() < 6)
   {
-    Nm distances[6];
-    auto channel = channels.first();
+    QMutexLocker lock(&m_mutex);
 
-    ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
+    auto channels = Query::channels(m_extendedItem);
 
-    if (edgesExtension->useDistanceToBounds())
+    if (channels.size() == 1)
     {
-      edgesExtension->distanceToBounds(m_extendedItem, distances);
-    }
-    else
-    {
-      edgesExtension->distanceToEdges(m_extendedItem, distances);
-    }
+      Nm distances[6];
+      auto channel = channels.first();
 
-    updateInfoCache(LEFT_DISTANCE  , distances[0]);
-    updateInfoCache(RIGHT_DISTANCE , distances[1]);
-    updateInfoCache(TOP_DISTANCE   , distances[2]);
-    updateInfoCache(BOTTOM_DISTANCE, distances[3]);
-    updateInfoCache(FRONT_DISTANCE , distances[4]);
-    updateInfoCache(BACK_DISTANCE  , distances[5]);
+      ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
+
+      if (edgesExtension->useDistanceToBounds())
+      {
+        edgesExtension->distanceToBounds(m_extendedItem, distances);
+      }
+      else
+      {
+        edgesExtension->distanceToEdges(m_extendedItem, distances);
+      }
+
+      updateInfoCache(LEFT_DISTANCE  , distances[0]);
+      updateInfoCache(RIGHT_DISTANCE , distances[1]);
+      updateInfoCache(TOP_DISTANCE   , distances[2]);
+      updateInfoCache(BOTTOM_DISTANCE, distances[3]);
+      updateInfoCache(FRONT_DISTANCE , distances[4]);
+      updateInfoCache(BACK_DISTANCE  , distances[5]);
+    }
   }
 }
 

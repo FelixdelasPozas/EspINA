@@ -141,7 +141,7 @@ QString Bounds::toString() const
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
+bool EspINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
 //   auto lessThan         = [](double a, double b){return a <  b;};
   auto lessEqualThan    = [](double a, double b){return a <= b;};
@@ -153,15 +153,15 @@ bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
   for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
     overlap &= lessEqualThan(b1[i], b2[i+1]) && greaterEqualThan(b1[i+1], b2[i]);
 
-    if (areEqual(b1[i],   b2[i+1]))
+    if (areEqual(b1[i],   b2[i+1], spacing[i/2]))
     {
-      bool b2UpperIncluded = b2.areUpperIncluded(dir) || (areEqual(b2[i], b2[i+1]) && b2.areLowerIncluded(dir));
+      bool b2UpperIncluded = b2.areUpperIncluded(dir) || (areEqual(b2[i], b2[i+1], spacing[i/2]) && b2.areLowerIncluded(dir));
       overlap &= b1.areLowerIncluded(dir) && b2UpperIncluded;
     }
 
-    if (areEqual(b1[i+1], b2[i]))
+    if (areEqual(b1[i+1], b2[i], spacing[i/2]))
     {
-      bool b1UpperIncluded = b1.areUpperIncluded(dir) || (areEqual(b1[i], b1[i+1]) && b1.areLowerIncluded(dir));
+      bool b1UpperIncluded = b1.areUpperIncluded(dir) || (areEqual(b1[i], b1[i+1], spacing[i/2]) && b1.areLowerIncluded(dir));
       overlap &= b1UpperIncluded && b2.areLowerIncluded(dir);
     }
 
@@ -173,22 +173,22 @@ bool EspINA::intersect(const Bounds& b1, const Bounds& b2)
 
 
 //-----------------------------------------------------------------------------
-Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2)
+Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
   Bounds res;
 
-  int lo = 0, up = 1;
+  int lo = 0, up = 1, i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
   {
     res[lo] = std::max(b1[lo], b2[lo]);
     res[up] = std::min(b1[up], b2[up]);
 
     bool li = false;
-    if (areEqual(b1[lo], b2[lo]))
+    if (areEqual(b1[lo], b2[lo], spacing[i]))
       li = b1.areLowerIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (areEqual(b1[up], b2[lo]))
+    else if (areEqual(b1[up], b2[lo], spacing[i]))
       li = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (areEqual(b1[lo], b2[up]))
+    else if (areEqual(b1[lo], b2[up], spacing[i]))
       li = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
     else if (b1[lo] < b2[lo])
       li = b2.areLowerIncluded(dir);
@@ -197,11 +197,11 @@ Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2)
     res.setLowerInclusion(dir, li);
 
     bool ui = false;
-    if (areEqual(b1[up], b2[up]))
+    if (areEqual(b1[up], b2[up], spacing[i]))
       ui = b1.areUpperIncluded(dir) && b2.areUpperIncluded(dir);
-    else if (areEqual(b1[up], b2[lo]))
+    else if (areEqual(b1[up], b2[lo], spacing[i]))
       ui = b1.areUpperIncluded(dir) && b2.areLowerIncluded(dir);
-    else if (areEqual(b1[lo], b2[up]))
+    else if (areEqual(b1[lo], b2[up], spacing[i]))
       ui = b1.areLowerIncluded(dir) && b2.areUpperIncluded(dir);
     else if (b1[up] < b2[up])
       ui = b1.areUpperIncluded(dir);
@@ -209,6 +209,7 @@ Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2)
       ui = b2.areUpperIncluded(dir);
     res.setUpperInclusion(dir, ui);
 
+    ++i;
     lo += 2;
     up += 2;
   }
@@ -218,20 +219,21 @@ Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2)
 }
 
 //-----------------------------------------------------------------------------
-Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2)
+Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
   Bounds bb;
 
   //for(int min = 0, max = 1; min < 6; min += 2, max +=2)
-  int min = 0, max = 1;
+  int min = 0, max = 1, i = 0;
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
   {
     bb[min] = std::min(b1[min], b2[min]);
     bb[max] = std::max(b1[max], b2[max]);
 
-    bb.setLowerInclusion(dir, areEqual(b1[min], bb[min])?b1.areLowerIncluded(dir):b2.areLowerIncluded(dir));
-    bb.setUpperInclusion(dir, areEqual(b1[max], bb[max])?b1.areUpperIncluded(dir):b2.areUpperIncluded(dir));
+    bb.setLowerInclusion(dir, areEqual(b1[min], bb[min], spacing[i])?b1.areLowerIncluded(dir):b2.areLowerIncluded(dir));
+    bb.setUpperInclusion(dir, areEqual(b1[max], bb[max], spacing[i])?b1.areUpperIncluded(dir):b2.areUpperIncluded(dir));
 
+    ++i;
     min += 2;
     max += 2;
   }

@@ -63,6 +63,11 @@ void ApplyCountingFrame::run()
     auto channel       = m_countingFrame->channel();
     auto segmentations = Query::segmentationsOnChannelSample(channel);
 
+    if (segmentations.isEmpty())
+    {
+      return;
+    }
+
     double taskProgress = 0;
     double inc = 100.0 / segmentations.size();
 

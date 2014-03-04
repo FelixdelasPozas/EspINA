@@ -115,7 +115,8 @@ using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
 //-----------------------------------------------------------------------------
 void ChannelEdges::loadEdgesCache()
 {
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
+
   if (!m_edges.GetPointer() && !m_extendedItem->isOutputModified())
   {
     QString   snapshot  = snapshotName(EDGES_FILE);
@@ -126,12 +127,13 @@ void ChannelEdges::loadEdgesCache()
       m_edges = PolyDataUtils::readPolyDataFromFile(edgesFile.absoluteFilePath());
     }
   }
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
 void ChannelEdges::loadFacesCache()
 {
+  QMutexLocker lock(&m_mutex);
+
   if (!m_faces[0].GetPointer() && !m_extendedItem->isOutputModified())
   {
     for (int i = 0; i < 6; ++i)
@@ -205,21 +207,25 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   loadFacesCache();
 
   if (!m_faces[0])
+  {
     ComputeSurfaces();
+  }
 
   for(int face = 0; face < 6; ++face)
   {
     // BUG: fails when no mesh data is available
+    auto segmentationMesh = vtkSmartPointer<vtkPolyData>::New();
+    auto faceMesh         = vtkSmartPointer<vtkPolyData>::New();
+
+    segmentationMesh->DeepCopy(meshData(segmentation->output())->mesh());
+    faceMesh->DeepCopy(m_faces[face]);
+
     vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
     distanceFilter->SignedDistanceOff();
-    distanceFilter->SetInputData(0, meshData(segmentation->output())->mesh());
-    distanceFilter->SetInputData(1, m_faces[face]);
+    distanceFilter->SetInputData(0, segmentationMesh);
+    distanceFilter->SetInputData(1, faceMesh);
     distanceFilter->Update();
     distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
-    if (distances[face] < 0)
-    {
-      qDebug() << distances[face];
-    }
   }
 }
 
@@ -228,7 +234,10 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 {
   loadEdgesCache();
 
-  if (!m_edges.GetPointer()) computeAdaptiveEdges();
+  if (!m_edges.GetPointer())
+  {
+    computeAdaptiveEdges();
+  }
 
   // Ensure Margin Detector's finished
   m_mutex.lock();
