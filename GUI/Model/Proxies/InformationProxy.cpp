@@ -261,6 +261,18 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     return progress;
   }
 
+  if (role == Qt::BackgroundRole)
+  {
+    if (!m_pendingInformation.contains(segmentation)
+      ||!m_pendingInformation[segmentation]->hasFinished())
+    {
+      return Qt::lightGray;
+    } else
+    {
+      return QAbstractProxyModel::data(proxyIndex, role);
+    }
+  }
+
 
   if (role == Qt::DisplayRole && !m_tags.isEmpty())
   {
@@ -293,7 +305,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
         return segmentation->information(tag);
       }
 
-      return tr("Computing");
+      return "";
 
     } else
     {

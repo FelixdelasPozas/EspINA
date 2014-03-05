@@ -80,6 +80,8 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
 //-----------------------------------------------------------------------------
 ChannelEdges::~ChannelEdges()
 {
+  m_edgesAnalyzer->abort();
+  m_edgesAnalyzer->abort();
 }
 
 //-----------------------------------------------------------------------------

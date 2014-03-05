@@ -78,7 +78,6 @@ class InformationDelegate
     }
 
     QItemDelegate::paint(painter, option, index);
-
   }
 };
 
