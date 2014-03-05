@@ -20,19 +20,48 @@
 #ifndef ESPINA_RESET_ZOOM_TOOL_H
 #define ESPINA_RESET_ZOOM_TOOL_H
 
+// EspINA
 #include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
-namespace EspINA {
+class QAction;
+
+namespace EspINA
+{
 
   class ResetZoom
   : public Tool
   {
-  public:
-    virtual QList<QAction *> actions() const;
+    Q_OBJECT
+    public:
+      /* \brief ResetZoom class constructor.
+       * \param[in] vm View manager.
+       */
+      explicit ResetZoom(ViewManagerSPtr vm);
 
-    virtual bool enabled() const;
+      /* \brief ResetZoom class destructor.
+       *
+       */
+      virtual ~ResetZoom();
 
-    virtual void setEnabled(bool value);
+
+      virtual QList<QAction *> actions() const;
+
+      virtual bool enabled() const;
+
+      virtual void setEnabled(bool value);
+
+    public slots:
+      /* \brief Slot to activate when the action gets triggered. Resets the views
+       * via ViewManager.
+       *
+       */
+      void resetViews();
+
+    private:
+      ViewManagerSPtr m_viewManager;
+      QAction        *m_action;
+      bool            m_enabled;
   };
 
   using ResetZoomSPtr = std::shared_ptr<ResetZoom>;

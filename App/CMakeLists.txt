@@ -45,6 +45,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ViewState/ViewTools.h
   ToolGroups/ViewState/ToggleSegmentationsVisibility.h
   ToolGroups/ViewState/ToggleCrosshairVisibility.h
+  ToolGroups/ViewState/ResetZoom.h
   ToolGroups/Segmentation/ApplyROI.h
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
