@@ -21,6 +21,9 @@
 
 using namespace EspINA;
 
+const SegmentationExtension::InfoTag NAME_TAG     = QObject::tr("Name");
+const SegmentationExtension::InfoTag CATEGORY_TAG = QObject::tr("Category");
+
 class InformationProxy::InformationFetcher
 : public Task
 {
@@ -51,7 +54,7 @@ protected:
       if (!canExecute()) break;
 
       auto tag = m_tags[i];
-      if (tag != "Name" && tag != "Category")
+      if (tag != NAME_TAG && tag != CATEGORY_TAG)
       {
         Segmentation->information(m_tags[i]);
       }
@@ -263,12 +266,12 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   {
     auto tag = m_tags[proxyIndex.column()];
 
-    if (tr("Name") == tag)
+    if (NAME_TAG == tag)
     {
       return segmentation->data(role);
     }
 
-    if (tr("Category") == tag)
+    if (CATEGORY_TAG == tag)
     {
       return segmentation->category()->data(role);
     }
@@ -290,7 +293,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
         return segmentation->information(tag);
       }
 
-      return "Computing";
+      return tr("Computing");
 
     } else
     {
@@ -327,22 +330,25 @@ void InformationProxy::setInformationTags(const SegmentationExtension::InfoTagLi
   {
     task->abort();
   }
+
   m_pendingInformation.clear();
+
   m_tags = tags;
+
   endResetModel();
 }
 
-// //------------------------------------------------------------------------
-// const Segmentation::InfoTagList InformationProxy::availableInformation() const
-// {
-//   if (m_elements.isEmpty())
-//     return QStringList();
-// 
-//   ModelItemPtr item = indexPtr(m_elements.first());
-//   return segmentationPtr(item)->availableInformations();
-// }
-// 
+//------------------------------------------------------------------------
+int InformationProxy::progress() const
+{
+  double finishedTasks = 0;
+  for (auto task : m_pendingInformation)
+  {
+    if (task->hasFinished()) ++finishedTasks;
+  }
 
+  return finishedTasks / rowCount() * 100;
+}
 
 //------------------------------------------------------------------------
 void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)

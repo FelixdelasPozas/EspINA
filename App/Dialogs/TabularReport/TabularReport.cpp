@@ -81,15 +81,15 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
   layout->addWidget(m_tabs);
   setLayout(layout);
 
-  QPushButton *exportButton = new QPushButton();
+  m_exportButton = new QPushButton();
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  exportButton->setIcon(saveIcon);
-  exportButton->setFlat(false);
-  exportButton->setToolTip("Save All Data");
+  m_exportButton->setIcon(saveIcon);
+  m_exportButton->setFlat(false);
+  m_exportButton->setToolTip("Save All Data");
 
-  connect(exportButton, SIGNAL(clicked(bool)),
+  connect(m_exportButton, SIGNAL(clicked(bool)),
           this, SLOT(exportInformation()));
-  m_tabs->setCornerWidget(exportButton);
+  m_tabs->setCornerWidget(m_exportButton);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this, SLOT(updateSelection(SegmentationAdapterList)));
@@ -234,11 +234,7 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
     Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     QTableView *tableView = entry->tableView;
 
-//     tableView->blockSignals(true);
-//     tableView->selectionModel()->blockSignals(true);
-//     tableView->selectionModel()->reset();
     tableView->selectionModel()->clear();
-//     tableView->setSelectionMode(QAbstractItemView::MultiSelection);
   }
 
   for(auto segmentation : selection)
@@ -282,10 +278,6 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
   {
     Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     QTableView *tableView = entry->tableView;
-
-//     tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-//     tableView->selectionModel()->blockSignals(false);
-//     tableView->blockSignals(false);
 
     // Update all visible items
     tableView->viewport()->update();
@@ -397,6 +389,21 @@ void TabularReport::exportInformation()
 }
 
 //------------------------------------------------------------------------
+void TabularReport::updateExportStatus()
+{
+  bool enabled = true;
+
+  for (int i = 0; i < m_tabs->count(); ++i)
+  {
+    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+
+    enabled &= entry->exportInformation->isEnabled();
+  }
+
+  m_exportButton->setEnabled(enabled);
+}
+
+//------------------------------------------------------------------------
 bool TabularReport::acceptSegmentation(const SegmentationAdapterPtr segmentation)
 {
   return m_filter.isEmpty() || m_filter.contains(segmentation);
@@ -418,6 +425,9 @@ void TabularReport::createCategoryEntry(const QString &category)
   if (m_tabs->tabText(i) != category)
   {
     Entry *entry = new Entry(category, m_model, m_factory);
+
+    connect(entry, SIGNAL(informationReadyChanged()),
+            this,  SLOT(updateExportStatus()));
 
     InformationProxy *infoProxy = new InformationProxy(m_factory->scheduler());
     infoProxy->setCategory(category);

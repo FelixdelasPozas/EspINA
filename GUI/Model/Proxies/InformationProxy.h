@@ -77,6 +77,8 @@ namespace EspINA
     ItemAdapterList displayedItems() const
     { return m_elements; }
 
+    int progress() const;
+
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 

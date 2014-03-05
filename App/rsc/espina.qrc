@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>refresh.png</file>
     <file>up.png</file>
     <file>down.png</file>
     <file>new-lasso.png</file>

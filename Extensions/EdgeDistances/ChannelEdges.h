@@ -43,6 +43,7 @@ namespace EspINA
     static const QString EDGES_FILE;
     static const QString FACES_FILE;
 
+    Q_OBJECT
   public:
     static const Type TYPE;
 
@@ -106,6 +107,9 @@ namespace EspINA
     void loadEdgesCache();
 
     void loadFacesCache();
+
+  private slots:
+    void onChannelAnalyzed();
 
   private:
     QMutex m_mutex;

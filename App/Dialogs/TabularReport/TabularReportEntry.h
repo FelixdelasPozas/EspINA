@@ -62,6 +62,8 @@ namespace EspINA
 
     QVariant value(int row, int column) const;
 
+  signals:
+    void informationReadyChanged();
 
   private slots:
     void changeDisplayedInformation();
@@ -69,6 +71,10 @@ namespace EspINA
     void saveSelectedInformation();
 
     void extractInformation();
+
+    void refreshAllInformation();
+
+    void refreshGUI();
 
   private:
     bool exportToCSV(const QString &filename);

@@ -103,11 +103,16 @@ TabularReport::Entry::Entry(const QString   &category,
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  writeDataToFile->setIcon(iconSave);
-  connect(writeDataToFile, SIGNAL(clicked(bool)),
-          this, SLOT(extractInformation()));
-  connect(selectInformation, SIGNAL(clicked(bool)),
-          this, SLOT(changeDisplayedInformation()));
+  exportInformation->setIcon(iconSave);
+
+  connect(refreshInformation, SIGNAL(clicked(bool)),
+          this,               SLOT(refreshAllInformation()));
+
+  connect(exportInformation,    SIGNAL(clicked(bool)),
+          this,               SLOT(extractInformation()));
+
+  connect(selectInformation,  SIGNAL(clicked(bool)),
+          this,               SLOT(changeDisplayedInformation()));
 
   tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
@@ -121,9 +126,23 @@ TabularReport::Entry::~Entry()
 //------------------------------------------------------------------------
 void TabularReport::Entry::setProxy(InformationProxy* proxy)
 {
+  if (m_proxy)
+  {
+    disconnect(m_proxy, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+               this,    SLOT(refreshGUI()));
+  }
+
   m_proxy = proxy;
 
+  if (m_proxy)
+  {
+    connect(m_proxy, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+            this,    SLOT(refreshGUI()));
+  }
+
   setInformation(lastDisplayedInformation(), lastInformationOrder());
+
+  refreshGUI();
 }
 
 //------------------------------------------------------------------------
@@ -182,7 +201,7 @@ void TabularReport::Entry::saveSelectedInformation()
     informationOrder << m_proxy->headerData(logicalIdx, Qt::Horizontal, Qt::DisplayRole).toString();
   }
 
-  qDebug() << "New order: " << informationOrder;
+  //qDebug() << "New order: " << informationOrder;
 
   QSettings settings(CESVIMA, ESPINA);
   openCategorySettings(settings);
@@ -215,6 +234,46 @@ void TabularReport::Entry::extractInformation()
 
   if (!result)
     QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::refreshAllInformation()
+{
+  int c = m_proxy->columnCount() - 1;
+
+  if (m_proxy->informationTags()[c] == tr("Category"))
+  {
+    --c; // Category tag doesn't span task
+  }
+
+  for (int r = 1; r <= m_proxy->rowCount(); ++r) {
+    auto data = value(r, c);
+  }
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::refreshGUI()
+{
+  int  progress   = m_proxy->progress();
+  bool inProgress = (progress < 100);
+
+  if ( m_proxy->informationTags().size() == 1
+    || m_proxy->informationTags().size() == 2 && m_proxy->informationTags()[1] == tr("Category"))
+  {
+    inProgress = false;
+  }
+
+  progressLabel->setVisible(inProgress);
+  progressBar->setVisible(inProgress);
+  progressBar->setValue(progress);
+
+  if (exportInformation->isEnabled() == inProgress) {
+    exportInformation->setEnabled(!inProgress);
+
+    emit informationReadyChanged();
+  }
+
+  tableView->viewport()->update();
 }
 
 //------------------------------------------------------------------------
@@ -266,7 +325,7 @@ InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 {
   InformationSelector::GroupedInfo info;
 
-  info[SEGMENTATION_GROUP] << tr("Name") << tr("Category");
+  info[SEGMENTATION_GROUP] << tr("Category");
 
   for (auto type : m_factory->availableSegmentationExtensions())
   {
@@ -346,7 +405,7 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 
   if (info.isEmpty())
   {
-    info[SEGMENTATION_GROUP] << tr("Name") << tr("Category");
+    info[SEGMENTATION_GROUP]  << tr("Category");
   }
 
   return info;
@@ -385,14 +444,16 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
 
   settings.setValue("InformationOrder", informationOrder);
 
-  m_proxy->setInformationTags(informationOrder);
+  QStringList tags;
+  tags << tr("Name") << informationOrder;
+  m_proxy->setInformationTags(tags);
 
   closeCategorySettings(settings);
 
   settings.sync();
 
-  auto header = new QStandardItemModel(1, informationOrder.size(), this);
-  header->setHorizontalHeaderLabels(informationOrder);
+  auto header = new QStandardItemModel(1, tags.size(), this);
+  header->setHorizontalHeaderLabels(tags);
   tableView->horizontalHeader()->setModel(header);
 }
 

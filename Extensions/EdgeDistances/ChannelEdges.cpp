@@ -95,19 +95,28 @@ void ChannelEdges::onExtendedItemSet(Channel *item)
 void ChannelEdges::analyzeChannel()
 {
   m_mutex.lock();
+  qDebug() << "Analyzing Channel" << m_extendedItem->name();
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
-  m_edgesAnalyzer->submit(m_edgesAnalyzer);
+  connect(m_edgesAnalyzer.get(), SIGNAL(finished()),
+          this,                  SLOT(onChannelAnalyzed()));
+  Task::submit(m_edgesAnalyzer);
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::onChannelAnalyzed()
+{
+  computeAdaptiveEdges();
 }
 
 //-----------------------------------------------------------------------------
 void ChannelEdges::computeAdaptiveEdges()
 {
-  //qDebug() << "Computing Adaptive Edges" << m_extendedItem->data().toString() << AdaptiveEdgesID;
+  qDebug() << "Computing Adaptive Edges" << m_extendedItem->name();
   m_edges = vtkSmartPointer<vtkPolyData>::New();
 
   m_mutex.lock();
   m_edgesCreator->setDescription(QObject::tr("Computing Edges %1").arg(m_extendedItem->name()));
-  m_edgesCreator->submit(m_edgesCreator);
+  Task::submit(m_edgesCreator);
 }
 
 using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;

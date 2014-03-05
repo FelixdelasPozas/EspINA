@@ -5,13 +5,10 @@ include_directories(
 
 include (GenerateExportHeader)
 
-# qt4_wrap_cpp(EXTENSIONS_MOC
-#   Analysis/Data.h
-#   Analysis/Output.h
-#   MultiTasking/Scheduler.h
-#   MultiTasking/Task.h
+qt4_wrap_cpp(EXTENSIONS_MOC
+  EdgeDistances/ChannelEdges.h
 #   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
-#   )
+  )
 
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}

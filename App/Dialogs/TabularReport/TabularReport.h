@@ -28,6 +28,7 @@
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 
+class QPushButton;
 class QTableView;
 
 namespace EspINA
@@ -91,10 +92,16 @@ namespace EspINA
 
   protected slots:
     void indexDoubleClicked(QModelIndex index);
+
     void updateRepresentation(const QModelIndex &index);
+
     void updateSelection(QItemSelection selected, QItemSelection deselected);
+
     void rowsRemoved(const QModelIndex &parent, int start, int end);
+
     void exportInformation();
+
+    void updateExportStatus();
 
   private:
     bool acceptSegmentation(const SegmentationAdapterPtr segmentation);
@@ -116,7 +123,8 @@ namespace EspINA
     ViewManagerSPtr  m_viewManager;
 
     SegmentationAdapterList m_filter;
-    QTabWidget *m_tabs;
+    QTabWidget  *m_tabs;
+    QPushButton *m_exportButton;
 
     bool m_multiSelection;
   };
