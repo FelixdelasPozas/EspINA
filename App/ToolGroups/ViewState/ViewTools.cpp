@@ -39,24 +39,6 @@ ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)
 , m_segmentationsShortcut(new QShortcut(parent))
 , m_crosshairShortcut(new QShortcut(parent))
 {
-//   setObjectName("ViewToolBar");
-// 
-//   setWindowTitle(tr("Zoom Tool Bar"));
-// 
-//   m_resetViews = addAction(QIcon(":/espina/zoom_reset.png"),
-//                            tr("Reset Camera"));
-//   m_resetViews->setStatusTip(tr("Reset Camera"));
-//   m_resetViews->setCheckable(false);
-//   connect(m_resetViews, SIGNAL(triggered()),
-//           this,         SLOT(resetViews()));
-// 
-//   m_zoomToolAction = addAction(QIcon(":/espina/zoom_selection.png"),
-//                                tr("Zoom selection tool"));
-//   m_zoomToolAction->setStatusTip(tr("Zoom selection tool"));
-//   m_zoomToolAction->setCheckable(true);
-//   connect(m_zoomToolAction, SIGNAL(triggered(bool)),
-//           this,             SLOT(initViewTool(bool)));
-
   m_segmentationsShortcut->setKey(Qt::Key_Space);
   m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);
   connect(m_segmentationsShortcut,SIGNAL(activated()),m_toggleSegmentations.get(),SLOT(shortcut()));
@@ -106,34 +88,3 @@ ToolSList ViewTools::tools()
   return zoomTools;
 }
 
-//----------------------------------------------------------------------------
-void ViewTools::initViewTool(bool value)
-{
-//   if(value)
-//   {
-//     m_viewManager->setActiveTool(m_zoomTool);
-//     m_viewManager->setSelectionEnabled(false);
-//   }
-//   else
-//   {
-//     m_viewManager->unsetActiveTool(m_zoomTool);
-//     m_viewManager->setSelectionEnabled(true);
-//   }
-}
-
-//----------------------------------------------------------------------------
-void ViewTools::resetViews()
-{
-  m_viewManager->resetViewCameras();
-  m_viewManager->updateViews();
-}
-
-// //----------------------------------------------------------------------------
-// void ViewTools::resetToolbar()
-// {
-//   if (m_zoomToolAction->isChecked())
-//   {
-//     m_zoomToolAction->setChecked(false);
-//     initViewTool(false);
-//   }
-// }

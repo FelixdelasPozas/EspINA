@@ -2,7 +2,7 @@
  * ZoomSelectionSliceWidget.h
  *
  *  Created on: Nov 15, 2012
- *      Author: FÈlix de las Pozas ¡lvarez
+ *      Author: F√©lix de las Pozas √Ålvarez
  */
 
 #ifndef ZOOMSELECTIONSLICEWIDGET_H_
@@ -11,7 +11,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/vtkWidgets/EspinaWidget.h"
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 class vtkAbstractWidget;
 class ViewManager;
@@ -23,10 +23,20 @@ class EspinaGUI_EXPORT ZoomSelectionSliceWidget
 : public SliceWidget
 {
   public:
+    /* \brief ZoomSelectionSliceWidget class constructor.
+     *
+     */
     explicit ZoomSelectionSliceWidget(vtkAbstractWidget *);
+
+    /* \brief ZoomSelectionSliceWidget class destructor.
+     *
+     */
     virtual ~ZoomSelectionSliceWidget();
 
-    virtual void SetEnabled(int);
+    /* \brief Enables/Disables the vtkAbstractWidget contained.
+     * \param[in] value int value to pass to the vtkAbstractWidget.
+     */
+    virtual void SetEnabled(int value);
 };
 
 }// namespace EspINA

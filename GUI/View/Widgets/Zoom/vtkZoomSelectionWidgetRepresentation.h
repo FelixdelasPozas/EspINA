@@ -2,7 +2,7 @@
  * vtkZoomSelectionWidgetRepresentation.h
  *
  *  Created on: Nov 14, 2012
- *      Author: FÈlix de las Pozas ¡lvarez
+ *      Author: F√©lix de las Pozas √Ålvarez
  */
 
 #ifndef VTKZOOMSELECTIONWIDGETREPRESENTATION_H_
@@ -11,9 +11,9 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/vtkWidgets/vtkZoomSelectionWidget.h"
+#include "vtkZoomSelectionWidget.h"
 
-// vtk
+// VTK
 #include <vtkWidgetRepresentation.h>
 #include <vtkSmartPointer.h>
 

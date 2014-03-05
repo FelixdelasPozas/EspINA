@@ -9,11 +9,11 @@
 #include "ZoomSelectionWidget.h"
 #include "ZoomSelectionSliceWidget.h"
 #include "vtkZoomSelectionWidget.h"
-#include "EspinaInteractorAdapter.h"
+#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include "vtkZoomSelectionWidget.h"
 
-#include "GUI/ViewManager.h"
-#include <GUI/QtWidget/SliceView.h>
+#include <Support/ViewManager.h>
+#include <GUI/View/View2D.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
@@ -24,10 +24,10 @@ typedef EspinaInteractorAdapter<vtkZoomSelectionWidget> ZoomSelectionWidgetAdapt
 
 //----------------------------------------------------------------------------
 ZoomSelectionWidget::ZoomSelectionWidget()
-: m_axial(NULL)
-, m_coronal(NULL)
-, m_sagittal(NULL)
-, m_volume(NULL)
+: m_axial(nullptr)
+, m_coronal(nullptr)
+, m_sagittal(nullptr)
+, m_volume(nullptr)
 {
 }
 
@@ -38,37 +38,37 @@ ZoomSelectionWidget::~ZoomSelectionWidget()
   {
     m_axial->SetEnabled(false);
     delete m_axial;
-    m_axial = NULL;
+    m_axial = nullptr;
   }
 
   if (m_coronal)
   {
     m_coronal->SetEnabled(false);
     delete m_coronal;
-    m_coronal = NULL;
+    m_coronal = nullptr;
   }
 
   if (m_sagittal)
   {
     m_sagittal->SetEnabled(false);
     delete m_sagittal;
-    m_sagittal = NULL;
+    m_sagittal = nullptr;
   }
 
   // this deletes m_volume
-  foreach(vtkAbstractWidget *widget, m_widgets)
+  for(auto widget: m_widgets)
   {
     widget->RemoveObserver(this);
     widget->SetEnabled(false);
     widget->Delete();
   }
-  m_volume = NULL;
+  m_volume = nullptr;
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *ZoomSelectionWidget::create3DWidget(VolumeView *view)
+vtkAbstractWidget *ZoomSelectionWidget::create3DWidget(View3D *view)
 {
-  return NULL;
+  return nullptr;
 
   // dead code, for now
   if (!m_volume)
@@ -83,12 +83,12 @@ vtkAbstractWidget *ZoomSelectionWidget::create3DWidget(VolumeView *view)
 }
 
 //----------------------------------------------------------------------------
-SliceWidget *ZoomSelectionWidget::createSliceWidget(SliceView *view)
+SliceWidget *ZoomSelectionWidget::createSliceWidget(View2D *view)
 {
-  vtkZoomSelectionWidget *widget = NULL;
+  vtkZoomSelectionWidget *widget = nullptr;
   switch(view->plane())
   {
-    case AXIAL:
+    case Plane::XY:
       widget = ZoomSelectionWidgetAdapter::New();
       widget->AddObserver(vtkCommand::EndInteractionEvent, this);
       widget->SetWidgetType(vtkZoomSelectionWidget::AXIAL_WIDGET);
@@ -96,7 +96,7 @@ SliceWidget *ZoomSelectionWidget::createSliceWidget(SliceView *view)
       m_axial = new ZoomSelectionSliceWidget(widget);
       return m_axial;
       break;
-    case CORONAL:
+    case Plane::XZ:
       widget = ZoomSelectionWidgetAdapter::New();
       widget->AddObserver(vtkCommand::EndInteractionEvent, this);
       widget->SetWidgetType(vtkZoomSelectionWidget::CORONAL_WIDGET);
@@ -104,7 +104,7 @@ SliceWidget *ZoomSelectionWidget::createSliceWidget(SliceView *view)
       m_coronal = new ZoomSelectionSliceWidget(widget);
       return m_coronal;
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       widget = ZoomSelectionWidgetAdapter::New();
       widget->AddObserver(vtkCommand::EndInteractionEvent, this);
       widget->SetWidgetType(vtkZoomSelectionWidget::SAGITTAL_WIDGET);
@@ -117,14 +117,14 @@ SliceWidget *ZoomSelectionWidget::createSliceWidget(SliceView *view)
       break;
   }
 
-  return NULL; // dead code
+  return nullptr; // dead code
 }
 
 //----------------------------------------------------------------------------
 bool ZoomSelectionWidget::processEvent(vtkRenderWindowInteractor *iren,
                           long unsigned int event)
 {
-  foreach(vtkAbstractWidget *widget, m_widgets)
+  for(auto widget: m_widgets)
     if (widget->GetInteractor() == iren)
     {
       ZoomSelectionWidgetAdapter *sw = static_cast<ZoomSelectionWidgetAdapter *>(widget);
@@ -141,7 +141,7 @@ void ZoomSelectionWidget::setEnabled(bool enable)
   m_coronal->SetEnabled(enable);
   m_sagittal->SetEnabled(enable);
 
-  foreach(vtkAbstractWidget *widget, m_widgets)
+  for(auto widget: m_widgets)
       widget->SetEnabled(enable);
 }
 
@@ -149,5 +149,5 @@ void ZoomSelectionWidget::setEnabled(bool enable)
 void ZoomSelectionWidget::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
 {
   // this is needed to update the thumbnail when zooming the view.
-  this->m_viewManager->updateViews();
+  m_viewManager->updateViews();
 }

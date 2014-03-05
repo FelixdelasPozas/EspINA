@@ -2,7 +2,7 @@
  * vtkZoomSelectionWidget.h
  *
  *  Created on: Nov 14, 2012
- *      Author: FÈlix de las Pozas ¡lvarez
+ *      Author: F√©lix de las Pozas √Ålvarez
  */
 
 #ifndef VTKZOOMSELECTIONWIDGET_H_

@@ -35,7 +35,7 @@ namespace EspINA
     Q_OBJECT
     public:
       /* \brief ResetZoom class constructor.
-       * \param[in] vm View manager.
+       * \param[in] vm Application view manager.
        */
       explicit ResetZoom(ViewManagerSPtr vm);
 
@@ -44,11 +44,19 @@ namespace EspINA
        */
       virtual ~ResetZoom();
 
-
+      /* \brief Implements Tool::actions.
+       *
+       */
       virtual QList<QAction *> actions() const;
 
+      /* \brief Implements Tool::enabled.
+       *
+       */
       virtual bool enabled() const;
 
+      /* \brief Implements Tool::setEnabled.
+       *
+       */
       virtual void setEnabled(bool value);
 
     public slots:

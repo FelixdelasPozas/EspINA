@@ -7,8 +7,7 @@
 
 // EspINA
 #include "ZoomSelectionSliceWidget.h"
-
-#include "GUI/ViewManager.h"
+#include <Support/ViewManager.h>
 
 // vtk
 #include <vtkAbstractWidget.h>

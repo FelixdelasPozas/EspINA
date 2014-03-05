@@ -2,7 +2,7 @@
  * vtkZoomSelectionWidget.cpp
  *
  *  Created on: Nov 14, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: FÃ©lix de las Pozas Ãlvarez
  */
 
 // EspINA
@@ -84,7 +84,7 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
     if (!this->CurrentRenderer)
     {
       this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(X, Y));
-      if (this->CurrentRenderer == NULL)
+      if (this->CurrentRenderer == nullptr)
         return;
     }
 
@@ -105,7 +105,7 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
     if (this->WidgetState == vtkZoomSelectionWidget::Start)
       reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->VisibilityOff();
 
-    this->InvokeEvent(vtkCommand::EnableEvent, NULL);
+    this->InvokeEvent(vtkCommand::EnableEvent, nullptr);
   }
   else
   {
@@ -124,8 +124,8 @@ void vtkZoomSelectionWidget::SetEnabled(int enabling)
 
     this->CurrentRenderer->RemoveViewProp(this->WidgetRep);
 
-    this->InvokeEvent(vtkCommand::DisableEvent, NULL);
-    this->SetCurrentRenderer(NULL);
+    this->InvokeEvent(vtkCommand::DisableEvent, nullptr);
+    this->SetCurrentRenderer(nullptr);
   }
 
   // Should only render if there is no parent
@@ -147,7 +147,7 @@ void vtkZoomSelectionWidget::SelectAction(vtkAbstractWidget *widget)
 
   self->GrabFocus(self->EventCallbackCommand);
   self->WidgetState = vtkZoomSelectionWidget::Define;
-  self->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
   reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(self->WidgetRep)->VisibilityOn();
   double e[2];
   e[0] = static_cast<double>(X);
@@ -172,7 +172,7 @@ void vtkZoomSelectionWidget::MoveAction(vtkAbstractWidget *widget)
   e[0] = static_cast<double>(X);
   e[1] = static_cast<double>(Y);
   reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(self->WidgetRep)->WidgetInteraction(e);
-  self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+  self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
   self->EventCallbackCommand->SetAbortFlag(1);
   self->WidgetRep->BuildRepresentation();
   self->Render();
@@ -195,7 +195,7 @@ void vtkZoomSelectionWidget::EndSelectAction(vtkAbstractWidget *widget)
   reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(self->WidgetRep)->EndWidgetInteraction(e);
   self->WidgetState = vtkZoomSelectionWidget::Start;
   self->ReleaseFocus();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Render();
 }

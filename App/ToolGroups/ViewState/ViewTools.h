@@ -45,15 +45,11 @@ namespace EspINA
 
     virtual ToolSList tools();
 
-  public slots:
-    void resetViews();
-    void initViewTool(bool);
-
   private:
     ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
     ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
-    ResetZoomSPtr m_resetZoom;
-    ZoomAreaSPtr  m_zoomArea;
+    ResetZoomSPtr                     m_resetZoom;
+    ZoomAreaSPtr                      m_zoomArea;
 
     bool m_enabled;
 
