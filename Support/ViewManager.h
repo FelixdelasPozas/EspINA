@@ -135,6 +135,9 @@ namespace EspINA
 
     void unsetEventHandler(EventHandlerSPtr eventHandler);
 
+    EventHandlerSPtr eventHandler() const
+    { return m_eventHandler; }
+
     void setCurrentROI(ROI roi)
     { m_roi = roi; }
 

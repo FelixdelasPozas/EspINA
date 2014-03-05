@@ -94,7 +94,7 @@ namespace EspINA
       CircularBrushSelectorSPtr  m_circularBrushSelector;
       SphericalBrushSelectorSPtr m_sphericalBrushSelector;
 
-      BrushSelectorSPtr m_actualSelector;
+      BrushSelectorSPtr m_currentSelector;
       ActionSelector   *m_drawToolSelector;
       CategorySelector *m_categorySelector;
       QMap<QAction *, SelectorSPtr> m_drawTools;

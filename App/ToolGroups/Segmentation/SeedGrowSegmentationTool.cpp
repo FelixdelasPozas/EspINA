@@ -127,6 +127,11 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
 {
   QList<QAction *> actions;
 
+  if (m_currentSelector)
+  {
+    m_selectorSwitch->setChecked(m_viewManager->eventHandler() == m_currentSelector);
+  }
+
   actions << m_categorySelector;
   actions << m_selectorSwitch;
   actions << m_seedThreshold;

@@ -178,8 +178,8 @@ namespace EspINA
     settings.setValue(BRUSH_OPACITY, m_opacityWidget->value());
     settings.sync();
 
-    if (m_actualSelector)
-      m_viewManager->unsetEventHandler(m_actualSelector);
+    if (m_currentSelector)
+      m_viewManager->unsetEventHandler(m_currentSelector);
   }
 
   //-----------------------------------------------------------------------------
@@ -187,32 +187,32 @@ namespace EspINA
   {
     Q_ASSERT(m_drawTools.keys().contains(action));
 
-    m_actualSelector = m_drawTools[action];
-    m_actualSelector->initBrush();
-    m_actualSelector->setRadius(m_radiusWidget->value());
+    m_currentSelector = m_drawTools[action];
+    m_currentSelector->initBrush();
+    m_currentSelector->setRadius(m_radiusWidget->value());
 
-    m_viewManager->setEventHandler(m_actualSelector);
+    m_viewManager->setEventHandler(m_currentSelector);
   }
 
   //-----------------------------------------------------------------------------
   void ManualEditionTool::unsetSelector()
   {
-    m_viewManager->unsetEventHandler(m_actualSelector);
-    m_actualSelector.reset();
+    m_viewManager->unsetEventHandler(m_currentSelector);
+    m_currentSelector.reset();
   }
 
   //-----------------------------------------------------------------------------
   void ManualEditionTool::changeRadius(int value)
   {
-    if (m_actualSelector != nullptr)
-      m_actualSelector->setRadius(m_radiusWidget->value());
+    if (m_currentSelector != nullptr)
+      m_currentSelector->setRadius(m_radiusWidget->value());
   }
 
   //-----------------------------------------------------------------------------
   void ManualEditionTool::changeOpacity(int value)
   {
-    if (m_actualSelector != nullptr)
-      m_actualSelector->setBrushOpacity(m_opacityWidget->value());
+    if (m_currentSelector != nullptr)
+      m_currentSelector->setBrushOpacity(m_opacityWidget->value());
   }
 
   //-----------------------------------------------------------------------------
@@ -220,13 +220,13 @@ namespace EspINA
   {
     if (!value)
     {
-      m_actualSelector = nullptr;
+      m_currentSelector = nullptr;
       emit stopDrawing();
     }
     else
     {
       if (value && m_viewManager->activeCategory() && m_viewManager->activeChannel())
-        m_actualSelector->initBrush();
+        m_currentSelector->initBrush();
     }
   }
 
@@ -250,6 +250,11 @@ namespace EspINA
   {
     QList<QAction *> actions;
 
+    if (m_currentSelector)
+    {
+      m_drawToolSelector->setChecked(m_viewManager->eventHandler() == m_currentSelector);
+    }
+
     actions << m_categorySelector;
     actions << m_drawToolSelector;
     actions << m_radiusWidget;
@@ -261,7 +266,7 @@ namespace EspINA
   //------------------------------------------------------------------------
   void ManualEditionTool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane)
   {
-    auto mask = m_actualSelector->voxelSelectionMask();
+    auto mask = m_currentSelector->voxelSelectionMask();
     SegmentationAdapterSPtr segmentation;
 
     switch(item->type())
@@ -305,7 +310,7 @@ namespace EspINA
         break;
     }
 
-    m_actualSelector->initBrush();
+    m_currentSelector->initBrush();
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();
@@ -314,8 +319,8 @@ namespace EspINA
   //------------------------------------------------------------------------
   void ManualEditionTool::abortOperation()
   {
-    if (m_actualSelector)
-      m_actualSelector->abortOperation();
+    if (m_currentSelector)
+      m_currentSelector->abortOperation();
   }
 
   //------------------------------------------------------------------------

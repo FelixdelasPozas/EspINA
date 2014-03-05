@@ -73,12 +73,14 @@ void ActionSelector::addAction(QAction* action)
 //------------------------------------------------------------------------
 void ActionSelector::actionTriggered(QAction* action)
 {
+  m_checked = true;
   emit triggered(action);
 }
 
 //------------------------------------------------------------------------
 void ActionSelector::onActionCanceled()
 {
+  m_checked = false;
   emit actionCanceled();
 }
 
@@ -139,7 +141,7 @@ void ActionSelector::setEnabled(bool value)
 {
   m_enabled = value;
 
-  if (m_button)
+  if (m_button && m_button->isChecked() != value)
   {
     m_button->setEnabled(value);
   }
