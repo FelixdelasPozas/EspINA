@@ -483,8 +483,14 @@ private:
         }
         else if (xml.name() == "Info")
         {
-          QString name = xml.attributes().value("Name").toString().replace("_", " ");
-          cache[name]  = xml.readElementText();
+          auto name = xml.attributes().value("Name").toString().replace("_", " ");
+
+          QByteArray base64(xml.readElementText().toStdString().c_str());
+
+          auto data = QByteArray::fromBase64(base64);
+
+          QDataStream in(data);
+          in >> cache[name];
         }
         else if (xml.name() == "State")
         {

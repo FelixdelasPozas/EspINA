@@ -143,9 +143,13 @@ Snapshot Segmentation::snapshot() const
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
       for(auto tag : extension->readyInformation())
       {
+        QByteArray data;
+        QDataStream out(&data, QIODevice::WriteOnly);
+        out << extension->information(tag);
+
         stream.writeStartElement("Info");
         stream.writeAttribute("Name", tag);
-        stream.writeCharacters(extension->information(tag).toString());
+        stream.writeCharacters(data.toBase64());
         stream.writeEndElement();
       }
       auto state = extension->state();
