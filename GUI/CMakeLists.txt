@@ -123,6 +123,12 @@ set (GUI_SOURCES
   View/Widgets/Zoom/ZoomSelectionSliceWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
+  View/Widgets/Measures/MeasureWidget.cpp
+  View/Widgets/Measures/MeasureSliceWidget.cpp
+  View/Widgets/Ruler/RulerWidget.cpp
+  View/Widgets/Ruler/RulerSliceWidget.cpp
+  View/Widgets/Ruler/vtkRulerWidget.cpp
+  View/Widgets/Ruler/vtkRulerWidget3D.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
   Widgets/ActionSelector.cpp
   Widgets/ActionSelectorWidget.cpp

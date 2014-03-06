@@ -56,12 +56,13 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Editor/MorphologicalEditionTool.h
   ToolGroups/Editor/ManualEditionTool.h
   ToolGroups/Editor/MorphologicalEditionTool.h
+  ToolGroups/Measures/MeasuresTools.h
   Tools/Brushes/CircularBrushSelector.h
   Tools/Brushes/SphericalBrushSelector.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
-#   Tools/Measure/MeasureTool.h
-#   Tools/Ruler/RulerTool.h
+  Tools/Measure/MeasureTool.h
+  Tools/Ruler/RulerTool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
 #   Tools/VOI/RectangularVOI.h
   Views/DefaultView.h
@@ -155,12 +156,13 @@ set (ESPINA_SOURCES
   ToolGroups/Editor/SplitTool.cpp
   ToolGroups/Editor/MorphologicalEditionTool.cpp
   ToolGroups/Editor/ManualEditionTool.cpp
+  ToolGroups/Measures/MeasuresTools.cpp
   Tools/Brushes/CircularBrushSelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp
 #   Tools/Contour/FilledContour.cpp
-#   Tools/Measure/MeasureTool.cpp
+  Tools/Measure/MeasureTool.cpp
 #   Tools/PlanarSplit/PlanarSplitTool.cpp
-#   Tools/Ruler/RulerTool.cpp
+  Tools/Ruler/RulerTool.cpp
 #   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
 #   Tools/SegmentationRemover/SegmentationRemover.cpp
 #   Tools/VOI/RectangularVOI.cpp

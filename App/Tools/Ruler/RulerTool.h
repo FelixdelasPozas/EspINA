@@ -20,8 +20,8 @@
 #define RULERTOOL_H_
 
 // EspINA
-#include <GUI/Tools/ITool.h>
-#include <GUI/ViewManager.h>
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
 namespace EspINA
 {
@@ -30,33 +30,71 @@ namespace EspINA
   class RulerWidget;
   
   class RulerTool
-  : public ITool
+  : public Tool
   {
     Q_OBJECT
     public:
-      explicit RulerTool(ViewManager *);
+      explicit RulerTool(ViewManagerSPtr);
       virtual ~RulerTool();
 
-      // implements ITool
-      virtual QCursor cursor() const { return Qt::CrossCursor; };
-      virtual bool filterEvent(QEvent *e, RenderView *view=NULL);
-      virtual void setInUse(bool value);
+      /* \brief Implements Tool::setEnabled.
+       *
+       */
       virtual void setEnabled(bool value);
+
+      /* \brief Implements Tool::enabled.
+       *
+       */
       virtual bool enabled() const;
 
+      /* \brief Implements Tool::actions.
+       *
+       */
+      virtual QList<QAction *> actions() const;
+
     public slots:
-      void selectionChanged(ViewManager::Selection, bool);
+      void initTool(bool value);
+      void selectionChanged();
       void selectedElementChanged();
 
     private:
-      bool m_enabled;
-      bool m_inUse;
-      RulerWidget *m_widget;
-      ViewManager *m_viewManager;
-      ViewManager::Selection m_selection;
+      bool             m_enabled;
+      QAction         *m_action;
+      RulerWidget     *m_widget;
+      ViewManagerSPtr  m_viewManager;
+      SelectionSPtr    m_selection;
+      EventHandlerSPtr m_handler;
   };
 
-  typedef boost::shared_ptr<RulerTool> RulerToolSPtr;
+  class RulerEventHandler
+  : public EventHandler
+  {
+    public:
+      /* \brief RulerEventHandler class constructor.
+       *
+       */
+      RulerEventHandler()
+      {}
+
+      /* \brief RulerEventHadler class destructor.
+       *
+       */
+      ~RulerEventHandler()
+      {}
+
+      /* \brief Implements EventHandler::setInUse.
+       *
+       */
+      virtual void setInUse(bool value);
+
+      /* \brief Implements EventHandler::filterEvent.
+       *
+       */
+      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
+  };
+
+  using RulerToolPtr  = RulerTool *;
+  using RulerToolSPtr = std::shared_ptr<RulerTool>;
 
 } /* namespace EspINA */
 #endif /* RULERTOOL_H_ */

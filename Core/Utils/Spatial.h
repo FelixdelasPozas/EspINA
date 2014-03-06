@@ -47,9 +47,10 @@ namespace EspINA {
   }
 
   enum class Plane {
-    XY, // AXIAL
-    XZ, // CORONAL
-    YZ  // SAGITTAL
+    XY,  // AXIAL
+    XZ,  // CORONAL
+    YZ,  // SAGITTAL
+    UNDEFINED
   };
 
   constexpr int idx(const Plane plane)

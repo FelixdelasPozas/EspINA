@@ -16,11 +16,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RULERSLICEWIDGET_H_
-#define RULERSLICEWIDGET_H_
-
+#ifndef ESPINA_RULER_SLICE_WIDGET_H_
+#define ESPINA_RULER_SLICE_WIDGET_H_
 
 // EspINA
+#include <Core/Utils/Bounds.h>
+#include <Core/Utils/Spatial.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 
 namespace EspINA
@@ -29,12 +30,30 @@ namespace EspINA
   : public SliceWidget
   {
     public:
-      explicit RulerSliceWidget(vtkAbstractWidget*);
+      /* \brief RulerSliceWidget class constructor.
+       * \param[in] widget Encapsulated vtkAbstractWidget.
+       *
+       */
+      explicit RulerSliceWidget(vtkAbstractWidget *widget);
+
+      /* \brief RulerSliceWidget class destructor.
+       *
+       */
       virtual ~RulerSliceWidget();
 
-      virtual void setEnabled(int);
-      virtual void setBounds(Nm *bounds);
+      /* \brief Enables/Disables this widget and the one it encapsulates.
+       * \param[in] value int value to pass to vtkAbstractWidget.
+       */
+      virtual void setEnabled(int value);
 
+      /* \brief Sets encapsulated widget bounds to measure.
+       * \param[in] bounds Bounds of the area to measure.
+       */
+      virtual void setBounds(Bounds bounds);
+
+      /* \brief Implements SliceWidget::setSlice.
+       *
+       */
       virtual void setSlice(Nm pos, Plane plane);
 
     private:
@@ -45,5 +64,5 @@ namespace EspINA
       bool m_enabled;
   };
 
-} /* namespace EspINA */
-#endif /* RULERSLICEWIDGET_H_ */
+} // namespace EspINA
+#endif // ESPINA_RULER_SLICE_WIDGET_H_

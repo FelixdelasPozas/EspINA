@@ -11,7 +11,7 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "EspinaWidget.h"
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 namespace EspINA
 {
@@ -19,10 +19,22 @@ class EspinaGUI_EXPORT MeasureSliceWidget
 : public SliceWidget
 {
   public:
-    explicit MeasureSliceWidget(vtkAbstractWidget *);
+    /* \brief MeasureSliceWidget class constructor.
+     * \param[in] widget vtkAbstractWidget to encapsulate.
+     *
+     */
+    explicit MeasureSliceWidget(vtkAbstractWidget *widget);
+
+    /* \brief MeasureSliceWidget class destructor.
+     *
+     */
     virtual ~MeasureSliceWidget();
 
-    virtual void SetEnabled(int);
+    /* \brief Enables/disables this widget and the one it encapsulates.
+     * \param[in] value int value to pass to the vtkAbstractWidget.
+     *
+     */
+    virtual void SetEnabled(int value);
 };
 
 }// namespace EspINA

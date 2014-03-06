@@ -36,7 +36,6 @@ SegmentationAdapter::SegmentationAdapter(FilterAdapterSPtr filter, SegmentationS
 //------------------------------------------------------------------------
 SegmentationAdapter::~SegmentationAdapter()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -75,6 +74,11 @@ SegmentationExtensionSList SegmentationAdapter::extensions() const
   return m_segmentation->extensions();
 }
 
+//------------------------------------------------------------------------
+Bounds SegmentationAdapter::bounds() const
+{
+  return m_segmentation->bounds();
+}
 
 //------------------------------------------------------------------------
 void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)

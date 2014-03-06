@@ -16,7 +16,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "GUI/vtkWidgets/vtkRulerWidget.h"
+// EspINA
+#include "vtkRulerWidget.h"
 
 // VTK
 #include <vtkObjectFactory.h>
@@ -36,10 +37,10 @@ namespace EspINA
   //----------------------------------------------------------------------------
   vtkRulerWidget::vtkRulerWidget()
   : m_enabled(false)
-  , m_plane(EspINA::UNDEFINED)
+  , m_plane(Plane::UNDEFINED)
   , m_up(vtkSmartPointer<vtkAxisActor2D>::New())
   , m_right(vtkSmartPointer<vtkAxisActor2D>::New())
-  , m_command(NULL)
+  , m_command(nullptr)
   {
     m_up->SetVisibility(false);
     m_up->SetPoint1(0,0);
@@ -66,8 +67,6 @@ namespace EspINA
     vtkTextProperty *rightlabels = m_right->GetLabelTextProperty();
     rightlabels->SetOpacity(0);
     rightlabels->Modified();
-
-    vtkMath::UninitializeBounds(m_bounds);
   }
   
   //----------------------------------------------------------------------------
@@ -99,7 +98,7 @@ namespace EspINA
       CurrentRenderer->AddActor2D(m_up);
       CurrentRenderer->AddActor2D(m_right);
 
-      if (vtkMath::AreBoundsInitialized(m_bounds))
+      if (m_bounds.areValid())
         drawActors();
     }
     else
@@ -107,7 +106,7 @@ namespace EspINA
       CurrentRenderer->GetActiveCamera()->RemoveObserver(m_command);
       m_command->SetReferenceCount(0);
       delete m_command;
-      m_command = NULL;
+      m_command = nullptr;
       CurrentRenderer->RemoveActor2D(m_up);
       CurrentRenderer->RemoveActor2D(m_right);
       CurrentRenderer->GetRenderWindow()->Render();
@@ -119,14 +118,14 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void vtkRulerWidget::drawActors()
   {
-    if (!vtkMath::AreBoundsInitialized(m_bounds))
+    if (!m_bounds.areValid())
       return;
 
     // Beware, here be dragons...
     Nm point[3] = { 0, 0, 0 };
     switch(m_plane)
     {
-      case AXIAL:
+      case Plane::XY:
         point[0] = m_bounds[0];
         point[1] = m_bounds[3];
         point[2] = 0;
@@ -146,7 +145,7 @@ namespace EspINA
         m_up->SetTitle(QObject::tr("Y: %1 nm").arg(m_bounds[3]-m_bounds[2]).toStdString().c_str());
         m_right->SetTitle(QObject::tr("X: %1 nm").arg(m_bounds[1]-m_bounds[0]).toStdString().c_str());
         break;
-      case CORONAL:
+      case Plane::XZ:
         point[0] = m_bounds[0];
         point[1] = 0;
         point[2] = m_bounds[4];
@@ -166,7 +165,7 @@ namespace EspINA
         m_up->SetTitle(QObject::tr("Z: %1 nm").arg(m_bounds[5]-m_bounds[4]).toStdString().c_str());
         m_right->SetTitle(QObject::tr("X: %1 nm").arg(m_bounds[1]-m_bounds[0]).toStdString().c_str());
         break;
-      case SAGITTAL:
+      case Plane::YZ:
         point[0] = 0;
         point[1] = m_bounds[3];
         point[2] = m_bounds[4];
@@ -201,16 +200,16 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void vtkRulerWidget::setBounds(Nm *bounds)
+  void vtkRulerWidget::setBounds(Bounds bounds)
   {
-    if (!vtkMath::AreBoundsInitialized(bounds))
+    if (!bounds.areValid())
     {
       m_up->SetVisibility(false);
       m_right->SetVisibility(false);
       return;
     }
 
-    memcpy(m_bounds, bounds, sizeof(Nm)*6);
+    m_bounds = bounds;
     drawActors();
   }
 
@@ -230,8 +229,8 @@ namespace EspINA
 
   //----------------------------------------------------------------------------
   RulerCommand::RulerCommand()
-  : m_renderer(NULL)
-  , m_widget(NULL)
+  : m_renderer(nullptr)
+  , m_widget(nullptr)
   {
   }
 

@@ -23,6 +23,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Bounds.h>
 
 //VTK
 #include <vtkAbstractWidget.h>
@@ -36,22 +37,31 @@ namespace EspINA
   : public vtkAbstractWidget
   {
     public:
+      /* \brief VTK-style New() class method.
+       *
+       */
       static vtkRulerWidget3D *New();
 
       vtkTypeMacro(vtkRulerWidget3D,vtkAbstractWidget);
 
-      // Description:
-      // Create the default widget representation if one is not set.
+      /* \brief Implements vtkAbstractWidget::CreateDefaultRepresentation.
+       *
+       * Create the default widget representation if one is not set.
+       */
       void CreateDefaultRepresentation();
 
-      // Description:
-      // The method for activating and deactivating this widget. This method
-      // must be overridden because it is a composite widget and does more than
-      // its superclasses' vtkAbstractWidget::SetEnabled() method.
+      /* \brief Implements vtkAbstractWidget::SetEnabled.
+       *
+       * The method for activating and deactivating this widget. This method
+       * must be overridden because it is a composite widget and does more than
+       * its superclasses' vtkAbstractWidget::SetEnabled() method.
+       */
       virtual void SetEnabled(int);
 
-      // Set vtkCubeAxesActor2D representation bounds
-      void setBounds(Nm *bounds);
+      /* \brief Set vtkCubeAxesActor2D representation bounds.
+       *
+       */
+      void setBounds(Bounds bounds);
 
     protected:
       vtkRulerWidget3D();

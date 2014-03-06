@@ -89,18 +89,6 @@ namespace EspINA
        */
       virtual bool filterEvent(QEvent *e, RenderView*view = nullptr);
 
-      /* \brief Implements EventHandler::cursor.
-       *
-       */
-      virtual QCursor cursor() const
-      { return m_cursor; }
-
-      /* \brief Implements EventHandler::setCursor.
-       *
-       */
-      virtual void setCursor(const QCursor &cursor)
-      { m_cursor = cursor; }
-
     signals:
       void eventHandlerInUse(bool);
 

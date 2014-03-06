@@ -18,26 +18,32 @@
 
 // EspINA
 #include "RulerTool.h"
-#include <GUI/vtkWidgets/RulerWidget.h>
+#include <GUI/View/Widgets/Ruler/RulerWidget.h>
 #include <Core/EspinaTypes.h>
-#include <Core/Model/PickableItem.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <Core/Utils/Bounds.h>
+#include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include "GUI/Model/ItemAdapter.h"
 
 // VTK
 #include <vtkMath.h>
 
+// Qt
+#include <QAction>
+
 namespace EspINA
 {
   //----------------------------------------------------------------------------
-  RulerTool::RulerTool(ViewManager *vm)
-  : m_enabled(false)
-  , m_inUse(false)
-  , m_widget(NULL)
-  , m_viewManager(vm)
-  , m_selection(ViewManager::Selection())
+  RulerTool::RulerTool(ViewManagerSPtr vm)
+  : m_enabled{false}
+  , m_action{ new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
+  , m_widget{nullptr}
+  , m_viewManager{vm}
+  , m_selection{new Selection()}
   {
+    m_action->setCheckable(true);
+    connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
   }
   
   //----------------------------------------------------------------------------
@@ -47,40 +53,28 @@ namespace EspINA
     {
       m_widget->setEnabled(false);
       delete m_widget;
-      m_widget = NULL;
+      m_widget = nullptr;
     }
   }
 
   //----------------------------------------------------------------------------
-  bool RulerTool::filterEvent(QEvent *e, RenderView *view)
+  void RulerTool::initTool(bool value)
   {
-    // this is a passive tool
-    return false;
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerTool::setInUse(bool value)
-  {
-    if(m_inUse == value)
-      return;
-
-    m_inUse = value;
-
-    if (m_inUse)
+    if (value)
     {
       m_widget = new RulerWidget();
       m_viewManager->addWidget(m_widget);
-      connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-              this,          SLOT(selectionChanged(ViewManager::Selection, bool)));
-      selectionChanged(m_viewManager->selection(), false);
+      connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
+              this,                             SLOT(selectionChanged()), Qt::QueuedConnection);
+      selectionChanged();
     }
     else
     {
       m_viewManager->removeWidget(m_widget);
-      disconnect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-                 this,          SLOT(selectionChanged(ViewManager::Selection, bool)));
+      disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
+                 this,                             SLOT(selectionChanged()));
       delete m_widget;
-      m_widget = NULL;
+      m_widget = nullptr;
     }
   }
 
@@ -97,13 +91,14 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void RulerTool::selectionChanged(ViewManager::Selection selection, bool unused)
+  void RulerTool::selectionChanged()
   {
-    if (!m_selection.isEmpty())
+    auto selection = m_viewManager->selection();
+    if (!m_selection->items().empty())
     {
-      foreach(PickableItemPtr item, m_selection)
+      for(auto item: m_selection->items())
       {
-        if (item->type() == EspINA::SEGMENTATION)
+        if (item->type() == ItemAdapter::Type::SEGMENTATION)
         {
           disconnect(item->output().get(), SIGNAL(modified()),
                      this,                 SLOT(selectedElementChanged()));
@@ -111,23 +106,21 @@ namespace EspINA
       }
     }
 
-    Nm segmentationBounds[6], channelBounds[6];
-    vtkMath::UninitializeBounds(segmentationBounds);
-    vtkMath::UninitializeBounds(channelBounds);
+    Bounds segmentationBounds, channelBounds;
 
-    if (!selection.isEmpty())
+    if (!selection->items().empty())
     {
-      foreach(PickableItemPtr item, selection)
+      for(auto item: selection->items())
       {
         switch(item->type())
         {
-          case EspINA::CHANNEL:
-            if (!vtkMath::AreBoundsInitialized(channelBounds))
-              channelPtr(item)->volume()->bounds(channelBounds);
+          case ItemAdapter::Type::CHANNEL:
+            if (!channelBounds.areValid())
+              channelBounds = channelPtr(item)->bounds();
             else
             {
-              Nm bounds[6];
-              channelPtr(item)->volume()->bounds(bounds);
+              Bounds bounds;
+              bounds = channelPtr(item)->bounds();
               for (int i = 0, j = 1; i < 6; i += 2, j += 2)
               {
                 channelBounds[i] = std::min(bounds[i], channelBounds[i]);
@@ -135,16 +128,16 @@ namespace EspINA
               }
             }
             break;
-          case EspINA::SEGMENTATION:
+          case ItemAdapter::Type::SEGMENTATION:
           {
             connect(item->output().get(), SIGNAL(modified()),
                     this,                 SLOT(selectedElementChanged()));
-            if (!vtkMath::AreBoundsInitialized(segmentationBounds))
-              segmentationVolume(segmentationPtr(item)->output())->bounds(segmentationBounds);
+            if (!segmentationBounds.areValid())
+              segmentationBounds = segmentationPtr(item)->bounds();
             else
             {
-              Nm bounds[6];
-              segmentationVolume(segmentationPtr(item)->output())->bounds(bounds);
+              Bounds bounds;
+              bounds = segmentationPtr(item)->bounds();
               for (int i = 0, j = 1; i < 6; i += 2, j += 2)
               {
                 segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
@@ -160,10 +153,10 @@ namespace EspINA
       }
     }
 
-    if (vtkMath::AreBoundsInitialized(segmentationBounds))
+    if (segmentationBounds.areValid())
       m_widget->setBounds(segmentationBounds);
     else
-      if (vtkMath::AreBoundsInitialized(channelBounds))
+      if (channelBounds.areValid())
         m_widget->setBounds(channelBounds);
       else
         m_widget->setBounds(segmentationBounds);
@@ -172,9 +165,36 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
+  QList<QAction*> RulerTool::actions() const
+  {
+    QList<QAction *> actionList;
+    actionList << m_action;
+
+    return actionList;
+  }
+  
+  //----------------------------------------------------------------------------
   void RulerTool::selectedElementChanged()
   {
-    selectionChanged(m_selection, false);
+    selectionChanged();
   }
+
+  //----------------------------------------------------------------------------
+  bool RulerEventHandler::filterEvent(QEvent *e, RenderView *view)
+  {
+    // this is a passive tool
+    return false;
+  }
+
+  //----------------------------------------------------------------------------
+  void RulerEventHandler::setInUse(bool value)
+  {
+    if (m_inUse == value)
+      return;
+
+    m_inUse = value;
+    emit eventHandlerInUse(value);
+  }
+
 
 } /* namespace EspINA */

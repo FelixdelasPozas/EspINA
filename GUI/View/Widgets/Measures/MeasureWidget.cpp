@@ -5,14 +5,15 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
+// EspINA
 #include "MeasureWidget.h"
 #include "MeasureSliceWidget.h"
-#include "EspinaInteractorAdapter.h"
-#include <GUI/ViewManager.h>
+#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
+#include <Support/ViewManager.h>
 #include <Core/EspinaTypes.h>
-#include <GUI/QtWidget/EspinaRenderView.h>
-#include <GUI/QtWidget/SliceView.h>
-#include <GUI/vtkWidgets/EspinaWidget.h>
+#include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 //vtk
 #include <vtkDistanceWidget.h>
@@ -36,9 +37,9 @@ typedef EspinaInteractorAdapter<vtkDistanceWidget> MeasureWidgetAdapter;
 
 //----------------------------------------------------------------------------
 MeasureWidget::MeasureWidget()
-: m_axial(NULL)
-, m_coronal(NULL)
-, m_sagittal(NULL)
+: m_axial(nullptr)
+, m_coronal(nullptr)
+, m_sagittal(nullptr)
 {
 }
 
@@ -57,7 +58,7 @@ MeasureWidget::~MeasureWidget()
     m_axial->RemoveObserver(this);
     m_axial->SetEnabled(false);
     m_axial->Delete();
-    m_axial = NULL;
+    m_axial = nullptr;
   }
 
   if (m_coronal)
@@ -65,7 +66,7 @@ MeasureWidget::~MeasureWidget()
     m_coronal->RemoveObserver(this);
     m_coronal->SetEnabled(false);
     m_coronal->Delete();
-    m_coronal = NULL;
+    m_coronal = nullptr;
   }
 
   if (m_sagittal)
@@ -73,38 +74,38 @@ MeasureWidget::~MeasureWidget()
     m_sagittal->RemoveObserver(this);
     m_sagittal->SetEnabled(false);
     m_sagittal->Delete();
-    m_sagittal = NULL;
+    m_sagittal = nullptr;
   }
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *MeasureWidget::create3DWidget(VolumeView *view)
+vtkAbstractWidget *MeasureWidget::create3DWidget(View3D *view)
 {
-  return NULL;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
-SliceWidget *MeasureWidget::createSliceWidget(SliceView *view)
+SliceWidget *MeasureWidget::createSliceWidget(View2D *view)
 {
-  MeasureSliceWidget *widget = NULL;
+  MeasureSliceWidget *widget = nullptr;
 
   switch(view->plane())
   {
-    case AXIAL:
+    case Plane::XY:
       m_axial = MeasureWidgetAdapter::New();
       m_axial->AddObserver(vtkCommand::StartInteractionEvent, this);
       m_axial->AddObserver(vtkCommand::InteractionEvent, this);
       m_distanceWidgets << m_axial;
       widget = new MeasureSliceWidget(m_axial);
       break;
-    case CORONAL:
+    case Plane::XZ:
       m_coronal = MeasureWidgetAdapter::New();
       m_coronal->AddObserver(vtkCommand::StartInteractionEvent, this);
       m_coronal->AddObserver(vtkCommand::InteractionEvent, this);
       m_distanceWidgets << m_coronal;
       widget = new MeasureSliceWidget(m_coronal);
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       m_sagittal = MeasureWidgetAdapter::New();
       m_sagittal->AddObserver(vtkCommand::StartInteractionEvent, this);
       m_sagittal->AddObserver(vtkCommand::InteractionEvent, this);
@@ -124,7 +125,7 @@ SliceWidget *MeasureWidget::createSliceWidget(SliceView *view)
 bool MeasureWidget::processEvent(vtkRenderWindowInteractor *iren,
                                  long unsigned int event)
 {
-  foreach(vtkDistanceWidget *widget, m_distanceWidgets)
+  for(auto widget: m_distanceWidgets)
     if (widget->GetInteractor() == iren)
     {
       MeasureWidgetAdapter *sw = static_cast<MeasureWidgetAdapter *>(widget);
@@ -137,19 +138,19 @@ bool MeasureWidget::processEvent(vtkRenderWindowInteractor *iren,
 //----------------------------------------------------------------------------
 void MeasureWidget::setEnabled(bool enable)
 {
-  foreach(vtkDistanceWidget *widget, m_distanceWidgets)
+  for(auto widget: m_distanceWidgets)
     widget->SetEnabled(enable);
 
-  foreach(MeasureSliceWidget *widget, m_sliceWidgets)
+  for(auto widget: m_sliceWidgets)
     widget->SetEnabled(enable);
 }
 
 //----------------------------------------------------------------------------
 void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
 {
-  vtkDistanceWidget *widget = NULL;
-  vtkDistanceRepresentation2D *rep = NULL;
-  vtkCamera *camera = NULL;
+  vtkDistanceWidget *widget = nullptr;
+  vtkDistanceRepresentation2D *rep = nullptr;
+  vtkCamera *camera = nullptr;
 
   if (strcmp("vtkOpenGLCamera", caller->GetClassName()) == 0)
     camera = reinterpret_cast<vtkCamera*>(caller);
@@ -160,7 +161,7 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
     rep = reinterpret_cast<vtkDistanceRepresentation2D*>(widget->GetRepresentation());
   }
 
-  if (widget != NULL)
+  if (widget != nullptr)
   {
     if (vtkCommand::StartInteractionEvent == eventId)
     {
@@ -168,7 +169,7 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
       vtkRenderer *renderer = renderers->GetFirstRenderer();
 
       if ((widget == m_axial) && (m_axialCameras.empty()))
-        while (renderer != NULL)
+        while (renderer != nullptr)
         {
           vtkCamera *camera = renderer->GetActiveCamera();
           camera->AddObserver(vtkCommand::AnyEvent, this);
@@ -177,7 +178,7 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
         }
 
       if ((widget == m_coronal) && (m_coronalCameras.empty()))
-        while (renderer != NULL)
+        while (renderer != nullptr)
         {
           vtkCamera *camera = renderer->GetActiveCamera();
           camera->AddObserver(vtkCommand::AnyEvent, this);
@@ -186,7 +187,7 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
         }
 
       if ((widget == m_sagittal) && (m_sagittalCameras.empty()))
-        while (renderer != NULL)
+        while (renderer != nullptr)
         {
           vtkCamera *camera = renderer->GetActiveCamera();
           camera->AddObserver(vtkCommand::AnyEvent, this);
@@ -218,7 +219,7 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
     return;
   }
 
-  if (camera != NULL)
+  if (camera != nullptr)
   {
     double p1[3], p2[3];
     if (m_axialCameras.contains(camera))
@@ -257,7 +258,7 @@ bool MeasureWidget::filterEvent(QEvent *e, RenderView *view)
     QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
     if (ke->key() == Qt::Key_Backspace)
     {
-      foreach(vtkDistanceWidget *widget, m_distanceWidgets)
+      for(auto widget: m_distanceWidgets)
       {
         widget->SetWidgetStateToStart();
         widget->GetDistanceRepresentation()->VisibilityOff();

@@ -52,7 +52,6 @@ namespace EspINA
     vtkTextProperty *labelText = m_actor->GetAxisLabelTextProperty();
     labelText->SetOpacity(0);
     labelText->Modified();
-
   }
 
   //----------------------------------------------------------------------------
@@ -90,15 +89,17 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void vtkRulerWidget3D::setBounds(Nm *bounds)
+  void vtkRulerWidget3D::setBounds(Bounds bounds)
   {
-    if (!vtkMath::AreBoundsInitialized(bounds))
+    if (!bounds.areValid())
     {
       m_actor->SetVisibility(false);
       return;
     }
 
-    m_actor->SetBounds(bounds);
+    Nm actorBounds[6]{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+
+    m_actor->SetBounds(actorBounds);
     m_actor->SetXLabel(QObject::tr("X: %1 nm").arg(bounds[1]-bounds[0]).toStdString().c_str());
     m_actor->SetYLabel(QObject::tr("Y: %1 nm").arg(bounds[3]-bounds[2]).toStdString().c_str());
     m_actor->SetZLabel(QObject::tr("Z: %1 nm").arg(bounds[5]-bounds[4]).toStdString().c_str());

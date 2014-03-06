@@ -22,7 +22,7 @@
 #include "vtkRulerWidget.h"
 #include "vtkRulerWidget3D.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
-#include "GUI/View/SliceView.h"
+#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkCubeAxesActor2D.h>
@@ -33,18 +33,17 @@ namespace EspINA
 
   //----------------------------------------------------------------------------
   RulerWidget::RulerWidget()
-  : m_axial(NULL)
-  , m_coronal(NULL)
-  , m_sagittal(NULL)
-  , m_volume(NULL)
+  : m_axial(nullptr)
+  , m_coronal(nullptr)
+  , m_sagittal(nullptr)
+  , m_volume(nullptr)
   {
-
   }
   
   //----------------------------------------------------------------------------
   RulerWidget::~RulerWidget()
   {
-    foreach(RulerSliceWidget *widget, m_rulerSliceWidgets)
+    for(auto widget: m_rulerSliceWidgets)
       delete widget;
 
     if (m_axial)
@@ -70,23 +69,23 @@ namespace EspINA
   //----------------------------------------------------------------------------
   SliceWidget *RulerWidget::createSliceWidget(View2D *view)
   {
-    RulerSliceWidget *widget = NULL;
+    RulerSliceWidget *widget = nullptr;
 
     switch(view->plane())
     {
-      case AXIAL:
+      case Plane::XY:
         m_axial = RulerWidgetAdapter::New();
-        m_axial->setPlane(AXIAL);
+        m_axial->setPlane(Plane::XY);
         widget = new RulerSliceWidget(m_axial);
         break;
-      case CORONAL:
+      case Plane::XZ:
         m_coronal = RulerWidgetAdapter::New();
-        m_coronal->setPlane(CORONAL);
+        m_coronal->setPlane(Plane::XZ);
         widget = new RulerSliceWidget(m_coronal);
         break;
-      case SAGITTAL:
+      case Plane::YZ:
         m_sagittal = RulerWidgetAdapter::New();
-        m_sagittal->setPlane(SAGITTAL);
+        m_sagittal->setPlane(Plane::YZ);
         widget = new RulerSliceWidget(m_sagittal);
         break;
       default:
@@ -106,7 +105,7 @@ namespace EspINA
     {
       QList<vtkRulerWidget *> list;
       list << m_axial << m_coronal << m_sagittal;
-      foreach(vtkRulerWidget *widget, list)
+      for(auto widget: list)
         if (widget->GetInteractor() == iren)
         {
           RulerWidgetAdapter *sw = static_cast<RulerWidgetAdapter *>(widget);
@@ -130,7 +129,7 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void RulerWidget::setBounds(Nm *bounds)
+  void RulerWidget::setBounds(Bounds bounds)
   {
     if (!m_axial)
       return;
@@ -139,7 +138,7 @@ namespace EspINA
     m_coronal->setBounds(bounds);
     m_sagittal->setBounds(bounds);
     m_volume->setBounds(bounds);
-    foreach(RulerSliceWidget *widget, m_rulerSliceWidgets)
+    for(auto widget: m_rulerSliceWidgets)
     {
       widget->setBounds(bounds);
     }

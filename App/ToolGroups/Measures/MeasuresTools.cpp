@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,57 +15,48 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-// EspINA
-#include "RulerSliceWidget.h"
-#include "vtkRulerWidget.h"
-
-// VTK
-#include <vtkAbstractWidget.h>
+#include <ToolGroups/Measures/MeasuresTools.h>
 
 namespace EspINA
 {
   //----------------------------------------------------------------------------
-  RulerSliceWidget::RulerSliceWidget(vtkAbstractWidget *widget)
-  : SliceWidget(widget)
-  , m_pos(-1)
-  , m_plane(Plane::UNDEFINED)
-  , m_insideBounds(false)
-  , m_enabled(false)
+  MeasuresTools::MeasuresTools(ViewManagerSPtr viewManager, QWidget* parent)
+  : ToolGroup(viewManager, QIcon(":/espina/measure3D.png"), tr("Measure Tools"), parent)
+  , m_measure{ new MeasureTool(viewManager) }
+  , m_ruler{ new RulerTool(viewManager) }
+  , m_enabled{false}
+  {
+  }
+  
+  //----------------------------------------------------------------------------
+  MeasuresTools::~MeasuresTools()
   {
   }
 
   //----------------------------------------------------------------------------
-  RulerSliceWidget::~RulerSliceWidget()
-  {
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerSliceWidget::setEnabled(int value)
+  void MeasuresTools::setEnabled(bool value)
   {
     m_enabled = value;
-  }
 
+    m_measure->setEnabled(value);
+    m_ruler->setEnabled(value);
+  }
+  
   //----------------------------------------------------------------------------
-  void RulerSliceWidget::setSlice(Nm pos, Plane plane)
+  bool MeasuresTools::enabled() const
   {
-    m_pos   = pos;
-    m_plane = plane;
-
-    Bounds bounds;
-    bounds = static_cast<vtkRulerWidget *>(m_widget)->bounds();
-    int index = normalCoordinateIndex(plane);
-    m_insideBounds = bounds[2*index] <= pos && pos <= bounds[2*index+1];
-    m_widget->SetEnabled(m_insideBounds);
+    return m_enabled;
   }
-
+  
   //----------------------------------------------------------------------------
-  void RulerSliceWidget::setBounds(Bounds bounds)
+  ToolSList MeasuresTools::tools()
   {
-    if (m_enabled)
-    {
-      static_cast<vtkRulerWidget *>(m_widget)->setBounds(bounds);
-      setSlice(m_pos, m_plane);
-    }
+    ToolSList tools;
+
+    tools << m_measure;
+    tools << m_ruler;
+
+    return tools;
   }
+
 } /* namespace EspINA */

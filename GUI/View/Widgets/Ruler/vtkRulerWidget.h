@@ -23,6 +23,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Bounds.h>
 
 // VTK
 #include <vtkAbstractWidget.h>
@@ -40,37 +41,69 @@ namespace EspINA
   : public vtkAbstractWidget
   {
     public:
+      /* \brief VTK-style New() class method.
+       *
+       */
       static vtkRulerWidget *New();
 
       vtkTypeMacro(vtkRulerWidget,vtkAbstractWidget);
 
-      // Description:
-      // Create the default widget representation if one is not set.
+      /* \brief Implements vtkAbstractWidget::CreateDefaultRepresentation.
+       *
+       * Create the default widget representation if one is not set.
+       */
       void CreateDefaultRepresentation();
 
-      // Description:
-      // The method for activating and deactivating this widget. This method
-      // must be overridden because it is a composite widget and does more than
-      // its superclasses' vtkAbstractWidget::SetEnabled() method.
+      /* \brief Implements vtkAbstractWidget::SetEnabled.
+       *
+       * The method for activating and deactivating this widget. This method
+       * must be overridden because it is a composite widget and does more than
+       * its superclasses' vtkAbstractWidget::SetEnabled() method.
+       */
       virtual void SetEnabled(int);
 
-      // set actors bounds
-      void setBounds(Nm *bounds);
-      void bounds(Nm bounds[6])
-      { memcpy(bounds, m_bounds, 6*sizeof(Nm));}
+      /* \brief Sets actors' bounds.
+       * \param[in] bounds Bounds to pass to actor.
+       *
+       */
+      void setBounds(Bounds bounds);
 
-      void setPlane(Plane plane) { m_plane = plane; }
+      /* \brief Returns current bounds.
+       *
+       */
+      Bounds bounds()
+      { return m_bounds;}
+
+      /* \brief Sets the plane this widget operates on.
+       * \param[in] plane
+       */
+      void setPlane(Plane plane)
+      { m_plane = plane; }
+
+      /* \brief Recomputes the actors and updates the screen.
+       *
+       */
       void drawActors();
 
     protected:
+      /* \brief Transforms from world coordinates to normalized view coordinates.
+       *
+       */
       void transformCoordsWorldToNormView(Nm *inout);
 
+      /* \brief vtkRulerWidget class constructor. Protected.
+       *
+       */
       vtkRulerWidget();
+
+      /* \brief vtkRulerWidget class destructor. Protected.
+       *
+       */
       ~vtkRulerWidget();
 
       bool m_enabled;
-      PlaneType m_plane;
-      Nm m_bounds[6];
+      Plane m_plane;
+      Bounds m_bounds;
 
       vtkSmartPointer<vtkAxisActor2D> m_up;
       vtkSmartPointer<vtkAxisActor2D> m_right;
@@ -81,17 +114,32 @@ namespace EspINA
   : public vtkCommand
   {
     public:
+      /* \brief RulerCommand class constructor.
+       *
+       */
       explicit RulerCommand();
+
+      /* \brief RulerCommand class destructor.
+       *
+       */
       virtual ~RulerCommand() {};
 
       vtkTypeMacro(RulerCommand, vtkCommand);
 
-      // implements vtkCommand
+      /* \brief Implements vtkCommand::Execute.
+       *
+       */
       void Execute(vtkObject *, unsigned long int, void*);
 
+      /* \brief Sets the renderer the actors will be inserted.
+       *
+       */
       void setRenderer(vtkRenderer* renderer)
       { m_renderer = renderer; }
 
+      /* \brief Sets the vtkAbstractWidget of the command.
+       *
+       */
       void setWidget(vtkRulerWidget *widget)
       { m_widget = widget; }
 

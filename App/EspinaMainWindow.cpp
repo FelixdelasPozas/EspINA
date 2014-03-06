@@ -29,6 +29,7 @@
 #include "Menus/ColorEngineMenu.h"
 #include "ToolGroups/Editor/EditionTools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
+#include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/ViewState/ViewTools.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include <Core/IO/ClassificationXML.h>
@@ -268,6 +269,10 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   auto defaultActiveTool = new ViewTools(m_viewManager, this);
   registerToolGroup(defaultActiveTool);
+
+  auto measuresTools = new MeasuresTools(m_viewManager, this);
+  registerToolGroup(measuresTools);
+
 // 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);

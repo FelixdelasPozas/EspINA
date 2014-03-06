@@ -99,6 +99,8 @@ namespace EspINA
 
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
 
+    Bounds bounds() const;
+
   private:
     explicit SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation);
 

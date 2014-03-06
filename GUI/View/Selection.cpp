@@ -84,10 +84,10 @@ void Selection::set(ViewItemAdapterList selection)
       item->setSelected(false);
       if (ItemAdapter::Type::CHANNEL == item->type())
       {
-        modifiedChannels << dynamic_cast<ChannelAdapterPtr>(item);
+        modifiedChannels << dynamic_cast<ChannelAdapterPtr>(item);;
       } else
       {
-        modifiedSegmentations << dynamic_cast<SegmentationAdapterPtr>(item);
+        modifiedSegmentations << dynamic_cast<SegmentationAdapterPtr>(item);;
       }
     }
 
@@ -101,7 +101,6 @@ void Selection::set(ViewItemAdapterList selection)
       if (ItemAdapter::Type::CHANNEL == item->type())
       {
         auto channel = dynamic_cast<ChannelAdapterPtr>(item);
-
         m_channels << channel;
 
         if (modifiedChannels.contains(channel))
@@ -115,7 +114,6 @@ void Selection::set(ViewItemAdapterList selection)
       } else
       {
         auto segmentation = dynamic_cast<SegmentationAdapterPtr>(item);
-
         m_segmentations << segmentation;
 
         if (modifiedSegmentations.contains(segmentation))
@@ -141,15 +139,11 @@ ViewItemAdapterList Selection::items() const
 {
   ViewItemAdapterList selectedItems;
 
-  for(auto channel : m_channels)
-  {
+  for(auto channel: m_channels)
     selectedItems << channel;
-  }
 
-  for(auto segmentation : m_segmentations)
-  {
+  for(auto segmentation: m_segmentations)
     selectedItems << segmentation;
-  }
 
   return selectedItems;
 }

@@ -16,8 +16,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RULERWIDGET_H_
-#define RULERWIDGET_H_
+#ifndef ESPINA_RULER_WIDGET_H_
+#define ESPINA_RULER_WIDGET_H_
+
+// EspINA
+#include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 
 // EspINA
@@ -35,21 +38,42 @@ namespace EspINA
   : public EspinaWidget
   {
     public:
+      /* \brief RulerWidget class constructor.
+       *
+       */
       explicit RulerWidget();
+
+      /* \brief RulerWidget class destructor.
+       *
+       */
       virtual ~RulerWidget();
 
-//       // implements EspinaWidget
-//       void setViewManager(ViewManager *vm) {m_viewManager = vm;}
-
+      /* \brief Implements EspinaWidget::create3DWidget.
+       *
+       */
       virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
+      /* \brief Implements EspinaWidget::createSliceWidget.
+       *
+       */
       virtual SliceWidget *createSliceWidget(View2D *view);
 
+      /* \brief Implements EspinaWidget::processEvents.
+       *
+       */
       virtual bool processEvent(vtkRenderWindowInteractor *iren,
                                 long unsigned int event);
+
+      /* \brief Implements EspinaWidget::setEnabled.
+       *
+       */
       virtual void setEnabled(bool enable);
 
-      void setBounds(Nm *bounds);
+      /* \brief Sets widgets' bounds.
+       * \param[in] bounds Bounds of the selection.
+       *
+       */
+      void setBounds(Bounds bounds);
 
     private:
       vtkRulerWidget *m_axial;
@@ -59,5 +83,5 @@ namespace EspINA
       QList<RulerSliceWidget*> m_rulerSliceWidgets;
   };
 
-} /* namespace EspINA */
-#endif /* RULERWIDGET_H_ */
+} // namespace EspINA
+#endif // ESPINA_RULER_WIDGET_H_

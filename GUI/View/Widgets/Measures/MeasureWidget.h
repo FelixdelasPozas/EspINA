@@ -5,13 +5,14 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-#ifndef MEASUREWIDGET_H_
-#define MEASUREWIDGET_H_
+#ifndef ESPINA_MEASURE_WIDGET_H_
+#define ESPINA_MEASURE_WIDGET_H_
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include <GUI/vtkWidgets/EspinaWidget.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
+#include <Support/ViewManager.h>
 
 // Qt
 #include <QList>
@@ -35,33 +36,62 @@ namespace EspINA
   , public vtkCommand
   {
   public:
+    /* \brief MeasureWidget class destructor.
+     *
+     */
     virtual ~MeasureWidget();
 
     vtkTypeMacro(MeasureWidget,vtkCommand);
 
+    /* \brief VTK-style class New() method
+     *
+     */
     static MeasureWidget *New()
     {return new MeasureWidget();};
 
-    // implements EspinaWidget
-    void setViewManager(ViewManager *vm) {m_viewManager = vm;}
+    /* \brief Sets the widget view manager.
+     * \param[in] vm Application view manager.
+     */
+    void setViewManager(ViewManagerSPtr vm)
+    { m_viewManager = vm; }
 
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+    /* \brief Implements EspinaWidget::create3DWidget.
+     *
+     */
+    virtual vtkAbstractWidget *create3DWidget(View3D *view);
 
-    virtual SliceWidget *createSliceWidget(SliceView *view);
+    /* \brief Implements EspinaWidget::createSliceWidget.
+     *
+     */
+    virtual SliceWidget *createSliceWidget(View2D *view);
 
+    /* \brief Implements EspinaWidget::processEvents.
+     *
+     */
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
                               long unsigned int event);
+
+    /* \brief Implements EspinaWidget::setEnabled.
+     *
+     */
     virtual void setEnabled(bool enable);
 
-    // implements vtkCommand
-    void Execute(vtkObject *, unsigned long int, void*);
-
+    /* \brief Implements EspinaWidget::filterEvent.
+     *
+     */
     bool filterEvent(QEvent *e, RenderView *view);
+
+    /* \brief Implements vtkCommand::Execute.
+     *
+     */
+    void Execute(vtkObject *, unsigned long int, void*);
 
   private:
     explicit MeasureWidget();
 
-    // helper methods
+    /* \brief Computes optimal tick distance in the ruler given the length.
+     *
+     */
     double ComputeRulerTickDistance(double);
 
     vtkDistanceWidget *m_axial;
@@ -69,6 +99,7 @@ namespace EspINA
     vtkDistanceWidget *m_sagittal;
     QList<MeasureSliceWidget*> m_sliceWidgets;
     QList<vtkDistanceWidget*> m_distanceWidgets;
+    ViewManagerSPtr    m_viewManager;
 
     QList<vtkCamera*> m_axialCameras;
     QList<vtkCamera*> m_coronalCameras;
@@ -77,4 +108,4 @@ namespace EspINA
 
 }// namespace EspINA
 
-#endif /* MEASUREWIDGET_H_ */
+#endif // ESPINA_MEASURE_WIDGET_H_

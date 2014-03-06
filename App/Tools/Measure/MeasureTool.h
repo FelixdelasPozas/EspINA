@@ -5,45 +5,83 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
-#ifndef MEASURETOOL_H_
-#define MEASURETOOL_H_
+#ifndef ESPINA_MEASURE_TOOL_H_
+#define ESPINA_MEASURE_TOOL_H_
 
 // EspINA
-#include <GUI/Tools/ITool.h>
+#include <GUI/View/Widgets/Measures/MeasureWidget.h>
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
-class QCursor;
+class QAction;
 
 namespace EspINA
 {
-  class ViewManager;
-  class MeasureWidget;
 
   class MeasureTool
-  : public ITool
+  : public Tool
   {
     Q_OBJECT
   public:
-    explicit MeasureTool(ViewManager *);
+    explicit MeasureTool(ViewManagerSPtr);
     virtual ~MeasureTool();
 
-    // implements ITool
-    virtual QCursor cursor() const { return Qt::CrossCursor; };
-    virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
-    virtual void setInUse(bool value);
+    /* \brief Implements Tool::setEnabled.
+     *
+     */
     virtual void setEnabled(bool value);
+
+    /* \brief Implements Tool::enabled.
+     *
+     */
     virtual bool enabled() const;
+
+    /* \brief Implements Tool::actions.
+     *
+     */
+    virtual QList<QAction *> actions() const;
+
+  public slots:
+    void initTool(bool);
 
   signals:
     void stopMeasuring();
 
   private:
-    bool m_enabled;
-    bool m_inUse;
-    MeasureWidget *m_widget;
-    ViewManager *m_viewManager;
+    bool             m_enabled;
+    MeasureWidget   *m_widget;
+    ViewManagerSPtr  m_viewManager;
+    QAction         *m_action;
+    EventHandlerSPtr m_handler;
   };
 
-  typedef boost::shared_ptr<MeasureTool> MeasureToolSPtr;
+  class MeasureEventHandler
+  : public EventHandler
+  {
+    public:
+      explicit MeasureEventHandler(MeasureWidget *widget)
+      : m_widget(widget)
+      {}
+
+      virtual ~MeasureEventHandler()
+      {}
+
+      /* \brief Implements EventHandler::setInUse.
+       *
+       */
+      virtual void setInUse(bool value);
+
+      /* \brief Implements EventHandler::filterEvent.
+       *
+       */
+      virtual bool filterEvent(QEvent *e, RenderView *view=nullptr);
+
+    private:
+      MeasureWidget *m_widget;
+  };
+
+  using MeasureToolPtr  = MeasureTool *;
+  using MeasureToolSPtr = std::shared_ptr<MeasureTool>;
 
 } // namespace EspINA
 
