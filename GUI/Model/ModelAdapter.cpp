@@ -354,13 +354,40 @@ int ModelAdapter::columnCount(const QModelIndex& parent) const
 // //------------------------------------------------------------------------
 CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAdapterPtr parent)
 {
+  CategoryAdapterSPtr parentCategory;
 
+  if (parent)
+  {
+    parentCategory = smartPointer(parent);
+  }
+
+  return createCategory(name, parentCategory);
 }
 
 // //------------------------------------------------------------------------
 CategoryAdapterSPtr ModelAdapter::createCategory(const QString& name, CategoryAdapterSPtr parent)
 {
+  auto parentCategory = m_classification->root();
 
+  if (parent)
+  {
+    parentCategory = parent;
+  }
+
+  Q_ASSERT(!parentCategory->subCategory(name));
+
+  CategoryAdapterSPtr requestedCategory;
+
+  QModelIndex parentItem = categoryIndex(parentCategory);
+
+  int newTaxRow = rowCount(parentItem);
+  beginInsertRows(parentItem, newTaxRow, newTaxRow);
+  {
+    requestedCategory = m_classification->createCategory(name, parentCategory);
+  }
+  endInsertRows();
+
+  return requestedCategory;
 }
 
 //------------------------------------------------------------------------
@@ -837,13 +864,44 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
 // //------------------------------------------------------------------------
 void ModelAdapter::removeCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
 {
+  QModelIndex index = categoryIndex(category);
 
+  beginRemoveRows(index.parent(), index.row(), index.row());
+  {
+    parent->removeSubCategory(category);
+  }
+  endRemoveRows();
 }
 
 // //------------------------------------------------------------------------
 void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
 {
+  auto previousParent = category->parent();
 
+  if (previousParent == parent.get())
+    return;
+
+  QModelIndex oldIndex = index(previousParent);
+  QModelIndex newIndex = index(parent);
+
+  int oldRow = previousParent->subCategories().indexOf(category);
+  int newRow = parent->subCategories().size();
+
+  beginMoveRows(oldIndex, oldRow, oldRow, newIndex, newRow);
+  {
+    previousParent->removeSubCategory(category.get());
+    parent->addSubCategory(category);
+  }
+  endMoveRows();
+
+  for(auto segmentation : m_segmentations)
+  {
+    if (segmentation->category() == category)
+    {
+      QModelIndex segIndex = segmentationIndex(segmentation);
+      emit dataChanged(segIndex, segIndex);
+    }
+  }
 }
 
 // //------------------------------------------------------------------------
@@ -1020,13 +1078,22 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
 // //------------------------------------------------------------------------
 void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation, CategoryAdapterSPtr category)
 {
+  segmentation->setCategory(category);
 
+  QModelIndex index = segmentationIndex(segmentation);
+  emit dataChanged(index, index);
 }
 
 //------------------------------------------------------------------------
 ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
 {
   return static_cast<ItemAdapterPtr>(index.internalPointer());
+}
+
+//------------------------------------------------------------------------
+bool EspINA::isClassification(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::CLASSIFICATION == item->type();
 }
 
 //------------------------------------------------------------------------

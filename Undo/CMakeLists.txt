@@ -8,16 +8,13 @@ include (GenerateExportHeader)
 set (UNDO_SOURCES
   ${UNDO_MOC}
   ${UNDO_UI}
-#   AddChannel.cpp
-#   AddRelation.cpp
-#   AddSample.cpp
+  AddCategoryCommand.cpp
+  AddClassificationCommand.cpp
   AddSegmentations.cpp
   ChangeCategoryCommand.cpp
-#   TaxonomiesCommand.cpp
-#   ChangeSegmentationNotes.cpp
-#   ChangeSegmentationTags.cpp
-#   FillHolesCommand.cpp
+  RemoveCategoryCommand.cpp
   RemoveSegmentations.cpp
+  ReparentCategoryCommand.cpp
   )
 
 set(UNDO_EXTERNAL_LIBS

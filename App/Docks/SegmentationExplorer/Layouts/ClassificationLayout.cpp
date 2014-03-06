@@ -21,6 +21,10 @@
 
 #include <GUI/Model/ModelAdapter.h>
 #include <Menus/DefaultContextualMenu.h>
+#include <Undo/ChangeCategoryCommand.h>
+#include <Undo/ReparentCategoryCommand.h>
+#include <Undo/AddCategoryCommand.h>
+#include <Undo/RemoveCategoryCommand.h>
 
 #include <QMessageBox>
 #include <QUndoStack>
@@ -131,9 +135,9 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
 , m_proxy   (new ClassificationProxy(model))
 , m_sort    (new SortFilter())
 , m_delegate(new CategorytemDelegate(model, undoStack, this))
-, m_createTaxonomy(nullptr)
-, m_createSubTaxonomy(nullptr)
-, m_changeTaxonomyColor(nullptr)
+, m_createCategory(nullptr)
+, m_createSubCategory(nullptr)
+, m_changeCategoryColor(nullptr)
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.get());
@@ -161,57 +165,54 @@ ClassificationLayout::~ClassificationLayout()
 //------------------------------------------------------------------------
 void ClassificationLayout::createSpecificControls(QHBoxLayout *specificControlLayout)
 {
-  QPushButton *createCategory = new QPushButton();
-  createCategory->setIcon(QIcon(":espina/create_node.png"));
-  createCategory->setIconSize(QSize(22,22));
-  createCategory->setBaseSize(32, 32);
-  createCategory->setMaximumSize(32, 32);
-  createCategory->setMinimumSize(32, 32);
-  createCategory->setFlat(true);
-  createCategory->setEnabled(false);
-  createCategory->setToolTip(tr("Create Category"));
+  m_createCategory = new QPushButton();
+  m_createCategory->setIcon(QIcon(":espina/create_node.png"));
+  m_createCategory->setIconSize(QSize(22,22));
+  m_createCategory->setBaseSize(32, 32);
+  m_createCategory->setMaximumSize(32, 32);
+  m_createCategory->setMinimumSize(32, 32);
+  m_createCategory->setFlat(true);
+  m_createCategory->setEnabled(false);
+  m_createCategory->setToolTip(tr("Create Category"));
 
-  connect(createCategory, SIGNAL(clicked(bool)),
-          this,           SLOT(createTaxonomy()));
-  specificControlLayout->addWidget(createCategory);
+  connect(m_createCategory, SIGNAL(clicked(bool)),
+          this,             SLOT(createCategory()));
+  specificControlLayout->addWidget(m_createCategory);
 
-  QPushButton *createSubcategory = new QPushButton();
-  createSubcategory->setIcon(QIcon(":espina/create_subnode.png"));
-  createSubcategory->setIconSize(QSize(22,22));
-  createSubcategory->setBaseSize(32, 32);
-  createSubcategory->setMaximumSize(32, 32);
-  createSubcategory->setMinimumSize(32, 32);
-  createSubcategory->setFlat(true);
-  createSubcategory->setEnabled(false);
-  createSubcategory->setToolTip(tr("Create Subcategory"));
+  m_createSubCategory = new QPushButton();
+  m_createSubCategory->setIcon(QIcon(":espina/create_subnode.png"));
+  m_createSubCategory->setIconSize(QSize(22,22));
+  m_createSubCategory->setBaseSize(32, 32);
+  m_createSubCategory->setMaximumSize(32, 32);
+  m_createSubCategory->setMinimumSize(32, 32);
+  m_createSubCategory->setFlat(true);
+  m_createSubCategory->setEnabled(false);
+  m_createSubCategory->setToolTip(tr("Create Subcategory"));
 
-  connect(createSubcategory, SIGNAL(clicked(bool)),
-          this,              SLOT(createSubTaxonomy()));
-  specificControlLayout->addWidget(createSubcategory);
+  connect(m_createSubCategory, SIGNAL(clicked(bool)),
+          this,                SLOT(createSubCategory()));
+  specificControlLayout->addWidget(m_createSubCategory);
 
-  QPushButton *changeColor = new QPushButton();
-  changeColor->setIcon(QIcon(":espina/rainbow.svg"));
-  changeColor->setIconSize(QSize(22,22));
-  changeColor->setBaseSize(32, 32);
-  changeColor->setMaximumSize(32, 32);
-  changeColor->setMinimumSize(32, 32);
-  changeColor->setFlat(true);
-  changeColor->setEnabled(false);
-  changeColor->setToolTip(tr("Change Category Color"));
+  m_changeCategoryColor = new QPushButton();
+  m_changeCategoryColor->setIcon(QIcon(":espina/rainbow.svg"));
+  m_changeCategoryColor->setIconSize(QSize(22,22));
+  m_changeCategoryColor->setBaseSize(32, 32);
+  m_changeCategoryColor->setMaximumSize(32, 32);
+  m_changeCategoryColor->setMinimumSize(32, 32);
+  m_changeCategoryColor->setFlat(true);
+  m_changeCategoryColor->setEnabled(false);
+  m_changeCategoryColor->setToolTip(tr("Change Category Color"));
 
-  connect(changeColor, SIGNAL(clicked(bool)),
-          this, SLOT(changeTaxonomyColor()));
-  specificControlLayout->addWidget(changeColor);
+  connect(m_changeCategoryColor, SIGNAL(clicked(bool)),
+          this,                  SLOT(changeCategoryColor()));
+  specificControlLayout->addWidget(m_changeCategoryColor);
 
   // the model of CheckableTreeView has been set by now (wasn't in constructor): connect signals
   connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
           this,                     SLOT(updateSelection()));
 
-  m_createTaxonomy      = createCategory;
-  m_createSubTaxonomy   = createSubcategory;
-  m_changeTaxonomyColor = changeColor;
 
-  connect(m_createTaxonomy, SIGNAL(destroyed()),
+  connect(m_createCategory, SIGNAL(destroyed()),
           this,             SLOT(disconnectSelectionModel()));
 }
 
@@ -246,17 +247,17 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   QAction *createNode = contextMenu.addAction(tr("Create Category"));
   createNode->setIcon(QIcon(":espina/create_node.png"));
   connect(createNode, SIGNAL(triggered(bool)),
-          this,       SLOT(createTaxonomy()));
+          this,       SLOT(createCategory()));
 
   QAction *createSubNode = contextMenu.addAction(tr("Create Subcategory"));
   createSubNode->setIcon(QIcon(":espina/create_subnode.png"));
   connect(createSubNode, SIGNAL(triggered(bool)),
-          this,          SLOT(createSubTaxonomy()));
+          this,          SLOT(createSubCategory()));
 
   QAction *changeColor = contextMenu.addAction(tr("Change Category Color"));
   changeColor->setIcon(QIcon(":espina/rainbow.svg"));
   connect(changeColor, SIGNAL(triggered(bool)),
-          this,        SLOT(changeTaxonomyColor()));
+          this,        SLOT(changeCategoryColor()));
 
   contextMenu.addSeparator();
 
@@ -341,7 +342,7 @@ void ClassificationLayout::deleteSelectedItems()
     {
       if (m_model->classification()->category(category->classificationName()))
       {
-        // TODO: m_undoStack->push(new RemoveCategoryAdapterCommand(category, m_model));
+        m_undoStack->push(new RemoveCategoryCommand(category, m_model));
       }
     }
     m_undoStack->endMacro();
@@ -421,155 +422,166 @@ bool ClassificationLayout::selectedItems(CategoryAdapterList &categories, Segmen
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::createTaxonomy()
+void ClassificationLayout::createCategory()
 {
-//   QModelIndex currentIndex = m_view->currentIndex();
-//   ItemAdapterPtr taxonomyItem;
-//   if (currentIndex.isValid())
-//     taxonomyItem = item(currentIndex);
-//   else if (m_view->model()->rowCount() > 0)
-//     taxonomyItem = m_model->taxonomy()->elements().first().get();
-//   else
-//     return;
-// 
-//   if (EspINA::TAXONOMY == taxonomyItem->type())
-//   {
-//     QString name = tr("New Taxonomy");
-// 
-//     CategoryAdapterPtr selectedTaxonomy = taxonomyElementPtr(taxonomyItem);
-//     CategoryAdapterPtr parentTaxonomy   = selectedTaxonomy->parent();
-//     if (!parentTaxonomy->element(name))
-//     {
-//       m_undoStack->beginMacro("Create Taxonomy");
-//       m_undoStack->push(new AddCategoryAdapter(parentTaxonomy, name, m_model, parentTaxonomy->color()));
-//       m_undoStack->endMacro();
-//     }
-//   }
+  QModelIndex currentIndex = m_view->currentIndex();
+
+  ItemAdapterPtr categoryItem = nullptr;
+
+  if (currentIndex.isValid())
+  {
+    categoryItem = item(currentIndex);
+  }
+  else if (m_view->model()->rowCount() > 0)
+  {
+    categoryItem = m_model->classification()->categories().first().get();
+  }
+
+  if (!categoryItem) return;
+
+  if (isCategory(categoryItem))
+  {
+    QString name = tr("New Category");
+
+    auto selectedCategory = categoryPtr(categoryItem);
+    auto parentCategory   = selectedCategory->parent();
+
+    if (!parentCategory->subCategory(name))
+    {
+      m_undoStack->beginMacro("Create Category");
+      m_undoStack->push(new AddCategoryCommand(parentCategory, name, m_model, parentCategory->color()));
+      m_undoStack->endMacro();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::createSubTaxonomy()
+void ClassificationLayout::createSubCategory()
 {
-//   QModelIndex currentIndex = m_view->currentIndex();
-//   if (!currentIndex.isValid())
-//     return;
-// 
-//   ItemAdapterPtr taxonomyItem = item(currentIndex);
-// 
-//   if (EspINA::TAXONOMY == taxonomyItem->type())
-//   {
-//     QString name = tr("New Taxonomy");
-// 
-//     CategoryAdapterPtr taxonomy = taxonomyElementPtr(taxonomyItem);
-//     if (!taxonomy->element(name))
-//     {
-//       m_undoStack->beginMacro("Create Taxonomy");
-//       m_undoStack->push(new AddCategoryAdapter(taxonomy, name, m_model, taxonomy->color()));
-//       m_undoStack->endMacro();
-//     }
-//   }
+  QModelIndex currentIndex = m_view->currentIndex();
+
+  if (!currentIndex.isValid())
+    return;
+
+  auto categorytItem = item(currentIndex);
+
+  if (isCategory(categorytItem))
+  {
+    QString name = tr("New Category");
+
+    auto category = categoryPtr(categorytItem);
+    if (!category->subCategory(name))
+    {
+      m_undoStack->beginMacro("Create Category");
+      m_undoStack->push(new AddCategoryCommand(category, name, m_model, category->color()));
+      m_undoStack->endMacro();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
 void ClassificationLayout::segmentationsDragged(SegmentationAdapterList   segmentations,
-                                                CategoryAdapterPtr category)
+                                                CategoryAdapterPtr        category)
 {
-//   m_undoStack->beginMacro(tr("Change Segmentation's Taxonomy"));
-//   {
-//     m_undoStack->push(new ChangeTaxonomyCommand(segmentations,
-//                                                 taxonomy,
-//                                                 m_model,
-//                                                 m_viewManager));
-//   }
-//   m_undoStack->endMacro();
+  m_undoStack->beginMacro(tr("Change Segmentation's Category"));
+  {
+    m_undoStack->push(new ChangeCategoryCommand(segmentations, category, m_model, m_viewManager));
+  }
+  m_undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::categoriesDragged(CategoryAdapterList subTaxonomies,
-                                             CategoryAdapterPtr  taxonomy)
+void ClassificationLayout::categoriesDragged(CategoryAdapterList subCategories,
+                                             CategoryAdapterPtr  category)
 {
-//   CategoryAdapterList validSubTaxonomies;
-//   foreach(CategoryAdapterPtr subTaxonomy, subTaxonomies)
-//   {
-//     if (!taxonomy->element(subTaxonomy->name()))
-//     {
-//       bool nameConflict = false;
-//       foreach (CategoryAdapterPtr validSubTaxonomy, validSubTaxonomies)
-//       {
-//         if (validSubTaxonomy->name() == subTaxonomy->name())
-//           nameConflict = true;
-//       }
-//       if (!nameConflict)
-//         validSubTaxonomies << subTaxonomy;
-//     }
-//   }
-//   if (!validSubTaxonomies.isEmpty())
-//   {
-//     m_undoStack->beginMacro(tr("Modify Taxonomy"));
-//     m_undoStack->push(new MoveTaxonomiesCommand(validSubTaxonomies, taxonomy, m_model));
-//     m_undoStack->endMacro();
-//   }
+  CategoryAdapterList validSubCategories;
+  for(auto subCategory : subCategories)
+  {
+    if (!category->subCategory(subCategory->name()))
+    {
+      bool nameConflict = false;
+      for(auto validSubCategory : validSubCategories)
+      {
+        if (validSubCategory->name() == subCategory->name())
+        {
+          nameConflict = true;
+        }
+      }
+
+      if (!nameConflict)
+      {
+        validSubCategories << subCategory;
+      }
+    }
+  }
+
+  if (!validSubCategories.isEmpty())
+  {
+    m_undoStack->beginMacro(tr("Modify Classification"));
+    m_undoStack->push(new ReparentCategoryCommand(validSubCategories, category, m_model));
+    m_undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------
 void ClassificationLayout::updateSelection()
 {
-//   int numTax = 0;
-// 
-//   QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
-// 
-//   foreach(QModelIndex index, selectedIndexes)
-//   {
-//     ItemAdapterPtr item = ClassificationLayout::item(index);
-//     switch (item->type())
-//     {
-//       case EspINA::TAXONOMY:
-//         numTax++;
-//         break;
-//       default:
-//         break;
-//     }
-//   }
-// 
-//   bool enabled = (numTax == 1);
-//   m_createTaxonomy->setEnabled(m_model->taxonomy().get());
-//   m_createSubTaxonomy->setEnabled(enabled);
-//   m_changeTaxonomyColor->setEnabled(enabled);
+  int numCategories = 0;
+
+  QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+
+  for(auto index : selectedIndexes)
+  {
+    ItemAdapterPtr item = ClassificationLayout::item(index);
+
+    if (isCategory(item))
+    {
+      numCategories++;
+    }
+  }
+
+  bool enabled = (numCategories == 1);
+  m_createCategory->setEnabled(m_model->classification().get());
+  m_createSubCategory->setEnabled(enabled);
+  m_changeCategoryColor->setEnabled(enabled);
 }
 
 //------------------------------------------------------------------------
 void ClassificationLayout::disconnectSelectionModel()
 {
-  m_createTaxonomy = m_createSubTaxonomy = m_changeTaxonomyColor = nullptr;
+  m_createCategory = m_createSubCategory = m_changeCategoryColor = nullptr;
 
   disconnect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
           this, SLOT(updateSelection()));
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::changeTaxonomyColor()
+void ClassificationLayout::changeCategoryColor()
 {
-//   // sanity checks, not really necessary
-//   QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
-//   if (indexList.size() != 1)
-//     return;
-// 
-//   ItemAdapterPtr item = ClassificationLayout::item(indexList.first());
-//   if (EspINA::TAXONOMY != item->type())
-//     return;
-// 
-//   CategoryAdapterPtr taxonomy = taxonomyElementPtr(item);
-// 
-//   QColorDialog colorSelector(m_view->parentWidget());
-//   colorSelector.setCurrentColor(taxonomy->color());
-//   if(colorSelector.exec() == QDialog::Accepted)
-//   {
-//     taxonomy->setData(colorSelector.selectedColor(),
-//                       Qt::DecorationRole);
-// 
-//     m_viewManager->updateSegmentationRepresentations();
-//     m_viewManager->updateViews();
-//   }
+  // sanity checks, not really necessary
+  QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
+
+  if (indexList.size() != 1)
+    return;
+
+  ItemAdapterPtr item = ClassificationLayout::item(indexList.first());
+
+  if (!isCategory(item))
+    return;
+
+  auto category = categoryPtr(item);
+
+  QColorDialog colorSelector(m_view->parentWidget());
+  colorSelector.setCurrentColor(category->color());
+
+  if(colorSelector.exec() == QDialog::Accepted)
+  {
+    category->setData(colorSelector.selectedColor(),
+                      Qt::DecorationRole);
+
+    m_viewManager->updateSegmentationRepresentations();
+    m_viewManager->updateViews();
+  }
 }
 
 //------------------------------------------------------------------------

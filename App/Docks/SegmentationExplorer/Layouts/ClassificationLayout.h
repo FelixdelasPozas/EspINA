@@ -75,9 +75,9 @@ namespace EspINA
     bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
 
   private slots:
-    void createTaxonomy();
-    void createSubTaxonomy();
-    void changeTaxonomyColor();
+    void createCategory();
+    void createSubCategory();
+    void changeCategoryColor();
     void selectCategoryAdapters();
 
     void segmentationsDragged(SegmentationAdapterList segmentations,
@@ -94,9 +94,9 @@ namespace EspINA
     std::shared_ptr<SortFilter>          m_sort;
 
     CategorytemDelegate *m_delegate;
-    QPushButton *m_createTaxonomy;
-    QPushButton *m_createSubTaxonomy;
-    QPushButton *m_changeTaxonomyColor;
+    QPushButton *m_createCategory;
+    QPushButton *m_createSubCategory;
+    QPushButton *m_changeCategoryColor;
   };
 
 } // namespace EspINA

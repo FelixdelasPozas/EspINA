@@ -25,18 +25,20 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterSList segmentations,
-                                             CategoryAdapterSPtr      category,
-                                             ModelAdapterSPtr         model,
-                                             ViewManagerSPtr          viewManager,
-                                             QUndoCommand            *parent)
+ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentations,
+                                             CategoryAdapterPtr      category,
+                                             ModelAdapterSPtr        model,
+                                             ViewManagerSPtr         viewManager,
+                                             QUndoCommand*           parent)
 : QUndoCommand(parent)
 , m_model(model)
 , m_viewManager(viewManager)
-, m_category(category)
+, m_category(m_model->smartPointer(category))
 {
   for(auto segmentation: segmentations)
-    m_oldCategories[segmentation] = segmentation->category();
+  {
+    m_oldCategories[m_model->smartPointer(segmentation)] = segmentation->category();
+  }
 }
 
 //------------------------------------------------------------------------
