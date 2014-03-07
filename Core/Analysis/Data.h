@@ -119,6 +119,7 @@ namespace EspINA
     void updateModificationTime() 
     {
       m_timeStamp = s_tick++;
+      emit dataChanged();
     }
 
   protected:

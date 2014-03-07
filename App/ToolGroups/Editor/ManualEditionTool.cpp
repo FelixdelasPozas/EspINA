@@ -295,19 +295,18 @@ namespace EspINA
         SegmentationAdapterList list;
         list << segmentation.get();
         m_viewManager->selection()->set(list);
-      }
         break;
+      }
       case ViewItemAdapter::Type::SEGMENTATION:
       {
         segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
         m_undoStack->beginMacro(tr("Modify Segmentation"));
         m_undoStack->push(new DrawUndoCommand(segmentation, mask));
         m_undoStack->endMacro();
-      }
         break;
+      }
       default:
         Q_ASSERT(false);
-        break;
     }
 
     m_currentSelector->initBrush();

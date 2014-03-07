@@ -177,7 +177,7 @@ bool Output::isValid() const
 //----------------------------------------------------------------------------
 void Output::onDataChanged()
 {
-
+  emit modified();
 }
 
 //----------------------------------------------------------------------------
@@ -185,13 +185,22 @@ void Output::setData(Output::DataSPtr data)
 {
   Data::Type type = data->type();
 
-  if (!m_data.contains(type))
+  if (m_data.contains(type))
+  {
+    auto oldData = m_data[type]->get();
+    disconnect(oldData.get(), SIGNAL(dataChanged()),
+               this, SLOT(onDataChanged()));
+  }
+  else
   {
     m_data[type] = data->createProxy();
   }
 
   m_data[type]->set(data);
   data->setOutput(this);
+
+  connect(data.get(), SIGNAL(dataChanged()),
+          this, SLOT(onDataChanged()));
 }
 
 //----------------------------------------------------------------------------

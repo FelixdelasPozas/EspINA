@@ -617,6 +617,7 @@ namespace EspINA
     m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
 
     // TODO: Reduce existing blocks??
+    updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------

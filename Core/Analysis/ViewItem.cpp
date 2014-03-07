@@ -27,6 +27,8 @@ using namespace EspINA;
 ViewItem::ViewItem(InputSPtr input)
 : m_input{input}
 {
+  connect(output().get(), SIGNAL(modified()),
+          this,           SLOT(onOutputModified()));
 }
 
 //------------------------------------------------------------------------

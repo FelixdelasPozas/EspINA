@@ -98,7 +98,7 @@ namespace EspINA
                                                           const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
                                                           const State &state = State());
 
-    void setPresistentStorage(TemporalStorageSPtr storage)
+    void setPersistentStorage(TemporalStorageSPtr storage)
     { m_defaultStorage = storage; }
 
   private:
