@@ -29,6 +29,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Docks/SegmentationExplorer/LayoutComposition.h
 #   FilterInspectors/CODE/CODEFilterInspector.h
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
+  Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
   Menus/RenderersMenu.h
@@ -124,6 +125,7 @@ set (ESPINA_SOURCES
 #   Docks/SegmentationExplorer/LayoutLocation.cpp
 #   FilterInspectors/CODE/CODEFilterInspector.cpp
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
+  Menus/CamerasMenu.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
   Menus/RenderersMenu.cpp

@@ -877,3 +877,35 @@ void View3D::deactivateRender(const QString &rendererName)
       renderer->setEnable(false);
 }
 
+//-----------------------------------------------------------------------------
+void View3D::setVisualState(struct RenderView::VisualState state)
+{
+  if (state.plane != Plane::UNDEFINED)
+    return;
+
+  auto camera = m_renderer->GetActiveCamera();
+  camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
+  camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
+  m_renderer->ResetCameraClippingRange();
+
+  updateView();
+}
+
+//-----------------------------------------------------------------------------
+struct RenderView::VisualState View3D::visualState()
+{
+  struct RenderView::VisualState state;
+  double cameraPos[3], focalPoint[3];
+  auto camera = m_renderer->GetActiveCamera();
+  camera->GetFocalPoint(focalPoint);
+  camera->GetPosition(cameraPos);
+
+  state.plane = Plane::UNDEFINED;
+  state.slice = -1;
+  state.cameraPosition = NmVector3{cameraPos[0], cameraPos[1], cameraPos[2]};
+  state.focalPoint = NmVector3{focalPoint[0], focalPoint[1], focalPoint[2]};
+  state.heightLength = -1;
+
+  return state;
+}
+

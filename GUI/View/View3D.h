@@ -99,6 +99,9 @@ namespace EspINA
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 
+    virtual void setVisualState(struct RenderView::VisualState);
+    virtual struct RenderView::VisualState visualState();
+
   public slots:
     virtual void updateView();
 

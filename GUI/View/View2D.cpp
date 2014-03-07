@@ -1669,3 +1669,63 @@ void View2D::deactivateRender(const QString &rendererName)
     if (renderer->name() == rendererName)
       renderer->setEnable(false);
 }
+
+//-----------------------------------------------------------------------------
+void View2D::setVisualState(struct RenderView::VisualState state)
+{
+  if (state.plane != m_plane)
+    return;
+
+  auto camera = m_renderer->GetActiveCamera();
+  camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
+  camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
+  camera->Zoom(viewHeightLength() / state.heightLength);
+
+  m_scrollBar->setValue(state.slice);
+  updateView();
+}
+
+//-----------------------------------------------------------------------------
+struct RenderView::VisualState View2D::visualState()
+{
+  struct RenderView::VisualState state;
+  auto camera = m_renderer->GetActiveCamera();
+  double cameraPos[3], focalPoint[3];
+  camera->GetFocalPoint(focalPoint);
+  camera->GetPosition(cameraPos);
+
+  state.plane = m_plane;
+  state.slice = m_scrollBar->value();
+  state.cameraPosition = NmVector3{cameraPos[0], cameraPos[1], cameraPos[2]};
+  state.focalPoint = NmVector3{focalPoint[0], focalPoint[1], focalPoint[2]};
+  state.heightLength = viewHeightLength();
+  return state;
+}
+
+//-----------------------------------------------------------------------------
+double View2D::viewHeightLength()
+{
+  double ll[3], ur[3];
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToNormalizedViewport();
+  coords->SetValue(0, 0);
+  memcpy(ll,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+  coords->SetValue(1, 1);
+  memcpy(ur,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+  double heightDist = 0;
+
+  switch (m_plane)
+  {
+    case Plane::XY:
+    case Plane::XZ:
+      heightDist = ll[0]-ur[0];
+      break;
+    case Plane::YZ:
+      heightDist = ll[1]-ur[1];
+      break;
+    default:
+      break;
+  }
+
+  return heightDist;
+}

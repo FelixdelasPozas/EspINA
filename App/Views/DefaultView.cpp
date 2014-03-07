@@ -21,6 +21,8 @@
 
 // EspINA
 //#include <Menus/SegmentationContextualMenu.h>
+#include <Menus/CamerasMenu.h>
+#include <Menus/RenderersMenu.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/ContourRenderer.h>
@@ -162,6 +164,9 @@ DefaultView::~DefaultView()
 
   settings.setValue(RENDERERS, activeRenderersNames);
   settings.sync();
+
+  delete m_renderersMenu;
+  delete m_camerasMenu;
 }
 
 //-----------------------------------------------------------------------------
@@ -276,6 +281,9 @@ void DefaultView::createViewMenu(QMenu* menu)
   menu->addAction(fitToSlices);
   connect(fitToSlices, SIGNAL(toggled(bool)),
           this, SLOT(setFitToSlices(bool)));
+
+  m_camerasMenu = new CamerasMenu(m_viewManager, this);
+  menu->addMenu(m_camerasMenu);
 
   setRulerVisibility(sr);
   showThumbnail(st);
@@ -517,6 +525,9 @@ void DefaultView::changePlanePosition(Plane plane, Nm dist)
     case Plane::YZ:
       this->m_viewXY->updateCrosshairPoint(plane, dist);
       this->m_viewXZ->updateCrosshairPoint(plane, dist);
+      break;
+    default:
+      return;
       break;
   }
   m_view3D->changePlanePosition(plane, dist);

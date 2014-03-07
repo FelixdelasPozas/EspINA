@@ -26,7 +26,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <Menus/RenderersMenu.h>
 #include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
 
@@ -38,6 +37,9 @@ class QUndoStack;
 
 namespace EspINA
 {
+  class RenderersMenu;
+  class CamerasMenu;
+
   class DefaultView
   : public QAbstractItemView
   {
@@ -145,8 +147,9 @@ namespace EspINA
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;
 
-    ContextualMenuSPtr m_contextMenu;
-    RenderersMenu *m_renderersMenu;
+    ContextualMenuSPtr  m_contextMenu;
+    RenderersMenu      *m_renderersMenu;
+    CamerasMenu        *m_camerasMenu;
   };
 
 

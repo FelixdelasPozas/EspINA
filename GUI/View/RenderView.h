@@ -162,6 +162,28 @@ namespace EspINA
     virtual void activateRender(const QString &rendererName) = 0;
     virtual void deactivateRender(const QString &rendererName) = 0;
 
+    /* \brief Struct used to store/restore camera state. Used in
+     * "view state" snapshots.
+     *
+     */
+    struct VisualState
+    {
+      Plane     plane;
+      int       slice;           // Only used in View2D
+      NmVector3 cameraPosition;
+      NmVector3 focalPoint;
+      double    heightLength;      // Only used in View2D
+
+      VisualState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
+    };
+
+    /* \brief Restores camera position and zoom.
+     * \param[in] state VisualState struct with camera values.
+     *
+     */
+    virtual void setVisualState(struct VisualState) = 0;
+    virtual struct VisualState visualState() = 0;
+
   public slots:
     virtual void updateView() = 0;
 

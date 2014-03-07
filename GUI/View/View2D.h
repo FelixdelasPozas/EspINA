@@ -145,6 +145,9 @@ namespace EspINA
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 
+    virtual void setVisualState(struct RenderView::VisualState);
+    virtual struct RenderView::VisualState visualState();
+
   public slots:
     /// Show/Hide Preprocessing
     void setShowPreprocessing(bool visible);
@@ -219,40 +222,32 @@ namespace EspINA
 
   private:
     void addRendererControls(RendererSPtr renderer);
-
     void removeRendererControls(const QString name);
-
     void updateRuler();
-
     void updateThumbnail();
-
+    Nm  voxelBottom(const int sliceIndex, const Plane plane) const;
+    Nm  voxelBottom(const Nm  position,   const Plane plane) const;
+    Nm  voxelCenter(const int sliceIndex, const Plane plane) const;
+    Nm  voxelCenter(const Nm  position,   const Plane plane) const;
+    Nm  voxelTop   (const int sliceIndex, const Plane plane) const;
+    Nm  voxelTop   (const Nm  position,   const Plane plane) const;
+    int voxelSlice (const Nm position,    const Plane plane) const;
+    void buildCrosshairs();
+    void setupUI();
     void initBorders(vtkPolyData* data, vtkActor *actor);
-
     void updateBorder(vtkPolyData *data,
                       double left, double right,
                       double upper, double lower);
 
-    Nm  voxelBottom(const int sliceIndex, const Plane plane) const;
-
-    Nm  voxelBottom(const Nm  position,   const Plane plane) const;
-
-    Nm  voxelCenter(const int sliceIndex, const Plane plane) const;
-
-    Nm  voxelCenter(const Nm  position,   const Plane plane) const;
-
-    Nm  voxelTop   (const int sliceIndex, const Plane plane) const;
-
-    Nm  voxelTop   (const Nm  position,   const Plane plane) const;
-
-    int voxelSlice (const Nm position,    const Plane plane) const;
-
-    void buildCrosshairs();
-
-    void setupUI();
+    /* \brief Returns the distance in world coordinates of the height
+     * of the view. Auxiliary method to take a "View State", dependent
+     * on the m_plane value.
+     *
+     */
+    double viewHeightLength();
 
   private slots:
     void onTakeSnapshot();
-
 
   private:
     // GUI
