@@ -18,7 +18,7 @@
 
 #include "SegmentationExplorer.h"
 
-//#include "Dialogs/SegmentationInspector/SegmentationInspector.h"
+#include "Dialogs/SegmentationInspector/SegmentationInspector.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorerLayout.h"
 // #include "LayoutComposition.h"
 // #include "LayoutLocation.h"
@@ -62,6 +62,7 @@ SegmentationExplorer::GUI::GUI()
 
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
+                                           ModelFactorySPtr factory,
                                            ViewManagerSPtr  viewManager,
                                            QUndoStack      *undoStack,
                                            QWidget         *parent)
@@ -77,7 +78,7 @@ SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, m_viewManager, m_undoStack));
+  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, m_viewManager, m_undoStack));
 //   addLayout("Location",    new LocationLayout   (m_gui->view, m_baseModel, m_viewManager, m_undoStack));
 //   addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_viewManager, m_undoStack));
 

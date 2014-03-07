@@ -129,9 +129,10 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 //------------------------------------------------------------------------
 ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
                                            ModelAdapterSPtr   model,
+                                           ModelFactorySPtr   factory,
                                            ViewManagerSPtr    viewManager,
                                            QUndoStack        *undoStack)
-: Layout    (view, model, viewManager, undoStack)
+: Layout    (view, model, factory, viewManager, undoStack)
 , m_proxy   (new ClassificationProxy(model))
 , m_sort    (new SortFilter())
 , m_delegate(new CategorytemDelegate(model, undoStack, this))
@@ -626,27 +627,24 @@ void ClassificationLayout::selectCategoryAdapters()
 bool ClassificationLayout::hasInformationToShow()
 {
   QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
-//   foreach(QModelIndex index, selectedIndexes)
-//   {
-//     QModelIndexList subIndexes;
-//     ItemAdapterPtr item = ClassificationLayout::item(index);
-//     switch (item->type())
-//     {
-//       case EspINA::TAXONOMY:
-//         subIndexes = indices(index, true);
-//         foreach(QModelIndex subIndex, subIndexes)
-//         {
-//           if (EspINA::SEGMENTATION == ClassificationLayout::item(subIndex)->type())
-//             return true;
-//         }
-//         break;
-//       case EspINA::SEGMENTATION:
-//         return true;
-//         break;
-//       default:
-//         break;
-//     }
-//   }
+  for(auto index : selectedIndexes)
+  {
+    ItemAdapterPtr item = ClassificationLayout::item(index);
+    if (isSegmentation(item))
+    {
+      return true;
+    }
+    else if (isCategory(item))
+    {
+      for(auto subIndex : indices(index, true))
+      {
+        if (isSegmentation(ClassificationLayout::item(subIndex)))
+          return true;
+      }
+    }
 
-  return false;
+    return false;
+  }
+
+  return ;
 }

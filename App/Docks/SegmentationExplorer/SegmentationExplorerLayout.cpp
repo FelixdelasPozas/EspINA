@@ -20,7 +20,9 @@
 #include "SegmentationExplorerLayout.h"
 #include <Undo/RemoveSegmentations.h>
 
-//#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
+#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
+#include <Extensions/Tags/SegmentationTags.h>
+#include <Extensions/ExtensionUtils.h>
 
 // #include <Core/Model/Segmentation.h>
 // #include <Core/Extensions/Tags/TagExtension.h>
@@ -54,19 +56,22 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
   if (!acceptRows)
   {
     ItemAdapterPtr item = itemAdapter(rowIndex);
-    if (ItemAdapter::Type::SEGMENTATION == item->type())
-    {//TODO
-//       SegmentationAdapterPtr segmentation = segmentationPtr(item);
-//       SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(
-//         segmentation->informationExtension(SegmentationTagsID));
-// 
-//       QStringList tags = tagExtension->tags();
-//       int i = 0;
-//       while (!acceptRows && i < tags.size())
-//       {
-//         acceptRows = tags[i].contains(filterRegExp());
-//         ++i;
-//       }
+    if (isSegmentation(item))
+    {
+      SegmentationAdapterPtr segmentation = segmentationPtr(item);
+
+      if (segmentation->hasExtension(SegmentationTags::TYPE))
+      {
+        auto tagExtension = retrieveExtension<SegmentationTags>(segmentation);
+
+        QStringList tags = tagExtension->tags();
+        int i = 0;
+        while (!acceptRows && i < tags.size())
+        {
+          acceptRows = tags[i].contains(filterRegExp());
+          ++i;
+        }
+      }
     }
   }
 
@@ -83,9 +88,11 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
                                      ModelAdapterSPtr   model,
+                                     ModelFactorySPtr  factory,
                                      ViewManagerSPtr    viewManager,
                                      QUndoStack        *undoStack)
 : m_model      (model      )
+, m_factory    (factory    )
 , m_viewManager(viewManager)
 , m_undoStack  (undoStack  )
 , m_view       (view       )
@@ -115,16 +122,16 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList s
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapterList segmentations)
 {
-//   SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
-//   if (!inspector)
-//   {
-//     inspector = new SegmentationInspector(segmentations, m_model, m_undoStack, m_viewManager);
-//     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
-//         SLOT(releaseInspectorResources(SegmentationInspector*)));
-//     m_inspectors[toKey(segmentations)] = inspector;
-//   }
-//   inspector->show();
-//   inspector->raise();
+  SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
+  if (!inspector)
+  {
+    inspector = new SegmentationInspector(segmentations, m_model, m_factory , m_viewManager, m_undoStack);
+    connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
+        SLOT(releaseInspectorResources(SegmentationInspector*)));
+    m_inspectors[toKey(segmentations)] = inspector;
+  }
+  inspector->show();
+  inspector->raise();
 }
 
 //------------------------------------------------------------------------

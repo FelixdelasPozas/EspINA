@@ -47,6 +47,7 @@ namespace EspINA
 
   public:
     explicit SegmentationExplorer(ModelAdapterSPtr model,
+                                  ModelFactorySPtr factory,
                                   ViewManagerSPtr  viewManager,
                                   QUndoStack      *undoStack,
                                   QWidget         *parent = 0);

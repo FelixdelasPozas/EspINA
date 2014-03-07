@@ -54,6 +54,7 @@ namespace EspINA
   public:
     explicit Layout(CheckableTreeView *view,
                     ModelAdapterSPtr  model,
+                    ModelFactorySPtr  factory,
                     ViewManagerSPtr   viewManager,
                     QUndoStack        *undoStack);
 
@@ -98,6 +99,7 @@ namespace EspINA
 
   protected:
     ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
 

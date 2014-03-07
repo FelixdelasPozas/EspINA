@@ -46,6 +46,7 @@ namespace EspINA
   public:
     explicit ClassificationLayout(CheckableTreeView *view,
                                   ModelAdapterSPtr   model,
+                                  ModelFactorySPtr   factory,
                                   ViewManagerSPtr    viewManager,
                                   QUndoStack        *undoStack);
     virtual ~ClassificationLayout();

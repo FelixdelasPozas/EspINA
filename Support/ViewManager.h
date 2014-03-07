@@ -239,6 +239,9 @@ private:
   public:
     void setColorEngine(ColorEngineSPtr engine);
 
+    ColorEngineSPtr colorEngine() const
+    { return m_colorEngine;}
+
   private:
     ColorEngineSPtr m_colorEngine;
   };
