@@ -40,6 +40,7 @@ FreeFormSource::FreeFormSource(InputSList   inputs,
 : Filter(inputs, type, scheduler)
 , m_mask(nullptr)
 {
+  m_outputs[0] = OutputSPtr{new Output(this, 0)};
 }
 
 //-----------------------------------------------------------------------------

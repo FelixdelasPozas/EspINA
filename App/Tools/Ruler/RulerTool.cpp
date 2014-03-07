@@ -65,7 +65,7 @@ namespace EspINA
       m_widget = new RulerWidget();
       m_viewManager->addWidget(m_widget);
       connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
-              this,                             SLOT(selectionChanged()), Qt::QueuedConnection);
+              this,                             SLOT(selectionChanged()));
       selectionChanged();
     }
     else
@@ -93,6 +93,9 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void RulerTool::selectionChanged()
   {
+    if (!m_widget)
+      return;
+
     auto selection = m_viewManager->selection();
     if (!m_selection->items().empty())
     {

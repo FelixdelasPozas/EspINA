@@ -47,6 +47,7 @@ namespace EspINA
   private:
     SegmentationAdapterSPtr       m_segmentation;
     BinaryMaskSPtr<unsigned char> m_mask;
+    Bounds                        m_bounds;
   };
 
 } // namespace EspINA

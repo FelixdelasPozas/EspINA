@@ -50,7 +50,21 @@ namespace EspINA
                       SchedulerSPtr    scheduler,
                       QUndoStack      *undoStack) = 0;
 
+    /** \brief Returns a list of channel extension factories
+     *
+     *  Whenever this plugin provides a channel extension, it should provide
+     *  a factory to obtain such extensions, otherwise read only information will
+     *  be available after loading them
+     */
     virtual ChannelExtensionFactorySList channelExtensionFactories() const = 0;
+
+    /** \brief Returns a list of segmentation extension factories
+     *
+     *  Whenever this plugin provides a segmentation extension, it should provide
+     *  a factory to obtain such extensions, otherwise read only information will
+     *  be available after loading them
+     */
+    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
 
     virtual NamedColorEngineSList colorEngines() = 0;
 
@@ -58,9 +72,20 @@ namespace EspINA
 
     virtual RendererSList renderers() = 0;
 
-    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
-
     virtual SettingsPanelSList settingsPanels() = 0;
+
+//     /** \brief
+//      */
+//     virtual Snapshot snapshot() const = 0;
+//
+//     void setStorage(TemporalStorageSPtr storage)
+//     { m_storage = storage; }
+//
+//     TemporalStorageSPtr storage() const
+//     { return m_storage; }
+//
+//   private:
+//     TemporalStorageSPtr m_storage;
   };
 
 } // namespace EspINA
