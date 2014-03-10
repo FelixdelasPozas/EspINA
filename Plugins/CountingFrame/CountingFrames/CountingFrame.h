@@ -191,6 +191,9 @@ namespace CF {
 
     Nm equivalentVolume(const Bounds &bounds);
 
+  protected slots:
+    void onCountingFrameApplied();
+
   protected:
     SchedulerSPtr m_scheduler;
 

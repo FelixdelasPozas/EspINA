@@ -639,6 +639,8 @@ void Panel::showInfo(CountingFrame* activeCF)
   {
     cf->setHighlighted(cf == activeCF);
   }
+
+  m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
 }
 

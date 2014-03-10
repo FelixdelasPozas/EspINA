@@ -206,9 +206,16 @@ void CountingFrame::apply()
   }
 
   m_applyCountingFrame = ApplyCountingFrameSPtr{new ApplyCountingFrame(this, m_scheduler)};
+  connect(m_applyCountingFrame.get(), SIGNAL(finished()),
+          this,                       SLOT(onCountingFrameApplied()));
   Task::submit(m_applyCountingFrame);
 }
 
+//-----------------------------------------------------------------------------
+void CountingFrame::onCountingFrameApplied()
+{
+  emit modified(this);
+}
 //-----------------------------------------------------------------------------
 Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 {
