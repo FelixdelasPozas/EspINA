@@ -51,7 +51,7 @@ QColor CountingFrameColorEngine::color(SegmentationAdapterPtr segmentation)
   int r = 0;
   int g = 0;
   int b = 0;
-  int a = 0;
+  int a = 255;
 
   if (segmentation->hasExtension(StereologicalInclusion::TYPE))
   {
