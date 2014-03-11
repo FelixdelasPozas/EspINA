@@ -111,6 +111,20 @@ QVariant Segmentation::information(const SegmentationExtension::InfoTag& tag) co
 }
 
 //------------------------------------------------------------------------
+bool Segmentation::isInformationReady(const QString& tag) const
+{
+  for(auto extension: m_extensions.values())
+  {
+    if (extension->availableInformations().contains(tag))
+    {
+      return extension->readyInformation().contains(tag);
+    }
+  }
+
+  return false;
+}
+
+//------------------------------------------------------------------------
 SegmentationExtension::InfoTagList Segmentation::informationTags() const
 {
   SegmentationExtension::InfoTagList list;

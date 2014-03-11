@@ -200,7 +200,7 @@ void Scheduler::scheduleTasks()
         bool is_thread_attached = task->m_isThreadAttached;
 
         if (num_running_threads < m_maxNumRunningThreads
-            && !(task->isPendingPause() || task->isAborted() || task->hasFinished()))
+            && !(task->isPendingPause() || task->isWaiting() || task->isAborted() || task->hasFinished()))
         {
           if (is_thread_attached)
           {
@@ -245,6 +245,8 @@ void Scheduler::scheduleTasks()
             }
           }
           else
+          {
+            // Waiting tasks also fulfill these conditions so they must be paused by dispatcher
             if (!task->isPendingPause() && is_thread_attached && !task->isDispatcherPaused())
             {
               task->dispatcherPause();
@@ -255,6 +257,7 @@ void Scheduler::scheduleTasks()
               {
                 task->dispatcherResume();
               }
+          }
         }
 
 //         { // DEBUG

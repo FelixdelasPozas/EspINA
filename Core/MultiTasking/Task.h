@@ -90,6 +90,11 @@ namespace EspINA {
 
     bool isPaused() const { return m_isPaused; }
 
+    /** \brief The task is waiting waiting to another process to finished
+     *
+     */
+    bool isWaiting() const {return m_isWaiting; }
+
   public slots:
     void setPriority(const int value);
 
@@ -107,7 +112,19 @@ namespace EspINA {
 
   protected:
     bool canExecute();
+
     virtual void run() = 0;
+
+    /** \brief Change the waiting state of the task
+     *
+     *  Usually a task should change its state before executing potentially blocking calls
+     *  and restore it after the call itself so the scheduler may execute other pending tasks
+     */
+    void setWaiting(bool value)
+    { m_isWaiting = value; }
+
+    void setFinished(bool value)
+    { m_hasFinished = value; }
 
   protected slots:
     void runWrapper();
@@ -137,6 +154,7 @@ namespace EspINA {
     bool m_isAborted;
     bool m_hasFinished;
     bool m_isPaused;
+    bool m_isWaiting;
 
     QMutex m_mutex;
     QWaitCondition m_pauseCondition;

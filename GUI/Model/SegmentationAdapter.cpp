@@ -202,6 +202,12 @@ QVariant SegmentationAdapter::information(const SegmentationExtension::InfoTag& 
 }
 
 //------------------------------------------------------------------------
+bool SegmentationAdapter::isInformationReady(const SegmentationExtension::InfoTag& tag) const
+{
+  return m_segmentation->isInformationReady(tag);
+}
+
+//------------------------------------------------------------------------
 SegmentationExtension::InfoTagList SegmentationAdapter::informationTags() const
 {
   return m_segmentation->informationTags();

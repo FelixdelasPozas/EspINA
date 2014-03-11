@@ -39,6 +39,16 @@ public:
     auto id = Segmentation->data(Qt::DisplayRole).toString();
     setDescription(tr("%1 information").arg(id));
     setHidden(true);
+
+    bool ready = true;
+    for (auto tag : tags)
+    {
+      ready &= Segmentation->isInformationReady(tag);
+
+      if (!ready) break;
+    }
+
+    setFinished(ready);
   }
 
   SegmentationAdapterPtr Segmentation;
@@ -56,7 +66,13 @@ protected:
       auto tag = m_tags[i];
       if (tag != NAME_TAG && tag != CATEGORY_TAG)
       {
-        Segmentation->information(m_tags[i]);
+        if (!Segmentation->isInformationReady(tag))
+        {
+          setWaiting(true);
+          Segmentation->information(tag);
+          setWaiting(false);
+          if (!canExecute()) break;
+        }
       }
 
       m_progress = (100.0*i)/m_tags.size();
@@ -295,11 +311,19 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
       {
         InformationFetcherSPtr task{new InformationFetcher(segmentation, m_tags, m_scheduler)};
         m_pendingInformation[segmentation] = task;
-        connect(task.get(), SIGNAL(progress(int)),
-                this, SLOT(onProgessReported(int)));
-        connect(task.get(), SIGNAL(finished()),
-                this, SLOT(onTaskFininished()));
-        Task::submit(task);
+
+        if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
+        {
+          connect(task.get(), SIGNAL(progress(int)),
+                  this, SLOT(onProgessReported(int)));
+          connect(task.get(), SIGNAL(finished()),
+                  this, SLOT(onTaskFininished()));
+          qDebug() << "Launching Task";
+          Task::submit(task);
+        } else // we avoid overloading the scheduler
+        {
+          return segmentation->information(tag);
+        }
       } else if (m_pendingInformation[segmentation]->hasFinished())
       {
         return segmentation->information(tag);

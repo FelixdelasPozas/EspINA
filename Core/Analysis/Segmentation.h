@@ -106,6 +106,8 @@ namespace EspINA
 
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
 
+    bool isInformationReady(const SegmentationExtension::InfoTag &tag) const;
+
   private:
     QString extensionsPath() const
     { return "Extensions/"; }

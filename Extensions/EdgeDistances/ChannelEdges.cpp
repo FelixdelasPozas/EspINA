@@ -96,7 +96,8 @@ void ChannelEdges::onExtendedItemSet(Channel *item)
 //-----------------------------------------------------------------------------
 void ChannelEdges::analyzeChannel()
 {
-  m_mutex.lock();
+  //qDebug() << "Launching Analyze Edges Task" << m_extendedItem->name();
+  m_analyzeEdgesMutex.lock();
   //qDebug() << "Analyzing Channel" << m_extendedItem->name();
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
   connect(m_edgesAnalyzer.get(), SIGNAL(finished()),
@@ -107,16 +108,18 @@ void ChannelEdges::analyzeChannel()
 //-----------------------------------------------------------------------------
 void ChannelEdges::onChannelAnalyzed()
 {
-  computeAdaptiveEdges();
+  //computeAdaptiveEdges();
 }
 
 //-----------------------------------------------------------------------------
 void ChannelEdges::computeAdaptiveEdges()
 {
-  //qDebug() << "Computing Adaptive Edges" << m_extendedItem->name();
+  qDebug() << "Launching Adaptive Edges Task" << m_extendedItem->name();
   m_edges = vtkSmartPointer<vtkPolyData>::New();
 
-  m_mutex.lock();
+  QMutexLocker lock(&m_analyzeEdgesMutex);
+  m_computeEdgesMutex.lock();
+  m_edgesResultMutex.lockForWrite();
   m_edgesCreator->setDescription(QObject::tr("Computing Edges %1").arg(m_extendedItem->name()));
   Task::submit(m_edgesCreator);
 }
@@ -126,8 +129,7 @@ using VTKReader = vtkSmartPointer<vtkGenericDataObjectReader>;
 //-----------------------------------------------------------------------------
 void ChannelEdges::loadEdgesCache()
 {
-  QMutexLocker lock(&m_mutex);
-
+  QWriteLocker lock(&m_edgesMutex);
   if (!m_edges.GetPointer() && !m_extendedItem->isOutputModified())
   {
     QString   snapshot  = snapshotName(EDGES_FILE);
@@ -143,10 +145,10 @@ void ChannelEdges::loadEdgesCache()
 //-----------------------------------------------------------------------------
 void ChannelEdges::loadFacesCache()
 {
-  QMutexLocker lock(&m_mutex);
-
+  QWriteLocker lock(&m_facesMutex);
   if (!m_faces[0].GetPointer() && !m_extendedItem->isOutputModified())
   {
+
     for (int i = 0; i < 6; ++i)
     {
       QString   snapshot  = snapshotName(FACES_FILE.arg(i));
@@ -177,13 +179,16 @@ Snapshot ChannelEdges::snapshot() const
 {
   Snapshot snapshot;
 
+  m_edgesMutex.lockForRead();
   if (m_edges)
   {
     auto name = snapshotName(EDGES_FILE);
     auto data = PolyDataUtils::savePolyDataToBuffer(m_edges);
     snapshot << SnapshotData(name, data);
   }
+  m_edgesMutex.unlock();
 
+  m_facesMutex.lockForRead();
   for (int i = 0; i < 6; ++i)
   {
     if (m_faces[i])
@@ -193,6 +198,7 @@ Snapshot ChannelEdges::snapshot() const
       snapshot << SnapshotData(name, data);
     }
   }
+  m_facesMutex.unlock();
 
   return snapshot;
 }
@@ -217,18 +223,22 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
 
   loadFacesCache();
 
+  m_facesMutex.lockForWrite();
   if (!m_faces[0])
   {
-    ComputeSurfaces();
+    computeSurfaces();
   }
+  m_facesMutex.unlock();
 
+  QReadLocker lock(&m_facesMutex);
+  //qDebug() << "Computing distances";
+  // BUG: fails when no mesh data is available
+  vtkSmartPointer<vtkPolyData> segmentationMesh = vtkSmartPointer<vtkPolyData>::New();
+  segmentationMesh->DeepCopy(meshData(segmentation->output())->mesh());
   for(int face = 0; face < 6; ++face)
   {
-    // BUG: fails when no mesh data is available
-    auto segmentationMesh = vtkSmartPointer<vtkPolyData>::New();
-    auto faceMesh         = vtkSmartPointer<vtkPolyData>::New();
-
-    segmentationMesh->DeepCopy(meshData(segmentation->output())->mesh());
+    //qDebug() << "Computing distance to face"<< face;
+    vtkSmartPointer<vtkPolyData> faceMesh = vtkSmartPointer<vtkPolyData>::New();
     faceMesh->DeepCopy(m_faces[face]);
 
     vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
@@ -245,37 +255,35 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 {
   loadEdgesCache();
 
+  QWriteLocker lock(&m_edgesMutex);
   if (!m_edges.GetPointer())
   {
     computeAdaptiveEdges();
   }
 
   // Ensure Margin Detector's finished
-  m_mutex.lock();
   Q_ASSERT(m_edges.GetPointer());
-  m_mutex.unlock();
 
   return m_edges;
+//   vtkSmartPointer<vtkPolyData> edges = vtkSmartPointer<vtkPolyData>::New();
+//   edges->DeepCopy(m_edges);
+//
+//   return edges;
 }
 
 //-----------------------------------------------------------------------------
 Nm ChannelEdges::computedVolume()
 {
-  Nm volume = 0;
-
   loadEdgesCache();
 
+  QWriteLocker lock(&m_edgesMutex);
   // Ensure Margin Detector's finished
   if (!m_edges.GetPointer()) 
   {
     computeAdaptiveEdges();
   }
 
-  m_mutex.lock();
-  volume = m_computedVolume;
-  m_mutex.unlock();
-
-  return volume;
+  return m_computedVolume;
 }
 
 //-----------------------------------------------------------------------------
@@ -300,46 +308,63 @@ void ChannelEdges::setThreshold(int value)
 
 
 //-----------------------------------------------------------------------------
-void ChannelEdges::ComputeSurfaces()
+void ChannelEdges::computeSurfaces()
 {
-
   loadEdgesCache();
 
+  QWriteLocker lock(&m_edgesMutex);
   if (!m_edges)
   {
     computeAdaptiveEdges();
   }
 
-  m_mutex.lock();
+  QReadLocker edgesLock(&m_edgesResultMutex);
 
   vtkPoints *borderPoints = m_edges->GetPoints();
   int numSlices = m_edges->GetNumberOfPoints()/4;
 
   for (int face = 0; face < 6; face++)
   {
-    vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
-    vtkSmartPointer<vtkCellArray> faceCells = vtkSmartPointer<vtkCellArray>::New();
+    vtkPoints    *facePoints = vtkPoints::New();
+    vtkCellArray *faceCells  = vtkCellArray::New();
     if (face < 4)
     {
       for (int i = 0; i < numSlices; i++)
       {
+        double p1[3], p2[3];
         switch(face)
         {
           case 0: // LEFT
-            facePoints->InsertNextPoint(borderPoints->GetPoint(4*i));
-            facePoints->InsertNextPoint(borderPoints->GetPoint((4*i)+1));
+            borderPoints->GetPoint((4*i)+0, p1);
+            borderPoints->GetPoint((4*i)+1, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
             break;
           case 1: // RIGHT
-            facePoints->InsertNextPoint(borderPoints->GetPoint((4*i)+2));
-            facePoints->InsertNextPoint(borderPoints->GetPoint((4*i)+3));
+            borderPoints->GetPoint((4*i)+2, p1);
+            borderPoints->GetPoint((4*i)+3, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
             break;
           case 2: // TOP
-            facePoints->InsertNextPoint(borderPoints->GetPoint((4*i)+1));
-            facePoints->InsertNextPoint(borderPoints->GetPoint((4*i)+2));
+            borderPoints->GetPoint((4*i)+1, p1);
+            borderPoints->GetPoint((4*i)+2, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
             break;
           case 3: // BOTTOM
-            facePoints->InsertNextPoint(borderPoints->GetPoint((4*i)+3));
-            facePoints->InsertNextPoint(borderPoints->GetPoint(4*i));
+            borderPoints->GetPoint((4*i)+3, p1);
+            borderPoints->GetPoint((4*i)+0, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
             break;
           default:
             Q_ASSERT(FALSE);
@@ -360,22 +385,30 @@ void ChannelEdges::ComputeSurfaces()
     else
     {
       vtkIdType corners[4];
+      double p[3];
       switch(face)
       {
         case 4: // Front
-          corners[0] = facePoints->InsertNextPoint(borderPoints->GetPoint(0));
-          corners[1] = facePoints->InsertNextPoint(borderPoints->GetPoint(1));
-          corners[2] = facePoints->InsertNextPoint(borderPoints->GetPoint(2));
-          corners[3] = facePoints->InsertNextPoint(borderPoints->GetPoint(3));
+        {
+          for (int i = 0; i < 4; ++i)
+          {
+            borderPoints->GetPoint(i, p);
+            corners[i] = facePoints->InsertNextPoint(p);
+          }
           break;
+        }
         case 5: // Back
-          corners[0] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-4));
-          corners[1] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-3));
-          corners[2] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-2));
-          corners[3] = facePoints->InsertNextPoint(borderPoints->GetPoint(borderPoints->GetNumberOfPoints()-1));
+        {
+          auto np = borderPoints->GetNumberOfPoints();
+          for (int i = 0; i < 4; ++i)
+          {
+            borderPoints->GetPoint(np - (4-i), p);
+            corners[i] = facePoints->InsertNextPoint(p);
+          }
           break;
+        }
         default:
-          Q_ASSERT(FALSE);
+          Q_ASSERT(false);
           break;
       }
       faceCells->InsertNextCell(4,corners);
@@ -386,8 +419,10 @@ void ChannelEdges::ComputeSurfaces()
     poly->SetPolys(faceCells);
 
     m_faces[face] = poly;
+    //qDebug() << "Face" << face << " Ready";
   }
-  m_mutex.unlock();
+
+  //qDebug() << "Faces Ready";
 }
 
 //-----------------------------------------------------------------------------

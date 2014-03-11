@@ -112,7 +112,12 @@ namespace EspINA
     void onChannelAnalyzed();
 
   private:
-    QMutex m_mutex;
+    QMutex m_analyzeEdgesMutex;
+    QMutex m_computeEdgesMutex;
+
+    QReadWriteLock m_edgesResultMutex;
+    QReadWriteLock m_edgesMutex;
+    QReadWriteLock m_facesMutex;
 
     bool   m_useDistanceToBounds;
     int    m_backgroundColor;
@@ -126,7 +131,7 @@ namespace EspINA
     vtkSmartPointer<vtkPolyData> m_faces[6];
 
     // build a surface for each face the first time they're needed
-    void ComputeSurfaces();
+    void computeSurfaces();
 
     friend class AdaptiveEdgesCreator;
     friend class EdgesAnalyzer;

@@ -45,6 +45,8 @@ Task::Task(SchedulerSPtr scheduler)
 , m_pendingUserPause{false}
 , m_isAborted{false}
 , m_hasFinished{false}
+, m_isPaused{false}
+, m_isWaiting{false}
 , m_id {0}
 , m_isThreadAttached{false}
 , m_hidden{false}
@@ -158,7 +160,8 @@ void Task::runWrapper()
 {
   run();
 
-  m_hasFinished = true;
+  setFinished(true);
+
   m_pendingPause = false;
   m_pendingUserPause = false;
 
