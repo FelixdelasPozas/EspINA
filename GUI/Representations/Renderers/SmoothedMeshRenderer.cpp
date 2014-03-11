@@ -80,10 +80,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SmoothedMeshRenderer::managesRepresentation(RepresentationSPtr rep)
+  bool SmoothedMeshRenderer::managesRepresentation(const QString &repName) const
   {
-    SmoothedMeshRepresentationSPtr mesh = std::dynamic_pointer_cast<SmoothedMeshRepresentation>(rep);
-    return (mesh.get() != nullptr);
+    return (repName == SmoothedMeshRepresentation::TYPE);
   }
   
 } // namespace EspINA

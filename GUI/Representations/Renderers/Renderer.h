@@ -93,28 +93,28 @@ namespace EspINA
     /* \brief Clones the class from a prototype.
      *
      */
-    virtual RendererSPtr clone() = 0;
+    virtual RendererSPtr clone() const = 0;
 
     /* \brief Returns the number of vtkActors added to the view's vtkRenderer from this Renderer
      *
      */
-    virtual unsigned int numberOfvtkActors() = 0;
+    virtual unsigned int numberOfvtkActors() const = 0;
 
     /* \brief Returns true if the renderer is not enabled.
      *
      */
-    virtual bool isHidden()
+    virtual bool isHidden() const
     { return !m_enable; }
 
     /* \brief Returns flags describing the view supported by this renderer, that is,
      * views that this renderer can work with.
      */
-    virtual RendererTypes renderType() { return RendererTypes(RENDERER_UNDEFINED_VIEW); }
+    virtual RendererTypes renderType() const { return RendererTypes(RENDERER_UNDEFINED_VIEW); }
 
     /* \brief Return the number of elements actually been managed by this renderer (abstract items).
      *
      */
-    virtual int numberOfRenderedItems() = 0;
+    virtual int numberOfRenderedItems() const = 0;
 
     /* \brief Return the type of render class.
      *

@@ -45,18 +45,18 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool hasRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(RepresentationSPtr rep);
+      virtual bool hasRepresentation(RepresentationSPtr rep) const;
+      virtual bool managesRepresentation(const QString &representationName) const;
 
-      virtual RendererSPtr clone()              { return RendererSPtr(new SliceRenderer()); }
+      virtual RendererSPtr clone() const        { return RendererSPtr(new SliceRenderer()); }
 
-      virtual unsigned int numberOfvtkActors();
+      virtual unsigned int numberOfvtkActors() const;
 
-      virtual RenderableItems renderableItems() { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
+      virtual RenderableItems renderableItems() const { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
 
-      virtual RendererTypes renderType()        { return RendererTypes(RENDERER_VIEW2D); }
+      virtual RendererTypes renderType() const        { return RendererTypes(RENDERER_VIEW2D); }
 
-      virtual int numberOfRenderedItems()       { return m_representations.size(); }
+      virtual int numberOfRenderedItems() const       { return m_representations.size(); }
 
       virtual ViewItemAdapterList pick(int x, int y, Nm z,
                                        vtkSmartPointer<vtkRenderer> renderer,

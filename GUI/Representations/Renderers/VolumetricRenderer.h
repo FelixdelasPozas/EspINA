@@ -49,23 +49,23 @@ namespace EspINA
     const QString name()    const {return "Volumetric";}
     const QString tooltip() const {return "Segmentation's Volumes";}
 
-    void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
-    void removeRepresentation(RepresentationSPtr rep);
-    bool hasRepresentation(RepresentationSPtr rep);
-    bool managesRepresentation(RepresentationSPtr rep);
+    virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+    virtual void removeRepresentation(RepresentationSPtr rep);
+    virtual bool hasRepresentation(RepresentationSPtr rep) const;
+    virtual bool managesRepresentation(const QString &representationName) const;
 
-    RendererSPtr clone() {return RendererSPtr(new VolumetricRenderer());}
+    RendererSPtr clone() const {return RendererSPtr(new VolumetricRenderer());}
 
-    unsigned int numberOfvtkActors() { return 0; }
+    unsigned int numberOfvtkActors() const { return 0; }
 
-    RenderableItems renderableItems() { return RenderableItems(EspINA::SEGMENTATION); }
+    RenderableItems renderableItems() const { return RenderableItems(EspINA::SEGMENTATION); }
 
-    RendererTypes renderType() { return RendererTypes(RENDERER_VIEW3D); }
+    RendererTypes renderType() const { return RendererTypes(RENDERER_VIEW3D); }
 
-    bool canRender(ItemAdapterPtr item)
+    bool canRender(ItemAdapterPtr item) const
     { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
 
-    int numberOfRenderedItems() { return m_representations.size(); }
+    int numberOfRenderedItems() const { return m_representations.size(); }
 
     // to pick items been rendered
     ViewItemAdapterList pick(int x, int y, Nm z,

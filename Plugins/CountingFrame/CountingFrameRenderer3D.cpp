@@ -100,7 +100,7 @@ void CountingFrameRenderer3D::show()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int CountingFrameRenderer3D::numberOfvtkActors()
+unsigned int CountingFrameRenderer3D::numberOfvtkActors() const
 {
   return m_enable? m_cfManager.countingFrames().size() * 2 : 0; // m_boundingRegion & m_representation vtkPolyDatas...
 }
@@ -147,7 +147,7 @@ void CountingFrameRenderer3D::onCountingFrameDeleted(CountingFrame *cf)
 }
 
 //-----------------------------------------------------------------------------
-RendererSPtr CountingFrameRenderer3D::clone()
+RendererSPtr CountingFrameRenderer3D::clone() const
 {
   return RendererSPtr(new CountingFrameRenderer3D(m_cfManager));
 }

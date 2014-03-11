@@ -105,7 +105,7 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  bool VolumetricRenderer<T>::hasRepresentation(RepresentationSPtr rep)
+  bool VolumetricRenderer<T>::hasRepresentation(RepresentationSPtr rep) const
   {
     for(auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
@@ -116,10 +116,9 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  bool VolumetricRenderer<T>::managesRepresentation(RepresentationSPtr rep)
+  bool VolumetricRenderer<T>::managesRepresentation(const QString &repName) const
   {
-    VolumetricRepresentationSPtr<T> volume = std::dynamic_pointer_cast<VolumetricRepresentation<T>>(rep);
-    return (volume.get() != nullptr);
+    return (repName == VolumetricRepresentation<T>::TYPE);
   }
 
   //-----------------------------------------------------------------------------

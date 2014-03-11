@@ -83,10 +83,9 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  bool VolumetricGPURenderer<T>::managesRepresentation(RepresentationSPtr rep)
+  bool VolumetricGPURenderer<T>::managesRepresentation(const QString &repName) const
   {
-    VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast < VolumetricGPURepresentation < T >> (rep);
-    return (volume.get() != nullptr);
+    return (repName == VolumetricGPURepresentation<T>::TYPE);
   }
 
 }

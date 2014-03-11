@@ -105,14 +105,13 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::managesRepresentation(RepresentationSPtr rep)
+  bool MeshRenderer::managesRepresentation(const QString &repName) const
   {
-    MeshRepresentationSPtr mesh = std::dynamic_pointer_cast<MeshRepresentation>(rep);
-    return (mesh.get() != nullptr);
+    return (repName == MeshRepresentation::TYPE);
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::hasRepresentation(RepresentationSPtr rep)
+  bool MeshRenderer::hasRepresentation(RepresentationSPtr rep) const
   {
     for (auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
@@ -158,7 +157,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  unsigned int MeshRenderer::numberOfvtkActors()
+  unsigned int MeshRenderer::numberOfvtkActors() const
   {
     unsigned int returnVal = 0;
     for (auto item: m_representations.keys())

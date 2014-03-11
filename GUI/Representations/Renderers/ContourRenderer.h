@@ -39,10 +39,10 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(RepresentationSPtr rep);
+      virtual bool managesRepresentation(const QString &repName) const;
 
-      virtual RendererSPtr clone()            { return RendererSPtr(new ContourRenderer()); }
-      virtual RendererTypes renderType()      { return RendererTypes(RENDERER_VIEW2D); }
+      virtual RendererSPtr clone() const           { return RendererSPtr(new ContourRenderer()); }
+      virtual RendererTypes renderType() const     { return RendererTypes(RENDERER_VIEW2D); }
 
       virtual ViewItemAdapterList pick(int x, int y, Nm z,
                                        vtkSmartPointer<vtkRenderer> renderer,

@@ -37,7 +37,7 @@ RepresentationTypeList BasicChannelRepresentationFactory::representations() cons
   RepresentationTypeList representations;
 
   representations << ChannelSliceRepresentation::TYPE;
-//   representations << ChannelSliceCachedRepresentation::TYPE;
+  representations << ChannelSliceCachedRepresentation::TYPE;
   representations << CrosshairRepresentation::TYPE;
 
   return representations;
@@ -76,8 +76,8 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
   RepresentationTypeList representations;
 
   representations << SegmentationSliceRepresentation::TYPE;
-  //representations << SegmentationSliceCachedRepresentation::TYPE;
-  //representations << ContourRepresentation::TYPE;
+  representations << SegmentationSliceCachedRepresentation::TYPE;
+  representations << ContourRepresentation::TYPE;
   representations << MeshRepresentation::TYPE;
   representations << SmoothedMeshRepresentation::TYPE;
   representations << VolumetricRepresentation<itkVolumeType>::TYPE;

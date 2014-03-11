@@ -51,15 +51,15 @@ namespace EspINA
         virtual const QString tooltip() const
         { return tr("Stereological Counting Frame");}
 
-        virtual RendererSPtr clone();
+        virtual RendererSPtr clone() const;
 
-        virtual RendererTypes renderType()
+        virtual RendererTypes renderType() const
         { return RendererType::RENDERER_VIEW2D;}
 
-        virtual int numberOfRenderedItems()
+        virtual int numberOfRenderedItems() const
         { return m_insertedCFs.size();}
 
-        virtual unsigned int numberOfvtkActors();
+        virtual unsigned int numberOfvtkActors() const;
 
         virtual void setView(RenderView *view);
 

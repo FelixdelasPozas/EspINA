@@ -67,11 +67,9 @@ namespace EspINA
   void SliceRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
     SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    SegmentationSliceCachedRepresentationSPtr segCachedSlice = std::dynamic_pointer_cast<SegmentationSliceCachedRepresentation>(rep);
     ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
-    ChannelSliceCachedRepresentationSPtr channelCachedSlice = std::dynamic_pointer_cast<ChannelSliceCachedRepresentation>(rep);
 
-    if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr) || (segCachedSlice.get() != nullptr) || (channelCachedSlice.get() != nullptr))
+    if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
       if (m_representations.keys().contains(item))
         m_representations[item] << rep;
@@ -95,11 +93,9 @@ namespace EspINA
   void SliceRenderer::removeRepresentation(RepresentationSPtr rep)
   {
     SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    SegmentationSliceCachedRepresentationSPtr segCachedSlice = std::dynamic_pointer_cast<SegmentationSliceCachedRepresentation>(rep);
     ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
-    ChannelSliceCachedRepresentationSPtr channelCachedSlice = std::dynamic_pointer_cast<ChannelSliceCachedRepresentation>(rep);
 
-    if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr) || (segCachedSlice.get() != nullptr) || (channelCachedSlice.get() != nullptr))
+    if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
       for (auto item: m_representations.keys())
         if (m_representations[item].contains(rep))
@@ -120,17 +116,13 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SliceRenderer::managesRepresentation(RepresentationSPtr rep)
+  bool SliceRenderer::managesRepresentation(const QString &repName) const
   {
-    SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    SegmentationSliceCachedRepresentationSPtr segCachedSlice = std::dynamic_pointer_cast<SegmentationSliceCachedRepresentation>(rep);
-    ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
-    ChannelSliceCachedRepresentationSPtr channelCachedSlice = std::dynamic_pointer_cast<ChannelSliceCachedRepresentation>(rep);
-    return ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr) || (segCachedSlice.get() != nullptr) || (channelCachedSlice.get() != nullptr));
+    return ((repName == ChannelSliceRepresentation::TYPE) || (repName == SegmentationSliceRepresentation::TYPE));
   }
 
   //-----------------------------------------------------------------------------
-  bool SliceRenderer::hasRepresentation(RepresentationSPtr rep)
+  bool SliceRenderer::hasRepresentation(RepresentationSPtr rep) const
   {
     for (auto item: m_representations.keys())
       if (m_representations[item].contains(rep))
@@ -176,7 +168,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  unsigned int SliceRenderer::numberOfvtkActors()
+  unsigned int SliceRenderer::numberOfvtkActors() const
   {
     unsigned int returnVal = 0;
     for (auto item:  m_representations.keys())

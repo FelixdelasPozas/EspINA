@@ -123,6 +123,8 @@ View2D::View2D(Plane plane, QWidget* parent)
     case Plane::YZ:
       m_state = std::unique_ptr<State>(new SagittalState());
       break;
+    default:
+      break;
   };
 
   // Init Render Window
@@ -1529,27 +1531,86 @@ void View2D::addRendererControls(RendererSPtr renderer)
   renderer->setEnable(true);
 
   // add representations to renderer
-  for(auto segmentation: m_segmentationStates.keys())
+  if(renderer->type() == Renderer::Type::Representation)
   {
-    if(renderer->type() == Renderer::Type::Representation)
+    auto repRenderer = representationRenderer(renderer);
+    for (auto seg : m_segmentationStates.keys())
     {
-      auto repRenderer = representationRenderer(renderer);
-      if (repRenderer->canRender(segmentation))
-        for(auto rep: m_segmentationStates[segmentation].representations)
-           if (repRenderer->managesRepresentation(rep))
-             repRenderer->addRepresentation(segmentation, rep);
-    }
-  }
+      if (repRenderer->canRender(seg))
+      {
+        for (auto repName : seg->representationTypes())
+        {
+          if (!repRenderer->managesRepresentation(repName))
+            continue;
 
-  for(auto channel: m_channelStates.keys())
-  {
-    if(renderer->type() == Renderer::Type::Representation)
+          bool found = false;
+          for (auto rep : m_segmentationStates[seg].representations)
+          {
+            if (rep->type() == repName)
+            {
+              repRenderer->addRepresentation(seg, rep);
+              found = true;
+            }
+          }
+
+          if (!found)
+          {
+            auto rep = cloneRepresentation(seg, repName);
+            if (rep.get() != nullptr)
+            {
+              repRenderer->addRepresentation(seg, rep);
+              m_segmentationStates[seg].representations << rep;
+
+              rep->setColor(m_colorEngine->color(seg));
+              rep->setHighlighted(m_segmentationStates[seg].highlited);
+              rep->setVisible(m_segmentationStates[seg].visible);
+
+              rep->updateRepresentation();
+            }
+          }
+        }
+      }
+    }
+
+    for (auto channel : m_channelStates.keys())
     {
-      auto repRenderer = representationRenderer(renderer);
       if (repRenderer->canRender(channel))
-        for(auto rep: m_channelStates[channel].representations)
-          if (repRenderer->managesRepresentation(rep))
-            repRenderer->addRepresentation(channel, rep);
+      {
+        for (auto repName : channel->representationTypes())
+        {
+          if (!repRenderer->managesRepresentation(repName))
+            continue;
+
+          bool found = false;
+          for (auto rep : m_channelStates[channel].representations)
+          {
+            if (rep->type() == repName)
+            {
+              repRenderer->addRepresentation(channel, rep);
+              found = true;
+            }
+          }
+
+          if (!found)
+          {
+            auto rep = cloneRepresentation(channel, repName);
+            if (rep.get() != nullptr)
+            {
+              repRenderer->addRepresentation(channel, rep);
+              m_channelStates[channel].representations << rep;
+
+              rep->setBrightness(m_channelStates[channel].brightness);
+              rep->setContrast(m_channelStates[channel].contrast);
+              rep->setColor(m_channelStates[channel].stain);
+              rep->setOpacity(m_channelStates[channel].opacity);
+              rep->setVisible(m_channelStates[channel].visible);
+
+              rep->updateRepresentation();
+              updateChannelsOpactity();
+            }
+          }
+        }
+      }
     }
   }
 
@@ -1591,6 +1652,28 @@ void View2D::removeRendererControls(QString name)
 
   if (removedRenderer == nullptr)
     return;
+
+  // delete representations for this renderer if its a representationRenderer
+  if(removedRenderer->type() == Renderer::Type::Representation)
+  {
+    auto repRenderer = representationRenderer(removedRenderer);
+
+    for(auto seg : m_segmentationStates.keys())
+      if(repRenderer->canRender(seg))
+      {
+        for(auto rep: m_segmentationStates[seg].representations)
+          if(repRenderer->managesRepresentation(rep->type()))
+            m_segmentationStates[seg].representations.removeOne(rep);
+      }
+
+    for(auto channel : m_channelStates.keys())
+      if(repRenderer->canRender(channel))
+      {
+        for(auto rep: m_channelStates[channel].representations)
+          if(repRenderer->managesRepresentation(rep->type()))
+            m_channelStates[channel].representations.removeOne(rep);
+      }
+  }
 
   m_renderers.removeOne(removedRenderer);
 

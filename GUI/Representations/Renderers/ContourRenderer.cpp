@@ -87,10 +87,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool ContourRenderer::managesRepresentation(RepresentationSPtr rep)
+  bool ContourRenderer::managesRepresentation(const QString &repName) const
   {
-    ContourRepresentationSPtr contour = std::dynamic_pointer_cast<ContourRepresentation>(rep);
-    return (contour.get() != nullptr);
+    return (repName == ContourRepresentation::TYPE);
   }
 
   //-----------------------------------------------------------------------------

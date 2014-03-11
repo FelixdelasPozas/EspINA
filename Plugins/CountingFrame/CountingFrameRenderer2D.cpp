@@ -46,7 +46,7 @@ CountingFrameRenderer2D::~CountingFrameRenderer2D()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int CountingFrameRenderer2D::numberOfvtkActors()
+unsigned int CountingFrameRenderer2D::numberOfvtkActors() const
 {
   return m_enable? m_cfManager.countingFrames().size() * 2 : 0; // m_boundingRegion & m_representation vtkPolyDatas...
 }
@@ -108,7 +108,7 @@ void CountingFrameRenderer2D::show()
 }
 
 //-----------------------------------------------------------------------------
-RendererSPtr CountingFrameRenderer2D::clone()
+RendererSPtr CountingFrameRenderer2D::clone() const
 {
   return RendererSPtr(new CountingFrameRenderer2D(m_cfManager));
 }

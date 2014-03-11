@@ -48,9 +48,9 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(RepresentationSPtr rep);
+      virtual bool managesRepresentation(const QString &representationName) const;
 
-      virtual RendererSPtr clone() {return RendererSPtr(new VolumetricGPURenderer());}
+      virtual RendererSPtr clone() const {return RendererSPtr(new VolumetricGPURenderer());}
   };
 
 

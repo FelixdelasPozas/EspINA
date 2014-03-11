@@ -46,14 +46,14 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) = 0;
       virtual void removeRepresentation(RepresentationSPtr rep) = 0;
-      virtual bool hasRepresentation(RepresentationSPtr rep) = 0;
-      virtual bool managesRepresentation(RepresentationSPtr rep) = 0;
+      virtual bool hasRepresentation(RepresentationSPtr rep) const = 0;
+      virtual bool managesRepresentation(const QString &representationName) const = 0;
 
-      virtual RenderableItems renderableItems()
+      virtual RenderableItems renderableItems() const
       { return RenderableItems(); }
 
       // naive item filtering, to be modified/enhanced in the future
-      virtual bool canRender(ItemAdapterPtr item)
+      virtual bool canRender(ItemAdapterPtr item) const
       { return true; }
 
       virtual ViewItemAdapterList pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;

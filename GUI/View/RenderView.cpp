@@ -362,22 +362,21 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
 
     for(auto representationName : channel->representationTypes())
     {
-      RepresentationSPtr representation = cloneRepresentation(channel, representationName);
-      if (representation.get() != nullptr)
-      {
-        for(auto renderer : m_renderers)
-          if(renderer->type() == Renderer::Type::Representation)
+      for(auto renderer : m_renderers)
+        if(renderer->type() == Renderer::Type::Representation)
+        {
+          auto repRenderer = representationRenderer(renderer);
+          if (repRenderer->canRender(channel) && repRenderer->managesRepresentation(representationName))
           {
-            auto repRenderer = representationRenderer(renderer);
-            if (repRenderer->canRender(channel) && repRenderer->managesRepresentation(representation))
+            RepresentationSPtr representation = cloneRepresentation(channel, representationName);
+            if (representation.get() != nullptr)
             {
               representation->setVisible(requestedVisibility);
               repRenderer->addRepresentation(channel, representation);
+              state.representations << representation;
             }
           }
-
-        state.representations << representation;
-      }
+        }
     }
   }
 
@@ -494,29 +493,28 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 
     for(auto representationName : seg->representationTypes())
     {
-      RepresentationSPtr representation = cloneRepresentation(seg, representationName);
-      if (representation)
-      {
-        for(auto renderer : m_renderers)
-          if(renderer->type() == Renderer::Type::Representation)
+      for(auto renderer : m_renderers)
+        if(renderer->type() == Renderer::Type::Representation)
+        {
+          auto repRenderer = representationRenderer(renderer);
+          if (repRenderer->canRender(seg) && repRenderer->managesRepresentation(representationName))
           {
-            auto repRenderer = representationRenderer(renderer);
-            if (repRenderer->canRender(seg) && repRenderer->managesRepresentation(representation))
+            RepresentationSPtr representation = cloneRepresentation(seg, representationName);
+            if (representation.get() != nullptr)
             {
               representation->setVisible(requestedVisibility);
               repRenderer->addRepresentation(seg, representation);
+              state.representations << representation;
+
+              if (seg->hasExtension(VisualizationState::TYPE))
+              {
+                VisualizationStateSPtr stateExtension = std::dynamic_pointer_cast<VisualizationState>(seg->extension(VisualizationState::TYPE));
+
+                representation->restoreSettings(stateExtension->state(representation->type()));
+              }
             }
           }
-
-        state.representations << representation;
-
-        if (seg->hasExtension(VisualizationState::TYPE))
-        {
-          VisualizationStateSPtr stateExtension = std::dynamic_pointer_cast<VisualizationState>(seg->extension(VisualizationState::TYPE));
-
-          representation->restoreSettings(stateExtension->state(representation->type()));
         }
-      }
     }
   }
 

@@ -143,9 +143,12 @@ void View3D::addRendererControls(RendererSPtr renderer)
     {
       auto repRenderer = representationRenderer(renderer);
       if (repRenderer->canRender(segmentation))
+      {
+
         for(auto rep : m_segmentationStates[segmentation].representations)
-           if (repRenderer->managesRepresentation(rep))
+           if (repRenderer->managesRepresentation(rep->type()))
              repRenderer->addRepresentation(segmentation, rep);
+      }
     }
 
   // add channel representations to renderer
@@ -155,7 +158,7 @@ void View3D::addRendererControls(RendererSPtr renderer)
       auto repRenderer = representationRenderer(renderer);
       if (repRenderer->canRender(channel))
         for(auto rep : m_channelStates[channel].representations)
-          if (repRenderer->managesRepresentation(rep))
+          if (repRenderer->managesRepresentation(rep->type()))
             repRenderer->addRepresentation(channel, rep);
     }
 

@@ -106,7 +106,7 @@ void CrosshairRenderer::removeRepresentation(RepresentationSPtr rep)
 }
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep)
+bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep) const
 {
   auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
   if (crossRep.get() != nullptr)
@@ -118,10 +118,9 @@ bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep)
 }
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::managesRepresentation(RepresentationSPtr rep)
+bool CrosshairRenderer::managesRepresentation(const QString &repName) const
 {
-  auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
-  return (crossRep.get() != nullptr);
+  return (repName == CrosshairRepresentation::TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -161,7 +160,7 @@ void CrosshairRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int CrosshairRenderer::numberOfvtkActors()
+unsigned int CrosshairRenderer::numberOfvtkActors() const
 {
   unsigned int numActors = 0;
 
