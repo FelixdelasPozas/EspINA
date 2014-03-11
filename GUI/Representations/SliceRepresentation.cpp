@@ -30,9 +30,10 @@
 #include "RepresentationSettings.h"
 #include "SliceRepresentationSettings.h"
 #include "RepresentationEmptySettings.h"
-#include <GUI/View/View2D.h>
-#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/View/View2D.h>
 
 #include <itkImage.h>
 
@@ -372,11 +373,7 @@ bool SegmentationSliceRepresentation::hasActor(vtkProp *actor) const
 //-----------------------------------------------------------------------------
 bool SegmentationSliceRepresentation::isInside(const NmVector3 &point) const
 {
-  Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
-
-  itkVolumeType::Pointer voxel = m_data->itkImage(bounds);
-
-  return (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
+  return isSegmentationVoxel(m_data, point);
 }
 
 //-----------------------------------------------------------------------------

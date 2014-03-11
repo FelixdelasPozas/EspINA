@@ -247,6 +247,23 @@ namespace EspINA
   template<typename T>
   typename T::IndexType index( Nm x, Nm y, Nm z);
 
+  template<typename T>
+  bool isSegmentationVoxel(const VolumetricDataSPtr<T> volume, const NmVector3 &point)
+  {
+    Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
+
+    bool result = contains(volume->bounds(), bounds, volume->spacing());
+
+    if (result)
+    {
+      typename T::Pointer voxel = volume->itkImage(bounds);
+
+      result = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
+    }
+
+    return result;
+  }
+
 
 
 //   /// Set voxels at coordinates (x,y,z) to value

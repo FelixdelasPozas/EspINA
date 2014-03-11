@@ -340,7 +340,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     for (int i=0; i < 8; i++)
     {
       double point[3];
-      regionPoints->GetPoint(p+1, point);
+      regionPoints->GetPoint(p+i, point);
       slicePoints->InsertNextPoint(point);
     }
 
