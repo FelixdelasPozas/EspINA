@@ -86,7 +86,7 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         {
           mergedCategory[category] = classification->createNode(category->classificationName());
           mergedCategory[category]->setColor(category->color());
-        } catch (Already_Defined_Node_Exception e)
+        } catch (Already_Defined_Node_Exception &e)
         {
           mergedCategory[category] = classification->node(category->classificationName());
         }

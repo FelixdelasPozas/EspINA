@@ -48,7 +48,7 @@ EdgesAnalyzer::~EdgesAnalyzer()
 //------------------------------------------------------------------------
 void EdgesAnalyzer::run()
 {
-  qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
+  //qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
   auto volume  = volumetricData(m_extension->m_extendedItem->output());
   auto bounds  = volume->bounds();
   auto spacing = volume->spacing();
@@ -78,7 +78,8 @@ void EdgesAnalyzer::run()
     }
   }
 
-  m_extension->m_analyzeEdgesMutex.unlock();
+  m_extension->m_analysisResultMutex.unlock();
+  //qDebug() << "Adaptive Edges Analyzed" << m_extension->m_extendedItem->name();
 }
 
 //------------------------------------------------------------------------

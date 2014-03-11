@@ -286,7 +286,7 @@ void vtkCountingFrameSliceWidget::centerMarginsOnVoxelCenter(vtkCountingFrameSli
 
   for (int i = 0; i < 3; i++)
   {
-    double shift = i < 2? 0.5: -0.5;
+    //double shift = i < 2? 0.5: -0.5;
     self->InclusionOffset[i] = voxelCenter(self->InclusionOffset[i], self->SlicingStep[i]);
     self->ExclusionOffset[i] = voxelCenter(self->ExclusionOffset[i], self->SlicingStep[i]);
   }

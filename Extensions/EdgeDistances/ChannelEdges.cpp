@@ -97,8 +97,8 @@ void ChannelEdges::onExtendedItemSet(Channel *item)
 void ChannelEdges::analyzeChannel()
 {
   //qDebug() << "Launching Analyze Edges Task" << m_extendedItem->name();
-  m_analyzeEdgesMutex.lock();
-  //qDebug() << "Analyzing Channel" << m_extendedItem->name();
+  QWriteLocker lock(&m_edgesResultMutex);
+  m_analysisResultMutex.lockForWrite();
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
   connect(m_edgesAnalyzer.get(), SIGNAL(finished()),
           this,                  SLOT(onChannelAnalyzed()));
@@ -114,11 +114,10 @@ void ChannelEdges::onChannelAnalyzed()
 //-----------------------------------------------------------------------------
 void ChannelEdges::computeAdaptiveEdges()
 {
-  qDebug() << "Launching Adaptive Edges Task" << m_extendedItem->name();
+  //qDebug() << "Launching Adaptive Edges Task" << m_extendedItem->name();
   m_edges = vtkSmartPointer<vtkPolyData>::New();
 
-  QMutexLocker lock(&m_analyzeEdgesMutex);
-  m_computeEdgesMutex.lock();
+  QReadLocker lock(&m_analysisResultMutex);
   m_edgesResultMutex.lockForWrite();
   m_edgesCreator->setDescription(QObject::tr("Computing Edges %1").arg(m_extendedItem->name()));
   Task::submit(m_edgesCreator);
@@ -204,6 +203,24 @@ Snapshot ChannelEdges::snapshot() const
 }
 
 //-----------------------------------------------------------------------------
+void ChannelEdges::setUseDistanceToBounds(bool value)
+{
+  QWriteLocker lock(&m_analysisResultMutex);
+
+  m_useDistanceToBounds = value;
+  invalidate();
+}
+
+//-----------------------------------------------------------------------------
+bool ChannelEdges::useDistanceToBounds() const
+{
+  QReadLocker lock(&m_analysisResultMutex);
+  //qDebug() << "Accesing Distance Type" << m_useDistanceToBounds;
+
+  return m_useDistanceToBounds;
+}
+
+//-----------------------------------------------------------------------------
 void ChannelEdges::distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const
 {
   Bounds channelBounds      = m_extendedItem->bounds();
@@ -261,14 +278,10 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
     computeAdaptiveEdges();
   }
 
-  // Ensure Margin Detector's finished
-  Q_ASSERT(m_edges.GetPointer());
+  QReadLocker edgesLock(&m_edgesResultMutex);
+  //qDebug() << "Accesing Edges";
 
   return m_edges;
-//   vtkSmartPointer<vtkPolyData> edges = vtkSmartPointer<vtkPolyData>::New();
-//   edges->DeepCopy(m_edges);
-//
-//   return edges;
 }
 
 //-----------------------------------------------------------------------------
@@ -277,11 +290,13 @@ Nm ChannelEdges::computedVolume()
   loadEdgesCache();
 
   QWriteLocker lock(&m_edgesMutex);
-  // Ensure Margin Detector's finished
   if (!m_edges.GetPointer()) 
   {
     computeAdaptiveEdges();
   }
+
+  QReadLocker edgesLock(&m_edgesResultMutex);
+  //qDebug() << "Accesing Edges";
 
   return m_computedVolume;
 }
@@ -289,21 +304,42 @@ Nm ChannelEdges::computedVolume()
 //-----------------------------------------------------------------------------
 void ChannelEdges::setBackgroundColor(int value)
 {
+  QWriteLocker lock(&m_analysisResultMutex);
+
   if (m_backgroundColor != value)
   {
     m_backgroundColor = value;
+    invalidate();
     // TODO update edges
   }
 }
 
 //-----------------------------------------------------------------------------
+int ChannelEdges::backgroundColor() const
+{
+  QReadLocker lock(&m_analysisResultMutex);
+
+  return m_backgroundColor;
+}
+
+//-----------------------------------------------------------------------------
 void ChannelEdges::setThreshold(int value)
 {
+  QWriteLocker lock(&m_analysisResultMutex);
   if (m_threshold != value)
   {
     m_threshold = value;
+    invalidate();
     // TODO update edges
   }
+}
+
+//-----------------------------------------------------------------------------
+int ChannelEdges::threshold() const
+{
+  QReadLocker lock(&m_analysisResultMutex);
+
+  return m_threshold;
 }
 
 
@@ -419,10 +455,7 @@ void ChannelEdges::computeSurfaces()
     poly->SetPolys(faceCells);
 
     m_faces[face] = poly;
-    //qDebug() << "Face" << face << " Ready";
-  }
-
-  //qDebug() << "Faces Ready";
+ }
 }
 
 //-----------------------------------------------------------------------------

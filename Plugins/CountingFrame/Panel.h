@@ -144,13 +144,13 @@ namespace EspINA
       CountingFrame *CF;
       ComputeOptimalMarginsSPtr Task;
 
-      PendingCF(){}
+      PendingCF() : CF(nullptr) {}
 
       PendingCF(CountingFrame *cf, ComputeOptimalMarginsSPtr task)
       : CF(cf)
       , Task(task){}
 
-      bool operator==(const PendingCF &rhs)
+      bool operator==(const PendingCF &rhs) const
       {
         return CF == rhs.CF && Task == rhs.Task;
       }

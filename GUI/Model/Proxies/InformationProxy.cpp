@@ -318,7 +318,7 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
                   this, SLOT(onProgessReported(int)));
           connect(task.get(), SIGNAL(finished()),
                   this, SLOT(onTaskFininished()));
-          qDebug() << "Launching Task";
+          //qDebug() << "Launching Task";
           Task::submit(task);
         } else // we avoid overloading the scheduler
         {

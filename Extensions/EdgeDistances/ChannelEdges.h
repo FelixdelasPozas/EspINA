@@ -69,11 +69,9 @@ namespace EspINA
     virtual InfoTagList availableInformations() const
     { return InfoTagList(); }
 
-    void setUseDistanceToBounds(bool value)
-    { m_useDistanceToBounds = value; }
+    void setUseDistanceToBounds(bool value);
 
-    bool useDistanceToBounds() const
-    { return m_useDistanceToBounds; }
+    bool useDistanceToBounds() const;
 
     void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
@@ -85,13 +83,11 @@ namespace EspINA
 
     void setBackgroundColor(int value);
 
-    int backgroundColor() const
-    { return m_backgroundColor; }
+    int backgroundColor() const;
 
     void setThreshold(int value);
 
-    int threshold() const
-    { return m_threshold; }
+    int threshold() const;
 
   protected:
     virtual void onExtendedItemSet(Channel* item);
@@ -112,12 +108,11 @@ namespace EspINA
     void onChannelAnalyzed();
 
   private:
-    QMutex m_analyzeEdgesMutex;
-    QMutex m_computeEdgesMutex;
+    QReadWriteLock m_analysisResultMutex;
 
-    QReadWriteLock m_edgesResultMutex;
     QReadWriteLock m_edgesMutex;
     QReadWriteLock m_facesMutex;
+    QReadWriteLock m_edgesResultMutex;
 
     bool   m_useDistanceToBounds;
     int    m_backgroundColor;

@@ -261,7 +261,7 @@ void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr success
   try 
   {
     m_analysis->addRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
-  } catch (Analysis::Existing_Relation_Exception e)
+  } catch (const Analysis::Existing_Relation_Exception &e)
   {
     throw Existing_Relation_Exception();
   }
@@ -433,7 +433,7 @@ void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succ
   try 
   {
     m_analysis->deleteRelation(ancestor->m_analysisItem, succesor->m_analysisItem, relation);
-  } catch (Analysis::Relation_Not_Found_Exception e)
+  } catch (const Analysis::Relation_Not_Found_Exception &e)
   {
     throw Relation_Not_Found_Exception();
   }
