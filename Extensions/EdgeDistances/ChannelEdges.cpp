@@ -471,18 +471,3 @@ ChannelEdgesSPtr EspINA::channelEdgesExtension(ChannelPtr channel)
 
   return std::dynamic_pointer_cast<ChannelEdges>(extension);
 }
-
-// //-----------------------------------------------------------------------------
-// ChannelEdgesSPtr EspINA::createAdaptiveEdgesIfNotAvailable(ChannelPtr channel)
-// {
-//   auto edgesExtension = channelEdgesExtension(channel);
-//
-//   if (!edgesExtension)
-//   {
-//     edgesExtension = ChannelEdgesSPtr(new ChannelEdges());
-//     channel->addExtension(edgesExtension);
-//   }
-//   Q_ASSERT(edgesExtension);
-//
-//   return edgesExtension;
-// }

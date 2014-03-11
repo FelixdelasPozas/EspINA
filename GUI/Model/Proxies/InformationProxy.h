@@ -79,6 +79,9 @@ namespace EspINA
 
     int progress() const;
 
+  signals:
+    void informationProgress();
+
   protected slots:
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 

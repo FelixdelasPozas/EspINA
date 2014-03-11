@@ -98,7 +98,7 @@ public:
     {
       auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
       m_analysis->setClassification(ClassificationXML::parse(currentFile, m_handler));
-    } catch (ClassificationXML::Parse_Exception e)
+    } catch (const ClassificationXML::Parse_Exception &e)
     {
       if (m_handler)
         m_handler->error(QObject::tr("Error while loading classification"));
@@ -132,7 +132,7 @@ public:
 
 private:
   //-----------------------------------------------------------------------------
-  DirectedGraph::Vertex findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
+  static DirectedGraph::Vertex findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
   {
     for(auto vertex : vertices)
     {
@@ -177,7 +177,7 @@ private:
     try
     {
       filter = m_factory->createFilter(inputs, roVertex->name());
-    } catch (CoreFactory::Unknown_Type_Exception &e)
+    } catch (const CoreFactory::Unknown_Type_Exception &e)
     {
       filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
       filter->setFetchBehaviour(m_fetchBehaviour);
@@ -234,7 +234,7 @@ private:
   }
 
   //-----------------------------------------------------------------------------
-  QString parseCategoryName(const State& state)
+  static QString parseCategoryName(const State& state)
   {
     QStringList params = state.split(";");
 
@@ -385,7 +385,7 @@ private:
     {
       extension = m_factory->createChannelExtension(type, cache, state);
       //qDebug() << "Creating Channel Extension" << type;
-    } catch (CoreFactory::Unknown_Type_Exception &e)
+    } catch (const CoreFactory::Unknown_Type_Exception &e)
     {
       //qDebug() << "Creating ReadOnlyChannelExtension" << type;
       extension = ChannelExtensionSPtr{new ReadOnlyChannelExtension(type, cache, state)};
@@ -448,7 +448,7 @@ private:
     {
       extension = m_factory->createSegmentationExtension(type, cache, state);
       //qDebug() << "Creating Channel Extension" << type;
-    } catch (CoreFactory::Unknown_Type_Exception &e)
+    } catch (const CoreFactory::Unknown_Type_Exception &e)
     {
       //qDebug() << "Creating ReadOnlySegmentationExtension" << type;
       extension = SegmentationExtensionSPtr{new ReadOnlySegmentationExtension(type, cache, state)};
@@ -538,7 +538,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
 {
   try {
     addFileToZip(FORMAT_INFO_FILE, formatInfo(), zip, handler);
-  } catch (IO_Error_Exception e)
+  } catch (const IO_Error_Exception &e)
   {
     if (handler)
       handler->error("Error while saving Analysis Format Information");
@@ -549,7 +549,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   QByteArray classification;
   try {
     classification = ClassificationXML::dump(analysis->classification(), handler);
-  } catch (IO_Error_Exception e)
+  } catch (const IO_Error_Exception &e)
   {
     if (handler)
       handler->error("Error while saving Analysis Classification");
@@ -560,7 +560,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   try {
     addFileToZip(CLASSIFICATION_FILE, classification, zip, handler);
   }
-  catch (IO_Error_Exception e){
+  catch (const IO_Error_Exception &e){
     if (handler)
       handler->error("Error while saving Analysis Classification");
 
@@ -571,7 +571,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   write(analysis->content(), content);
   try {
     addFileToZip(CONTENT_FILE, content.str().c_str(), zip, handler);
-  } catch (IO_Error_Exception e)
+  } catch (const IO_Error_Exception &e)
   {
     if (handler)
       handler->error("Error while saving Analysis Pipeline");
@@ -583,7 +583,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   write(analysis->relationships(), relations);
   try {
     addFileToZip(RELATIONS_FILE, relations.str().c_str(), zip, handler);
-  } catch (IO_Error_Exception e)
+  } catch (const IO_Error_Exception &e)
   {
     if (handler)
       handler->error("Error while saving Analysis Pipeline");
@@ -599,7 +599,7 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
       try
       {
         addFileToZip(data.first, data.second, zip, handler);
-      } catch (IO_Error_Exception e)
+      } catch (const IO_Error_Exception &e)
       {
         throw (e);
       }

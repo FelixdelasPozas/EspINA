@@ -41,10 +41,33 @@ protected:
 
   virtual void CreateRegion();
 
-  virtual EspINA::Nm realLeftEdge  (int slice=0) { return Region->GetPoint(slice*4+0)[hCoord];}
-  virtual EspINA::Nm realTopEdge   (int slice=0) { return Region->GetPoint(slice*4+1)[vCoord];}
-  virtual EspINA::Nm realRightEdge (int slice=0) { return Region->GetPoint(slice*4+2)[hCoord];}
-  virtual EspINA::Nm realBottomEdge(int slice=0) { return Region->GetPoint(slice*4+0)[vCoord];}
+  virtual EspINA::Nm realLeftEdge  (int slice=0)
+  {
+    double point[3];
+    Region->GetPoint(slice*4+0, point);
+    return point[hCoord];
+  }
+
+  virtual EspINA::Nm realTopEdge   (int slice=0)
+  {
+    double point[3];
+    Region->GetPoint(slice*4+1, point);
+    return point[vCoord];
+  }
+
+  virtual EspINA::Nm realRightEdge (int slice=0)
+  {
+    double point[3];
+    Region->GetPoint(slice*4+2, point);
+    return point[hCoord];
+  }
+
+  virtual EspINA::Nm realBottomEdge(int slice=0)
+  {
+    double point[3];
+    Region->GetPoint(slice*4+0, point);
+    return point[vCoord];
+  }
 
   virtual EspINA::Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[hCoord];}
   virtual EspINA::Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[vCoord];}

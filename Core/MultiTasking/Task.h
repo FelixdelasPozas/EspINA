@@ -124,7 +124,10 @@ namespace EspINA {
     { m_isWaiting = value; }
 
     void setFinished(bool value)
-    { m_hasFinished = value; }
+    {
+      m_hasFinished = value;
+      emit finished();
+    }
 
   protected slots:
     void runWrapper();

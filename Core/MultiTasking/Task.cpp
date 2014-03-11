@@ -160,12 +160,10 @@ void Task::runWrapper()
 {
   run();
 
-  setFinished(true);
-
   m_pendingPause = false;
   m_pendingUserPause = false;
 
-  emit finished();
+  setFinished(true);
 }
 
 //-----------------------------------------------------------------------------

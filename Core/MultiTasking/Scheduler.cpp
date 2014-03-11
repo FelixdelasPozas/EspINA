@@ -153,7 +153,7 @@ unsigned int Scheduler::numberOfTasks() const
 {
   QMutexLocker lock(&m_mutex);
 
-  unsigned int result;
+  unsigned int result = 0;
   for(int priority = 4; priority >= 0; --priority)
     result += m_runningTasks[priority].size();
 
@@ -169,19 +169,19 @@ void Scheduler::scheduleTasks()
     QApplication::processEvents();
 
     m_mutex.lock();
-    //std::cout << "Start Scheduling on thread " << thread() << std::endl;
 
-    int numTask = 0;
-    for (int priority = 4; priority >= 0; --priority)
-    {
-      int size = m_runningTasks[priority].size();
-      numTask += size;
-//      std::cout << "Priority " << priority << " has " << size << " tasks." << std::endl;
-    }
+//     std::cout << "Start Scheduling on thread " << thread() << std::endl;
+//     int numTasks = 0;
+//     for (int priority = 4; priority >= 0; --priority)
+//     {
+//       int size = m_runningTasks[priority].size();
+//       numTasks += size;
+//       std::cout << "Priority " << priority << " has " << size << " tasks." << std::endl;
+//     }
+//    std::cout << "Scheduler has " << numTasks << " tasks:" << std::endl;
 
     int num_running_threads = 0;
 
-//    std::cout << "Scheduler has " << numTask << " tasks:" << std::endl;
 
     for (int priority = 4; priority >= 0; --priority)
     {

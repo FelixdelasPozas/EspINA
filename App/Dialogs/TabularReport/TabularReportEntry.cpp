@@ -127,7 +127,7 @@ void TabularReport::Entry::setProxy(InformationProxy* proxy)
 {
   if (m_proxy)
   {
-    disconnect(m_proxy, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+    disconnect(m_proxy, SIGNAL(informationProgress()),
                this,    SLOT(refreshGUI()));
   }
 
@@ -135,7 +135,7 @@ void TabularReport::Entry::setProxy(InformationProxy* proxy)
 
   if (m_proxy)
   {
-    connect(m_proxy, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+    connect(m_proxy, SIGNAL(informationProgress()),
             this,    SLOT(refreshGUI()));
   }
 
@@ -172,6 +172,13 @@ QVariant TabularReport::Entry::value(int row, int column) const
   return result;
 }
 
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::paintEvent(QPaintEvent* event)
+{
+  refreshGUI();
+  QWidget::paintEvent(event);
+}
 
 //------------------------------------------------------------------------
 void TabularReport::Entry::changeDisplayedInformation()

@@ -59,6 +59,7 @@ const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid
 const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
 
 //TODO: Review values to be used from new ITK version
+//TODO: Make thread safe
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::InfoCache &cache,
                                                    const State &state)

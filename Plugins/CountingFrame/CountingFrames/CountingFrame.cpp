@@ -180,9 +180,10 @@ void CountingFrame::setCategoryConstraint(const QString& category)
 //-----------------------------------------------------------------------------
 void CountingFrame::updateCountingFrame()
 {
-  m_mutex.lock();
-  updateCountingFrameImplementation();
-  m_mutex.unlock();
+  {
+    QWriteLocker lock(&m_mutex);
+    updateCountingFrameImplementation();
+  }
 
   for(auto wa : m_widgets2D.values())
   {

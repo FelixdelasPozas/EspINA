@@ -154,7 +154,8 @@ namespace CF {
      */
     virtual vtkSmartPointer<vtkPolyData> region() const
     {
-      QMutexLocker lock(const_cast<QMutex *>(&m_mutex));
+      QReadLocker lock(const_cast<QReadWriteLock *>(&m_mutex));
+      //qDebug() << "Accesing Counting Frame";
       return m_countingFrame;
     }
 
@@ -165,7 +166,7 @@ namespace CF {
     Nm front() const {return m_inclusion[2];}
     Nm right() const {return m_exclusion[0];}
     Nm bottom()const {return m_exclusion[1];}
-    Nm back() const {return m_exclusion[2];}
+    Nm back()  const {return m_exclusion[2];}
 
     void setCategoryConstraint(const QString &category);
 
@@ -197,7 +198,7 @@ namespace CF {
   protected:
     SchedulerSPtr m_scheduler;
 
-    QMutex                       m_mutex;
+    QReadWriteLock               m_mutex;
     vtkSmartPointer<vtkPolyData> m_countingFrame;
     vtkSmartPointer<vtkPolyData> m_representation;
 

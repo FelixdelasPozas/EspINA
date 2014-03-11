@@ -99,7 +99,7 @@ void DirectedGraph::addRelation(Vertex ancestor,
   {
    findRelation(avd, svd, description);
    throw (Existing_Relation_Exception());
-  } catch (Relation_Not_Found_Exception e) {
+  } catch (const Relation_Not_Found_Exception &e) {
    add_edge(avd, svd, p, m_graph);
   }
 }

@@ -144,6 +144,7 @@ bool AdaptiveCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
 //-----------------------------------------------------------------------------
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
+  //qDebug() << "Updating CountingFrame Implementation";
   auto volume  = volumetricData(m_channel->output());
   auto origin  = volume->origin();
   auto spacing = volume->spacing();
@@ -153,7 +154,6 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
 
   vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
-  Q_ASSERT(margins.GetPointer());
 
   m_totalVolume = 0;
 
@@ -287,7 +287,10 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_countingFrame->SetPoints(regionVertex);
   m_countingFrame->SetPolys(faces);
+
   vtkCellData *data = m_countingFrame->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
+
+  //qDebug() << "CountingFrame Implementation Updated";
 }

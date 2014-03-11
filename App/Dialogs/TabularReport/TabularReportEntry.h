@@ -65,6 +65,9 @@ namespace EspINA
   signals:
     void informationReadyChanged();
 
+  protected:
+    virtual void paintEvent(QPaintEvent* event);
+
   private slots:
     void changeDisplayedInformation();
 

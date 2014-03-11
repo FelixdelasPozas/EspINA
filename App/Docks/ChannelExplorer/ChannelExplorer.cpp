@@ -501,33 +501,53 @@ void ChannelExplorer::activateChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::dialogClosed(QObject *dialog)
 {
-   for(auto it = m_informationDialogs.begin(); it != m_informationDialogs.end(); ++it)
-   {
-     if (it.value() == dialog)
-     {
-       it.key()->output()->update();
+  auto channelInspector = dynamic_cast<ChannelInspector *>(dialog);
+  auto channel = m_informationDialogs.key(dialog);
 
-       ChannelAdapterList channelList;
-       channelList.append(it.key());
+  channel->output()->update();
 
-       SegmentationAdapterList segList;
-       auto relatedItems = m_model->relatedItems(it.key(), RelationType::RELATION_OUT);
-       for(auto item: relatedItems)
-         if (item->type() == ItemAdapter::Type::SEGMENTATION)
-         {
-           auto segItem = std::dynamic_pointer_cast<SegmentationAdapter>(item);
-           Q_ASSERT(segItem);
-           segList << segItem.get();
-         }
+  ChannelAdapterList channels;
+  channels << channel;
 
-       m_viewManager->updateChannelRepresentations(channelList);
-       m_viewManager->updateSegmentationRepresentations(segList);
-       m_viewManager->updateViews();
-       m_informationDialogs.erase(it);
-       return;
-     }
-     ++it;
-   }
+  m_viewManager->updateChannelRepresentations(channels);
+
+  SegmentationAdapterList segmentations;
+  for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
+  {
+    segmentations << segmentation.get();
+  }
+  m_viewManager->updateSegmentationRepresentations(segmentations);
+  m_viewManager->updateViews();
+
+  m_informationDialogs.remove(channel);
+
+//   for(auto it = m_informationDialogs.begin(); it != m_informationDialogs.end(); ++it)
+//   {
+//     if (it.value() == dialog)
+//     {
+//       it.key()->output()->update();
+//
+//       ChannelAdapterList channelList;
+//       channelList.append(it.key());
+//
+//       SegmentationAdapterList segList;
+//       auto relatedItems = m_model->relatedItems(it.key(), RelationType::RELATION_OUT);
+//       for(auto item: relatedItems)
+//         if (item->type() == ItemAdapter::Type::SEGMENTATION)
+//         {
+//           auto segItem = std::dynamic_pointer_cast<SegmentationAdapter>(item);
+//           Q_ASSERT(segItem);
+//           segList << segItem.get();
+//         }
+//
+//         m_viewManager->updateChannelRepresentations(channelList);
+//       m_viewManager->updateSegmentationRepresentations(segList);
+//       m_viewManager->updateViews();
+//       m_informationDialogs.erase(it);
+//       return;
+//     }
+//     ++it;
+//   }
 }
 
 //------------------------------------------------------------------------

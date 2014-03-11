@@ -40,8 +40,11 @@ public:
     setDescription(tr("%1 information").arg(id));
     setHidden(true);
 
+    m_tags.removeOne(NAME_TAG);
+    m_tags.removeOne(CATEGORY_TAG);
+
     bool ready = true;
-    for (auto tag : tags)
+    for (auto tag : m_tags)
     {
       ready &= Segmentation->isInformationReady(tag);
 
@@ -143,7 +146,7 @@ QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) cons
   if (!sourceIndex.isValid())
     return QModelIndex();
 
-  if ( sourceIndex == m_model->segmentationRoot()
+  if ( sourceIndex == m_model->classificationRoot()
     || sourceIndex == m_model->sampleRoot()
     || sourceIndex == m_model->channelRoot()
     || sourceIndex == m_model->segmentationRoot())
@@ -488,28 +491,29 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 //------------------------------------------------------------------------
 void InformationProxy::onProgessReported(int progress)
 {
-  auto task = dynamic_cast<InformationFetcher *>(sender());
-  Q_ASSERT(task);
-
-  auto firstColumn = index(task->Segmentation);
-  auto lastColumn  = index(task->Segmentation, rowCount() - 1);
-
-  emit dataChanged(firstColumn, lastColumn);
+  emit informationProgress();
+//   auto task = dynamic_cast<InformationFetcher *>(sender());
+//   Q_ASSERT(task);
+//
+//   auto firstColumn = index(task->Segmentation);
+//   auto lastColumn  = index(task->Segmentation, rowCount() - 1);
+//
+//   emit dataChanged(firstColumn, lastColumn);
 }
 
 //------------------------------------------------------------------------
 void InformationProxy::onTaskFininished()
 {
-  auto task = dynamic_cast<InformationFetcher *>(sender());
-  Q_ASSERT(task);
-
-  auto firstColumn = index(task->Segmentation);
-  auto lastColumn  = index(task->Segmentation, rowCount() - 1);
-
-  firstColumn = index(0, 0);
-  lastColumn  = index(rowCount(), 0);
-
-  emit dataChanged(firstColumn, lastColumn);
+  emit informationProgress();
+//   auto task = dynamic_cast<InformationFetcher *>(sender());
+//   Q_ASSERT(task);
+//
+//   auto firstColumn = index(task->Segmentation);
+//   auto lastColumn  = index(task->Segmentation, rowCount() - 1);
+//
+// //   firstColumn = index(0, 0);
+// //   lastColumn  = index(rowCount(), 0);
+//   emit dataChanged(firstColumn, lastColumn);
 }
 
 //------------------------------------------------------------------------

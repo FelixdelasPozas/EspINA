@@ -85,6 +85,7 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   m_exportButton->setIcon(saveIcon);
   m_exportButton->setFlat(false);
+  m_exportButton->setEnabled(false);
   m_exportButton->setToolTip("Save All Data");
 
   connect(m_exportButton, SIGNAL(clicked(bool)),
@@ -456,6 +457,7 @@ void TabularReport::createCategoryEntry(const QString &category)
 
     m_tabs->insertTab(i, entry, category);
   }
+  updateExportStatus();
 }
 
 //------------------------------------------------------------------------

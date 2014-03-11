@@ -267,6 +267,7 @@ void StereologicalInclusion::evaluateCountingFrame(CountingFrame* cf)
 //------------------------------------------------------------------------
 bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 {
+  //qDebug() << "Checking Counting Frame Exclusion";
   auto segmentationCategory = m_extendedItem->category()->classificationName();
 
   if (!segmentationCategory.startsWith(cf->categoryConstraint()))
@@ -281,6 +282,8 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   vtkPoints    *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces  = region->GetPolys();
   vtkCellData  *faceData     = region->GetCellData();
+
+  //qDebug() << "Checking Counting Frame Exclusion: CF Read";
 
   auto pointBounds = [] (vtkPoints *points) {
     Bounds bounds;
@@ -306,8 +309,12 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     regionFaces->GetNextCell(npts, pts);
 
     vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
-    for (int i=0; i < npts; i++)
-      facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
+    for (int p=0; p < npts; p++)
+    {
+      double point[3];
+      regionPoints->GetPoint(pts[p], point);
+      facePoints->InsertNextPoint(point);
+    }
 
     Bounds faceBB = pointBounds(facePoints);
     //qDebug() << "Face:" << faceBB.toString();
@@ -331,7 +338,11 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
   {
     vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
     for (int i=0; i < 8; i++)
-      slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
+    {
+      double point[3];
+      regionPoints->GetPoint(p+1, point);
+      slicePoints->InsertNextPoint(point);
+    }
 
     Bounds sliceBB = pointBounds(slicePoints);
     if (intersect(inputBB, sliceBB, spacing) && isRealCollision(intersection(inputBB, sliceBB, spacing)))

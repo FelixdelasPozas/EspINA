@@ -29,10 +29,10 @@ namespace EspINA {
   public:
     explicit Input(FilterSPtr filter, OutputSPtr output);
 
-    FilterSPtr filter()
+    FilterSPtr filter() const
     { return m_filter; }
 
-    OutputSPtr output()
+    OutputSPtr output() const
     { return m_output; }
 
   private:

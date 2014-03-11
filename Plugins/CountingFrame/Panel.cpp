@@ -371,6 +371,20 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
 {
   if (cf == m_activeCF) m_activeCF = nullptr;
 
+  // TODO
+//   PendingCF toDelete;
+//
+//   for(auto pendingCF : m_pendingCFs)
+//   {
+//     if (pendingCF.CF == cf)
+//     {
+//       pendingCF.Task->abort();
+//       toDelete = pendingCF;
+//       break;
+//     }
+//   }
+//   m_pendingCFs.removeOne(toDelete);
+
   m_countingFrames.removeOne(cf);
 
   m_viewManager->removeWidget(cf);
