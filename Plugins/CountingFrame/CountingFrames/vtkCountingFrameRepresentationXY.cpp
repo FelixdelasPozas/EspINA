@@ -38,17 +38,22 @@ void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
   regionBounds(0, firstSliceBounds);
   regionBounds(NumSlices-1, lastSliceBounds); // there is one more extra for the cover
 
-  if (Slice < frontSlice() || backSlice() < Slice)
+  double fs = frontSlice();
+  double bs = backSlice();
+
+  if ((Slice < fs && !EspINA::areEqual(Slice, fs, SlicingStep[2]))
+    ||(bs < Slice && !EspINA::areEqual(Slice, bs, SlicingStep[2])))
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
-    return;
+    }
   } else
   {
     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
     {
       // Check if it is back slice
-      if (fabs(Slice - backSlice()) <= SlicingStep[2]/2)
+      if (EspINA::areEqual(Slice, bs, SlicingStep[2]))
       {
         this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
       } else
@@ -57,7 +62,9 @@ void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
       }
     }
     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
+    }
 
     CreateRegion();
   }

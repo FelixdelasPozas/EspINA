@@ -491,8 +491,15 @@ void Panel::createCountingFrame()
       channel->addExtension(m_manager->createExtension(m_scheduler));
     }
 
-    Nm inclusion[3] = {0, 0, 0};
-    Nm exclusion[3] = {0, 0, 0};
+
+    NmVector3 spacing = channel->output()->spacing();
+
+    Nm inclusion[3];
+    Nm exclusion[3];
+    for(int i = 0; i < 3; ++i)
+    {
+      inclusion[i] = exclusion[i] = spacing[i]/2;
+    }
 
     auto extension = retrieveExtension<CountingFrameExtension>(channel);
 
@@ -856,7 +863,7 @@ void Panel::exclusionMargins(double values[3])
     auto channel = m_activeCF->extension()->extendedItem();;
     auto spacing = channel->output()->spacing();
 
-    values[2] *= spacing[2];
+    values[2] = (m_gui->backMargin->value() + 0.5) * spacing[2];
   }
 }
 

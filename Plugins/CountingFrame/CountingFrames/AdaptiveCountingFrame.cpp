@@ -157,25 +157,24 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   m_totalVolume = 0;
 
-  int inSliceOffset = frontOffset() / spacing[2];
-  int exSliceOffset = -backOffset() / spacing[2];
+  int frontSliceOffset = frontOffset() / spacing[2];
+  int backSliceOffset  = backOffset()  / spacing[2];
 
-  int    extent[6];
   double bounds[6];
   margins->GetBounds(bounds);
-  extent[4] = bounds[4] / spacing[2];
-  extent[5] = bounds[5] / spacing[2];
+  int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
+  int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
 
-  int upperSlice = extent[4] + inSliceOffset;
-  upperSlice = std::max(upperSlice, extent[4]);
-  upperSlice = std::min(upperSlice, extent[5]);
+  int frontSlice = channelFrontSlice + frontSliceOffset;
+  frontSlice = std::max(frontSlice, channelFrontSlice);
+  frontSlice = std::min(frontSlice, channelBackSlice);
 
-  int lowerSlice = extent[5] + exSliceOffset;
-  lowerSlice = std::max(lowerSlice, extent[4]);
-  lowerSlice = std::min(lowerSlice, extent[5]);
+  int backSlice = channelBackSlice - backSliceOffset;
+  backSlice = std::max(backSlice, channelFrontSlice);
+  backSlice = std::min(backSlice, channelBackSlice);
 
   // upper and lower refer to Espina's orientation
-  Q_ASSERT(upperSlice <= lowerSlice);
+  Q_ASSERT(frontSlice <= backSlice);
 
   m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
   m_representation = margins;
@@ -184,7 +183,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   vtkSmartPointer<vtkCellArray> faces        = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkIntArray>  faceData     = vtkSmartPointer<vtkIntArray>::New();
 
-  for (int slice = extent[4]; slice < extent[5]; slice++)
+  for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
   {
     double LB[3], LT[3], RT[3], RB[3];
     margins->GetPoint(4*slice+0, LB);
@@ -196,38 +195,60 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     m_totalVolume += equivalentVolume(sliceBounds);
   }
 
-  for (int slice = upperSlice; slice <= lowerSlice; slice++)
+  for (int slice = frontSlice; slice <= backSlice; slice++)
   {
     vtkIdType cell[4];
     vtkIdType lastCell[4];
 
     double LB[3], LT[3], RT[3], RB[3];
+    double zOffset = 0;
+
+    if (slice == frontSlice)
+    {
+      zOffset = frontOffset();
+      if (frontSliceOffset > 0)
+      {
+        zOffset -= frontSliceOffset*spacing[2];
+      }
+    } else if (slice == backSlice)
+    {
+      zOffset = -backOffset();
+      if (backSliceOffset > 0)
+      {
+        zOffset += backSliceOffset*spacing[2];
+      }
+    }
+
 
     margins->GetPoint(4*slice+0, LB);
     LB[0] += leftOffset();
     LB[1] -= bottomOffset();
+    LB[2] += zOffset;
     cell[0] = regionVertex->InsertNextPoint(LB);
 
     margins->GetPoint(4*slice+1, LT);
     LT[0] += leftOffset();
     LT[1] += topOffset();
+    LT[2] += zOffset;
     cell[1] = regionVertex->InsertNextPoint(LT);
 
     margins->GetPoint(4*slice+2, RT);
     RT[0] -= rightOffset();
     RT[1] += topOffset();
+    RT[2] += zOffset;
     cell[2] = regionVertex->InsertNextPoint(RT);
 
     margins->GetPoint(4*slice+3, RB);
     RB[0] -= rightOffset();
     RB[1] -= bottomOffset();
+    RB[2] += zOffset;
     cell[3] = regionVertex->InsertNextPoint(RB);
-    if (slice == upperSlice)
+    if (slice == frontSlice)
     {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(INCLUSION_FACE);
-    } else if (slice == lowerSlice)
+    } else if (slice == backSlice)
     {
       // Lower Inclusion Face
       faces->InsertNextCell(4, cell);
@@ -275,7 +296,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     // Update Volumes
-    if (slice < lowerSlice - 1)
+    if (slice < backSlice - 1)
     {
       // We don't care about the actual Z values
       Bounds sliceBounds{LT[0], RT[0]-spacing[0],

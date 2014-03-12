@@ -515,17 +515,25 @@ void vtkCountingFrameSliceRepresentation::HighlightEdge(vtkActor* actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
-    if (this->EdgeActor[edge] == actor)
+    vtkActor *edgeActor = this->EdgeActor[edge];
+
+    if (edgeActor == actor)
     {
-      if (edge < RIGHT)
-	this->EdgeActor[edge]->SetProperty(this->SelectedInclusionProperty);
-      else
-	this->EdgeActor[edge]->SetProperty(this->SelectedExclusionProperty);
+      if (actor->GetProperty() == this->InclusionEdgeProperty)
+      {
+        actor->SetProperty(this->SelectedInclusionProperty);
+      } else {
+        actor->SetProperty(this->SelectedExclusionProperty);
+      }
     }
-    else if (edge < RIGHT)
-      this->EdgeActor[edge]->SetProperty(this->InclusionEdgeProperty);
-    else
-      this->EdgeActor[edge]->SetProperty(this->ExclusionEdgeProperty);
+    else if (edgeActor->GetProperty() == this->SelectedInclusionProperty)
+    {
+      edgeActor->SetProperty(this->InclusionEdgeProperty);
+    }
+    else if (edgeActor->GetProperty() == this->SelectedExclusionProperty)
+    {
+      edgeActor->SetProperty(this->ExclusionEdgeProperty);
+    }
   }
 }
 

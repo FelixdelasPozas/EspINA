@@ -90,6 +90,7 @@ void AdaptiveEdgesCreator::run()
   //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
 
   auto channel = m_extension->extendedItem();
+  qDebug() << "Channel Bounds" << channel->bounds().toString();
 
   auto volume = volumetricData(channel->output());
   auto bounds = volume->bounds();
@@ -289,22 +290,22 @@ void AdaptiveEdgesCreator::run()
     if (z == zMax)
     {
       // Left Bottom Corner
-      face->GetPoint(1, LB);
+      //face->GetPoint(1, LB);
       LB[2] += spacing[2];
       cell[0] = borderVertices->InsertNextPoint(LB);
 
       // Left Top Corner
-      face->GetPoint(0, LT);
+      //face->GetPoint(0, LT);
       LT[2] += spacing[2];
       cell[1] = borderVertices->InsertNextPoint(LT);
 
       // Right Top Corner
-      face->GetPoint(2, RT);
+      //face->GetPoint(2, RT);
       RT[2] += spacing[2];
       cell[2] = borderVertices->InsertNextPoint(RT);
 
       // Right Bottom Corner
-      face->GetPoint(3, RB);
+      //face->GetPoint(3, RB);
       RB[2] += spacing[2];
       cell[3] = borderVertices->InsertNextPoint(RB);
 

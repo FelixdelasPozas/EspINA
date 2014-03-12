@@ -287,8 +287,12 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 
   auto pointBounds = [] (vtkPoints *points) {
     Bounds bounds;
+    double values[6];
+    points->GetBounds(values);
     for (int i = 0; i < 6; ++i)
-      bounds[i] = points->GetBounds()[i];
+    {
+      bounds[i] = values[i];
+    }
     return bounds;
   };
 
@@ -301,26 +305,30 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
 
   bool collisionDected = false;
   // Otherwise, we have to test all faces collisions
-  int numOfCells = regionFaces->GetNumberOfCells();
-  regionFaces->InitTraversal();
-  for(int f=0; f < numOfCells; f++)
+  vtkIdType numOfCells   = regionFaces->GetNumberOfCells();
+  vtkIdType cellLocation = 0;
+  for(vtkIdType f = 0; f < numOfCells; ++f)
   {
-    vtkIdType npts, *pts;
-    regionFaces->GetNextCell(npts, pts);
+    vtkIdType numPoints, *pointIds;
+    regionFaces->GetCell(cellLocation, numPoints, pointIds);
+    cellLocation += 1 + numPoints;
 
     vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
-    for (int p=0; p < npts; p++)
+    for (vtkIdType p=0; p < numPoints; ++p)
     {
       double point[3];
-      regionPoints->GetPoint(pts[p], point);
+      regionPoints->GetPoint(pointIds[p], point);
       facePoints->InsertNextPoint(point);
     }
 
     Bounds faceBB = pointBounds(facePoints);
-    //qDebug() << "Face:" << faceBB.toString();
-    //qDebug() << " - intersect:" << intersect(inputBB, faceBB);
-    //qDebug() << " - interscetion:" << intersection(inputBB, faceBB).toString();
-    //qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
+//     if (f == 0 || f == numOfCells -1)
+//     {
+//       qDebug() << "Face:"  << faceBB.toString();
+//       qDebug() << " - intersect:" << intersect(inputBB, faceBB, spacing);
+//       qDebug() << " - interscetion:" << intersection(inputBB, faceBB, spacing).toString();
+//       qDebug() << " - type:" << faceData->GetScalars()->GetComponent(f, 0);
+//     }
 
     if (intersect(inputBB, faceBB, spacing) && isRealCollision(intersection(inputBB, faceBB, spacing)))
     {
@@ -334,7 +342,7 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
     return false;
 
   // If no collision was detected we have to check for inclusion
-  for (int p=0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
+  for (vtkIdType p = 0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
   {
     vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
     for (int i=0; i < 8; i++)
@@ -445,7 +453,6 @@ void StereologicalInclusion::checkSampleCountingFrames()
       }
     }
   }
-
 }
 
 //------------------------------------------------------------------------
