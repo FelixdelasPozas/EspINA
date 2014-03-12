@@ -26,10 +26,11 @@
 */
 
 
-#ifndef CHANGESEGMENTATIONNOTES_H
-#define CHANGESEGMENTATIONNOTES_H
+#ifndef ESPINA_CHANGE_SEGMENTATION_NOTES_H
+#define ESPINA_CHANGE_SEGMENTATION_NOTES_H
 
 #include "EspinaUndo_Export.h"
+#include <GUI/Model/SegmentationAdapter.h>
 
 // Qt
 #include <QUndoCommand>
@@ -37,15 +38,13 @@
 
 namespace EspINA
 {
-  class SegmentationNotes;
-
   class EspinaUndo_EXPORT ChangeSegmentationNotes
   : public QUndoCommand
   {
   public:
-    explicit ChangeSegmentationNotes(SegmentationNotes *noteExtension,
-                                     const QString     &note,
-                                     QUndoCommand      *parent = 0);
+    explicit ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
+                                     const QString         &note,
+                                     QUndoCommand          *parent = 0);
 
     virtual void redo();
 
@@ -55,9 +54,9 @@ namespace EspINA
     void swapNotes();
 
   private:
-    SegmentationNotes *m_notesExtension;
-    QString            m_formerNote;
+    SegmentationAdapterPtr m_segmentation;
+    QString                m_formerNote;
   };
 } // namespace EspINA
 
-#endif // CHANGESEGMENTATIONNOTE_H
+#endif // ESPINA_CHANGE_SEGMENTATION_NOTES_H

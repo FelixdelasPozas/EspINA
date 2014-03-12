@@ -447,7 +447,7 @@ private:
     try
     {
       extension = m_factory->createSegmentationExtension(type, cache, state);
-      //qDebug() << "Creating Channel Extension" << type;
+      //qDebug() << "Creating Segmentation Extension" << type;
     } catch (const CoreFactory::Unknown_Type_Exception &e)
     {
       //qDebug() << "Creating ReadOnlySegmentationExtension" << type;

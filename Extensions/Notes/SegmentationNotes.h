@@ -26,85 +26,64 @@
 */
 
 
-#ifndef SEGMENTATIONNOTES_H
-#define SEGMENTATIONNOTES_H
+#ifndef ESPINA_SEGMENTATION_NOTES_H
+#define ESPINA_SEGMENTATION_NOTES_H
 
-#include "EspinaCore_Export.h"
+#include "Extensions/EspinaExtensions_Export.h"
 
-#include <Core/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 
 namespace EspINA
 {
 
-  const ModelItem::ExtId SegmentationNotesID = "SegmentationNotes";
-
-  class EspinaCore_EXPORT SegmentationNotes
-  : public Segmentation::Information
+  class EspinaExtensions_EXPORT SegmentationNotes
+  : public SegmentationExtension
   {
-    struct ExtensionData
-    {
-      bool operator==(const ExtensionData& other) const
-	  {
-		  return Note == other.Note;
-	  }
-
-      QString Note;
-    };
-
-    typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
-
-    static ExtensionCache s_cache;
-
-    const static QString EXTENSION_FILE;
+  public:
+    static const InfoTag NOTES;
+    static const Type    TYPE;
 
   public:
-    static const Segmentation::InfoTag NOTE;
-
-  public:
-    explicit SegmentationNotes();
+    explicit SegmentationNotes(const InfoCache& infoCache = InfoCache());
     virtual ~SegmentationNotes();
 
-    virtual Segmentation::ExtId id();
+    virtual Type type() const
+    { return TYPE; }
 
-    virtual Segmentation::ExtIdList dependencies() const
-    { return Segmentation::Extension::dependencies(); }
+    virtual bool invalidateOnChange() const
+    { return false; }
 
-    virtual Segmentation::InfoTagList availableInformations() const;
+    virtual State state() const
+    { return State(); }
 
-    virtual bool validTaxonomy(const QString &qualifiedName) const
+    virtual Snapshot snapshot() const
+    { return Snapshot(); }
+
+    virtual TypeList dependencies() const
+    { return TypeList(); }
+
+    virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    virtual void setSegmentation(SegmentationPtr seg);
-
-    virtual QVariant information(const Segmentation::InfoTag &tag);
+    virtual InfoTagList availableInformations() const;
 
     virtual QString toolTipText() const;
 
-    virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE + ".csv" == file; }
+    void setNotes(const QString &note);
 
-    virtual void loadCache(QuaZipFile &file,
-                           const QDir &tmpDir,
-                           IEspinaModel *model);
+    QString notes() const
+    { return cachedInfo(NOTES).toString(); }
 
-    virtual bool saveCache(Snapshot &snapshot);
+  protected:
+    virtual void onExtendedItemSet(Segmentation* item)
+    {}
 
-    virtual Segmentation::InformationExtension clone();
-
-    virtual void initialize();
-
-    virtual void invalidate(SegmentationPtr segmentation = 0);
-
-    void setNote(const QString &note);
-
-    QString note() const;
-
-  private:
-    void loadNotesCache(SegmentationPtr segmentation) const;
-
-    mutable bool m_loaded;
+    virtual QVariant cacheFail(const QString& tag) const;
   };
+
+  using SegmentationNotesPtr  = SegmentationNotes *;
+  using SegmentationNotesSPtr = std::shared_ptr<SegmentationNotes>;
 
 } // namespace EspINA
 
-#endif // SEGMENTATIONNOTES_H
+#endif // ESPINA_SEGMENTATION_NOTES_H

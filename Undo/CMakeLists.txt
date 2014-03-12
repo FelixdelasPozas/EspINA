@@ -12,6 +12,7 @@ set (UNDO_SOURCES
   AddClassificationCommand.cpp
   AddSegmentations.cpp
   ChangeCategoryCommand.cpp
+  ChangeSegmentationNotes.cpp
   RemoveCategoryCommand.cpp
   RemoveSegmentations.cpp
   ReparentCategoryCommand.cpp

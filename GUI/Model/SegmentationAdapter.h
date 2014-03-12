@@ -77,6 +77,8 @@ namespace EspINA
      */
     void addExtension(SegmentationExtensionSPtr extension);
 
+    void deleteExtension(SegmentationExtensionSPtr extension);
+
     /** \brief Check whether or not there is an extension with the given name
      *
      */

@@ -27,28 +27,19 @@
 
 
 #include "SegmentationNotes.h"
-
-
-
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Filter.h>
+#include <GUI/Utils/Conditions.h>
 
 using namespace EspINA;
 
-const QString SegmentationNotes::EXTENSION_FILE = "SegmentationNotes/SegmentationNote";
-
-const std::string FILE_VERSION = SegmentationNotesID.toStdString() + " 1.0\n";
-const char SEP = ',';
-
-SegmentationNotes::ExtensionCache SegmentationNotes::s_cache;
-
-const Segmentation::InfoTag SegmentationNotes::NOTE  = "Notes";
+const QString                        SegmentationNotes::TYPE = "SegmentationNotes";
+const SegmentationExtension::InfoTag SegmentationNotes::NOTES = "Notes";
 
 //------------------------------------------------------------------------
-SegmentationNotes::SegmentationNotes()
-: m_loaded(false)
+SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
+: SegmentationExtension(infoCache)
 {
 }
+
 
 //------------------------------------------------------------------------
 SegmentationNotes::~SegmentationNotes()
@@ -56,52 +47,25 @@ SegmentationNotes::~SegmentationNotes()
 }
 
 //------------------------------------------------------------------------
-ModelItem::ExtId SegmentationNotes::id()
+SegmentationExtension::InfoTagList SegmentationNotes::availableInformations() const
 {
-  return SegmentationNotesID;
-}
+  InfoTagList tags;
 
-//------------------------------------------------------------------------
-Segmentation::InfoTagList SegmentationNotes::availableInformations() const
-{
-  Segmentation::InfoTagList tags;
-
-  tags << NOTE;
+  tags << NOTES;
 
   return tags;
-
-}
-
-//------------------------------------------------------------------------
-void SegmentationNotes::setSegmentation(SegmentationPtr seg)
-{
-  EspINA::Segmentation::Information::setSegmentation(seg);
-}
-
-//------------------------------------------------------------------------
-QVariant SegmentationNotes::information(const Segmentation::InfoTag &tag)
-{
-  if (NOTE == tag)
-  {
-    loadNotesCache(m_segmentation);
-    return s_cache[m_segmentation].Data.Note;
-  }
-
-  return QVariant();
 }
 
 //------------------------------------------------------------------------
 QString SegmentationNotes::toolTipText() const
 {
-  loadNotesCache(m_segmentation);
-
   const QString WS  = "&nbsp;"; // White space
   const QString TAB = WS+WS+WS;
 
   QString toolTip;
-  if (!s_cache[m_segmentation].Data.Note.isEmpty())
+  if (!notes().isEmpty())
   {
-    QString firstLine = s_cache[m_segmentation].Data.Note.left(20);
+    QString firstLine = notes().left(20);
     if (firstLine.length() == 20)
       firstLine = firstLine.replace(17, 3, "...");
     toolTip = condition(":/espina/note.png", firstLine);
@@ -110,156 +74,15 @@ QString SegmentationNotes::toolTipText() const
   return toolTip;
 }
 
+
 //------------------------------------------------------------------------
-void SegmentationNotes::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
+void SegmentationNotes::setNotes(const QString &note)
 {
-  QString header(file.readLine());
-  if (header.toStdString() == FILE_VERSION)
-  {
-    char buffer[1024];
-    while (file.readLine(buffer, sizeof(buffer)) > 0)
-    {
-      QString line(buffer);
-      QStringList fields = line.split(SEP, QString::SkipEmptyParts);
-
-      SegmentationPtr extensionSegmentation = NULL;
-      int i = 0;
-      while (!extensionSegmentation && i < model->segmentations().size())
-      {
-        SegmentationSPtr segmentation = model->segmentations()[i];
-        if ( segmentation->filter()->id()       == fields[0]
-          && segmentation->outputId()           == fields[1].toInt()
-          && segmentation->filter()->cacheDir() == tmpDir)
-        {
-          extensionSegmentation = segmentation.get();
-        }
-        i++;
-      }
-
-      if (extensionSegmentation)
-      {
-        s_cache[extensionSegmentation].Data.Note = QString();
-      }
-    }
-  }
+  updateInfoCache(NOTES, note);
 }
 
 //------------------------------------------------------------------------
-// It's declared static to avoid collisions with other functions with same
-// signature in different compilation units
-static bool invalidData(SegmentationPtr seg)
+QVariant SegmentationNotes::cacheFail(const QString& tag) const
 {
-  bool invalid = false;
-
-  if (seg->hasInformationExtension(SegmentationNotesID))
-  {
-    SegmentationNotes *extension = dynamic_cast<SegmentationNotes *>(
-      seg->informationExtension(SegmentationNotesID));
-
-    invalid = extension->note().isEmpty();
-  }
-  return invalid;
-}
-
-//------------------------------------------------------------------------
-bool SegmentationNotes::saveCache(Snapshot &snapshot)
-{
-  s_cache.purge(invalidData);
-
-  if (s_cache.isEmpty())
-    return false;
-
-  std::ostringstream cache;
-  cache << FILE_VERSION;
-
-  foreach(SegmentationPtr segmentation, s_cache.keys())
-  {
-    ExtensionData &data = s_cache[segmentation].Data;
-
-    cache << segmentation->filter()->id().toStdString();
-    cache << SEP << segmentation->outputId();
-
-    cache << std::endl;
-
-    loadNotesCache(segmentation);
-    if (!data.Note.isEmpty())
-    {
-      QString file = QString("%1%2-%3.txt").arg(EXTENSION_FILE)
-                                           .arg(segmentation->filter()->id())
-                                           .arg(segmentation->outputId());
-
-      snapshot << SnapshotEntry(file, data.Note.toUtf8());
-    }
-  }
-
-  snapshot << SnapshotEntry(EXTENSION_FILE + ".csv", cache.str().c_str());
-
-  return true;
-
-}
-
-//------------------------------------------------------------------------
-Segmentation::InformationExtension SegmentationNotes::clone()
-{
-  return new SegmentationNotes();
-}
-
-//------------------------------------------------------------------------
-void SegmentationNotes::initialize()
-{
-  s_cache.markAsClean(m_segmentation);
-}
-
-//------------------------------------------------------------------------
-void SegmentationNotes::invalidate(SegmentationPtr segmentation)
-{
-  if (!segmentation)
-    segmentation = m_segmentation;
-
-  if (segmentation)
-  {
-    s_cache.markAsDirty(segmentation);
-  }
-}
-
-//------------------------------------------------------------------------
-void SegmentationNotes::setNote(const QString &note)
-{
-  s_cache[m_segmentation].Data.Note = note;
-  m_segmentation->notifyModification(); // to update views
-}
-
-//------------------------------------------------------------------------
-QString SegmentationNotes::note() const
-{
-  loadNotesCache(m_segmentation);
-
-  return s_cache[m_segmentation].Data.Note;
-}
-
-//------------------------------------------------------------------------
-void SegmentationNotes::loadNotesCache(SegmentationPtr segmentation) const
-{
-  if (!m_loaded)
-  {
-    ExtensionData &data = s_cache[segmentation].Data;
-
-    if (data.Note.isEmpty())
-    {
-      QString segmentationFile = QString("%1%2-%3.txt").arg(EXTENSION_FILE)
-      .arg(segmentation->filter()->id())
-      .arg(segmentation->outputId());
-
-      QFileInfo file(segmentation->filter()->cacheDir().absoluteFilePath(segmentationFile));
-
-      if (file.exists())
-      {
-        QFile reader(file.absoluteFilePath());
-        reader.open(QIODevice::ReadOnly);
-        data.Note = reader.readAll();
-      }
-    }
-
-    m_loaded = true;
-  }
+  return QVariant();
 }

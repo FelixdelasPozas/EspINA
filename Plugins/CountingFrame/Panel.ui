@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>276</width>
-        <height>797</height>
+        <width>272</width>
+        <height>793</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -390,7 +390,7 @@ QTableView::indicator:unchecked {
             </size>
            </property>
            <property name="toolTip">
-            <string>Create Counting Frame</string>
+            <string>Export Counting Frame Information</string>
            </property>
            <property name="text">
             <string/>
@@ -424,7 +424,7 @@ QTableView::indicator:unchecked {
             </size>
            </property>
            <property name="toolTip">
-            <string>Create Counting Frame</string>
+            <string>Compute Optimal Margins</string>
            </property>
            <property name="text">
             <string/>
@@ -462,7 +462,7 @@ QTableView::indicator:unchecked {
             </size>
            </property>
            <property name="toolTip">
-            <string>Remove Selected Counting Frame</string>
+            <string>Delete Selected Counting Frame</string>
            </property>
            <property name="text">
             <string/>

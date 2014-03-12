@@ -52,7 +52,7 @@ namespace EspINA {
     { return TypeList(); }
 
     virtual InfoTagList availableInformations() const
-    { return InfoTagList(); } // TODO
+    { return readyInformation(); }
 
     virtual bool validCategory(const QString& classificationName) const
     { return true; }

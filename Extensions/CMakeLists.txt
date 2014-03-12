@@ -18,6 +18,7 @@ set (EXTENSIONS_SOURCES
   EdgeDistances/EdgesAnalyzer.cpp
   EdgeDistances/EdgeDistance.cpp
   Morphological/MorphologicalInformation.cpp
+  Notes/SegmentationNotes.cpp
   Tags/SegmentationTags.cpp
   )
 

@@ -116,6 +116,12 @@ void SegmentationTags::setTags(const QStringList &tags)
 }
 
 //------------------------------------------------------------------------
+QVariant SegmentationTags::cacheFail(const QString& tag) const
+{
+  return (TAGS == tag)?state():QVariant();
+}
+
+//------------------------------------------------------------------------
 void SegmentationTags::addTagImplementation(const QString &tag)
 {
   if (!m_tags.contains(tag))

@@ -22,6 +22,7 @@
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <Extensions/Tags/SegmentationTags.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 
 using namespace EspINA;
 
@@ -44,6 +45,10 @@ SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentatio
   {
     extension = SegmentationExtensionSPtr{new SegmentationTags(cache)};
   }
+  else if (SegmentationNotes::TYPE == type)
+  {
+    extension = SegmentationExtensionSPtr{new SegmentationNotes(cache)};
+  }
 
   return extension;
 }
@@ -55,6 +60,8 @@ SegmentationExtensionTypeList DefaultSegmentationExtensionFactory::providedExten
 
   extensionTypes << EdgeDistance::TYPE;
   extensionTypes << MorphologicalInformation::TYPE;
+  extensionTypes << SegmentationTags::TYPE;
+  extensionTypes << SegmentationNotes::TYPE;
 
   return extensionTypes;
 }

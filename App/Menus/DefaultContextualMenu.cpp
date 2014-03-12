@@ -19,7 +19,11 @@
 
 #include "DefaultContextualMenu.h"
 
+#include <Extensions/ExtensionUtils.h>
+#include <Extensions/Notes/SegmentationNotes.h>
+#include <GUI/Widgets/NoteEditor.h>
 #include <Undo/ChangeSegmentationTags.h>
+#include <Undo/ChangeSegmentationNotes.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
@@ -56,28 +60,35 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
 //------------------------------------------------------------------------
 void DefaultContextualMenu::addNote()
 {
-//   if (!m_segmentations.isEmpty())
-//   {
-//     m_undoStack->beginMacro("Add Note");
-//   }
-//
-//   for(auto segmentation : m_segmentations)
-//   {
-//     SegmentationNotes *notesExtension = dynamic_cast<SegmentationNotes *>(segmentation->informationExtension(SegmentationNotesID));
-//
-//     NoteEditor editor(segmentation->data().toString(), notesExtension->note());
-//
-//     if (editor.exec())
-//     {
-//       //notesExtension->setNote(editor.text());
-//       m_undoStack->push(new ChangeSegmentationNotes(notesExtension, editor.text()));
-//     }
-//   }
-//
-//   if (!m_segmentations.isEmpty())
-//   {
-//     m_undoStack->endMacro();
-//   }
+  QList<QUndoCommand *> commands;
+
+
+  for(auto segmentation : m_segmentations)
+  {
+    QString previousNotes;
+
+    if (segmentation->hasExtension(SegmentationNotes::TYPE))
+    {
+      previousNotes = segmentation->information(SegmentationNotes::NOTES).toString();
+    }
+
+    NoteEditor editor(segmentation->data().toString(), previousNotes);
+
+    if (editor.exec())
+    {
+      commands << new ChangeSegmentationNotes(segmentation, editor.text());
+    }
+  }
+
+  if (!commands.isEmpty())
+  {
+    m_undoStack->beginMacro(tr("Add Notes"));
+    for (auto command : commands)
+    {
+      m_undoStack->push(command);
+    }
+    m_undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------

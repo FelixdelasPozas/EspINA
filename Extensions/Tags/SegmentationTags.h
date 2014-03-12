@@ -48,7 +48,7 @@ namespace EspINA
 
     //static QStringListModel TagModel;
   public:
-    explicit SegmentationTags(const InfoCache& infoCache);
+    explicit SegmentationTags(const InfoCache& infoCache = InfoCache());
     virtual ~SegmentationTags();
 
     virtual Type type() const
@@ -85,10 +85,9 @@ namespace EspINA
     { return m_tags; }
 
   protected:
-    virtual void onExtendedItemSet(Segmentation *item);
+    virtual void onExtendedItemSet(Segmentation* item);
 
-    virtual QVariant cacheFail(const QString& tag) const
-    { return QVariant(); }
+    virtual QVariant cacheFail(const QString& tag) const;
 
   private:
     void addTagImplementation(const QString &tag);

@@ -20,8 +20,10 @@
 
 // // EspINA
 #include <QPixmap>
+#include <QPainter>
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 
 
 using namespace EspINA;
@@ -87,6 +89,12 @@ void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)
 }
 
 //------------------------------------------------------------------------
+void SegmentationAdapter::deleteExtension(SegmentationExtensionSPtr extension)
+{
+  m_segmentation->deleteExtension(extension);
+}
+
+//------------------------------------------------------------------------
 CategoryAdapterSPtr SegmentationAdapter::category() const
 {
   return m_category;
@@ -113,21 +121,21 @@ QVariant SegmentationAdapter::data(int role) const
       QPixmap segIcon(WIDTH, 16);
       segIcon.fill(m_category->color());
 
-//       if (!information(SegmentationNotes::NOTE).toString().isEmpty())
-//       {
-//         QPixmap noteIcon(":/espina/note.png");
-//         noteIcon = noteIcon.scaled(16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-//         
-//         const unsigned char SP = 5;
-//         QPixmap tmpIcon(WIDTH + SP + noteIcon.width(),16);
-//         tmpIcon.fill(Qt::white);
-//         QPainter painter(&tmpIcon);
-//         painter.drawPixmap(0,0, segIcon);
-//         painter.drawPixmap(WIDTH + SP,0, noteIcon);
-//         
-//         segIcon = tmpIcon;
-//       }
-      
+      if (hasExtension(SegmentationNotes::TYPE))
+      {
+        QPixmap noteIcon(":/espina/note.png");
+        noteIcon = noteIcon.scaled(16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+        const unsigned char SP = 5;
+        QPixmap tmpIcon(WIDTH + SP + noteIcon.width(),16);
+        tmpIcon.fill(Qt::white);
+        QPainter painter(&tmpIcon);
+        painter.drawPixmap(0,0, segIcon);
+        painter.drawPixmap(WIDTH + SP,0, noteIcon);
+
+        segIcon = tmpIcon;
+      }
+
       return segIcon;
     }
     case Qt::ToolTipRole:

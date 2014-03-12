@@ -90,7 +90,7 @@ void AdaptiveEdgesCreator::run()
   //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
 
   auto channel = m_extension->extendedItem();
-  qDebug() << "Channel Bounds" << channel->bounds().toString();
+  //qDebug() << "Channel Bounds" << channel->bounds().toString();
 
   auto volume = volumetricData(channel->output());
   auto bounds = volume->bounds();

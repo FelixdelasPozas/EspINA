@@ -27,17 +27,17 @@
 
 // EspINA
 #include "ChangeSegmentationNotes.h"
-#include <Core/Model/Segmentation.h>
-#include <Core/Extensions/Notes/SegmentationNotes.h>
+#include <Extensions/Notes/SegmentationNotes.h>
+#include <Extensions/ExtensionUtils.h>
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationNotes *noteExtension,
-                                               const QString       &note,
-                                               QUndoCommand        *parent)
+ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
+                                                 const QString&         note,
+                                                 QUndoCommand*          parent)
 : QUndoCommand(parent)
-, m_notesExtension(noteExtension)
+, m_segmentation(segmentation)
 , m_formerNote(note)
 {
 }
@@ -57,7 +57,30 @@ void ChangeSegmentationNotes::undo()
 //------------------------------------------------------------------------
 void ChangeSegmentationNotes::swapNotes()
 {
-  QString tmpNote = m_notesExtension->note();
-  m_notesExtension->setNote(m_formerNote);
-  m_formerNote = tmpNote;
+  QString currentNote;
+
+  if (m_segmentation->hasExtension(SegmentationNotes::TYPE))
+  {
+    currentNote = m_segmentation->information(SegmentationNotes::NOTES).toString();
+  }
+
+  if (currentNote.isEmpty() && !m_formerNote.isEmpty())
+  {
+    auto extension = retrieveOrCreateExtension<SegmentationNotes>(m_segmentation);
+    extension->setNotes(m_formerNote);
+    m_formerNote = "";
+  }
+  else if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
+  {
+    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
+    extension->setNotes(m_formerNote);
+    m_formerNote = currentNote;
+  }
+  if (!currentNote.isEmpty() && m_formerNote.isEmpty())
+  {
+    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
+    m_segmentation->deleteExtension(extension);
+    m_formerNote = currentNote;
+  }
+  m_segmentation->notifyModification();
 }
