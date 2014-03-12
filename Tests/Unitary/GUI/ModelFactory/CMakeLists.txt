@@ -9,6 +9,7 @@ create_test_sourcelist(TEST_SOURCES Model_Factory_Tests.cpp # this file is creat
 #   )
 qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/Analysis/Data.h
+  ${CORE_DIR}/Analysis/Extension.h
   ${CORE_DIR}/Analysis/Output.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
@@ -45,6 +46,7 @@ add_executable(Model_Factory_Tests
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
+  ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/NeuroItemAdapter.cpp
@@ -53,6 +55,7 @@ add_executable(Model_Factory_Tests
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
+  ${GUI_DIR}/Utils/Conditions.cpp
   )
 
 target_link_libraries(Model_Factory_Tests ${LIB_DEPENDECIES} )

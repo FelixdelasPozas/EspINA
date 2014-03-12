@@ -28,6 +28,7 @@
 
 #include "Core/Analysis/Channel.h"
 #include <Core/Analysis/Output.h>
+#include <Tests/Unitary/Core/core_testing_support.h>
 
 using namespace EspINA;
 using namespace std;
@@ -49,7 +50,9 @@ int channel_set_hue(int argc, char** argv )
 {
   bool error = false;
 
-  ChannelSPtr channel(new Channel(InputSPtr()));
+  FilterSPtr filter{new Testing::DummyFilter()};
+
+  ChannelSPtr channel(new Channel(getInput(filter, 0)));
   
   if (channel->hue() != -1) {
     cerr << "Unexepected initial hue value" << endl;

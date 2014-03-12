@@ -34,7 +34,10 @@ int segmentation_add_extension(int argc, char** argv)
   bool error = false;
 
   Classification classification;
-  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
+
+  FilterSPtr filter{new Testing::DummyFilter()};
+
+  SegmentationSPtr segmentation(new Segmentation(getInput(filter, 0)));
 
   SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   segmentation->addExtension(extension);

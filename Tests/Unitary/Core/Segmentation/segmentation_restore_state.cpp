@@ -32,7 +32,9 @@ int segmentation_restore_state(int argc, char** argv)
 {
   bool error = false;
 
-  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
+  FilterSPtr filter{new Testing::DummyFilter()};
+
+  SegmentationSPtr segmentation(new Segmentation(getInput(filter, 0)));
 
   State forgedState = QString("Number=2;Users=FakeUser1,FakeUser2;Category=Prueba;Alias=HDP4");
 

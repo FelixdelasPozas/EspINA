@@ -30,7 +30,7 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
-#include "analysis_testing_support.h"
+#include <Tests/Unitary/Core/core_testing_support.h>
 
 using namespace EspINA;
 using namespace std;

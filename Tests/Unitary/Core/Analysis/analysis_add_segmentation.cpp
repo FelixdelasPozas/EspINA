@@ -31,7 +31,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
-#include "analysis_testing_support.h"
+#include <Tests/Unitary/Core/core_testing_support.h>
 
 using namespace EspINA;
 using namespace std;

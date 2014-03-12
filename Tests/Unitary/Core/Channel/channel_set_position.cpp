@@ -28,6 +28,7 @@
 
 #include "Core/Analysis/Channel.h"
 #include "Core/Analysis/Output.h"
+#include <Tests/Unitary/Core/core_testing_support.h>
 
 using namespace EspINA;
 using namespace std;
@@ -36,9 +37,10 @@ int channel_set_position(int argc, char** argv )
 {
   bool error = false;
 
-  OutputSPtr output{new Output()};
 
-  ChannelSPtr channel(new Channel(output));
+  FilterSPtr filter{new Testing::DummyFilter()};
+
+  ChannelSPtr channel(new Channel(getInput(filter, 0)));
   
   
   Nm point[3];

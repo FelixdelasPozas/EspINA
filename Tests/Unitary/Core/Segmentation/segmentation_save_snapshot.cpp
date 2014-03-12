@@ -35,7 +35,9 @@ int segmentation_save_snapshot(int argc, char** argv)
 
   SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   Classification classification;
-  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
+
+  FilterSPtr filter{new Testing::DummyFilter()};
+  SegmentationSPtr segmentation(new Segmentation(getInput(filter, 0)));
 
   segmentation->addExtension(extension);
 
@@ -49,13 +51,13 @@ int segmentation_save_snapshot(int argc, char** argv)
 
   QString dir = "Segmentations/" + segmentation->uuid().toString() + "/";
 
-  if (snapshot[0].first != dir + "DummySegmentationExtension.txt")
+  if (!snapshot[0].first.endsWith("DummySegmentationExtension.txt"))
   {
     cerr << "Extension Snapshot not found" << endl;
     error = true;
   }
 
-  if (snapshot[1].first != dir + "extensions.xml")
+  if (!snapshot[1].first.endsWith(segmentation->uuid().toString() + ".xml"))
   {
     cerr << "Extensions file not found" << endl;
     error = true;

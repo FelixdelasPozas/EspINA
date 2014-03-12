@@ -46,6 +46,7 @@ endif (UNIX)
 
 qt4_wrap_cpp(SUBJECT_MOCS
   ${CORE_DIR}/Analysis/Data.h
+  ${CORE_DIR}/Analysis/Extension.h
   ${CORE_DIR}/Analysis/Output.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
@@ -81,18 +82,20 @@ add_executable(ChannelProxy_Tests
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
+  ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
   ${GUI_DIR}/Model/ClassificationAdapter.cpp
-  ${GUI_DIR}/Model/NeuroItemAdapter.cpp
   ${GUI_DIR}/Model/ModelAdapter.cpp
+  ${GUI_DIR}/Model/NeuroItemAdapter.cpp
   ${GUI_DIR}/Model/Proxies/ChannelProxy.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
+  ${GUI_DIR}/Utils/Conditions.cpp
   ModelTest.cpp
   )
 target_link_libraries(ChannelProxy_Tests ${LIB_DEPENDECIES} )

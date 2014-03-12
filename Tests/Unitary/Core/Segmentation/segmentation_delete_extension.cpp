@@ -35,7 +35,9 @@ int segmentation_delete_extension(int argc, char** argv)
 
   SegmentationExtensionSPtr extension{ new DummySegmentationExtension() };
   Classification classification;
-  SegmentationSPtr segmentation{new Segmentation(InputSPtr())};
+  FilterSPtr filter{new Testing::DummyFilter()};
+
+  SegmentationSPtr segmentation(new Segmentation(getInput(filter, 0)));
 
   segmentation->addExtension(extension);
 
