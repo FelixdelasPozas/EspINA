@@ -236,7 +236,7 @@ namespace EspINA
   using ModelAdapterPtr  = ModelAdapter *;
   using ModelAdapterSPtr = std::shared_ptr<ModelAdapter>;
 
-  ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
+  ItemAdapterPtr itemAdapter(const QModelIndex &index);
 
   bool isClassification(ItemAdapterPtr item);
   bool isCategory(ItemAdapterPtr item);

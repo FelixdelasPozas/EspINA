@@ -27,16 +27,16 @@
 namespace QtModelUtils
 {
   /// Find the QModelIndex children of @parent whose @role is equal to @value
-  QModelIndex EspinaCore_EXPORT findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
+  QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
 
   /// Return a list of all QModelIndex between @topLeft index and @bottomRight index
-  QModelIndexList EspinaCore_EXPORT indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
+  QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
   /// Return whether a node has leaf nodes
-  bool EspinaCore_EXPORT isInnerNode(const QModelIndex &index);
+  bool isInnerNode(const QModelIndex &index);
 
   /// Return whether a node is leaf
-  bool EspinaCore_EXPORT isLeafNode(const QModelIndex &index);
+  bool isLeafNode(const QModelIndex &index);
 } // namespace QtModelUtils
 
 #endif // QTMODELUTILS_H

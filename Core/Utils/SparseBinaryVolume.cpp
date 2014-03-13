@@ -210,9 +210,9 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void SparseBinaryVolume::draw(const vtkImplicitFunction*  brush,
-                                const Bounds&               bounds,
-                                const unsigned char         drawValue)
+  void SparseBinaryVolume::draw(vtkImplicitFunction*  brush,
+                                const Bounds&         bounds,
+                                const unsigned char   drawValue)
   {
     if (!intersect(bounds, m_bounds))
       return;
@@ -531,10 +531,10 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void expandAndDraw(SparseBinaryVolumePtr       volume,
-                     const vtkImplicitFunction*  brush,
-                     const Bounds&               bounds,
-                     const unsigned char         drawValue)
+  void expandAndDraw(SparseBinaryVolumePtr volume,
+                     vtkImplicitFunction*  brush,
+                     const Bounds&         bounds,
+                     const unsigned char   drawValue)
   {
     Bounds resizeBounds = boundingBox(bounds, volume->bounds());
     volume->resize(resizeBounds);

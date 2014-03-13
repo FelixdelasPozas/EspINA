@@ -34,9 +34,9 @@ using namespace EspINA;
 EdgesAnalyzer::EdgesAnalyzer(ChannelEdges *extension,
                              SchedulerSPtr  scheduler)
 : Task(scheduler)
-, m_extension(extension)
 , m_useDistanceToBounds(true)
 , m_bgIntensity(0)
+, m_extension(extension)
 {
 }
 
@@ -50,8 +50,6 @@ void EdgesAnalyzer::run()
 {
   //qDebug() << "Analyzing Adaptive Edges" << m_extension->m_extendedItem->name();
   auto volume  = volumetricData(m_extension->m_extendedItem->output());
-  auto bounds  = volume->bounds();
-  auto spacing = volume->spacing();
 
   m_useDistanceToBounds = 0;
 

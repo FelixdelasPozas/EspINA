@@ -83,7 +83,7 @@ namespace EspINA
   using EdgeDistancePtr  = EdgeDistance *;
   using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
 
-  EdgeDistancePtr EspinaExtensions_EXPORT edgeDistance(SegmentationExtensionPtr extension);
+  EdgeDistancePtr edgeDistance(SegmentationExtensionPtr extension);
 
 }// namespace EspINA
 

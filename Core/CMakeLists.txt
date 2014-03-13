@@ -88,4 +88,5 @@ GENERATE_EXPORT_HEADER(
   EXPORT_MACRO_NAME EspinaCore_EXPORT
   EXPORT_FILE_NAME EspinaCore_Export.h
   )
+
 target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})

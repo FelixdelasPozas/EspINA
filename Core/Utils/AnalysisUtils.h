@@ -33,14 +33,14 @@
 
 namespace EspINA {
 
-  AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
+  AnalysisSPtr merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
 
-  SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, SampleSList samples);
+  SampleSPtr findSample(SampleSPtr sample, SampleSList samples);
 
-  ChannelSPtr EspinaCore_EXPORT findChannel(ChannelSPtr sample, ChannelSList channels);
+  ChannelSPtr findChannel(ChannelSPtr sample, ChannelSList channels);
 
   template<typename T> 
-  std::shared_ptr<T> EspinaCore_EXPORT find(T *item, QList<std::shared_ptr<T>> list)
+  std::shared_ptr<T> find(T *item, QList<std::shared_ptr<T>> list)
   {
     for(auto smartItem : list)
     {

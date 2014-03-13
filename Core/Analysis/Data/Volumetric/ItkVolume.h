@@ -135,7 +135,7 @@ namespace EspINA
   using RawVolumePtr  = ItkVolume<itkVolumeType> *;
   using RawVolumeSPtr = std::shared_ptr<ItkVolume<itkVolumeType>>;
 
-  RawVolumeSPtr EspinaCore_EXPORT rawVolume(OutputSPtr output);
+  RawVolumeSPtr rawVolume(OutputSPtr output);
 
 //  RawChannelVolumeSPtr EspinaCore_EXPORT rawChannelVolume(OutputSPtr output);
 

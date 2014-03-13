@@ -76,7 +76,7 @@ namespace EspINA
     void updateMesh();
 
     VolumetricDataSPtr<T> m_volume;
-    vtkSmartPointer<vtkPolyData> m_mesh;
+    mutable vtkSmartPointer<vtkPolyData> m_mesh;
   };
 
   //----------------------------------------------------------------------------

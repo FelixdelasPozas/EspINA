@@ -53,4 +53,5 @@ GENERATE_EXPORT_HEADER(
   EXPORT_MACRO_NAME EspinaExtensions_EXPORT
   EXPORT_FILE_NAME EspinaExtensions_Export.h
   )
+
 target_link_libraries (EspinaExtensions EspinaCore ${EXTENSIONS_EXTERNAL_LIBS})

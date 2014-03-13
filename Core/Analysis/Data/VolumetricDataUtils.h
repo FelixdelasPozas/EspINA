@@ -147,9 +147,10 @@ namespace EspINA
   }
 
   // NOTE: Probably move into an independent module
-  static double memory_size_in_MB(int number_of_pixels)
+  template<typename T>
+  double memory_size_in_MB(int number_of_pixels)
   {
-    return number_of_pixels / 1024.0 / 1024.0;
+    return number_of_pixels * sizeof(T) / 1024.0 / 1024.0;
   }
 
   template<typename T>

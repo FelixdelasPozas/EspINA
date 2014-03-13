@@ -100,7 +100,7 @@ namespace EspINA
   template<class T> using RasterizedVolumePtr = RasterizedVolume<T> *;
   template<class T> using RasterizedVolumeSPtr = std::shared_ptr<RasterizedVolume<T>>;
 
-  template<class T> RasterizedVolumeSPtr<T> EspinaCore_EXPORT rasterizedVolume(OutputSPtr output);
+  template<class T> RasterizedVolumeSPtr<T> rasterizedVolume(OutputSPtr output);
 }
 
 #endif // ESPINA_RASTERIZEDVOLUME_H

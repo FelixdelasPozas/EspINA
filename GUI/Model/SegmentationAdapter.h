@@ -127,6 +127,6 @@ namespace EspINA
   bool operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
   bool operator!=(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
 
-  SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ViewItemAdapterPtr item);
+  SegmentationAdapterPtr segmentationPtr(ViewItemAdapterPtr item);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

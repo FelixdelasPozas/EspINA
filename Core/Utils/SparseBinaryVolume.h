@@ -128,9 +128,9 @@ namespace EspINA
 
     /* \brief Draw method to modify mask using a implicit function.
      */
-    void draw(const vtkImplicitFunction*  brush,
-              const Bounds&               bounds,
-              const unsigned char         drawValue);
+    void draw(vtkImplicitFunction*  brush,
+              const Bounds&         bounds,
+              const unsigned char   drawValue);
 
     /* \brief Draw method to modify mask using a templated itk::Image.
      */
@@ -231,10 +231,11 @@ namespace EspINA
 
       BinaryMask<unsigned char>::const_region_iterator const_region_iterator(const Bounds &bounds = Bounds()) const
       {
+        Bounds maskBounds = bounds;
         if (!bounds.areValid())
-          bounds = m_mask->bounds().bounds();//TODO
+          maskBounds = m_mask->bounds().bounds();//TODO
 
-        BinaryMask<unsigned char>::const_region_iterator it(m_mask.get(), bounds);
+        BinaryMask<unsigned char>::const_region_iterator it(m_mask.get(), maskBounds);
         return it;
       }
 
@@ -510,10 +511,10 @@ namespace EspINA
     /* \brief Draw method to expand the image bounds (only if necessary) and modify
      * the mask using a implicit function.
      */
-    void expandAndDraw(SparseBinaryVolumePtr       volume,
-                       const vtkImplicitFunction*  brush,
-                       const Bounds&               bounds,
-                       const unsigned char         drawValue);
+    void expandAndDraw(SparseBinaryVolumePtr volume,
+                       vtkImplicitFunction*  brush,
+                       const Bounds&         bounds,
+                       const unsigned char   drawValue);
 
     /* \brief Draw method to expand the image bounds (only if necessary) and modify
      * the mask using a templated itk::Image.

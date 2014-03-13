@@ -26,6 +26,6 @@
 #include <common/xlconfig.h>
 #include <xlslib.h>
 
-EspinaGUI_EXPORT xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value);
+xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value);
 
 #endif // XLSUTILS_H

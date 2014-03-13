@@ -137,7 +137,7 @@ namespace EspINA
   // TODO Delete later
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
-  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
+  DefaultVolumetricDataSPtr volumetricData(OutputSPtr output);
 
 
 } // namespace EspINA

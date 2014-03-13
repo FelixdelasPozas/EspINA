@@ -32,7 +32,7 @@ namespace EspINA
 {
   // TODO 2012-12-05 Remove this function and pass the general settings to
   // all the tools that require it
-  QString EspinaSupport_EXPORT userName();
+  QString userName();
 };
 
 #endif//ESPINA_SETTINGS_H

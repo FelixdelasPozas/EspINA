@@ -104,7 +104,7 @@ namespace EspINA
   using CountingFrameExtensionPtr  = CountingFrameExtension *;
   using CountingFrameExtensionSPtr = std::shared_ptr<CountingFrameExtension>;
 
-  CountingFrameExtensionSPtr CountingFramePlugin_EXPORT countingFrameExtensionPtr(ChannelExtensionSPtr extension);
+  CountingFrameExtensionSPtr countingFrameExtensionPtr(ChannelExtensionSPtr extension);
 
   } // namespace CF
 } // namespace EspINA

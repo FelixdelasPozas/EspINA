@@ -139,36 +139,36 @@ namespace EspINA
    *  In case just the bounds have one value in common, both
    *  bounds must be inclussive
    */
-  bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
+  bool intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return the bounds which belong both to b1 and b2
    *
    *  In case just the bounds have one value in common, both
    *  bounds must be inclussive
    */
-  Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
+  Bounds intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return the minimum bouds containing b1 and b2
    *
    */
-  Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
+  Bounds boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return whether a bound is contained inside another
    *
    *  Boundaires are inside if and only if both boundaries
    *  are equally included
    */
-  bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained, const NmVector3 &spacing=NmVector3{1,1,1});
+  bool contains(const Bounds& container, const Bounds& contained, const NmVector3 &spacing=NmVector3{1,1,1});
 
-  bool  EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point, const NmVector3 &spacing=NmVector3{1,1,1});
+  bool contains(const Bounds& bounds, const NmVector3& point, const NmVector3 &spacing=NmVector3{1,1,1});
 
   std::ostream&  operator<<(std::ostream& os, const Bounds& bounds);
 
   QDebug operator<< (QDebug d, const Bounds &bounds);
 
-  bool EspinaCore_EXPORT operator==(const Bounds& lhs, const Bounds& rhs);
+  bool operator==(const Bounds& lhs, const Bounds& rhs);
 
-  bool EspinaCore_EXPORT operator!=(const Bounds& lhs, const Bounds& rhs);
+  bool operator!=(const Bounds& lhs, const Bounds& rhs);
 
   /* \brief Returns true if the blocks are adjacent and the bounding box is the union of both.
    * For that to happen the blocks must have equal sizes on two sides and be adjacent on the

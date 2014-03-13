@@ -166,12 +166,12 @@ namespace EspINA
   /* \brief Returns true if the render can render in the view specified by RendererType.
    *
    */
-  bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RendererType type);
+  bool canRender(RendererSPtr renderer, RendererType type);
 
   /* \brief Returns true if the render can render in the views specified by RendererTypes.
    *
    */
-  bool EspinaGUI_EXPORT canRender(RendererSPtr renderer, RendererTypes types);
+  bool canRender(RendererSPtr renderer, RendererTypes types);
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(RendererTypes)
 }// namespace EspINA

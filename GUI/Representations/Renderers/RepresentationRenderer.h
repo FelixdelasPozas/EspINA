@@ -88,7 +88,7 @@ namespace EspINA
   using RepresentationRendererList  = QList<RepresentationRendererPtr>;
   using RepresentationRendererSList = QList<RepresentationRendererSPtr>;
 
-  bool EspinaGUI_EXPORT canRender(RepresentationRendererSPtr renderer, RenderableType type);
+  bool canRender(RepresentationRendererSPtr renderer, RenderableType type);
 
   RepresentationRendererSPtr representationRenderer(RendererSPtr renderer);
 

@@ -234,10 +234,8 @@ void ChannelEdges::distanceToBounds(SegmentationPtr segmentation, Nm distances[6
 }
 
 //-----------------------------------------------------------------------------
-void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]) const
+void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6])
 {
-  Bounds segmentationBounds = segmentation->bounds();
-
   loadFacesCache();
 
   m_facesMutex.lockForWrite();

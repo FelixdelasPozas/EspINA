@@ -54,7 +54,7 @@ namespace EspINA
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
-  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output);
+  MeshDataSPtr meshData(OutputSPtr output);
 
 } // namespace EspINA
 

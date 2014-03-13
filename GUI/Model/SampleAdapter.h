@@ -83,7 +83,7 @@ namespace EspINA
   bool operator!=(SampleAdapterSPtr lhs, SampleSPtr        rhs);
   bool operator!=(SampleSPtr        lhs, SampleAdapterSPtr rhs);
 
-  SampleAdapterPtr EspinaGUI_EXPORT samplePtr(ItemAdapterPtr item);
+  SampleAdapterPtr samplePtr(ItemAdapterPtr item);
 
 }// namespace EspINA
 

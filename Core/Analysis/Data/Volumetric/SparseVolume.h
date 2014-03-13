@@ -529,7 +529,7 @@ namespace EspINA
     }
 
     addBlock(mask);
-    updateModificationTime();
+    this->updateModificationTime();
   }
 
 
@@ -539,7 +539,7 @@ namespace EspINA
                              const typename T::ValueType value)
   {
     addBlock(mask);
-    updateModificationTime();
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -582,7 +582,7 @@ namespace EspINA
     block->DisconnectPipeline();
 
     setBlock(block);
-    updateModificationTime();
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -606,7 +606,7 @@ namespace EspINA
 //       it.Set();
 //
 //       addBlock(mask);
-    updateModificationTime();
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -617,7 +617,7 @@ namespace EspINA
     m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
 
     // TODO: Reduce existing blocks??
-    updateModificationTime();
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -743,7 +743,7 @@ namespace EspINA
       bounds = boundingBox(bounds, block->bounds());
 
     m_blocks_bounding_box = bounds;
-    updateModificationTime();
+    this->updateModificationTime();
   }
 
   //-----------------------------------------------------------------------------
@@ -831,7 +831,7 @@ namespace EspINA
     }
 
     VolumeBoundsList nonEmptyBounds;
-    int i = 0;
+//    int i = 0;
     for(auto bounds : blockBounds)
     {
 //      cout << "Compacting Sparse Volume: " << ++i << "/" << blockBounds.size() << " - " << bounds << endl;
@@ -841,7 +841,7 @@ namespace EspINA
       it.Begin();
       while (empty && !it.IsAtEnd())
       {
-        empty = it.Get() == backgroundValue();
+        empty = it.Get() == this->backgroundValue();
         ++it;
       }
 

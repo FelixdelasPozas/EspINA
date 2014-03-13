@@ -75,7 +75,7 @@ namespace EspINA
 
     void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
-    void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]) const;
+    void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
 
     vtkSmartPointer<vtkPolyData> channelEdges();
 
@@ -135,8 +135,8 @@ namespace EspINA
   using ChannelEdgesPtr  = ChannelEdges *;
   using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
 
-  ChannelEdgesPtr  EspinaExtensions_EXPORT channelEdgesExtension(ChannelExtensionPtr extension);
-  ChannelEdgesSPtr EspinaExtensions_EXPORT channelEdgesExtension(ChannelPtr channel);
+  ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
+  ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);
 
 }// namespace EspINA
 

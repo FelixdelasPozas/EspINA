@@ -160,7 +160,7 @@ namespace EspINA
   bool operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
   bool operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
-  ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ItemAdapterPtr item);
+  ChannelAdapterPtr channelPtr(ItemAdapterPtr item);
 }// namespace EspINA
 
 #endif // CHANNEL_H

@@ -107,7 +107,7 @@ namespace EspINA
   using StereologicalInclusionPtr  = StereologicalInclusion *;
   using StereologicalInclusionSPtr = std::shared_ptr<StereologicalInclusion>;
 
-  StereologicalInclusionSPtr CountingFramePlugin_EXPORT stereologicalInclusion(SegmentationExtensionSPtr extension);
+  StereologicalInclusionSPtr stereologicalInclusion(SegmentationExtensionSPtr extension);
 
   } // namespace CF
 } // namespace EspINA

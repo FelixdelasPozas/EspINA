@@ -85,7 +85,7 @@ namespace EspINA
   using RawMeshPtr = RawMesh *;
   using RawMeshSPtr = std::shared_ptr<RawMesh>;
 
-  RawMeshSPtr EspinaCore_EXPORT rawMesh(OutputSPtr output);
+  RawMeshSPtr rawMesh(OutputSPtr output);
 }
 
 #endif // ESPINA_RAW_MESH_H

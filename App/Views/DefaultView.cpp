@@ -223,6 +223,9 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
       m_xLine = color;
       settings.setValue(X_LINE_COLOR, color);
       break;
+    default:
+      Q_ASSERT(false);
+      break;
   };
   settings.endGroup();
   settings.sync();

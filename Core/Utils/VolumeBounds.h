@@ -101,37 +101,37 @@ namespace EspINA
 
   struct Incompatible_Volume_Bounds_Exception {};
 
-  bool EspinaCore_EXPORT isMultiple(Nm point, Nm spacing);
+  bool isMultiple(Nm point, Nm spacing);
 
-  bool EspinaCore_EXPORT isAligned(Nm point, Nm origin, Nm spacing);
+  bool isAligned(Nm point, Nm origin, Nm spacing);
 
   /** \brief Two volume bounds are compatible if they can contain the same voxels in the reference frame
    *
    *  NOTE: They actually don't need to conatain the same voxels, they bounds may differ.
    */
-  bool EspinaCore_EXPORT isCompatible(const VolumeBounds& lhs, const VolumeBounds& rhs);
+  bool isCompatible(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   /** \brief Two volume bounds are equivalent if they contain the same voxels in the reference frame
    *
    */
-  bool EspinaCore_EXPORT isEquivalent(const VolumeBounds& lhs, const VolumeBounds& rhs);
+  bool isEquivalent(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   /** \brief Return wether b1 intersects b2 or not
    *
    */
-  bool EspinaCore_EXPORT intersect(const VolumeBounds& lhs, const VolumeBounds& rhs);
+  bool intersect(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   /** \brief Return the bounds which belong both to b1 and b2
    *
    */
-  VolumeBounds EspinaCore_EXPORT intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
+  VolumeBounds intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
   throw (Incompatible_Volume_Bounds_Exception);
 
   /** \brief Return the minimum bounds containing b1 and b2
    *
    *  If bounds are not compatible an exception will be thrown
    */
-  VolumeBounds EspinaCore_EXPORT boundingBox(const VolumeBounds &lhs, const VolumeBounds& rhs)
+  VolumeBounds boundingBox(const VolumeBounds &lhs, const VolumeBounds& rhs)
   throw (Incompatible_Volume_Bounds_Exception);
 
   /** \brief Return whether a bound is contained inside another
@@ -139,11 +139,11 @@ namespace EspINA
    *  Boundaires are inside if and only if both boundaries
    *  are equally included
    */
-  bool EspinaCore_EXPORT contains(const VolumeBounds& container, const VolumeBounds& contained);
+  bool contains(const VolumeBounds& container, const VolumeBounds& contained);
 
-  bool EspinaCore_EXPORT contains(const VolumeBounds& bounds, const NmVector3& point);
+  bool contains(const VolumeBounds& bounds, const NmVector3& point);
 
-  std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const VolumeBounds& bounds);
+  std::ostream& operator<<(std::ostream& os, const VolumeBounds& bounds);
 
   QDebug operator<< (QDebug d, const VolumeBounds &bounds);
 
@@ -151,9 +151,9 @@ namespace EspINA
    *
    * Equality is true if and only if, they define the same bounds using the same origin and spacing
    */
-  bool EspinaCore_EXPORT operator==(const VolumeBounds& lhs, const VolumeBounds& rhs);
+  bool operator==(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
-  bool EspinaCore_EXPORT operator!=(const VolumeBounds& lhs, const VolumeBounds& rhs);
+  bool operator!=(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   /* \brief Returns true if the blocks are adjacent and the bounding box is the union of both.
    * For that to happen the blocks must have equal sizes on two sides and be adjacent on the

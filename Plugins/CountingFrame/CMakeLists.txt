@@ -107,6 +107,7 @@ GENERATE_EXPORT_HEADER(
              EXPORT_MACRO_NAME CountingFramePlugin_EXPORT
              EXPORT_FILE_NAME CountingFramePlugin_Export.h
   )
+ADD_COMPILER_EXPORT_FLAGS()
 
 target_link_libraries (CountingFramePlugin ${PLUGIN_LIBRARIES})
 

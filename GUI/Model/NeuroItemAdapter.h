@@ -54,7 +54,7 @@ namespace EspINA {
   //using NeuroItemAdapterList = QList<NeuroItemAdapterPtr>;
   using NeuroItemAdapterSPtr = std::shared_ptr<NeuroItemAdapter>;
 
-  NeuroItemAdapterPtr EspinaGUI_EXPORT neuroItemAdapter(ItemAdapterPtr item);
+  NeuroItemAdapterPtr neuroItemAdapter(ItemAdapterPtr item);
 
 } // namespace EspINA
 

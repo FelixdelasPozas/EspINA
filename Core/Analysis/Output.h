@@ -48,7 +48,7 @@ namespace EspINA
     Q_OBJECT
   public:
     using DataTypeList = QList<Data::Type>;
-    using Id = unsigned int;
+    using Id = int;
 
     class EditedRegion;
 

@@ -53,4 +53,5 @@ GENERATE_EXPORT_HEADER(
   EXPORT_MACRO_NAME EspinaFilters_EXPORT
   EXPORT_FILE_NAME EspinaFilters_Export.h
   )
+
 target_link_libraries (EspinaFilters EspinaCore ${FILTERS_EXTERNAL_LIBS})

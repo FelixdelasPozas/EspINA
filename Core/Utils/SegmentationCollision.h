@@ -27,8 +27,8 @@
 namespace EspINA
 {
   // checks if both volumes collide at the voxel level
-  bool EspinaCore_EXPORT checkCollision(SegmentationVolumeSPtr seg1,
-                                        SegmentationVolumeSPtr seg2);
+  bool checkCollision(SegmentationVolumeSPtr seg1,
+                      SegmentationVolumeSPtr seg2);
 }
 
 #endif // SEGMENTATIONCOLLISION_H

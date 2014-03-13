@@ -25,7 +25,7 @@
 
 namespace EspINA
 {
-  QString EspinaGUI_EXPORT condition(const QString &icon, const QString &description);
+  QString condition(const QString &icon, const QString &description);
 } // namespace EspINA
 
 #endif // ESPINA_CONDITIONS_H
