@@ -125,14 +125,14 @@ namespace EspINA
 
     virtual QVariant cacheFail(const InfoTag &tag) const = 0;
 
-    QVariant cachedInfo(const InfoTag &tag)
+    QVariant cachedInfo(const InfoTag &tag) const
     {
       QReadLocker locker(&m_lock);
 
       return m_infoCache.value(tag, QVariant());
     }
 
-    void updateInfoCache(const InfoTag &tag, const QVariant &value)
+    void updateInfoCache(const InfoTag &tag, const QVariant &value) const
     {
       QWriteLocker locker(&m_lock);
 
@@ -151,7 +151,7 @@ namespace EspINA
     T *m_extendedItem;
 
   private:
-    QReadWriteLock m_lock;
+    mutable QReadWriteLock m_lock;
     mutable InfoCache m_infoCache;
   };
 

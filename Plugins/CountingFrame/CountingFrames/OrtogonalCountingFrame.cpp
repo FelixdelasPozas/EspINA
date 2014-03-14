@@ -50,20 +50,6 @@ OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelEx
 //-----------------------------------------------------------------------------
 OrtogonalCountingFrame::~OrtogonalCountingFrame()
 {
-  // 2D widgets have already been deleted by 2D Views
-//   foreach(vtkAbstractWidget *w, m_widgets2D)
-//   {
-//     w->EnabledOff();
-//     w->Delete();
-//   }
-  for(auto w: m_widgets3D.values())
-  {
-    w->EnabledOff();
-    w->Delete();
-  }
-
-  m_widgets2D.clear();
-  m_widgets3D.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -112,7 +98,7 @@ SliceWidget* OrtogonalCountingFrame::createSliceWidget(View2D *view)
     wa->AddObserver(vtkCommand::EndInteractionEvent, this);
     wa->SetPlane(view->plane());
     wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
-    wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+    wa->SetCountingFrame(m_channelEdges, m_inclusion, m_exclusion);
     wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
     wa->SetEnabled(true);
 
@@ -153,7 +139,7 @@ void OrtogonalCountingFrame::updateCountingFrameImplementation()
   m_countingFrame = createRectangularRegion(Left, Top, Front,
                                             Right, Bottom, Back);
 
-  m_representation = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
+  m_channelEdges = createRectangularRegion(m_bounds[0], m_bounds[2], m_bounds[4],
                                              m_bounds[1], m_bounds[3], m_bounds[5]);
 
   auto channel = m_extension->extendedItem();

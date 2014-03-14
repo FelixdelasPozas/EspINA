@@ -173,7 +173,7 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
         ItemAdapterPtr parentItem = itemAdapter(parentIndex);
         CategoryAdapterPtr parentCategory = categoryPtr(parentItem);
         int parentRows = rowCount(parentIndex);
-        Qt::CheckState checkState;
+        Qt::CheckState checkState = Qt::Unchecked;
         for(int r=0; r < parentRows; r++)
         {
           Qt::CheckState rowState = parentIndex.child(r, 0).data(Qt::CheckStateRole).toBool()?Qt::Checked:Qt::Unchecked;

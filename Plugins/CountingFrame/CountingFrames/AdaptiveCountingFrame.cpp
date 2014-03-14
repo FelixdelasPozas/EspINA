@@ -52,29 +52,19 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::~AdaptiveCountingFrame()
 {
-//   foreach(vtkAbstractWidget *w, m_widgets2D)
-//   {
-//     w->EnabledOn();
-//     w->Delete();
-//   }
-  for(auto w: m_widgets3D.values())
-  {
-    w->EnabledOn();
-    w->Delete();
-  }
-  m_widgets2D.clear();
-  m_widgets3D.clear();
 }
 
 //-----------------------------------------------------------------------------
 vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
 {
+  QMutexLocker lock(&m_widgetMutex);
   if (m_widgets3D.keys().contains(view))
     return m_widgets3D[view];
 
+  QReadLocker lockMargins(&m_marginsMutex);
   CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
   Q_ASSERT(wa);
-  wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
+  wa->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
 
   m_widgets3D[view] = wa;
 
@@ -86,7 +76,7 @@ vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
 // {
 //   widget->Off();
 //   widget->RemoveAllObservers();
-// 
+//
 //   CountingFrame3DWidgetAdapter *brwa3D = dynamic_cast<CountingFrame3DWidgetAdapter *>(widget);
 //   if (brwa3D)
 //     m_widgets3D.removeAll(brwa3D);
@@ -98,21 +88,23 @@ vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(View3D *view)
 //     else
 //       Q_ASSERT(false);
 //   }
-// 
+//
 //   widget->Delete();
 // }
 
 //-----------------------------------------------------------------------------
 SliceWidget* AdaptiveCountingFrame::createSliceWidget(View2D *view)
 {
+  QMutexLocker lockWidgets(&m_widgetMutex);
   if (!m_widgets2D.keys().contains(view))
   {
+    QReadLocker lockMargins(&m_marginsMutex);
     auto wa = new CountingFrame2DWidgetAdapter();
     Q_ASSERT(wa);
     wa->AddObserver(vtkCommand::EndInteractionEvent, this);
     wa->SetPlane(view->plane());
     wa->SetSlicingStep(m_channel->output()->spacing());
-    wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
+    wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
     wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
     wa->SetEnabled(true);
 
@@ -153,7 +145,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
 
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
 
-  vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
+  vtkSmartPointer<vtkPolyData> channelEdges = edgesExtension->channelEdges();
 
   m_totalVolume = 0;
 
@@ -161,7 +153,8 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   int backSliceOffset  = backOffset()  / spacing[2];
 
   double bounds[6];
-  margins->GetBounds(bounds);
+  channelEdges->GetBounds(bounds);
+
   int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
   int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
 
@@ -177,7 +170,7 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   Q_ASSERT(frontSlice <= backSlice);
 
   m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
-  m_representation = margins;
+  m_channelEdges = channelEdges;
 
   vtkSmartPointer<vtkPoints>    regionVertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces        = vtkSmartPointer<vtkCellArray>::New();
@@ -186,19 +179,19 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
   {
     double LB[3], LT[3], RT[3], RB[3];
-    margins->GetPoint(4*slice+0, LB);
-    margins->GetPoint(4*slice+1, LT);
-    margins->GetPoint(4*slice+2, RT);
-    margins->GetPoint(4*slice+3, RB);
+    channelEdges->GetPoint(4*slice+0, LB);
+    channelEdges->GetPoint(4*slice+1, LT);
+    channelEdges->GetPoint(4*slice+2, RT);
+    channelEdges->GetPoint(4*slice+3, RB);
 
     Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], 0, 0};
     m_totalVolume += equivalentVolume(sliceBounds);
   }
 
+  vtkIdType lastCell[4] = {-1, -1, -1, -1};
   for (int slice = frontSlice; slice <= backSlice; slice++)
   {
     vtkIdType cell[4];
-    vtkIdType lastCell[4];
 
     double LB[3], LT[3], RT[3], RB[3];
     double zOffset = 0;
@@ -220,25 +213,25 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     }
 
 
-    margins->GetPoint(4*slice+0, LB);
+    channelEdges->GetPoint(4*slice+0, LB);
     LB[0] += leftOffset();
     LB[1] -= bottomOffset();
     LB[2] += zOffset;
     cell[0] = regionVertex->InsertNextPoint(LB);
 
-    margins->GetPoint(4*slice+1, LT);
+    channelEdges->GetPoint(4*slice+1, LT);
     LT[0] += leftOffset();
     LT[1] += topOffset();
     LT[2] += zOffset;
     cell[1] = regionVertex->InsertNextPoint(LT);
 
-    margins->GetPoint(4*slice+2, RT);
+    channelEdges->GetPoint(4*slice+2, RT);
     RT[0] -= rightOffset();
     RT[1] += topOffset();
     RT[2] += zOffset;
     cell[2] = regionVertex->InsertNextPoint(RT);
 
-    margins->GetPoint(4*slice+3, RB);
+    channelEdges->GetPoint(4*slice+3, RB);
     RB[0] -= rightOffset();
     RB[1] -= bottomOffset();
     RB[2] += zOffset;
@@ -255,6 +248,10 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
       faceData->InsertNextValue(EXCLUSION_FACE);
     } else
     {
+      Q_ASSERT(lastCell[0] != -1);
+      Q_ASSERT(lastCell[1] != -1);
+      Q_ASSERT(lastCell[2] != -1);
+      Q_ASSERT(lastCell[3] != -1);
       // Create lateral faces
 
       // Left Inclusion Face

@@ -245,7 +245,7 @@ Panel::Panel(CountingFrameManager *manager,
              ModelAdapterSPtr      model,
              ViewManagerSPtr       viewManager,
              SchedulerSPtr         scheduler,
-             QWidget              *parent = nullptr)
+             QWidget              *parent)
 : DockWidget(parent)
 , m_manager(manager)
 , m_model(model)
@@ -893,7 +893,7 @@ void Panel::onMarginsComputed()
   Nm inclusion[3] = {0, 0, 0};
   Nm exclusion[3] = {0, 0 ,0};
 
-  auto channel = optimalMargins->channel();
+  //auto channel = optimalMargins->channel();
   optimalMargins->inclusion(inclusion);
 
   pendingCF.CF->setMargins(inclusion, exclusion);

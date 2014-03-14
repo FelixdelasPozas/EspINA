@@ -66,12 +66,12 @@ namespace EspINA
                                      SchedulerSPtr scheduler);
 
     protected:
-      Nm leftOffset()   const {return m_inclusion[0];}
-      Nm topOffset()    const {return m_inclusion[1];}
-      Nm frontOffset()  const {return m_inclusion[2];}
-      Nm rightOffset()  const {return m_exclusion[0];}
-      Nm bottomOffset() const {return m_exclusion[1];}
-      Nm backOffset()   const {return m_exclusion[2];}
+      Nm leftOffset()   const {QReadLocker lock(&m_marginsMutex); return m_inclusion[0];}
+      Nm topOffset()    const {QReadLocker lock(&m_marginsMutex); return m_inclusion[1];}
+      Nm frontOffset()  const {QReadLocker lock(&m_marginsMutex); return m_inclusion[2];}
+      Nm rightOffset()  const {QReadLocker lock(&m_marginsMutex); return m_exclusion[0];}
+      Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
+      Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
 
 //       void applyOffset(double &var, double offset)
 //       {var = floor(var + offset + 0.5);}

@@ -108,11 +108,11 @@ namespace EspINA
     void onChannelAnalyzed();
 
   private:
-    QReadWriteLock m_analysisResultMutex;
+    mutable QReadWriteLock m_analysisResultMutex;
 
-    QReadWriteLock m_edgesMutex;
-    QReadWriteLock m_facesMutex;
-    QReadWriteLock m_edgesResultMutex;
+    mutable QReadWriteLock m_edgesMutex;
+    mutable QReadWriteLock m_facesMutex;
+    mutable QReadWriteLock m_edgesResultMutex;
 
     bool   m_useDistanceToBounds;
     int    m_backgroundColor;

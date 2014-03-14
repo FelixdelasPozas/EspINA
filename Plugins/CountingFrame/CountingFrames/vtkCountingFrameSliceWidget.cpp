@@ -321,8 +321,8 @@ void vtkCountingFrameSliceWidget::SetSlicingStep(EspINA::NmVector3 slicingStep)
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                     EspINA::Nm inclusionOffset[3],
-                                                     EspINA::Nm exclusionOffset[3])
+                                                   EspINA::Nm inclusionOffset[3],
+                                                   EspINA::Nm exclusionOffset[3])
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();

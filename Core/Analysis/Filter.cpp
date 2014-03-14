@@ -115,7 +115,7 @@ bool Filter::update(Output::Id id)
    if (invalidateRegions || outputNeedsUpdate)
    {
      // Invalidate previous edited regions
-     if (invalidateRegions && id < static_cast<unsigned int>(m_outputs.size()))
+     if (invalidateRegions && id < m_outputs.size())
      {
        m_outputs[id]->clearEditedRegions();
      }
@@ -129,12 +129,14 @@ bool Filter::update(Output::Id id)
 
        execute(id);
 
-       if (id < static_cast<unsigned int>(m_outputs.size()))
+       if (id < m_outputs.size())
        {
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }
      }
    }
+   
+   return true;
 }
 
 
@@ -170,7 +172,7 @@ bool Filter::fetchOutputData(Output::Id id)
         {
           if ("Output" == xml.name())
           {
-            if (id == xml.attributes().value("id").toString().toUInt())
+            if (id == xml.attributes().value("id").toString().toInt())
             {
               // Outputs can be already created while checking if an output exists
               output = m_outputs.value(id, OutputSPtr{new Output(this, id)});
@@ -223,7 +225,7 @@ bool Filter::existOutput(Output::Id id) const
 }
 
 //----------------------------------------------------------------------------
-bool Filter::createPreviousOutputs()
+bool Filter::createPreviousOutputs() const
 {
   if (validStoredInformation())
   {
@@ -244,7 +246,7 @@ bool Filter::createPreviousOutputs()
           {
             int id = xml.attributes().value("id").toString().toInt();
 
-            m_outputs.insert(id, OutputSPtr{new Output(this, id)});
+            m_outputs.insert(id, OutputSPtr{new Output(const_cast<Filter *>(this), id)});
           }
         }
       }
@@ -262,7 +264,7 @@ unsigned int Filter::numberOfOutputs() const
 }
 
 //----------------------------------------------------------------------------
-bool Filter::validOutput(Output::Id id)
+bool Filter::validOutput(Output::Id id) const
 throw (Undefined_Output_Exception)
 {
   return existOutput(id) && m_outputs[id]->isValid();

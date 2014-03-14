@@ -35,15 +35,28 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 : INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
 , m_scheduler(scheduler)
+, m_inclusionVolume(0)
+, m_totalVolume(0)
 , m_extension(extension)
 , m_visible(true)
 , m_enable(true)
 , m_highlight(false)
-, m_totalVolume(0)
-, m_inclusionVolume(0)
 {
+  QWriteLocker lock(&m_marginsMutex);
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+}
+
+//-----------------------------------------------------------------------------
+CountingFrame::~CountingFrame()
+{
+  for(auto w: m_widgets3D.values())
+  {
+    w->EnabledOn();
+    w->Delete();
+  }
+  m_widgets2D.clear();
+  m_widgets3D.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -61,8 +74,11 @@ void CountingFrame::deleteFromExtension()
 //-----------------------------------------------------------------------------
 void CountingFrame::setMargins(Nm inclusion[3], Nm exclusion[3])
 {
-  memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
-  memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+  {
+    QWriteLocker lock(&m_marginsMutex);
+    memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+    memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+  }
 
   updateCountingFrame();
 }
@@ -70,6 +86,7 @@ void CountingFrame::setMargins(Nm inclusion[3], Nm exclusion[3])
 //-----------------------------------------------------------------------------
 void CountingFrame::margins(Nm inclusion[3], Nm exclusion[3])
 {
+  QReadLocker lock(&m_marginsMutex);
   memcpy(inclusion, m_inclusion, 3*sizeof(Nm));
   memcpy(exclusion, m_exclusion, 3*sizeof(Nm));
 }
@@ -107,8 +124,10 @@ QString CountingFrame::description() const
 //-----------------------------------------------------------------------------
 void CountingFrame::setVisible(bool visible)
 {
+  QWriteLocker lockState(&m_stateMutex);
   m_visible = visible;
 
+  QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D.values())
   {
     wa->widget()->SetEnabled(m_visible && m_enable);
@@ -120,8 +139,10 @@ void CountingFrame::setVisible(bool visible)
 //-----------------------------------------------------------------------------
 void CountingFrame::setEnabled(bool enable)
 {
+  QWriteLocker lockState(&m_stateMutex);
   m_enable = enable;
 
+  QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D.values())
   {
     wa->widget()->SetEnabled(m_visible && m_enable);
@@ -133,8 +154,10 @@ void CountingFrame::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 void CountingFrame::setHighlighted(bool highlight)
 {
+  QWriteLocker lockState(&m_stateMutex);
   m_highlight = highlight;
 
+  QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D.values())
   {
     wa->widget()->SetHighlighted(m_highlight);
@@ -152,15 +175,19 @@ void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* 
     Nm inOffset[3], exOffset[3];
     widget->GetInclusionOffset(inOffset);
     widget->GetExclusionOffset(exOffset);
-    for (int i = 0; i < 3; i++)
-    {
-      m_inclusion[i] = inOffset[i];
-      if (m_inclusion[i] < 0)
-        m_inclusion[i] = 0;
 
-      m_exclusion[i] = exOffset[i];
-      if (m_exclusion[i] < 0)
-        m_exclusion[i] = 0;
+    {
+      QWriteLocker lock(&m_marginsMutex);
+      for (int i = 0; i < 3; i++)
+      {
+        m_inclusion[i] = inOffset[i];
+        if (m_inclusion[i] < 0)
+          m_inclusion[i] = 0;
+
+        m_exclusion[i] = exOffset[i];
+        if (m_exclusion[i] < 0)
+          m_exclusion[i] = 0;
+      }
     }
 
     updateCountingFrame();
@@ -181,18 +208,26 @@ void CountingFrame::setCategoryConstraint(const QString& category)
 void CountingFrame::updateCountingFrame()
 {
   {
-    QWriteLocker lock(&m_mutex);
+    QWriteLocker lock(&m_volumeMutex);
     updateCountingFrameImplementation();
   }
 
-  for(auto wa : m_widgets2D.values())
-  {
-    wa->widget()->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
-  }
+  { // We need to unlock m_widgetMutex before emiting the signal
+    QMutexLocker lockWidgets(&m_widgetMutex);
+    QReadLocker  lockMargins(&m_marginsMutex);
+    {
+      for(auto wa : m_widgets2D.values())
+      {
+        wa->widget()->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+      }
+    }
 
-  for(vtkCountingFrameWidget *widget : m_widgets3D.values())
-  {
-    widget->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
+    {
+      for(vtkCountingFrameWidget *widget : m_widgets3D.values())
+      {
+        widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
+      }
+    }
   }
 
   emit modified(this);
@@ -201,6 +236,7 @@ void CountingFrame::updateCountingFrame()
 //-----------------------------------------------------------------------------
 void CountingFrame::apply()
 {
+  QMutexLocker lock(&m_applyMutex);
   if (m_applyCountingFrame)
   {
     m_applyCountingFrame->abort();
@@ -217,6 +253,7 @@ void CountingFrame::onCountingFrameApplied()
 {
   emit modified(this);
 }
+
 //-----------------------------------------------------------------------------
 Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 {
@@ -226,4 +263,30 @@ Nm CountingFrame::equivalentVolume(const Bounds& bounds)
   VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
 
   return (volumeBounds[1]-volumeBounds[0])*(volumeBounds[3]-volumeBounds[2])* (volumeBounds[5]-volumeBounds[4]);
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
+{
+  QReadLocker lock(&m_channelEdgesMutex);
+  //qDebug() << "Locking for copying edges" << thread();
+
+  vtkSmartPointer<vtkPolyData> edges = vtkSmartPointer<vtkPolyData>::New();
+  edges->DeepCopy(m_channelEdges);
+  //qDebug() << "Edges copied" << thread();
+
+  return edges;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
+{
+  QReadLocker lock(&m_countingFrameMutex);
+  //qDebug() << "Locking for copying CF" << thread();
+
+  vtkSmartPointer<vtkPolyData> cf = vtkSmartPointer<vtkPolyData>::New();
+  cf->DeepCopy(m_countingFrame);
+  //qDebug() << "CF copied" << thread();
+
+  return cf;
 }

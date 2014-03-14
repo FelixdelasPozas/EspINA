@@ -278,8 +278,10 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 
   QReadLocker edgesLock(&m_edgesResultMutex);
   //qDebug() << "Accesing Edges";
+  vtkSmartPointer<vtkPolyData> result = vtkSmartPointer<vtkPolyData>::New();
+  result->DeepCopy(m_edges);
 
-  return m_edges;
+  return result;
 }
 
 //-----------------------------------------------------------------------------

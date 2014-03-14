@@ -97,7 +97,7 @@ namespace EspINA
     /** \brief Return whether or not i is a valid output for the filter
      *
      */
-    bool validOutput(Output::Id id) throw(Undefined_Output_Exception);
+    bool validOutput(Output::Id id) const throw(Undefined_Output_Exception);
 
     /** \brief Return filter's output 
      * 
@@ -168,7 +168,7 @@ namespace EspINA
     //  Check if output was created during this or previous executions
     bool existOutput(Output::Id id) const;
 
-    bool createPreviousOutputs();
+    bool createPreviousOutputs() const;
 
   private:
     QString prefix() const

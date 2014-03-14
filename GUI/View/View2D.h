@@ -134,7 +134,8 @@ namespace EspINA
 
     virtual Selector::SelectionList pick(Selector::SelectionFlags filter, Selector::DisplayRegionList regions);
 
-    virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask){/*TODO*/}
+    virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask)
+    { return Selector::Selection(); /*TODO*/}
 
     virtual void setCrosshairVisibility(bool show);
 

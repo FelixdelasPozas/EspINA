@@ -94,7 +94,7 @@ namespace CF {
   public:
     vtkTypeMacro(CountingFrame, vtkCommand);
 
-    virtual ~CountingFrame(){}
+    virtual ~CountingFrame();
 
     virtual CFType cfType() const = 0;
 
@@ -134,29 +134,36 @@ namespace CF {
     /** \brief Return total volume in pixels
      *
      */
-    virtual double totalVolume() const
-    { return m_totalVolume; }
+    double totalVolume() const
+    {
+      QReadLocker lock(&m_volumeMutex);
+      return m_totalVolume;
+    }
 
     /** \brief Return inclusion volume in pixels
      *
      */
-    virtual double inclusionVolume() const
-    { return m_inclusionVolume; }
+    double inclusionVolume() const
+    {
+      QReadLocker lock(&m_volumeMutex);
+      return m_inclusionVolume;
+    }
 
     /** \brief Return exclusion volume in pixels
      *
      */
-    virtual double exclusionVolume() const
-    { return totalVolume() - inclusionVolume(); }
+    double exclusionVolume() const
+    {
+      QReadLocker lock(&m_volumeMutex);
+      return totalVolume() - inclusionVolume();
+    }
 
     /** \brief Return the polydata defining the Counting Framge
      *
      */
-    virtual vtkSmartPointer<vtkPolyData> region() const
+    virtual vtkSmartPointer<vtkPolyData> polyData() const
     {
-      QReadLocker lock(const_cast<QReadWriteLock *>(&m_mutex));
-      //qDebug() << "Accesing Counting Frame";
-      return m_countingFrame;
+      return countingFramePolyData();
     }
 
     virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
@@ -192,34 +199,61 @@ namespace CF {
 
     Nm equivalentVolume(const Bounds &bounds);
 
+    void setTotalVolume(double volume)
+    {
+//       QWriteLocker lock(&m_volumeMutex);
+      m_totalVolume = volume;
+    }
+
+    void setInclusionVolume(double volume)
+    {
+//       QWriteLocker lock(&m_volumeMutex);
+      m_inclusionVolume = volume;
+    }
+
+    vtkSmartPointer<vtkPolyData> channelEdgesPolyData() const;
+    vtkSmartPointer<vtkPolyData> countingFramePolyData() const;
+
   protected slots:
     void onCountingFrameApplied();
 
   protected:
     SchedulerSPtr m_scheduler;
 
-    QReadWriteLock               m_mutex;
+    mutable QReadWriteLock       m_countingFrameMutex;
     vtkSmartPointer<vtkPolyData> m_countingFrame;
-    vtkSmartPointer<vtkPolyData> m_representation;
+
+    mutable QReadWriteLock       m_channelEdgesMutex;
+    vtkSmartPointer<vtkPolyData> m_channelEdges;
+
+    mutable QReadWriteLock m_volumeMutex;
+    Nm                     m_inclusionVolume;
+    Nm                     m_totalVolume;
 
     CountingFrameExtension *m_extension;
 
     Id   m_id;
+
+    mutable QReadWriteLock m_marginsMutex;
+    Nm                     m_inclusion[3];
+    Nm                     m_exclusion[3];
+
+    QString m_categoryConstraint;
+
+    // TODO: Change to private (may need some changes in the API)
+    mutable QMutex m_widgetMutex;
+    QMap<View2D *, CountingFrameSliceWidget *>     m_widgets2D;
+    QMap<View3D *, CountingFrame3DWidgetAdapter *> m_widgets3D;
+
+
+  private:
+    mutable QReadWriteLock m_stateMutex;
     bool m_visible;
     bool m_enable;
     bool m_highlight;
 
-    Nm m_inclusion[3];
-    Nm m_exclusion[3];
 
-    Nm m_totalVolume;
-    Nm m_inclusionVolume;
-
-    const QString m_categoryConstraint;
-
-    QMap<View2D *, CountingFrameSliceWidget *> m_widgets2D;
-    QMap<View3D *, CountingFrame3DWidgetAdapter *> m_widgets3D;
-
+    mutable QMutex m_applyMutex;
     ApplyCountingFrameSPtr m_applyCountingFrame;
   };
 

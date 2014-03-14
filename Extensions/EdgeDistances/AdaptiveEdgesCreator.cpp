@@ -104,8 +104,8 @@ void AdaptiveEdgesCreator::run()
 
   vtkImageData *vtkImage = itk2vtk->GetOutput();
 
-  vtkSmartPointer<vtkPoints> borderVertices = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces       = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkPoints>    borderVertices = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> faces          = vtkSmartPointer<vtkCellArray>::New();
 
   int dim[3];
   vtkImage->GetDimensions(dim);
@@ -136,7 +136,7 @@ void AdaptiveEdgesCreator::run()
   const int upperThreshold = (backgroundColor + threshold) > 255 ? 255 : backgroundColor + threshold;
   const int lowerThreshold = (backgroundColor - threshold) <   0 ?   0 : backgroundColor - threshold;
 
-  vtkIdType lastCell[4];
+  vtkIdType lastCell[4] = {-1, -1, -1, -1};
   unsigned long z = zMin;
   while (canExecute() && z <= zMax)
   {
@@ -252,6 +252,10 @@ void AdaptiveEdgesCreator::run()
       faces->InsertNextCell(4, cell);
     } else
     {
+      Q_ASSERT(lastCell[0] != -1);
+      Q_ASSERT(lastCell[1] != -1);
+      Q_ASSERT(lastCell[2] != -1);
+      Q_ASSERT(lastCell[3] != -1);
       // Create lateral faces
 
       // Left Inclusion Face
