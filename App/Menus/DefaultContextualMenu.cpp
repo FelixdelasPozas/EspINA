@@ -21,9 +21,11 @@
 
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
+#include <Extensions/Tags/SegmentationTags.h>
 #include <GUI/Widgets/NoteEditor.h>
-#include <Undo/ChangeSegmentationTags.h>
+#include <GUI/Widgets/TagSelector.h>
 #include <Undo/ChangeSegmentationNotes.h>
+#include <Undo/ChangeSegmentationTags.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
@@ -190,11 +192,11 @@ void DefaultContextualMenu::changeFinalFlag()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::manageTags()
 {
-//   QList<QUndoCommand *> pendingCommands;
-//
-//   if (!m_segmentations.isEmpty())
-//   {
-//     QStandardItemModel tags;
+  QList<QUndoCommand *> commands;
+
+  if (!m_segmentations.isEmpty())
+  {
+    QStandardItemModel tags;
 //     foreach (QString tag, SegmentationTags::TagModel.stringList())
 //     {
 //       QStandardItem *item = new QStandardItem(tag.toLower());
@@ -218,44 +220,48 @@ void DefaultContextualMenu::manageTags()
 //
 //       tags.appendRow(item);
 //     }
-//
-//     TagSelector tagSelector(dialogTitle(), tags);
-//     if (tagSelector.exec())
-//     {
-//       foreach (SegmentationPtr segmentation, m_segmentations)
-//       {
-//         SegmentationTags *tagExtension = SegmentationTags::extension(segmentation);
-//         QStringList segTags = tagExtension->tags();
-//         QStringList oldTags = tagExtension->tags();
-//
-//         for (int r = 0; r < tags.rowCount(); ++r)
-//         {
-//           QStandardItem *item = tags.item(r);
-//           if (Qt::Checked == item->checkState())
-//           {
-//             if (!segTags.contains(item->text()))
-//               segTags << item->text();
-//           } else if (Qt::Unchecked == item->checkState())
-//           {
-//             segTags.removeAll(item->text());
-//           }
-//         }
-//         if (oldTags != segTags)
-//           pendingCommands << new ChangeSegmentationTags(tagExtension, segTags);
-//       }
-//     }
-//
-//   }
-//
-//   if (!pendingCommands.isEmpty())
-//   {
-//     m_undoStack->beginMacro("Change Segmentation Tags");
-//     foreach (QUndoCommand *command, pendingCommands)
-//     {
-//       m_undoStack->push(command);
-//     }
-//     m_undoStack->endMacro();
-//   }
+
+    TagSelector tagSelector(dialogTitle(), tags);
+    if (tagSelector.exec())
+    {
+      for(auto segmentation : m_segmentations)
+      {
+        QStringList currentTags, previousTags;
+
+        if (segmentation->hasExtension(SegmentationTags::TYPE))
+        {
+          currentTags  = segmentation->information(SegmentationTags::TAGS).toString().split(";");
+          previousTags = currentTags;
+        }
+
+        for (int r = 0; r < tags.rowCount(); ++r)
+        {
+          QStandardItem *item = tags.item(r);
+          if (Qt::Checked == item->checkState())
+          {
+            if (!currentTags.contains(item->text()))
+              currentTags << item->text();
+          } else if (Qt::Unchecked == item->checkState())
+          {
+            currentTags.removeAll(item->text());
+          }
+        }
+        if (previousTags != currentTags)
+          commands << new ChangeSegmentationTags(segmentation, currentTags);
+      }
+    }
+
+  }
+
+  if (!commands.isEmpty())
+  {
+    m_undoStack->beginMacro(tr("Change Segmentation Tags"));
+    for (auto command : commands)
+    {
+      m_undoStack->push(command);
+    }
+    m_undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------

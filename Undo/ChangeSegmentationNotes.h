@@ -43,8 +43,8 @@ namespace EspINA
   {
   public:
     explicit ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
-                                     const QString         &note,
-                                     QUndoCommand          *parent = 0);
+                                     const QString&         note,
+                                     QUndoCommand*          parent = nullptr);
 
     virtual void redo();
 

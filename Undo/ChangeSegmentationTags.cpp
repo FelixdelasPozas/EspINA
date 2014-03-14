@@ -28,17 +28,18 @@
 
 #include "ChangeSegmentationTags.h"
 
-#include <Core/Model/Segmentation.h>
-#include <Core/Extensions/Tags/TagExtension.h>
+#include <Extensions/ExtensionUtils.h>
+#include <Extensions/Tags/SegmentationTags.h>
+
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ChangeSegmentationTags::ChangeSegmentationTags(SegmentationTags *tagExtension,
-                                               const QStringList &tags,
-                                               QUndoCommand *parent)
+ChangeSegmentationTags::ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
+                                               const QStringList&     tags,
+                                               QUndoCommand*          parent)
 : QUndoCommand(parent)
-, m_tagExtension(tagExtension)
+, m_segmentation(segmentation)
 , m_formerTags(tags)
 {
 }
@@ -58,7 +59,30 @@ void ChangeSegmentationTags::undo()
 //------------------------------------------------------------------------
 void ChangeSegmentationTags::swapTags()
 {
-  QStringList tmpTags = m_tagExtension->tags();
-  m_tagExtension->setTags(m_formerTags);
-  m_formerTags = tmpTags;
+  QStringList currentTags;
+
+  if (m_segmentation->hasExtension(SegmentationTags::TYPE))
+  {
+    currentTags = m_segmentation->information(SegmentationTags::TAGS).toString().split(";");
+  }
+
+  if (currentTags.isEmpty() && !m_formerTags.isEmpty())
+  {
+    auto extension = retrieveOrCreateExtension<SegmentationTags>(m_segmentation);
+    extension->setTags(m_formerTags);
+    m_formerTags.clear();
+  }
+  else if (!currentTags.isEmpty() && !m_formerTags.isEmpty())
+  {
+    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
+    extension->setTags(m_formerTags);
+    m_formerTags = currentTags;
+  }
+  if (!currentTags.isEmpty() && m_formerTags.isEmpty())
+  {
+    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
+    m_segmentation->deleteExtension(extension);
+    m_formerTags = currentTags;
+  }
+  m_segmentation->notifyModification();
 }

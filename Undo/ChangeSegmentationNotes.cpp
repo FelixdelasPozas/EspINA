@@ -27,8 +27,9 @@
 
 // EspINA
 #include "ChangeSegmentationNotes.h"
-#include <Extensions/Notes/SegmentationNotes.h>
+
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 
 using namespace EspINA;
 

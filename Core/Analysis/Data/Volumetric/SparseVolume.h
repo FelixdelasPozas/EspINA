@@ -181,8 +181,6 @@ namespace EspINA
 
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
 
-    VolumeBoundsList compact();
-
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels
      *
@@ -199,6 +197,8 @@ namespace EspINA
      *  Sparse Volume will take ownership of the block
      */
     void addBlock(BlockMaskSPtr mask);
+
+    VolumeBoundsList compactedBlocks() const;
 
   private:
     enum class BlockType
@@ -687,7 +687,7 @@ namespace EspINA
     using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
     Snapshot snapshot;
 
-    auto compactedBounds = compact();
+    auto compactedBounds = compactedBlocks();
 
     for(int i = 0; i < compactedBounds.size(); ++i)
     {
@@ -748,7 +748,7 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  VolumeBoundsList SparseVolume<T>::compact()
+  VolumeBoundsList SparseVolume<T>::compactedBlocks() const
   {
     if (m_blocks.empty())
     {
