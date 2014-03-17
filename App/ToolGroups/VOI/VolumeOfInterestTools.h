@@ -15,13 +15,14 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef ESPINA_SEGMENTATION_TOOLS_H
-#define ESPINA_SEGMENTATION_TOOLS_H
+#ifndef ESPINA_VOI_TOOLS_H
+#define ESPINA_VOI_TOOLS_H
 
 #include <Support/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
-
-#include "SeedGrowSegmentationTool.h"
+#include "BrushVOITool.h"
+#include "OrtogonalVOITool.h"
+#include "CleanVOITool.h"
 
 #include <QAction>
 
@@ -30,16 +31,16 @@ class QUndoStack;
 namespace EspINA
 {
   /// Seed Growing Segmentation Plugin
-  class SegmentationTools
+  class VolumeOfInterestTools
   : public ToolGroup
   {
   public:
-    SegmentationTools(ModelAdapterSPtr model,
+    VolumeOfInterestTools(ModelAdapterSPtr model,
                       ModelFactorySPtr factory,
                       ViewManagerSPtr  viewManager,
                       QUndoStack      *undoStack,
                       QWidget         *parent = nullptr);
-    virtual ~SegmentationTools();
+    virtual ~VolumeOfInterestTools();
 
     virtual void setEnabled(bool value);
 
@@ -48,9 +49,11 @@ namespace EspINA
     virtual ToolSList tools();
 
   private:
-    SeedGrowSegmentationToolSPtr m_sgsTool;
+    BrushVOIToolSPtr     m_brushVOITool;
+    OrtogonalVOIToolSPtr m_ortogonalVOITool;
+    CleanVOIToolSPtr     m_cleanVOITool;
   };
 
 } // namespace EspINA
 
-#endif// ESPINA_SEGMENTATION_TOOLS_H
+#endif// ESPINA_VOI_TOOLS_H

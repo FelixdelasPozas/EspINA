@@ -31,6 +31,7 @@
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/ViewState/ViewTools.h"
+#include "ToolGroups/VOI/VolumeOfInterestTools.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
@@ -273,6 +274,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto measuresTools = new MeasuresTools(m_viewManager, this);
   registerToolGroup(measuresTools);
 
+  auto voiTools = new VolumeOfInterestTools(m_model, m_factory, m_viewManager, m_undoStack, this);
+  registerToolGroup(voiTools);
 // 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);

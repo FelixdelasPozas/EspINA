@@ -52,7 +52,7 @@ void SegmentationTools::setEnabled(bool value)
 //-----------------------------------------------------------------------------
 bool SegmentationTools::enabled() const
 {
-
+  return true;
 }
 
 //-----------------------------------------------------------------------------

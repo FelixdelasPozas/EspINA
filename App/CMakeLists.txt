@@ -64,8 +64,10 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
+  ToolGroups/VOI/BrushVOITool.h
+  ToolGroups/VOI/CleanVOITool.h
+  ToolGroups/VOI/OrtogonalVOITool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
-#   Tools/VOI/RectangularVOI.h
   Views/DefaultView.h
 #   Dialogs/Connectomics/ConnectomicsDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
@@ -92,7 +94,6 @@ qt4_wrap_ui (ESPINA_UI
 #   Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
-#   Settings/VOI/RectangularVOISettings.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
@@ -137,14 +138,11 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
   Settings/View2D/View2DRenderersPanel.cpp
-#   Settings/VOI/SettingsPanel.cpp
 #   Toolbars/Composition/CompositionToolBar.cpp
 #   Toolbars/Editor/EditorToolBar.cpp
 #   Toolbars/Editor/Settings.cpp
 #   Toolbars/Main/MainToolBar.cpp
 #   Toolbars/Segmentation/SeedGrowSegmentationSettings.cpp
-#   Toolbars/VOI/Settings.cpp
-#   Toolbars/VOI/VolumeOfInterest.cpp
   ToolGroups/Segmentation/ApplyROI.cpp
   ToolGroups/Segmentation/SegmentationTools.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
@@ -159,6 +157,10 @@ set (ESPINA_SOURCES
   ToolGroups/Editor/MorphologicalEditionTool.cpp
   ToolGroups/Editor/ManualEditionTool.cpp
   ToolGroups/Measures/MeasuresTools.cpp
+  ToolGroups/VOI/BrushVOITool.cpp
+  ToolGroups/VOI/CleanVOITool.cpp
+  ToolGroups/VOI/OrtogonalVOITool.cpp
+  ToolGroups/VOI/VolumeOfInterestTools.cpp
   Tools/Brushes/CircularBrushSelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp
 #   Tools/Contour/FilledContour.cpp

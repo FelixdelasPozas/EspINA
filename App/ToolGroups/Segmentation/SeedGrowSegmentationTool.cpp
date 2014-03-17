@@ -76,7 +76,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
 , m_categorySelector(new CategorySelector(m_model))
 , m_selectorSwitch(new ActionSelector())
 , m_seedThreshold(new SeedThreshold())
-, m_applyROI(new ApplyROI())
+, m_applyVOI(new ApplyROI())
 , m_filterFactory(new SGSFilterFactory())
 {
   m_factory->registerFilterFactory(m_filterFactory);
@@ -119,7 +119,7 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
   delete m_selectorSwitch;
   delete m_seedThreshold;
-  delete m_applyROI;
+  delete m_applyVOI;
 }
 
 //-----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
   actions << m_categorySelector;
   actions << m_selectorSwitch;
   actions << m_seedThreshold;
-  actions << m_applyROI;
+  actions << m_applyVOI;
 
   return actions;
 }
@@ -216,7 +216,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
   //auto seedVoxel = volume->itkImage(seedBounds);
   ROI roi = m_viewManager->currentROI();
 
-  if (!roi && m_applyROI->isChecked())
+  if (!roi && m_applyVOI->isChecked())
   {
     // TODO: Create default ROI
   }

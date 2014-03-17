@@ -15,59 +15,46 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef VOLUMEOFINTEREST_H
-#define VOLUMEOFINTEREST_H
+#ifndef ESPINA_CLEAN_VOI_H
+#define ESPINA_CLEAN_VOI_H
 
-#include <QToolBar>
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
+#include <GUI/Model/ModelAdapter.h>
 
-#include <Core/Model/EspinaModel.h>
-#include <Core/Interfaces/IToolBar.h>
-#include <GUI/Pickers/PixelSelector.h>
-#include <GUI/ViewManager.h>
-
-#include <QMap>
-
-class ActionSelector;
 class QAction;
-
 namespace EspINA
 {
-  class ViewManager;
-
   /// Volume Of Interest Toolbar
-  class VolumeOfInterest
-  : public IToolBar
+  class CleanVOITool
+  : public Tool
   {
     Q_OBJECT
   public:
-    explicit VolumeOfInterest(EspinaModel *model,
-                              ViewManager *viewManager,
-                              QWidget     *parent=NULL);
-    virtual ~VolumeOfInterest();
+    explicit CleanVOITool(ModelAdapterSPtr model,
+                          ViewManagerSPtr  viewManager);
+    virtual ~CleanVOITool();
 
-    virtual void initToolBar(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager);
-    virtual void resetToolbar();
+    virtual void setEnabled(bool value);
 
-    virtual void abortOperation() {};
+    virtual bool enabled() const;
+
+    virtual QList<QAction *> actions() const;
 
   protected slots:
     void changeVOI(QAction *action);
+
     void cancelVOI();
 
-
   private:
-    void buildVOIs();
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
 
-  private:
-    EspinaModel *m_model;
-    ViewManager *m_viewManager;
-
-    ActionSelector  *m_voiSelector;
-    QMap<QAction *, IVOISPtr> m_vois;
+    QAction *m_applyVOI;
   };
+
+  using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;
 
 } // namespace EspINA
 
-#endif// VOLUMEOFINTEREST_H
+#endif // ESPINA_CLEAN_VOI_H

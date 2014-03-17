@@ -86,7 +86,7 @@ namespace EspINA {
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;
     SeedThreshold    *m_seedThreshold;
-    ApplyROI         *m_applyROI;
+    ApplyROI         *m_applyVOI;
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
     SelectorSPtr m_currentSelector;

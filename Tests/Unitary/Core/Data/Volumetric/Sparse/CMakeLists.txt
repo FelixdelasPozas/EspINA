@@ -4,7 +4,7 @@ create_test_sourcelist(SparseVolume_Tests SparseVolume_Tests.cpp # this file is 
   bounds_constructor.cpp
   draw_implicit_function.cpp
   draw_implicit_function_with_bigger_bounds.cpp
-  compact.cpp
+  #compact.cpp
 #   sparse_volume_resize_expand_volume.cpp
 #   sparse_volume_resize_reduce_volume.cpp
 )
@@ -45,6 +45,6 @@ add_test("\"Sparse Volume: Default Constructor\""                       SparseVo
 add_test("\"Sparse Volume: Bounds Constructor\""                        SparseVolume_Tests bounds_constructor)
 add_test("\"Sparse Volume: Draw Implicit Function\""                    SparseVolume_Tests draw_implicit_function)
 add_test("\"Sparse Volume: Draw Implicit Function With Bigger Bounds\"" SparseVolume_Tests draw_implicit_function_with_bigger_bounds)
-add_test("\"Sparse Volume: Compact\""                                   SparseVolume_Tests compact)
+#add_test("\"Sparse Volume: Compact\""                                   SparseVolume_Tests compact)
 # add_test("\"Sparse Volume: Resize Expand Volume\""                        SparseVolume_Tests sparse_volume_resize_expand_volume)
 # add_test("\"Sparse Volume: Resize Reduce Volume\""                        SparseVolume_Tests sparse_volume_resize_reduce_volume)
