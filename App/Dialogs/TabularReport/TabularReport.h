@@ -117,6 +117,9 @@ namespace EspINA
 
     void removeTabsAndWidgets();
 
+    static QString extraPath(const QString &file = QString())
+    { return "Extra/RawInforamtion/" + file; }
+
   private:
     ModelAdapterSPtr m_model;
     ModelFactorySPtr m_factory;

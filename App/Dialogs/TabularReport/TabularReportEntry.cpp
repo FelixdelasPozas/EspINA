@@ -36,6 +36,7 @@
 #include <QStandardItemModel>
 #include <QMessageBox>
 #include <QItemDelegate>
+#include <qvarlengtharray.h>
 
 using namespace EspINA;
 using namespace xlslib_core;
@@ -208,11 +209,8 @@ void TabularReport::Entry::saveSelectedInformation()
   }
 
   //qDebug() << "New order: " << informationOrder;
-
-  QSettings settings(CESVIMA, ESPINA);
-  openCategorySettings(settings);
-  settings.setValue("InformationOrder", informationOrder);
-  closeCategorySettings(settings);
+  QByteArray selectedInformation = informationOrder.join("\n").toUtf8();
+  m_model->storage()->saveSnapshot(SnapshotData(selectedInformationFile(), selectedInformation));
 }
 
 //------------------------------------------------------------------------
@@ -364,7 +362,7 @@ QStringList TabularReport::Entry::lastInformationOrder()
 {
   QStringList informationTags, availableInformationTags;
 
-  QSettings settings(CESVIMA, ESPINA);
+  QString entriesFile = TabularReport::extraPath(m_category + ".xml");
 
   auto groupedInfo = availableInformation();
   for (auto group : groupedInfo.keys())
@@ -372,8 +370,9 @@ QStringList TabularReport::Entry::lastInformationOrder()
     availableInformationTags << groupedInfo[group];
   }
 
-  openCategorySettings(settings);
-  for (auto tag : settings.value("InformationOrder", QStringList()).toStringList())
+  QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+
+  for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
   {
     if (availableInformationTags.contains(tag))
     {
@@ -381,7 +380,6 @@ QStringList TabularReport::Entry::lastInformationOrder()
     }
   }
 
-  closeCategorySettings(settings);
 
   return informationTags;
 }
@@ -391,23 +389,19 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 {
   InformationSelector::GroupedInfo info, available;
 
-  QSettings settings(CESVIMA, ESPINA);
-
   available = availableInformation();
 
-  openCategorySettings(settings);
-  for(auto extention : settings.allKeys())
+  QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+  for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
   {
-    if (available.contains(extention))
+    for (auto extension : available.keys())
     {
-      for(auto tag : settings.value(extention).toStringList())
+      if (available[extension].contains(tag))
       {
-        if (available[extention].contains(tag))
-          info[extention] << tag;
+        info[extension] << tag;
       }
     }
   }
-  closeCategorySettings(settings);
 
   if (info.isEmpty())
   {
@@ -420,13 +414,6 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
 //------------------------------------------------------------------------
 void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder)
 {
-
-  QSettings settings(CESVIMA, ESPINA);
-
-  openCategorySettings(settings);
-
-  settings.remove(""); // clear all previous keys
-
   for(auto extensionType : extensionInformations.keys())
   {
     for (auto segmentation : m_model->segmentations())
@@ -444,19 +431,11 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
         }
       }
     }
-
-    settings.setValue(extensionType, extensionInformations[extensionType]);
   }
-
-  settings.setValue("InformationOrder", informationOrder);
 
   QStringList tags;
   tags << tr("Name") << informationOrder;
   m_proxy->setInformationTags(tags);
-
-  closeCategorySettings(settings);
-
-  settings.sync();
 
   auto header = new QStandardItemModel(1, tags.size(), this);
   header->setHorizontalHeaderLabels(tags);
@@ -508,18 +487,4 @@ QStringList TabularReport::Entry::information(InformationSelector::GroupedInfo e
   }
 
   return informations;
-}
-
-//------------------------------------------------------------------------
-void TabularReport::Entry::openCategorySettings(QSettings& settings)
-{
-  settings.beginGroup("TabularReport");
-  settings.beginGroup(m_category);
-}
-
-//------------------------------------------------------------------------
-void TabularReport::Entry::closeCategorySettings(QSettings& settings)
-{
-  settings.endGroup();
-  settings.endGroup();
 }

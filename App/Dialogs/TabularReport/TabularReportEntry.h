@@ -84,6 +84,9 @@ namespace EspINA
 
     bool exportToXLS(const QString &filename);
 
+    QString selectedInformationFile() const
+    {  return TabularReport::extraPath(m_category.replace("/",">") + ".txt"); }
+
     InformationSelector::GroupedInfo availableInformation();
 
     QStringList lastInformationOrder();
@@ -95,11 +98,6 @@ namespace EspINA
     QStringList information(InformationSelector::GroupedInfo extensionInformation);
 
     QStringList updateInformationOrder(InformationSelector::GroupedInfo extensionInformation);
-
-    void openCategorySettings(QSettings &settings);
-
-    void closeCategorySettings(QSettings &settings);
-
 
   private:
     QString           m_category;

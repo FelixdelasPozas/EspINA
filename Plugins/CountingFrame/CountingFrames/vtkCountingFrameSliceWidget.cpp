@@ -357,6 +357,8 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
       case EspINA::Plane::YZ:
         this->WidgetRep = SliceRepresentationYZ::New();
         break;
+      default:
+        Q_ASSERT(false);
     }
   }
 }

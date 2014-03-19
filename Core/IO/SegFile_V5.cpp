@@ -80,11 +80,7 @@ public:
 
   AnalysisSPtr load()
   {
-    QDir tmpDir = QDir::tempPath();
-    tmpDir.mkpath("espina");
-    tmpDir.cd("espina");
-
-    m_storage = TemporalStorageSPtr{new TemporalStorage(tmpDir)};
+    m_storage = TemporalStorageSPtr{new TemporalStorage()};
 
     if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
     {
@@ -126,6 +122,8 @@ public:
     loadContent();
 
     loadRelations();
+
+    m_analysis->setStorage(m_storage);
 
     return m_analysis;
   }
@@ -603,6 +601,18 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
       {
         throw (e);
       }
+    }
+  }
+
+  for (auto data : analysis->storage()->snapshots("Extra", TemporalStorage::Mode::Recursive))
+  {
+    try {
+      addFileToZip(data.first, data.second, zip, handler);
+    } catch (const IO_Error_Exception &e)
+    {
+//       if (handler)
+//         handler->wa("Error while saving Analysis Pipeline");
+//       throw (e);
     }
   }
 }

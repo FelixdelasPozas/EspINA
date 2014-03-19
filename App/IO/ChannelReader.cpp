@@ -72,6 +72,8 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 {
   AnalysisSPtr analysis{new Analysis()};
 
+  analysis->setStorage(TemporalStorageSPtr{new TemporalStorage()});
+
   auto sample = factory->createSample("Fake Sample");
 
   analysis->add(sample);

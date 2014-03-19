@@ -185,7 +185,7 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       try
       {
         mergedAnalysis->addRelation(source, target, relationship);
-      } catch (Analysis::Existing_Relation_Exception e)
+      } catch (Analysis::Existing_Relation_Exception &e)
       {
       }
     }

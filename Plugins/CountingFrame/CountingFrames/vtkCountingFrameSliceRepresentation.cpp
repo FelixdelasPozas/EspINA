@@ -220,7 +220,7 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
-                                                        EspINA::Nm bounds[6])
+                                                       EspINA::Nm bounds[6]) const
 {
   if (regionSlice < 0)
     vtkMath::UninitializeBounds(bounds);

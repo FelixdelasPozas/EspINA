@@ -49,6 +49,17 @@ void Analysis::reset()
 }
 
 //------------------------------------------------------------------------
+void Analysis::setStorage(TemporalStorageSPtr storage)
+{
+  m_storage = storage;
+
+  for (auto persistent : m_content->vertices())
+  {
+    persistent->setStorage(storage);
+  }
+}
+
+//------------------------------------------------------------------------
 void Analysis::setClassification(ClassificationSPtr classification)
 {
   m_classification = classification;

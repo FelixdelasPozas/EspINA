@@ -920,7 +920,19 @@ void ModelAdapter::reset()
   endResetModel();
 }
 
-// //------------------------------------------------------------------------
+//------------------------------------------------------------------------
+void ModelAdapter::setStorage(TemporalStorageSPtr storage)
+{
+  m_analysis->setStorage(storage);
+}
+
+//------------------------------------------------------------------------
+TemporalStorageSPtr ModelAdapter::storage() const
+{
+  return m_analysis->storage();
+}
+
+//------------------------------------------------------------------------
 int ModelAdapter::rowCount(const QModelIndex& parent) const
 {
   int count = 0;

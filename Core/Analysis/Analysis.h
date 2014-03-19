@@ -41,24 +41,29 @@ namespace EspINA
 
     void reset();
 
+    void setStorage(TemporalStorageSPtr storage);
+
+    TemporalStorageSPtr storage() const
+    { return m_storage; }
+
     void setClassification(ClassificationSPtr classification);
 
     ClassificationSPtr classification() const
     {return m_classification;}
 
-    void add(SampleSPtr            sample);
-    void add(SampleSList           samples);
-    void add(ChannelSPtr           channel);
-    void add(ChannelSList          channels);
-    void add(SegmentationSPtr      segmentation);
-    void add(SegmentationSList     segmentations);
+    void add(SampleSPtr           sample);
+    void add(SampleSList          samples);
+    void add(ChannelSPtr          channel);
+    void add(ChannelSList         channels);
+    void add(SegmentationSPtr     segmentation);
+    void add(SegmentationSList    segmentations);
 
-    void remove(SampleSPtr            sample);
-    void remove(SampleSList           samples);
-    void remove(ChannelSPtr           channel);
-    void remove(ChannelSList          channels);
-    void remove(SegmentationSPtr      segmentation);
-    void remove(SegmentationSList     segmentations);
+    void remove(SampleSPtr        sample);
+    void remove(SampleSList       samples);
+    void remove(ChannelSPtr       channel);
+    void remove(ChannelSList      channels);
+    void remove(SegmentationSPtr  segmentation);
+    void remove(SegmentationSList segmentations);
 
     SampleSList samples() const
     { return m_samples; }
@@ -88,43 +93,6 @@ namespace EspINA
     const DirectedGraphSPtr content()
     { return m_content; }
 
-//     //---------------------------------------------------------------------------
-//     /************************** SmartPointer API *******************************/
-//     //---------------------------------------------------------------------------
-//     PersistentSPtr find(PersistentPtr item);
-// 
-//     SampleSPtr findSample(PersistentPtr item  );
-//     SampleSPtr findSample(SamplePtr       sample);
-// 
-//     ChannelSPtr findChannel(PersistentPtr item   );
-//     ChannelSPtr findChannel(ChannelPtr      channel);
-// 
-//     SegmentationSPtr findSegmentation(PersistentPtr item        );
-//     SegmentationSPtr findSegmentation(SegmentationPtr segmentation);
-// 
-//     FilterSPtr findFilter(PersistentPtr item  );
-//     FilterSPtr findFilter(FilterPtr       filter);
-
-//     // signal emission methods, used by undo commands to signal finished operations.
-//     void emitSegmentationAdded(SegmentationSList);
-//     void emitChannelAdded(ChannelSList);
-// 
-//   signals:
-//     void classificationAdded  (ClassificationSPtr classification);
-//     void classificationRemoved(ClassificationSPtr classification);
-// 
-//     void sampleAdded  (SampleSPtr samples);
-//     void sampleRemoved(SampleSPtr samples);
-// 
-//     void channelAdded  (ChannelSPtr channel);
-//     void channelRemoved(ChannelSPtr channel);
-// 
-//     void segmentationAdded  (SegmentationSPtr segmentations);
-//     void segmentationRemoved(SegmentationSPtr segmentations);
-// 
-//     void filterAdded  (FilterSPtr filter);
-//     void filterRemoved(FilterSPtr filter);
-
   private:
     bool removeIfIsolated(DirectedGraphSPtr graph ,PersistentSPtr item);
 
@@ -136,16 +104,17 @@ namespace EspINA
                       PersistentSPtr      succesor,
                       const RelationName& relation);
 
-
   private:
-    ClassificationSPtr m_classification;
-    DirectedGraphSPtr  m_relations;
-    DirectedGraphSPtr  m_content;
+    ClassificationSPtr  m_classification;
+    DirectedGraphSPtr   m_relations;
+    DirectedGraphSPtr   m_content;
 
-    ChannelSList           m_channels;
-    FilterSList            m_filters; // NOTE: Could be removed
-    SampleSList            m_samples;
-    SegmentationSList      m_segmentations;
+    ChannelSList        m_channels;
+    FilterSList         m_filters; // NOTE: Could be removed
+    SampleSList         m_samples;
+    SegmentationSList   m_segmentations;
+
+    TemporalStorageSPtr m_storage;
   };
 
   using AnalysisPtr  = Analysis *;

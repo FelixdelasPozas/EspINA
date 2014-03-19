@@ -58,11 +58,7 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V4::Loader::load()
 {
-  QDir tmpDir = QDir::tempPath();
-  tmpDir.mkpath("espina");
-  tmpDir.cd("espina");
-
-  m_storage = TemporalStorageSPtr{new TemporalStorage(tmpDir)};
+  m_storage = TemporalStorageSPtr{new TemporalStorage()};
 
   m_vertexUuids.clear();
   m_trace.reset();

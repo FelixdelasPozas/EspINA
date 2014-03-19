@@ -99,6 +99,30 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
 //------------------------------------------------------------------------
 TabularReport::~TabularReport()
 {
+  QStringList currentEntries;
+
+  for (int i = 0; i < m_tabs->count(); ++i)
+  {
+    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+    currentEntries << m_tabs->tabText(i).replace("/",">");
+  }
+
+  TemporalStorageSPtr storage = m_model->storage();
+  // Remove old extras
+  if (m_model)
+  {
+    for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NoRecursive))
+    {
+      QFileInfo file(data.first);
+
+      if (!currentEntries.contains(file.baseName()))
+      {
+        QDir dir;
+        dir.remove(file.absoluteFilePath());
+      }
+    }
+  }
+
   removeTabsAndWidgets();
   delete m_tabs;
 }
@@ -144,7 +168,6 @@ void TabularReport::rowsInserted(const QModelIndex &parent, int start, int end)
 void TabularReport::setModel(ModelAdapterSPtr model)
 {
   m_model = model;
-  //m_factory = model->factory();
 
   QAbstractItemView::setModel(model.get());
 }

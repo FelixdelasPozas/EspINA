@@ -132,7 +132,7 @@ protected:
 
   virtual void CreateDefaultProperties();
 
-  void regionBounds(int regionSlice, EspINA::Nm bounds[6]);
+  void regionBounds(int regionSlice, EspINA::Nm bounds[6]) const;
 
   virtual EspINA::Nm realLeftEdge  (int slice=0) = 0;
   virtual EspINA::Nm realTopEdge   (int slice=0) = 0;

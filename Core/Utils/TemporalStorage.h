@@ -36,7 +36,14 @@ namespace EspINA {
   class EspinaCore_EXPORT TemporalStorage
   {
   public:
-    explicit TemporalStorage(const QDir& parent);
+    enum class Mode
+    {
+      Recursive
+    , NoRecursive
+    };
+
+  public:
+    explicit TemporalStorage(const QDir* parent = nullptr);
     ~TemporalStorage();
 
     /** \brief Write snapshot data to storage destination
@@ -46,6 +53,8 @@ namespace EspINA {
     void saveSnapshot(SnapshotData data);
 
     QByteArray snapshot(const QString& descriptor) const;
+
+    Snapshot snapshots(const QString& relativePath, Mode mode) const;
 
     void makePath(const QString& path)
     { m_storageDir.mkpath(path); }

@@ -29,11 +29,7 @@ using namespace EspINA;
 CoreFactory::CoreFactory(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 {
-  QDir tmpDir = QDir::tempPath();
-  tmpDir.mkpath("espina");
-  tmpDir.cd("espina");
-
-  m_defaultStorage = TemporalStorageSPtr{new TemporalStorage(tmpDir)};
+  m_defaultStorage = TemporalStorageSPtr{new TemporalStorage()};
 }
 
 
