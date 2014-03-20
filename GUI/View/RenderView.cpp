@@ -184,14 +184,13 @@ DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
 //-----------------------------------------------------------------------------
 void RenderView::updateSceneBounds()
 {
+  NmVector3 resolution = m_sceneResolution;
+
   if (!m_channelStates.isEmpty())
   {
     ChannelAdapterList channels = m_channelStates.keys();
     DefaultVolumetricDataSPtr volume = volumetricData(channels.first());
-    for(int i = 0; i < 3; ++i)
-    {
-      m_sceneResolution[i] = volume->spacing()[i];
-    }
+    m_sceneResolution = volume->spacing();
     m_sceneBounds = volume->bounds();
 
     for (int i = 1; i < channels.size(); ++i)
@@ -214,6 +213,9 @@ void RenderView::updateSceneBounds()
   }
   else
     resetSceneBounds();
+
+  if (resolution != m_sceneResolution)
+    emit sceneResolutionChanged();
 }
 
 //-----------------------------------------------------------------------------

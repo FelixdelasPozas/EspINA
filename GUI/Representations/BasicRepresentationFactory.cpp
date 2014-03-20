@@ -64,7 +64,7 @@ RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(Outpu
   if (type == ChannelSliceCachedRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr { new ChannelSliceCachedRepresentation(volume, nullptr, m_scheduler) };
+    representation = RepresentationSPtr { new ChannelSliceCachedRepresentation(volume, nullptr) };
   }
 
   return representation;
@@ -157,7 +157,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (volume)
     {
-      representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr, m_scheduler) };
+      representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr) };
     }
   }
 

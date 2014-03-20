@@ -184,6 +184,9 @@ namespace EspINA
     virtual void setVisualState(struct VisualState) = 0;
     virtual struct VisualState visualState() = 0;
 
+   signals:
+    virtual void sceneResolutionChanged();
+
   public slots:
     virtual void updateView() = 0;
 

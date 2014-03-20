@@ -43,6 +43,7 @@
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Representations/BasicRepresentationFactory.h>
+#include <GUI/Representations/Renderers/CachedSliceRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
 #include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
@@ -125,6 +126,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_availableRenderers << RendererSPtr(new VolumetricRenderer<itkVolumeType>());
   m_availableRenderers << RendererSPtr(new VolumetricGPURenderer<itkVolumeType>());
   m_availableRenderers << RendererSPtr(new ContourRenderer());
+  m_availableRenderers << RendererSPtr(new CachedSliceRenderer(m_scheduler));
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);

@@ -111,6 +111,8 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_inThumbnailClick{true}
 {
   setupUI();
+  qRegisterMetaType<Plane>("Plane");
+  qRegisterMetaType<Nm>("Nm");
 
   switch (m_plane)
   {

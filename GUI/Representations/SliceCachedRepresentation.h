@@ -19,39 +19,42 @@
 #ifndef ESPINA_SLICE_CACHED_REPRESENTATION_H_
 #define ESPINA_SLICE_CACHED_REPRESENTATION_H_
 
-#include "CachedRepresentation.h"
+// EspINA
+#include "Representation.h"
+#include "RepresentationEmptySettings.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/EspinaTypes.h>
 #include <GUI/View/View2D.h>
 
+// VTK
+#include <vtkSmartPointer.h>
+
+class vtkImageActor;
+
 namespace EspINA
 {
-  class CachedRepresentationTask;
-  using CachedRepresentationTaskPtr  = CachedRepresentationTask *;
-  using CachedRepresentationTaskSPtr = std::shared_ptr<CachedRepresentationTask>;
-
   class TransparencySelectionHighlighter;
 
   //-----------------------------------------------------------------------------
   class EspinaGUI_EXPORT ChannelSliceCachedRepresentation
-  : public CachedRepresentation
+  : public Representation
   {
+    Q_OBJECT
     public:
       static const Representation::Type TYPE;
-      using CachedRepresentation::needUpdate;
 
     public:
-      /* \brief Default class constructor.
+      /* \brief ChannelSliceCachedRepresentation class constructor.
        *
        */
       ChannelSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
-                                       View2D *view,
-                                       SchedulerSPtr scheduler);
+                                       View2D *view);
 
-      /* \brief Class virtual destructor.
+      /* \brief ChannelSliceCachedRepresentation virtual destructor.
        *
        */
-      virtual ~ChannelSliceCachedRepresentation() {};
+      virtual ~ChannelSliceCachedRepresentation()
+      {};
 
       /* \brief Returns true if the specified point is inside the channel.
        *
@@ -67,6 +70,7 @@ namespace EspINA
       { return Representation::RENDERABLEVIEW_SLICE; }
 
       /* \brief Method that triggers the update of the actors of the representation.
+       * Empty as this is not needed for this representation.
        *
        */
       virtual void updateRepresentation();
@@ -83,7 +87,45 @@ namespace EspINA
        *
        */
       virtual bool crosshairDependent() const
-      { return true; }
+      { return false; }
+
+      /* \brief Returns the actor of the channel in the specified slice position.
+       *
+       */
+      vtkSmartPointer<vtkImageActor> getActor(Nm pos);
+
+      /* \brief Implements Representation::settingsWidget.
+       *
+       */
+      virtual RepresentationSettings* settingsWidget()
+      { return new RepresentationEmptySettings(); }
+
+      /* \brief Implements Representation::hasActor.
+       *
+       */
+      virtual bool hasActor(vtkProp*) const
+      { return false; }
+
+      /* \brief Implements Representation::getActors.
+       *
+       */
+      virtual QList<vtkProp*> getActors()
+      { return QList<vtkProp *>(); }
+
+      /* \brief Implements Representation::updateVisibility.
+       *
+       */
+      virtual void updateVisibility(bool value);
+
+      /* \brief Returns the value of the last modification time of the m_data
+       * when the last actor was created.
+       */
+      TimeStamp getModificationTime()
+      { return m_timeStamp; }
+
+    signals:
+      void update();
+      void changeVisibility(bool);
 
     protected:
       /* \brief Clone this representation for the specified 2D view.
@@ -97,20 +139,6 @@ namespace EspINA
       virtual RepresentationSPtr cloneImplementation(View3D *view)
       { return RepresentationSPtr(); }
 
-      /* \brief Returns true if the representation in that node needs to update at the moment
-       * of calling this method.
-       *
-       */
-      virtual bool needUpdate(CacheNode *node);
-
-      /* \brief Returns a CachedRepresentationTask for the position and with the specified priority.
-       *
-       * Returns a CachedRepresentationTask for the position and with the specified priority. Is the
-       * responsibility of this method to see if the position is valid for the data that it holds.
-       * If not, it must return a nullptr.
-       */
-      CachedRepresentationTaskSPtr createTask(CacheNode *node, Priority priority = Priority::NORMAL);
-
       /* \brief Sets the view this representation will be renderer on.
        *
        * Sets the view this representation will be renderer on. The temporary actor (or symbolic as it
@@ -119,12 +147,9 @@ namespace EspINA
       void setView(View2D *view);
 
     private:
-      DefaultVolumetricDataSPtr m_data;         // data that will be represented.
-      SchedulerSPtr             m_scheduler;    // scheduler for the CachedRepresentationTasks
-      int                       m_planeIndex;   // plane index for the view.
-      Nm                        m_planeSpacing; // spacing value in the movement of the view.
-
-      friend class ChannelSliceCachedRepresentationTask;
+      DefaultVolumetricDataSPtr m_data;       // data that will be represented.
+      int                       m_planeIndex; // plane index for the view.
+      TimeStamp                 m_timeStamp;  // Modification time of the m_data when the actor was created.
     };
 
   using ChannelSliceCachedRepresentationPtr  = ChannelSliceCachedRepresentation *;
@@ -132,25 +157,25 @@ namespace EspINA
 
   //----------------------------------------------------------------------------- TODO
   class EspinaGUI_EXPORT SegmentationSliceCachedRepresentation
-  : public CachedRepresentation
+  : public Representation
   {
+    Q_OBJECT
     public:
       static const Representation::Type TYPE;
       static TransparencySelectionHighlighter *s_highlighter;
-      using CachedRepresentation::needUpdate;
 
     public:
-      /* \brief Default class constructor.
+      /* \brief SegmentationSliceCachedRepresentation class constructor.
        *
        */
       explicit SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
-                                                     View2D *view,
-                                                     SchedulerSPtr scheduler);
+                                                     View2D *view);
 
-      /* \brief Class virtual destructor.
+      /* \brief SegmentationSliceCachedRepresentation virtual destructor.
        *
        */
-      virtual ~SegmentationSliceCachedRepresentation() {};
+      virtual ~SegmentationSliceCachedRepresentation()
+      {};
 
       /* \brief Returns a serialization of this representation's settings.
        *
@@ -202,6 +227,7 @@ namespace EspINA
       { return Representation::RENDERABLEVIEW_SLICE; }
 
       /* \brief Method that triggers the update of the actors of the representation.
+       * Empty as this is not needed in this kind of representation.
        *
        */
       virtual void updateRepresentation();
@@ -218,7 +244,50 @@ namespace EspINA
        *
        */
       virtual bool crosshairDependent() const
-      { return true; }
+      { return false; }
+
+      /* \brief Returns the actor of the channel in the specified slice position.
+       *
+       */
+      vtkSmartPointer<vtkImageActor> getActor(Nm pos);
+
+      /* \brief Implements Representation::settingsWidget.
+       *
+       */
+      virtual RepresentationSettings* settingsWidget()
+      { return new RepresentationEmptySettings(); }
+
+      /* \brief Implements Representation::hasActor.
+       *
+       */
+      virtual bool hasActor(vtkProp*) const
+      { return false; }
+
+      /* \brief Implements Representation::getActors.
+       *
+       */
+      virtual QList<vtkProp*> getActors()
+      { return QList<vtkProp *>(); }
+
+      /* \brief Implements Representation::updateVisibility.
+       *
+       */
+      virtual void updateVisibility(bool value);
+
+      /* \brief Sets the view this representation will be renderer on.
+       *
+       */
+      void setView(View2D *view);
+
+      /* \brief Returns the value of the last modification time of the m_data
+       * when the last actor was created.
+       */
+      TimeStamp getModificationTime()
+      { return m_timeStamp; }
+
+    signals:
+      void update();
+      void changeVisibility(bool);
 
     protected:
       /* \brief Clone this representation for the specified 2D view.
@@ -232,35 +301,11 @@ namespace EspINA
       virtual RepresentationSPtr cloneImplementation(View3D *view)
       { return RepresentationSPtr(); }
 
-      /* \brief Returns true if the representation in that node needs to update at the moment
-       * of calling this method.
-       *
-       */
-      virtual bool needUpdate(CacheNode *node);
-
-      /* \brief Returns a CachedRepresentationTask for the position and with the specified priority.
-       *
-       * Returns a CachedRepresentationTask for the position and with the specified priority. Is the
-       * responsibility of this method to see if the position is valid for the data that it holds.
-       * If not, it must return a nullptr.
-       */
-      CachedRepresentationTaskSPtr createTask(CacheNode *node, Priority priority = Priority::NORMAL);
-
-      /* \brief Sets the view this representation will be renderer on.
-       *
-       * Sets the view this representation will be renderer on. The temporary actor (or symbolic as it
-       * extends the bounds of the data in that view) is computed here.
-       */
-      void setView(View2D *view);
-
     private:
-      DefaultVolumetricDataSPtr m_data;         // data that will be represented.
-      SchedulerSPtr             m_scheduler;    // scheduler for the CachedRepresentationTasks
-      int                       m_planeIndex;   // plane index for the view.
-      Nm                        m_planeSpacing; // spacing value in the movement of the view.
-      NmVector3                 m_depth;
-
-      friend class SegmentationSliceCachedRepresentationTask;
+      DefaultVolumetricDataSPtr m_data;       // data that will be represented.
+      int                       m_planeIndex; // plane index for the view.
+      NmVector3                 m_depth;      // depth of the actor for this view
+      TimeStamp                 m_timeStamp;  // Modification time of the m_data when the actor was created.
   };
 
   using SegmentationSliceCachedRepresentationPtr  = SegmentationSliceCachedRepresentation *;

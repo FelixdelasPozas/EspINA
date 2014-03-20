@@ -18,40 +18,38 @@
 
 // EspINA
 #include "SliceCachedRepresentation.h"
-#include "SliceCachedRepresentationTask.h"
 #include "RepresentationEmptySettings.h"
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
 #include <vtkMath.h>
-#include <vtkAssembly.h>
-#include <vtkActor.h>
-#include <vtkPolyData.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageShiftScale.h>
+#include <vtkLookupTable.h>
+#include <vtkImageMapper3D.h>
 #include <vtkProperty.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkTexture.h>
-#include <vtkPlaneSource.h>
-#include <vtkImageCanvasSource2D.h>
 
 namespace EspINA
 {
-  const Representation::Type ChannelSliceCachedRepresentation::TYPE = "Slice (Cached)";
+  const Representation::Type ChannelSliceCachedRepresentation::TYPE = "Channel Slice (Cached)";
 
   //-----------------------------------------------------------------------------
   ChannelSliceCachedRepresentation::ChannelSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
-                                                                     View2D *view,
-                                                                     SchedulerSPtr scheduler)
-  : CachedRepresentation(view)
+                                                                     View2D *view)
+  : Representation(view)
   , m_data{data}
-  , m_scheduler{scheduler}
+  , m_planeIndex{-1}
+  , m_timeStamp{0}
   {
+    setType(TYPE);
   }
   
   //-----------------------------------------------------------------------------
   RepresentationSPtr ChannelSliceCachedRepresentation::cloneImplementation(View2D* view)
   {
-    ChannelSliceCachedRepresentation *representation =  new ChannelSliceCachedRepresentation(m_data, view, m_scheduler);
+    ChannelSliceCachedRepresentation *representation =  new ChannelSliceCachedRepresentation(m_data, view);
     representation->setView(view);
 
     return RepresentationSPtr(representation);
@@ -64,197 +62,94 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool ChannelSliceCachedRepresentation::needUpdate(CacheNode *node)
+  void ChannelSliceCachedRepresentation::setView(View2D *view)
   {
-    QMutexLocker lock(&node->mutex);
-    if (node->actor != nullptr)
-      return node->creationTime != m_data->lastModified();
-    else
-      return false;
+    m_view = view;
+    m_planeIndex = normalCoordinateIndex(view->plane());
+  }
+
+  //-----------------------------------------------------------------------------
+  vtkSmartPointer<vtkImageActor> ChannelSliceCachedRepresentation::getActor(Nm slicePos)
+  {
+    if (m_planeIndex == -1 || m_view == nullptr)
+      return nullptr;
+
+    Bounds imageBounds = m_data->bounds();
+    bool valid = imageBounds[2*m_planeIndex] <= slicePos && slicePos < imageBounds[2*m_planeIndex+1];
+
+    if (!valid)
+      return nullptr;
+
+    vtkSmartPointer<vtkImageData> slice = vtkSmartPointer<vtkImageData>::New();
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = slicePos;
+
+    slice = vtkImage(m_data, imageBounds);
+
+    vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
+    shiftScaleFilter->SetInputData(slice);
+    shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
+    shiftScaleFilter->SetScale(m_contrast);
+    shiftScaleFilter->SetClampOverflow(true);
+    shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
+    shiftScaleFilter->Update();
+
+    vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+    lut->Allocate();
+    lut->SetTableRange(0,255);
+    lut->SetHueRange(m_color.hueF(), m_color.hueF());
+    lut->SetSaturationRange(0.0, m_color.saturationF());
+    lut->SetValueRange(0.0, 1.0);
+    lut->SetAlphaRange(1.0,1.0);
+    lut->SetNumberOfColors(256);
+    lut->SetRampToLinear();
+    lut->Build();
+
+    vtkSmartPointer<vtkImageMapToColors> mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+    mapToColors->SetInputConnection(shiftScaleFilter->GetOutputPort());
+    mapToColors->SetLookupTable(lut);
+    mapToColors->SetNumberOfThreads(1);
+    mapToColors->Update();
+
+    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->SetInterpolate(false);
+    actor->GetMapper()->BorderOn();
+    actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+    actor->SetDisplayExtent(slice->GetExtent());
+    actor->SetVisibility(isVisible());
+    actor->Update();
+
+    m_timeStamp = m_data->lastModified();
+    return actor;
   }
 
   //-----------------------------------------------------------------------------
   void ChannelSliceCachedRepresentation::updateRepresentation()
   {
-    setCrosshairPoint(m_view->crosshairPoint());
-
-    Nm position = m_crosshair[m_planeIndex];
-
-    // actual position range
-    Nm min = (static_cast<Nm>(m_actualPos->position) - 0.5 )*m_planeSpacing;
-    Nm max = min + m_planeSpacing;
-
-    auto bounds = m_data->bounds();
-    bool valid = (bounds[2*m_planeIndex] <= position) && (bounds[2*m_planeIndex+1] > position);
-
-    if (!valid || !isVisible())
-    {
-      m_actualPos->mutex.lock();
-      if (m_actualPos->actor != nullptr)
-        m_actualPos->actor->SetVisibility(false);
-      else
-        if (m_symbolicActor != nullptr)
-          m_symbolicActor->SetVisibility(false);
-      m_actualPos->mutex.unlock();
-      return;
-    }
-
-    // update slice if needed
-    if (position < min || position > max)
-    {
-      // move symbolic actor into the correct depth position
-      if (m_symbolicActor)
-      {
-        double pos[3];
-        m_symbolicActor->GetPosition(pos);
-        pos[m_planeIndex] = m_crosshair[m_planeIndex];
-        m_symbolicActor->SetPosition(pos);
-        m_symbolicActor->Modified();
-      }
-
-      setPosition(vtkMath::Floor((m_crosshair[m_planeIndex]/m_planeSpacing) + 0.5));
-    }
-
-    // update actors if needed
-    if (needUpdate())
-    {
-      CacheNode *node = m_actualPos;
-      for(unsigned int i = 0; i < ((2*m_windowWidth) + 1); ++i)
-      {
-        if (needUpdate(node))
-        {
-          node->mutex.lock();
-
-          if (node == m_actualPos)
-          {
-            m_view->removeActor(node->actor);
-            if (m_symbolicActor != nullptr)
-            {
-              m_symbolicActor->GetProperty()->SetOpacity(opacity());
-              m_symbolicActor->SetVisibility(isVisible());
-              m_view->addActor(m_symbolicActor);
-            }
-          }
-
-          node->actor = nullptr;
-          node->worker = createTask(node);
-          if (node->worker != nullptr)
-          {
-            node->worker->setDescription(QString("Creating actor for slice %1 in plane %2").arg(node->position).arg(m_planeIndex));
-            if (node == m_actualPos)
-              connect(node->worker.get(), SIGNAL(render(CachedRepresentation::CacheNode *)), this, SLOT(renderFrame(CachedRepresentation::CacheNode *)), Qt::QueuedConnection);
-            node->worker->submit(node->worker);
-          }
-          node->mutex.unlock();
-        }
-        node = node->next;
-      }
-    }
+    if (m_timeStamp != m_data->lastModified())
+      emit update();
   }
 
   //-----------------------------------------------------------------------------
-  CachedRepresentationTaskSPtr ChannelSliceCachedRepresentation::createTask(CacheNode *node, Priority priority)
+  void ChannelSliceCachedRepresentation::updateVisibility(bool value)
   {
-    Nm posNm = (static_cast<Nm>(node->position) - 0.5) * m_planeSpacing;
-    auto bounds = m_data->bounds();
-    if (!m_view || (bounds[2*m_planeIndex] > posNm) || (bounds[2*m_planeIndex+1] <= posNm))
-      return nullptr;
-
-//    qDebug() << "create channel task con pos" << node->position << "(" << posNm << "," << bounds << ")";
-
-    ChannelSliceCachedRepresentationTask *task = new ChannelSliceCachedRepresentationTask(m_scheduler);
-    task->setPriority(priority);
-    task->setHidden(true);
-    task->setDescription(QString("Creating actor for position %1 in plane %2").arg(node->position).arg(m_planeIndex));
-    task->setInput(m_data, posNm, toPlane(m_planeIndex), brightness(), contrast(), color(), NmVector3(), node);
-
-    return CachedRepresentationTaskSPtr{task};
-  }
-
-  //-----------------------------------------------------------------------------
-  void ChannelSliceCachedRepresentation::setView(View2D *view)
-  {
-    auto spacing = m_data->spacing();
-
-    m_view = view;
-    m_planeIndex = normalCoordinateIndex(view->plane());
-    m_planeSpacing = spacing[m_planeIndex];
-
-    vtkSmartPointer<vtkImageCanvasSource2D> canvas = vtkSmartPointer<vtkImageCanvasSource2D>::New();
-    canvas->DebugOn();
-    canvas->SetScalarTypeToUnsignedChar();
-    canvas->SetNumberOfScalarComponents(4);
-    canvas->SetExtent(0,31,0,31,0,0);
-    canvas->SetDefaultZ(0);
-    canvas->SetDrawColor(0,0,0,0);
-    canvas->FillBox(0,31,0,31);
-    canvas->SetDrawColor(255,255,255,128);
-    for (auto i = 0; i < 32; i += 2)
-      for (auto j = 0; j < 32; j += 2)
-      {
-        canvas->DrawPoint(i,j);
-        canvas->DrawPoint(i+1,j+1 % 32);
-      }
-    canvas->Update();
-
-    vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
-    texture->DebugOn();
-    texture->SetInputData(canvas->GetOutput());
-    texture->SetInterpolate(false);
-    texture->SetBlendingMode(vtkTexture::VTK_TEXTURE_BLENDING_MODE_NONE);
-    texture->SetEdgeClamp(true);
-    texture->SetRepeat(false);
-
-    auto bounds = m_data->bounds();
-    vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
-    plane->SetOrigin(bounds[0], bounds[2], bounds[4]);
-
-    switch(view->plane())
-    {
-      case Plane::XY:
-        plane->SetPoint1(bounds[0], bounds[3], bounds[4]);
-        plane->SetPoint2(bounds[1], bounds[2], bounds[4]);
-        break;
-      case Plane::XZ:
-        plane->SetPoint1(bounds[0], bounds[2], bounds[5]);
-        plane->SetPoint2(bounds[1], bounds[2], bounds[4]);
-        break;
-      case Plane::YZ:
-        plane->SetPoint1(bounds[0], bounds[3], bounds[4]);
-        plane->SetPoint2(bounds[0], bounds[2], bounds[5]);
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-    plane->Update();
-
-    vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    Mapper->SetInputData(plane->GetOutput());
-    Mapper->Update();
-
-    m_symbolicActor = vtkSmartPointer<vtkActor>::New();
-    m_symbolicActor->SetMapper(Mapper);
-    m_symbolicActor->SetTexture(texture);
-    m_symbolicActor->GetProperty()->SetColor(color().redF(),color().greenF(), color().blueF());
-    m_symbolicActor->SetPickable(false);
-
-    m_view->addActor(m_symbolicActor);
-    m_view->updateView();
-
-    setPosition(vtkMath::Floor((bounds[2*m_planeIndex]/spacing[m_planeIndex] + 0.5)));
+    emit changeVisibility(value);
   }
 
   //-----------------------------------------------------------------------------
   TransparencySelectionHighlighter *SegmentationSliceCachedRepresentation::s_highlighter = new TransparencySelectionHighlighter();
-  const Representation::Type SegmentationSliceCachedRepresentation::TYPE = "Slice (Cached)";
+  const Representation::Type SegmentationSliceCachedRepresentation::TYPE = "Segmentation Slice (Cached)";
 
   //-----------------------------------------------------------------------------
-  SegmentationSliceCachedRepresentation::SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data, View2D *view, SchedulerSPtr scheduler)
-  : CachedRepresentation(view)
+  SegmentationSliceCachedRepresentation::SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data, View2D *view)
+  : Representation(view)
   , m_data{data}
-  , m_scheduler{scheduler}
+  , m_planeIndex{-1}
+  , m_depth{NmVector3()}
+  , m_timeStamp{0}
   {
+    setType(TYPE);
   }
 
   //-----------------------------------------------------------------------------
@@ -287,7 +182,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::setColor(const QColor& color)
   {
-    CachedRepresentation::setColor(color);
+    Representation::setColor(color);
 
     for (auto clone: m_clones)
       clone->setColor(color);
@@ -307,16 +202,6 @@ namespace EspINA
   {
     Representation::setHighlighted(highlighted);
 
-    int position = m_actualPos->position;
-    clearCache();
-    fillCache(position);
-
-    if (m_symbolicActor != nullptr)
-    {
-      m_symbolicActor->GetProperty()->SetColor(color().redF(), color().greenF(), color().blueF());
-      m_symbolicActor->Modified();
-    }
-
     for (auto clone: m_clones)
       clone->setHighlighted(highlighted);
   }
@@ -330,195 +215,72 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   RepresentationSPtr SegmentationSliceCachedRepresentation::cloneImplementation(View2D* view)
   {
-    SegmentationSliceCachedRepresentation *representation =  new SegmentationSliceCachedRepresentation(m_data, view, m_scheduler);
+    SegmentationSliceCachedRepresentation *representation =  new SegmentationSliceCachedRepresentation(m_data, view);
     representation->setView(view);
 
     return RepresentationSPtr(representation);
   }
   
   //-----------------------------------------------------------------------------
-  bool SegmentationSliceCachedRepresentation::needUpdate(CacheNode *node)
+  vtkSmartPointer<vtkImageActor> SegmentationSliceCachedRepresentation::getActor(Nm slicePos)
   {
-    QMutexLocker lock(&node->mutex);
-    if (node->actor != nullptr)
-      return node->creationTime != m_data->lastModified();
-    else
-      return false;
-  }
-
-  //-----------------------------------------------------------------------------
-  void SegmentationSliceCachedRepresentation::updateRepresentation()
-  {
-    setCrosshairPoint(m_view->crosshairPoint());
-
-    Nm position = m_crosshair[m_planeIndex];
-
-    // actual position range
-    Nm min = (static_cast<Nm>(m_actualPos->position) - 0.5 )*m_planeSpacing;
-    Nm max = min + m_planeSpacing;
-
-    auto bounds = m_data->bounds();
-    bool valid = (bounds[2*m_planeIndex] <= position) && (bounds[2*m_planeIndex+1] > position);
-
-    if (!valid || !isVisible())
-    {
-      m_actualPos->mutex.lock();
-      if (m_actualPos->actor != nullptr)
-        m_actualPos->actor->SetVisibility(false);
-      else
-        if (m_symbolicActor != nullptr)
-          m_symbolicActor->SetVisibility(false);
-      m_actualPos->mutex.unlock();
-      return;
-    }
-
-    // update slice if needed
-    if (position < min || position > max)
-    {
-      // move symbolic actor into the correct depth position
-      if (m_symbolicActor)
-      {
-        double pos[3];
-        m_symbolicActor->GetPosition(pos);
-        pos[m_planeIndex] = m_crosshair[m_planeIndex] + m_depth[m_planeIndex];
-        m_symbolicActor->SetPosition(pos);
-        m_symbolicActor->Modified();
-      }
-
-      setPosition(vtkMath::Floor((m_crosshair[m_planeIndex]/m_planeSpacing) + 0.5));
-    }
-
-    // update actors if needed
-    if (needUpdate())
-    {
-      CacheNode *node = m_actualPos;
-      for(unsigned int i = 0; i < ((2*m_windowWidth) + 1); ++i)
-      {
-        if (needUpdate(node))
-        {
-          node->mutex.lock();
-
-          if (node == m_actualPos)
-          {
-            m_view->removeActor(node->actor);
-            if (m_symbolicActor != nullptr)
-            {
-              m_symbolicActor->GetProperty()->SetOpacity(opacity());
-              m_symbolicActor->SetVisibility(isVisible());
-              m_view->addActor(m_symbolicActor);
-            }
-          }
-
-          node->actor = nullptr;
-          node->worker = createTask(node);
-          if (node->worker != nullptr)
-          {
-            node->worker->setDescription(QString("Creating actor for slice %1 in plane %2").arg(node->position).arg(m_planeIndex));
-            if (node == m_actualPos)
-              connect(node->worker.get(), SIGNAL(render(CachedRepresentation::CacheNode *)), this, SLOT(renderFrame(CachedRepresentation::CacheNode *)), Qt::QueuedConnection);
-            node->worker->submit(node->worker);
-          }
-          node->mutex.unlock();
-        }
-        node = node->next;
-      }
-    }
-  }
-  
-  //-----------------------------------------------------------------------------
-  CachedRepresentationTaskSPtr SegmentationSliceCachedRepresentation::createTask(CacheNode *node, Priority priority)
-  {
-    Nm posNm = (static_cast<Nm>(node->position) - 0.5) * m_planeSpacing;
-    auto bounds = m_data->bounds();
-
-    if (!m_view || (bounds[2*m_planeIndex] > posNm) || (bounds[2*m_planeIndex+1] <= posNm))
+    if (m_planeIndex == -1 || m_view == nullptr)
       return nullptr;
 
-//    qDebug() << "create seg task con pos" << node->position << "(" << posNm << "," << bounds << ")";
+    Bounds imageBounds = m_data->bounds();
+    bool valid = imageBounds[2*m_planeIndex] <= slicePos && slicePos < imageBounds[2*m_planeIndex+1];
 
-    SegmentationSliceCachedRepresentationTask *task = new SegmentationSliceCachedRepresentationTask(m_scheduler);
-    task->setPriority(priority);
-    task->setHidden(true);
-    task->setDescription(QString("Creating actor for slice %1 in plane %2").arg(node->position).arg(m_planeIndex));
-    task->setInput(m_data, posNm, toPlane(m_planeIndex), 0.0, 0.0, color(), m_depth, node);
+    if (!valid)
+      return nullptr;
 
-    return CachedRepresentationTaskSPtr{task};
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = slicePos;
+
+    auto slice = vtkImage(m_data, imageBounds);
+
+    vtkSmartPointer<vtkImageMapToColors> mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+    mapToColors->SetInputData(slice);
+    mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
+    mapToColors->SetNumberOfThreads(1);
+    mapToColors->Update();
+
+    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    actor->SetInterpolate(false);
+    actor->GetMapper()->BorderOn();
+    actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+    actor->SetDisplayExtent(slice->GetExtent());
+    actor->Update();
+
+    // need to reposition the actor so it will always be over the channels actors'
+    double pos[3];
+    actor->GetPosition(pos);
+    pos[m_planeIndex] += m_depth[m_planeIndex];
+    actor->SetPosition(pos);
+
+    m_timeStamp = m_data->lastModified();
+    return actor;
   }
 
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::setView(View2D *view)
   {
-    auto spacing = m_data->spacing();
-
     m_view = view;
     m_planeIndex = normalCoordinateIndex(view->plane());
-    m_planeSpacing = spacing[m_planeIndex];
-    NmVector3 m_depth;
-    m_depth[m_planeIndex] = (view->plane() == Plane::XY) ? -view->segmentationDepth() : view->segmentationDepth();
+    m_depth[m_planeIndex] = view->segmentationDepth();
+  }
 
-    vtkSmartPointer<vtkImageCanvasSource2D> canvas = vtkSmartPointer<vtkImageCanvasSource2D>::New();
-    canvas->DebugOn();
-    canvas->SetScalarTypeToUnsignedChar();
-    canvas->SetNumberOfScalarComponents(4);
-    canvas->SetExtent(0,31,0,31,0,0);
-    canvas->SetDefaultZ(0);
-    canvas->SetDrawColor(0,0,0,0);
-    canvas->FillBox(0,31,0,31);
-    canvas->SetDrawColor(255,255,255,128);
-    for (auto i = 0; i < 32; i += 2)
-      for (auto j = 0; j < 32; j += 2)
-      {
-        canvas->DrawPoint(i,j);
-        canvas->DrawPoint(i+1,j+1 % 32);
-      }
-    canvas->Update();
+  //-----------------------------------------------------------------------------
+  void SegmentationSliceCachedRepresentation::updateRepresentation()
+  {
+    if (m_timeStamp != m_data->lastModified())
+      emit update();
+  }
 
-    vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
-    texture->DebugOn();
-    texture->SetInputData(canvas->GetOutput());
-    texture->SetInterpolate(false);
-    texture->SetBlendingMode(vtkTexture::VTK_TEXTURE_BLENDING_MODE_NONE);
-    texture->SetEdgeClamp(true);
-    texture->SetRepeat(false);
-
-    auto bounds = m_data->bounds();
-    vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
-    plane->SetOrigin(bounds[0], bounds[2], bounds[4]);
-
-    switch(view->plane())
-    {
-      case Plane::XY:
-        plane->SetPoint1(bounds[0], bounds[3], bounds[4]);
-        plane->SetPoint2(bounds[1], bounds[2], bounds[4]);
-        break;
-      case Plane::XZ:
-        plane->SetPoint1(bounds[0], bounds[2], bounds[5]);
-        plane->SetPoint2(bounds[1], bounds[2], bounds[4]);
-        break;
-      case Plane::YZ:
-        plane->SetPoint1(bounds[0], bounds[3], bounds[4]);
-        plane->SetPoint2(bounds[0], bounds[2], bounds[5]);
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-    plane->Update();
-
-    vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    Mapper->SetInputData(plane->GetOutput());
-    Mapper->Update();
-
-    m_symbolicActor = vtkSmartPointer<vtkActor>::New();
-    m_symbolicActor->SetMapper(Mapper);
-    m_symbolicActor->SetTexture(texture);
-    m_symbolicActor->GetProperty()->SetColor(color().redF(),color().greenF(), color().blueF());
-    m_symbolicActor->SetPickable(false);
-
-    m_view->addActor(m_symbolicActor);
-    m_view->updateView();
-
-    setPosition(vtkMath::Floor((bounds[2*m_planeIndex]/spacing[m_planeIndex] + 0.5)));
+  //-----------------------------------------------------------------------------
+  void SegmentationSliceCachedRepresentation::updateVisibility(bool value)
+  {
+    emit changeVisibility(value);
   }
 
 } // namespace EspINA

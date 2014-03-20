@@ -126,7 +126,7 @@ void SchedulerProgress::updateProgress()
 
   m_progressBar->setValue(total);
 
-  setVisible(0 != total);
+  setVisible(0 != total || m_tasks.size() != 0);
 }
 
 //------------------------------------------------------------------------

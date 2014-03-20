@@ -49,7 +49,7 @@ ViewManager::ViewManager()
 , m_activeCategory(nullptr)
 {
 //   QSettings settings(CESVIMA, ESPINA);
-  bool fitEnabled;
+  bool fitEnabled = true;
 
 //   if (!settings.allKeys().contains(FIT_TO_SLICES))
 //   {

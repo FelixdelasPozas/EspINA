@@ -51,7 +51,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentation/ApplyROI.h
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
-  ToolGroups/Segmentation/SegmentationTools.h
   ToolGroups/Editor/EditionTools.h
   ToolGroups/Editor/SplitTool.h
   ToolGroups/Editor/MorphologicalEditionTool.h

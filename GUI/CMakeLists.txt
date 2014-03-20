@@ -14,7 +14,6 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
-  Representations/ContourRepresentationSettings.h
   Representations/CrosshairRepresentation.h
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
@@ -22,8 +21,9 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationEmptySettings.h
   Representations/SliceRepresentationSettings.h
   Representations/SmoothedMeshRepresentation.h
-  Representations/CachedRepresentation.h
-  Representations/CachedRepresentationTask.h
+  Representations/SliceCachedRepresentation.h
+  Representations/Renderers/CachedSliceRenderer.h
+  Representations/Renderers/CachedSliceRendererTask.h
   Selectors/Selector.h
   Selectors/BrushSelector.h
   View/RenderView.h
@@ -97,15 +97,15 @@ set (GUI_SOURCES
   Representations/Renderers/RepresentationRenderer.cpp
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp
+  Representations/Renderers/CachedSliceRenderer.cpp
+  Representations/Renderers/CachedSliceRendererTask.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
   Representations/SmoothedMeshRepresentation.cpp
-  Representations/CachedRepresentation.cpp
   Representations/SliceCachedRepresentation.cpp
-  Representations/SliceCachedRepresentationTask.cpp
   Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
@@ -181,4 +181,5 @@ GENERATE_EXPORT_HEADER(
              EXPORT_MACRO_NAME EspinaGUI_EXPORT
              EXPORT_FILE_NAME EspinaGUI_Export.h
 			 )
+
 target_link_libraries (EspinaGUI ${GUI_EXTERNAL_LIBS})
