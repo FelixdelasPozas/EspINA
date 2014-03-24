@@ -1447,6 +1447,9 @@ void View2D::centerViewOn(const NmVector3& point, bool force)
     m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
   }
 
+  // needed to make some renderers update (cached ones for example)
+  emit sliceChanged(m_plane, slicingPosition());
+
   updateView();
 }
 

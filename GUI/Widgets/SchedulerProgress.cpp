@@ -57,6 +57,16 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 }
 
 //------------------------------------------------------------------------
+SchedulerProgress::~SchedulerProgress()
+{
+  for(auto task: m_tasks.keys())
+  {
+    m_tasks[task] = nullptr;
+    m_tasks.remove(task);
+  }
+}
+
+//------------------------------------------------------------------------
 void SchedulerProgress::onTaskAdded(TaskSPtr task)
 throw (Duplicated_Task_Exception)
 {

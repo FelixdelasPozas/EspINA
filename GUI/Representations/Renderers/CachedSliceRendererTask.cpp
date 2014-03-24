@@ -43,9 +43,11 @@ namespace EspINA
     m_node = node;
     m_position = node->position;
 
-    struct CachedSliceRenderer::ActorData dummy;
     for(auto rep: representations)
-      m_representations.insert(rep, dummy);
+    {
+      struct CachedSliceRenderer::ActorData dummy;
+      m_representations[rep] = dummy;
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -54,21 +56,15 @@ namespace EspINA
     if (ChannelSliceCachedRepresentation::TYPE == representation->type())
     {
       auto channelRep = std::dynamic_pointer_cast<ChannelSliceCachedRepresentation>(representation);
-      if (m_representations[representation].actor == nullptr && m_representations[representation].time != channelRep->getModificationTime())
-      {
-        m_representations[representation].actor = channelRep->getActor(m_position);
-        m_representations[representation].time  = channelRep->getModificationTime();;
-      }
+      m_representations[representation].actor = channelRep->getActor(m_position);
+      m_representations[representation].time  = channelRep->getModificationTime();;
     }
 
     if (SegmentationSliceCachedRepresentation::TYPE == representation->type())
     {
       auto segRep = std::dynamic_pointer_cast<SegmentationSliceCachedRepresentation>(representation);
-      if (m_representations[representation].actor == nullptr && m_representations[representation].time != segRep->getModificationTime())
-      {
-        m_representations[representation].actor = segRep->getActor(m_position);
-        m_representations[representation].time = segRep->getModificationTime();
-      }
+      m_representations[representation].actor = segRep->getActor(m_position);
+      m_representations[representation].time = segRep->getModificationTime();
     }
   }
 
@@ -82,33 +78,62 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
+  bool CachedSliceRendererTask::needToRestart()
+  {
+    bool result = m_node->restart;
+
+    if (result)
+    {
+      m_node->mutex.lockForWrite();
+      m_position = m_node->position;
+      m_node->restart = false;
+      m_node->mutex.unlock();
+    }
+
+    return result;
+  }
+
+  //-----------------------------------------------------------------------------
   void CachedSliceRendererTask::run()
   {
     int count = 0;
 
-    for (auto rep : m_representations.keys())
+    bool pendingData = true;
+
+    while(pendingData)
     {
-      if (!canExecute())
-        return;
+      pendingData = false;
+      for (auto rep : m_representations.keys())
+      {
+        if (!canExecute())
+          return;
 
-      computeData(rep);
+        if (needToRestart())
+        {
+          pendingData = true;
+          break;
+        }
 
-      ++count;
-      emit progress((count * 100) / m_representations.size());
+        computeData(rep);
+
+        ++count;
+        emit progress((count * 100) / m_representations.size());
+      }
     }
 
-    m_node->mutex.lock();
-    if (m_node->position != m_position || m_node->worker == nullptr || m_node->worker.get() != this)
-    {
-      m_node->mutex.unlock();
-      releaseActors();
+    if (!canExecute())
       return;
+
+    m_node->mutex.lockForWrite();
+    if (m_node->position != m_position || m_node->worker == nullptr || m_node->worker.get() != this || m_node->restart)
+      releaseActors();
+    else
+    {
+      for (auto rep: m_representations.keys())
+        m_node->representations[rep] = m_representations[rep];
     }
-
-    for (auto rep: m_representations.keys())
-      m_node->representations[rep] = m_representations[rep];
-
     m_node->mutex.unlock();
+
     emit ready(m_node);
   }
 

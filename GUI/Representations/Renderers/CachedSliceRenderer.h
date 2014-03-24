@@ -131,6 +131,7 @@ namespace EspINA
           TimeStamp                      time;
 
           ActorData(): actor{nullptr}, time(-1) {};
+          ~ActorData() { actor = nullptr; };
       };
 
       /* \brief Circular buffer node.
@@ -139,17 +140,25 @@ namespace EspINA
        */
       struct CacheNode
       {
+          // written by renderer, read by tasks
           Nm                                         position;
           CachedSliceRendererTaskSPtr                worker;
-          QMap<RepresentationSPtr, struct ActorData> representations;
-          CacheNode                                 *next;
-          CacheNode                                 *previous;
-          QMutex                                     mutex;
 
+          // written by both renderer and tasks
+          QMap<RepresentationSPtr, struct ActorData> representations;
           RepresentationSList                        repsToAdd;
           RepresentationSList                        repsToDelete;
+          bool                                       restart;
 
-          CacheNode(): position{0}, worker{nullptr}, next{nullptr}, previous{nullptr} {};
+          // tasks never touch those two
+          CacheNode                                 *next;
+          CacheNode                                 *previous;
+
+          // used by both tasks and renderer
+          QReadWriteLock                             mutex;
+
+          CacheNode(): position{0}, worker{nullptr}, restart{false}, next{nullptr}, previous{nullptr} {};
+          ~CacheNode() { worker = nullptr; };
       };
 
     public slots:
@@ -169,7 +178,7 @@ namespace EspINA
        * Returns a task with the input set, ready to be executed. The parameters specify the
        * position (slice) of the actors and the priority of the task (NORMAL priority if omitted).
        */
-      virtual CachedSliceRendererTaskSPtr createTask(Priority priority = Priority::NORMAL);
+      virtual CachedSliceRendererTaskSPtr createTask(Priority priority = Priority::LOW);
 
       /* \brief Prints the cache window info.
        *
@@ -182,15 +191,9 @@ namespace EspINA
        */
       void initCache();
 
-      /* \brief Clears the cache.
-       *
-       * Does not modify the cache size, just deletes tasks and actors.
-       */
-      void clearCache();
-
       /* \brief Populates all the cache.
        *
-       * Fills the cache nodes with tasks.
+       * Deletes all previous existing actors and fills the cache nodes with tasks.
        */
       void fillCache(Nm position);
 
@@ -213,7 +216,8 @@ namespace EspINA
       CacheNode     *m_actualPos;      // Node interpreted as the "center" of the circular buffer and actual actors on the view.
       CacheNode     *m_edgePos;        // Node interpreted as a edge of the circular buffer and the one inserting/deleting tasks.
       Nm             m_windowSpacing;
-      RepresentationSList m_representationList;
+
+      QMap<RepresentationSPtr, struct ActorData> m_representationsActors;
 
       vtkSmartPointer<vtkPropPicker> m_picker;
       SchedulerSPtr                  m_scheduler;

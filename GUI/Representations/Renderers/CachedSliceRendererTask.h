@@ -77,6 +77,11 @@ namespace EspINA
        */
       void releaseActors();
 
+      /* \brief Checks the node flag and returns true if the task must restart its work.
+       *
+       */
+      bool needToRestart();
+
       QMap<RepresentationSPtr, struct CachedSliceRenderer::ActorData> m_representations;
 
       unsigned long long              m_executionTime;

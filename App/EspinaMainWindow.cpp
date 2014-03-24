@@ -97,7 +97,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
 , m_settings     (new GeneralSettings())
-, m_schedulerProgress(new SchedulerProgress(m_scheduler, this))
+, m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy(false)
 , m_undoStackSavedIndex(0)
 , m_errorHandler(new EspinaErrorHandler(this))

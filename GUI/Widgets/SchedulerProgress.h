@@ -40,6 +40,8 @@ namespace EspINA {
                                QWidget        *parent = 0,
                                Qt::WindowFlags f = 0);
 
+    virtual ~SchedulerProgress();
+
   private slots:
     void onTaskAdded  (TaskSPtr task) throw (Duplicated_Task_Exception);
 
