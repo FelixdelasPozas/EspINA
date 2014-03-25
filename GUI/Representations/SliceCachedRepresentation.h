@@ -113,19 +113,25 @@ namespace EspINA
       { return QList<vtkProp *>(); }
 
       /* \brief Implements Representation::updateVisibility.
+       * \param[in] unused This value is ignored.
        *
        */
-      virtual void updateVisibility(bool value);
+      virtual void updateVisibility(bool unused);
 
       /* \brief Returns the value of the last modification time of the m_data
        * when the last actor was created.
        */
       TimeStamp getModificationTime()
-      { return m_timeStamp; }
+      { return m_lastUpdatedTime; }
+
+      /* \brief Returns true if the representation can generate an actor in that position.
+       *
+       */
+      bool existsIn(const Nm position) const;
 
     signals:
       void update();
-      void changeVisibility(bool);
+      void changeVisibility();
 
     protected:
       /* \brief Clone this representation for the specified 2D view.
@@ -149,7 +155,6 @@ namespace EspINA
     private:
       DefaultVolumetricDataSPtr m_data;       // data that will be represented.
       int                       m_planeIndex; // plane index for the view.
-      TimeStamp                 m_timeStamp;  // Modification time of the m_data when the actor was created.
     };
 
   using ChannelSliceCachedRepresentationPtr  = ChannelSliceCachedRepresentation *;
@@ -270,9 +275,10 @@ namespace EspINA
       { return QList<vtkProp *>(); }
 
       /* \brief Implements Representation::updateVisibility.
+       * \param[in] unused This value is ignored.
        *
        */
-      virtual void updateVisibility(bool value);
+      virtual void updateVisibility(bool unused);
 
       /* \brief Sets the view this representation will be renderer on.
        *
@@ -283,11 +289,20 @@ namespace EspINA
        * when the last actor was created.
        */
       TimeStamp getModificationTime()
-      { return m_timeStamp; }
+      { return m_lastUpdatedTime; }
+
+      /* \brief Returns true if the representation can generate an actor in that position.
+       *
+       */
+      bool existsIn(const Nm position) const;
 
     signals:
       void update();
-      void changeVisibility(bool);
+      void changeColor();
+      void changeVisibility();
+
+    protected slots:
+      void dataChanged();
 
     protected:
       /* \brief Clone this representation for the specified 2D view.
@@ -305,7 +320,6 @@ namespace EspINA
       DefaultVolumetricDataSPtr m_data;       // data that will be represented.
       int                       m_planeIndex; // plane index for the view.
       NmVector3                 m_depth;      // depth of the actor for this view
-      TimeStamp                 m_timeStamp;  // Modification time of the m_data when the actor was created.
   };
 
   using SegmentationSliceCachedRepresentationPtr  = SegmentationSliceCachedRepresentation *;

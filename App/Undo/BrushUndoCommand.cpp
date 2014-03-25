@@ -20,6 +20,7 @@
 #include "BrushUndoCommand.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
+#include <Core/Utils/ChangeSignalDelayer.h>
 
 using namespace EspINA;
 
@@ -34,9 +35,9 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<uns
 void DrawUndoCommand::redo()
 {
   auto volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
+  ChangeSignalDelayer inhibitor(volume);
 
   m_bounds = volume->bounds();
-
   expandAndDraw(volume, m_mask->bounds().bounds(), m_mask); // CHECK
 }
 
@@ -44,6 +45,8 @@ void DrawUndoCommand::redo()
 void DrawUndoCommand::undo()
 {
   auto volume = volumetricData(m_segmentation->output());
+  ChangeSignalDelayer inhibitor(volume);
+
   volume->undo();
   volume->resize(m_bounds);
 }

@@ -82,7 +82,7 @@ namespace EspINA
        */
       bool needToRestart();
 
-      QMap<RepresentationSPtr, struct CachedSliceRenderer::ActorData> m_representations;
+      QMap<RepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representations;
 
       unsigned long long              m_executionTime;
       CachedSliceRenderer::CacheNode *m_node;

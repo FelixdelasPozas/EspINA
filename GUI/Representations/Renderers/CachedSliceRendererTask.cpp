@@ -44,10 +44,7 @@ namespace EspINA
     m_position = node->position;
 
     for(auto rep: representations)
-    {
-      struct CachedSliceRenderer::ActorData dummy;
-      m_representations[rep] = dummy;
-    }
+      m_representations[rep] = nullptr;
   }
 
   //-----------------------------------------------------------------------------
@@ -56,15 +53,13 @@ namespace EspINA
     if (ChannelSliceCachedRepresentation::TYPE == representation->type())
     {
       auto channelRep = std::dynamic_pointer_cast<ChannelSliceCachedRepresentation>(representation);
-      m_representations[representation].actor = channelRep->getActor(m_position);
-      m_representations[representation].time  = channelRep->getModificationTime();;
+      m_representations[representation] = channelRep->getActor(m_position);
     }
 
     if (SegmentationSliceCachedRepresentation::TYPE == representation->type())
     {
       auto segRep = std::dynamic_pointer_cast<SegmentationSliceCachedRepresentation>(representation);
-      m_representations[representation].actor = segRep->getActor(m_position);
-      m_representations[representation].time = segRep->getModificationTime();
+      m_representations[representation] = segRep->getActor(m_position);
     }
   }
 
@@ -72,7 +67,7 @@ namespace EspINA
   void CachedSliceRendererTask::releaseActors()
   {
     for(auto rep: m_representations.keys())
-      m_representations[rep].actor = nullptr;
+      m_representations[rep] = nullptr;
 
     m_representations.clear();
   }

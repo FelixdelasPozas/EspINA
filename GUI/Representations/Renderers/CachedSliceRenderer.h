@@ -122,18 +122,6 @@ namespace EspINA
     private:
       static const int WINDOW_INCREMENT;
 
-      /* \brief Holds representation, actor and creation time
-       *
-       */
-      struct ActorData
-      {
-          vtkSmartPointer<vtkImageActor> actor;
-          TimeStamp                      time;
-
-          ActorData(): actor{nullptr}, time(-1) {};
-          ~ActorData() { actor = nullptr; };
-      };
-
       /* \brief Circular buffer node.
        *
        * Struct to use as circular buffer node. If worker and actor are both nullptr that means the node is unused.
@@ -145,7 +133,7 @@ namespace EspINA
           CachedSliceRendererTaskSPtr                worker;
 
           // written by both renderer and tasks
-          QMap<RepresentationSPtr, struct ActorData> representations;
+          QMap<RepresentationSPtr, vtkSmartPointer<vtkImageActor>> representations;
           RepresentationSList                        repsToAdd;
           RepresentationSList                        repsToDelete;
           bool                                       restart;
@@ -163,7 +151,8 @@ namespace EspINA
 
     public slots:
       void updateRepresentation();
-      void updateRepresentationVisibility(bool value);
+      void updateRepresentationVisibility();
+      void updateRepresentationColor();
 
     protected slots:
       void changePosition(Plane plane, Nm pos);
@@ -217,11 +206,12 @@ namespace EspINA
       CacheNode     *m_edgePos;        // Node interpreted as a edge of the circular buffer and the one inserting/deleting tasks.
       Nm             m_windowSpacing;
 
-      QMap<RepresentationSPtr, struct ActorData> m_representationsActors;
+      QMap<RepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representationsActors;
 
       vtkSmartPointer<vtkPropPicker> m_picker;
       SchedulerSPtr                  m_scheduler;
       int                            m_planeIndex;
+      bool                           m_needCameraReset;
 
       friend class CachedSliceRendererTask;
   };

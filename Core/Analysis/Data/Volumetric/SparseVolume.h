@@ -142,15 +142,6 @@ namespace EspINA
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE);
 
-    // ------------------------------------------------------------------------
-    // TODO: expand and draw
-    // TODO: extract region of sparse volume as vtkImageData
-    // TODO: iterators?
-    // TODO: fitToContent()
-    // TODO: editedregionSnapshot()
-    // TODO: volumen 3d itkVolumeType to SparseVolume (algoritmo de octree)
-    // ------------------------------------------------------------------------
-
     /** \brief Resizes the image to the minimum bounds that can contain the volume.
      *
      *  The resultant image is always smaller of equal in size to the original one.

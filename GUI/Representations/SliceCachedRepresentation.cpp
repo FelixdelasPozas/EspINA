@@ -41,7 +41,6 @@ namespace EspINA
   : Representation(view)
   , m_data{data}
   , m_planeIndex{-1}
-  , m_timeStamp{0}
   {
     setType(TYPE);
   }
@@ -74,18 +73,15 @@ namespace EspINA
     if (m_planeIndex == -1 || m_view == nullptr)
       return nullptr;
 
-    Bounds imageBounds = m_data->bounds();
-    bool valid = imageBounds[2*m_planeIndex] <= slicePos && slicePos < imageBounds[2*m_planeIndex+1];
-
-    if (!valid)
+    if (!existsIn(slicePos))
       return nullptr;
 
-    vtkSmartPointer<vtkImageData> slice = vtkSmartPointer<vtkImageData>::New();
+    Bounds imageBounds = m_data->bounds();
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
     imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = slicePos;
 
-    slice = vtkImage(m_data, imageBounds);
+    auto slice = vtkImage(m_data, imageBounds);
 
     vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
     shiftScaleFilter->SetInputData(slice);
@@ -117,24 +113,34 @@ namespace EspINA
     actor->GetMapper()->BorderOn();
     actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
     actor->SetDisplayExtent(slice->GetExtent());
+    actor->SetOpacity(m_opacity);
     actor->SetVisibility(isVisible());
     actor->Update();
 
-    m_timeStamp = m_data->lastModified();
+    m_lastUpdatedTime = m_data->lastModified();
     return actor;
   }
 
   //-----------------------------------------------------------------------------
   void ChannelSliceCachedRepresentation::updateRepresentation()
   {
-    if (m_timeStamp != m_data->lastModified())
+    if(m_data->lastModified() != m_lastUpdatedTime)
       emit update();
   }
 
   //-----------------------------------------------------------------------------
-  void ChannelSliceCachedRepresentation::updateVisibility(bool value)
+  void ChannelSliceCachedRepresentation::updateVisibility(bool unused)
   {
-    emit changeVisibility(value);
+    emit changeVisibility();
+  }
+
+  //-----------------------------------------------------------------------------
+  bool ChannelSliceCachedRepresentation::existsIn(const Nm position) const
+  {
+    Bounds imageBounds = m_data->bounds();
+    bool valid = imageBounds[2*m_planeIndex] <= position && position < imageBounds[2*m_planeIndex+1];
+
+    return valid;
   }
 
   //-----------------------------------------------------------------------------
@@ -147,9 +153,9 @@ namespace EspINA
   , m_data{data}
   , m_planeIndex{-1}
   , m_depth{NmVector3()}
-  , m_timeStamp{0}
   {
     setType(TYPE);
+    connect(data.get(), SIGNAL(dataChanged()), this, SLOT(dataChanged()), Qt::QueuedConnection);
   }
 
   //-----------------------------------------------------------------------------
@@ -186,6 +192,8 @@ namespace EspINA
 
     for (auto clone: m_clones)
       clone->setColor(color);
+
+    emit changeColor();
   }
   
   //-----------------------------------------------------------------------------
@@ -204,6 +212,8 @@ namespace EspINA
 
     for (auto clone: m_clones)
       clone->setHighlighted(highlighted);
+
+    emit changeColor();
   }
   
   //-----------------------------------------------------------------------------
@@ -227,12 +237,10 @@ namespace EspINA
     if (m_planeIndex == -1 || m_view == nullptr)
       return nullptr;
 
-    Bounds imageBounds = m_data->bounds();
-    bool valid = imageBounds[2*m_planeIndex] <= slicePos && slicePos < imageBounds[2*m_planeIndex+1];
-
-    if (!valid)
+    if (!existsIn(slicePos))
       return nullptr;
 
+    Bounds imageBounds = m_data->bounds();
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
     imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = slicePos;
@@ -248,9 +256,9 @@ namespace EspINA
     vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
     actor->SetInterpolate(false);
     actor->GetMapper()->BorderOn();
+    actor->GetMapper()->SetNumberOfThreads(1);
     actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
     actor->SetDisplayExtent(slice->GetExtent());
-    actor->Update();
 
     // need to reposition the actor so it will always be over the channels actors'
     double pos[3];
@@ -258,7 +266,11 @@ namespace EspINA
     pos[m_planeIndex] += m_depth[m_planeIndex];
     actor->SetPosition(pos);
 
-    m_timeStamp = m_data->lastModified();
+    actor->SetOpacity(m_opacity);
+    actor->SetVisibility(isVisible());
+    actor->Update();
+
+    m_lastUpdatedTime = m_data->lastModified();
     return actor;
   }
 
@@ -273,14 +285,30 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::updateRepresentation()
   {
-    if (m_timeStamp != m_data->lastModified())
+    if(m_data->lastModified() != m_lastUpdatedTime)
       emit update();
   }
 
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::updateVisibility(bool value)
   {
-    emit changeVisibility(value);
+    emit changeVisibility();
   }
+
+  //-----------------------------------------------------------------------------
+  bool SegmentationSliceCachedRepresentation::existsIn(const Nm position) const
+  {
+    Bounds imageBounds = m_data->bounds();
+    bool valid = imageBounds[2*m_planeIndex] <= position && position < imageBounds[2*m_planeIndex+1];
+
+    return valid;
+  }
+
+  //-----------------------------------------------------------------------------
+  void SegmentationSliceCachedRepresentation::dataChanged()
+  {
+    updateRepresentation();
+  }
+
 
 } // namespace EspINA

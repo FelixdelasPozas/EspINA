@@ -37,6 +37,8 @@
 
 namespace EspINA
 {
+  class ChangeSignalDelayer;
+
   class Data;
   using DataSPtr  = std::shared_ptr<Data>;
   using DataSList = QList<DataSPtr>;
@@ -130,6 +132,7 @@ namespace EspINA
     TimeStamp m_timeStamp;
 
     friend class Output;
+    friend class ChangeSignalDelayer;
   };
 
 } // namespace EspINA
