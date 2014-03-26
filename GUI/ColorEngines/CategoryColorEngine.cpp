@@ -49,7 +49,7 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
     double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
     QColor c = color(seg);
 
-    seg_lut = vtkLookupTable::New();
+    seg_lut = LUTSPtr::New();
     seg_lut->Allocate();
     seg_lut->SetNumberOfTableValues(2);
     seg_lut->Build();

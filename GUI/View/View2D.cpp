@@ -192,8 +192,10 @@ View2D::~View2D()
 //   qDebug() << "              Destroying Slice View" << m_plane;
 //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
+
   m_channelStates.clear();
   m_segmentationStates.clear();
+  m_state.reset();
 }
 
 //-----------------------------------------------------------------------------

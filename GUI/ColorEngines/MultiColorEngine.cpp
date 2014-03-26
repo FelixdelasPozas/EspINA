@@ -33,17 +33,17 @@ QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
   int r=0, g=0, b=0, a=0;
   int rgbComponents=0, alphaComponents=0;
 
-  for(int i=0; i<m_engines.size(); i++)
+  for(auto engine: m_engines)
   {
-    QColor c = m_engines[i]->color(seg);
-    if (m_engines[i]->supportedComposition().testFlag(Color))
+    QColor c = engine->color(seg);
+    if (engine->supportedComposition().testFlag(Color))
     {
       r += c.red();
       g += c.green();
       b += c.blue();
       rgbComponents++;
     }
-    if (m_engines[i]->supportedComposition().testFlag(Transparency))
+    if (engine->supportedComposition().testFlag(Transparency))
     {
       a += c.alpha();
       alphaComponents++;
@@ -89,7 +89,7 @@ ColorEngine::Composition MultiColorEngine::supportedComposition() const
 {
   ColorEngine::Composition composition = None;
 
-  foreach(ColorEngineSPtr engine, m_engines)
+  for(auto engine: m_engines)
     composition |= engine->supportedComposition();
 
   return composition;

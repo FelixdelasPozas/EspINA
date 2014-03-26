@@ -24,7 +24,6 @@
 // VTK
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
-#include <vtkLookupTable.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkLine.h>

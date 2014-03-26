@@ -133,7 +133,7 @@ protected:
   // Manage how the representation appears
   double LastEventPosition[3];
 
-  vtkLookupTable    *InclusionLUT;
+  vtkLookupTable *InclusionLUT;
 
   // Inclusin Margin
   vtkActor 	    *MarginActor[7]; 

@@ -138,6 +138,7 @@ vtkCountingFrame3DRepresentation::~vtkCountingFrame3DRepresentation()
   this->InclusionProperty->Delete();
   this->InvisibleProperty->Delete();
   this->SelectedOutlineProperty->Delete();
+  this->InclusionLUT->Delete();
 }
 
 //----------------------------------------------------------------------
@@ -151,7 +152,6 @@ void vtkCountingFrame3DRepresentation::GetPolyData(vtkPolyData *pd)
 void vtkCountingFrame3DRepresentation::reset()
 {
 }
-
 
 //----------------------------------------------------------------------
 void vtkCountingFrame3DRepresentation::StartWidgetInteraction(double e[2])

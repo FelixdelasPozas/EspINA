@@ -128,6 +128,7 @@ namespace EspINA
     actor->SetInterpolate(false);
     actor->GetMapper()->BorderOn();
     actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+    actor->GetMapper()->ReleaseDataFlagOn();
     actor->SetDisplayExtent(slice->GetExtent());
     actor->SetOpacity(m_opacity);
     actor->Update();
@@ -260,6 +261,7 @@ namespace EspINA
     vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
     actor->SetInterpolate(false);
     actor->GetMapper()->BorderOn();
+    actor->GetMapper()->ReleaseDataFlagOn();
     actor->GetMapper()->SetNumberOfThreads(1);
     actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
     actor->SetDisplayExtent(slice->GetExtent());

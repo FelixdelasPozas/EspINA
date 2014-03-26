@@ -864,13 +864,15 @@ namespace EspINA
           }
         }
 
-        if(update)
-          m_view->updateView();
-
-        if(resetCamera)
+        if(resetCamera || update)
         {
-          m_needCameraReset = false;
-          m_view->resetCamera();
+          if(resetCamera)
+          {
+            m_needCameraReset = false;
+            m_view->resetCamera();
+          }
+
+          m_view->updateView();
         }
       }
 

@@ -62,14 +62,14 @@ LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = seg->users().join("");
 
-  vtkSmartPointer<vtkLookupTable> seg_lut;
+  LUTSPtr seg_lut;
 
   if (m_LUT.find(lutName) == m_LUT.end())
   {
     double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
     QColor c = color(seg);
 
-    seg_lut = vtkLookupTable::New();
+    seg_lut = LUTSPtr::New();
     seg_lut->Allocate();
     seg_lut->SetNumberOfTableValues(2);
     seg_lut->Build();
