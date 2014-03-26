@@ -38,7 +38,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void CachedSliceRendererTask::setInput(CachedSliceRenderer::CacheNode* node, RepresentationSList representations)
+  void CachedSliceRendererTask::setInput(CachedSliceRenderer::CacheNode* node, CachedRepresentationSList representations)
   {
     m_node = node;
     m_position = node->position;
@@ -48,7 +48,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void CachedSliceRendererTask::computeData(RepresentationSPtr representation)
+  void CachedSliceRendererTask::computeData(CachedRepresentationSPtr representation)
   {
     if (ChannelSliceCachedRepresentation::TYPE == representation->type())
     {

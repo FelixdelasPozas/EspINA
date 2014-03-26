@@ -426,13 +426,12 @@ void BrushSelector::stopStroke(RenderView* view)
     stopPreview(view);
     initBrush();
     view->setCursor(m_cursor);
+    emit drawingModeChanged(m_drawing);
+    view->updateView();
   }
 
   m_stroke->Reset();
   m_brushes.clear();
-
-  emit drawingModeChanged(m_drawing);
-  view->updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -509,6 +508,7 @@ void BrushSelector::startPreview(RenderView* view)
   m_actor->SetPickable(false);
   m_actor->SetDisplayExtent(extent);
   m_actor->SetInterpolate(false);
+  m_actor->GetMapper()->SetNumberOfThreads(1);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
   m_actor->GetMapper()->SetUpdateExtent(extent);
@@ -644,6 +644,8 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
     }
     m_lastUpdateBounds = brushBounds;
     m_preview->Modified();
+    m_mapToColors->Update();
+    m_actor->Update();
     m_previewView->updateView();
   }
 }

@@ -172,7 +172,7 @@ namespace EspINA
 
     RenderView*   m_view;
     NmVector3     m_crosshair;
-    TimeStamp     m_lastUpdatedTime;
+    mutable TimeStamp     m_lastUpdatedTime;
 
     RepresentationSList m_clones;
 

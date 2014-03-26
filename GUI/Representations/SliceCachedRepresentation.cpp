@@ -33,14 +33,30 @@
 
 namespace EspINA
 {
+  //-----------------------------------------------------------------------------
+  CachedRepresentation::CachedRepresentation(DefaultVolumetricDataSPtr data,
+                                             View2D *view)
+  : Representation(view)
+  , m_data{data}
+  , m_planeIndex{-1}
+  {}
+
+  //-----------------------------------------------------------------------------
+  bool CachedRepresentation::existsIn(const Nm position) const
+  {
+    Bounds imageBounds = m_data->bounds();
+    bool valid = imageBounds[2*m_planeIndex] <= position && position < imageBounds[2*m_planeIndex+1];
+
+    return valid;
+  }
+
+  //-----------------------------------------------------------------------------
   const Representation::Type ChannelSliceCachedRepresentation::TYPE = "Channel Slice (Cached)";
 
   //-----------------------------------------------------------------------------
   ChannelSliceCachedRepresentation::ChannelSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
                                                                      View2D *view)
-  : Representation(view)
-  , m_data{data}
-  , m_planeIndex{-1}
+  : CachedRepresentation(data, view)
   {
     setType(TYPE);
   }
@@ -68,7 +84,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  vtkSmartPointer<vtkImageActor> ChannelSliceCachedRepresentation::getActor(Nm slicePos)
+  vtkSmartPointer<vtkImageActor> ChannelSliceCachedRepresentation::getActor(const Nm slicePos) const
   {
     if (m_planeIndex == -1 || m_view == nullptr)
       return nullptr;
@@ -114,7 +130,6 @@ namespace EspINA
     actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
     actor->SetDisplayExtent(slice->GetExtent());
     actor->SetOpacity(m_opacity);
-    actor->SetVisibility(isVisible());
     actor->Update();
 
     m_lastUpdatedTime = m_data->lastModified();
@@ -135,23 +150,12 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool ChannelSliceCachedRepresentation::existsIn(const Nm position) const
-  {
-    Bounds imageBounds = m_data->bounds();
-    bool valid = imageBounds[2*m_planeIndex] <= position && position < imageBounds[2*m_planeIndex+1];
-
-    return valid;
-  }
-
-  //-----------------------------------------------------------------------------
   TransparencySelectionHighlighter *SegmentationSliceCachedRepresentation::s_highlighter = new TransparencySelectionHighlighter();
   const Representation::Type SegmentationSliceCachedRepresentation::TYPE = "Segmentation Slice (Cached)";
 
   //-----------------------------------------------------------------------------
   SegmentationSliceCachedRepresentation::SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data, View2D *view)
-  : Representation(view)
-  , m_data{data}
-  , m_planeIndex{-1}
+  : CachedRepresentation(data, view)
   , m_depth{NmVector3()}
   {
     setType(TYPE);
@@ -232,7 +236,7 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
-  vtkSmartPointer<vtkImageActor> SegmentationSliceCachedRepresentation::getActor(Nm slicePos)
+  vtkSmartPointer<vtkImageActor> SegmentationSliceCachedRepresentation::getActor(const Nm slicePos) const
   {
     if (m_planeIndex == -1 || m_view == nullptr)
       return nullptr;
@@ -267,7 +271,6 @@ namespace EspINA
     actor->SetPosition(pos);
 
     actor->SetOpacity(m_opacity);
-    actor->SetVisibility(isVisible());
     actor->Update();
 
     m_lastUpdatedTime = m_data->lastModified();
@@ -287,6 +290,11 @@ namespace EspINA
   {
     if(m_data->lastModified() != m_lastUpdatedTime)
       emit update();
+    else
+    {
+      emit changeVisibility();
+      emit changeColor();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -296,18 +304,10 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SegmentationSliceCachedRepresentation::existsIn(const Nm position) const
-  {
-    Bounds imageBounds = m_data->bounds();
-    bool valid = imageBounds[2*m_planeIndex] <= position && position < imageBounds[2*m_planeIndex+1];
-
-    return valid;
-  }
-
-  //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::dataChanged()
   {
-    updateRepresentation();
+    if(m_data->lastModified() != m_lastUpdatedTime)
+      emit update();
   }
 
 

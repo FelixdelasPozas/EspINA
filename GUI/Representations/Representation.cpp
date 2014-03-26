@@ -80,6 +80,9 @@ void Representation::setVisible(bool visible)
   m_visible = visible;
 
   updateVisibility(isVisible());
+
+  for(auto clone: m_clones)
+    clone->setVisible(visible);
 }
 
 //-----------------------------------------------------------------------------

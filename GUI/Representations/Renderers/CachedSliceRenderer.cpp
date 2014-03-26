@@ -99,6 +99,18 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
+  CachedRepresentationSList CachedSliceRenderer::validRepresentationsForPosition(const Nm pos) const
+  {
+    CachedRepresentationSList validRepresentations;
+
+    for(auto rep: m_representationsActors.keys())
+      if(rep->existsIn(pos))
+        validRepresentations << rep;
+
+    return validRepresentations;
+  }
+
+  //-----------------------------------------------------------------------------
   void CachedSliceRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
     if (!managesRepresentation(rep->type()) || hasRepresentation(rep) || (m_view == nullptr))
@@ -113,7 +125,10 @@ namespace EspINA
       m_representations[item] = list;
     }
 
-    m_representationsActors.insert(rep, nullptr);
+    auto cachedRep = std::dynamic_pointer_cast<CachedRepresentation>(rep);
+    Q_ASSERT(cachedRep);
+
+    m_representationsActors.insert(cachedRep, nullptr);
     connect(rep.get(), SIGNAL(update()), this, SLOT(updateRepresentation()), Qt::QueuedConnection);
     connect(rep.get(), SIGNAL(changeVisibility()), this, SLOT(updateRepresentationVisibility()), Qt::QueuedConnection);
 
@@ -121,31 +136,32 @@ namespace EspINA
       connect(rep.get(), SIGNAL(changeColor()), this, SLOT(updateRepresentationColor()), Qt::QueuedConnection);
 
     CacheNode *node = m_actualPos;
-    for(unsigned int i = 0; i < 2*m_windowWidth+1; ++i)
+    CachedRepresentationSList repList;
+    repList << cachedRep;
+
+    for(unsigned int i = 0; i < 2*m_windowWidth+1; ++i, node = node->next)
     {
+      if(!cachedRep->existsIn(node->position))
+        continue;
+
       if(node->worker == nullptr)
       {
         node->worker = createTask((node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW);
         node->worker->setDescription(QString("ADD %1 - plane %2").arg(node->position).arg(m_planeIndex));
-        RepresentationSList repList;
-        repList << rep;
         node->worker->setInput(node, repList);
         node->worker->submit(node->worker);
       }
       else
       {
         node->mutex.lockForWrite();
-        node->repsToAdd << rep;
-        if (node->repsToDelete.contains(rep))
+        node->repsToAdd << cachedRep;
+        if (node->repsToDelete.contains(cachedRep))
         {
-          node->representations.remove(rep);
-          node->repsToDelete.removeOne(rep);
+          node->representations.remove(cachedRep);
+          node->repsToDelete.removeOne(cachedRep);
         }
-
         node->mutex.unlock();
       }
-
-      node = node->next;
     }
   }
   
@@ -163,11 +179,14 @@ namespace EspINA
           m_representations.remove(item);
       }
 
-    if (m_representationsActors[rep] != nullptr)
-      m_view->removeActor(m_representationsActors[rep]);
+    auto cachedRep = std::dynamic_pointer_cast<CachedRepresentation>(rep);
+    Q_ASSERT(cachedRep);
 
-    m_representationsActors[rep] = nullptr;
-    m_representationsActors.remove(rep);
+    if (m_representationsActors[cachedRep] != nullptr)
+      m_view->removeActor(m_representationsActors[cachedRep]);
+
+    m_representationsActors[cachedRep] = nullptr;
+    m_representationsActors.remove(cachedRep);
     disconnect(rep.get(), SIGNAL(update()), this, SLOT(updateRepresentation()));
     disconnect(rep.get(), SIGNAL(changeVisibility()), this, SLOT(updateRepresentationVisibility()));
 
@@ -175,24 +194,24 @@ namespace EspINA
       disconnect(rep.get(), SIGNAL(changeColor()), this, SLOT(updateRepresentationColor()));
 
     CacheNode *node = m_actualPos;
-    for(unsigned int i = 0; i < 2*m_windowWidth+1; ++i)
+    for(unsigned int i = 0; i < 2*m_windowWidth+1; ++i, node = node->next)
     {
+      if (!cachedRep->existsIn(node->position))
+        continue;
+
       if (node->worker == nullptr)
       {
-        node->representations[rep] = nullptr;
-        node->representations.remove(rep);
+        node->representations[cachedRep] = nullptr;
+        node->representations.remove(cachedRep);
       }
       else
       {
         node->mutex.lockForWrite();
-        node->repsToDelete << rep;
-        if (node->repsToAdd.contains(rep))
-          node->repsToAdd.removeOne(rep);
-
+        node->repsToDelete << cachedRep;
+        if (node->repsToAdd.contains(cachedRep))
+          node->repsToAdd.removeOne(cachedRep);
         node->mutex.unlock();
       }
-
-      node = node->next;
     }
 
     if (m_representationsActors.keys().size() == 0)
@@ -203,7 +222,12 @@ namespace EspINA
   bool CachedSliceRenderer::hasRepresentation(RepresentationSPtr rep) const
   {
     if (managesRepresentation(rep->type()))
-      return m_representationsActors.keys().contains(rep);
+    {
+      auto cachedRep = std::dynamic_pointer_cast<CachedRepresentation>(rep);
+      Q_ASSERT(cachedRep);
+
+      return m_representationsActors.keys().contains(cachedRep);
+    }
 
     return false;
   }
@@ -241,7 +265,7 @@ namespace EspINA
 
     Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
 
-    RepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSList repList = validRepresentationsForPosition(z);
     for(auto rep: repList)
       if (m_representationsActors[rep] != nullptr)
         m_picker->AddPickList(m_representationsActors[rep]);
@@ -373,7 +397,7 @@ namespace EspINA
     int diff = abs(proposedWidth - m_windowWidth);
     bool smaller = (proposedWidth - m_windowWidth) < 0;
 
-    RepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSList validReps;
     CacheNode *node = m_edgePos->next;
 
     for(int i = 0; i < diff; ++i)
@@ -416,19 +440,29 @@ namespace EspINA
         m_edgePos->next->previous = m_edgePos;
         m_edgePos = m_edgePos->next;
         m_edgePos->position = m_edgePos->previous->position + m_windowSpacing;
-        m_edgePos->worker = createTask();
-        m_edgePos->worker->setInput(m_edgePos, repList);
-        m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
-        m_edgePos->worker->submit(m_edgePos->worker);
+
+        validReps = validRepresentationsForPosition(m_edgePos->position);
+        if(!validReps.empty())
+        {
+          m_edgePos->worker = createTask();
+          m_edgePos->worker->setInput(m_edgePos, validReps);
+          m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+          m_edgePos->worker->submit(m_edgePos->worker);
+        }
 
         node->previous = new CacheNode();
         node->previous->next = node;
         node = node->previous;
         node->position = node->next->position - m_windowSpacing;
-        node->worker = createTask();
-        node->worker->setInput(node, repList);
-        node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
-        node->worker->submit(node->worker);
+
+        validReps = validRepresentationsForPosition(node->position);
+        if(!validReps.empty())
+        {
+          node->worker = createTask();
+          node->worker->setInput(node, validReps);
+          node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+          node->worker->submit(node->worker);
+        }
       }
     }
 
@@ -479,8 +513,8 @@ namespace EspINA
     ChannelSliceCachedRepresentation *channelRep = qobject_cast<ChannelSliceCachedRepresentation *>(sender());
     SegmentationSliceCachedRepresentation *segRep = qobject_cast<SegmentationSliceCachedRepresentation *>(sender());
 
-    RepresentationSPtr rep = nullptr;
-    RepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSPtr rep = nullptr;
+    CachedRepresentationSList repList = m_representationsActors.keys();
     if (segRep != nullptr)
     {
       for(auto representation: repList)
@@ -497,16 +531,16 @@ namespace EspINA
     if (rep == nullptr)
       return;
 
-    RepresentationSList segList;
+    CachedRepresentationSList segList;
     segList << rep;
 
     CacheNode *node = m_actualPos;
-    for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i)
+    for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i, node = node->next)
     {
       node->mutex.lockForWrite();
       node->representations[rep] = nullptr;
 
-      if ((channelRep && channelRep->existsIn(node->position)) || (segRep && segRep->existsIn(node->position)))
+      if (rep->existsIn(node->position))
       {
         if(node->worker != nullptr)
         {
@@ -522,7 +556,6 @@ namespace EspINA
         }
       }
       node->mutex.unlock();
-      node = node->next;
     }
   }
 
@@ -532,8 +565,8 @@ namespace EspINA
     ChannelSliceCachedRepresentation *channelRep = qobject_cast<ChannelSliceCachedRepresentation *>(sender());
     SegmentationSliceCachedRepresentation *segRep = qobject_cast<SegmentationSliceCachedRepresentation *>(sender());
 
-    RepresentationSList repList = m_representationsActors.keys();
-    RepresentationSPtr rep = nullptr;
+    CachedRepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSPtr rep = nullptr;
     if (segRep != nullptr)
     {
       for(auto representation: repList)
@@ -552,22 +585,12 @@ namespace EspINA
 
     if (m_representationsActors[rep] != nullptr)
     {
-      m_representationsActors[rep]->SetVisibility(rep->isVisible());
-      m_representationsActors[rep]->Modified();
-      m_view->updateView();
-    }
+      if (rep->isVisible())
+        m_view->addActor(m_representationsActors[rep]);
+      else
+        m_view->removeActor(m_representationsActors[rep]);
 
-    CacheNode *node = m_actualPos;
-    for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i)
-    {
-      node->mutex.lockForRead();
-      if(node->representations[rep] != nullptr)
-      {
-        node->representations[rep]->SetVisibility(rep->isVisible());
-        node->representations[rep]->Modified();
-      }
-      node->mutex.unlock();
-      node = node->next;
+      m_view->updateView();
     }
   }
 
@@ -578,8 +601,8 @@ namespace EspINA
     if (!segRep)
       return;
 
-    RepresentationSList repList = m_representationsActors.keys();
-    RepresentationSPtr rep = nullptr;
+    CachedRepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSPtr rep = nullptr;
     for(auto representation: repList)
       if (representation.get() == segRep)
         rep = representation;
@@ -593,14 +616,14 @@ namespace EspINA
       imageMapToColors->SetLookupTable(SegmentationSliceCachedRepresentation::s_highlighter->lut(rep->color(), rep->isHighlighted()));
       imageMapToColors->Update();
       m_representationsActors[rep]->GetMapper()->Update();
-      m_representationsActors[rep]->Modified();
+      m_representationsActors[rep]->Update();
       m_view->updateView();
     }
 
     CacheNode *node = m_actualPos;
-    for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i)
+    for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i, node = node->next)
     {
-      if(segRep->existsIn(node->position))
+      if(rep->existsIn(node->position))
       {
         node->mutex.lockForRead();
         if(node->representations[rep] != nullptr)
@@ -609,11 +632,10 @@ namespace EspINA
           imageMapToColors->SetLookupTable(SegmentationSliceCachedRepresentation::s_highlighter->lut(rep->color(), rep->isHighlighted()));
           imageMapToColors->Update();
           node->representations[rep]->GetMapper()->Update();
-          node->representations[rep]->Modified();
+          node->representations[rep]->Update();
         }
         node->mutex.unlock();
       }
-      node = node->next;
     }
   }
 
@@ -637,7 +659,7 @@ namespace EspINA
       if (memory == 0)
         info += QString("X");
       else
-        info += QString::number(node->position) + QString("(%1)").arg(memory);
+        info += QString::number(node->position); // + QString("(%1)").arg(memory);
 
       info += QString(" | ");
 
@@ -645,7 +667,7 @@ namespace EspINA
       memUsed += memory;
     }
 
-    qDebug() << info << "memory used:" << memUsed << "KB (" << memUsed/1024 << "MB)";
+    qDebug() << info << "memory used:" << memUsed << "bytes (" << memUsed/1024 << "MB - " << memUsed/1024/1024 << "GB)";
   }
 
   //-----------------------------------------------------------------------------
@@ -684,7 +706,7 @@ namespace EspINA
       return;
 
     Priority priority = Priority::VERY_HIGHT;
-    RepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSList repList = m_representationsActors.keys();
 
     for (auto rep: repList)
     {
@@ -700,17 +722,21 @@ namespace EspINA
     for(auto rep: m_actualPos->representations.keys())
       m_actualPos->representations[rep] = nullptr;
 
-    if (m_actualPos->worker != nullptr)
+    CachedRepresentationSList validReps = validRepresentationsForPosition(position);
+    if(!validReps.empty())
     {
-      m_actualPos->restart = true;
-      m_actualPos->worker->setPriority(priority);
-    }
-    else
-    {
-      m_actualPos->worker = createTask(priority);
-      m_actualPos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_actualPos->position).arg(m_planeIndex));
-      m_actualPos->worker->setInput(m_actualPos, repList);
-      m_actualPos->worker->submit(m_actualPos->worker);
+      if (m_actualPos->worker != nullptr)
+      {
+        m_actualPos->restart = true;
+        m_actualPos->worker->setPriority(priority);
+      }
+      else
+      {
+        m_actualPos->worker = createTask(priority);
+        m_actualPos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_actualPos->position).arg(m_planeIndex));
+        m_actualPos->worker->setInput(m_actualPos, repList);
+        m_actualPos->worker->submit(m_actualPos->worker);
+      }
     }
     m_actualPos->mutex.unlock();
 
@@ -718,24 +744,29 @@ namespace EspINA
     for(unsigned int i = 0; i < m_windowWidth; ++i)
     {
       m_edgePos = m_edgePos->next;
+
       m_edgePos->mutex.lockForWrite();
       m_edgePos->position = m_edgePos->previous->position + m_windowSpacing;
 
       for (auto rep: m_edgePos->representations.keys())
         m_edgePos->representations[rep] = nullptr;
 
-      priority = ((m_edgePos->position - position) < (5 * m_windowSpacing)) ? Priority::HIGH : Priority::LOW;
-      if (m_edgePos->worker != nullptr)
+      validReps = validRepresentationsForPosition(m_edgePos->position);
+      if(!validReps.empty())
       {
-        m_edgePos->restart = true;
-        m_edgePos->worker->setPriority(priority);
-      }
-      else
-      {
-        m_edgePos->worker = createTask(priority);
-        m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
-        m_edgePos->worker->setInput(m_edgePos, repList);
-        m_edgePos->worker->submit(m_edgePos->worker);
+        priority = ((m_edgePos->position - position) < (5 * m_windowSpacing)) ? Priority::HIGH : Priority::LOW;
+        if (m_edgePos->worker != nullptr)
+        {
+          m_edgePos->restart = true;
+          m_edgePos->worker->setPriority(priority);
+        }
+        else
+        {
+          m_edgePos->worker = createTask(priority);
+          m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+          m_edgePos->worker->setInput(m_edgePos, repList);
+          m_edgePos->worker->submit(m_edgePos->worker);
+        }
       }
       m_edgePos->mutex.unlock();
 
@@ -746,18 +777,22 @@ namespace EspINA
       for(auto rep: node->representations.keys())
         node->representations[rep] = nullptr;
 
-      priority = ((node->position - position) < (5 * m_windowSpacing)) ? Priority::HIGH : Priority::LOW;
-      if (node->worker != nullptr)
+      validReps = validRepresentationsForPosition(node->position);
+      if(!validReps.empty())
       {
-        node->restart = true;
-        node->worker->setPriority(priority);
-      }
-      else
-      {
-        node->worker = createTask(priority);
-        node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
-        node->worker->setInput(node, repList);
-        node->worker->submit(node->worker);
+        priority = ((node->position - position) < (5 * m_windowSpacing)) ? Priority::HIGH : Priority::LOW;
+        if (node->worker != nullptr)
+        {
+          node->restart = true;
+          node->worker->setPriority(priority);
+        }
+        else
+        {
+          node->worker = createTask(priority);
+          node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+          node->worker->setInput(node, repList);
+          node->worker->submit(node->worker);
+        }
       }
       node->mutex.unlock();
     }
@@ -790,49 +825,59 @@ namespace EspINA
       node->repsToDelete.clear();
     }
 
-    RepresentationSList repList = m_representationsActors.keys();
+    CachedRepresentationSList repList;
     if (node->restart)
     {
       node->restart = false;
-      node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
-      node->worker->setInput(node, repList);
-      node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
-      node->worker->submit(node->worker);
+
+      repList = validRepresentationsForPosition(node->position);
+      if(!repList.empty())
+      {
+        node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
+        node->worker->setInput(node, repList);
+        node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+        node->worker->submit(node->worker);
+      }
     }
     else
     {
       if (node == m_actualPos)
       {
+        bool update = false;
         for(auto rep: node->representations.keys())
         {
-          if (rep->type() == ChannelSliceCachedRepresentation::TYPE && m_needCameraReset)
-            resetCamera = true;
+          if(node->representations[rep] != m_representationsActors[rep])
+          {
+            if (rep->type() == ChannelSliceCachedRepresentation::TYPE && m_needCameraReset)
+              resetCamera = true;
 
-          if (m_representationsActors[rep] != nullptr)
-            m_view->removeActor(m_representationsActors[rep]);
+            update = true;
+            if(m_representationsActors[rep] != nullptr)
+            {
+              m_view->removeActor(m_representationsActors[rep]);
+              m_representationsActors[rep] = nullptr;
+            }
+            m_representationsActors[rep] = node->representations[rep];
 
-          m_representationsActors[rep] = nullptr;
-          m_representationsActors[rep] = node->representations[rep];
-
-          if (node->representations[rep] != nullptr)
-            m_view->addActor(node->representations[rep]);
+            if (rep->isVisible() && node->representations[rep] != nullptr)
+              m_view->addActor(node->representations[rep]);
+          }
         }
+
+        if(update)
+          m_view->updateView();
 
         if(resetCamera)
         {
           m_needCameraReset = false;
           m_view->resetCamera();
         }
-
-        m_view->updateView();
       }
 
       if (!node->repsToAdd.empty())
       {
-        repList.clear();
-        repList << node->repsToAdd;
         node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
-        node->worker->setInput(node, repList);
+        node->worker->setInput(node, node->repsToAdd);
         node->worker->setDescription(QString("ADDITIONAL %1 - plane %2").arg(node->position).arg(m_planeIndex));
         node->worker->submit(node->worker);
       }
@@ -855,8 +900,7 @@ namespace EspINA
       return;
     }
 
-    RepresentationSList repList = m_representationsActors.keys();
-
+    CachedRepresentationSList repList = m_representationsActors.keys();
     for(auto rep: repList)
     {
       if (m_representationsActors[rep] != nullptr)
@@ -865,6 +909,7 @@ namespace EspINA
       m_representationsActors[rep] = nullptr;
     }
 
+    CachedRepresentationSList validReps;
     if (m_actualPos->worker != nullptr)
       m_actualPos->worker->setPriority(Priority::LOW);
 
@@ -881,16 +926,19 @@ namespace EspINA
         for(auto rep: m_edgePos->representations.keys())
           m_edgePos->representations[rep] = nullptr;
 
-        if (m_edgePos->worker != nullptr)
-          m_edgePos->restart = true;
-        else
+        validReps = validRepresentationsForPosition(m_edgePos->position);
+        if(!validReps.empty())
         {
-          m_edgePos->worker = createTask();
-          m_edgePos->worker->setInput(m_edgePos, repList);
-          m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
-          m_edgePos->worker->submit(m_edgePos->worker);
+          if (m_edgePos->worker != nullptr)
+            m_edgePos->restart = true;
+          else
+          {
+            m_edgePos->worker = createTask();
+            m_edgePos->worker->setInput(m_edgePos, validReps);
+            m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+            m_edgePos->worker->submit(m_edgePos->worker);
+          }
         }
-
         m_edgePos->repsToAdd.clear();
         m_edgePos->repsToDelete.clear();
 
@@ -914,14 +962,18 @@ namespace EspINA
         for(auto rep: m_edgePos->representations.keys())
           m_edgePos->representations[rep] = nullptr;
 
-        if (m_edgePos->worker != nullptr)
-          m_edgePos->restart = true;
-        else
+        validReps = validRepresentationsForPosition(m_edgePos->position);
+        if(!validReps.empty())
         {
-          m_edgePos->worker = createTask();
-          m_edgePos->worker->setInput(m_edgePos, repList);
-          m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
-          m_edgePos->worker->submit(m_edgePos->worker);
+          if (m_edgePos->worker != nullptr)
+            m_edgePos->restart = true;
+          else
+          {
+            m_edgePos->worker = createTask();
+            m_edgePos->worker->setInput(m_edgePos, repList);
+            m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+            m_edgePos->worker->submit(m_edgePos->worker);
+          }
         }
 
         m_edgePos->repsToAdd.clear();
@@ -933,9 +985,9 @@ namespace EspINA
     // add actors if possible
     m_actualPos->mutex.lockForRead();
     int numActors = 0;
-    for(auto rep: repList)
+    for(auto rep: m_actualPos->representations.keys())
     {
-      if (m_actualPos->representations[rep] != nullptr)
+      if (m_actualPos->representations[rep] != nullptr && rep->isVisible())
       {
         m_view->addActor(m_actualPos->representations[rep]);
         ++numActors;
@@ -957,7 +1009,7 @@ namespace EspINA
       setWindowWidth(m_windowWidth + WINDOW_INCREMENT);
     }
 
-    //printBufferInfo();
+//    printBufferInfo();
   }
 
 } // namespace EspINA

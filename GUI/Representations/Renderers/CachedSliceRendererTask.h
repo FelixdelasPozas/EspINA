@@ -23,6 +23,7 @@
 #include "CachedSliceRenderer.h"
 #include <Core/MultiTasking/Task.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include <GUI/Representations/SliceCachedRepresentation.h>
 
 // Qt
 #include <QMap>
@@ -55,7 +56,7 @@ namespace EspINA
        *
        *  The values must be valid to guarantee that an actor will be generated.
        */
-      virtual void setInput(CachedSliceRenderer::CacheNode *node, RepresentationSList representations);
+      virtual void setInput(CachedSliceRenderer::CacheNode *node, CachedRepresentationSList representations);
 
     signals:
       void ready(CachedSliceRenderer::CacheNode *);
@@ -70,7 +71,7 @@ namespace EspINA
       /* \brief Fill the data struct for that representation.
        *
        */
-      void computeData(RepresentationSPtr rep);
+      void computeData(CachedRepresentationSPtr rep);
 
       /* \brief Deallocates actors.
        *
@@ -82,7 +83,7 @@ namespace EspINA
        */
       bool needToRestart();
 
-      QMap<RepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representations;
+      QMap<CachedRepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representations;
 
       unsigned long long              m_executionTime;
       CachedSliceRenderer::CacheNode *m_node;

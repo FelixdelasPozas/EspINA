@@ -35,9 +35,81 @@ namespace EspINA
 {
   class TransparencySelectionHighlighter;
 
+  class EspinaGUI_EXPORT CachedRepresentation
+  : public Representation
+  {
+    public:
+      explicit CachedRepresentation(DefaultVolumetricDataSPtr data,
+                                    View2D *view);
+      virtual ~CachedRepresentation()
+      {};
+
+      /* \brief Returns true if a change in crosshair point affects the representation.
+       *
+       */
+      virtual bool crosshairDependent() const
+      { return false; }
+
+      /* \brief Returns the actor of the channel in the specified slice position.
+       *
+       */
+      virtual vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const = 0;
+
+      /* \brief Implements Representation::settingsWidget.
+       *
+       */
+      virtual RepresentationSettings* settingsWidget()
+      { return new RepresentationEmptySettings(); }
+
+      /* \brief Implements Representation::getActors.
+       *
+       */
+      virtual QList<vtkProp*> getActors()
+      { return QList<vtkProp *>(); }
+
+      /* \brief Implements Representation::hasActor.
+       *
+       */
+      virtual bool hasActor(vtkProp*) const
+      { return false; }
+
+      /* \brief Returns the plane this representation is on.
+       *
+       * Returns the plane this representation is on. To get the correct value the
+       * method SetView() must have been called first.
+       */
+      Plane plane()
+      { return toPlane(m_planeIndex); }
+
+      /* \brief Returns the type of view this representation can be rendered on.
+       *
+       */
+      virtual RenderableView canRenderOnView() const
+      { return Representation::RENDERABLEVIEW_SLICE; }
+
+      /* \brief Returns true if the representation can generate an actor in that position.
+       *
+       */
+      bool existsIn(const Nm position) const;
+
+      /* \brief Returns the value of the last modification time of the m_data
+       * when the last actor was created.
+       */
+      TimeStamp getModificationTime()
+      { return m_lastUpdatedTime; }
+
+    protected:
+      DefaultVolumetricDataSPtr m_data;       // data that will be represented.
+      int                       m_planeIndex; // plane index for the view.
+  };
+
+  using CachedRepresentationPtr  = CachedRepresentation *;
+  using CachedRepresentationSPtr = std::shared_ptr<CachedRepresentation>;
+  using CachedRepresentationSList = QList<CachedRepresentationSPtr>;
+
   //-----------------------------------------------------------------------------
   class EspinaGUI_EXPORT ChannelSliceCachedRepresentation
-  : public Representation
+  : public CachedRepresentation
   {
     Q_OBJECT
     public:
@@ -63,71 +135,22 @@ namespace EspINA
        */
       virtual bool isInside(const NmVector3 &point) const;
 
-      /* \brief Returns the type of view this representation can be rendered on.
-       *
-       */
-      virtual RenderableView canRenderOnView() const
-      { return Representation::RENDERABLEVIEW_SLICE; }
-
       /* \brief Method that triggers the update of the actors of the representation.
        * Empty as this is not needed for this representation.
        *
        */
       virtual void updateRepresentation();
 
-      /* \brief Returns the plane this representation is on.
-       *
-       * Returns the plane this representation is on. To get the correct value the
-       * method SetView() must have been called first.
-       */
-      Plane plane()
-      { return toPlane(m_planeIndex); }
-
-      /* \brief Returns true if a change in crosshair point affects the representation.
-       *
-       */
-      virtual bool crosshairDependent() const
-      { return false; }
-
       /* \brief Returns the actor of the channel in the specified slice position.
        *
        */
-      vtkSmartPointer<vtkImageActor> getActor(Nm pos);
-
-      /* \brief Implements Representation::settingsWidget.
-       *
-       */
-      virtual RepresentationSettings* settingsWidget()
-      { return new RepresentationEmptySettings(); }
-
-      /* \brief Implements Representation::hasActor.
-       *
-       */
-      virtual bool hasActor(vtkProp*) const
-      { return false; }
-
-      /* \brief Implements Representation::getActors.
-       *
-       */
-      virtual QList<vtkProp*> getActors()
-      { return QList<vtkProp *>(); }
+      vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const;
 
       /* \brief Implements Representation::updateVisibility.
        * \param[in] unused This value is ignored.
        *
        */
       virtual void updateVisibility(bool unused);
-
-      /* \brief Returns the value of the last modification time of the m_data
-       * when the last actor was created.
-       */
-      TimeStamp getModificationTime()
-      { return m_lastUpdatedTime; }
-
-      /* \brief Returns true if the representation can generate an actor in that position.
-       *
-       */
-      bool existsIn(const Nm position) const;
 
     signals:
       void update();
@@ -151,10 +174,6 @@ namespace EspINA
        * extends the bounds of the data in that view) is computed here.
        */
       void setView(View2D *view);
-
-    private:
-      DefaultVolumetricDataSPtr m_data;       // data that will be represented.
-      int                       m_planeIndex; // plane index for the view.
     };
 
   using ChannelSliceCachedRepresentationPtr  = ChannelSliceCachedRepresentation *;
@@ -162,7 +181,7 @@ namespace EspINA
 
   //----------------------------------------------------------------------------- TODO
   class EspinaGUI_EXPORT SegmentationSliceCachedRepresentation
-  : public Representation
+  : public CachedRepresentation
   {
     Q_OBJECT
     public:
@@ -225,54 +244,11 @@ namespace EspINA
        */
       virtual bool isInside(const NmVector3 &point) const;
 
-      /* \brief Returns the type of view this representation can be rendered on.
-       *
-       */
-      virtual RenderableView canRenderOnView() const
-      { return Representation::RENDERABLEVIEW_SLICE; }
-
       /* \brief Method that triggers the update of the actors of the representation.
        * Empty as this is not needed in this kind of representation.
        *
        */
       virtual void updateRepresentation();
-
-      /* \brief Returns the plane this representation is on.
-       *
-       * Returns the plane this representation is on. To get the correct value the
-       * method SetView() must have been called first.
-       */
-      Plane plane()
-      { return toPlane(m_planeIndex); }
-
-      /* \brief Returns true if a change in crosshair point affects the representation.
-       *
-       */
-      virtual bool crosshairDependent() const
-      { return false; }
-
-      /* \brief Returns the actor of the channel in the specified slice position.
-       *
-       */
-      vtkSmartPointer<vtkImageActor> getActor(Nm pos);
-
-      /* \brief Implements Representation::settingsWidget.
-       *
-       */
-      virtual RepresentationSettings* settingsWidget()
-      { return new RepresentationEmptySettings(); }
-
-      /* \brief Implements Representation::hasActor.
-       *
-       */
-      virtual bool hasActor(vtkProp*) const
-      { return false; }
-
-      /* \brief Implements Representation::getActors.
-       *
-       */
-      virtual QList<vtkProp*> getActors()
-      { return QList<vtkProp *>(); }
 
       /* \brief Implements Representation::updateVisibility.
        * \param[in] unused This value is ignored.
@@ -280,21 +256,15 @@ namespace EspINA
        */
       virtual void updateVisibility(bool unused);
 
+      /* \brief Returns the actor of the channel in the specified slice position.
+       *
+       */
+      vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const;
+
       /* \brief Sets the view this representation will be renderer on.
        *
        */
       void setView(View2D *view);
-
-      /* \brief Returns the value of the last modification time of the m_data
-       * when the last actor was created.
-       */
-      TimeStamp getModificationTime()
-      { return m_lastUpdatedTime; }
-
-      /* \brief Returns true if the representation can generate an actor in that position.
-       *
-       */
-      bool existsIn(const Nm position) const;
 
     signals:
       void update();
@@ -317,8 +287,6 @@ namespace EspINA
       { return RepresentationSPtr(); }
 
     private:
-      DefaultVolumetricDataSPtr m_data;       // data that will be represented.
-      int                       m_planeIndex; // plane index for the view.
       NmVector3                 m_depth;      // depth of the actor for this view
   };
 

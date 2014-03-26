@@ -21,7 +21,7 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
-#include <GUI/Representations/Representation.h>
+#include <GUI/Representations/SliceCachedRepresentation.h>
 #include "RepresentationRenderer.h"
 
 // VTK
@@ -133,9 +133,9 @@ namespace EspINA
           CachedSliceRendererTaskSPtr                worker;
 
           // written by both renderer and tasks
-          QMap<RepresentationSPtr, vtkSmartPointer<vtkImageActor>> representations;
-          RepresentationSList                        repsToAdd;
-          RepresentationSList                        repsToDelete;
+          QMap<CachedRepresentationSPtr, vtkSmartPointer<vtkImageActor>> representations;
+          CachedRepresentationSList                  repsToAdd;
+          CachedRepresentationSList                  repsToDelete;
           bool                                       restart;
 
           // tasks never touch those two
@@ -191,6 +191,11 @@ namespace EspINA
        */
       unsigned long long getNodeExtimatedMemoryUsed(CacheNode *node);
 
+      /* \brief Returns the list of valid representations for a given position.
+       *
+       */
+      CachedRepresentationSList validRepresentationsForPosition(const Nm pos) const;
+
       /* \brief Set position of the cache.
        *
        * Sets the position of the cache. If the position is not cached (not within the bounds of the
@@ -206,7 +211,7 @@ namespace EspINA
       CacheNode     *m_edgePos;        // Node interpreted as a edge of the circular buffer and the one inserting/deleting tasks.
       Nm             m_windowSpacing;
 
-      QMap<RepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representationsActors;
+      QMap<CachedRepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representationsActors;
 
       vtkSmartPointer<vtkPropPicker> m_picker;
       SchedulerSPtr                  m_scheduler;
