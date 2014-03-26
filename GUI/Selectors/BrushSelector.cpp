@@ -55,9 +55,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BrushSelector::BrushSelector(ViewManagerSPtr vm, CategorySelector* categorySelector)
+BrushSelector::BrushSelector(ViewManagerSPtr vm)
 : m_viewManager(vm)
-, m_categorySelector(categorySelector)
 , m_referenceItem(nullptr)
 , m_displayRadius(-1)
 , m_borderColor(Qt::blue)
@@ -83,9 +82,6 @@ BrushSelector::BrushSelector(ViewManagerSPtr vm, CategorySelector* categorySelec
   memset(m_worldSize, 0, 2*sizeof(double));
 
   buildCursor();
-
-  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this, SLOT(categoryChanged(CategoryAdapterSPtr)));
 }
 
 //-----------------------------------------------------------------------------
@@ -280,7 +276,7 @@ itkVolumeType::SpacingType BrushSelector::referenceSpacing() const
 
 
 //-----------------------------------------------------------------------------
-void BrushSelector::setBrushImage(QImage &image)
+void BrushSelector::setBrushImage(const QImage& image)
 {
   if (m_brushImage)
   {
@@ -719,10 +715,8 @@ BinaryMaskSPtr<unsigned char> BrushSelector::voxelSelectionMask() const
 void BrushSelector::initBrush()
 {
   QImage image;
-  QColor color, borderColor;
+  QColor borderColor;
 
-  QImage noSeg = QImage(":/espina/add.svg");
-  QImage hasSeg = QImage();
   ViewItemAdapterPtr item = nullptr;
 
   SelectionSPtr selection = m_viewManager->selection();
@@ -730,8 +724,6 @@ void BrushSelector::initBrush()
   if (segs.size() == 1)
   {
     item = segs.first();
-    color = segs.first()->category()->color();
-    image = hasSeg;
     if (m_drawing)
       borderColor = QColor(Qt::green);
     else
@@ -740,23 +732,13 @@ void BrushSelector::initBrush()
   else
   {
     item = m_viewManager->activeChannel();
-    color = m_categorySelector->selectedCategory()->color();
-    image = noSeg;
+    image = QImage(":/espina/add.svg");
     borderColor = QColor(Qt::blue);
   }
-  color.setAlphaF(m_brushOpacity/100.);
 
-  setBrushColor(color);
   setBrushImage(image);
   setBorderColor(borderColor);
   setReferenceItem(item);
-}
-
-//-----------------------------------------------------------------------------
-void BrushSelector::categoryChanged(CategoryAdapterSPtr category)
-{
-  if (m_referenceItem == m_viewManager->activeChannel())
-    setBrushColor(category->color());
 }
 
 //-----------------------------------------------------------------------------

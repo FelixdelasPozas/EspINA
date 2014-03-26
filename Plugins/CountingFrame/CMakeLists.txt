@@ -1,11 +1,11 @@
 project (COUNTING_REGION_PLUGIN)
 
-include (GenerateExportHeader)
-
 # Version Number
-set (PLUGIN_VERSION_MAJOR 1)
+set (PLUGIN_VERSION_MAJOR 2)
 set (PLUGIN_VERSION_MINOR 0)
 set (PLUGIN_VERSION_PATCH 0)
+
+include (GenerateExportHeader)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -24,7 +24,6 @@ IF (NOT COMPILING_ESPINA)
 ENDIF (NOT COMPILING_ESPINA)
 
 include_directories(
-  ${Espina_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR} # UI files
   )

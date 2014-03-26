@@ -167,7 +167,7 @@ void SegmentationExplorer::updateGUI(const QModelIndexList &selectedIndexes)
   for(QModelIndex index : selectedIndexes)
   {
     auto item = m_layout->item(index);
-    if (ItemAdapter::Type::SEGMENTATION == item->type())
+    if (isSegmentation(item))
     {
       auto segmentation = segmentationPtr(item);
       if (segmentation->hasExtension(SegmentationTags::TYPE))

@@ -27,11 +27,13 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CleanVOITool::CleanVOITool(ModelAdapterSPtr model,
-                                   ViewManagerSPtr  viewManager)
-: m_model      (model)
+CleanVOITool::CleanVOITool(VOIMaskSPtr&     currentVOI,
+                           ModelAdapterSPtr model,
+                           ViewManagerSPtr  viewManager)
+: m_currentVOI (currentVOI)
+, m_model      (model)
 , m_viewManager(viewManager)
-, m_applyVOI   (new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this))
+, m_cleanVOI   (new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this))
 {
   //RectangularVOISPtr voi(new RectangularVOI(m_model, m_viewManager));
   //m_vois[action] = voi;
@@ -39,16 +41,14 @@ CleanVOITool::CleanVOITool(ModelAdapterSPtr model,
   //        this, SLOT(cancelVOI()));
 
 
-//   connect(m_applyVOI, SIGNAL(triggered(bool)),
-//           this,       SLOT(changeVOI(QAction*)));
-//   connect(m_applyVOI, SIGNAL(nCanceled()),
-//           this,       SLOT(cancelVOI()));
+  connect(m_cleanVOI, SIGNAL(triggered(bool)),
+          this,       SLOT(cancelVOI()));
 }
 
 //-----------------------------------------------------------------------------
 CleanVOITool::~CleanVOITool()
 {
-  delete m_applyVOI;
+  delete m_cleanVOI;
 }
 
 //-----------------------------------------------------------------------------
@@ -68,21 +68,13 @@ QList<QAction *> CleanVOITool::actions() const
 {
   QList<QAction *> actions;
 
-  actions << m_applyVOI;
+  actions << m_cleanVOI;
 
   return actions;
 }
 
 //-----------------------------------------------------------------------------
-void CleanVOITool::changeVOI(QAction* action)
-{
-//   Q_ASSERT(m_vois.contains(action));
-//   m_viewManager->setVOI(m_vois[action]);
-}
-
-//-----------------------------------------------------------------------------
 void CleanVOITool::cancelVOI()
 {
-//   m_voiSelector->cancel();
-//   m_viewManager->unsetActiveVOI();
+  m_currentVOI.reset();
 }

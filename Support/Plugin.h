@@ -28,6 +28,7 @@
 #include <Support/DockWidget.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
+#include "ToolGroup.h"
 
 #include <QtPlugin>
 
@@ -67,6 +68,8 @@ namespace EspINA
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
 
     virtual NamedColorEngineSList colorEngines() = 0;
+
+    virtual QList<ToolGroup *> toolGroups() = 0;
 
     virtual QList<DockWidget *> dockWidgets() = 0;
 

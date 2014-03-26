@@ -75,7 +75,7 @@ namespace EspINA
     void updateDistances() const;
 
   private:
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
 
     friend class ChannelEdges;
   };

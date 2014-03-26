@@ -32,6 +32,7 @@
 
 // Qt
 #include <QColor>
+#include <QImage>
 #include <QDebug>
 
 class vtkLookupTable;
@@ -46,7 +47,6 @@ class PickableItem;
 
 namespace EspINA
 {
-  class CategorySelector;
   class RenderView;
 
   class EspinaGUI_EXPORT BrushSelector
@@ -57,13 +57,13 @@ namespace EspINA
       enum BrushMode {BRUSH, ERASER};
       enum DrawMode {CREATE, MODIFY};
 
-      typedef QPair<vtkImplicitFunction*, Bounds> BrushShape;
-      typedef QList<BrushShape> BrushShapeList;
+      using BrushShape     = QPair<vtkImplicitFunction*, Bounds>;
+      using BrushShapeList = QList<BrushShape>;
 
       using Spacing = itkVolumeType::SpacingType;
 
     public:
-      explicit BrushSelector(ViewManagerSPtr vm, CategorySelector *categorySelector);
+      explicit BrushSelector(ViewManagerSPtr vm);
       virtual ~BrushSelector();
 
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
@@ -78,7 +78,7 @@ namespace EspINA
 
       void setBorderColor(QColor color);
       void setBrushColor(QColor color);
-      void setBrushImage(QImage &image);
+      void setBrushImage(const QImage& image);
       QColor getBrushColor();
       void setBrushOpacity(int value);
 
@@ -102,7 +102,6 @@ namespace EspINA
                                           NmVector3 center,
                                           Nm radius,
                                           Plane plane) = 0;
-      virtual void categoryChanged(CategoryAdapterSPtr category);
       virtual void updateSliceChange();
 
     private:
@@ -119,8 +118,7 @@ namespace EspINA
       bool ShiftKeyIsDown();
 
     private:
-      ViewManagerSPtr m_viewManager;
-      CategorySelector *m_categorySelector;
+      ViewManagerSPtr    m_viewManager;
       ViewItemAdapterPtr m_referenceItem;
 
     protected:

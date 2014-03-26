@@ -23,14 +23,14 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 VolumeOfInterestTools::VolumeOfInterestTools(ModelAdapterSPtr model,
-                   ModelFactorySPtr factory,
-                   ViewManagerSPtr  viewManager,
-                   QUndoStack      *undoStack,
-                   QWidget         *parent)
+                                             ModelFactorySPtr factory,
+                                             ViewManagerSPtr  viewManager,
+                                             QUndoStack      *undoStack,
+                                             QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent)
-, m_brushVOITool    (new BrushVOITool(model, viewManager))
+, m_manualVOITool   (new ManualVOITool(model, viewManager))
 , m_ortogonalVOITool(new OrtogonalVOITool(model, viewManager))
-, m_cleanVOITool    (new CleanVOITool(model, viewManager))
+, m_cleanVOITool    (new CleanVOITool(m_currentVOI, model, viewManager))
 {
 
 }
@@ -58,7 +58,7 @@ ToolSList VolumeOfInterestTools::tools()
 {
   ToolSList availableTools;
 
-  availableTools << m_brushVOITool;
+  availableTools << m_manualVOITool;
   availableTools << m_ortogonalVOITool;
   availableTools << m_cleanVOITool;
 

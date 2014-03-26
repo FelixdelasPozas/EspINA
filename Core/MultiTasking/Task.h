@@ -33,6 +33,7 @@
 
 #include <QMutex>
 #include <QWaitCondition>
+#include <QReadWriteLock>
 #include <Core/EspinaTypes.h>
 
 namespace EspINA {
@@ -57,9 +58,17 @@ namespace EspINA {
 
     Id id() const { return m_id;}
 
-    void setDescription(const QString& description) {m_description = description; }
+    void setDescription(const QString& description)
+    {
+      QWriteLocker lock(&m_descriptionLock);
+      m_description = description;
+    }
 
-    QString description() const {return m_description;}
+    QString description() const
+    {
+      QReadLocker lock(&m_descriptionLock);
+      return m_description;
+    }
  
     /** \brief Pause worker execution
      * 
@@ -129,6 +138,12 @@ namespace EspINA {
       emit finished();
     }
 
+    /** \brief Method to be executed when a task is aborted
+     *
+     *  Overload this method when your task needs to do some proeccesing when it is aborted
+     */
+    virtual void onAbort() {}
+
   protected slots:
     void runWrapper();
 
@@ -159,7 +174,8 @@ namespace EspINA {
     bool m_isPaused;
     bool m_isWaiting;
 
-    QMutex m_mutex;
+    QMutex         m_mutex;
+    mutable QReadWriteLock m_descriptionLock;
     QWaitCondition m_pauseCondition;
 
     QString  m_description;

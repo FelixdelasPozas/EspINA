@@ -30,7 +30,7 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit CircularBrushSelector(ViewManagerSPtr vm, CategorySelector *categorySelector);
+      explicit CircularBrushSelector(ViewManagerSPtr vm);
       virtual ~CircularBrushSelector();
 
     protected slots:

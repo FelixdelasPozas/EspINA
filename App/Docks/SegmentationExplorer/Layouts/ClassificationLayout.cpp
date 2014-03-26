@@ -639,12 +639,14 @@ bool ClassificationLayout::hasInformationToShow()
       for(auto subIndex : indices(index, true))
       {
         if (isSegmentation(ClassificationLayout::item(subIndex)))
+        {
           return true;
+        }
       }
     }
 
     return false;
   }
 
-  return ;
+  return false;
 }

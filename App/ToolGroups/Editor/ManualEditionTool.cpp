@@ -55,7 +55,8 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(InputSList         inputs,
                                                                   const Filter::Type& filter,
-                                                                  SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
+                                                                  SchedulerSPtr       scheduler) const
+  throw(Unknown_Filter_Exception)
   {
     if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
 
@@ -98,15 +99,17 @@ namespace EspINA
                              tr("Modify segmentation drawing 2D discs"),
                              m_drawToolSelector);
 
-    m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager, m_categorySelector));
-    connect(m_circularBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-            this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
+    m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager));
+    connect(m_circularBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
+            this,                          SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-            m_drawToolSelector, SLOT(setChecked(bool)));
+            m_drawToolSelector,            SLOT(         setChecked(bool)));
     connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-            this, SLOT(selectorInUse(bool)));
-    connect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)), this, SLOT(radiusChanged(int)));
-    connect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)), this, SLOT(drawingModeChanged(bool)));
+            this,                          SLOT(      selectorInUse(bool)));
+    connect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)),
+            this,                          SLOT(  radiusChanged(int)));
+    connect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
+            this,                          SLOT(  drawingModeChanged(bool)));
 
     m_drawTools[m_discTool] = m_circularBrushSelector;
     m_drawToolSelector->addAction(m_discTool);
@@ -117,15 +120,17 @@ namespace EspINA
                                tr("Modify segmentation drawing 3D spheres"),
                                m_drawToolSelector);
 
-    m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector(m_viewManager, m_categorySelector));
-    connect(m_sphericalBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-            this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
-    connect(m_sphericalBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-            this,  SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
+    m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector(m_viewManager));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
+            this,                           SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
+            this,                           SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-            m_drawToolSelector, SLOT(setChecked(bool)));
-    connect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)), this, SLOT(radiusChanged(int)));
-    connect(m_sphericalBrushSelector.get(), SIGNAL(drawingModeChanged(bool)), this, SLOT(drawingModeChanged(bool)));
+            m_drawToolSelector,             SLOT(         setChecked(bool)));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)),
+            this,                           SLOT(  radiusChanged(int)));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
+            this,                           SLOT(  drawingModeChanged(bool)));
 
     m_drawTools[m_sphereTool] = m_sphericalBrushSelector;
     m_drawToolSelector->addAction(m_sphereTool);
@@ -152,13 +157,15 @@ namespace EspINA
 //    m_drawToolSelector->addAction(contourTool);
 
     m_drawToolSelector->setDefaultAction(m_discTool);
-    connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
-            this, SLOT(changeSelector(QAction*)));
+    connect(m_drawToolSelector, SIGNAL(   triggered(QAction*)),
+            this,               SLOT(changeSelector(QAction*)));
     connect(m_drawToolSelector, SIGNAL(actionCanceled()),
-            this, SLOT(unsetSelector()));
+            this,               SLOT(   unsetSelector()));
+    connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+            this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
 
     QSettings settings(CESVIMA, ESPINA);
-    int radius = settings.value(BRUSH_RADIUS, 20).toInt();
+    int radius  = settings.value(BRUSH_RADIUS,  20).toInt();
     int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
 
     m_radiusWidget->setValue(radius);
@@ -187,7 +194,16 @@ namespace EspINA
   {
     Q_ASSERT(m_drawTools.keys().contains(action));
 
+    SelectionSPtr selection = m_viewManager->selection();
+    SegmentationAdapterList segs = selection->segmentations();
+    QColor color = m_categorySelector->selectedCategory()->color();
+    if (segs.size() == 1)
+    {
+      color = segs.first()->category()->color();
+    }
+
     m_currentSelector = m_drawTools[action];
+    m_currentSelector->setBrushColor(color);
     m_currentSelector->initBrush();
     m_currentSelector->setRadius(m_radiusWidget->value());
 
@@ -199,6 +215,15 @@ namespace EspINA
   {
     m_viewManager->unsetEventHandler(m_currentSelector);
     m_currentSelector.reset();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
+  {
+    if (m_currentSelector)
+    {
+      m_currentSelector->setBrushColor(category->color());
+    }
   }
 
   //-----------------------------------------------------------------------------

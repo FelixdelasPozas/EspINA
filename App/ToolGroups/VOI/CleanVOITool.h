@@ -21,6 +21,7 @@
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
+#include "VolumeOfInterestMask.h"
 
 class QAction;
 namespace EspINA
@@ -31,7 +32,8 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit CleanVOITool(ModelAdapterSPtr model,
+    explicit CleanVOITool(VOIMaskSPtr&     currentVOI,
+                          ModelAdapterSPtr model,
                           ViewManagerSPtr  viewManager);
     virtual ~CleanVOITool();
 
@@ -42,15 +44,14 @@ namespace EspINA
     virtual QList<QAction *> actions() const;
 
   protected slots:
-    void changeVOI(QAction *action);
-
     void cancelVOI();
 
   private:
+    VOIMaskSPtr&     m_currentVOI;
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
 
-    QAction *m_applyVOI;
+    QAction *m_cleanVOI;
   };
 
   using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;

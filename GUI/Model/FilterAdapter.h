@@ -19,8 +19,8 @@
 
 #ifndef ESPINA_FILTERADAPTER_H
 #define ESPINA_FILTERADAPTER_H
-
-#include <Core/Analysis/Filter.h>
+#include <Core/EspinaTypes.h>
+#include <Core/Analysis/Output.h>
 
 namespace EspINA {
 

@@ -7,9 +7,6 @@ add_definitions(
   -fpermissive
   )
 
-# needed for plugin compilation
-set (Espina_DIR ${PROJECT_BINARY_DIR})
-
 # Version Number
 set (ESPINA_VERSION_MAJOR 2)
 set (ESPINA_VERSION_MINOR 0)
@@ -50,6 +47,7 @@ set (COMPILING_ESPINA 1)
 set (ESPINA_LIBRARY_DIRECTORIES ${PROJECT_BINARY_DIR}/libs )
 
 include_directories (${CMAKE_SOURCE_DIR})
+include_directories (${PROJECT_BINARY_DIR}) # Needed for plugins
 include_directories (${PROJECT_BINARY_DIR}/Core)
 include_directories (${PROJECT_BINARY_DIR}/GUI)
 include_directories (${PROJECT_BINARY_DIR}/Filter)
@@ -68,17 +66,6 @@ set (ESPINA_PLUGINS_DIR    "${PROJECT_BINARY_DIR}/App/plugins"    )
 set (ESPINA_INCLUDE        "${PROJECT_SOURCE_DIR}")
 set (ESPINA_BINARY_INCLUDE "${PROJECT_BINARY_DIR}")
 set (ESPINA_USE_FILE       "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"
-  "${PROJECT_BINARY_DIR}/EspinaConfig.h"
-  )
-
-configure_file (
-  "${PROJECT_SOURCE_DIR}/EspinaConfig.cmake.in"
-  "${PROJECT_BINARY_DIR}/EspinaConfig.cmake"
-  )
-
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 
@@ -99,6 +86,18 @@ include (${ITK_USE_FILE})
 
 find_package(Boost REQUIRED COMPONENTS  graph regex)
 link_directories ( ${Boost_LIBRARY_DIRS} )
+
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"
+  "${PROJECT_BINARY_DIR}/EspinaConfig.h"
+  )
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/EspinaConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/EspinaConfig.cmake"
+  )
+
 
 #NOTE: We can't use ITK and BOOST graph at the same time because of
 #      ITK_REQUIRED_CXX_FLAG: -ftemplate-depth-50

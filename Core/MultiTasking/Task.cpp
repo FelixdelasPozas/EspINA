@@ -61,10 +61,9 @@ Task::Task(SchedulerSPtr scheduler)
 Task::~Task()
 {
   //std::cout << m_id << ": Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
   if (m_isThreadAttached)
     thread()->quit();
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
@@ -99,18 +98,14 @@ void Task::pause()
   m_mutex.unlock();
 
   dispatcherPause();
-  //m_dispatcher->scheduleTasks();
 }
 
 //-----------------------------------------------------------------------------
 void Task::resume()
 {
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
 //  std::cout << m_description.toStdString() << " has been resumed by the user" << std::endl;
   m_pendingUserPause = false;
-  m_mutex.unlock();
-
-  //m_dispatcher->scheduleTasks();
 }
 
 //-----------------------------------------------------------------------------
@@ -122,10 +117,10 @@ bool Task::isPendingPause() const
 //-----------------------------------------------------------------------------
 void Task::abort()
 {
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
 //  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
   m_isAborted = true;
-  m_mutex.unlock();
+  onAbort();
 }
 
 //-----------------------------------------------------------------------------
@@ -134,7 +129,7 @@ bool Task::canExecute()
   // NOTE: Necessary to receive signals from other threads
   QCoreApplication::processEvents();
 
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
   if (m_pendingPause)
   {
     bool notify = m_pendingUserPause;
@@ -150,7 +145,6 @@ bool Task::canExecute()
     if (notify)
       emit resumed();
   }
-  m_mutex.unlock();
 
   return !m_isAborted;
 }
@@ -169,10 +163,9 @@ void Task::runWrapper()
 //-----------------------------------------------------------------------------
 void Task::dispatcherPause()
 {
-  m_mutex.lock();
+  QMutexLocker lock(&m_mutex);
   //std::cout << m_description.toStdString() << " has been paused" << std::endl;
   m_pendingPause = true;
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------

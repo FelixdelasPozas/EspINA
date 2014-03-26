@@ -47,7 +47,7 @@ using namespace EspINA;
 using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
-SynapticAppositionSurfaceAnalysis::SynapticAppositionSurfaceAnalysis(SegmentationList segmentations,
+SynapticAppositionSurfaceAnalysis::SASAnalysisEntry(SegmentationList segmentations,
                                                                      ModelAdapter      *model,
                                                                      QUndoStack       *undoStack,
                                                                      ViewManager      *viewManager,

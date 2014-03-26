@@ -21,19 +21,22 @@
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Selectors/BrushSelector.h>
+#include <GUI/Widgets/ActionSelector.h>
+#include <Tools/Brushes/CircularBrushSelector.h>
 
 class QAction;
 namespace EspINA
 {
   /// Volume Of Interest Toolbar
-  class BrushVOITool
+  class ManualVOITool
   : public Tool
   {
     Q_OBJECT
   public:
-    explicit BrushVOITool(ModelAdapterSPtr model,
+    explicit ManualVOITool(ModelAdapterSPtr model,
                           ViewManagerSPtr  viewManager);
-    virtual ~BrushVOITool();
+    virtual ~ManualVOITool();
 
     virtual void setEnabled(bool value);
 
@@ -41,7 +44,13 @@ namespace EspINA
 
     virtual QList<QAction *> actions() const;
 
-  protected slots:
+  private slots:
+    void changeSelector(QAction *selectorAction);
+
+    void selectorInUse(bool inUse);
+
+    void unsetSelector();
+
     void changeVOI(QAction *action);
 
     void cancelVOI();
@@ -50,10 +59,17 @@ namespace EspINA
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
 
-    QAction *m_applyVOI;
+    ActionSelector*  m_actionSelector;
+
+    SelectorSPtr              m_currentSelector;
+    CircularBrushSelectorSPtr m_circularBrushSelector;
+
+    QAction *m_circularBrushAction;
+    QAction *m_sphericalBrushAction;
+    QMap<QAction *, SelectorSPtr> m_selectors;
   };
 
-  using BrushVOIToolSPtr = std::shared_ptr<BrushVOITool>;
+  using ManualVOIToolSPtr = std::shared_ptr<ManualVOITool>;
 
 } // namespace EspINA
 

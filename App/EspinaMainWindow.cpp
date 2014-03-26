@@ -390,6 +390,12 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         m_factory->registerExtensionFactory(extensionFactory);
       }
 
+      for (auto toolGroup : validPlugin->toolGroups())
+      {
+        qDebug() << plugin << "- ToolGroup " << toolGroup->toolTip() << " ...... OK";
+        registerToolGroup(toolGroup);
+      }
+
       for (auto dock : validPlugin->dockWidgets())
       {
         qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";

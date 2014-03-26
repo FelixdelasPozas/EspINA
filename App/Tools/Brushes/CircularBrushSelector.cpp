@@ -29,8 +29,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CircularBrushSelector::CircularBrushSelector(ViewManagerSPtr vm, CategorySelector *categorySelector)
-: BrushSelector(vm, categorySelector)
+CircularBrushSelector::CircularBrushSelector(ViewManagerSPtr vm)
+: BrushSelector(vm)
 {
 }
 

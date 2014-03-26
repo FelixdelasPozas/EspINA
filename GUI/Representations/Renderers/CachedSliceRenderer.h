@@ -21,11 +21,13 @@
 
 // EspINA
 #include <Core/EspinaTypes.h>
+#include <Core/MultiTasking/Task.h>
 #include <GUI/Representations/SliceCachedRepresentation.h>
 #include "RepresentationRenderer.h"
 
 // VTK
 #include <vtkImageActor.h>
+#include <QMutex>
 
 class vtkPropPicker;
 

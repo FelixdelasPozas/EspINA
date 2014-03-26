@@ -42,13 +42,13 @@ namespace EspINA
   class ModelAdapter;
   class ViewManager;
 
-  class AppositionSurfacePlugin_EXPORT SynapticAppositionSurfaceAnalysis
+  class AppositionSurfacePlugin_EXPORT SASAnalysisEntry
   : public QDialog
   , public Ui::SynapticAppositionSurfaceAnalysis
   {
     Q_OBJECT
   public:
-    explicit SynapticAppositionSurfaceAnalysis(SegmentationList segmentations,
+    explicit SASAnalysisEntry(SegmentationList segmentations,
                                                ModelAdapter     *model,
                                                QUndoStack      *undoStack,
                                                ViewManager     *viewManager,

@@ -45,6 +45,15 @@ NamedColorEngineSList CountingFramePlugin::colorEngines()
 }
 
 //------------------------------------------------------------------------
+QList<ToolGroup* > CountingFramePlugin::toolGroups()
+{
+  QList<ToolGroup *> tools;
+
+  return tools;
+
+}
+
+//------------------------------------------------------------------------
 QList<DockWidget *> CountingFramePlugin::dockWidgets()
 {
   QList<DockWidget *> docks;

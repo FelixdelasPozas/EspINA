@@ -63,7 +63,7 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
-  ToolGroups/VOI/BrushVOITool.h
+  ToolGroups/VOI/ManualVOITool.h
   ToolGroups/VOI/CleanVOITool.h
   ToolGroups/VOI/OrtogonalVOITool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
@@ -156,7 +156,7 @@ set (ESPINA_SOURCES
   ToolGroups/Editor/MorphologicalEditionTool.cpp
   ToolGroups/Editor/ManualEditionTool.cpp
   ToolGroups/Measures/MeasuresTools.cpp
-  ToolGroups/VOI/BrushVOITool.cpp
+  ToolGroups/VOI/ManualVOITool.cpp
   ToolGroups/VOI/CleanVOITool.cpp
   ToolGroups/VOI/OrtogonalVOITool.cpp
   ToolGroups/VOI/VolumeOfInterestTools.cpp

@@ -20,9 +20,11 @@
 
 #include <Support/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
-#include "BrushVOITool.h"
-#include "OrtogonalVOITool.h"
+
 #include "CleanVOITool.h"
+#include "ManualVOITool.h"
+#include "OrtogonalVOITool.h"
+#include "VolumeOfInterestMask.h"
 
 #include <QAction>
 
@@ -36,10 +38,11 @@ namespace EspINA
   {
   public:
     VolumeOfInterestTools(ModelAdapterSPtr model,
-                      ModelFactorySPtr factory,
-                      ViewManagerSPtr  viewManager,
-                      QUndoStack      *undoStack,
-                      QWidget         *parent = nullptr);
+                          ModelFactorySPtr factory,
+                          ViewManagerSPtr  viewManager,
+                          QUndoStack      *undoStack,
+                          QWidget         *parent = nullptr);
+
     virtual ~VolumeOfInterestTools();
 
     virtual void setEnabled(bool value);
@@ -49,7 +52,9 @@ namespace EspINA
     virtual ToolSList tools();
 
   private:
-    BrushVOIToolSPtr     m_brushVOITool;
+    VOIMaskSPtr          m_currentVOI;
+
+    ManualVOIToolSPtr    m_manualVOITool;
     OrtogonalVOIToolSPtr m_ortogonalVOITool;
     CleanVOIToolSPtr     m_cleanVOITool;
   };

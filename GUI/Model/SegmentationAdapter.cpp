@@ -121,7 +121,8 @@ QVariant SegmentationAdapter::data(int role) const
       QPixmap segIcon(WIDTH, 16);
       segIcon.fill(m_category->color());
 
-      if (hasExtension(SegmentationNotes::TYPE))
+      if ( hasExtension(SegmentationNotes::TYPE)
+        && !information(SegmentationNotes::NOTES).toString().isEmpty())
       {
         QPixmap noteIcon(":/espina/note.png");
         noteIcon = noteIcon.scaled(16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
