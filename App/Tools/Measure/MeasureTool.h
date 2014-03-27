@@ -2,7 +2,7 @@
  * MeasureTool.h
  *
  *  Created on: Dec 11, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef ESPINA_MEASURE_TOOL_H_

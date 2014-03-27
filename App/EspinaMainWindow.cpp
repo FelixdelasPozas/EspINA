@@ -37,6 +37,7 @@
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -362,10 +363,10 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
 
-//   foreach(IRendererSPtr renderer, m_defaultRenderers)
-//     m_model->factory()->unregisterRenderer(renderer.get());
   delete m_undoStack;
   delete m_dynamicMenuRoot;
+
+  removeTemporalDirectory();
 }
 
 //------------------------------------------------------------------------

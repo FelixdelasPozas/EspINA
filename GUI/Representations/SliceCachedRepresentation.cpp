@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -39,15 +39,28 @@ namespace EspINA
   : Representation(view)
   , m_data{data}
   , m_planeIndex{-1}
+  , m_min{-1}
+  , m_max{-1}
   {}
 
   //-----------------------------------------------------------------------------
   bool CachedRepresentation::existsIn(const Nm position) const
   {
-    Bounds imageBounds = m_data->bounds();
-    bool valid = imageBounds[2*m_planeIndex] <= position && position < imageBounds[2*m_planeIndex+1];
+    if (m_planeIndex == -1)
+      return false;
 
-    return valid;
+    return (m_min <= position) && (position < m_max);
+  }
+
+  //-----------------------------------------------------------------------------
+  void CachedRepresentation::computeLimits()
+  {
+    Q_ASSERT(m_planeIndex != -1);
+
+    VolumeBounds imageBounds{ m_data->bounds(), m_data->spacing(), m_data->origin() };
+
+    m_min = imageBounds[2*m_planeIndex];
+    m_max = imageBounds[2*m_planeIndex + 1];
   }
 
   //-----------------------------------------------------------------------------
@@ -81,6 +94,8 @@ namespace EspINA
   {
     m_view = view;
     m_planeIndex = normalCoordinateIndex(view->plane());
+
+    computeLimits();
   }
 
   //-----------------------------------------------------------------------------
@@ -141,7 +156,14 @@ namespace EspINA
   void ChannelSliceCachedRepresentation::updateRepresentation()
   {
     if(m_data->lastModified() != m_lastUpdatedTime)
+    {
+      computeLimits();
       emit update();
+    }
+    else
+    {
+      emit changeVisibility();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -285,13 +307,18 @@ namespace EspINA
     m_view = view;
     m_planeIndex = normalCoordinateIndex(view->plane());
     m_depth[m_planeIndex] = view->segmentationDepth();
+
+    computeLimits();
   }
 
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::updateRepresentation()
   {
     if(m_data->lastModified() != m_lastUpdatedTime)
+    {
+      computeLimits();
       emit update();
+    }
     else
     {
       emit changeVisibility();

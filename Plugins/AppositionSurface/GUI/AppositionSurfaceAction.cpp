@@ -2,7 +2,7 @@
  * AppositionSurfaceAction.cpp
  *
  *  Created on: Jan 16, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #include "AppositionSurfaceAction.h"

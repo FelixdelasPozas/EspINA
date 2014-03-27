@@ -2,7 +2,7 @@
  * MeasureWidget.cpp
  *
  *  Created on: Dec 11, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA

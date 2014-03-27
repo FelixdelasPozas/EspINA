@@ -2,7 +2,7 @@
  * ZoomTool.h
  *
  *  Created on: Nov 14, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef ESPINA_ZOOM_AREA_H

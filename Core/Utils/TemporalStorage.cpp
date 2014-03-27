@@ -21,115 +21,125 @@
 
 #include <iostream>
 
-using namespace std;
-using namespace EspINA;
-
-//----------------------------------------------------------------------------
-bool removeRecursively(const QString & dirName)
+namespace EspINA
 {
-  bool result = true;
-  QDir dir(dirName);
-
-  if (dir.exists(dirName))
+  //----------------------------------------------------------------------------
+  bool removeRecursively(const QString & dirName)
   {
-    for(QFileInfo info : dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
-      if (info.isDir())
-      {
-        result = removeRecursively(info.absoluteFilePath());
-      }
-      else
-      {
-        result = QFile::remove(info.absoluteFilePath());
-      }
+    bool result = true;
+    QDir dir(dirName);
 
-      if (!result)
-      {
-        return result;
-      }
-    }
-    result = dir.rmdir(dirName);
-  }
-
-  return result;
-}
-
-//----------------------------------------------------------------------------
-TemporalStorage::TemporalStorage(const QDir* parent)
-{
-  QDir tmpDir;
-
-  if (parent)
-  {
-    tmpDir = *parent;
-  }
-  else
-  {
-    tmpDir = QDir::tempPath();
-    tmpDir.mkpath("espina");
-    tmpDir.cd("espina");
-  }
-
-  QString path = QUuid::createUuid().toString();
-
-  tmpDir.mkdir(path);
-
-  m_storageDir = QDir(tmpDir.absoluteFilePath(path));
-}
-
-//----------------------------------------------------------------------------
-TemporalStorage::~TemporalStorage()
-{
-  removeRecursively(m_storageDir.absolutePath());
-}
-
-//----------------------------------------------------------------------------
-void TemporalStorage::saveSnapshot(SnapshotData data)
-{
-  QFileInfo fileName(m_storageDir.absoluteFilePath(data.first));
-
-  m_storageDir.mkpath(fileName.absolutePath());
-
-  QFile file(fileName.absoluteFilePath());
-  file.open(QIODevice::WriteOnly);
-  file.write(data.second);
-  file.close();
-}
-
-//----------------------------------------------------------------------------
-QByteArray TemporalStorage::snapshot(const QString& descriptor) const
-{
-  QString fileName = m_storageDir.absoluteFilePath(descriptor);
-
-  QFile file(fileName);
-  file.open(QIODevice::ReadOnly);
-  QByteArray data = file.readAll();
-  file.close();
-
-  return data;
-}
-
-#include <QDebug>
-//----------------------------------------------------------------------------
-Snapshot TemporalStorage::snapshots(const QString& relativePath, TemporalStorage::Mode mode) const
-{
-  Snapshot result;
-
-  QDir dir = m_storageDir.absoluteFilePath(relativePath);
-  for (auto file : dir.entryInfoList(QDir::AllEntries|QDir::NoDotAndDotDot))
-  {
-    QString relativeStoragePath = m_storageDir.relativeFilePath(file.absoluteFilePath());
-    if (file.isDir())
+    if (dir.exists(dirName))
     {
-      if (Mode::Recursive == mode)
-      {
-        result << snapshots(relativeStoragePath, mode);
+      for(QFileInfo info : dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+        if (info.isDir())
+        {
+          result = removeRecursively(info.absoluteFilePath());
+        }
+        else
+        {
+          result = QFile::remove(info.absoluteFilePath());
+        }
+
+        if (!result)
+        {
+          return result;
+        }
       }
+      result = dir.rmdir(dirName);
+    }
+
+    return result;
+  }
+
+  //----------------------------------------------------------------------------
+  TemporalStorage::TemporalStorage(const QDir* parent)
+  {
+    QDir tmpDir;
+
+    if (parent)
+    {
+      tmpDir = *parent;
     }
     else
     {
-      result << SnapshotData(relativeStoragePath, snapshot(relativeStoragePath));
+      tmpDir = QDir::tempPath();
+      tmpDir.mkpath("espina");
+      tmpDir.cd("espina");
     }
+
+    QString path = QUuid::createUuid().toString();
+
+    tmpDir.mkdir(path);
+
+    m_storageDir = QDir(tmpDir.absoluteFilePath(path));
   }
 
-  return result;
-}
+  //----------------------------------------------------------------------------
+  TemporalStorage::~TemporalStorage()
+  {
+    removeRecursively(m_storageDir.absolutePath());
+  }
+
+  //----------------------------------------------------------------------------
+  void TemporalStorage::saveSnapshot(SnapshotData data)
+  {
+    QFileInfo fileName(m_storageDir.absoluteFilePath(data.first));
+
+    m_storageDir.mkpath(fileName.absolutePath());
+
+    QFile file(fileName.absoluteFilePath());
+    file.open(QIODevice::WriteOnly);
+    file.write(data.second);
+    file.close();
+  }
+
+  //----------------------------------------------------------------------------
+  QByteArray TemporalStorage::snapshot(const QString& descriptor) const
+  {
+    QString fileName = m_storageDir.absoluteFilePath(descriptor);
+
+    QFile file(fileName);
+    file.open(QIODevice::ReadOnly);
+    QByteArray data = file.readAll();
+    file.close();
+
+    return data;
+  }
+
+  //----------------------------------------------------------------------------
+  Snapshot TemporalStorage::snapshots(const QString& relativePath, TemporalStorage::Mode mode) const
+  {
+    Snapshot result;
+
+    QDir dir = m_storageDir.absoluteFilePath(relativePath);
+    for (auto file : dir.entryInfoList(QDir::AllEntries|QDir::NoDotAndDotDot))
+    {
+      QString relativeStoragePath = m_storageDir.relativeFilePath(file.absoluteFilePath());
+      if (file.isDir())
+      {
+        if (Mode::Recursive == mode)
+        {
+          result << snapshots(relativeStoragePath, mode);
+        }
+      }
+      else
+      {
+        result << SnapshotData(relativeStoragePath, snapshot(relativeStoragePath));
+      }
+    }
+
+    return result;
+  }
+
+  //----------------------------------------------------------------------------
+  bool removeTemporalDirectory()
+  {
+    QDir temporalPath = QDir::tempPath();
+    if (!temporalPath.cd("espina"))
+      return false;
+
+    return removeRecursively(temporalPath.absolutePath());
+  }
+
+} // namespace EspINA

@@ -2,7 +2,7 @@
  * vtkPlaneContourRepresentation.cpp
  *
  *  Created on: Sep 8, 2012
- *      Author: Félix de las Pozas Alvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkContourToPolygonFilter.h"

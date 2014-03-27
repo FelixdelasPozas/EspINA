@@ -256,6 +256,14 @@ void BrushSelector::setBrushOpacity(int value)
 //-----------------------------------------------------------------------------
 void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
 {
+  if (!item)
+  {
+    m_referenceItem = nullptr;
+    m_origin = NmVector3();
+    m_spacing[0] = m_spacing[1] = m_spacing[2] = 0;
+    return;
+  }
+
   m_referenceItem = item;
   NmVector3 spacing;
 
@@ -350,6 +358,9 @@ bool BrushSelector::validStroke(NmVector3 &center)
 //-----------------------------------------------------------------------------
 void BrushSelector::startStroke(QPoint pos, RenderView* view)
 {
+  if (!m_referenceItem)
+    return;
+
   m_pBounds = view->previewBounds(false);
   View2D *previewView = static_cast<View2D*>(view);
   m_plane = previewView->plane();
@@ -392,6 +403,9 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 {
+  if (!m_referenceItem)
+    return;
+
   if (m_stroke->GetNumberOfPoints() > 0 && QLineF(m_lastDot, pos).length() < m_displayRadius/2.0)
     return;
 
@@ -413,6 +427,9 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::stopStroke(RenderView* view)
 {
+  if(!m_referenceItem)
+    return;
+
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
@@ -724,6 +741,9 @@ void BrushSelector::initBrush()
   if (segs.size() == 1)
   {
     item = segs.first();
+    if (!item)
+      return;
+
     if (m_drawing)
       borderColor = QColor(Qt::green);
     else

@@ -2,7 +2,7 @@
  * HueSelector.cpp
  *
  *  Created on: August 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA

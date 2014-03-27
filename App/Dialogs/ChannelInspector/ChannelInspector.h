@@ -2,7 +2,7 @@
  * ChannelInspector.h
  *
  *  Created on: Dec 16, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef ESPINA_CHANNEL_INSPECTOR_H_

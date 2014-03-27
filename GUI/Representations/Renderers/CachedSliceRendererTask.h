@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -58,6 +58,12 @@ namespace EspINA
        */
       virtual void setInput(CachedSliceRenderer::CacheNode *node, CachedRepresentationSList representations);
 
+      /* \brief Returns the time in milliseconds the task run() method has executed doing the work.
+       *
+       */
+      long long getExecutionTime()
+      { return m_executionTime; }
+
     signals:
       void ready(CachedSliceRenderer::CacheNode *);
 
@@ -68,12 +74,12 @@ namespace EspINA
       virtual void run();
 
     private:
-      /* \brief Fill the data struct for that representation.
+      /* \brief Compute the actor for that representation in the specified position.
        *
        */
       void computeData(CachedRepresentationSPtr rep);
 
-      /* \brief Deallocates actors.
+      /* \brief Deallocates all actors.
        *
        */
       void releaseActors();
@@ -85,7 +91,7 @@ namespace EspINA
 
       QMap<CachedRepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representations;
 
-      unsigned long long              m_executionTime;
+      long long                       m_executionTime;
       CachedSliceRenderer::CacheNode *m_node;
       Nm                              m_position;
   };

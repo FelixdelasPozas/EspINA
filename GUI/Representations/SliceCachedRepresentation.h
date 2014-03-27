@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -99,8 +99,16 @@ namespace EspINA
       { return m_lastUpdatedTime; }
 
     protected:
+      /* \brief Compute the values of m_min && m_max for the representation.
+       *
+       */
+      void computeLimits();
+
       DefaultVolumetricDataSPtr m_data;       // data that will be represented.
       int                       m_planeIndex; // plane index for the view.
+
+      Nm                        m_min;        // m_min && m_max are values stored from the bounds in this plane
+      Nm                        m_max;        // to avoid recomputing them every time in existsIn().
   };
 
   using CachedRepresentationPtr  = CachedRepresentation *;

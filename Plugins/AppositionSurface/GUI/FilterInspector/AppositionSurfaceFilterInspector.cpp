@@ -2,7 +2,7 @@
  * AppositionSurfaceFilterInspector.cpp
  *
  *  Created on: Jan 18, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #include "AppositionSurfaceFilterInspector.h"

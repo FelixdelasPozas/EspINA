@@ -2,7 +2,7 @@
  * ContourSelector.cpp
  *
  *  Created on: Aug 28, 2012
- *      Author: Félix de las Pozas Alvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 #include "ContourSelector.h"
 

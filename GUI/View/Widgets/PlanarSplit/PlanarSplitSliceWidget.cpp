@@ -2,7 +2,7 @@
  * PlanarSplitSliceWidget.cpp
  *
  *  Created on: Nov 5, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA

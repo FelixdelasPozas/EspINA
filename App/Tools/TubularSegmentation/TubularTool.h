@@ -2,7 +2,7 @@
  * SpineTool.h
  *
  *  Created on: Oct 24, 2012
- *      Author: Felix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef TUBULARTOOL_H_

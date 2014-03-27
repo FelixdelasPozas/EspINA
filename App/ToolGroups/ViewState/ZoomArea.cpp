@@ -2,7 +2,7 @@
  * ZoomTool.cpp
  *
  *  Created on: Nov 14, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #include "ZoomArea.h"

@@ -2,7 +2,7 @@
  * ChannelInspector.cpp
  *
  *  Created on: Dec 16, 2012
- *      Author: F�lix de las Pozas �lvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA

@@ -2,7 +2,7 @@
  * ZoomSelectionSliceWidget.h
  *
  *  Created on: Nov 15, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef ZOOMSELECTIONSLICEWIDGET_H_

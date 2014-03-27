@@ -2,7 +2,7 @@
  * vtkPlanarSplitRepresentation2D.cpp
  *
  *  Created on: Nov 6, 2012
- *      Author: F�lix de las Pozas �lvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA

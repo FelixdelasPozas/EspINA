@@ -2,7 +2,7 @@
  * PlanarSplitWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: F�lix de las Pozas �lvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef PLANARSPLITWIDGET_H_

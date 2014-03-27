@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2014 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,9 @@
 // EspINA
 #include "CachedSliceRendererTask.h"
 #include <GUI/Representations/SliceCachedRepresentation.h>
+
+// C++
+#include <chrono>
 
 namespace EspINA
 {
@@ -75,13 +78,25 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   bool CachedSliceRendererTask::needToRestart()
   {
+    m_node->mutex.lockForRead();
     bool result = m_node->restart;
+    m_node->mutex.unlock();
 
-    if (result)
+    if(result)
     {
       m_node->mutex.lockForWrite();
       m_position = m_node->position;
       m_node->restart = false;
+
+      for(auto rep: m_representations.keys())
+      {
+        m_representations[rep] = nullptr;
+        m_representations.remove(rep);
+      }
+
+      for(auto rep: m_node->repsToAdd)
+        m_representations[rep] = nullptr;
+
       m_node->mutex.unlock();
     }
 
@@ -91,6 +106,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void CachedSliceRendererTask::run()
   {
+    auto start = std::chrono::high_resolution_clock::now();
     int count = 0;
 
     bool pendingData = true;
@@ -98,6 +114,7 @@ namespace EspINA
     while(pendingData)
     {
       pendingData = false;
+
       for (auto rep : m_representations.keys())
       {
         if (!canExecute())
@@ -128,6 +145,9 @@ namespace EspINA
         m_node->representations[rep] = m_representations[rep];
     }
     m_node->mutex.unlock();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    m_executionTime = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();
 
     emit ready(m_node);
   }

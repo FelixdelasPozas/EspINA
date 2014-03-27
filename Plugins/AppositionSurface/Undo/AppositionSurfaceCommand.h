@@ -2,7 +2,7 @@
  * AppositionSurfaceCommand.h
  *
  *  Created on: Jan 16, 2013
- *      Author: F�lix de las Pozas �lvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef APPOSITIONSURFACECOMMAND_H_

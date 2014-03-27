@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ Copyright (C) 2013 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -34,11 +34,14 @@ namespace EspINA
 
     connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectionSPtr)), this, SLOT(selectionChanged(SelectionSPtr)));
     connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()));
+    connect(parent, SIGNAL(analysisClosed()), this, SLOT(abortOperation()));
   }
 
   //-----------------------------------------------------------------------------
   EditionTools::~EditionTools()
   {
+    abortOperation();
+
     disconnect(m_viewManager.get());
     disconnect(this->parent());
   }

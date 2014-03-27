@@ -2,7 +2,7 @@
  * vtkPlaneContourWidget.cpp
  *
  *  Created on: Sep 8, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA

@@ -28,8 +28,8 @@
 
 #include <memory>
 
-namespace EspINA {
-
+namespace EspINA
+{
   using SnapshotData = QPair<QString, QByteArray>;
   using Snapshot     = QList<SnapshotData>;
 
@@ -68,6 +68,11 @@ namespace EspINA {
   };
 
   using TemporalStorageSPtr = std::shared_ptr<TemporalStorage>;
+
+  /* \brief Removes all files inside the "espina" folder in the OS temporal directory.
+   *
+   */
+  bool removeTemporalDirectory();
 }
 
 #endif // ESPINA_TEMPORAL_STORAGE_H

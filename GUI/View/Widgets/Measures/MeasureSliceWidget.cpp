@@ -2,7 +2,7 @@
  * MeasureSliceWidget.cpp
  *
  *  Created on: Dec 12, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 // EspINA
