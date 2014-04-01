@@ -57,29 +57,6 @@ namespace CF {
     using CountingFrame2DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget>;
     using CountingFrame3DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>;
 
-    class CountingFrameSliceWidget
-    : public SliceWidget
-    {
-    public:
-      explicit CountingFrameSliceWidget(vtkCountingFrameSliceWidget *widget)
-      : SliceWidget(widget)
-      {
-        m_slicedWidget = dynamic_cast<CountingFrame2DWidgetAdapter *>(widget);
-      }
-
-      virtual void setSlice(Nm pos, Plane plane)
-      {
-        m_slicedWidget->SetSlice(pos);
-        SliceWidget::setSlice(pos, plane);
-      }
-
-      CountingFrame2DWidgetAdapter *widget() const
-      { return m_slicedWidget; }
-
-    private:
-      CountingFrame2DWidgetAdapter *m_slicedWidget;
-    };
-
   public:
     const int INCLUSION_FACE;
     const int EXCLUSION_FACE;
@@ -179,7 +156,11 @@ namespace CF {
 
     QString categoryConstraint() const { return m_categoryConstraint; }
 
-    virtual vtkAbstractWidget *create3DWidget(View3D *view) = 0;
+    virtual void registerView(RenderView *) = 0;
+    virtual void unregisterView(RenderView *) = 0;
+
+    // needed for the renderers
+    virtual vtkAbstractWidget *getWidget(RenderView *);
 
     void apply();
 
@@ -216,6 +197,7 @@ namespace CF {
 
   protected slots:
     void onCountingFrameApplied();
+    void sliceChanged(Plane, Nm);
 
   protected:
     SchedulerSPtr m_scheduler;
@@ -242,7 +224,7 @@ namespace CF {
 
     // TODO: Change to private (may need some changes in the API)
     mutable QMutex m_widgetMutex;
-    QMap<View2D *, CountingFrameSliceWidget *>     m_widgets2D;
+    QMap<View2D *, CountingFrame2DWidgetAdapter *> m_widgets2D;
     QMap<View3D *, CountingFrame3DWidgetAdapter *> m_widgets3D;
 
 

@@ -14,7 +14,6 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
-  Representations/CrosshairRepresentation.h
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
   Representations/Renderers/Renderer.h
@@ -31,6 +30,7 @@ qt4_wrap_cpp(GUI_MOC
   View/View2D.h
   View/ViewRendererMenu.h
   View/View3D.h
+  View/Widgets/Ruler/RulerWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
@@ -120,13 +120,10 @@ set (GUI_SOURCES
   View/Widgets/Contour/vtkVoxelContour2D.cpp
   View/Widgets/EspinaWidget.cpp
   View/Widgets/Zoom/ZoomSelectionWidget.cpp
-  View/Widgets/Zoom/ZoomSelectionSliceWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp
-  View/Widgets/Measures/MeasureSliceWidget.cpp
   View/Widgets/Ruler/RulerWidget.cpp
-  View/Widgets/Ruler/RulerSliceWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget3D.cpp
   View/vtkInteractorStyleEspinaSlice.cpp

@@ -7,124 +7,101 @@
 
 // EspINA
 #include "ZoomSelectionWidget.h"
-#include "ZoomSelectionSliceWidget.h"
 #include "vtkZoomSelectionWidget.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
+#include <GUI/View/RenderView.h>
 #include "vtkZoomSelectionWidget.h"
-
 #include <Support/ViewManager.h>
 #include <GUI/View/View2D.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkWidgetRepresentation.h>
+#include <vtkCommand.h>
+#include <vtkRenderWindowInteractor.h>
+
+// Qt
+#include <QMouseEvent>
 
 using namespace EspINA;
 
-typedef EspinaInteractorAdapter<vtkZoomSelectionWidget> ZoomSelectionWidgetAdapter;
+using ZoomSelectionWidgetAdapter = EspinaInteractorAdapter<vtkZoomSelectionWidget>;
 
 //----------------------------------------------------------------------------
 ZoomSelectionWidget::ZoomSelectionWidget()
-: m_axial(nullptr)
-, m_coronal(nullptr)
-, m_sagittal(nullptr)
-, m_volume(nullptr)
 {
 }
 
 //----------------------------------------------------------------------------
 ZoomSelectionWidget::~ZoomSelectionWidget()
 {
-  if (m_axial)
+  for(vtkZoomSelectionWidget *widget: m_views.values())
   {
-    m_axial->SetEnabled(false);
-    delete m_axial;
-    m_axial = nullptr;
-  }
-
-  if (m_coronal)
-  {
-    m_coronal->SetEnabled(false);
-    delete m_coronal;
-    m_coronal = nullptr;
-  }
-
-  if (m_sagittal)
-  {
-    m_sagittal->SetEnabled(false);
-    delete m_sagittal;
-    m_sagittal = nullptr;
-  }
-
-  // this deletes m_volume
-  for(auto widget: m_widgets)
-  {
-    widget->RemoveObserver(this);
     widget->SetEnabled(false);
+    widget->RemoveObserver(this);
+    widget->SetCurrentRenderer(nullptr);
+    widget->SetInteractor(nullptr);
     widget->Delete();
   }
-  m_volume = nullptr;
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget *ZoomSelectionWidget::create3DWidget(View3D *view)
+void ZoomSelectionWidget::registerView(RenderView *view)
 {
-  return nullptr;
+  if (m_views.keys().contains(view))
+    return;
 
-  // dead code, for now
-  if (!m_volume)
+  View2D *view2d = dynamic_cast<View2D *>(view);
+  if (view2d)
   {
-    m_volume = ZoomSelectionWidgetAdapter::New();
-    m_volume->AddObserver(vtkCommand::EndInteractionEvent, this);
-    m_volume->SetWidgetType(vtkZoomSelectionWidget::VOLUME_WIDGET);
-    m_widgets << m_volume;
-  }
+    auto widget = ZoomSelectionWidgetAdapter::New();
+    widget->AddObserver(vtkCommand::EndInteractionEvent, this);
 
-  return m_volume;
+    switch (view2d->plane())
+    {
+      case Plane::XY:
+        widget->SetWidgetType(vtkZoomSelectionWidget::AXIAL_WIDGET);
+        break;
+      case Plane::XZ:
+        widget->SetWidgetType(vtkZoomSelectionWidget::CORONAL_WIDGET);
+        break;
+      case Plane::YZ:
+        widget->SetWidgetType(vtkZoomSelectionWidget::SAGITTAL_WIDGET);
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+
+    widget->SetCurrentRenderer(view2d->renderWindow()->GetRenderers()->GetFirstRenderer());
+    widget->SetInteractor(view2d->renderWindow()->GetInteractor());
+    widget->SetEnabled(true);
+
+    m_views.insert(view, widget);
+  }
 }
 
 //----------------------------------------------------------------------------
-SliceWidget *ZoomSelectionWidget::createSliceWidget(View2D *view)
+void ZoomSelectionWidget::unregisterView(RenderView *view)
 {
-  vtkZoomSelectionWidget *widget = nullptr;
-  switch(view->plane())
-  {
-    case Plane::XY:
-      widget = ZoomSelectionWidgetAdapter::New();
-      widget->AddObserver(vtkCommand::EndInteractionEvent, this);
-      widget->SetWidgetType(vtkZoomSelectionWidget::AXIAL_WIDGET);
-      m_widgets << widget;
-      m_axial = new ZoomSelectionSliceWidget(widget);
-      return m_axial;
-      break;
-    case Plane::XZ:
-      widget = ZoomSelectionWidgetAdapter::New();
-      widget->AddObserver(vtkCommand::EndInteractionEvent, this);
-      widget->SetWidgetType(vtkZoomSelectionWidget::CORONAL_WIDGET);
-      m_widgets << widget;
-      m_coronal = new ZoomSelectionSliceWidget(widget);
-      return m_coronal;
-      break;
-    case Plane::YZ:
-      widget = ZoomSelectionWidgetAdapter::New();
-      widget->AddObserver(vtkCommand::EndInteractionEvent, this);
-      widget->SetWidgetType(vtkZoomSelectionWidget::SAGITTAL_WIDGET);
-      m_widgets << widget;
-      m_sagittal = new ZoomSelectionSliceWidget(widget);
-      return m_sagittal;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
+  if (!m_views.keys().contains(view))
+    return;
 
-  return nullptr; // dead code
+  m_views[view]->SetEnabled(false);
+  m_views[view]->SetCurrentRenderer(nullptr);
+  m_views[view]->SetInteractor(nullptr);
+  m_views[view]->Delete();
+
+  m_views.remove(view);
 }
 
 //----------------------------------------------------------------------------
 bool ZoomSelectionWidget::processEvent(vtkRenderWindowInteractor *iren,
                           long unsigned int event)
 {
-  for(auto widget: m_widgets)
+  for(auto widget: m_views.values())
     if (widget->GetInteractor() == iren)
     {
       ZoomSelectionWidgetAdapter *sw = static_cast<ZoomSelectionWidgetAdapter *>(widget);
@@ -137,17 +114,93 @@ bool ZoomSelectionWidget::processEvent(vtkRenderWindowInteractor *iren,
 //----------------------------------------------------------------------------
 void ZoomSelectionWidget::setEnabled(bool enable)
 {
-  m_axial->SetEnabled(enable);
-  m_coronal->SetEnabled(enable);
-  m_sagittal->SetEnabled(enable);
-
-  for(auto widget: m_widgets)
-      widget->SetEnabled(enable);
+  for(auto widget: m_views.values())
+    widget->SetEnabled(enable);
 }
 
 //----------------------------------------------------------------------------
 void ZoomSelectionWidget::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
 {
   // this is needed to update the thumbnail when zooming the view.
-  m_viewManager->updateViews();
+  ZoomSelectionWidgetAdapter *widget = dynamic_cast<ZoomSelectionWidgetAdapter *>(caller);
+  if(!widget)
+    return;
+
+  m_views.key(widget)->updateView();
+}
+
+//----------------------------------------------------------------------------
+bool ZoomSelectionWidget::filterEvent(QEvent* e, RenderView* view)
+{
+  if ( QEvent::MouseButtonPress != e->type()
+    && QEvent::MouseButtonRelease != e->type()
+    && QEvent::MouseMove != e->type() )
+    return false;
+
+  QMouseEvent *me = static_cast<QMouseEvent *>(e);
+
+  // give interactor the event information
+  vtkRenderWindowInteractor *iren = view->renderWindow()->GetInteractor();
+
+  int oldPos[2];
+  iren->GetEventPosition(oldPos);
+  iren->SetEventInformationFlipY(me->x(), me->y(),
+                                 (me->modifiers() & Qt::ControlModifier) > 0 ? 1 : 0,
+                                 (me->modifiers() & Qt::ShiftModifier ) > 0 ? 1 : 0,
+                                 0,
+                                 me->type() == QEvent::MouseButtonDblClick ? 1 : 0);
+  long unsigned int eventId = 0;
+
+  const QEvent::Type t = e->type();
+  if(t == QEvent::MouseMove)
+  {
+    eventId = vtkCommand::MouseMoveEvent;
+  }
+  else if(t == QEvent::MouseButtonPress || t == QEvent::MouseButtonDblClick)
+  {
+    switch(me->button())
+    {
+      case Qt::LeftButton:
+        eventId =vtkCommand::LeftButtonPressEvent;
+        break;
+
+      case Qt::MidButton:
+        eventId = vtkCommand::MiddleButtonPressEvent;
+        break;
+
+      case Qt::RightButton:
+        eventId = vtkCommand::RightButtonPressEvent;
+        break;
+
+      default:
+        break;
+    }
+  }
+  else if(t == QEvent::MouseButtonRelease)
+  {
+    switch(me->button())
+    {
+      case Qt::LeftButton:
+        eventId = vtkCommand::LeftButtonReleaseEvent;
+        break;
+
+      case Qt::MidButton:
+        eventId = vtkCommand::MiddleButtonReleaseEvent;
+        break;
+
+      case Qt::RightButton:
+        eventId = vtkCommand::RightButtonReleaseEvent;
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  bool handled = processEvent(iren, eventId);
+
+  if (!handled)
+    iren->SetEventPosition(oldPos);
+
+  return handled;
 }

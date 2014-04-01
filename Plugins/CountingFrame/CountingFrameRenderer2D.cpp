@@ -19,7 +19,7 @@
 // Plugin
 #include <CountingFrameRenderer2D.h>
 #include "CountingFrames/CountingFrame.h"
-#include <GUI/View/Widgets/EspinaWidget.h>
+#include "CountingFrames/vtkCountingFrameSliceWidget.h"
 #include <GUI/View/View2D.h>
 
 
@@ -41,7 +41,7 @@ CountingFrameRenderer2D::CountingFrameRenderer2D(CountingFrameManager& cfManager
 //-----------------------------------------------------------------------------
 CountingFrameRenderer2D::~CountingFrameRenderer2D()
 {
-  for(auto cf: m_insertedCFs)
+  for(auto cf: m_insertedCFs.keys())
     onCountingFrameDeleted(cf);
 }
 
@@ -57,27 +57,24 @@ void CountingFrameRenderer2D::onCountingFrameCreated(CountingFrame *cf)
   if (!m_view)
     return;
 
-  m_insertedCFs << cf;
+  cf->registerView(m_view);
+  auto widget = dynamic_cast<vtkCountingFrameSliceWidget *>(cf->getWidget(m_view));
+  Q_ASSERT(widget);
+  widget->SetEnabled(m_enable);
+  m_insertedCFs.insert(cf, widget);
 
   if (m_enable)
-  {
-    m_view->addWidget(cf);
     emit renderRequested();
-  }
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer2D::onCountingFrameDeleted(CountingFrame *cf)
 {
-  if (m_insertedCFs.contains(cf))
+  if(m_insertedCFs.keys().contains(cf))
   {
-    m_insertedCFs.removeOne(cf);
-
-    if (m_enable)
-    {
-      m_view->removeWidget(cf);
+    m_insertedCFs.remove(cf);
+    if(m_enable)
       emit renderRequested();
-    }
   }
 }
 
@@ -87,8 +84,8 @@ void CountingFrameRenderer2D::hide()
   if (!m_enable)
     return;
 
-  for(auto cf: m_insertedCFs)
-    cf->setEnabled(false);
+  for(auto widget: m_insertedCFs.values())
+    widget->SetEnabled(false);
 
   if (!m_insertedCFs.empty())
     emit renderRequested();
@@ -100,8 +97,8 @@ void CountingFrameRenderer2D::show()
   if (m_enable)
     return;
 
-  for(auto cf: m_insertedCFs)
-    cf->setEnabled(true);
+  for(auto widget: m_insertedCFs.values())
+    widget->SetEnabled(true);
 
   if (!m_insertedCFs.empty())
     emit renderRequested();

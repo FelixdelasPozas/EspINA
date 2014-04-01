@@ -31,6 +31,7 @@
 #include <GUI/Widgets/ContextualMenu.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/EventHandler.h>
 
 // Qt
@@ -109,8 +110,8 @@ namespace EspINA
 
     virtual void updateRepresentations();
 
-    virtual void addWidget   (EspinaWidget *widget) = 0;
-    virtual void removeWidget(EspinaWidget *widget) = 0;
+    virtual void addWidget   (EspinaWidgetSPtr widget);
+    virtual void removeWidget(EspinaWidgetSPtr widget);
 
     virtual void addActor   (vtkProp *actor);
     virtual void removeActor(vtkProp *actor);
@@ -184,8 +185,8 @@ namespace EspINA
     virtual void setVisualState(struct VisualState) = 0;
     virtual struct VisualState visualState() = 0;
 
-   signals:
-    virtual void sceneResolutionChanged();
+  signals:
+    void sceneResolutionChanged();
 
   public slots:
     virtual void updateView() = 0;
@@ -232,6 +233,7 @@ namespace EspINA
     QMap<SegmentationAdapterPtr, SegmentationState> m_segmentationStates;
 
     RendererSList m_renderers;
+    QList<EspinaWidgetSPtr> m_widgets;
 
     bool m_sceneCameraInitialized;
     bool m_showSegmentations;

@@ -10,6 +10,7 @@
 
 // EspINA
 #include <GUI/View/Widgets/Measures/MeasureWidget.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 
@@ -49,35 +50,10 @@ namespace EspINA
 
   private:
     bool             m_enabled;
-    MeasureWidget   *m_widget;
+    EspinaWidgetSPtr m_widget;
+    EventHandlerSPtr m_handler;
     ViewManagerSPtr  m_viewManager;
     QAction         *m_action;
-    EventHandlerSPtr m_handler;
-  };
-
-  class MeasureEventHandler
-  : public EventHandler
-  {
-    public:
-      explicit MeasureEventHandler(MeasureWidget *widget)
-      : m_widget(widget)
-      {}
-
-      virtual ~MeasureEventHandler()
-      {}
-
-      /* \brief Implements EventHandler::setInUse.
-       *
-       */
-      virtual void setInUse(bool value);
-
-      /* \brief Implements EventHandler::filterEvent.
-       *
-       */
-      virtual bool filterEvent(QEvent *e, RenderView *view=nullptr);
-
-    private:
-      MeasureWidget *m_widget;
   };
 
   using MeasureToolPtr  = MeasureTool *;

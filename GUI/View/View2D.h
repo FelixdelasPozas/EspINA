@@ -44,13 +44,10 @@ class QPushButton;
 
 namespace EspINA
 {
-  class SliceWidget;
   class Representation;
   class EspinaWidget;
   class ViewRendererMenu;
 
-  /// Slice View Widget
-  /// Display channels and segmentations as slices
   class EspinaGUI_EXPORT View2D
   : public RenderView
   {
@@ -123,10 +120,6 @@ namespace EspINA
 
     void setThumbnailVisibility(bool visible);
 
-    virtual void addWidget   (EspinaWidget* widget);
-
-    virtual void removeWidget(EspinaWidget* eWidget);
-
     virtual void addActor   (vtkProp *actor);
     virtual void removeActor(vtkProp *actor);
 
@@ -190,8 +183,6 @@ namespace EspINA
     void selectFromSlice();
 
     void selectToSlice();
-
-    void updateWidgetVisibility();
 
     virtual void updateChannelsOpactity();
 
@@ -288,10 +279,6 @@ namespace EspINA
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
     bool  m_sceneReady;
-
-    // Representations
-    QMap<EspinaWidget *, SliceWidget *> m_widgets;
-
     Plane m_plane;
     int   m_normalCoord;
 

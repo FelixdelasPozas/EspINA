@@ -58,10 +58,8 @@ void CountingFrameRenderer3D::hide()
   bool updated = false;
   for(auto cf : m_widgets.keys())
   {
-    if (m_widgets[cf] == nullptr)
-      continue;
-
     bool visible = cf->isVisible();
+
     if (visible)
       m_widgets[cf]->SetEnabled(false);
 
@@ -82,15 +80,10 @@ void CountingFrameRenderer3D::show()
 
   for(auto cf : m_widgets.keys())
   {
-    if (m_widgets[cf] == nullptr)
-      createWidget(cf);
-
     bool visible = cf->isVisible();
+
     if (visible)
-    {
       m_widgets[cf]->SetEnabled(true);
-      m_view->addActor(m_widgets[cf]->GetRepresentation());
-    }
 
     updated |= visible;
   }
@@ -108,42 +101,30 @@ unsigned int CountingFrameRenderer3D::numberOfvtkActors() const
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer3D::onCountingFrameCreated(CountingFrame *cf)
 {
-  if (!m_view)
+  if (!m_view || m_widgets.keys().contains(cf))
     return;
 
+  cf->registerView(m_view);
+  auto widget = dynamic_cast<vtkCountingFrame3DWidget *>(cf->getWidget(m_view));
+  widget->SetEnabled(m_enable);
+  m_widgets.insert(cf, widget);
+
   if (m_enable)
-  {
-    createWidget(cf);
-    m_widgets[cf]->SetEnabled(true);
-    m_view->addActor(m_widgets[cf]->GetRepresentation());
     emit renderRequested();
-  }
-  else
-  {
-    // lazy creation of the widget
-    m_widgets[cf] = nullptr;
-  }
+
   connect(cf, SIGNAL(changedVisibility()), this, SLOT(visibilityChanged()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameRenderer3D::onCountingFrameDeleted(CountingFrame *cf)
 {
-  if (m_widgets.contains(cf))
-  {
-    if (m_widgets[cf] != nullptr)
-    {
-      bool visible = cf->isVisible();
-      if (visible && m_enable)
-      {
-        m_view->removeActor(m_widgets[cf]->GetRepresentation());
-        m_widgets[cf]->SetEnabled(false);
-        emit renderRequested();
-      }
-    }
-    m_widgets.remove(cf);
-    disconnect(cf, SIGNAL(changedVisibility()), this, SLOT(visibilityChanged()));
-  }
+  if (!m_view || !m_widgets.keys().contains(cf))
+    return;
+
+  m_widgets.remove(cf);
+
+  if (m_enable)
+    emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
@@ -163,24 +144,7 @@ void CountingFrameRenderer3D::visibilityChanged()
     return;
 
   bool visible = cf->isVisible();
-  if (m_widgets[cf] != nullptr)
-  {
-    if (visible)
-      m_view->addActor(m_widgets[cf]->GetRepresentation());
-    else
-      m_view->removeActor(m_widgets[cf]->GetRepresentation());
-    m_widgets[cf]->SetEnabled(visible);
-  }
-  else
-  {
-    if (visible)
-    {
-      createWidget(cf);
-      m_widgets[cf]->SetEnabled(true);
-      m_view->addActor(m_widgets[cf]->GetRepresentation());
-    }
-  }
-
+  m_widgets[cf]->SetEnabled(visible);
   emit renderRequested();
 }
 
@@ -192,15 +156,4 @@ void CountingFrameRenderer3D::setView(RenderView *view)
   auto existingCFs = m_cfManager.countingFrames();
   for(auto cf: existingCFs)
     onCountingFrameCreated(cf);
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameRenderer3D::createWidget(CountingFrame* cf)
-{
-  auto view3d     = dynamic_cast<View3D *>(m_view);
-  auto rw         = m_view->renderWindow();
-  auto interactor = rw->GetInteractor();
-
-  m_widgets[cf] = cf->create3DWidget(view3d);
-  m_widgets[cf]->SetInteractor(interactor);
 }

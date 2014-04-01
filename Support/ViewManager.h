@@ -154,8 +154,8 @@ namespace EspINA
     /***************************** Widget API **********************************/
     //---------------------------------------------------------------------------
   public:
-    void addWidget   (EspinaWidget *widget);
-    void removeWidget(EspinaWidget *widget);
+    void addWidget   (EspinaWidgetSPtr widget);
+    void removeWidget(EspinaWidgetSPtr widget);
 
     //---------------------------------------------------------------------------
     /*********************** View Synchronization API **************************/

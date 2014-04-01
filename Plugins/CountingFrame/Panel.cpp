@@ -387,7 +387,7 @@ void Panel::deleteCountingFrame(CountingFrame *cf)
 
   m_countingFrames.removeOne(cf);
 
-  m_viewManager->removeWidget(cf);
+  // m_viewManager->removeWidget(EspinaWidgetSPtr(cf));
 
   cf->deleteFromExtension();
 

@@ -18,100 +18,127 @@
 
 // EspINA
 #include "RulerWidget.h"
-#include "RulerSliceWidget.h"
 #include "vtkRulerWidget.h"
 #include "vtkRulerWidget3D.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 
 // VTK
 #include <vtkCubeAxesActor2D.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
 
 namespace EspINA
 {
-  using RulerWidgetAdapter = EspinaInteractorAdapter<vtkRulerWidget>;
+  using RulerWidgetAdapter   = EspinaInteractorAdapter<vtkRulerWidget>;
+  using RulerWidgetAdapter3D = EspinaInteractorAdapter<vtkRulerWidget3D>;
 
   //----------------------------------------------------------------------------
   RulerWidget::RulerWidget()
-  : m_axial(nullptr)
-  , m_coronal(nullptr)
-  , m_sagittal(nullptr)
-  , m_volume(nullptr)
   {
   }
   
   //----------------------------------------------------------------------------
   RulerWidget::~RulerWidget()
   {
-    for(auto widget: m_rulerSliceWidgets)
-      delete widget;
-
-    if (m_axial)
-      m_axial->Delete();
-
-    if (m_coronal)
-      m_coronal->Delete();
-
-    if (m_sagittal)
-      m_sagittal->Delete();
-
-    if (m_volume)
-      m_volume->Delete();
-  }
-
-  //----------------------------------------------------------------------------
-  vtkAbstractWidget *RulerWidget::create3DWidget(View3D *view)
-  {
-    m_volume = vtkRulerWidget3D::New();
-    return m_volume;
-  }
-
-  //----------------------------------------------------------------------------
-  SliceWidget *RulerWidget::createSliceWidget(View2D *view)
-  {
-    RulerSliceWidget *widget = nullptr;
-
-    switch(view->plane())
+    for(vtkAbstractWidget *widget: m_views.values())
     {
-      case Plane::XY:
-        m_axial = RulerWidgetAdapter::New();
-        m_axial->setPlane(Plane::XY);
-        widget = new RulerSliceWidget(m_axial);
-        break;
-      case Plane::XZ:
-        m_coronal = RulerWidgetAdapter::New();
-        m_coronal->setPlane(Plane::XZ);
-        widget = new RulerSliceWidget(m_coronal);
-        break;
-      case Plane::YZ:
-        m_sagittal = RulerWidgetAdapter::New();
-        m_sagittal->setPlane(Plane::YZ);
-        widget = new RulerSliceWidget(m_sagittal);
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
+      widget->SetInteractor(nullptr);
+      widget->SetCurrentRenderer(nullptr);
+      widget->Delete();
     }
 
-    m_rulerSliceWidgets << widget;
-    return widget;
+    for(auto view: m_views.keys())
+    {
+      View2D *view2d = dynamic_cast<View2D*>(view);
+      if(view2d)
+        disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+    }
+    m_views.clear();
+  }
+
+  //----------------------------------------------------------------------------
+  void RulerWidget::registerView(RenderView *view)
+  {
+    if (m_views.keys().contains(view))
+      return;
+
+    View3D *view3d = dynamic_cast<View3D *>(view);
+
+    if(view3d)
+    {
+      vtkRulerWidget3D *widget = RulerWidgetAdapter3D::New();
+      widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
+      widget->SetInteractor(view->renderWindow()->GetInteractor());
+
+      m_views[view] = widget;
+    }
+    else
+    {
+      View2D *view2d = dynamic_cast<View2D *>(view);
+
+      if(view2d)
+      {
+        auto widget = RulerWidgetAdapter::New();
+        widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
+        widget->SetInteractor(view->renderWindow()->GetInteractor());
+        widget->setPlane(view2d->plane());
+        widget->SetEnabled(false);
+
+        m_views[view] = widget;
+        connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
+      }
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  void RulerWidget::unregisterView(RenderView* view)
+  {
+    if (!m_views.keys().contains(view))
+      return;
+
+    m_views[view]->SetEnabled(false);
+    m_views[view]->SetCurrentRenderer(nullptr);
+    m_views[view]->SetInteractor(nullptr);
+    m_views[view]->Delete();
+
+    View2D *view2d = dynamic_cast<View2D *>(view);
+    if (view2d)
+      disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+
+    m_views.remove(view);
+  }
+
+  //----------------------------------------------------------------------------
+  void RulerWidget::sliceChanged(Plane plane, Nm pos)
+  {
+    auto rView = qobject_cast<RenderView *>(sender());
+
+    for(auto view: m_views.keys())
+    {
+      if(view == rView)
+      {
+        auto widget = dynamic_cast<vtkRulerWidget *>(m_views[view]);
+        auto view2d = dynamic_cast<View2D *>(view);
+        int index = normalCoordinateIndex(view2d->plane());
+        Bounds bounds = widget->bounds();
+        bool valid = bounds[2*index] <= pos && bounds[2*index+1] > pos;
+        widget->SetEnabled(valid);
+      }
+    }
   }
 
   //----------------------------------------------------------------------------
   bool RulerWidget::processEvent(vtkRenderWindowInteractor *iren,
                                    long unsigned int event)
   {
-    if (m_axial)
-    {
-      QList<vtkRulerWidget *> list;
-      list << m_axial << m_coronal << m_sagittal;
-      for(auto widget: list)
-        if (widget->GetInteractor() == iren)
-        {
-          RulerWidgetAdapter *sw = static_cast<RulerWidgetAdapter *>(widget);
-          return sw->ProcessEventsHandler(event);
-        }
-    }
+    for(vtkAbstractWidget *widget: m_views.values())
+      if (widget->GetInteractor() == iren)
+      {
+        RulerWidgetAdapter *sw = static_cast<RulerWidgetAdapter *>(widget);
+        return sw->ProcessEventsHandler(event);
+      }
 
     return false;
   }
@@ -119,28 +146,31 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void RulerWidget::setEnabled(bool enable)
   {
-    if (!m_axial)
-      return;
-
-    m_axial->SetEnabled(enable);
-    m_coronal->SetEnabled(enable);
-    m_sagittal->SetEnabled(enable);
-    m_volume->SetEnabled(enable);
+    for(vtkAbstractWidget *widget : m_views.values())
+      widget->SetEnabled(enable);
   }
 
   //----------------------------------------------------------------------------
   void RulerWidget::setBounds(Bounds bounds)
   {
-    if (!m_axial)
-      return;
-
-    m_axial->setBounds(bounds);
-    m_coronal->setBounds(bounds);
-    m_sagittal->setBounds(bounds);
-    m_volume->setBounds(bounds);
-    for(auto widget: m_rulerSliceWidgets)
+    for(vtkAbstractWidget *widget : m_views.values())
     {
-      widget->setBounds(bounds);
+      vtkRulerWidget *widget2d = dynamic_cast<vtkRulerWidget *>(widget);
+      if(widget2d)
+      {
+        widget2d->setBounds(bounds);
+        auto view = dynamic_cast<View2D *>(m_views.key(widget));
+        auto index = normalCoordinateIndex(view->plane());
+        auto pos = view->crosshairPoint()[index];
+        bool valid = bounds[2*index] <= pos && bounds[2*index+1] > pos;
+        widget2d->SetEnabled(valid);
+      }
+      else
+      {
+        vtkRulerWidget3D *widget3d = dynamic_cast<vtkRulerWidget3D *>(widget);
+        if (widget3d)
+          widget3d->setBounds(bounds);
+      }
     }
   }
 

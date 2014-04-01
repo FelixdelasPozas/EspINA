@@ -63,18 +63,19 @@ namespace EspINA
     if (value)
     {
       m_widget = new RulerWidget();
-      m_viewManager->addWidget(m_widget);
+      m_espinaWidget = EspinaWidgetSPtr(m_widget);
+      m_viewManager->addWidget(m_espinaWidget);
       connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
               this,                             SLOT(selectionChanged()));
       selectionChanged();
     }
     else
     {
-      m_viewManager->removeWidget(m_widget);
+      m_viewManager->removeWidget(m_espinaWidget);
       disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
                  this,                             SLOT(selectionChanged()));
-      delete m_widget;
       m_widget = nullptr;
+      m_espinaWidget = nullptr;
     }
   }
 

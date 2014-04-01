@@ -244,15 +244,14 @@ void ViewManager::setActiveChannel(ChannelAdapterPtr channel)
   emit activeChannelChanged(channel);
 }
 //----------------------------------------------------------------------------
-void ViewManager::addWidget(EspinaWidget* widget)
+void ViewManager::addWidget(EspinaWidgetSPtr widget)
 {
-  //widget->setViewManager(this);
   for(auto view: m_renderViews)
     view->addWidget(widget);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::removeWidget(EspinaWidget* widget)
+void ViewManager::removeWidget(EspinaWidgetSPtr widget)
 {
   for(auto view: m_renderViews)
     view->removeWidget(widget);

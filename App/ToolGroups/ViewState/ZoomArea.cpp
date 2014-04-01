@@ -66,17 +66,17 @@ void ZoomArea::initTool(bool value)
   if (value)
   {
     m_widget = ZoomSelectionWidget::New();
-    m_widget->setViewManager(m_viewManager);
     m_zoomHandler = EventHandlerSPtr(new ZoomEventHandler(m_widget));
     m_viewManager->setEventHandler(m_zoomHandler);
     m_viewManager->setSelectionEnabled(false);
-    m_viewManager->addWidget(m_widget);
+    m_espinaWidget = EspinaWidgetSPtr(m_widget);
+    m_viewManager->addWidget(m_espinaWidget);
     m_widget->setEnabled(true);
   }
   else
   {
     m_widget->setEnabled(false);
-    m_viewManager->removeWidget(m_widget);
+    m_viewManager->removeWidget(m_espinaWidget);
     m_viewManager->unsetEventHandler(m_zoomHandler);
     m_zoomHandler = nullptr;
     m_viewManager->setSelectionEnabled(true);

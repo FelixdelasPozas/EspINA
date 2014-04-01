@@ -21,14 +21,16 @@
 // vtk
 #include <vtkCommand.h>
 
+class QEvent;
 class vtkAbstractWidget;
 
 namespace EspINA
 {
-  class ZoomSelectionSliceWidget;
+  class RenderView;
 
   class EspinaGUI_EXPORT ZoomSelectionWidget
   : public EspinaWidget
+  , public EventHandler
   , public vtkCommand
   {
   public:
@@ -45,23 +47,17 @@ namespace EspINA
     static ZoomSelectionWidget *New()
     { return new ZoomSelectionWidget(); }
 
-    /* \brief Sets the view manager for the widget, only needed to refresh the views.
-     * \param[in] vm Application view manager.
-     */
-    void setViewManager(ViewManagerSPtr vm)
-    { m_viewManager = vm;}
-
-    /* \brief Implements EspinaWidget::create3DWidget, currently zoom is disabled for 3D view.
+    /* \brief Implements EspinaWidget::registerView()
      *
      */
-    virtual vtkAbstractWidget *create3DWidget(View3D *view);
+    virtual void registerView(RenderView *);
 
-    /* \brief Implements EspinaWidget::createSliceWidget.
+    /* \brief Implements EspinaWidget::unregisterView()
      *
      */
-    virtual SliceWidget *createSliceWidget(View2D *view);
+    virtual void unregisterView(RenderView *);
 
-    /* \brief Implements EspinaWidget::processEvents.
+    /* \brief Process events from the vtkRenderWindowInteractor
      *
      */
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
@@ -77,6 +73,11 @@ namespace EspINA
      */
     void Execute(vtkObject *, unsigned long int, void*);
 
+    /* \brief Implements EventHandler::filterEvent.
+     *
+     */
+    virtual bool filterEvent(QEvent *e, RenderView *view);
+
   private:
     /* \brief ZoomSelectionWidget class destructor, private.
      *
@@ -84,12 +85,7 @@ namespace EspINA
     explicit ZoomSelectionWidget();
 
   private:
-    ZoomSelectionSliceWidget *m_axial;
-    ZoomSelectionSliceWidget *m_coronal;
-    ZoomSelectionSliceWidget *m_sagittal;
-    vtkZoomSelectionWidget   *m_volume;
-    QList<vtkAbstractWidget*> m_widgets;
-    ViewManagerSPtr           m_viewManager;
+    QMap<RenderView *, vtkZoomSelectionWidget *> m_views;
   };
 
 }// namespace EspINA

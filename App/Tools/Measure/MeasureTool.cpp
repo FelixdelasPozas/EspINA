@@ -18,9 +18,9 @@ namespace EspINA
   MeasureTool::MeasureTool(ViewManagerSPtr vm)
   : m_enabled{false}
   , m_widget{nullptr}
+  , m_handler{nullptr}
   , m_viewManager(vm)
   , m_action{new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
-  , m_handler{nullptr}
   {
     m_action->setCheckable(true);
     connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
@@ -32,7 +32,6 @@ namespace EspINA
     if(m_widget)
     {
       m_widget->setEnabled(false);
-      m_widget->Delete();
       m_widget = nullptr;
     }
   }
@@ -66,9 +65,8 @@ namespace EspINA
   {
     if (value)
     {
-      m_widget = MeasureWidget::New();
-      m_widget->setViewManager(m_viewManager);
-      m_handler = EventHandlerSPtr(new MeasureEventHandler(m_widget));
+      m_widget = EspinaWidgetSPtr(MeasureWidget::New());
+      m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
       m_viewManager->setEventHandler(m_handler);
       m_viewManager->addWidget(m_widget);
       m_viewManager->setSelectionEnabled(false);
@@ -81,30 +79,8 @@ namespace EspINA
       m_viewManager->unsetEventHandler(m_handler);
       m_handler = nullptr;
       m_viewManager->setSelectionEnabled(true);
-      m_widget->Delete();
       m_widget = nullptr;
       emit stopMeasuring();
     }
   }
-
-  //----------------------------------------------------------------------------
-  void MeasureEventHandler::setInUse(bool value)
-  {
-    if(m_inUse == value)
-      return;
-
-    m_inUse = value;
-
-    emit eventHandlerInUse(value);
-  }
-
-  //----------------------------------------------------------------------------
-  bool MeasureEventHandler::filterEvent(QEvent* e, RenderView* view)
-  {
-    if (m_inUse && m_widget)
-      return m_widget->filterEvent(e, view);
-
-    return false;
-  }
-
 }

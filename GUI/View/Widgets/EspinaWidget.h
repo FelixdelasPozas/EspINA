@@ -16,63 +16,33 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#ifndef ESPINAWIDGET_H
-#define ESPINAWIDGET_H
+#ifndef ESPINA_WIDGET_H
+#define ESPINA_WIDGET_H
 
 #include "EspinaGUI_Export.h"
 
-#include <Core/Utils/Spatial.h>
-#include <Core/EspinaTypes.h>
-
-#include <vtkAbstractWidget.h>
-#include <vtkWidgetRepresentation.h>
-
-class QEvent;
-class vtkRenderWindowInteractor;
+#include <memory>
 
 namespace EspINA
 {
   class RenderView;
-  class View2D;
-  class View3D;
-
-  class EspinaGUI_EXPORT SliceWidget
-  {
-  public:
-    explicit SliceWidget(vtkAbstractWidget *widget);
-    virtual ~SliceWidget() {};
-
-    virtual void setSlice(Nm pos, Plane plane) {};
-
-    operator vtkAbstractWidget *()                  { return m_widget; }
-    operator const vtkAbstractWidget *const() const { return m_widget; }
-    vtkAbstractWidget *operator->()                 { return m_widget; }
-    void SetEnabled(bool value)                     { m_widget->SetEnabled(value); }
-    void SetVisibility(bool value)                  { m_widget->GetRepresentation()->SetVisibility(value); }
-
-  protected:
-    vtkAbstractWidget *m_widget;
-  };
 
   class EspinaGUI_EXPORT EspinaWidget
   {
   public:
-    explicit EspinaWidget() {}
+    explicit EspinaWidget(){}
     virtual ~EspinaWidget(){}
 
-    virtual vtkAbstractWidget *create3DWidget(View3D *view) = 0;
+    virtual void registerView(RenderView *) = 0;
+    virtual void unregisterView(RenderView *) = 0;
 
-    virtual SliceWidget *createSliceWidget(View2D *view) = 0;
-
-    bool filterEvent(QEvent *e, RenderView *view);
-    virtual bool processEvent(vtkRenderWindowInteractor *iren,
-                              long unsigned int event) = 0;
     virtual void setEnabled(bool enable) = 0;
-
     virtual bool manipulatesSegmentations() { return false; };
   };
 
+  using EspinaWidgetPtr  = EspinaWidget *;
+  using EspinaWidgetSPtr = std::shared_ptr<EspinaWidget>;
+
 } // namespace EspINA
 
-#endif // ESPINAWIDGET_H
+#endif // ESPINA_WIDGET_H

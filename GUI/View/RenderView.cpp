@@ -54,6 +54,7 @@ RenderView::RenderView(QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
+  m_widgets.clear();
   m_renderers.clear();
 }
 
@@ -63,6 +64,29 @@ void RenderView::onSelectionSet(SelectionSPtr selection)
   connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this, SLOT(updateSelection(SegmentationAdapterList)));
 }
+
+//-----------------------------------------------------------------------------
+void RenderView::addWidget(EspinaWidgetSPtr widget)
+{
+  if(m_widgets.contains(widget))
+    return;
+
+  widget->registerView(this);
+
+  m_widgets << widget;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::removeWidget(EspinaWidgetSPtr widget)
+{
+  if (!m_widgets.contains(widget))
+    return;
+
+  widget->unregisterView(this);
+
+  m_widgets.removeOne(widget);
+}
+
 
 //-----------------------------------------------------------------------------
 void RenderView::showEvent(QShowEvent *event)

@@ -12,10 +12,10 @@
 
 // EspINA
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Support/ViewManager.h>
+#include <Support/EventHandler.h>
 
 // Qt
-#include <QList>
+#include <QMap>
 
 // vtk
 #include <vtkCommand.h>
@@ -24,15 +24,17 @@ class vtkAbstractWidget;
 class vtkDistanceWidget;
 class vtkMeasureWidget;
 class vtkCamera;
+class vtkRenderWindowInteractor;
+
 class QEvent;
 
 namespace EspINA
 {
-  class MeasureSliceWidget;
   class RenderView;
 
   class EspinaGUI_EXPORT MeasureWidget
   : public EspinaWidget
+  , public EventHandler
   , public vtkCommand
   {
   public:
@@ -47,25 +49,19 @@ namespace EspINA
      *
      */
     static MeasureWidget *New()
-    {return new MeasureWidget();};
+    { return new MeasureWidget(); };
 
-    /* \brief Sets the widget view manager.
-     * \param[in] vm Application view manager.
-     */
-    void setViewManager(ViewManagerSPtr vm)
-    { m_viewManager = vm; }
-
-    /* \brief Implements EspinaWidget::create3DWidget.
+    /* \brief Implements EspinaWidget::registerView()
      *
      */
-    virtual vtkAbstractWidget *create3DWidget(View3D *view);
+    virtual void registerView(RenderView *view);
 
-    /* \brief Implements EspinaWidget::createSliceWidget.
+    /* \brief Implements EspinaWidget::unregisterView()
      *
      */
-    virtual SliceWidget *createSliceWidget(View2D *view);
+    virtual void unregisterView(RenderView *view);
 
-    /* \brief Implements EspinaWidget::processEvents.
+    /* \brief Process events from vtkRenderWindowInteractor.
      *
      */
     virtual bool processEvent(vtkRenderWindowInteractor *iren,
@@ -76,10 +72,15 @@ namespace EspINA
      */
     virtual void setEnabled(bool enable);
 
-    /* \brief Implements EspinaWidget::filterEvent.
+    /* \brief Implements EventHandler::filterEvent.
      *
      */
     bool filterEvent(QEvent *e, RenderView *view);
+
+    /* \brief Implements EventHandler::setInUse()
+     *
+     */
+    void setInUse(bool value);
 
     /* \brief Implements vtkCommand::Execute.
      *
@@ -87,6 +88,9 @@ namespace EspINA
     void Execute(vtkObject *, unsigned long int, void*);
 
   private:
+    /* \brief Class MeasureWidget destructor.
+     *
+     */
     explicit MeasureWidget();
 
     /* \brief Computes optimal tick distance in the ruler given the length.
@@ -94,16 +98,8 @@ namespace EspINA
      */
     double ComputeRulerTickDistance(double);
 
-    vtkDistanceWidget *m_axial;
-    vtkDistanceWidget *m_coronal;
-    vtkDistanceWidget *m_sagittal;
-    QList<MeasureSliceWidget*> m_sliceWidgets;
-    QList<vtkDistanceWidget*> m_distanceWidgets;
-    ViewManagerSPtr    m_viewManager;
-
-    QList<vtkCamera*> m_axialCameras;
-    QList<vtkCamera*> m_coronalCameras;
-    QList<vtkCamera*> m_sagittalCameras;
+    QMap<vtkDistanceWidget *, QList<vtkCamera*>> m_cameras;
+    QMap<RenderView *, vtkDistanceWidget *> m_widgets;
   };
 
 }// namespace EspINA

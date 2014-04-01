@@ -12,6 +12,7 @@
 #include <Support/EventHandler.h>
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 class QCursor;
 
@@ -61,6 +62,7 @@ namespace EspINA
       ViewManagerSPtr      m_viewManager;
       QAction             *m_zoomArea;
       EventHandlerSPtr     m_zoomHandler;
+      EspinaWidgetSPtr     m_espinaWidget; // NOTE: only used to remove widget
   };
 
   class ZoomEventHandler

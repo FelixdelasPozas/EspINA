@@ -28,12 +28,13 @@
 // Qt
 #include <QList>
 
+class vtkCountingFrameSliceWidget;
+
 namespace EspINA
 {
-  class SliceWidget;
-
   namespace CF
   {
+
     class CountingFramePlugin_EXPORT CountingFrameRenderer2D
     : public Renderer
     {
@@ -73,7 +74,7 @@ namespace EspINA
 
       private:
         CountingFrameManager &m_cfManager;
-        QList<CountingFrame *> m_insertedCFs;
+        QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_insertedCFs;
     };
   } // namespace CF
 } // namespace EspINA

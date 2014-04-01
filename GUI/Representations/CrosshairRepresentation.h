@@ -130,7 +130,7 @@ namespace EspINA
       vtkSmartPointer<vtkImageShiftScale>  m_coronalScaler;
       vtkSmartPointer<vtkImageShiftScale>  m_sagittalScaler;
 
-      Bounds m_bounds;
+      mutable Bounds m_bounds;
       NmVector3 m_point;
       bool m_tiling;
 

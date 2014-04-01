@@ -25,6 +25,7 @@
 
 #include <Core/Analysis/Channel.h>
 #include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkPolyData.h>
@@ -50,62 +51,90 @@ OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelEx
 //-----------------------------------------------------------------------------
 OrtogonalCountingFrame::~OrtogonalCountingFrame()
 {
+  for(auto view: m_widgets2D.keys())
+    unregisterView(view);
+
+  for(auto view: m_widgets3D.keys())
+    unregisterView(view);
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget *OrtogonalCountingFrame::create3DWidget(View3D *view)
+void OrtogonalCountingFrame::registerView(RenderView *view)
 {
-  if (m_widgets3D.keys().contains(view))
-    return m_widgets3D[view];
-
-  CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
-  Q_ASSERT(wa);
-  wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
-
-  m_widgets3D[view] = wa;
-
-  return wa;
-}
-
-// //-----------------------------------------------------------------------------
-// void RectangularCountingFrame::deleteWidget(vtkAbstractWidget* widget)
-// {
-//   widget->Off();
-//   widget->RemoveAllObservers();
-// 
-//   CountingFrame3DWidgetAdapter *brwa3D = dynamic_cast<CountingFrame3DWidgetAdapter *>(widget);
-//   if (brwa3D)
-//     m_widgets3D.removeAll(brwa3D);
-//   else
-//   {
-//     CountingFrame2DWidgetAdapter *brwa2D = dynamic_cast<CountingFrame2DWidgetAdapter *>(widget);
-//     if (brwa2D)
-//       m_widgets2D.removeAll(brwa2D);
-//     else
-//       Q_ASSERT(false);
-//   }
-// 
-//   widget->Delete();
-// }
-
-//-----------------------------------------------------------------------------
-SliceWidget* OrtogonalCountingFrame::createSliceWidget(View2D *view)
-{
-  if (!m_widgets2D.keys().contains(view))
+  View3D *view3d = dynamic_cast<View3D *>(view);
+  if(view3d)
   {
-    auto wa = new CountingFrame2DWidgetAdapter();
-    Q_ASSERT(wa);
-    wa->AddObserver(vtkCommand::EndInteractionEvent, this);
-    wa->SetPlane(view->plane());
-    wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
-    wa->SetCountingFrame(m_channelEdges, m_inclusion, m_exclusion);
-    wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
+    if(m_widgets3D.keys().contains(view3d))
+      return;
+
+    auto wa = new CountingFrame3DWidgetAdapter();
+    wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
+    wa->SetCurrentRenderer(view3d->mainRenderer());
+    wa->SetInteractor(view3d->renderWindow()->GetInteractor());
     wa->SetEnabled(true);
 
-    m_widgets2D[view] = new CountingFrameSliceWidget(wa);
+    m_widgets3D[view3d] = wa;
   }
+  else
+  {
+    View2D *view2d = dynamic_cast<View2D *>(view);
+    if(view2d)
+    {
+      if(m_widgets2D.keys().contains(view2d))
+        return;
 
-  return m_widgets2D[view];
+      auto wa = new CountingFrame2DWidgetAdapter();
+      wa->AddObserver(vtkCommand::EndInteractionEvent, this);
+      wa->SetPlane(view2d->plane());
+      wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
+      wa->SetCountingFrame(m_channelEdges, m_inclusion, m_exclusion);
+      wa->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
+      wa->SetCurrentRenderer(view2d->mainRenderer());
+      wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
+      wa->SetEnabled(true);
+
+      m_widgets2D[view2d] = wa;
+
+      connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OrtogonalCountingFrame::unregisterView(RenderView *view)
+{
+  View3D *view3d = dynamic_cast<View3D *>(view);
+  if(view3d)
+  {
+    if(!m_widgets3D.keys().contains(view3d))
+      return;
+
+    m_widgets3D[view3d]->SetEnabled(false);
+    m_widgets3D[view3d]->SetCurrentRenderer(nullptr);
+    m_widgets3D[view3d]->SetInteractor(nullptr);
+    m_widgets3D[view3d]->Delete();
+
+    m_widgets3D.remove(view3d);
+  }
+  else
+  {
+    View2D *view2d = dynamic_cast<View2D *>(view);
+    if(view2d)
+    {
+      if(!m_widgets2D.keys().contains(view2d))
+        return;
+
+      m_widgets2D[view2d]->SetEnabled(false);
+      m_widgets2D[view2d]->RemoveObserver(this);
+      m_widgets2D[view2d]->SetCurrentRenderer(nullptr);
+      m_widgets2D[view2d]->SetInteractor(nullptr);
+      m_widgets2D[view2d]->Delete();
+
+      m_widgets2D.remove(view2d);
+
+      disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -114,8 +143,8 @@ bool OrtogonalCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
 {
   for(auto wa: m_widgets2D.values())
   {
-    if (wa->widget()->GetInteractor() == iren)
-      return wa->widget()->ProcessEventsHandler(event);
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
   }
   for(auto wa: m_widgets3D.values())
   {

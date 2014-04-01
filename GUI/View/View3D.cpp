@@ -108,8 +108,9 @@ void View3D::setRenderers(RendererSList renderers)
 //-----------------------------------------------------------------------------
 void View3D::reset()
 {
-  for(auto widget: m_widgets.keys())
-    removeWidget(widget);
+  for(auto widget: m_widgets)
+    widget->unregisterView(this);
+  m_widgets.clear();
 
   for(auto segmentation: m_segmentationStates.keys())
     remove(segmentation);
@@ -378,49 +379,17 @@ bool View3D::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 
 
 //-----------------------------------------------------------------------------
-void View3D::addWidget(EspinaWidget* eWidget)
+void View3D::addWidget(EspinaWidgetSPtr widget)
 {
-  if(m_widgets.contains(eWidget))
-    return;
-
-  vtkAbstractWidget *widget = eWidget->create3DWidget(this);
-  if (!widget)
-    return;
-
-  widget->SetCurrentRenderer(this->m_renderer);
-  widget->SetInteractor(m_view->GetInteractor());
-
-  bool activate = (numEnabledRenderersForViewItem(RenderableType::SEGMENTATION) != 0);
-  if (eWidget->manipulatesSegmentations())
-  {
-    widget->SetEnabled(activate);
-    if (widget->GetRepresentation())
-      widget->GetRepresentation()->SetVisibility(activate);
-  }
-  else
-  {
-    widget->SetEnabled(true);
-    if (widget->GetRepresentation())
-      widget->GetRepresentation()->SetVisibility(true);
-  }
-
-  m_renderer->ResetCameraClippingRange();
-  m_widgets[eWidget] = widget;
+  RenderView::addWidget(widget);
 
   updateRenderersControls();
 }
 
 //-----------------------------------------------------------------------------
-void View3D::removeWidget(EspinaWidget* eWidget)
+void View3D::removeWidget(EspinaWidgetSPtr widget)
 {
-  if (!m_widgets.contains(eWidget))
-    return;
-
-  vtkAbstractWidget *widget = m_widgets[eWidget];
-  widget->Off();
-  widget->SetInteractor(nullptr);
-  widget->RemoveAllObservers();
-  m_widgets.remove(eWidget);
+  RenderView::removeWidget(widget);
 
   updateRenderersControls();
 }
@@ -748,14 +717,9 @@ void View3D::updateRenderersControls()
 
   if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
-    for(auto it = m_widgets.begin(); it != m_widgets.end(); ++it)
-    {
-      if (it.key()->manipulatesSegmentations())
-      {
-        it.value()->SetEnabled(true);
-        it.value()->GetRepresentation()->SetVisibility(true);
-      }
-    }
+    for(auto widget: m_widgets)
+      if (widget->manipulatesSegmentations())
+        widget->setEnabled(true);
   }
 
   if(m_numEnabledRenderers == 0)

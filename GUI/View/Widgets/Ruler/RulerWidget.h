@@ -23,20 +23,18 @@
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 
-// EspINA
-
 // VTK
 class vtkCubeAxesActor2D;
+class vtkRenderWindowInteractor;
+class vtkAbstractWidget;
 
 namespace EspINA
 {
-  class vtkRulerWidget;
-  class vtkRulerWidget3D;
-  class RulerSliceWidget;
-
   class EspinaGUI_EXPORT RulerWidget
-  : public EspinaWidget
+  : public QObject
+  , public EspinaWidget
   {
+    Q_OBJECT
     public:
       /* \brief RulerWidget class constructor.
        *
@@ -48,17 +46,17 @@ namespace EspINA
        */
       virtual ~RulerWidget();
 
-      /* \brief Implements EspinaWidget::create3DWidget.
+      /* \brief Implements EspinaWidget::registerView()
        *
        */
-      virtual vtkAbstractWidget *create3DWidget(View3D *view);
+      virtual void registerView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::createSliceWidget.
+      /* \brief Implements EspinaWidget::unregisterView()
        *
        */
-      virtual SliceWidget *createSliceWidget(View2D *view);
+      virtual void unregisterView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::processEvents.
+      /* \brief Process events from the interactor.
        *
        */
       virtual bool processEvent(vtkRenderWindowInteractor *iren,
@@ -75,12 +73,11 @@ namespace EspINA
        */
       void setBounds(Bounds bounds);
 
+    private slots:
+      void sliceChanged(Plane, Nm);
+
     private:
-      vtkRulerWidget *m_axial;
-      vtkRulerWidget *m_coronal;
-      vtkRulerWidget *m_sagittal;
-      vtkRulerWidget3D *m_volume;
-      QList<RulerSliceWidget*> m_rulerSliceWidgets;
+      QMap<RenderView *, vtkAbstractWidget *> m_views;
   };
 
 } // namespace EspINA

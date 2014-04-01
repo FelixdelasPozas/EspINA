@@ -27,7 +27,7 @@
 // Qt
 #include <QMap>
 
-class vtkAbstractWidget;
+class vtkCountingFrame3DWidget;
 
 namespace EspINA
 {
@@ -75,10 +75,9 @@ namespace EspINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      void createWidget(CountingFrame *);
 
       CountingFrameManager &m_cfManager;
-      QMap<CountingFrame *, vtkAbstractWidget *> m_widgets;
+      QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;
     };
   } // namespace CF
 } // namespace EspINA

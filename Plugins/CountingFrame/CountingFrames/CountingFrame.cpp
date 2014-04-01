@@ -23,6 +23,8 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/VolumeBounds.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 
 using namespace EspINA;
 using namespace EspINA::CF;
@@ -50,11 +52,6 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 //-----------------------------------------------------------------------------
 CountingFrame::~CountingFrame()
 {
-  for(auto w: m_widgets3D.values())
-  {
-    w->EnabledOn();
-    w->Delete();
-  }
   m_widgets2D.clear();
   m_widgets3D.clear();
 }
@@ -130,7 +127,7 @@ void CountingFrame::setVisible(bool visible)
   QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D.values())
   {
-    wa->widget()->SetEnabled(m_visible && m_enable);
+    wa->SetEnabled(m_visible && m_enable);
   }
 
   emit changedVisibility();
@@ -145,7 +142,7 @@ void CountingFrame::setEnabled(bool enable)
   QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D.values())
   {
-    wa->widget()->SetEnabled(m_visible && m_enable);
+    wa->SetEnabled(m_visible && m_enable);
   }
 
   emit changedVisibility();
@@ -160,7 +157,7 @@ void CountingFrame::setHighlighted(bool highlight)
   QMutexLocker lock(&m_widgetMutex);
   for (auto wa : m_widgets2D.values())
   {
-    wa->widget()->SetHighlighted(m_highlight);
+    wa->SetHighlighted(m_highlight);
   }
 }
 
@@ -218,7 +215,7 @@ void CountingFrame::updateCountingFrame()
     {
       for(auto wa : m_widgets2D.values())
       {
-        wa->widget()->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+        wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
       }
     }
 
@@ -290,3 +287,27 @@ vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 
   return cf;
 }
+
+//-----------------------------------------------------------------------------
+void CountingFrame::sliceChanged(Plane plane, Nm pos)
+{
+  auto view = qobject_cast<View2D *>(sender());
+  Q_ASSERT(m_widgets2D.keys().contains(view));
+  m_widgets2D[view]->SetSlice(pos);
+}
+
+//-----------------------------------------------------------------------------
+vtkAbstractWidget *CountingFrame::getWidget(RenderView *view)
+{
+  auto view3d = dynamic_cast<View3D *>(view);
+  if(view3d && m_widgets3D.keys().contains(view3d))
+    return m_widgets3D[view3d];
+
+  auto view2d = dynamic_cast<View2D *>(view);
+  if(view2d && m_widgets2D.keys().contains(view2d))
+    return m_widgets2D[view2d];
+
+  return nullptr;
+}
+
+

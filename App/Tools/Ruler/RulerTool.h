@@ -64,6 +64,7 @@ namespace EspINA
       ViewManagerSPtr  m_viewManager;
       SelectionSPtr    m_selection;
       EventHandlerSPtr m_handler;
+      EspinaWidgetSPtr m_espinaWidget;
   };
 
   class RulerEventHandler

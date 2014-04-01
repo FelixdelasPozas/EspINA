@@ -65,9 +65,8 @@ namespace EspINA
 
     virtual void centerViewOn(const NmVector3& center, bool force = false);
 
-    virtual void addWidget   (EspinaWidget *widget);
-
-    virtual void removeWidget(EspinaWidget *widget);
+    virtual void addWidget   (EspinaWidgetSPtr widget);
+    virtual void removeWidget(EspinaWidgetSPtr widget);
 
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
@@ -152,7 +151,6 @@ namespace EspINA
     bool m_showCrosshairPlaneSelectors;
 
     NmVector3 m_center;
-    QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
 
     unsigned int m_numEnabledRenderers;
   };

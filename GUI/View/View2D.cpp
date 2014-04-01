@@ -241,8 +241,8 @@ void View2D::setRenderers(RendererSList renderers)
 //-----------------------------------------------------------------------------
 void View2D::reset()
 {
-  for(auto widget: m_widgets.keys())
-    removeWidget(widget);
+  for(auto widget: m_widgets)
+    widget->unregisterView(this);
 
   for(auto segmentation: m_segmentationStates.keys())
     remove(segmentation);
@@ -694,7 +694,6 @@ void View2D::updateView()
   if (isVisible())
   {
     updateRuler();
-    updateWidgetVisibility();
     updateThumbnail();
     m_renderer->ResetCameraClippingRange();
     m_view->GetRenderWindow()->Render();
@@ -719,43 +718,6 @@ void View2D::resetCamera()
   m_thumbnail->AddViewProp(m_viewportBorder);
 
   m_sceneReady = !m_channelStates.isEmpty();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::addWidget(EspinaWidget *eWidget)
-{
-  if(m_widgets.contains(eWidget))
-    return;
-
-  SliceWidget *sWidget = eWidget->createSliceWidget(this);
-  if (!sWidget)
-    return;
-
-  sWidget->setSlice(slicingPosition(), m_plane);
-
-  vtkAbstractWidget *widget = *sWidget;
-  if (widget)
-  {
-    widget->SetCurrentRenderer(m_view->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-    widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
-    if (widget->GetRepresentation())
-      widget->GetRepresentation()->SetVisibility(true);
-    widget->On();
-  }
-
-  m_widgets[eWidget] = sWidget;
-}
-
-//-----------------------------------------------------------------------------
-void View2D::removeWidget(EspinaWidget *eWidget)
-{
-  if (!m_widgets.contains(eWidget))
-    return;
-
-  vtkAbstractWidget *widget = *m_widgets[eWidget];
-  widget->SetInteractor(nullptr); // calls widget->Off();
-  widget->RemoveAllObservers();
-  m_widgets.remove(eWidget);
 }
 
 //-----------------------------------------------------------------------------
@@ -1003,9 +965,12 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       break;
   }
 
-  for (auto widget : m_widgets.keys())
-    if (widget->filterEvent(e, this))
+  for (auto widget : m_widgets)
+  {
+    auto eventHandler = dynamic_cast<EventHandler *>(widget.get());
+    if(eventHandler && eventHandler->filterEvent(e, this))
       return true;
+  }
 
   return QWidget::eventFilter(caller, e);
 }
@@ -1177,15 +1142,6 @@ void View2D::selectPickedItems(bool append)
     }
 
     currentSelection()->set(selection);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::updateWidgetVisibility()
-{
-  for(auto widget: m_widgets)
-  {
-    widget->setSlice(slicingPosition(), m_plane);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1623,13 +1579,11 @@ void View2D::addRendererControls(RendererSPtr renderer)
 
   if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
-    QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
-    for( ; it != m_widgets.end(); ++it)
+    for(auto widget: m_widgets)
     {
-      if (it.key()->manipulatesSegmentations())
+      if (widget->manipulatesSegmentations())
       {
-        it.value()->SetEnabled(true);
-        it.value()->SetVisibility(true);
+        widget->setEnabled(true);
       }
     }
   }
@@ -1689,15 +1643,9 @@ void View2D::removeRendererControls(QString name)
 
   if (0 == numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
-    QMap<EspinaWidget *, SliceWidget *>::const_iterator it = m_widgets.begin();
-    for (; it != m_widgets.end(); ++it)
-    {
-      if (it.key()->manipulatesSegmentations())
-      {
-        it.value()->SetEnabled(false);
-        it.value()->SetVisibility(false);
-      }
-    }
+    for (auto widget: m_widgets)
+      if (widget->manipulatesSegmentations())
+        widget->setEnabled(false);
   }
 
   ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
