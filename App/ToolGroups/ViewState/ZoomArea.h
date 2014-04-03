@@ -58,11 +58,10 @@ namespace EspINA
 
     private:
       bool                 m_enabled;
-      ZoomSelectionWidget *m_widget;
+      EspinaWidgetSPtr     m_widget;
       ViewManagerSPtr      m_viewManager;
       QAction             *m_zoomArea;
       EventHandlerSPtr     m_zoomHandler;
-      EspinaWidgetSPtr     m_espinaWidget; // NOTE: only used to remove widget
   };
 
   class ZoomEventHandler

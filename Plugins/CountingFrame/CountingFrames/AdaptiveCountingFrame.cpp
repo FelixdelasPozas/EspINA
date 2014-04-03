@@ -72,7 +72,7 @@ void AdaptiveCountingFrame::registerView(RenderView *view)
       return;
 
     QReadLocker lockMargins(&m_marginsMutex);
-    auto wa = new CountingFrame3DWidgetAdapter();
+    auto wa = CountingFrame3DWidgetAdapter::New();
     wa->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
     wa->SetCurrentRenderer(view3d->mainRenderer());
     wa->SetInteractor(view3d->renderWindow()->GetInteractor());
@@ -89,8 +89,8 @@ void AdaptiveCountingFrame::registerView(RenderView *view)
         return;
 
       QReadLocker lockMargins(&m_marginsMutex);
-      auto wa = new CountingFrame2DWidgetAdapter();
-      wa->AddObserver(vtkCommand::EndInteractionEvent, this);
+      auto wa = CountingFrame2DWidgetAdapter::New();
+      wa->AddObserver(vtkCommand::EndInteractionEvent, m_command);
       wa->SetPlane(view2d->plane());
       wa->SetSlicingStep(m_channel->output()->spacing());
       wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
@@ -118,6 +118,7 @@ void AdaptiveCountingFrame::unregisterView(RenderView *view)
       return;
 
     m_widgets3D[view3d]->SetEnabled(false);
+    view3d->mainRenderer()->RemoveActor(m_widgets3D[view3d]->GetRepresentation());
     m_widgets3D[view3d]->SetCurrentRenderer(nullptr);
     m_widgets3D[view3d]->SetInteractor(nullptr);
     m_widgets3D[view3d]->Delete();
@@ -133,9 +134,10 @@ void AdaptiveCountingFrame::unregisterView(RenderView *view)
         return;
 
       m_widgets2D[view2d]->SetEnabled(false);
+      view2d->mainRenderer()->RemoveActor(m_widgets2D[view2d]->GetRepresentation());
       m_widgets2D[view2d]->SetCurrentRenderer(nullptr);
       m_widgets2D[view2d]->SetInteractor(nullptr);
-      m_widgets2D[view2d]->RemoveObserver(this);
+      m_widgets2D[view2d]->RemoveObserver(m_command);
       m_widgets2D[view2d]->Delete();
 
       m_widgets2D.remove(view2d);
@@ -143,25 +145,6 @@ void AdaptiveCountingFrame::unregisterView(RenderView *view)
       disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-bool AdaptiveCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
-                                          long unsigned int event)
-{
-  for(auto wa: m_widgets2D.values())
-  {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
-  }
-
-  for(auto wa: m_widgets3D.values())
-  {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
-  }
-
-  return false;
 }
 
 //-----------------------------------------------------------------------------

@@ -28,15 +28,12 @@
 // VTK
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>
-#include <vtkCommand.h>
 
 class vtkAxisActor2D;
 class vtkRenderer;
 
 namespace EspINA
 {
-  class RulerCommand;
-
   class EspinaGUI_EXPORT vtkRulerWidget
   : public vtkAbstractWidget
   {
@@ -107,47 +104,7 @@ namespace EspINA
 
       vtkSmartPointer<vtkAxisActor2D> m_up;
       vtkSmartPointer<vtkAxisActor2D> m_right;
-      RulerCommand                   *m_command;
   };
-
-  class RulerCommand
-  : public vtkCommand
-  {
-    public:
-      /* \brief RulerCommand class constructor.
-       *
-       */
-      explicit RulerCommand();
-
-      /* \brief RulerCommand class destructor.
-       *
-       */
-      virtual ~RulerCommand() {};
-
-      vtkTypeMacro(RulerCommand, vtkCommand);
-
-      /* \brief Implements vtkCommand::Execute.
-       *
-       */
-      void Execute(vtkObject *, unsigned long int, void*);
-
-      /* \brief Sets the renderer the actors will be inserted.
-       *
-       */
-      void setRenderer(vtkRenderer* renderer)
-      { m_renderer = renderer; }
-
-      /* \brief Sets the vtkAbstractWidget of the command.
-       *
-       */
-      void setWidget(vtkRulerWidget *widget)
-      { m_widget = widget; }
-
-    private:
-      vtkRenderer *m_renderer;
-      vtkRulerWidget *m_widget;
-  };
-
 
 } /* namespace EspINA */
 #endif /* VTKRULERWIDGET_H_ */

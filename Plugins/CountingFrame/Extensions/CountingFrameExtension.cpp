@@ -128,7 +128,7 @@ void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
     m_extendedItem->deleteExtension(TYPE);
   }
 
-  countingFrame->Delete();
+  delete countingFrame;
 }
 
 //-----------------------------------------------------------------------------

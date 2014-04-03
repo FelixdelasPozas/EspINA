@@ -21,12 +21,17 @@
 
 #include "EspinaGUI_Export.h"
 
+// VTK
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetCallbackMapper.h>
 #include <vtkCallbackCommand.h>
 #include <vtkWidgetEventTranslator.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
-class QEvent;
+// Qt
+#include <QEvent>
+#include <QMouseEvent>
 
 namespace EspINA
 {
@@ -43,6 +48,82 @@ namespace EspINA
         this->CallbackMapper->InvokeCallback(widgetEvent);
 
         return this->EventCallbackCommand->GetAbortFlag();
+    }
+
+    bool ProcessBasicQtEvent(QEvent *event)
+    {
+      if (QEvent::MouseButtonPress != event->type() &&
+          QEvent::MouseButtonRelease != event->type() &&
+          QEvent::MouseMove != event->type())
+      {
+        return false;
+      }
+
+      QMouseEvent *me = static_cast<QMouseEvent *>(event);
+
+      // give interactor the event information
+      vtkRenderWindowInteractor *iren = this->GetInteractor();
+
+      int oldPos[2];
+      iren->GetEventPosition(oldPos);
+      iren->SetEventInformationFlipY(me->x(), me->y(), (me->modifiers() & Qt::ControlModifier) > 0 ? 1 : 0,
+          (me->modifiers() & Qt::ShiftModifier) > 0 ? 1 : 0, 0, me->type() == QEvent::MouseButtonDblClick ? 1 : 0);
+      long unsigned int eventId = 0;
+
+      const QEvent::Type t = event->type();
+      if (t == QEvent::MouseMove)
+      {
+        eventId = vtkCommand::MouseMoveEvent;
+      }
+      else
+        if (t == QEvent::MouseButtonPress || t == QEvent::MouseButtonDblClick)
+        {
+          switch (me->button())
+          {
+            case Qt::LeftButton:
+              eventId = vtkCommand::LeftButtonPressEvent;
+              break;
+
+            case Qt::MidButton:
+              eventId = vtkCommand::MiddleButtonPressEvent;
+              break;
+
+            case Qt::RightButton:
+              eventId = vtkCommand::RightButtonPressEvent;
+              break;
+
+            default:
+              break;
+          }
+        }
+        else
+          if (t == QEvent::MouseButtonRelease)
+          {
+            switch (me->button())
+            {
+              case Qt::LeftButton:
+                eventId = vtkCommand::LeftButtonReleaseEvent;
+                break;
+
+              case Qt::MidButton:
+                eventId = vtkCommand::MiddleButtonReleaseEvent;
+                break;
+
+              case Qt::RightButton:
+                eventId = vtkCommand::RightButtonReleaseEvent;
+                break;
+
+              default:
+                break;
+            }
+          }
+
+      bool handled = this->ProcessEventsHandler(eventId);
+
+      if (!handled)
+        iren->SetEventPosition(oldPos);
+
+      return handled;
     }
   };
 

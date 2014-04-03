@@ -67,7 +67,7 @@ void OrtogonalCountingFrame::registerView(RenderView *view)
     if(m_widgets3D.keys().contains(view3d))
       return;
 
-    auto wa = new CountingFrame3DWidgetAdapter();
+    auto wa = CountingFrame3DWidgetAdapter::New();
     wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
     wa->SetCurrentRenderer(view3d->mainRenderer());
     wa->SetInteractor(view3d->renderWindow()->GetInteractor());
@@ -83,8 +83,8 @@ void OrtogonalCountingFrame::registerView(RenderView *view)
       if(m_widgets2D.keys().contains(view2d))
         return;
 
-      auto wa = new CountingFrame2DWidgetAdapter();
-      wa->AddObserver(vtkCommand::EndInteractionEvent, this);
+      auto wa = CountingFrame2DWidgetAdapter::New();
+      wa->AddObserver(vtkCommand::EndInteractionEvent, m_command);
       wa->SetPlane(view2d->plane());
       wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
       wa->SetCountingFrame(m_channelEdges, m_inclusion, m_exclusion);
@@ -110,6 +110,7 @@ void OrtogonalCountingFrame::unregisterView(RenderView *view)
       return;
 
     m_widgets3D[view3d]->SetEnabled(false);
+    view3d->mainRenderer()->RemoveActor(m_widgets3D[view3d]->GetRepresentation());
     m_widgets3D[view3d]->SetCurrentRenderer(nullptr);
     m_widgets3D[view3d]->SetInteractor(nullptr);
     m_widgets3D[view3d]->Delete();
@@ -125,7 +126,8 @@ void OrtogonalCountingFrame::unregisterView(RenderView *view)
         return;
 
       m_widgets2D[view2d]->SetEnabled(false);
-      m_widgets2D[view2d]->RemoveObserver(this);
+      view2d->mainRenderer()->RemoveActor(m_widgets2D[view2d]->GetRepresentation());
+      m_widgets2D[view2d]->RemoveObserver(m_command);
       m_widgets2D[view2d]->SetCurrentRenderer(nullptr);
       m_widgets2D[view2d]->SetInteractor(nullptr);
       m_widgets2D[view2d]->Delete();
@@ -135,24 +137,6 @@ void OrtogonalCountingFrame::unregisterView(RenderView *view)
       disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-bool OrtogonalCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
-                                          long unsigned int event)
-{
-  for(auto wa: m_widgets2D.values())
-  {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
-  }
-  for(auto wa: m_widgets3D.values())
-  {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
-  }
-
-  return false;
 }
 
 //-----------------------------------------------------------------------------

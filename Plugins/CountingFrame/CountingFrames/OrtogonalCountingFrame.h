@@ -25,7 +25,10 @@
 
 namespace EspINA
 {
-  namespace CF {
+  namespace CF
+  {
+
+  class vtkCountingFrameCommand;
   class CountingFrameExtension;
 
   const QString ORTOGONAL_CF = QObject::tr("Ortogonal");
@@ -52,9 +55,6 @@ namespace EspINA
     virtual void registerView(RenderView *);
     virtual void unregisterView(RenderView *);
 
-    virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                              long unsigned int event);
-
     virtual void updateCountingFrameImplementation();
 
   protected:
@@ -73,6 +73,8 @@ namespace EspINA
 
   private:
     Bounds m_bounds;
+
+    friend class vtkCountingFrameCommand;
   };
 
   } // namespace CF

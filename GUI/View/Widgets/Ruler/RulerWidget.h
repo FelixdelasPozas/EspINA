@@ -24,12 +24,16 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 
 // VTK
+#include <vtkSmartPointer.h>
+
 class vtkCubeAxesActor2D;
 class vtkRenderWindowInteractor;
 class vtkAbstractWidget;
 
 namespace EspINA
 {
+  class vtkRulerCommand;
+
   class EspinaGUI_EXPORT RulerWidget
   : public QObject
   , public EspinaWidget
@@ -56,12 +60,6 @@ namespace EspINA
        */
       virtual void unregisterView(RenderView *view);
 
-      /* \brief Process events from the interactor.
-       *
-       */
-      virtual bool processEvent(vtkRenderWindowInteractor *iren,
-                                long unsigned int event);
-
       /* \brief Implements EspinaWidget::setEnabled.
        *
        */
@@ -77,7 +75,50 @@ namespace EspINA
       void sliceChanged(Plane, Nm);
 
     private:
+      friend class vtkRulerCommand;
+
+      vtkSmartPointer<vtkRulerCommand> m_command;
       QMap<RenderView *, vtkAbstractWidget *> m_views;
+  };
+
+  class vtkRulerCommand
+  : public vtkEspinaCommand
+  {
+    public:
+      vtkTypeMacro(vtkRulerCommand, vtkEspinaCommand);
+
+      /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+       *
+       */
+      static vtkRulerCommand *New()
+      { return new vtkRulerCommand(); }
+
+      /* \brief Implements vtkEspinaCommand::Execute.
+       *
+       */
+      void Execute(vtkObject *, unsigned long int, void*);
+
+      /* \brief Implements vtkEspinaCommand::setWidget();
+       *
+       */
+      void setWidget(EspinaWidgetPtr widget)
+      { m_widget = dynamic_cast<RulerWidget *>(widget); }
+
+    private:
+      /* \brief RulerCommand class private constructor.
+       *
+       */
+      explicit vtkRulerCommand()
+      : m_widget{nullptr}
+      {}
+
+      /* \brief RulerCommand class private destructor.
+       *
+       */
+      virtual ~vtkRulerCommand()
+      {};
+
+      RulerWidget *m_widget;
   };
 
 } // namespace EspINA

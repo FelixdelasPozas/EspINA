@@ -118,7 +118,6 @@ set (GUI_SOURCES
   View/View2DState.cpp
   View/View3D.cpp
   View/Widgets/Contour/vtkVoxelContour2D.cpp
-  View/Widgets/EspinaWidget.cpp
   View/Widgets/Zoom/ZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp

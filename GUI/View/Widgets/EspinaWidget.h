@@ -21,6 +21,11 @@
 
 #include "EspinaGUI_Export.h"
 
+// VTK
+#include <vtkCommand.h>
+#include <vtkObjectFactory.h>
+
+// C++
 #include <memory>
 
 namespace EspINA
@@ -44,5 +49,28 @@ namespace EspINA
   using EspinaWidgetSPtr = std::shared_ptr<EspinaWidget>;
 
 } // namespace EspINA
+
+class vtkEspinaCommand
+: public vtkCommand
+{
+  public:
+    vtkTypeMacro(vtkEspinaCommand, vtkCommand);
+
+    /* \brief vtkDistanceCommand destructor.
+     *
+     */
+    virtual ~vtkEspinaCommand()
+    {}
+
+    /* \brief Sets the widget this vtkCommand executes to.
+     *
+     */
+    virtual void setWidget(EspINA::EspinaWidgetPtr widget) = 0;
+
+    /* \brief Implements vtkCommand::Execute.
+     *
+     */
+    virtual void Execute(vtkObject *, unsigned long int, void*) = 0;
+};
 
 #endif // ESPINA_WIDGET_H

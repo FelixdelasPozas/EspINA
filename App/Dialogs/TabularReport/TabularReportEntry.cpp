@@ -261,8 +261,8 @@ void TabularReport::Entry::refreshGUI()
   int  progress   = m_proxy->progress();
   bool inProgress = (progress < 100);
 
-  if ( m_proxy->informationTags().size() == 1
-    || m_proxy->informationTags().size() == 2 && m_proxy->informationTags()[1] == tr("Category"))
+  if ((m_proxy->informationTags().size() == 1 || m_proxy->informationTags().size() == 2) &&
+       m_proxy->informationTags()[1] == tr("Category"))
   {
     inProgress = false;
   }

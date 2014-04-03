@@ -14,11 +14,13 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/EventHandler.h>
 
+// VTK
+#include <vtkCommand.h>
+#include <vtkObjectFactory.h>
+#include <vtkSmartPointer.h>
+
 // Qt
 #include <QMap>
-
-// vtk
-#include <vtkCommand.h>
 
 class vtkAbstractWidget;
 class vtkDistanceWidget;
@@ -31,25 +33,23 @@ class QEvent;
 namespace EspINA
 {
   class RenderView;
+  class MeasureWidget;
+  class vtkDistanceCommand;
 
   class EspinaGUI_EXPORT MeasureWidget
   : public EspinaWidget
   , public EventHandler
-  , public vtkCommand
   {
   public:
+    /* \brief Class MeasureWidget destructor.
+     *
+     */
+    explicit MeasureWidget();
+
     /* \brief MeasureWidget class destructor.
      *
      */
     virtual ~MeasureWidget();
-
-    vtkTypeMacro(MeasureWidget,vtkCommand);
-
-    /* \brief VTK-style class New() method
-     *
-     */
-    static MeasureWidget *New()
-    { return new MeasureWidget(); };
 
     /* \brief Implements EspinaWidget::registerView()
      *
@@ -60,12 +60,6 @@ namespace EspINA
      *
      */
     virtual void unregisterView(RenderView *view);
-
-    /* \brief Process events from vtkRenderWindowInteractor.
-     *
-     */
-    virtual bool processEvent(vtkRenderWindowInteractor *iren,
-                              long unsigned int event);
 
     /* \brief Implements EspinaWidget::setEnabled.
      *
@@ -82,24 +76,57 @@ namespace EspINA
      */
     void setInUse(bool value);
 
-    /* \brief Implements vtkCommand::Execute.
-     *
-     */
-    void Execute(vtkObject *, unsigned long int, void*);
-
   private:
-    /* \brief Class MeasureWidget destructor.
-     *
-     */
-    explicit MeasureWidget();
+    friend class vtkDistanceCommand;
 
     /* \brief Computes optimal tick distance in the ruler given the length.
      *
      */
     double ComputeRulerTickDistance(double);
 
+    vtkSmartPointer<vtkDistanceCommand>          m_command;
     QMap<vtkDistanceWidget *, QList<vtkCamera*>> m_cameras;
-    QMap<RenderView *, vtkDistanceWidget *> m_widgets;
+    QMap<RenderView *, vtkDistanceWidget *>      m_widgets;
+
+  };
+
+  class vtkDistanceCommand
+  : public vtkCommand
+  {
+    vtkTypeMacro(vtkDistanceCommand, vtkCommand);
+
+    /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+     *
+     */
+    static vtkDistanceCommand* New()
+    { return new vtkDistanceCommand(); }
+
+    /* \brief Implements vtkEspinaCommand::Execute
+     *
+     */
+    virtual void Execute(vtkObject *, unsigned long int, void*);
+
+    /* \brief Implements vtkEspinaCommand::setWidget
+     *
+     */
+    void setWidget(EspinaWidgetPtr widget)
+    { m_widget = dynamic_cast<MeasureWidget *>(widget); }
+
+    private:
+     /* \brief Class vtkDistanceCommand class private constructor.
+      *
+      */
+     explicit vtkDistanceCommand()
+     : m_widget{nullptr}
+     {}
+
+     /* \brief Class vtkDistanceCommand class private destructor.
+      *
+      */
+     virtual ~vtkDistanceCommand()
+     {}
+
+     EspINA::MeasureWidget *m_widget;
   };
 
 }// namespace EspINA

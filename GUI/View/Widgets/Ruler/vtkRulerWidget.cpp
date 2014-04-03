@@ -40,7 +40,6 @@ namespace EspINA
   , m_plane(Plane::UNDEFINED)
   , m_up(vtkSmartPointer<vtkAxisActor2D>::New())
   , m_right(vtkSmartPointer<vtkAxisActor2D>::New())
-  , m_command(nullptr)
   {
     m_up->SetVisibility(false);
     m_up->SetPoint1(0,0);
@@ -92,9 +91,6 @@ namespace EspINA
     m_enabled = value;
     if (value)
     {
-      m_command = new RulerCommand();
-      m_command->setWidget(this);
-      CurrentRenderer->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, m_command);
       CurrentRenderer->AddActor2D(m_up);
       CurrentRenderer->AddActor2D(m_right);
 
@@ -103,10 +99,6 @@ namespace EspINA
     }
     else
     {
-      CurrentRenderer->GetActiveCamera()->RemoveObserver(m_command);
-      m_command->SetReferenceCount(0);
-      delete m_command;
-      m_command = nullptr;
       CurrentRenderer->RemoveActor2D(m_up);
       CurrentRenderer->RemoveActor2D(m_right);
       CurrentRenderer->GetRenderWindow()->Render();
@@ -221,26 +213,6 @@ namespace EspINA
     CurrentRenderer->WorldToDisplay();
     CurrentRenderer->GetDisplayPoint(inout);
     CurrentRenderer->DisplayToNormalizedDisplay(inout[0], inout[1]);
-  }
-
-  //----------------------------------------------------------------------------
-  // RulerCommand class methods
-  //----------------------------------------------------------------------------
-
-  //----------------------------------------------------------------------------
-  RulerCommand::RulerCommand()
-  : m_renderer(nullptr)
-  , m_widget(nullptr)
-  {
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerCommand::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
-  {
-    if (strcmp("vtkOpenGLCamera", caller->GetClassName()) != 0)
-      return;
-
-    m_widget->drawActors();
   }
 
 } /* namespace EspINA */

@@ -65,7 +65,7 @@ namespace EspINA
   {
     if (value)
     {
-      m_widget = EspinaWidgetSPtr(MeasureWidget::New());
+      m_widget = EspinaWidgetSPtr(new MeasureWidget());
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
       m_viewManager->setEventHandler(m_handler);
       m_viewManager->addWidget(m_widget);

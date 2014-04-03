@@ -44,7 +44,7 @@ namespace EspINA {
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
     private:
-      FetchBehaviourSPtr m_fetchBehaviour;
+      mutable FetchBehaviourSPtr m_fetchBehaviour;
     };
 
     Q_OBJECT

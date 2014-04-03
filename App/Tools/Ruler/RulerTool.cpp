@@ -52,7 +52,6 @@ namespace EspINA
     if(m_widget)
     {
       m_widget->setEnabled(false);
-      delete m_widget;
       m_widget = nullptr;
     }
   }
@@ -62,20 +61,18 @@ namespace EspINA
   {
     if (value)
     {
-      m_widget = new RulerWidget();
-      m_espinaWidget = EspinaWidgetSPtr(m_widget);
-      m_viewManager->addWidget(m_espinaWidget);
+      m_widget = EspinaWidgetSPtr(new RulerWidget());
+      m_viewManager->addWidget(m_widget);
       connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
               this,                             SLOT(selectionChanged()));
       selectionChanged();
     }
     else
     {
-      m_viewManager->removeWidget(m_espinaWidget);
+      m_viewManager->removeWidget(m_widget);
       disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
                  this,                             SLOT(selectionChanged()));
       m_widget = nullptr;
-      m_espinaWidget = nullptr;
     }
   }
 
@@ -157,13 +154,15 @@ namespace EspINA
       }
     }
 
+    auto widget = dynamic_cast<RulerWidget *>(m_widget.get());
+    Q_ASSERT(widget);
     if (segmentationBounds.areValid())
-      m_widget->setBounds(segmentationBounds);
+      widget->setBounds(segmentationBounds);
     else
       if (channelBounds.areValid())
-        m_widget->setBounds(channelBounds);
+        widget->setBounds(channelBounds);
       else
-        m_widget->setBounds(segmentationBounds);
+        widget->setBounds(segmentationBounds);
 
     m_selection = selection;
   }

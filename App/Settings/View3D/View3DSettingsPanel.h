@@ -56,8 +56,8 @@ namespace EspINA
     virtual SettingsPanelPtr clone();
 
   private:
-    const RendererSList &m_renderers;
     View3D              *m_view;
+    const RendererSList &m_renderers;
     RenderersSelector   *m_rendererSelector;
   };
 

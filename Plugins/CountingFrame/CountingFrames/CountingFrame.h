@@ -31,7 +31,6 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Core/Utils/Bounds.h>
 
-#include <vtkCommand.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
@@ -45,12 +44,12 @@ namespace CF {
     ORTOGONAL
   };
 
+  class vtkCountingFrameCommand;
   class CountingFrameExtension;
 
   class CountingFramePlugin_EXPORT CountingFrame
   : public QObject
   , public EspinaWidget
-  , public vtkCommand
   {
     Q_OBJECT
   protected:
@@ -69,8 +68,6 @@ namespace CF {
     using Id = QString;
 
   public:
-    vtkTypeMacro(CountingFrame, vtkCommand);
-
     virtual ~CountingFrame();
 
     virtual CFType cfType() const = 0;
@@ -142,8 +139,6 @@ namespace CF {
     {
       return countingFramePolyData();
     }
-
-    virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
     Nm left()  const {return m_inclusion[0];}
     Nm top()   const {return m_inclusion[1];}
@@ -224,11 +219,13 @@ namespace CF {
 
     // TODO: Change to private (may need some changes in the API)
     mutable QMutex m_widgetMutex;
-    QMap<View2D *, CountingFrame2DWidgetAdapter *> m_widgets2D;
-    QMap<View3D *, CountingFrame3DWidgetAdapter *> m_widgets3D;
-
+    QMap<View2D *, vtkCountingFrameSliceWidget *> m_widgets2D;
+    QMap<View3D *, vtkCountingFrame3DWidget *> m_widgets3D;
+    vtkSmartPointer<vtkCountingFrameCommand> m_command;
 
   private:
+    friend class vtkCountingFrameCommand;
+
     mutable QReadWriteLock m_stateMutex;
     bool m_visible;
     bool m_enable;
@@ -240,6 +237,46 @@ namespace CF {
   };
 
   using CountingFrameList = QList<CountingFrame *>;
+
+  class vtkCountingFrameCommand
+  : public vtkEspinaCommand
+  {
+    public:
+      vtkTypeMacro(vtkCountingFrameCommand, vtkEspinaCommand);
+
+      /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+       *
+       */
+      static vtkCountingFrameCommand *New()
+      { return new vtkCountingFrameCommand(); }
+
+      /* \brief Implements vtkEspinaCommand::Execute.
+       *
+       */
+      void Execute(vtkObject *, unsigned long int, void*);
+
+      /* \brief Implements vtkEspinaCommand::setWidget();
+       *
+       */
+      void setWidget(EspinaWidgetPtr widget)
+      { m_widget = dynamic_cast<CountingFrame *>(widget); }
+
+    private:
+      /* \brief vtkCountingFrameCommand class private constructor.
+       *
+       */
+      explicit vtkCountingFrameCommand()
+      : m_widget{nullptr}
+      {}
+
+      /* \brief vtkCountingFrameCommand class private destructor.
+       *
+       */
+      virtual ~vtkCountingFrameCommand()
+      {};
+
+      CountingFrame *m_widget;
+  };
 } // namsepace CF
 } // namespace EspINA
 

@@ -28,6 +28,8 @@ namespace EspINA
 {
   namespace CF
   {
+    class vtkCountingFrameCommand;
+
     const QString ADAPTIVE_CF = QObject::tr("Adaptive");
 
     class CountingFramePlugin_EXPORT AdaptiveCountingFrame
@@ -52,9 +54,6 @@ namespace EspINA
       virtual void registerView(RenderView *);
       virtual void unregisterView(RenderView *);
 
-      virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                                long unsigned int event);
-
       virtual void updateCountingFrameImplementation();
 
     protected:
@@ -77,6 +76,8 @@ namespace EspINA
 
     private:
       Channel *m_channel;
+
+      friend class vtkCountingFrameCommand;
     };
   } // namespace CF
 } // namespace EspINA

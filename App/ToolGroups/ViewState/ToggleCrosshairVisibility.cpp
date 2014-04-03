@@ -41,7 +41,7 @@ QList<QAction *> ToggleCrosshairVisibility::actions() const
 {
   QList<QAction *> actions;
 
-  actions << &m_toggle;
+  actions << const_cast<QAction *>(&m_toggle);
 
   return actions;
 }

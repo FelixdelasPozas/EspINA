@@ -60,11 +60,10 @@ namespace EspINA
     private:
       bool             m_enabled;
       QAction         *m_action;
-      RulerWidget     *m_widget;
+      EspinaWidgetSPtr m_widget;
       ViewManagerSPtr  m_viewManager;
       SelectionSPtr    m_selection;
       EventHandlerSPtr m_handler;
-      EspinaWidgetSPtr m_espinaWidget;
   };
 
   class RulerEventHandler

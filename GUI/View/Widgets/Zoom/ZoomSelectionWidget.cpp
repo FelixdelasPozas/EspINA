@@ -27,11 +27,11 @@
 
 using namespace EspINA;
 
-using ZoomSelectionWidgetAdapter = EspinaInteractorAdapter<vtkZoomSelectionWidget>;
-
 //----------------------------------------------------------------------------
 ZoomSelectionWidget::ZoomSelectionWidget()
+: m_command{vtkSmartPointer<vtkZoomCommand>::New()}
 {
+  m_command->setWidget(this);
 }
 
 //----------------------------------------------------------------------------
@@ -40,7 +40,7 @@ ZoomSelectionWidget::~ZoomSelectionWidget()
   for(vtkZoomSelectionWidget *widget: m_views.values())
   {
     widget->SetEnabled(false);
-    widget->RemoveObserver(this);
+    widget->RemoveObserver(m_command);
     widget->SetCurrentRenderer(nullptr);
     widget->SetInteractor(nullptr);
     widget->Delete();
@@ -56,8 +56,8 @@ void ZoomSelectionWidget::registerView(RenderView *view)
   View2D *view2d = dynamic_cast<View2D *>(view);
   if (view2d)
   {
-    auto widget = ZoomSelectionWidgetAdapter::New();
-    widget->AddObserver(vtkCommand::EndInteractionEvent, this);
+    auto widget = vtkZoomSelectionWidget::New();
+    widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
 
     switch (view2d->plane())
     {
@@ -98,20 +98,6 @@ void ZoomSelectionWidget::unregisterView(RenderView *view)
 }
 
 //----------------------------------------------------------------------------
-bool ZoomSelectionWidget::processEvent(vtkRenderWindowInteractor *iren,
-                          long unsigned int event)
-{
-  for(auto widget: m_views.values())
-    if (widget->GetInteractor() == iren)
-    {
-      ZoomSelectionWidgetAdapter *sw = static_cast<ZoomSelectionWidgetAdapter *>(widget);
-      return sw->ProcessEventsHandler(event);
-    }
-
-  return false;
-}
-
-//----------------------------------------------------------------------------
 void ZoomSelectionWidget::setEnabled(bool enable)
 {
   for(auto widget: m_views.values())
@@ -119,88 +105,21 @@ void ZoomSelectionWidget::setEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
-void ZoomSelectionWidget::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
+bool ZoomSelectionWidget::filterEvent(QEvent *e, RenderView *view)
 {
-  // this is needed to update the thumbnail when zooming the view.
-  ZoomSelectionWidgetAdapter *widget = dynamic_cast<ZoomSelectionWidgetAdapter *>(caller);
-  if(!widget)
-    return;
-
-  m_views.key(widget)->updateView();
+  return false;
 }
 
 //----------------------------------------------------------------------------
-bool ZoomSelectionWidget::filterEvent(QEvent* e, RenderView* view)
+void vtkZoomCommand::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
 {
-  if ( QEvent::MouseButtonPress != e->type()
-    && QEvent::MouseButtonRelease != e->type()
-    && QEvent::MouseMove != e->type() )
-    return false;
+  // this is needed to update the thumbnail when zooming the view.
+  vtkZoomSelectionWidget *widget = dynamic_cast<vtkZoomSelectionWidget *>(caller);
+  if(!widget)
+    return;
 
-  QMouseEvent *me = static_cast<QMouseEvent *>(e);
+  if(!m_widget->m_views.values().contains(widget))
+    return;
 
-  // give interactor the event information
-  vtkRenderWindowInteractor *iren = view->renderWindow()->GetInteractor();
-
-  int oldPos[2];
-  iren->GetEventPosition(oldPos);
-  iren->SetEventInformationFlipY(me->x(), me->y(),
-                                 (me->modifiers() & Qt::ControlModifier) > 0 ? 1 : 0,
-                                 (me->modifiers() & Qt::ShiftModifier ) > 0 ? 1 : 0,
-                                 0,
-                                 me->type() == QEvent::MouseButtonDblClick ? 1 : 0);
-  long unsigned int eventId = 0;
-
-  const QEvent::Type t = e->type();
-  if(t == QEvent::MouseMove)
-  {
-    eventId = vtkCommand::MouseMoveEvent;
-  }
-  else if(t == QEvent::MouseButtonPress || t == QEvent::MouseButtonDblClick)
-  {
-    switch(me->button())
-    {
-      case Qt::LeftButton:
-        eventId =vtkCommand::LeftButtonPressEvent;
-        break;
-
-      case Qt::MidButton:
-        eventId = vtkCommand::MiddleButtonPressEvent;
-        break;
-
-      case Qt::RightButton:
-        eventId = vtkCommand::RightButtonPressEvent;
-        break;
-
-      default:
-        break;
-    }
-  }
-  else if(t == QEvent::MouseButtonRelease)
-  {
-    switch(me->button())
-    {
-      case Qt::LeftButton:
-        eventId = vtkCommand::LeftButtonReleaseEvent;
-        break;
-
-      case Qt::MidButton:
-        eventId = vtkCommand::MiddleButtonReleaseEvent;
-        break;
-
-      case Qt::RightButton:
-        eventId = vtkCommand::RightButtonReleaseEvent;
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  bool handled = processEvent(iren, eventId);
-
-  if (!handled)
-    iren->SetEventPosition(oldPos);
-
-  return handled;
+  m_widget->m_views.key(widget)->updateView();
 }

@@ -46,9 +46,9 @@ FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() con
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList         inputs,
-                                                  const Filter::Type& filter,
-                                                  SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList          inputs,
+                                                                    const Filter::Type& filter,
+                                                                    SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
   if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
 

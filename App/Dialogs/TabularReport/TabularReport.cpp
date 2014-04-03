@@ -102,10 +102,7 @@ TabularReport::~TabularReport()
   QStringList currentEntries;
 
   for (int i = 0; i < m_tabs->count(); ++i)
-  {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     currentEntries << m_tabs->tabText(i).replace("/",">");
-  }
 
   TemporalStorageSPtr storage = m_model->storage();
   // Remove old extras

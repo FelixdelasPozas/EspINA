@@ -501,7 +501,6 @@ void ChannelExplorer::activateChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::dialogClosed(QObject *dialog)
 {
-  auto channelInspector = dynamic_cast<ChannelInspector *>(dialog);
   auto channel = m_informationDialogs.key(dialog);
 
   channel->output()->update();

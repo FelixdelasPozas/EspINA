@@ -40,6 +40,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 , m_inclusionVolume(0)
 , m_totalVolume(0)
 , m_extension(extension)
+, m_command{vtkSmartPointer<vtkCountingFrameCommand>::New()}
 , m_visible(true)
 , m_enable(true)
 , m_highlight(false)
@@ -47,6 +48,8 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
   QWriteLocker lock(&m_marginsMutex);
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+
+  m_command->setWidget(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -158,38 +161,6 @@ void CountingFrame::setHighlighted(bool highlight)
   for (auto wa : m_widgets2D.values())
   {
     wa->SetHighlighted(m_highlight);
-  }
-}
-
-
-//-----------------------------------------------------------------------------
-void CountingFrame::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
-{
-  auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
-
-  if (widget)
-  {
-    Nm inOffset[3], exOffset[3];
-    widget->GetInclusionOffset(inOffset);
-    widget->GetExclusionOffset(exOffset);
-
-    {
-      QWriteLocker lock(&m_marginsMutex);
-      for (int i = 0; i < 3; i++)
-      {
-        m_inclusion[i] = inOffset[i];
-        if (m_inclusion[i] < 0)
-          m_inclusion[i] = 0;
-
-        m_exclusion[i] = exOffset[i];
-        if (m_exclusion[i] < 0)
-          m_exclusion[i] = 0;
-      }
-    }
-
-    updateCountingFrame();
-
-    apply();
   }
 }
 
@@ -310,4 +281,33 @@ vtkAbstractWidget *CountingFrame::getWidget(RenderView *view)
   return nullptr;
 }
 
+//-----------------------------------------------------------------------------
+void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
+{
+  auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
+
+  if (widget)
+  {
+    Nm inOffset[3], exOffset[3];
+    widget->GetInclusionOffset(inOffset);
+    widget->GetExclusionOffset(exOffset);
+
+    {
+      QWriteLocker lock(&m_widget->m_marginsMutex);
+      for (int i = 0; i < 3; i++)
+      {
+        m_widget->m_inclusion[i] = inOffset[i];
+        if (m_widget->m_inclusion[i] < 0)
+          m_widget->m_inclusion[i] = 0;
+
+        m_widget->m_exclusion[i] = exOffset[i];
+        if (m_widget->m_exclusion[i] < 0)
+          m_widget->m_exclusion[i] = 0;
+      }
+    }
+
+    m_widget->updateCountingFrame();
+    m_widget->apply();
+  }
+}
 

@@ -20,7 +20,6 @@
 #include "RulerWidget.h"
 #include "vtkRulerWidget.h"
 #include "vtkRulerWidget3D.h"
-#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
@@ -28,15 +27,15 @@
 #include <vtkCubeAxesActor2D.h>
 #include <vtkRenderWindow.h>
 #include <vtkRendererCollection.h>
+#include <vtkCamera.h>
 
 namespace EspINA
 {
-  using RulerWidgetAdapter   = EspinaInteractorAdapter<vtkRulerWidget>;
-  using RulerWidgetAdapter3D = EspinaInteractorAdapter<vtkRulerWidget3D>;
-
   //----------------------------------------------------------------------------
   RulerWidget::RulerWidget()
+  : m_command{ vtkSmartPointer<vtkRulerCommand>::New()}
   {
+    m_command->setWidget(this);
   }
   
   //----------------------------------------------------------------------------
@@ -53,7 +52,10 @@ namespace EspINA
     {
       View2D *view2d = dynamic_cast<View2D*>(view);
       if(view2d)
+      {
         disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+        view2d->mainRenderer()->GetActiveCamera()->RemoveObserver(m_command);
+      }
     }
     m_views.clear();
   }
@@ -68,11 +70,13 @@ namespace EspINA
 
     if(view3d)
     {
-      vtkRulerWidget3D *widget = RulerWidgetAdapter3D::New();
+      auto widget = vtkRulerWidget3D::New();
       widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
       widget->SetInteractor(view->renderWindow()->GetInteractor());
+      widget->SetEnabled(true);
 
       m_views[view] = widget;
+      view->mainRenderer()->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, m_command);
     }
     else
     {
@@ -80,7 +84,7 @@ namespace EspINA
 
       if(view2d)
       {
-        auto widget = RulerWidgetAdapter::New();
+        auto widget = vtkRulerWidget::New();
         widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
         widget->SetInteractor(view->renderWindow()->GetInteractor());
         widget->setPlane(view2d->plane());
@@ -88,6 +92,7 @@ namespace EspINA
 
         m_views[view] = widget;
         connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
+        view->mainRenderer()->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, m_command);
       }
     }
   }
@@ -107,6 +112,7 @@ namespace EspINA
     if (view2d)
       disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
 
+    view->mainRenderer()->GetActiveCamera()->RemoveObserver(m_command);
     m_views.remove(view);
   }
 
@@ -130,20 +136,6 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  bool RulerWidget::processEvent(vtkRenderWindowInteractor *iren,
-                                   long unsigned int event)
-  {
-    for(vtkAbstractWidget *widget: m_views.values())
-      if (widget->GetInteractor() == iren)
-      {
-        RulerWidgetAdapter *sw = static_cast<RulerWidgetAdapter *>(widget);
-        return sw->ProcessEventsHandler(event);
-      }
-
-    return false;
-  }
-
-  //----------------------------------------------------------------------------
   void RulerWidget::setEnabled(bool enable)
   {
     for(vtkAbstractWidget *widget : m_views.values())
@@ -158,18 +150,64 @@ namespace EspINA
       vtkRulerWidget *widget2d = dynamic_cast<vtkRulerWidget *>(widget);
       if(widget2d)
       {
-        widget2d->setBounds(bounds);
-        auto view = dynamic_cast<View2D *>(m_views.key(widget));
-        auto index = normalCoordinateIndex(view->plane());
-        auto pos = view->crosshairPoint()[index];
-        bool valid = bounds[2*index] <= pos && bounds[2*index+1] > pos;
-        widget2d->SetEnabled(valid);
+        if(bounds.areValid())
+        {
+          widget2d->setBounds(bounds);
+          auto view = dynamic_cast<View2D *>(m_views.key(widget));
+          auto index = normalCoordinateIndex(view->plane());
+          auto pos = view->crosshairPoint()[index];
+          bool valid = bounds[2*index] <= pos && bounds[2*index+1] > pos;
+          widget2d->SetEnabled(valid);
+        }
+        else
+          widget2d->SetEnabled(false);
       }
       else
       {
         vtkRulerWidget3D *widget3d = dynamic_cast<vtkRulerWidget3D *>(widget);
         if (widget3d)
-          widget3d->setBounds(bounds);
+        {
+          if(bounds.areValid())
+          {
+            widget3d->SetEnabled(true);
+            widget3d->setBounds(bounds);
+          }
+          else
+          {
+            widget3d->SetEnabled(false);
+          }
+        }
+      }
+    }
+  }
+
+  //----------------------------------------------------------------------------
+  // vtkRulerCommand class methods
+  //----------------------------------------------------------------------------
+
+  //----------------------------------------------------------------------------
+  void vtkRulerCommand::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
+  {
+    if(!m_widget || (strcmp("vtkOpenGLCamera", caller->GetClassName()) != 0))
+      return;
+
+    vtkCamera *camera = dynamic_cast<vtkCamera *>(caller);
+    if(!camera)
+      return;
+
+    for(auto view: m_widget->m_views.keys())
+    {
+      auto view2d = dynamic_cast<View2D *>(view);
+
+      if(view2d && view2d->mainRenderer()->GetActiveCamera() == camera)
+      {
+        auto widget = dynamic_cast<vtkRulerWidget *>(m_widget->m_views[view]);
+
+        if(widget)
+        {
+          widget->drawActors();
+          return;
+        }
       }
     }
   }
