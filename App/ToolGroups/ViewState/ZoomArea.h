@@ -50,6 +50,11 @@ namespace EspINA
        */
       virtual QList<QAction *> actions() const;
 
+      /* \brief Cancels current operation.
+       *
+       */
+      void abortOperation();
+
     public slots:
       /* \brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
        *
@@ -62,39 +67,6 @@ namespace EspINA
       ViewManagerSPtr      m_viewManager;
       QAction             *m_zoomArea;
       EventHandlerSPtr     m_zoomHandler;
-  };
-
-  class ZoomEventHandler
-  : public EventHandler
-  {
-    Q_OBJECT
-    public:
-      /* \brief ZoomEventHandler class constructor.
-       *
-       */
-      explicit ZoomEventHandler(ZoomSelectionWidget *widget);
-
-      /* \brief ZoomEventHandler class destructor.
-       *
-       */
-      virtual ~ZoomEventHandler()
-      {}
-
-      /* \brief Implements EventHandler::setInUse.
-       *
-       */
-      virtual void setInUse(bool value);
-
-      /* \brief Implements EventHandler::filterEvent.
-       *
-       */
-      virtual bool filterEvent(QEvent *e, RenderView*view = nullptr);
-
-    signals:
-      void eventHandlerInUse(bool);
-
-    private:
-      ZoomSelectionWidget *m_widget;
   };
 
   using ZoomAreaSPtr = std::shared_ptr<ZoomArea>;

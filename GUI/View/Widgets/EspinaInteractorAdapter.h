@@ -40,6 +40,19 @@ namespace EspINA
   : public T
   {
   public:
+    static EspinaInteractorAdapter* New()
+    {
+      EspinaInteractorAdapter *result = new EspinaInteractorAdapter;
+      vtkObjectFactory::ConstructInstance(result->GetClassName());
+      return result;
+    }
+
+    virtual ~EspinaInteractorAdapter()
+    {}
+
+    vtkTypeMacro(EspinaInteractorAdapter, T);
+
+
     bool ProcessEventsHandler(long unsigned int event)
     {
         this->EventCallbackCommand->SetAbortFlag(0);
@@ -125,6 +138,11 @@ namespace EspINA
 
       return handled;
     }
+
+  private:
+    explicit EspinaInteractorAdapter()
+    {}
+
   };
 
 }// namespace EspINA

@@ -108,6 +108,7 @@ void vtkZoomSelectionWidgetRepresentation::StartWidgetInteraction(double e[2])
     m_displayPoints->SetPoint(i, displayPos);
 
   DisplayPointsToWorldPoints();
+  m_lineActor->SetVisibility(true);
 }
 
 //----------------------------------------------------------------------------
@@ -129,6 +130,7 @@ void vtkZoomSelectionWidgetRepresentation::WidgetInteraction(double e[2])
   m_displayPoints->SetPoint(3, displayPos);
 
   DisplayPointsToWorldPoints();
+  m_lineActor->SetVisibility(true);
 }
 
 //----------------------------------------------------------------------------
@@ -212,6 +214,7 @@ void vtkZoomSelectionWidgetRepresentation::EndWidgetInteraction(double e[2])
   m_displayPoints->SetPoint(3, point);
   m_displayPoints->SetPoint(4, point);
   DisplayPointsToWorldPoints();
+  m_lineActor->SetVisibility(false);
 }
 
 //----------------------------------------------------------------------------
@@ -263,7 +266,7 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
     this->Renderer->GetWorldPoint(worldPos);
 
     if (m_type != vtkZoomSelectionWidget::VOLUME_WIDGET)
-      worldPos[m_type] = ((vtkZoomSelectionWidget::AXIAL_WIDGET == m_type) ? -0.1 : 0.1);
+      worldPos[m_type] += ((vtkZoomSelectionWidget::AXIAL_WIDGET == m_type) ? 1 : -1);
 
     m_worldPoints->SetPoint(i, worldPos[0], worldPos[1], worldPos[2]);
   }

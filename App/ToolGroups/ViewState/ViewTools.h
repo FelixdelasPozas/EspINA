@@ -45,6 +45,9 @@ namespace EspINA
 
     virtual ToolSList tools();
 
+  public slots:
+    void abortOperation();
+
   private:
     ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
     ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;

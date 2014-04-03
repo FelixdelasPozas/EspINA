@@ -5,14 +5,15 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-#ifndef ZOOMSELECTIONWIDGET_H_
-#define ZOOMSELECTIONWIDGET_H_
+#ifndef ESPINA_ZOOM_SELECTION_WIDGET_H_
+#define ESPINA_ZOOM_SELECTION_WIDGET_H_
 
 #include "EspinaGUI_Export.h"
 
 // EspINA
 #include "vtkZoomSelectionWidget.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <Support/ViewManager.h>
 
 // Qt
@@ -21,6 +22,8 @@
 // vtk
 #include <vtkSmartPointer.h>
 
+
+
 class QEvent;
 class vtkAbstractWidget;
 
@@ -28,6 +31,8 @@ namespace EspINA
 {
   class RenderView;
   class vtkZoomCommand;
+
+  using ZoomSelectionWidgetAdapter = EspinaInteractorAdapter<vtkZoomSelectionWidget>;
 
   class EspinaGUI_EXPORT ZoomSelectionWidget
   : public EspinaWidget
@@ -65,6 +70,11 @@ namespace EspINA
      */
     bool filterEvent(QEvent *e, RenderView *view);
 
+    /* \brief Implements EventHandler::setInUse
+     *
+     */
+    void setInUse(bool value);
+
   private:
     friend class vtkZoomCommand;
 
@@ -74,7 +84,8 @@ namespace EspINA
     explicit ZoomSelectionWidget();
 
     vtkSmartPointer<vtkZoomCommand>              m_command;
-    QMap<RenderView *, vtkZoomSelectionWidget *> m_views;
+    QMap<RenderView *, ZoomSelectionWidgetAdapter *> m_views;
+
   };
 
   class vtkZoomCommand
@@ -119,4 +130,4 @@ namespace EspINA
 
 }// namespace EspINA
 
-#endif /* ZOOMSELECTIONWIDGET_H_ */
+#endif // ESPINA_ZOOM_SELECTION_WIDGET_H_

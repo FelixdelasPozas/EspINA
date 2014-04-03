@@ -46,6 +46,9 @@ ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)
   m_crosshairShortcut->setKey(Qt::Key_C);
   m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
   connect(m_crosshairShortcut,SIGNAL(activated()),m_toggleCrosshair.get(),SLOT(shortcut()));
+
+  connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()), Qt::QueuedConnection);
+  connect(parent, SIGNAL(analysisClosed()), this, SLOT(abortOperation()), Qt::QueuedConnection);
 }
 
 //----------------------------------------------------------------------------
@@ -86,5 +89,11 @@ ToolSList ViewTools::tools()
   zoomTools << m_resetZoom;
 
   return zoomTools;
+}
+
+//----------------------------------------------------------------------------
+void ViewTools::abortOperation()
+{
+  m_zoomArea->abortOperation();
 }
 

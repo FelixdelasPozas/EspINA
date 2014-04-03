@@ -60,6 +60,16 @@ QList< QAction* > ZoomArea::actions() const
 }
 
 //----------------------------------------------------------------------------
+void ZoomArea::abortOperation()
+{
+  if (m_zoomArea->isChecked())
+  {
+    m_zoomArea->setChecked(false);
+    initTool(false);
+  }
+}
+
+//----------------------------------------------------------------------------
 void ZoomArea::initTool(bool value)
 {
   if (value)
@@ -73,40 +83,14 @@ void ZoomArea::initTool(bool value)
   }
   else
   {
-    m_widget->setEnabled(false);
-    m_viewManager->removeWidget(m_widget);
-    m_viewManager->unsetEventHandler(m_zoomHandler);
-    m_zoomHandler = nullptr;
-    m_viewManager->setSelectionEnabled(true);
-    m_widget = nullptr;
+    if(m_widget)
+    {
+      m_widget->setEnabled(false);
+      m_viewManager->removeWidget(m_widget);
+      m_viewManager->unsetEventHandler(m_zoomHandler);
+      m_zoomHandler = nullptr;
+      m_viewManager->setSelectionEnabled(true);
+      m_widget = nullptr;
+    }
   }
-}
-
-//----------------------------------------------------------------------------
-ZoomEventHandler::ZoomEventHandler(ZoomSelectionWidget *widget)
-: m_widget{widget}
-{
-  QPixmap cursorBitmap;
-  cursorBitmap.load(":/espina/zoom_cursor.png", "PNG", Qt::ColorOnly);
-  m_cursor = QCursor(cursorBitmap, 0, 0);
-}
-
-//----------------------------------------------------------------------------
-bool ZoomEventHandler::filterEvent(QEvent *e, RenderView *view)
-{
-  if (m_inUse && m_widget)
-    return m_widget->filterEvent(e, view);
-
-  return false;
-}
-
-//----------------------------------------------------------------------------
-void ZoomEventHandler::setInUse(bool value)
-{
-  if(m_inUse == value)
-    return;
-
-  m_inUse = value;
-
-  emit eventHandlerInUse(value);
 }
