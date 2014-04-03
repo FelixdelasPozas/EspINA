@@ -90,8 +90,10 @@ namespace EspINA {
                       const Bounds&               bounds,
                       const typename T::ValueType value) {}
 
+    virtual void draw(const typename T::Pointer volume){}
+
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds = Bounds()){}
+                      const Bounds&             bounds){}
 
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE){}

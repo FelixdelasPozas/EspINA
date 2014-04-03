@@ -66,9 +66,7 @@ namespace EspINA
     if (m_views.keys().contains(view))
       return;
 
-    View3D *view3d = dynamic_cast<View3D *>(view);
-
-    if(view3d)
+    if(isView3D(view))
     {
       auto widget = vtkRulerWidget3D::New();
       widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
@@ -80,7 +78,7 @@ namespace EspINA
     }
     else
     {
-      View2D *view2d = dynamic_cast<View2D *>(view);
+      View2D *view2d = view2D_cast(view);
 
       if(view2d)
       {

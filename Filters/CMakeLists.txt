@@ -18,6 +18,7 @@ set (FILTERS_SOURCES
   ${FILTERS_UI}
   FreeFormSource.cpp
   SeedGrowSegmentationFilter.cpp
+  SourceFilter.cpp
   VolumetricStreamReader.cpp
   Utils/vtkTube.cxx
   )

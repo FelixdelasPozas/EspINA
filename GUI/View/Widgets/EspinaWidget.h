@@ -38,8 +38,8 @@ namespace EspINA
     explicit EspinaWidget(){}
     virtual ~EspinaWidget(){}
 
-    virtual void registerView(RenderView *) = 0;
-    virtual void unregisterView(RenderView *) = 0;
+    virtual void registerView  (RenderView *view) = 0;
+    virtual void unregisterView(RenderView *view) = 0;
 
     virtual void setEnabled(bool enable) = 0;
     virtual bool manipulatesSegmentations() { return false; };

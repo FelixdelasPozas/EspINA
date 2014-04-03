@@ -89,16 +89,29 @@ namespace EspINA
     virtual typename T::ValueType backgroundValue() const
     {  return m_bgValue; }
 
-    /** \brief Change every voxel value which satisfies the implicit function to the value given as parameter
+    /** \brief Method to modify the volume using a implicit function.
      *
-     *  If given bounds are not contained inside the volume bounds, the intersection will be applied
+     *  Change every voxel value which satisfies the implicit function to
+     *  the value given as parameter.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value) = 0;
 
+    /** \brief Method to modify the volume using an itk image.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
+     */
+    virtual void draw(const typename T::Pointer volume) = 0;
+
+    /** \brief Method to modify the volume using a region of an itk image.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
+     */
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds = Bounds()) = 0;
+                      const Bounds&             bounds) = 0;
 
     /// Set voxels at index to value
     ///NOTE: Current implementation will expand the image

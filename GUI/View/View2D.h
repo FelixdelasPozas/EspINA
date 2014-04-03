@@ -291,6 +291,12 @@ namespace EspINA
     friend class Representation;
   };
 
+  inline bool isView2D(RenderView* view)
+  { return dynamic_cast<View2D *>(view) != nullptr; }
+
+  inline View2D * view2D_cast(RenderView* view)
+  { return dynamic_cast<View2D *>(view); }
+
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectors)
 
 } // namespace EspINA

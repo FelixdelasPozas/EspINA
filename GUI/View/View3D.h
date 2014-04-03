@@ -155,6 +155,12 @@ namespace EspINA
     unsigned int m_numEnabledRenderers;
   };
 
+  inline bool isView3D(RenderView *view)
+  { return dynamic_cast<View3D *>(view) != nullptr; }
+
+  inline View3D * view3D_cast(RenderView* view)
+  { return dynamic_cast<View3D *>(view); }
+
 } // namespace EspINA
 
 #endif // ESPINA_VIEW_3D_H

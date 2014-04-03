@@ -22,6 +22,7 @@ qt4_wrap_cpp(Support_MOC
 set (Support_SOURCES
   ${Support_MOC}
   ${Support_UI}
+  ActionGroupWidget.cpp
   EventHandler.cpp
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp

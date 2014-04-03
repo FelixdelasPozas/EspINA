@@ -17,12 +17,12 @@
 */
 
 
-#ifndef FREEFORMSOURCE_H
-#define FREEFORMSOURCE_H
+#ifndef ESPINA_FREE_FORM_SOURCE_H
+#define ESPINA_FREE_FORM_SOURCE_H
 
 // #include "EspinaFilters_Export.h" añadir EspinaFilters_EXPORT a la clase luego
 
-#include "BasicSegmentationFilter.h"
+#include <Core/Analysis/Filter.h>
 #include <Core/Utils/BinaryMask.h>
 
 #include <QVector3D>
@@ -69,4 +69,4 @@ namespace EspINA
 } // namespace EspINA
 
 
-#endif // FREEFORMSOURCE_H
+#endif // ESPINA_FREE_FORM_SOURCE_H

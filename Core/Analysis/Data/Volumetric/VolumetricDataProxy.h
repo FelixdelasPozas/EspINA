@@ -110,8 +110,11 @@ namespace EspINA
                       const typename T::ValueType value)
     { m_data->draw(brush, bounds, value); }
 
+    virtual void draw(const itkImageSPtr volume)
+    { m_data->draw(volume); }
+
     virtual void draw(const itkImageSPtr volume,
-                      const Bounds&      bounds = Bounds())
+                      const Bounds&      bounds)
     { m_data->draw(volume, bounds); }
 
     /// Set voxels at index to value

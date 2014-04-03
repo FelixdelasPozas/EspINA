@@ -174,6 +174,17 @@ namespace EspINA
     return itkSpacing;
   }
 
+  template<typename T>
+  NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
+  {
+    NmVector3 spacing;
+
+    for(int i = 0; i < 3; ++i)
+      spacing[i] = itkSpacing[i];
+
+    return spacing;
+  }
+
   /** \brief Return the vtkImageData of specified bounds equivalent to the itkImage.
    */
   template<typename T>

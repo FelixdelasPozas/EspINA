@@ -23,6 +23,7 @@
 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
 , m_lowerTh(0)

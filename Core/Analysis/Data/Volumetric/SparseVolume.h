@@ -115,7 +115,10 @@ namespace EspINA
 
     /** \brief Method to modify the volume using a implicit function.
      *
-     *  Draw methods are constrained to volume bounds.
+     *  Change every voxel value which satisfies the implicit function to
+     *  the value given as parameter.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
@@ -123,17 +126,23 @@ namespace EspINA
 
     /** \brief Method to modify the volume using a mask and a value.
      *
-     *  Draw methods are constrained to volume bounds.
+     *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
     /** \brief Method to modify the volume using an itk image.
      *
-     *  Draw methods are constrained to volume bounds.
+     *  Draw methods are constrained to sparse volume bounds.
+     */
+    virtual void draw(const typename T::Pointer volume);
+
+    /** \brief Method to modify the volume using a region of an itk image.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds = Bounds());
+                      const Bounds&             bounds);
 
     /** \brief Method to modify a voxel of the volume using an itk index.
      *
@@ -531,6 +540,15 @@ namespace EspINA
   {
     addBlock(mask);
     this->updateModificationTime();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::draw(const typename T::Pointer volume)
+  {
+    Bounds volumeBounds = equivalentBounds<T>(volume, volume->GetLargestPossibleRegion());
+
+    draw(volume, volumeBounds);
   }
 
   //-----------------------------------------------------------------------------

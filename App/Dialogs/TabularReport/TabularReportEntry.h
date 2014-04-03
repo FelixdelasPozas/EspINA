@@ -85,7 +85,11 @@ namespace EspINA
     bool exportToXLS(const QString &filename);
 
     QString selectedInformationFile() const
-    {  return TabularReport::extraPath(m_category.replace("/",">") + ".txt"); }
+    {
+      QString path = m_category;
+
+      return TabularReport::extraPath(path.replace("/",">") + ".txt");
+    }
 
     InformationSelector::GroupedInfo availableInformation();
 
