@@ -18,8 +18,48 @@
 
 #include "EditionTools.h"
 
+#include <Undo/AddSegmentations.h>
+#include <App/Undo/BrushUndoCommand.h>
+#include <Filters/FreeFormSource.h>
+#include <Core/Analysis/Filter.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+
+using EspINA::Filter;
+
+const Filter::Type FREEFORM_FILTER    = "FreeFormSource";
+const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
+
 namespace EspINA
 {
+  //-----------------------------------------------------------------------------
+  FilterTypeList EditionTools::ManualFilterFactory::providedFilters() const
+  {
+    FilterTypeList filters;
+
+    filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
+
+    return filters;
+  }
+
+  //-----------------------------------------------------------------------------
+  FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList         inputs,
+                                                                  const Filter::Type& filter,
+                                                                  SchedulerSPtr       scheduler) const
+  throw(Unknown_Filter_Exception)
+  {
+    if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
+
+    auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
+    if (!m_fetchBehaviour)
+    {
+      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    }
+    ffsFilter->setFetchBehaviour(m_fetchBehaviour);
+
+    return ffsFilter;
+  }
+
   //-----------------------------------------------------------------------------
   EditionTools::EditionTools(ModelAdapterSPtr model,
                              ModelFactorySPtr factory,
@@ -27,8 +67,17 @@ namespace EspINA
                              QUndoStack      *undoStack,
                              QWidget         *parent)
   : ToolGroup(viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent)
+  , m_factory{factory}
+  , m_undoStack{undoStack}
+  , m_model{model}
+  , m_filterFactory(new ManualFilterFactory())
   {
-    m_manualEdition = ManualEditionToolSPtr(new ManualEditionTool(model, factory, viewManager, undoStack));
+    m_factory->registerFilterFactory(m_filterFactory);
+
+    m_manualEdition = ManualEditionToolSPtr(new ManualEditionTool(model, viewManager));
+    connect(m_manualEdition.get(), SIGNAL(stroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)),
+            this,                  SLOT(drawStroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
+
     m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
     m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
 
@@ -89,6 +138,54 @@ namespace EspINA
   {
     m_manualEdition->abortOperation();
     m_split->abortOperation();
+  }
+
+  //-----------------------------------------------------------------------------
+  void EditionTools::drawStroke(ViewItemAdapterPtr item, CategoryAdapterSPtr category, BinaryMaskSPtr<unsigned char> mask)
+  {
+    SegmentationAdapterSPtr segmentation;
+
+    switch(item->type())
+    {
+      case ViewItemAdapter::Type::CHANNEL:
+      {
+        auto adapter = m_factory->createFilter<FreeFormSource>(InputSList(), FREEFORM_FILTER);
+        auto filter = adapter->get();
+        filter->setMask(mask);
+
+        segmentation = m_factory->createSegmentation(adapter, 0);
+        segmentation->setCategory(category);
+
+        auto channelItem = static_cast<ChannelAdapterPtr>(item);
+
+        SampleAdapterSList samples;
+        samples << QueryAdapter::sample(channelItem);
+        Q_ASSERT(channelItem && (samples.size() == 1));
+
+        m_undoStack->beginMacro(tr("Add Segmentation"));
+        m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+        m_undoStack->endMacro();
+
+        SegmentationAdapterList list;
+        list << segmentation.get();
+        m_viewManager->selection()->set(list);
+        break;
+      }
+      case ViewItemAdapter::Type::SEGMENTATION:
+      {
+        segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
+        m_undoStack->beginMacro(tr("Modify Segmentation"));
+        m_undoStack->push(new DrawUndoCommand(segmentation, mask));
+        m_undoStack->endMacro();
+        break;
+      }
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+
+    m_viewManager->updateSegmentationRepresentations(segmentation.get());
+    m_viewManager->updateViews();
   }
 
 } /* namespace EspINA */

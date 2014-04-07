@@ -18,6 +18,8 @@
 
 #include "ManualVOITool.h"
 
+#include <GUI/Widgets/SliderAction.h>
+
 // EspINA
 
 // Qt
@@ -28,110 +30,49 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
-                                   ViewManagerSPtr  viewManager)
-: m_model      (model)
-, m_viewManager(viewManager)
-, m_actionSelector(new ActionSelector())
+                             ViewManagerSPtr  viewManager)
+: ManualEditionTool(model, viewManager)
 {
-  //RectangularVOISPtr voi(new RectangularVOI(m_model, m_viewManager));
-  //m_vois[action] = voi;
-  //connect(voi.get(), SIGNAL(voiDeactivated()),
-  //        this, SLOT(cancelVOI()));
-
-
-//   connect(m_applyVOI, SIGNAL(triggered(bool)),
-//           this,       SLOT(changeVOI(QAction*)));
-//   connect(m_applyVOI, SIGNAL(nCanceled()),
-//           this,       SLOT(cancelVOI()));
-  // draw with a disc
-  m_circularBrushAction = new QAction(QIcon(":/espina/pencil2D.png"),
-                                      tr("Modify VOI drawing 2D discs"),
-                                      m_actionSelector);
-
-  m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager));
-  m_circularBrushSelector->setBrushImage(QImage());
-  m_circularBrushSelector->setBrushColor(Qt::yellow);
-
-//   connect(m_circularBrushSelector.get(), SIGNAL(stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-//           this,                          SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
-  connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-          m_actionSelector,              SLOT(setChecked(bool)));
-//   connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-//           this,                          SLOT(selectorInUse(bool)));
-//   connect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)),
-//           this,                          SLOT(radiusChanged(int)));
-//   connect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
-//           this,                          SLOT(drawingModeChanged(bool)));
-
-  m_selectors[m_circularBrushAction] = m_circularBrushSelector;
-  m_actionSelector->addAction(m_circularBrushAction);
-
-  m_actionSelector->setDefaultAction(m_circularBrushAction);
-
-  connect(m_actionSelector, SIGNAL(triggered(QAction*)),
-          this,             SLOT(changeSelector(QAction*)));
-  connect(m_actionSelector, SIGNAL(actionCanceled()),
-          this,             SLOT(unsetSelector()));
+  showCategoryControls(false);
 }
 
 //-----------------------------------------------------------------------------
 ManualVOITool::~ManualVOITool()
 {
-  delete m_circularBrushAction;
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::setEnabled(bool value)
+void ManualVOITool::changeSelector(QAction* action)
 {
+  Q_ASSERT(m_drawTools.keys().contains(action));
 
-}
-
-//-----------------------------------------------------------------------------
-bool ManualVOITool::enabled() const
-{
-  return true;
-}
-
-//-----------------------------------------------------------------------------
-QList<QAction *> ManualVOITool::actions() const
-{
-  QList<QAction *> actions;
-
-  actions << m_actionSelector;
-
-  return actions;
-}
-
-//-----------------------------------------------------------------------------
-void ManualVOITool::changeSelector(QAction* selectorAction)
-{
-  Q_ASSERT(m_selectors.contains(selectorAction));
-
-  m_currentSelector = m_selectors[selectorAction];
+  m_currentSelector = m_drawTools[action];
+  m_currentSelector->setBrushColor(Qt::yellow);
+  m_currentSelector->initBrush();
+  m_currentSelector->setRadius(m_radiusWidget->value());
 
   m_viewManager->setEventHandler(m_currentSelector);
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::selectorInUse(bool inUse)
+void ManualVOITool::selectorInUse(bool value)
 {
-//   if (!inUse)
-//   {
-//     m_currentSelector = nullptr;
-//     //emit stopDrawing();
-//   }
-//   else
-//   {
-//     if (inUse && m_viewManager->activeCategory() && m_viewManager->activeChannel())
-//       m_currentSelector->initBrush();
-//   }
+  if (!value)
+  {
+    m_currentSelector = nullptr;
+    emit stopDrawing();
+  }
+  else
+    m_currentSelector->initBrush();
 }
 
-//-----------------------------------------------------------------------------
-void ManualVOITool::unsetSelector()
+//------------------------------------------------------------------------
+void ManualVOITool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane)
 {
-  m_viewManager->unsetEventHandler(m_currentSelector);
-  m_currentSelector.reset();
+  auto mask = m_currentSelector->voxelSelectionMask();
+  emit stroke(mask);
+
+  m_currentSelector->initBrush();
 }
 
 //-----------------------------------------------------------------------------

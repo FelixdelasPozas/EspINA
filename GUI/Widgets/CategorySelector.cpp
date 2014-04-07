@@ -88,3 +88,12 @@ void CategorySelector::resetRootItem()
     categorySelector->setRootModelIndex(m_model->classificationRoot());
   }
 }
+
+//------------------------------------------------------------------------
+CategoryAdapterSPtr CategorySelector::selectedCategory()
+{
+  if (!m_selectedCategory)
+    m_selectedCategory = m_model->classification()->categories().first();
+
+  return m_selectedCategory;
+}

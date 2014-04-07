@@ -22,6 +22,8 @@
 #include <Support/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/Selection.h>
+#include <Core/Factory/FilterFactory.h>
+#include <GUI/ModelFactory.h>
 
 #include "ManualEditionTool.h"
 #include "SplitTool.h"
@@ -34,6 +36,17 @@ namespace EspINA
   class EditionTools
   : public ToolGroup
   {
+    class ManualFilterFactory
+    : public FilterFactory
+    {
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      virtual FilterTypeList providedFilters() const;
+
+    private:
+      mutable FetchBehaviourSPtr m_fetchBehaviour;
+    };
+
     Q_OBJECT
     public:
       EditionTools(ModelAdapterSPtr model,
@@ -52,11 +65,16 @@ namespace EspINA
     public slots:
       void selectionChanged(SelectionSPtr);
       void abortOperation();
+      void drawStroke(ViewItemAdapterPtr item, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
 
     private:
       ManualEditionToolSPtr        m_manualEdition;
       SplitToolSPtr                m_split;
       MorphologicalEditionToolSPtr m_morphological;
+      ModelFactorySPtr             m_factory;
+      QUndoStack                  *m_undoStack;
+      ModelAdapterSPtr             m_model;
+      FilterFactorySPtr            m_filterFactory;
 
       bool                         m_enabled;
   };

@@ -36,6 +36,7 @@ namespace EspINA
   class VolumeOfInterestTools
   : public ToolGroup
   {
+  Q_OBJECT
   public:
     VolumeOfInterestTools(ModelAdapterSPtr model,
                           ModelFactorySPtr factory,
@@ -50,6 +51,9 @@ namespace EspINA
     virtual bool enabled() const;
 
     virtual ToolSList tools();
+
+  private slots:
+    void drawStroke(VOIMaskSPtr);
 
   private:
     VOIMaskSPtr          m_currentVOI;

@@ -48,6 +48,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ViewState/ToggleCrosshairVisibility.h
   ToolGroups/ViewState/ResetZoom.h
   ToolGroups/ViewState/ZoomArea.h
+  ToolGroups/VOI/VolumeOfInterestTools.h
   ToolGroups/Segmentation/ApplyROI.h
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
@@ -55,6 +56,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Editor/SplitTool.h
   ToolGroups/Editor/MorphologicalEditionTool.h
   ToolGroups/Editor/ManualEditionTool.h
+  ToolGroups/Editor/EditionTools.h
   ToolGroups/Editor/MorphologicalEditionTool.h
   ToolGroups/Measures/MeasuresTools.h
   Tools/Brushes/CircularBrushSelector.h

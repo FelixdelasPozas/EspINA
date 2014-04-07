@@ -37,12 +37,15 @@ namespace EspINA
   class EspinaSupport_EXPORT Tool
   : public QObject
   {
-  public:
-    virtual void setEnabled(bool value) = 0;
+    public:
+      virtual void setEnabled(bool value) = 0;
 
-    virtual bool enabled() const = 0;
+      virtual bool enabled() const = 0;
 
-    virtual QList<QAction *> actions() const = 0;
+      virtual QList<QAction *> actions() const = 0;
+
+    signals:
+      void changedActions();
   };
 
   using ToolSPtr  = std::shared_ptr<Tool>;

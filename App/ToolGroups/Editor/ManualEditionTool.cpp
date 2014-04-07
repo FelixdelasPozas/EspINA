@@ -20,73 +20,35 @@
 
 #include <App/Tools/Brushes/CircularBrushSelector.h>
 #include <App/Tools/Brushes/SphericalBrushSelector.h>
-#include <Core/Analysis/Filter.h>
+#include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Widgets/SliderAction.h>
-#include <GUI/Model/Utils/QueryAdapter.h>
-#include <Filters/FreeFormSource.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <Undo/AddSegmentations.h>
-#include <App/Undo/BrushUndoCommand.h>
 
 #include <QAction>
 #include <QSettings>
 
-using EspINA::Filter;
-
 const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
 const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
 
-const Filter::Type FREEFORM_FILTER    = "FreeFormSource";
-const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
-
 namespace EspINA
 {
-  //-----------------------------------------------------------------------------
-  FilterTypeList ManualEditionTool::ManualFilterFactory::providedFilters() const
-  {
-    FilterTypeList filters;
-
-    filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
-
-    return filters;
-  }
-
-  //-----------------------------------------------------------------------------
-  FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(InputSList         inputs,
-                                                                  const Filter::Type& filter,
-                                                                  SchedulerSPtr       scheduler) const
-  throw(Unknown_Filter_Exception)
-  {
-    if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
-
-    auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
-    if (!m_fetchBehaviour)
-    {
-      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
-    }
-    ffsFilter->setFetchBehaviour(m_fetchBehaviour);
-
-    return ffsFilter;
-  }
-
   //------------------------------------------------------------------------
   ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
-                                       ModelFactorySPtr factory,
-                                       ViewManagerSPtr  viewManager,
-                                       QUndoStack      *undoStack)
+                                       ViewManagerSPtr  viewManager)
   : m_model(model)
-  , m_factory(factory)
   , m_viewManager(viewManager)
-  , m_undoStack(undoStack)
-  , m_filterFactory(new ManualFilterFactory())
   , m_drawToolSelector(new ActionSelector())
   , m_categorySelector(new CategorySelector(model))
   , m_radiusWidget(new SliderAction())
   , m_opacityWidget(new SliderAction())
+  , m_showOpacityControls{true}
+  , m_showRadiusControls{true}
+  , m_showCategoryControls{true}
   , m_enabled(false)
   {
-    m_factory->registerFilterFactory(m_filterFactory);
+    qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
+    qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
+    qRegisterMetaType<BinaryMaskSPtr<unsigned char>>("BinaryMaskSPtr<unsigned char>");
 
     connect(m_radiusWidget, SIGNAL(valueChanged(int)),
             this, SLOT(changeRadius(int)));
@@ -250,7 +212,7 @@ namespace EspINA
     }
     else
     {
-      if (value && m_viewManager->activeCategory() && m_viewManager->activeChannel())
+      if (m_viewManager->activeCategory() && m_viewManager->activeChannel())
         m_currentSelector->initBrush();
     }
   }
@@ -280,10 +242,16 @@ namespace EspINA
       m_drawToolSelector->setChecked(m_viewManager->eventHandler() == m_currentSelector);
     }
 
-    actions << m_categorySelector;
+    if (m_showCategoryControls)
+      actions << m_categorySelector;
+
     actions << m_drawToolSelector;
-    actions << m_radiusWidget;
-    actions << m_opacityWidget;
+
+    if (m_showRadiusControls)
+      actions << m_radiusWidget;
+
+    if (m_showOpacityControls)
+      actions << m_opacityWidget;
 
     return actions;
   }
@@ -292,52 +260,10 @@ namespace EspINA
   void ManualEditionTool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane)
   {
     auto mask = m_currentSelector->voxelSelectionMask();
-    SegmentationAdapterSPtr segmentation;
-
-    switch(item->type())
-    {
-      case ViewItemAdapter::Type::CHANNEL:
-      {
-        auto adapter = m_factory->createFilter<FreeFormSource>(InputSList(), FREEFORM_FILTER);
-        auto filter = adapter->get();
-        filter->setMask(mask);
-
-        segmentation = m_factory->createSegmentation(adapter, 0);
-
-        auto category = m_categorySelector->selectedCategory();
-        segmentation->setCategory(category);
-
-        auto channelItem = static_cast<ChannelAdapterPtr>(item);
-
-        SampleAdapterSList samples;
-        samples << QueryAdapter::sample(channelItem);
-        Q_ASSERT(channelItem && (samples.size() == 1));
-
-        m_undoStack->beginMacro(tr("Add Segmentation"));
-        m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-        m_undoStack->endMacro();
-
-        SegmentationAdapterList list;
-        list << segmentation.get();
-        m_viewManager->selection()->set(list);
-        break;
-      }
-      case ViewItemAdapter::Type::SEGMENTATION:
-      {
-        segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
-        m_undoStack->beginMacro(tr("Modify Segmentation"));
-        m_undoStack->push(new DrawUndoCommand(segmentation, mask));
-        m_undoStack->endMacro();
-        break;
-      }
-      default:
-        Q_ASSERT(false);
-    }
+    auto category = m_categorySelector->selectedCategory();
+    emit stroke(item, category, mask);
 
     m_currentSelector->initBrush();
-
-    m_viewManager->updateSegmentationRepresentations(segmentation.get());
-    m_viewManager->updateViews();
   }
 
   //------------------------------------------------------------------------

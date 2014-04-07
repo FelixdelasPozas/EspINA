@@ -32,7 +32,8 @@ VolumeOfInterestTools::VolumeOfInterestTools(ModelAdapterSPtr model,
 , m_ortogonalVOITool(new OrtogonalVOITool(model, viewManager))
 , m_cleanVOITool    (new CleanVOITool(m_currentVOI, model, viewManager))
 {
-
+  qRegisterMetaType<VOIMaskSPtr>("VOIMaskSPtr");
+  connect(m_manualVOITool.get(), SIGNAL(stroke(VOIMaskSPtr)), this, SLOT(drawStroke(VOIMaskSPtr)), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
@@ -63,4 +64,10 @@ ToolSList VolumeOfInterestTools::tools()
   availableTools << m_cleanVOITool;
 
   return availableTools;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterestTools::drawStroke(VOIMaskSPtr mask)
+{
+  qDebug() << "mask to add to accumulator VOI" << mask->bounds();
 }

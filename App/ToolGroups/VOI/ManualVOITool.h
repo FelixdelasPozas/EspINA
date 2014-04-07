@@ -21,16 +21,15 @@
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Selectors/BrushSelector.h>
-#include <GUI/Widgets/ActionSelector.h>
-#include <Tools/Brushes/CircularBrushSelector.h>
+#include <ToolGroups/Editor/ManualEditionTool.h>
+#include "VolumeOfInterestMask.h"
 
 class QAction;
 namespace EspINA
 {
   /// Volume Of Interest Toolbar
   class ManualVOITool
-  : public Tool
+  : public ManualEditionTool
   {
     Q_OBJECT
   public:
@@ -38,35 +37,19 @@ namespace EspINA
                           ViewManagerSPtr  viewManager);
     virtual ~ManualVOITool();
 
-    virtual void setEnabled(bool value);
+  signals:
+    void stroke(VOIMaskSPtr);
 
-    virtual bool enabled() const;
-
-    virtual QList<QAction *> actions() const;
-
-  private slots:
+  protected slots:
     void changeSelector(QAction *selectorAction);
-
-    void selectorInUse(bool inUse);
-
-    void unsetSelector();
+    void selectorInUse(bool value);
+    void drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane);
 
     void changeVOI(QAction *action);
-
     void cancelVOI();
 
   private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
 
-    ActionSelector*  m_actionSelector;
-
-    SelectorSPtr              m_currentSelector;
-    CircularBrushSelectorSPtr m_circularBrushSelector;
-
-    QAction *m_circularBrushAction;
-    QAction *m_sphericalBrushAction;
-    QMap<QAction *, SelectorSPtr> m_selectors;
   };
 
   using ManualVOIToolSPtr = std::shared_ptr<ManualVOITool>;
