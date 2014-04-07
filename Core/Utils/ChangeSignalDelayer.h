@@ -34,7 +34,7 @@ namespace EspINA
       explicit ChangeSignalDelayer(DataSPtr data)
       : m_data(data)
       {
-        data->blockSignals(true);
+        m_data->blockSignals(true);
       }
 
       /* \brief ChangeSignalDelayer class destructor.

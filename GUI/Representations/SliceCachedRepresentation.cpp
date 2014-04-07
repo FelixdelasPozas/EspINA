@@ -55,7 +55,8 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void CachedRepresentation::computeLimits()
   {
-    Q_ASSERT(m_planeIndex != -1);
+    if(m_planeIndex == -1)
+      return;
 
     VolumeBounds imageBounds{ m_data->bounds(), m_data->spacing(), m_data->origin() };
 
@@ -336,7 +337,10 @@ namespace EspINA
   void SegmentationSliceCachedRepresentation::dataChanged()
   {
     if(m_data->lastModified() != m_lastUpdatedTime)
+    {
+      computeLimits();
       emit update();
+    }
   }
 
 
