@@ -24,7 +24,7 @@
 #include <QSettings>
 
 const QString CESVIMA = "CeSViMa";
-const QString ESPINA  = "EspINA";
+const QString ESPINA  = "EspINA2";
 
 const QString USER_NAME("UserName");
 

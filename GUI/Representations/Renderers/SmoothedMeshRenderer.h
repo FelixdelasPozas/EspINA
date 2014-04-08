@@ -33,6 +33,7 @@ namespace EspINA
   {
     public:
       explicit SmoothedMeshRenderer(QObject* parent = 0);
+      virtual ~SmoothedMeshRenderer() {}
 
       virtual const QIcon icon()      const { return QIcon(":/espina/smoothedmesh.png"); }
       virtual const QString name()    const { return "Smoothed Mesh"; }
@@ -42,7 +43,7 @@ namespace EspINA
       virtual void removeRepresentation(RepresentationSPtr rep);
       virtual bool managesRepresentation(const QString &repName) const;
 
-      virtual RendererSPtr clone()         { return RendererSPtr(new SmoothedMeshRenderer()); }
+      virtual RendererSPtr clone() const    { return RendererSPtr(new SmoothedMeshRenderer()); }
   };
 
 } /* namespace EspINA */

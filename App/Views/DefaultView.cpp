@@ -46,7 +46,7 @@ const QString DEFAULT_VIEW_SETTINGS = "DefaultView";
 const QString X_LINE_COLOR = "CrosshairXLineColor";
 const QString Y_LINE_COLOR = "CrosshairYLineColor";
 const QString Z_LINE_COLOR = "CrosshairZLineColor";
-const QString RENDERERS    = "View3D::renderers";
+const QString RENDERERS    = "DefaultView::renderers";
 
 //----------------------------------------------------------------------------
 DefaultView::DefaultView(ModelAdapterSPtr     model,
@@ -111,6 +111,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
                      << "Mesh"
                      << "Smoothed Mesh"
                      << "Slice"
+                     << "Slice (Cached)"
                      << "Contour";
 
     settings.setValue(RENDERERS, defaultRenderers);
@@ -121,7 +122,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   for(auto name : settings.value(RENDERERS).toStringList())
   {
     auto previousRenderer = renderer(name);
-    if (previousRenderer)
+    if (previousRenderer && !activeRenderers.contains(previousRenderer))
     {
       activeRenderers << previousRenderer;
     }
