@@ -214,6 +214,10 @@ namespace EspINA
         struct Invalid_Iteration_Bounds_Exception{};
 
       public:
+        explicit Block(bool locked)
+        : m_locked{locked}
+        {}
+
         virtual ~Block(){}
 
         virtual VolumeBounds bounds() const = 0;
@@ -227,16 +231,12 @@ namespace EspINA
                                  const Bounds                              &bounds,
                                  long unsigned int                         &remainingVoxels) const = 0;
 
-        BlockType type() const
-        { return m_type; }
-
         bool isLocked() const
         { return m_locked; }
 
       protected:
         friend class SparseVolume;
 
-        BlockType     m_type;
         bool          m_locked;
     };
 
@@ -245,7 +245,8 @@ namespace EspINA
     {
     public:
       MaskBlock(BlockMaskSPtr mask, bool locked)
-      : m_mask(mask)
+      : Block(locked)
+      , m_mask{mask}
       {}
 
       virtual VolumeBounds bounds() const
@@ -265,7 +266,8 @@ namespace EspINA
     {
     public:
       AddBlock(BlockMaskSPtr mask, bool locked)
-      : MaskBlock(mask, locked) {}
+      : MaskBlock(mask, locked)
+      {}
 
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
                                BinaryMask<unsigned char>::region_iterator &mit,
@@ -295,7 +297,8 @@ namespace EspINA
     {
     public:
       ImageBlock(typename T::Pointer image, bool locked)
-      : m_image(image)
+      : Block(locked)
+      , m_image{image}
       {}
 
       virtual VolumeBounds bounds() const
