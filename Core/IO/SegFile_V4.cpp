@@ -59,6 +59,7 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 AnalysisSPtr SegFile_V4::Loader::load()
 {
   m_storage = TemporalStorageSPtr{new TemporalStorage()};
+  m_analysis->setStorage(m_storage);
 
   m_vertexUuids.clear();
   m_trace.reset();

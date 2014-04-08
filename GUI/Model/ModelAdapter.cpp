@@ -252,7 +252,7 @@ void ModelAdapter::add(SegmentationAdapterSList segmentations)
 //------------------------------------------------------------------------
 void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
 {
-
+  parent->addSubCategory(category);
 }
 
 //------------------------------------------------------------------------
@@ -871,6 +871,8 @@ void ModelAdapter::removeCategory(CategoryAdapterSPtr category, CategoryAdapterS
     parent->removeSubCategory(category);
   }
   endRemoveRows();
+
+  parent->removeSubCategory(category);
 }
 
 // //------------------------------------------------------------------------

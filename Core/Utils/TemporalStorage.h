@@ -52,6 +52,11 @@ namespace EspINA
      */
     void saveSnapshot(SnapshotData data);
 
+    /* \brief Returns file absolute path if found in any storage created in the session.
+     * \param[in] fileName File name to search for
+     */
+    QString findFile(const QString &fileName) const;
+
     QByteArray snapshot(const QString& descriptor) const;
 
     Snapshot snapshots(const QString& relativePath, Mode mode) const;
@@ -65,6 +70,7 @@ namespace EspINA
   private:
     QUuid m_uuid;
     QDir  m_storageDir;
+    static QList<TemporalStorage *> s_Storages;
   };
 
   using TemporalStorageSPtr = std::shared_ptr<TemporalStorage>;

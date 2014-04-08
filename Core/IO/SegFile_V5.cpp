@@ -604,16 +604,17 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
     }
   }
 
-  for (auto data : analysis->storage()->snapshots("Extra", TemporalStorage::Mode::Recursive))
-  {
-    try {
-      addFileToZip(data.first, data.second, zip, handler);
-    } catch (const IO_Error_Exception &e)
+  if(analysis->storage() != nullptr)
+    for (auto data : analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::Recursive))
     {
-//       if (handler)
-//         handler->wa("Error while saving Analysis Pipeline");
-//       throw (e);
+      try {
+        addFileToZip(data.first, data.second, zip, handler);
+      } catch (const IO_Error_Exception &e)
+      {
+  //       if (handler)
+  //         handler->wa("Error while saving Analysis Pipeline");
+  //       throw (e);
+      }
     }
-  }
 }
 

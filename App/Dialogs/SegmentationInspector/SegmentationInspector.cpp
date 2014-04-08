@@ -210,7 +210,11 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 
   auto channels = QueryAdapter::channels(segmentation);
 
-  Q_ASSERT(!channels.isEmpty());
+  if(channels.isEmpty())
+  {
+    qDebug() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
+    return;
+  }
 
   if (channels.size() > 1)
   {

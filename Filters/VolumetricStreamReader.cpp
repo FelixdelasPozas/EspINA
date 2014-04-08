@@ -21,14 +21,12 @@
 
 #include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
 
-#include <QDebug>
 #include <QFileDialog>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <Core/IO/ErrorHandler.h>
 
 using namespace EspINA;
-
 
 //----------------------------------------------------------------------------
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
@@ -103,22 +101,31 @@ void VolumetricStreamReader::execute(Output::Id id)
   }
 
   QFileInfo mhdFile = m_fileName;
+  QString mhdFileName = m_fileName.baseName() + QString(".mhd");
 
-  if (mhdFile.fileName().contains(".tif"))
+  QString fileInAnotherStorage = storage()->findFile(mhdFileName);
+  if(fileInAnotherStorage != QString())
   {
-    using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-    using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+    mhdFile = QFileInfo(fileInAnotherStorage);
+  }
+  else
+  {
+    if (mhdFile.fileName().endsWith(".tif"))
+    {
+      using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+      using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
 
-    VolumeReader::Pointer reader = VolumeReader::New();
-    reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-    reader->Update();
+      VolumeReader::Pointer reader = VolumeReader::New();
+      reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+      reader->Update();
 
-    mhdFile = QFileInfo(storage()->absoluteFilePath(mhdFile.baseName() + ".mhd"));
+      mhdFile = QFileInfo(storage()->absoluteFilePath(mhdFile.baseName() + ".mhd"));
 
-    VolumeWriter::Pointer writer = VolumeWriter::New();
-    writer->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-    writer->SetInput(reader->GetOutput());
-    writer->Write();
+      VolumeWriter::Pointer writer = VolumeWriter::New();
+      writer->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+      writer->SetInput(reader->GetOutput());
+      writer->Write();
+    }
   }
 
   if (!m_outputs.contains(0))

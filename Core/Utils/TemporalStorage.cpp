@@ -20,9 +20,12 @@
 #include "TemporalStorage.h"
 
 #include <iostream>
+#include <QStack>
 
 namespace EspINA
 {
+  QList<TemporalStorage *> TemporalStorage::s_Storages;
+
   //----------------------------------------------------------------------------
   bool removeRecursively(const QString & dirName)
   {
@@ -73,12 +76,45 @@ namespace EspINA
     tmpDir.mkdir(path);
 
     m_storageDir = QDir(tmpDir.absoluteFilePath(path));
+
+    s_Storages << this;
   }
 
   //----------------------------------------------------------------------------
   TemporalStorage::~TemporalStorage()
   {
     removeRecursively(m_storageDir.absolutePath());
+    s_Storages.removeOne(this);
+  }
+
+  //----------------------------------------------------------------------------
+  QString TemporalStorage::findFile(const QString &fileName) const
+  {
+    for(auto storage: s_Storages)
+    {
+      QStack<QString> stack;
+      stack.push(storage->m_storageDir.absolutePath());
+
+      while (!stack.isEmpty())
+      {
+         QString sSubdir = stack.pop();
+         QDir subdir(sSubdir);
+
+         // Check for the file
+         QStringList entries = subdir.entryList(QStringList() << fileName, QDir::Files);
+         if (!entries.empty())
+           return storage->m_storageDir.absoluteFilePath(fileName);
+
+         QFileInfoList infoEntries = subdir.entryInfoList(QStringList(),
+                                                          QDir::AllDirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+         for (int i = 0; i < infoEntries.size(); i++) {
+            QFileInfo& item = infoEntries[i];
+            stack.push(item.absoluteFilePath());
+         }
+      }
+    }
+
+    return QString();
   }
 
   //----------------------------------------------------------------------------
@@ -113,6 +149,7 @@ namespace EspINA
     Snapshot result;
 
     QDir dir = m_storageDir.absoluteFilePath(relativePath);
+
     for (auto file : dir.entryInfoList(QDir::AllEntries|QDir::NoDotAndDotDot))
     {
       QString relativeStoragePath = m_storageDir.relativeFilePath(file.absoluteFilePath());
