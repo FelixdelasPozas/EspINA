@@ -107,12 +107,15 @@ QVariant SegmentationAdapter::data(int role) const
   {
     case Qt::DisplayRole:
     {
-      QString value = m_segmentation->name();
+      QString value = m_segmentation->alias();
+
+      if(value.isEmpty())
+        value = m_segmentation->name();
+
       if (value.isEmpty())
-      {
-        value = QString("%1 %2").arg(m_category?m_category->name():"Unkown Category")
+        value = QString("%1 %2").arg(m_category?m_category->name():"Unknown Category")
                                 .arg(m_segmentation->number());
-      }
+
       return value;
     }
     case Qt::DecorationRole:

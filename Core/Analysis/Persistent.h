@@ -43,7 +43,6 @@ namespace EspINA {
   public:
     using Uuid = QUuid;
 
-
   public:
     explicit Persistent() 
     : m_quuid{QUuid::createUuid()}

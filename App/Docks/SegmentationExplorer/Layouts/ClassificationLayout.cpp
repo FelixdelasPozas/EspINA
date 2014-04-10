@@ -588,39 +588,39 @@ void ClassificationLayout::changeCategoryColor()
 //------------------------------------------------------------------------
 void ClassificationLayout::selectCategoryAdapters()
 {
-//   QModelIndex index = m_view->selectionModel()->currentIndex();
-// 
-//   if (!index.isValid())
-//     return;
-// 
-//   ItemAdapterPtr itemptr = item(index);
-//   if (EspINA::TAXONOMY != itemptr->type())
-//   {
-//     index = index.parent();
-//     if (!index.isValid())
-//       return;
-// 
-//     itemptr = item(index);
-// 
-//     Q_ASSERT(itemptr->type() == EspINA::TAXONOMY);
-//   }
-// 
-//   QItemSelection newSelection;
-//   foreach(QModelIndex sortIndex, indices(index, true))
-//   {
-//     if (!sortIndex.isValid())
-//       continue;
-// 
-//     ItemAdapterPtr sortItem = item(sortIndex);
-//     if (EspINA::SEGMENTATION != sortItem->type())
-//       continue;
-// 
-//     QItemSelection selectedItem(sortIndex, sortIndex);
-//     newSelection.merge(selectedItem, QItemSelectionModel::Select);
-//   }
-// 
-//   m_view->selectionModel()->clearSelection();
-//   m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
+   QModelIndex index = m_view->selectionModel()->currentIndex();
+
+   if (!index.isValid())
+     return;
+
+   ItemAdapterPtr itemptr = item(index);
+   if (ItemAdapter::Type::CATEGORY != itemptr->type())
+   {
+     index = index.parent();
+     if (!index.isValid())
+       return;
+
+     itemptr = item(index);
+
+     Q_ASSERT(itemptr->type() == ItemAdapter::Type::CATEGORY);
+   }
+
+   QItemSelection newSelection;
+   foreach(QModelIndex sortIndex, indices(index, true))
+   {
+     if (!sortIndex.isValid())
+       continue;
+
+     ItemAdapterPtr sortItem = item(sortIndex);
+     if (ItemAdapter::Type::SEGMENTATION != sortItem->type())
+       continue;
+
+     QItemSelection selectedItem(sortIndex, sortIndex);
+     newSelection.merge(selectedItem, QItemSelectionModel::Select);
+   }
+
+   m_view->selectionModel()->clearSelection();
+   m_view->selectionModel()->select(newSelection, QItemSelectionModel::Select);
 }
 
 //------------------------------------------------------------------------

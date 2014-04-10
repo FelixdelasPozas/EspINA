@@ -16,10 +16,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef DEFAULTCONTEXTUALMENU_H
 #define DEFAULTCONTEXTUALMENU_H
-
 
 #include <QModelIndex>
 #include <GUI/Widgets/ContextualMenu.h>
@@ -37,48 +35,47 @@ namespace EspINA
   : public ContextualMenu
   {
     Q_OBJECT
-  public:
-    explicit DefaultContextualMenu(SegmentationAdapterList selection,
-                                   ModelAdapterSPtr        model,
-                                   ViewManagerSPtr         viewManager,
-                                   QUndoStack             *undoStack,
-                                   QWidget                *parent = 0);
+    public:
+      explicit DefaultContextualMenu(SegmentationAdapterList selection,
+                                     ModelAdapterSPtr        model,
+                                     ViewManagerSPtr         viewManager,
+                                     QUndoStack             *undoStack,
+                                     QWidget                *parent = 0);
+      ~DefaultContextualMenu();
 
-    virtual void setSelection(SelectionSPtr selection);
+      virtual void setSelection(SelectionSPtr selection);
 
-  private slots:
-    void addNote();
-    void changeSegmentationsTaxonomy(const QModelIndex &index);
-    void deleteSelectedSementations();
-    void changeFinalFlag();
-    void manageTags();
-    void resetRootItem();
-    void renameSegmentation();
-    void displayVisualizationSettings();
+    private slots:
+      void addNote();
+      void changeSegmentationsCategory(const QModelIndex &index);
+      void deleteSelectedSementations();
+      void manageTags();
+      void resetRootItem();
+      void renameSegmentation();
+      void displayVisualizationSettings();
 
-  signals:
-    void changeCategory(CategoryAdapterPtr);
-    void deleteSegmentations();
-    void changeFinalNode(bool);
+    signals:
+      void changeCategory(CategoryAdapterPtr);
+      void deleteSegmentations();
 
-  private:
-    void createNoteEntry();
-    void createChangeTaxonomyMenu();
-    void createTagsEntry();
-    void createSetLevelOfDetailEntry();
-    void createRenameEntry();
-    void createVisualizationEntry();
+    private:
+      void createNoteEntry();
+      void createChangeCategoryMenu();
+      void createTagsEntry();
+      void createSetLevelOfDetailEntry();
+      void createRenameEntry();
+      void createVisualizationEntry();
+      void createDeleteEntry();
 
-    QString dialogTitle() const;
+      QString dialogTitle() const;
 
-  private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    private:
+      ModelAdapterSPtr m_model;
+      ViewManagerSPtr m_viewManager;
+      QUndoStack *m_undoStack;
 
-    QTreeView       *m_classifiaciton;
-    QAction         *m_changeFinalNode;
-    SegmentationAdapterList m_segmentations;
+      QTreeView *m_classification;
+      SegmentationAdapterList m_segmentations;
   };
 } // namespace EspINA
 

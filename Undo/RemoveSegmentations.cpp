@@ -68,21 +68,22 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 
     m_relations << m_model->relations(segmentation, EspINA::RELATION_INOUT);
 
-    for(auto item : m_model->relatedItems(segmentation, EspINA::RELATION_OUT))
-    {
-      if (ItemAdapter::Type::SEGMENTATION == item->type())
-      {
-        auto dependentSegmentation = segmentationPtr(item.get());
-        //TODO: Add segmentations a new flag to indicate whether it has to be deleted if
-        //      its input is deleted or add an special relation to notify that
-//         if ( dependentSegmentation->isInputSegmentationDependent() 
-//           && !dependentSegmentations.contains(dependentSegmentation))
-//         {
-//           stack.push_front(dependentSegmentation);
-//           dependentSegmentations << dependentSegmentation;
-//         }
-      }
-    }
+    //TODO: Add segmentations a new flag to indicate whether it has to be deleted if
+    //      its input is deleted or add an special relation to notify that
+
+//    for(auto item : m_model->relatedItems(segmentation, EspINA::RELATION_OUT))
+//    {
+//      if (ItemAdapter::Type::SEGMENTATION == item->type())
+//      {
+//        auto dependentSegmentation = segmentationPtr(item.get());
+//        if ( dependentSegmentation->isInputSegmentationDependent()
+//             && !dependentSegmentations.contains(dependentSegmentation))
+//        {
+//          stack.push_front(dependentSegmentation);
+//          dependentSegmentations << dependentSegmentation;
+//        }
+//      }
+//    }
   }
 }
 

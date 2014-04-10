@@ -26,6 +26,9 @@
 #include <GUI/Widgets/TagSelector.h>
 #include <Undo/ChangeSegmentationNotes.h>
 #include <Undo/ChangeSegmentationTags.h>
+#include <Undo/ChangeCategoryCommand.h>
+#include <Undo/RenameSegmentationsCommand.h>
+#include <Undo/RemoveSegmentations.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
@@ -33,7 +36,7 @@
 #include <QStringList>
 #include <QStringListModel>
 #include <QListView>
-#include <qinputdialog.h>
+#include <QInputDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
 
@@ -45,25 +48,31 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
                                              ViewManagerSPtr         viewManager,
                                              QUndoStack             *undoStack,
                                              QWidget                *parent)
-: ContextualMenu(parent      )
-, m_model        (model      )
-, m_viewManager  (viewManager)
-, m_undoStack    (undoStack  )
-, m_segmentations(selection  )
+: ContextualMenu(parent)
+, m_model         {model}
+, m_viewManager   {viewManager}
+, m_undoStack     {undoStack}
+, m_classification{nullptr}
+, m_segmentations {selection}
 {
-  createChangeTaxonomyMenu();
+  createChangeCategoryMenu();
   createNoteEntry();
   createTagsEntry();
-  //createSetLevelOfDetailEntry();
   createRenameEntry();
-  createVisualizationEntry();
+  createDeleteEntry();
+}
+
+//------------------------------------------------------------------------
+DefaultContextualMenu::~DefaultContextualMenu()
+{
+  if (m_classification)
+    delete m_classification;
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::addNote()
 {
   QList<QUndoCommand *> commands;
-
 
   for(auto segmentation : m_segmentations)
   {
@@ -94,99 +103,24 @@ void DefaultContextualMenu::addNote()
 }
 
 //------------------------------------------------------------------------
-void DefaultContextualMenu::changeSegmentationsTaxonomy(const QModelIndex& index)
+void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index)
 {
-//   this->hide();
-//
-//   ModelItemPtr taxItem = indexPtr(index);
-//   Q_ASSERT(EspINA::TAXONOMY == taxItem->type());
-//
-//   TaxonomyElementPtr taxonomy = taxonomyElementPtr(taxItem);
-//
-//   m_undoStack->beginMacro(tr("Change Category"));
-//   {
-//     m_undoStack->push(new ChangeTaxonomyCommand(m_segmentations,
-//                                                 taxonomy,
-//                                                 m_model,
-//                                                 m_viewManager));
-//   }
-//   m_undoStack->endMacro();
-//
-//   emit changeTaxonomy(taxonomy);
-}
+   this->hide();
 
-//------------------------------------------------------------------------
-void DefaultContextualMenu::changeFinalFlag()
-{
-//   this->hide();
-//
-//   bool value = m_changeFinalNode->isChecked();
-//
-//   SegmentationList selectedSegmentations = m_segmentations;
-//   SegmentationList dependentSegmentations;
-//   SegmentationList rootSegmentations;
-//
-//   foreach(SegmentationPtr seg, selectedSegmentations)
-//   {
-//     seg->setFinalNode(value);
-//     seg->setDependentNode(false);
-//     if (value)
-//       seg->setHierarchyRenderingType(HierarchyItem::Opaque, true);
-//     else
-//       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-//
-//     foreach(SegmentationSPtr ancestor, seg->componentOf())
-//       rootSegmentations << ancestor.get();
-//
-//     foreach(SegmentationSPtr successor, seg->components())
-//       dependentSegmentations << successor.get();
-//   }
-//
-//   foreach(SegmentationPtr seg, dependentSegmentations)
-//   {
-//     if (selectedSegmentations.contains(seg))
-//     {
-//       dependentSegmentations.removeAll(seg);
-//       break;
-//     }
-//
-//     selectedSegmentations.append(seg);
-//     seg->setDependentNode(value);
-//
-//     if (value)
-//       seg->setHierarchyRenderingType(HierarchyItem::Hidden, true);
-//     else
-//       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-//
-//     foreach(SegmentationSPtr successor, seg->components())
-//       dependentSegmentations << successor.get();
-//   }
-//
-//   foreach(SegmentationPtr seg, rootSegmentations)
-//   {
-//     if (selectedSegmentations.contains(seg))
-//     {
-//       rootSegmentations.removeAll(seg);
-//       break;
-//     }
-//
-//     selectedSegmentations.append(seg);
-//     seg->setDependentNode(value);
-//
-//     if (value)
-//       seg->setHierarchyRenderingType(HierarchyItem::Translucent, true);
-//     else
-//       seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
-//   }
-//
-//   // FIXME
-// //   foreach(SegmentationPtr seg, selectedSegmentations)
-// //     seg->output()->update();
-//
-//   m_viewManager->updateSegmentationRepresentations(selectedSegmentations);
-//   m_viewManager->updateViews();
-//
-//   emit changeFinalNode(value);
+   ItemAdapterPtr categoryItem = itemAdapter(index);
+   Q_ASSERT(isCategory(categoryItem));
+   CategoryAdapterPtr categoryAdapter = categoryPtr(categoryItem);
+
+   m_undoStack->beginMacro(tr("Change Category"));
+   {
+     m_undoStack->push(new ChangeCategoryCommand(m_segmentations,
+                                                 categoryAdapter,
+                                                 m_model,
+                                                 m_viewManager));
+   }
+   m_undoStack->endMacro();
+
+   emit changeCategory(categoryAdapter);
 }
 
 //------------------------------------------------------------------------
@@ -197,29 +131,6 @@ void DefaultContextualMenu::manageTags()
   if (!m_segmentations.isEmpty())
   {
     QStandardItemModel tags;
-//     foreach (QString tag, SegmentationTags::TagModel.stringList())
-//     {
-//       QStandardItem *item = new QStandardItem(tag.toLower());
-//
-//       SegmentationTags *tagExtension = SegmentationTags::extension(m_segmentations[0]);
-//
-//       bool checked = tagExtension->tags().contains(tag);
-//       Qt::CheckState checkState = checked?Qt::Checked:Qt::Unchecked;
-//
-//       int i = 1;
-//       while (checkState != Qt::PartiallyChecked && i < m_segmentations.size())
-//       {
-//         tagExtension = SegmentationTags::extension(m_segmentations[i]);
-//         if (checked != tagExtension->tags().contains(tag))
-//           checkState = Qt::PartiallyChecked;
-//         i++;
-//       }
-//
-//       item->setCheckState(checkState);
-//       item->setCheckable(true);
-//
-//       tags.appendRow(item);
-//     }
 
     TagSelector tagSelector(dialogTitle(), tags);
     if (tagSelector.exec())
@@ -267,32 +178,42 @@ void DefaultContextualMenu::manageTags()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::resetRootItem()
 {
-  m_classifiaciton->setRootIndex(m_model->classificationRoot());
+  m_classification->setRootIndex(m_model->classificationRoot());
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentation()
 {
-//   foreach (SegmentationPtr segmentation, m_segmentations)
-//   {
-//     QString oldName = segmentation->data().toString();
-//     QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
-//
-//     bool exists = false;
-//     foreach (SegmentationSPtr existinSegmentation, m_model->segmentations())
-//     {
-//       exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
-//     }
-//
-//     if (exists)
-//     {
-//       QMessageBox::warning(this,
-//                            tr("Alias duplicated"),
-//                            tr("Segmentation alias is already used by another segmentation."));
-//     } else
-//       segmentation->setData(alias, Qt::EditRole);
-//     // TODO: Undoable
-//   }
+  QMap<SegmentationAdapterPtr, QString> renames;
+
+  for (auto segmentation : m_segmentations)
+  {
+    QString oldName = segmentation->data().toString();
+    QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
+
+    bool exists = false;
+    for (auto existinSegmentation : m_model->segmentations())
+    {
+      exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
+    }
+
+    if (exists)
+    {
+      QMessageBox::warning(this, tr("Alias duplicated"),
+          tr("Segmentation alias is already used by another segmentation."));
+    }
+    else
+    {
+      renames[segmentation] = alias;
+    }
+  }
+
+  if (renames.size() != 0)
+  {
+    m_undoStack->beginMacro(QString("Rename segmentations"));
+    m_undoStack->push(new RenameSegmentationsCommand(renames));
+    m_undoStack->endMacro();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -378,13 +299,13 @@ void DefaultContextualMenu::displayVisualizationSettings()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::deleteSelectedSementations()
 {
-//   this->hide();
-//
-//   m_undoStack->beginMacro("Delete Segmentations");
-//   m_undoStack->push(new RemoveSegmentations(m_segmentations, m_model, m_viewManager));
-//   m_undoStack->endMacro();
-//
-//   emit deleteSegmentations();
+  this->hide();
+
+  m_undoStack->beginMacro("Delete Segmentations");
+  m_undoStack->push(new RemoveSegmentations(m_segmentations, m_model));
+  m_undoStack->endMacro();
+
+  emit deleteSegmentations();
 }
 
 //------------------------------------------------------------------------
@@ -403,25 +324,24 @@ void DefaultContextualMenu::createNoteEntry()
 }
 
 //------------------------------------------------------------------------
-void DefaultContextualMenu::createChangeTaxonomyMenu()
+void DefaultContextualMenu::createChangeCategoryMenu()
 {
-//   QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Category"));
-//   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
-//
-//   m_classifiaciton = new QTreeView();
-//
-//   m_classifiaciton->header()->setVisible(false);
-//   m_classifiaciton->setModel(m_model);
-//   m_classifiaciton->setRootIndex(m_model->taxonomyRoot());
-//   m_classifiaciton->expandAll();
-//   connect(m_model, SIGNAL(modelReset()),
-//           this,  SLOT(resetRootItem()));
-//   connect(m_classifiaciton, SIGNAL(clicked(QModelIndex)),
-//           this, SLOT(changeSegmentationsTaxonomy(QModelIndex)));
-//
-//   taxonomyListAction->setDefaultWidget(m_classifiaciton);
-//   changeTaxonomyMenu->addAction(taxonomyListAction);
-//   addMenu(changeTaxonomyMenu);
+   QMenu         *changeCategoryMenu = new QMenu(tr("Change Category"));
+   QWidgetAction *categoryListAction = new QWidgetAction(changeCategoryMenu);
+
+   m_classification = new QTreeView();
+   m_classification->header()->setVisible(false);
+   m_classification->setModel(m_model.get());
+   m_classification->setRootIndex(m_model->classificationRoot());
+   m_classification->expandAll();
+   connect(m_model.get(), SIGNAL(modelReset()),
+           this,          SLOT(resetRootItem()));
+   connect(m_classification, SIGNAL(clicked(QModelIndex)),
+           this, SLOT(changeSegmentationsCategory(QModelIndex)));
+
+   categoryListAction->setDefaultWidget(m_classification);
+   changeCategoryMenu->addAction(categoryListAction);
+   addMenu(changeCategoryMenu);
 }
 
 //------------------------------------------------------------------------
@@ -493,8 +413,6 @@ void DefaultContextualMenu::createSetLevelOfDetailEntry()
 void DefaultContextualMenu::createRenameEntry()
 {
   QAction *action = addAction(tr("&Rename"));
-  //action->setShortcut("F2");
-
   connect(action, SIGNAL(triggered(bool)),
           this, SLOT(renameSegmentation()));
 }
@@ -518,4 +436,13 @@ QString DefaultContextualMenu::dialogTitle() const
     title.append(", ...");
 
   return title;
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createDeleteEntry()
+{
+  QAction *deleteAction = addAction(tr("Delete"));
+
+  connect(deleteAction, SIGNAL(triggered(bool)),
+          this,         SLOT(deleteSelectedSementations()));
 }

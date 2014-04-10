@@ -112,7 +112,6 @@ bool EspINA::operator==(SampleSPtr lhs, SampleAdapterSPtr rhs)
   return lhs == rhs->m_sample;
 }
 
-
 //------------------------------------------------------------------------
 bool EspINA::operator!=(SampleAdapterSPtr lhs, SampleSPtr rhs)
 {

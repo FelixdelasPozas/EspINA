@@ -174,6 +174,7 @@ set (ESPINA_SOURCES
 #   Tools/Zoom/ZoomTool.cpp
 #   Undo/AtomicModelOperations.cpp 
   Undo/BrushUndoCommand.cpp
+  Undo/RenameSegmentationsCommand.cpp
 #   Undo/CompositionCommand.cpp
 #   Undo/ImageLogicCommand.cpp
 #   Undo/SeedGrowSegmentationCommand.cpp

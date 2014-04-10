@@ -507,9 +507,21 @@ void ChannelInspector::changeEdgeDetectorBgColor(int value)
   bool enabled = (radioImageEdges->isChecked() != m_useDistanceToEdges) ||
                  (radioImageEdges->isChecked() && (m_backgroundColor != colorBox->value()));
 
+  QColor color;
+  if (value != -1)
+  {
+    color.setRgb(value, value, value);
+    m_backgroundColor = value;
+  }
+  else
+  {
+    color = QColor(0,0,0);
+    m_backgroundColor = 0;
+  }
+
   QPixmap image(":espina/edges-image.png");
   QPixmap bg(image.size());
-  bg.fill(QColor(value, value, value));
+  bg.fill(color);
   image.setMask(image.createMaskFromColor(Qt::black, Qt::MaskInColor));
   QPainter painter(&bg);
   painter.drawPixmap(0,0, image);
