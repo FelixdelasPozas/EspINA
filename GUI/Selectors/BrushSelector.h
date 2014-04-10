@@ -63,7 +63,7 @@ namespace EspINA
       using Spacing = itkVolumeType::SpacingType;
 
     public:
-      explicit BrushSelector(ViewManagerSPtr vm);
+      explicit BrushSelector();
       virtual ~BrushSelector();
 
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
@@ -87,8 +87,6 @@ namespace EspINA
       Spacing referenceSpacing() const;
 
       BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
-
-      void initBrush();
 
       void abortOperation();
     signals:
@@ -118,7 +116,6 @@ namespace EspINA
       bool ShiftKeyIsDown();
 
     private:
-      ViewManagerSPtr    m_viewManager;
       ViewItemAdapterPtr m_referenceItem;
 
     protected:

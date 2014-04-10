@@ -48,7 +48,7 @@ void ManualVOITool::changeSelector(QAction* action)
 
   m_currentSelector = m_drawTools[action];
   m_currentSelector->setBrushColor(Qt::yellow);
-  m_currentSelector->initBrush();
+  //TODO: m_currentSelector->initBrush();
   m_currentSelector->setRadius(m_radiusWidget->value());
 
   m_viewManager->setEventHandler(m_currentSelector);
@@ -62,8 +62,8 @@ void ManualVOITool::selectorInUse(bool value)
     m_currentSelector = nullptr;
     emit stopDrawing();
   }
-  else
-    m_currentSelector->initBrush();
+  /*TODO else
+    m_currentSelector->initBrush();*/
 }
 
 //------------------------------------------------------------------------
@@ -72,7 +72,7 @@ void ManualVOITool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion re
   auto mask = m_currentSelector->voxelSelectionMask();
   emit stroke(mask);
 
-  m_currentSelector->initBrush();
+  //TODO m_currentSelector->initBrush();
 }
 
 //-----------------------------------------------------------------------------

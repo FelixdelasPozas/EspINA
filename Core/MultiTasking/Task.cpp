@@ -83,10 +83,16 @@ void Task::setPriority(const int value)
 //-----------------------------------------------------------------------------
 void Task::submit(TaskSPtr task)
 {
+  task->prepareToRun();
+
   if (task->m_scheduler != nullptr)
+  {
     task->m_scheduler->addTask(task);
+  }
   else
+  {
     task->runWrapper();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -192,6 +198,18 @@ class TestThread: public QThread
 //      std::cout << "Destroying thread" << std::endl;
     }
 };
+
+//-----------------------------------------------------------------------------
+void Task::prepareToRun()
+{
+  m_pendingPause = false;
+  m_pendingUserPause =false;
+  m_isAborted = false;
+  m_hasFinished = false;
+  m_isPaused = false;
+  m_isWaiting = false;
+  m_isThreadAttached = false;
+}
 
 //-----------------------------------------------------------------------------
 void Task::start()

@@ -151,6 +151,7 @@ namespace EspINA {
     void dispatcherPause();
     void dispatcherResume();
     bool isDispatcherPaused();
+    void prepareToRun();
 
   private slots:
     void start();

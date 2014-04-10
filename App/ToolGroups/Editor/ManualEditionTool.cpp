@@ -61,7 +61,7 @@ namespace EspINA
                              tr("Modify segmentation drawing 2D discs"),
                              m_drawToolSelector);
 
-    m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector(m_viewManager));
+    m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector());
     connect(m_circularBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
             this,                          SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
@@ -82,7 +82,7 @@ namespace EspINA
                                tr("Modify segmentation drawing 3D spheres"),
                                m_drawToolSelector);
 
-    m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector(m_viewManager));
+    m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector());
     connect(m_sphericalBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
             this,                           SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
@@ -100,23 +100,23 @@ namespace EspINA
     // TODO: contour filter, tool y selector.
 
     // draw with contour
-//    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
-//                                       tr("Modify segmentation drawing contour"),
-//                                       m_drawToolSelector);
-//    FilledContourSPtr contour(new FilledContour(m_model,
-//                                                m_undoStack,
-//                                                m_viewManager));
-//
-//    connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
-//            this, SLOT(changeContourMode(Brush::BrushMode)));
-//    connect(contour.get(), SIGNAL(stopDrawing()),
-//            this, SLOT(cancelDrawOperation()));
-//    connect(contour.get(), SIGNAL(startDrawing()),
-//            this, SLOT(startContourOperation()));
-//
-//    m_drawTools[contourTool] = contour;
-//    m_drawTools[contourTool] = SelectorSPtr(this);
-//    m_drawToolSelector->addAction(contourTool);
+    //    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
+    //                                       tr("Modify segmentation drawing contour"),
+    //                                       m_drawToolSelector);
+    //    FilledContourSPtr contour(new FilledContour(m_model,
+    //                                                m_undoStack,
+    //                                                m_viewManager));
+    //
+    //    connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
+    //            this, SLOT(changeContourMode(Brush::BrushMode)));
+    //    connect(contour.get(), SIGNAL(stopDrawing()),
+    //            this, SLOT(cancelDrawOperation()));
+    //    connect(contour.get(), SIGNAL(startDrawing()),
+    //            this, SLOT(startContourOperation()));
+    //
+    //    m_drawTools[contourTool] = contour;
+    //    m_drawTools[contourTool] = SelectorSPtr(this);
+    //    m_drawToolSelector->addAction(contourTool);
 
     m_drawToolSelector->setDefaultAction(m_discTool);
     connect(m_drawToolSelector, SIGNAL(   triggered(QAction*)),
@@ -138,7 +138,7 @@ namespace EspINA
     m_opacityWidget->setValue(opacity);
     m_opacityWidget->setLabelText(tr("Opacity"));
   }
-  
+
   //------------------------------------------------------------------------
   ManualEditionTool::~ManualEditionTool()
   {
@@ -166,7 +166,7 @@ namespace EspINA
 
     m_currentSelector = m_drawTools[action];
     m_currentSelector->setBrushColor(color);
-    m_currentSelector->initBrush();
+    //TODO m_currentSelector->initBrush();
     m_currentSelector->setRadius(m_radiusWidget->value());
 
     m_viewManager->setEventHandler(m_currentSelector);
@@ -188,6 +188,38 @@ namespace EspINA
     }
   }
 
+  //-----------------------------------------------------------------------------
+  void ManualEditionTool::initBrush()
+  {
+    //   QImage image;
+    //   QColor borderColor;
+    //
+    //   ViewItemAdapterPtr item = nullptr;
+    //
+    //   SelectionSPtr selection = m_viewManager->selection();
+    //   SegmentationAdapterList segs = selection->segmentations();
+    //   if (segs.size() == 1)
+    //   {
+    //     item = segs.first();
+    //     if (!item)
+    //       return;
+    //
+    //     if (m_drawing)
+    //       borderColor = QColor(Qt::green);
+    //     else
+    //       borderColor = QColor(Qt::red);
+    //   }
+    //   else
+    //   {
+    //     item = m_viewManager->activeChannel();
+    //     image = QImage(":/espina/add.svg");
+    //     borderColor = QColor(Qt::blue);
+    //   }
+    //
+    //   setBrushImage(image);
+    //   setBorderColor(borderColor);
+    //   setReferenceItem(item);
+  }
   //-----------------------------------------------------------------------------
   void ManualEditionTool::changeRadius(int value)
   {
@@ -212,8 +244,8 @@ namespace EspINA
     }
     else
     {
-      if (m_viewManager->activeCategory() && m_viewManager->activeChannel())
-        m_currentSelector->initBrush();
+      /*TODO if (m_viewManager->activeCategory() && m_viewManager->activeChannel())
+        m_currentSelector->initBrush();*/
     }
   }
 
@@ -263,7 +295,7 @@ namespace EspINA
     auto category = m_categorySelector->selectedCategory();
     emit stroke(item, category, mask);
 
-    m_currentSelector->initBrush();
+    //TODO m_currentSelector->initBrush();
   }
 
   //------------------------------------------------------------------------

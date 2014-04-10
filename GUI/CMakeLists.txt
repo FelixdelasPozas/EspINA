@@ -8,6 +8,7 @@ include_directories(
 qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
+  Dialogs/CategorySelectorDialog.h
   Model/FilterAdapter.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
@@ -50,6 +51,7 @@ qt4_wrap_cpp(GUI_MOC
   )
 
 qt4_wrap_ui (GUI_UI
+  Dialogs/CategorySelectorDialog.ui
   Representations/RepresentationEmptySettings.ui
   Representations/SliceRepresentationSettings.ui
   Representations/ContourRepresentationSettings.ui
@@ -61,7 +63,7 @@ qt4_wrap_ui (GUI_UI
   Widgets/TaskProgress.ui
   )
 
-set (GUI_SOURCES 
+set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
@@ -69,6 +71,7 @@ set (GUI_SOURCES
   ColorEngines/NumberColorEngine.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
+  Dialogs/CategorySelectorDialog.cpp
   Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp
   Model/ChannelAdapter.cpp

@@ -40,90 +40,93 @@ namespace EspINA
   : public Tool
   {
     Q_OBJECT
-    public:
-      ManualEditionTool(ModelAdapterSPtr model,
-                        ViewManagerSPtr  viewManager);
-      virtual ~ManualEditionTool();
+  public:
+    ManualEditionTool(ModelAdapterSPtr model,
+                      ViewManagerSPtr  viewManager);
+    virtual ~ManualEditionTool();
 
-      virtual void setEnabled(bool value);
+    virtual void setEnabled(bool value);
 
-      virtual bool enabled() const;
+    virtual bool enabled() const;
 
-      virtual QList<QAction *> actions() const;
+    virtual QList<QAction *> actions() const;
 
-      virtual void abortOperation();
+    virtual void abortOperation();
 
-      void showOpacityControls(bool value)
-      { m_showOpacityControls = value; }
+    void showOpacityControls(bool value)
+    { m_showOpacityControls = value; }
 
-      void showRadiusControls(bool value)
-      { m_showRadiusControls = value; }
+    void showRadiusControls(bool value)
+    { m_showRadiusControls = value; }
 
-      void showCategoryControls(bool value)
-      { m_showCategoryControls = value; }
+    void showCategoryControls(bool value)
+    { m_showCategoryControls = value; }
 
-      bool opacityControls()
-      { return m_showOpacityControls; }
+    bool opacityControls()
+    { return m_showOpacityControls; }
 
-      bool radiusControls()
-      { return m_showRadiusControls; }
+    bool radiusControls()
+    { return m_showRadiusControls; }
 
-      bool categoryControls()
-      { return m_showCategoryControls; }
+    bool categoryControls()
+    { return m_showCategoryControls; }
 
-      void setPencil2DIcon(QIcon icon)
-      { m_discTool->setIcon(icon); }
+    void setPencil2DIcon(QIcon icon)
+    { m_discTool->setIcon(icon); }
 
-      void setPencil3DIcon(QIcon icon)
-      { m_sphereTool->setIcon(icon); }
+    void setPencil3DIcon(QIcon icon)
+    { m_sphereTool->setIcon(icon); }
 
-      void setPencil2DText(QString text)
-      { m_discTool->setText(text); }
+    void setPencil2DText(QString text)
+    { m_discTool->setText(text); }
 
-      void setPencil3DText(QString text)
-      { m_sphereTool->setText(text); }
+    void setPencil3DText(QString text)
+    { m_sphereTool->setText(text); }
 
-    signals:
-      void stopDrawing();
-      void brushModeChanged(BrushSelector::BrushMode);
-      void stroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
+  signals:
+    void stopDrawing();
+    void brushModeChanged(BrushSelector::BrushMode);
+    void stroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
 
-    public slots:
-      virtual void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
-      virtual void radiusChanged(int);
-      virtual void drawingModeChanged(bool);
+  public slots:
+    virtual void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
+    virtual void radiusChanged(int);
+    virtual void drawingModeChanged(bool);
 
-    protected slots:
-      virtual void changeSelector(QAction *);
-      virtual void changeRadius(int);
-      virtual void changeOpacity(int);
-      virtual void selectorInUse(bool);
-      virtual void unsetSelector();
-      virtual void categoryChanged(CategoryAdapterSPtr category);
+  protected slots:
+    virtual void changeSelector(QAction *);
+    virtual void changeRadius(int);
+    virtual void changeOpacity(int);
+    virtual void selectorInUse(bool);
+    virtual void unsetSelector();
+    virtual void categoryChanged(CategoryAdapterSPtr category);
 
-    protected:
-      ModelAdapterSPtr m_model;
-      ViewManagerSPtr  m_viewManager;
+  private:
+    void initBrush();
 
-      CircularBrushSelectorSPtr  m_circularBrushSelector;
-      SphericalBrushSelectorSPtr m_sphericalBrushSelector;
+  protected:
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
 
-      BrushSelectorSPtr m_currentSelector;
-      ActionSelector   *m_drawToolSelector;
-      CategorySelector *m_categorySelector;
-      QMap<QAction *, SelectorSPtr> m_drawTools;
+    CircularBrushSelectorSPtr  m_circularBrushSelector;
+    SphericalBrushSelectorSPtr m_sphericalBrushSelector;
 
-      SliderAction *m_radiusWidget;
-      SliderAction *m_opacityWidget;
+    BrushSelectorSPtr m_currentSelector;
+    ActionSelector   *m_drawToolSelector;
+    CategorySelector *m_categorySelector;
+    QMap<QAction *, SelectorSPtr> m_drawTools;
 
-      QAction *m_discTool;
-      QAction *m_sphereTool;
+    SliderAction *m_radiusWidget;
+    SliderAction *m_opacityWidget;
 
-      bool m_showOpacityControls;
-      bool m_showRadiusControls;
-      bool m_showCategoryControls;
+    QAction *m_discTool;
+    QAction *m_sphereTool;
 
-      bool m_enabled;
+    bool m_showOpacityControls;
+    bool m_showRadiusControls;
+    bool m_showCategoryControls;
+
+    bool m_enabled;
   };
 
   using ManualEditionToolPtr = ManualEditionTool *;

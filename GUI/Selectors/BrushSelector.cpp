@@ -55,9 +55,8 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BrushSelector::BrushSelector(ViewManagerSPtr vm)
-: m_viewManager(vm)
-, m_referenceItem(nullptr)
+BrushSelector::BrushSelector()
+: m_referenceItem(nullptr)
 , m_displayRadius(-1)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
@@ -123,7 +122,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
     case QEvent::Enter:
       {
         m_drawing = !ShiftKeyIsDown();
-        initBrush();
+        //TODO: initBrush();
         view->setCursor(m_cursor);
 
         if (!m_drawing)
@@ -138,7 +137,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         if ((ke->key() == Qt::Key_Shift) && !m_tracking && (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION))
         {
           m_drawing = false;
-          initBrush();
+          //TODO initBrush();
           view->setCursor(m_cursor);
           startPreview(view);
 
@@ -154,7 +153,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         {
           stopPreview(view);
           m_drawing = true;
-          initBrush();
+          //TODO initBrush();
           view->setCursor(m_cursor);
 
           emit drawingModeChanged(m_drawing);
@@ -201,7 +200,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
       {
         if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
         {
-          initBrush();
+          //TODO: initBrush();
           QWheelEvent *we = static_cast<QWheelEvent *>(e);
           int numSteps = we->delta() / 8 / 15;  //Refer to QWheelEvent doc.
           m_displayRadius -= numSteps;
@@ -437,7 +436,7 @@ void BrushSelector::stopStroke(RenderView* view)
   if (m_drawing)
   {
     stopPreview(view);
-    initBrush();
+    //TODO: initBrush();
     view->setCursor(m_cursor);
     emit drawingModeChanged(m_drawing);
     view->updateView();
@@ -728,38 +727,6 @@ BinaryMaskSPtr<unsigned char> BrushSelector::voxelSelectionMask() const
   return BinaryMaskSPtr<unsigned char>(mask);
 }
 
-//-----------------------------------------------------------------------------
-void BrushSelector::initBrush()
-{
-  QImage image;
-  QColor borderColor;
-
-  ViewItemAdapterPtr item = nullptr;
-
-  SelectionSPtr selection = m_viewManager->selection();
-  SegmentationAdapterList segs = selection->segmentations();
-  if (segs.size() == 1)
-  {
-    item = segs.first();
-    if (!item)
-      return;
-
-    if (m_drawing)
-      borderColor = QColor(Qt::green);
-    else
-      borderColor = QColor(Qt::red);
-  }
-  else
-  {
-    item = m_viewManager->activeChannel();
-    image = QImage(":/espina/add.svg");
-    borderColor = QColor(Qt::blue);
-  }
-
-  setBrushImage(image);
-  setBorderColor(borderColor);
-  setReferenceItem(item);
-}
 
 //-----------------------------------------------------------------------------
 Bounds BrushSelector::buildBrushBounds(NmVector3 center)
@@ -794,7 +761,7 @@ void BrushSelector::updateSliceChange()
   }
   m_drawing = true;
   stopPreview(view);
-  initBrush();
+  //TODO: initBrush();
   view->setCursor(m_cursor);
   emit drawingModeChanged(m_drawing);
 }
@@ -822,7 +789,7 @@ void BrushSelector::abortOperation()
   RenderView *view = m_previewView;
   stopPreview(view);
   m_drawing = true;
-  initBrush();
+  //TODO: initBrush();
   view->setCursor(m_cursor);
   emit drawingModeChanged(m_drawing);
 }
