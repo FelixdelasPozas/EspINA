@@ -33,6 +33,19 @@
 // Qt
 #include <QThread>
 
+QString planeName(int plane)
+{
+  switch(plane)
+  {
+    case 0: return QString("Sagittal");
+    case 1: return QString("Coronal");
+    case 2: return QString("Axial");
+    default: Q_ASSERT(false);
+      break;
+  }
+  return QString();
+}
+
 namespace EspINA
 {
   const int CachedSliceRenderer::WINDOW_INCREMENT = 5;
@@ -153,7 +166,7 @@ namespace EspINA
       if(node->worker == nullptr)
       {
         node->worker = createTask((node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW);
-        node->worker->setDescription(QString("ADD %1 - plane %2").arg(node->position).arg(m_planeIndex));
+        node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
         node->worker->setInput(node, repList);
         node->worker->submit(node->worker);
       }
@@ -199,16 +212,11 @@ namespace EspINA
     CacheNode *node = m_actualPos;
     for(unsigned int i = 0; i < 2*m_windowWidth+1; ++i, node = node->next)
     {
-      if (!cachedRep->existsIn(node->position))
-        continue;
-
       node->mutex.lockForWrite();
-      if (node->worker == nullptr)
-      {
-        node->representations[cachedRep] = nullptr;
-        node->representations.remove(cachedRep);
-      }
-      else
+      node->representations[cachedRep] = nullptr;
+      node->representations.remove(cachedRep);
+
+      if (node->worker != nullptr)
       {
         node->repsToDelete << cachedRep;
         if (node->repsToAdd.contains(cachedRep))
@@ -457,7 +465,7 @@ namespace EspINA
         {
           m_edgePos->worker = createTask();
           m_edgePos->worker->setInput(m_edgePos, validReps);
-          m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+          m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
           m_edgePos->worker->submit(m_edgePos->worker);
         }
 
@@ -471,7 +479,7 @@ namespace EspINA
         {
           node->worker = createTask();
           node->worker->setInput(node, validReps);
-          node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+          node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
           node->worker->submit(node->worker);
         }
       }
@@ -554,7 +562,7 @@ namespace EspINA
         {
           node->worker = createTask(node == m_actualPos ? Priority::VERY_HIGHT : Priority::LOW);
           node->worker->setInput(node, segList);
-          node->worker->setDescription(QString("UPDATE %1 - plane %2").arg(node->position).arg(m_planeIndex));
+          node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
           node->worker->submit(node->worker);
         }
       }
@@ -730,7 +738,7 @@ namespace EspINA
       else
       {
         m_actualPos->worker = createTask(priority);
-        m_actualPos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_actualPos->position).arg(m_planeIndex));
+        m_actualPos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_actualPos->position));
         m_actualPos->worker->setInput(m_actualPos, validReps);
         m_actualPos->worker->submit(m_actualPos->worker);
       }
@@ -764,7 +772,7 @@ namespace EspINA
         else
         {
           m_edgePos->worker = createTask(priority);
-          m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+          m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
           m_edgePos->worker->setInput(m_edgePos, validReps);
           m_edgePos->worker->submit(m_edgePos->worker);
         }
@@ -794,7 +802,7 @@ namespace EspINA
         else
         {
           node->worker = createTask(priority);
-          node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+          node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
           node->worker->setInput(node, validReps);
           node->worker->submit(node->worker);
         }
@@ -838,7 +846,7 @@ namespace EspINA
       {
         node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
         node->worker->setInput(node, repList);
-        node->worker->setDescription(QString("ALL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+        node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
         node->worker->submit(node->worker);
       }
     }
@@ -884,7 +892,7 @@ namespace EspINA
       {
         node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
         node->worker->setInput(node, node->repsToAdd);
-        node->worker->setDescription(QString("ADDITIONAL %1 - plane %2").arg(node->position).arg(m_planeIndex));
+        node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
         node->worker->submit(node->worker);
       }
     }
@@ -946,7 +954,7 @@ namespace EspINA
           {
             m_edgePos->worker = createTask();
             m_edgePos->worker->setInput(m_edgePos, validReps);
-            m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+            m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
             m_edgePos->worker->submit(m_edgePos->worker);
           }
         }
@@ -985,7 +993,7 @@ namespace EspINA
           {
             m_edgePos->worker = createTask();
             m_edgePos->worker->setInput(m_edgePos, validReps);
-            m_edgePos->worker->setDescription(QString("ALL %1 - plane %2").arg(m_edgePos->position).arg(m_planeIndex));
+            m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
             m_edgePos->worker->submit(m_edgePos->worker);
           }
         }
