@@ -5,6 +5,11 @@ include_directories(
 
 include (GenerateExportHeader)
 
+# Add Qt Resource files
+qt4_add_resources(CORE_RCC
+  Analysis/rsc/core.qrc
+  )
+
 qt4_wrap_cpp(CORE_MOC
   Analysis/Data.h
   Analysis/Extension.h
@@ -16,6 +21,7 @@ qt4_wrap_cpp(CORE_MOC
   )
 
 set (CORE_SOURCES
+  ${CORE_RCC}
   ${CORE_MOC}
   ${CORE_UI}
   Analysis/Analysis.cpp

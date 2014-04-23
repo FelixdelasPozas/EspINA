@@ -284,26 +284,26 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   auto voiTools = new VolumeOfInterestTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(voiTools);
-// 
+
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
 //   registerToolBar(voiToolBar);
-// 
+
   auto segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
 
   auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(editionTools);
-// 
+
 //   CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
 //   registerToolBar(compositionBar);
-// 
+
   auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_scheduler, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
   auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_viewManager, m_undoStack, this);
   m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
-// 
+
 //   FilterInspectorDock *filterInspectorDock = new FilterInspectorDock(m_undoStack, m_viewManager, this);
 //   registerDockWidget(Qt::LeftDockWidgetArea, filterInspectorDock);
 
@@ -688,7 +688,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
   {
     if (!mergedAnalysis->classification())
     {
-      QFileInfo defaultClassification(":/espina/defaultTaxonomy.xml");
+      QFileInfo defaultClassification(":/espina/defaultClassification.xml");
       auto classification = IO::ClassificationXML::load(defaultClassification);
       mergedAnalysis->setClassification(classification);
     }
