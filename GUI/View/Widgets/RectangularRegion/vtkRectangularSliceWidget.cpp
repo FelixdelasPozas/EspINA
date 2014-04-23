@@ -45,8 +45,6 @@ vtkRectangularSliceWidget::vtkRectangularSliceWidget()
   this->WidgetState = vtkRectangularSliceWidget::Start;
   this->ManagesCursor = 1;
 
-  memset(Bounds, 0, 6*sizeof(double));
-
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
@@ -253,7 +251,6 @@ void vtkRectangularSliceWidget::EndSelectAction(vtkAbstractWidget *w)
   self->EndInteraction();
   self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
   self->Render();
-  //self->SetCursor(9999);
 }
 
 //----------------------------------------------------------------------
@@ -282,29 +279,38 @@ void vtkRectangularSliceWidget::SetSlice(Nm pos)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetBounds(double bounds[6])
+void vtkRectangularSliceWidget::SetBounds(Bounds bounds)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
+  double dBounds[6]{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
   vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
-  rep->SetCuboidBounds(bounds);
-  memcpy(Bounds, bounds, 6*sizeof(double));
+  rep->SetCuboidBounds(dBounds);
+  m_bounds = bounds;
   this->Render();
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::GetBounds(double bounds[6])
+Bounds vtkRectangularSliceWidget::GetBounds()
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
   vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
-  rep->GetCuboidBounds(Bounds);
-  rep->GetCuboidBounds(bounds);
+  double dBounds[6];
+  rep->GetCuboidBounds(dBounds);
+  m_bounds[0] = dBounds[0];
+  m_bounds[1] = dBounds[1];
+  m_bounds[2] = dBounds[2];
+  m_bounds[3] = dBounds[3];
+  m_bounds[4] = dBounds[4];
+  m_bounds[5] = dBounds[5];
+
   this->Render();
   this->EventCallbackCommand->SetAbortFlag(0);
 
+  return m_bounds;
 }
 
 //----------------------------------------------------------------------

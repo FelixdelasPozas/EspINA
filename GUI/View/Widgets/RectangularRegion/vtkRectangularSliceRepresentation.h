@@ -143,8 +143,8 @@ protected:
 
   virtual void CreateDefaultProperties();
 
-  int hCoord() const {return Plane::YZ == plane?2:0;}
-  int vCoord() const {return Plane::XZ == plane?2:1;}
+  int hCoord() const {return Plane::YZ == m_plane?2:0;}
+  int vCoord() const {return Plane::XZ == m_plane?2:1;}
 
   // Helper methods to create face representations
   virtual void CreateRegion();
@@ -160,21 +160,20 @@ protected:
   void MoveBottomEdge(double *p1, double *p2);
   void Translate(double *p1, double *p2);
 
-  Plane plane;
+  Plane m_plane;
   Nm Slice;
-  bool Init;
 
 private:
   vtkRectangularSliceRepresentation(const vtkRectangularSliceRepresentation&);  //Not implemented
   void operator=(const vtkRectangularSliceRepresentation&);  //Not implemented
 
-  double Bounds[6];
+  double m_bounds[6];
 
   int NumPoints;
   int NumSlices;
   int NumVertex;
 
-  double RepBounds[6];
+  double m_repBounds[6];
 
   double LeftEdge;
   double TopEdge;

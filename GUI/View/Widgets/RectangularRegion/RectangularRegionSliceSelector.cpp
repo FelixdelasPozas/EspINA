@@ -16,12 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "RectangularRegionSliceSelector.h"
 #include "RectangularRegion.h"
+#include <GUI/View/View2D.h>
 
-#include "GUI/View/SliceView.h"
-
+// Qt
 #include <QPushButton>
 
 using namespace EspINA;
@@ -88,8 +88,7 @@ SliceSelectorWidget* RectangularRegionSliceSelector::clone()
 //----------------------------------------------------------------------------
 void RectangularRegionSliceSelector::update()
 {
-  Nm bounds[6];
-  m_region->bounds(bounds);
+  auto bounds = m_region->bounds();
 
   int i = normalCoordinateIndex(m_plane);
   m_leftWidget->setText(QString("%1(%2)")
@@ -105,8 +104,7 @@ void RectangularRegionSliceSelector::leftWidgetClicked()
 {
   if (m_view)
   {
-    Nm bounds[6];
-    m_region->bounds(bounds);
+    auto bounds = m_region->bounds();
 
     int i = normalCoordinateIndex(m_plane);
 
@@ -115,7 +113,8 @@ void RectangularRegionSliceSelector::leftWidgetClicked()
     if (bounds[2*i] > bounds[2*i+1])
       std::swap(bounds[2*i],bounds[2*i+1]);
 
-    m_region->setBounds(bounds);
+
+    m_region->setBounds(Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]});
     update();
   }
 }
@@ -125,8 +124,7 @@ void RectangularRegionSliceSelector::rightWidgetClicked()
 {
   if (m_view)
   {
-    Nm bounds[6];
-    m_region->bounds(bounds);
+    auto bounds = m_region->bounds();
 
     int i = normalCoordinateIndex(m_plane);
 
@@ -135,7 +133,7 @@ void RectangularRegionSliceSelector::rightWidgetClicked()
     if (bounds[2*i] > bounds[2*i+1])
       std::swap(bounds[2*i],bounds[2*i+1]);
 
-    m_region->setBounds(bounds);
+    m_region->setBounds(Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]});
     update();
   }
 }

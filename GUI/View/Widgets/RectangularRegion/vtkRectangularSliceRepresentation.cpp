@@ -35,29 +35,29 @@ vtkStandardNewMacro(vtkRectangularSliceRepresentation);
 
 //----------------------------------------------------------------------------
 vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
-: Vertex(NULL)
-, EdgePicker(NULL)
-, LastPicker(NULL)
-, CurrentEdge(NULL)
-, EdgeProperty(NULL)
-, SelectedEdgeProperty(NULL)
-, InvisibleProperty(NULL)
-, plane(Plane::XY)
-, Slice(0)
-, Init(false)
-, NumPoints(4)
-, NumSlices(1)
-, NumVertex(0)
-, LeftEdge(0)
-, TopEdge(0)
-, RightEdge(1)
-, BottomEdge(1)
-, m_pattern(0xFFFF)
+: Vertex              {nullptr}
+, EdgePicker          {nullptr}
+, LastPicker          {nullptr}
+, CurrentEdge         {nullptr}
+, EdgeProperty        {nullptr}
+, SelectedEdgeProperty{nullptr}
+, InvisibleProperty   {nullptr}
+, m_plane             {Plane::UNDEFINED}
+, Slice               {0}
+, NumPoints           {4}
+, NumSlices           {1}
+, NumVertex           {0}
+, LeftEdge            {0}
+, TopEdge             {0}
+, RightEdge           {1}
+, BottomEdge          {1}
+, m_pattern           {0xFFFF}
 {
   // The initial state
   this->InteractionState = vtkRectangularSliceRepresentation::Outside;
 
-  memset(this->Bounds, 0, 6*sizeof(double));
+  memset(m_bounds, 0, sizeof(double)*6);
+  memset(m_repBounds, 0, sizeof(double)*6);
 
   // default representation color
   m_color[0] = m_color[1] = 1.0;
@@ -92,7 +92,7 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
   double bounds[6] = {-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
   this->PlaceWidget(bounds);
 
-  this->CurrentEdge = NULL;
+  this->CurrentEdge = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -149,9 +149,8 @@ void vtkRectangularSliceRepresentation::WidgetInteraction(double e[2])
   // Convert events to appropriate coordinate systems
   vtkCamera *camera = this->Renderer->GetActiveCamera();
   if ( !camera )
-    {
     return;
-    }
+
   double focalPoint[4], pickPoint[4], prevPickPoint[4];
   double z, vpn[3];
   camera->GetViewPlaneNormal(vpn);
@@ -293,18 +292,17 @@ void vtkRectangularSliceRepresentation::CreateRegion()
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateRegion()
 {
-  switch (Plane)
+  switch (m_plane)
   {
-    case AXIAL:
+    case Plane::XY:
       UpdateXYFace();
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       UpdateYZFace();
       break;
-    case CORONAL:
+    case Plane::XZ:
       UpdateXZFace();
       break;
-    case VOLUME:
     default:
       Q_ASSERT(false);
       break;
@@ -327,12 +325,12 @@ void vtkRectangularSliceRepresentation::UpdateXYFace()
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
 
-  RepBounds[0] = Bounds[0] = std::min(LeftEdge, RightEdge );
-  RepBounds[1] = Bounds[1] = std::max(LeftEdge, RightEdge );
-  RepBounds[2] = Bounds[2] = std::min(TopEdge,  BottomEdge);
-  RepBounds[3] = Bounds[3] = std::max(TopEdge,  BottomEdge);
-  RepBounds[4] = RB[2];
-  RepBounds[5] = RB[2];
+  m_repBounds[0] = m_bounds[0] = std::min(LeftEdge, RightEdge );
+  m_repBounds[1] = m_bounds[1] = std::max(LeftEdge, RightEdge );
+  m_repBounds[2] = m_bounds[2] = std::min(TopEdge,  BottomEdge);
+  m_repBounds[3] = m_bounds[3] = std::max(TopEdge,  BottomEdge);
+  m_repBounds[4] = RB[2];
+  m_repBounds[5] = RB[2];
 }
 
 
@@ -352,12 +350,12 @@ void vtkRectangularSliceRepresentation::UpdateYZFace()
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
 
-  RepBounds[0] = LB[0];
-  RepBounds[1] = RB[0];
-  RepBounds[2] = Bounds[2] = std::min(TopEdge,  BottomEdge);
-  RepBounds[3] = Bounds[3] = std::max(TopEdge,  BottomEdge);
-  RepBounds[4] = Bounds[4] = std::min(LeftEdge, RightEdge );
-  RepBounds[5] = Bounds[5] = std::max(LeftEdge, RightEdge );
+  m_repBounds[0] = LB[0];
+  m_repBounds[1] = RB[0];
+  m_repBounds[2] = m_bounds[2] = std::min(TopEdge,  BottomEdge);
+  m_repBounds[3] = m_bounds[3] = std::max(TopEdge,  BottomEdge);
+  m_repBounds[4] = m_bounds[4] = std::min(LeftEdge, RightEdge );
+  m_repBounds[5] = m_bounds[5] = std::max(LeftEdge, RightEdge );
 }
 
 //----------------------------------------------------------------------------
@@ -376,26 +374,25 @@ void vtkRectangularSliceRepresentation::UpdateXZFace()
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
 
-  Bounds[0] = std::min(LeftEdge, RightEdge );
-  Bounds[1] = std::max(LeftEdge, RightEdge );
-  Bounds[4] = std::min(TopEdge,  BottomEdge);
-  Bounds[5] = std::max(TopEdge,  BottomEdge);
-  RepBounds[0] = Bounds[0];//LB[0];
-  RepBounds[1] = Bounds[1];//RB[0];
-  RepBounds[2] = Bounds[2];//LT[1];
-  RepBounds[3] = Bounds[3];//LB[1];
-  RepBounds[4] = Bounds[4];//RB[2];
-  RepBounds[5] = Bounds[5];//RB[2];
+  m_bounds[0] = std::min(LeftEdge, RightEdge );
+  m_bounds[1] = std::max(LeftEdge, RightEdge );
+  m_bounds[4] = std::min(TopEdge,  BottomEdge);
+  m_bounds[5] = std::max(TopEdge,  BottomEdge);
+  m_repBounds[0] = m_bounds[0];//LB[0];
+  m_repBounds[1] = m_bounds[1];//RB[0];
+  m_repBounds[2] = m_bounds[2];//LT[1];
+  m_repBounds[3] = m_bounds[3];//LB[1];
+  m_repBounds[4] = m_bounds[4];//RB[2];
+  m_repBounds[5] = m_bounds[5];//RB[2];
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetPlane(PlaneType plane)
+void vtkRectangularSliceRepresentation::SetPlane(Plane plane)
 {
-  if (Plane == plane && Init)
+  if (plane == m_plane && plane != Plane::UNDEFINED)
     return;
 
-  Init = true;
-  Plane = plane;
+  m_plane = plane;
 
   CreateRegion();
 }
@@ -404,7 +401,9 @@ void vtkRectangularSliceRepresentation::SetPlane(PlaneType plane)
 void vtkRectangularSliceRepresentation::SetSlice(double pos)
 {
   Slice = pos;
-  if (Slice < Bounds[2*Plane] || Bounds[2*Plane+1] < Slice)
+
+  int index = normalCoordinateIndex(m_plane);
+  if (Slice < m_bounds[2*index] || m_bounds[2*index+1] < Slice)
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
@@ -420,12 +419,12 @@ void vtkRectangularSliceRepresentation::SetSlice(double pos)
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::SetCuboidBounds(double bounds[6])
 {
-  memcpy(Bounds, bounds, 6*sizeof(double));
+  memcpy(m_bounds, bounds, 6*sizeof(double));
 
-  LeftEdge   = RepBounds[0] = Bounds[2*hCoord()];
-  RightEdge  = RepBounds[1] = Bounds[2*hCoord()+1];
-  TopEdge    = RepBounds[2] = Bounds[2*vCoord()];
-  BottomEdge = RepBounds[3] = Bounds[2*vCoord()+1];
+  LeftEdge   = m_repBounds[0] = m_bounds[2*hCoord()];
+  RightEdge  = m_repBounds[1] = m_bounds[2*hCoord()+1];
+  TopEdge    = m_repBounds[2] = m_bounds[2*vCoord()];
+  BottomEdge = m_repBounds[3] = m_bounds[2*vCoord()+1];
 
   this->NumPoints = 4;
   this->NumSlices = 1;
@@ -439,7 +438,7 @@ void vtkRectangularSliceRepresentation::SetCuboidBounds(double bounds[6])
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::GetCuboidBounds(double bounds[6])
 {
-  memcpy(bounds, Bounds, 6*sizeof(double));
+  memcpy(bounds, m_bounds, 6*sizeof(double));
 }
 
 //----------------------------------------------------------------------------
@@ -459,9 +458,8 @@ void vtkRectangularSliceRepresentation::PlaceWidget(double bds[6])
   this->Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
 
   for (i=0; i<6; i++)
-    {
     this->InitialBounds[i] = bounds[i];
-    }
+
   this->InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
                              (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
                              (bounds[5]-bounds[4])*(bounds[5]-bounds[4]));
@@ -475,18 +473,18 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
   if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
-    {
+  {
     this->InteractionState = vtkRectangularSliceRepresentation::Outside;
     return this->InteractionState;
-    }
+  }
 
   vtkAssemblyPath *path;
   // Try and pick a handle first
-  this->LastPicker = NULL;
-  this->CurrentEdge = NULL;
+  this->LastPicker = nullptr;
+  this->CurrentEdge = nullptr;
   this->EdgePicker->Pick(X,Y,0.0,this->Renderer);
   path = this->EdgePicker->GetPath();
-  if ( path != NULL )
+  if ( path != nullptr )
   {
     this->LastPicker = this->EdgePicker;
     this->ValidPick = 1;
@@ -547,7 +545,7 @@ void vtkRectangularSliceRepresentation::SetInteractionState(int state)
       this->Highlight();
       break;
     default:
-      this->HighlightEdge(NULL);
+      this->HighlightEdge(nullptr);
       break;
     }
 }
@@ -555,7 +553,7 @@ void vtkRectangularSliceRepresentation::SetInteractionState(int state)
 //----------------------------------------------------------------------
 double *vtkRectangularSliceRepresentation::GetBounds()
 {
-  return RepBounds;
+  return m_repBounds;
 }
 
 //----------------------------------------------------------------------------
@@ -566,9 +564,9 @@ void vtkRectangularSliceRepresentation::BuildRepresentation()
        (this->Renderer && this->Renderer->GetVTKWindow() &&
         (this->Renderer->GetVTKWindow()->GetMTime() > this->BuildTime ||
         this->Renderer->GetActiveCamera()->GetMTime() > this->BuildTime)) )
-    {
+  {
     this->BuildTime.Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------

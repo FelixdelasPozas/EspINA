@@ -22,6 +22,7 @@
 #include "vtkAbstractWidget.h"
 
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/Bounds.h>
 #include "GUI/View/Widgets/RectangularRegion/RectangularRegion.h"
 
 class vtkPolyData;
@@ -45,8 +46,8 @@ namespace EspINA
 
     virtual void SetPlane(Plane plane);
     virtual void SetSlice(Nm pos);
-    virtual void SetBounds(double bounds[6]);
-    virtual void GetBounds(double bounds[6]);
+    virtual void SetBounds(Bounds bounds);
+    virtual Bounds GetBounds();
 
     // Description:
     // Create the default widget representation if one is not set. By default,
@@ -77,7 +78,7 @@ namespace EspINA
 
     Plane m_plane;
     Nm Slice;
-    double Bounds[6];
+    Bounds m_bounds;
     double m_color[3];
     int m_pattern;
 

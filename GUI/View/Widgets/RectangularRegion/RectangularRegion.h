@@ -20,7 +20,9 @@
 #ifndef ESPINA_RECTANGULAR_REGION_H
 #define ESPINA_RECTANGULAR_REGION_H
 
+#include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <Support/ViewManager.h>
 
 // Qt
 #include <QList>
@@ -28,54 +30,98 @@
 
 // VTK
 #include <vtkCommand.h>
+#include <vtkAbstractWidget.h>
 
 namespace EspINA
 {
   class ViewManager;
   class vtkRectangularSliceWidget;
+  class RectangularRegion;
 
+  //----------------------------------------------------------------------------
+  class EspinaGUI_EXPORT vtkRectangularRegionCommand
+  : public vtkEspinaCommand
+  {
+    public:
+      vtkTypeMacro(vtkRectangularRegionCommand, vtkEspinaCommand);
+
+      /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+       *
+       */
+      static vtkRectangularRegionCommand *New()
+      { return new vtkRectangularRegionCommand(); }
+
+      /* \brief Implements vtkEspinaCommand::setWidget().
+       *
+       */
+      void setWidget(EspinaWidgetPtr widget);
+
+      /* \brief Implements vtkEspinaCommand::Execute.
+       *
+       */
+      virtual void Execute(vtkObject *, unsigned long int, void*);
+
+    private:
+      /* \brief RulerCommand class private constructor.
+       *
+       */
+      explicit vtkRectangularRegionCommand()
+      : m_widget{nullptr}
+      {}
+
+      /* \brief RulerCommand class private destructor.
+       *
+       */
+      virtual ~vtkRectangularRegionCommand()
+      {};
+
+      RectangularRegion *m_widget;
+  };
+
+  //----------------------------------------------------------------------------
   class EspinaGUI_EXPORT RectangularRegion
   : public QObject
   , public EspinaWidget
-  , public vtkCommand
   {
     Q_OBJECT
   public:
-    explicit RectangularRegion(double bounds[6], ViewManager *vm);
+    explicit RectangularRegion(Bounds bounds, ViewManagerSPtr vm);
     virtual ~RectangularRegion();
 
-    virtual vtkAbstractWidget *create3DWidget(View3D *view);
+    virtual void registerView  (RenderView *view);
+    virtual void unregisterView(RenderView *view);
 
-    virtual SliceWidget *createSliceWidget(View2D *view);
-
-    virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                              long unsigned int event);
     virtual void setEnabled(bool enable);
 
-    virtual void setBounds(Nm bounds[6]);
-    virtual void bounds(Nm bounds[6]);
+    virtual void setBounds(Bounds bounds);
+    virtual Bounds bounds() const;
 
-    void setResolution(Nm resolution[3]);
-    void resolution(Nm resolution[3]) const
-    { memcpy(resolution, m_resolution, 3*sizeof(Nm));}
+    void setResolution(NmVector3 resolution);
+    NmVector3 resolution() const
+    { return m_resolution; }
 
     // modify representation methods
     void setRepresentationColor(double *);
     void setRepresentationPattern(int);
 
-    virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
-
   signals:
-    void modified(double *);
+    void modified(Bounds);
 
   private:
-    ViewManager *m_viewManager;
-    double m_bounds[6];
-    Nm m_resolution[3];
-    QList<vtkRectangularSliceWidget *> m_widgets;
+    friend class vtkRectangularRegionCommand;
+
+    void emitModifiedSignal()
+    { emit modified(m_bounds); }
+
+    ViewManagerSPtr m_viewManager;
+    Bounds m_bounds;
+    NmVector3 m_resolution;
+    QMap<RenderView *, vtkRectangularSliceWidget *> m_widgets;
     double m_color[3];
     int m_pattern;
+    vtkSmartPointer<vtkRectangularRegionCommand> m_command;
   };
+
 }// namespace EspINA
 
 #endif // ESPINA_RECTANGULAR_REGION_H

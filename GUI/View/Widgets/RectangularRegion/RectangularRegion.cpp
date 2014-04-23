@@ -16,18 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "RectangularRegion.h"
-
 #include "vtkRectangularSliceWidget.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
+#include <GUI/View/View2D.h>
 
-#include <GUI/View/SliceView.h>
-
+// VTK
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkWidgetRepresentation.h>
 
+// Qt
 #include <QDebug>
 #include <QMouseEvent>
 
@@ -35,27 +35,15 @@ using namespace EspINA;
 
 using SliceWidgetAdapter = EspinaInteractorAdapter<vtkRectangularSliceWidget>;
 
-class RectangularSliceWidget
-: public SliceWidget
-{
-public:
-    explicit RectangularSliceWidget(vtkRectangularSliceWidget *widget)
-    : SliceWidget(widget)
-    , m_widget(widget)
-    { }
-    virtual void setSlice(Nm pos, PlaneType plane)
-    { m_widget->SetSlice(pos); }
-
-private:
-  vtkRectangularSliceWidget *m_widget;
-};
-
 //----------------------------------------------------------------------------
-RectangularRegion::RectangularRegion(double bounds[6], ViewManager *vm)
-: m_viewManager(vm)
-, m_pattern(0xFFFF)
+RectangularRegion::RectangularRegion(Bounds bounds, ViewManagerSPtr vm)
+: m_viewManager{vm}
+, m_bounds     {bounds}
+, m_pattern    {0xFFFF}
+, m_command    {vtkSmartPointer<vtkRectangularRegionCommand>::New()}
 {
-  memcpy(m_bounds, bounds, 6*sizeof(double));
+  m_command->setWidget(this);
+
   m_resolution[0] = m_resolution[1] = m_resolution[2] = 1;
 
   // default color
@@ -66,57 +54,48 @@ RectangularRegion::RectangularRegion(double bounds[6], ViewManager *vm)
 //----------------------------------------------------------------------------
 RectangularRegion::~RectangularRegion()
 {
-  foreach(vtkAbstractWidget *w, m_widgets)
-  {
-    w->EnabledOff();
-    w->RemoveAllObservers();
-    w->Delete();
-  }
+  for(auto view: m_widgets.keys())
+    unregisterView(view);
+
   m_widgets.clear();
 }
 
 //----------------------------------------------------------------------------
-vtkAbstractWidget* RectangularRegion::create3DWidget(View3D *view)
+void RectangularRegion::registerView(RenderView *view)
 {
-  return nullptr;
-}
-
-//----------------------------------------------------------------------------
-SliceWidget* RectangularRegion::createSliceWidget(View2D *view)
-{
-  SliceWidgetAdapter *wi = new SliceWidgetAdapter();
-  Q_ASSERT(wi);
-  wi->AddObserver(vtkCommand::EndInteractionEvent, this);
-  wi->SetPlane(view->plane());
-  wi->SetBounds(m_bounds);
-  wi->setRepresentationColor(m_color);
-  wi->setRepresentationPattern(m_pattern);
-  m_widgets << wi;
-
-  return new RectangularSliceWidget(wi);
-}
-
-//----------------------------------------------------------------------------
-bool RectangularRegion::processEvent(vtkRenderWindowInteractor* iren,
-                                     long unsigned int event)
-{
-  foreach(vtkAbstractWidget *widget, m_widgets)
+  View2D *view2d = dynamic_cast<View2D *>(view);
+  if(view2d && !m_widgets.keys().contains(view))
   {
-    if (widget->GetInteractor() == iren)
-    {
-      SliceWidgetAdapter *sw = dynamic_cast<SliceWidgetAdapter *>(widget);
-      return sw->ProcessEventsHandler(event);
-    }
-  }
+    SliceWidgetAdapter *wi = SliceWidgetAdapter::New();
+    Q_ASSERT(wi);
+    wi->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+    wi->SetPlane(view2d->plane());
+    wi->SetBounds(m_bounds);
+    wi->setRepresentationColor(m_color);
+    wi->setRepresentationPattern(m_pattern);
 
-  return false;
+    m_widgets[view] = wi;
+  }
+}
+
+//----------------------------------------------------------------------------
+void RectangularRegion::unregisterView(RenderView *view)
+{
+  View2D *view2d = dynamic_cast<View2D *>(view);
+  if(view2d && m_widgets.keys().contains(view))
+  {
+    m_widgets[view]->EnabledOff();
+    m_widgets[view]->RemoveAllObservers();
+    m_widgets[view]->Delete();
+
+    m_widgets.remove(view);
+  }
 }
 
 //----------------------------------------------------------------------------
 void RectangularRegion::setEnabled(bool enable)
 {
-  vtkAbstractWidget *widget;
-  foreach(widget, m_widgets)
+  for(auto widget: m_widgets.values())
   {
     widget->SetProcessEvents(enable);
     widget->GetRepresentation()->SetPickable(enable);
@@ -124,53 +103,30 @@ void RectangularRegion::setEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::setBounds(Nm bounds[6])
+void RectangularRegion::setBounds(Bounds bounds)
 {
-  foreach(vtkRectangularSliceWidget *widget, m_widgets)
-  {
+  for(auto widget: m_widgets.values())
     widget->SetBounds(bounds);
-  }
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::bounds(Nm bounds[6])
+Bounds RectangularRegion::bounds() const
 {
   Q_ASSERT(!m_widgets.isEmpty());
 
   vtkRectangularSliceWidget *widget = m_widgets[0];
 
-  widget->GetBounds(bounds);
+  return widget->GetBounds();
 }
 //----------------------------------------------------------------------------
-void RectangularRegion::setResolution(Nm resolution[3])
+void RectangularRegion::setResolution(NmVector3 resolution)
 {
-  memcpy(m_resolution, resolution, 3*sizeof(Nm));
+  m_resolution = resolution;
   for(int i = 0; i < 6; i++)
     m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
 
-  foreach(vtkRectangularSliceWidget *w, m_widgets)
+  for(auto w: m_widgets.values())
     w->SetBounds(m_bounds);
-}
-
-//----------------------------------------------------------------------------
-void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
-{
-  vtkRectangularSliceWidget *widget = static_cast<vtkRectangularSliceWidget *>(caller);
-
-  if (widget)
-  {
-    widget->GetBounds(m_bounds);
-    for(int i = 0; i < 6; i++)
-    {
-      m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
-    }
-
-    foreach(vtkRectangularSliceWidget *w, m_widgets)
-      w->SetBounds(m_bounds);
-  }
-  emit modified(m_bounds);
-  if (m_viewManager)
-    m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
@@ -181,7 +137,7 @@ void RectangularRegion::setRepresentationColor(double *color)
 
   memcpy(m_color, color, sizeof(double)*3);
 
-  foreach(vtkRectangularSliceWidget *widget, m_widgets)
+  for(auto widget: m_widgets.values())
     widget->setRepresentationColor(m_color);
 }
 
@@ -193,6 +149,35 @@ void RectangularRegion::setRepresentationPattern(int pattern)
 
   m_pattern = pattern;
 
-  foreach(vtkRectangularSliceWidget *widget, m_widgets)
+  for(auto widget: m_widgets.values())
     widget->setRepresentationPattern(m_pattern);
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularRegionCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
+{
+  vtkRectangularSliceWidget *widget = static_cast<vtkRectangularSliceWidget *>(caller);
+
+  if (widget)
+  {
+    m_widget->m_bounds = widget->GetBounds();
+    for(int i = 0; i < 6; i++)
+    {
+      m_widget->m_bounds[i] = int(m_widget->m_bounds[i]/m_widget->m_resolution[i/2])*m_widget->m_resolution[i/2];
+    }
+
+    for(auto w: m_widget->m_widgets.values())
+      w->SetBounds(m_widget->m_bounds);
+  }
+
+  m_widget->emitModifiedSignal();
+
+  if (m_widget->m_viewManager)
+    m_widget->m_viewManager->updateViews();
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularRegionCommand::setWidget(EspinaWidgetPtr widget)
+{
+  m_widget = dynamic_cast<RectangularRegion *>(widget);
 }
