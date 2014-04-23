@@ -51,7 +51,6 @@ namespace EspINA
   private:
     using OutputSMap = QMap<Output::Id, OutputSPtr>;
 
-//     typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
   public:
     virtual ~Filter();
 

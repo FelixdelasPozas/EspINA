@@ -37,12 +37,11 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
   Settings/View2D/View2DRenderersPanel.h
-#   Settings/VOI/SettingsPanel.h
+  Settings/ROI/ROISettingsPanel.h
 #   Toolbars/Composition/CompositionToolBar.h
 #   Toolbars/Editor/EditorToolBar.h
 #   Toolbars/Main/MainToolBar.h
 #   Toolbars/Segmentation/SegmentationToolBar.h
-#   Toolbars/VOI/VolumeOfInterest.h
   ToolGroups/ViewState/ViewTools.h
   ToolGroups/ViewState/ToggleSegmentationsVisibility.h
   ToolGroups/ViewState/ToggleCrosshairVisibility.h
@@ -61,6 +60,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Measures/MeasuresTools.h
   Tools/Brushes/CircularBrushSelector.h
   Tools/Brushes/SphericalBrushSelector.h
+  Tools/ROI/RectangularROI.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/Measure/MeasureTool.h
@@ -95,6 +95,7 @@ qt4_wrap_ui (ESPINA_UI
 #   Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
+  Settings/ROI/RectangularROISettings.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
@@ -139,6 +140,8 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
   Settings/View2D/View2DRenderersPanel.cpp
+  Settings/ROI/ROISettings.cpp
+  Settings/ROI/ROISettingsPanel.cpp
 #   Toolbars/Composition/CompositionToolBar.cpp
 #   Toolbars/Editor/EditorToolBar.cpp
 #   Toolbars/Editor/Settings.cpp
@@ -170,7 +173,7 @@ set (ESPINA_SOURCES
   Tools/Ruler/RulerTool.cpp
 #   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
 #   Tools/SegmentationRemover/SegmentationRemover.cpp
-#   Tools/VOI/RectangularVOI.cpp
+   Tools/ROI/RectangularROI.cpp
 #   Tools/Zoom/ZoomTool.cpp
 #   Undo/AtomicModelOperations.cpp 
   Undo/BrushUndoCommand.cpp

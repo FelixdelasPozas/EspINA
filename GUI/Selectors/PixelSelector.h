@@ -26,6 +26,7 @@ class QSize;
 
 namespace EspINA
 {
+  //------------------------------------------------------------------------
   class EspinaGUI_EXPORT PixelSelector
   : public Selector
   {
@@ -42,7 +43,7 @@ namespace EspINA
     virtual Selector::SelectionList generateSelection(RenderView *);
   };
 
-
+  //------------------------------------------------------------------------
   class EspinaGUI_EXPORT BestPixelSelector
   : public PixelSelector
   {

@@ -21,6 +21,7 @@
 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
 View2DSettingsPanel::View2DSettingsPanel(View2D *view)
 : m_view(view)
 {
@@ -33,7 +34,6 @@ View2DSettingsPanel::View2DSettingsPanel(View2D *view)
   //showAxis->setChecked(view->showAxis());
   showAxis->setVisible(false);
 }
-
 
 //------------------------------------------------------------------------
 const QString View2DSettingsPanel::shortDescription()
@@ -48,6 +48,7 @@ const QString View2DSettingsPanel::shortDescription()
       return QString("YZ Slice View");
     default:
       Q_ASSERT(false);
+      break;
   }
   return QString("Unknown");
 }

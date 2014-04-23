@@ -39,14 +39,15 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_selection{new Selection()}
+: m_selection        {new Selection()}
+, m_roi              {nullptr}
 , m_contextualToolBar{nullptr}
-, m_toolGroup{nullptr}
-, m_eventHandler{nullptr}
-, m_viewResolution{1., 1., 1.}
-, m_resolutionUnits(QString("nm"))
-, m_activeChannel(nullptr)
-, m_activeCategory(nullptr)
+, m_toolGroup        {nullptr}
+, m_eventHandler     {nullptr}
+, m_viewResolution   {1., 1., 1.}
+, m_resolutionUnits  {QString("nm")}
+, m_activeChannel    {nullptr}
+, m_activeCategory   {nullptr}
 {
 //   QSettings settings(CESVIMA, ESPINA);
   bool fitEnabled = true;

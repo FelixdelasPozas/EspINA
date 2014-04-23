@@ -28,6 +28,7 @@
 
 // EspINA
 #include <Core/Utils/Measure.h>
+#include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
@@ -59,8 +60,6 @@ namespace EspINA
 
   class ToolGroup;
   using ToolGroupPtr = ToolGroup*;
-
-  using ROI = Selector::SelectionMaskSPtr;
 
   class EspinaSupport_EXPORT ViewManager
   : public QObject
@@ -138,14 +137,14 @@ namespace EspINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setCurrentROI(ROI roi)
+    void setCurrentROI(ROISPtr roi)
     { m_roi = roi; }
 
-    ROI currentROI() const
+    ROISPtr currentROI() const
     { return m_roi; }
 
   private:
-    ROI              m_roi;
+    ROISPtr          m_roi;
     QToolBar        *m_contextualToolBar;
     ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;

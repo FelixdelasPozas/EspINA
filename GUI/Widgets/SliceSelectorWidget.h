@@ -38,7 +38,7 @@ namespace EspINA
     virtual void setPlane(const Plane plane)
     { m_plane = plane; }
 
-    virtual void setView(SliceView* view)
+    virtual void setView(View2D* view)
     { m_view = view; }
 
     virtual QWidget* leftWidget()  const = 0;
@@ -48,10 +48,12 @@ namespace EspINA
 
   protected:
     explicit SliceSelectorWidget()
-    : m_plane(Plane::XY), m_view(nullptr) {}
+    : m_plane{Plane::XY}
+    , m_view {nullptr}
+    {}
 
-    Plane      m_plane;
-    SliceView* m_view;
+    Plane   m_plane;
+    View2D *m_view;
   };
 
 } // namespace EspINA

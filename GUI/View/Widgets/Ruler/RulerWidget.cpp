@@ -33,7 +33,7 @@ namespace EspINA
 {
   //----------------------------------------------------------------------------
   RulerWidget::RulerWidget()
-  : m_command{ vtkSmartPointer<vtkRulerCommand>::New()}
+  : m_command{vtkSmartPointer<vtkRulerCommand>::New()}
   {
     m_command->setWidget(this);
   }

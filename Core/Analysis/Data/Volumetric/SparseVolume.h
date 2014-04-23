@@ -49,14 +49,13 @@ namespace EspINA
   struct Invalid_Image_Bounds_Exception{};
 
   /** \brief Volume representation intended to save memory and speed up
-   *  edition opertaions
+   *  edition operations
    *
    *  Those voxel which don't belong to any block are assigned the value
    *  defined as background value.
    *
    *  Add operation will replace every voxel with a value different to 
    *  the background value.
-   *  Sub operation will 
    */
   template<typename T>
   class EspinaCore_EXPORT SparseVolume
@@ -347,10 +346,11 @@ namespace EspINA
     { return this->type() + QString("_%1_%2.mhd").arg(this->m_output->id()).arg(part); }
 
   private:
+    BlockList m_blocks;
+
+  protected:
     NmVector3 m_origin;
     NmVector3 m_spacing;
-
-    BlockList m_blocks;
     VolumeBounds m_bounds;
     VolumeBounds m_blocks_bounding_box;
   };

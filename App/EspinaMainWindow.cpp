@@ -32,6 +32,8 @@
 #include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/ViewState/ViewTools.h"
 #include "ToolGroups/VOI/VolumeOfInterestTools.h"
+#include <App/Settings/ROI/ROISettingsPanel.h>
+#include <App/Settings/ROI/ROISettings.h>
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
@@ -128,6 +130,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_availableRenderers << RendererSPtr(new VolumetricGPURenderer<itkVolumeType>());
   m_availableRenderers << RendererSPtr(new ContourRenderer());
   m_availableRenderers << RendererSPtr(new CachedSliceRenderer(m_scheduler));
+
+  auto roiSettings = new RectangularROI::ROISettings();
+  m_availableSettingsPanels << SettingsPanelSPtr(new RectangularROI::ROISettingsPanel(m_model, roiSettings, m_viewManager));
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);

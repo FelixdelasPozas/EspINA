@@ -31,6 +31,8 @@ qt4_wrap_cpp(GUI_MOC
   View/View2D.h
   View/ViewRendererMenu.h
   View/View3D.h
+  View/Widgets/RectangularRegion/RectangularRegion.h
+  View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
   View/Widgets/Ruler/RulerWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
@@ -125,6 +127,10 @@ set (GUI_SOURCES
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp
+  View/Widgets/RectangularRegion/RectangularRegion.cpp
+  View/Widgets/RectangularRegion/RectangularRegionSliceSelector.cpp
+  View/Widgets/RectangularRegion/vtkRectangularSliceWidget.cpp
+  View/Widgets/RectangularRegion/vtkRectangularSliceRepresentation.cpp
   View/Widgets/Ruler/RulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget3D.cpp
