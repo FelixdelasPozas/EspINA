@@ -31,8 +31,8 @@
 #include <GUI/ModelFactory.h>
 
 class QUndoStack;
-namespace EspINA {
-
+namespace EspINA
+{
   class SeedGrowSegmentationTool
   : public Tool
   {

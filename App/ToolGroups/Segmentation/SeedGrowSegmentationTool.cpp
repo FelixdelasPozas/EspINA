@@ -17,17 +17,21 @@
  *
  */
 
+// EspINA
 #include "SeedGrowSegmentationTool.h"
-
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
+#include <Support/Settings/EspinaSettings.h>
+#include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
+// Qt
 #include <QAction>
 #include <QUndoStack>
+#include <QSettings>
 
 using namespace EspINA;
 
@@ -68,16 +72,16 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                                    ModelFactorySPtr factory,
                                                    ViewManagerSPtr  viewManager,
                                                    QUndoStack      *undoStack)
-: m_model(model)
-, m_factory(factory)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
-, m_enabled(false)
-, m_categorySelector(new CategorySelector(m_model))
-, m_selectorSwitch(new ActionSelector())
-, m_seedThreshold(new SeedThreshold())
-, m_applyVOI(new ApplyROI())
-, m_filterFactory(new SGSFilterFactory())
+: m_model           {model}
+, m_factory         {factory}
+, m_viewManager     {viewManager}
+, m_undoStack       {undoStack}
+, m_enabled         {false}
+, m_categorySelector{new CategorySelector(m_model)}
+, m_selectorSwitch  {new ActionSelector()}
+, m_seedThreshold   {new SeedThreshold()}
+, m_applyVOI        {new ApplyROI()}
+, m_filterFactory   {new SGSFilterFactory()}
 {
   m_factory->registerFilterFactory(m_filterFactory);
 
@@ -214,14 +218,39 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
   seedBounds.setUpperInclusion(true);
 
   //auto seedVoxel = volume->itkImage(seedBounds);
-  ROI roi = m_viewManager->currentROI();
+  ROISPtr roi = m_viewManager->currentROI();
 
-  if (!roi && m_applyVOI->isChecked())
+  if ((roi == nullptr) && m_applyVOI->isChecked())
   {
-    // TODO: Create default ROI
+    // Create default ROI
+    auto category = m_categorySelector->selectedCategory();
+    QVariant xSize = category->property(Category::X_DIM);
+    QVariant ySize = category->property(Category::Y_DIM);
+    QVariant zSize = category->property(Category::Z_DIM);
+
+    if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
+    {
+      QSettings settings(CESVIMA, ESPINA);
+      settings.beginGroup(ROI_SETTINGS_GROUP);
+
+      xSize   = settings.value(DEFAULT_VOI_X, 500).toInt();
+      ySize   = settings.value(DEFAULT_VOI_Y, 500).toInt();
+      zSize   = settings.value(DEFAULT_VOI_Z, 500).toInt();
+    }
+
+    Bounds bounds{seed[0]-xSize.toInt()/2, seed[0]+xSize.toInt()/2,
+                  seed[1]-ySize.toInt()/2, seed[1]+ySize.toInt()/2,
+                  seed[2]-zSize.toInt()/2, seed[2]+zSize.toInt()/2};
+
+    auto spacing = channel->output()->spacing();
+    auto origin = channel->position();
+    VolumeBounds vBounds{bounds, spacing, origin};
+    roi = ROISPtr(new ROI(vBounds, spacing, origin));
+
+    m_viewManager->setCurrentROI(roi);
   }
 
-  bool validSeed = //TODO (roi && contains(roi, seed)) ||
+  bool validSeed = ((roi != nullptr) && isSegmentationVoxel<itkVolumeType>(roi, seed)) ||
                    contains(volume->bounds(), seed);
 
   if (validSeed)
@@ -239,6 +268,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
     filter->setDescription(tr("Seed Grow Segmentation"));
+
+    // TODO: filter should inherit from ROIConstrainedFilter.h to add a ROI
+    // filter->setROI(roi);
 
     m_executingTasks[adapter.get()] = adapter;
 
