@@ -16,15 +16,13 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef ESPINA_RECTANGULAR_ROI_H
+#define ESPINA_RECTANGULAR_ROI_H
 
-#ifndef RECTANGULARVOI_H
-#define RECTANGULARVOI_H
-
-#include <GUI/Tools/IVOI.h>
-#include <GUI/Pickers/ISelector.h>
-#include <GUI/Pickers/PixelSelector.h>
-#include <GUI/ISettingsPanel.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Selectors/Selector.h>
+#include <GUI/Selectors/PixelSelector.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/ViewManager.h>
 
 namespace EspINA
 {
@@ -32,50 +30,50 @@ namespace EspINA
   class RectangularRegionSliceSelector;
   class ViewManager;
 
-  class RectangularVOI
-  : public IVOI
+  class RectangularROI
+  : public QObject
   {
-    class Settings;
-    class SettingsPanel;
+  public:
+    class ROISettings;
+    class ROISettingsPanel;
 
     Q_OBJECT
   public:
-    explicit RectangularVOI(EspinaModel *model,
-                            ViewManager *viewManager);
-    virtual ~RectangularVOI();
+    explicit RectangularROI(ModelAdapterSPtr model,
+                            ViewManagerSPtr viewManager);
+    virtual ~RectangularROI();
 
     virtual QCursor cursor() const;
-    virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+    virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
     virtual void setInUse(bool value);
     virtual void setEnabled(bool enable);
     virtual bool enabled() const {return m_enabled;}
 
-    virtual IVOI::Region region();
-
   private slots:
-    void defineVOI(ISelector::PickList channels);
+    void defineVOI(Selector::Selection);
 
   signals:
     void voiDeactivated();
 
   private:
-    EspinaModel *m_model;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
 
     bool m_inUse;
     bool m_enabled;
 
-    PixelSelector      m_picker;
+    PixelSelector      m_selector;
     RectangularRegion *m_widget;
-    double             m_bounds[6];
+    Bounds             m_bounds;
     RectangularRegionSliceSelector *m_sliceSelector;
 
-    Settings          *m_settings;
-    ISettingsPanelPrototype m_settingsPanel;
+    ROISettings          *m_settings;
+    ROISettingsPanel     *m_settingsPanel;
   };
 
-  typedef boost::shared_ptr<RectangularVOI> RectangularVOISPtr;
+  using RectangularROIPtr  = RectangularROI *;
+  using RectangularROISPtr = std::shared_ptr<RectangularROI>;
 
 } // namespace EspINA
 
-#endif // RECTANGULARVOI_H
+#endif // ESPINA_RECTANGULAR_ROI_H
