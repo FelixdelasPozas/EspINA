@@ -17,12 +17,12 @@
 */
 
 // EspINA
-#include "SettingsPanel.h"
-#include <Toolbars/VOI/Settings.h>
-#include <Core/EspinaSettings.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Taxonomy.h>
-#include <GUI/ViewManager.h>
+#include "ROISettingsPanel.h"
+#include "ROISettings.h"
+#include <Support/Settings/EspinaSettings.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/CategoryAdapter.h>
+#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkMath.h>
@@ -30,21 +30,27 @@
 // Qt
 #include <QMessageBox>
 #include <QSettings>
+#include <QDebug>
 
 using namespace EspINA;
 
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
+// declared in Core library.
+extern const QString Category::X_DIM;
+extern const QString Category::Y_DIM;
+extern const QString Category::Z_DIM;
+
 //------------------------------------------------------------------------
-RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
-                                             RectangularVOI::Settings *settings,
-                                             ViewManager *viewManager)
-: m_model(model)
-, m_settings(settings)
-, m_activeTaxonomy(NULL)
-, m_viewManager(viewManager)
-, m_zValueChanged(false)
-, m_zTaxValueChanged(false)
+RectangularROI::ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
+                                                   RectangularROI::ROISettings *settings,
+                                                   ViewManagerSPtr viewManager)
+: m_model           {model}
+, m_settings        {settings}
+, m_activeCategory  {nullptr}
+, m_viewManager     {viewManager}
+, m_zValueChanged   {false}
+, m_zTaxValueChanged{false}
 {
   setupUi(this);
   m_zSpacing = 1.0;
@@ -56,27 +62,30 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
 
   if (espinaSettings.value(FIT_TO_SLICES).toBool())
   {
-    if (m_viewManager->viewResolution() != NULL)
-    {
-      m_zSpacing = m_viewManager->viewResolution()[2];
-      m_zSize->setSuffix(" slices");
-      m_zTaxSize->setSuffix(" slices");
-    }
-    else
-    {
-      m_zSize->setSuffix(" nm");
-      m_zTaxSize->setSuffix(" nm");
-    }
+    m_zSpacing = m_viewManager->viewResolution()[2];
+    m_zSize->setSuffix(" slices");
+    m_zTaxSize->setSuffix(" slices");
+  }
+  else
+  {
+    m_zSize->setSuffix(" nm");
+    m_zTaxSize->setSuffix(" nm");
   }
 
   m_zSize->setValue(vtkMath::Round(m_settings->zSize()/m_zSpacing));
 
-  m_taxonomySelector->setModel(m_model);
+  m_categorySelector->setModel(m_model.get());
 
-  connect(m_taxonomySelector, SIGNAL(activated(QModelIndex)),
-          this, SLOT(updateTaxonomyVOI(QModelIndex)));
+  // disable category selector if there isn't a category to choose.
+  if (m_model->classification() == nullptr)
+  {
+    m_categorySelectorGroup->setEnabled(false);
+  }
 
-  m_taxonomySelector->setRootModelIndex(m_model->taxonomyRoot());
+  connect(m_categorySelector, SIGNAL(activated(QModelIndex)),
+          this, SLOT(updateCategoryROI(QModelIndex)));
+
+  m_categorySelector->setRootModelIndex(m_model->classificationRoot());
 
   // the rounding of fit to slices on the z value was making the dialog ask the
   // user if he wanted to save the changes even when the user hasn't changed
@@ -86,53 +95,53 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModelPtr model,
 }
 
 //------------------------------------------------------------------------
-RectangularVOI::SettingsPanel::~SettingsPanel()
+RectangularROI::ROISettingsPanel::~ROISettingsPanel()
 {
 //   qDebug() << "Destroy Settings Panel";
 }
 
 //------------------------------------------------------------------------
-void RectangularVOI::SettingsPanel::acceptChanges()
+void RectangularROI::ROISettingsPanel::acceptChanges()
 {
   m_settings->setXSize(m_xSize->value());
   m_settings->setYSize(m_ySize->value());
   m_settings->setZSize(m_zSize->value()*m_zSpacing);
 
-  writeTaxonomyProperties();
+  writeCategoryProperties();
 }
 
 //------------------------------------------------------------------------
-void RectangularVOI::SettingsPanel::rejectChanges()
+void RectangularROI::ROISettingsPanel::rejectChanges()
 {
 }
 
 //------------------------------------------------------------------------
-bool RectangularVOI::SettingsPanel::modified() const
+bool RectangularROI::ROISettingsPanel::modified() const
 {
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
   returnValue |= m_zValueChanged;
-  returnValue |= taxonomyVOIModified();
+  returnValue |= categoryROIModified();
 
   return returnValue;
 }
 
 //------------------------------------------------------------------------
-ISettingsPanelPtr RectangularVOI::SettingsPanel::clone()
+SettingsPanelPtr RectangularROI::ROISettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new SettingsPanel(m_model, m_settings, m_viewManager));
+  return SettingsPanelPtr(new ROISettingsPanel(m_model, m_settings, m_viewManager));
 }
 
 //------------------------------------------------------------------------
-bool RectangularVOI::SettingsPanel::taxonomyVOIModified() const
+bool RectangularROI::ROISettingsPanel::categoryROIModified() const
 {
   bool modified = false;
 
-  if (m_activeTaxonomy)
+  if (m_activeCategory)
   {
-    modified |= (m_activeTaxonomy->property(TaxonomyElement::X_DIM).toInt() != m_xTaxSize->value());
-    modified |= (m_activeTaxonomy->property(TaxonomyElement::Y_DIM).toInt() != m_yTaxSize->value());
+    modified |= (m_activeCategory->property(Category::X_DIM).toInt() != m_xTaxSize->value());
+    modified |= (m_activeCategory->property(Category::Y_DIM).toInt() != m_yTaxSize->value());
     modified |= m_zTaxValueChanged;
   }
 
@@ -140,57 +149,57 @@ bool RectangularVOI::SettingsPanel::taxonomyVOIModified() const
 }
 
 //------------------------------------------------------------------------
-void RectangularVOI::SettingsPanel::writeTaxonomyProperties()
+void RectangularROI::ROISettingsPanel::writeCategoryProperties()
 {
-  if (m_activeTaxonomy)
+  if (m_activeCategory)
   {
-    m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, m_xTaxSize->value());
-    m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, m_yTaxSize->value());
-    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, vtkMath::Round(m_zTaxSize->value()*m_zSpacing));
+    m_activeCategory->addProperty(Category::X_DIM, m_xTaxSize->value());
+    m_activeCategory->addProperty(Category::Y_DIM, m_yTaxSize->value());
+    m_activeCategory->addProperty(Category::Z_DIM, vtkMath::Round(m_zTaxSize->value()*m_zSpacing));
   }
 }
 
 //------------------------------------------------------------------------
-void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
+void RectangularROI::ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
 {
   if (!index.isValid())
     return;
 
-  ModelItemPtr item = indexPtr(index);
-  if (EspINA::TAXONOMY != item->type())
+  ItemAdapterPtr itemPtr = itemAdapter(index);
+  if (ItemAdapter::Type::CATEGORY != itemPtr->type())
     return;
 
-  TaxonomyElementPtr elem = taxonomyElementPtr(item);
-  if (m_activeTaxonomy && m_activeTaxonomy != elem)
+  CategoryAdapterPtr elem = categoryPtr(itemPtr);
+  if (m_activeCategory && m_activeCategory.get() != elem)
   {
     // Check for changes
-    if (taxonomyVOIModified())
+    if (categoryROIModified())
     {
       QMessageBox msg;
       msg.setWindowTitle(tr("EspINA"));
-      msg.setText(tr("The properties of the category \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeTaxonomy->data().toString()));
+      msg.setText(tr("The properties of the category \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeCategory->data().toString()));
       msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
       if (msg.exec() == QMessageBox::Yes)
-        writeTaxonomyProperties();
+        writeCategoryProperties();
     }
   }
 
-  m_activeTaxonomy = elem;
+  m_activeCategory = m_model->smartPointer(elem);
   m_zTaxValueChanged = false;
 
   // 2013-03-19 Fix missing taxonomy properties in some cases. By default revert to "default VOI" values.
-  if (!m_activeTaxonomy->properties().contains(TaxonomyElement::X_DIM) ||
-      !m_activeTaxonomy->properties().contains(TaxonomyElement::Y_DIM) ||
-      !m_activeTaxonomy->properties().contains(TaxonomyElement::Z_DIM))
+  if (!m_activeCategory->properties().contains(Category::X_DIM) ||
+      !m_activeCategory->properties().contains(Category::Y_DIM) ||
+      !m_activeCategory->properties().contains(Category::Z_DIM))
   {
-    m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, QVariant(m_settings->xSize()));
-    m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, QVariant(m_settings->ySize()));
-    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, QVariant(m_settings->zSize()));
+    m_activeCategory->addProperty(Category::X_DIM, QVariant(m_settings->xSize()));
+    m_activeCategory->addProperty(Category::Y_DIM, QVariant(m_settings->ySize()));
+    m_activeCategory->addProperty(Category::Z_DIM, QVariant(m_settings->zSize()));
   }
 
-  QVariant xSize = elem->property(TaxonomyElement::X_DIM);
-  QVariant ySize = elem->property(TaxonomyElement::Y_DIM);
-  QVariant zSize = elem->property(TaxonomyElement::Z_DIM);
+  QVariant xSize = elem->property(Category::X_DIM);
+  QVariant ySize = elem->property(Category::Y_DIM);
+  QVariant zSize = elem->property(Category::Z_DIM);
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {
@@ -207,7 +216,7 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
 }
 
 //------------------------------------------------------------------------
-void RectangularVOI::SettingsPanel::zValueChanged(int unused)
+void RectangularROI::ROISettingsPanel::zValueChanged(int unused)
 {
   if (sender() == m_zSize)
     m_zValueChanged = true;

@@ -16,28 +16,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ROI_SETTINGS_PANEL_H_
+#define ROI_SETTINGS_PANEL_H_
 
-#ifndef SETTINGSPANEL_H
-#define SETTINGSPANEL_H
-
-#include "ui_RectangularVOISettings.h"
-#include <Tools/VOI/RectangularVOI.h>
-#include <GUI/ISettingsPanel.h>
+#include <App/Tools/ROI/RectangularROI.h>
+#include <Support/Settings/SettingsPanel.h>
+#include "ui_RectangularROISettings.h"
 
 namespace EspINA
 {
   class ViewManager;
 
-  class RectangularVOI::SettingsPanel
-  : public ISettingsPanel
-  , public Ui::RectangularVOISettings
+  class RectangularROI::ROISettingsPanel
+  : public SettingsPanel
+  , public Ui::RectangularROISettings
   {
     Q_OBJECT
   public:
-    explicit SettingsPanel(EspinaModelPtr model,
-                           RectangularVOI::Settings *settings,
-                           ViewManager *viewManager);
-    virtual ~SettingsPanel();
+    explicit ROISettingsPanel(ModelAdapterSPtr model,
+                              RectangularROI::ROISettings *settings,
+                              ViewManagerSPtr viewManager);
+    virtual ~ROISettingsPanel();
 
     virtual const QString shortDescription()
     { return tr("Cuboid VOI"); }
@@ -50,21 +49,21 @@ namespace EspINA
     virtual void rejectChanges();
     virtual bool modified() const;
 
-    virtual ISettingsPanelPtr clone();
+    virtual SettingsPanelPtr clone();
 
   private:
-    bool taxonomyVOIModified() const;
-    void writeTaxonomyProperties();
+    bool categoryROIModified() const;
+    void writeCategoryProperties();
 
   private slots:
-    void updateTaxonomyVOI(const QModelIndex &index);
+    void updateCategoryROI(const QModelIndex &index);
     void zValueChanged(int);
 
   private:
-    EspinaModel *m_model;
-    RectangularVOI::Settings *m_settings;
-    TaxonomyElementPtr m_activeTaxonomy;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    RectangularROI::ROISettings *m_settings;
+    CategoryAdapterSPtr m_activeCategory;
+    ViewManagerSPtr m_viewManager;
     Nm m_zSpacing;
 
     bool m_zValueChanged;
@@ -73,4 +72,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // SETTINGSPANEL_H
+#endif // ROI_SETTINGS_PANEL_H_

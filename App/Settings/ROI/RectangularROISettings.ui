@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RectangularVOISettings</class>
- <widget class="QWidget" name="RectangularVOISettings">
+ <class>RectangularROISettings</class>
+ <widget class="QWidget" name="RectangularROISettings">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -115,7 +115,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="m_categorySelectorGroup">
      <property name="title">
       <string>Default VOI Size by Category</string>
      </property>
@@ -130,7 +130,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QComboTreeView" name="m_taxonomySelector">
+         <widget class="QComboTreeView" name="m_categorySelector">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -277,7 +277,7 @@
   <customwidget>
    <class>QComboTreeView</class>
    <extends>QComboBox</extends>
-   <header>GUI/QtWidget/QComboTreeView.h</header>
+   <header>GUI/Widgets/QComboTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
