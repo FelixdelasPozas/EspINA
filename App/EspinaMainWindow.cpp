@@ -131,8 +131,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_availableRenderers << RendererSPtr(new ContourRenderer());
   m_availableRenderers << RendererSPtr(new CachedSliceRenderer(m_scheduler));
 
-  auto roiSettings = new RectangularROI::ROISettings();
-  m_availableSettingsPanels << SettingsPanelSPtr(new RectangularROI::ROISettingsPanel(m_model, roiSettings, m_viewManager));
+  m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, new ROISettings(), m_viewManager));
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);

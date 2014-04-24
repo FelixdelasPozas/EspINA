@@ -107,6 +107,9 @@ namespace EspINA
   signals:
     void modified(Bounds);
 
+  private slots:
+    void sliceChanged(Plane plane, Nm pos);
+
   private:
     friend class vtkRectangularRegionCommand;
 

@@ -73,8 +73,13 @@ void RectangularRegion::registerView(RenderView *view)
     wi->SetBounds(m_bounds);
     wi->setRepresentationColor(m_color);
     wi->setRepresentationPattern(m_pattern);
+    wi->SetInteractor(view2d->renderWindow()->GetInteractor());
+    wi->SetCurrentRenderer(view2d->mainRenderer());
+    wi->SetEnabled(true);
 
     m_widgets[view] = wi;
+
+    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
   }
 }
 
@@ -84,8 +89,12 @@ void RectangularRegion::unregisterView(RenderView *view)
   View2D *view2d = dynamic_cast<View2D *>(view);
   if(view2d && m_widgets.keys().contains(view))
   {
+    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+
     m_widgets[view]->EnabledOff();
-    m_widgets[view]->RemoveAllObservers();
+    m_widgets[view]->RemoveObserver(m_command);
+    m_widgets[view]->SetCurrentRenderer(nullptr);
+    m_widgets[view]->SetInteractor(nullptr);
     m_widgets[view]->Delete();
 
     m_widgets.remove(view);
@@ -151,6 +160,15 @@ void RectangularRegion::setRepresentationPattern(int pattern)
 
   for(auto widget: m_widgets.values())
     widget->setRepresentationPattern(m_pattern);
+}
+
+//----------------------------------------------------------------------------
+void RectangularRegion::sliceChanged(Plane plane, Nm pos)
+{
+  View2D *view2d = dynamic_cast<View2D *>(sender());
+  RenderView *view = dynamic_cast<RenderView *>(sender());
+  if(view2d && view && m_widgets.keys().contains(view))
+    m_widgets[view]->SetSlice(pos);
 }
 
 //----------------------------------------------------------------------------

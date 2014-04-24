@@ -19,16 +19,16 @@
 #ifndef ROI_SETTINGS_H
 #define ROI_SETTINGS_H
 
-#include <App/Tools/ROI/RectangularROI.h>
+#include <QString>
 
 namespace EspINA
 {
-  const QString DEFAULT_VOI_X("RectangularROI::DefaultROI::X");
-  const QString DEFAULT_VOI_Y("RectangularROI::DefaultROI::Y");
-  const QString DEFAULT_VOI_Z("RectangularROI::DefaultROI::Z");
-  const QString ROI_SETTINGS_GROUP("Rectangular ROI Settins");
+  const QString DEFAULT_VOI_X("DefaultRectangularROI::X");
+  const QString DEFAULT_VOI_Y("DefaultRectangularROI::Y");
+  const QString DEFAULT_VOI_Z("DefaultRectangularROI::Z");
+  const QString ROI_SETTINGS_GROUP("Rectangular ROI Settings");
 
-  class RectangularROI::ROISettings
+  class ROISettings
   {
     public:
       explicit ROISettings();

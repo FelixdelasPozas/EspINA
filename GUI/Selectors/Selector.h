@@ -86,7 +86,7 @@ namespace EspINA
   signals:
     void itemsSelected(Selector::SelectionList);
 
-    void itemsSelected(Selector::Selection);
+    void itemsSelected(Selector::Selection); // unused by now
 
     void startUsingSelector();
 

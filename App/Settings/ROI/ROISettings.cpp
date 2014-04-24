@@ -23,7 +23,7 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-RectangularROI::ROISettings::ROISettings()
+ROISettings::ROISettings()
 {
   QSettings settings(CESVIMA, ESPINA);
   settings.beginGroup(ROI_SETTINGS_GROUP);
@@ -34,7 +34,7 @@ RectangularROI::ROISettings::ROISettings()
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettings::setXSize(int value)
+void ROISettings::setXSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -43,7 +43,7 @@ void RectangularROI::ROISettings::setXSize(int value)
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettings::setYSize(int value)
+void ROISettings::setYSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
@@ -52,7 +52,7 @@ void RectangularROI::ROISettings::setYSize(int value)
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettings::setZSize(int value)
+void ROISettings::setZSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 

@@ -15,25 +15,30 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ESPINA_ORTOGONAL_VOI_H
-#define ESPINA_ORTOGONAL_VOI_H
+#ifndef ESPINA_ORTHOGONAL_VOI_H
+#define ESPINA_ORTHOGONAL_VOI_H
 
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Selectors/Selector.h>
 
 class QAction;
 namespace EspINA
 {
+  class RectangularRegion;
+  class RectangularRegionSliceSelector;
+  class ROISettings;
+
   /// Volume Of Interest Toolbar
-  class OrtogonalVOITool
+  class OrthogonalVOITool
   : public Tool
   {
     Q_OBJECT
   public:
-    explicit OrtogonalVOITool(ModelAdapterSPtr model,
-                          ViewManagerSPtr  viewManager);
-    virtual ~OrtogonalVOITool();
+    explicit OrthogonalVOITool(ModelAdapterSPtr model,
+                              ViewManagerSPtr  viewManager);
+    virtual ~OrthogonalVOITool();
 
     virtual void setEnabled(bool value);
 
@@ -42,19 +47,26 @@ namespace EspINA
     virtual QList<QAction *> actions() const;
 
   protected slots:
-    void changeVOI(QAction *action);
-
-    void cancelVOI();
+    void initTool(bool);
+    void ROIChanged();
+    void defineROI(Selector::SelectionList);
 
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
 
-    QAction *m_applyVOI;
+    QAction           *m_applyVOI;
+    bool               m_enabled;
+
+    EventHandlerSPtr m_selector;
+    EspinaWidgetSPtr m_widget;
+    Bounds           m_bounds;
+    RectangularRegionSliceSelector *m_sliceSelector;
+    ROISettings                    *m_settings;
   };
 
-  using OrtogonalVOIToolSPtr = std::shared_ptr<OrtogonalVOITool>;
+  using OrthogonalVOIToolSPtr = std::shared_ptr<OrthogonalVOITool>;
 
 } // namespace EspINA
 
-#endif // ESPINA_ORTOGONAL_VOI_H
+#endif // ESPINA_ORTHOGONAL_VOI_H

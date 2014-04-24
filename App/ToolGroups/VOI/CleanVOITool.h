@@ -32,8 +32,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit CleanVOITool(VOIMaskSPtr&     currentVOI,
-                          ModelAdapterSPtr model,
+    explicit CleanVOITool(ModelAdapterSPtr model,
                           ViewManagerSPtr  viewManager);
     virtual ~CleanVOITool();
 
@@ -45,13 +44,14 @@ namespace EspINA
 
   protected slots:
     void cancelVOI();
+    void ROIChanged();
 
   private:
-    VOIMaskSPtr&     m_currentVOI;
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
 
     QAction *m_cleanVOI;
+    bool m_enabled;
   };
 
   using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;

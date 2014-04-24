@@ -138,10 +138,16 @@ namespace EspINA
     { return m_eventHandler; }
 
     void setCurrentROI(ROISPtr roi)
-    { m_roi = roi; }
+    {
+      m_roi = roi;
+      emit ROIChanged();
+    }
 
     ROISPtr currentROI() const
     { return m_roi; }
+
+  signals:
+    void ROIChanged();
 
   private:
     ROISPtr          m_roi;

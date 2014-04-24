@@ -42,9 +42,9 @@ extern const QString Category::Y_DIM;
 extern const QString Category::Z_DIM;
 
 //------------------------------------------------------------------------
-RectangularROI::ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
-                                                   RectangularROI::ROISettings *settings,
-                                                   ViewManagerSPtr viewManager)
+ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
+                                   ROISettings *settings,
+                                   ViewManagerSPtr viewManager)
 : m_model           {model}
 , m_settings        {settings}
 , m_activeCategory  {nullptr}
@@ -95,13 +95,13 @@ RectangularROI::ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
 }
 
 //------------------------------------------------------------------------
-RectangularROI::ROISettingsPanel::~ROISettingsPanel()
+ROISettingsPanel::~ROISettingsPanel()
 {
 //   qDebug() << "Destroy Settings Panel";
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettingsPanel::acceptChanges()
+void ROISettingsPanel::acceptChanges()
 {
   m_settings->setXSize(m_xSize->value());
   m_settings->setYSize(m_ySize->value());
@@ -111,12 +111,12 @@ void RectangularROI::ROISettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettingsPanel::rejectChanges()
+void ROISettingsPanel::rejectChanges()
 {
 }
 
 //------------------------------------------------------------------------
-bool RectangularROI::ROISettingsPanel::modified() const
+bool ROISettingsPanel::modified() const
 {
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
@@ -128,13 +128,13 @@ bool RectangularROI::ROISettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-SettingsPanelPtr RectangularROI::ROISettingsPanel::clone()
+SettingsPanelPtr ROISettingsPanel::clone()
 {
   return SettingsPanelPtr(new ROISettingsPanel(m_model, m_settings, m_viewManager));
 }
 
 //------------------------------------------------------------------------
-bool RectangularROI::ROISettingsPanel::categoryROIModified() const
+bool ROISettingsPanel::categoryROIModified() const
 {
   bool modified = false;
 
@@ -149,7 +149,7 @@ bool RectangularROI::ROISettingsPanel::categoryROIModified() const
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettingsPanel::writeCategoryProperties()
+void ROISettingsPanel::writeCategoryProperties()
 {
   if (m_activeCategory)
   {
@@ -160,7 +160,7 @@ void RectangularROI::ROISettingsPanel::writeCategoryProperties()
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
+void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
 {
   if (!index.isValid())
     return;
@@ -216,7 +216,7 @@ void RectangularROI::ROISettingsPanel::updateCategoryROI(const QModelIndex& inde
 }
 
 //------------------------------------------------------------------------
-void RectangularROI::ROISettingsPanel::zValueChanged(int unused)
+void ROISettingsPanel::zValueChanged(int unused)
 {
   if (sender() == m_zSize)
     m_zValueChanged = true;

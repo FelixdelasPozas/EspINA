@@ -28,9 +28,10 @@ VolumeOfInterestTools::VolumeOfInterestTools(ModelAdapterSPtr model,
                                              QUndoStack      *undoStack,
                                              QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent)
-, m_manualVOITool   (new ManualVOITool(model, viewManager))
-, m_ortogonalVOITool(new OrtogonalVOITool(model, viewManager))
-, m_cleanVOITool    (new CleanVOITool(m_currentVOI, model, viewManager))
+, m_manualVOITool   {new ManualVOITool(model, viewManager)}
+, m_ortogonalVOITool{new OrthogonalVOITool(model, viewManager)}
+, m_cleanVOITool    {new CleanVOITool(model, viewManager)}
+, m_enabled         {true}
 {
   qRegisterMetaType<VOIMaskSPtr>("VOIMaskSPtr");
   connect(m_manualVOITool.get(), SIGNAL(stroke(VOIMaskSPtr)), this, SLOT(drawStroke(VOIMaskSPtr)), Qt::QueuedConnection);
@@ -39,19 +40,24 @@ VolumeOfInterestTools::VolumeOfInterestTools(ModelAdapterSPtr model,
 //-----------------------------------------------------------------------------
 VolumeOfInterestTools::~VolumeOfInterestTools()
 {
-
 }
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterestTools::setEnabled(bool value)
 {
+  if(m_enabled == value)
+    return;
 
+  m_manualVOITool->setEnabled(value);
+  m_ortogonalVOITool->setEnabled(value);
+  m_cleanVOITool->setEnabled(value);
+  m_enabled = value;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeOfInterestTools::enabled() const
 {
-  return true;
+  return m_enabled;
 }
 
 //-----------------------------------------------------------------------------

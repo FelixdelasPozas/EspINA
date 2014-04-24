@@ -27,22 +27,20 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CleanVOITool::CleanVOITool(VOIMaskSPtr&     currentVOI,
-                           ModelAdapterSPtr model,
+CleanVOITool::CleanVOITool(ModelAdapterSPtr model,
                            ViewManagerSPtr  viewManager)
-: m_currentVOI (currentVOI)
-, m_model      (model)
-, m_viewManager(viewManager)
-, m_cleanVOI   (new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this))
+: m_model      {model}
+, m_viewManager{viewManager}
+, m_cleanVOI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
+, m_enabled    {true}
 {
-  //RectangularVOISPtr voi(new RectangularVOI(m_model, m_viewManager));
-  //m_vois[action] = voi;
-  //connect(voi.get(), SIGNAL(voiDeactivated()),
-  //        this, SLOT(cancelVOI()));
-
+  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
+          this,                SLOT(ROIChanged()));
 
   connect(m_cleanVOI, SIGNAL(triggered(bool)),
           this,       SLOT(cancelVOI()));
+
+  ROIChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -54,13 +52,17 @@ CleanVOITool::~CleanVOITool()
 //-----------------------------------------------------------------------------
 void CleanVOITool::setEnabled(bool value)
 {
+  if (m_enabled == value)
+    return;
 
+  m_cleanVOI->setEnabled(value);
+  m_enabled = value;
 }
 
 //-----------------------------------------------------------------------------
 bool CleanVOITool::enabled() const
 {
-  return true;
+  return m_enabled;
 }
 
 //-----------------------------------------------------------------------------
@@ -76,5 +78,11 @@ QList<QAction *> CleanVOITool::actions() const
 //-----------------------------------------------------------------------------
 void CleanVOITool::cancelVOI()
 {
-  m_currentVOI.reset();
+  m_viewManager->setCurrentROI(nullptr);
+}
+
+//-----------------------------------------------------------------------------
+void CleanVOITool::ROIChanged()
+{
+  setEnabled(m_viewManager->currentROI() != nullptr);
 }

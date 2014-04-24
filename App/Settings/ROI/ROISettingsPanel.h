@@ -19,22 +19,26 @@
 #ifndef ROI_SETTINGS_PANEL_H_
 #define ROI_SETTINGS_PANEL_H_
 
-#include <App/Tools/ROI/RectangularROI.h>
+#include <Core/Utils/NmVector3.h>
+#include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
 #include <Support/Settings/SettingsPanel.h>
+#include <Support/ViewManager.h>
 #include "ui_RectangularROISettings.h"
 
 namespace EspINA
 {
   class ViewManager;
+  class ROISettings;
 
-  class RectangularROI::ROISettingsPanel
+  class ROISettingsPanel
   : public SettingsPanel
   , public Ui::RectangularROISettings
   {
     Q_OBJECT
   public:
     explicit ROISettingsPanel(ModelAdapterSPtr model,
-                              RectangularROI::ROISettings *settings,
+                              ROISettings *settings,
                               ViewManagerSPtr viewManager);
     virtual ~ROISettingsPanel();
 
@@ -61,7 +65,7 @@ namespace EspINA
 
   private:
     ModelAdapterSPtr m_model;
-    RectangularROI::ROISettings *m_settings;
+    ROISettings *m_settings;
     CategoryAdapterSPtr m_activeCategory;
     ViewManagerSPtr m_viewManager;
     Nm m_zSpacing;

@@ -23,7 +23,7 @@
 
 #include "CleanVOITool.h"
 #include "ManualVOITool.h"
-#include "OrtogonalVOITool.h"
+#include "OrthogonalVOITool.h"
 #include "VolumeOfInterestMask.h"
 
 #include <QAction>
@@ -58,9 +58,11 @@ namespace EspINA
   private:
     VOIMaskSPtr          m_currentVOI;
 
-    ManualVOIToolSPtr    m_manualVOITool;
-    OrtogonalVOIToolSPtr m_ortogonalVOITool;
-    CleanVOIToolSPtr     m_cleanVOITool;
+    ManualVOIToolSPtr     m_manualVOITool;
+    OrthogonalVOIToolSPtr m_ortogonalVOITool;
+    CleanVOIToolSPtr      m_cleanVOITool;
+
+    bool m_enabled;
   };
 
 } // namespace EspINA

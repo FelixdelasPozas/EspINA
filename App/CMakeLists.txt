@@ -60,14 +60,13 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Measures/MeasuresTools.h
   Tools/Brushes/CircularBrushSelector.h
   Tools/Brushes/SphericalBrushSelector.h
-  Tools/ROI/RectangularROI.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
   ToolGroups/VOI/ManualVOITool.h
   ToolGroups/VOI/CleanVOITool.h
-  ToolGroups/VOI/OrtogonalVOITool.h
+  ToolGroups/VOI/OrthogonalVOITool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
   Views/DefaultView.h
 #   Dialogs/Connectomics/ConnectomicsDialog.h
@@ -163,7 +162,7 @@ set (ESPINA_SOURCES
   ToolGroups/Measures/MeasuresTools.cpp
   ToolGroups/VOI/ManualVOITool.cpp
   ToolGroups/VOI/CleanVOITool.cpp
-  ToolGroups/VOI/OrtogonalVOITool.cpp
+  ToolGroups/VOI/OrthogonalVOITool.cpp
   ToolGroups/VOI/VolumeOfInterestTools.cpp
   Tools/Brushes/CircularBrushSelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp
@@ -173,7 +172,6 @@ set (ESPINA_SOURCES
   Tools/Ruler/RulerTool.cpp
 #   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
 #   Tools/SegmentationRemover/SegmentationRemover.cpp
-   Tools/ROI/RectangularROI.cpp
 #   Tools/Zoom/ZoomTool.cpp
 #   Undo/AtomicModelOperations.cpp 
   Undo/BrushUndoCommand.cpp
