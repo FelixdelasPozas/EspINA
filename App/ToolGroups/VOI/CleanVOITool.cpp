@@ -46,6 +46,12 @@ CleanVOITool::CleanVOITool(ModelAdapterSPtr model,
 //-----------------------------------------------------------------------------
 CleanVOITool::~CleanVOITool()
 {
+  disconnect(m_viewManager.get(), SIGNAL(ROIChanged()),
+             this,                SLOT(ROIChanged()));
+
+  disconnect(m_cleanVOI, SIGNAL(triggered(bool)),
+             this,       SLOT(cancelVOI()));
+
   delete m_cleanVOI;
 }
 

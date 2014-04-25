@@ -27,14 +27,14 @@
 class QAction;
 namespace EspINA
 {
-  /// Volume Of Interest Toolbar
+  // Volume Of Interest Toolbar
   class ManualVOITool
   : public ManualEditionTool
   {
     Q_OBJECT
   public:
     explicit ManualVOITool(ModelAdapterSPtr model,
-                          ViewManagerSPtr  viewManager);
+                           ViewManagerSPtr  viewManager);
     virtual ~ManualVOITool();
 
   signals:

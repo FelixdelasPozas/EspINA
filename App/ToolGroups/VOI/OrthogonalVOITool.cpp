@@ -25,6 +25,7 @@
 
 // Qt
 #include <QAction>
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -33,13 +34,14 @@ OrthogonalVOITool::OrthogonalVOITool(ModelAdapterSPtr model,
                                    ViewManagerSPtr  viewManager)
 : m_model        {model}
 , m_viewManager  {viewManager}
-, m_applyVOI     {new QAction(QIcon(":/espina/voi_Orthogonal.svg"), tr("Orthogonal Volume Of Interest"), this)}
+, m_applyVOI     {new QAction(QIcon(":/espina/voi_ortogonal.svg"), tr("Orthogonal Volume Of Interest"), this)}
 , m_enabled      {true}
 , m_widget       {nullptr}
 , m_sliceSelector{nullptr}
 , m_settings     { new ROISettings()}
 {
   m_applyVOI->setCheckable(true);
+  m_applyVOI->setEnabled(m_viewManager->currentROI() == nullptr);
 
   connect(m_viewManager.get(), SIGNAL(ROIChanged()),
           this,                SLOT(ROIChanged()));
@@ -53,23 +55,24 @@ OrthogonalVOITool::OrthogonalVOITool(ModelAdapterSPtr model,
   eventHandler->setSelectionTag(Selector::CHANNEL, true);
 
   m_selector = EventHandlerSPtr{eventHandler};
-
-//   connect(m_applyVOI, SIGNAL(triggered(bool)),
-//           this,       SLOT(changeVOI(QAction*)));
-//   connect(m_applyVOI, SIGNAL(nCanceled()),
-//           this,       SLOT(cancelVOI()));
 }
 
 //-----------------------------------------------------------------------------
 OrthogonalVOITool::~OrthogonalVOITool()
 {
-  delete m_applyVOI;
   delete m_settings;
+
+  disconnect(m_viewManager.get(), SIGNAL(ROIChanged()),
+             this,                SLOT(ROIChanged()));
+
+  disconnect(m_applyVOI, SIGNAL(triggered(bool)),
+             this,       SLOT(initTool(bool)));
+
+  delete m_applyVOI;
 
   if (m_widget != nullptr)
   {
     m_widget->setEnabled(false);
-    m_viewManager->removeWidget(m_widget);
     m_widget = nullptr;
   }
   m_viewManager->setCurrentROI(nullptr);
@@ -109,8 +112,18 @@ void OrthogonalVOITool::ROIChanged()
     m_viewManager->removeWidget(m_widget);
     m_widget->setEnabled(false);
     m_widget = nullptr;
+
+    if(m_applyVOI->isChecked())
+    {
+      m_viewManager->setEventHandler(m_selector);
+      connect(m_selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
+              this,        SLOT(defineROI(Selector::SelectionList)));
+    }
+
     m_viewManager->updateViews();
   }
+
+  m_applyVOI->setEnabled(m_viewManager->currentROI() == nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -127,12 +140,10 @@ void OrthogonalVOITool::initTool(bool value)
       }
       break;
     case false:
-      if(m_widget != nullptr)
-      {
         m_viewManager->unsetEventHandler(m_selector);
         disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
                    this,        SLOT(defineROI(Selector::SelectionList)));
-      }
+        m_applyVOI->setChecked(false);
       break;
     default:
       break;
@@ -176,9 +187,7 @@ void OrthogonalVOITool::defineROI(Selector::SelectionList channels)
   m_viewManager->updateViews();
   rrWidget->setEnabled(true);
 
-  m_viewManager->unsetEventHandler(m_selector);
-  disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
-             this,        SLOT(defineROI(Selector::SelectionList)));
+  initTool(false);
 
 //  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
 //  m_sliceSelector->setLeftLabel ("From");
