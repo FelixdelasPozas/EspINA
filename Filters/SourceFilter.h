@@ -36,7 +36,7 @@ namespace EspINA
     virtual void restoreState(const State &state);
     virtual State state() const;
 
-    void addOutput(itkVolumeType::Pointer volume);
+    void addOutput(Output::Id id, OutputSPtr output);
 
   protected:
     virtual Snapshot saveFilterSnapshot() const;
@@ -55,6 +55,8 @@ namespace EspINA
 
     virtual bool invalidateEditedRegions();
   };
+
+  using SourceFilterSPtr = std::shared_ptr<SourceFilter>;
 
 } // namespace EspINA
 

@@ -47,22 +47,9 @@ State SourceFilter::state() const
 }
 
 //-----------------------------------------------------------------------------
-void SourceFilter::addOutput(itkVolumeType::Pointer volume)
+void SourceFilter::addOutput(Output::Id id, OutputSPtr output)
 {
-  Output::Id lastOutput = m_outputs.size();
-
-  OutputSPtr output{new Output(this, lastOutput)};
-
-  Bounds    bounds  = equivalentBounds<itkVolumeType>(volume, volume->GetLargestPossibleRegion());
-  NmVector3 spacing = ToNmVector3<itkVolumeType>(volume->GetSpacing());
-
-  DefaultVolumetricDataSPtr data{new SparseVolume<itkVolumeType>(bounds, spacing)};
-  data->draw(volume);
-
-  output->setData(data);
-
-
-  m_outputs[lastOutput] = output;
+  m_outputs[id] = output;
 }
 
 //-----------------------------------------------------------------------------

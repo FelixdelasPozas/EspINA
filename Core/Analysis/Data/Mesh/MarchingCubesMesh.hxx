@@ -152,7 +152,7 @@ namespace EspINA
     if (!m_mesh)
     {
       m_mesh = vtkSmartPointer<vtkPolyData>::New();
-      updateMesh();
+      const_cast<MarchingCubesMesh<T> *>(this)->updateMesh();
     }
 
     return m_mesh;
