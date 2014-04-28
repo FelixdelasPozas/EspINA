@@ -73,6 +73,11 @@ namespace EspINA
 
     bool useDistanceToBounds() const;
 
+    /**
+     * \brief Return the image region that excludes slice margin voxels
+     */
+    itkVolumeType::RegionType sliceRegion(unsigned int slice) const;
+
     void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
     void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
@@ -96,6 +101,8 @@ namespace EspINA
     { return QVariant(); }
 
   private:
+    void initializeEdges();
+
     void analyzeChannel();
 
     void computeAdaptiveEdges();

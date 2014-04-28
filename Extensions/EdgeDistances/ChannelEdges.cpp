@@ -21,9 +21,11 @@
 #include "AdaptiveEdgesCreator.h"
 #include "EdgesAnalyzer.h"
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Output.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 #include <vtkAppendPolyData.h>
@@ -91,6 +93,20 @@ void ChannelEdges::onExtendedItemSet(Channel *item)
   {
     analyzeChannel();
   }
+}
+
+//-----------------------------------------------------------------------------
+void ChannelEdges::initializeEdges()
+{
+  loadEdgesCache();
+
+  QWriteLocker lock(&m_edgesMutex);
+  if (!m_edges.GetPointer())
+  {
+    computeAdaptiveEdges();
+  }
+
+  QReadLocker edgesLock(&m_edgesResultMutex);
 }
 
 //-----------------------------------------------------------------------------
@@ -221,6 +237,37 @@ bool ChannelEdges::useDistanceToBounds() const
 }
 
 //-----------------------------------------------------------------------------
+itkVolumeType::RegionType ChannelEdges::sliceRegion(unsigned int slice) const
+{
+  itkVolumeType::RegionType region;
+
+  auto origin = m_extendedItem->position();
+  auto spacing = m_extendedItem->output()->spacing();
+
+  if (useDistanceToBounds())
+  {
+    region = equivalentRegion<itkVolumeType>(origin, spacing, m_extendedItem->bounds());
+    region.SetIndex(2, region.GetIndex(2) + slice);
+    region.SetSize(2, 1);
+  }
+  else
+  {
+    initializeEdges();
+
+    double LB[3], RT[3];
+
+    m_edges->GetPoint(slice*4+0, LB);
+    m_edges->GetPoint(slice*4+2, RT);
+
+    Bounds bounds{LB[0], RT[0], RT[1], LB[1], LB[2], LB[2]};
+
+    region = equivalentRegion<itkVolumeType>(origin, spacing, bounds);
+  }
+
+  return region;
+}
+
+//-----------------------------------------------------------------------------
 void ChannelEdges::distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const
 {
   Bounds channelBounds      = m_extendedItem->bounds();
@@ -268,15 +315,8 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 {
-  loadEdgesCache();
+  initializeEdges();
 
-  QWriteLocker lock(&m_edgesMutex);
-  if (!m_edges.GetPointer())
-  {
-    computeAdaptiveEdges();
-  }
-
-  QReadLocker edgesLock(&m_edgesResultMutex);
   //qDebug() << "Accesing Edges";
   vtkSmartPointer<vtkPolyData> result = vtkSmartPointer<vtkPolyData>::New();
   result->DeepCopy(m_edges);
@@ -287,15 +327,8 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 //-----------------------------------------------------------------------------
 Nm ChannelEdges::computedVolume()
 {
-  loadEdgesCache();
+  initializeEdges();
 
-  QWriteLocker lock(&m_edgesMutex);
-  if (!m_edges.GetPointer()) 
-  {
-    computeAdaptiveEdges();
-  }
-
-  QReadLocker edgesLock(&m_edgesResultMutex);
   //qDebug() << "Accesing Edges";
 
   return m_computedVolume;
@@ -346,15 +379,7 @@ int ChannelEdges::threshold() const
 //-----------------------------------------------------------------------------
 void ChannelEdges::computeSurfaces()
 {
-  loadEdgesCache();
-
-  QWriteLocker lock(&m_edgesMutex);
-  if (!m_edges)
-  {
-    computeAdaptiveEdges();
-  }
-
-  QReadLocker edgesLock(&m_edgesResultMutex);
+  initializeEdges();
 
   vtkPoints *borderPoints = m_edges->GetPoints();
   int numSlices = m_edges->GetNumberOfPoints()/4;
