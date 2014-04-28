@@ -104,6 +104,8 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
     else
       if (extent[4] == extent[5])
         plane = EspINA::Plane::XY;
+      else
+        plane = EspINA::Plane::UNDEFINED;
 
   EspINA::Nm spacing[3];
   image->GetSpacing(spacing);
@@ -296,6 +298,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
       }
     }
       break;
+    case EspINA::Plane::UNDEFINED:
     default:
       Q_ASSERT(false);
       break;

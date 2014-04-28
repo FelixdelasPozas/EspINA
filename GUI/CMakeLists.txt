@@ -8,7 +8,6 @@ include_directories(
 qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
-  Dialogs/CategorySelectorDialog.h
   Model/FilterAdapter.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
@@ -18,8 +17,6 @@ qt4_wrap_cpp(GUI_MOC
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
   Representations/Renderers/Renderer.h
-  Representations/RepresentationEmptySettings.h
-  Representations/SliceRepresentationSettings.h
   Representations/SmoothedMeshRepresentation.h
   Representations/SliceCachedRepresentation.h
   Representations/Renderers/CachedSliceRenderer.h

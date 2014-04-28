@@ -402,17 +402,12 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
         SampleAdapterPtr sample = samplePtr(sourceRow);
         m_samples << sample;
         auto channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
-        if (!channels.isEmpty())
+        for (auto channel : channels)
         {
-          int channelStart = 0;
-          int channelEnd   = channelStart + channels.size() - 1;
-            for(auto channel : channels)
-            {
-              if (channel)
-              {
-                m_channels[sample] << channel.get();
-              }
-            }
+          if (channel)
+          {
+            m_channels[sample] << channel.get();
+          }
         }
       }
     }
@@ -508,7 +503,7 @@ void ChannelProxy::sourceRowsAboutToBeMoved(const QModelIndex& sourceParent, int
   auto sourceItem   = itemAdapter(sourceParent);
   auto sourceSample = samplePtr(sourceItem);
 
-  auto movingItem    = itemAdapter(sourceParent.child(sourceStart, 0));
+//  auto movingItem    = itemAdapter(sourceParent.child(sourceStart, 0));
   auto movingChannel = channelPtr(sourceItem);
 
   int prevChannelRow = m_channels[sourceSample].indexOf(movingChannel);

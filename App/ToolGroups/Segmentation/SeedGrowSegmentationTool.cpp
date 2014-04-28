@@ -193,14 +193,13 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
     return;
 
   auto element = selectedItems.first();
-  auto input   = element.second;
 
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
 
   Nm seedPoint[3];
   element.first->GetPoint(0, seedPoint);
 
-  Q_ASSERT(ItemAdapter::Type::CHANNEL == input->type());
+  Q_ASSERT(ItemAdapter::Type::CHANNEL == element.second->type());
   auto channel = m_viewManager->activeChannel();
 
   if (!channel)
