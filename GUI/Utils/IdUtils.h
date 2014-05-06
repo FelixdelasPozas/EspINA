@@ -26,65 +26,43 @@
  * 
  */
 
-#ifndef ESPINA_ANALYSIS_UTILS_H
-#define ESPINA_ANALYSIS_UTILS_H
+#ifndef ESPINA_ID_UTILS_H
+#define ESPINA_ID_UTILS_H
 
 #include <Core/Analysis/Analysis.h>
+#include <Core/Utils/AnalysisUtils.h>
+#include <QInputDialog>
 
 namespace EspINA {
 
-  AnalysisSPtr merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
-
-  SampleSPtr findSample(SampleSPtr sample, SampleSList samples);
-
-  ChannelSPtr findChannel(ChannelSPtr sample, ChannelSList channels);
-
-  template<typename T> 
-  std::shared_ptr<T> find(T *item, QList<std::shared_ptr<T>> list)
+  template<typename I, typename L>
+  void SetUniqueIdWithUserConfirmation(I& item, QString id, const L& list)
   {
-    for(auto smartItem : list)
+    bool alreadyUsed = false;
+    bool accepted    = true;
+
+    for (auto listItem : list)
     {
-      if (smartItem.get() == item) return smartItem;
+      if (listItem != item)
+        alreadyUsed |= item->id() == id;
     }
 
-    return std::shared_ptr<T>();
-  }
-
-  template<typename T>
-  QString SuggestId(const QString& id, const T& list)
-  {
-    QRegExp cardinalityRegExp("\\([0-9]+\\)");
-    QString cardinalityStrippedId = QString(id).replace(cardinalityRegExp, "").trimmed();
-
-    QString suggestedId = cardinalityStrippedId;
-
-    int count = 0;
-    for (auto item : list)
+    if (alreadyUsed)
     {
-      if (item->id().startsWith(cardinalityStrippedId))
+      QString suggestedId = SuggestId(id, list);
+      while (suggestedId != id)
       {
-        int cardinalityIndex = item->id().lastIndexOf(cardinalityRegExp);
-
-        if (cardinalityIndex == -1)
-        {
-          ++count;
-        }
-        else
-        {
-          auto cardinality = item->id().mid(cardinalityIndex + 1);
-          cardinality = cardinality.left(cardinality.length()-1);
-
-          count = std::max(count, cardinality.toInt() + 1);
-        }
+        id = QInputDialog::getText(nullptr,
+                                   QObject::tr("Id already used"),
+                                   QObject::tr("Introduce new id (or accept suggested one)"),
+                                   QLineEdit::Normal,
+                                   suggestedId,
+                                   &accepted);
+        suggestedId = SuggestId(id, list);
       }
     }
 
-    if (count > 0)
-    {
-      suggestedId.append(QString(" (%1)").arg(count));
-    }
-
-    return suggestedId;
+    item->setId(id);
   }
 
   unsigned int firstUnusedSegmentationNumber(const AnalysisSPtr analysis);
