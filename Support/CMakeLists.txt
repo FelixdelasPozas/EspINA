@@ -9,10 +9,11 @@ include_directories(
 )
 
 qt4_wrap_cpp(Support_MOC
-  EventHandler.h
-  ViewManager.h
-  ToolGroup.h
   DockWidget.h
+  EventHandler.h
+  Plugin.h
+  ToolGroup.h
+  ViewManager.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 

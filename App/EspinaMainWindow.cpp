@@ -382,6 +382,9 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
     {
       validPlugin->init(m_model, m_viewManager, m_factory, m_scheduler, m_undoStack);
 
+      connect(this,        SIGNAL(analysisChanged()),
+              validPlugin, SLOT(onAnalysisChanged()));
+
       for (auto colorEngine : validPlugin->colorEngines())
       {
         qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
@@ -754,6 +757,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       m_viewManager->setActiveChannel(m_model->channels().first().get());
     }
   }
+
+  emit analysisChanged();
 }
 
 //------------------------------------------------------------------------

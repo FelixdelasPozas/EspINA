@@ -42,6 +42,7 @@ namespace EspINA
   class EspinaSupport_EXPORT Plugin
   : public QObject
   {
+    Q_OBJECT
   public:
     virtual ~Plugin(){}
 
@@ -77,6 +78,8 @@ namespace EspINA
 
     virtual SettingsPanelSList settingsPanels() = 0;
 
+  public slots:
+    virtual void onAnalysisChanged() {}
 //     /** \brief
 //      */
 //     virtual Snapshot snapshot() const = 0;

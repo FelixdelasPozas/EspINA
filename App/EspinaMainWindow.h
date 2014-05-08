@@ -128,6 +128,8 @@ class MainToolBar;
     void redoAction(bool);
 
   signals:
+    void analysisChanged();
+
     void analysisClosed();
 
     void abortOperation();

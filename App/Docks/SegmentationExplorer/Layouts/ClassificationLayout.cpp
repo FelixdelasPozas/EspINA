@@ -34,11 +34,11 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-class RenameTaxonomyCommand
+class RenameCategoryCommand
 : public QUndoCommand
 {
 public:
-  explicit RenameTaxonomyCommand(CategoryAdapterPtr categoryItem,
+  explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
                                  const QString      &name,
                                  ModelAdapterSPtr   model,
                                  QUndoCommand      *parent = 0)
@@ -88,22 +88,22 @@ public:
                             QAbstractItemModel *model,
                             const QModelIndex  &index) const
   {
-//     QSortFilterProxyModel *proxy = static_cast<QSortFilterProxyModel *>(model);
-//     ItemAdapterPtr item = itemAdapter(proxy->mapToSource(index));
-//     if (EspINA::TAXONOMY == item->type())
-//     {
-//       QLineEdit *textEditor = static_cast<QLineEdit *>(editor);
-//       QString name = textEditor->text();
-// 
-//       CategoryAdapterPtr taxonomy = taxonomyElementPtr(item);
-// 
-//       if (!taxonomy->parent()->element(name))
-//       {
-//         m_undoStack->beginMacro("Rename Taxonomy");
-//         m_undoStack->push(new RenameTaxonomyCommand(taxonomy, name, m_model));
-//         m_undoStack->endMacro();
-//       }
-//     }
+    QSortFilterProxyModel *proxy = static_cast<QSortFilterProxyModel *>(model);
+    ItemAdapterPtr item = itemAdapter(proxy->mapToSource(index));
+    if (isCategory(item))
+    {
+      QLineEdit *textEditor = static_cast<QLineEdit *>(editor);
+      QString name = textEditor->text();
+
+      auto category = categoryPtr(item);
+
+      if (!category->parent()->subCategory(name))
+      {
+        m_undoStack->beginMacro("Rename Category");
+        m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
+        m_undoStack->endMacro();
+      }
+    }
   }
 
 private:
