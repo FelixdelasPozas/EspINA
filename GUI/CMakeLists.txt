@@ -71,6 +71,7 @@ set (GUI_SOURCES
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
   Dialogs/CategorySelectorDialog.cpp
+  Dialogs/DefaultDialogs.cpp
   Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp
   Model/ChannelAdapter.cpp
@@ -112,6 +113,7 @@ set (GUI_SOURCES
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/Conditions.cpp
+  Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
   View/RenderView.cpp
   View/Selection.cpp

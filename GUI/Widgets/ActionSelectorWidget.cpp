@@ -28,8 +28,10 @@ ActionSelectorWidget::ActionSelectorWidget(QWidget* parent)
   setAutoRaise(true);
   connect(this, SIGNAL(triggered(QAction*)), this, SLOT(changeAction(QAction*)));
   connect(this, SIGNAL(toggled(bool)), this, SLOT(triggerAction(bool)));
+  connect(this, SIGNAL(clicked(bool)), this, SLOT(triggerAction(bool)));
 }
 
+//------------------------------------------------------------------------
 void ActionSelectorWidget::addAction(QAction* action)
 {
   if (!m_actions->actions().contains(action))
@@ -47,20 +49,29 @@ void ActionSelectorWidget::addAction(QAction* action)
     this->setToolTip(action->text());
 }
 
+//------------------------------------------------------------------------
 void ActionSelectorWidget::cancelAction()
 {
   setChecked(false);
 }
 
+//------------------------------------------------------------------------
 void ActionSelectorWidget::triggerAction(bool trigger)
 {
-  if (trigger)
-    emit actionTriggered(m_selectedAction);
+  if (isCheckable())
+  {
+    if (trigger)
+      emit actionTriggered(m_selectedAction);
+    else
+      emit actionCanceled();
+  }
   else
-    emit actionCanceled();
+  {
+    m_selectedAction->trigger();
+  }
 }
 
-
+//------------------------------------------------------------------------
 void ActionSelectorWidget::changeAction(QAction* action)
 {
   if (isChecked())
@@ -77,6 +88,7 @@ void ActionSelectorWidget::changeAction(QAction* action)
   }
 }
 
+//------------------------------------------------------------------------
 void ActionSelectorWidget::setButtonAction(QAction *action)
 {
   if (m_actions->actions().contains(action))
@@ -86,6 +98,7 @@ void ActionSelectorWidget::setButtonAction(QAction *action)
   }
 }
 
+//------------------------------------------------------------------------
 QAction* ActionSelectorWidget::getButtonAction()
 {
   return this->m_selectedAction;

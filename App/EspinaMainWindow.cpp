@@ -54,6 +54,7 @@
 #include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Representations/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Representations/Renderers/VolumetricRenderer.h>
+#include <GUI/Utils/DefaultIcons.h>
 #include <Support/Plugin.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
@@ -66,6 +67,7 @@
 #include <QtGui>
 
 using namespace EspINA;
+using namespace EspINA::GUI;
 
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
@@ -112,9 +114,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
           m_viewManager.get(), SLOT  (updateViews()));
 
   QIcon addIcon = QIcon(":espina/add.svg");
-  QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
-  QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
-  QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
@@ -138,10 +137,10 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   {
     QMenu *openMenu = fileMenu->addMenu(tr("&Open"));
     {
-      openMenu->setIcon(openIcon);
+      openMenu->setIcon(DefaultIcons::Load());
       openMenu->setToolTip(tr("Open New Analysis"));
 
-      QAction *openAction = new QAction(fileIcon, tr("&File"),this);
+      QAction *openAction = new QAction(DefaultIcons::File(), tr("&File"),this);
 
       openMenu->addAction(openAction);
       openMenu->addSeparator();
@@ -162,7 +161,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
       m_addMenu->setToolTip(tr("Add File to Analysis"));
       m_addMenu->setEnabled(false);
 
-      QAction *addAction = new QAction(fileIcon, tr("&File"),this);
+      QAction *addAction = new QAction(DefaultIcons::File(), tr("&File"),this);
 
       m_addMenu->addAction(addAction);
       m_addMenu->addSeparator();
@@ -180,13 +179,13 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
               this, SLOT(addToAnalysis()));
     }
 
-    m_saveSessionAnalysis = fileMenu->addAction(saveIcon, tr("&Save"));
+    m_saveSessionAnalysis = fileMenu->addAction(DefaultIcons::Save(), tr("&Save"));
     m_saveSessionAnalysis->setEnabled(false);
     m_saveSessionAnalysis->setShortcut(Qt::CTRL+Qt::Key_S);
     connect(m_saveSessionAnalysis, SIGNAL(triggered(bool)),
             this,SLOT(saveSessionAnalysis()));
 
-    m_saveAnalysis = fileMenu->addAction(saveIcon, tr("Save &As..."));
+    m_saveAnalysis = fileMenu->addAction(DefaultIcons::Save(), tr("Save &As..."));
     m_saveAnalysis->setEnabled(false);
     connect(m_saveAnalysis, SIGNAL(triggered(bool)),
             this,SLOT(saveAnalysis()));

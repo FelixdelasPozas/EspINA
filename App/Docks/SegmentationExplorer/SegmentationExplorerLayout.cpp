@@ -167,29 +167,31 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
     {
       QModelIndex child = parent.child(row, 0);
       ItemAdapterPtr item = itemAdapter(child);
-      if (ItemAdapter::Type::SEGMENTATION == item->type())
-      {//TODO
-//         SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
-// 
-//         foreach(SegmentationInspectorKey key, m_inspectors.keys())
-//           if (key.contains(segKey))
-//           {
-//             SegmentationInspector *inspector = m_inspectors[key];
-//             if (key == segKey)
-//             {
-//               m_inspectors.remove(key);
-//               inspector->close();
-//             }
-//             else
-//             {
-//               QString newKey(key);
-// 
-//               m_inspectors.remove(key);
-//               m_inspectors.insert(newKey.remove(segKey), inspector);
-// 
-//               inspector->removeSegmentation(segmentationPtr(item));
-//             }
-//           }
+      if (isSegmentation(item))
+      {
+        SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
+
+        for(auto key : m_inspectors.keys())
+        {
+          if (key.contains(segKey))
+          {
+            SegmentationInspector *inspector = m_inspectors[key];
+            if (key == segKey)
+            {
+              m_inspectors.remove(key);
+              inspector->close();
+            }
+            else
+            {
+              QString newKey(key);
+
+              m_inspectors.remove(key);
+              m_inspectors.insert(newKey.remove(segKey), inspector);
+
+              inspector->removeSegmentation(segmentationPtr(item));
+            }
+          }
+        }
       }
     }
   }

@@ -281,6 +281,9 @@ void ClassificationLayout::deleteSelectedItems()
   if (!categories.isEmpty())
   {
     QModelIndexList selectedIndexes = m_view->selectionModel()->selectedIndexes();
+
+    m_view->selectionModel()->clear();
+
     QModelIndexList additionalIndexes;
     for(QModelIndex index : selectedIndexes)
     {
