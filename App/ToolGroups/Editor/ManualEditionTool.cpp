@@ -199,7 +199,7 @@ namespace EspINA
     if(m_showOpacityControls)
       this->m_opacityWidget->setVisible(false);
 
-    m_viewManager->unsetEventHandler(m_currentSelector);
+    m_viewManager->setEventHandler(nullptr);
     m_currentSelector.reset();
   }
 
