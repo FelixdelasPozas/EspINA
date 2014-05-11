@@ -122,13 +122,30 @@ namespace EspINA
 
     virtual void eventPosition(int &x, int &y);
 
-    // DEPRECATED
-    virtual Selector::SelectionList pick(Selector::SelectionFlags filter, Selector::DisplayRegionList regions) = 0;
+    /* \brief Selects the NeuroItems specified in flags parameter whose voxels intersect the ones
+     * in the mask given as parameter.
+     * \param[in] flags NeuroItems selection flags.
+     * \param[in] mask  Area selected to intersect with the items in the view.
+     *
+     */
+    virtual Selector::Selection select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask) const;
 
-    virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask) = 0;
+    /* \brief Selects the NeuroIntems specified in flags parameter that has a voxel in the WORLD position
+     * specified in the point parameter.
+     * \param[in] flags NeuroItems selection flags.
+     * \param[in] point Point in WORLD coordinates (not necessarily in the slice position of the view).
+     *
+     */
+    virtual Selector::Selection select(const Selector::SelectionFlags flags, const NmVector3 &point) const;
 
-//     virtual Selection currentSelection() const;
-    //virtual void worldCoordinates(const QPoint &displayPos, double worldPos[3]) = 0;
+    /* \brief Selects the NeuroItems specified in the flags parameter that has a voxel in the SCREEN
+     * position specified by the x and y parameters.
+     * \param[in] flags NeuroItems selection flags.
+     * \param[in] x     x position in screen coordinates.
+     * \param[in] y     y position in screen coordinates.
+     *
+     */
+    virtual Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y) const = 0;
 
     virtual vtkRenderWindow *renderWindow();
     virtual vtkRenderer     *mainRenderer();

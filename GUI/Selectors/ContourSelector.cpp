@@ -14,28 +14,19 @@
 
 using namespace EspINA;
 
-
-ContourSelector::ContourSelector(ISelector *succesor)
-: m_cursor(Qt::CrossCursor)
-{
-}
-
-ContourSelector::~ContourSelector()
-{
-}
-
-bool ContourSelector::filterEvent(QEvent* e, EspinaRenderView *view)
+//-----------------------------------------------------------------------------
+bool ContourSelector::filterEvent(QEvent* e, RenderView *view)
 {
   switch (e->type())
   {
     case QEvent::Enter:
-      return ISelector::filterEvent(e, view);
+      return Selector::filterEvent(e, view);
       break;
     case QEvent::Leave:
-      return ISelector::filterEvent(e, view);
+      return Selector::filterEvent(e, view);
       break;
     case QEvent::Wheel:
-      return ISelector::filterEvent(e, view);
+      return Selector::filterEvent(e, view);
       break;
     default:
       break;
@@ -44,6 +35,7 @@ bool ContourSelector::filterEvent(QEvent* e, EspinaRenderView *view)
   return true;
 }
 
+//-----------------------------------------------------------------------------
 QCursor ContourSelector::cursor()
 {
   return m_cursor;

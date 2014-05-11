@@ -5,25 +5,28 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-#ifndef _CONTOURSELECTOR_H_
-#define _CONTOURSELECTOR_H_
+#ifndef ESPINA_CONTOUR_SELECTOR_H_
+#define ESPINA_CONTOUR_SELECTOR_H_
 
 #include "EspinaGUI_Export.h"
-
-#include <GUI/Pickers/ISelector.h>
+#include <GUI/Selectors/Selector.h>
 
 class QCursor;
 
 namespace EspINA
 {
   class EspinaGUI_EXPORT ContourSelector
-  : public ISelector
+  : public Selector
   {
 	public:
-	  explicit ContourSelector(ISelector *successor = NULL);
-	  virtual ~ContourSelector();
+	  explicit ContourSelector()
+	  : m_cursor(Qt::CrossCursor)
+	  {}
 
-	  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
+	  virtual ~ContourSelector()
+	  {}
+
+	  virtual bool filterEvent(QEvent* e, RenderView *view = 0);
 	  virtual QCursor cursor();
 	private:
 	  QCursor m_cursor;

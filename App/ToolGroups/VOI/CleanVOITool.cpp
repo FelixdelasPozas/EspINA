@@ -38,7 +38,7 @@ CleanVOITool::CleanVOITool(ModelAdapterSPtr model,
           this,                SLOT(ROIChanged()));
 
   connect(m_cleanVOI, SIGNAL(triggered(bool)),
-          this,       SLOT(cancelVOI()));
+          this,       SLOT(cancelROI()));
 
   ROIChanged();
 }
@@ -50,7 +50,7 @@ CleanVOITool::~CleanVOITool()
              this,                SLOT(ROIChanged()));
 
   disconnect(m_cleanVOI, SIGNAL(triggered(bool)),
-             this,       SLOT(cancelVOI()));
+             this,       SLOT(cancelROI()));
 
   delete m_cleanVOI;
 }
@@ -61,8 +61,8 @@ void CleanVOITool::setEnabled(bool value)
   if (m_enabled == value)
     return;
 
-  m_cleanVOI->setEnabled(value);
   m_enabled = value;
+  ROIChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ QList<QAction *> CleanVOITool::actions() const
 }
 
 //-----------------------------------------------------------------------------
-void CleanVOITool::cancelVOI()
+void CleanVOITool::cancelROI()
 {
   m_viewManager->setCurrentROI(nullptr);
 }
@@ -90,5 +90,5 @@ void CleanVOITool::cancelVOI()
 //-----------------------------------------------------------------------------
 void CleanVOITool::ROIChanged()
 {
-  setEnabled(m_viewManager->currentROI() != nullptr);
+  m_cleanVOI->setEnabled(m_enabled && (m_viewManager->currentROI() != nullptr));
 }

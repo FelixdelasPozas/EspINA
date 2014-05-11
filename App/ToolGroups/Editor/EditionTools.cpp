@@ -75,8 +75,8 @@ namespace EspINA
     m_factory->registerFilterFactory(m_filterFactory);
 
     m_manualEdition = ManualEditionToolSPtr(new ManualEditionTool(model, viewManager));
-    connect(m_manualEdition.get(), SIGNAL(stroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)),
-            this,                  SLOT(drawStroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
+    connect(m_manualEdition.get(), SIGNAL(stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)),
+            this,                  SLOT(drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
 
     m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
     m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
@@ -141,13 +141,29 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void EditionTools::drawStroke(ViewItemAdapterPtr item, CategoryAdapterSPtr category, BinaryMaskSPtr<unsigned char> mask)
+  void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsigned char> mask)
   {
-    SegmentationAdapterSPtr segmentation;
+    ManualEditionToolPtr tool = qobject_cast<ManualEditionToolPtr>(sender());
 
-    switch(item->type())
+    SegmentationAdapterSPtr segmentation;
+    auto selection = m_viewManager->selection();
+    if(selection->items().empty())
     {
-      case ViewItemAdapter::Type::CHANNEL:
+      ChannelAdapterList primaryChannel;
+      primaryChannel << m_viewManager->activeChannel();
+      selection->set(primaryChannel);
+    }
+
+    if(!selection->segmentations().empty())
+    {
+      auto item = selection->segmentations().first();
+      segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
+      m_undoStack->beginMacro(tr("Modify Segmentation"));
+      m_undoStack->push(new DrawUndoCommand(segmentation, mask));
+      m_undoStack->endMacro();
+    }
+    else
+      if(!selection->channels().empty())
       {
         auto adapter = m_factory->createFilter<FreeFormSource>(InputSList(), FREEFORM_FILTER);
         auto filter = adapter->get();
@@ -156,6 +172,7 @@ namespace EspINA
         segmentation = m_factory->createSegmentation(adapter, 0);
         segmentation->setCategory(category);
 
+        auto item = selection->channels().first();
         auto channelItem = static_cast<ChannelAdapterPtr>(item);
 
         SampleAdapterSList samples;
@@ -168,21 +185,12 @@ namespace EspINA
 
         SegmentationAdapterList list;
         list << segmentation.get();
+        m_viewManager->selection()->clear();
         m_viewManager->selection()->set(list);
-        break;
+        tool->updateReferenceItem(m_viewManager->selection());
       }
-      case ViewItemAdapter::Type::SEGMENTATION:
-      {
-        segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
-        m_undoStack->beginMacro(tr("Modify Segmentation"));
-        m_undoStack->push(new DrawUndoCommand(segmentation, mask));
-        m_undoStack->endMacro();
-        break;
-      }
-      default:
+      else
         Q_ASSERT(false);
-        break;
-    }
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();

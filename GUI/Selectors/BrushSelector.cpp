@@ -51,29 +51,30 @@
 #include <vtkImageMapToColors.h>
 #include <vtkImageData.h>
 #include <vtkInformation.h>
+#include <vtkPoints.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 BrushSelector::BrushSelector()
-: m_referenceItem(nullptr)
-, m_displayRadius(-1)
-, m_borderColor(Qt::blue)
-, m_brushColor(Qt::blue)
-, m_brushOpacity(50)
-, m_brushImage(nullptr)
-, m_stroke(vtkSmartPointer<vtkPoints>::New())
-, m_plane(Plane::XY)
-, m_radius(-1)
-, m_lut(nullptr)
-, m_preview(nullptr)
-, m_mapToColors(nullptr)
-, m_actor(nullptr)
-, m_previewBounds(Bounds())
-, m_drawing(true)
-, m_lastUpdateBounds(Bounds())
-, m_tracking(false)
-, m_previewView(nullptr)
+: m_referenceItem   {nullptr}
+, m_displayRadius   {15}
+, m_borderPaintColor{Qt::blue}
+, m_borderEraseColor{Qt::red}
+, m_brushColor      {Qt::blue}
+, m_brushOpacity    {50}
+, m_brushImage      {nullptr}
+, m_plane           {Plane::UNDEFINED}
+, m_radius          {-1}
+, m_lut             {nullptr}
+, m_preview         {nullptr}
+, m_mapToColors     {nullptr}
+, m_actor           {nullptr}
+, m_previewBounds   {Bounds()}
+, m_drawing         {true}
+, m_lastUpdateBounds{Bounds()}
+, m_tracking        {false}
+, m_previewView     {nullptr}
 {
   memset(m_viewSize, 0, 2*sizeof(int));
   memset(m_LL, 0, 3*sizeof(double));
@@ -122,7 +123,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
     case QEvent::Enter:
       {
         m_drawing = !ShiftKeyIsDown();
-        //TODO: initBrush();
+        buildCursor();
         view->setCursor(m_cursor);
 
         if (!m_drawing)
@@ -134,10 +135,10 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
     case QEvent::KeyPress:
       {
         ke = static_cast<QKeyEvent *>(e);
-        if ((ke->key() == Qt::Key_Shift) && !m_tracking && (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION))
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking && m_referenceItem && (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION))
         {
           m_drawing = false;
-          //TODO initBrush();
+          buildCursor();
           view->setCursor(m_cursor);
           startPreview(view);
 
@@ -153,7 +154,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         {
           stopPreview(view);
           m_drawing = true;
-          //TODO initBrush();
+          buildCursor();
           view->setCursor(m_cursor);
 
           emit drawingModeChanged(m_drawing);
@@ -200,7 +201,6 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
       {
         if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
         {
-          //TODO: initBrush();
           QWheelEvent *we = static_cast<QWheelEvent *>(e);
           int numSteps = we->delta() / 8 / 15;  //Refer to QWheelEvent doc.
           m_displayRadius -= numSteps;
@@ -232,10 +232,21 @@ void BrushSelector::setRadius(int radius)
 }
 
 //-----------------------------------------------------------------------------
-void BrushSelector::setBorderColor(QColor color)
+void BrushSelector::setBorderPaintColor(QColor color)
 {
-  m_borderColor = color;
-  buildCursor();
+  m_borderPaintColor = color;
+
+  if(m_drawing)
+    buildCursor();
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::setBorderEraseColor(QColor color)
+{
+  m_borderEraseColor = color;
+
+  if(!m_drawing)
+    buildCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -281,7 +292,6 @@ itkVolumeType::SpacingType BrushSelector::referenceSpacing() const
   return m_spacing;
 }
 
-
 //-----------------------------------------------------------------------------
 void BrushSelector::setBrushImage(const QImage& image)
 {
@@ -302,26 +312,19 @@ void BrushSelector::setBrushImage(const QImage& image)
 //-----------------------------------------------------------------------------
 void BrushSelector::buildCursor()
 {
-  if (m_displayRadius == -1)
-  {
-    // Selector cursor radius not initialized. Using default value 20.
-    m_displayRadius = 15;
-  }
-
   int width = 2*m_displayRadius;
+
+  m_brushColor.setAlphaF(m_brushOpacity/100.);
 
   QPixmap pix(width, width);
   pix.fill(Qt::transparent);
-  QPainter p(&pix);
-  m_brushColor.setAlphaF(m_brushOpacity/100.);
-  p.setBrush(QBrush(m_brushColor));
-  p.setPen(QPen(m_borderColor));
-  p.drawEllipse(0, 0, width-1, width-1);
+  QPainter painter(&pix);
+  painter.setBrush(QBrush(m_brushColor));
+  painter.setPen(m_drawing ? QPen(m_borderPaintColor) : QPen(m_borderEraseColor));
+  painter.drawEllipse(0, 0, width-1, width-1);
 
   if (m_brushImage)
-    p.drawImage(QPoint(m_displayRadius/2,m_displayRadius/2), m_brushImage->scaledToWidth(m_displayRadius));
-
-  Q_ASSERT(pix.hasAlpha());
+    painter.drawImage(QPoint(m_displayRadius/2,m_displayRadius/2), m_brushImage->scaledToWidth(m_displayRadius));
 
   m_cursor = QCursor(pix);
 }
@@ -391,9 +394,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
 
   if (validStroke(center))
   {
-    double brush[3]{center[0], center[1], center[2]};
     m_lastDot = pos;
-    m_stroke->InsertNextPoint(brush);
     m_brushes << createBrushShape(m_referenceItem, center, m_radius, m_plane);
     updatePreview(center, view);
   }
@@ -405,7 +406,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
   if (!m_referenceItem)
     return;
 
-  if (m_stroke->GetNumberOfPoints() > 0 && QLineF(m_lastDot, pos).length() < m_displayRadius/2.0)
+  if (!m_brushes.empty() > 0 && QLineF(m_lastDot, pos).length() < m_displayRadius/2.0)
     return;
 
   NmVector3 center;
@@ -413,9 +414,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 
   if (validStroke(center))
   {
-    double brush[3]{center[0], center[1], center[2]};
     m_lastDot = pos;
-    m_stroke->InsertNextPoint(brush);
     m_brushes << createBrushShape(m_referenceItem, center, m_radius, m_plane);
     updatePreview(center, view);
   }
@@ -429,20 +428,26 @@ void BrushSelector::stopStroke(RenderView* view)
   if(!m_referenceItem)
     return;
 
-  if (m_stroke->GetNumberOfPoints() > 0)
-    emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
+  if (!m_brushes.empty())
+  {
+    auto mask = voxelSelectionMask();
+    Selector::SelectionItem item{QPair<SelectionMask, NeuroItemAdapterPtr>{mask, m_referenceItem}};
+    Selector::Selection selection;
+    selection << item;
+
+    emit itemsSelected(selection);
+  }
 
   m_drawing = !ShiftKeyIsDown();
   if (m_drawing)
   {
     stopPreview(view);
-    //TODO: initBrush();
+    buildCursor();
     view->setCursor(m_cursor);
     emit drawingModeChanged(m_drawing);
     view->updateView();
   }
 
-  m_stroke->Reset();
   m_brushes.clear();
 }
 
@@ -761,7 +766,7 @@ void BrushSelector::updateSliceChange()
   }
   m_drawing = true;
   stopPreview(view);
-  //TODO: initBrush();
+  buildCursor();
   view->setCursor(m_cursor);
   emit drawingModeChanged(m_drawing);
 }
@@ -779,9 +784,8 @@ void BrushSelector::abortOperation()
   if (m_previewView == nullptr)
     return;
 
-  if (m_stroke->GetNumberOfPoints() > 0)
+  if (!m_brushes.empty())
   {
-    m_stroke->Reset();
     m_brushes.clear();
     stopStroke(m_previewView);
   }
@@ -789,7 +793,7 @@ void BrushSelector::abortOperation()
   RenderView *view = m_previewView;
   stopPreview(view);
   m_drawing = true;
-  //TODO: initBrush();
+  buildCursor();
   view->setCursor(m_cursor);
   emit drawingModeChanged(m_drawing);
 }

@@ -65,7 +65,7 @@ namespace EspINA
     public slots:
       void selectionChanged(SelectionSPtr);
       void abortOperation();
-      void drawStroke(ViewItemAdapterPtr item, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
+      void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
 
     private:
       ManualEditionToolSPtr        m_manualEdition;

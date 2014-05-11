@@ -19,13 +19,17 @@
 // EspINA
 #include "RenderView.h"
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Utils/VolumeBounds.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 // VTK
 #include <vtkMath.h>
 #include <QVTKWidget.h>
+#include <vtkCoordinate.h>
 #include <vtkRenderWindow.h>
 #include <vtkPNGWriter.h>
 #include <vtkJPEGWriter.h>
@@ -37,6 +41,8 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDebug>
+
+//using EspINA::ModelAdapterUtils::volumetricData;
 
 using namespace EspINA;
 
@@ -630,24 +636,6 @@ void RenderView::eventPosition(int& x, int& y)
   }
 }
 
-// //-----------------------------------------------------------------------------
-// SelectableView::Selection RenderView::currentSelection() const
-// {
-//   SelectableView::Selection selection;
-// 
-//   foreach(ChannelAdapterPtr channel, m_channelStates.keys())
-//   {
-//     if (channel->isSelected()) selection << channel;
-//   }
-// 
-//   foreach(SegmentationAdapterPtr segmentation, m_segmentationStates.keys())
-//   {
-//     if (segmentation->isSelected()) selection << segmentation;
-//   }
-// 
-//   return selection;
-// }
-
 //-----------------------------------------------------------------------------
 void RenderView::updateSelection(SegmentationAdapterList selection)
 {
@@ -715,4 +703,138 @@ unsigned int RenderView::numEnabledRenderersForViewItem(RenderableType type)
     }
 
   return count;
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask) const
+{
+  Selector::Selection selectedItems;
+
+  if(flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE))
+  {
+    for(auto channelAdapter: m_channelStates.keys())
+      if (intersect(channelAdapter->bounds(), mask->bounds().bounds()))
+      {
+        auto intersectionBounds = intersection(channelAdapter->bounds(), mask->bounds().bounds());
+        auto selectionMask = BinaryMaskSPtr<unsigned char>(new BinaryMask<unsigned char>(intersectionBounds, channelAdapter->output()->spacing(), channelAdapter->position()));
+
+        BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
+        crit.goToBegin();
+
+        if(channelAdapter->output()->spacing() == mask->spacing())
+        {
+          BinaryMask<unsigned char>::iterator it(selectionMask.get());
+          it.goToBegin();
+
+          while(!crit.isAtEnd())
+          {
+            if(crit.isSet())
+              it.Set();
+
+            ++crit;
+          }
+        }
+        else
+        {
+          // mask interpolation needed, more costly
+          while(!crit.isAtEnd())
+          {
+            if(crit.isSet())
+            {
+              auto center = crit.getCenter();
+
+              BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), Bounds{center});
+              rit.goToBegin();
+
+              while(!rit.isAtEnd())
+              {
+                rit.Set();
+                ++rit;
+              }
+            }
+
+            ++crit;
+          }
+        }
+
+        if(flags.contains(Selector::CHANNEL))
+          selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, channelAdapter);
+
+        if(flags.contains(Selector::SAMPLE))
+        {
+          auto sampleAdapter = QueryAdapter::sample(channelAdapter);
+          selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, sampleAdapter.get());
+        }
+      }
+  }
+
+  if(flags.contains(Selector::SEGMENTATION))
+  {
+    for(auto segAdapter: m_segmentationStates.keys())
+      if(intersect(segAdapter->bounds(), mask->bounds().bounds()))
+      {
+        auto intersectionBounds = intersection(segAdapter->bounds(), mask->bounds().bounds());
+        BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
+        crit.goToBegin();
+
+        auto volume = volumetricData(segAdapter->output());
+        auto itkVolume = volume->itkImage(intersectionBounds);
+        auto value = itkVolume->GetBufferPointer();
+        auto selectionMask = BinaryMaskSPtr<unsigned char>(new BinaryMask<unsigned char>(intersectionBounds, volume->spacing(), volume->origin()));
+
+        if(segAdapter->output()->spacing() == mask->spacing())
+        {
+          BinaryMask<unsigned char>::iterator it(selectionMask.get());
+          it.goToBegin();
+
+          while(!crit.isAtEnd())
+          {
+            if (SEG_VOXEL_VALUE == *value && crit.isSet())
+              it.Set();
+
+            ++value;
+            ++crit;
+            ++it;
+          }
+        }
+        else
+        {
+          // mask interpolation needed, more costly
+          while(!crit.isAtEnd())
+          {
+            if(crit.isSet() && SEG_VOXEL_VALUE == *value)
+            {
+              auto center = crit.getCenter();
+
+              BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), Bounds{center});
+              rit.goToBegin();
+
+              while(!rit.isAtEnd())
+              {
+                rit.Set();
+                ++rit;
+              }
+            }
+
+            ++value;
+            ++crit;
+          }
+        }
+
+        selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, segAdapter);
+      }
+  }
+
+  return selectedItems;
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const NmVector3 &point) const
+{
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToWorld();
+  coords->SetValue(point[0], point[1], point[2]);
+  int *displayCoords = coords->GetComputedDisplayValue(m_renderer);
+
+  return select(flags, displayCoords[0], displayCoords[1]);
 }

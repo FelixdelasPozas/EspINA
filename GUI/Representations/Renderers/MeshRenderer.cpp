@@ -168,7 +168,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList MeshRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
+  ViewItemAdapterList MeshRenderer::pick(int x, int y, Nm unused, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
@@ -186,7 +186,7 @@ namespace EspINA
 
       for (auto item: m_representations.keys())
         for (auto rep: m_representations[item])
-        if (rep->isVisible() && rep->hasActor(pickedProp) && !selection.contains(item))
+        if (!selection.contains(item) && rep->isVisible() && rep->hasActor(pickedProp))
         {
           selection << item;
 

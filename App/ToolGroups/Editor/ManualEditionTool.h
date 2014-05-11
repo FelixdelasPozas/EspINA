@@ -86,12 +86,13 @@ namespace EspINA
   signals:
     void stopDrawing();
     void brushModeChanged(BrushSelector::BrushMode);
-    void stroke(ViewItemAdapterPtr, CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
+    void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
 
   public slots:
-    virtual void drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
+    virtual void drawStroke(Selector::Selection);
     virtual void radiusChanged(int);
     virtual void drawingModeChanged(bool);
+    virtual void updateReferenceItem(SelectionSPtr);
 
   protected slots:
     virtual void changeSelector(QAction *);
@@ -100,9 +101,6 @@ namespace EspINA
     virtual void selectorInUse(bool);
     virtual void unsetSelector();
     virtual void categoryChanged(CategoryAdapterSPtr category);
-
-  private:
-    void initBrush();
 
   protected:
     ModelAdapterSPtr m_model;

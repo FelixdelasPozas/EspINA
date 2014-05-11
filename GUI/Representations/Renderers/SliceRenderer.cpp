@@ -180,11 +180,11 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   ViewItemAdapterList SliceRenderer::pick(int x,
-                                                int y,
-                                                Nm z,
-                                                vtkSmartPointer<vtkRenderer> renderer,
-                                                RenderableItems itemType,
-                                                bool repeat)
+                                          int y,
+                                          Nm z,
+                                          vtkSmartPointer<vtkRenderer> renderer,
+                                          RenderableItems itemType,
+                                          bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;

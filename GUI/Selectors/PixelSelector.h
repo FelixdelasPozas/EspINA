@@ -30,17 +30,40 @@ namespace EspINA
   class EspinaGUI_EXPORT PixelSelector
   : public Selector
   {
-  public:
-    explicit PixelSelector() {}
-    virtual ~PixelSelector(){}
+    protected:
+      struct Invalid_Resolution_Exception {};
 
-    virtual void onMouseDown(const QPoint &pos, RenderView* view);
+    public:
+      explicit PixelSelector(NmVector3 resolution = NmVector3{1,1,1}) throw(Invalid_Resolution_Exception)
+      : m_resolution{resolution}
+      {
+        if(!validResolution(resolution))
+          throw Invalid_Resolution_Exception();
+      }
 
-    virtual bool filterEvent(QEvent* e, RenderView* view = 0);
+      virtual ~PixelSelector(){}
 
-    virtual NmVector3 getPickPoint(RenderView *view);
+      virtual void onMouseDown(const QPoint &pos, RenderView* view);
 
-    virtual Selector::SelectionList generateSelection(RenderView *);
+      virtual bool filterEvent(QEvent* e, RenderView* view = 0);
+
+      virtual NmVector3 getPickPoint(RenderView *view);
+
+      virtual Selector::Selection generateSelection(RenderView *);
+
+      void setResolution(NmVector3 resolution) throw(Invalid_Resolution_Exception)
+      {
+        if(!validResolution(resolution))
+          throw Invalid_Resolution_Exception();
+
+        m_resolution = resolution;
+      }
+
+    protected:
+      bool validResolution(NmVector3 resolution)
+      { return (resolution[0] > 0) && (resolution[1] > 0) && (resolution[2] > 0); }
+
+      NmVector3 m_resolution;
   };
 
   //------------------------------------------------------------------------
@@ -48,13 +71,13 @@ namespace EspINA
   : public PixelSelector
   {
   public:
-    explicit BestPixelSelector();
+    explicit BestPixelSelector(NmVector3 resolution = NmVector3{1,1,1});
     virtual ~BestPixelSelector();
 
     void setBestPixelValue(int value)
     {m_bestPixel = value;}
 
-    virtual void onMouseDown(const QPoint& pos, RenderView* view);
+    virtual void onMouseDown(const QPoint &pos, RenderView* view);
 
     virtual NmVector3 getPickPoint(RenderView* view);
 

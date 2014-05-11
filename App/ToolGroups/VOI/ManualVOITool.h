@@ -43,7 +43,7 @@ namespace EspINA
   protected slots:
     void changeSelector(QAction *selectorAction);
     void selectorInUse(bool value);
-    void drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane);
+    void drawStroke(ViewItemAdapterPtr item, Selector::Selection);
 
     void changeVOI(QAction *action);
     void cancelVOI();

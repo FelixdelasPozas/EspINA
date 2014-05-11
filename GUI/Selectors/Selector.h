@@ -21,21 +21,19 @@
 
 #include "EspinaGUI_Export.h"
 
-#include <QObject>
+// EspINA
+#include <Core/EspinaTypes.h>
+#include <Core/Utils/BinaryMask.h>
+#include <GUI/Model/NeuroItemAdapter.h>
+#include <Support/EventHandler.h>
 
+// Qt
+#include <QObject>
 #include <QCursor>
 #include <QPair>
 #include <QPolygonF>
 #include <QSet>
 #include <QVector3D>
-
-#include <vtkSmartPointer.h>
-#include <vtkPoints.h>
-
-#include <Core/EspinaTypes.h>
-#include <Core/Utils/BinaryMask.h>
-#include <GUI/Model/ViewItemAdapter.h>
-#include <Support/EventHandler.h>
 
 namespace EspINA
 {
@@ -50,22 +48,15 @@ namespace EspINA
   Q_OBJECT
   public:
     using SelectionTag      = QString;
-    using SelectionMask     = BinaryMask<unsigned char>;
+    using SelectionMask     = BinaryMaskSPtr<unsigned char>;
     using SelectionMaskSPtr = std::shared_ptr<BinaryMask<unsigned char>>;
 
     static const SelectionTag SAMPLE;
     static const SelectionTag CHANNEL;
     static const SelectionTag SEGMENTATION;
 
-    // TO BE DEPRECATED
-    typedef QPolygonF                  DisplayRegion;
-    typedef QList<DisplayRegion>       DisplayRegionList;
-    typedef vtkSmartPointer<vtkPoints> WorldRegion;
-    typedef QPair<WorldRegion, ViewItemAdapterPtr>  SelectedItem;
-    typedef QList<SelectedItem>        SelectionList;
-
     using SelectionFlags = QSet<SelectionTag>;
-    using SelectionItem  = QPair<SelectionMask, ViewItemAdapterPtr>;
+    using SelectionItem  = QPair<SelectionMask, NeuroItemAdapterPtr>;
     using Selection      = QList<SelectionItem>;
 
   public:
@@ -78,18 +69,14 @@ namespace EspINA
     void setSelectionTag(const SelectionTag tag, bool selectable=true);
 
     void setMultiSelection(bool enabled)
-    {m_multiSelection = enabled;}
+    { m_multiSelection = enabled; }
 
     bool multiSelection()
-    {return m_multiSelection;}
+    { return m_multiSelection; }
 
   signals:
-    void itemsSelected(Selector::SelectionList);
-
-    void itemsSelected(Selector::Selection); // unused by now
-
+    void itemsSelected(Selector::Selection);
     void startUsingSelector();
-
     void stopUsingSelector();
 
   protected:
@@ -98,7 +85,6 @@ namespace EspINA
   };
 
   using SelectorSPtr = std::shared_ptr<Selector>;
-
 } // namespace EspINA
 
 #endif // ESPINA_SELECTOR_H

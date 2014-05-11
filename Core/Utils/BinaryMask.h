@@ -184,8 +184,8 @@ namespace EspINA
            */
           iterator(BinaryMask<T> *mask)
           : m_mask(mask)
-	  , m_pos(0)
-	  , m_bitPos(0)
+          , m_pos(0)
+          , m_bitPos(0)
           {
           }
 
@@ -432,6 +432,9 @@ namespace EspINA
             return m_index;
           }
 
+          /* \brief Returns the position of the current index in world coordinates.
+           *
+           */
           NmVector3 getCenter() const
           {
             return NmVector3{

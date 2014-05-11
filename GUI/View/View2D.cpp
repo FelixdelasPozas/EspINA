@@ -20,10 +20,12 @@
 
 // EspINA
 #include "View2DState.h"
+#include "ViewRendererMenu.h"
 #include "Widgets/EspinaWidget.h"
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
-#include "ViewRendererMenu.h"
+#include <Core/Utils/BinaryMask.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 // Debug
 #include <QDebug>
@@ -44,9 +46,6 @@
 #include <QToolButton>
 #include <QVTKWidget.h>
 
-// Boost
-#include <boost/concept_check.hpp>
-
 // VTK
 #include <vtkAbstractWidget.h>
 #include <vtkAlgorithmOutput.h>
@@ -64,6 +63,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPoints.h>
 #include <vtkMath.h>
 #include <vtkProperty.h>
 #include <vtkPropPicker.h>
@@ -636,59 +636,6 @@ void View2D::setThumbnailVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-Selector::SelectionList View2D::pick(Selector::SelectionFlags    filter,
-                                     Selector::DisplayRegionList regions)
-{
-  bool multiSelection = false;
-  Selector::SelectionList selectedItems;
-
-  // Select all products that belongs to all regions
-  // NOTE: Should first loop be removed? Only useful to select disconnected regions...
-  for(const Selector::DisplayRegion &region : regions)
-  {
-    for(auto p : region)
-    {
-      for(auto tag : filter)
-      {
-        if (Selector::CHANNEL == tag)
-        {
-          for(auto renderer : m_renderers)
-            if(renderer->type() == Renderer::Type::Representation)
-            {
-              auto repRenderer = representationRenderer(renderer);
-              if (canRender(repRenderer, RenderableType::CHANNEL))
-                for(auto item : repRenderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), multiSelection))
-                {
-                  Selector::WorldRegion wRegion = worldRegion(region, item);
-                  selectedItems << Selector::SelectedItem(wRegion, item);
-                }
-            }
-        }
-        else
-        {
-          if (Selector::SEGMENTATION == tag)
-          {
-            for(auto renderer : m_renderers)
-              if(renderer->type() == Renderer::Type::Representation)
-              {
-                auto repRenderer = representationRenderer(renderer);
-                if (canRender(repRenderer, RenderableType::SEGMENTATION))
-                  for(auto item : repRenderer->pick(p.x(), p.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiSelection))
-                  {
-                    Selector::WorldRegion wRegion = worldRegion(region, item);
-                    selectedItems << Selector::SelectedItem(wRegion, item);
-                  }
-              }
-          }
-        }
-      }
-    }
-  }
-
-  return selectedItems;
-}
-
-//-----------------------------------------------------------------------------
 void View2D::updateView()
 {
   if (isVisible())
@@ -978,8 +925,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 //-----------------------------------------------------------------------------
 void View2D::keyPressEvent(QKeyEvent *e)
 {
-  if (m_eventHandler != nullptr)
-    if (m_eventHandler->filterEvent(e, this))
+  if (m_eventHandler && m_eventHandler->filterEvent(e, this))
       updateView();
 };
 
@@ -1069,7 +1015,7 @@ void View2D::centerViewOnMousePosition()
 
 //-----------------------------------------------------------------------------
 ViewItemAdapterList View2D::pickChannels(double vx, double vy,
-                                                  bool repeatable)
+                                         bool repeatable)
 {
   ViewItemAdapterList selection;
 
@@ -1141,7 +1087,7 @@ void View2D::selectPickedItems(bool append)
         break;
     }
 
-    currentSelection()->set(selection);
+  currentSelection()->set(selection);
 }
 
 //-----------------------------------------------------------------------------
@@ -1162,20 +1108,20 @@ void View2D::onTakeSnapshot()
   takeSnapshot(m_renderer);
 }
 
-//-----------------------------------------------------------------------------
-bool View2D::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
-{
-  if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
-    return false;//ePick Fail
-
-  if (!picker->Pick(x, y, 0.1, m_renderer))
-      return false;//ePick Fail
-
-  picker->GetPickPosition(pickPos);
-  pickPos[m_normalCoord] = slicingPosition();
-
-  return true;
-}
+////-----------------------------------------------------------------------------
+//bool View2D::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
+//{
+//  if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
+//    return false;
+//
+//  if (!picker->Pick(x, y, 0.1, m_renderer))
+//      return false;
+//
+//  picker->GetPickPosition(pickPos);
+//  pickPos[m_normalCoord] = slicingPosition();
+//
+//  return true;
+//}
 
 //-----------------------------------------------------------------------------
 void View2D::setShowPreprocessing(bool visible)
@@ -1422,51 +1368,51 @@ void View2D::centerViewOnPosition(const NmVector3& center)
   updateView();
 }
 
-//-----------------------------------------------------------------------------
-Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
-                                              ViewItemAdapterPtr item)
-{
-  Selector::WorldRegion wRegion = Selector::WorldRegion::New();
-
-  for(auto point: region)
-  {
-    Nm pickPos[3];
-    if (ItemAdapter::Type::CHANNEL == item->type())
-    {
-      for(auto renderer: m_renderers)
-        if(renderer->type() == Renderer::Type::Representation)
-        {
-          auto repRenderer = representationRenderer(renderer);
-          if (canRender(repRenderer, RenderableType::CHANNEL) &&
-              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), false).isEmpty())
-          {
-            auto pc = repRenderer->pickCoordinates();
-            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
-            pickPos[m_normalCoord] = slicingPosition();
-            wRegion->InsertNextPoint(pickPos);
-          }
-        }
-    }
-    else
-    {
-      for(auto renderer: m_renderers)
-        if(renderer->type() == Renderer::Type::Representation)
-        {
-          auto repRenderer = representationRenderer(renderer);
-          if (canRender(repRenderer, RenderableType::SEGMENTATION) &&
-              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), false).isEmpty())
-          {
-            auto pc = repRenderer->pickCoordinates();
-            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
-            pickPos[m_normalCoord] = slicingPosition();
-            wRegion->InsertNextPoint(pickPos);
-          }
-        }
-    }
-  }
-
-  return wRegion;
-}
+////-----------------------------------------------------------------------------
+//Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
+//                                              ViewItemAdapterPtr item)
+//{
+//  Selector::WorldRegion wRegion = Selector::WorldRegion::New();
+//
+//  for(auto point: region)
+//  {
+//    Nm pickPos[3];
+//    if (ItemAdapter::Type::CHANNEL == item->type())
+//    {
+//      for(auto renderer: m_renderers)
+//        if(renderer->type() == Renderer::Type::Representation)
+//        {
+//          auto repRenderer = representationRenderer(renderer);
+//          if (canRender(repRenderer, RenderableType::CHANNEL) &&
+//              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), false).isEmpty())
+//          {
+//            auto pc = repRenderer->pickCoordinates();
+//            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
+//            pickPos[m_normalCoord] = slicingPosition();
+//            wRegion->InsertNextPoint(pickPos);
+//          }
+//        }
+//    }
+//    else
+//    {
+//      for(auto renderer: m_renderers)
+//        if(renderer->type() == Renderer::Type::Representation)
+//        {
+//          auto repRenderer = representationRenderer(renderer);
+//          if (canRender(repRenderer, RenderableType::SEGMENTATION) &&
+//              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), false).isEmpty())
+//          {
+//            auto pc = repRenderer->pickCoordinates();
+//            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
+//            pickPos[m_normalCoord] = slicingPosition();
+//            wRegion->InsertNextPoint(pickPos);
+//          }
+//        }
+//    }
+//  }
+//
+//  return wRegion;
+//}
 
 //-----------------------------------------------------------------------------
 RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation)
@@ -1766,4 +1712,65 @@ double View2D::viewHeightLength()
   }
 
   return heightDist;
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection View2D::select(const Selector::SelectionFlags flags, const int x, const int y) const
+{
+  QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
+  Selector::Selection finalSelection;
+
+  for(auto renderer: m_renderers)
+  {
+    if(renderer->type() != Renderer::Type::Representation)
+      continue;
+
+    auto repRenderer = representationRenderer(renderer);
+
+    if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
+    {
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), true))
+      {
+        BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+        BinaryMask<unsigned char>::iterator bmit(bm.get());
+        bmit.goToBegin();
+        bmit.Set();
+
+        selectedItems[item] = bm;
+      }
+    }
+
+    if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
+    {
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), true))
+      {
+        if(flags.contains(Selector::CHANNEL))
+        {
+          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+          BinaryMask<unsigned char>::iterator bmit(bm.get());
+          bmit.goToBegin();
+          bmit.Set();
+
+          selectedItems[item] = bm;
+        }
+
+
+        if(flags.contains(Selector::SAMPLE))
+        {
+          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+          BinaryMask<unsigned char>::iterator bmit(bm.get());
+          bmit.goToBegin();
+          bmit.Set();
+
+          auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
+          selectedItems[item] = bm;
+        }
+      }
+    }
+  }
+
+  for(auto item: selectedItems.keys())
+    finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+
+  return finalSelection;
 }

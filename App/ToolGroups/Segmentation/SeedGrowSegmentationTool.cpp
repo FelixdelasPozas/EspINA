@@ -165,10 +165,10 @@ void SeedGrowSegmentationTool::addVoxelSelector(QAction* action, SelectorSPtr se
   selector->setMultiSelection(false);
   selector->setSelectionTag(Selector::CHANNEL);
 
-  connect(selector.get(), SIGNAL(eventHandlerInUse(bool)),
+  connect(selector.get(),   SIGNAL(eventHandlerInUse(bool)),
           m_selectorSwitch, SLOT(setChecked(bool)));
-  connect(selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
-          this, SLOT(launchTask(Selector::SelectionList)));
+  connect(selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+          this,           SLOT(launchTask(Selector::Selection)));
 }
 
 //-----------------------------------------------------------------------------
@@ -187,17 +187,17 @@ void SeedGrowSegmentationTool::unsetSelector()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
+void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 {
   if (selectedItems.size() != 1)
     return;
 
   auto element = selectedItems.first();
 
-  Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
+  Q_ASSERT(element.first->numberOfVoxels() == 1); // with one pixel
 
-  Nm seedPoint[3];
-  element.first->GetPoint(0, seedPoint);
+  auto pointBounds = element.first->bounds();
+  NmVector3 seedPoint{ (pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
 
   Q_ASSERT(ItemAdapter::Type::CHANNEL == element.second->type());
   auto channel = m_viewManager->activeChannel();
@@ -243,8 +243,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::SelectionList selectedItems)
 
     auto spacing = channel->output()->spacing();
     auto origin = channel->position();
-    VolumeBounds vBounds{bounds, spacing, origin};
-    roi = ROISPtr(new ROI(vBounds, spacing, origin));
+    roi = ROISPtr(new ROI(bounds, spacing, origin));
 
     m_viewManager->setCurrentROI(roi);
   }

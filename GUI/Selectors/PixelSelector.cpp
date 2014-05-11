@@ -1,6 +1,7 @@
 // EspINA
 #include "PixelSelector.h"
-#include <GUI/View/RenderView.h>
+#include <GUI/View/View3D.h>
+#include <GUI/View/View2D.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
 // Qt
@@ -15,6 +16,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkWindowToImageFilter.h>
 #include <vtkMath.h>
+#include <vtkCoordinate.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -25,9 +27,9 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
-  SelectionList selection = generateSelection(view);
+  Selection selection = generateSelection(view);
 
-  if (selection.empty() || 0 == selection.first().first->GetNumberOfPoints())
+  if (selection.empty() || (ItemAdapter::Type::CHANNEL != selection.first().second->type()))
     return;
 
   emit itemsSelected(selection);
@@ -47,11 +49,6 @@ bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
       if (selection.empty())
         return false;
 
-      for(auto item : selection)
-      {
-        if (0 == item.first->GetNumberOfPoints()) return false;
-      }
-
       return true;
     }
   }
@@ -62,32 +59,43 @@ bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
 //-----------------------------------------------------------------------------
 NmVector3 PixelSelector::getPickPoint(RenderView *view)
 {
-  SelectionList selection = generateSelection(view);
+  Selection selection = generateSelection(view);
 
-  if (selection.empty()
-  || (selection.first().second->type() != ItemAdapter::Type::CHANNEL)
-  || 0 == selection.first().first->GetNumberOfPoints())
+  if (selection.empty() || (selection.first().second->type() != ItemAdapter::Type::CHANNEL))
     Q_ASSERT(false);
 
-  double point[3];
-  selection.first().first->GetPoint(0, point);
-
-  return NmVector3{point[0], point[1], point[2]};
+  auto voxelBounds = selection.first().first->bounds();
+  return NmVector3{(voxelBounds[0]+voxelBounds[1])/2, (voxelBounds[2]+voxelBounds[3])/2, (voxelBounds[4]+voxelBounds[5])/2};
 }
 
 //-----------------------------------------------------------------------------
-Selector::SelectionList PixelSelector::generateSelection(RenderView *view)
+Selector::Selection PixelSelector::generateSelection(RenderView *view)
 {
-  DisplayRegionList regions;
-  QPolygon          singlePixel;
-
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
 
-  singlePixel << QPoint(xPos,yPos);
-  regions << singlePixel;
+  // View3D cannot select with this method.
+  View3D* view3d = dynamic_cast<View3D*>(view);
+  View2D *view2d = dynamic_cast<View2D*>(view);
+  if(view3d != nullptr || view2d == nullptr)
+    return Selector::Selection();
 
-  return view->pick(m_flags, regions);
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToDisplay();
+  coords->SetValue(xPos, yPos);
+  auto point = coords->GetComputedWorldValue(view->mainRenderer());
+  auto index = normalCoordinateIndex(view2d->plane());
+  point[index] = view2d->crosshairPoint()[index];
+
+  Selector::SelectionFlags flags;
+  flags.insert(Selector::CHANNEL);
+
+  BinaryMaskSPtr<unsigned char> bm{ new BinaryMask<unsigned char>{Bounds(NmVector3{point[0], point[1], point[2]}), m_resolution}};
+  BinaryMask<unsigned char>::iterator bmit(bm.get());
+  bmit.goToBegin();
+  bmit.Set();
+
+  return view->select(flags, bm);
 }
 
 int quadDist(int cx, int cy, int x, int y)
@@ -104,8 +112,9 @@ int quadDist(int cx, int cy, int x, int y)
 //!      |
 //!      v    BR
 //-----------------------------------------------------------------------------
-BestPixelSelector::BestPixelSelector()
-: m_window(new QSize(14,14))
+BestPixelSelector::BestPixelSelector(NmVector3 resolution)
+: PixelSelector{resolution}
+, m_window(new QSize(14,14))
 , m_bestPixel  (0)
 {}
 
@@ -116,63 +125,41 @@ BestPixelSelector::~BestPixelSelector()
 }
 
 //-----------------------------------------------------------------------------
-void BestPixelSelector::onMouseDown(const QPoint& pos, RenderView* view)
-{
-  auto selection = generateSelection(view);
-  if   (selection.empty()
-    || (ItemAdapter::Type::CHANNEL != selection.first().second->type())
-    || 0 == selection.first().first->GetNumberOfPoints())
-    return;
-
-  auto point = getPickPoint(view);
-
-  selection.first().first->SetPoint(0, point[0], point[1], point[2]);
-
-  emit itemsSelected(selection);
-}
-
-//-----------------------------------------------------------------------------
 NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
 {
   auto selection = generateSelection(view);
-  if   (selection.empty()
-    || (ItemAdapter::Type::CHANNEL != selection.first().second->type())
-    || 0 == selection.first().first->GetNumberOfPoints())
+  if   (selection.empty() || (ItemAdapter::Type::CHANNEL != selection.first().second->type()))
     Q_ASSERT(false);
 
   auto selectedItem  = selection.first().second;
   auto channel       = channelPtr(selectedItem);
 
-  double pickedPoint[3];
-  selection.first().first->GetPoint(0, pickedPoint);
+  auto itemBounds = selection.first().first->bounds();
+  double pickedPoint[3]{(itemBounds[0]+itemBounds[1])/2, (itemBounds[2]+itemBounds[3])/2, (itemBounds[4]+itemBounds[5])/2};
 
   auto volume = volumetricData(channel->output());
   auto spacing = volume->spacing();
 
-  Bounds bounds = view->previewBounds();
+  auto bounds = view->previewBounds();
 
   int extent[6];
   for (int i = 0; i < 6; i++)
     extent[i] = bounds[i]/spacing[i/2];
 
   // limit extent to defined QSize
-  Selector::SelectionList tmpSelectionList;
-  DisplayRegionList regions;
-  QPolygon singlePixel;
+  Selector::Selection tmpSelectionList;
+  Selector::SelectionFlags tmpFlags;
+  tmpFlags.insert(Selector::CHANNEL);
 
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
 
   //limiting left extent
-  singlePixel.clear();
-  singlePixel << QPoint(xPos-(m_window->width()/2), yPos);
-  regions.clear();
-  regions << singlePixel;
-  tmpSelectionList = view->pick(m_flags, regions);
+  tmpSelectionList = view->select(tmpFlags, xPos-(m_window->width()/2), yPos);
   if (!tmpSelectionList.empty())
   {
-    double L_point[3];
-    tmpSelectionList.first().first->GetPoint(0, L_point);
+    auto selectionBounds = tmpSelectionList.first().first->bounds();
+    double L_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
     if (L_point[0] < pickedPoint[0])
       extent[0] = L_point[0]/spacing[0];
 
@@ -184,15 +171,11 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   }
 
   //limiting top extent
-  singlePixel.clear();
-  singlePixel << QPoint(xPos, yPos-(m_window->height()/2));
-  regions.clear();
-  regions << singlePixel;
-  tmpSelectionList = view->pick(m_flags, regions);
+  tmpSelectionList = view->select(tmpFlags, xPos, yPos-(m_window->height()/2));
   if (!tmpSelectionList.empty())
   {
-    double T_point[3];
-    tmpSelectionList.first().first->GetPoint(0, T_point);
+    auto selectionBounds = tmpSelectionList.first().first->bounds();
+    double T_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
     if (T_point[0] > pickedPoint[0])
       extent[1] = T_point[0]/spacing[0];
 
@@ -204,15 +187,11 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   }
 
   //limiting right extent
-  singlePixel.clear();
-  singlePixel << QPoint(xPos+(m_window->width()/2), yPos);
-  regions.clear();
-  regions << singlePixel;
-  tmpSelectionList = view->pick(m_flags, regions);
+  tmpSelectionList = view->select(tmpFlags, xPos+(m_window->width()/2), yPos);
   if (!tmpSelectionList.empty())
   {
-    double R_point[3];
-    tmpSelectionList.first().first->GetPoint(0, R_point);
+    auto selectionBounds = tmpSelectionList.first().first->bounds();
+    double R_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
     if (R_point[0] > pickedPoint[0])
       extent[1] = R_point[0]/spacing[0];
 
@@ -224,15 +203,11 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   }
 
   //limiting bottom extent
-  singlePixel.clear();
-  singlePixel << QPoint(xPos, yPos+(m_window->height()/2));
-  regions.clear();
-  regions << singlePixel;
-  tmpSelectionList = view->pick(m_flags, regions);
+  tmpSelectionList = view->select(tmpFlags, xPos, yPos+(m_window->height()/2));
   if (!tmpSelectionList.empty())
   {
-    double B_point[3];
-    tmpSelectionList.first().first->GetPoint(0, B_point);
+    auto selectionBounds = tmpSelectionList.first().first->bounds();
+    double B_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
     if (B_point[0] < pickedPoint[0])
       extent[0] = B_point[0]/spacing[0];
 
@@ -302,10 +277,33 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   }
 
   NmVector3 requestedPoint;
-
   requestedPoint[0] = bestPoint[0];
   requestedPoint[1] = bestPoint[1];
   requestedPoint[2] = bestPoint[2];
 
   return requestedPoint;
+}
+
+//-----------------------------------------------------------------------------
+void BestPixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
+{
+  auto selection = generateSelection(view);
+
+  if(selection.empty() ||
+     ItemAdapter::Type::CHANNEL != selection.first().second->type() ||
+     selection.first().first->numberOfVoxels() != 1)
+  {
+    return;
+  }
+
+  auto point = getPickPoint(view);
+
+  BinaryMaskSPtr<unsigned char> bm{ new BinaryMask<unsigned char>{Bounds(NmVector3{point[0], point[1], point[2]}), m_resolution}};
+  BinaryMask<unsigned char>::iterator bmit(bm.get());
+  bmit.goToBegin();
+  bmit.Set();
+
+  selection.first().first = bm;
+
+  emit itemsSelected(selection);
 }

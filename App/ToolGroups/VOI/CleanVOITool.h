@@ -43,7 +43,7 @@ namespace EspINA
     virtual QList<QAction *> actions() const;
 
   protected slots:
-    void cancelVOI();
+    void cancelROI();
     void ROIChanged();
 
   private:

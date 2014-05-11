@@ -34,6 +34,10 @@ ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
 : ManualEditionTool(model, viewManager)
 {
   showCategoryControls(false);
+  setPencil2DIcon(QIcon(":/espina/voi_brush2D.svg"));
+  setPencil3DIcon(QIcon(":/espina/voi_brush3D.svg"));
+  setPencil2DText(QString("Modify VOI drawing 2D discs"));
+  setPencil3DText(QString("Modify VOI drawing 3D spheres"));
 }
 
 //-----------------------------------------------------------------------------
@@ -45,11 +49,19 @@ ManualVOITool::~ManualVOITool()
 void ManualVOITool::changeSelector(QAction* action)
 {
   Q_ASSERT(m_drawTools.keys().contains(action));
+  if (m_showCategoryControls)
+    m_categorySelector->setVisible(true);
+
+  if (m_showRadiusControls)
+    m_radiusWidget->setVisible(true);
+
+  if (m_showOpacityControls)
+    m_opacityWidget->setVisible(true);
 
   m_currentSelector = m_drawTools[action];
   m_currentSelector->setBrushColor(Qt::yellow);
-  //TODO: m_currentSelector->initBrush();
   m_currentSelector->setRadius(m_radiusWidget->value());
+  m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
 
   m_viewManager->setEventHandler(m_currentSelector);
 }
@@ -62,17 +74,13 @@ void ManualVOITool::selectorInUse(bool value)
     m_currentSelector = nullptr;
     emit stopDrawing();
   }
-  /*TODO else
-    m_currentSelector->initBrush();*/
 }
 
 //------------------------------------------------------------------------
-void ManualVOITool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane)
+void ManualVOITool::drawStroke(ViewItemAdapterPtr item, Selector::Selection selection)
 {
   auto mask = m_currentSelector->voxelSelectionMask();
-  emit stroke(mask);
-
-  //TODO m_currentSelector->initBrush();
+  emit stroke(selection.first().first);
 }
 
 //-----------------------------------------------------------------------------

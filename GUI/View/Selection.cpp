@@ -25,114 +25,114 @@
 using namespace EspINA;
 
 //----------------------------------------------------------------------------
-void Selection::set(ChannelAdapterList selection)
+ChannelAdapterList Selection::setChannels(ChannelAdapterList channelList)
 {
-  //TODO
+  auto modifiedChannels = channels();
+  m_channels.clear();
+
+  for (auto channel : modifiedChannels)
+    channel->setSelected(false);
+
+  for(auto channel: channelList)
+  {
+    if(modifiedChannels.contains(channel))
+      modifiedChannels.removeOne(channel);
+    else
+      modifiedChannels << channel;
+
+    channel->setSelected(true);
+    m_channels << channel;
+  }
+
+  return modifiedChannels;
 }
 
+//----------------------------------------------------------------------------
+void Selection::set(ChannelAdapterList selection)
+{
+  if(selection != m_channels)
+  {
+    auto modifiedChannels = setChannels(selection);
+
+    if(!modifiedChannels.empty())
+      emit selectionStateChanged(modifiedChannels);
+
+    emit selectionStateChanged();
+  }
+}
+
+//----------------------------------------------------------------------------
+SegmentationAdapterList Selection::setSegmentations(SegmentationAdapterList segmentationList)
+{
+  auto modifiedSegmentations = segmentations();
+  m_segmentations.clear();
+
+  for(auto segmentation: modifiedSegmentations)
+    segmentation->setSelected(false);
+
+  for(auto segmentation: segmentationList)
+  {
+    if (modifiedSegmentations.contains(segmentation))
+      modifiedSegmentations.removeOne(segmentation);
+    else
+      modifiedSegmentations << segmentation;
+
+    segmentation->setSelected(true);
+    m_segmentations << segmentation;
+  }
+
+  return modifiedSegmentations;
+}
 
 //----------------------------------------------------------------------------
 void Selection::set(SegmentationAdapterList selection)
 {
-  auto previousSelection = segmentations();
-
-  SegmentationAdapterList modifiedSegmentations;
-
-  if (previousSelection != selection)
+  if(selection != m_segmentations)
   {
-    for (auto segmentation : previousSelection)
-    {
-      segmentation->setSelected(false);
-      modifiedSegmentations << segmentation;
-    }
+    auto modifiedSegmentations = setSegmentations(selection);
 
-    m_segmentations.clear();
+    if(!modifiedSegmentations.empty())
+      emit selectionStateChanged(modifiedSegmentations);
 
-    for (auto segmentation : selection)
-    {
-      segmentation->setSelected(true);
-
-      m_segmentations << segmentation;
-
-      if (modifiedSegmentations.contains(segmentation))
-      {
-        modifiedSegmentations.removeOne(segmentation);
-      } else 
-      {
-        modifiedSegmentations << segmentation;
-      }
-    }
+    emit selectionStateChanged();
   }
-
-  emit selectionStateChanged(modifiedSegmentations);
-  emit selectionStateChanged();
 }
 
 
 //----------------------------------------------------------------------------
 void Selection::set(ViewItemAdapterList selection)
 {
-  auto previousSelection = items();
+  ChannelAdapterList      channels;
+  SegmentationAdapterList segmentations;
 
-  ChannelAdapterList      modifiedChannels;
-  SegmentationAdapterList modifiedSegmentations;
-
-  if (previousSelection != selection)
+  if(selection != items())
   {
-    for (auto item : previousSelection)
-    {
-      item->setSelected(false);
-      if (ItemAdapter::Type::CHANNEL == item->type())
+    for(auto item: selection)
+      switch(item->type())
       {
-        modifiedChannels << dynamic_cast<ChannelAdapterPtr>(item);;
-      } else
-      {
-        modifiedSegmentations << dynamic_cast<SegmentationAdapterPtr>(item);;
+        case ItemAdapter::Type::CHANNEL:
+          channels << dynamic_cast<ChannelAdapterPtr>(item);
+          break;
+        case ItemAdapter::Type::SEGMENTATION:
+          segmentations << dynamic_cast<SegmentationAdapterPtr>(item);
+          break;
+        default:
+          Q_ASSERT(false); // TODO: SAMPLES?
+          break;
       }
-    }
 
-    m_channels.clear();
-    m_segmentations.clear();
+    auto modifiedSegmentations = setSegmentations(segmentations);
+    auto modifiedChannels = setChannels(channels);
 
-    //   qDebug() << "Selection Changed";
-    for (auto item : selection)
-    {
-      item->setSelected(true);
-      if (ItemAdapter::Type::CHANNEL == item->type())
-      {
-        auto channel = dynamic_cast<ChannelAdapterPtr>(item);
-        m_channels << channel;
+    if(!modifiedSegmentations.empty())
+      emit selectionStateChanged(modifiedSegmentations);
 
-        if (modifiedChannels.contains(channel))
-        {
-          modifiedChannels.removeOne(channel);
-        } else 
-        {
-          modifiedChannels << channel;
-        }
+    if(!modifiedChannels.empty())
+      emit selectionStateChanged(modifiedChannels);
 
-      } else
-      {
-        auto segmentation = dynamic_cast<SegmentationAdapterPtr>(item);
-        m_segmentations << segmentation;
-
-        if (modifiedSegmentations.contains(segmentation))
-        {
-          modifiedSegmentations.removeOne(segmentation);
-        } else 
-        {
-          modifiedSegmentations << segmentation;
-        }
-      }
-      //     qDebug() << "-" << m_selection[i]->data().toString();
-    }
+    emit selectionStateChanged();
   }
-
-  emit selectionStateChanged(modifiedChannels);
-  emit selectionStateChanged(modifiedSegmentations);
-  emit selectionStateChanged();
 }
-
 
 //----------------------------------------------------------------------------
 ViewItemAdapterList Selection::items() const
@@ -151,6 +151,13 @@ ViewItemAdapterList Selection::items() const
 //----------------------------------------------------------------------------
 void Selection::clear()
 {
+  for(auto channel: m_channels)
+    channel->setSelected(false);
+
   m_channels.clear();
+
+  for(auto segmentation: m_segmentations)
+    segmentation->setSelected(false);
+
   m_segmentations.clear();
 }

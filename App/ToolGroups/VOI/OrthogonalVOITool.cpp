@@ -116,8 +116,8 @@ void OrthogonalVOITool::ROIChanged()
     if(m_applyVOI->isChecked())
     {
       m_viewManager->setEventHandler(m_selector);
-      connect(m_selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
-              this,        SLOT(defineROI(Selector::SelectionList)));
+      connect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+              this,        SLOT(defineROI(Selector::Selection)));
     }
 
     m_viewManager->updateViews();
@@ -135,14 +135,14 @@ void OrthogonalVOITool::initTool(bool value)
       if(m_widget == nullptr)
       {
         m_viewManager->setEventHandler(m_selector);
-        connect(m_selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
-                this,        SLOT(defineROI(Selector::SelectionList)));
+        connect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+                this,             SLOT(defineROI(Selector::Selection)));
       }
       break;
     case false:
         m_viewManager->unsetEventHandler(m_selector);
-        disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::SelectionList)),
-                   this,        SLOT(defineROI(Selector::SelectionList)));
+        disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+                   this,             SLOT(defineROI(Selector::Selection)));
         m_applyVOI->setChecked(false);
       break;
     default:
@@ -151,7 +151,7 @@ void OrthogonalVOITool::initTool(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalVOITool::defineROI(Selector::SelectionList channels)
+void OrthogonalVOITool::defineROI(Selector::Selection channels)
 {
   if (channels.isEmpty() || m_viewManager->currentROI() != nullptr)
     return;
@@ -159,9 +159,9 @@ void OrthogonalVOITool::defineROI(Selector::SelectionList channels)
   Q_ASSERT(channels.size() == 1); //Only one element is selected
   auto pickedItem = channels.first();
 
-  Q_ASSERT(pickedItem.first->GetNumberOfPoints() == 1); //Only one pixel's selected
-  double pos[3];
-  pickedItem.first->GetPoint(0, pos);
+  Q_ASSERT(pickedItem.first->numberOfVoxels() == 1); //Only one pixel's selected
+  auto pointBounds = pickedItem.first->bounds();
+  NmVector3 pos{ (pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
 
   auto pItem = pickedItem.second;
   if (ItemAdapter::Type::CHANNEL != pItem->type())
@@ -182,8 +182,7 @@ void OrthogonalVOITool::defineROI(Selector::SelectionList channels)
   rrWidget->setRepresentationPattern(0xFFF0);
 
   m_viewManager->addWidget(m_widget);
-  VolumeBounds vBounds(bounds, spacing, origin);
-  m_viewManager->setCurrentROI(ROISPtr(new ROI(vBounds, spacing, origin)));
+  m_viewManager->setCurrentROI(ROISPtr(new ROI(bounds, spacing, origin)));
   m_viewManager->updateViews();
   rrWidget->setEnabled(true);
 

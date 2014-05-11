@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <GUI/Model/Utils/QueryAdapter.h>
 #include "View3D.h"
 
 // EspINA
@@ -409,12 +410,11 @@ Bounds View3D::previewBounds(bool cropToSceneBounds) const
   return resultBounds;
 }
 
-//-----------------------------------------------------------------------------
-Selector::SelectionList View3D::pick(Selector::SelectionFlags    filter,
-                                     Selector::DisplayRegionList regions)
-{
-  return Selector::SelectionList();
-}
+////-----------------------------------------------------------------------------
+//Selector::Selection View3D::select(Selector::SelectionFlags flags, Selector::SelectionMask mask)
+//{
+//  return Selector::Selection();
+//}
 
 //-----------------------------------------------------------------------------
 void View3D::setupUI()
@@ -874,5 +874,66 @@ struct RenderView::VisualState View3D::visualState()
   state.heightLength = -1;
 
   return state;
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection View3D::select(const Selector::SelectionFlags flags, const int x, const int y) const
+{
+  QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
+  Selector::Selection finalSelection;
+
+  for(auto renderer: m_renderers)
+  {
+    if(renderer->type() != Renderer::Type::Representation)
+      continue;
+
+    auto repRenderer = representationRenderer(renderer);
+
+    if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
+    {
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), true))
+      {
+        BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+        BinaryMask<unsigned char>::iterator bmit(bm.get());
+        bmit.goToBegin();
+        bmit.Set();
+
+        selectedItems[item] = bm;
+      }
+    }
+
+    if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
+    {
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), true))
+      {
+        if(flags.contains(Selector::CHANNEL))
+        {
+          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+          BinaryMask<unsigned char>::iterator bmit(bm.get());
+          bmit.goToBegin();
+          bmit.Set();
+
+          selectedItems[item] = bm;
+        }
+
+
+        if(flags.contains(Selector::SAMPLE))
+        {
+          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+          BinaryMask<unsigned char>::iterator bmit(bm.get());
+          bmit.goToBegin();
+          bmit.Set();
+
+          auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
+          selectedItems[item] = bm;
+        }
+      }
+    }
+  }
+
+  for(auto item: selectedItems.keys())
+    finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+
+  return finalSelection;
 }
 

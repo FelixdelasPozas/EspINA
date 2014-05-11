@@ -79,13 +79,7 @@ namespace EspINA
     { RenderView::remove(seg); }
 
     virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
-
     virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
-
-    virtual Selector::SelectionList pick(Selector::SelectionFlags filter, Selector::DisplayRegionList regions);
-
-    virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask)
-    { return Selector::Selection();/*TODO*/}
 
     void changePlanePosition(Plane, Nm);
 
@@ -101,6 +95,11 @@ namespace EspINA
 
     virtual void setVisualState(struct RenderView::VisualState);
     virtual struct RenderView::VisualState visualState();
+
+    /* \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
+     *
+     */
+    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y) const;
 
   public slots:
     virtual void updateView();

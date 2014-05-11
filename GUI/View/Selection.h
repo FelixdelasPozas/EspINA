@@ -58,6 +58,9 @@ namespace EspINA
     void selectionStateChanged();
 
   private:
+    ChannelAdapterList setChannels(ChannelAdapterList);
+    SegmentationAdapterList setSegmentations(SegmentationAdapterList);
+
     ChannelAdapterList      m_channels;
     SegmentationAdapterList m_segmentations;
   };

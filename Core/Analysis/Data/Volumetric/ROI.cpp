@@ -21,12 +21,9 @@
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
-  ROI::ROI(SparseVolumeSPtr volume)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  ROI::ROI(VolumeBounds bounds, NmVector3 spacing, NmVector3 origin)
+  ROI::ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin)
+  : SparseVolume{bounds, spacing, origin}
+  , m_isRectangular{true}
   {
   }
 
@@ -36,79 +33,10 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  size_t ROI::memoryUsage() const
+  bool ROI::isRectangular() const
   {
+    return m_isRectangular;
   }
 
-  //-----------------------------------------------------------------------------
-  void ROI::setOrigin(const NmVector3& origin)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::setSpacing(const NmVector3& spacing)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  const typename itkVolumeType::Pointer ROI::itkImage() const
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  const typename itkVolumeType::Pointer ROI::itkImage(const Bounds& bounds) const
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds,
-      const typename itkVolumeType::ValueType value)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::draw(const BinaryMaskSPtr<typename itkVolumeType::ValueType> mask,
-      const typename itkVolumeType::ValueType value)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::draw(const typename itkVolumeType::Pointer volume)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::draw(const typename itkVolumeType::Pointer volume, const Bounds& bounds)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::draw(const typename itkVolumeType::IndexType index, const typename itkVolumeType::PixelType value)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::resize(const Bounds& bounds)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  void ROI::undo()
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  bool ROI::isValid() const
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  bool ROI::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
-  {
-  }
-
-  //-----------------------------------------------------------------------------
-  Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString& prefix) const
-  {
-  }
 }
+

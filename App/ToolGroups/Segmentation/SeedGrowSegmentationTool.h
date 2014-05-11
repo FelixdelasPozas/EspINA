@@ -69,7 +69,7 @@ namespace EspINA
 
     void unsetSelector();
 
-    void launchTask(Selector::SelectionList selectedItems);
+    void launchTask(Selector::Selection selectedItems);
 
     void onTaskProgres(int progress);
 

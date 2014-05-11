@@ -28,133 +28,165 @@ namespace EspINA
   : public SparseVolume<itkVolumeType>
   {
     public:
-      /* \brief ROI class constructor from a sparse volume.
-       *
-       */
-      ROI(SparseVolumeSPtr volume);
-
       /* \brief ROI class constructor from a VolumeBounds.
        *
-       * This constructor allows having a VOI without an image associated to it
-       * but the VOI will be rectangular. Any modification using the draw methods
-       * will associate an image to the VOI.
        */
-      ROI(VolumeBounds bounds, NmVector3 spacing, NmVector3 origin);
+      ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
       /* \brief ROI class virtual destructor.
        *
        */
       virtual ~ROI();
 
-      /** \brief Returns the memory used to store the image in bytes
-       */
-      virtual size_t memoryUsage() const;
-
-      /** \brief Returns the bounds of the volume.
-       */
-      virtual Bounds bounds() const
-      { return m_bounds.bounds(); }
-
-      /** \brief Set volume origin.
-       */
-      virtual void setOrigin(const NmVector3& origin);
-
-      /** \brief Returns volume origin.
-       */
-      virtual NmVector3 origin() const
-      { return m_origin; }
-
-      /** \brief Set volume spacing.
-       */
-      virtual void setSpacing(const NmVector3& spacing);
-
-      /** \brief Returns volume spacing.
-       */
-      virtual NmVector3 spacing() const
-      { return m_spacing; }
-
-      /** \brief Returns the equivalent itk image of the volume.
-       */
-      virtual const typename itkVolumeType::Pointer itkImage() const;
-
-      /** \brief Returns the equivalent itk image of a region of the volume.
-       */
-      virtual const typename itkVolumeType::Pointer itkImage(const Bounds& bounds) const;
-
-      /** \brief Method to modify the volume using a implicit function.
+      /* \brief Returns true if the ROI is a rectangular area.
        *
-       *  Change every voxel value which satisfies the implicit function to
-       *  the value given as parameter.
+       */
+      bool isRectangular() const;
+
+      /* \brief Applies the ROI to the volume passed as argument.
        *
-       *  Draw methods are constrained to sparse volume bounds.
        */
-      virtual void draw(const vtkImplicitFunction*  brush,
-                        const Bounds&               bounds,
-                        const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE);
+      template<class T> void applyROI(VolumetricData<T> &volume, const typename T::ValueType value) const;
 
-      /** \brief Method to modify the volume using a mask and a value.
+      /** \brief Implements SparseVolume::draw(brush, bounds, value)
        *
-       *  Draw methods are constrained to sparse volume bounds.
        */
-      virtual void draw(const BinaryMaskSPtr<typename itkVolumeType::ValueType> mask,
-                        const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE);
+      template<class T> void draw(const vtkImplicitFunction*  brush,
+                                  const Bounds&               bounds,
+                                  const typename T::ValueType value = SEG_VOXEL_VALUE);
 
-      /** \brief Method to modify the volume using an itk image.
+      /** \brief Implements SparseVolume::draw(mask, value)
        *
-       *  Draw methods are constrained to sparse volume bounds.
        */
-      virtual void draw(const typename itkVolumeType::Pointer volume);
+      template<class T> void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                                  const typename T::ValueType value = SEG_VOXEL_VALUE);
 
-      /** \brief Method to modify the volume using a region of an itk image.
+      /** \brief Implements SparseVolume::draw(volume)
        *
-       *  Draw methods are constrained to sparse volume bounds.
        */
-      virtual void draw(const typename itkVolumeType::Pointer volume,
-                        const Bounds&             bounds);
+      template<class T> void draw(const typename T::Pointer volume);
 
-      /** \brief Method to modify a voxel of the volume using an itk index.
+      /** \brief Implements SparseVolume::draw(volume, bounds)
        *
-       *  Draw methods are constrained to volume bounds.
        */
-      virtual void draw(const typename itkVolumeType::IndexType index,
-                        const typename itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+      template<class T> void draw(const typename T::Pointer volume,
+                                  const Bounds&             bounds);
 
-      /** \brief Resizes the image to the minimum bounds that can contain the volume.
+      /** \brief Implements SparseVolume::draw(index, value)
        *
-       *  The resultant image is always smaller of equal in size to the original one.
        */
-      virtual void fitToContent(){}
+      template<class T> void draw(const typename T::IndexType index,
+                                  const typename T::PixelType value = SEG_VOXEL_VALUE);
 
-      /** \brief Resize the volume bounds. The given bounds must containt the original.
-       */
-      virtual void resize(const Bounds &bounds);
-
-      /** \brief Method to undo the last change made to the volume.
-       */
-      virtual void undo();
-
-      /** \brief Returns if the volume has been correctly initialized.
-       */
-      virtual bool isValid() const;
-
-      /** \brief Try to load data from storage
-       *
-       *  Return if any data was fetched
-       */
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
-
-      /** \brief Persistent Interface to save the mask state.
-       */
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
-
-      virtual Snapshot editedRegionsSnapshot() const { return Snapshot(); }
-    protected:
     private:
-      bool hasVolume;
+      bool m_isRectangular;
   };
 
   using ROIPtr  = ROI *;
   using ROISPtr = std::shared_ptr<ROI>;
 
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::applyROI(VolumetricData<T>& volume, const typename T::ValueType value) const
+  {
+    if(!intersect(bounds(), volume.bounds()))
+    {
+      // erase the image
+      auto mask = BinaryMaskSPtr<T>{ new BinaryMask<T>{volume.bounds(), volume.spacing(), volume.origin()}};
+      volume.draw(mask, SEG_VOXEL_VALUE);
+
+      return;
+    }
+
+    auto intersectionBounds = intersection(bounds(), volume.bounds());
+
+    // extract the intersection region
+    auto image = volume.itkImage(intersectionBounds);
+
+    // erase the rest of the voxels
+    auto mask = BinaryMaskSPtr<T>{ new BinaryMask<T>{volume.bounds(), volume.spacing(), volume.origin()}};
+    volume.draw(mask, value);
+
+    BinaryMask<unsigned char>::const_region_iterator crit(this, intersectionBounds);
+    crit.goToBegin();
+
+    if(spacing() == volume.spacing())
+    {
+      itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
+      it.Begin();
+
+      while(!crit.isAtEnd())
+      {
+        if(!crit.isSet())
+          it.Set(value);
+
+        ++crit;
+        ++it;
+      }
+    }
+    else
+    {
+      // mask interapolation needed, more costly
+      while(!crit.isAtEnd())
+      {
+        if(!crit.isSet())
+        {
+          auto center = crit.getCenter();
+          auto region = equivalentRegion<T>(image, Bounds{center});
+          itk::ImageRegionIterator<T> it(image, region);
+          it = it.Begin();
+          while(it != it.End())
+          {
+            it.Set(value);
+            ++it;
+          }
+        }
+
+        ++crit;
+      }
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const typename T::ValueType value)
+  {
+    m_isRectangular = false;
+    SparseVolume::draw(brush, bounds, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::draw(const BinaryMaskSPtr<typename T::ValueType> mask, const typename T::ValueType value)
+  {
+    m_isRectangular = false;
+    SparseVolume::draw(mask, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::draw(const typename T::Pointer volume)
+  {
+    m_isRectangular = false;
+    SparseVolume::draw(volume);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::draw(const typename T::Pointer volume, const Bounds& bounds)
+  {
+    m_isRectangular = false;
+    SparseVolume::draw(volume, bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::draw(const typename T::IndexType index, const typename T::PixelType value)
+  {
+    m_isRectangular = false;
+    SparseVolume::draw(index, value);
+  }
+
 } // namespace EspINA
 #endif // ESPINA_ROI_H_
+

@@ -49,7 +49,7 @@ namespace EspINA
   protected slots:
     void initTool(bool);
     void ROIChanged();
-    void defineROI(Selector::SelectionList);
+    void defineROI(Selector::Selection);
 
   private:
     ModelAdapterSPtr m_model;

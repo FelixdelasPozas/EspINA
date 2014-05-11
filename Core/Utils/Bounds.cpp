@@ -28,6 +28,8 @@
 
 #include "Bounds.h"
 
+#include <tgmath.h> // std::round(double)
+
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------

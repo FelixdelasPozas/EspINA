@@ -175,7 +175,6 @@ namespace EspINA
    * third side.
    */
   bool areAdjacent(const Bounds &lhs, const Bounds &rhs);
-
 }
 
 

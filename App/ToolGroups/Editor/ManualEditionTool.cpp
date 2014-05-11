@@ -35,16 +35,16 @@ namespace EspINA
   //------------------------------------------------------------------------
   ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
                                        ViewManagerSPtr  viewManager)
-  : m_model(model)
-  , m_viewManager(viewManager)
-  , m_drawToolSelector(new ActionSelector())
-  , m_categorySelector(new CategorySelector(model))
-  , m_radiusWidget(new SliderAction())
-  , m_opacityWidget(new SliderAction())
-  , m_showOpacityControls{true}
-  , m_showRadiusControls{true}
+  : m_model               {model}
+  , m_viewManager         {viewManager}
+  , m_drawToolSelector    {new ActionSelector()}
+  , m_categorySelector    {new CategorySelector(model)}
+  , m_radiusWidget        {new SliderAction()}
+  , m_opacityWidget       {new SliderAction()}
+  , m_showOpacityControls {true}
+  , m_showRadiusControls  {true}
   , m_showCategoryControls{true}
-  , m_enabled(false)
+  , m_enabled             {false}
   {
     qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
     qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
@@ -62,8 +62,8 @@ namespace EspINA
                              m_drawToolSelector);
 
     m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector());
-    connect(m_circularBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-            this,                          SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
+    connect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+            this,                          SLOT(  drawStroke(Selector::Selection)));
     connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             m_drawToolSelector,            SLOT(         setChecked(bool)));
     connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
@@ -83,10 +83,8 @@ namespace EspINA
                                m_drawToolSelector);
 
     m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector());
-    connect(m_sphericalBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-            this,                           SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
-    connect(m_sphericalBrushSelector.get(), SIGNAL(  stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)),
-            this,                           SLOT(drawStroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane)));
+    connect(m_sphericalBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+            this,                           SLOT(  drawStroke(Selector::Selection)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
             m_drawToolSelector,             SLOT(         setChecked(bool)));
     connect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)),
@@ -137,6 +135,16 @@ namespace EspINA
     m_opacityWidget->setSliderMaximum(100);
     m_opacityWidget->setValue(opacity);
     m_opacityWidget->setLabelText(tr("Opacity"));
+
+    m_categorySelector->setVisible(false);
+    m_radiusWidget->setVisible(false);
+    m_opacityWidget->setVisible(false);
+
+    connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectionSPtr)),
+            this, SLOT(updateReferenceItem(SelectionSPtr)));
+
+    auto selection = m_viewManager->selection();
+    updateReferenceItem(selection);
   }
 
   //------------------------------------------------------------------------
@@ -155,6 +163,14 @@ namespace EspINA
   void ManualEditionTool::changeSelector(QAction* action)
   {
     Q_ASSERT(m_drawTools.keys().contains(action));
+    if(m_showCategoryControls)
+      m_categorySelector->setVisible(true);
+
+    if(m_showRadiusControls)
+      m_radiusWidget->setVisible(true);
+
+    if(m_showOpacityControls)
+      m_opacityWidget->setVisible(true);
 
     SelectionSPtr selection = m_viewManager->selection();
     SegmentationAdapterList segs = selection->segmentations();
@@ -166,7 +182,6 @@ namespace EspINA
 
     m_currentSelector = m_drawTools[action];
     m_currentSelector->setBrushColor(color);
-    //TODO m_currentSelector->initBrush();
     m_currentSelector->setRadius(m_radiusWidget->value());
 
     m_viewManager->setEventHandler(m_currentSelector);
@@ -175,6 +190,15 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ManualEditionTool::unsetSelector()
   {
+    if(m_showCategoryControls)
+      this->m_categorySelector->setVisible(false);
+
+    if(m_showRadiusControls)
+      this->m_radiusWidget->setVisible(false);
+
+    if(m_showOpacityControls)
+      this->m_opacityWidget->setVisible(false);
+
     m_viewManager->unsetEventHandler(m_currentSelector);
     m_currentSelector.reset();
   }
@@ -184,42 +208,16 @@ namespace EspINA
   {
     if (m_currentSelector)
     {
+      auto selection = m_viewManager->selection();
+      selection->clear();
+      ChannelAdapterList channels;
+      channels << m_viewManager->activeChannel();
+      selection->set(channels);
       m_currentSelector->setBrushColor(category->color());
+      updateReferenceItem(selection);
     }
   }
 
-  //-----------------------------------------------------------------------------
-  void ManualEditionTool::initBrush()
-  {
-    //   QImage image;
-    //   QColor borderColor;
-    //
-    //   ViewItemAdapterPtr item = nullptr;
-    //
-    //   SelectionSPtr selection = m_viewManager->selection();
-    //   SegmentationAdapterList segs = selection->segmentations();
-    //   if (segs.size() == 1)
-    //   {
-    //     item = segs.first();
-    //     if (!item)
-    //       return;
-    //
-    //     if (m_drawing)
-    //       borderColor = QColor(Qt::green);
-    //     else
-    //       borderColor = QColor(Qt::red);
-    //   }
-    //   else
-    //   {
-    //     item = m_viewManager->activeChannel();
-    //     image = QImage(":/espina/add.svg");
-    //     borderColor = QColor(Qt::blue);
-    //   }
-    //
-    //   setBrushImage(image);
-    //   setBorderColor(borderColor);
-    //   setReferenceItem(item);
-  }
   //-----------------------------------------------------------------------------
   void ManualEditionTool::changeRadius(int value)
   {
@@ -244,8 +242,7 @@ namespace EspINA
     }
     else
     {
-      /*TODO if (m_viewManager->activeCategory() && m_viewManager->activeChannel())
-        m_currentSelector->initBrush();*/
+      updateReferenceItem(m_viewManager->selection());
     }
   }
 
@@ -274,28 +271,20 @@ namespace EspINA
       m_drawToolSelector->setChecked(m_viewManager->eventHandler() == m_currentSelector);
     }
 
-    if (m_showCategoryControls)
-      actions << m_categorySelector;
-
     actions << m_drawToolSelector;
-
-    if (m_showRadiusControls)
-      actions << m_radiusWidget;
-
-    if (m_showOpacityControls)
-      actions << m_opacityWidget;
+    actions << m_categorySelector;
+    actions << m_radiusWidget;
+    actions << m_opacityWidget;
 
     return actions;
   }
 
   //------------------------------------------------------------------------
-  void ManualEditionTool::drawStroke(ViewItemAdapterPtr item, Selector::WorldRegion region, Nm radius, Plane plane)
+  void ManualEditionTool::drawStroke(Selector::Selection selection)
   {
-    auto mask = m_currentSelector->voxelSelectionMask();
+    auto mask = selection.first().first;
     auto category = m_categorySelector->selectedCategory();
-    emit stroke(item, category, mask);
-
-    //TODO m_currentSelector->initBrush();
+    emit stroke(category, mask);
   }
 
   //------------------------------------------------------------------------
@@ -338,6 +327,42 @@ namespace EspINA
     }
 
     m_drawToolSelector->setIcon(icon);
+  }
+
+  //------------------------------------------------------------------------
+  void ManualEditionTool::updateReferenceItem(SelectionSPtr selection)
+  {
+    QImage image;
+    QColor borderColor{Qt::blue};
+
+    ViewItemAdapterPtr item = nullptr;
+
+    auto segs = selection->segmentations();
+    if (segs.size() == 1)
+    {
+      item = segs.first();
+    }
+    else
+    {
+      item = m_viewManager->activeChannel();
+      image = QImage(":/espina/add.svg");
+    }
+
+    if(selection->items().empty())
+      item = m_viewManager->activeChannel();
+    else
+    {
+      if(!selection->segmentations().empty())
+        item = selection->segmentations().first();
+      else
+        item = selection->channels().first();
+    }
+
+    m_circularBrushSelector->setReferenceItem(item);
+    m_circularBrushSelector->setBrushImage(image);
+
+    m_sphericalBrushSelector->setReferenceItem(item);
+    m_sphericalBrushSelector->setBrushImage(image);
   }
 
 } // namespace EspINA

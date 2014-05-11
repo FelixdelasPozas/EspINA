@@ -125,22 +125,22 @@ namespace EspINA
 
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
-    virtual Selector::SelectionList pick(Selector::SelectionFlags filter, Selector::DisplayRegionList regions);
-
-    virtual Selector::Selection select(Selector::SelectionFlags flags, Selector::SelectionMask mask)
-    { return Selector::Selection(); /*TODO*/}
-
     virtual void setCrosshairVisibility(bool show);
 
     void updateCrosshairPoint(const Plane plane, const Nm slicePos);
 
-    virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
+    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
 
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 
     virtual void setVisualState(struct RenderView::VisualState);
     virtual struct RenderView::VisualState visualState();
+
+    /* \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
+     *
+     */
+    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y) const;
 
   public slots:
     /// Show/Hide Preprocessing
@@ -190,12 +190,6 @@ namespace EspINA
     /// Update GUI controls
     void setSlicingBounds(const Bounds& bounds);
 
-    /// Perform a picking operation at (x,y) in picker.
-    /// Picked position is returned via pickPos parameter
-    /// If no item was picked return false, and therefore pickPos values
-    /// are invalid
-    bool pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3]);
-
     virtual bool eventFilter(QObject* caller, QEvent* e);
     void keyPressEvent(QKeyEvent *e);
     void keyReleaseEvent(QKeyEvent *e);
@@ -208,9 +202,6 @@ namespace EspINA
     ViewItemAdapterList pickSegmentations(double vx, double vy, bool repeatable = true);
 
     void selectPickedItems(bool append);
-
-    /// Converts point from Display coordinates to World coordinates
-    Selector::WorldRegion worldRegion(const Selector::DisplayRegion &region, ViewItemAdapterPtr item);
 
   private:
     void addRendererControls(RendererSPtr renderer);

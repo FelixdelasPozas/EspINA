@@ -76,7 +76,8 @@ namespace EspINA
       QCursor cursor() const
       { return m_cursor; }
 
-      void setBorderColor(QColor color);
+      void setBorderPaintColor(QColor color);
+      void setBorderEraseColor(QColor color);
       void setBrushColor(QColor color);
       void setBrushImage(const QImage& image);
       QColor getBrushColor();
@@ -90,8 +91,6 @@ namespace EspINA
 
       void abortOperation();
     signals:
-      void stroke(ViewItemAdapterPtr, double, double, double, Nm, Plane);
-      void stroke(ViewItemAdapterPtr, Selector::WorldRegion, Nm, Plane);
       void radiusChanged(int);
       void drawingModeChanged(bool);
 
@@ -120,13 +119,13 @@ namespace EspINA
 
     protected:
       int     m_displayRadius; //In screen pixels
-      QColor  m_borderColor;
+      QColor  m_borderPaintColor;
+      QColor  m_borderEraseColor;
       QColor  m_brushColor;
       int     m_brushOpacity;
       QImage *m_brushImage;
 
       QPoint m_lastDot;
-      WorldRegion m_stroke;
 
       Plane     m_plane;
       Nm        m_radius;
