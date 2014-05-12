@@ -737,13 +737,17 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
         else
         {
           // mask interpolation needed, more costly
+          auto spacing = mask->spacing();
           while(!crit.isAtEnd())
           {
             if(crit.isSet())
             {
               auto center = crit.getCenter();
+              auto voxelBounds = Bounds{center[0]-spacing[0]/2, center[0]+spacing[0]/2,
+                                        center[1]-spacing[1]/2, center[1]+spacing[1]/2,
+                                        center[2]-spacing[2]/2, center[2]+spacing[2]/2};
 
-              BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), Bounds{center});
+              BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
               rit.goToBegin();
 
               while(!rit.isAtEnd())
@@ -800,13 +804,17 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
         else
         {
           // mask interpolation needed, more costly
+          auto spacing = mask->spacing();
           while(!crit.isAtEnd())
           {
             if(crit.isSet() && SEG_VOXEL_VALUE == *value)
             {
               auto center = crit.getCenter();
+              auto voxelBounds = Bounds{center[0]-spacing[0]/2, center[0]+spacing[0]/2,
+                                        center[1]-spacing[1]/2, center[1]+spacing[1]/2,
+                                        center[2]-spacing[2]/2, center[2]+spacing[2]/2};
 
-              BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), Bounds{center});
+              BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
               rit.goToBegin();
 
               while(!rit.isAtEnd())

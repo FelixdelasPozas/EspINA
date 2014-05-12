@@ -127,12 +127,19 @@ namespace EspINA
     else
     {
       // mask interapolation needed, more costly
+      auto spacing = spacing();
+
       while(!crit.isAtEnd())
       {
         if(!crit.isSet())
         {
           auto center = crit.getCenter();
-          auto region = equivalentRegion<T>(image, Bounds{center});
+
+          auto voxelBounds = Bounds{center[0]-spacing[0]/2, center[0]+spacing[0]/2,
+                                    center[1]-spacing[1]/2, center[1]+spacing[1]/2,
+                                    center[2]-spacing[2]/2, center[2]+spacing[2]/2};
+
+          auto region = equivalentRegion<T>(image, voxelBounds);
           itk::ImageRegionIterator<T> it(image, region);
           it = it.Begin();
           while(it != it.End())
