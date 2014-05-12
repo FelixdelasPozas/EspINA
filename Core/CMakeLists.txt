@@ -51,6 +51,7 @@ set (CORE_SOURCES
   IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp
   IO/SegFile_V5.cpp
+  IO/ZipUtils.cpp
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
   Utils/AnalysisUtils.cpp

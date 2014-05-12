@@ -45,9 +45,9 @@ namespace EspINA
 
       protected:
         static void addFileToZip(const QString&    fileName,
-                          const QByteArray& content,
-                          QuaZip&           zip,
-                          ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
+                                 const QByteArray& content,
+                                 QuaZip&           zip,
+                                 ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
 
         static QByteArray readFileFromZip(const QString&  fileName,
                                    QuaZip&         zip,

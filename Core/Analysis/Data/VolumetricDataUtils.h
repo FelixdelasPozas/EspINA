@@ -91,6 +91,23 @@ namespace EspINA
   }
 
   template<typename T>
+  unsigned long voxelCount(const typename T::Pointer image, const typename T::ValueType value)
+  {
+    unsigned long count = 0;
+
+    itk::ImageRegionConstIterator<T> it(image, image->GetLargestPossibleRegion());
+
+    it.GoToBegin();
+    while (!it.IsAtEnd())
+    {
+      if (it.Get()) ++count;
+      ++it;
+    }
+
+    return count;
+  }
+
+  template<typename T>
   Bounds rightSliceBounds(const  T &volume)
   {
     auto slice   = volume->bounds();
@@ -274,6 +291,18 @@ namespace EspINA
     }
 
     return result;
+  }
+
+  template<typename T>
+  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  {
+    if (!bounds.areValid())
+    {
+      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
+    }
+
+    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->draw(drawnVolume);
   }
 
 

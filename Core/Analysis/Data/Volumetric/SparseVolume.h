@@ -340,10 +340,10 @@ namespace EspINA
     BlockMaskSPtr createMask(const Bounds& bounds) const;
     void updateBlocksBoundingBox(const VolumeBounds& bounds);
     QString singleBlockPath() const
-    { return this->type() + QString("_%1.mhd").arg(this->m_output->id()); }
+    { return this->type() + QString("_%1.mhd").arg(this->m_output?this->m_output->id():0); }
 
     QString multiBlockPath(int part) const
-    { return this->type() + QString("_%1_%2.mhd").arg(this->m_output->id()).arg(part); }
+    { return this->type() + QString("_%1_%2.mhd").arg(this->m_output?this->m_output->id():0).arg(part); }
 
   private:
     BlockList m_blocks;
@@ -626,7 +626,10 @@ namespace EspINA
   void SparseVolume<T>::resize(const Bounds &bounds)
   {
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
-    m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
+    if (m_blocks_bounding_box.areValid())
+    {
+      m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
+    }
 
     // TODO: Reduce existing blocks??
     this->updateModificationTime();
@@ -655,7 +658,10 @@ namespace EspINA
       blockFile = QFileInfo(storage->absoluteFilePath(prefix + singleBlockPath()));
     }
 
-    m_spacing = this->m_output->spacing();
+    if (this->m_output)
+    {
+      m_spacing = this->m_output->spacing();
+    }
 
     auto itkSpacing = ItkSpacing<T>(m_spacing);
 
@@ -667,14 +673,18 @@ namespace EspINA
 
       auto image = reader->GetOutput();
 
-      if (m_spacing == NmVector3())
+      if (m_spacing == NmVector3() || this->m_output == nullptr)
       {
         for(int s=0; s < 3; ++s)
         {
           m_spacing[s] = image->GetSpacing()[s];
           itkSpacing[i] = m_spacing[i];
         }
-        this->m_output->setSpacing(m_spacing);
+
+        if (this->m_output)
+        {
+          this->m_output->setSpacing(m_spacing);
+        }
       } else
       {
         image->SetSpacing(itkSpacing);
@@ -707,8 +717,10 @@ namespace EspINA
 
       storage->makePath(prefix);
 
+      // TODO: how to avoid output reference?
+      int id = this->m_output?this->m_output->id():0;
       QString name = prefix;
-      name += QString("%1_%2_%3").arg(this->type()).arg(this->m_output->id()).arg(i);
+      name += QString("%1_%2_%3").arg(this->type()).arg(id).arg(i);
 
       QString mhd = name + ".mhd";
       QString raw = name + ".raw";

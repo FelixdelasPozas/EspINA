@@ -29,23 +29,27 @@ namespace EspINA {
     class DefaultDialogs
     {
     public:
-      static QString OpenFile(const QString& title, const QString& filters=QString(), const QString& path=QString());
+      static QString OpenFile(const QString& title,
+                              const QString& filters = QString(),
+                              const QString& path    = QString());
 
-      static QStringList OpenFiles(const QString& title, const QString& filters=QString(), const QString& path=QString());
+      static QStringList OpenFiles(const QString& title,
+                                   const QString& filters = QString(),
+                                   const QString& path    = QString());
 
       static QString SaveFile(const QString& title,
-                              const QString& filters,
-                              const QString& path,
-                              const QString& suffix,
-                              const QString& suggestion);
+                              const QString& filters    = QString(),
+                              const QString& path       = QString(),
+                              const QString& suffix     = QString(),
+                              const QString& suggestion = QString());
 
       static QStringList SaveFiles(const QString& title,
-                                   const QString& filters,
-                                   const QString& path,
-                                   const QString& suffix,
-                                   const QString& suggestion);
+                                   const QString& filters    = QString(),
+                                   const QString& path       = QString(),
+                                   const QString& suffix     = QString(),
+                                   const QString& suggestion = QString());
 
-      static QMessageBox::StandardButton ConfirmationDialog(const QString& title, const QString& message);
+      static int ConfirmationDialog(const QString& title, const QString& message);
     };
   } // namespace GUI
 } // namespace EspINA
