@@ -148,6 +148,7 @@ namespace EspINA
 
   signals:
     void ROIChanged();
+    void eventHandlerChanged();
 
   private:
     ROISPtr          m_roi;

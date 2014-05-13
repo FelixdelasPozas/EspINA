@@ -612,13 +612,13 @@ void RenderView::setCursor(const QCursor& cursor)
 }
 
 //-----------------------------------------------------------------------------
-vtkRenderWindow* RenderView::renderWindow()
+vtkRenderWindow* RenderView::renderWindow() const
 {
   return m_view->GetRenderWindow();
 }
 
 //-----------------------------------------------------------------------------
-vtkRenderer* RenderView::mainRenderer()
+vtkRenderer* RenderView::mainRenderer() const
 {
   return m_renderer;
 }

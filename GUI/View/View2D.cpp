@@ -1737,7 +1737,11 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
         bmit.Set();
 
         selectedItems[item] = bm;
+        auto coords = repRenderer->pickCoordinates();
+        qDebug() << "picked (in sample)" << item->data().toString() << "coords" << coords[0] << coords[1] << coords[2];
+
       }
+
     }
 
     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
@@ -1752,6 +1756,9 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
           bmit.Set();
 
           selectedItems[item] = bm;
+          auto coords = repRenderer->pickCoordinates();
+          qDebug() << "picked (in sample)" << item->data().toString() << "coords" << coords[0] << coords[1] << coords[2];
+
         }
 
 
@@ -1764,6 +1771,9 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
           selectedItems[item] = bm;
+
+          auto coords = repRenderer->pickCoordinates();
+          qDebug() << "picked (in sample)" << item->data().toString() << "coords" << coords[0] << coords[1] << coords[2];
         }
       }
     }
@@ -1771,6 +1781,8 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
   for(auto item: selectedItems.keys())
     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+
+  qDebug() << "view2d select" << x << y;
 
   return finalSelection;
 }

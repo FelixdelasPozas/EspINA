@@ -60,6 +60,8 @@ namespace EspINA
       }
 
     protected:
+      void transformDisplayToWorld(int x, int y, RenderView *view, NmVector3 &point, bool inSlice) const;
+
       bool validResolution(NmVector3 resolution)
       { return (resolution[0] > 0) && (resolution[1] > 0) && (resolution[2] > 0); }
 

@@ -168,7 +168,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList MeshRenderer::pick(int x, int y, Nm unused, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
+  ViewItemAdapterList MeshRenderer::pick(Nm x, Nm y, Nm zUnused, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;

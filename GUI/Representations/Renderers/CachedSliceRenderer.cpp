@@ -260,7 +260,7 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList CachedSliceRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+  ViewItemAdapterList CachedSliceRenderer::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     ViewItemAdapterList selection;
 

@@ -69,23 +69,41 @@ NmVector3 PixelSelector::getPickPoint(RenderView *view)
 }
 
 //-----------------------------------------------------------------------------
+void PixelSelector::transformDisplayToWorld(int x, int y, RenderView *view, NmVector3 &point, bool inSlice) const
+{
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToDisplay();
+  coords->SetValue(x, y);
+  auto displayCoords = coords->GetComputedWorldValue(view->mainRenderer());
+  point[0] = displayCoords[0];
+  point[1] = displayCoords[1];
+  point[2] = displayCoords[2];
+
+  if(inSlice)
+  {
+    auto view2d = dynamic_cast<View2D *>(view);
+    if(view2d == nullptr)
+      Q_ASSERT(false);
+
+    auto index = normalCoordinateIndex(view2d->plane());
+    point[index] = view2d->crosshairPoint()[index];
+  }
+}
+
+//-----------------------------------------------------------------------------
 Selector::Selection PixelSelector::generateSelection(RenderView *view)
 {
-  int xPos, yPos;
-  view->eventPosition(xPos, yPos);
-
   // View3D cannot select with this method.
   View3D* view3d = dynamic_cast<View3D*>(view);
   View2D *view2d = dynamic_cast<View2D*>(view);
   if(view3d != nullptr || view2d == nullptr)
     return Selector::Selection();
 
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
-  coords->SetCoordinateSystemToDisplay();
-  coords->SetValue(xPos, yPos);
-  auto point = coords->GetComputedWorldValue(view->mainRenderer());
-  auto index = normalCoordinateIndex(view2d->plane());
-  point[index] = view2d->crosshairPoint()[index];
+  int xPos, yPos;
+  view->eventPosition(xPos, yPos);
+
+  NmVector3 point;
+  transformDisplayToWorld(xPos, yPos, view, point, true);
 
   Selector::SelectionFlags flags;
   flags.insert(Selector::CHANNEL);
@@ -128,122 +146,47 @@ BestPixelSelector::~BestPixelSelector()
 NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
 {
   auto selection = generateSelection(view);
-  if   (selection.empty() || (ItemAdapter::Type::CHANNEL != selection.first().second->type()))
+  if(selection.empty() || (ItemAdapter::Type::CHANNEL != selection.first().second->type()))
     Q_ASSERT(false);
 
   auto selectedItem  = selection.first().second;
   auto channel       = channelPtr(selectedItem);
+  auto channelBounds = channel->bounds();
+  auto channelSpacing = channel->output()->spacing();
+  auto channelOrigin = channel->position();
 
-  auto itemBounds = selection.first().first->bounds();
-  double pickedPoint[3]{(itemBounds[0]+itemBounds[1])/2, (itemBounds[2]+itemBounds[3])/2, (itemBounds[4]+itemBounds[5])/2};
+  auto pickedBounds = selection.first().first->bounds();
+  double pickedPoint[3]{(pickedBounds[0]+pickedBounds[1])/2, (pickedBounds[2]+pickedBounds[3])/2, (pickedBounds[4]+pickedBounds[5])/2};
 
-  auto volume = volumetricData(channel->output());
-  auto spacing = volume->spacing();
-
-  auto bounds = view->previewBounds();
-
-  int extent[6];
-  for (int i = 0; i < 6; i++)
-    extent[i] = bounds[i]/spacing[i/2];
-
-  // limit extent to defined QSize
-  Selector::Selection tmpSelectionList;
-  Selector::SelectionFlags tmpFlags;
-  tmpFlags.insert(Selector::CHANNEL);
-
+  // create proportional bounds around the picked point
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
 
-  //limiting left extent
-  tmpSelectionList = view->select(tmpFlags, xPos-(m_window->width()/2), yPos);
-  if (!tmpSelectionList.empty())
-  {
-    auto selectionBounds = tmpSelectionList.first().first->bounds();
-    double L_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
-    if (L_point[0] < pickedPoint[0])
-      extent[0] = L_point[0]/spacing[0];
+  NmVector3 point;
+  transformDisplayToWorld(xPos-(m_window->width()/2), yPos, view, point, true);
+  auto boxBounds = boundingBox(pickedBounds, VolumeBounds{Bounds{point}, channelSpacing, channelOrigin});
 
-    if (L_point[1] < pickedPoint[1])
-      extent[2] = L_point[1]/spacing[1];
+  transformDisplayToWorld(xPos+(m_window->width()/2), yPos, view, point, true);
+  boxBounds = boundingBox(boxBounds, VolumeBounds{Bounds{point}, channelSpacing, channelOrigin});
 
-    if (L_point[2] < pickedPoint[2])
-      extent[4] = L_point[2]/spacing[2];
-  }
+  transformDisplayToWorld(xPos, yPos-(m_window->height()/2), view, point, true);
+  boxBounds = boundingBox(boxBounds, VolumeBounds{Bounds{point}, channelSpacing, channelOrigin});
 
-  //limiting top extent
-  tmpSelectionList = view->select(tmpFlags, xPos, yPos-(m_window->height()/2));
-  if (!tmpSelectionList.empty())
-  {
-    auto selectionBounds = tmpSelectionList.first().first->bounds();
-    double T_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
-    if (T_point[0] > pickedPoint[0])
-      extent[1] = T_point[0]/spacing[0];
+  transformDisplayToWorld(xPos, yPos+(m_window->height()/2), view, point, true);
+  boxBounds = boundingBox(boxBounds, VolumeBounds{Bounds{point}, channelSpacing, channelOrigin});
 
-    if (T_point[1] > pickedPoint[1])
-      extent[3] = T_point[1]/spacing[1];
+  auto intersectionBounds = intersection(channelBounds, boxBounds.bounds(), channelSpacing);
+  Q_ASSERT(intersectionBounds.areValid());
+  auto region = equivalentRegion<itkVolumeType>(channelOrigin, channelSpacing, intersectionBounds);
 
-    if (T_point[2] > pickedPoint[2])
-      extent[5] = T_point[2]/spacing[2];
-  }
-
-  //limiting right extent
-  tmpSelectionList = view->select(tmpFlags, xPos+(m_window->width()/2), yPos);
-  if (!tmpSelectionList.empty())
-  {
-    auto selectionBounds = tmpSelectionList.first().first->bounds();
-    double R_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
-    if (R_point[0] > pickedPoint[0])
-      extent[1] = R_point[0]/spacing[0];
-
-    if (R_point[1] > pickedPoint[1])
-      extent[3] = R_point[1]/spacing[1];
-
-    if (R_point[2] > pickedPoint[2])
-      extent[5] = R_point[2]/spacing[2];
-  }
-
-  //limiting bottom extent
-  tmpSelectionList = view->select(tmpFlags, xPos, yPos+(m_window->height()/2));
-  if (!tmpSelectionList.empty())
-  {
-    auto selectionBounds = tmpSelectionList.first().first->bounds();
-    double B_point[3]{ (selectionBounds[0]+selectionBounds[1])/2, (selectionBounds[2]+selectionBounds[3])/2, (selectionBounds[4]+selectionBounds[5])/2};
-    if (B_point[0] < pickedPoint[0])
-      extent[0] = B_point[0]/spacing[0];
-
-    if (B_point[1] < pickedPoint[1])
-      extent[2] = B_point[1]/spacing[1];
-
-    if (B_point[2] < pickedPoint[2])
-      extent[4] = B_point[2]/spacing[2];
-  }
-
-  itkVolumeType::SizeType regionSize;
-  regionSize[0] = extent[1]-extent[0]+1;
-  regionSize[1] = extent[3]-extent[2]+1;
-  regionSize[2] = extent[5]-extent[4]+1;
-
-  itkVolumeType::IndexType regionIndex;
-  regionIndex[0] = extent[0];
-  regionIndex[1] = extent[2];
-  regionIndex[2] = extent[4];
-
-  itkVolumeType::RegionType region;
-  region.SetSize(regionSize);
-  region.SetIndex(regionIndex);
-
-  Bounds finalBounds = intersection(bounds, channel->bounds());
-
-  Q_ASSERT(finalBounds.areValid());
-
-  itkVolumeType::Pointer preview = volume->itkImage(finalBounds);
+  itkVolumeType::Pointer preview = volumetricData(channel->output())->itkImage(intersectionBounds);
   itk::ImageRegionConstIterator<itkVolumeType> it(preview, region);
   it.GoToBegin();
 
   unsigned char bestValue = abs(it.Get() - m_bestPixel);
   itkVolumeType::IndexType bestPixelIndex = it.GetIndex();
-  double bestPoint[3] = { bestPixelIndex[0]*spacing[0], bestPixelIndex[1]*spacing[1], bestPixelIndex[2]*spacing[2] };
-  double point[3];
+  double bestPoint[3] = { bestPixelIndex[0]*channelSpacing[0], bestPixelIndex[1]*channelSpacing[1], bestPixelIndex[2]*channelSpacing[2] };
+  double dpoint[3];
 
   while (!it.IsAtEnd())
   {
@@ -252,24 +195,24 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
     {
       bestValue = pixelValue;
       bestPixelIndex = it.GetIndex();
-      bestPoint[0] = bestPixelIndex[0]*spacing[0];
-      bestPoint[1] = bestPixelIndex[1]*spacing[1];
-      bestPoint[2] = bestPixelIndex[2]*spacing[2];
+      bestPoint[0] = bestPixelIndex[0]*channelSpacing[0];
+      bestPoint[1] = bestPixelIndex[1]*channelSpacing[1];
+      bestPoint[2] = bestPixelIndex[2]*channelSpacing[2];
     }
     else
     {
       if (pixelValue == bestValue)
       {
-        point[0] = it.GetIndex()[0]*spacing[0];
-        point[1] = it.GetIndex()[1]*spacing[1];
-        point[2] = it.GetIndex()[2]*spacing[2];
+        dpoint[0] = it.GetIndex()[0]*channelSpacing[0];
+        dpoint[1] = it.GetIndex()[1]*channelSpacing[1];
+        dpoint[2] = it.GetIndex()[2]*channelSpacing[2];
 
-        if (vtkMath::Distance2BetweenPoints(point, pickedPoint) < vtkMath::Distance2BetweenPoints(bestPoint, pickedPoint))
+        if (vtkMath::Distance2BetweenPoints(dpoint, pickedPoint) < vtkMath::Distance2BetweenPoints(bestPoint, pickedPoint))
         {
           bestPixelIndex = it.GetIndex();
-          bestPoint[0] = bestPixelIndex[0]*spacing[0];
-          bestPoint[1] = bestPixelIndex[1]*spacing[1];
-          bestPoint[2] = bestPixelIndex[2]*spacing[2];
+          bestPoint[0] = bestPixelIndex[0]*channelSpacing[0];
+          bestPoint[1] = bestPixelIndex[1]*channelSpacing[1];
+          bestPoint[2] = bestPixelIndex[2]*channelSpacing[2];
         }
       }
     }

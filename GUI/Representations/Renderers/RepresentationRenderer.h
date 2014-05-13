@@ -56,7 +56,7 @@ namespace EspINA
       virtual bool canRender(ItemAdapterPtr item) const
       { return true; }
 
-      virtual ViewItemAdapterList pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
+      virtual ViewItemAdapterList pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
 
       virtual NmVector3 pickCoordinates() const = 0;
 

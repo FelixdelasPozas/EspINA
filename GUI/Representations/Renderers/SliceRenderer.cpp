@@ -179,9 +179,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList SliceRenderer::pick(int x,
-                                          int y,
-                                          Nm z,
+  ViewItemAdapterList SliceRenderer::pick(Nm x, Nm y, Nm z,
                                           vtkSmartPointer<vtkRenderer> renderer,
                                           RenderableItems itemType,
                                           bool repeat)
@@ -193,7 +191,7 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
 
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
+    Nm pickPoint[3] = { x, y, ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
 
     while (m_picker->Pick(pickPoint, renderer))
     {

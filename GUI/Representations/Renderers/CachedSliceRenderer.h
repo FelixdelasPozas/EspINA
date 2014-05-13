@@ -71,7 +71,7 @@ namespace EspINA
 
       virtual int numberOfRenderedItems() const       { return m_representations.size(); }
 
-      virtual ViewItemAdapterList pick(int x, int y, Nm z,
+      virtual ViewItemAdapterList pick(Nm x, Nm y, Nm z,
                                        vtkSmartPointer<vtkRenderer> renderer,
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);

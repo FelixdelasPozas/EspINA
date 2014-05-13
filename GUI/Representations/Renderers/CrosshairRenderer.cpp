@@ -1,5 +1,5 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
+p    <one line to give the program's name and a brief idea of what it does.>
     Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
@@ -174,7 +174,7 @@ unsigned int CrosshairRenderer::numberOfvtkActors() const
 
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+ViewItemAdapterList CrosshairRenderer::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
 {
   ViewItemAdapterList selection;
   QList<vtkProp*> removedProps;

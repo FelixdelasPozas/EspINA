@@ -161,7 +161,7 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  ViewItemAdapterList VolumetricRenderer<T>::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+  ViewItemAdapterList VolumetricRenderer<T>::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkVolume *> removedProps;
@@ -195,7 +195,7 @@ namespace EspINA
           }
     }
 
-    foreach(vtkVolume *prop, removedProps)
+    for(auto prop: removedProps)
       m_picker->AddPickList(prop);
 
     return selection;

@@ -204,6 +204,8 @@ void ViewManager::setEventHandler(EventHandlerSPtr eventHandler)
   {
     view->setEventHandler(m_eventHandler);
   }
+
+  emit eventHandlerChanged();
 }
 
 //----------------------------------------------------------------------------
