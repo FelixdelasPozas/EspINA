@@ -168,7 +168,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList MeshRenderer::pick(Nm x, Nm y, Nm zUnused, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
+  ViewItemAdapterList MeshRenderer::pick(int x, int y, Nm zUnused, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType,  bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
@@ -178,6 +178,10 @@ namespace EspINA
 
     while (m_picker->Pick(x, y, 0, renderer))
     {
+      double point[3];
+      m_picker->GetPickPosition(point);
+      m_lastValidPickPosition = NmVector3{ point[0], point[1], point[2] };
+
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
 
@@ -206,15 +210,6 @@ namespace EspINA
       m_picker->AddPickList(actor);
 
     return selection;
-  }
-
-  //-----------------------------------------------------------------------------
-  NmVector3 MeshRenderer::pickCoordinates() const
-  {
-    Nm point[3];
-    m_picker->GetPickPosition(point);
-
-    return NmVector3{point[0], point[1], point[2]};
   }
 
 } // namespace EspINA

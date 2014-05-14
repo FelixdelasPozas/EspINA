@@ -1731,15 +1731,13 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
     {
       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), true))
       {
-        BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+        auto rendererPoint = repRenderer->pickCoordinates();
+        BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
         BinaryMask<unsigned char>::iterator bmit(bm.get());
         bmit.goToBegin();
         bmit.Set();
 
         selectedItems[item] = bm;
-        auto coords = repRenderer->pickCoordinates();
-        qDebug() << "picked (in sample)" << item->data().toString() << "coords" << coords[0] << coords[1] << coords[2];
-
       }
 
     }
@@ -1750,30 +1748,26 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
       {
         if(flags.contains(Selector::CHANNEL))
         {
-          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+          auto rendererPoint = repRenderer->pickCoordinates();
+          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
           BinaryMask<unsigned char>::iterator bmit(bm.get());
           bmit.goToBegin();
           bmit.Set();
 
           selectedItems[item] = bm;
-          auto coords = repRenderer->pickCoordinates();
-          qDebug() << "picked (in sample)" << item->data().toString() << "coords" << coords[0] << coords[1] << coords[2];
-
         }
 
 
         if(flags.contains(Selector::SAMPLE))
         {
-          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+          auto rendererPoint = repRenderer->pickCoordinates();
+          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
           BinaryMask<unsigned char>::iterator bmit(bm.get());
           bmit.goToBegin();
           bmit.Set();
 
           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
           selectedItems[item] = bm;
-
-          auto coords = repRenderer->pickCoordinates();
-          qDebug() << "picked (in sample)" << item->data().toString() << "coords" << coords[0] << coords[1] << coords[2];
         }
       }
     }
@@ -1781,8 +1775,6 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
   for(auto item: selectedItems.keys())
     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
-
-  qDebug() << "view2d select" << x << y;
 
   return finalSelection;
 }

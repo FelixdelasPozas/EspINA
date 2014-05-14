@@ -69,12 +69,10 @@ namespace EspINA
 
     virtual int numberOfRenderedItems() const { return m_representations.size(); };
 
-    virtual ViewItemAdapterList pick(Nm x, Nm y, Nm z,
+    virtual ViewItemAdapterList pick(int x, int y, Nm z,
                                      vtkSmartPointer<vtkRenderer> renderer,
                                      RenderableItems itemType = RenderableItems(),
                                      bool repeat = false);
-
-    virtual NmVector3 pickCoordinates() const;
 
     void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
     void setCrosshair(NmVector3 point);

@@ -30,18 +30,12 @@ namespace EspINA
   class EspinaGUI_EXPORT PixelSelector
   : public Selector
   {
-    protected:
-      struct Invalid_Resolution_Exception {};
-
     public:
-      explicit PixelSelector(NmVector3 resolution = NmVector3{1,1,1}) throw(Invalid_Resolution_Exception)
-      : m_resolution{resolution}
-      {
-        if(!validResolution(resolution))
-          throw Invalid_Resolution_Exception();
-      }
+      explicit PixelSelector()
+      {};
 
-      virtual ~PixelSelector(){}
+      virtual ~PixelSelector()
+      {};
 
       virtual void onMouseDown(const QPoint &pos, RenderView* view);
 
@@ -51,21 +45,9 @@ namespace EspINA
 
       virtual Selector::Selection generateSelection(RenderView *);
 
-      void setResolution(NmVector3 resolution) throw(Invalid_Resolution_Exception)
-      {
-        if(!validResolution(resolution))
-          throw Invalid_Resolution_Exception();
-
-        m_resolution = resolution;
-      }
-
     protected:
       void transformDisplayToWorld(int x, int y, RenderView *view, NmVector3 &point, bool inSlice) const;
-
-      bool validResolution(NmVector3 resolution)
-      { return (resolution[0] > 0) && (resolution[1] > 0) && (resolution[2] > 0); }
-
-      NmVector3 m_resolution;
+      bool validSelection(Selector::Selection);
   };
 
   //------------------------------------------------------------------------
@@ -73,7 +55,7 @@ namespace EspINA
   : public PixelSelector
   {
   public:
-    explicit BestPixelSelector(NmVector3 resolution = NmVector3{1,1,1});
+    explicit BestPixelSelector();
     virtual ~BestPixelSelector();
 
     void setBestPixelValue(int value)

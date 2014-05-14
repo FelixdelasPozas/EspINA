@@ -179,7 +179,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList SliceRenderer::pick(Nm x, Nm y, Nm z,
+  ViewItemAdapterList SliceRenderer::pick(int x, int y, Nm z,
                                           vtkSmartPointer<vtkRenderer> renderer,
                                           RenderableItems itemType,
                                           bool repeat)
@@ -191,16 +191,15 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
 
-    Nm pickPoint[3] = { x, y, ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
-
-    while (m_picker->Pick(pickPoint, renderer))
+    while (m_picker->Pick(x,y,0, renderer))
     {
+      double point[3];
+      m_picker->GetPickPosition(point);
+      m_lastValidPickPosition = NmVector3{ point[0], point[1], point[2] };
+      point[normalCoordinateIndex(view->plane())] = z;
+
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
-
-      Nm point[3];
-      m_picker->GetPickPosition(point);
-      point[normalCoordinateIndex(view->plane())] = z;
 
       m_picker->DeletePickList(pickedProp);
       removedProps << pickedProp;
@@ -238,15 +237,5 @@ namespace EspINA
 
     return selection;
   }
-
-  //-----------------------------------------------------------------------------
-  NmVector3 SliceRenderer::pickCoordinates() const
-  {
-    Nm point[3];
-    m_picker->GetPickPosition(point);
-
-    return NmVector3{ point[0], point[1], point[2] };
-  }
-
 
 } /* namespace EspINA */

@@ -57,6 +57,7 @@ namespace EspINA
   , m_maxWindowWidth{25}
   , m_actualPos{nullptr}
   , m_edgePos{nullptr}
+  , m_windowSpacing{-1}
   , m_picker(vtkSmartPointer<vtkPropPicker>::New())
   , m_scheduler{scheduler}
   , m_planeIndex{-1}
@@ -260,33 +261,30 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList CachedSliceRenderer::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+  ViewItemAdapterList CachedSliceRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     ViewItemAdapterList selection;
 
     if (m_representationsActors.keys().size() == 0)
       return selection;
 
-    View2D *view = reinterpret_cast<View2D *>(m_view);
-
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
-
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
 
     CachedRepresentationSList repList = validRepresentationsForPosition(z);
     for(auto rep: repList)
       if (m_representationsActors[rep] != nullptr)
         m_picker->AddPickList(m_representationsActors[rep]);
 
-    while (m_picker->Pick(pickPoint, renderer))
+    while (m_picker->Pick(x,y,0, renderer))
     {
+      double point[3];
+      m_picker->GetPickPosition(point);
+      m_lastValidPickPosition = NmVector3{ point[0], point[1], point[2] };
+      point[m_planeIndex] = z;
+
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);
-
-      Nm point[3];
-      m_picker->GetPickPosition(point);
-      point[m_planeIndex] = z;
 
       m_picker->DeletePickList(pickedProp);
 
@@ -359,15 +357,6 @@ namespace EspINA
     }
   }
 
-  //-----------------------------------------------------------------------------
-  NmVector3 CachedSliceRenderer::pickCoordinates() const
-  {
-    double point[3];
-    m_picker->GetPickPosition(point);
-
-    return NmVector3{point[0], point[1], point[2]};
-  }
-  
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::hide()
   {

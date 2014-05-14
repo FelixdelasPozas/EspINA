@@ -25,14 +25,32 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
+bool PixelSelector::validSelection(Selector::Selection selectedItems)
+{
+  for(auto item: selectedItems)
+  {
+    if((item.second->type() == ItemAdapter::Type::SEGMENTATION) && (!m_flags.contains(Selector::SEGMENTATION)))
+      return false;
+
+    if((item.second->type() == ItemAdapter::Type::CHANNEL) && (!m_flags.contains(Selector::CHANNEL)))
+      return false;
+
+    if((item.second->type() == ItemAdapter::Type::SAMPLE) && (!m_flags.contains(Selector::SAMPLE)))
+      return false;
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
-  Selection selection = generateSelection(view);
+  Selection selectedItems = generateSelection(view);
 
-  if (selection.empty() || (ItemAdapter::Type::CHANNEL != selection.first().second->type()))
+  if (selectedItems.empty())
     return;
 
-  emit itemsSelected(selection);
+  emit itemsSelected(selectedItems);
 }
 
 //-----------------------------------------------------------------------------
@@ -45,8 +63,8 @@ bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
     if (me->button() == Qt::LeftButton)
     {
       onMouseDown(me->pos(), view);
-      auto selection = generateSelection(view);
-      if (selection.empty())
+      auto selectedItems = generateSelection(view);
+      if (selectedItems.empty())
         return false;
 
       return true;
@@ -59,12 +77,12 @@ bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
 //-----------------------------------------------------------------------------
 NmVector3 PixelSelector::getPickPoint(RenderView *view)
 {
-  Selection selection = generateSelection(view);
+  Selection selectedItems = generateSelection(view);
 
-  if (selection.empty() || (selection.first().second->type() != ItemAdapter::Type::CHANNEL))
+  if (selectedItems.empty())
     Q_ASSERT(false);
 
-  auto voxelBounds = selection.first().first->bounds();
+  auto voxelBounds = selectedItems.first().first->bounds();
   return NmVector3{(voxelBounds[0]+voxelBounds[1])/2, (voxelBounds[2]+voxelBounds[3])/2, (voxelBounds[4]+voxelBounds[5])/2};
 }
 
@@ -102,18 +120,12 @@ Selector::Selection PixelSelector::generateSelection(RenderView *view)
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
 
-  NmVector3 point;
-  transformDisplayToWorld(xPos, yPos, view, point, true);
+  auto selectedItems = view->select(m_flags, xPos, yPos);
 
-  Selector::SelectionFlags flags;
-  flags.insert(Selector::CHANNEL);
+  if(!validSelection(selectedItems))
+    return Selector::Selection();
 
-  BinaryMaskSPtr<unsigned char> bm{ new BinaryMask<unsigned char>{Bounds(NmVector3{point[0], point[1], point[2]}), m_resolution}};
-  BinaryMask<unsigned char>::iterator bmit(bm.get());
-  bmit.goToBegin();
-  bmit.Set();
-
-  return view->select(flags, bm);
+  return selectedItems;
 }
 
 int quadDist(int cx, int cy, int x, int y)
@@ -130,10 +142,10 @@ int quadDist(int cx, int cy, int x, int y)
 //!      |
 //!      v    BR
 //-----------------------------------------------------------------------------
-BestPixelSelector::BestPixelSelector(NmVector3 resolution)
-: PixelSelector{resolution}
-, m_window(new QSize(14,14))
-, m_bestPixel  (0)
+BestPixelSelector::BestPixelSelector()
+: PixelSelector()
+, m_window     {new QSize(14,14)}
+, m_bestPixel  {0}
 {}
 
 //-----------------------------------------------------------------------------
@@ -145,17 +157,17 @@ BestPixelSelector::~BestPixelSelector()
 //-----------------------------------------------------------------------------
 NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
 {
-  auto selection = generateSelection(view);
-  if(selection.empty() || (ItemAdapter::Type::CHANNEL != selection.first().second->type()))
+  auto selectedItems = generateSelection(view);
+  if(selectedItems.empty())
     Q_ASSERT(false);
 
-  auto selectedItem  = selection.first().second;
+  auto selectedItem  = selectedItems.first().second;
   auto channel       = channelPtr(selectedItem);
   auto channelBounds = channel->bounds();
   auto channelSpacing = channel->output()->spacing();
   auto channelOrigin = channel->position();
 
-  auto pickedBounds = selection.first().first->bounds();
+  auto pickedBounds = selectedItems.first().first->bounds();
   double pickedPoint[3]{(pickedBounds[0]+pickedBounds[1])/2, (pickedBounds[2]+pickedBounds[3])/2, (pickedBounds[4]+pickedBounds[5])/2};
 
   // create proportional bounds around the picked point
@@ -230,23 +242,22 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
 //-----------------------------------------------------------------------------
 void BestPixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
-  auto selection = generateSelection(view);
+  auto selectedItems = generateSelection(view);
 
-  if(selection.empty() ||
-     ItemAdapter::Type::CHANNEL != selection.first().second->type() ||
-     selection.first().first->numberOfVoxels() != 1)
-  {
+  if(selectedItems.empty())
     return;
-  }
 
   auto point = getPickPoint(view);
+  auto channelAdapter = channelPtr(selectedItems.first().second);
+  Q_ASSERT(channelAdapter);
+  auto spacing = channelAdapter->output()->spacing();
 
-  BinaryMaskSPtr<unsigned char> bm{ new BinaryMask<unsigned char>{Bounds(NmVector3{point[0], point[1], point[2]}), m_resolution}};
+  BinaryMaskSPtr<unsigned char> bm{ new BinaryMask<unsigned char>{Bounds(NmVector3{point[0], point[1], point[2]}), spacing}};
   BinaryMask<unsigned char>::iterator bmit(bm.get());
   bmit.goToBegin();
   bmit.Set();
 
-  selection.first().first = bm;
+  selectedItems.first().first = bm;
 
-  emit itemsSelected(selection);
+  emit itemsSelected(selectedItems);
 }

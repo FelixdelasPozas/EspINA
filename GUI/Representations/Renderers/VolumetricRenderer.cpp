@@ -161,7 +161,7 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  ViewItemAdapterList VolumetricRenderer<T>::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+  ViewItemAdapterList VolumetricRenderer<T>::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkVolume *> removedProps;
@@ -171,6 +171,10 @@ namespace EspINA
 
     while (m_picker->Pick(x, y, 0, renderer))
     {
+      double point[3];
+      m_picker->GetPickPosition(point);
+      m_lastValidPickPosition = NmVector3{ point[0], point[1], point[2] };
+
       vtkVolume *pickedProp = m_picker->GetVolume();
       Q_ASSERT(pickedProp);
 
@@ -199,16 +203,6 @@ namespace EspINA
       m_picker->AddPickList(prop);
 
     return selection;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<class T>
-  NmVector3 VolumetricRenderer<T>::pickCoordinates() const
-  {
-    Nm point[3];
-    m_picker->GetPickPosition(point);
-
-    return NmVector3{point[0], point[1], point[2]};
   }
 
 } // namespace EspINA

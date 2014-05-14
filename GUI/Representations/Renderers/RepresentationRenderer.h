@@ -56,15 +56,18 @@ namespace EspINA
       virtual bool canRender(ItemAdapterPtr item) const
       { return true; }
 
-      virtual ViewItemAdapterList pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
+      virtual ViewItemAdapterList pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
 
-      virtual NmVector3 pickCoordinates() const = 0;
+      virtual NmVector3 pickCoordinates()
+      { return m_lastValidPickPosition; };
 
       virtual Type type() const
       { return Type::Representation; }
 
     protected:
       QMap<ViewItemAdapterPtr, RepresentationSList> m_representations;
+      NmVector3                                     m_lastValidPickPosition;
+
   };
 
   class EspinaGUI_EXPORT ChannelRenderer

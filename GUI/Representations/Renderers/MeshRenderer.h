@@ -57,13 +57,10 @@ namespace EspINA
 
       virtual int numberOfRenderedItems() const { return m_representations.size(); }
 
-      virtual ViewItemAdapterList pick(Nm x, Nm y, Nm z,
+      virtual ViewItemAdapterList pick(int x, int y, Nm z,
                                        vtkSmartPointer<vtkRenderer> renderer,
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);
-
-      virtual NmVector3 pickCoordinates() const;
-
     protected:
       virtual void hide();
       virtual void show();

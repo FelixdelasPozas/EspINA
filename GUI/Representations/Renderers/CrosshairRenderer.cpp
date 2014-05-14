@@ -174,7 +174,7 @@ unsigned int CrosshairRenderer::numberOfvtkActors() const
 
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList CrosshairRenderer::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
+ViewItemAdapterList CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
 {
   ViewItemAdapterList selection;
   QList<vtkProp*> removedProps;
@@ -184,6 +184,10 @@ ViewItemAdapterList CrosshairRenderer::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vt
 
   while (m_picker->Pick(x, y, 0, renderer))
   {
+    double point[3];
+    m_picker->GetPickPosition(point);
+    m_lastValidPickPosition = NmVector3{ point[0], point[1], point[2] };
+
     auto pickedProp = m_picker->GetViewProp();
     Q_ASSERT(pickedProp);
 
@@ -220,15 +224,6 @@ ViewItemAdapterList CrosshairRenderer::pick(Nm x, Nm y, Nm z, vtkSmartPointer<vt
     m_picker->AddPickList(actor);
 
   return selection;
-}
-
-//-----------------------------------------------------------------------------
-NmVector3 CrosshairRenderer::pickCoordinates() const
-{
-  double point[3];
-  m_picker->GetPickPosition(point);
-
-  return NmVector3{point[0], point[1], point[2]};
 }
 
 //-----------------------------------------------------------------------------
