@@ -51,11 +51,21 @@ namespace EspINA
     void clear();
 
   signals:
+    /** \brief Emited when any item changes its selection state
+     */
+    void selectionStateChanged();
+
     void selectionStateChanged(ChannelAdapterList);
 
     void selectionStateChanged(SegmentationAdapterList);
 
-    void selectionStateChanged();
+    /** \brief Emit current selection whenever it changes
+     */
+    void selectionChanged(ChannelAdapterList);
+
+    void selectionChanged(SegmentationAdapterList);
+
+    void selectionChanged();
 
   private:
     ChannelAdapterList setChannels(ChannelAdapterList);

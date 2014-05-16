@@ -47,6 +47,13 @@ InputSPtr SegmentationAdapter::asInput() const
 }
 
 //------------------------------------------------------------------------
+void SegmentationAdapter::changeOutput(InputSPtr input)
+{
+  m_segmentation->changeOutput(input);
+  m_representations.clear();
+}
+
+//------------------------------------------------------------------------
 void SegmentationAdapter::setNumber(unsigned int number)
 {
   m_segmentation->setNumber(number);

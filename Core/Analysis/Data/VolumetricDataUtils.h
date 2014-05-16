@@ -46,8 +46,19 @@ namespace EspINA
   template<typename T>
   typename T::RegionType equivalentRegion(const T *image, const Bounds& bounds);
 
+  /** \brief Return the image reagion equivalent to the bounds.
+   *
+   * Different images may produce different regions for the same bounds.
+   * Image origin and spacing are key values to obtain the image region
+   * equivalent to a given bounds.
+   *
+   * TODO: how to proceed when bounds doesn't intersect with largest possible image region
+   *       - we coud either return an invalid region or throw an execption
+   */
   template<typename T>
   typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
+
+
 
   /** \brief Return the bounds for a given image region and an image
    * 
@@ -56,120 +67,160 @@ namespace EspINA
   template<typename T>
   Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region);
 
+  /** \brief Return the bounds for a given image region and an image
+   *
+   * Bounds are given in nm using (0,0) as origin
+   */
   template<typename T>
   Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region);
 
+
+
   /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   *
    */
   template<typename T>
   VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region);
 
   /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   *
    */
   template<typename T>
   VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds);
 
   /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   *
    */
   template<typename T>
   VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::RegionType& region);
 
   /** \brief Return the minimum complete bounds for any image of given origin and spacing
+   *
    */
   template<typename T>
   VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds);
 
+
+  /** \brief Return the bounds of the left slice of given @volume
+   *
+   */
   template<typename T>
-  Bounds leftSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
+  Bounds leftSliceBounds(const  T &volume);
 
-    slice[1] = slice[0] + spacing[0]/2.0;
-
-    return slice;
-  }
-
+  /** \brief Return the bounds of the right slice of given @volume
+   *
+   */
   template<typename T>
-  unsigned long voxelCount(const typename T::Pointer image, const typename T::ValueType value)
-  {
-    unsigned long count = 0;
+  Bounds rightSliceBounds(const  T &volume);
 
-    itk::ImageRegionConstIterator<T> it(image, image->GetLargestPossibleRegion());
-
-    it.GoToBegin();
-    while (!it.IsAtEnd())
-    {
-      if (it.Get()) ++count;
-      ++it;
-    }
-
-    return count;
-  }
-
+  /** \brief Return the bounds of the top slice of given @volume
+   *
+   */
   template<typename T>
-  Bounds rightSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
+  Bounds topSliceBounds(const  T &volume);
 
-    slice[0] = slice[1] - spacing[0]/2.0;
-
-    return slice;
-  }
-
+  /** \brief Return the bounds of the bottom slice of given @volume
+   *
+   */
   template<typename T>
-  Bounds topSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
+  Bounds bottomSliceBounds(const  T &volume);
 
-    slice[3] = slice[2] + spacing[1]/2.0;
-
-    return slice;
-  }
-
+  /** \brief Return the bounds of the front slice of given @volume
+   *
+   */
   template<typename T>
-  Bounds bottomSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
+  Bounds frontSliceBounds(const  T &volume);
 
-    slice[2] = slice[3] - spacing[1]/2.0;
-
-    return slice;
-  }
-
-
+  /** \brief Return the bounds of the back slice of given @volume
+   *
+   */
   template<typename T>
-  Bounds frontSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
+  Bounds backSliceBounds(const  T &volume);
 
-    slice[5] = slice[4] + spacing[2]/2.0;
 
-    return slice;
-  }
 
+  /** \brief Return the number of voxels in image whose value is @value
+   *
+   */
   template<typename T>
-  Bounds backSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
+  unsigned long voxelCount(const typename T::Pointer image, const typename T::ValueType value);
 
-    slice[4] = slice[5] - spacing[2]/2.0;
 
-    return slice;
-  }
 
-  // NOTE: Probably move into an independent module
+  /** \brief Return the minimal bounds of image which contains voxels with values different from @value
+   *
+   */
   template<typename T>
-  double memory_size_in_MB(int number_of_pixels)
-  {
-    return number_of_pixels * sizeof(T) / 1024.0 / 1024.0;
-  }
+  Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueType value);
 
+
+
+  /** \brief Transform NmVector to ItkSpacing
+   *
+   */
+  template<typename T>
+  typename T::SpacingType ItkSpacing(const NmVector3& spacing);
+
+
+
+  /** \brief Transform from SpacingType to NmVector3
+   *
+   */
+  template<typename T>
+  NmVector3 ToNmVector3(typename T::SpacingType itkSpacing);
+
+  /** \brief Transform from PointType to NmVector3
+   *
+   */
+  template<typename T>
+  NmVector3 ToNmVector3(typename T::PointType itkPoint);
+
+
+
+  /** \brief Return the vtkImageData of specified bounds equivalent to the itkImage.
+   */
+  template<typename T>
+  vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const Bounds &inputBounds);
+
+  /** \brief Return the vtkImageData of specified bounds equivalent to the
+   *         volumetric data.
+   */
+  template<typename T>
+  vtkSmartPointer<vtkImageData> vtkImage(VolumetricDataSPtr<T> volume, const Bounds &bounds);
+
+  /** \brief Return the vtkImageData of specified bounds equivalent to the
+   *         volumetric data of the specified output.
+   */
+  template<class T>
+  vtkSmartPointer<vtkImageData> vtkImage(OutputSPtr output, const Bounds &bounds);
+
+
+
+  /** \brief Volume's voxel's index at given spatial position
+   * 
+   *  It doesn't check whether the index is valid or not
+   */
+  template<typename T>
+  typename T::IndexType index(Nm x, Nm y, Nm z);
+
+
+
+  /** \brief Returns whether or not the voxel at @point is not background
+   *
+   */
+  template<typename T>
+  bool isSegmentationVoxel(const VolumetricDataSPtr<T> volume, const NmVector3 &point);
+
+
+
+  /** \brief Draw @drawnVolume into @volume, resizing @volume bounds to fit @drawnVolume if necessary
+   *
+   */
+  template<typename T>
+  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds());
+
+
+  
   template<typename T>
   typename T::Pointer define_itkImage(const NmVector3              &origin  = {0, 0, 0},
                                       const NmVector3              &spacing = {1, 1, 1});
@@ -180,131 +231,13 @@ namespace EspINA
                                       const NmVector3              &spacing = {1, 1, 1},
                                       const NmVector3              &origin  = {0, 0, 0});
 
+
+  // NOTE: Probably move into an independent module
   template<typename T>
-  typename T::SpacingType ItkSpacing(const NmVector3& spacing)
+  double memory_size_in_MB(int number_of_pixels)
   {
-    typename T::SpacingType itkSpacing;
-
-    for(int i = 0; i < 3; ++i) 
-      itkSpacing[i] = spacing[i];
-
-    return itkSpacing;
+    return number_of_pixels * sizeof(T) / 1024.0 / 1024.0;
   }
-
-  template<typename T>
-  NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
-  {
-    NmVector3 spacing;
-
-    for(int i = 0; i < 3; ++i)
-      spacing[i] = itkSpacing[i];
-
-    return spacing;
-  }
-
-  /** \brief Return the vtkImageData of specified bounds equivalent to the itkImage.
-   */
-  template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const Bounds &inputBounds)
-  {
-    using itk2vtkImageFilter = itk::ImageToVTKImageFilter<T>;
-    using ExtractFilter = itk::ExtractImageFilter<T,T>;
-
-    typename T::Pointer itkImage;
-
-    auto spacing = volume->GetSpacing();
-    auto origin = volume->GetOrigin();
-    VolumeBounds iBounds(inputBounds, NmVector3{spacing[0], spacing[1], spacing[2]}, NmVector3{origin[0], origin[1], origin[2]});
-
-    auto vBounds = volumeBounds<T>(volume, volume->GetLargestPossibleRegion());
-    // check if the requested bounds are inside the volume bounds, else fail miserably
-    Q_ASSERT(contains(vBounds, iBounds));
-
-    if (!isEquivalent(vBounds, iBounds))
-    {
-      auto extractor = ExtractFilter::New();
-      extractor->SetExtractionRegion(equivalentRegion<T>(volume, inputBounds));
-      extractor->SetInput(volume);
-      extractor->Update();
-
-      itkImage = extractor->GetOutput();
-    }
-    else
-      itkImage = volume;
-
-    itkImage->DisconnectPipeline();
-
-    auto transform = itk2vtkImageFilter::New();
-    transform->SetInput(itkImage);
-    transform->Update();
-
-    vtkSmartPointer<vtkImageData> returnImage = vtkImageData::New();
-    returnImage->DeepCopy(transform->GetOutput());
-    return returnImage;
-  }
-
-  /** \brief Return the vtkImageData of specified bounds equivalent to the
-   *         volumetric data.
-   */
-  template<typename T>
-  vtkSmartPointer<vtkImageData> vtkImage(VolumetricDataSPtr<T> volume, const Bounds &bounds)
-  {
-    typename T::Pointer image = volume->itkImage(bounds);
-    return vtkImage<T>(image, bounds);
-  }
-
-  /** \brief Return the vtkImageData of specified bounds equivalent to the
-   *         volumetric data of the specified output.
-   */
-  template<class T>
-  vtkSmartPointer<vtkImageData> vtkImage(OutputSPtr output, const Bounds &bounds)
-  {
-    auto volume = volumetricData(output);
-    typename T::Pointer image = volume->itkImage(bounds);
-    return vtkImage<T>(image, bounds);
-  }
-
-
-//   /// Get the vtk-equivalent extent defining the volume
-//   void extent(int out[6]) const = 0;
-
-
-  /** \brief Volume's voxel's index at given spatial position
-   * 
-   *  It doesn't check whether the index is valid or not
-   */
-  template<typename T>
-  typename T::IndexType index( Nm x, Nm y, Nm z);
-
-  template<typename T>
-  bool isSegmentationVoxel(const VolumetricDataSPtr<T> volume, const NmVector3 &point)
-  {
-    Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
-
-    bool result = contains(volume->bounds(), bounds, volume->spacing());
-
-    if (result)
-    {
-      typename T::Pointer voxel = volume->itkImage(bounds);
-
-      result = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
-    }
-
-    return result;
-  }
-
-  template<typename T>
-  void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
-  {
-    if (!bounds.areValid())
-    {
-      bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
-    }
-
-    volume->resize(boundingBox(bounds, volume->bounds()));
-    volume->draw(drawnVolume);
-  }
-
 
 
 //   /// Set voxels at coordinates (x,y,z) to value
@@ -372,6 +305,7 @@ namespace EspINA
 // 
 // 
 //     virtual bool collision(SegmentationVolumeSPtr segmentation) = 0;
+
 }
 
 #include "Core/Analysis/Data/VolumetricDataUtils.txx"

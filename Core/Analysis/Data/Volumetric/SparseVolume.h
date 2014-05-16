@@ -940,6 +940,21 @@ namespace EspINA
     return blockBounds;
   }
 
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  SparseVolume<T> * sparseCopy(typename T::Pointer image)
+  {
+    auto bounds  = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
+    auto spacing = ToNmVector3<T>(image->GetSpacing());
+    auto origin  = ToNmVector3<T>(image->GetOrigin());
+
+    auto sparse = new SparseVolume<T>(bounds, spacing, origin);
+
+    sparse->draw(image, bounds);
+
+    return sparse;
+  }
+
   using SparseVolumePtr  = SparseVolume<itkVolumeType> *;
   using SparseVolumeSPtr = std::shared_ptr<SparseVolume<itkVolumeType>>;
 }

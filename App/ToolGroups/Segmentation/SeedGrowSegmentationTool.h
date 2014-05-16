@@ -36,6 +36,8 @@ namespace EspINA
   class SeedGrowSegmentationTool
   : public Tool
   {
+    Q_OBJECT
+
     class SGSFilterFactory
     : public FilterFactory
     {
@@ -47,7 +49,6 @@ namespace EspINA
       mutable FetchBehaviourSPtr m_fetchBehaviour;
     };
 
-    Q_OBJECT
   public:
     explicit SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                       ModelFactorySPtr factory,

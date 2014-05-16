@@ -128,9 +128,13 @@ namespace EspINA
   void EditionTools::selectionChanged(SelectionSPtr selection)
   {
     int listSize = selection->segmentations().size();
-    m_manualEdition->setEnabled(listSize == 1 || listSize == 0);
-    m_split->setEnabled(listSize == 1);
-    m_morphological->setEnabled(listSize != 0);
+
+    bool noSegmentation         = listSize == 0;
+    bool onlyOneSegmentation    = listSize == 1;
+    bool atLeastOneSegmentation = listSize  > 0;
+    m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
+    m_split        ->setEnabled(onlyOneSegmentation);
+    //m_morphological->setEnabled(atLeastOneSegmentation);
   }
 
   //-----------------------------------------------------------------------------

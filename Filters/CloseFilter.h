@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,29 +17,34 @@
 */
 
 
-#ifndef OPENINGFILTER_H
-#define OPENINGFILTER_H
+#ifndef ESPINA_CLOSING_FILTER_H
+#define ESPINA_CLOSING_FILTER_H
 
-#include "EspinaCore_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
 #include "MorphologicalEditionFilter.h"
 
 namespace EspINA
 {
-class EspinaCore_EXPORT OpeningFilter
+
+class EspinaFilters_EXPORT CloseFilter
 : public MorphologicalEditionFilter
 {
+
 public:
-  explicit OpeningFilter(NamedInputs inputs,
-                         Arguments   args,
-                         FilterType  type);
-  virtual ~OpeningFilter();
+  explicit CloseFilter(InputSList   inputs,
+                        Filter::Type  type,
+                        SchedulerSPtr scheduler);
+  virtual ~CloseFilter();
 
 protected:
-  virtual void run(FilterOutputId oId);
+  virtual void execute()
+  { execute(0); }
+
+  virtual void execute(Output::Id id);
 };
 
 } // namespace EspINA
 
 
-#endif // OPENINGFILTER_H
+#endif // CLOSINGFILTER_H

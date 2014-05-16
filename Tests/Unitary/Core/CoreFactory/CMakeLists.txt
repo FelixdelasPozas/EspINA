@@ -26,6 +26,7 @@ set(LIB_DEPENDECIES
 add_executable(Core_Factory_Tests
   ${TEST_SOURCES}
   ${SUBJECT_MOCS}
+  ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Data.cpp

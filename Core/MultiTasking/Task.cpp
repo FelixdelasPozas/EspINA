@@ -51,6 +51,8 @@ Task::Task(SchedulerSPtr scheduler)
 , m_isThreadAttached{false}
 , m_hidden{false}
 {
+  prepareToRun();
+
   if (m_scheduler != nullptr)
   {
     moveToThread(m_scheduler->thread());

@@ -198,7 +198,9 @@ void ViewManager::setEventHandler(EventHandlerSPtr eventHandler)
   m_eventHandler = eventHandler;
 
   if (m_eventHandler)
+  {
     m_eventHandler->setInUse(true);
+  }
 
   for(auto view : m_renderViews)
   {
@@ -206,6 +208,12 @@ void ViewManager::setEventHandler(EventHandlerSPtr eventHandler)
   }
 
   emit eventHandlerChanged();
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unsetActiveEventHandler()
+{
+  unsetEventHandler(m_eventHandler);
 }
 
 //----------------------------------------------------------------------------

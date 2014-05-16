@@ -33,7 +33,10 @@ qt4_wrap_cpp(SUBJECT_MOCS
 add_executable(Channel_Tests
   ${Channel_Tests}
   ${SUBJECT_MOCS}
+  ${CORE_DIR}/Analysis/Analysis.cpp
+  ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
+  ${CORE_DIR}/Analysis/Segmentation.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Filter.cpp

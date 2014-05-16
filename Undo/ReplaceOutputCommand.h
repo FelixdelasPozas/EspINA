@@ -1,7 +1,7 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2014  <copyright holder> <email>
- *
+ * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
+
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,40 +17,34 @@
  *
  */
 
-#ifndef ESPINA_INPUT_H
-#define ESPINA_INPUT_H
+#ifndef ESPINA_REPLACE_OUTPUT_COMMAND_H
+#define ESPINA_REPLACE_OUTPUT_COMMAND_H
 
-#include "Output.h"
+#include <QUndoCommand>
+#include <GUI/Model/SegmentationAdapter.h>
 
 namespace EspINA {
 
-  /** \class Input
-   *
-   *  \brief Allows filter outputs to be used as inputs for other filters
-   *
-   *  Keep valid output pointers even when filter outputs are replaced
-   */
-  class Input
+  class ReplaceOutputCommand
+  : public QUndoCommand
   {
   public:
-    explicit Input(FilterSPtr filter, OutputSPtr output);
+    explicit ReplaceOutputCommand(SegmentationAdapterPtr segmentation,
+                                  InputSPtr              input,
+                                  QUndoCommand*          parent = 0);
 
-    FilterSPtr filter() const
-    { return m_filter; }
+    virtual void redo();
 
-    OutputSPtr output() const
-    { return m_output; }
+    virtual void undo();
 
   private:
-    FilterSPtr m_filter;
-    OutputSPtr m_output;
+    void swapInputs();
+
+  private:
+    SegmentationAdapterPtr m_segmentation;
+    InputSPtr              m_input;
   };
 
-  using InputSPtr  = std::shared_ptr<Input>;
-  using InputSList = QList<InputSPtr>;
+} // namespace EspINA;
 
-  InputSPtr   getInput(FilterSPtr filter, Output::Id id);
-  InputSList getInputs(FilterSPtr filter);
-}
-
-#endif // ESPINA_INPUT_H
+#endif // ESPINA_REPLACE_OUTPUT_COMMAND_H

@@ -21,6 +21,7 @@
 #define ESPINA_FILTERADAPTER_H
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Output.h>
+#include <Core/MultiTasking/Task.h>
 
 namespace EspINA {
 
@@ -94,7 +95,7 @@ namespace EspINA {
     { return m_filter->hasFinished(); }
 
     virtual void submit()
-    { m_filter->submit(m_filter); }
+    { Task::submit(m_filter); }
 
     virtual void update(Output::Id id)
     { m_filter->update(id); }

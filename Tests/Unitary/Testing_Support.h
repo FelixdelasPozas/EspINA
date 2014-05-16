@@ -20,6 +20,7 @@
 #ifndef ESPINA_TESTING_SUPPORT_H
 #define ESPINA_TESTING_SUPPORT_H
 
+#include <vtkObjectFactory.h>
 #include <vtkImplicitFunction.h>
 #include <itkImageRegionIterator.h>
 

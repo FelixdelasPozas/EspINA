@@ -56,9 +56,11 @@ namespace EspINA
     virtual ItemAdapter::Type type() const
     { return Type::SEGMENTATION; }
 
+    // TODO 2014-05-13: create a new method with this name to add a new type of input which is
+    //       invariant to the segmentation and rename this method to something else?
     virtual InputSPtr asInput() const;
 
-    //virtual void changeOutput(OutputSPtr output);
+    virtual void changeOutput(InputSPtr input);
 
     void setNumber(unsigned int number);
 

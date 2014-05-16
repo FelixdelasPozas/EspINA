@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,38 +16,40 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "DilateFilter.h"
+
+#include "OpenFilter.h"
 #include "Utils/ItkProgressReporter.h"
+#include <Core/Analysis/Data/VolumetricData.h>
 
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 
+#include <itkImageRegionConstIterator.h>
 #include <itkBinaryBallStructuringElement.h>
-#include <itkDilateObjectMorphologyImageFilter.h>
-#include <itkConstantPadImageFilter.h>
+#include <itkBinaryMorphologicalOpeningImageFilter.h>
 
 #include <QDebug>
 
 using namespace EspINA;
 
-using PadFilterType          = itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType>;
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
-using BinaryDilateFilter     = itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
+using BinaryOpenFilter       = itk::BinaryMorphologicalOpeningImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-DilateFilter::DilateFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+OpenFilter::OpenFilter(InputSList    inputs,
+                             Filter::Type  type,
+                             SchedulerSPtr scheduler)
 : MorphologicalEditionFilter(inputs, type, scheduler)
 {
 }
 
+
 //-----------------------------------------------------------------------------
-DilateFilter::~DilateFilter()
+OpenFilter::~OpenFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
-void DilateFilter::execute(Output::Id id)
+void OpenFilter::execute(Output::Id id)
 {
   Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
@@ -61,42 +63,18 @@ void DilateFilter::execute(Output::Id id)
   emit progress(0);
   if (!canExecute()) return;
 
-  //   qDebug() << "Compute Image Dilate";
-  itkVolumeType::SizeType lowerExtendRegion;
-  lowerExtendRegion[0] = m_radius;
-  lowerExtendRegion[1] = m_radius;
-  lowerExtendRegion[2] = m_radius;
-
-  itkVolumeType::SizeType upperExtendRegion;
-  upperExtendRegion[0] = m_radius;
-  upperExtendRegion[1] = m_radius;
-  upperExtendRegion[2] = m_radius;
-
-  PadFilterType::Pointer padFilter = PadFilterType::New();
-  padFilter->SetConstant(SEG_BG_VALUE);
-  padFilter->SetInput(inputVolume->itkImage());
-  padFilter->SetPadLowerBound(lowerExtendRegion);
-  padFilter->SetPadUpperBound(upperExtendRegion);
-  padFilter->Update();
-  ITKProgressReporter<PadFilterType> padReporter(this, padFilter, 0, 25);
-
-  emit progress(25);
-  if (!canExecute()) return;
-
+  //qDebug() << "Compute Image Opening";
   StructuringElementType ball;
   ball.SetRadius(m_radius);
   ball.CreateStructuringElement();
 
-  BinaryDilateFilter::Pointer filter = BinaryDilateFilter::New();
-  filter->SetInput(padFilter->GetOutput());
+
+  BinaryOpenFilter::Pointer filter = BinaryOpenFilter::New();
+  filter->SetInput(inputVolume->itkImage());
   filter->SetKernel(ball);
-  filter->SetObjectValue(SEG_VOXEL_VALUE);
-  filter->SetNumberOfThreads(1);
-  filter->ReleaseDataFlagOff();
-
-  ITKProgressReporter<BinaryDilateFilter> dilateReporter(this, filter, 25, 100);
-
+  filter->SetForegroundValue(SEG_VOXEL_VALUE);
   filter->Update();
+  ITKProgressReporter<BinaryOpenFilter> reporter(this, filter, 0, 100);
 
   emit progress(100);
   if (!canExecute()) return;

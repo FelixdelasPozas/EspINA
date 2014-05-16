@@ -121,16 +121,21 @@ void Selection::set(ViewItemAdapterList selection)
           break;
       }
 
+    auto modifiedChannels      = setChannels(channels);
     auto modifiedSegmentations = setSegmentations(segmentations);
-    auto modifiedChannels = setChannels(channels);
+
+    if (!modifiedChannels.empty() || !modifiedSegmentations.empty())
+      emit selectionStateChanged();
 
     if(!modifiedSegmentations.empty())
-      emit selectionStateChanged(modifiedSegmentations);
+      emit selectionStateChanged(m_segmentations);
 
     if(!modifiedChannels.empty())
       emit selectionStateChanged(modifiedChannels);
 
-    emit selectionStateChanged();
+    emit selectionChanged();
+    emit selectionChanged(m_channels);
+    emit selectionChanged(m_segmentations);
   }
 }
 

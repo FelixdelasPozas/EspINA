@@ -215,6 +215,8 @@ namespace EspINA
 
     virtual void updateSelection(SegmentationAdapterList selection);
 
+    QPushButton *createButton(const QString& icon, const QString& tooltip);
+
   protected:
     virtual void onSelectionSet(SelectionSPtr selection); 
 

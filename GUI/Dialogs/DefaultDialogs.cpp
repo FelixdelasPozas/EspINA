@@ -109,7 +109,7 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
 }
 
 //------------------------------------------------------------------------
-int DefaultDialogs::ConfirmationDialog(const QString& title, const QString& message)
+bool DefaultDialogs::UserConfirmation(const QString& title, const QString& message)
 {
   QMessageBox dialog;
 
@@ -117,5 +117,5 @@ int DefaultDialogs::ConfirmationDialog(const QString& title, const QString& mess
   dialog.setText(message);
   dialog.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
 
-  return dialog.exec();
+  return dialog.exec() == QMessageBox::Ok;
 }

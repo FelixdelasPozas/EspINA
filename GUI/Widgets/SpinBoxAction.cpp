@@ -49,11 +49,12 @@ namespace EspINA
   //------------------------------------------------------------------------
   QWidget* SpinBoxAction::createWidget(QWidget* parent)
   {
-    QWidget *widget = new QWidget(parent);
-    QHBoxLayout *layout = new QHBoxLayout();
+    QWidget*     widget = new QWidget(parent);
+    QHBoxLayout* layout = new QHBoxLayout();
+
     widget->setLayout(layout);
 
-    m_label = new QLabel(m_text);
+    m_label   = new QLabel(m_text);
     m_spinBox = new QSpinBox();
 
     // only catching one of them will suffice
@@ -63,6 +64,7 @@ namespace EspINA
     m_spinBox->setMinimum(m_minimumValue);
     m_spinBox->setMaximum(m_maximumValue);
     m_spinBox->setSuffix(m_suffix);
+    //m_spinBox->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     connect(m_spinBox,SIGNAL(valueChanged(int)),
             this, SLOT(setValue(int)));
@@ -70,7 +72,7 @@ namespace EspINA
     layout->addWidget(m_label);
     layout->addWidget(m_spinBox);
 
-    m_label->setEnabled(m_enabled);
+    m_label  ->setEnabled(m_enabled);
     m_spinBox->setEnabled(m_enabled);
 
     return widget;

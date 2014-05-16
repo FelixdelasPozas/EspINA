@@ -59,7 +59,7 @@ namespace EspINA {
     virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) { return false;}
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}
-    virtual Snapshot editedRegionsSnapshot() const {}
+    virtual Snapshot editedRegionsSnapshot() const { return Snapshot();}
     virtual DataProxySPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
     virtual void undo() {};

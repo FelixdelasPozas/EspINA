@@ -49,7 +49,7 @@ namespace EspINA {
                                    const QString& suffix     = QString(),
                                    const QString& suggestion = QString());
 
-      static int ConfirmationDialog(const QString& title, const QString& message);
+      static bool UserConfirmation(const QString& title, const QString& message);
     };
   } // namespace GUI
 } // namespace EspINA

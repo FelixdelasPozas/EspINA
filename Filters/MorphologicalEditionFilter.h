@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+ Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -21,16 +21,21 @@
 
 // #include "EspinaFilters_Export.h"
 
-#include "BasicSegmentationFilter.h"
+#include "Core/Analysis/Filter.h"
+#include <itkImageToImageFilter.h>
+#include <itkCommand.h>
 
 namespace EspINA
 {
-  template<class T>
   class EspinaFilters_EXPORT MorphologicalEditionFilter
   : public Filter
   {
     public:
       virtual ~MorphologicalEditionFilter();
+
+      virtual void restoreState(const State& state);
+
+      virtual State state() const;
 
       unsigned int radius() const
       { return m_radius; }
@@ -38,27 +43,39 @@ namespace EspINA
       void setRadius(int radius, bool ignoreUpdate = false)
       {
         m_radius = radius;
-        m_ignoreCurrentOutputs = !ignoreUpdate;
+        m_ignoreStorageContent = !ignoreUpdate;
       }
 
       bool isOutputEmpty()
       { return m_isOutputEmpty; }
 
     protected:
-      explicit MorphologicalEditionFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler);
+      explicit MorphologicalEditionFilter(InputSList    inputs,
+                                          Filter::Type  type,
+                                          SchedulerSPtr scheduler);
 
-      bool ignoreCurrentOutputs() const
-      { return m_ignoreCurrentOutputs; }
+      virtual Snapshot saveFilterSnapshot() const;
 
-      bool needUpdate(Output::Id oId) const;
+      virtual bool needUpdate() const;
+
+      virtual bool needUpdate(Output::Id id) const;
+
+      virtual bool ignoreStorageContent() const
+      { return m_ignoreStorageContent; }
+
+      virtual bool invalidateEditedRegions();
+
+      void finishExecution(itkVolumeType::Pointer output);
 
     protected:
-      bool m_ignoreCurrentOutputs;
-      bool m_isOutputEmpty;
+      bool m_ignoreStorageContent;
 
-      int m_radius;
+      int  m_radius;
+      bool m_isOutputEmpty;
   };
 
+  using MorphologicalEditionFilterPtr  = MorphologicalEditionFilter *;
+  using MorphologicalEditionFilterSPtr = std::shared_ptr<MorphologicalEditionFilter>;
 } // namespace EspINA
 
 #endif // ESPINA_MORPHOLOGICAL_EDITION_FILTER_H

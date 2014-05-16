@@ -40,6 +40,7 @@
 #include <QDialog>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QPushButton>
 #include <QDebug>
 
 //using EspINA::ModelAdapterUtils::volumetricData;
@@ -640,6 +641,23 @@ void RenderView::eventPosition(int& x, int& y)
 void RenderView::updateSelection(SegmentationAdapterList selection)
 {
   updateRepresentations(selection);
+}
+
+//-----------------------------------------------------------------------------
+QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip)
+{
+  QPushButton *button = new QPushButton();
+
+  button->setIcon(QIcon(icon));
+  button->setToolTip(tooltip);
+  button->setFlat(true);
+  button->setIconSize(QSize(20,20));
+  button->setMinimumSize(QSize(22,22));
+  button->setMaximumSize(QSize(22,22));
+  button->setEnabled(false);
+  button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+
+  return button;
 }
 
 //-----------------------------------------------------------------------------

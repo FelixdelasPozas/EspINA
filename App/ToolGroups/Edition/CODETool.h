@@ -17,40 +17,43 @@
  *
  */
 
-#ifndef ESPINA_INPUT_H
-#define ESPINA_INPUT_H
+#ifndef ESPINA_CODE_TOOL_H
+#define ESPINA_CODE_TOOL_H
 
-#include "Output.h"
+#include <GUI/Widgets/SpinBoxAction.h>
 
 namespace EspINA {
-
-  /** \class Input
-   *
-   *  \brief Allows filter outputs to be used as inputs for other filters
-   *
-   *  Keep valid output pointers even when filter outputs are replaced
-   */
-  class Input
+  class CODETool
+  : public QObject
   {
+    Q_OBJECT
+
   public:
-    explicit Input(FilterSPtr filter, OutputSPtr output);
+    CODETool(const QString&icon, const QString& tooltip);
 
-    FilterSPtr filter() const
-    { return m_filter; }
+    QList<QAction *> actions() const;
 
-    OutputSPtr output() const
-    { return m_output; }
+    void setEnabled(bool enabled);
+
+    void setRadius(int value)
+    { m_radius->setValue(value); }
+
+    int radius() const
+    { return m_radius->value(); }
+
+  public slots:
+    void toggleToolWidgets(bool visible);
+
+  signals:
+    void toggled(bool);
+    void applyClicked();
 
   private:
-    FilterSPtr m_filter;
-    OutputSPtr m_output;
+    QAction*       m_toggle;
+    SpinBoxAction* m_radius;
+    QAction*       m_apply;
   };
 
-  using InputSPtr  = std::shared_ptr<Input>;
-  using InputSList = QList<InputSPtr>;
+} // namespace EspINA
 
-  InputSPtr   getInput(FilterSPtr filter, Output::Id id);
-  InputSList getInputs(FilterSPtr filter);
-}
-
-#endif // ESPINA_INPUT_H
+#endif // ESPINA_CODE_TOOL_H

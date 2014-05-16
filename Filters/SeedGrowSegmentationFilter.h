@@ -41,13 +41,14 @@ namespace EspINA
   class SeedGrowSegmentationFilter
   : public Filter
   {
-    using ExtractFilterType = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
-    using ConnectedFilterType = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
-    using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
-    using LabelMapType = itk::LabelMap<LabelObjectType>;
-    using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
+    using ExtractFilterType      = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
+    using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
+    using LabelObjectType        = itk::StatisticsLabelObject<unsigned int, 3>;
+    using LabelMapType           = itk::LabelMap<LabelObjectType>;
+    using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
     using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
-    using ClosingFilterType = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
+    using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
+
   public:
     explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
@@ -100,8 +101,8 @@ namespace EspINA
 
     virtual bool invalidateEditedRegions();
 
-  private:
-    Bounds minimalBounds(itkVolumeType::Pointer image) const;
+//   private:
+//     Bounds minimalBounds(itkVolumeType::Pointer image) const;
 
   private:
     int       m_lowerTh, m_prevLowerTh;

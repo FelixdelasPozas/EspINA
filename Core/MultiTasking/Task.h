@@ -104,6 +104,11 @@ namespace EspINA {
      */
     bool isWaiting() const {return m_isWaiting; }
 
+    // Need to be public so we can reuse itkProgressReporters
+    void reportProgress(int value)
+    { emit progress(value); }
+
+
   public slots:
     void setPriority(const int value);
 

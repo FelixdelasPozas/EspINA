@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SeedGrowSegmentationFilter.h"
+#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
@@ -232,6 +233,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   auto connectedFilter = ConnectedFilterType::New();
 
+  ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 75);
+
   connectedFilter->SetInput(input->itkImage());
   connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
@@ -279,7 +282,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();
 
-  Bounds bounds = minimalBounds(output);
+  Bounds bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
 
   NmVector3 spacing = m_inputs[0]->output()->spacing();
 
@@ -314,37 +317,37 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
   return false;
 }
 
-//----------------------------------------------------------------------------
-Bounds SeedGrowSegmentationFilter::minimalBounds(itkVolumeType::Pointer image) const
-{
-  Bounds bounds;
-
-  itk::ImageRegionConstIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
-  auto spacing = image->GetSpacing();
-
-  it.GoToBegin();
-  while (!it.IsAtEnd())
-  {
-    if (it.Get())
-    {
-      auto index   = it.GetIndex();
-      Bounds voxelBounds;
-      for (int i = 0; i < 3; ++i)
-      {
-        voxelBounds[2*i]   = (index[i] * spacing[i]) - spacing[i]/2;
-        voxelBounds[2*i+1] = ((index[i]+1) * spacing[i]) - spacing[i]/2;
-      }
-
-      if (!bounds.areValid())
-        bounds = voxelBounds;
-      else
-        bounds = boundingBox(bounds, voxelBounds);
-    }
-    ++it;
-  }
-  
-  return bounds;
-}
+// //----------------------------------------------------------------------------
+// Bounds SeedGrowSegmentationFilter::minimalBounds(itkVolumeType::Pointer image) const
+// {
+//   Bounds bounds;
+//
+//   itk::ImageRegionConstIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
+//   auto spacing = image->GetSpacing();
+//
+//   it.GoToBegin();
+//   while (!it.IsAtEnd())
+//   {
+//     if (it.Get())
+//     {
+//       auto index   = it.GetIndex();
+//       Bounds voxelBounds;
+//       for (int i = 0; i < 3; ++i)
+//       {
+//         voxelBounds[2*i]   = (index[i] * spacing[i]) - spacing[i]/2;
+//         voxelBounds[2*i+1] = ((index[i]+1) * spacing[i]) - spacing[i]/2;
+//       }
+//
+//       if (!bounds.areValid())
+//         bounds = voxelBounds;
+//       else
+//         bounds = boundingBox(bounds, voxelBounds);
+//     }
+//     ++it;
+//   }
+//
+//   return bounds;
+// }
 
 
 // //-----------------------------------------------------------------------------

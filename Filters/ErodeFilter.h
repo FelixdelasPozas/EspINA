@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
 */
 
 
-#ifndef ERODEFILTER_H
-#define ERODEFILTER_H
+#ifndef ESPINA_ERODE_FILTER_H
+#define ESPINA_ERODE_FILTER_H
 
 #include "EspinaCore_Export.h"
 
@@ -26,20 +26,23 @@
 
 namespace EspINA
 {
-class EspinaCore_EXPORT ErodeFilter
-: public MorphologicalEditionFilter
-{
-public:
-  explicit ErodeFilter(NamedInputs inputs,
-                       Arguments   args,
-                       FilterType  type);
-  virtual ~ErodeFilter();
+  class EspinaCore_EXPORT ErodeFilter
+  : public MorphologicalEditionFilter
+  {
+  public:
+    explicit ErodeFilter(InputSList    inputs,
+                         Filter::Type  type,
+                         SchedulerSPtr scheduler);
+    virtual ~ErodeFilter();
 
-protected:
-  virtual void run(FilterOutputId oId);
-};
+  protected:
+    virtual void execute()
+    { execute(0); }
+
+    virtual void execute(Output::Id id);
+  };
 
 } // namespace EspINA
 
 
-#endif // ERODEFILTER_H
+#endif // ESPINA_ERODE_FILTER_H

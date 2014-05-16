@@ -51,12 +51,13 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentation/ApplyROI.h
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
-  ToolGroups/Editor/EditionTools.h
-  ToolGroups/Editor/SplitTool.h
-  ToolGroups/Editor/MorphologicalEditionTool.h
-  ToolGroups/Editor/ManualEditionTool.h
-  ToolGroups/Editor/EditionTools.h
-  ToolGroups/Editor/MorphologicalEditionTool.h
+  ToolGroups/Edition/EditionTools.h
+  ToolGroups/Edition/SplitTool.h
+  ToolGroups/Edition/MorphologicalEditionTool.h
+  ToolGroups/Edition/ManualEditionTool.h
+  ToolGroups/Edition/CODETool.h
+  ToolGroups/Edition/EditionTools.h
+  ToolGroups/Edition/MorphologicalEditionTool.h
   ToolGroups/Measures/MeasuresTools.h
   Tools/Brushes/CircularBrushSelector.h
   Tools/Brushes/SphericalBrushSelector.h
@@ -146,6 +147,7 @@ set (ESPINA_SOURCES
 #   Toolbars/Editor/Settings.cpp
 #   Toolbars/Main/MainToolBar.cpp
 #   Toolbars/Segmentation/SeedGrowSegmentationSettings.cpp
+  ToolGroups/Edition/CODETool.cpp
   ToolGroups/Segmentation/ApplyROI.cpp
   ToolGroups/Segmentation/SegmentationTools.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
@@ -155,10 +157,10 @@ set (ESPINA_SOURCES
   ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
   ToolGroups/ViewState/ViewTools.cpp
   ToolGroups/ViewState/ZoomArea.cpp
-  ToolGroups/Editor/EditionTools.cpp
-  ToolGroups/Editor/SplitTool.cpp
-  ToolGroups/Editor/MorphologicalEditionTool.cpp
-  ToolGroups/Editor/ManualEditionTool.cpp
+  ToolGroups/Edition/EditionTools.cpp
+  ToolGroups/Edition/SplitTool.cpp
+  ToolGroups/Edition/MorphologicalEditionTool.cpp
+  ToolGroups/Edition/ManualEditionTool.cpp
   ToolGroups/Measures/MeasuresTools.cpp
   ToolGroups/VOI/ManualVOITool.cpp
   ToolGroups/VOI/CleanVOITool.cpp

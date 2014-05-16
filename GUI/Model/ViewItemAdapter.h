@@ -53,6 +53,8 @@ namespace EspINA {
 
     virtual InputSPtr asInput() const = 0;
 
+    virtual void changeOutput(InputSPtr input) = 0;
+
     FilterAdapterSPtr filter()
     { return m_filter; }
     const FilterAdapterSPtr filter() const

@@ -131,9 +131,7 @@ void Analysis::add(SegmentationSPtr segmentation)
 
   m_content->add(segmentation);
 
-  RelationName relation = QString("%1").arg(segmentation->outputId());
-
-  m_content->addRelation(filter, segmentation, relation);
+  addFilterContentRelation(filter, segmentation);
   
   m_relations->add(segmentation);
 
@@ -289,6 +287,62 @@ void Analysis::removeIfIsolated(FilterSPtr filter)
     filter->setAnalysis(nullptr);
     m_filters.removeOne(filter);
   }
+}
+
+//------------------------------------------------------------------------
+void Analysis::addFilterContentRelation(FilterSPtr filter, ViewItem* item)
+{
+  ViewItemSPtr succesor;
+
+  auto segmentation = dynamic_cast<Segmentation *>(item);
+  if (segmentation)
+  {
+    succesor = find<Segmentation>(segmentation, m_segmentations);
+  } else
+  {
+    auto channel = dynamic_cast<Channel *>(item);
+    if (channel)
+    {
+      succesor = find<Channel>(channel, m_channels);
+    }
+  }
+  addFilterContentRelation(filter, succesor);
+}
+
+//------------------------------------------------------------------------
+void Analysis::addFilterContentRelation(FilterSPtr filter, ViewItemSPtr item)
+{
+  RelationName relation = QString("%1").arg(item->outputId());
+
+  m_content->addRelation(filter, item, relation);
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeFilterContentRelation(FilterSPtr filter, ViewItem* item)
+{
+  ViewItemSPtr succesor;
+
+  auto segmentation = dynamic_cast<Segmentation *>(item);
+  if (segmentation)
+  {
+    succesor = find<Segmentation>(segmentation, m_segmentations);
+  } else
+  {
+    auto channel = dynamic_cast<Channel *>(item);
+    if (channel)
+    {
+      succesor = find<Channel>(channel, m_channels);
+    }
+  }
+
+  removeFilterContentRelation(filter, succesor);
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeFilterContentRelation(FilterSPtr filter, ViewItemSPtr item)
+{
+  RelationName relation = QString("%1").arg(item->outputId());
+  m_content->removeRelation(filter, item, relation);
 }
 
 //------------------------------------------------------------------------

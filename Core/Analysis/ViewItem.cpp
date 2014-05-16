@@ -61,21 +61,31 @@ const DataSPtr ViewItem::data(Data::Type type) const
 }
 
 //------------------------------------------------------------------------
-void ViewItem::changeOutput(FilterSPtr filter, Output::Id outputId)
+void ViewItem::changeOutput(InputSPtr input)
 {
   if (m_input->filter())
   {
     disconnect(output().get(), SIGNAL(modified()),
                this, SLOT(onOutputModified()));
-    //output()->markToSave(false);
+
+    analysis()->removeFilterContentRelation(m_input->filter(), this);
+    analysis()->removeIfIsolated(m_input->filter());
   }
 
-  m_input = getInput(filter, outputId);
+  m_input = input;
 
   if (m_input->filter())
   {
-    //output()->markToSave(true);
     connect(output().get(), SIGNAL(modified()),
             this, SLOT(onOutputModified()));
+
+    analysis()->addIfNotExists(m_input->filter());
+    analysis()->addFilterContentRelation(m_input->filter(), this);
   }
+}
+
+//------------------------------------------------------------------------
+void ViewItem::changeOutput(FilterSPtr filter, Output::Id outputId)
+{
+  changeOutput(getInput(filter, outputId));
 }

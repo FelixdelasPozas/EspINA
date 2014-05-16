@@ -17,6 +17,7 @@ set (UNDO_SOURCES
   RemoveCategoryCommand.cpp
   RemoveSegmentations.cpp
   ReparentCategoryCommand.cpp
+  ReplaceOutputCommand.cpp
   )
 
 set(UNDO_EXTERNAL_LIBS

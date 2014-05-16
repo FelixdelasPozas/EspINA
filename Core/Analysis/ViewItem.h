@@ -52,6 +52,8 @@ namespace EspINA {
     DataSPtr data(Data::Type type);
     const DataSPtr data(Data::Type type) const;
 
+    void changeOutput(InputSPtr input);
+
     void changeOutput(FilterSPtr filter, Output::Id outputId);
 
     bool isOutputModified() const

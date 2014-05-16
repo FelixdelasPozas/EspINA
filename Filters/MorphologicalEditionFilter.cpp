@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,9 +18,9 @@
 
 
 #include "MorphologicalEditionFilter.h"
-
-#include <GUI/ModelFactory.h>
-#include <GUI/Representations/SliceRepresentation.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
 #include <QDebug>
 
@@ -28,45 +28,115 @@ using namespace EspINA;
 
 const unsigned int LABEL_VALUE = 255;
 
+
 //-----------------------------------------------------------------------------
-template<class T>
-MorphologicalEditionFilter<T>::MorphologicalEditionFilter(OutputSList   inputs,
-                                                       Type          type,
+MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList    inputs,
+                                                       Filter::Type  type,
                                                        SchedulerSPtr scheduler)
-: BasicSegmentationFilter(inputs, type, scheduler)
-, m_ignoreCurrentOutputs(false)
-, m_isOutputEmpty(true)
+: Filter(inputs, type, scheduler)
+, m_ignoreStorageContent(false)
 , m_radius(0)
+, m_isOutputEmpty(true)
 {
 }
 
 //-----------------------------------------------------------------------------
-template<class T>
-MorphologicalEditionFilter<T>::~MorphologicalEditionFilter()
+MorphologicalEditionFilter::~MorphologicalEditionFilter()
+{
+}
+
+//-----------------------------------------------------------------------------
+void MorphologicalEditionFilter::restoreState(const State& state)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-template<class T>
-bool MorphologicalEditionFilter<T>::needUpdate(Output::Id oId) const
+State MorphologicalEditionFilter::state() const
 {
-  bool update = Filter::needUpdate(oId);
+  State state;
 
-  if (!update)
+  return state;
+}
+
+
+//-----------------------------------------------------------------------------
+Snapshot MorphologicalEditionFilter::saveFilterSnapshot() const
+{
+  Snapshot snapshot;
+
+  return snapshot;
+}
+
+//-----------------------------------------------------------------------------
+bool MorphologicalEditionFilter::needUpdate() const
+{
+  return m_outputs.isEmpty();
+}
+
+
+//-----------------------------------------------------------------------------
+bool MorphologicalEditionFilter::needUpdate(Output::Id id) const
+{
+  if (id != 0) throw Undefined_Output_Exception();
+
+  // TODO: When input exists, check its timeStamp
+  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
+//   bool update = Filter::needUpdate(oId);
+//
+//   if (!update)
+//   {
+//     Q_ASSERT(m_outputs.size() == 1);
+//
+//     VolumetricDataSPtr<T> outputVolume = segmentationVolume(m_outputs[0]);
+//     Q_ASSERT(outputVolume.get());
+//     Q_ASSERT(outputVolume->toITK().IsNotNull());
+//     if (!m_inputs.isEmpty())
+//     {
+//       Q_ASSERT(m_inputs.size() == 1);
+//       SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0]);
+//       update = outputVolume->timeStamp() < inputVolume->timeStamp();
+//     }
+//   }
+//
+//   return update;
+}
+
+//-----------------------------------------------------------------------------
+bool MorphologicalEditionFilter::invalidateEditedRegions()
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
+{
+  m_isOutputEmpty = true;
+
+  auto bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  m_isOutputEmpty = !bounds.areValid();
+
+  if (!m_isOutputEmpty)
   {
-    Q_ASSERT(m_outputs.size() == 1);
-
-    VolumetricDataSPtr<T> outputVolume = segmentationVolume(m_outputs[0]);
-    Q_ASSERT(outputVolume.get());
-    Q_ASSERT(outputVolume->toITK().IsNotNull());
-    if (!m_inputs.isEmpty())
+    if (!m_outputs.contains(0))
     {
-      Q_ASSERT(m_inputs.size() == 1);
-      SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0]);
-      update = outputVolume->timeStamp() < inputVolume->timeStamp();
+      m_outputs[0] = OutputSPtr(new Output(this, 0));
     }
-  }
 
-  return update;
+    NmVector3 spacing = m_inputs[0]->output()->spacing();
+
+    DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+    volume->draw(output, bounds);
+
+    MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+    m_outputs[0]->setData(volume);
+    m_outputs[0]->setData(mesh);
+
+    m_outputs[0]->setSpacing(spacing);
+  }
+  else
+  {
+    qWarning() << "MorphologicalEditionFilter: Empty Output;";
+  }
 }

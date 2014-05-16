@@ -28,7 +28,7 @@
 
 #include "classification_adapter_testing_support.h"
 
-#include <GUI/Model/ClassificationAdapter.h>ategory.h>
+#include <GUI/Model/ClassificationAdapter.h>
 
 using namespace std;
 using namespace EspINA;

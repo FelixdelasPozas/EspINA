@@ -17,31 +17,32 @@
 */
 
 
-#ifndef CLOSINGFILTER_H
-#define CLOSINGFILTER_H
+#ifndef ESPINA_OPENING_FILTER_H
+#define ESPINA_OPENING_FILTER_H
 
-#include "EspinaCore_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
 #include "MorphologicalEditionFilter.h"
 
 namespace EspINA
 {
-
-class EspinaCore_EXPORT ClosingFilter
+class EspinaFilters_EXPORT OpenFilter
 : public MorphologicalEditionFilter
 {
-
 public:
-  explicit ClosingFilter(NamedInputs inputs,
-                         Arguments   args,
-                         FilterType  type);
-  virtual ~ClosingFilter();
+  explicit OpenFilter(InputSList    inputs,
+                         Filter::Type  type,
+                         SchedulerSPtr scheduler);
+  virtual ~OpenFilter();
 
 protected:
-  virtual void run(FilterOutputId oId);
+  virtual void execute()
+  { execute(0); }
+
+  virtual void execute(Output::Id id);
 };
 
 } // namespace EspINA
 
 
-#endif // CLOSINGFILTER_H
+#endif // ESPINA_OPENING_FILTER_H

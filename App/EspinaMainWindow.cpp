@@ -27,7 +27,7 @@
 #include "IO/ChannelReader.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
-#include "ToolGroups/Editor/EditionTools.h"
+#include "ToolGroups/Edition/EditionTools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/ViewState/ViewTools.h"
@@ -641,6 +641,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   m_mainBar->setEnabled(false);
   m_contextualBar->setEnabled(false);
+  m_mainBar->actions().first()->setChecked(true);
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
 
   return true;

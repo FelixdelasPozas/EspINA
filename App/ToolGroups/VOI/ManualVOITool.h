@@ -21,7 +21,7 @@
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <ToolGroups/Editor/ManualEditionTool.h>
+#include <ToolGroups/Edition/ManualEditionTool.h>
 #include "VolumeOfInterestMask.h"
 
 class QAction;

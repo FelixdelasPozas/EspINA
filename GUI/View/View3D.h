@@ -114,6 +114,8 @@ namespace EspINA
 
     virtual void updateChannelsOpactity(){}
 
+    
+
   protected slots:
     void scrollBarMoved(int);
 

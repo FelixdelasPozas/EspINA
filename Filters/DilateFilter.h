@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,30 +17,30 @@
 */
 
 
-#ifndef DILATEFILTER_H
-#define DILATEFILTER_H
+#ifndef ESPINA_DILATE_FILTER_H
+#define ESPINA_DILATE_FILTER_H
 
-#include "EspinaCore_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
 #include "MorphologicalEditionFilter.h"
 
-#include <Core/Model/Segmentation.h>
-
 namespace EspINA
 {
+  class EspinaFilters_EXPORT DilateFilter
+  : public MorphologicalEditionFilter
+  {
+  public:
+    explicit DilateFilter(InputSList    inputs,
+                          Filter::Type  type,
+                          SchedulerSPtr scheduler);
+    virtual ~DilateFilter();
 
-class EspinaCore_EXPORT DilateFilter
-: public MorphologicalEditionFilter
-{
-public:
-  explicit DilateFilter(NamedInputs inputs,
-                        Arguments   args,
-                        FilterType  type);
-  virtual ~DilateFilter();
+  protected:
+    virtual void execute()
+    { execute(0); }
 
-protected:
-  virtual void run(FilterOutputId oId);
-};
+    virtual void execute(Output::Id id);
+  };
 
 } // namespace EspINA
 

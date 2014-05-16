@@ -93,9 +93,9 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_toLayout(new QHBoxLayout())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
 , m_spinBox(new QDoubleSpinBox())
-, m_zoomButton(new QPushButton())
-, m_snapshot(new QPushButton())
-, m_renderConfig(new QPushButton())
+, m_zoomButton(nullptr)
+, m_snapshot(nullptr)
+, m_renderConfig(nullptr)
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_slicingStep{1, 1, 1}
 , m_showThumbnail(true)
@@ -111,6 +111,7 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_inThumbnailClick{true}
 {
   setupUI();
+
   qRegisterMetaType<Plane>("Plane");
   qRegisterMetaType<Nm>("Nm");
 
@@ -540,20 +541,10 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_zoomButton->setIcon(QIcon(":/espina/zoom_reset.png"));
-  m_zoomButton->setToolTip(tr("Reset Camera"));
-  m_zoomButton->setFlat(true);
-  m_zoomButton->setIconSize(QSize(20,20));
-  m_zoomButton->setMaximumSize(QSize(22,22));
-  m_zoomButton->setCheckable(false);
+  m_zoomButton = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
   connect(m_zoomButton, SIGNAL(clicked()), this, SLOT(resetView()));
 
-  m_snapshot->setIcon(QIcon(":/espina/snapshot_scene.svg"));
-  m_snapshot->setToolTip(tr("Save Scene as Image"));
-  m_snapshot->setFlat(true);
-  m_snapshot->setIconSize(QSize(20,20));
-  m_snapshot->setMaximumSize(QSize(22,22));
-  m_snapshot->setEnabled(true);
+  m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
   connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
 
   m_scrollBar->setMaximum(0);
@@ -567,20 +558,18 @@ void View2D::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
-  m_renderConfig->setIcon(QIcon(":/espina/settings.png"));
-  m_renderConfig->setToolTip(tr("Configure this view's renderers"));
-  m_renderConfig->setFlat(true);
-  m_renderConfig->setIconSize(QSize(20,20));
-  m_renderConfig->setMaximumSize(QSize(22,22));
-  m_renderConfig->setEnabled(false);
+  m_renderConfig = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
 
   // TODO
   //connect(m_renderConfig,SIGNAL(clicked(bool)),this,SLOT(renderContextualMenu()));
 
-  connect(m_spinBox, SIGNAL(valueChanged(double)), this, SLOT(spinValueChanged(double)));
-  connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollValueChanged(int)));
+  connect(m_spinBox,   SIGNAL(valueChanged(double)),
+          this,        SLOT(spinValueChanged(double)));
 
-  m_mainLayout->addWidget(m_view);
+  connect(m_scrollBar, SIGNAL(valueChanged(int)),
+          this,        SLOT(scrollValueChanged(int)));
+
+  m_mainLayout   ->addWidget(m_view);
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);

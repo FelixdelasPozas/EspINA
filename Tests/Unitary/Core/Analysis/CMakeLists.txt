@@ -13,6 +13,7 @@ create_test_sourcelist(Analysis_Tests Analysis_Tests.cpp # this file is created 
   analysis_add_samples.cpp
   analysis_add_segmentation.cpp
   analysis_add_segmentations.cpp
+  analysis_change_segmentation_output.cpp
   analysis_delete_non_existing_relation.cpp
   analysis_delete_relation.cpp
   analysis_remove_channel.cpp
@@ -46,6 +47,7 @@ qt4_wrap_cpp(SUBJECT_MOCS
 )
 
 add_executable(Analysis_Tests
+  analysis_testing_support.cpp
   ${Analysis_Tests}
   ${SUBJECT_MOCS}
   ${CORE_DIR}/Analysis/Analysis.cpp
@@ -77,6 +79,7 @@ add_test("\"Analysis: Add Segmentation\""                        Analysis_Tests 
 add_test("\"Analysis: Add Segmentations\""                       Analysis_Tests analysis_add_segmentations)
 add_test("\"Analysis: Add Basic Pipeline\""                      Analysis_Tests analysis_add_basic_pipeline)
 add_test("\"Analysis: Add Complex Pipeline\""                    Analysis_Tests analysis_add_complex_pipeline)
+add_test("\"Analysis: Change Segmentation Output\""              Analysis_Tests analysis_change_segmentation_output)
 add_test("\"Analysis: Add Relation\""                            Analysis_Tests analysis_add_relation)
 add_test("\"Analysis: Add Relation Between Non Existing Items\"" Analysis_Tests analysis_add_relation)
 add_test("\"Analysis: Add Existing Sample\""                     Analysis_Tests analysis_add_existing_sample)

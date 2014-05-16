@@ -25,6 +25,7 @@
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"
 #include "Category.h"
+#include "ViewItem.h"
 
 namespace EspINA
 {
@@ -100,6 +101,12 @@ namespace EspINA
 
     void removeIfIsolated(FilterSPtr filter);
 
+    void addFilterContentRelation(FilterSPtr filter, ViewItem* item);
+    void addFilterContentRelation(FilterSPtr filter, ViewItemSPtr item);
+
+    void removeFilterContentRelation(FilterSPtr filter, ViewItem* item);
+    void removeFilterContentRelation(FilterSPtr filter, ViewItemSPtr item);
+
     bool findRelation(PersistentSPtr      ancestor,
                       PersistentSPtr      succesor,
                       const RelationName& relation);
@@ -115,6 +122,8 @@ namespace EspINA
     SegmentationSList   m_segmentations;
 
     TemporalStorageSPtr m_storage;
+
+    friend class ViewItem;
   };
 
   using AnalysisPtr  = Analysis *;

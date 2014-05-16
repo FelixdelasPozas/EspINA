@@ -6,21 +6,22 @@ include_directories(
 include (GenerateExportHeader)
 
 # qt4_wrap_cpp(FILTERS_MOC
-#   Analysis/Data.h
-#   Analysis/Output.h
-#   MultiTasking/Scheduler.h
-#   MultiTasking/Task.h
 #   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 #   )
 
 set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  CloseFilter.cpp
+  DilateFilter.cpp
+  ErodeFilter.cpp
   FreeFormSource.cpp
+  MorphologicalEditionFilter.cpp
+  OpenFilter.cpp
   SeedGrowSegmentationFilter.cpp
   SourceFilter.cpp
-  VolumetricStreamReader.cpp
   Utils/vtkTube.cxx
+  VolumetricStreamReader.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
 */
 
 #include "ErodeFilter.h"
+#include "Utils/ItkProgressReporter.h"
 
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/MarchingCubesMesh.h>
-#include <Core/OutputRepresentations/RawVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 
 #include <itkImageRegionConstIterator.h>
 #include <itkBinaryBallStructuringElement.h>
@@ -30,16 +30,17 @@
 
 using namespace EspINA;
 
-typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
-typedef itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> BinaryErodeFilter;
+using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
+using BinaryErodeFilter      = itk::ErodeObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-ErodeFilter::ErodeFilter(NamedInputs inputs,
-                         Arguments   args,
-                         FilterType  type)
-: MorphologicalEditionFilter(inputs, args, type)
+ErodeFilter::ErodeFilter(InputSList    inputs,
+                         Filter::Type  type,
+                         SchedulerSPtr scheduler)
+: MorphologicalEditionFilter(inputs, type, scheduler)
 {
 }
+
 
 //-----------------------------------------------------------------------------
 ErodeFilter::~ErodeFilter()
@@ -48,47 +49,34 @@ ErodeFilter::~ErodeFilter()
 }
 
 //-----------------------------------------------------------------------------
-void ErodeFilter::run(FilterOutputId oId)
+void ErodeFilter::execute(Output::Id id)
 {
-  Q_ASSERT(0 == oId);
+  Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
-  Q_ASSERT(input);
+  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+
+  auto input       = m_inputs[0];
+  auto inputVolume = volumetricData(input->output());
+  if (!inputVolume) throw Invalid_Input_Data_Exception();
+
+  emit progress(0);
+  if (!canExecute()) return;
 
   //qDebug() << "Compute Image Erode";
   StructuringElementType ball;
-  ball.SetRadius(m_params.radius());
+  ball.SetRadius(m_radius);
   ball.CreateStructuringElement();
 
   BinaryErodeFilter::Pointer filter = BinaryErodeFilter::New();
-  filter->SetInput(input->toITK());
+  filter->SetInput(inputVolume->itkImage());
   filter->SetKernel(ball);
   filter->SetObjectValue(SEG_VOXEL_VALUE);
   filter->Update();
+  ITKProgressReporter<BinaryErodeFilter> reporter(this, filter, 0, 100);
 
-  m_isOutputEmpty = true;
-  typedef itk::ImageRegionConstIterator<itkVolumeType> ImageIterator;
-  ImageIterator it(filter->GetOutput(), filter->GetOutput()->GetLargestPossibleRegion());
-  it.GoToBegin();
-  for(it.GoToBegin(); !it.IsAtEnd(); ++it)
-    if (it.Get() == SEG_VOXEL_VALUE)
-    {
-      m_isOutputEmpty = false;
-      break;
-    }
+  emit progress(100);
+  if (!canExecute()) return;
 
-  if (!m_isOutputEmpty)
-  {
-    RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(filter->GetOutput()));
-
-    SegmentationRepresentationSList repList;
-    repList << volumeRepresentation;
-    repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
-
-    addOutputRepresentations(0, repList);
-  } else
-    qWarning() << "Erode Filter: Empty Output;";
-
-  emit modified(this);
+  finishExecution(filter->GetOutput());
 }

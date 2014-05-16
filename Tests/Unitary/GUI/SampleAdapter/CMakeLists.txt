@@ -26,6 +26,7 @@ set(LIB_DEPENDECIES
 add_executable(SampleAdapter_Tests
   ${TEST_SOURCES}
   ${TEST_MOCS}
+  ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Data.cpp

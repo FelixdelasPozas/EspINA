@@ -47,6 +47,8 @@ namespace EspINA
 
     virtual InputSPtr asInput() const;
 
+    virtual void changeOutput(InputSPtr input);
+
     void setPosition(const NmVector3& point);
 
     NmVector3 position() const;

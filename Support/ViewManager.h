@@ -132,6 +132,8 @@ namespace EspINA
 //     { return m_toolGroup; }
     void setEventHandler(EventHandlerSPtr eventHandler);
 
+    void unsetActiveEventHandler();
+
     void unsetEventHandler(EventHandlerSPtr eventHandler);
 
     EventHandlerSPtr eventHandler() const

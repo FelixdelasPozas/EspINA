@@ -72,6 +72,13 @@ InputSPtr ChannelAdapter::asInput() const
 }
 
 //------------------------------------------------------------------------
+void ChannelAdapter::changeOutput(InputSPtr input)
+{
+  m_channel->changeOutput(input);
+  m_representations.clear();
+}
+
+//------------------------------------------------------------------------
 void ChannelAdapter::setPosition(const NmVector3& point)
 {
   m_channel->setPosition(point);
