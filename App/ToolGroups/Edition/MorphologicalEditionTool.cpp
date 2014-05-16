@@ -25,6 +25,7 @@
 #include <Filters/ErodeFilter.h>
 #include <Filters/CloseFilter.h>
 #include <Filters/OpenFilter.h>
+#include <Filters/FillHolesFilter.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/ReplaceOutputCommand.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
@@ -42,14 +43,16 @@ const QString CLOSE_RADIUS ("MorphologicalEditionTools::CloseRadius");
 using namespace EspINA;
 using namespace EspINA::GUI;
 
-const Filter::Type CLOSE_FILTER     = "CloseSegmentation";
-const Filter::Type CLOSE_FILTER_V4  = "EditorToolBar::ClosingFilter";
-const Filter::Type OPEN_FILTER      = "OpenSegmentation";
-const Filter::Type OPEN_FILTER_V4   = "EditorToolBar::OpeningFilter";
-const Filter::Type DILATE_FILTER    = "DilateSegmentation";
-const Filter::Type DILATE_FILTER_V4 = "EditorToolBar::DilateFilter";
-const Filter::Type ERODE_FILTER     = "ErodeSegmentation";
-const Filter::Type ERODE_FILTER_V4  = "EditorToolBar::ErodeFilter";
+const Filter::Type CLOSE_FILTER         = "CloseSegmentation";
+const Filter::Type CLOSE_FILTER_V4      = "EditorToolBar::ClosingFilter";
+const Filter::Type OPEN_FILTER          = "OpenSegmentation";
+const Filter::Type OPEN_FILTER_V4       = "EditorToolBar::OpeningFilter";
+const Filter::Type DILATE_FILTER        = "DilateSegmentation";
+const Filter::Type DILATE_FILTER_V4     = "EditorToolBar::DilateFilter";
+const Filter::Type ERODE_FILTER         = "ErodeSegmentation";
+const Filter::Type ERODE_FILTER_V4      = "EditorToolBar::ErodeFilter";
+const Filter::Type FILL_HOLES_FILTER    = "FillSegmentationHoles";
+const Filter::Type FILL_HOLES_FILTER_V4 = "EditorToolBar::FillHolesFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList MorphologicalEditionTool::MorphologicalFilterFactory::providedFilters() const
@@ -94,6 +97,10 @@ throw (Unknown_Filter_Exception)
   else if (filter == ERODE_FILTER || filter == ERODE_FILTER_V4)
   {
     morphologicalFilter = FilterSPtr{new ErodeFilter(inputs, ERODE_FILTER, scheduler)};
+  }
+  else if (filter == FILL_HOLES_FILTER || filter == FILL_HOLES_FILTER_V4)
+  {
+    morphologicalFilter = FilterSPtr{new FillHolesFilter(inputs, FILL_HOLES_FILTER, scheduler)};
   }
   else
   {
@@ -255,179 +262,64 @@ void MorphologicalEditionTool::subtractSegmentations()
 }
 
 //------------------------------------------------------------------------
-void MorphologicalEditionTool::erodeSegmentations()
+void MorphologicalEditionTool::closeSegmentations()
 {
-  m_viewManager->unsetActiveEventHandler();
-
-  auto selection = m_viewManager->selection()->segmentations();
-
-  if (selection.size() > 0)
-  {
-    int r = m_erode.radius();
-
-    for (auto segmentation :  selection)
-    {
-      InputSList inputs;
-
-      inputs << segmentation->asInput();
-
-      auto adapter = m_factory->createFilter<ErodeFilter>(inputs, "Erode");
-      auto filter  = adapter->get();
-
-      filter->setRadius(r);
-      filter->setDescription(tr("Erode %1").arg(segmentation->data(Qt::DisplayRole).toString()));
-
-      TaskContext context;
-
-      context.Task         = filter;
-      context.Operation    = tr("Erode Segmentation");
-      context.Segmentation = segmentation;
-
-      m_executingMorpholocialTasks[filter.get()] = context;
-
-//       connect(adapter.get(), SIGNAL(progress(int)),
-//               this,          SLOT(onMorphologicalFilterFinished()));
-      connect(filter.get(), SIGNAL(finished()),
-              this,         SLOT(onMorphologicalFilterFinished()));
-
-      adapter->submit();
-    }
-  }
-}
-
-//------------------------------------------------------------------------
-void MorphologicalEditionTool::dilateSegmentations()
-{
-  m_viewManager->unsetActiveEventHandler();
-
-  auto selection = m_viewManager->selection()->segmentations();
-
-  if (selection.size() > 0)
-  {
-    int r = m_dilate.radius();
-
-    for (auto segmentation :  selection)
-    {
-      InputSList inputs;
-
-      inputs << segmentation->asInput();
-
-      auto adapter = m_factory->createFilter<DilateFilter>(inputs, "Dilate");
-      auto filter  = adapter->get();
-
-      filter->setRadius(r);
-      filter->setDescription(tr("Dilate %1").arg(segmentation->data(Qt::DisplayRole).toString()));
-
-      TaskContext context;
-
-      context.Task         = filter;
-      context.Operation    = tr("Dialte Segmentation");
-      context.Segmentation = segmentation;
-
-      m_executingMorpholocialTasks[filter.get()] = context;
-
-//       connect(adapter.get(), SIGNAL(progress(int)),
-//               this,          SLOT(onMorphologicalFilterFinished()));
-      connect(filter.get(), SIGNAL(finished()),
-              this,         SLOT(onMorphologicalFilterFinished()));
-
-      adapter->submit();
-    }
-  }
+  launchCODE<CloseFilter>(CLOSE_FILTER, "Close", m_close.radius());
 }
 
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::openSegmentations()
 {
-  m_viewManager->unsetActiveEventHandler();
-
-  auto selection = m_viewManager->selection()->segmentations();
-
-  if (selection.size() > 0)
-  {
-    int r = m_open.radius();
-
-    for (auto segmentation :  selection)
-    {
-      InputSList inputs;
-
-      inputs << segmentation->asInput();
-
-      auto adapter = m_factory->createFilter<OpenFilter>(inputs, "Open");
-      auto filter  = adapter->get();
-
-      filter->setRadius(r);
-      filter->setDescription(tr("Open %1").arg(segmentation->data(Qt::DisplayRole).toString()));
-
-      TaskContext context;
-
-      context.Task         = filter;
-      context.Operation    = tr("Open Segmentation");
-      context.Segmentation = segmentation;
-
-      m_executingMorpholocialTasks[filter.get()] = context;
-
-//       connect(adapter.get(), SIGNAL(progress(int)),
-//               this,          SLOT(onMorphologicalFilterFinished()));
-      connect(filter.get(), SIGNAL(finished()),
-              this,         SLOT(onMorphologicalFilterFinished()));
-
-      adapter->submit();
-    }
-  }
+  launchCODE<OpenFilter>(OPEN_FILTER, "Open", m_open.radius());
 }
 
 //------------------------------------------------------------------------
-void MorphologicalEditionTool::closeSegmentations()
+void MorphologicalEditionTool::dilateSegmentations()
 {
-  m_viewManager->unsetActiveEventHandler();
-
-  auto selection = m_viewManager->selection()->segmentations();
-
-  if (selection.size() > 0)
-  {
-    int r = m_close.radius();
-
-    for (auto segmentation :  selection)
-    {
-      InputSList inputs;
-
-      inputs << segmentation->asInput();
-
-      auto adapter = m_factory->createFilter<CloseFilter>(inputs, "Close");
-      auto filter  = adapter->get();
-
-      filter->setRadius(r);
-      filter->setDescription(tr("Close %1").arg(segmentation->data(Qt::DisplayRole).toString()));
-
-      TaskContext context;
-
-      context.Task         = filter;
-      context.Operation    = tr("Close Segmentation");
-      context.Segmentation = segmentation;
-
-      m_executingMorpholocialTasks[filter.get()] = context;
-
-//       connect(adapter.get(), SIGNAL(progress(int)),
-//               this,          SLOT(onMorphologicalFilterFinished()));
-      connect(filter.get(), SIGNAL(finished()),
-              this,         SLOT(onMorphologicalFilterFinished()));
-
-      adapter->submit();
-    }
-  }
+  launchCODE<DilateFilter>(DILATE_FILTER, "Dilate", m_dilate.radius());
 }
+
+//------------------------------------------------------------------------
+void MorphologicalEditionTool::erodeSegmentations()
+{
+  launchCODE<DilateFilter>(ERODE_FILTER, "Erode", m_erode.radius());
+}
+
 
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::fillHoles()
 {
-  //    m_viewManager->unsetActiveTool();
-  //
-  //    SegmentationList input = m_viewManager->selectedSegmentations();
-  //    if (input.size() > 0)
-  //    {
-  //      m_undoStack->push(new FillHolesCommand(input, m_model, m_viewManager));
-  //    }
+  m_viewManager->unsetActiveEventHandler();
+
+  auto selection = m_viewManager->selection()->segmentations();
+
+  if (selection.size() > 0)
+  {
+    for (auto segmentation :  selection)
+    {
+      InputSList inputs;
+
+      inputs << segmentation->asInput();
+
+      auto adapter = m_factory->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
+      auto filter  = adapter->get();
+
+      filter->setDescription(tr("Fill %1 Holes").arg(segmentation->data(Qt::DisplayRole).toString()));
+
+      FillHolesContext context;
+
+      context.Task         = filter;
+      context.Operation    = tr("Fill Segmentation Holes");
+      context.Segmentation = segmentation;
+
+      m_executingFillHolesTasks[filter.get()] = context;
+
+      connect(filter.get(), SIGNAL(finished()),
+              this,         SLOT(onFillHolesFinished()));
+
+      adapter->submit();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -485,6 +377,7 @@ void MorphologicalEditionTool::updateAvailableActionsForSelection(SegmentationAd
   m_open  .setEnabled(atLeastOneSegmentation);
   m_dilate.setEnabled(atLeastOneSegmentation);
   m_erode .setEnabled(atLeastOneSegmentation);
+  m_fill ->setEnabled(atLeastOneSegmentation);
 }
 
 //------------------------------------------------------------------------
@@ -498,11 +391,10 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
 
     if (filter->isOutputEmpty())
     {
-
       auto name    = context.Segmentation->data(Qt::DisplayRole).toString();
-      auto title   = tr("Erode Segmentations");
-      auto message = tr("%1 segmentation will be deleted by the ERODE operation.\n"
-                        "Do you want to continue with the operation?").arg(name);
+      auto title   = context.Operation;
+      auto message = tr("%1 segmentation will be deleted by %2 operation.\n"
+                        "Do you want to continue with the operation?").arg(name).arg(context.Operation);
 
       if (DefaultDialogs::UserConfirmation(title, message))
       {
@@ -529,4 +421,24 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
   m_executingMorpholocialTasks.remove(filter);
 }
 
+//------------------------------------------------------------------------
+void MorphologicalEditionTool::onFillHolesFinished()
+{
+  auto filter = dynamic_cast<FillHolesFilterPtr>(sender());
 
+  if (!filter->isAborted())
+  {
+    auto context = m_executingFillHolesTasks[filter];
+
+    if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
+
+    m_undoStack->beginMacro(context.Operation);
+    m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
+    m_undoStack->endMacro();
+
+    m_viewManager->updateSegmentationRepresentations(context.Segmentation);
+    m_viewManager->updateViews();
+  }
+
+  m_executingFillHolesTasks.remove(filter);
+}

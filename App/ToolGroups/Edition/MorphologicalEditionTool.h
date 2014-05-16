@@ -24,6 +24,7 @@
 
 #include <GUI/Model/ModelAdapter.h>
 #include <Filters/MorphologicalEditionFilter.h>
+#include <Filters/FillHolesFilter.h>
 #include "CODETool.h"
 
 
@@ -91,25 +92,25 @@ namespace EspINA
      */
     void subtractSegmentations();
 
-    /** \brief Erode the selected segmentation with the radius set on the associated QSpinBox.
+    /** \brief Close the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
-    void erodeSegmentations();
-
-    /** \brief Dilate the selected segmentation with the radius set on the associated QSpinBox.
-     *
-     */
-    void dilateSegmentations();
+    void closeSegmentations();
 
     /** \brief Open the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
     void openSegmentations();
 
-    /** \brief Close the selected segmentation with the radius set on the associated QSpinBox.
+    /** \brief Dilate the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
-    void closeSegmentations();
+    void dilateSegmentations();
+
+    /** \brief Erode the selected segmentation with the radius set on the associated QSpinBox.
+     *
+     */
+    void erodeSegmentations();
 
     /** \brief Fills all internals holes in the selected segmentation.
      *
@@ -117,6 +118,8 @@ namespace EspINA
     void fillHoles();
 
     void onMorphologicalFilterFinished();
+
+    void onFillHolesFinished();
 
     void onCloseToggled(bool toggled);
 
@@ -129,11 +132,56 @@ namespace EspINA
     void updateAvailableActionsForSelection(SegmentationAdapterList selection);
 
   private:
-    struct TaskContext
+    template<typename T>
+    void launchCODE(const Filter::Type& type, const QString& name, int r)
+    {
+      m_viewManager->unsetActiveEventHandler();
+
+      auto selection = m_viewManager->selection()->segmentations();
+
+      if (selection.size() > 0)
+      {
+        for (auto segmentation :  selection)
+        {
+          InputSList inputs;
+
+          inputs << segmentation->asInput();
+
+          auto adapter = m_factory->createFilter<T>(inputs, type);
+          auto filter  = adapter->get();
+
+          filter->setRadius(r);
+          filter->setDescription(tr("%1 %2").arg(name)
+                                            .arg(segmentation->data(Qt::DisplayRole).toString()));
+
+          MorphologicalContext context;
+
+          context.Task         = filter;
+          context.Operation    = tr("%1 Segmentation").arg(name);
+          context.Segmentation = segmentation;
+
+          m_executingMorpholocialTasks[filter.get()] = context;
+
+          connect(filter.get(), SIGNAL(finished()),
+                  this,         SLOT(onMorphologicalFilterFinished()));
+
+          adapter->submit();
+        }
+      }
+    }
+
+  private:
+    struct MorphologicalContext
     {
       MorphologicalEditionFilterSPtr Task;
       SegmentationAdapterPtr         Segmentation;
       QString                        Operation;
+    };
+    struct FillHolesContext
+    {
+      FillHolesFilterSPtr    Task;
+      SegmentationAdapterPtr Segmentation;
+      QString                Operation;
     };
 
   private:
@@ -154,7 +202,8 @@ namespace EspINA
     QAction *m_addition;
     QAction *m_subtract;
 
-    QMap<MorphologicalEditionFilterPtr, TaskContext> m_executingMorpholocialTasks;
+    QMap<MorphologicalEditionFilterPtr, MorphologicalContext> m_executingMorpholocialTasks;
+    QMap<FillHolesFilterPtr, FillHolesContext>                m_executingFillHolesTasks;
 
     bool m_enabled;
   };

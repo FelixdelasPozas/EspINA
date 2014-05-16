@@ -19,7 +19,7 @@
 #ifndef ESPINA_MORPHOLOGICAL_EDITION_FILTER_H
 #define ESPINA_MORPHOLOGICAL_EDITION_FILTER_H
 
-// #include "EspinaFilters_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
 #include "Core/Analysis/Filter.h"
 #include <itkImageToImageFilter.h>

@@ -15,6 +15,7 @@ set (FILTERS_SOURCES
   CloseFilter.cpp
   DilateFilter.cpp
   ErodeFilter.cpp
+  FillHolesFilter.cpp
   FreeFormSource.cpp
   MorphologicalEditionFilter.cpp
   OpenFilter.cpp

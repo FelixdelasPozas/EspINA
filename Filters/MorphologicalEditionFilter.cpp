@@ -48,13 +48,25 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 //-----------------------------------------------------------------------------
 void MorphologicalEditionFilter::restoreState(const State& state)
 {
+  for (auto token : state.split(';'))
+  {
+    QStringList tokens = token.split('=');
+    if (tokens.size() != 2)
+      continue;
 
+    if ("Radius" == tokens[0])
+    {
+      m_radius = tokens[1].toInt();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 State MorphologicalEditionFilter::state() const
 {
   State state;
+
+  state = QString("Radius=%1").arg(m_radius);
 
   return state;
 }

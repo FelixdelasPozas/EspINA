@@ -18,20 +18,23 @@
 
 
 #include "FillHolesFilter.h"
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <Core/OutputRepresentations/RawVolume.h>
-#include <Core/Model/MarchingCubesMesh.h>
-#include <GUI/Representations/SliceRepresentation.h>
+#include "Utils/ItkProgressReporter.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+
+#include <itkBinaryFillholeImageFilter.h>
 
 using namespace EspINA;
 
-const QString FillHolesFilter::INPUTLINK = "Input";
+using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
+
 
 //-----------------------------------------------------------------------------
-FillHolesFilter::FillHolesFilter(NamedInputs inputs,
-                                 Arguments   args,
-                                 FilterType  type)
-: BasicSegmentationFilter(inputs, args, type)
+FillHolesFilter::FillHolesFilter(InputSList    inputs,
+                                 Filter::Type  type,
+                                 SchedulerSPtr scheduler)
+: Filter(inputs, type, scheduler)
 {
 }
 
@@ -41,51 +44,81 @@ FillHolesFilter::~FillHolesFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool FillHolesFilter::needUpdate(FilterOutputId oId) const
+void FillHolesFilter::restoreState(const State& state)
 {
-  bool update = SegmentationFilter::needUpdate(oId);
-
-  if (!update)
-  {
-    Q_ASSERT(m_namedInputs.size()  == 1);
-    Q_ASSERT(m_outputs.size() == 1);
-
-    if (!m_inputs.isEmpty())
-    {
-      Q_ASSERT(m_inputs.size() == 1);
-      SegmentationVolumeSPtr inputVolume  = segmentationVolume(m_inputs[0]);
-      SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
-      update = outputVolume->timeStamp() < inputVolume->timeStamp();
-    }
-  }
-
-  return update;
 }
 
 //-----------------------------------------------------------------------------
-void FillHolesFilter::run()
+State FillHolesFilter::state() const
 {
-  run(0);
+  return State();
 }
 
 //-----------------------------------------------------------------------------
-void FillHolesFilter::run(FilterOutputId oId)
+Snapshot FillHolesFilter::saveFilterSnapshot() const
 {
-  Q_ASSERT(0 == oId);
+  return Snapshot();
+}
+
+//-----------------------------------------------------------------------------
+bool FillHolesFilter::needUpdate() const
+{
+  return m_outputs.isEmpty();
+}
+
+//-----------------------------------------------------------------------------
+bool FillHolesFilter::needUpdate(Output::Id id) const
+{
+  if (id != 0) throw Undefined_Output_Exception();
+
+  // TODO: When input exists, check its timeStamp
+  return m_outputs.isEmpty() || !validOutput(id);
+}
+
+
+//-----------------------------------------------------------------------------
+void FillHolesFilter::execute(Output::Id id)
+{
+  Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
-  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
-  Q_ASSERT(input);
+  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+
+  auto input       = m_inputs[0];
+  auto inputVolume = volumetricData(input->output());
+  if (!inputVolume) throw Invalid_Input_Data_Exception();
+
+  emit progress(0);
+  if (!canExecute()) return;
 
   BinaryFillholeFilter::Pointer filter = BinaryFillholeFilter::New();
-  filter->SetInput(input->toITK());
+
+  ITKProgressReporter<BinaryFillholeFilter> reporter(this, filter);
+
+  filter->SetInput(inputVolume->itkImage());
   filter->Update();
 
-  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(filter->GetOutput()));
+  emit progress(100);
+  if (!canExecute()) return;
 
-  SegmentationRepresentationSList repList;
-  repList << volumeRepresentation;
-  repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
+  auto output = filter->GetOutput();
 
-  addOutputRepresentations(0, repList);
+  auto volume = DefaultVolumetricDataSPtr{sparseCopy<itkVolumeType>(output)};
+  auto mesh   = MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr(new Output(this, 0));
+  }
+
+  m_outputs[0]->setData(volume);
+  m_outputs[0]->setData(mesh);
+
+  m_outputs[0]->setSpacing(input->output()->spacing());
+}
+
+//-----------------------------------------------------------------------------
+bool FillHolesFilter::invalidateEditedRegions()
+{
+
 }

@@ -17,43 +17,49 @@
 */
 
 
-#ifndef FILLHOLESFILTER_H
-#define FILLHOLESFILTER_H
+#ifndef ESPINA_FILL_HOLES_FILTER_H
+#define ESPINA_FILL_HOLES_FILTER_H
 
-#include "EspinaCore_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
-#include "BasicSegmentationFilter.h"
-
-#include <itkBinaryFillholeImageFilter.h>
+#include <Core/Analysis/Filter.h>
 
 namespace EspINA
 {
-class EspinaCore_EXPORT FillHolesFilter
-: public BasicSegmentationFilter
-{
-  typedef itk::BinaryFillholeImageFilter<itkVolumeType> BinaryFillholeFilter;
+  class EspinaFilters_EXPORT FillHolesFilter
+  : public Filter
+  {
+  public:
+    explicit FillHolesFilter(InputSList    inputs,
+                             Filter::Type  type,
+                             SchedulerSPtr scheduler);
+    virtual ~FillHolesFilter();
 
-public:
-  static const QString INPUTLINK;
+    virtual void restoreState(const State& state);
 
-public:
-  explicit FillHolesFilter(NamedInputs inputs,
-                           Arguments   args,
-                           FilterType  type);
-  virtual ~FillHolesFilter();
+    virtual State state() const;
 
-protected:
+  protected:
+    virtual Snapshot saveFilterSnapshot() const;
 
-  virtual bool ignoreCurrentOutputs() const
-  { return false; }
+    virtual bool needUpdate() const;
 
-  virtual bool needUpdate(FilterOutputId oId) const;
+    virtual bool needUpdate(Output::Id id) const;
 
-  virtual void run();
+    virtual void execute()
+    { execute(0); }
 
-  virtual void run(FilterOutputId oId);
-};
+    virtual void execute(Output::Id id);
 
+    virtual bool ignoreStorageContent() const
+    { return false; }
+
+    virtual bool invalidateEditedRegions();
+
+  };
+
+  using FillHolesFilterPtr  = FillHolesFilter *;
+  using FillHolesFilterSPtr = std::shared_ptr<FillHolesFilter>;
 } // namespace EspINA
 
-#endif // FILLHOLESFILTER_H
+#endif // ESPINA_FILL_HOLES_FILTER_H
