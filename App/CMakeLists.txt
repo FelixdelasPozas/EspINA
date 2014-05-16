@@ -178,6 +178,7 @@ set (ESPINA_SOURCES
 #   Undo/AtomicModelOperations.cpp 
   Undo/BrushUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
+  Undo/ROIUndoCommand.cpp
 #   Undo/CompositionCommand.cpp
 #   Undo/ImageLogicCommand.cpp
 #   Undo/SeedGrowSegmentationCommand.cpp

@@ -31,19 +31,18 @@ namespace EspINA
   : public QUndoCommand
   {
     public:
-      /* \brief ModifyROIUndoCommand templated class constructor.
+      /* \brief ModifyROIUndoCommand class constructor.
        * \param[in] vm ViewManager shared pointer.
-       * \param[in] mask Templated mask to create ROI.
-       * \param[in] value value of the voxels of the mask, defaults to SEG_VOXEL_VALUE
+       * \param[in] mask Mask to create/modify ROI.
        */
-      explicit ModifyROIUndoCommand(const ViewManagerSPtr vm, const BinaryMaskSPtr<unsigned char> mask, unsigned char value = SEG_VOXEL_VALUE);
+      explicit ModifyROIUndoCommand(const ViewManagerSPtr vm, const BinaryMaskSPtr<unsigned char> mask);
 
       /* \brief ModifyROIUndoCommand class virtual destructor.
        *
        */
       virtual ~ModifyROIUndoCommand();
 
-      /* \brief Implements QUndoCommand:redo.
+      /* \brief Implements QUndoCommand::redo.
        *
        */
       virtual void redo();
@@ -57,7 +56,36 @@ namespace EspINA
       ROISPtr                       m_newROI;
       ViewManagerSPtr               m_viewManager;
       BinaryMaskSPtr<unsigned char> m_mask;
-      unsigned char                 m_value;
+  };
+
+  class ClearROIUndoCommand
+  : public QUndoCommand
+  {
+    public:
+      /* \brief ClearROIUndoCommand class constructor.
+       * \param[in] vm Current view manager owner of the ROI to clear.
+       *
+       */
+      explicit ClearROIUndoCommand(const ViewManagerSPtr vm);
+
+      /* \brief ClearROIUndoCommand class virtual destructor.
+       *
+       */
+      virtual ~ClearROIUndoCommand();
+
+      /* \brief Implements QUndoCommand::redo.
+       *
+       */
+      virtual void redo();
+
+      /* \brief Implements QUndoCommand::undo.
+       *
+       */
+      virtual void undo();
+
+    private:
+      ViewManagerSPtr m_vm;
+      ROISPtr m_roi;
   };
 
 } // namespace EspINA

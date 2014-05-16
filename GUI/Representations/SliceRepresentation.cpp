@@ -278,11 +278,12 @@ const Representation::Type SegmentationSliceRepresentation::TYPE = "Slice";
 //-----------------------------------------------------------------------------
 SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
                                                                  View2D *view)
-: Representation(view)
-, m_data(data)
-, m_planeIndex(-1)
-, m_mapToColors(nullptr)
-, m_actor(nullptr)
+: Representation{view}
+, m_data        {data}
+, m_planeIndex  {-1}
+, m_reslicePoint{-1}
+, m_mapToColors {nullptr}
+, m_actor       {nullptr}
 {
   setType(TYPE);
   //qDebug() << "Creating Solid Representation";

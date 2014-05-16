@@ -35,6 +35,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <Support/EventHandler.h>
+#include <GUI/View/Widgets/ROI/ROIWidget.h>
 
 // Qt
 #include <QList>
@@ -139,11 +140,7 @@ namespace EspINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setCurrentROI(ROISPtr roi)
-    {
-      m_roi = roi;
-      emit ROIChanged();
-    }
+    void setCurrentROI(ROISPtr roi);
 
     ROISPtr currentROI() const
     { return m_roi; }
@@ -154,6 +151,7 @@ namespace EspINA
 
   private:
     ROISPtr          m_roi;
+    EspinaWidgetSPtr m_roiWidget;
     QToolBar        *m_contextualToolBar;
     ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;

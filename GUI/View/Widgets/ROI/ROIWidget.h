@@ -20,10 +20,17 @@
 #define ESPINA_ROI_WIDGET_H_
 
 // EspINA
+#include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
+#include <GUI/View/RenderView.h>
+#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+
+// VTK
+#include <vtkActor.h>
 #include <vtkDiscreteMarchingCubes.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 
 // Qt
@@ -31,6 +38,9 @@
 
 namespace EspINA
 {
+  class ViewManager;
+  class View2D;
+  class RenderView;
   
   class ROIWidget
   : public QObject
@@ -42,7 +52,7 @@ namespace EspINA
        * \param[in] vm ViewManagerSPtr
        *
        */
-      explicit ROIWidget(ViewManagerSPtr);
+      explicit ROIWidget(ViewManager *);
 
       /* \brief ROIWidget class virtual destructor.
        *
@@ -66,15 +76,26 @@ namespace EspINA
 
     private slots:
       void sliceChanged(Plane, Nm);
-      void ROIChanged();
+      void updateROIRepresentations();
+      void updateROIPointer();
 
     private:
-      QMap<RenderView *, vtkSmartPointer<vtkActor>>                 m_views;
-      QMap<RenderView *, vtkSmartPointer<vtkDiscreteMarchingCubes>> m_marchingCubes;
-      QMap<RenderView *, vtkSmartPointer<vtkVoxelContour2D>>        m_contours;
+      void updateActor(View2D *view);
 
-      ViewManagerSPtr                m_vm;
-      vtkSmartPointer<vtkTexture>    m_texture;
+      struct pipeline
+      {
+        vtkSmartPointer<vtkVoxelContour2D> contour;
+        vtkSmartPointer<vtkPolyDataMapper> mapper;
+        vtkSmartPointer<vtkActor>          actor;
+
+        pipeline(): contour{nullptr}, mapper{nullptr}, actor{nullptr} {};
+        ~pipeline() { contour = nullptr; mapper = nullptr; actor = nullptr; }
+      };
+
+      QMap<View2D *, struct pipeline> m_representations;
+
+      ViewManager                *m_vm;
+      ROISPtr                     m_ROI;
   };
 
 } // namespace EspINA

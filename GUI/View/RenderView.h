@@ -138,11 +138,11 @@ namespace EspINA
      */
     virtual Selector::Selection select(const Selector::SelectionFlags flags, const NmVector3 &point) const;
 
-    /* \brief Selects the NeuroItems specified in the flags parameter that has a voxel in the WORLD
+    /* \brief Selects the NeuroItems specified in the flags parameter that has a voxel in the DISPLAY
      * position specified by the x and y parameters.
      * \param[in] flags NeuroItems selection flags.
-     * \param[in] x     x position in world coordinates.
-     * \param[in] y     y position in world coordinates.
+     * \param[in] x     x position in display coordinates.
+     * \param[in] y     y position in display coordinates.
      *
      */
     virtual Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y) const = 0;

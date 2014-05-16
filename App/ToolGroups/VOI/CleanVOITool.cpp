@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "CleanVOITool.h"
-
 // EspINA
+#include <Undo/ROIUndoCommand.h>
+#include "CleanVOITool.h"
 
 // Qt
 #include <QDebug>
@@ -28,9 +28,11 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 CleanVOITool::CleanVOITool(ModelAdapterSPtr model,
-                           ViewManagerSPtr  viewManager)
+                           ViewManagerSPtr  viewManager,
+                           QUndoStack      *undoStack)
 : m_model      {model}
 , m_viewManager{viewManager}
+, m_undoStack  {undoStack}
 , m_cleanVOI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
 , m_enabled    {true}
 {
@@ -84,7 +86,9 @@ QList<QAction *> CleanVOITool::actions() const
 //-----------------------------------------------------------------------------
 void CleanVOITool::cancelROI()
 {
-  m_viewManager->setCurrentROI(nullptr);
+  m_undoStack->beginMacro("Clear Region Of Interest");
+  m_undoStack->push(new ClearROIUndoCommand{m_viewManager});
+  m_undoStack->endMacro();
 }
 
 //-----------------------------------------------------------------------------

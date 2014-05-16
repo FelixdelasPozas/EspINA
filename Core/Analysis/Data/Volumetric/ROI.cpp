@@ -16,7 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "ROI.h"
+#include "Core/EspinaTypes.h"
 
 namespace EspINA
 {
@@ -28,6 +30,14 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
+  ROI::ROI(const BinaryMaskSPtr<unsigned char> mask, unsigned char value)
+  : SparseVolume<itkVolumeType>{mask->bounds().bounds(), mask->spacing(), mask->origin()}
+  , m_isRectangular{false}
+  {
+    this->draw(mask, value);
+  }
+
+  //-----------------------------------------------------------------------------
   ROI::~ROI()
   {
   }
@@ -36,6 +46,43 @@ namespace EspINA
   bool ROI::isRectangular() const
   {
     return m_isRectangular;
+  }
+
+  //-----------------------------------------------------------------------------
+  void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const unsigned char value)
+  {
+    m_isRectangular = false;
+    SparseVolume<itkVolumeType>::draw(brush, bounds, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  void ROI::draw(const BinaryMaskSPtr<unsigned char> mask, const unsigned char value)
+  {
+    qDebug() << "draw mask with value" << value << "mask bg" << mask->backgroundValue() << "fg" << mask->foregroundValue() << "this bg" <<  this->backgroundValue();
+
+    m_isRectangular = false;
+    SparseVolume<itkVolumeType>::draw(mask, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  void ROI::draw(const itkVolumeType::Pointer volume)
+  {
+    m_isRectangular = false;
+    SparseVolume<itkVolumeType>::draw(volume);
+  }
+
+  //-----------------------------------------------------------------------------
+  void ROI::draw(const typename itkVolumeType::Pointer volume, const Bounds& bounds)
+  {
+    m_isRectangular = false;
+    SparseVolume<itkVolumeType>::draw(volume, bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  void ROI::draw(const typename itkVolumeType::IndexType index, const itkVolumeType::PixelType value)
+  {
+    m_isRectangular = false;
+    SparseVolume::draw(index, value);
   }
 
 }

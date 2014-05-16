@@ -216,10 +216,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  //auto seedVoxel = volume->itkImage(seedBounds);
-  ROISPtr roi = m_viewManager->currentROI();
-
-  if ((roi == nullptr) && m_applyVOI->isChecked())
+  if ((m_viewManager->currentROI() == nullptr) && m_applyVOI->isChecked())
   {
     // Create default ROI
     auto category = m_categorySelector->selectedCategory();
@@ -243,11 +240,11 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     auto spacing = channel->output()->spacing();
     auto origin = channel->position();
-    roi = ROISPtr(new ROI(bounds, spacing, origin));
 
-    m_viewManager->setCurrentROI(roi);
+    m_viewManager->setCurrentROI(ROISPtr(new ROI(bounds, spacing, origin)));
   }
 
+  auto roi = m_viewManager->currentROI();
   bool validSeed = ((roi != nullptr) && isSegmentationVoxel<itkVolumeType>(roi, seed)) ||
                    contains(volume->bounds(), seed);
 

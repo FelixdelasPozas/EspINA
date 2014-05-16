@@ -24,6 +24,7 @@
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 
+// VTK
 #include <vtkMath.h>
 
 // Qt
@@ -66,6 +67,8 @@ ViewManager::ViewManager()
 
   connect(m_fitToSlices, SIGNAL(toggled(bool)),
           this,          SLOT(setFitToSlices(bool)));
+
+  m_roiWidget = EspinaWidgetSPtr(new ROIWidget(this));
 }
 
 //----------------------------------------------------------------------------
@@ -93,6 +96,7 @@ void ViewManager::registerView(RenderView* view)
 
   view->setEventHandler(m_eventHandler);
   view->setColorEngine(m_colorEngine);
+  m_roiWidget->registerView(view);
 }
 
 //----------------------------------------------------------------------------
@@ -117,6 +121,7 @@ void ViewManager::unregisterView(RenderView* view)
   m_renderViews.removeAll(view);
   Q_ASSERT(m_espinaViews.contains(view));
   m_espinaViews.removeAll(view);
+  m_roiWidget->unregisterView(view);
 }
 
 //----------------------------------------------------------------------------
@@ -427,4 +432,18 @@ MeasureSPtr ViewManager::measure(Nm distance)
   measure->toUnits(m_resolutionUnits);
 
   return MeasureSPtr(measure);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::setCurrentROI(ROISPtr roi)
+{
+  if((m_roi == nullptr) && (roi != nullptr))
+    addWidget(m_roiWidget);
+
+  if((m_roi != nullptr) && (roi == nullptr))
+    removeWidget(m_roiWidget);
+
+  m_roi = roi;
+
+  emit ROIChanged();
 }

@@ -240,7 +240,6 @@ Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing
     max += 2;
   }
 
-
   return bb;
 }
 

@@ -33,6 +33,11 @@ namespace EspINA
        */
       ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
+      /* \brief ROI class constructor from a templated mask.
+       *
+       */
+      ROI(const BinaryMaskSPtr<unsigned char> mask, unsigned char value);
+
       /* \brief ROI class virtual destructor.
        *
        */
@@ -46,37 +51,37 @@ namespace EspINA
       /* \brief Applies the ROI to the volume passed as argument.
        *
        */
-      template<class T> void applyROI(VolumetricData<T> &volume, const typename T::ValueType value) const;
+      template<class T> void applyROI(VolumetricData<T> &volume, const typename T::ValueType outsideValue) const;
 
       /** \brief Implements SparseVolume::draw(brush, bounds, value)
        *
        */
-      template<class T> void draw(const vtkImplicitFunction*  brush,
-                                  const Bounds&               bounds,
-                                  const typename T::ValueType value = SEG_VOXEL_VALUE);
+      void draw(const vtkImplicitFunction*  brush,
+                const Bounds&               bounds,
+                const unsigned char         value = SEG_VOXEL_VALUE);
 
       /** \brief Implements SparseVolume::draw(mask, value)
        *
        */
-      template<class T> void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                                  const typename T::ValueType value = SEG_VOXEL_VALUE);
+      void draw(const BinaryMaskSPtr<unsigned char> mask,
+                const unsigned char                 value = SEG_VOXEL_VALUE);
 
       /** \brief Implements SparseVolume::draw(volume)
        *
        */
-      template<class T> void draw(const typename T::Pointer volume);
+      void draw(const typename itkVolumeType::Pointer volume);
 
       /** \brief Implements SparseVolume::draw(volume, bounds)
        *
        */
-      template<class T> void draw(const typename T::Pointer volume,
-                                  const Bounds&             bounds);
+      void draw(const typename itkVolumeType::Pointer volume,
+                const Bounds&                         bounds);
 
       /** \brief Implements SparseVolume::draw(index, value)
        *
        */
-      template<class T> void draw(const typename T::IndexType index,
-                                  const typename T::PixelType value = SEG_VOXEL_VALUE);
+      void draw(const typename itkVolumeType::IndexType index,
+                const typename itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
 
     private:
       bool m_isRectangular;
@@ -87,13 +92,14 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  inline void ROI::applyROI(VolumetricData<T>& volume, const typename T::ValueType value) const
+  inline void ROI::applyROI(VolumetricData<T>& volume, const typename T::ValueType outsideValue) const
   {
     if(!intersect(bounds(), volume.bounds()))
     {
       // erase the image
-      auto mask = BinaryMaskSPtr<T>{ new BinaryMask<T>{volume.bounds(), volume.spacing(), volume.origin()}};
-      volume.draw(mask, SEG_VOXEL_VALUE);
+      BinaryMaskSPtr<typename T::ValueType> mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume.bounds(), volume.spacing(), volume.origin()}};
+      // TODO -> set fg value of mask to outsideValue;
+      volume.draw(mask, outsideValue);
 
       return;
     }
@@ -104,8 +110,8 @@ namespace EspINA
     auto image = volume.itkImage(intersectionBounds);
 
     // erase the rest of the voxels
-    auto mask = BinaryMaskSPtr<T>{ new BinaryMask<T>{volume.bounds(), volume.spacing(), volume.origin()}};
-    volume.draw(mask, value);
+    auto mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume.bounds(), volume.spacing(), volume.origin()}};
+    volume.draw(mask, outsideValue);
 
     BinaryMask<unsigned char>::const_region_iterator crit(this, intersectionBounds);
     crit.goToBegin();
@@ -118,7 +124,7 @@ namespace EspINA
       while(!crit.isAtEnd())
       {
         if(!crit.isSet())
-          it.Set(value);
+          it.Set(outsideValue);
 
         ++crit;
         ++it;
@@ -144,7 +150,7 @@ namespace EspINA
           it = it.Begin();
           while(it != it.End())
           {
-            it.Set(value);
+            it.Set(outsideValue);
             ++it;
           }
         }
@@ -152,46 +158,6 @@ namespace EspINA
         ++crit;
       }
     }
-  }
-
-  //-----------------------------------------------------------------------------
-  template<class T>
-  inline void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const typename T::ValueType value)
-  {
-    m_isRectangular = false;
-    SparseVolume::draw(brush, bounds, value);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<class T>
-  inline void ROI::draw(const BinaryMaskSPtr<typename T::ValueType> mask, const typename T::ValueType value)
-  {
-    m_isRectangular = false;
-    SparseVolume::draw(mask, value);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<class T>
-  inline void ROI::draw(const typename T::Pointer volume)
-  {
-    m_isRectangular = false;
-    SparseVolume::draw(volume);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<class T>
-  inline void ROI::draw(const typename T::Pointer volume, const Bounds& bounds)
-  {
-    m_isRectangular = false;
-    SparseVolume::draw(volume, bounds);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<class T>
-  inline void ROI::draw(const typename T::IndexType index, const typename T::PixelType value)
-  {
-    m_isRectangular = false;
-    SparseVolume::draw(index, value);
   }
 
 } // namespace EspINA

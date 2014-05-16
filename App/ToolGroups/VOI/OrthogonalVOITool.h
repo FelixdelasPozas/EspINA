@@ -18,10 +18,14 @@
 #ifndef ESPINA_ORTHOGONAL_VOI_H
 #define ESPINA_ORTHOGONAL_VOI_H
 
+// EspINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
+
+// Qt
+#include <QUndoCommand>
 
 class QAction;
 namespace EspINA
@@ -37,7 +41,8 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit OrthogonalVOITool(ModelAdapterSPtr model,
-                              ViewManagerSPtr  viewManager);
+                               ViewManagerSPtr  viewManager,
+                               QUndoStack      *undoStack);
     virtual ~OrthogonalVOITool();
 
     virtual void setEnabled(bool value);
@@ -48,19 +53,21 @@ namespace EspINA
 
   protected slots:
     void initTool(bool);
-    void ROIChanged();
     void defineROI(Selector::Selection);
+    void commitROI();
 
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
-    QAction           *m_applyVOI;
-    bool               m_enabled;
+    QAction         *m_applyVOI;
+    bool             m_enabled;
 
     EventHandlerSPtr m_selector;
     EspinaWidgetSPtr m_widget;
-    Bounds           m_bounds;
+    NmVector3        m_spacing;
+    NmVector3        m_origin;
     RectangularRegionSliceSelector *m_sliceSelector;
     ROISettings                    *m_settings;
   };

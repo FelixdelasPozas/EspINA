@@ -15,9 +15,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "VolumeOfInterestTools.h"
 
-// Espina
+// EspINA
+#include "VolumeOfInterestTools.h"
 
 using namespace EspINA;
 
@@ -28,13 +28,11 @@ VolumeOfInterestTools::VolumeOfInterestTools(ModelAdapterSPtr model,
                                              QUndoStack      *undoStack,
                                              QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent)
-, m_manualVOITool   {new ManualVOITool(model, viewManager)}
-, m_ortogonalVOITool{new OrthogonalVOITool(model, viewManager)}
-, m_cleanVOITool    {new CleanVOITool(model, viewManager)}
+, m_manualVOITool   {new ManualVOITool(model, viewManager, undoStack)}
+, m_ortogonalVOITool{new OrthogonalVOITool(model, viewManager, undoStack)}
+, m_cleanVOITool    {new CleanVOITool(model, viewManager, undoStack)}
 , m_enabled         {true}
 {
-  qRegisterMetaType<VOIMaskSPtr>("VOIMaskSPtr");
-  connect(m_manualVOITool.get(), SIGNAL(stroke(VOIMaskSPtr)), this, SLOT(drawStroke(VOIMaskSPtr)), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
@@ -70,10 +68,4 @@ ToolSList VolumeOfInterestTools::tools()
   availableTools << m_cleanVOITool;
 
   return availableTools;
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterestTools::drawStroke(VOIMaskSPtr mask)
-{
-  qDebug() << "mask to add to accumulator VOI" << mask->bounds();
 }

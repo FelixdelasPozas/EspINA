@@ -18,11 +18,14 @@
 #ifndef ESPINA_BRUSH_VOI_H
 #define ESPINA_BRUSH_VOI_H
 
+// EspINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <ToolGroups/Edition/ManualEditionTool.h>
-#include "VolumeOfInterestMask.h"
+#include <App/ToolGroups/Edition/ManualEditionTool.h>
+
+// Qt
+#include <QUndoStack>
 
 class QAction;
 namespace EspINA
@@ -34,22 +37,20 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit ManualVOITool(ModelAdapterSPtr model,
-                           ViewManagerSPtr  viewManager);
+                           ViewManagerSPtr  viewManager,
+                           QUndoStack      *undoStack);
     virtual ~ManualVOITool();
-
-  signals:
-    void stroke(VOIMaskSPtr);
 
   protected slots:
     void changeSelector(QAction *selectorAction);
     void selectorInUse(bool value);
-    void drawStroke(ViewItemAdapterPtr item, Selector::Selection);
+    void drawStroke(Selector::Selection);
 
     void changeVOI(QAction *action);
     void cancelVOI();
 
   private:
-
+    QUndoStack *m_undoStack;
   };
 
   using ManualVOIToolSPtr = std::shared_ptr<ManualVOITool>;

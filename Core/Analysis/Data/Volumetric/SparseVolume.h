@@ -466,7 +466,6 @@ namespace EspINA
     {
       qDebug() << m_bounds;
       qDebug() << expectedBounds;
-      contains(m_bounds, expectedBounds);
       throw Invalid_Image_Bounds_Exception();
     }
 

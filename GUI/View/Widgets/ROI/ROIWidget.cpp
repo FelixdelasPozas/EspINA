@@ -19,277 +19,179 @@
 // EspINA
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 #include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
+#include <Support/ViewManager.h>
 
 // VTK
-#include <vtkDiscreteMarchingCubes.h>
 #include <vtkImageCanvasSource2D.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
-#include <vtkTextureMapToPlane.h>
 #include <vtkTransformTextureCoords.h>
+#include <vtkProperty.h>
+#include <vtkTubeFilter.h>
 
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
-  ROIWidget::ROIWidget(ViewManagerSPtr vm)
-  : m_vm     {vm}
+  ROIWidget::ROIWidget(ViewManager *vm)
+  : m_vm{vm}
+  , m_ROI{nullptr}
   {
-    connect(m_vm.get(), SIGNAL(ROIChanged()), this, SLOT(ROIModified()));
-    Q_ASSERT(vm->currentROI() == nullptr);
-
-    // create volume selection texture for 3D views
-    vtkSmartPointer<vtkImageCanvasSource2D> textureIcon = vtkSmartPointer<vtkImageCanvasSource2D>::New();
-    textureIcon->SetScalarTypeToUnsignedChar();
-    textureIcon->SetExtent(0, 15, 0, 15, 0, 0);
-    textureIcon->SetNumberOfScalarComponents(4);
-    textureIcon->SetDrawColor(0,0,0,0);             // transparent color
-    textureIcon->FillBox(0,15,0,15);
-    textureIcon->SetDrawColor(255,255,0,150);     // "somewhat transparent" yellow
-    textureIcon->DrawSegment(0, 0, 15, 15);
-    textureIcon->DrawSegment(1, 0, 15, 14);
-    textureIcon->DrawSegment(0, 1, 14, 15);
-    textureIcon->DrawSegment(15, 0, 15, 0);
-    textureIcon->DrawSegment(0, 15, 0, 15);
-
-    m_texture = vtkSmartPointer<vtkTexture>::New();
-    m_texture->SetInputConnection(textureIcon->GetOutputPort());
-    m_texture->RepeatOn();
-    m_texture->InterpolateOn();
-    m_texture->ReleaseDataFlagOn();
+    connect(m_vm, SIGNAL(ROIChanged()), this, SLOT(updateROIPointer()));
   }
   
   //-----------------------------------------------------------------------------
   ROIWidget::~ROIWidget()
   {
-    for(auto view: m_views.keys())
+    for(auto view: m_representations.keys())
       unregisterView(view);
 
-    m_views.clear();
+    m_representations.clear();
   }
   
-  //-----------------------------------------------------------------------------
-  void ROIWidget::registerView(RenderView* view)
+  //----------------------------------------------------------------------------
+  void ROIWidget::updateActor(View2D *view)
   {
-    if(m_views.keys().contains(view) || m_vm->currentROI() == nullptr)
+    if(m_vm->currentROI() == nullptr)
+    {
+      if(m_representations[view].actor != nullptr)
+        m_representations[view].actor->SetVisibility(false);
+
       return;
+    }
 
     auto bounds = m_vm->currentROI()->bounds();
+    auto index = normalCoordinateIndex(view->plane());
+    auto pos = view->crosshairPoint()[index];
+    bounds[2 * index] = bounds[(2 * index) + 1] = pos;
 
-    if(isView3D(view))
+    if (!intersect(m_vm->currentROI()->bounds(), bounds))
     {
-      vtkImageData *image = vtkImage(m_vm->currentROI()->itkImage(), bounds);
+      if(m_representations[view].actor != nullptr)
+        m_representations[view].actor->SetVisibility(false);
+      return;
+    }
 
-      // generate surface
-      m_marchingCubes[view] = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
-      m_marchingCubes[view]->SetInputData(image);
-      m_marchingCubes[view]->ReleaseDataFlagOn();
-      m_marchingCubes[view]->SetGlobalWarningDisplay(false);
-      m_marchingCubes[view]->SetNumberOfContours(1);
-      m_marchingCubes[view]->GenerateValues(1, SEG_VOXEL_VALUE, SEG_VOXEL_VALUE);
-      m_marchingCubes[view]->ComputeScalarsOff();
-      m_marchingCubes[view]->ComputeNormalsOff();
-      m_marchingCubes[view]->ComputeGradientsOff();
+    if(m_representations[view].actor == nullptr)
+    {
+      vtkSmartPointer<vtkImageData> image = vtkImage<itkVolumeType>(m_vm->currentROI()->itkImage(bounds), bounds);
+      m_representations[view].contour = vtkSmartPointer<vtkVoxelContour2D>::New();
+      m_representations[view].contour->SetInputData(image);
+      m_representations[view].contour->UpdateWholeExtent();
 
-      // NOTE: not using normals to render the selection because we need to represent as many voxels as possible, also
-      // we don't decimate our mesh for the same reason.
-      vtkSmartPointer<vtkTextureMapToPlane> textureMapper = vtkSmartPointer<vtkTextureMapToPlane>::New();
-      textureMapper->SetInputConnection(m_marchingCubes[view]->GetOutputPort());
-      textureMapper->SetGlobalWarningDisplay(false);
-      textureMapper->AutomaticPlaneGenerationOn();
+      m_representations[view].mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      m_representations[view].mapper->SetInputConnection(m_representations[view].contour->GetOutputPort());
+      m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
+      m_representations[view].mapper->SetColorModeToDefault();
+      m_representations[view].mapper->ScalarVisibilityOff();
+      m_representations[view].mapper->StaticOff();
+      m_representations[view].mapper->UpdateWholeExtent();
 
-      vtkSmartPointer<vtkTransformTextureCoords> textureTrans = vtkSmartPointer<vtkTransformTextureCoords>::New();
-      textureTrans->SetInputConnection(textureMapper->GetOutputPort());
-      textureTrans->SetGlobalWarningDisplay(false);
+      m_representations[view].actor = vtkSmartPointer<vtkActor>::New();
+      m_representations[view].actor->SetMapper(m_representations[view].mapper);
+      m_representations[view].actor->GetProperty()->SetColor(1, 1, 0); // yellow
+      m_representations[view].actor->GetProperty()->SetOpacity(1);
+      m_representations[view].actor->GetProperty()->Modified();
+      m_representations[view].actor->SetVisibility(true);
+      m_representations[view].actor->SetDragable(false);
+      m_representations[view].actor->Modified();
 
-      auto spacing = m_vm->currentROI()->spacing();
-      auto scale = NmVector3{ (bounds[1]-bounds[0])/spacing[0], (bounds[3]-bounds[2])/spacing[1], (bounds[5]-bounds[4])/spacing[2]};
-      textureTrans->SetScale(scale[0], scale[1], scale[2]);
+      double position[3];
+      m_representations[view].actor->GetPosition(position);
+      position[index] += view->segmentationDepth();
+      m_representations[view].actor->SetPosition(position);
 
-      vtkSmartPointer<vtkPolyDataMapper> polydataMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      polydataMapper->SetInputConnection(textureTrans->GetOutputPort());
-      polydataMapper->SetResolveCoincidentTopologyToOff();
-
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(polydataMapper);
-      actor->SetTexture(m_texture);
-      actor->GetProperty()->SetOpacity(1);
-      actor->SetVisibility(true);
-
-      view->addActor(actor);
-      m_views[view] = actor;
+      view->addActor(m_representations[view].actor);
     }
     else
     {
-      auto view2d = dynamic_cast<View2D *>(view);
-      connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
+      vtkSmartPointer<vtkImageData> image = vtkImage<itkVolumeType>(m_vm->currentROI()->itkImage(bounds), bounds);
+      m_representations[view].contour->SetInputData(image);
+      m_representations[view].contour->SetUpdateExtent(image->GetExtent());
+      m_representations[view].contour->Update();
 
-      auto index = normalCoordinateIndex(view2d->plane());
-      auto pos = view2d->crosshairPoint()[index];
-      auto sliceBounds = bounds;
-      sliceBounds[2*index] = sliceBounds[(2*index)+1] = pos;
+      m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
+      m_representations[view].mapper->Update();
 
-      vtkImageData *image = vtkImage(m_vm->currentROI()->itkImage(sliceBounds), sliceBounds);
-      m_contours[view] = vtkSmartPointer<vtkVoxelContour2D>::New();
-      m_contours[view]->SetInputData(image);
-      m_contours[view]->UpdateWholeExtent();
+      m_representations[view].actor->SetVisibility(true);
+      m_representations[view].actor->Modified();
 
-      vtkSmartPointer<vtkTubeFilter> tubes = vtkSmartPointer<vtkTubeFilter>::New();
-      tubes->SetInputData(m_contours[view]->GetOutput());
-      tubes->SetUpdateExtent(image->GetExtent());
-      tubes->SetCapping(false);
-      tubes->SetGenerateTCoordsToUseLength();
-      tubes->SetNumberOfSides(4);
-      tubes->SetOffset(1.0);
-      tubes->SetOnRatio(1.5);
-      tubes->UpdateWholeExtent();
-
-      vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      mapper->SetInputConnection(tubes->GetOutputPort());
-      mapper->SetUpdateExtent(image->GetExtent());
-      mapper->SetColorModeToDefault();
-      mapper->ScalarVisibilityOff();
-      mapper->StaticOff();
-
-      vtkSmartPointer<vtkImageCanvasSource2D> textureIcon = vtkSmartPointer<vtkImageCanvasSource2D>::New();
-      textureIcon->SetScalarTypeToUnsignedChar();
-      textureIcon->SetExtent(0, 31, 0, 31, 0, 0);
-      textureIcon->SetNumberOfScalarComponents(4);
-      textureIcon->SetDrawColor(255,255,255,255);
-      textureIcon->FillBox(0,31,0,31);
-      textureIcon->SetDrawColor(0,0,0,0);
-      textureIcon->FillBox(24, 31, 0, 7);
-      textureIcon->FillBox(0, 7, 24, 31);
-      textureIcon->Update();
-
-      vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
-      texture->SetInputConnection(textureIcon->GetOutputPort());
-      texture->SetEdgeClamp(false);
-      texture->RepeatOn();
-      texture->InterpolateOff();
-      texture->Modified();
-
-      mapper->Update();
-
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(mapper);
-      actor->GetProperty()->SetColor(1,1,0); // yellow
-      actor->GetProperty()->SetOpacity(1);
-      actor->GetProperty()->Modified();
-      actor->SetVisibility(true);
-      actor->SetDragable(false);
-      actor->SetTexture(m_texture);
-      actor->Modified();
-
-      view->addActor(actor);
-      m_views[view] = actor;
+      view->updateView();
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  void ROIWidget::registerView(RenderView* view)
+  {
+    auto view2d = dynamic_cast<View2D *>(view);
+
+    if(!view2d || m_representations.keys().contains(view2d))
+      return;
+
+    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
+
+    struct pipeline viewPipeline;
+    m_representations.insert(view2d, viewPipeline);
+
+    updateActor(view2d);
   }
 
   //-----------------------------------------------------------------------------
   void ROIWidget::unregisterView(RenderView* view)
   {
-    if(!m_views.keys().contains(view))
+    auto view2d = dynamic_cast<View2D *>(view);
+
+    if(!view2d || !m_representations.keys().contains(view2d))
       return;
 
-    view->removeActor(m_views[view]);
-    m_views[view] = nullptr;
-    m_views.remove(view);
+    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
 
-    if (isView2D(view))
-    {
-      auto view2d = dynamic_cast<View2D *>(view);
-      disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
-
-      m_contours[view] = nullptr;
-    }
-    else
-    {
-      m_marchingCubes[view] = nullptr;
-    }
+    view2d->removeActor(m_representations[view2d].actor);
+    m_representations.remove(view2d);
   }
   
   //-----------------------------------------------------------------------------
   void ROIWidget::setEnabled(bool enable)
   {
-    for(auto actor: m_views.values())
-      actor->SetVisibility(enable);
+    for(auto pipeline: m_representations.values())
+      pipeline.actor->SetVisibility(enable);
   }
   
   //-----------------------------------------------------------------------------
   void ROIWidget::sliceChanged(Plane plane, Nm pos)
   {
-    auto rView = qobject_cast<RenderView *>(sender());
+    auto rView = qobject_cast<View2D *>(sender());
 
-    for(auto view: m_views.keys())
-    {
+    for(auto view: m_representations.keys())
       if(view == rView)
       {
-        auto view2d = dynamic_cast<View2D *>(rView);
-        auto bounds = m_vm->currentROI()->bounds();
-        auto index = normalCoordinateIndex(view2d->plane());
-        bounds[2*index] = bounds[(2*index)+1] = view2d->crosshairPoint()[index];
-
-        vtkImageData *image = vtkImage(m_vm->currentROI()->itkImage(bounds), bounds);
-
-        m_contours[view]->SetInputData(image);
-        m_contours[view]->Update();
-        m_views[view]->GetMapper()->SetUpdateExtent(image->GetExtent());
-        m_views[view]->GetMapper()->Update();
-        m_views[view]->Modified();
+        updateActor(view);
+        return;
       }
-    }
   }
 
   //----------------------------------------------------------------------------
-  void ROIWidget::ROIChanged()
+  void ROIWidget::updateROIPointer()
   {
-    if(m_vm->currentROI() == nullptr && !m_views.keys().empty())
-    {
-      for(auto view: m_vm->renderViews())
-        unregisterView(view);
+    if(m_ROI != nullptr)
+      disconnect(m_ROI.get(), SIGNAL(dataChanged()), this, SLOT(updateROIRepresentations()));
 
-      return;
-    }
+    m_ROI = m_vm->currentROI();
 
-    if(m_vm->currentROI() != nullptr && m_views.keys().empty())
-    {
-      for(auto view: m_vm->renderViews())
-        registerView(view);
+    if(m_ROI != nullptr)
+      connect(m_ROI.get(), SIGNAL(dataChanged()), this, SLOT(updateROIRepresentations()));
 
-      return;
-    }
-
-    for(auto view: m_vm->renderViews())
-    {
-      vtkImageData *image = nullptr;
-
-      if(isView3D(view))
-      {
-        image = vtkImage(m_vm->currentROI()->itkImage(), m_vm->currentROI()->bounds());
-        m_marchingCubes[view]->SetInputData(image);
-        m_marchingCubes[view]->SetUpdateExtent(image->GetExtent());
-        m_marchingCubes[view]->Update();
-        m_views[view]->GetMapper()->SetUpdateExtent(image->GetExtent());
-      }
-      else
-      {
-        auto view2d = dynamic_cast<View2D *>(view);
-        auto bounds = m_vm->currentROI()->bounds();
-        auto index = normalCoordinateIndex(view2d->plane());
-        bounds[2*index] = bounds[(2*index)+1] = view2d->crosshairPoint()[index];
-
-        image = vtkImage(m_vm->currentROI()->itkImage(bounds), bounds);
-        m_contours[view]->SetInputData(image);
-        m_contours[view]->Update();
-
-      }
-
-      m_views[view]->GetMapper()->SetUpdateExtent(image->GetExtent());
-      m_views[view]->GetMapper()->Update();
-      m_views[view]->Modified();
-    }
+    updateROIRepresentations();
   }
 
-} /* namespace EspINA */
+  //----------------------------------------------------------------------------
+  void ROIWidget::updateROIRepresentations()
+  {
+    for(auto view: m_representations.keys())
+      updateActor(view);
+  }
+
+} // namespace EspINA
 

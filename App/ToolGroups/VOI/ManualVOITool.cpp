@@ -19,6 +19,7 @@
 #include "ManualVOITool.h"
 
 #include <GUI/Widgets/SliderAction.h>
+#include <Undo/ROIUndoCommand.h>
 
 // EspINA
 
@@ -30,8 +31,10 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
-                             ViewManagerSPtr  viewManager)
+                             ViewManagerSPtr  viewManager,
+                             QUndoStack      *undoStack)
 : ManualEditionTool(model, viewManager)
+, m_undoStack(undoStack)
 {
   showCategoryControls(false);
   setPencil2DIcon(QIcon(":/espina/voi_brush2D.svg"));
@@ -77,10 +80,17 @@ void ManualVOITool::selectorInUse(bool value)
 }
 
 //------------------------------------------------------------------------
-void ManualVOITool::drawStroke(ViewItemAdapterPtr item, Selector::Selection selection)
+void ManualVOITool::drawStroke(Selector::Selection selection)
 {
-  auto mask = m_currentSelector->voxelSelectionMask();
-  emit stroke(selection.first().first);
+  if(m_viewManager->currentROI() == nullptr)
+    m_undoStack->beginMacro("Create Region Of Interest");
+  else
+    m_undoStack->beginMacro("Modify Region Of Interest");
+
+  m_undoStack->push(new ModifyROIUndoCommand{m_viewManager, selection.first().first});
+  m_undoStack->endMacro();
+
+  qDebug() << "draw stroke emit";
 }
 
 //-----------------------------------------------------------------------------

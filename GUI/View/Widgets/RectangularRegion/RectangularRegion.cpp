@@ -123,7 +123,7 @@ Bounds RectangularRegion::bounds() const
 {
   Q_ASSERT(!m_widgets.isEmpty());
 
-  vtkRectangularSliceWidget *widget = m_widgets[0];
+  auto widget = m_widgets.begin().value();
 
   return widget->GetBounds();
 }

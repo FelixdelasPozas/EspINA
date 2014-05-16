@@ -18,10 +18,13 @@
 #ifndef ESPINA_CLEAN_VOI_H
 #define ESPINA_CLEAN_VOI_H
 
+// EspINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
-#include "VolumeOfInterestMask.h"
+
+// Qt
+#include <QUndoStack>
 
 class QAction;
 namespace EspINA
@@ -33,7 +36,8 @@ namespace EspINA
     Q_OBJECT
   public:
     explicit CleanVOITool(ModelAdapterSPtr model,
-                          ViewManagerSPtr  viewManager);
+                          ViewManagerSPtr  viewManager,
+                          QUndoStack      *undoStack);
     virtual ~CleanVOITool();
 
     virtual void setEnabled(bool value);
@@ -49,6 +53,7 @@ namespace EspINA
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
     QAction *m_cleanVOI;
     bool m_enabled;

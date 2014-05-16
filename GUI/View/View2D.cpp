@@ -740,9 +740,9 @@ void View2D::scrollValueChanged(int value /*slice index */)
   m_spinBox->setValue(m_fitToSlices ? value + 1: slicingPosition());
   m_spinBox->blockSignals(false);
 
-  updateView();
-
   emit sliceChanged(m_plane, slicingPosition());
+
+  updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -758,9 +758,9 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
   m_scrollBar->setValue(m_fitToSlices? (value - 1) : vtkMath::Round(value/m_slicingStep[m_normalCoord]));
   m_scrollBar->blockSignals(false);
 
-  updateView();
-
   emit sliceChanged(m_plane, slicingPosition());
+
+  updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -903,9 +903,10 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 
   for (auto widget : m_widgets)
   {
-    auto eventHandler = dynamic_cast<EventHandler *>(widget.get());
-    if(eventHandler && eventHandler->filterEvent(e, this))
-      return true;
+    // TODO: widget is not an event handler
+//    auto eventHandler = dynamic_cast<EventHandler *>(widget.get());
+//    if(eventHandler && eventHandler->filterEvent(e, this))
+//      return true;
   }
 
   return QWidget::eventFilter(caller, e);
