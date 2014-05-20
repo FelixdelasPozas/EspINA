@@ -18,11 +18,13 @@
 #ifndef ESPINA_SEED_GROW_SEGMENTATION_FILTER_H
 #define ESPINA_SEED_GROW_SEGMENTATION_FILTER_H
 
-//#include "EspinaFilters_Export.h"
-
+// EspINA
+#include <Core/Analysis/Data/Volumetric/ROI.h>
 #include "Core/Analysis/Filter.h"
 #include <Core/Utils/BinaryMask.h>
+#include "Core/EspinaTypes.h"
 
+// ITK
 #include <itkImage.h>
 #include <itkVTKImageToImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
@@ -32,6 +34,7 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 #include <itkExtractImageFilter.h>
+
 
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
@@ -74,10 +77,7 @@ namespace EspINA
     void setSeed(const NmVector3& seed);
     NmVector3 seed() const;
 
-    void setROI(const Bounds& bounds);
-
-    template<typename T>
-    void setROI(const BinaryMask<T>& mask);
+    void setROI(const ROISPtr roi);
 
     template<typename T>
     BinaryMask<T> roi() const;
@@ -110,6 +110,7 @@ namespace EspINA
     NmVector3 m_seed,    m_prevSeed;
     int       m_radius,  m_prevRadius;
     bool      m_usesROI;
+    ROISPtr   m_roi;
 
     ExtractFilterType::Pointer   m_extractFilter;
     ClosingFilterType::Pointer   m_closingFilter;

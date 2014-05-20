@@ -167,7 +167,9 @@ set (ESPINA_SOURCES
   ToolGroups/VOI/OrthogonalVOITool.cpp
   ToolGroups/VOI/VolumeOfInterestTools.cpp
   Tools/Brushes/CircularBrushSelector.cpp
+  Tools/Brushes/CircularBrushROISelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp
+  Tools/Brushes/SphericalBrushROISelector.cpp
 #   Tools/Contour/FilledContour.cpp
   Tools/Measure/MeasureTool.cpp
 #   Tools/PlanarSplit/PlanarSplitTool.cpp

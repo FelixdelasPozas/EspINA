@@ -295,7 +295,7 @@ itkVolumeType::SpacingType BrushSelector::referenceSpacing() const
 //-----------------------------------------------------------------------------
 void BrushSelector::setBrushImage(const QImage& image)
 {
-  if (m_brushImage)
+  if (m_brushImage != nullptr)
   {
     delete m_brushImage;
     m_brushImage = nullptr;

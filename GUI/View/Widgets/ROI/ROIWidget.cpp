@@ -45,9 +45,6 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   ROIWidget::~ROIWidget()
   {
-    for(auto view: m_representations.keys())
-      unregisterView(view);
-
     m_representations.clear();
   }
   

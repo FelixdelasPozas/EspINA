@@ -101,23 +101,22 @@ namespace EspINA
                                           Plane plane) = 0;
       virtual void updateSliceChange();
 
-    private:
+    protected:
       void buildCursor();
       Bounds buildBrushBounds(NmVector3 center);
       void getBrushPosition(NmVector3 &center, QPoint pos);
       bool validStroke(NmVector3 &center);
-      void startStroke(QPoint pos, RenderView *view);
-      void updateStroke(QPoint pos, RenderView *view);
-      void stopStroke(RenderView *view);
-      void startPreview(RenderView *view);
-      void updatePreview(NmVector3 center, RenderView *view);
-      void stopPreview(RenderView *view);
+      virtual void startStroke(QPoint pos, RenderView *view);
+      virtual void updateStroke(QPoint pos, RenderView *view);
+      virtual void stopStroke(RenderView *view);
+      virtual void startPreview(RenderView *view);
+      virtual void updatePreview(NmVector3 center, RenderView *view);
+      virtual void stopPreview(RenderView *view);
       bool ShiftKeyIsDown();
 
-    private:
+    protected:
       ViewItemAdapterPtr m_referenceItem;
 
-    protected:
       int     m_displayRadius; //In screen pixels
       QColor  m_borderPaintColor;
       QColor  m_borderEraseColor;

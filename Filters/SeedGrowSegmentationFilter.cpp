@@ -120,16 +120,9 @@ NmVector3 SeedGrowSegmentationFilter::seed() const
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setROI(const Bounds& bounds)
+void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 {
-
-}
-
-//------------------------------------------------------------------------
-template<typename T>
-void SeedGrowSegmentationFilter::setROI(const BinaryMask<T>& mask)
-{
-
+  m_roi = roi;
 }
 
 //------------------------------------------------------------------------
@@ -148,7 +141,7 @@ void SeedGrowSegmentationFilter::setClosingRadius(int radius)
 //------------------------------------------------------------------------
 int SeedGrowSegmentationFilter::closingRadius()
 {
-  return m_radius;;
+  return m_radius;
 }
 
 //------------------------------------------------------------------------
@@ -186,38 +179,6 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   auto input = volumetricData(m_inputs[0]->output());
   if (!input) throw Invalid_Input_Data_Exception();
 
-//   int voi[6];
-//   m_param.voi(voi);
-// 
-// //   qDebug() << "Bound VOI to input extent";
-//   int inputExtent[6];
-//   input->extent(inputExtent);
-//   for (int i = 0; i < 3; i++)
-//   {
-//     int inf = 2*i, sup = 2*i+1;
-//     voi[inf] = std::max(voi[inf], inputExtent[inf]);
-//     voi[sup] = std::min(voi[sup], inputExtent[sup]);
-//   }
-// 
-// //   qDebug() << "Apply VOI";
-//   voiFilter = ExtractType::New();
-//   ExtractType::InputImageRegionType roi;
-//   for (int i = 0; i < 3; i++)
-//   {
-//     int inf = 2*i, sup = 2*i+1;
-//     roi.SetIndex(i, voi[inf]);
-//     roi.SetSize (i, voi[sup] - voi[inf] + 1);
-//   }
-// 
-//   voiFilter->SetNumberOfThreads(1);
-//   voiFilter->SetInput(input->toITK());
-//   voiFilter->SetExtractionRegion(roi);
-//   voiFilter->ReleaseDataFlagOn();
-//   voiFilter->Update();
-
-  emit progress(25);
-  if (!canExecute()) return;
-
   Q_ASSERT(contains(input->bounds(), m_seed));
 
   Bounds seedBounds;
@@ -231,11 +192,36 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
   itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
 
+  if(m_roi != nullptr)
+  {
+    auto image = input->itkImage();
+    auto intersectionBounds = intersection(input->bounds(), m_roi->bounds());
+    auto extractRegion = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
+
+    m_extractFilter = ExtractFilterType::New();
+    m_extractFilter->SetNumberOfThreads(1);
+    m_extractFilter->SetInput(image);
+    m_extractFilter->SetExtractionRegion(extractRegion);
+    m_extractFilter->ReleaseDataFlagOn();
+    m_extractFilter->Update();
+
+    itkVolumeType::ValueType outValue = (std::min(seedIntensity + m_upperTh, 255) + 1) % 255;
+    m_roi->applyROI<itkVolumeType>(m_extractFilter->GetOutput(), outValue);
+
+  }
+
+  emit progress(25);
+  if (!canExecute()) return;
+
   auto connectedFilter = ConnectedFilterType::New();
 
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 75);
 
-  connectedFilter->SetInput(input->itkImage());
+  if(m_roi != nullptr)
+    connectedFilter->SetInput(m_extractFilter->GetOutput());
+  else
+    connectedFilter->SetInput(input->itkImage());
+
   connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
   connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));

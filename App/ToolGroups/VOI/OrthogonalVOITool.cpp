@@ -75,7 +75,6 @@ OrthogonalVOITool::~OrthogonalVOITool()
     m_widget->setEnabled(false);
     m_widget = nullptr;
   }
-  m_viewManager->setCurrentROI(nullptr);
 }
 
 //-----------------------------------------------------------------------------

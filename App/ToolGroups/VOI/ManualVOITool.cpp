@@ -19,6 +19,8 @@
 #include "ManualVOITool.h"
 
 #include <GUI/Widgets/SliderAction.h>
+#include <Tools/Brushes/CircularBrushROISelector.h>
+#include <Tools/Brushes/SphericalBrushROISelector.h>
 #include <Undo/ROIUndoCommand.h>
 
 // EspINA
@@ -33,14 +35,109 @@ using namespace EspINA;
 ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
                              ViewManagerSPtr  viewManager,
                              QUndoStack      *undoStack)
-: ManualEditionTool(model, viewManager)
-, m_undoStack(undoStack)
+: ManualEditionTool{model, viewManager}
+, m_undoStack      {undoStack}
 {
-  showCategoryControls(false);
-  setPencil2DIcon(QIcon(":/espina/voi_brush2D.svg"));
-  setPencil3DIcon(QIcon(":/espina/voi_brush3D.svg"));
-  setPencil2DText(QString("Modify VOI drawing 2D discs"));
-  setPencil3DText(QString("Modify VOI drawing 3D spheres"));
+
+  disconnect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+             this,                          SLOT(  drawStroke(Selector::Selection)));
+  disconnect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
+             m_drawToolSelector,            SLOT(         setChecked(bool)));
+  disconnect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
+             this,                          SLOT(      selectorInUse(bool)));
+  disconnect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)),
+             this,                          SLOT(  radiusChanged(int)));
+  disconnect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
+             this,                          SLOT(  drawingModeChanged(bool)));
+  disconnect(m_sphericalBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+             this,                           SLOT(  drawStroke(Selector::Selection)));
+  disconnect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
+             m_drawToolSelector,             SLOT(         setChecked(bool)));
+  disconnect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)),
+             this,                           SLOT(  radiusChanged(int)));
+  disconnect(m_sphericalBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
+             this,                           SLOT(  drawingModeChanged(bool)));
+  disconnect(m_drawToolSelector, SIGNAL(   triggered(QAction*)),
+             this,               SLOT(changeSelector(QAction*)));
+  disconnect(m_drawToolSelector, SIGNAL(actionCanceled()),
+             this,               SLOT(   unsetSelector()));
+  disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+             this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
+
+  delete m_drawToolSelector;
+
+  m_drawToolSelector = new ActionSelector();
+
+  // draw with a disc
+  m_discTool = new QAction(QIcon(":/espina/voi_brush2D.svg"),
+                           tr("Modify VOI drawing 2D discs"),
+                           m_drawToolSelector);
+
+  m_circularBrushSelector = CircularBrushROISelectorSPtr(new CircularBrushROISelector());
+  connect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+          this,                          SLOT(  drawStroke(Selector::Selection)));
+  connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
+          m_drawToolSelector,            SLOT(         setChecked(bool)));
+  connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
+          this,                          SLOT(      selectorInUse(bool)));
+  connect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)),
+          this,                          SLOT(  radiusChanged(int)));
+  connect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
+          this,                          SLOT(  drawingModeChanged(bool)));
+
+  m_drawTools[m_discTool] = m_circularBrushSelector;
+  m_drawToolSelector->addAction(m_discTool);
+
+
+  // draw with a sphere
+  m_sphereTool = new QAction(QIcon(":/espina/voi_brush3D.svg"),
+                             tr("Modify VOI drawing 3D spheres"),
+                             m_drawToolSelector);
+
+  m_sphericalBrushSelector = SphericalBrushROISelectorSPtr(new SphericalBrushROISelector());
+  connect(m_sphericalBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+          this,                           SLOT(  drawStroke(Selector::Selection)));
+  connect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
+          m_drawToolSelector,             SLOT(         setChecked(bool)));
+  connect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)),
+          this,                           SLOT(  radiusChanged(int)));
+  connect(m_sphericalBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
+          this,                           SLOT(  drawingModeChanged(bool)));
+
+  m_drawTools[m_sphereTool] = m_sphericalBrushSelector;
+  m_drawToolSelector->addAction(m_sphereTool);
+
+  // TODO: contour filter, tool y selector.
+
+  // draw with contour
+  //    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
+  //                                       tr("Modify segmentation drawing contour"),
+  //                                       m_drawToolSelector);
+  //    FilledContourSPtr contour(new FilledContour(m_model,
+  //                                                m_undoStack,
+  //                                                m_viewManager));
+  //
+  //    connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
+  //            this, SLOT(changeContourMode(Brush::BrushMode)));
+  //    connect(contour.get(), SIGNAL(stopDrawing()),
+  //            this, SLOT(cancelDrawOperation()));
+  //    connect(contour.get(), SIGNAL(startDrawing()),
+  //            this, SLOT(startContourOperation()));
+  //
+  //    m_drawTools[contourTool] = contour;
+  //    m_drawTools[contourTool] = SelectorSPtr(this);
+  //    m_drawToolSelector->addAction(contourTool);
+
+  m_drawToolSelector->setDefaultAction(m_discTool);
+  connect(m_drawToolSelector, SIGNAL(   triggered(QAction*)),
+          this,               SLOT(changeSelector(QAction*)));
+  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
+          this,               SLOT(   unsetSelector()));
+  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
+
+  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
+          this,                SLOT(ROIChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -49,11 +146,20 @@ ManualVOITool::~ManualVOITool()
 }
 
 //-----------------------------------------------------------------------------
+void ManualVOITool::ROIChanged()
+{
+  bool hasROI = (m_viewManager->currentROI() != nullptr);
+
+  auto disc = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
+  disc->setHasROI(hasROI);
+  auto sphere = dynamic_cast<SphericalBrushROISelector *>(m_sphericalBrushSelector.get());
+  sphere->setHasROI(hasROI);
+}
+
+//-----------------------------------------------------------------------------
 void ManualVOITool::changeSelector(QAction* action)
 {
   Q_ASSERT(m_drawTools.keys().contains(action));
-  if (m_showCategoryControls)
-    m_categorySelector->setVisible(true);
 
   if (m_showRadiusControls)
     m_radiusWidget->setVisible(true);
@@ -64,7 +170,7 @@ void ManualVOITool::changeSelector(QAction* action)
   m_currentSelector = m_drawTools[action];
   m_currentSelector->setBrushColor(Qt::yellow);
   m_currentSelector->setRadius(m_radiusWidget->value());
-  m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
+  updateReferenceItem(m_viewManager->selection());
 
   m_viewManager->setEventHandler(m_currentSelector);
 }
@@ -79,6 +185,33 @@ void ManualVOITool::selectorInUse(bool value)
   }
 }
 
+//-----------------------------------------------------------------------------
+void ManualVOITool::drawingModeChanged(bool isDrawing)
+{
+  QAction *actualAction = m_drawToolSelector->getCurrentAction();
+  QIcon icon;
+
+  if (m_discTool == actualAction)
+  {
+    if (isDrawing)
+      icon = QIcon(":/espina/voi_brush2D.svg");
+    else
+      icon = QIcon(":/espina/voi_brush2D-erase.svg");
+  }
+  else
+  {
+    if (m_sphereTool == actualAction)
+    {
+      if (isDrawing)
+        icon = QIcon(":/espina/voi_brush3D.svg");
+      else
+        icon = QIcon(":/espina/voi_brush3D-erase.svg");
+    }
+  }
+
+  m_drawToolSelector->setIcon(icon);
+}
+
 //------------------------------------------------------------------------
 void ManualVOITool::drawStroke(Selector::Selection selection)
 {
@@ -90,19 +223,32 @@ void ManualVOITool::drawStroke(Selector::Selection selection)
   m_undoStack->push(new ModifyROIUndoCommand{m_viewManager, selection.first().first});
   m_undoStack->endMacro();
 
-  qDebug() << "draw stroke emit";
-}
-
-//-----------------------------------------------------------------------------
-void ManualVOITool::changeVOI(QAction* action)
-{
-//   Q_ASSERT(m_vois.contains(action));
-//   m_viewManager->setVOI(m_vois[action]);
+  updateReferenceItem(m_viewManager->selection());
 }
 
 //-----------------------------------------------------------------------------
 void ManualVOITool::cancelVOI()
 {
-//   m_voiSelector->cancel();
-//   m_viewManager->unsetActiveVOI();
+  m_currentSelector->abortOperation();
+}
+
+//-----------------------------------------------------------------------------
+void ManualVOITool::updateReferenceItem(SelectionSPtr selection)
+{
+  m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
+
+  if(m_viewManager->currentROI() != nullptr)
+  {
+    auto disk = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
+    disk->setHasROI(true);
+    auto sphere = dynamic_cast<SphericalBrushROISelector *>(m_sphericalBrushSelector.get());
+    sphere->setHasROI(true);
+
+    m_currentSelector->setBrushImage(QImage());
+  }
+  else
+  {
+    m_currentSelector->setBrushImage(QImage(":/espina/add.svg"));
+    m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
+  }
 }

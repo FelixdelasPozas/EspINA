@@ -144,6 +144,7 @@ namespace EspINA
             this, SLOT(updateReferenceItem(SelectionSPtr)));
 
     auto selection = m_viewManager->selection();
+
     updateReferenceItem(selection);
   }
 
@@ -206,7 +207,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
   {
-    if (m_currentSelector)
+    if (m_currentSelector != nullptr)
     {
       auto selection = m_viewManager->selection();
       selection->clear();
@@ -266,7 +267,7 @@ namespace EspINA
   {
     QList<QAction *> actions;
 
-    if (m_currentSelector)
+    if (m_currentSelector != nullptr)
     {
       m_drawToolSelector->setChecked(m_viewManager->eventHandler() == m_currentSelector);
     }
@@ -290,7 +291,7 @@ namespace EspINA
   //------------------------------------------------------------------------
   void ManualEditionTool::abortOperation()
   {
-    if (m_currentSelector)
+    if (m_currentSelector != nullptr)
       m_currentSelector->abortOperation();
   }
 

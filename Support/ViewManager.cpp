@@ -195,6 +195,9 @@ void ViewManager::hideTools(ToolGroupPtr group)
 //----------------------------------------------------------------------------
 void ViewManager::setEventHandler(EventHandlerSPtr eventHandler)
 {
+  if(m_eventHandler == eventHandler)
+    return;
+
   if (m_eventHandler)
   {
     m_eventHandler->setInUse(false);

@@ -318,7 +318,7 @@ namespace EspINA
       {
         auto blockRegion = equivalentRegion<T>(m_image, bounds);
         itk::ImageRegionIterator<T> bit(m_image, blockRegion);
-        bit = bit.Begin();
+        bit.GoToBegin();
         while(!mit.isAtEnd())
         {
           if (!mit.isSet())
@@ -492,7 +492,7 @@ namespace EspINA
       BinaryMask<unsigned char>::region_iterator mit(mask, intersectionBounds);
       itk::ImageRegionIterator<T> iit(image, equivalentRegion<T>(image, intersectionBounds));
       mit.goToBegin();
-      iit = iit.Begin();
+      iit.GoToBegin();
 
       block->updateImage(iit, mit, intersectionBounds, numVoxels);
     }
@@ -861,7 +861,7 @@ namespace EspINA
       typename T::Pointer image = itkImage(bounds.bounds());
       bool empty = true;
       itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
-      it.Begin();
+      it.GoToBegin();
       while (empty && !it.IsAtEnd())
       {
         empty = it.Get() == this->backgroundValue();

@@ -41,13 +41,15 @@ namespace EspINA
                            QUndoStack      *undoStack);
     virtual ~ManualVOITool();
 
+
   protected slots:
+    void drawingModeChanged(bool);
     void changeSelector(QAction *selectorAction);
     void selectorInUse(bool value);
     void drawStroke(Selector::Selection);
-
-    void changeVOI(QAction *action);
+    void updateReferenceItem(SelectionSPtr selection);
     void cancelVOI();
+    void ROIChanged();
 
   private:
     QUndoStack *m_undoStack;

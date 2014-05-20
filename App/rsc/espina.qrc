@@ -77,6 +77,8 @@
         <file>roi_go.svg</file>
         <file>voi_brush2D.svg</file>
         <file>voi_brush3D.svg</file>
+        <file>voi_brush2D-erase.svg</file>
+        <file>voi_brush3D-erase.svg</file>
         <file>roi_out.svg</file>
         <file>voi.svg</file>
         <file>zoom_cursor.png</file>

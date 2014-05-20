@@ -263,9 +263,8 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
     filter->setDescription(tr("Seed Grow Segmentation"));
-
-    // TODO: filter should inherit from ROIConstrainedFilter.h to add a ROI
-    // filter->setROI(roi);
+    if(roi != nullptr)
+      filter->setROI(ROISPtr(roi->clone()));
 
     m_executingTasks[adapter.get()] = adapter;
 

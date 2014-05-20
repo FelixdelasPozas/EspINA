@@ -58,8 +58,6 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ROI::draw(const BinaryMaskSPtr<unsigned char> mask, const unsigned char value)
   {
-    qDebug() << "draw mask with value" << value << "mask bg" << mask->backgroundValue() << "fg" << mask->foregroundValue() << "this bg" <<  this->backgroundValue();
-
     m_isRectangular = false;
     SparseVolume<itkVolumeType>::draw(mask, value);
   }
@@ -83,6 +81,16 @@ namespace EspINA
   {
     m_isRectangular = false;
     SparseVolume::draw(index, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  ROI *ROI::clone() const
+  {
+    auto newROI = new ROI(bounds(), spacing(), origin());
+    auto image = itkImage();
+
+    newROI->draw(image);
+    return newROI;
   }
 
 }

@@ -19,8 +19,12 @@
 #ifndef ESPINA_ROI_H_
 #define ESPINA_ROI_H_
 
+// EspINA
 #include <Core/EspinaCore_Export.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+
+// ITK
+#include <itkImageRegionExclusionIteratorWithIndex.h>
 
 namespace EspINA
 {
@@ -48,10 +52,20 @@ namespace EspINA
        */
       bool isRectangular() const;
 
+      /* \brief Returns a new ROI object that is a copy of this one.
+       *
+       */
+      ROI* clone() const;
+
       /* \brief Applies the ROI to the volume passed as argument.
        *
        */
       template<class T> void applyROI(VolumetricData<T> &volume, const typename T::ValueType outsideValue) const;
+
+      /* \brief Applies the ROI to the itk volume passes as argument
+       *
+       */
+      template<class T> void applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const;
 
       /** \brief Implements SparseVolume::draw(brush, bounds, value)
        *
@@ -132,7 +146,7 @@ namespace EspINA
     }
     else
     {
-      // mask interapolation needed, more costly
+      // mask interpolation needed, more costly
       auto spacing = spacing();
 
       while(!crit.isAtEnd())
@@ -156,6 +170,92 @@ namespace EspINA
         }
 
         ++crit;
+      }
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  inline void ROI::applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const
+  {
+    auto imageBounds = equivalentBounds<T>(volume, volume->GetLargestPossibleRegion());
+    auto intersectionBounds = intersection(imageBounds, bounds());
+
+    if (!intersectionBounds.areValid())
+    {
+      // erase the image, the roi is outside the image
+      itk::ImageRegionIterator<T> it(volume, volume->GetLargestPossibleRegion());
+      it.GoToBegin();
+      while (!it.IsAtEnd())
+      {
+        it.Set(outsideValue);
+        ++it;
+      }
+      return;
+    }
+
+    // clear outside region
+    if(imageBounds != bounds())
+    {
+      auto region = equivalentRegion<T>(volume, intersectionBounds);
+      itk::ImageRegionExclusionIteratorWithIndex<T> it(volume, volume->GetLargestPossibleRegion());
+      it.SetExclusionRegion(region);
+      it.GoToBegin();
+      while (!it.IsAtEnd())
+      {
+        it.Set(outsideValue);
+        ++it;
+      }
+    }
+
+    // if it's rectangular we're done now.
+    if(!this->isRectangular())
+    {
+      auto image = this->itkImage(intersectionBounds);
+      itk::ImageRegionIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
+      it.GoToBegin();
+
+      auto volumeSpacing = volume->GetSpacing();
+      auto roiSpacing = image->GetSpacing();
+
+      if(roiSpacing == volumeSpacing)
+      {
+        auto region = equivalentRegion<T>(volume, intersectionBounds);
+        itk::ImageRegionIterator<T> rit(volume, region);
+        rit.GoToBegin();
+
+        while(!it.IsAtEnd())
+        {
+          if(it.Value() != SEG_VOXEL_VALUE)
+            rit.Set(outsideValue);
+
+          ++it;
+          ++rit;
+        }
+      }
+      else
+      {
+        while(!it.IsAtEnd())
+        {
+          if(it.Value() != SEG_VOXEL_VALUE)
+          {
+            auto index = it.GetIndex();
+            auto origin = image->GetOrigin();
+            NmVector3 point{ (index[0]+origin[0]) * roiSpacing[0], (index[1]*origin[1]) * roiSpacing[1], (index[2]*origin[2]) * roiSpacing[2]};
+            VolumeBounds vBounds{Bounds(point), this->spacing(), this->origin()};
+            auto region = equivalentRegion<T>(volume, vBounds.bounds());
+            itk::ImageRegionIterator<T> rit(volume, region);
+            rit.GoToBegin();
+
+            while(!rit.IsAtEnd())
+            {
+              rit.Set(outsideValue);
+              ++rit;
+            }
+          }
+
+          ++it;
+        }
       }
     }
   }
