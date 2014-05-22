@@ -49,6 +49,8 @@ namespace EspINA
     virtual bool isValid() const
     { return m_mesh != nullptr || RawVolume<T>::isValid();}
 
+    virtual bool isEmpty() const;
+
 //    virtual bool dumpSnapshot(const QString &prefix, Snapshot &snapshot) const;
 //
 //    virtual itkVolumeType::Pointer toITK();

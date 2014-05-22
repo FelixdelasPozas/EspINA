@@ -70,6 +70,9 @@ namespace EspINA
       virtual bool isValid() const
       { return m_data->isValid(); }
 
+      virtual bool isEmpty() const
+      { return m_data->isEmpty(); }
+
       virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix)
       { return m_data->fetchData(storage, prefix); }
 

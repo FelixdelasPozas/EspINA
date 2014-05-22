@@ -16,6 +16,8 @@ qt4_add_resources(ESPINA_RCC
 # Create header's MOC files
 qt4_wrap_cpp (ESPINA_MOC
   EspinaMainWindow.h
+  Dialogs/CheckAnalysis/CheckAnalysis.h
+  Dialogs/ProblemList/ProblemListDialog.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/TabularReport/TabularReport.h
   Dialogs/TabularReport/TabularReportEntry.h
@@ -83,6 +85,8 @@ qt4_wrap_cpp (ESPINA_MOC
 
 # Create Interface files
 qt4_wrap_ui (ESPINA_UI
+  Dialogs/CheckAnalysis/CheckAnalysisDialog.ui
+  Dialogs/ProblemList/ProblemListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/About/AboutDialog.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
@@ -113,6 +117,8 @@ set (ESPINA_SOURCES
   IO/ChannelReader.cpp
   IO/SegFileReader.cpp
   RecentDocuments.cpp
+  Dialogs/CheckAnalysis/CheckAnalysis.cpp
+  Dialogs/ProblemList/ProblemListDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/TabularReport/TabularReport.cpp
   Dialogs/TabularReport/RawInformationDialog.cpp

@@ -37,6 +37,7 @@
 #include <GUI/Widgets/SchedulerProgress.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Dialogs/ProblemList/ProblemListDialog.h>
 #include <Extensions/ExtensionFactory.h>
 
 #include <QTimer>
@@ -138,6 +139,8 @@ class MainToolBar;
     virtual void closeEvent(QCloseEvent* );
 
   private:
+    ProblemList checkAnalysisConsistency();
+
     void createActivityMenu();
 
     void createDynamicMenu(MenuEntry entry);

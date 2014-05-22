@@ -108,6 +108,12 @@ bool RawMesh::isValid() const
 }
 
 //----------------------------------------------------------------------------
+bool RawMesh::isEmpty() const
+{
+  return !isValid();
+}
+
+//----------------------------------------------------------------------------
 bool RawMesh::setInternalData(MeshDataSPtr rhs)
 {
   m_mesh = rhs->mesh();

@@ -213,11 +213,34 @@ void RasterizedVolume<T>::updateITKVolume() const
 
 //----------------------------------------------------------------------------
 template<class T>
+bool RasterizedVolume<T>::isEmpty()
+{
+    if(!isValid())
+      return true;
+
+    updateITKVolume();
+
+    itk::ImageRegionConstIterator<T> it(m_volume, m_volume->GetLargestPossibleRegion());
+    it.GoToBegin();
+    while(!it.IsAtEnd)
+    {
+      if(it.Value() == SEG_VOXEL_VALUE)
+        return true;
+      ++it;
+    }
+
+    return false;
+}
+
+
+//----------------------------------------------------------------------------
+template<class T>
 RasterizedVolumeSPtr<T> rasterizedVolume(OutputSPtr output)
 {
   RasterizedVolumeSPtr<T> volume = std::dynamic_pointer_cast<RasterizedVolumeSPtr<T>>(output->data(RasterizedVolume<T>::Type));
   Q_ASSERT(volume.get());
   return volume;
 }
+
 
 

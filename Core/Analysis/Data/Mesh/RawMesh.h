@@ -40,6 +40,7 @@ namespace EspINA
     virtual ~RawMesh() {};
 
     virtual bool isValid() const;
+    virtual bool isEmpty() const;
     virtual bool setInternalData(MeshDataSPtr rhs);
 
     Snapshot snapshot() const

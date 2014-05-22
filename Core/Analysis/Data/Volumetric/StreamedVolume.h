@@ -108,6 +108,9 @@ namespace EspINA {
     virtual bool isValid() const
     { return QFileInfo(m_fileName).exists(); }
 
+    virtual bool isEmpty() const
+    { return !isValid(); }
+
     virtual bool fetchData(TemporalStorageSPtr storage, const QString& prefix)
     { return false; }
 

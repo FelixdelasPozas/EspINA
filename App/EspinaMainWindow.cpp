@@ -20,6 +20,7 @@
 
 // EspINA
 #include "Dialogs/About/AboutDialog.h"
+#include <Dialogs/CheckAnalysis/CheckAnalysis.h>
 #include "Dialogs/Settings/GeneralSettingsDialog.h"
 #include "Dialogs/TabularReport/RawInformationDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
@@ -759,6 +760,16 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     }
   }
 
+  if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
+  {
+    auto problemList = checkAnalysisConsistency();
+    if(!problemList.empty())
+    {
+      auto problemDialog = new ProblemListDialog(problemList);
+      problemDialog->exec();
+    }
+  }
+
   emit analysisChanged();
 }
 
@@ -1116,4 +1127,16 @@ void EspinaMainWindow::redoAction(bool unused)
   emit abortOperation();
   m_undoStack->redo();
   m_viewManager->updateSegmentationRepresentations();
+}
+
+//------------------------------------------------------------------------
+ProblemList EspinaMainWindow::checkAnalysisConsistency()
+{
+  auto check = new CheckAnalysis(m_scheduler, m_model);
+  check->exec();
+
+  ProblemList problems = check->getProblems();
+  delete check;
+
+  return problems;
 }

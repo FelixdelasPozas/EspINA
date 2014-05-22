@@ -91,6 +91,8 @@ namespace EspINA
 
     virtual bool isValid() const = 0;
 
+    virtual bool isEmpty() const = 0;
+
     virtual Bounds bounds() const = 0;
 
     virtual void setSpacing(const NmVector3& spacing) = 0;

@@ -28,6 +28,7 @@
 #include <itkMetaImageIO.h>
 #include <itkImageFileWriter.h>
 #include <itkImageFileReader.h>
+#include <itkImageRegionConstIterator.h>
 
 // VTK
 #include <vtkAlgorithmOutput.h>
@@ -276,6 +277,25 @@ template<typename T>
 Bounds ItkVolume<T>::bounds() const
 {
   return equivalentBounds(m_volume, m_volume->GetLargestPossibleRegion());
+}
+
+//----------------------------------------------------------------------------
+template<class T>
+bool ItkVolume<T>::isEmpty() const
+{
+    if(!isValid)
+      return true;
+
+    itk::ImageRegionConstIterator<T> it(m_volume, m_volume->GetLargestPossibleRegion());
+    it.GoToBegin();
+    while(!it.IsAtEnd())
+    {
+      if(it.Value() == SEG_VOXEL_VALUE)
+        return false;
+      ++it;
+    }
+
+    return true;
 }
 
 ////----------------------------------------------------------------------------

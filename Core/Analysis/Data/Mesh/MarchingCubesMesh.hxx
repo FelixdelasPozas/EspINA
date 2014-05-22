@@ -59,6 +59,9 @@ namespace EspINA
     virtual bool isValid() const
     { return m_volume->isValid(); }
 
+    virtual bool isEmpty() const
+    { return m_volume->isEmpty(); }
+
     virtual Bounds bounds() const
     { return m_volume->bounds(); }
 

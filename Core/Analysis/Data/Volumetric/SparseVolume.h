@@ -168,6 +168,11 @@ namespace EspINA
      */
     virtual bool isValid() const;
 
+    /* \brief Returns true if the image is empty (has no voxels == SEG_VOXEL_VALUE).
+     *
+     */
+    virtual bool isEmpty() const;
+
     /** \brief Try to load data from storage
      *
      *  Return if any data was fetched
@@ -337,6 +342,7 @@ namespace EspINA
     };
 
   private:
+    VolumeBoundsList boundsPartition() const;
     BlockMaskSPtr createMask(const Bounds& bounds) const;
     void updateBlocksBoundingBox(const VolumeBounds& bounds);
     QString singleBlockPath() const
@@ -771,26 +777,8 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  VolumeBoundsList SparseVolume<T>::compactedBlocks() const
+  VolumeBoundsList SparseVolume<T>::boundsPartition() const
   {
-    if (m_blocks.empty())
-    {
-      return VolumeBoundsList();
-    }
-    // if the last block hasn't been modified then return without doing the compact
-    // procedure because we assume the blocks have been compacted before.
-    if (m_blocks[m_blocks.size()-1]->isLocked())
-    {
-      VolumeBoundsList currentBounds;
-
-      for (auto block : m_blocks)
-      {
-        currentBounds << block->bounds();
-      }
-
-      return currentBounds;
-    }
-
     using SplitBounds = QPair<VolumeBounds, int>;
 
     NmVector3 minSize{50*m_spacing[0], 50*m_spacing[1], 50*m_spacing[2]};
@@ -846,12 +834,70 @@ namespace EspINA
           splitPlane = (splitPlane + 1) % 3;
 
           remaining << SplitBounds(b1, splitPlane) << SplitBounds(b2, splitPlane);
-        } else
+        }
+        else
         {
           blockBounds << bounds;
         }
       }
     }
+
+    return blockBounds;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  bool SparseVolume<T>::isEmpty() const
+  {
+    if(!isValid())
+      return true;
+
+    auto splittedBounds = boundsPartition();
+
+    for(auto bounds : splittedBounds)
+    {
+      typename T::Pointer image = itkImage(bounds.bounds());
+      bool empty = true;
+      itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
+      it.GoToBegin();
+      while (empty && !it.IsAtEnd())
+      {
+        empty = it.Get() == this->backgroundValue();
+        ++it;
+      }
+
+      if (!empty)
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  VolumeBoundsList SparseVolume<T>::compactedBlocks() const
+  {
+    if (m_blocks.empty())
+    {
+      return VolumeBoundsList();
+    }
+    // if the last block hasn't been modified then return without doing the compact
+    // procedure because we assume the blocks have been compacted before.
+    if (m_blocks[m_blocks.size()-1]->isLocked())
+    {
+      VolumeBoundsList currentBounds;
+
+      for (auto block : m_blocks)
+      {
+        currentBounds << block->bounds();
+      }
+
+      return currentBounds;
+    }
+
+    VolumeBoundsList blockBounds = boundsPartition();
 
     VolumeBoundsList nonEmptyBounds;
 //    int i = 0;
