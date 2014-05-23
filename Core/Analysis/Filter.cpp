@@ -142,11 +142,12 @@ bool Filter::update(Output::Id id)
 
 //----------------------------------------------------------------------------
 Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
-: Task(scheduler)
-, m_type(type)
-, m_inputs(inputs)
-, m_invalidateSortoredOutputs(false)
-, m_fetchBehaviour(nullptr)
+: Task                       {scheduler}
+, m_analysis                 {nullptr}
+, m_type                     {type}
+, m_inputs                   {inputs}
+, m_invalidateSortoredOutputs{false}
+, m_fetchBehaviour           {nullptr}
 {
   setName(m_type);
 }

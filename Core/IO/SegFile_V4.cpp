@@ -406,7 +406,7 @@ void SegFile_V4::Loader::restoreRelations()
       {
         if (isSample(source_v4) && isSegmentation(target_v4) && relation == "where")
         {
-          relation = Query::CONTAINS.toStdString();
+          relation = Sample::CONTAINS.toStdString();
         }
         m_analysis->addRelation(source, target, relation.c_str());
       } catch (...)

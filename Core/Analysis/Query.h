@@ -22,12 +22,10 @@
 
 #include <Core/EspinaTypes.h>
 
-namespace EspINA {
-
-  namespace Query
+namespace EspINA
+{
+  namespace QueryContents
   {
-    const RelationName CONTAINS = "Contains";
-
     SampleSPtr sample(ChannelSPtr channel);
 
     SampleSPtr sample(ChannelPtr channel);
@@ -47,7 +45,31 @@ namespace EspINA {
     SegmentationSList segmentationsOnChannelSample(ChannelSPtr channel);
 
     SegmentationSList segmentationsOnChannelSample(ChannelPtr channel);
-  } // namespace Query
+  } // namespace QueryContents
+
+  namespace QueryRelations
+  {
+    SampleSPtr sample(ChannelSPtr channel);
+
+    SampleSPtr sample(ChannelPtr channel);
+
+    SampleSList samples(SegmentationSPtr segmentation);
+
+    SampleSList samples(SegmentationPtr segmentation);
+
+    ChannelSList channels(SampleSPtr sample);
+
+    ChannelSList channels(SegmentationSPtr segmentation);
+
+    ChannelSList channels(SegmentationPtr segmentation);
+
+    SegmentationSList segmentations(SampleSPtr sample);
+
+    SegmentationSList segmentationsOnChannelSample(ChannelSPtr channel);
+
+    SegmentationSList segmentationsOnChannelSample(ChannelPtr channel);
+  }
+
 } // namespace EspINA
 
 #endif // ESPINA_CORE_QUERY_H

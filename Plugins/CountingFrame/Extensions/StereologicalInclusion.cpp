@@ -375,7 +375,7 @@ bool StereologicalInclusion::isOnEdge() const
   {
     Nm   threshold = 1.0;
 
-    auto channels = Query::channels(m_extendedItem);
+    auto channels = QueryContents::channels(m_extendedItem);
     if (channels.size() > 1)
     {
       qWarning() << "Tailing not supported by Stereological Inclusion Extension";
@@ -431,7 +431,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 //------------------------------------------------------------------------
 void StereologicalInclusion::checkSampleCountingFrames()
 {
-  auto samples = Query::samples(m_extendedItem);
+  auto samples = QueryContents::samples(m_extendedItem);
 
   if (samples.size() > 1)
   {
@@ -440,7 +440,7 @@ void StereologicalInclusion::checkSampleCountingFrames()
   {
     auto sample = samples.first();
 
-    for(auto channel : Query::channels(sample))
+    for(auto channel : QueryContents::channels(sample))
     {
       if (channel->hasExtension(CountingFrameExtension::TYPE))
       {

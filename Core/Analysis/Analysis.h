@@ -128,6 +128,7 @@ namespace EspINA
 
   using AnalysisPtr  = Analysis *;
   using AnalysisSPtr = std::shared_ptr<Analysis>;
+
 } // namespace EspINA
 
 #endif // ESPINA_ANALYSIS_H

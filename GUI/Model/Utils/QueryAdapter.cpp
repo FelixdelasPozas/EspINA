@@ -38,7 +38,7 @@ ChannelAdapterSList QueryAdapter::channels(SampleAdapterPtr sample)
 
   ChannelAdapterSList adaptedChannels;
 
-  return smartPointer(model, Query::channels(adaptedSample));
+  return smartPointer(model, QueryRelations::channels(adaptedSample));
 }
 
 //------------------------------------------------------------------------
@@ -55,7 +55,7 @@ ChannelAdapterSList QueryAdapter::channels(SegmentationAdapterPtr segmentation)
 
   ChannelAdapterSList adaptedChannels;
 
-  return smartPointer(model, Query::channels(adaptedSegmentation));
+  return smartPointer(model, QueryRelations::channels(adaptedSegmentation));
 }
 
 //------------------------------------------------------------------------
@@ -70,7 +70,7 @@ SampleAdapterSPtr QueryAdapter::sample(ChannelAdapterPtr channel)
   auto adaptedChannel = channel->m_channel;
   auto model = channel->model();
 
-  auto adaptedSample = Query::sample(adaptedChannel);
+  auto adaptedSample = QueryRelations::sample(adaptedChannel);
 
   return smartPointer(model, adaptedSample);
 }
@@ -87,7 +87,7 @@ SampleAdapterSList QueryAdapter::samples(SegmentationAdapterPtr segmentation)
   auto adaptedSegmentation = segmentation->m_segmentation;
   auto model = segmentation->model();
 
-  return smartPointer(model, Query::samples(adaptedSegmentation));
+  return smartPointer(model, QueryRelations::samples(adaptedSegmentation));
 }
 
 //------------------------------------------------------------------------
@@ -103,7 +103,7 @@ SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapt
   auto adaptedChannel = channel->m_channel;
   auto model = channel->model();
 
-  return smartPointer(model, Query::segmentationsOnChannelSample(adaptedChannel));
+  return smartPointer(model, QueryRelations::segmentationsOnChannelSample(adaptedChannel));
 }
 
 

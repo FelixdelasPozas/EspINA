@@ -16,20 +16,26 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// EspINA
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Channel.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 #include "CheckAnalysis.h"
+
 
 namespace EspINA
 {
   //------------------------------------------------------------------------
   CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
+  : m_problemsNum{0}
   {
     setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     qRegisterMetaType<struct Problem>("struct Problem");
 
     m_progress->setMinimum(0);
-    m_progress->setMaximum(model->segmentations().size() + model->channels().size());
+    m_progress->setMaximum(model->segmentations().size() + model->channels().size() + model->samples().size());
     m_progress->setValue(0);
 
     for(auto seg: model->segmentations())
@@ -80,14 +86,24 @@ namespace EspINA
   }
 
   //------------------------------------------------------------------------
+  void CheckAnalysis::addProblem(struct Problem problem)
+  {
+    m_problems << problem;
+    m_numProblems->setText(QString().number(++m_problemsNum));
+  }
+
+  //------------------------------------------------------------------------
   void CheckTask::run()
   {
     switch(m_item->type())
     {
       case ItemAdapter::Type::SEGMENTATION:
         checkIsEmpty();
+        checkHasChannel();
+        checkSegmentationRelations();
         break;
       case ItemAdapter::Type::CHANNEL:
+        checkChannelRelations();
         break;
       case ItemAdapter::Type::SAMPLE:
         break;
@@ -104,6 +120,46 @@ namespace EspINA
     if(volume->isEmpty())
     {
       struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation data is empty.", "Delete segmentation"};
+      emit problem(segProblem);
+    }
+  }
+
+  //------------------------------------------------------------------------
+  void CheckTask::checkHasChannel()
+  {
+    auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
+    auto channels = QueryAdapter::channels(seg);
+
+    if(channels.empty())
+    {
+      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any channel.", "Delete segmentation"};
+      emit problem(segProblem);
+    }
+  }
+
+  //------------------------------------------------------------------------
+  void CheckTask::checkSegmentationRelations()
+  {
+    auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
+
+    auto relations = m_model->relations(seg.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
+    if(relations.empty())
+    {
+      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any sample.", "Delete segmentation."};
+      emit problem(segProblem);
+    }
+  }
+
+  //------------------------------------------------------------------------
+  void CheckTask::checkChannelRelations()
+  {
+    auto channel = std::dynamic_pointer_cast<ChannelAdapter>(m_item);
+
+    auto relations = m_model->relations(channel.get(), RelationType::RELATION_INOUT, Channel::STAIN_LINK);
+
+    if(relations.empty())
+    {
+      struct Problem segProblem{channel->data().toString(), Severity::CRITICAL, "Channel is not related to any sample.", "Change relations in the \"Channel Explorer\" dialog."};
       emit problem(segProblem);
     }
   }

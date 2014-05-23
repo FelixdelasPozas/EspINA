@@ -169,7 +169,9 @@ namespace EspINA
     else
       if(!selection->channels().empty())
       {
-        auto adapter = m_factory->createFilter<FreeFormSource>(InputSList(), FREEFORM_FILTER);
+        InputSList inputs;
+        inputs << m_viewManager->activeChannel()->asInput();
+        auto adapter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
         auto filter = adapter->get();
         filter->setMask(mask);
 

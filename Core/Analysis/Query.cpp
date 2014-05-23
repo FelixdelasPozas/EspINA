@@ -23,156 +23,298 @@
 #include "Channel.h"
 #include "Segmentation.h"
 
-using namespace EspINA;
-using namespace EspINA::Query;
-
-//------------------------------------------------------------------------
-SampleSPtr EspINA::Query::sample(ChannelSPtr channel)
+namespace EspINA
 {
-  return sample(channel.get());
-}
-
-//------------------------------------------------------------------------
-SampleSPtr EspINA::Query::sample(ChannelPtr channel)
-{
-  SampleSPtr sample;
-
-  if (channel && channel->analysis())
+  namespace QueryContents
   {
-    auto analysis      = channel->analysis();
-    auto relationships = analysis->relationships();
-    auto samples       = relationships->ancestors(channel, Channel::STAIN_LINK);
-
-    if (!samples.isEmpty())
+    //------------------------------------------------------------------------
+    SampleSPtr sample(ChannelSPtr channel)
     {
-      Q_ASSERT(samples.size() == 1); // Even with tiling, channels can only have 1 sample
-      sample = std::dynamic_pointer_cast<Sample>(samples[0]);
+      return sample(channel.get());
     }
-  }
 
-  return sample;
-}
-
-//------------------------------------------------------------------------
-SampleSList EspINA::Query::samples(SegmentationSPtr segmentation)
-{
-  return samples(segmentation.get());
-}
-
-//------------------------------------------------------------------------
-SampleSList EspINA::Query::samples(SegmentationPtr segmentation)
-{
-  SampleSList samples;
-
-  if (segmentation && segmentation->analysis())
-  {
-    auto analysis      = segmentation->analysis();
-    auto relationships = analysis->relationships();
-    auto relatedItems  = relationships->ancestors(segmentation, Query::CONTAINS);
-
-    for(auto item : relatedItems)
+    //------------------------------------------------------------------------
+    SampleSPtr sample(ChannelPtr channel)
     {
-      samples << std::dynamic_pointer_cast<Sample>(item);
-    }
-  }
+      SampleSPtr sample;
 
-  return samples;
-}
-
-//------------------------------------------------------------------------
-ChannelSList EspINA::Query::channels(SampleSPtr sample)
-{
-  ChannelSList channels;
-
-  if (sample && sample->analysis())
-  {
-    auto analysis      = sample->analysis();
-    auto relationships = analysis->relationships();
-
-    for(auto item : relationships->successors(sample, Channel::STAIN_LINK))
-    {
-      channels << std::dynamic_pointer_cast<Channel>(item);
-    }
-  }
-
-  return channels;
-}
-
-//------------------------------------------------------------------------
-ChannelSList EspINA::Query::channels(SegmentationSPtr segmentation)
-{
-  return channels(segmentation.get());
-}
-
-//------------------------------------------------------------------------
-ChannelSList EspINA::Query::channels(SegmentationPtr segmentation)
-{
-  ChannelSList channels;
-
-  if (segmentation && segmentation->analysis())
-  {
-    auto analysis = segmentation->analysis();
-    auto content  = analysis->content();
-
-    // Find first channel ancestors
-    auto ancestors = content->ancestors(segmentation);
-
-    while (!ancestors.isEmpty())
-    {
-      auto ancestor = ancestors.takeFirst();
-
-      auto successors = content->successors(ancestor);
-
-      ChannelSPtr channel;
-      int i = 0;
-      while (!channel && i < successors.size())
+      if (channel && channel->analysis())
       {
-        channel = std::dynamic_pointer_cast<Channel>(successors[i]);
-        ++i;
+        auto analysis      = channel->analysis();
+        auto relationships = analysis->relationships();
+        auto samples       = relationships->ancestors(channel, Channel::STAIN_LINK);
+
+        if (!samples.isEmpty())
+        {
+          Q_ASSERT(samples.size() == 1); // Even with tiling, channels can only have 1 sample
+          sample = std::dynamic_pointer_cast<Sample>(samples[0]);
+        }
       }
 
-      if (channel && !channels.contains(channel))
-      {
-        channels << channel;
-      } else
-      {
-        ancestors << content->ancestors(ancestor);
-      }
+      return sample;
     }
-  }
 
-  return channels;
-}
-
-
-//------------------------------------------------------------------------
-SegmentationSList EspINA::Query::segmentations(SampleSPtr sample)
-{
-  SegmentationSList segmentations;
-
-  if (sample && sample->analysis())
-  {
-    auto analysis      = sample->analysis();
-    auto relationships = analysis->relationships();
-    auto relatedItems  = relationships->successors(sample, Query::CONTAINS);
-
-    for(auto item : relatedItems)
+    //------------------------------------------------------------------------
+    SampleSList samples(SegmentationSPtr segmentation)
     {
-      segmentations << std::dynamic_pointer_cast<Segmentation>(item);
+      return samples(segmentation.get());
     }
+
+    //------------------------------------------------------------------------
+    SampleSList samples(SegmentationPtr segmentation)
+    {
+      SampleSList samples;
+
+      if (segmentation && segmentation->analysis())
+      {
+        auto analysis      = segmentation->analysis();
+        auto relationships = analysis->relationships();
+        auto relatedItems  = relationships->ancestors(segmentation, Sample::CONTAINS);
+
+        for(auto item : relatedItems)
+        {
+          samples << std::dynamic_pointer_cast<Sample>(item);
+        }
+      }
+
+      return samples;
+    }
+
+    //------------------------------------------------------------------------
+    ChannelSList channels(SampleSPtr sample)
+    {
+      ChannelSList channels;
+
+      if (sample && sample->analysis())
+      {
+        auto analysis      = sample->analysis();
+        auto relationships = analysis->relationships();
+
+        for(auto item : relationships->successors(sample, Channel::STAIN_LINK))
+        {
+          channels << std::dynamic_pointer_cast<Channel>(item);
+        }
+      }
+
+      return channels;
+    }
+
+    //------------------------------------------------------------------------
+    ChannelSList channels(SegmentationSPtr segmentation)
+    {
+      return channels(segmentation.get());
+    }
+
+    //------------------------------------------------------------------------
+    ChannelSList channels(SegmentationPtr segmentation)
+    {
+      ChannelSList channels;
+
+      if (segmentation && segmentation->analysis())
+      {
+        auto analysis = segmentation->analysis();
+        auto content  = analysis->content();
+
+        // Find first channel ancestors
+        auto ancestors = content->ancestors(segmentation);
+
+        while (!ancestors.isEmpty())
+        {
+          auto ancestor = ancestors.takeFirst();
+
+          auto successors = content->successors(ancestor);
+
+          ChannelSPtr channel;
+          int i = 0;
+          while (!channel && i < successors.size())
+          {
+            channel = std::dynamic_pointer_cast<Channel>(successors[i]);
+            ++i;
+          }
+
+          if (channel && !channels.contains(channel))
+          {
+            channels << channel;
+          } else
+          {
+            ancestors << content->ancestors(ancestor);
+          }
+        }
+      }
+
+      return channels;
+    }
+
+
+    //------------------------------------------------------------------------
+    SegmentationSList segmentations(SampleSPtr sample)
+    {
+      SegmentationSList segmentations;
+
+      if (sample && sample->analysis())
+      {
+        auto analysis      = sample->analysis();
+        auto relationships = analysis->relationships();
+        auto relatedItems  = relationships->successors(sample, Sample::CONTAINS);
+
+        for(auto item : relatedItems)
+        {
+          segmentations << std::dynamic_pointer_cast<Segmentation>(item);
+        }
+      }
+
+      return segmentations;
+    }
+
+    //------------------------------------------------------------------------
+    SegmentationSList segmentationsOnChannelSample(ChannelSPtr channel)
+    {
+      return segmentationsOnChannelSample(channel.get());
+    }
+
+    //------------------------------------------------------------------------
+    SegmentationSList segmentationsOnChannelSample(ChannelPtr channel)
+    {
+      return segmentations(sample(channel));
+    }
+
   }
 
-  return segmentations;
-}
+  namespace QueryRelations
+  {
+    //------------------------------------------------------------------------
+    SampleSPtr sample(ChannelSPtr channel)
+    {
+      auto analysis = channel->analysis();
+      auto samples = analysis->samples();
 
-//------------------------------------------------------------------------
-SegmentationSList EspINA::Query::segmentationsOnChannelSample(ChannelSPtr channel)
-{
-  return segmentationsOnChannelSample(channel.get());
-}
+      for (auto sample : samples)
+      {
+        auto channels = analysis->relationships()->successors(sample, Channel::STAIN_LINK);
 
-//------------------------------------------------------------------------
-SegmentationSList EspINA::Query::segmentationsOnChannelSample(ChannelPtr channel)
-{
-  return segmentations(sample(channel));
+        if (channels.contains(channel))
+          return sample;
+      }
+
+      return SampleSPtr();
+    }
+
+    //------------------------------------------------------------------------
+    SampleSPtr sample(ChannelPtr channel)
+    {
+      auto channels = channel->analysis()->channels();
+
+      for(auto analysisChannel: channels)
+      {
+        if(analysisChannel.get() == channel)
+          return sample(analysisChannel);
+      }
+
+      return SampleSPtr();
+    }
+
+    //------------------------------------------------------------------------
+    SampleSList samples(SegmentationSPtr segmentation)
+    {
+      SampleSList samplesList;
+
+      auto analysis = segmentation->analysis();
+      auto samples = analysis->samples();
+
+      // no other way to know but querying contents.
+      auto channels = QueryContents::channels(segmentation);
+
+      for (auto sample : samples)
+      {
+        auto channelsInSample = analysis->relationships()->successors(sample, Channel::STAIN_LINK);
+
+        for (auto channel : channels)
+          if (channelsInSample.contains(channel) && !samplesList.contains(sample))
+            samplesList << sample;
+      }
+
+      return samplesList;
+    }
+
+    //------------------------------------------------------------------------
+    SampleSList samples(SegmentationPtr segmentation)
+    {
+      auto segmentations = segmentation->analysis()->segmentations();
+
+      for(auto analysisSegmentation: segmentations)
+      {
+        if(analysisSegmentation.get() == segmentation)
+          return samples(analysisSegmentation);
+      }
+
+      SampleSList emptyList;
+      return emptyList;
+    }
+
+    //------------------------------------------------------------------------
+    ChannelSList channels(SampleSPtr sample)
+    {
+      auto channels = sample->analysis()->relationships()->successors(sample, Channel::STAIN_LINK);
+
+      ChannelSList channelsList;
+      for (auto channel : channels)
+      {
+        auto channelPointer = std::dynamic_pointer_cast<Channel>(channel);
+        Q_ASSERT(channelPointer != nullptr);
+        channelsList << channelPointer;
+      }
+
+      return channelsList;
+    }
+
+    //------------------------------------------------------------------------
+    ChannelSList channels(SegmentationSPtr segmentation)
+    {
+      auto samplesSList = samples(segmentation);
+
+      ChannelSList channelSList;
+
+      for (auto sample : samplesSList)
+        channelSList << channels(sample);
+
+      return channelSList;
+    }
+
+    //------------------------------------------------------------------------
+    ChannelSList channels(SegmentationPtr segmentation)
+    {
+      // no other way to know but querying the contents
+      return QueryContents::channels(segmentation);
+    }
+
+    //------------------------------------------------------------------------
+    SegmentationSList segmentations(SampleSPtr sample)
+    {
+      auto segmentations = sample->analysis()->relationships()->successors(sample, Sample::CONTAINS);
+
+      SegmentationSList segmentationList;
+      for(auto segmentation: segmentations)
+      {
+        auto segmentationSPointer = std::dynamic_pointer_cast<Segmentation>(segmentation);
+        Q_ASSERT(segmentationSPointer != nullptr);
+        segmentationList << segmentationSPointer;
+      }
+
+      return segmentationList;
+    }
+
+    //------------------------------------------------------------------------
+    SegmentationSList segmentationsOnChannelSample(ChannelSPtr channel)
+    {
+      return segmentationsOnChannelSample(channel.get());
+    }
+
+    //------------------------------------------------------------------------
+    SegmentationSList segmentationsOnChannelSample(ChannelPtr channel)
+    {
+      // no way to know using only relations.
+      return QueryContents::segmentationsOnChannelSample(channel);
+    }
+  } // namespace QueryRelations
+
 }

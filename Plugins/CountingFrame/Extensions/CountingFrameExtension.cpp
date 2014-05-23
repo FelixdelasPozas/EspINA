@@ -113,7 +113,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
 {
   Q_ASSERT(m_countingFrames.contains(countingFrame));
-  for (auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
+  for (auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
   {
     auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
     extension->removeCountingFrame(countingFrame);
@@ -173,7 +173,7 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
 //-----------------------------------------------------------------------------
 void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame)
 {
-  for(auto segmentation : Query::segmentationsOnChannelSample(m_extendedItem))
+  for(auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
   {
     auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
     extension->evaluateCountingFrame(countingFrame);

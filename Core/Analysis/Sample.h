@@ -38,6 +38,8 @@ namespace EspINA
   : public NeuroItem
   {
   public:
+    const static RelationName CONTAINS;
+
     explicit Sample(const QString& name=QString());
     virtual ~Sample();
 

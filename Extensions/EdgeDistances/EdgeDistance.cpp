@@ -114,7 +114,7 @@ void EdgeDistance::updateDistances() const
   {
     QMutexLocker lock(&m_mutex);
 
-    auto channels = Query::channels(m_extendedItem);
+    auto channels = QueryContents::channels(m_extendedItem);
 
     if (channels.size() == 1)
     {

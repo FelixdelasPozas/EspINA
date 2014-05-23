@@ -20,6 +20,8 @@
 
 using namespace EspINA;
 
+const RelationName Sample::CONTAINS = "Contains";
+
 //------------------------------------------------------------------------
 Sample::Sample(const QString& name)
 {

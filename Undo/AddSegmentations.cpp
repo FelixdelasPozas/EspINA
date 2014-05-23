@@ -20,6 +20,7 @@
 #include "AddSegmentations.h"
 
 #include <Core/Analysis/Query.h>
+#include <Core/Analysis/Sample.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 
@@ -61,7 +62,7 @@ void AddSegmentations::redo()
     segmentation->setNumber(number++);
 
     for(auto sample : m_samples)
-      m_model->addRelation(sample, segmentation, Query::CONTAINS);
+      m_model->addRelation(sample, segmentation, Sample::CONTAINS);
   }
 
   m_model->emitSegmentationsAdded(m_segmentations);

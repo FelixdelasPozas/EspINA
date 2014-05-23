@@ -65,12 +65,12 @@ namespace EspINA
       /* \brief Adds a problem to the problem list.
        *
        */
-      void addProblem(struct Problem problem)
-      { m_problems << problem; }
+      void addProblem(struct Problem problem);
 
     private:
       ProblemList     m_problems;
       QList<TaskSPtr> m_taskList;
+      int             m_problemsNum;
   };
 
   //------------------------------------------------------------------------
@@ -114,6 +114,21 @@ namespace EspINA
        *
        */
       void checkIsEmpty();
+
+      /* \brief Checks if the segmentation has a channel assigned as a location, emits problem(struct Problem) if not.
+       *
+       */
+      void checkHasChannel();
+
+      /* \brief Checks segmentation relations and emits problem(struct Problem) for each problem found.
+       *
+       */
+      void checkSegmentationRelations();
+
+      /* \brief Checks channel relations and emits problem(struct Problem) for each problem found.
+       *
+       */
+      void checkChannelRelations();
 
       NeuroItemAdapterSPtr m_item;
       ModelAdapterSPtr     m_model;

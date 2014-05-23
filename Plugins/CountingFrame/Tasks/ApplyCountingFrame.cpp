@@ -61,7 +61,7 @@ void ApplyCountingFrame::run()
     }
 
     auto channel       = m_countingFrame->channel();
-    auto segmentations = Query::segmentationsOnChannelSample(channel);
+    auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
     if (segmentations.isEmpty())
     {

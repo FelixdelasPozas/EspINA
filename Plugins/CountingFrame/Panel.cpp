@@ -515,7 +515,7 @@ void Panel::resetActiveCountingFrame()
   if (m_activeCF)
   {
     auto channel       = m_activeCF->channel();
-    auto segmentations = Query::segmentationsOnChannelSample(channel);
+    auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
     ComputeOptimalMarginsSPtr task(new ComputeOptimalMarginsTask(channel, segmentations, m_scheduler));
 
