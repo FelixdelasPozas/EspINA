@@ -27,7 +27,7 @@
 #include <QPainter>
 #include <QTextStream>
 #include <QUuid>
-#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 #include <string>
 
 using namespace std;

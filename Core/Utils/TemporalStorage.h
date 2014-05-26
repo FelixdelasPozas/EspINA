@@ -67,6 +67,11 @@ namespace EspINA
     QString absoluteFilePath(const QString &path) const
     { return m_storageDir.absoluteFilePath(path); }
 
+    /* \brief Returns true if final given as argument exists in this storage.
+     *
+     */
+    bool exists(const QString &name);
+
   private:
     QUuid m_uuid;
     QDir  m_storageDir;

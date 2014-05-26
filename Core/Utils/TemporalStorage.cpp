@@ -170,6 +170,13 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
+  bool TemporalStorage::exists(const QString &name)
+  {
+    QFile file(m_storageDir.absolutePath() + QString("/") + name);
+    return file.exists();
+  }
+
+  //----------------------------------------------------------------------------
   bool removeTemporalDirectory()
   {
     QDir temporalPath = QDir::tempPath();

@@ -397,6 +397,9 @@ private:
   {
     QString xmlFile = ChannelExtension::ExtensionFilePath(channel.get());
 
+    if(!channel->storage()->exists(xmlFile))
+      return;
+
     QByteArray extensions = channel->storage()->snapshot(xmlFile);
 
     QXmlStreamReader xml(extensions);
@@ -407,7 +410,6 @@ private:
 
     while (!xml.atEnd())
     {
-      xml.readNext();
       if (xml.isStartElement())
       {
         if (xml.name() == "Extension")
@@ -430,9 +432,11 @@ private:
       {
         createChannelExtension(channel, type, cache, state);
       }
+
+      xml.readNext();
     }
 
-    if (xml.hasError()) qDebug() << xml.errorString();
+    if (xml.hasError()) qDebug() << "channel loadExtensions error:" << xml.errorString();
   }
 
   //-----------------------------------------------------------------------------
@@ -459,6 +463,10 @@ private:
   void loadExtensions(SegmentationSPtr segmentation)
   {
     QString xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
+
+    if(!segmentation->storage()->exists(xmlFile))
+      return;
+
     QByteArray extensions = segmentation->storage()->snapshot(xmlFile);
 
     QXmlStreamReader xml(extensions);
@@ -470,7 +478,6 @@ private:
 
     while (!xml.atEnd())
     {
-      xml.readNext();
       if (xml.isStartElement())
       {
         if (xml.name() == "Extension")
@@ -499,9 +506,11 @@ private:
       {
         createSegmentationExtension(segmentation, type, cache, state);
       }
+
+      xml.readNext();
     }
 
-    if (xml.hasError()) qDebug() << xml.errorString();
+    if (xml.hasError()) qDebug() << "segmentation loadExtensions error:" << xml.errorString();
   }
 
 

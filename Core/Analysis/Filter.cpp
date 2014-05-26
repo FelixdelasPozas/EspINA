@@ -66,6 +66,7 @@ Snapshot Filter::snapshot() const
       xml.writeEndElement();
     }
 
+    xml.writeEndElement();
     xml.writeEndDocument();
 
     snapshot << SnapshotData(outputFile(), buffer);

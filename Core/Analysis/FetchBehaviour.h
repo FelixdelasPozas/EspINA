@@ -38,6 +38,8 @@ namespace EspINA {
   class FetchBehaviour
   {
   public:
+    virtual ~FetchBehaviour() {};
+
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info) = 0;
   };
 
