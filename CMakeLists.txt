@@ -87,6 +87,13 @@ include (${ITK_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  graph regex)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
+find_package (Metadona)
+if (METADONA_FOUND)
+  message (STATUS "Use Metadona")
+  include (${METADONA_USE_FILE})
+endif (METADONA_FOUND)
+
+
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"

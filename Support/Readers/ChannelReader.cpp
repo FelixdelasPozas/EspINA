@@ -18,11 +18,16 @@
  */
 
 #include "ChannelReader.h"
+#include <Support/Metadona/Coordinator.h>
+
+#include <EspinaConfig.h>
 #include <Filters/VolumetricStreamReader.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Utils/TemporalStorage.h>
+#include <Producer.h>
+#include <IRODS_Storage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
@@ -74,7 +79,21 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 
   analysis->setStorage(TemporalStorageSPtr{new TemporalStorage()});
 
-  auto sample = factory->createSample("Fake Sample");
+  QString sampleName = "Unknown Sample";
+
+  if (USE_METADONA)
+  {
+    Coordinator coordinator;
+
+    Metadona::IRODS::Storage storage("metadona");
+    Metadona::Producer producer(storage);
+
+    auto metadata = producer.generateFrom("specimen", coordinator);
+
+    sampleName = metadata.at(0).id().c_str();
+  }
+
+  auto sample = factory->createSample(sampleName);
 
   analysis->add(sample);
 

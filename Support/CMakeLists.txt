@@ -17,12 +17,32 @@ qt4_wrap_cpp(Support_MOC
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-# qt4_wrap_ui (Support_UI
-#   )
+if (METADONA_FOUND)
+  qt4_wrap_cpp(METADONA_MOC
+    Metadona/EntrySelectorDialog.h
+    Metadona/EntryEditorDialog.h
+    Metadona/LevelSelectorDialog.h
+    )
+  qt4_wrap_ui (METADONA_UI
+    Metadona/EntrySelectorDialog.ui
+    Metadona/EntryEditorDialog.ui
+    Metadona/LevelSelectorDialog.ui
+    )
+  set (METADONA_SOURCES
+    Metadona/Coordinator.cpp
+    Metadona/EntrySelectorDialog.cpp
+    Metadona/EntryEditorDialog.cpp
+    Metadona/LevelSelectorDialog.cpp
+    )
+endif (METADONA_FOUND)
+
 
 set (Support_SOURCES
   ${Support_MOC}
   ${Support_UI}
+  ${METADONA_MOC}
+  ${METADONA_UI}
+  ${METADONA_SOURCES}
   ActionGroupWidget.cpp
   EventHandler.cpp
   Factory/DefaultChannelExtensionFactory.cpp
@@ -37,6 +57,7 @@ set (Support_SOURCES
 set(Support_EXTERNAL_LIBS
   EspinaCore
   EspinaGUI
+  ${METADONA_LIBRARIES}
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
