@@ -52,9 +52,9 @@
 
 using namespace EspINA;
 
-typedef itk::StatisticsLabelObject<unsigned int, 3>                       LabelObjectType;
-typedef itk::LabelMap<LabelObjectType>                                    LabelMapType;
-typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
+typedef itk::StatisticsLabelObject<unsigned int, 3>                       LabelMapObject;
+typedef itk::LabelMap<LabelMapObject>                                    LabelMap;
+typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMap> Image2LabelFilter;
 typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType>             ExtractType;
 typedef itk::ImageFileReader<itkVolumeType>                               RawSegmentationVolumeReader;
 typedef itk::ImageFileWriter<itkVolumeType>                               RawSegmentationVolumeWriter;

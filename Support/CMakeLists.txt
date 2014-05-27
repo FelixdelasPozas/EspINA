@@ -28,6 +28,7 @@ set (Support_SOURCES
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp
   ToolGroup.cpp
+  Readers/ChannelReader.cpp
   Utils/FactoryUtils.cpp
   Utils/xlsUtils.cpp
   ViewManager.cpp

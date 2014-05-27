@@ -166,7 +166,7 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
 
   m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), nullptr);
   connect(m_fill, SIGNAL(triggered(bool)),
-          this, SLOT(fillHoles()));
+          this,   SLOT(fillHoles()));
 
 
   QSettings settings(CESVIMA, ESPINA);

@@ -27,6 +27,7 @@
 
 using namespace EspINA;
 
+//------------------------------------------------------------------------
 QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, const QString& nameFilters, const QString& hint)
 {
   QString key = file.absoluteFilePath();
@@ -63,11 +64,13 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, cons
   return m_files[key];
 }
 
+//------------------------------------------------------------------------
 void EspinaErrorHandler::error(const QString& msg)
 {
   QMessageBox::warning(m_parent, "EspINA", msg);
 }
 
+//------------------------------------------------------------------------
 void EspinaErrorHandler::warning(const QString& msg)
 {
   QMessageBox::warning(m_parent, "EspINA", msg);

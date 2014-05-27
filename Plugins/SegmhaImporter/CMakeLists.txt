@@ -3,8 +3,8 @@ project(SEGMHA_IMPORTER_PLUGIN)
 include (GenerateExportHeader)
 
 # Version Number
-set (PLUGIN_VERSION_MAJOR 0)
-set (PLUGIN_VERSION_MINOR 2)
+set (PLUGIN_VERSION_MAJOR 1)
+set (PLUGIN_VERSION_MINOR 0)
 set (PLUGIN_VERSION_PATCH 0)
 
 cmake_minimum_required(VERSION 2.6)
@@ -31,15 +31,15 @@ include_directories (
   )
 
 qt4_wrap_cpp(MOC_SOURCES
-  SegmhaImporter.h
+  SegmhaImporterPlugin.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
 
 set (PLUGIN_SOURCES
-  SegmhaImporter.cpp
-  SegmhaImporterFilter.cpp
   ${MOC_SOURCES}
+  SegmhaImporterPlugin.cpp
+  SegmhaReader.cpp
   )
 
 set (PLUGIN_LIBRARIES
@@ -62,7 +62,7 @@ GENERATE_EXPORT_HEADER(
              BASE_NAME SegmhaImporterPlugin
              EXPORT_MACRO_NAME SegmhaImporterPlugin_EXPORT
              EXPORT_FILE_NAME SegmhaImporterPlugin_Export.h
-			 )
+  )
 target_link_libraries(SegmhaImporterPlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

@@ -25,20 +25,20 @@
 #include "EspinaConfig.h"
 #include "EspinaErrorHandler.h"
 #include "RecentDocuments.h"
-#include "Views/DefaultView.h"
-#include "IO/ChannelReader.h"
 #include "Settings/GeneralSettings/GeneralSettings.h"
-#include <Support/ViewManager.h>
-#include <Support/DynamicMenu.h>
-#include <Support/DockWidget.h>
-#include <Support/Settings/SettingsPanel.h>
+#include "Views/DefaultView.h"
+#include <Core/Factory/FilterFactory.h>
+#include <Core/IO/ErrorHandler.h>
+#include <Dialogs/ProblemList/ProblemListDialog.h>
+#include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
-#include <Core/IO/ErrorHandler.h>
-#include <Core/Factory/FilterFactory.h>
-#include <Dialogs/ProblemList/ProblemListDialog.h>
-#include <Extensions/ExtensionFactory.h>
+#include <Support/DockWidget.h>
+#include <Support/DynamicMenu.h>
+#include <Support/Readers/ChannelReader.h>
+#include <Support/Settings/SettingsPanel.h>
+#include <Support/ViewManager.h>
 
 #include <QTimer>
 

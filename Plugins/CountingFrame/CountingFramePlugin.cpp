@@ -26,7 +26,7 @@ void CountingFramePlugin::init(ModelAdapterSPtr model,
                                ViewManagerSPtr  viewManager,
                                ModelFactorySPtr factory,
                                SchedulerSPtr    scheduler,
-                               QUndoStack      *undoStack)
+                               QUndoStack*      undoStack)
 {
   m_model       = model;
   m_viewManager = viewManager;

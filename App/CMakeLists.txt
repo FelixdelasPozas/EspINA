@@ -114,7 +114,6 @@ set (ESPINA_SOURCES
   main.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
-  IO/ChannelReader.cpp
   IO/SegFileReader.cpp
   RecentDocuments.cpp
   Dialogs/CheckAnalysis/CheckAnalysis.cpp

@@ -13,7 +13,6 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <Core/EspinaTypes.h>
-#include <App/IO/ChannelReader.h>
 #include <Core/Utils/NmVector3.h>
 #include <Core/Analysis/Query.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>

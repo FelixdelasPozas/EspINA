@@ -23,6 +23,9 @@
 #include "Channel.h"
 #include "Segmentation.h"
 
+// IMPORTANT NOTE: If current relation queries are not enough to retrieve segmentation channels
+//                 we add extra check to search by content
+
 namespace EspINA
 {
   namespace QueryContents
@@ -186,17 +189,20 @@ namespace EspINA
     SampleSPtr sample(ChannelSPtr channel)
     {
       auto analysis = channel->analysis();
-      auto samples = analysis->samples();
+      auto samples  = analysis->relationships()->ancestors(channel, Channel::STAIN_LINK);
 
-      for (auto sample : samples)
+      SampleSPtr sample;
+
+      if (samples.size() == 1)
       {
-        auto channels = analysis->relationships()->successors(sample, Channel::STAIN_LINK);
-
-        if (channels.contains(channel))
-          return sample;
+        sample = std::dynamic_pointer_cast<Sample>(samples.first());
+      }
+      else if (samples.size() > 1)
+      {
+        qWarning() << "Query Relations: Unexpected number of channel samples";
       }
 
-      return SampleSPtr();
+      return sample;
     }
 
     //------------------------------------------------------------------------
@@ -216,21 +222,13 @@ namespace EspINA
     //------------------------------------------------------------------------
     SampleSList samples(SegmentationSPtr segmentation)
     {
-      SampleSList samplesList;
-
       auto analysis = segmentation->analysis();
-      auto samples = analysis->samples();
+      auto samples = analysis->relationships()->ancestors(segmentation, Sample::CONTAINS);
 
-      // no other way to know but querying contents.
-      auto channels = QueryContents::channels(segmentation);
-
-      for (auto sample : samples)
+      SampleSList samplesList;
+      for(auto sample : samples)
       {
-        auto channelsInSample = analysis->relationships()->successors(sample, Channel::STAIN_LINK);
-
-        for (auto channel : channels)
-          if (channelsInSample.contains(channel) && !samplesList.contains(sample))
-            samplesList << sample;
+        samplesList << std::dynamic_pointer_cast<Sample>(sample);
       }
 
       return samplesList;
@@ -272,19 +270,31 @@ namespace EspINA
     {
       auto samplesSList = samples(segmentation);
 
-      ChannelSList channelSList;
-
+      ChannelSList channelList;
       for (auto sample : samplesSList)
-        channelSList << channels(sample);
+        channelList << channels(sample);
 
-      return channelSList;
+      // In case no stain relation is found we try to find using content
+      if (channelList.isEmpty())
+      {
+        channelList = QueryContents::channels(segmentation);
+      }
+
+      return channelList;
     }
 
     //------------------------------------------------------------------------
     ChannelSList channels(SegmentationPtr segmentation)
     {
-      // no other way to know but querying the contents
-      return QueryContents::channels(segmentation);
+      auto segmentations = segmentation->analysis()->segmentations();
+
+      for(auto analysisSegmentation: segmentations)
+      {
+        if(analysisSegmentation.get() == segmentation)
+          return channels(analysisSegmentation);
+      }
+
+      return ChannelSList();
     }
 
     //------------------------------------------------------------------------
@@ -312,8 +322,9 @@ namespace EspINA
     //------------------------------------------------------------------------
     SegmentationSList segmentationsOnChannelSample(ChannelPtr channel)
     {
-      // no way to know using only relations.
-      return QueryContents::segmentationsOnChannelSample(channel);
+      auto channelSample = sample(channel);
+
+      return segmentations(channelSample);
     }
   } // namespace QueryRelations
 

@@ -19,6 +19,7 @@ add_executable(SGSF_Tests
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
+  ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp

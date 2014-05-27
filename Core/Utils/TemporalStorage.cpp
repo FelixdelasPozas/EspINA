@@ -172,7 +172,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   bool TemporalStorage::exists(const QString &name)
   {
-    QFile file(m_storageDir.absolutePath() + QString("/") + name);
+    QFileInfo file(m_storageDir.absoluteFilePath(name));
     return file.exists();
   }
 
