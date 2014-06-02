@@ -40,8 +40,6 @@
 // Qt
 #include <QDir>
 
-const QString STENCIL_FILENAME = QString("stencil.vti");
-
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
@@ -196,9 +194,9 @@ bool SplitFilter::fetchCacheStencil() const
   bool returnVal = false;
 
 
-  if (storage()->exists(prefix() + STENCIL_FILENAME))
+  if (storage()->exists(stencilFile()))
   {
-    QString fileName = storage()->absoluteFilePath(prefix() + STENCIL_FILENAME);
+    QString fileName = storage()->absoluteFilePath(stencilFile());
     vtkSmartPointer<vtkGenericDataObjectReader> stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
     stencilReader->SetFileName(fileName.toStdString().c_str());
     stencilReader->ReadAllFieldsOn();
@@ -240,7 +238,7 @@ Snapshot SplitFilter::saveFilterSnapshot() const
   stencilWriter->Write();
 
   Snapshot snapshot;
-  snapshot << SnapshotData{prefix() + STENCIL_FILENAME, QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
+  snapshot << SnapshotData{stencilFile(), QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
 
   return snapshot;
 }

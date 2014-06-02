@@ -109,6 +109,9 @@ namespace EspINA
        */
       virtual bool invalidateEditedRegions();
     protected:
+      QString stencilFile() const
+      { return prefix() + "stencil.vti"; }
+
       virtual bool ignoreCurrentOutputs() const
       { return m_ignoreCurrentOutputs; }
 
