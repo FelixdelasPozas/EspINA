@@ -63,7 +63,7 @@ namespace EspINA
       virtual ToolSList tools();
 
     public slots:
-      void selectionChanged(SelectionSPtr);
+      void selectionChanged();
       void abortOperation();
       void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
 

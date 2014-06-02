@@ -19,23 +19,40 @@
 #ifndef ESPINA_SPLIT_TOOL_H_
 #define ESPINA_SPLIT_TOOL_H_
 
+// EspINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 #include <GUI/Widgets/ActionSelector.h>
-
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 
+// Qt
 #include <QUndoStack>
 
 class QAction;
 
 namespace EspINA
 {
+  class SplitToolEventHandler;
+  using SplitToolEventHandlerSPtr = std::shared_ptr<SplitToolEventHandler>;
   
   class SplitTool
   : public Tool
   {
+    Q_OBJECT
+
+    class SplitFilterFactory
+    : public FilterFactory
+    {
+        virtual FilterTypeList providedFilters() const;
+        virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      private:
+        mutable FetchBehaviourSPtr m_fetchBehaviour;
+    };
+
+
     public:
       SplitTool(ModelAdapterSPtr model,
                 ModelFactorySPtr factory,
@@ -49,10 +66,32 @@ namespace EspINA
 
       virtual QList<QAction *> actions() const;
 
-      virtual void abortOperation();
+      virtual void abortOperation()
+      { initTool(false); }
+
+    signals:
+      void splittingStopped();
+
+    public slots:
+      void initTool(bool);
+      void createSegmentations();
+
+      void stopSplitting()
+      { initTool(false); }
+
     private:
-      ActionSelector *m_splitToolSelector;
-      QMap<QAction *, ToolSPtr> m_splitTools;
+      struct Data
+      {
+        FilterAdapterSPtr adapter;
+        SegmentationAdapterSPtr segmentation;
+
+        Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
+        Data(): adapter{nullptr}, segmentation{nullptr} {};
+      };
+
+      void splitSegmentation();
+
+      QAction *m_planarSplitAction;
 
       ModelAdapterSPtr m_model;
       ModelFactorySPtr m_factory;
@@ -60,10 +99,47 @@ namespace EspINA
       QUndoStack      *m_undoStack;
 
       bool m_enabled;
+      EspinaWidgetSPtr m_widget;
+      SplitToolEventHandlerSPtr m_handler;
+      QMap<FilterAdapterPtr, struct Data> m_executingTasks;
   };
 
   using SplitToolPtr  = SplitTool *;
   using SplitToolSPtr = std::shared_ptr<SplitTool>;
+
+  class SplitToolEventHandler
+  : public EventHandler
+  {
+    public:
+      /* \brief SplitToolEventHandler class constructor.
+       *
+       */
+      SplitToolEventHandler()
+      {}
+
+      /* \brief SplitToolEventHandler class destructor.
+       *
+       */
+      ~SplitToolEventHandler()
+      {}
+
+      /* \brief Implements EventHandler::cursor().
+       *
+       */
+      QCursor cursor() const
+      { return QCursor(Qt::CrossCursor); }
+
+      /* \brief Implements EventHandler::setInUse.
+       *
+       */
+      virtual void setInUse(bool value)
+      { m_inUse = value; }
+
+      /* \brief Implements EventHandler::filterEvent.
+       *
+       */
+      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
+  };
 
 } // namespace EspINA
 

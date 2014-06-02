@@ -2,7 +2,7 @@
  * vtkPlanarSplitWidget.cpp
  *
  *  Created on: Nov 5, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 // EspINA
@@ -62,6 +62,7 @@ namespace EspINA
 //----------------------------------------------------------------------
 vtkPlanarSplitWidget::vtkPlanarSplitWidget()
 {
+  this->m_slice = 0;
   this->ManagesCursor = 0;
 
   this->WidgetState = vtkPlanarSplitWidget::Start;
@@ -145,12 +146,16 @@ void vtkPlanarSplitWidget::CreateDefaultRepresentation()
 
   reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->InstantiateHandleRepresentation();
   reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setOrientation(m_plane);
+  reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setSlice(m_slice);
 }
 
 void vtkPlanarSplitWidget::SetEnabled(int enabling)
 {
   if(m_permanentlyDisabled)
     return;
+
+  if(this->WidgetRep == nullptr)
+    CreateDefaultRepresentation();
 
   // The handle widgets are not actually enabled until they are placed.
   // The handle widgets take their representation from the
@@ -448,6 +453,17 @@ void vtkPlanarSplitWidget::SetWidgetStateToManipulate()
   this->ReleaseFocus();
   this->GetRepresentation()->BuildRepresentation();
   this->SetEnabled(this->GetEnabled()); // show/hide the handles properly
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitWidget::setSlice(double slice)
+{
+  if(!this->WidgetRep)
+    return;
+
+  m_slice = slice;
+  vtkPlanarSplitRepresentation2D *widget = reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep);
+  widget->setSlice(slice);
 }
 
 //----------------------------------------------------------------------

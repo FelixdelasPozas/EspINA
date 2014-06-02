@@ -81,7 +81,7 @@ namespace EspINA
     m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
     m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
 
-    connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectionSPtr)), this, SLOT(selectionChanged(SelectionSPtr)));
+    connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
     connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()));
     connect(parent, SIGNAL(analysisClosed()), this, SLOT(abortOperation()));
   }
@@ -108,13 +108,17 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   bool EditionTools::enabled() const
   {
-    return (m_manualEdition->enabled() || m_split->enabled() || m_morphological->enabled());
+    return m_enabled;
   }
 
   //-----------------------------------------------------------------------------
   ToolSList EditionTools::tools()
   {
-    selectionChanged(m_viewManager->selection());
+    m_manualEdition->setEnabled(true);
+    m_split->setEnabled(true);
+    m_morphological->setEnabled(true);
+
+    selectionChanged();
 
     ToolSList availableTools;
     availableTools << m_manualEdition;
@@ -125,16 +129,16 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void EditionTools::selectionChanged(SelectionSPtr selection)
+  void EditionTools::selectionChanged()
   {
-    int listSize = selection->segmentations().size();
+    int listSize = m_viewManager->selection()->segmentations().size();
 
     bool noSegmentation         = listSize == 0;
     bool onlyOneSegmentation    = listSize == 1;
-    bool atLeastOneSegmentation = listSize  > 0;
     m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
     m_split        ->setEnabled(onlyOneSegmentation);
-    //m_morphological->setEnabled(atLeastOneSegmentation);
+    // NOTE: morphological tools manage selection on their own, as it's tools
+    // haven't a unique requirement.
   }
 
   //-----------------------------------------------------------------------------
@@ -193,7 +197,7 @@ namespace EspINA
         list << segmentation.get();
         m_viewManager->selection()->clear();
         m_viewManager->selection()->set(list);
-        tool->updateReferenceItem(m_viewManager->selection());
+        tool->updateReferenceItem();
       }
       else
         Q_ASSERT(false);

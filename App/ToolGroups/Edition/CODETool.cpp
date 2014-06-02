@@ -58,9 +58,12 @@ QList<QAction *> CODETool::actions() const
 //------------------------------------------------------------------------
 void CODETool::setEnabled(bool enabled)
 {
-  //m_toggle->setEnabled(enabled);
+  m_toggle->setEnabled(enabled);
   m_radius->setEnabled(enabled);
   m_apply ->setEnabled(enabled);
+
+  if(m_toggle->isChecked() && !enabled)
+    toggleToolWidgets(false);
 
   //if (m_toggle->isChecked() && !enabled)
   //{

@@ -28,6 +28,7 @@ qt4_wrap_cpp(GUI_MOC
   View/View2D.h
   View/ViewRendererMenu.h
   View/View3D.h
+  View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/RectangularRegion/RectangularRegion.h
   View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
@@ -127,6 +128,9 @@ set (GUI_SOURCES
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp
+  View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
+  View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
+  View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
   View/Widgets/RectangularRegion/RectangularRegion.cpp
   View/Widgets/RectangularRegion/RectangularRegionSliceSelector.cpp
   View/Widgets/RectangularRegion/vtkRectangularSliceWidget.cpp

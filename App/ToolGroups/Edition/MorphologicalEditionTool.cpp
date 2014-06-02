@@ -122,11 +122,11 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
 , m_viewManager(viewManager)
 , m_undoStack(undoStack)
 , m_filterFactory{new MorphologicalFilterFactory()}
-, m_enabled(false)
 , m_close (":/espina/close.png" , tr("Close selected segmentations" ))
 , m_open  (":/espina/open.png"  , tr("Open selected segmentations"  ))
 , m_dilate(":/espina/dilate.png", tr("Dilate selected segmentations"))
 , m_erode (":/espina/erode.png" , tr("Erode selected segmentations" ))
+, m_enabled(false)
 {
   m_factory->registerFilterFactory(m_filterFactory);
 
@@ -160,9 +160,8 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
   connect(&m_erode, SIGNAL(toggled(bool)),
           this,     SLOT(onErodeToggled(bool)));
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
-          this,                             SLOT(updateAvailableActionsForSelection(SegmentationAdapterList)));
-
+  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+          this,                             SLOT(updateAvailableActionsForSelection()));
 
   m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), nullptr);
   connect(m_fill, SIGNAL(triggered(bool)),
@@ -188,10 +187,7 @@ MorphologicalEditionTool::~MorphologicalEditionTool()
 void MorphologicalEditionTool::setEnabled(bool value)
 {
   m_enabled = value;
-
-  m_addition->setEnabled(value);
-  m_subtract->setEnabled(value);
-  m_fill    ->setEnabled(value);
+  updateAvailableActionsForSelection();
 }
 
 //------------------------------------------------------------------------
@@ -369,15 +365,20 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 }
 
 //------------------------------------------------------------------------
-void MorphologicalEditionTool::updateAvailableActionsForSelection(SegmentationAdapterList selection)
+void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  bool atLeastOneSegmentation = selection.size() > 0;
+  int listSize = m_viewManager->selection()->segmentations().size();
 
-  m_close .setEnabled(atLeastOneSegmentation);
-  m_open  .setEnabled(atLeastOneSegmentation);
-  m_dilate.setEnabled(atLeastOneSegmentation);
-  m_erode .setEnabled(atLeastOneSegmentation);
-  m_fill ->setEnabled(atLeastOneSegmentation);
+  bool atLeastOneSegmentation = listSize > 0;
+  bool twoSegmentations = listSize == 2;
+
+  m_addition->setEnabled(m_enabled && twoSegmentations);
+  m_subtract->setEnabled(m_enabled && twoSegmentations);
+  m_close .setEnabled(m_enabled && atLeastOneSegmentation);
+  m_open  .setEnabled(m_enabled && atLeastOneSegmentation);
+  m_dilate.setEnabled(m_enabled && atLeastOneSegmentation);
+  m_erode .setEnabled(m_enabled && atLeastOneSegmentation);
+  m_fill ->setEnabled(m_enabled && atLeastOneSegmentation);
 }
 
 //------------------------------------------------------------------------

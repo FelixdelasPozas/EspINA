@@ -170,13 +170,14 @@ namespace EspINA
     bool createPreviousOutputs() const;
 
   private:
-    QString prefix() const
-    { return "Filters/" + uuid().toString() + "/"; }
-
     QString outputFile() const
     { return prefix() + "outputs.xml"; }
 
   protected:
+
+    QString prefix() const
+    { return "Filters/" + uuid().toString() + "/"; }
+
     AnalysisPtr m_analysis;
     Type        m_type;
     InputSList  m_inputs;

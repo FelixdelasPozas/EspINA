@@ -34,7 +34,8 @@ vtkCxxSetObjectMacro(vtkPlanarSplitRepresentation2D,HandleRepresentation,vtkHand
 vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
 {
   m_plane = Plane::XY;
-  m_epsilon = -0.1;
+  m_epsilon = -1;
+  m_slice = -1;
   m_tolerance = 15;
   m_point1[0] = m_point1[1] = m_point1[2] = 0;
   m_point2[0] = m_point2[1] = m_point2[2] = 0;
@@ -84,6 +85,39 @@ vtkSmartPointer<vtkPoints> vtkPlanarSplitRepresentation2D::getPoints()
 }
 
 //----------------------------------------------------------------------
+void vtkPlanarSplitRepresentation2D::setSlice(double slice)
+{
+  m_slice = slice;
+
+  if(m_boundsActor)
+  {
+    auto index = normalCoordinateIndex(m_plane);
+    double value = slice + m_epsilon;
+    double point[3];
+    for(auto i: {0,1,2,3})
+    {
+      m_boundsPoints->GetPoint(i, point);
+      point[index] = value;
+      m_boundsPoints->SetPoint(i, point);
+    }
+
+    m_point1[index] = value;
+    m_point2[index] = value;
+
+    m_boundsPoints->Modified();
+    m_boundsActor->Modified();
+  }
+
+  if(Point1Representation && Point2Representation)
+  {
+    m_line->SetPoint1(m_point1[0], m_point1[1], m_point1[2]);
+    m_line->SetPoint2(m_point2[0], m_point2[1], m_point2[2]);
+    m_line->Update();
+    m_lineActor->Modified();
+  }
+}
+
+//----------------------------------------------------------------------
 void vtkPlanarSplitRepresentation2D::setPoints(vtkSmartPointer<vtkPoints> points)
 {
   if (points->GetNumberOfPoints() == 0)
@@ -97,8 +131,8 @@ void vtkPlanarSplitRepresentation2D::setPoints(vtkSmartPointer<vtkPoints> points
 
   int i = normalCoordinateIndex(m_plane);
 
-  m_point1[i] = m_epsilon;
-  m_point2[i] = m_epsilon;
+  m_point1[i] = m_slice + m_epsilon;
+  m_point2[i] = m_slice + m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -118,12 +152,11 @@ void vtkPlanarSplitRepresentation2D::setPoint1(Nm *point)
   m_point1[0] = worldPos[0];
   m_point1[1] = worldPos[1];
   m_point1[2] = worldPos[2];
-  m_point1[i] = m_epsilon;
+  m_point1[i] = m_slice + m_epsilon;
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[i] = m_epsilon;
-
+  m_point2[i] = m_slice + m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -142,7 +175,7 @@ void vtkPlanarSplitRepresentation2D::setPoint2(Nm *point)
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[i] = m_epsilon;
+  m_point2[i] = m_slice + m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -153,6 +186,9 @@ void vtkPlanarSplitRepresentation2D::getPoint1(Nm *point)
   point[0] = m_point1[0];
   point[1] = m_point1[1];
   point[2] = m_point1[2];
+
+  auto index = normalCoordinateIndex(m_plane);
+  point[index] = m_slice + m_epsilon;
 }
 
 //----------------------------------------------------------------------
@@ -161,6 +197,9 @@ void vtkPlanarSplitRepresentation2D::getPoint2(Nm *point)
   point[0] = m_point2[0];
   point[1] = m_point2[1];
   point[2] = m_point2[2];
+
+  auto index = normalCoordinateIndex(m_plane);
+  point[index] = m_slice + m_epsilon;
 }
 
 //----------------------------------------------------------------------
@@ -183,9 +222,6 @@ void vtkPlanarSplitRepresentation2D::BuildRepresentation()
     m_lineActor->GetProperty()->SetColor(1,1,1);
     m_lineActor->GetProperty()->SetLineWidth(2);
 
-    int i = normalCoordinateIndex(m_plane);
-    m_point1[i] = m_epsilon;
-    m_point2[i] = m_epsilon;
     Point1Representation->SetWorldPosition(m_point1);
     Point1Representation->SetTolerance(m_tolerance);
     Point2Representation->SetWorldPosition(m_point2);
@@ -309,7 +345,8 @@ void vtkPlanarSplitRepresentation2D::InstantiateHandleRepresentation()
 void vtkPlanarSplitRepresentation2D::setOrientation(Plane plane)
 {
   m_plane = plane;
-  m_epsilon = ((Plane::XY == m_plane) ? -0.1 : 0.1);
+  m_epsilon = ((Plane::XY == m_plane) ? -5 : 5);
+  // TODO: m_epsilon should be dynamic (based on image spacing)
 }
 
 //----------------------------------------------------------------------
@@ -330,18 +367,22 @@ void vtkPlanarSplitRepresentation2D::MoveHandle(int handleNum, int X, int Y)
       m_point1[0] = worldPos[0];
       m_point1[1] = worldPos[1];
       m_point1[2] = worldPos[2];
-      m_point1[i] = m_epsilon;
+      m_point1[i] = m_slice + m_epsilon;
       break;
     case 1:
       m_point2[0] = worldPos[0];
       m_point2[1] = worldPos[1];
       m_point2[2] = worldPos[2];
-      m_point2[i] = m_epsilon;
+      m_point2[i] = m_slice + m_epsilon;
       break;
     default:
       Q_ASSERT(false);
       break;
   }
+
+  m_line->SetPoint1(m_point1);
+  m_line->SetPoint2(m_point2);
+  m_line->Modified();
   this->BuildRepresentation();
 }
 
@@ -357,53 +398,53 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
     case Plane::XY:
       point[0] = bounds[0];
       point[1] = bounds[2];
-      point[2] = m_epsilon;
+      point[2] = m_slice + m_epsilon;
       m_boundsPoints->InsertPoint(0, point);
       point[0] = bounds[0];
       point[1] = bounds[3];
-      point[2] = m_epsilon;
+      point[2] = m_slice + m_epsilon;
       m_boundsPoints->InsertPoint(1, point);
       point[0] = bounds[1];
       point[1] = bounds[3];
-      point[2] = m_epsilon;
+      point[2] = m_slice + m_epsilon;
       m_boundsPoints->InsertPoint(2, point);
       point[0] = bounds[1];
       point[1] = bounds[2];
-      point[2] = m_epsilon;
+      point[2] = m_slice + m_epsilon;
       m_boundsPoints->InsertPoint(3, point);
       break;
     case Plane::XZ:
       point[0] = bounds[0];
-      point[1] = m_epsilon;
+      point[1] = m_slice + m_epsilon;
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(0, point);
       point[0] = bounds[0];
-      point[1] = m_epsilon;
+      point[1] = m_slice + m_epsilon;
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(1, point);
       point[0] = bounds[1];
-      point[1] = m_epsilon;
+      point[1] = m_slice + m_epsilon;
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(2, point);
       point[0] = bounds[1];
-      point[1] = m_epsilon;
+      point[1] = m_slice + m_epsilon;
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);
       break;
     case Plane::YZ:
-      point[0] = m_epsilon;
+      point[0] = m_slice + m_epsilon;
       point[1] = bounds[2];
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(0, point);
-      point[0] = m_epsilon;
+      point[0] = m_slice + m_epsilon;
       point[1] = bounds[2];
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(1, point);
-      point[0] = m_epsilon;
+      point[0] = m_slice + m_epsilon;
       point[1] = bounds[3];
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(2, point);
-      point[0] = m_epsilon;
+      point[0] = m_slice + m_epsilon;
       point[1] = bounds[3];
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);
@@ -424,10 +465,11 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
     connectivity[1] = (i+1)%4;
     polyData->InsertNextCell(VTK_LINE, 2, connectivity);
   }
-  //TODO 2013-10-08 polyData->Update();
+  polyData->Modified();
 
   vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  //TODO 2013-10-08 mapper->SetInputConnection(polyData->GetProducerPort());
+  mapper->SetInputData(polyData);
+  mapper->Update();
 
   m_boundsActor = vtkSmartPointer<vtkActor>::New();
   m_boundsActor->SetMapper(mapper);
@@ -435,6 +477,7 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
   m_boundsActor->GetProperty()->SetLineStipplePattern(0xFFF0);
   m_boundsActor->GetProperty()->SetLineStippleRepeatFactor(1);
   m_boundsActor->GetProperty()->SetLineWidth(2);
+  m_boundsActor->Modified();
 
   this->Renderer->AddActor(m_boundsActor);
 }

@@ -129,7 +129,7 @@ namespace EspINA
 
     void onErodeToggled(bool toggled);
 
-    void updateAvailableActionsForSelection(SegmentationAdapterList selection);
+    void updateAvailableActionsForSelection();
 
   private:
     template<typename T>

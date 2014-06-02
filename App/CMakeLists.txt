@@ -189,7 +189,6 @@ set (ESPINA_SOURCES
 #   Undo/CompositionCommand.cpp
 #   Undo/ImageLogicCommand.cpp
 #   Undo/SeedGrowSegmentationCommand.cpp
-#   Undo/SplitUndoCommand.cpp
 #   Undo/UndoableEspinaModel.cpp
 #   Undo/UnloadChannelCommand.cpp
 #   Undo/UnloadSampleCommand.cpp

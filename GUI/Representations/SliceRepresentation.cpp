@@ -56,6 +56,7 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr
 : Representation(view)
 , m_data(data)
 , m_planeIndex(-1)
+, m_reslicePoint(-1)
 , m_mapToColors(nullptr)
 , m_shiftScaleFilter(nullptr)
 , m_actor(nullptr)

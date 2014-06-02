@@ -92,7 +92,7 @@ namespace EspINA
     virtual void drawStroke(Selector::Selection);
     virtual void radiusChanged(int);
     virtual void drawingModeChanged(bool);
-    virtual void updateReferenceItem(SelectionSPtr);
+    virtual void updateReferenceItem();
 
   protected slots:
     virtual void changeSelector(QAction *);

@@ -140,12 +140,10 @@ namespace EspINA
     m_radiusWidget->setVisible(false);
     m_opacityWidget->setVisible(false);
 
-    connect(m_viewManager.get(), SIGNAL(selectionChanged(SelectionSPtr)),
-            this, SLOT(updateReferenceItem(SelectionSPtr)));
+    connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+            this, SLOT(updateReferenceItem()));
 
-    auto selection = m_viewManager->selection();
-
-    updateReferenceItem(selection);
+    updateReferenceItem();
   }
 
   //------------------------------------------------------------------------
@@ -215,7 +213,7 @@ namespace EspINA
       channels << m_viewManager->activeChannel();
       selection->set(channels);
       m_currentSelector->setBrushColor(category->color());
-      updateReferenceItem(selection);
+      updateReferenceItem();
     }
   }
 
@@ -243,7 +241,7 @@ namespace EspINA
     }
     else
     {
-      updateReferenceItem(m_viewManager->selection());
+      updateReferenceItem();
     }
   }
 
@@ -331,8 +329,9 @@ namespace EspINA
   }
 
   //------------------------------------------------------------------------
-  void ManualEditionTool::updateReferenceItem(SelectionSPtr selection)
+  void ManualEditionTool::updateReferenceItem()
   {
+    auto selection = m_viewManager->selection();
     QImage image;
     QColor borderColor{Qt::blue};
 

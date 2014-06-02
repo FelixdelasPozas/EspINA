@@ -2,7 +2,7 @@
  * vtkPlanarSplitWidget.h
  *
  *  Created on: Nov 5, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef VTKPLANARSPLITWIDGET_H_
@@ -89,11 +89,15 @@ namespace EspINA
 
     // set widget orientation
     virtual void setOrientation(Plane orientation);
+    virtual Plane getOrientation() const
+    { return m_plane; }
 
     virtual void PrintSelf(ostream &os, vtkIndent indent);
 
     virtual void disableWidget();
     virtual void setSegmentationBounds(double *bounds);
+
+    virtual void setSlice(double slice);
 
   protected:
     vtkPlanarSplitWidget();
@@ -104,6 +108,7 @@ namespace EspINA
     int CurrentHandle;
     Plane  m_plane;
     double m_segmentationBounds[6];
+    double m_slice;
 
     // Callback interface to capture events when
     // placing the widget.

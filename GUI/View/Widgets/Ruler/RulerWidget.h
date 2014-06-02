@@ -19,6 +19,8 @@
 #ifndef ESPINA_RULER_WIDGET_H_
 #define ESPINA_RULER_WIDGET_H_
 
+#include <EspinaGUI_Export.h>
+
 // EspINA
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>

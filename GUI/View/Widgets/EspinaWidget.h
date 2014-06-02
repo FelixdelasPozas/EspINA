@@ -42,7 +42,7 @@ namespace EspINA
     virtual void unregisterView(RenderView *view) = 0;
 
     virtual void setEnabled(bool enable) = 0;
-    virtual bool manipulatesSegmentations() { return false; };
+    virtual bool manipulatesSegmentations() const { return false; };
   };
 
   using EspinaWidgetPtr  = EspinaWidget *;
@@ -56,7 +56,7 @@ class vtkEspinaCommand
   public:
     vtkTypeMacro(vtkEspinaCommand, vtkCommand);
 
-    /* \brief vtkDistanceCommand destructor.
+    /* \brief vtkEspinaCommand destructor.
      *
      */
     virtual ~vtkEspinaCommand()

@@ -20,6 +20,7 @@ set (FILTERS_SOURCES
   MorphologicalEditionFilter.cpp
   OpenFilter.cpp
   SeedGrowSegmentationFilter.cpp
+  SplitFilter.cpp
   SourceFilter.cpp
   Utils/vtkTube.cxx
   VolumetricStreamReader.cpp

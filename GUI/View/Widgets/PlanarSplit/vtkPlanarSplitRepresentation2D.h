@@ -2,7 +2,7 @@
  * vtkPlanarSplitRepresentation2D.h
  *
  *  Created on: Nov 6, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Fï¿½lix de las Pozas ï¿½lvarez
  */
 
 #ifndef VTKPLANARSPLITREPRESENTATION2D_H_
@@ -43,6 +43,7 @@ namespace EspINA
     void getPoint1(Nm *);
     void getPoint2(Nm *);
 
+    void setSlice(double slice);
 
     // Description:
     // The tolerance representing the distance to the widget (in pixels) in
@@ -113,6 +114,7 @@ namespace EspINA
     int    m_tolerance;
     Plane  m_plane;
     double m_epsilon;
+    double m_slice;
   private:
     vtkPlanarSplitRepresentation2D(const vtkPlanarSplitRepresentation2D&);  //Not implemented
     void operator=(const vtkPlanarSplitRepresentation2D&);  //Not implemented

@@ -16,68 +16,110 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef ESPINA_SPLIT_FILTER_H
+#define ESPINA_SPLIT_FILTER_H
 
-#ifndef SPLITFILTER_H
-#define SPLITFILTER_H
-
-#include "EspinaCore_Export.h"
-
+// EspINA
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 #include "BasicSegmentationFilter.h"
 
+// VTK
 #include <vtkSmartPointer.h>
 
 class vtkImageStencilData;
 
 namespace EspINA
 {
-  /// Split Segmentation into two components according to
-  /// given stencil
-  class EspinaCore_EXPORT SplitFilter
+  class SplitFilter
   : public Filter
   {
-  public:
-    static const QString INPUTLINK;
+    public:
+      /* \brief SplitFilter class constructor.
+       *
+       */
+      explicit SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
 
-  public:
-    explicit SplitFilter(NamedInputs inputs,
-                         Arguments   args,
-                         FilterType  type);
-    virtual ~SplitFilter();
+      /* \brief SplitFilter class virtual destructor.
+       *
+       */
+      virtual ~SplitFilter();
 
-    void setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
-    {
-      m_stencil = stencil;
-      m_ignoreCurrentOutputs = true;
-    }
+      /* \brief Implements Persistent::restoreState().
+       *
+       */
+      virtual void restoreState(const State& state)
+      {}
 
-    /// Try to locate an snapshot of the filter in tmpDir
-    /// Returns true if all volume snapshot can be recovered
-    /// and false otherwise
-    virtual bool fetchCacheStencil();
+      /* \brief Implements Persistent::state().
+       *
+       */
+      virtual State state() const
+      { return State(); }
 
-    /// QMap<file name, file byte array> of filter's data to save to seg file
-    virtual bool dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList);
+      /* \brief Sets the stencil used to split the input.
+       * \param[in] stencil, a vtkSmartPointer<vtkImageStencilData> object.
+       *
+       */
+      void setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
+      {
+        m_stencil = stencil;
+        m_ignoreCurrentOutputs = true;
+      }
 
-  protected:
-    virtual bool ignoreCurrentOutputs() const
-    { return m_ignoreCurrentOutputs; }
+      /* \brief Try to locate an snapshot of the filter in temporalStorage, returns true
+       * if all volume snapshot can be recovered and false otherwise.
+       *
+       */
+      virtual bool fetchCacheStencil() const;
 
-    virtual bool needUpdate(FilterOutputId oId) const;
+    protected:
+      /* \brief Implements Filter::saveFilterSnapshot().
+       *
+       */
+      virtual Snapshot saveFilterSnapshot() const;
 
-    virtual void run();
-    virtual void run(FilterOutputId oId);
+      /* \brief Implements Filter::needUpdate().
+       *
+       */
+      virtual bool needUpdate() const;
 
-  private:
-    vtkSmartPointer<vtkImageStencilData> m_stencil;
+      /* \brief Implements Filter::needUpdate(oid).
+       *
+       */
+      virtual bool needUpdate(Output::Id id) const;
 
-    bool m_ignoreCurrentOutputs;
-    RawSegmentationVolumeSPtr m_volumes[2];
+      /* \brief Implements Filter::execute().
+       *
+       */
+      virtual void execute();
+
+      /* \brief Implements Filter::execute(oid).
+       *
+       */
+      virtual void execute(Output::Id id);
+
+      /* \brief Implements Filter::ignoreStorageContents().
+       *
+       */
+      virtual bool ignoreStorageContent() const;
+
+      /* \brief Implements Filter::invalidateEditedRegions().
+       *
+       */
+      virtual bool invalidateEditedRegions();
+    protected:
+      virtual bool ignoreCurrentOutputs() const
+      { return m_ignoreCurrentOutputs; }
+
+    private:
+      bool m_ignoreCurrentOutputs;
+      mutable vtkSmartPointer<vtkImageStencilData> m_stencil;
   };
 
-  typedef boost::shared_ptr<SplitFilter> SplitFilterSPtr;
+  using SplitFilterPtr  = SplitFilter *;
+  using SplitFilterSPtr = std::shared_ptr<SplitFilter>;
 
 } // namespace EspINA
 
-#endif // SPLITFILTER_H
+#endif // ESPINA_SPLIT_FILTER_H

@@ -17,10 +17,15 @@
  *
  */
 
+// EspINA
 #include "TemporalStorage.h"
 
+// C++
 #include <iostream>
+
+// Qt
 #include <QStack>
+#include <QDebug>
 
 namespace EspINA
 {

@@ -16,18 +16,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 // EspINA
 #include "SplitFilter.h"
-#include <Core/Model/MarchingCubesMesh.h>
-#include <GUI/Representations/SliceRepresentation.h>
+#include <Core/EspinaTypes.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
 
 // ITK
 #include <itkImageRegionConstIteratorWithIndex.h>
+#include <itkImageRegionIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
-#include <vtkImageStencilData.h>
 
 // VTK
+#include <vtkImageStencilData.h>
 #include <vtkGenericDataObjectReader.h>
 #include <vtkGenericDataObjectWriter.h>
 #include <vtkImageStencilToImage.h>
@@ -36,19 +39,16 @@
 
 // Qt
 #include <QDir>
-#include <QDebug>
+
+const QString STENCIL_FILENAME = QString("stencil.vti");
 
 using namespace EspINA;
 
-const QString SplitFilter::INPUTLINK = "Segmentation";
-
 //-----------------------------------------------------------------------------
-SplitFilter::SplitFilter(NamedInputs inputs,
-                         Arguments   args,
-                         FilterType  type)
-: BasicSegmentationFilter(inputs, args, type)
-, m_stencil(NULL)
+SplitFilter::SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+: Filter(inputs, type, scheduler)
 , m_ignoreCurrentOutputs(false)
+, m_stencil(nullptr)
 {
 }
 
@@ -58,112 +58,154 @@ SplitFilter::~SplitFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool SplitFilter::needUpdate(FilterOutputId oId) const
+void SplitFilter::execute()
 {
-  return SegmentationFilter::needUpdate(oId);
-}
+  emit progress(0);
+  if (!canExecute()) return;
 
-//-----------------------------------------------------------------------------
-void SplitFilter::run()
-{
-  for (int i = 0; i < 2; ++i)
-    run(i);
-}
-
-//-----------------------------------------------------------------------------
-void SplitFilter::run(FilterOutputId oId)
-{
-  //qDebug() << "Split Run" << m_cacheId;
-  Q_ASSERT(0 == oId || 1 == oId);
   Q_ASSERT(m_inputs.size() == 1);
+  auto volume = volumetricData(m_inputs.first()->output());
 
-  SegmentationVolumeSPtr input = segmentationVolume(m_inputs[0]);
-  Q_ASSERT(input);
-
-  // if you want to run the filter you must have an stencil
-  if (NULL == m_stencil.GetPointer())
+  if (nullptr == m_stencil)
     Q_ASSERT(fetchCacheStencil());
 
-  EspinaRegion region = input->espinaRegion();
-  itkVolumeType::SpacingType spacing = input->toITK()->GetSpacing();
+  auto itkVolume = volume->itkImage();
+  auto itkRegion = itkVolume->GetLargestPossibleRegion();
 
-  if (m_volumes[0].get() == NULL || ignoreCurrentOutputs())
+  auto split1 = itkVolumeType::New();
+  split1->SetRegions(itkVolume->GetLargestPossibleRegion());
+  split1->SetSpacing(itkVolume->GetSpacing());
+  split1->SetOrigin(itkVolume->GetOrigin());
+  split1->Allocate();
+  split1->Update();
+
+  auto split2 = itkVolumeType::New();
+  split2->SetRegions(itkVolume->GetLargestPossibleRegion());
+  split2->SetSpacing(itkVolume->GetSpacing());
+  split2->SetOrigin(itkVolume->GetOrigin());
+  split2->Allocate();
+  split2->Update();
+
+  emit progress(25);
+  if (!canExecute()) return;
+
+  itk::ImageRegionConstIterator<itkVolumeType> it(itkVolume, itkVolume->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<itkVolumeType> split1it(split1, split1->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<itkVolumeType> split2it(split2, split2->GetLargestPossibleRegion());
+
+  it.GoToBegin();
+  split1it.GoToBegin();
+  split2it.GoToBegin();
+
+  bool isEmpty1 = true;
+  bool isEmpty2 = true;
+
+  int shift[3]; // Stencil origin differ from creation to fetch
+  for (int i = 0; i < 3; ++i)
+    shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
+
+  for(; !it.IsAtEnd(); ++it, ++split1it, ++split2it)
   {
-    for(int i=0; i < 2; i++)
-      m_volumes[i] = RawSegmentationVolumeSPtr(new RawSegmentationVolume(region, spacing));
-
-    itkVolumeConstIterator it = input        ->iterator(region);
-    itkVolumeIterator     ot1 = m_volumes[0] ->iterator(region);
-    itkVolumeIterator     ot2 = m_volumes[1] ->iterator(region);
-
-    it .GoToBegin();
-    ot1.GoToBegin();
-    ot2.GoToBegin();
-
-    bool isEmpty1 = true;
-    bool isEmpty2 = true;
-
-    int shift[3]; // Stencil origin differ from creation to fetch
-    for (int i = 0; i < 3; ++i)
-      shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
-
-    for(; !it.IsAtEnd(); ++it, ++ot1, ++ot2)
+    auto value = it.Value();
+    itkVolumeType::IndexType index = it.GetIndex();
+    if (m_stencil->IsInside(index[0] - shift[0], index[1] - shift[1], index[2] - shift[2]))
     {
-      itkVolumeType::IndexType index = ot1.GetIndex();
-      if (m_stencil->IsInside(index[0] - shift[0], index[1]- shift[1], index[2]- shift[2]))
-      {
-        ot1.Set(it.Value());
-        if (isEmpty1)
-          isEmpty1 = ot1.Get() != SEG_VOXEL_VALUE;
-      }
-      else
-      {
-        ot2.Set(it.Value());
-        if (isEmpty2)
-          isEmpty2 = ot2.Get() != SEG_VOXEL_VALUE;
-      }
+      split1it.Set(value);
+      split2it.Set(SEG_BG_VALUE);
+      if (isEmpty1)
+        isEmpty1 = value != SEG_VOXEL_VALUE;
     }
-
-    if (!isEmpty1 && !isEmpty2)
+    else
     {
-      for (FilterOutputId i = 0; i < 2; i++)
-      {
-        m_volumes[i]->fitToContent();
-
-        SegmentationRepresentationSList repList;
-        repList << m_volumes[i];
-        repList << MeshRepresentationSPtr(new MarchingCubesMesh(m_volumes[i]));
-
-        addOutputRepresentations(i, repList);
-      }
-
-      m_ignoreCurrentOutputs = false;
-
-
-      emit modified(this);
+      split1it.Set(SEG_BG_VALUE);
+      split2it.Set(value);
+      if (isEmpty2)
+        isEmpty2 = value != SEG_VOXEL_VALUE;
     }
   }
 
+  emit progress(50);
+  if (!canExecute()) return;
+
+  itkVolumeType::Pointer volumes[2]{split1, split2};
+
+  if (!isEmpty1 && !isEmpty2)
+  {
+    for(auto i: {0, 1})
+    {
+      auto spacing = m_inputs.first()->output()->spacing();
+      m_outputs[i] = OutputSPtr(new Output(this, i));
+      auto bounds = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
+
+      DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+      volume->draw(volumes[i], bounds);
+
+      MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+      m_outputs[i]->setData(volume);
+      m_outputs[i]->setData(mesh);
+      m_outputs[i]->setSpacing(spacing);
+
+      emit progress(75 + 25*i);
+      if (!canExecute()) return;
+    }
+
+    m_ignoreCurrentOutputs = false;
+  }
+}
+
+//----------------------------------------------------------------------------
+bool SplitFilter::ignoreStorageContent() const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool SplitFilter::invalidateEditedRegions()
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool SplitFilter::needUpdate() const
+{
+  return m_outputs.isEmpty();
+}
+
+//----------------------------------------------------------------------------
+bool SplitFilter::needUpdate(Output::Id id) const
+{
+  if (id != 0 && id != 1) throw Undefined_Output_Exception();
+
+  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
+}
+
+//----------------------------------------------------------------------------
+void SplitFilter::execute(Output::Id id)
+{
+  Q_ASSERT(id == 0 || id == 1);
+  execute();
 }
 
 //-----------------------------------------------------------------------------
-bool SplitFilter::fetchCacheStencil()
+bool SplitFilter::fetchCacheStencil() const
 {
   if (m_ignoreCurrentOutputs)
     return false;
 
   bool returnVal = false;
 
-  if (m_cacheDir.exists(QString().number(m_cacheId) + QString("-Stencil.vti")))
+
+  if (storage()->exists(prefix() + STENCIL_FILENAME))
   {
-    QString fileName = m_cacheDir.absolutePath() + QDir::separator() + QString().number(m_cacheId) + QString("-Stencil.vti");
+    QString fileName = storage()->absoluteFilePath(prefix() + STENCIL_FILENAME);
     vtkSmartPointer<vtkGenericDataObjectReader> stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
     stencilReader->SetFileName(fileName.toStdString().c_str());
     stencilReader->ReadAllFieldsOn();
     stencilReader->Update();
 
     vtkSmartPointer<vtkImageToImageStencil> convert = vtkSmartPointer<vtkImageToImageStencil>::New();
-    convert->SetInputConnection(stencilReader->GetOutputPort());
+    convert->SetInputData(vtkImageData::SafeDownCast(stencilReader->GetOutput()));
     convert->ThresholdBetween(1,1);
     convert->Update();
 
@@ -176,39 +218,29 @@ bool SplitFilter::fetchCacheStencil()
 }
 
 //-----------------------------------------------------------------------------
-bool SplitFilter::dumpSnapshot(QList<QPair<QString, QByteArray> > &fileList)
+Snapshot SplitFilter::saveFilterSnapshot() const
 {
-  bool returnVal = false;
+  // check if the stencil is in the cache and hasn't been loaded (because a run() wasn't needed)
+  if (nullptr == m_stencil)
+    Q_ASSERT(fetchCacheStencil());
 
-  if (m_traceable)
-  {
-    // check if the stencil is in the cache and hasn't been loaded (because a run() wasn't needed)
-    if (NULL == m_stencil.GetPointer())
-      fetchCacheStencil();
+  Q_ASSERT(m_stencil != nullptr);
 
-    if (m_stencil != NULL)
-    {
-      vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
-      convert->SetInputData(m_stencil);
-      convert->SetInsideValue(1);
-      convert->SetOutsideValue(0);
-      convert->SetOutputScalarTypeToUnsignedChar();
-      convert->Update();
+  vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
+  convert->SetInputData(m_stencil);
+  convert->SetInsideValue(1);
+  convert->SetOutsideValue(0);
+  convert->SetOutputScalarTypeToUnsignedChar();
+  convert->Update();
 
-      vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-      stencilWriter->SetInputConnection(convert->GetOutputPort());
-      stencilWriter->SetFileTypeToBinary();
-      stencilWriter->SetWriteToOutputString(true);
-      stencilWriter->Write();
+  vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+  stencilWriter->SetInputConnection(convert->GetOutputPort());
+  stencilWriter->SetFileTypeToBinary();
+  stencilWriter->SetWriteToOutputString(true);
+  stencilWriter->Write();
 
-      QByteArray stencilArray(stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength());
-      QPair<QString, QByteArray> stencilEntry(this->id() + QString("-Stencil.vti"), stencilArray);
+  Snapshot snapshot;
+  snapshot << SnapshotData{prefix() + STENCIL_FILENAME, QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
 
-      fileList << stencilEntry;
-
-      returnVal = true;
-    }
-  }
-
-  return (SegmentationFilter::dumpSnapshot(fileList) || returnVal);
+  return snapshot;
 }
