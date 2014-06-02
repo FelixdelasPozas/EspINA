@@ -74,6 +74,7 @@ namespace EspINA
 
     public slots:
       void initTool(bool);
+      void applyCurrentState();
       void createSegmentations();
 
       void stopSplitting()
@@ -92,6 +93,7 @@ namespace EspINA
       void splitSegmentation();
 
       QAction *m_planarSplitAction;
+      QAction *m_applyButton;
 
       ModelAdapterSPtr m_model;
       ModelFactorySPtr m_factory;

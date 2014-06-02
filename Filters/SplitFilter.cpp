@@ -193,7 +193,6 @@ bool SplitFilter::fetchCacheStencil() const
 
   bool returnVal = false;
 
-
   if (storage()->exists(stencilFile()))
   {
     QString fileName = storage()->absoluteFilePath(stencilFile());

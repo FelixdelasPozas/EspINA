@@ -80,6 +80,7 @@ namespace EspINA
                        ViewManagerSPtr  viewManager,
                        QUndoStack      *undoStack)
   : m_planarSplitAction{new QAction(QIcon(":/espina/planar_split.svg"),tr("Split segmentation"), nullptr)}
+  , m_applyButton      {new QAction(QIcon(":/espina/tick.png"), tr("Apply current state"), nullptr)}
   , m_model            {model}
   , m_factory          {factory}
   , m_viewManager      {viewManager}
@@ -90,7 +91,10 @@ namespace EspINA
   {
     m_planarSplitAction->setCheckable(true);
     m_planarSplitAction->setChecked(false);
+    m_applyButton->setVisible(false);
+    m_applyButton->setCheckable(false);
     connect(m_planarSplitAction, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
+    connect(m_applyButton, SIGNAL(triggered()), this, SLOT(applyCurrentState()), Qt::QueuedConnection);
     m_factory->registerFilterFactory(FilterFactorySPtr(new SplitFilterFactory()));
   }
 
@@ -125,6 +129,7 @@ namespace EspINA
     QList<QAction *> actions;
 
     actions << m_planarSplitAction;
+    actions << m_applyButton;
 
     return actions;
   }
@@ -139,6 +144,7 @@ namespace EspINA
       m_viewManager->addWidget(m_widget);
       m_viewManager->setSelectionEnabled(false);
       m_viewManager->setEventHandler(m_handler);
+      m_applyButton->setVisible(true);
 
       auto selectedSegs = m_viewManager->selection()->segmentations();
       Q_ASSERT(selectedSegs.size() == 1);
@@ -153,46 +159,9 @@ namespace EspINA
       if(m_widget == nullptr)
         return;
 
-      auto selectedSeg = m_viewManager->selection()->segmentations().first();
       m_viewManager->setSelectionEnabled(true);
-
-      auto widget = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
-      if (widget->planeIsValid())
-      {
-        InputSList inputs;
-        inputs << selectedSeg->asInput();
-
-        auto adapter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
-        auto filter = adapter.get();
-
-        auto spacing = selectedSeg->output()->spacing();
-        auto bounds = selectedSeg->bounds();
-        int extent[6]{vtkMath::Round((bounds[0]+spacing[0]/2)/spacing[0]),
-                      vtkMath::Round((bounds[1]+spacing[0]/2)/spacing[0]),
-                      vtkMath::Round((bounds[2]+spacing[1]/2)/spacing[1]),
-                      vtkMath::Round((bounds[3]+spacing[1]/2)/spacing[1]),
-                      vtkMath::Round((bounds[4]+spacing[2]/2)/spacing[2]),
-                      vtkMath::Round((bounds[5]+spacing[2]/2)/spacing[2])};
-
-        vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-        plane2stencil->SetInput(widget->getImplicitPlane(spacing));
-        plane2stencil->SetOutputOrigin(0,0,0);
-        plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-        plane2stencil->SetOutputWholeExtent(extent);
-        plane2stencil->Update();
-
-        vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
-        stencil = plane2stencil->GetOutput();
-
-        filter->get()->setStencil(stencil);
-
-        struct Data data(adapter, m_model->smartPointer(selectedSeg));
-        m_executingTasks.insert(adapter.get(), data);
-
-        connect(adapter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
-        adapter->submit();
-      }
-
+      m_planarSplitAction->setChecked(false);
+      m_applyButton->setVisible(false);
       m_widget->setEnabled(false);
       m_viewManager->removeWidget(m_widget);
       m_viewManager->setEventHandler(nullptr);
@@ -200,6 +169,59 @@ namespace EspINA
       m_viewManager->updateViews();
 
       emit splittingStopped();
+    }
+  }
+
+  //------------------------------------------------------------------------
+  void SplitTool::applyCurrentState()
+  {
+    auto selectedSeg = m_viewManager->selection()->segmentations().first();
+    auto widget = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
+    if (widget->planeIsValid())
+    {
+      InputSList inputs;
+      inputs << selectedSeg->asInput();
+
+      auto adapter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+      auto filter = adapter.get();
+
+      auto spacing = selectedSeg->output()->spacing();
+      auto bounds = selectedSeg->bounds();
+      int extent[6]{vtkMath::Round((bounds[0]+spacing[0]/2)/spacing[0]),
+                    vtkMath::Round((bounds[1]+spacing[0]/2)/spacing[0]),
+                    vtkMath::Round((bounds[2]+spacing[1]/2)/spacing[1]),
+                    vtkMath::Round((bounds[3]+spacing[1]/2)/spacing[1]),
+                    vtkMath::Round((bounds[4]+spacing[2]/2)/spacing[2]),
+                    vtkMath::Round((bounds[5]+spacing[2]/2)/spacing[2])};
+
+      vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
+      plane2stencil->SetInput(widget->getImplicitPlane(spacing));
+      plane2stencil->SetOutputOrigin(0,0,0);
+      plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+      plane2stencil->SetOutputWholeExtent(extent);
+      plane2stencil->Update();
+
+      vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
+      stencil = plane2stencil->GetOutput();
+
+      filter->get()->setStencil(stencil);
+
+      struct Data data(adapter, m_model->smartPointer(selectedSeg));
+      m_executingTasks.insert(adapter.get(), data);
+
+      connect(adapter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
+      adapter->submit();
+    }
+    else
+    {
+      QMessageBox warning;
+      warning.setWindowModality(Qt::WindowModal);
+      warning.setWindowTitle(tr("EspINA"));
+      warning.setIcon(QMessageBox::Warning);
+      warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
+      warning.setStandardButtons(QMessageBox::Yes);
+      warning.exec();
+      return;
     }
   }
 
@@ -237,6 +259,7 @@ namespace EspINA
 
         m_undoStack->endMacro();
 
+        initTool(false);
         m_viewManager->updateSegmentationRepresentations(segmentations);
         m_viewManager->selection()->set(segmentations);
         m_viewManager->updateViews();
