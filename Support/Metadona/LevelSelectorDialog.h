@@ -36,6 +36,7 @@ namespace EspINA
     explicit LevelSelectorDialog(const std::vector<Metadona::Level>& levels,
                                  QWidget*                            parent = 0,
                                  Qt::WindowFlags                     f = 0);
+    virtual ~LevelSelectorDialog();
 
     Metadona::Id selectedLevel() const
     { return m_selectedLevel; }

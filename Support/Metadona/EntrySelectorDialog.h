@@ -37,6 +37,7 @@ namespace EspINA
                                  std::vector<Metadona::Id>& entries,
                                  QWidget*                   parent = 0,
                                  Qt::WindowFlags            f = 0);
+    virtual ~EntrySelectorDialog();
 
     Metadona::Id selectedId() const
     { return m_selectedId; }

@@ -46,7 +46,7 @@ int query_sample_channels(int argc, char** argv )
   SampleSPtr sample(new Sample());
   analysis.add(sample);
 
-  auto channels = Query::channels(sample);
+  auto channels = QueryRelations::channels(sample);
 
   if (!channels.isEmpty()) {
     cerr << "Unexpected number of channels. Sample has no channels" << endl;
@@ -70,7 +70,7 @@ int query_sample_channels(int argc, char** argv )
 
   analysis.addRelation(sample, channel, Channel::STAIN_LINK);
 
-  channels = Query::channels(sample);
+  channels = QueryRelations::channels(sample);
 
   if (channels.isEmpty()) {
     cerr << "Unexpected number of channels. Sample has 1 channel" << endl;

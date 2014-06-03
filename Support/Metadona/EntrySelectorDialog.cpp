@@ -50,6 +50,14 @@ EntrySelectorDialog::EntrySelectorDialog(const QString&             level,
 
   connect(m_cancel, SIGNAL(clicked(bool)),
           this,     SLOT(reject()));
+
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+//------------------------------------------------------------------------
+EntrySelectorDialog::~EntrySelectorDialog()
+{
+  QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------

@@ -34,10 +34,10 @@ LevelSelectorDialog::LevelSelectorDialog(const std::vector<Metadona::Level>& lev
 
   for (auto& level : levels)
   {
-    m_entryList->addItem(level.c_str());
+    m_levelList->addItem(level.c_str());
   }
 
-  m_entryList->setCurrentRow(0);
+  m_levelList->setCurrentRow(0);
 
   connect(m_select, SIGNAL(clicked(bool)),
           this,     SLOT(selectLevel()));
@@ -47,13 +47,21 @@ LevelSelectorDialog::LevelSelectorDialog(const std::vector<Metadona::Level>& lev
 
   connect(m_cancel, SIGNAL(clicked(bool)),
           this,     SLOT(reject()));
+
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
 }
 
 
 //------------------------------------------------------------------------
+LevelSelectorDialog::~LevelSelectorDialog()
+{
+  QApplication::restoreOverrideCursor();
+}
+
+//------------------------------------------------------------------------
 void LevelSelectorDialog::selectLevel()
 {
-  m_selectedLevel = m_entryList->selectedItems().first()->text().toStdString();
+  m_selectedLevel = m_levelList->selectedItems().first()->text().toStdString();
 
   accept();
 }

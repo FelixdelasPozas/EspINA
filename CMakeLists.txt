@@ -87,13 +87,18 @@ include (${ITK_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  graph regex)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-find_package (Metadona)
-if (METADONA_FOUND)
-  message (STATUS "Use Metadona")
-  include (${METADONA_USE_FILE})
-endif (METADONA_FOUND)
+# Configure Doxygen API Documentation
+set (METADONA_SUPPORT CACHE BOOL "Build EspINA with Meta Data Oriented Neuron Access support")
 
+set (METADONA_FOUND 0)
 
+if (METADONA_SUPPORT)
+  find_package (Metadona)
+  if (METADONA_FOUND)
+    message (STATUS "Use Metadona")
+    include (${METADONA_USE_FILE})
+  endif (METADONA_FOUND)
+endif (METADONA_SUPPORT)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"

@@ -21,8 +21,11 @@
 #define ESPINA_ENTRY_EDITOR_DIALOG_H
 
 #include <QDialog>
+
 #include <ui_EntryEditorDialog.h>
+
 #include <Coordinator.h>
+#include <functional>
 
 namespace EspINA
 {
@@ -36,14 +39,35 @@ namespace EspINA
     explicit EntryEditorDialog(Metadona::Entry& entry,
                                QWidget*         parent = 0,
                                Qt::WindowFlags  f = 0);
+    virtual ~EntryEditorDialog();
 
   private slots:
     void apply();
 
   private:
-    Metadona::Entry m_entry;
-  };
+    void createIdInput(QBoxLayout* layout);
 
+    void createFieldInputs(std::vector<Metadona::FieldSPtr > entries, QBoxLayout* layout);
+
+    void createStringInput(Metadona::StringField* field, QBoxLayout* layout);
+
+    void createDecimalInput(Metadona::DecimalField* field, QBoxLayout* layout);
+
+    void createIntegerInput(Metadona::IntegerField* field, QBoxLayout* layout);
+
+    void createEnumInput(Metadona::SuggestionField* field, QBoxLayout* layout, bool enableSuggestions);
+
+    void createGroupInput(Metadona::GroupField* field, QBoxLayout* layout);
+
+    void createListInput(Metadona::ListField* field, QBoxLayout* layout);
+
+  private:
+    Metadona::Entry& m_entry;
+
+    QLineEdit *m_idInput;
+
+    std::vector<std::function<void()>> m_applyFunctors;
+ };
 }
 
 #endif // ESPINA_ENTRY_EDITOR_DIALOG_H

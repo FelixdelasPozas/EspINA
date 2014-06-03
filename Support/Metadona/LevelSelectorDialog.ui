@@ -11,18 +11,18 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Metadata selector</string>
+   <string>Select next metadata level</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="m_label">
      <property name="text">
-      <string>Entries:</string>
+      <string>Available levels:</string>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="m_entryList"/>
+    <widget class="QListWidget" name="m_levelList"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">

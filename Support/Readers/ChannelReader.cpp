@@ -18,7 +18,6 @@
  */
 
 #include "ChannelReader.h"
-#include <Support/Metadona/Coordinator.h>
 
 #include <EspinaConfig.h>
 #include <Filters/VolumetricStreamReader.h>
@@ -26,10 +25,14 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Utils/TemporalStorage.h>
-#include <Producer.h>
-#include <IRODS_Storage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
+
+#if USE_METADONA
+  #include <Producer.h>
+  #include <IRODS_Storage.h>
+  #include <Support/Metadona/Coordinator.h>
+#endif
 
 using namespace EspINA;
 using namespace EspINA::IO;
@@ -81,17 +84,30 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 
   QString sampleName = "Unknown Sample";
 
-  if (USE_METADONA)
-  {
+#if USE_METADONA
     Coordinator coordinator;
 
     Metadona::IRODS::Storage storage("metadona");
     Metadona::Producer producer(storage);
 
-    auto metadata = producer.generateFrom("specimen", coordinator);
+    try
+    {
+      auto metadata = storage.metadata(file.absoluteFilePath().toStdString());
 
-    sampleName = metadata.at(0).id().c_str();
-  }
+      if (metadata.empty())
+      {
+        metadata = producer.generateFrom("Specimen", coordinator);
+
+        storage.setMetadata(file.absoluteFilePath().toStdString(), metadata);
+      }
+
+      std::cout << Metadona::dump(metadata) << std::endl;
+
+      sampleName = metadata.at(0).id().c_str();
+    } catch (...)
+    {
+    }
+#endif
 
   auto sample = factory->createSample(sampleName);
 

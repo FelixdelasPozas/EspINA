@@ -54,6 +54,7 @@ namespace EspINA {
   public:
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
+    virtual bool isEmpty() const {return false;}
     virtual Bounds bounds() const {}
     virtual void setSpacing(const NmVector3& spacing){}
     virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
