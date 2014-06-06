@@ -225,6 +225,11 @@ Snapshot Channel::snapshot() const
     snapshot << SnapshotData(file, xml);
   }
 
+  if (!m_metadata.isEmpty())
+  {
+    snapshot << SnapshotData(metadataFile(), m_metadata.toUtf8());
+  }
+
   return snapshot;
 }
 
@@ -321,3 +326,20 @@ void Channel::setBrightness(double brightness)
     m_brightness = brightness;    
   }
 }
+
+//------------------------------------------------------------------------
+void Channel::setMetadata(const QString& metadata)
+{
+  m_metadata = metadata;
+}
+
+//------------------------------------------------------------------------
+QString Channel::metadata() const
+{
+  if (m_metadata.isEmpty() && storage()->exists(metadataFile())) {
+    m_metadata = storage()->snapshot(metadataFile());
+  }
+
+  return m_metadata;
+}
+

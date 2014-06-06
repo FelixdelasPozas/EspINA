@@ -117,6 +117,16 @@ namespace EspINA
      */
     double brightness() const;
 
+    /** \brief Set channel's metadata
+     *
+     */
+    void setMetadata(const QString& metadata);
+
+    /** \brief Channel's metadata
+     *
+     */
+    QString metadata() const;
+
     Bounds bounds() const;
 
     /**

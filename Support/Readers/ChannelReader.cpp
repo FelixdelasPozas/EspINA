@@ -32,6 +32,7 @@
   #include <Producer.h>
   #include <IRODS_Storage.h>
   #include <Support/Metadona/Coordinator.h>
+  #include <Support/Metadona/StorageFactory.h>
 #endif
 
 using namespace EspINA;
@@ -84,24 +85,28 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 
   QString sampleName = "Unknown Sample";
 
+  QString channelMetadata;
+
 #if USE_METADONA
     Coordinator coordinator;
 
-    Metadona::IRODS::Storage storage("metadona");
+    auto storage = StorageFactory::newStorage();
+
     Metadona::Producer producer(storage);
 
     try
     {
-      auto metadata = storage.metadata(file.absoluteFilePath().toStdString());
+      auto metadata = storage->metadata(file.absoluteFilePath().toStdString());
 
       if (metadata.empty())
       {
         metadata = producer.generateFrom("Specimen", coordinator);
 
-        storage.setMetadata(file.absoluteFilePath().toStdString(), metadata);
+        storage->setMetadata(file.absoluteFilePath().toStdString(), metadata);
       }
 
       std::cout << Metadona::dump(metadata) << std::endl;
+      channelMetadata = Metadona::dump(metadata).c_str();
 
       sampleName = metadata.at(0).id().c_str();
     } catch (...)
@@ -139,6 +144,7 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
 
   ChannelSPtr channel = factory->createChannel(filter, 0);
   channel->setName(file.fileName());
+  channel->setMetadata(channelMetadata);
 
   analysis->add(channel);
 

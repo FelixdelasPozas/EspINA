@@ -22,7 +22,7 @@
 
 #include <QDialog>
 
-#include <ui_EntryEditorDialog.h>
+#include <Support/ui_EntryEditorDialog.h>
 
 #include <Coordinator.h>
 #include <functional>

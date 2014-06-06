@@ -126,6 +126,16 @@ namespace EspINA
     double brightness() const
     { return m_brightness; }
 
+    /** \brief Set channel's metadata
+     *
+     */
+    void setMetadata(const QString& metadata);
+
+    /** \brief Channel's metadata
+     *
+     */
+    QString metadata() const;
+
     /**
      *  Extesion won't be available until requirements are satisfied
      */
@@ -157,6 +167,9 @@ namespace EspINA
     static const int AUTOMATIC_OPACITY = -1;
 
   private:
+    QString metadataFile() const
+    { return QString("Metadata/%1/metadata.xml").arg(uuid()); }
+
     QString extensionsPath() const
     { return "Extensions/"; }
 
@@ -167,11 +180,12 @@ namespace EspINA
     { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); }
 
   private:
-    double m_brightness;
-    double m_contrast;
-    double m_hue;
-    double m_opacity;
-    double m_saturation;
+    double  m_brightness;
+    double  m_contrast;
+    double  m_hue;
+    double  m_opacity;
+    double  m_saturation;
+    QString m_metadata;
 
     FilterSPtr           m_filter;
     Output::Id           m_outputId;

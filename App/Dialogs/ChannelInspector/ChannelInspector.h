@@ -64,6 +64,7 @@ namespace EspINA
     // helpher methods
     void applyModifications();
 
+  private:
     bool   m_spacingModified;
     bool   m_edgesModified;
 //    double m_range[2];

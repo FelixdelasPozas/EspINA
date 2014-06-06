@@ -22,17 +22,22 @@ if (METADONA_FOUND)
     Metadona/EntrySelectorDialog.h
     Metadona/EntryEditorDialog.h
     Metadona/LevelSelectorDialog.h
+    Metadona/MetadataViewer.h
     )
   qt4_wrap_ui (METADONA_UI
     Metadona/EntrySelectorDialog.ui
     Metadona/EntryEditorDialog.ui
     Metadona/LevelSelectorDialog.ui
+    Metadona/MetadataViewer.ui
     )
   set (METADONA_SOURCES
     Metadona/Coordinator.cpp
     Metadona/EntrySelectorDialog.cpp
     Metadona/EntryEditorDialog.cpp
     Metadona/LevelSelectorDialog.cpp
+    Metadona/MetadataViewer.cpp
+    Metadona/EntryWidget.cpp
+    Metadona/StorageFactory.cpp
     )
 endif (METADONA_FOUND)
 

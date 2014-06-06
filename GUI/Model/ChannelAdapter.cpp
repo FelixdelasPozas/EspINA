@@ -150,6 +150,18 @@ void ChannelAdapter::setBrightness(double brightness)
   m_channel->setBrightness(brightness);
 }
 
+//------------------------------------------------------------------------
+void ChannelAdapter::setMetadata(const QString& metadata)
+{
+  m_channel->setMetadata(metadata);
+}
+
+//------------------------------------------------------------------------
+QString ChannelAdapter::metadata() const
+{
+  return m_channel->metadata();
+}
+
 
 //------------------------------------------------------------------------
 void ChannelAdapter::addExtension(ChannelExtensionSPtr extension)

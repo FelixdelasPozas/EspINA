@@ -6,6 +6,7 @@
  */
 
 // EspINA
+#include <EspinaConfig.h>
 #include "ChannelInspector.h"
 #include <GUI/View/View2D.h>
 #include <Support/ViewManager.h>
@@ -19,6 +20,15 @@
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
+
+#if USE_METADONA
+  #include <Producer.h>
+  #include <IRODS_Storage.h>
+  #include <Utils.h>
+  #include <Support/Metadona/Coordinator.h>
+  #include <Support/Metadona/MetadataViewer.h>
+  #include <Support/Metadona/StorageFactory.h>
+#endif
 
 // Qt
 #include <QSizePolicy>
@@ -178,6 +188,10 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
     changeEdgeDetectorBgColor(m_backgroundColor);
 
   tabWidget->setCurrentIndex(0);
+
+#if USE_METADONA
+  tabWidget->addTab(new MetadataViewer(channel, m_scheduler, this), tr("Metadata"));
+#endif // USE_METADONA
 }
 
 //------------------------------------------------------------------------
