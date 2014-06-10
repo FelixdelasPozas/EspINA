@@ -79,7 +79,7 @@ int main(int argc, char **argv)
   }
 
 //   qDebug() << "\nUnloading Plugins: \n";
-  foreach(QPluginLoader *plugin, loaders)
+  for(auto plugin: loaders)
   {
     plugin->unload();
     delete plugin;

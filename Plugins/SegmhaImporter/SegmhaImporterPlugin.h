@@ -33,31 +33,7 @@ namespace EspINA
   : public Plugin
   {
     Q_OBJECT
-    Q_INTERFACES
-    (
-      EspINA::Plugin
-    )
-    //     class UndoCommand
-    //     : public QUndoCommand
-    //     {
-    //     public:
-    //       static const Filter::FilterType FILTER_TYPE;
-    //     public:
-    //       explicit UndoCommand(SampleSPtr          sample,
-    //                            ChannelSPtr         channel,
-    //                            SegmhaImporterFilterSPtr filter,
-    //                            EspinaModel         *model,
-    //                            QUndoCommand        *parent = NULL);
-    //       virtual void redo();
-    //       virtual void undo();
-    //
-    //     private:
-    //       EspinaModel         *m_model;
-    //       SampleSPtr          m_sample;
-    //       ChannelSPtr         m_channel;
-    //       SegmhaImporterFilterSPtr m_filter;
-    //       SegmentationSList   m_segs;
-    //     };
+    Q_INTERFACES(EspINA::Plugin)
 
   public:
     explicit SegmhaImporterPlugin();
@@ -69,20 +45,50 @@ namespace EspINA
                       SchedulerSPtr    scheduler,
                       QUndoStack*      undoStack);
 
-    virtual NamedColorEngineSList colorEngines();
+    /* \brief Implements Plugin::colorEngines().
+     *
+     */
+    virtual NamedColorEngineSList colorEngines() const;
 
-    virtual QList< ToolGroup* > toolGroups();
+    /* \brief Implements Plugin::toolGroups().
+     *
+     */
+    virtual QList< ToolGroup* > toolGroups() const;
 
-    virtual QList<DockWidget *> dockWidgets();
+    /* \brief Implements Plugin::dockWidgets().
+     *
+     */
+    virtual QList<DockWidget *> dockWidgets() const;
 
+    /* \brief Implements Plugin::channelExtensionFactories().
+     *
+     */
     virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
+    /* \brief Implements Plugin::segmentationExtensionFactories().
+     *
+     */
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-    virtual RendererSList renderers();
+    /* \brief Implements Plugin::filterFactories().
+     *
+     */
+    virtual FilterFactorySList filterFactories() const;
 
-    virtual SettingsPanelSList settingsPanels();
+    /* \brief Implements Plugin::analysisReaders().
+     *
+     */
+    virtual AnalysisReaderSList analysisReaders() const;
 
+    /* \brief Implements Plugin::renderers().
+     *
+     */
+    virtual RendererSList renderers() const;
+
+    /* \brief Implements Plugin::settingsPanels().
+     *
+     */
+    virtual SettingsPanelSList settingsPanels() const;
 
   private:
     ModelAdapterSPtr m_model;

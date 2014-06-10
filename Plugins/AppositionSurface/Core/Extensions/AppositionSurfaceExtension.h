@@ -15,126 +15,141 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef APPOSITIONSURFACEXTENSION_H
-#define APPOSITIONSURFACEXTENSION_H
+
+#ifndef APPOSITION_SURFAC_EXTENSION_H
+#define APPOSITION_SURFAC_EXTENSION_H
 
 #include "AppositionSurfacePlugin_Export.h"
+
 // EspINA
-#include <Core/Extensions/SegmentationExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/NmVector3.h>
+
+// VTK
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
 
 namespace EspINA
 {
   const QString SAS = QObject::tr("SAS");
 
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceExtension
-  : public Segmentation::Information
+  : public SegmentationExtension
   {
-      struct ExtensionData
-      {
-          explicit ExtensionData();
-
-          bool operator==(const ExtensionData& other) const
-          {
-            bool retVal = Area == other.Area;
-            retVal |= Perimeter == other.Perimeter;
-            retVal |= Tortuosity == other.Tortuosity;
-            retVal |= SynapticSource == other.SynapticSource;
-            retVal |= MeanGaussCurvature == other.MeanGaussCurvature;
-            retVal |= StdDevGaussCurvature == other.StdDevGaussCurvature;
-            retVal |= MeanMeanCurvature == other.MeanMeanCurvature;
-            retVal |= StdDevMeanCurvature == other.StdDevMeanCurvature;
-            retVal |= MeanMinCurvature == other.MeanMinCurvature;
-            retVal |= StdDevMinCurvature == other.StdDevMinCurvature;
-            retVal |= MeanMaxCurvature == other.MeanMaxCurvature;
-            retVal |= StdDevMaxCurvature == other.StdDevMaxCurvature;
-
-            return retVal;
-          }
-
-          Nm Area;
-          Nm Perimeter;
-          double Tortuosity;
-          QString SynapticSource;
-          double MeanGaussCurvature;
-          double StdDevGaussCurvature;
-          double MeanMeanCurvature;
-          double StdDevMeanCurvature;
-          double MeanMinCurvature;
-          double StdDevMinCurvature;
-          double MeanMaxCurvature;
-          double StdDevMaxCurvature;
-      };
-
-      typedef Cache<SegmentationPtr, ExtensionData> ExtensionCache;
-
-      static ExtensionCache s_cache;
-
-      const static QString EXTENSION_FILE;
+    public:
+      static const Type TYPE;
 
     public:
-      static const ModelItem::ExtId ID;
-
-      static const Segmentation::InfoTag AREA;
-      static const Segmentation::InfoTag PERIMETER;
-      static const Segmentation::InfoTag TORTUOSITY;
-      static const Segmentation::InfoTag SYNAPSE;
-      static const Segmentation::InfoTag COMPUTATION_TIME;
-      static const Segmentation::InfoTag MEAN_GAUSS_CURVATURE;
-      static const Segmentation::InfoTag STD_DEV_GAUS_CURVATURE;
-      static const Segmentation::InfoTag MEAN_MEAN_CURVATURE;
-      static const Segmentation::InfoTag STD_DEV_MEAN_CURVATURE;
-      static const Segmentation::InfoTag MEAN_MIN_CURVATURE;
-      static const Segmentation::InfoTag STD_DEV_MIN_CURVATURE;
-      static const Segmentation::InfoTag MEAN_MAX_CURVATURE;
-      static const Segmentation::InfoTag STD_DEV_MAX_CURVATURE;
-
-    public:
-      explicit AppositionSurfaceExtension();
+      explicit AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache);
       virtual ~AppositionSurfaceExtension();
 
-      virtual ModelItem::ExtId id();
+      /* \brief Implements Extension:type().
+       *
+       */
+      virtual Type type() const
+      { return TYPE; }
 
-      virtual ModelItem::ExtIdList dependencies() const
-      { return Segmentation::Extension::dependencies(); }
+      /* \brief Implements Extension::invalidateOnChange().
+       *
+       */
+      virtual bool invalidateOnChange() const
+      { return true; }
 
-      virtual Segmentation::InfoTagList availableInformations() const;
+      /* \brief Implements Extension::state().
+       *
+       */
+      virtual State state() const
+      { return State(); }
 
-      virtual bool validTaxonomy(const QString &qualifiedName) const;
+      /* \brief Implements Extension::snapshot().
+       *
+       */
+      virtual Snapshot snapshot() const
+      { return Snapshot(); }
 
-      virtual void setSegmentation(SegmentationPtr seg);
+      /* \brief Implements Extension::dependencies().
+       *
+       */
+      virtual TypeList dependencies() const
+      { return TypeList(); }
 
-      virtual QVariant information(const Segmentation::InfoTag &tag);
+      /* \brief Implements Extension::availableInformations().
+       *
+       */
+      virtual InfoTagList availableInformations() const;
 
-      virtual bool isCacheFile(const QString &file) const;
+      /* \brief Implements SegmentationExtension::validCategory().
+       *
+       */
+      virtual bool validCategory(const QString &classificationName) const;
 
-      virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model);
+    protected:
+      /* \brief Implements Extension::cacheFail().
+       *
+       */
+      virtual QVariant cacheFail(const InfoTag &tag) const;
 
-      virtual bool saveCache(Snapshot &cacheList);
-
-      virtual Segmentation::InformationExtension clone();
-
-      virtual void initialize();
-
-      virtual void invalidate(SegmentationPtr segmentation = 0);
+      /* \brief Implements Extension::onExtendedItemSet().
+       *
+       */
+      virtual void onExtendedItemSet(Segmentation* item);
 
   private:
-    Nm computeArea(vtkPolyData *asMesh) const;
+      /* \brief Computes SAS area.
+       * \param[in] asMesh, SAS polydata smart pointer.
+       */
+      Nm computeArea(const vtkSmartPointer<vtkPolyData> &asMesh) const;
 
-    bool isPerimeter(vtkPolyData *asMesh, vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
+      /* \brief Returns true if the specified cell is part of the perimeter.
+       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[in] cellId, id of the cell.
+       * \param[in] p1
+       * \param[in] p2
+       */
+      bool isPerimeter(const vtkSmartPointer<vtkPolyData> &asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
 
-    Nm computePerimeter(vtkPolyData *asMesh) const;
+      /* \brief Returns the perimeter of the SAS.
+       * \param[in] asMesh, SAS polydata smart pointer.
+       *
+       */
+      Nm computePerimeter(const vtkSmartPointer<vtkPolyData> &asMesh) const;
 
-    vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(vtkPolyData* mesh) const;
+      /* \brief Returns the projection of the SAS polydata to a plane.
+       * \param[in] asMesh, SAS polydata smart pointer.
+       */
+      vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> &mesh) const;
 
-    double computeTortuosity(vtkPolyData *asMesh, Nm asArea) const;
+      /* \brief Returns the tortuosity of the SAS.
+       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[in] asArea, area of the SAS.
+       */
+      double computeTortuosity(const vtkSmartPointer<vtkPolyData> &asMesh, const Nm asArea) const;
 
-    bool computeInformation();
+      /* \brief Computes SAS curvatures.
+       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[out] gaussCurvature
+       * \param[out] meanCurvature
+       * \param[out] minCurvature
+       * \param[out] maxCurvature
+       */
+      void computeCurvatures(const vtkSmartPointer<vtkPolyData> &asMesh,
+                             vtkSmartPointer<vtkDoubleArray> gaussCurvature,
+                             vtkSmartPointer<vtkDoubleArray> meanCurvature,
+                             vtkSmartPointer<vtkDoubleArray> minCurvature,
+                             vtkSmartPointer<vtkDoubleArray> maxCurvature) const;
+    
+      /* \brief Returns true if the information has been calculated. Computes all available
+       * informations.
+       *
+       */
+      bool computeInformation() const;
 
   };
 
-  typedef boost::shared_ptr<AppositionSurfaceExtension> AppositionSurfaceExtensionSPtr;
+  using AppositionSurfaceExtensionPtr  = AppositionSurfaceExtension *;
+  using AppositionSurfaceExtensionSPtr = std::shared_ptr<AppositionSurfaceExtension>;
 
 } // namespace EspINA
 
-#endif // APPOSITIONSURFACEEXTENSION_H
+#endif // APPOSITION_SURFAC_EXTENSION_H

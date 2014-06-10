@@ -18,64 +18,79 @@
 
 // plugin
 #include "AppositionSurfaceToolbar.h"
-
-#include "Analysis/SynapticAppositionSurfaceAnalysis.h"
-#include "GUI/Settings/AppositionSurfaceSettings.h"
-#include "GUI/FilterInspector/AppositionSurfaceFilterInspector.h"
-#include "GUI/AppositionSurfaceAction.h"
-#include "Undo/AppositionSurfaceCommand.h"
+#include <Filter/AppositionSurfaceFilter.h>
 
 // EspINA
-#include <Core/Extensions/SegmentationExtension.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/EspinaSettings.h>
-#include <Undo/TaxonomiesCommand.h>
-#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <Undo/AddCategoryCommand.h>
+#include <Undo/AddSegmentations.h>
 
 // Qt
-#include <QColorDialog>
-#include <QMessageBox>
-#include <QSettings>
-#include <QDebug>
+#include <QApplication>
+#include <QUndoStack>
+#include <QIcon>
 #include <QString>
 #include <QVariant>
+#include <QDebug>
 
 using namespace EspINA;
 
-//-----------------------------------------------------------------------------
-AppositionSurfaceToolbar::AppositionSurfaceToolbar(ModelAdapter *model,
-                                                   QUndoStack  *undoStack,
-                                                   ViewManager *viewManager)
-: m_model(model)
-, m_undoStack(undoStack)
-, m_viewManager(viewManager)
-, m_action(new AppositionSurfaceAction(m_viewManager, m_undoStack, m_model, this))
-, m_settings(ISettingsPanelPrototype(new AppositionSurfaceSettings()))
-, m_extension(new AppositionSurfaceExtension())
-{
-  setObjectName("SinapticAppositionSurfaceToolbarPlugin");
-  setWindowTitle(tr("Sinaptic Apposition Surface Tool Bar"));
+const QString SAS = QObject::tr("SAS");
 
-  m_action->setToolTip("Create a synaptic apposition surface from selected segmentations.");
-  addAction(m_action);
+//-----------------------------------------------------------------------------
+AppositionSurfaceToolGroup::AppositionSurfaceToolGroup(ModelAdapterSPtr model, QUndoStack *undoStack, ModelFactorySPtr factory, ViewManagerSPtr viewManager)
+: ToolGroup(viewManager, QIcon(":/AppSurface.svg"), tr("Apposition Surface Tools"), nullptr)
+, m_model    {model}
+, m_factory  {factory}
+, m_undoStack{undoStack}
+, m_tool     {SASToolSPtr{new AppositionSurfaceTool{QIcon(":/AppSurface.svg"), tr("Create a synaptic apposition surface from selected segmentations.")}}}
+, m_enabled  {true}
+{
+  m_tool->setToolTip("Create a synaptic apposition surface from selected segmentations.");
+  connect(m_tool.get(), SIGNAL(triggered()), this, SLOT(createSAS()));
+
+  connect(viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
 }
 
 //-----------------------------------------------------------------------------
-AppositionSurfaceToolbar::~AppositionSurfaceToolbar()
+AppositionSurfaceToolGroup::~AppositionSurfaceToolGroup()
 {
-  delete m_action;
+  disconnect(m_tool.get(), SIGNAL(triggered()), this, SLOT(createSAS()));
+  disconnect(m_viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurfaceToolbar::selectionChanged(ViewManager::Selection selection, bool unused)
+void AppositionSurfaceToolGroup::setEnabled(bool enable)
+{
+  m_enabled = enable;
+  selectionChanged();
+}
+
+//-----------------------------------------------------------------------------
+bool AppositionSurfaceToolGroup::enabled() const
+{
+  return m_enabled;
+}
+
+//-----------------------------------------------------------------------------
+ToolSList AppositionSurfaceToolGroup::tools()
+{
+  ToolSList tools;
+
+  tools << m_tool;
+
+  return tools;
+}
+
+//-----------------------------------------------------------------------------
+void AppositionSurfaceToolGroup::selectionChanged()
 {
   QString toolTip("Create a synaptic apposition surface from selected segmentations.");
   bool enabled = false;
 
-  foreach(PickableItemPtr item, selection)
+  for(auto segmentation: m_viewManager->selection()->segmentations())
   {
-    if (item->type() == SEGMENTATION && isSynapse(segmentationPtr(item)))
+    if (isSynapse(segmentation))
     {
       enabled = true;
       break;
@@ -85,12 +100,139 @@ void AppositionSurfaceToolbar::selectionChanged(ViewManager::Selection selection
   if (!enabled)
     toolTip += QString("\n(Requires a selection of one or more segmentations from 'Synapse' taxonomy)");
 
-  m_action->setToolTip(toolTip);
-  m_action->setEnabled(enabled);
+  m_tool->setToolTip(toolTip);
+  m_tool->setEnabled(enabled && m_enabled);
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfaceToolbar::isSynapse(SegmentationPtr segmentation)
+void AppositionSurfaceToolGroup::createSAS()
 {
-  return segmentation->taxonomy()->qualifiedName().contains(tr("Synapse"));
+  auto segmentations = m_viewManager->selection()->segmentations();
+  SegmentationAdapterList validSegmentations;
+  for(auto seg: segmentations)
+  {
+    if (isSynapse(seg))
+    {
+      bool valid = true;
+      for (auto item : m_model->relatedItems(seg, RELATION_OUT))
+        if (item->type() == ItemAdapter::Type::SEGMENTATION)
+        {
+          SegmentationAdapterSPtr sasCandidate = std::dynamic_pointer_cast<SegmentationAdapter>(item);
+          if (sasCandidate->category()->classificationName().startsWith("SAS/") ||
+              sasCandidate->category()->classificationName().compare("SAS") == 0)
+          {
+            valid = false;
+          }
+        }
+
+      if (valid)
+        validSegmentations << seg;
+    }
+  }
+
+  if(validSegmentations.empty())
+    return;
+
+  for(auto seg: validSegmentations)
+  {
+    InputSList inputs;
+    inputs << seg->asInput();
+
+    auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+
+    struct Data data(adapter, m_model->smartPointer(seg));
+    m_executingTasks.insert(adapter.get(), data);
+
+    connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+    adapter->submit();
+  }
 }
+
+//-----------------------------------------------------------------------------
+void AppositionSurfaceToolGroup::finishedTask()
+{
+  auto filter = qobject_cast<FilterAdapterPtr>(sender());
+
+  disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
+
+  if(!filter->isAborted())
+    m_finishedTasks.insert(filter, m_executingTasks[filter]);
+
+  m_executingTasks.remove(filter);
+
+  if (!m_executingTasks.empty())
+    return;
+
+  if(m_finishedTasks.empty())
+    return;
+
+  m_undoStack->beginMacro("Create Synaptic Apposition Surfaces");
+
+  auto classification = m_model->classification();
+  if (classification->category(SAS) == nullptr)
+  {
+
+    m_undoStack->push(new AddCategoryCommand(m_model->classification()->categories().first()->parent(), SAS, m_model, QColor(255,255,0)));
+
+    m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
+    m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
+    m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
+  }
+
+  CategoryAdapterSPtr category = classification->category(SAS);
+  Q_ASSERT(category);
+
+  SegmentationAdapterList createdSegmentations;
+
+  for(auto filter: m_finishedTasks.keys())
+  {
+    auto segmentation = m_factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
+    segmentation->setCategory(category);
+
+    auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+    segmentation->addExtension(extension);
+
+    auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
+    Q_ASSERT(!samples.empty());
+
+    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+
+    createdSegmentations << segmentation.get();
+  }
+  m_undoStack->endMacro();
+
+  m_viewManager->updateSegmentationRepresentations(createdSegmentations);
+  m_viewManager->updateViews();
+
+  m_finishedTasks.clear();
+}
+
+
+//-----------------------------------------------------------------------------
+bool AppositionSurfaceToolGroup::isSynapse(SegmentationAdapterPtr segmentation)
+{
+  return segmentation->category()->classificationName().contains(tr("Synapse"));
+}
+
+//-----------------------------------------------------------------------------
+AppositionSurfaceTool::AppositionSurfaceTool(const QIcon& icon, const QString& text)
+: m_action {new QAction{icon, text, nullptr}}
+{
+  connect(m_action, SIGNAL(triggered()), this, SLOT(activated()));
+}
+
+//-----------------------------------------------------------------------------
+AppositionSurfaceTool::~AppositionSurfaceTool()
+{
+  disconnect(m_action, SIGNAL(triggered()), this, SLOT(activated()));
+}
+
+//-----------------------------------------------------------------------------
+QList<QAction *> AppositionSurfaceTool::actions() const
+{
+  QList<QAction *> actions;
+  actions << m_action;
+
+  return actions;
+}
+

@@ -2,7 +2,7 @@
  * AppositionSurfaceCommand.h
  *
  *  Created on: Jan 16, 2013
- *      Author: Felix de las Pozas Alvarez
+ *      Author: F�lix de las Pozas �lvarez
  */
 
 #ifndef APPOSITIONSURFACECOMMAND_H_
@@ -11,44 +11,35 @@
 #include "AppositionSurfacePlugin_Export.h"
 
 // EspINA
-#include <Core/Model/Filter.h>
 #include <Core/EspinaTypes.h>
-#include <Core/Model/Segmentation.h>
+#include <GUI/Model/FilterAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include <Support/ViewManager.h>
 
 // Qt
 #include <QUndoCommand>
 
 namespace EspINA
 {
-  class ModelAdapter;
-  class ViewManager;
-
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceCommand
   : public QUndoCommand
   {
     public:
-      static const Filter::FilterType FILTER_TYPE;
-
-    public:
-      explicit AppositionSurfaceCommand(SegmentationList   inputs,
-                                        ModelAdapter       *model,
-                                        ViewManager       *vm,
-                                        SegmentationSList &createdSegmentations);
+      explicit AppositionSurfaceCommand(const SegmentationAdapterList  inputs,
+                                        const ModelAdapterSPtr         model,
+                                        const ViewManagerSPtr          vm,
+                                        SegmentationAdapterSList &createdSegmentations);
       virtual ~AppositionSurfaceCommand() {};
 
       virtual void redo();
       virtual void undo();
 
     private:
-      ModelAdapter *m_model;
-      ViewManager *m_viewManager;
-
-      TaxonomyElementSPtr m_taxonomy;
-      SampleSList      m_samples;
-      ChannelSList        m_channels;
-      FilterSList      m_filters;
-      SegmentationSList   m_segmentations;
-      SegmentationSList   m_asSegmentations;
+      ModelAdapterSPtr        m_model;
+      ViewManagerSPtr         m_viewManager;
+      CategoryAdapterSPtr     m_category;
+      SegmentationAdapterList m_asSegmentations;
   };
 
 } /* namespace EspINA */

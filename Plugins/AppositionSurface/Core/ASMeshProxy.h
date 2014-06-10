@@ -21,8 +21,7 @@
 #define ESPINA_ASMESHPROXY_H
 
 #include "AppositionSurfacePlugin_Export.h"
-
-#include <Core/OutputRepresentations/MeshProxy.h>
+#include <Core/Analysis/Data/Mesh/MeshProxy.h>
 
 namespace EspINA
 {

@@ -16,14 +16,16 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Plugin
 #include "AppositionSurfaceExtension.h"
 #include <Filter/AppositionSurfaceFilter.h>
 
 // EspINA
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/EspinaSettings.h>
-#include <Core/OutputRepresentations/MeshType.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/MeshData.h>
+
+// VTK
+#include <vtkIdList.h>
 #include <vtkMeshQuality.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkMutableUndirectedGraph.h>
@@ -31,14 +33,18 @@
 #include <vtkEdgeListIterator.h>
 #include <vtkPointData.h>
 #include <vtkIdTypeArray.h>
-#include <vtkIdList.h>
 #include <vtkMath.h>
 #include <vtkPlane.h>
 #include <vtkDoubleArray.h>
+#include <vtkCurvatures.h>
 #include <vtkBoostConnectedComponents.h>
 
-// boost
-#include <boost/concept_check.hpp>
+using IdList = vtkSmartPointer<vtkIdList>;
+using IdTypeArray = vtkSmartPointer<vtkIdTypeArray>;
+using MutableUndirectedGraph = vtkSmartPointer<vtkMutableUndirectedGraph>;
+using BoostConnectedComponents = vtkSmartPointer<vtkBoostConnectedComponents>;
+using EdgeListIterator = vtkSmartPointer<vtkEdgeListIterator>;
+using PolyDataNormals = vtkSmartPointer<vtkPolyDataNormals>;
 
 using namespace EspINA;
 
@@ -48,73 +54,42 @@ using namespace EspINA;
 /// Information Provided:
 /// - Sinaptic Apposition Surface Area
 /// - Sinaptic Apposition Surface Perimeter
-/// - Sinaptic Apposition Surface Tortuosity
+/// - Sinaptic Apposition Surface Tortuosity (aka Area Ratio)
 /// - Synapse from which the Sinaptic Apposition Surface was obtained
 
-const ModelItem::ExtId   AppositionSurfaceExtension::ID = "AppositionSurfaceExtension";
+const SegmentationExtension::Type AppositionSurfaceExtension::TYPE = "AppositionSurfaceExtensionInformation";
 
-const Segmentation::InfoTag AppositionSurfaceExtension::AREA                   = "Area";
-const Segmentation::InfoTag AppositionSurfaceExtension::PERIMETER              = "Perimeter";
-const Segmentation::InfoTag AppositionSurfaceExtension::TORTUOSITY             = "Tortuosity";
-const Segmentation::InfoTag AppositionSurfaceExtension::SYNAPSE                = "Synapse";
-const Segmentation::InfoTag AppositionSurfaceExtension::COMPUTATION_TIME       = "Computation Time";
-const Segmentation::InfoTag AppositionSurfaceExtension::MEAN_GAUSS_CURVATURE   = "Mean Gauss Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::STD_DEV_GAUS_CURVATURE = "Std Deviation Gauss Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::MEAN_MEAN_CURVATURE    = "Mean Mean Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::STD_DEV_MEAN_CURVATURE = "Std Deviation Mean Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::MEAN_MIN_CURVATURE     = "Mean Min Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::STD_DEV_MIN_CURVATURE  = "Std Deviation Mix Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::MEAN_MAX_CURVATURE     = "Mean Max Curvature";
-const Segmentation::InfoTag AppositionSurfaceExtension::STD_DEV_MAX_CURVATURE  = "Std Deviation Max Curvature";
-
-const QString AppositionSurfaceExtension::EXTENSION_FILE = "AppositionSurfaceExtension/AppositionSurfaceExtension.csv";
-
-const int CURRENT_EXTENSION_VERSION = 2;
-const std::string OLD_EXTENSION_VERSION = AppositionSurfaceExtension::ID.toStdString() + " 1.0\n";
-const char SEP = ',';
-
-AppositionSurfaceExtension::ExtensionCache AppositionSurfaceExtension::s_cache;
+const SegmentationExtension::InfoTag AREA                   = "Area";
+const SegmentationExtension::InfoTag PERIMETER              = "Perimeter";
+const SegmentationExtension::InfoTag TORTUOSITY             = "Area Ratio";
+const SegmentationExtension::InfoTag SYNAPSE                = "Synapse";
+const SegmentationExtension::InfoTag COMPUTATION_TIME       = "Computation Time";
+const SegmentationExtension::InfoTag MEAN_GAUSS_CURVATURE   = "Mean Gauss Curvature";
+const SegmentationExtension::InfoTag STD_DEV_GAUS_CURVATURE = "Std Deviation Gauss Curvature";
+const SegmentationExtension::InfoTag MEAN_MEAN_CURVATURE    = "Mean Mean Curvature";
+const SegmentationExtension::InfoTag STD_DEV_MEAN_CURVATURE = "Std Deviation Mean Curvature";
+const SegmentationExtension::InfoTag MEAN_MIN_CURVATURE     = "Mean Min Curvature";
+const SegmentationExtension::InfoTag STD_DEV_MIN_CURVATURE  = "Std Deviation Min Curvature";
+const SegmentationExtension::InfoTag MEAN_MAX_CURVATURE     = "Mean Max Curvature";
+const SegmentationExtension::InfoTag STD_DEV_MAX_CURVATURE  = "Std Deviation Max Curvature";
 
 const double UNDEFINED = -1.;
 
 //------------------------------------------------------------------------
-AppositionSurfaceExtension::ExtensionData::ExtensionData()
-: Area(UNDEFINED)
-, Perimeter(UNDEFINED)
-, Tortuosity(UNDEFINED)
-, SynapticSource(QString())
-, MeanGaussCurvature(UNDEFINED)
-, StdDevGaussCurvature(UNDEFINED)
-, MeanMeanCurvature(UNDEFINED)
-, StdDevMeanCurvature(UNDEFINED)
-, MeanMinCurvature(UNDEFINED)
-, StdDevMinCurvature(UNDEFINED)
-, MeanMaxCurvature(UNDEFINED)
-, StdDevMaxCurvature(UNDEFINED)
-{
-}
-
-//------------------------------------------------------------------------
-AppositionSurfaceExtension::AppositionSurfaceExtension()
+AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache)
+: SegmentationExtension{cache}
 {
 }
 
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::~AppositionSurfaceExtension()
 {
-  invalidate();
 }
 
 //------------------------------------------------------------------------
-ModelItem::ExtId AppositionSurfaceExtension::id()
+SegmentationExtension::InfoTagList AppositionSurfaceExtension::availableInformations() const
 {
-  return ID;
-}
-
-//------------------------------------------------------------------------
-Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() const
-{
-  Segmentation::InfoTagList tags;
+  SegmentationExtension::InfoTagList tags;
 
   tags << AREA
        << PERIMETER
@@ -132,206 +107,32 @@ Segmentation::InfoTagList AppositionSurfaceExtension::availableInformations() co
   return tags;
 }
 
-//------------------------------------------------------------------------
-bool AppositionSurfaceExtension::validTaxonomy(const QString &qualifiedName) const
+QVariant AppositionSurfaceExtension::cacheFail(const SegmentationExtension::InfoTag &tag) const
 {
-  return qualifiedName.contains(tr("SAS"));
-}
-
-//------------------------------------------------------------------------
-void AppositionSurfaceExtension::setSegmentation(SegmentationPtr seg)
-{
-  EspINA::Segmentation::Information::setSegmentation(seg);
-
-  connect(m_segmentation, SIGNAL(outputModified()),
-          this, SLOT(invalidate()));
-
-  if (m_segmentation->outputIsModified())
-    invalidate();
-  else
-    initialize();
-}
-
-//------------------------------------------------------------------------
-QVariant AppositionSurfaceExtension::information(const Segmentation::InfoTag &tag)
-{
-  QString fullTaxonomy = m_segmentation->taxonomy()->qualifiedName();
-  if (!fullTaxonomy.startsWith(SAS+"/") && (fullTaxonomy.compare(SAS) != 0))
-    return QVariant();
-
-  bool cached = s_cache.isCached(m_segmentation);
-
-  if (!cached)
+  if(availableInformations().contains(tag))
   {
     computeInformation();
+    return information(tag);
   }
-
-  ExtensionData &data = s_cache[m_segmentation].Data;
-
-  if (AREA == tag)
-    return data.Area;
-  if (PERIMETER == tag)
-    return data.Perimeter;
-  if (TORTUOSITY == tag)
-    return data.Tortuosity;
-  if (SYNAPSE == tag)
-    return data.SynapticSource;
-  if (MEAN_GAUSS_CURVATURE == tag)
-    return data.MeanGaussCurvature;
-  if (STD_DEV_GAUS_CURVATURE == tag)
-    return data.StdDevGaussCurvature;
-  if (MEAN_MEAN_CURVATURE == tag)
-    return data.MeanMeanCurvature;
-  if (STD_DEV_MEAN_CURVATURE == tag)
-    return data.StdDevMeanCurvature;
-  if (MEAN_MIN_CURVATURE == tag)
-    return data.MeanMinCurvature;
-  if (STD_DEV_MIN_CURVATURE == tag)
-    return data.StdDevMinCurvature;
-  if (MEAN_MAX_CURVATURE == tag)
-    return data.MeanMaxCurvature;
-  if (STD_DEV_MAX_CURVATURE == tag)
-    return data.StdDevMaxCurvature;
-
-  qWarning() << ID << ":"  << tag << " is not provided";
-  Q_ASSERT(false);
-  return QVariant();
+  else
+    return QVariant();
 }
 
 //------------------------------------------------------------------------
-Segmentation::InformationExtension AppositionSurfaceExtension::clone()
+bool AppositionSurfaceExtension::validCategory(const QString &classificationName) const
 {
-  return new AppositionSurfaceExtension();
+  return classificationName.contains(tr("SAS"));
 }
 
 //------------------------------------------------------------------------
-bool AppositionSurfaceExtension::isCacheFile(const QString &file) const
+void AppositionSurfaceExtension::onExtendedItemSet(Segmentation *item)
 {
-  return EXTENSION_FILE == file;
+  connect(item, SIGNAL(outputModified()),
+          this, SLOT(invalidate()));
 }
 
 //------------------------------------------------------------------------
-void AppositionSurfaceExtension::initialize()
-{
-
-}
-
-//------------------------------------------------------------------------
-void AppositionSurfaceExtension::invalidate(SegmentationPtr segmentation)
-{
-  s_cache.remove(m_segmentation);
-}
-
-//------------------------------------------------------------------------
-void AppositionSurfaceExtension::loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model)
-{
-  QString header(file.readLine());
-
-  int cachedVersion = header.toStdString() == OLD_EXTENSION_VERSION ? 1 : header.toInt();
-  Q_ASSERT(cachedVersion <= CURRENT_EXTENSION_VERSION);
-
-  char buffer[1024];
-  while (file.readLine(buffer, sizeof(buffer)) > 0)
-  {
-    QString line(buffer);
-    QStringList fields = line.remove('\n').split(SEP);
-
-    Q_ASSERT(fields.size() > 5);
-
-    SegmentationPtr extensionSegmentation = NULL;
-    int i = 0;
-    while (!extensionSegmentation && i < model->segmentations().size())
-    {
-      SegmentationSPtr segmentation = model->segmentations()[i];
-      if ( segmentation->filter()->id()       == fields[0]
-        && segmentation->outputId()           == fields[1].toInt()
-        && segmentation->filter()->cacheDir() == tmpDir)
-      {
-        extensionSegmentation = segmentation.get();
-      }
-      i++;
-    }
-    // NOTE: This assert means someone's removing an extension from the model
-    //       without invalidating its extensions
-    Q_ASSERT(extensionSegmentation);
-
-    ExtensionData &data = s_cache[extensionSegmentation].Data;
-
-    data.Area           = fields[2].toDouble();
-    data.Perimeter      = fields[3].toDouble();
-    data.Tortuosity     = fields[4].toDouble();
-    data.SynapticSource = fields[5];
-
-    if (CURRENT_EXTENSION_VERSION == cachedVersion)
-    {
-      data.MeanGaussCurvature   = fields[ 6].toDouble();
-      data.StdDevGaussCurvature = fields[ 7].toDouble();
-      data.MeanMeanCurvature    = fields[ 8].toDouble();
-      data.StdDevMeanCurvature  = fields[ 9].toDouble();
-      data.MeanMinCurvature     = fields[10].toDouble();
-      data.StdDevMinCurvature   = fields[11].toDouble();
-      data.MeanMaxCurvature     = fields[12].toDouble();
-      data.StdDevMaxCurvature   = fields[13].toDouble();
-    }
-  }
-}
-
-//------------------------------------------------------------------------
-// It's declared static to avoid collisions with other functions with same
-// signature in different compilation units
-static bool invalidData(SegmentationPtr seg)
-{
-  bool invalid = false;
-  if (seg->hasInformationExtension(AppositionSurfaceExtension::ID))
-  {
-    invalid = !seg->informationExtension(AppositionSurfaceExtension::ID)->isEnabled();
-  } else 
-  {
-    invalid = seg->outputIsModified();
-  }
-  return invalid;
-}
-//------------------------------------------------------------------------
-bool AppositionSurfaceExtension::saveCache(Snapshot &cacheList)
-{
-  s_cache.purge(invalidData);
-
-  if (s_cache.isEmpty())
-    return false;
-
-  std::ostringstream cache;
-  cache << CURRENT_EXTENSION_VERSION << std::endl;
-
-  foreach(SegmentationPtr segmentation, s_cache.keys())
-  {
-    ExtensionData &data = s_cache[segmentation].Data;
-
-    cache << segmentation->filter()->id().toStdString();
-    cache << SEP << segmentation->outputId();
-
-    cache << SEP << data.Area;
-    cache << SEP << data.Perimeter;
-    cache << SEP << data.Tortuosity;
-    cache << SEP << data.SynapticSource.toStdString();
-    cache << SEP << data.MeanGaussCurvature;
-    cache << SEP << data.StdDevGaussCurvature;
-    cache << SEP << data.MeanMeanCurvature;
-    cache << SEP << data.StdDevMeanCurvature;
-    cache << SEP << data.MeanMinCurvature;
-    cache << SEP << data.StdDevMinCurvature;
-    cache << SEP << data.MeanMaxCurvature;
-    cache << SEP << data.StdDevMaxCurvature;
-
-    cache << std::endl;
-  }
-
-  cacheList << QPair<QString, QByteArray>(EXTENSION_FILE, cache.str().c_str());
-
-  return true;
-}
-
-//------------------------------------------------------------------------
-Nm AppositionSurfaceExtension::computeArea(vtkPolyData *asMesh) const
+Nm AppositionSurfaceExtension::computeArea(const vtkSmartPointer<vtkPolyData> &asMesh) const
 {
   int nc = asMesh->GetNumberOfCells();
   Nm totalArea = nc ? 0.0 : UNDEFINED;
@@ -342,14 +143,8 @@ Nm AppositionSurfaceExtension::computeArea(vtkPolyData *asMesh) const
   return totalArea;
 }
 
-typedef vtkSmartPointer<vtkIdList>                   IdList;
-typedef vtkSmartPointer<vtkIdTypeArray>              IdTypeArray;
-typedef vtkSmartPointer<vtkMutableUndirectedGraph>   MutableUndirectedGraph;
-typedef vtkSmartPointer<vtkBoostConnectedComponents> BoostConnectedComponents;
-typedef vtkSmartPointer<vtkEdgeListIterator>         EdgeListIterator;
-
 //----------------------------------------------------------------------------
-bool AppositionSurfaceExtension::isPerimeter(vtkPolyData *asMesh, vtkIdType cellId, vtkIdType p1, vtkIdType p2) const
+bool AppositionSurfaceExtension::isPerimeter(const vtkSmartPointer<vtkPolyData> &asMesh, vtkIdType cellId, vtkIdType p1, vtkIdType p2) const
 {
   IdList neighborCellIds = IdList::New();
   asMesh->GetCellEdgeNeighbors(cellId, p1, p2, neighborCellIds);
@@ -358,9 +153,10 @@ bool AppositionSurfaceExtension::isPerimeter(vtkPolyData *asMesh, vtkIdType cell
 }
 
 //------------------------------------------------------------------------
-Nm AppositionSurfaceExtension::computePerimeter(vtkPolyData *asMesh) const
+Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyData> &asMesh) const
 {
   Nm totalPerimeter = 0.0;
+
   try
   {
     asMesh->BuildLinks();
@@ -412,8 +208,8 @@ Nm AppositionSurfaceExtension::computePerimeter(vtkPolyData *asMesh) const
     // std::cout << "Edges: " << graph->GetNumberOfEdges() << std::endl;
     // std::cout << "Pedigree: " << pedigree->GetNumberOfTuples() << std::endl;
 
-    BoostConnectedComponents connectedComponents =BoostConnectedComponents::New();
-    connectedComponents->SetInput(graph);
+    BoostConnectedComponents connectedComponents = BoostConnectedComponents::New();
+    connectedComponents->SetInputData(graph);
     connectedComponents->Update();
     vtkGraph *outputGraph = connectedComponents->GetOutput();
     vtkIntArray *components = vtkIntArray::SafeDownCast( outputGraph->GetVertexData()->GetArray("component"));
@@ -427,10 +223,12 @@ Nm AppositionSurfaceExtension::computePerimeter(vtkPolyData *asMesh) const
     EdgeListIterator edgeListIterator = EdgeListIterator::New();
     graph->GetEdges(edgeListIterator);
 
-    while(edgeListIterator->HasNext()) {
+    while(edgeListIterator->HasNext())
+    {
       vtkEdgeType edge = edgeListIterator->Next();
 
-      if (components->GetValue(edge.Source) != components->GetValue(edge.Target) ) {
+      if (components->GetValue(edge.Source) != components->GetValue(edge.Target) )
+      {
         throw "ERROR: Edge between 2 disconnected component";
       }
       double x[3];
@@ -455,7 +253,8 @@ Nm AppositionSurfaceExtension::computePerimeter(vtkPolyData *asMesh) const
       max_per = std::max(perimeters[i], max_per);
     }
     totalPerimeter = max_per;
-  }catch (...)
+  }
+  catch (...)
   {
     // std::cerr << "Warning: Couldn't compute " << m_seg->data().toString().toStdString() << "'s Apposition Plane perimter" << std::endl;
     totalPerimeter = UNDEFINED;
@@ -464,10 +263,8 @@ Nm AppositionSurfaceExtension::computePerimeter(vtkPolyData *asMesh) const
   return totalPerimeter;
 }
 
-typedef vtkSmartPointer<vtkPolyDataNormals> PolyDataNormals;
-
 //------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(vtkPolyData *mesh) const
+vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> &mesh) const
 {
   double origin[3];
   double normal[3]; // Normal's magnitude is 1
@@ -504,7 +301,7 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
   auxMesh->SetPoints(pointsOut);
 
   PolyDataNormals normals = PolyDataNormals::New();
-  normals->SetInput(auxMesh);
+  normals->SetInputData(auxMesh);
   normals->SplittingOff();
   normals->Update();
 
@@ -515,7 +312,7 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
 }
 
 //------------------------------------------------------------------------
-double AppositionSurfaceExtension::computeTortuosity(vtkPolyData *asMesh, Nm asArea) const
+double AppositionSurfaceExtension::computeTortuosity(const vtkSmartPointer<vtkPolyData> &asMesh, Nm asArea) const
 {
   vtkSmartPointer<vtkPolyData> projectedAS = projectPolyDataToPlane(asMesh);
 
@@ -525,25 +322,112 @@ double AppositionSurfaceExtension::computeTortuosity(vtkPolyData *asMesh, Nm asA
 }
 
 //------------------------------------------------------------------------
-bool AppositionSurfaceExtension::computeInformation()
+void AppositionSurfaceExtension::computeCurvatures(const vtkSmartPointer<vtkPolyData> &asMesh,
+						                                       vtkSmartPointer<vtkDoubleArray> gaussCurvature,
+						                                       vtkSmartPointer<vtkDoubleArray> meanCurvature,
+						                                       vtkSmartPointer<vtkDoubleArray> minCurvature,
+						                                       vtkSmartPointer<vtkDoubleArray> maxCurvature) const
+{
+	vtkSmartPointer<vtkCurvatures> curvatures_fliter = vtkSmartPointer<vtkCurvatures>::New();
+	curvatures_fliter->SetInputData(asMesh);
+
+	vtkPolyData * output = curvatures_fliter->GetOutput();
+
+	curvatures_fliter->SetCurvatureTypeToGaussian();
+	curvatures_fliter->Update();
+	gaussCurvature->DeepCopy(output->GetPointData()->GetArray("Gauss_Curvature"));
+
+	curvatures_fliter->SetCurvatureTypeToMean();
+	curvatures_fliter->Update();
+	meanCurvature->DeepCopy(output->GetPointData()->GetArray("Mean_Curvature"));
+
+	curvatures_fliter->SetCurvatureTypeToMinimum();
+	curvatures_fliter->Update();
+	minCurvature->DeepCopy(output->GetPointData()->GetArray("Minimum_Curvature"));
+
+	curvatures_fliter->SetCurvatureTypeToMaximum();
+	curvatures_fliter->Update();
+	maxCurvature->DeepCopy(output->GetPointData()->GetArray("Maximum_Curvature"));
+}
+
+
+//------------------------------------------------------------------------
+// Aux function to compute the mean
+double mean(const vtkSmartPointer<vtkDoubleArray> dataArray)
+{
+  double mean = 0;
+  int num_pts = dataArray->GetNumberOfTuples();
+
+  for (int i = 0; i < num_pts; i++)
+    mean += dataArray->GetValue(i);
+
+  mean = mean / double(num_pts);
+
+  return mean;
+}
+
+//------------------------------------------------------------------------
+// Aux function to compute the Standard Deviation
+double stdDev(const vtkSmartPointer<vtkDoubleArray> dataArray, const double mean)
+{
+  double std_dev = 0;
+  double acum = 0;
+  int num_pts = dataArray->GetNumberOfTuples();
+
+  for (int i = 0; i < num_pts; i++)
+    acum += pow(dataArray->GetValue(i) - mean, 2);
+
+  std_dev = sqrt(acum / double(num_pts));
+
+  return std_dev;
+}
+
+
+//------------------------------------------------------------------------
+bool AppositionSurfaceExtension::computeInformation() const
 {
   bool validInformation = false;
 
-  qDebug() << "Computing AS Information:" << m_segmentation->data().toString() << ID;
+  qDebug() << "Computing AS Information:" << m_extendedItem->name();
 
-  MeshRepresentationSPtr segMesh = meshRepresentation(m_segmentation->output());
+  auto segMesh = meshData(m_extendedItem->output());
 
   if (segMesh)
   {
-    ExtensionData &data = s_cache[m_segmentation].Data;
 
-    vtkPolyData *asMesh = dynamic_cast<vtkPolyData *>(segMesh->mesh()->GetProducer()->GetOutputDataObject(0));
+    // vtkPolyData *asMesh = dynamic_cast<vtkPolyData *>(segMesh->mesh()->GetProducer()->GetOutputDataObject(0));
+    auto asMesh = segMesh->mesh();
 
-    data.Area       = computeArea      (asMesh);
-    data.Perimeter  = computePerimeter (asMesh);
-    data.Tortuosity = computeTortuosity(asMesh, data.Area);
+    vtkSmartPointer<vtkDoubleArray> gaussCurvature = vtkSmartPointer<vtkDoubleArray>::New();	 
+    vtkSmartPointer<vtkDoubleArray> meanCurvature  = vtkSmartPointer<vtkDoubleArray>::New();
+    vtkSmartPointer<vtkDoubleArray> maxCurvature   = vtkSmartPointer<vtkDoubleArray>::New();
+    vtkSmartPointer<vtkDoubleArray> minCurvature   = vtkSmartPointer<vtkDoubleArray>::New();
+    computeCurvatures(asMesh, gaussCurvature, meanCurvature, minCurvature, maxCurvature);
 
-    s_cache.markAsClean(m_segmentation);
+    auto area = computeArea(asMesh);
+    updateInfoCache(AREA, area);
+    updateInfoCache(PERIMETER, computePerimeter (asMesh));
+    updateInfoCache(TORTUOSITY, computeTortuosity(asMesh, area));
+    updateInfoCache(SYNAPSE, m_extendedItem->name());
+
+    const SegmentationExtension::InfoTag COMPUTATION_TIME       = "Computation Time";
+
+    auto meanGaussCurvature = mean(gaussCurvature);
+    updateInfoCache(MEAN_GAUSS_CURVATURE, meanGaussCurvature);
+    updateInfoCache(STD_DEV_GAUS_CURVATURE, stdDev(gaussCurvature,meanGaussCurvature));
+
+    auto meanMeanCurvature = mean(meanCurvature);
+    updateInfoCache(MEAN_MEAN_CURVATURE, meanMeanCurvature);
+    updateInfoCache(STD_DEV_MEAN_CURVATURE, stdDev(meanCurvature, meanMeanCurvature));
+
+    auto meanMinCurvature = mean(minCurvature);
+    updateInfoCache(MEAN_MIN_CURVATURE, meanMinCurvature);
+    updateInfoCache(STD_DEV_MIN_CURVATURE, stdDev(minCurvature, meanMinCurvature));
+
+    auto meanMaxCurvature = mean(maxCurvature);
+    updateInfoCache(MEAN_MAX_CURVATURE, meanMaxCurvature);
+    updateInfoCache(STD_DEV_MAX_CURVATURE, stdDev(maxCurvature, meanMaxCurvature));
+
     validInformation = true;
   }
 

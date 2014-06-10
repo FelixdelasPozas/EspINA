@@ -21,8 +21,8 @@
 #include <Core/Analysis/FetchBehaviour.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
-namespace EspINA {
-
+namespace EspINA
+{
   class MarchingCubesFromFetchedVolumetricData
   : public FetchBehaviour
   {

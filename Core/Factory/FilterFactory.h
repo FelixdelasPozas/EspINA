@@ -46,6 +46,7 @@ namespace EspINA
 
   using FilterFactoryPtr  = FilterFactory *;
   using FilterFactorySPtr = std::shared_ptr<FilterFactory>;
+  using FilterFactorySList = QList<FilterFactorySPtr>;
 
 }// namespace EspINA
 

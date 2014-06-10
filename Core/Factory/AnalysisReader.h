@@ -63,10 +63,11 @@ namespace EspINA
     };
   } // namespace IO
 
-  using FileExtensions     = IO::AnalysisReader::ExtensionDescriptionList;
-  using AnalysisReaderPtr  = IO::AnalysisReader *;
-  using AnalysisReaderList = QList<AnalysisReaderPtr>;
-  using AnalysisReaderSPtr = std::shared_ptr<IO::AnalysisReader>;
+  using FileExtensions      = IO::AnalysisReader::ExtensionDescriptionList;
+  using AnalysisReaderPtr   = IO::AnalysisReader *;
+  using AnalysisReaderList  = QList<AnalysisReaderPtr>;
+  using AnalysisReaderSPtr  = std::shared_ptr<IO::AnalysisReader>;
+  using AnalysisReaderSList = QList<AnalysisReaderSPtr>;
 
 }// namespace EspINA
 

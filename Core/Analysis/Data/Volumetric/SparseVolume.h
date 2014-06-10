@@ -351,10 +351,8 @@ namespace EspINA
     QString multiBlockPath(int part) const
     { return this->type() + QString("_%1_%2.mhd").arg(this->m_output?this->m_output->id():0).arg(part); }
 
-  private:
-    BlockList m_blocks;
-
   protected:
+    mutable BlockList m_blocks;
     NmVector3 m_origin;
     NmVector3 m_spacing;
     VolumeBounds m_bounds;

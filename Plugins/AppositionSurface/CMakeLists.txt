@@ -42,57 +42,56 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  Analysis/SynapticAppositionSurfaceAnalysis.ui
+  Analysis/SASAnalysisDialog.ui
+  Analysis/SASAnalysisEntry.ui
   GUI/Settings/AppositionSurfaceSettings.ui
-  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
+#  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
   AppositionSurfacePlugin.h
-  Analysis/SynapticAppositionSurfaceAnalysis.h
+  Analysis/SASAnalysisDialog.h
+  Analysis/SASAnalysisEntry.h
   Filter/AppositionSurfaceFilter.h
-
   GUI/Settings/AppositionSurfaceSettings.h
-  GUI/FilterInspector/AppositionSurfaceFilterInspector.h
-  GUI/AppositionSurfaceAction.h
   GUI/AppositionSurfaceToolbar.h
+#  GUI/FilterInspector/AppositionSurfaceFilterInspector.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
 
-set (PLUGIN_SOURCES 
+set (PLUGIN_SOURCES
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
-  Analysis/SynapticAppositionSurfaceAnalysis.cpp
+  Analysis/SASAnalysisDialog.cpp
+  Analysis/SASAnalysisEntry.cpp
   AppositionSurfacePlugin.cpp
-  Core/ASMeshProxy.cpp 
-  Core/ASVolumeProxy.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp
+  Core/Extensions/ExtensionFactory.cpp
   Filter/AppositionSurfaceFilter.cpp
-  GUI/AppositionSurfaceAction.cpp
   GUI/AppositionSurfaceToolbar.cpp
-  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
   GUI/Settings/AppositionSurfaceSettings.cpp
-  Undo/AppositionSurfaceCommand.cpp
+#  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
 )
 
 set (PLUGIN_LIBRARIES
   EspinaCore
   EspinaGUI
   EspinaUndo
-  vtkInfovis
+  EspinaSupport
+  vtkInfovisCore
   ${XLSLIB_LIBRARIES}
   )
 
-if(DEFINED MINGW OR DEFINED MSVC)
+if(MINGW)
   if(DEFINED ESPINA_VERSION_MAJOR)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
     SET(PLUGIN_SOURCES ${PLUGIN_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     ENABLE_LANGUAGE(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-endif(DEFINED MINGW OR DEFINED MSVC)
+endif(MINGW)
 
 add_library(AppositionSurfacePlugin SHARED ${PLUGIN_SOURCES})
 GENERATE_EXPORT_HEADER(

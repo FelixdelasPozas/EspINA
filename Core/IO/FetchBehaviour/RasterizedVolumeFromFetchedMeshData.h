@@ -1,6 +1,6 @@
 /*
  <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,32 +16,25 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_DYNAMIC_MENU_H
-#define ESPINA_DYNAMIC_MENU_H
+#ifndef ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
+#define ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
 
-#include "Support/EspinaSupport_Export.h"
-
-#include <QPair>
-#include <QStringList>
-
-class QAction;
+// EspINA
+#include <Core/Analysis/FetchBehaviour.h>
+#include "Core/Analysis/Data/MeshData.h"
 
 namespace EspINA
 {
-  using MenuEntry = QPair<QStringList, QAction *>;
-
-  class EspinaSupport_EXPORT DynamicMenu
+  class RasterizedVolumeFromFetchedMeshData
+  : public FetchBehaviour
   {
     public:
-      virtual ~DynamicMenu() {}
+      virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
 
-      virtual QList<MenuEntry> menuEntries() = 0;
-
-      virtual void resetMenus() = 0;
+    private:
+      MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
-}
 
-Q_DECLARE_INTERFACE(EspINA::DynamicMenu,
-                    "es.upm.cesvima.EspINA.DynamicMenuInterface/1.2")
+} // namespace EspINA
 
-#endif // ESPINA_DYNAMIC_MENU_H
+#endif // RASTERIZEDVOLUMEFROMFETCHEDMESHDATA_H_

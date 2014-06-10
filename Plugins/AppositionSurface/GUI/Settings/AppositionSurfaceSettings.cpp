@@ -7,7 +7,7 @@
 
 // EspINA
 #include "AppositionSurfaceSettings.h"
-#include <Core/EspinaSettings.h>
+#include <Support/Settings/EspinaSettings.h>
 
 // Qt
 #include <QSettings>
@@ -70,7 +70,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ISettingsPanel *AppositionSurfaceSettings::clone()
+  SettingsPanelPtr AppositionSurfaceSettings::clone()
   {
     return new AppositionSurfaceSettings();
   }

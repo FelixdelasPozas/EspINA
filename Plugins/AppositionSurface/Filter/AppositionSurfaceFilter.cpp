@@ -2,19 +2,17 @@
  * AppositionSurfaceFilter.cpp
  *
  *  Created on: Jan 18, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
-// plugin
+// Plugin
 #include "AppositionSurfaceFilter.h"
-#include <Core/ASMeshProxy.h>
-#include <Core/ASVolumeProxy.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/OutputRepresentations/MeshType.h>
-#include <Core/OutputRepresentations/RawMesh.h>
-#include <Core/OutputRepresentations/RasterizedVolume.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/Mesh/RawMesh.h>
+#include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
 #include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/SimpleMeshRepresentation.h>
+#include <GUI/Representations/MeshRepresentation.h>
 
 // Qt
 #include <QtGlobal>
@@ -40,71 +38,35 @@
 #include <vtkPlane.h>
 #include <vtkDoubleArray.h>
 
-
 const double UNDEFINED = -1.;
-const char SEP = ',';
 
 using namespace EspINA;
 
-const QString AppositionSurfaceFilter::INPUTLINK = "Input";
-const QString AppositionSurfaceFilter::SAS = "SAS";
+const QString SAS = "SAS";
 
 const char * AppositionSurfaceFilter::MESH_NORMAL = "Normal";
 const char * AppositionSurfaceFilter::MESH_ORIGIN = "Origin";
 
-const ModelItem::ArgumentId AppositionSurfaceFilter::ORIGIN = "Origin Segmentation";
-
-const double       AppositionSurfaceFilter::THRESHOLDFACTOR           = 0.01; // Percentage of a single step
-const unsigned int AppositionSurfaceFilter::MAXSAVEDSTATUSES          = 10;
-const int          AppositionSurfaceFilter::MAXITERATIONSFACTOR       = 100;
-const float        AppositionSurfaceFilter::DISPLACEMENTSCALE         = 1;
-const float        AppositionSurfaceFilter::CLIPPINGTHRESHOLD         = 0.5;
-const float        AppositionSurfaceFilter::DISTANCESMOOTHSIGMAFACTOR = 0.67448; // probit(0.25)
-
 //----------------------------------------------------------------------------
-AppositionSurfaceFilter::AppositionSurfaceFilter(NamedInputs inputs, Arguments args, FilterType type)
-: BasicSegmentationFilter(inputs, args, type)
-, m_resolution(50)
-, m_iterations(10)
-, m_converge(true)
-, m_ap(NULL)
-, m_originSegmentation(NULL)
-, m_origin(args[ORIGIN])
-, m_alreadyFetchedData(false)
+AppositionSurfaceFilter::AppositionSurfaceFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)
+: Filter(inputs, type, scheduler)
+, m_resolution        {50}
+, m_iterations        {10}
+, m_converge          {true}
+, m_ap                {nullptr}
+, m_alreadyFetchedData{false}
 {
-  if (m_origin == QString())
-    m_origin = QString("Unspecified origin");
 }
 
 //----------------------------------------------------------------------------
 AppositionSurfaceFilter::~AppositionSurfaceFilter()
 {
-  if (m_ap != NULL)
+  if (m_ap != nullptr)
   {
-    disconnect(m_originSegmentation, SIGNAL(outputModified()),
+    disconnect(m_inputs[0]->output().get(), SIGNAL(modified()),
                this, SLOT(inputModified()));
     m_ap->Delete();
   }
-}
-
-//----------------------------------------------------------------------------
-SegmentationRepresentationSPtr AppositionSurfaceFilter::createRepresentationProxy(FilterOutputId id, const FilterOutput::OutputRepresentationName &type)
-{
-  SegmentationRepresentationSPtr proxy;
-
-  Q_ASSERT(m_outputs.contains(id));
-  Q_ASSERT( NULL == m_outputs[id]->representation(type));
-
-  if (SegmentationVolume::TYPE == type)
-    proxy = VolumeProxySPtr(new ASVolumeProxy());
-  else if (MeshRepresentation::TYPE == type)
-    proxy = MeshProxySPtr(new ASMeshProxy());
-  else
-    Q_ASSERT(false);
-
-  m_outputs[id]->setRepresentation(type, proxy);
-
-  return proxy;
 }
 
 //----------------------------------------------------------------------------
@@ -114,87 +76,39 @@ bool AppositionSurfaceFilter::needUpdate() const
 }
 
 //----------------------------------------------------------------------------
-bool AppositionSurfaceFilter::needUpdate(FilterOutputId oId) const
+bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
 {
-  bool update = SegmentationFilter::needUpdate(oId);
+  Q_ASSERT(oId == 0);
 
-  if (!update && !m_inputs.isEmpty())
+  bool update = true;
+
+  if (!m_inputs.isEmpty())
   {
     Q_ASSERT(m_inputs.size() == 1);
 
-    SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0] );
-    MeshRepresentationSPtr outputMesh  = meshRepresentation(m_outputs[0]);
+    auto inputVolume = volumetricData(m_inputs[0]->output());
+    auto outputMesh = meshData(m_outputs[0]);
 
-    update = outputMesh->timeStamp() < inputVolume->timeStamp();
+    update = (outputMesh->lastModified() < inputVolume->lastModified());
   }
 
   return update;
 }
 
-QString AppositionSurfaceFilter::getOriginSegmentation()
-{
-  return m_originSegmentation->data().toString();
-}
-
-
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::upkeeping()
+void AppositionSurfaceFilter::execute(Output::Id oId)
 {
-  if (!m_originSegmentation)
-  {
-    const QString namedInput = m_args[Filter::INPUTS];
-    QStringList list = namedInput.split(QChar('_'));
-    const int outputId = list[1].toInt();
-
-    int i = 0;
-    FilterSPtr segFilter = m_namedInputs[AppositionSurfaceFilter::INPUTLINK];
-
-    ModelItemSList items = segFilter->relatedItems(EspINA::RELATION_OUT, Filter::CREATELINK);
-    while(!m_originSegmentation && i < items.size())
-    {
-      SegmentationPtr segmentation = segmentationPtr(items[i].get());
-      if (segmentation->outputId() == outputId)
-      {
-        m_originSegmentation = segmentation;
-
-        connect(m_originSegmentation, SIGNAL(outputModified()),
-                this, SLOT(inputModified()));
-      }
-      ++i;
-    }
-  }
-  Q_ASSERT(m_originSegmentation);
-
-  m_input = segmentationVolume(m_originSegmentation->output())->toITK();
-
-  ModelItemSList items = relatedItems(EspINA::RELATION_OUT, Filter::CREATELINK);
-  if (items.size() == 1)
-  {
-    SegmentationPtr segmentation = segmentationPtr(items.first().get());
-    segmentation->setInputSegmentationDependent(true);
-    items.first()->notifyModification();
-  }
+  Q_ASSERT(oId == 0);
+  execute();
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::run()
+void AppositionSurfaceFilter::execute()
 {
-  run(0);
-}
+  emit progress(0);
+  if (!canExecute()) return;
 
-//----------------------------------------------------------------------------
-void AppositionSurfaceFilter::run(FilterOutputId oId)
-{
-  qDebug() << "Compute AS";
-  Q_ASSERT(0 == oId);
-
-  const QString        namedInput = m_args[Filter::INPUTS];
-  QStringList          list       = namedInput.split(QChar('_'));
-  const FilterOutputId outputId   = list[1].toInt();
-
-  FilterSPtr segFilter = m_namedInputs[AppositionSurfaceFilter::INPUTLINK];
-
-  m_input = segmentationVolume(segFilter->output(outputId))->toITK();
+  m_input = volumetricData(m_inputs[0]->output())->itkImage();
 
   //m_input = m_originSegmentation->volume()->toITK();
   m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
@@ -208,6 +122,9 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   padder->SetConstant(0); // extend with black pixels
   padder->Update();
   itkVolumeType::Pointer padImage = padder->GetOutput();
+
+  emit progress(20);
+  if (!canExecute()) return;
 
   itkVolumeType::RegionType region = padImage->GetLargestPossibleRegion();
   region.SetIndex(region.GetIndex() + bounds);
@@ -250,6 +167,9 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   double *normal = planeSource->GetNormal();
   vtkMath::Normalize(normal);
 
+  emit progress(40);
+  if (!canExecute()) return;
+
   vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
   vtkSmartPointer<vtkDoubleArray> normalArray = vtkSmartPointer<vtkDoubleArray>::New();
 
@@ -282,6 +202,9 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   gradientFilter->SetUseImageSpacingOn();
   gradientFilter->Update();
 
+  emit progress(60);
+  if (!canExecute()) return;
+
   vtkSmartPointer<vtkImageData> gradientVectorGrid = vtkSmartPointer<vtkImageData>::New();
   vectorImageToVTKImage(gradientFilter->GetOutput(), gradientVectorGrid);
   //gradientVectorGrid->Print(std::cout);
@@ -289,7 +212,7 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   projectVectors(gradientVectorGrid, normal);
 
   GridTransform grid_transform = GridTransform::New();
-  grid_transform->SetDisplacementGrid(gradientVectorGrid);
+  grid_transform->SetDisplacementGridData(gradientVectorGrid);
   grid_transform->SetInterpolationModeToCubic();
   grid_transform->SetDisplacementScale(DISPLACEMENTSCALE);
 
@@ -307,18 +230,21 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
 
   transformer->SetTransform(grid_transform);
   PointsListType pointsList;
-  for (int i =0; i <= numIterations; i++) {
-    transformer->SetInput(auxPlane);
+  for (int i =0; i <= numIterations; i++)
+  {
+    transformer->SetInputData(auxPlane);
     transformer->Modified();
     transformer->Update();
 
     auxPlane->DeepCopy(transformer->GetOutput());
     if (m_converge) {
-      if (hasConverged(auxPlane->GetPoints(), pointsList, thresholdError)) {
+      if (hasConverged(auxPlane->GetPoints(), pointsList, thresholdError))
+      {
         //   qDebug() << "Total iterations: " << i << std::endl;
         break;
       }
-      else {
+      else
+      {
         pointsList.push_front(auxPlane->GetPoints());
         if (pointsList.size() > MAXSAVEDSTATUSES)
           pointsList.pop_back();
@@ -326,6 +252,9 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
     }
   }
   pointsList.clear();
+
+  emit progress(80);
+  if (!canExecute()) return;
 
   PolyData clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
   //ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
@@ -337,7 +266,7 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
   transform->Translate (-spacing[0]*bounds[0], -spacing[1]*bounds[0], -spacing[2]*bounds[0]);
   transformFilter->SetTransform(transform);
-  transformFilter->SetInput(clippedPlane);
+  transformFilter->SetInputData(clippedPlane);
   transformFilter->Update();
 
   PolyData appositionSurface = transformFilter->GetOutput();
@@ -355,19 +284,30 @@ void AppositionSurfaceFilter::run(FilterOutputId oId)
   m_ap->GetPointData()->AddArray(normalArray);
   m_ap->Modified();
 
-  RawMeshSPtr meshRepresentation(new RawMesh(m_ap, m_input->GetSpacing()));
+  auto inputSpacing = m_input->GetSpacing();
+  RawMeshSPtr meshOutput{new RawMesh{m_ap, inputSpacing}};
 
-  SegmentationRepresentationSList repList;
-  repList << meshRepresentation;
-  repList << RasterizedVolumeSPtr(new RasterizedVolume(meshRepresentation));
+  double meshVTKBounds[6];
+  m_ap->GetBounds(meshVTKBounds);
 
-  addOutputRepresentations(0, repList);
+  Bounds meshBounds{meshVTKBounds[0], meshVTKBounds[1], meshVTKBounds[2], meshVTKBounds[3], meshVTKBounds[4], meshVTKBounds[5]};
+  NmVector3 vectorSpacing{inputSpacing[0], inputSpacing[1], inputSpacing[2]};
 
-  emit modified(this);
+  DefaultVolumetricDataSPtr volumeOutput{new RasterizedVolume<itkVolumeType>{meshOutput, meshBounds, vectorSpacing}};
+
+  if(!m_outputs.contains(0))
+    m_outputs[0] = OutputSPtr(new Output(this, 0));
+
+  m_outputs[0]->setData(meshOutput);
+  m_outputs[0]->setData(volumeOutput);
+  m_outputs[0]->setSpacing(NmVector3{inputSpacing[0], inputSpacing[1], inputSpacing[2]});
+
+  emit progress(100);
+  if (!canExecute()) return;
 }
 
 //----------------------------------------------------------------------------
-AppositionSurfaceFilter::Points AppositionSurfaceFilter::segmentationPoints(itkVolumeType::Pointer seg) const
+AppositionSurfaceFilter::Points AppositionSurfaceFilter::segmentationPoints(const itkVolumeType::Pointer &seg) const
 {
   itkVolumeType::PointType   origin  = seg->GetOrigin();
   itkVolumeType::SpacingType spacing = seg->GetSpacing();
@@ -392,7 +332,7 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::segmentationPoints(itkV
 }
 
 //----------------------------------------------------------------------------
-AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(double corner[3], double max[3], double mid[3], double min[3]) const
+AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(const double corner[3], const double max[3], const double mid[3], const double min[3]) const
 {
   Points points = Points::New();
   double x[3];
@@ -442,7 +382,7 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(double corner[3
 }
 
 //----------------------------------------------------------------------------
-AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::computeDistanceMap(itkVolumeType::Pointer volume, float sigma) const
+AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::computeDistanceMap(const itkVolumeType::Pointer &volume, const float sigma) const
 {
   SMDistanceMapFilterType::Pointer smdm_filter = SMDistanceMapFilterType::New();
   smdm_filter->InsideIsPositiveOn();
@@ -472,7 +412,7 @@ AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::compu
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::maxDistancePoint(AppositionSurfaceFilter::DistanceMapType::Pointer map, 
+void AppositionSurfaceFilter::maxDistancePoint(const DistanceMapType::Pointer &map,
                                                double avgMaxDistPoint[3],
                                                double & maxDist) const
 {
@@ -522,11 +462,10 @@ void AppositionSurfaceFilter::maxDistancePoint(AppositionSurfaceFilter::Distance
   
   for (unsigned int i = 0; i < 3; i++)
     avgMaxDistPoint[i] /= points->GetNumberOfPoints();
-  
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::computeResolution(double * max, double * mid, double * spacing, int & xResolution, int & yResolution) const
+void AppositionSurfaceFilter::computeResolution(const double *max, const double *mid, const double *spacing, int & xResolution, int & yResolution) const
 {
   double max_in_pixels[3] = {0,0,0};
   double mid_in_pixels[3] = {0,0,0};
@@ -540,15 +479,15 @@ void AppositionSurfaceFilter::computeResolution(double * max, double * mid, doub
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::project(const double* A, const double* B, double* Projection) const
+void AppositionSurfaceFilter::project(const double *A, const double *B, double *projection) const
 {
   double scale = vtkMath::Dot(A,B)/pow(vtkMath::Norm(B), 2);
   for(unsigned int i = 0; i < 3; i++)
-    Projection[i] = scale * B[i];
+    projection[i] = scale * B[i];
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage,
+void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageType::Pointer vectorImage,
                                                     vtkSmartPointer<vtkImageData> image) const
 {
   CovariantVectorImageType::PointType origin = vectorImage->GetOrigin();
@@ -609,7 +548,7 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(CovariantVectorImageType::Po
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::projectVectors(vtkImageData* vectors_image, double* unitary) const
+void AppositionSurfaceFilter::projectVectors(vtkImageData* vectors_image, double *unitary) const
 {
   vtkSmartPointer<vtkDataArray> vectors = vectors_image->GetPointData()->GetVectors();
   int numTuples = vectors->GetNumberOfTuples();
@@ -638,7 +577,7 @@ void AppositionSurfaceFilter::projectVectors(vtkImageData* vectors_image, double
 }
 
 //----------------------------------------------------------------------------
-void AppositionSurfaceFilter::computeIterationLimits(double * min, double * spacing, int & iterations, double & thresholdError) const
+void AppositionSurfaceFilter::computeIterationLimits(const double *min, const double *spacing, int & iterations, double & thresholdError) const
 {
   double min_in_pixels[3] = { 0, 0, 0 };
   double step[3] = { 0, 0, 0 };
@@ -658,7 +597,7 @@ void AppositionSurfaceFilter::computeIterationLimits(double * min, double * spac
 }
 
 //----------------------------------------------------------------------------
-bool AppositionSurfaceFilter::hasConverged( vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const
+bool AppositionSurfaceFilter::hasConverged(vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const
 {
   double error = 0;
   
@@ -705,7 +644,7 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(PolyData pl
   
   vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
   clipper->SetClipFunction(implicitVolFilter);
-  clipper->SetInput(plane);
+  clipper->SetInputData(plane);
   clipper->SetValue(inValue*CLIPPINGTHRESHOLD);
   clipper->Update();
   
@@ -721,11 +660,11 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(PolyData pl
 AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData plane) const
 {
   vtkSmartPointer<vtkTriangleFilter> triangle_filter = vtkSmartPointer<vtkTriangleFilter>::New();
-  triangle_filter->SetInput(plane);
+  triangle_filter->SetInputData(plane);
   triangle_filter->Update();
   
   vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
-  normals->SetInput(triangle_filter->GetOutput());
+  normals->SetInputData(triangle_filter->GetOutput());
   normals->SplittingOff();
   normals->Update();
   
@@ -736,20 +675,7 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData 
 }
 
 //----------------------------------------------------------------------------
-itkVolumeType::SpacingType AppositionSurfaceFilter::getOriginSpacing()
-{
-  return m_input->GetSpacing();
-}
-
-//----------------------------------------------------------------------------
-itkVolumeType::RegionType AppositionSurfaceFilter::getOriginRegion()
-{
-  return m_input->GetLargestPossibleRegion();
-}
-
-//----------------------------------------------------------------------------
 void AppositionSurfaceFilter::inputModified()
 {
   run();
-  //m_outputs[0].volume->markAsModified(true);
 }

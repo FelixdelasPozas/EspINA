@@ -38,6 +38,7 @@ namespace EspINA
 {
   using NamedColorEngine      = QPair<QString, ColorEngineSPtr>;
   using NamedColorEngineSList = QList<NamedColorEngine>;
+  using MenuEntry              = QPair<QStringList, QAction *>;
 
   class EspinaSupport_EXPORT Plugin
   : public QObject
@@ -56,7 +57,7 @@ namespace EspINA
      *
      *  Whenever this plugin provides a channel extension, it should provide
      *  a factory to obtain such extensions, otherwise read only information will
-     *  be available after loading them
+     *  be available after loading them.
      */
     virtual ChannelExtensionFactorySList channelExtensionFactories() const = 0;
 
@@ -64,19 +65,49 @@ namespace EspINA
      *
      *  Whenever this plugin provides a segmentation extension, it should provide
      *  a factory to obtain such extensions, otherwise read only information will
-     *  be available after loading them
+     *  be available after loading them.
      */
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
 
-    virtual NamedColorEngineSList colorEngines() = 0;
+    /* \brief Returns a list of filter factories.
+     *
+     */
+    virtual FilterFactorySList filterFactories() const = 0;
 
-    virtual QList<ToolGroup *> toolGroups() = 0;
+    /* \brief Returns a list of analysis readers.
+     *
+     */
+    virtual AnalysisReaderSList analysisReaders() const = 0;
 
-    virtual QList<DockWidget *> dockWidgets() = 0;
+    /* \brief Returns a list of color engines.
+     *
+     */
+    virtual NamedColorEngineSList colorEngines() const = 0;
 
-    virtual RendererSList renderers() = 0;
+    /* \brief Returns a list of ToolGroups.
+     *
+     */
+    virtual QList<ToolGroup *> toolGroups() const = 0;
 
-    virtual SettingsPanelSList settingsPanels() = 0;
+    /* \brief Returns a list of Dock Widgets.
+     *
+     */
+    virtual QList<DockWidget *> dockWidgets() const = 0;
+
+    /* \brief Returns a list of Renderers.
+     *
+     */
+    virtual RendererSList renderers() const = 0;
+
+    /* \brief Returns a list of settings panels.
+     *
+     */
+    virtual SettingsPanelSList settingsPanels() const = 0;
+
+    /* \brief Returns a list of menu entries to add to the main application.
+     *
+     */
+    virtual QList<MenuEntry> menuEntries() const = 0;
 
   public slots:
     virtual void onAnalysisChanged() {}

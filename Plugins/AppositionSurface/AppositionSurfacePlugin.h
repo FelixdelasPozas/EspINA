@@ -25,67 +25,122 @@
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
 // EspINA
-#include <Core/Interfaces/IDynamicMenu.h>
-#include <Core/Interfaces/IFactoryExtension.h>
-#include <Core/Interfaces/IFilterCreator.h>
-#include <Core/Interfaces/IToolBarFactory.h>
-#include <GUI/ISettingsPanel.h>
-#include <GUI/ViewManager.h>
+#include <Support/ViewManager.h>
+#include <Support/Plugin.h>
+#include <Core/Analysis/Input.h>
+#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Factory/FilterFactory.h>
+#include <Core/EspinaTypes.h>
 
 namespace EspINA
 {
   class AppositionSurfacePlugin_EXPORT AppositionSurface
-  : public QObject
-  , public IToolBarFactory
-  , public IFactoryExtension
-  , public IFilterCreator
-  , public IDynamicMenu
+  : public Plugin
   {
     Q_OBJECT
-    Q_INTERFACES
-    (
-      EspINA::IToolBarFactory
-      EspINA::IFactoryExtension
-      EspINA::IFilterCreator
-      EspINA::IDynamicMenu
-    )
+    Q_INTERFACES(EspINA::Plugin)
+
+    class ASFilterFactory
+    : public FilterFactory
+    {
+        virtual FilterTypeList providedFilters() const;
+        virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      private:
+        mutable FetchBehaviourSPtr m_fetchBehaviour;
+    };
 
   public:
     explicit AppositionSurface();
     virtual ~AppositionSurface();
 
-    virtual void initToolBarFactory(EspinaModel *model,
-                                    QUndoStack  *undoStack,
-                                    ViewManager *viewManager);
+    virtual void init(ModelAdapterSPtr model,
+                      ViewManagerSPtr  viewManager,
+                      ModelFactorySPtr factory,
+                      SchedulerSPtr    scheduler,
+                      QUndoStack      *undoStack);
 
-    virtual void initFactoryExtension(EspinaFactory *factory);
+    /* \brief Implements Plugin::channelExtensionFactories().
+     *
+     */
+    virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
-    virtual QList<IToolBar *> toolBars() const;
+    /* \brief Implements Plugin::segmentationExtensionFactories().
+     *
+     */
+    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-    virtual FilterSPtr createFilter(const QString              &filter,
-                                    const Filter::NamedInputs  &inputs,
-                                    const ModelItem::Arguments &args);
+    /* \brief Implements Plugin::colorEngines().
+     *
+     */
+    virtual NamedColorEngineSList colorEngines() const;
 
-    virtual QList<MenuEntry> menuEntries();
+    /* \brief Implements Plugin::toolGroups().
+     *
+     */
+    virtual QList<ToolGroup *> toolGroups() const;
 
-    virtual void resetMenus() {}
+    /* \brief Implements Plugin::dockWidgets().
+     *
+     */
+    virtual QList<DockWidget *> dockWidgets() const;
+
+    /* \brief Implements Plugin::renderers().
+     *
+     */
+    virtual RendererSList renderers() const;
+
+    /* \brief Implements Plugin::settingsPanels().
+     *
+     */
+    virtual SettingsPanelSList settingsPanels() const;
+
+    /* \brief Implements Plugin::menuEntries().
+     *
+     */
+    virtual QList<MenuEntry> menuEntries() const;
+
+    /* \brief Implements Plugin::analysisReaders().
+     *
+     */
+    virtual AnalysisReaderSList analysisReaders() const;
+
+    /* \brief Implements Plugin::filterFactories().
+     *
+     */
+    virtual FilterFactorySList filterFactories() const;
 
   public slots:
-    void createSynapticAppositionSurfaceAnalysis();
-
-    void segmentationAdded(SegmentationSPtr segmentation);
-
-  private:
-    static bool isSynapse(SegmentationPtr segmentation);
+    void createSASAnalysis();
+    void segmentationsAdded(SegmentationAdapterSList segmentations);
+    void finishedTask();
 
   private:
-    EspinaFactory                 *m_factory;
-    EspinaModel                   *m_model;
-    QUndoStack                    *m_undoStack;
-    ViewManager                   *m_viewManager;
-    IToolBar                      *m_toolbar;
-    ISettingsPanelPrototype        m_settings;
-    AppositionSurfaceExtensionSPtr m_extension;
+    struct Data
+    {
+      FilterAdapterSPtr adapter;
+      SegmentationAdapterSPtr segmentation;
+
+      Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
+      Data(): adapter{nullptr}, segmentation{nullptr} {};
+    };
+
+    static bool isSynapse(SegmentationAdapterPtr segmentation);
+
+  private:
+    ModelAdapterSPtr                 m_model;
+    ModelFactorySPtr                 m_factory;
+    ViewManagerSPtr                  m_viewManager;
+    SchedulerSPtr                    m_scheduler;
+    QUndoStack                      *m_undoStack;
+    SettingsPanelSPtr                m_settings;
+    SegmentationExtensionFactorySPtr m_extensionFactory;
+    ToolGroupPtr                     m_toolGroup;
+    MenuEntry                        m_menuEntry;
+    FilterFactorySPtr                m_filterFactory;
+
+    QMap<FilterAdapterPtr, struct Data> m_executingTasks;
+    QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
   };
 
 } // namespace EspINA

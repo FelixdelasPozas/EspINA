@@ -38,7 +38,7 @@ namespace EspINA
   : public Filter
   {
   public:
-    explicit BasicSegmentationFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler);
+    explicit BasicSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
   protected:
     virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type);

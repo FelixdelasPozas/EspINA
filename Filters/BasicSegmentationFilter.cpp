@@ -26,7 +26,7 @@
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 
 // VTK
 #include <vtkMath.h>
@@ -34,7 +34,7 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-BasicSegmentationFilter::BasicSegmentationFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler)
+BasicSegmentationFilter::BasicSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
 {
 

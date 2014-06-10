@@ -36,7 +36,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Menus/DefaultContextualMenu.h
   Menus/RenderersMenu.h
 #   Settings/Editor/SettingsPanel.h
-#   Settings/SeedGrowSegmentation/SettingsPanel.h
+#  Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
   Settings/View2D/View2DRenderersPanel.h
   Settings/ROI/ROISettingsPanel.h
@@ -96,7 +96,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/GeneralSettings/GeneralSettingsPanel.ui
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
 #   Settings/Editor/EditorSettingsPanel.ui
-#   Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
+#  Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
   Settings/ROI/RectangularROISettings.ui
@@ -141,7 +141,7 @@ set (ESPINA_SOURCES
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
 #   Settings/Editor/SettingsPanel.cpp
-#   Settings/SeedGrowSegmentation/SettingsPanel.cpp
+#  Settings/SeedGrowSegmentation/SettingsPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
   Settings/View2D/View2DRenderersPanel.cpp
@@ -151,7 +151,7 @@ set (ESPINA_SOURCES
 #   Toolbars/Editor/EditorToolBar.cpp
 #   Toolbars/Editor/Settings.cpp
 #   Toolbars/Main/MainToolBar.cpp
-#   Toolbars/Segmentation/SeedGrowSegmentationSettings.cpp
+#  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Edition/CODETool.cpp
   ToolGroups/Segmentation/ApplyROI.cpp
   ToolGroups/Segmentation/SegmentationTools.cpp

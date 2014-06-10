@@ -52,60 +52,62 @@ void SegmhaImporterPlugin::init(ModelAdapterSPtr model,
   m_factory     = factory;
   m_scheduler   = scheduler;
   m_undoStack   = undoStack;
-
-  m_factory->registerAnalysisReader(m_reader.get());
 }
 
 //------------------------------------------------------------------------
-NamedColorEngineSList SegmhaImporterPlugin::colorEngines()
+AnalysisReaderSList SegmhaImporterPlugin::analysisReaders() const
 {
-  NamedColorEngineSList engines;
+  AnalysisReaderSList readers;
 
-  return engines;
+  readers << m_reader;
+
+  return readers;
 }
 
 //------------------------------------------------------------------------
-QList<ToolGroup* > SegmhaImporterPlugin::toolGroups()
+NamedColorEngineSList SegmhaImporterPlugin::colorEngines() const
 {
-  QList<ToolGroup *> tools;
-
-  return tools;
+  return NamedColorEngineSList();
 }
 
 //------------------------------------------------------------------------
-QList<DockWidget *> SegmhaImporterPlugin::dockWidgets()
+QList<ToolGroup* > SegmhaImporterPlugin::toolGroups() const
 {
-  QList<DockWidget *> docks;
+  return QList<ToolGroup *>();
+}
 
-  return docks;
+//------------------------------------------------------------------------
+QList<DockWidget *> SegmhaImporterPlugin::dockWidgets() const
+{
+  return QList<DockWidget *>();
 }
 
 //------------------------------------------------------------------------
 ChannelExtensionFactorySList SegmhaImporterPlugin::channelExtensionFactories() const
 {
-  ChannelExtensionFactorySList factories;
-
-  return factories;
+  return ChannelExtensionFactorySList();
 }
 
 //------------------------------------------------------------------------
 SegmentationExtensionFactorySList SegmhaImporterPlugin::segmentationExtensionFactories() const
 {
-  SegmentationExtensionFactorySList factories;
-
-  return factories;
+  return SegmentationExtensionFactorySList();
 }
 
 //------------------------------------------------------------------------
-RendererSList SegmhaImporterPlugin::renderers()
+FilterFactorySList SegmhaImporterPlugin::filterFactories() const
 {
-  RendererSList renderers;
-
-  return renderers;
+  return FilterFactorySList();
 }
 
 //------------------------------------------------------------------------
-SettingsPanelSList SegmhaImporterPlugin::settingsPanels()
+RendererSList SegmhaImporterPlugin::renderers() const
+{
+  return RendererSList();
+}
+
+//------------------------------------------------------------------------
+SettingsPanelSList SegmhaImporterPlugin::settingsPanels() const
 {
   return SettingsPanelSList();
 }

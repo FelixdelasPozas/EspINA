@@ -44,6 +44,7 @@ set (CORE_SOURCES
   IO/ClassificationXML.cpp
   IO/FetchBehaviour/FetchRawData.cpp
   IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
+  IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp
   IO/ReadOnlyChannelExtension.cpp
   IO/ReadOnlySegmentationExtension.cpp

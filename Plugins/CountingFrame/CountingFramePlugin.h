@@ -39,33 +39,78 @@ namespace EspINA
       explicit CountingFramePlugin();
       virtual ~CountingFramePlugin();
 
+      /* \brief Implements Plugin::init().
+       *
+       */
       virtual void init(ModelAdapterSPtr model,
                         ViewManagerSPtr  viewManager,
                         ModelFactorySPtr factory,
                         SchedulerSPtr    scheduler,
                         QUndoStack      *undoStack);
 
-      virtual NamedColorEngineSList colorEngines();
+      /* \brief Implements Plugin::colorEngines().
+       *
+       */
+      virtual NamedColorEngineSList colorEngines() const;
 
-      virtual QList< ToolGroup* > toolGroups();
+      /* \brief Implements Plugin::toolGroups().
+       *
+       */
+      virtual QList< ToolGroup* > toolGroups() const;
 
-      virtual QList<DockWidget *> dockWidgets();
+      /* \brief Implements Plugin::dockWidgets().
+       *
+       */
+      virtual QList<DockWidget *> dockWidgets() const;
 
+      /* \brief Implements Plugin::channelExtensionFactories().
+       *
+       */
       virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
+      /* \brief Implements Plugin::segmentationExtensionFactories().
+       *
+       */
       virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-      virtual RendererSList renderers();
+      /* \brief Implements Plugin::filterFactories().
+       *
+       */
+      virtual FilterFactorySList filterFactories() const;
 
-      virtual SettingsPanelSList settingsPanels();
+      /* \brief Implements Plugin::renderers().
+       *
+       */
+      virtual RendererSList renderers() const;
 
-      //virtual EngineList colorEngines();
+      /* \brief Implements Plugin::settingsPanels().
+       *
+       */
+      virtual SettingsPanelSList settingsPanels() const;
+
+      /* \brief Implements Plugin::menuEntries().
+       *
+       */
+      virtual QList<MenuEntry> menuEntries() const;
+
+      /* \brief Implements Plugin::analysisReaders().
+       *
+       */
+      virtual AnalysisReaderSList analysisReaders() const;
+
     private:
       CountingFrameManager m_manager;
       ModelAdapterSPtr     m_model;
       ViewManagerSPtr      m_viewManager;
       SchedulerSPtr        m_scheduler;
       QUndoStack          *m_undoStack;
+
+      NamedColorEngine     m_colorEngine;
+      DockWidget *         m_dockWidget;
+      ChannelExtensionFactorySPtr m_channelExtensionFactory;
+      SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;
+      RendererSPtr m_renderer3d;
+      RendererSPtr m_renderer2d;
     };
   }
 } // namespace EspINA

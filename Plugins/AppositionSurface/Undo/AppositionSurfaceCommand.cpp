@@ -2,78 +2,48 @@
  * AppositionSurfaceCommand.cpp
  *
  *  Created on: Jan 16, 2013
- *      Author: Felix de las Pozas Alvarez
+ *      Author: Félix de las Pozas Álvarez
  */
 
 #include "AppositionSurfaceCommand.h"
 #include <Filter/AppositionSurfaceFilter.h>
-#include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // EspINA
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Model/ModelAdapter.h>
 #include <Core/EspinaTypes.h>
-#include <Core/EspinaSettings.h>
+#include <Support/Settings/EspinaSettings.h>
 #include <Core/Relations.h>
-#include <GUI/ViewManager.h>
-#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
+#include <Support/ViewManager.h>
 
 // Qt
 #include <QApplication>
 
 namespace EspINA
 {
-  const Filter::FilterType AppositionSurfaceCommand::FILTER_TYPE = "AppositionSurface::AppositionSurfaceFilter";
-
   //-----------------------------------------------------------------------------
-  AppositionSurfaceCommand::AppositionSurfaceCommand(SegmentationList   inputs,
-                                                     ModelAdapter       *model,
-                                                     ViewManager       *vm,
-                                                     SegmentationSList &createdSegmentations)
-  : m_model(model)
-  , m_viewManager(vm)
-  , m_taxonomy(m_model->taxonomy()->element(SAS))
+  AppositionSurfaceCommand::AppositionSurfaceCommand(const SegmentationAdapterList  inputs,
+                                                     const ModelAdapterSPtr         model,
+                                                     const ViewManagerSPtr          vm,
+                                                     SegmentationAdapterSList &createdSegmentations)
+  : m_model      {model}
+  , m_viewManager{vm}
+  , m_category   {m_model->classification()->category(SAS)}
   {
-    Q_ASSERT(m_taxonomy);
+    Q_ASSERT(m_category);
 
-    foreach(SegmentationPtr seg, inputs)
+    for(auto segmentation: inputs)
     {
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      inputs[AppositionSurfaceFilter::INPUTLINK] = seg->filter();
-      args[AppositionSurfaceFilter::ORIGIN] = seg->data().toString();
-      args[Filter::INPUTS] = Filter::NamedInput(AppositionSurfaceFilter::INPUTLINK, seg->outputId());
 
-      FilterSPtr filter(new AppositionSurfaceFilter(inputs, args, FILTER_TYPE));
-      SetBasicGraphicalRepresentationFactory(filter);
-      filter->update();
-      filter->upkeeping();
-
-      Filter::FilterInspectorPtr filterInspector(new AppositionSurfaceFilterInspector(filter));
-      filter->setFilterInspector(filterInspector);
-
-      Q_ASSERT(filter->numberOfOutputs() == 1);
-
-      SegmentationSPtr asSegmentation = m_model->factory()->createSegmentation(filter, 0);
-      asSegmentation->modifiedByUser(userName());
-      asSegmentation->setInputSegmentationDependent(true);
-      asSegmentation->setNumber(seg->number());
-
-      m_samples            << seg->sample();
-      m_channels           << seg->channel();
-      m_filters            << filter;
-      m_segmentations      << model->findSegmentation(seg);
-      m_asSegmentations    << asSegmentation;
-      createdSegmentations << asSegmentation;
     }
   }
 
   //-----------------------------------------------------------------------------
   void AppositionSurfaceCommand::redo()
   {
-    for(int i = 0; i < m_filters.size(); ++i)
+    for(auto segmentation: m_asSegmentations)
     {
+
       m_model->addFilter(m_filters[i]);
       m_model->addRelation(m_segmentations[i]->filter(), m_filters[i], AppositionSurfaceFilter::INPUTLINK);
 

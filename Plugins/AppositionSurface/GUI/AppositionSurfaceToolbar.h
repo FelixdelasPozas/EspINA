@@ -19,45 +19,161 @@
 #ifndef APPOSITIONSURFACETOOLBAR_H
 #define APPOSITIONSURFACETOOLBAR_H
 
+// Plugin
+#include <Core/MultiTasking/Task.h>
+#include <GUI/Model/ModelAdapter.h>
 #include "AppositionSurfacePlugin_Export.h"
-// plugin
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
 // EspINA
-#include <Core/Interfaces/IToolBar.h>
-#include <GUI/ViewManager.h>
-#include <GUI/ISettingsPanel.h>
+#include <Support/ViewManager.h>
+#include <Support/ToolGroup.h>
+
+class QUndoStack;
+class QIcon;
+class QObject;
+class QString;
 
 namespace EspINA
 {
-  class AppositionSurfacePlugin_EXPORT AppositionSurfaceToolbar
-  : public IToolBar
+  class AppositionSurfaceTool;
+
+  using SASToolPtr   = AppositionSurfaceTool *;
+  using SASToolSPtr  = std::shared_ptr<AppositionSurfaceTool>;
+
+  //-----------------------------------------------------------------------------
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceToolGroup
+  : public ToolGroup
   {
     Q_OBJECT
   public:
-    explicit AppositionSurfaceToolbar(EspinaModel *model,
-                                      QUndoStack  *undoStack,
-                                      ViewManager *viewManager);
-    virtual ~AppositionSurfaceToolbar();
+    /* \brief AppositionSurfaceToolGroup class constructor.
+     *
+     */
+    explicit AppositionSurfaceToolGroup(ModelAdapterSPtr model,
+                                        QUndoStack *undoStack,
+                                        ModelFactorySPtr factory,
+                                        ViewManagerSPtr viewManager);
 
+    /* \brief AppositionSurfaceToolGroup class virtual destructor.
+     *
+     */
+    virtual ~AppositionSurfaceToolGroup();
 
-    // Re-implemented slots don't need to be so declared
-    virtual void resetToolbar()   {}
-    virtual void abortOperation() {}
+    /* \brief Implements ToolGroup::setEnabled().
+     *
+     */
+    virtual void setEnabled(bool value);
+
+    /* \brief Implements ToolGroup::enabled().
+     *
+     */
+    virtual bool enabled() const;
+
+    /* \brief Implements ToolGroup::tools().
+     *
+     */
+    virtual ToolSList tools();
 
   public slots:
-    void selectionChanged(ViewManager::Selection selection, bool unused);
+    /* \brief Changes action enabled/disabled depending on the actual selection.
+     *
+     */
+    void selectionChanged();
+
+    /* \brief Launches the tasks to create SAS from the group of selected segmentations.
+     *
+     */
+    void createSAS();
+
+    /* \brief Counts the number of SAS created (tasks finished) and adds them to the model once all
+     * have finished.
+     */
+    void finishedTask();
 
   private:
-    static bool isSynapse(SegmentationPtr segmentation);
+    struct Data
+    {
+      FilterAdapterSPtr adapter;
+      SegmentationAdapterSPtr segmentation;
+
+      Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
+      Data(): adapter{nullptr}, segmentation{nullptr} {};
+    };
+
+    /* \brief Returns true if the segmentation passed as argument is a synapse.
+     * \param[in] segmentation, segmentation to test.
+     *
+     */
+    static bool isSynapse(SegmentationAdapterPtr segmentation);
 
   private:
-    EspinaModel                   *m_model;
-    QUndoStack                    *m_undoStack;
-    ViewManager                   *m_viewManager;
-    QAction                       *m_action;
-    ISettingsPanelPrototype        m_settings;
-    AppositionSurfaceExtensionSPtr m_extension;
+    ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
+    QUndoStack      *m_undoStack;
+    SASToolSPtr      m_tool;
+    bool             m_enabled;
+
+    QMap<FilterAdapterPtr, struct Data> m_executingTasks;
+    QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
+  };
+
+  //-----------------------------------------------------------------------------
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceTool
+  : public Tool
+  {
+    Q_OBJECT
+    public:
+      /* \brief AppositionSurfaceTool class constructor.
+       * \param[in] icon, icon for the QAction.
+       * \param[in] text, text to use as the QAction tooltip.
+       *
+       */
+      explicit AppositionSurfaceTool(const QIcon& icon, const QString& text);
+
+      /* \brief AppositionSurfaceTool class virtual destructor.
+       *
+       */
+      virtual ~AppositionSurfaceTool();
+
+      /* \brief Implements Tool::setEnabled().
+       *
+       */
+      virtual void setEnabled(bool value)
+      { m_action->setEnabled(value); }
+
+      /* \brief Implements Tool::enabled().
+       *
+       */
+      virtual bool enabled() const
+      { return m_action->isEnabled(); }
+
+      /* \brief Implements Tool::actions().
+       *
+       */
+      virtual QList<QAction *> actions() const;
+
+      /* \brief Sets the tooltip of the action.
+       *
+       */
+      void setToolTip(const QString &tooltip)
+      { m_action->setToolTip(tooltip); }
+
+    signals:
+      /* \brief Signal emmited when the QAction has been triggered.
+       *
+       */
+      void triggered();
+
+    private slots:
+      /* \brief Emits the triggered signal for the toolgroup.
+       *
+       */
+      void activated()
+      { emit triggered(); }
+
+    private:
+      QAction *m_action;
   };
 
 } // namespace EspINA

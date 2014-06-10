@@ -243,8 +243,6 @@ namespace EspINA
         SegmentationAdapterSList segmentationsList;
         SegmentationAdapterList segmentations;
 
-        m_undoStack->beginMacro("Split Segmentation");
-
         for(auto i: {0, 1})
         {
           auto segmentation  = m_factory->createSegmentation(m_executingTasks[filter].adapter, i);
@@ -254,9 +252,9 @@ namespace EspINA
           segmentations << segmentation.get();
         }
 
+        m_undoStack->beginMacro("Split Segmentation");
         m_undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_model));
         m_undoStack->push(new AddSegmentations(segmentationsList, sample, m_model));
-
         m_undoStack->endMacro();
 
         initTool(false);

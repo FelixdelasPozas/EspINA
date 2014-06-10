@@ -24,6 +24,8 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 
+#include <QDebug>
+
 using namespace EspINA;
 
 //----------------------------------------------------------------------------

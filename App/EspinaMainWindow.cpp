@@ -55,7 +55,6 @@
 #include <GUI/Representations/Renderers/VolumetricRenderer.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
-#include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
@@ -410,6 +409,18 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         registerDockWidget(Qt::LeftDockWidgetArea, dock);
       }
 
+      for(auto factory: validPlugin->filterFactories())
+      {
+        qDebug() << plugin << "- Filter Factory  ...... OK";
+        m_factory->registerFilterFactory(factory);
+      }
+
+      for(auto reader: validPlugin->analysisReaders())
+      {
+        qDebug() << plugin << "- Analysis Reader  ...... OK";
+        m_factory->registerAnalysisReader(reader.get());
+      }
+
       for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
       {
         qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
@@ -427,22 +438,13 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
         m_availableRenderers << renderer;
       }
+
+      for(auto entry: validPlugin->menuEntries())
+      {
+        qDebug() << plugin << "- Menu Entries " << entry;
+        createDynamicMenu(entry);
+      }
     }
-
-//     DynamicMenu *menu = qobject_cast<DynamicMenu *>(plugin);
-//     if (menu)
-//     {
-//       qDebug() << plugin << "- Menus ..... OK";
-//       foreach(MenuEntry entry, menu->menuEntries())
-//         createDynamicMenu(entry);
-//     }
-
-//     IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
-//     if (fileReader)
-//     {
-//       qDebug() << plugin << "- File Reader ...... OK";
-//       fileReader->initFileReader(m_model, m_undoStack, m_viewManager);
-//     }
   }
 }
 

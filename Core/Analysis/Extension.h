@@ -170,8 +170,6 @@ namespace EspINA
     ChannelExtension(const InfoCache &infoCache)
     : Extension<Channel>(infoCache)
     {}
-
-    //friend class Channel;
   };
 
   using ChannelExtensionPtr      = ChannelExtension *;
@@ -198,9 +196,6 @@ namespace EspINA
     SegmentationExtension(const InfoCache &infoCache)
     : Extension<Segmentation>(infoCache)
     {}
-
-
-    //friend class Segmentation;
   };
 
   using SegmentationExtensionPtr      = SegmentationExtension *;
