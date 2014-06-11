@@ -19,66 +19,103 @@
 #ifndef ESPINA_IMAGE_LOGIC_FILTER_H
 #define ESPINA_IMAGE_LOGIC_FILTER_H
 
-#include "EspinaFilters_Export.h"
-
-#include "BasicSegmentationFilter.h"
-#include <GUI/Model/ModelAdapter.h>
-
-// #include <itkConstantPadImageFilter.h>
-// #include <itkOrImageFilter.h>
-//   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
-//   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
+// EspINA
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Data/VolumetricData.h>
 
 namespace EspINA
 {
   class EspinaFilters_EXPORT ImageLogicFilter
-  : public BasicSegmentationFilter
+  : public Filter
   {
     public:
-      enum class Operation
-      {
-        ADDITION, SUBTRACTION, NOSIGN
+      enum class Operation : std::int8_t
+      { ADDITION = 1,
+        SUBTRACTION = 2,
+        NOSIGN = 3
       };
 
     public:
+      /* \brief ImageLogicFilter class constructor.
+       *
+       */
+      explicit ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
+
+      /* \brief ImageLogicFilter class virtual destructor.
+       *
+       */
       virtual ~ImageLogicFilter();
 
-      virtual Snapshot snapshot() const;
+      /* \brief Implements Persistent::restoreState().
+       *
+       */
+      virtual void restoreState(const State& state);
 
-      virtual void unload();
 
+      /* \brief Implements Persistent::state().
+       *
+       */
+      virtual State state() const;
 
+      /* \brief Sets the operation to be executed by the filter.
+       *
+       */
+      void setOperation(Operation op);
 
     protected:
-      explicit ImageLogicFilter(OutputSList inputs, Type type, SchedulerSPtr scheduler);
-
+      /* \brief Implements Filter::saveFilterSnapshot().
+       *
+       */
       virtual Snapshot saveFilterSnapshot() const;
 
+      /* \brief Implements Filter::needUpdate().
+       *
+       */
       virtual bool needUpdate() const;
 
-      virtual bool needUpdate(Output::Id oId) const;
+      /* \brief Implements Filter::needUpdate(oid).
+       *
+       */
+      virtual bool needUpdate(Output::Id id) const;
 
-      virtual bool fetchOutputData(Output::Id oId);
-
-
-
-      virtual void run();
-
+      /* \brief Implements Filter::execute().
+       *
+       */
       virtual void execute();
 
-      virtual void execute(Output::Id oId);
+      /* \brief Implements Filter::execute(oid).
+       *
+       */
+      virtual void execute(Output::Id id);
 
-      virtual bool ignoreStorageContent() const
-      { return false; }
+      /* \brief Implements Filter::ignoreStorageContents().
+       *
+       */
+      virtual bool ignoreStorageContent() const;
 
+      /* \brief Implements Filter::invalidateEditedRegions().
+       *
+       */
       virtual bool invalidateEditedRegions();
 
     protected:
+      /* \brief Performs the logical addition of the input segmentations.
+       *
+       */
       void addition();
+
+      /* \brief Performs the substraction off all the segmentations from the
+       * first one.
+       *
+       */
       void subtraction();
 
     private:
+      Operation m_operation;
   };
+
+  using ImageLogicFilterPtr  = ImageLogicFilter *;
+  using ImageLogicFilterSPtr = std::shared_ptr<ImageLogicFilter>;
 
 } // namespace EspINA
 

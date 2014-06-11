@@ -25,6 +25,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <Filters/MorphologicalEditionFilter.h>
 #include <Filters/FillHolesFilter.h>
+#include <Filters/ImageLogicFilter.h>
 #include "CODETool.h"
 
 
@@ -131,6 +132,8 @@ namespace EspINA
 
     void updateAvailableActionsForSelection();
 
+    void onImageLogicFilterFinished();
+
   private:
     template<typename T>
     void launchCODE(const Filter::Type& type, const QString& name, int r)
@@ -183,6 +186,12 @@ namespace EspINA
       SegmentationAdapterPtr Segmentation;
       QString                Operation;
     };
+    struct ImageLogicContext
+    {
+      FilterAdapterSPtr           Task;
+      ImageLogicFilter::Operation Operation;
+      SegmentationAdapterList     Segmentations;
+    };
 
   private:
     ModelAdapterSPtr m_model;
@@ -204,6 +213,7 @@ namespace EspINA
 
     QMap<MorphologicalEditionFilterPtr, MorphologicalContext> m_executingMorpholocialTasks;
     QMap<FillHolesFilterPtr, FillHolesContext>                m_executingFillHolesTasks;
+    QMap<ImageLogicFilterPtr, ImageLogicContext>              m_executingImageLogicTasks;
 
     bool m_enabled;
   };

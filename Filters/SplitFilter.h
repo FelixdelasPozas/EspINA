@@ -22,7 +22,6 @@
 // EspINA
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/VolumetricData.h>
-#include "BasicSegmentationFilter.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -108,7 +107,7 @@ namespace EspINA
        *
        */
       virtual bool invalidateEditedRegions();
-    protected:
+
       QString stencilFile() const
       { return prefix() + "stencil.vti"; }
 

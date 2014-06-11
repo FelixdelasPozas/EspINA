@@ -17,6 +17,7 @@ set (FILTERS_SOURCES
   ErodeFilter.cpp
   FillHolesFilter.cpp
   FreeFormSource.cpp
+  ImageLogicFilter.cpp
   MorphologicalEditionFilter.cpp
   OpenFilter.cpp
   SeedGrowSegmentationFilter.cpp

@@ -16,26 +16,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "ImageLogicFilter.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Utils/BinaryMask.h>
 
-#include <GUI/ModelFactory.h>
-#include <Core/Analysis/Data/Volumetric/ItkVolume.h>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
-#include <GUI/Representations/SliceRepresentation.h>
-
-#include <itkImageAlgorithm.h>
-
-#include <QDebug>
+// ITK
+#include <itkImageRegionConstIterator.h>
 
 using namespace EspINA;
 
-const Filter::Type ImageLogicFilter_FILTER = "ImageLogicFilter";
-
 //-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(OutputSList inputs,
-                                   Type        type,
-                                   Scheduler   scheduler)
-: BasicSegmentationFilter(inputs, type, scheduler)
+ImageLogicFilter::ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)
+: Filter(inputs, type, scheduler)
+, m_operation  {Operation::NOSIGN}
 {
 }
 
@@ -45,165 +42,194 @@ ImageLogicFilter::~ImageLogicFilter()
 }
 
 //-----------------------------------------------------------------------------
+void ImageLogicFilter::setOperation(Operation op)
+{
+  m_operation = op;
+}
+
+//-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate(Output::Id oId) const
 {
-  bool update = Filter::needUpdate(oId);
-
-  if (!update && !m_inputs.isEmpty())
-  {
-    Q_ASSERT(m_outputs.size() == 1);
-
-
-    SegmentationVolumeSPtr outputVolume = segmentationVolume(m_outputs[0]);
-    int i = 1;
-    while (!update && i < m_inputs.size())
-    {
-      SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[i]);
-      update = outputVolume->timeStamp() < inputVolume->timeStamp();
-      ++i;
-    }
-  }
-
-  return update;
+  return m_outputs.empty() || m_inputs.empty();
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::run()
+void ImageLogicFilter::execute()
 {
-  run(0);
+  execute(0);
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::run(FilterOutputId oId) //TODO: Parallelize
+void ImageLogicFilter::execute(Output::Id oId)
 {
   Q_ASSERT(0 == oId);
   Q_ASSERT(m_inputs.size() > 1);
 
   // NOTE: Updating this filter will result in invalidating previous outputs
+  invalidateEditedRegions();
   m_outputs.clear();
 
-  switch (m_param.operation())
+  switch (m_operation)
   {
-    case ADDITION:
+    case Operation::ADDITION:
       addition();
       break;
-    case SUBTRACTION:
+    case Operation::SUBTRACTION:
       subtraction();
       break;
     default:
       Q_ASSERT(false);
+      break;
   };
 
-  emit modified(this);
+  emit progress(100);
+  if (!canExecute()) return;
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::addition()
 {
-  QList<EspinaRegion> regions;
+  auto firstVolume = volumetricData(m_inputs[0]->output());
+  Bounds boundingBounds = firstVolume->bounds();
 
-  SegmentationVolumeSPtr firstVolume = segmentationVolume(m_inputs[0]);
-  EspinaRegion bb = firstVolume->espinaRegion();
-  regions << bb;
+  emit progress(0);
+  if (!canExecute()) return;
 
-  for (int i = 1; i < m_inputs.size(); i++)
+  for(auto input: m_inputs)
   {
-    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
-    EspinaRegion region = iVolume->espinaRegion();
-
-    bb = BoundingBox(bb, region);
-    regions << region;
+    auto inputVolume = volumetricData(input->output());
+    boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds, firstVolume->spacing());
   }
 
-  itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
-  // TODO FIX. WARNING: This is a hack to prevent rounding problems on the limits
-  // of the voxel ranges
-  for (int i = 0; i < 3; ++i)
-  {
-    bb[2*i]   += 0.25*spacing[i];
-    bb[2*i+1] -= 0.25*spacing[i];
-  }
-  for(int r = 0; r < regions.size(); ++r)
-  {
-    for (int i = 0; i < 3; i++)
-    {
-      regions[r][2*i]   += 0.25*spacing[i];
-      regions[r][2*i+1] -= 0.25*spacing[i];
-    }
-  }
-  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(bb, spacing));
+  emit progress(50);
+  if (!canExecute()) return;
 
-  for (int i = 0; i < regions.size(); i++)
-  {
-    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
-    itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot      = volumeRepresentation->iterator(regions[i]);
+  auto outputVolume = new SparseVolume<itkVolumeType>{boundingBounds, firstVolume->spacing()};
 
+  for(auto input: m_inputs)
+  {
+    auto inputImage = volumetricData(input->output())->itkImage();
+    auto region = inputImage->GetLargestPossibleRegion();
+    auto inputBounds = equivalentBounds<itkVolumeType>(inputImage, region);
+    auto mask = BinaryMaskSPtr<unsigned char>{new BinaryMask<unsigned char>{inputBounds, input->output()->spacing()}};
+    mask->setForegroundValue(SEG_VOXEL_VALUE);
+
+    BinaryMask<unsigned char>::region_iterator mit(mask.get(), inputBounds);
+    itk::ImageRegionConstIterator<itkVolumeType> it(inputImage, region);
+
+    mit.goToBegin();
     it.GoToBegin();
-    ot.GetRegion();
-    for (; !it.IsAtEnd(); ++it,++ot)
+
+    while(!it.IsAtEnd())
     {
-      if (it.Value() || ot.Value())
-        ot.Set(SEG_VOXEL_VALUE);
+      if(it.Get() == SEG_VOXEL_VALUE)
+        mit.Set();
+
+      ++it;
+      ++mit;
     }
+
+    outputVolume->draw(mask, mask->foregroundValue());
   }
 
-  SegmentationRepresentationSList repList;
-  repList << volumeRepresentation;
-  repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
-
-  addOutputRepresentations(0, repList);
+  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  m_outputs[0]->setData(DataSPtr{outputVolume});
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::subtraction()
 {
-  // TODO 2012-11-29 Revisar si se puede evitar crear la imagen
-  OutputSList          validInputs;
-  QList<EspinaRegion> regions;
+  auto firstVolume = volumetricData(m_inputs[0]->output());
+  auto bounds = firstVolume->bounds();
+  auto spacing = firstVolume->spacing();
 
-  SegmentationVolumeSPtr firstVolume = segmentationVolume(m_inputs[0]);
-  EspinaRegion outputRegion = firstVolume->espinaRegion();
+  auto outputVolume = new SparseVolume<itkVolumeType>{bounds, spacing};
+  outputVolume->draw(firstVolume->itkImage());
 
-  validInputs << m_inputs[0];
-  regions     << outputRegion;
-
-  for (int i = 1; i < m_inputs.size(); i++)
+  for(auto i = 1; i < m_inputs.size(); ++i)
   {
-    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
-    EspinaRegion region = iVolume->espinaRegion();
-    if (outputRegion.intersect(region))
+    if(intersect(bounds, m_inputs[i]->output()->bounds(), spacing))
     {
-      validInputs << m_inputs[i];
-      regions     << outputRegion.intersection(region);
+      auto intersectionBounds = intersection(m_inputs[0]->output()->bounds(), m_inputs[i]->output()->bounds(), spacing);
+      auto inputImage = volumetricData(m_inputs[i]->output())->itkImage(intersectionBounds);
+      auto region = inputImage->GetLargestPossibleRegion();
+      auto inputBounds = equivalentBounds<itkVolumeType>(inputImage, region);
+      auto mask = BinaryMaskSPtr<unsigned char>{new BinaryMask<unsigned char>{inputBounds, m_inputs[i]->output()->spacing()}};
+      mask->setForegroundValue(SEG_BG_VALUE);
+
+      BinaryMask<unsigned char>::region_iterator mit(mask.get(), inputBounds);
+      itk::ImageRegionConstIterator<itkVolumeType> it(inputImage, region);
+
+      mit.goToBegin();
+      it.GoToBegin();
+
+      while(!it.IsAtEnd())
+      {
+        if(it.Get() == SEG_VOXEL_VALUE)
+          mit.Set();
+
+        ++it;
+        ++mit;
+      }
+
+      outputVolume->draw(mask, mask->foregroundValue());
     }
+
+    emit progress((100/m_inputs.size())*i);
+    if (!canExecute()) return;
   }
 
-  itkVolumeType::SpacingType spacing = firstVolume->toITK()->GetSpacing();
-  RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(outputRegion, spacing));
+  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  m_outputs[0]->setData(DataSPtr{outputVolume});
+}
 
-  itk::ImageAlgorithm::Copy(firstVolume->toITK().GetPointer(),
-                            volumeRepresentation->toITK().GetPointer(),
-                            firstVolume->volumeRegion(),
-                            volumeRepresentation->volumeRegion());
+//-----------------------------------------------------------------------------
+void ImageLogicFilter::restoreState(const State& state)
+{
+  if(state.compare("Operation=ADDITION"))
+    m_operation = Operation::ADDITION;
+  else
+    if(state.compare("Operation=SUBTRACTION"))
+      m_operation = Operation::SUBTRACTION;
+    else
+      Q_ASSERT(false);
+}
 
-  for (int i = 1; i < validInputs.size(); i++)
-  {
-    SegmentationVolumeSPtr iVolume = segmentationVolume(m_inputs[i]);
-    itkVolumeConstIterator it      = iVolume->constIterator(regions[i]);
-    itkVolumeIterator      ot      = volumeRepresentation ->iterator     (regions[i]);
-    it.GoToBegin();
-    ot.GetRegion();
-    for (; !it.IsAtEnd(); ++it,++ot)
-    {
-      if (it.Value() == SEG_VOXEL_VALUE)
-        ot.Set(0);
-    }
-  }
+//-----------------------------------------------------------------------------
+State ImageLogicFilter::state() const
+{
+  State state;
+  if(m_operation == Operation::ADDITION)
+    state = State("Operation=ADDITION");
+  else
+    if(m_operation == Operation::SUBTRACTION)
+      state = State("Operation=SUBTRACTION");
+    else
+      Q_ASSERT(false);
 
-  SegmentationRepresentationSList repList;
-  repList << volumeRepresentation;
-  repList << MeshRepresentationSPtr(new MarchingCubesMesh(volumeRepresentation));
+  return state;
+}
 
-  addOutputRepresentations(0, repList);
+//-----------------------------------------------------------------------------
+Snapshot ImageLogicFilter::saveFilterSnapshot() const
+{
+  return Snapshot();
+}
+
+//-----------------------------------------------------------------------------
+bool ImageLogicFilter::needUpdate() const
+{
+  return m_outputs.empty();
+}
+
+//-----------------------------------------------------------------------------
+bool ImageLogicFilter::ignoreStorageContent() const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool ImageLogicFilter::invalidateEditedRegions()
+{
+  return false;
 }

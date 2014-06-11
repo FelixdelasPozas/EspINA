@@ -17,6 +17,7 @@
  */
 
 #include "MorphologicalEditionTool.h"
+#include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -26,6 +27,7 @@
 #include <Filters/CloseFilter.h>
 #include <Filters/OpenFilter.h>
 #include <Filters/FillHolesFilter.h>
+#include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/ReplaceOutputCommand.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
@@ -43,16 +45,17 @@ const QString CLOSE_RADIUS ("MorphologicalEditionTools::CloseRadius");
 using namespace EspINA;
 using namespace EspINA::GUI;
 
-const Filter::Type CLOSE_FILTER         = "CloseSegmentation";
-const Filter::Type CLOSE_FILTER_V4      = "EditorToolBar::ClosingFilter";
-const Filter::Type OPEN_FILTER          = "OpenSegmentation";
-const Filter::Type OPEN_FILTER_V4       = "EditorToolBar::OpeningFilter";
-const Filter::Type DILATE_FILTER        = "DilateSegmentation";
-const Filter::Type DILATE_FILTER_V4     = "EditorToolBar::DilateFilter";
-const Filter::Type ERODE_FILTER         = "ErodeSegmentation";
-const Filter::Type ERODE_FILTER_V4      = "EditorToolBar::ErodeFilter";
-const Filter::Type FILL_HOLES_FILTER    = "FillSegmentationHoles";
-const Filter::Type FILL_HOLES_FILTER_V4 = "EditorToolBar::FillHolesFilter";
+const Filter::Type CLOSE_FILTER          = "CloseSegmentation";
+const Filter::Type CLOSE_FILTER_V4       = "EditorToolBar::ClosingFilter";
+const Filter::Type OPEN_FILTER           = "OpenSegmentation";
+const Filter::Type OPEN_FILTER_V4        = "EditorToolBar::OpeningFilter";
+const Filter::Type DILATE_FILTER         = "DilateSegmentation";
+const Filter::Type DILATE_FILTER_V4      = "EditorToolBar::DilateFilter";
+const Filter::Type ERODE_FILTER          = "ErodeSegmentation";
+const Filter::Type ERODE_FILTER_V4       = "EditorToolBar::ErodeFilter";
+const Filter::Type FILL_HOLES_FILTER     = "FillSegmentationHoles";
+const Filter::Type FILL_HOLES_FILTER_V4  = "EditorToolBar::FillHolesFilter";
+const Filter::Type IMAGE_LOGIC_FILTER    = "ImageLogicFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList MorphologicalEditionTool::MorphologicalFilterFactory::providedFilters() const
@@ -84,23 +87,27 @@ throw (Unknown_Filter_Exception)
 
   if (filter == CLOSE_FILTER || filter == CLOSE_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new CloseFilter(inputs, CLOSE_FILTER, scheduler)};
+    morphologicalFilter = FilterSPtr{new CloseFilter{inputs, CLOSE_FILTER, scheduler}};
   }
   else if (filter == OPEN_FILTER || filter == OPEN_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new OpenFilter(inputs, OPEN_FILTER, scheduler)};
+    morphologicalFilter = FilterSPtr{new OpenFilter{inputs, OPEN_FILTER, scheduler}};
   }
   else if (filter == DILATE_FILTER || filter == DILATE_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new DilateFilter(inputs, DILATE_FILTER, scheduler)};
+    morphologicalFilter = FilterSPtr{new DilateFilter{inputs, DILATE_FILTER, scheduler}};
   }
   else if (filter == ERODE_FILTER || filter == ERODE_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new ErodeFilter(inputs, ERODE_FILTER, scheduler)};
+    morphologicalFilter = FilterSPtr{new ErodeFilter{inputs, ERODE_FILTER, scheduler}};
   }
   else if (filter == FILL_HOLES_FILTER || filter == FILL_HOLES_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new FillHolesFilter(inputs, FILL_HOLES_FILTER, scheduler)};
+    morphologicalFilter = FilterSPtr{new FillHolesFilter{inputs, FILL_HOLES_FILTER, scheduler}};
+  }
+  else if(filter == IMAGE_LOGIC_FILTER)
+  {
+    morphologicalFilter = FilterSPtr{new ImageLogicFilter{inputs, IMAGE_LOGIC_FILTER, scheduler}};
   }
   else
   {
@@ -215,46 +222,67 @@ QList<QAction *> MorphologicalEditionTool::actions() const
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::mergeSegmentations()
 {
-  m_viewManager->setEventHandler(nullptr);
+  m_viewManager->unsetActiveEventHandler();
 
-  auto inputs = m_viewManager->selection()->segmentations();
+  auto segmentations = m_viewManager->selection()->segmentations();
 
-  if (inputs.size() > 1)
+  if (segmentations.size() > 1)
   {
-    SegmentationAdapterList createdSegmentations;
     m_viewManager->selection()->clear();
 
-    m_undoStack->beginMacro(tr("Merge Segmentations"));
-    //      m_undoStack->push(new ImageLogicCommand(input,
-    //                                              ImageLogicFilter::ADDITION,
-    //                                              m_viewManager->activeTaxonomy(),
-    //                                              m_model,
-    //                                              createdSegmentations));
-    //      m_model->emitSegmentationAdded(createdSegmentations);
-    m_undoStack->endMacro();
+    InputSList inputs;
+    for(auto segmentation: segmentations)
+      inputs << segmentation->asInput();
 
+    auto adapter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
+    auto filter = adapter->get();
+    filter->setOperation(ImageLogicFilter::Operation::ADDITION);
+    filter->setDescription("Segmentations Addition");
+
+    ImageLogicContext context;
+
+    context.Operation = ImageLogicFilter::Operation::ADDITION;
+    context.Segmentations = segmentations;
+    context.Task = adapter;
+
+    m_executingImageLogicTasks.insert(filter.get(), context);
+
+    connect(filter.get(), SIGNAL(finished()), this, SLOT(onImageLogicFilterFinished()));
+    adapter->submit();
   }
 }
 
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::subtractSegmentations()
 {
-  //    m_viewManager->unsetActiveTool();
-  //
-  //    SegmentationList input = m_viewManager->selectedSegmentations();
-  //    if (input.size() > 1)
-  //    {
-  //      SegmentationSList createdSegmentations;
-  //      m_viewManager->clearSelection(true);
-  //      m_undoStack->beginMacro("Subtract Segmentations");
-  //      m_undoStack->push(new ImageLogicCommand(input,
-  //                                              ImageLogicFilter::SUBTRACTION,
-  //                                              m_viewManager->activeTaxonomy(),
-  //                                              m_model,
-  //                                              createdSegmentations));
-  //      m_model->emitSegmentationAdded(createdSegmentations);
-  //      m_undoStack->endMacro();
-  //    }
+  m_viewManager->unsetActiveEventHandler();
+
+  auto segmentations = m_viewManager->selection()->segmentations();
+
+  if (segmentations.size() > 1)
+  {
+    m_viewManager->selection()->clear();
+
+    InputSList inputs;
+    for(auto segmentation: segmentations)
+      inputs << segmentation->asInput();
+
+    auto adapter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
+    auto filter = adapter->get();
+    filter->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
+    filter->setDescription("Segmentations Subtraction");
+
+    ImageLogicContext context;
+
+    context.Operation = ImageLogicFilter::Operation::SUBTRACTION;
+    context.Segmentations = segmentations;
+    context.Task = adapter;
+
+    m_executingImageLogicTasks.insert(filter.get(), context);
+
+    connect(filter.get(), SIGNAL(finished()), this, SLOT(onImageLogicFilterFinished()));
+    adapter->submit();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -280,7 +308,6 @@ void MorphologicalEditionTool::erodeSegmentations()
 {
   launchCODE<DilateFilter>(ERODE_FILTER, "Erode", m_erode.radius());
 }
-
 
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::fillHoles()
@@ -370,10 +397,10 @@ void MorphologicalEditionTool::updateAvailableActionsForSelection()
   int listSize = m_viewManager->selection()->segmentations().size();
 
   bool atLeastOneSegmentation = listSize > 0;
-  bool twoSegmentations = listSize == 2;
+  bool atLeasttwoSegmentations = listSize >= 2;
 
-  m_addition->setEnabled(m_enabled && twoSegmentations);
-  m_subtract->setEnabled(m_enabled && twoSegmentations);
+  m_addition->setEnabled(m_enabled && atLeasttwoSegmentations);
+  m_subtract->setEnabled(m_enabled && atLeasttwoSegmentations);
   m_close .setEnabled(m_enabled && atLeastOneSegmentation);
   m_open  .setEnabled(m_enabled && atLeastOneSegmentation);
   m_dilate.setEnabled(m_enabled && atLeastOneSegmentation);
@@ -442,4 +469,34 @@ void MorphologicalEditionTool::onFillHolesFinished()
   }
 
   m_executingFillHolesTasks.remove(filter);
+}
+
+//------------------------------------------------------------------------
+void MorphologicalEditionTool::onImageLogicFilterFinished()
+{
+  auto filter = dynamic_cast<ImageLogicFilterPtr>(sender());
+
+  if (!filter->isAborted())
+  {
+    Q_ASSERT(m_executingImageLogicTasks.keys().contains(filter));
+    auto context = m_executingImageLogicTasks[filter];
+
+    m_undoStack->beginMacro(filter->description());
+
+    auto segmentation = m_factory->createSegmentation(context.Task, 0);
+    segmentation->setCategory(context.Segmentations.first()->category());
+
+    auto samples = QueryAdapter::samples(context.Segmentations.first());
+
+    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+
+    for(auto segmentation: context.Segmentations)
+      m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+
+    m_undoStack->endMacro();
+
+    m_viewManager->updateViews();
+  }
+
+  m_executingImageLogicTasks.remove(filter);
 }
