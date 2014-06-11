@@ -57,8 +57,6 @@ namespace EspINA
   public:
     explicit SASAnalysisEntry(SegmentationAdapterList segmentations,
                               ModelAdapterSPtr        model,
-                              QUndoStack             *undoStack,
-                              ViewManagerSPtr         viewManager,
                               QWidget                *parent);
     void displayInformation();
 
@@ -77,8 +75,6 @@ namespace EspINA
 
   private:
     ModelAdapterSPtr m_model;
-    QUndoStack      *m_undoStack;
-    ViewManagerSPtr  m_viewManager;
 
     QString     m_title;
 

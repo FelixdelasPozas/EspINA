@@ -23,6 +23,7 @@
 // EspINA
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
+#include <Undo/AddRelationCommand.h>
 #include <Undo/AddSegmentations.h>
 
 // Qt
@@ -163,6 +164,7 @@ void AppositionSurfaceToolGroup::finishedTask()
   if (!m_executingTasks.empty())
     return;
 
+  // maybe all tasks have been aborted
   if(m_finishedTasks.empty())
     return;
 
@@ -190,12 +192,14 @@ void AppositionSurfaceToolGroup::finishedTask()
     segmentation->setCategory(category);
 
     auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+    std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_finishedTasks[filter].segmentation);
     segmentation->addExtension(extension);
 
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
     Q_ASSERT(!samples.empty());
 
     m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+    m_undoStack->push(new AddRelationCommand(m_finishedTasks[filter].segmentation, segmentation, SAS, m_model));
 
     createdSegmentations << segmentation.get();
   }

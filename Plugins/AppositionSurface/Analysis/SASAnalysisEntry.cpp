@@ -31,7 +31,6 @@
 // EspINA
 #include <Filter/AppositionSurfaceFilter.h>
 #include <Core/Extensions/AppositionSurfaceExtension.h>
-#include <Undo/AppositionSurfaceCommand.h>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Analysis/Extension.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
@@ -67,13 +66,9 @@ private:
 //----------------------------------------------------------------------------
 SASAnalysisEntry::SASAnalysisEntry(SegmentationAdapterList segmentations,
                                    ModelAdapterSPtr        model,
-                                   QUndoStack             *undoStack,
-                                   ViewManagerSPtr         viewManager,
                                    QWidget                *parent)
 : QWidget(parent)
 , m_model      {model}
-, m_undoStack  {undoStack}
-, m_viewManager{viewManager}
 , m_synapses   {segmentations}
 {
   setupUi(this);
@@ -132,7 +127,6 @@ void SASAnalysisEntry::displayInformation()
   //progressBar->setMinimum(-1);
   //progressBar->setMaximum(rowCount - 1);
 
-  bool createSAS = false;
   SegmentationAdapterSList createdSegmentations;
 
   for (int r = 0; r < rowCount; ++r)
@@ -165,21 +159,7 @@ void SASAnalysisEntry::displayInformation()
     }
 
     auto relatedItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
-    if (relatedItems.isEmpty())
-    {
-      if (!createSAS)
-      {
-        m_undoStack->beginMacro("Create Synaptic Apposition Surface");
-      }
-
-      SegmentationAdapterList noSASSegmentations;
-      noSASSegmentations << segmentation;
-
-      m_undoStack->push(new AppositionSurfaceCommand(noSASSegmentations, m_model, m_viewManager, createdSegmentations));
-
-      relatedItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
-      createSAS = true;
-    }
+    Q_ASSERT(relatedItems.size() >= 1);
 
     if (relatedItems.size() > 1)
     {
@@ -230,12 +210,6 @@ void SASAnalysisEntry::displayInformation()
         analysisTable->item(0, c)->setData(Qt::TextAlignmentRole, Qt::AlignCenter);
       }
     }
-  }
-
-  if (createSAS)
-  {
-    m_model->emitSegmentationsAdded(createdSegmentations);
-    m_undoStack->endMacro();
   }
 
   dataTable->resizeColumnsToContents();

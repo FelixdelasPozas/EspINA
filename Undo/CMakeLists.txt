@@ -11,6 +11,7 @@ set (UNDO_SOURCES
   AddCategoryCommand.cpp
   AddClassificationCommand.cpp
   AddSegmentations.cpp
+  AddRelationCommand.cpp
   ChangeCategoryCommand.cpp
   ChangeSegmentationNotes.cpp
   ChangeSegmentationTags.cpp

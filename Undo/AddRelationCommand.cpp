@@ -17,33 +17,32 @@
 */
 
 // EspINA
-#include "AddRelation.h"
-#include <Core/Model/EspinaModel.h>
+#include "AddRelationCommand.h"
 
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-AddRelation::AddRelation(ModelItemSPtr   ancestor,
-                         ModelItemSPtr   successor,
-                         const QString  description,
-                         EspinaModel   *model,
-                         QUndoCommand  *parent)
-: QUndoCommand(parent)
-, m_model(model)
-, m_ancester(ancestor)
-, m_succesor(successor)
-, m_description(description)
+AddRelationCommand::AddRelationCommand(ItemAdapterSPtr  ancestor,
+                                       ItemAdapterSPtr  successor,
+                                       const QString   &relationName,
+                                       ModelAdapterSPtr model,
+                                       QUndoCommand    *parent)
+: QUndoCommand{parent}
+, m_ancester  {ancestor}
+, m_succesor  {successor}
+, m_relation  {relationName}
+, m_model     {model}
 {
 }
 
 //------------------------------------------------------------------------
-void AddRelation::redo()
+void AddRelationCommand::redo()
 {
-  m_model->addRelation(m_ancester, m_succesor, m_description);
+  m_model->addRelation(m_ancester, m_succesor, m_relation);
 }
 
 //------------------------------------------------------------------------
-void AddRelation::undo()
+void AddRelationCommand::undo()
 {
-  m_model->removeRelation(m_ancester, m_succesor, m_description);
+  m_model->deleteRelation(m_ancester, m_succesor, m_relation);
 }

@@ -136,7 +136,7 @@ void SASAnalysisDialog::createTabs(QMap<QString, SegmentationAdapterList> tabs)
   QApplication::setOverrideCursor(Qt::WaitCursor);
   for(auto category: tabs.keys())
   {
-    SASAnalysisEntry *entry = new SASAnalysisEntry(tabs[category], m_model, m_undoStack, m_viewManager, this);
+    SASAnalysisEntry *entry = new SASAnalysisEntry(tabs[category], m_model, this);
     entry->defineQuery(tags);
     m_tabs->addTab(entry, category);
     m_entries << entry;

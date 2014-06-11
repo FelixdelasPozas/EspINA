@@ -63,7 +63,6 @@ const SegmentationExtension::InfoTag AREA                   = "Area";
 const SegmentationExtension::InfoTag PERIMETER              = "Perimeter";
 const SegmentationExtension::InfoTag TORTUOSITY             = "Area Ratio";
 const SegmentationExtension::InfoTag SYNAPSE                = "Synapse";
-const SegmentationExtension::InfoTag COMPUTATION_TIME       = "Computation Time";
 const SegmentationExtension::InfoTag MEAN_GAUSS_CURVATURE   = "Mean Gauss Curvature";
 const SegmentationExtension::InfoTag STD_DEV_GAUS_CURVATURE = "Std Deviation Gauss Curvature";
 const SegmentationExtension::InfoTag MEAN_MEAN_CURVATURE    = "Mean Mean Curvature";
@@ -78,6 +77,7 @@ const double UNDEFINED = -1.;
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache)
 : SegmentationExtension{cache}
+, m_originSegmentation {nullptr}
 {
 }
 
@@ -382,7 +382,6 @@ double stdDev(const vtkSmartPointer<vtkDoubleArray> dataArray, const double mean
   return std_dev;
 }
 
-
 //------------------------------------------------------------------------
 bool AppositionSurfaceExtension::computeInformation() const
 {
@@ -394,7 +393,6 @@ bool AppositionSurfaceExtension::computeInformation() const
 
   if (segMesh)
   {
-
     // vtkPolyData *asMesh = dynamic_cast<vtkPolyData *>(segMesh->mesh()->GetProducer()->GetOutputDataObject(0));
     auto asMesh = segMesh->mesh();
 
@@ -409,8 +407,6 @@ bool AppositionSurfaceExtension::computeInformation() const
     updateInfoCache(PERIMETER, computePerimeter (asMesh));
     updateInfoCache(TORTUOSITY, computeTortuosity(asMesh, area));
     updateInfoCache(SYNAPSE, m_extendedItem->name());
-
-    const SegmentationExtension::InfoTag COMPUTATION_TIME       = "Computation Time";
 
     auto meanGaussCurvature = mean(gaussCurvature);
     updateInfoCache(MEAN_GAUSS_CURVATURE, meanGaussCurvature);
@@ -427,6 +423,11 @@ bool AppositionSurfaceExtension::computeInformation() const
     auto meanMaxCurvature = mean(maxCurvature);
     updateInfoCache(MEAN_MAX_CURVATURE, meanMaxCurvature);
     updateInfoCache(STD_DEV_MAX_CURVATURE, stdDev(maxCurvature, meanMaxCurvature));
+
+    if(m_originSegmentation != nullptr)
+      updateInfoCache(SYNAPSE, m_originSegmentation->data().toString());
+    else
+      updateInfoCache(SYNAPSE, tr("Unknown"));
 
     validInformation = true;
   }

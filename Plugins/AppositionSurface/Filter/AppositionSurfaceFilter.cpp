@@ -55,6 +55,7 @@ AppositionSurfaceFilter::AppositionSurfaceFilter(InputSList inputs, Type type, S
 , m_converge          {true}
 , m_ap                {nullptr}
 , m_alreadyFetchedData{false}
+, m_lastModifiedMesh  {0}
 {
 }
 
@@ -65,7 +66,6 @@ AppositionSurfaceFilter::~AppositionSurfaceFilter()
   {
     disconnect(m_inputs[0]->output().get(), SIGNAL(modified()),
                this, SLOT(inputModified()));
-    m_ap->Delete();
   }
 }
 
@@ -87,9 +87,7 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
     Q_ASSERT(m_inputs.size() == 1);
 
     auto inputVolume = volumetricData(m_inputs[0]->output());
-    auto outputMesh = meshData(m_outputs[0]);
-
-    update = (outputMesh->lastModified() < inputVolume->lastModified());
+    update = (m_lastModifiedMesh < inputVolume->lastModified());
   }
 
   return update;
@@ -105,6 +103,7 @@ void AppositionSurfaceFilter::execute(Output::Id oId)
 //----------------------------------------------------------------------------
 void AppositionSurfaceFilter::execute()
 {
+  qDebug() << "executing" << (unsigned long long)(this);
   emit progress(0);
   if (!canExecute()) return;
 
@@ -287,6 +286,8 @@ void AppositionSurfaceFilter::execute()
   auto inputSpacing = m_input->GetSpacing();
   RawMeshSPtr meshOutput{new RawMesh{m_ap, inputSpacing}};
 
+  m_lastModifiedMesh = meshOutput->lastModified();
+
   double meshVTKBounds[6];
   m_ap->GetBounds(meshVTKBounds);
 
@@ -301,6 +302,8 @@ void AppositionSurfaceFilter::execute()
   m_outputs[0]->setData(meshOutput);
   m_outputs[0]->setData(volumeOutput);
   m_outputs[0]->setSpacing(NmVector3{inputSpacing[0], inputSpacing[1], inputSpacing[2]});
+
+  qDebug() << "finished executing" << (unsigned long long)(this);
 
   emit progress(100);
   if (!canExecute()) return;

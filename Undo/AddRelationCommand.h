@@ -17,41 +17,41 @@
 */
 
 
-#ifndef ADDRELATION_H
-#define ADDRELATION_H
+#ifndef ESPINA_ADD_RELATION_COMMAND_H
+#define ESPINA_ADD_RELATION_COMMAND_H
 
 #include "EspinaUndo_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/ItemAdapter.h>
 
 // Qt
 #include <QUndoCommand>
 
 namespace EspINA
 {
-  class EspinaUndo_EXPORT AddRelation
+  class EspinaUndo_EXPORT AddRelationCommand
   : public QUndoCommand
   {
   public:
-    explicit AddRelation(ModelItemSPtr  ancestor,
-                         ModelItemSPtr  successor,
-                         const QString  description,
-                         EspinaModel   *model,
-                         QUndoCommand  *parent = 0);
+    explicit AddRelationCommand(ItemAdapterSPtr  ancestor,
+                                ItemAdapterSPtr  successor,
+                                const QString   &relationName,
+                                ModelAdapterSPtr model,
+                                QUndoCommand    *parent = 0);
 
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModel   *m_model;
-
-    ModelItemSPtr  m_ancester;
-    ModelItemSPtr  m_succesor;
-    const QString  m_description;
+    ItemAdapterSPtr  m_ancester;
+    ItemAdapterSPtr  m_succesor;
+    QString          m_relation;
+    ModelAdapterSPtr m_model;
   };
 
 }// namespace EspINA
 
-#endif // ADDRELATION_H
+#endif // ESPINA_ADD_RELATION_COMMAND_H

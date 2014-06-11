@@ -23,7 +23,6 @@
 #include <GUI/AppositionSurfaceToolbar.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
 #include <Core/Extensions/ExtensionFactory.h>
-#include <Undo/AppositionSurfaceCommand.h>
 
 // TODO: no filter inspectors yet
 // #include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
@@ -35,6 +34,7 @@
 #include <Undo/AddCategoryCommand.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
+#include <Undo/AddRelationCommand.h>
 
 // Qt
 #include <QColorDialog>
@@ -256,6 +256,43 @@ void AppositionSurface::createSASAnalysis()
       m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
     }
 
+    // wait for any SAS to end computation
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    while(!m_executingTasks.empty() && !m_finishedTasks.empty())
+      qDebug() << "m_executing:" << m_executingTasks.size() << "m_finished" << m_finishedTasks.size();
+    QApplication::restoreOverrideCursor();
+
+    for(auto segmentation: synapsis)
+    {
+      qDebug() << "testing" << segmentation->data().toString();
+      auto relatedItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
+
+      for(auto item: relatedItems)
+        qDebug() << "related to" << item->data().toString();
+
+      if(relatedItems.empty())
+      {
+        qDebug() << "not related to any sas";
+        InputSList inputs;
+        inputs << segmentation->asInput();
+
+        auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+
+        struct Data data(adapter, m_model->smartPointer(segmentation));
+        m_executingTasks.insert(adapter.get(), data);
+        qDebug() << "insert task";
+
+        connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+        adapter->submit();
+      }
+    }
+
+    // wait for any SAS to end computation
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    while(!m_executingTasks.empty() && !m_finishedTasks.empty())
+      qDebug() << "m_executing:" << m_executingTasks.size() << "m_finished" << m_finishedTasks.size();
+    QApplication::restoreOverrideCursor();
+
     SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
 
     analysis->show();
@@ -326,10 +363,17 @@ void AppositionSurface::finishedTask()
 {
   auto filter = qobject_cast<FilterAdapterPtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
-  m_finishedTasks.insert(filter, m_executingTasks[filter]);
+
+  if(!filter->isAborted())
+    m_finishedTasks.insert(filter, m_executingTasks[filter]);
+
   m_executingTasks.remove(filter);
 
   if (!m_executingTasks.empty())
+    return;
+
+  // maybe all tasks have been aborted.
+  if(m_finishedTasks.empty())
     return;
 
   m_undoStack->beginMacro("Create Synaptic Apposition Surfaces");
@@ -352,12 +396,14 @@ void AppositionSurface::finishedTask()
     segmentation->setCategory(category);
 
     auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+    std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_finishedTasks[filter].segmentation);
     segmentation->addExtension(extension);
 
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
     Q_ASSERT(!samples.empty());
 
     m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+    m_undoStack->push(new AddRelationCommand(m_finishedTasks[filter].segmentation, segmentation, SAS, m_model));
   }
   m_undoStack->endMacro();
 

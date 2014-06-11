@@ -190,6 +190,7 @@ namespace EspINA
     itkVolumeType::Pointer m_input;
 
     bool m_alreadyFetchedData;
+    TimeStamp m_lastModifiedMesh;
 
     friend class AppositionSurfaceVolume;
   };

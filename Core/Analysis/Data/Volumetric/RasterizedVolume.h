@@ -123,12 +123,11 @@ namespace EspINA
     /* \brief Private method to rasterize a mesh to create an T volume.
      *
      */
-    void rasterize(Bounds bounds);
+    void rasterize() const;
 
     vtkSmartPointer<vtkPolyData> m_mesh;
 
     mutable unsigned long int m_rasterizationTime;
-    mutable Bounds            m_rasterizationBounds;
   };
 
   template<class T> using RasterizedVolumePtr = RasterizedVolume<T> *;
@@ -140,7 +139,6 @@ namespace EspINA
   : SparseVolume<T>(meshBounds, spacing, origin)
   , m_mesh             {mesh->mesh()}
   , m_rasterizationTime{0}
-  , m_rasterizationBounds{Bounds()}
   {
   }
 
@@ -159,7 +157,7 @@ namespace EspINA
   const typename T::Pointer RasterizedVolume<T>::itkImage() const
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     return SparseVolume<T>::itkImage();
   }
@@ -169,7 +167,7 @@ namespace EspINA
   const typename T::Pointer RasterizedVolume<T>::itkImage(const Bounds& bounds) const
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     return SparseVolume<T>::itkImage(bounds);
   }
@@ -181,7 +179,7 @@ namespace EspINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::draw(brush, bounds, value);
   }
@@ -192,7 +190,7 @@ namespace EspINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::draw(mask, value);
   }
@@ -203,7 +201,7 @@ namespace EspINA
   void RasterizedVolume<T>::draw(const typename T::Pointer volume)
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::draw(volume);
   }
@@ -214,7 +212,7 @@ namespace EspINA
                                  const Bounds&             bounds)
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::draw(volume, bounds);
   }
@@ -225,7 +223,7 @@ namespace EspINA
                                  const typename T::PixelType value)
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::draw(index, value);
   }
@@ -235,7 +233,7 @@ namespace EspINA
   void RasterizedVolume<T>::fitToContent()
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::fitToContent();
   }
@@ -245,7 +243,7 @@ namespace EspINA
   void RasterizedVolume<T>::resize(const Bounds &bounds)
   {
     if(this->m_blocks.empty())
-      rasterize(Bounds());
+      rasterize();
 
     SparseVolume<T>::resize(bounds);
   }
@@ -258,38 +256,29 @@ namespace EspINA
       return true;
 
     if(this->m_blocks.empty())
-    {
-      // returns if there's no need to
-      rasterize(Bounds());
-    }
+      rasterize();
 
     return SparseVolume<T>::isEmpty();
   }
 
   //----------------------------------------------------------------------------
   template<typename T>
-  void RasterizedVolume<T>::rasterize(Bounds imageBounds)
+  void RasterizedVolume<T>::rasterize() const
   {
-    if (m_rasterizationTime == m_mesh->GetMTime() && (m_rasterizationBounds == imageBounds))
+    if (m_rasterizationTime == m_mesh->GetMTime())
     {
+      // already rasterized
       return;
     }
 
     double minSpacing = std::min(this->m_spacing[0], std::min(this->m_spacing[1], this->m_spacing[2]));
 
-    if (imageBounds.areValid())
-    {
-      m_rasterizationBounds = imageBounds;
-    }
-    else
-    {
-      double meshBounds[6];
-      m_mesh->GetBounds(meshBounds);
-      m_rasterizationBounds = Bounds{meshBounds[0], meshBounds[1], meshBounds[2], meshBounds[3], meshBounds[4], meshBounds[5]};
-    }
+    double meshBounds[6];
+    m_mesh->GetBounds(meshBounds);
+    auto rasterizationBounds = Bounds{meshBounds[0], meshBounds[1], meshBounds[2], meshBounds[3], meshBounds[4], meshBounds[5]};
 
-    auto region = equivalentRegion<T>(this->m_origin, this->m_spacing, imageBounds);
-    typename T::Pointer image = create_itkImage<T>(imageBounds, SEG_BG_VALUE, this->m_spacing, this->m_origin);
+    auto region = equivalentRegion<T>(this->m_origin, this->m_spacing, rasterizationBounds);
+    typename T::Pointer image = create_itkImage<T>(rasterizationBounds, SEG_BG_VALUE, this->m_spacing, this->m_origin);
 
     itk::ImageRegionIteratorWithIndex<T> it(image, image->GetLargestPossibleRegion());
     it.GoToBegin();

@@ -25,6 +25,7 @@
 #include <Core/Analysis/Extension.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 // VTK
 #include <vtkPolyData.h>
@@ -83,6 +84,12 @@ namespace EspINA
        *
        */
       virtual bool validCategory(const QString &classificationName) const;
+
+      /* \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
+       * other way to inject that information to the SAS extension.
+       */
+      void setOriginSegmentation(SegmentationAdapterSPtr segmentation)
+      { m_originSegmentation = segmentation; }
 
     protected:
       /* \brief Implements Extension::cacheFail().
@@ -144,6 +151,9 @@ namespace EspINA
        *
        */
       bool computeInformation() const;
+
+  private:
+      SegmentationAdapterSPtr m_originSegmentation;
 
   };
 
