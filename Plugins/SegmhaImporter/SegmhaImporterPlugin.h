@@ -90,6 +90,11 @@ namespace EspINA
      */
     virtual SettingsPanelSList settingsPanels() const;
 
+    /* \brief Implements Plugin::menuEntries().
+     *
+     */
+    virtual QList<MenuEntry> menuEntries() const;
+
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;

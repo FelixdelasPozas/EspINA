@@ -112,6 +112,12 @@ SettingsPanelSList SegmhaImporterPlugin::settingsPanels() const
   return SettingsPanelSList();
 }
 
+//------------------------------------------------------------------------
+QList<MenuEntry> SegmhaImporterPlugin::menuEntries() const
+{
+  return QList<MenuEntry>();
+}
+
 // //-----------------------------------------------------------------------------
 // FilterSPtr SegmhaImporter::createFilter(const QString              &filter,
 //                                         const Filter::NamedInputs  &inputs,
