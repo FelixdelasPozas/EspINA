@@ -64,16 +64,15 @@ protected:
 
 //------------------------------------------------------------------------
 TabularReport::TabularReport(ModelFactorySPtr factory,
-                             ViewManagerSPtr  viewmManager,
+                             ViewManagerSPtr  viewManager,
                              QWidget         *parent,
                              Qt::WindowFlags  flags)
 : m_factory(factory)
-, m_viewManager(viewmManager)
+, m_viewManager(viewManager)
 , m_tabs(new QTabWidget())
 , m_multiSelection(false)
 {
   QVBoxLayout *layout = new QVBoxLayout(this);
-  //m_tabs->setCornerWidget(new QPushButton("HOLA"));
   QPalette pal = this->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Background));
   this->setPalette(pal);
@@ -87,6 +86,7 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
   m_exportButton->setFlat(false);
   m_exportButton->setEnabled(false);
   m_exportButton->setToolTip("Save All Data");
+  m_exportButton->setMinimumSize(40,40);
 
   connect(m_exportButton, SIGNAL(clicked(bool)),
           this, SLOT(exportInformation()));

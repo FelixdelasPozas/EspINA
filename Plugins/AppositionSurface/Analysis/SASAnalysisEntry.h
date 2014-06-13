@@ -45,8 +45,6 @@
 #include <xlslib.h>
 #include <xlslib/workbook.h>
 
-class QUndoStack;
-
 namespace EspINA
 {
   class AppositionSurfacePlugin_EXPORT SASAnalysisEntry
@@ -57,6 +55,7 @@ namespace EspINA
   public:
     explicit SASAnalysisEntry(SegmentationAdapterList segmentations,
                               ModelAdapterSPtr        model,
+                              ModelFactorySPtr        factory,
                               QWidget                *parent);
     void displayInformation();
 
@@ -75,6 +74,7 @@ namespace EspINA
 
   private:
     ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
 
     QString     m_title;
 

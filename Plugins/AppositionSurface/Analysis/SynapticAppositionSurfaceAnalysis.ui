@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>775</width>
-    <height>329</height>
+    <height>334</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -122,7 +122,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Save All Data</string>
        </property>
        <property name="text">
         <string/>

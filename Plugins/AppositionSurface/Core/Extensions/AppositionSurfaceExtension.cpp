@@ -386,9 +386,6 @@ double stdDev(const vtkSmartPointer<vtkDoubleArray> dataArray, const double mean
 bool AppositionSurfaceExtension::computeInformation() const
 {
   bool validInformation = false;
-
-  qDebug() << "Computing AS Information:" << m_extendedItem->name();
-
   auto segMesh = meshData(m_extendedItem->output());
 
   if (segMesh)

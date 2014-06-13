@@ -138,6 +138,8 @@ namespace EspINA
     ToolGroupPtr                     m_toolGroup;
     MenuEntry                        m_menuEntry;
     FilterFactorySPtr                m_filterFactory;
+    bool                             m_delayedAnalysis;
+    SegmentationAdapterList          m_analysisSynapses;
 
     QMap<FilterAdapterPtr, struct Data> m_executingTasks;
     QMap<FilterAdapterPtr, struct Data> m_finishedTasks;

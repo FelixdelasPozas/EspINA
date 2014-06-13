@@ -30,6 +30,7 @@
 // EspINA
 #include <GUI/Model/ModelAdapter.h>
 #include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
+#include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -88,6 +89,7 @@ AppositionSurface::AppositionSurface()
 , m_extensionFactory{SegmentationExtensionFactorySPtr(new ASExtensionFactory())}
 , m_toolGroup       {nullptr}
 , m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
+, m_delayedAnalysis {false}
 {
   QStringList hierarchy;
   hierarchy << "Analysis";
@@ -256,23 +258,18 @@ void AppositionSurface::createSASAnalysis()
       m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
     }
 
-    // wait for any SAS to end computation
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    while(!m_executingTasks.empty() && !m_finishedTasks.empty())
-      qDebug() << "m_executing:" << m_executingTasks.size() << "m_finished" << m_finishedTasks.size();
-    QApplication::restoreOverrideCursor();
-
+    // check segmentations for SAS and create it if needed
     for(auto segmentation: synapsis)
     {
-      qDebug() << "testing" << segmentation->data().toString();
-      auto relatedItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
-
-      for(auto item: relatedItems)
-        qDebug() << "related to" << item->data().toString();
-
-      if(relatedItems.empty())
+      if(m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).empty())
       {
-        qDebug() << "not related to any sas";
+        if(!m_delayedAnalysis)
+        {
+          m_delayedAnalysis = true;
+          m_analysisSynapses = synapsis;
+          QApplication::setOverrideCursor(Qt::WaitCursor);
+        }
+
         InputSList inputs;
         inputs << segmentation->asInput();
 
@@ -280,22 +277,17 @@ void AppositionSurface::createSASAnalysis()
 
         struct Data data(adapter, m_model->smartPointer(segmentation));
         m_executingTasks.insert(adapter.get(), data);
-        qDebug() << "insert task";
 
         connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
         adapter->submit();
       }
     }
 
-    // wait for any SAS to end computation
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    while(!m_executingTasks.empty() && !m_finishedTasks.empty())
-      qDebug() << "m_executing:" << m_executingTasks.size() << "m_finished" << m_finishedTasks.size();
-    QApplication::restoreOverrideCursor();
-
-    SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
-
-    analysis->show();
+    if(!m_delayedAnalysis)
+    {
+      SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
+      analysis->show();
+    }
   }
   else
   {
@@ -408,6 +400,16 @@ void AppositionSurface::finishedTask()
   m_undoStack->endMacro();
 
   m_finishedTasks.clear();
+
+  if(m_delayedAnalysis)
+  {
+    QApplication::restoreOverrideCursor();
+    SASAnalysisDialog *analysis = new SASAnalysisDialog(m_analysisSynapses, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
+    analysis->exec();
+
+    m_delayedAnalysis = false;
+    m_analysisSynapses.clear();
+  }
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, EspINA::AppositionSurface)

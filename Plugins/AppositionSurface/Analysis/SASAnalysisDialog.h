@@ -62,6 +62,7 @@ namespace EspINA
 
   private:
     ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
     QUndoStack      *m_undoStack;
     ViewManagerSPtr  m_viewManager;
 

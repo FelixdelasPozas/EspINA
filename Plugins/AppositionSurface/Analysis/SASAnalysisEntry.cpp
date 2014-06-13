@@ -37,7 +37,6 @@
 #include <Support/Utils/xlsUtils.h>
 
 // Qt
-#include <QUndoStack>
 #include <QFileDialog>
 #include <QScrollBar>
 #include <QMessageBox>
@@ -46,29 +45,31 @@
 using namespace EspINA;
 using namespace xlslib_core;
 
-class SegmentationItem
-: public QTableWidgetItem
-{
-public:
-  SegmentationItem(int number)
-  : m_number(number) {}
-
-  virtual bool operator<(const QTableWidgetItem& other) const
-  {
-    const SegmentationItem *base = dynamic_cast<const SegmentationItem *>(&other);
-    return m_number < base->m_number;
-  }
-
-private:
-  int m_number;
-};
+//class SegmentationItem
+//: public QTableWidgetItem
+//{
+//public:
+//  SegmentationItem(int number)
+//  : m_number(number) {}
+//
+//  virtual bool operator<(const QTableWidgetItem& other) const
+//  {
+//    const SegmentationItem *base = dynamic_cast<const SegmentationItem *>(&other);
+//    return m_number < base->m_number;
+//  }
+//
+//private:
+//  int m_number;
+//};
 
 //----------------------------------------------------------------------------
 SASAnalysisEntry::SASAnalysisEntry(SegmentationAdapterList segmentations,
                                    ModelAdapterSPtr        model,
+                                   ModelFactorySPtr        factory,
                                    QWidget                *parent)
 : QWidget(parent)
 , m_model      {model}
+, m_factory    {factory}
 , m_synapses   {segmentations}
 {
   setupUi(this);
@@ -102,14 +103,15 @@ SASAnalysisEntry::SASAnalysisEntry(SegmentationAdapterList segmentations,
 void SASAnalysisEntry::displayInformation()
 {
   //progressBar->setVisible(true);
-
   int synapseColumns = m_synapseTags.size();
   int sasColumns     = m_sasTags.size();
   int rowCount       = m_synapses.size();
 
+  dataTable->clearContents();
   dataTable->setRowCount(rowCount);
   dataTable->setColumnCount(synapseColumns + sasColumns);
 
+  analysisTable->clearContents();
   analysisTable->setRowCount(1);
   analysisTable->setColumnCount(synapseColumns + sasColumns);
 
@@ -127,18 +129,33 @@ void SASAnalysisEntry::displayInformation()
   //progressBar->setMinimum(-1);
   //progressBar->setMaximum(rowCount - 1);
 
-  SegmentationAdapterSList createdSegmentations;
-
   for (int r = 0; r < rowCount; ++r)
   {
     SegmentationAdapterPtr segmentation = m_synapses[r];
 
+    // create morphological information extension if not present
+    bool found = false;
+    for(auto extension: segmentation->extensions())
+      if(extension->type() == MorphologicalInformation::TYPE)
+      {
+        found = true;
+      }
+
+    if(!found)
+      segmentation->addExtension(m_factory->createSegmentationExtension(MorphologicalInformation::TYPE));
+
     for(int c = 0; c < synapseColumns; ++c)
     {
       SegmentationExtension::InfoTag tag = m_synapseTags[c];
-      QVariant cell = segmentation->information(tag);
+      QVariant cell;
+      if(tag == tr("Name"))
+        cell = segmentation->data().toString();
+      else if (tag == tr("Category"))
+        cell = segmentation->category()->name();
+      else
+        cell = segmentation->information(tag);
 
-      QTableWidgetItem *item = (tag == tr("Name"))?new SegmentationItem(segmentation->number()):new QTableWidgetItem();
+      QTableWidgetItem *item = new QTableWidgetItem();
       item->setData(Qt::DisplayRole, cell);
       dataTable->setItem(r, c, item);
 
@@ -171,7 +188,6 @@ void SASAnalysisEntry::displayInformation()
     for (int c = 0; c < sasColumns; ++c)
     {
       QVariant cell = sas->information(m_sasTags[c]);
-
       QTableWidgetItem *item = new QTableWidgetItem();
       item->setData(Qt::DisplayRole, cell);
       dataTable->setItem(r, synapseColumns + c, item);
@@ -279,20 +295,22 @@ void SASAnalysisEntry::defineQuery()
   const QString SYNAPSE = tr("Synapse");
   const QString SAS     = tr("SAS");
 
-  InformationSelector::GroupedInfo tags, emptyTags;
-  tags[SYNAPSE] = m_synapseTags;
-  tags[SAS]     = m_sasTags;
+  Q_ASSERT(m_factory->availableSegmentationExtensions().contains(MorphologicalInformation::TYPE));
 
-  InformationSelector tagSelector(tags,
-                                  emptyTags,
-                                  this);
+  InformationSelector::GroupedInfo tags, selection;
+  tags[SYNAPSE]      = m_factory->createSegmentationExtension(MorphologicalInformation::TYPE)->availableInformations();
+  tags[SAS]          = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations();
+  selection[SYNAPSE] = m_synapseTags;
+  selection[SAS]     = m_sasTags;
+
+  InformationSelector tagSelector(tags, selection, this);
 
   if (tagSelector.exec() == QDialog::Accepted)
   {
-    SegmentationExtension::InfoTagList synapseTags;
-    synapseTags << tr("Name") << tr("Category") << tags[SYNAPSE];
-    tags[SYNAPSE] = synapseTags;
-    defineQuery(tags);
+    selection[SYNAPSE].prepend(tr("Category"));
+    selection[SYNAPSE].prepend(tr("Name"));
+
+    defineQuery(selection);
   }
 }
 
@@ -309,12 +327,16 @@ void SASAnalysisEntry::saveAnalysis()
   if (fileName.isEmpty())
     return;
 
+  // some users are used to omit the extension and expect a xls file by default
+  if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
+    fileName += tr(".xls");
+
   bool result = false;
   if (fileName.endsWith(".csv"))
   {
     result = exportToCSV(fileName);
   } 
-  else if (fileName.endsWith(".xls"))
+  else
   {
     result = exportToXLS(fileName);
   }

@@ -47,6 +47,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
                                      QWidget                *parent)
 : QDialog(parent)
 , m_model      {model}
+, m_factory    {factory}
 , m_undoStack  {undoStack}
 , m_viewManager{viewManager}
 , m_synapses   {segmentations}
@@ -61,7 +62,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
   QPushButton *configureButton = new QPushButton();
   configureButton->setIcon(QIcon(":/espina/settings.png"));
   configureButton->setFlat(false);
-  configureButton->setToolTip("Save All Data");
+  configureButton->setToolTip("Select Analysis Information");
   layout->addWidget(configureButton);
 
   connect(configureButton, SIGNAL(clicked(bool)),
@@ -79,6 +80,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
 
   QWidget *cornerWidget = new QWidget();
   cornerWidget->setLayout(layout);
+  cornerWidget->setMinimumSize(80,40);
 
   connect(m_buttons->button(QDialogButtonBox::Ok), SIGNAL(clicked(bool)),
           this, SLOT(close()));
@@ -96,24 +98,53 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
   move(settings.value("pos", QPoint(200, 200)).toPoint());
 
   m_synapseTags = settings.value("Synapse Tags", QStringList()).toStringList();
+  m_sasTags = settings.value("SAS Tags", QStringList()).toStringList();
+
+  Q_ASSERT(m_factory->availableSegmentationExtensions().contains(MorphologicalInformation::TYPE));
+  Q_ASSERT(m_factory->availableSegmentationExtensions().contains(AppositionSurfaceExtension::TYPE));
+
+  auto morphologicalExtensionInformations = m_factory->createSegmentationExtension(MorphologicalInformation::TYPE)->availableInformations();
+  auto SASInformations = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations();
+
+  // clean tags in the case some older version has different tags
+  SegmentationExtension::InfoTagList wrongTags;
+  for(auto tag: m_synapseTags)
+  {
+    if(tag != tr("Name") && tag != tr("Category") && !morphologicalExtensionInformations.contains(tag))
+      wrongTags << tag;
+  }
+
+  if(!wrongTags.empty())
+    for(auto tag: wrongTags)
+    m_synapseTags.removeAll(tag);
+
+  // clean tags in the case some older version has different tags
+  wrongTags.clear();
+  for(auto tag: m_sasTags)
+  {
+    if(!SASInformations.contains(tag))
+      wrongTags << tag;
+  }
+
+  if(!wrongTags.empty())
+    for(auto tag: wrongTags)
+    m_sasTags.removeAll(tag);
+
   if (m_synapseTags.isEmpty())
   {
-    auto extension = factory->createSegmentationExtension(MorphologicalInformation::TYPE);
-    m_synapseTags << tr("Name") << tr("Taxonomy");
-    m_synapseTags << extension->availableInformations();
+    m_synapseTags << tr("Name") << tr("Category");
   }
   else if (m_synapseTags.first() != tr("Name"))
   {
     m_synapseTags.removeAll(tr("Name"));
-    m_synapseTags.removeAll(tr("Taxonomy"));
-    m_synapseTags.prepend(tr("Taxonomy"));
+    m_synapseTags.removeAll(tr("Category"));
+    m_synapseTags.prepend(tr("Category"));
     m_synapseTags.prepend(tr("Name"));
   }
-  m_sasTags = settings.value("SAS Tags", QStringList()).toStringList();
+
   if (m_sasTags.isEmpty())
   {
-    auto extension = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-    m_sasTags << extension->availableInformations();
+    m_sasTags << SASInformations;
   }
 
   settings.endGroup();
@@ -136,7 +167,7 @@ void SASAnalysisDialog::createTabs(QMap<QString, SegmentationAdapterList> tabs)
   QApplication::setOverrideCursor(Qt::WaitCursor);
   for(auto category: tabs.keys())
   {
-    SASAnalysisEntry *entry = new SASAnalysisEntry(tabs[category], m_model, this);
+    SASAnalysisEntry *entry = new SASAnalysisEntry(tabs[category], m_model, m_factory, this);
     entry->defineQuery(tags);
     m_tabs->addTab(entry, category);
     m_entries << entry;
@@ -174,23 +205,26 @@ void SASAnalysisDialog::configureInformation()
   const QString SYNAPSE = tr("Synapse");
   const QString SAS     = tr("SAS");
 
-  InformationSelector::GroupedInfo tags, emptyTags;
-  tags[SYNAPSE] = m_synapseTags;
-  tags[SAS]     = m_sasTags;
+  Q_ASSERT(m_factory->availableSegmentationExtensions().contains(MorphologicalInformation::TYPE));
 
-  InformationSelector tagSelector{tags, emptyTags, this};
+  InformationSelector::GroupedInfo tags, selection;
+  tags[SYNAPSE]      = m_factory->createSegmentationExtension(MorphologicalInformation::TYPE)->availableInformations();
+  tags[SAS]          = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations();
+  selection[SYNAPSE] = m_synapseTags;
+  selection[SAS]     = m_sasTags;
+
+  InformationSelector tagSelector{tags, selection, this};
 
   if (tagSelector.exec() == QDialog::Accepted)
   {
-    SegmentationExtension::InfoTagList synapseTags;
-    synapseTags << tr("Name") << tr("Taxonomy") << tags[SYNAPSE];
-    tags[SYNAPSE] = synapseTags;
+    selection[SYNAPSE].prepend(tr("Category"));
+    selection[SYNAPSE].prepend(tr("Name"));
 
     for(auto entry: m_entries)
-      entry->defineQuery(tags);
+      entry->defineQuery(selection);
 
-    m_synapseTags = tags[SYNAPSE];
-    m_sasTags     = tags[SAS];
+    m_synapseTags = selection[SYNAPSE];
+    m_sasTags     = selection[SAS];
 
     QSettings settings(CESVIMA, ESPINA);
 
@@ -218,16 +252,16 @@ void SASAnalysisDialog::exportInformation()
   if (fileName.isEmpty())
     return;
 
-  bool result = !m_entries.isEmpty();
   if (fileName.endsWith(".xls"))
-  {
-    workbook wb;
-    for(auto entry: m_entries)
-    {
-      result &= entry->exportToXLS(wb);
-    }
-    wb.Dump(fileName.toStdString());
-  }
+    fileName += tr(".xls");
+
+  bool result = !m_entries.isEmpty();
+
+  workbook wb;
+  for(auto entry: m_entries)
+    result &= entry->exportToXLS(wb);
+
+  wb.Dump(fileName.toStdString());
 
   if (!result)
     QMessageBox::warning(this, "EspINA", tr("Unable to export %1").arg(fileName));

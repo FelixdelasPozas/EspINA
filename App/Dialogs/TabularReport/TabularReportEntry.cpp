@@ -225,13 +225,17 @@ void TabularReport::Entry::extractInformation()
   if (fileName.isEmpty())
     return;
 
+  // some users are used to not enter an extension, and expect a default xls output.
+  if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
+    fileName += tr(".xls");
+
   bool result = false;
 
   if (fileName.endsWith(".csv"))
   {
     result = exportToCSV(fileName);
   }
-  else if (fileName.endsWith(".xls"))
+  else
   {
     result = exportToXLS(fileName);
   }
@@ -422,7 +426,8 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
         if (m_factory->availableSegmentationExtensions().contains(extensionType))
         {
           auto extension = m_factory->createSegmentationExtension(extensionType);
-          segmentation->addExtension(extension);
+          if(extension->validCategory(segmentation->category()->classificationName()))
+            segmentation->addExtension(extension);
         }
         else if (extensionType != SEGMENTATION_GROUP)
         {
