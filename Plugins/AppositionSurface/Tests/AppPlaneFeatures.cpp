@@ -54,7 +54,6 @@ int AppPlaneFeatures(int argc, char **argv)
   std::cout << "Area: " << appPlaneFeatures->GetArea() << std::endl;
   std::cout << "Perimeter: " << appPlaneFeatures->GetPerimeter() << std::endl;
 
-
   // Display the  region
   vtkSmartPointer<vtkPolyDataMapper> planeMapper =
     vtkSmartPointer<vtkPolyDataMapper>::New();

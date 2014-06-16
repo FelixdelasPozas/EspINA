@@ -21,77 +21,11 @@
 
 using namespace EspINA;
 
-const SegmentationExtension::InfoTag NAME_TAG     = QObject::tr("Name");
-const SegmentationExtension::InfoTag CATEGORY_TAG = QObject::tr("Category");
-
-class InformationProxy::InformationFetcher
-: public Task
-{
-public:
-  InformationFetcher(SegmentationAdapterPtr segmentation,
-                     const SegmentationExtension::InfoTagList &tags,
-                     SchedulerSPtr scheduler)
-  : Task(scheduler)
-  , Segmentation(segmentation)
-  , m_tags(tags)
-  , m_progress(0)
-  {
-    auto id = Segmentation->data(Qt::DisplayRole).toString();
-    setDescription(tr("%1 information").arg(id));
-    setHidden(true);
-
-    m_tags.removeOne(NAME_TAG);
-    m_tags.removeOne(CATEGORY_TAG);
-
-    bool ready = true;
-    for (auto tag : m_tags)
-    {
-      ready &= Segmentation->isInformationReady(tag);
-
-      if (!ready) break;
-    }
-
-    setFinished(ready);
-  }
-
-  SegmentationAdapterPtr Segmentation;
-
-  int currentProgress() const
-  { return m_progress; }
-
-protected:
-  virtual void run()
-  {
-    for (int i = 0; i < m_tags.size(); ++i)
-    {
-      if (!canExecute()) break;
-
-      auto tag = m_tags[i];
-      if (tag != NAME_TAG && tag != CATEGORY_TAG)
-      {
-        if (!Segmentation->isInformationReady(tag))
-        {
-          setWaiting(true);
-          Segmentation->information(tag);
-          setWaiting(false);
-          if (!canExecute()) break;
-        }
-      }
-
-      m_progress = (100.0*i)/m_tags.size();
-      emit progress(m_progress);
-    }
-  }
-
-private:
-  const SegmentationExtension::InfoTagList m_tags;
-  int   m_progress;
-};
-
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy(SchedulerSPtr scheduler)
 : QAbstractProxyModel()
-, m_scheduler(scheduler)
+, m_scheduler{scheduler}
+, m_filter   {nullptr}
 {
 }
 

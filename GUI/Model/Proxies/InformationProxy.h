@@ -20,13 +20,16 @@
 #ifndef ESPINA_INFORMATION_PROXY_H
 #define ESPINA_INFORMATION_PROXY_H
 
-#include "EspinaCore_Export.h"
-
-#include <QAbstractProxyModel>
-
+// EspINA
+#include <Core/MultiTasking/Task.h>
 #include <GUI/Model/ModelAdapter.h>
 
+// Qt
+#include <QAbstractProxyModel>
 #include <QStringList>
+
+const EspINA::SegmentationExtension::InfoTag NAME_TAG     = QObject::tr("Name");
+const EspINA::SegmentationExtension::InfoTag CATEGORY_TAG = QObject::tr("Category");
 
 namespace EspINA
 {
@@ -36,7 +39,71 @@ namespace EspINA
   {
     Q_OBJECT
 
-    class InformationFetcher;
+  protected:
+    class InformationFetcher
+    : public Task
+    {
+    public:
+      InformationFetcher(SegmentationAdapterPtr segmentation,
+                         const SegmentationExtension::InfoTagList &tags,
+                         SchedulerSPtr scheduler)
+      : Task(scheduler)
+      , Segmentation(segmentation)
+      , m_tags(tags)
+      , m_progress(0)
+      {
+        auto id = Segmentation->data(Qt::DisplayRole).toString();
+        setDescription(tr("%1 information").arg(id));
+        setHidden(true);
+
+        m_tags.removeOne(NAME_TAG);
+        m_tags.removeOne(CATEGORY_TAG);
+
+        bool ready = true;
+        for (auto tag : m_tags)
+        {
+          ready &= Segmentation->isInformationReady(tag);
+
+          if (!ready) break;
+        }
+
+        setFinished(ready);
+      }
+
+    public:
+      int currentProgress() const
+      { return m_progress; }
+
+    protected:
+      virtual void run()
+      {
+        for (int i = 0; i < m_tags.size(); ++i)
+        {
+          if (!canExecute()) break;
+
+          auto tag = m_tags[i];
+          if (tag != NAME_TAG && tag != CATEGORY_TAG)
+          {
+            if (!Segmentation->isInformationReady(tag))
+            {
+              setWaiting(true);
+              Segmentation->information(tag);
+              setWaiting(false);
+              if (!canExecute()) break;
+            }
+          }
+
+          m_progress = (100.0*i)/m_tags.size();
+          emit progress(m_progress);
+        }
+      }
+
+    protected:
+      SegmentationAdapterPtr Segmentation;
+      const SegmentationExtension::InfoTagList m_tags;
+      int   m_progress;
+    };
+
     using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
 
   public:
@@ -68,7 +135,7 @@ namespace EspINA
 
     void setFilter(const SegmentationAdapterList *filter);
 
-    void setInformationTags(const SegmentationExtension::InfoTagList tags);
+    virtual void setInformationTags(const SegmentationExtension::InfoTagList tags);
 
     const QStringList informationTags() const
     { return m_tags; }
@@ -100,17 +167,18 @@ namespace EspINA
 
     QModelIndex index(const ItemAdapterPtr segmentation, int col = 0);
 
+  protected:
+    SegmentationExtension::InfoTagList m_tags;
+    mutable QMap<SegmentationAdapterPtr, InformationFetcherSPtr> m_pendingInformation;
+    SchedulerSPtr m_scheduler;
+
   private:
     ModelAdapterSPtr m_model;
     QString          m_category;
 
     const SegmentationAdapterList     *m_filter;
-    SegmentationExtension::InfoTagList m_tags;
 
     ItemAdapterList m_elements;
-
-    SchedulerSPtr m_scheduler;
-    mutable QMap<SegmentationAdapterPtr, InformationFetcherSPtr> m_pendingInformation;
   };
 } // namespace EspINA
 

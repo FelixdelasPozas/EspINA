@@ -20,10 +20,6 @@
 #ifndef ESPINA_SAS_ANALYSIS_DIALOG_H
 #define ESPINA_SAS_ANALYSIS_DIALOG_H
 
-// Plugin
-#include "SASAnalysisEntry.h"
-#include "ui_SASAnalysisDialog.h"
-
 // EspINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -37,9 +33,7 @@ namespace EspINA
 {
   class SASAnalysisDialog
   : public QDialog
-  , private Ui::SASAnalysisDialog
   {
-    Q_OBJECT
   public:
     explicit SASAnalysisDialog(SegmentationAdapterList segmentations,
                                ModelAdapterSPtr        model,
@@ -49,28 +43,6 @@ namespace EspINA
                                QWidget                *parent);
   protected:
     virtual void closeEvent(QCloseEvent* event);
-
-  private slots:
-    void configureInformation();
-    void exportInformation();
-    void cl(bool);
-
-  private:
-    void createTabs(QMap<QString, SegmentationAdapterList> tabs);
-
-    QStringList toStringList(SegmentationExtension::InfoTagList tags) const;
-
-  private:
-    ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    QUndoStack      *m_undoStack;
-    ViewManagerSPtr  m_viewManager;
-
-    SegmentationAdapterList m_synapses;
-
-    QList<SASAnalysisEntry *> m_entries;
-    SegmentationExtension::InfoTagList m_synapseTags;
-    SegmentationExtension::InfoTagList m_sasTags;
   };
 }
 

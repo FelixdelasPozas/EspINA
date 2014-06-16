@@ -48,6 +48,7 @@ public:
   virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}
   virtual Type type() const { return "InvalidData";}
   virtual size_t memoryUsage() const { return 0; }
+  virtual bool isEmpty() const { return true; }
   virtual void undo() {}
 };
 

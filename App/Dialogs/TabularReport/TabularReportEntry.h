@@ -68,21 +68,24 @@ namespace EspINA
   protected:
     virtual void paintEvent(QPaintEvent* event);
 
+    virtual InformationSelector::GroupedInfo availableInformation();
+
+    bool exportToCSV(const QString &filename);
+
+    bool exportToXLS(const QString &filename);
+
   private slots:
     void changeDisplayedInformation();
 
     void saveSelectedInformation();
 
-    void extractInformation();
+    virtual void extractInformation();
 
     void refreshAllInformation();
 
     void refreshGUI();
 
   private:
-    bool exportToCSV(const QString &filename);
-
-    bool exportToXLS(const QString &filename);
 
     QString selectedInformationFile() const
     {
@@ -91,19 +94,17 @@ namespace EspINA
       return TabularReport::extraPath(path.replace("/",">") + ".txt");
     }
 
-    InformationSelector::GroupedInfo availableInformation();
-
     QStringList lastInformationOrder();
 
     InformationSelector::GroupedInfo lastDisplayedInformation();
 
-    void setInformation(InformationSelector::GroupedInfo extensionInformation, QStringList informationOrder);
+    virtual void setInformation(InformationSelector::GroupedInfo extensionInformation, QStringList informationOrder);
 
     QStringList information(InformationSelector::GroupedInfo extensionInformation);
 
     QStringList updateInformationOrder(InformationSelector::GroupedInfo extensionInformation);
 
-  private:
+  protected:
     QString           m_category;
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;

@@ -286,7 +286,9 @@ void AppositionSurface::createSASAnalysis()
     if(!m_delayedAnalysis)
     {
       SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
-      analysis->show();
+      analysis->exec();
+
+      delete analysis;
     }
   }
   else
@@ -406,6 +408,8 @@ void AppositionSurface::finishedTask()
     QApplication::restoreOverrideCursor();
     SASAnalysisDialog *analysis = new SASAnalysisDialog(m_analysisSynapses, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
     analysis->exec();
+
+    delete analysis;
 
     m_delayedAnalysis = false;
     m_analysisSynapses.clear();

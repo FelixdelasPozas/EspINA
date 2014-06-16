@@ -62,7 +62,7 @@ int query_segmentation_channel(int argc, char** argv )
   analysis.add(channel);
   analysis.add(segmentation);
 
-  auto segChannels = Query::channels(segmentation);
+  auto segChannels = QueryRelations::channels(segmentation);
 
   if (segChannels.size() != 1) {
     cerr << "Unexpected number of segmentation channels. Expected only 1 channel" << endl;

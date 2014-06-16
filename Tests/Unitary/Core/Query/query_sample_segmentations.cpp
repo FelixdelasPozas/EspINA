@@ -63,16 +63,16 @@ int query_sample_segmentations(int argc, char** argv )
   analysis.add(channel);
   analysis.add(segmentation);
 
-  auto sampleSegmentations = Query::segmentations(sample);
+  auto sampleSegmentations = QueryRelations::segmentations(sample);
 
   if (!sampleSegmentations.isEmpty()) {
     cerr << "Unexpected sample's segmentations" << endl;
     error = true;
   }
 
-  analysis.addRelation(sample, segmentation, Query::CONTAINS);
+  analysis.addRelation(sample, segmentation, Sample::CONTAINS);
 
-  sampleSegmentations = Query::segmentations(sample);
+  sampleSegmentations = QueryRelations::segmentations(sample);
 
   if (sampleSegmentations.size() != 1) {
     cerr << "Unexpected number of sample segmentations. Expected only 1 segmentation" << endl;

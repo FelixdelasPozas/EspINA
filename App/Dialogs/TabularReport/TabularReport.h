@@ -38,13 +38,14 @@ namespace EspINA
   {
     Q_OBJECT
 
+  protected:
     class Entry;
 
   public:
     explicit TabularReport(ModelFactorySPtr factory,
                            ViewManagerSPtr  viewManager,
-                           QWidget         *parent = 0,
-                           Qt::WindowFlags  f = 0);
+                           QWidget         *parent = nullptr,
+                           Qt::WindowFlags  f = Qt::WindowFlags{Qt::WindowNoState});
     virtual ~TabularReport();
 
     virtual int horizontalOffset() const
@@ -87,6 +88,9 @@ namespace EspINA
     virtual bool event(QEvent *event);
     virtual void reset();
 
+    bool exportToCSV(const QFileInfo &filename);
+    bool exportToXLS(const QString &filename);
+
   public slots:
     void updateSelection(SegmentationAdapterList selection);
 
@@ -99,18 +103,14 @@ namespace EspINA
 
     void rowsRemoved(const QModelIndex &parent, int start, int end);
 
-    void exportInformation();
+    virtual void exportInformation();
 
     void updateExportStatus();
 
   private:
     bool acceptSegmentation(const SegmentationAdapterPtr segmentation);
 
-    void createCategoryEntry(const QString &category);
-
-    bool exportToCSV(const QFileInfo &filename);
-
-    bool exportToXLS(const QString &filename);
+    virtual void createCategoryEntry(const QString &category);
 
     QModelIndex mapToSource(const QModelIndex &index);
     QModelIndex mapFromSource(const QModelIndex &index, QSortFilterProxyModel *sortFilter);
@@ -118,9 +118,9 @@ namespace EspINA
     void removeTabsAndWidgets();
 
     static QString extraPath(const QString &file = QString())
-    { return "Extra/RawInforamtion/" + file; }
+    { return "Extra/RawInformation/" + file; }
 
-  private:
+  protected:
     ModelAdapterSPtr m_model;
     ModelFactorySPtr m_factory;
     ViewManagerSPtr  m_viewManager;

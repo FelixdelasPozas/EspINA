@@ -4,14 +4,15 @@ include (GenerateExportHeader)
 
 # Version Number
 set (PLUGIN_VERSION_MAJOR 0)
-set (PLUGIN_VERSION_MINOR 1)
+set (PLUGIN_VERSION_MINOR 2)
 set (PLUGIN_VERSION_PATCH 0)
 
 cmake_minimum_required(VERSION 2.6)
 
-if (NOT COMPILING_ESPINA)
-
   set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
+
+
+if (NOT COMPILING_ESPINA)
 
   find_package(Qt4 REQUIRED)
   include(${QT_USE_FILE})
@@ -42,16 +43,13 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  Analysis/SASAnalysisDialog.ui
-  Analysis/SASAnalysisEntry.ui
+  ../../App/Dialogs/TabularReport/TabularReportEntry.ui
   GUI/Settings/AppositionSurfaceSettings.ui
 #  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
   AppositionSurfacePlugin.h
-  Analysis/SASAnalysisDialog.h
-  Analysis/SASAnalysisEntry.h
   Filter/AppositionSurfaceFilter.h
   GUI/Settings/AppositionSurfaceSettings.h
   GUI/AppositionSurfaceToolbar.h
@@ -65,7 +63,8 @@ set (PLUGIN_SOURCES
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   Analysis/SASAnalysisDialog.cpp
-  Analysis/SASAnalysisEntry.cpp
+  Analysis/SASTabularReport.cpp
+  Analysis/SASInformationProxy.cpp
   AppositionSurfacePlugin.cpp
   Core/Extensions/AppositionSurfaceExtension.cpp
   Core/Extensions/ExtensionFactory.cpp

@@ -16,13 +16,11 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+// EspINA
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
 #include <GUI/Widgets/CheckableTableView.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
-
-// Espina
 #include <Support/Utils/xlsUtils.h>
 
 // Qt
@@ -33,7 +31,6 @@
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QTableView>
-
 
 using namespace EspINA;
 using namespace xlslib_core;
