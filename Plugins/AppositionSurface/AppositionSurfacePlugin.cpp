@@ -19,8 +19,8 @@
 // plugin
 #include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
-#include <Analysis/SASAnalysisDialog.h>
-#include <GUI/AppositionSurfaceToolbar.h>
+#include <GUI/Analysis/SASAnalysisDialog.h>
+#include <GUI/AppositionSurfaceToolGroup.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
 #include <Core/Extensions/ExtensionFactory.h>
 
@@ -232,7 +232,8 @@ void AppositionSurface::createSASAnalysis()
         synapsis << segmentation.get();
       }
     }
-  } else
+  }
+  else
   {
     for(auto segmentation: selection)
     {
@@ -245,12 +246,11 @@ void AppositionSurface::createSASAnalysis()
 
   if (!synapsis.isEmpty())
   {
-    auto category = m_model->classification()->category(SAS);
-
-    if (category == nullptr)
+    if (m_model->classification()->category(SAS) == nullptr)
     {
+      qDebug() << "create category plugin 2";
       m_undoStack->beginMacro(tr("Apposition Surface"));
-      m_undoStack->push(new AddCategoryCommand(m_model->classification()->root().get(), SAS, m_model, QColor(255,255,0)));
+      m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
       m_undoStack->endMacro();
 
       m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
@@ -375,7 +375,8 @@ void AppositionSurface::finishedTask()
   auto classification = m_model->classification();
   if (classification->category(SAS) == nullptr)
   {
-    m_undoStack->push(new AddCategoryCommand(m_model->classification()->root().get(), SAS, m_model, QColor(255,255,0)));
+    qDebug() << "create category plugin 1";
+    m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
 
     m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
     m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));

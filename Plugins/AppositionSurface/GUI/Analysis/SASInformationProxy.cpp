@@ -17,7 +17,7 @@
  */
 
 // Plugin
-#include <Analysis/SASInformationProxy.h>
+#include "SASInformationProxy.h"
 
 // EspINA
 #include <Core/Analysis/Extension.h>

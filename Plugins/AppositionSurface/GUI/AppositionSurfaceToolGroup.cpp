@@ -17,7 +17,7 @@
  */
 
 // plugin
-#include "AppositionSurfaceToolbar.h"
+#include "AppositionSurfaceToolGroup.h"
 #include <Filter/AppositionSurfaceFilter.h>
 
 // EspINA
@@ -173,8 +173,11 @@ void AppositionSurfaceToolGroup::finishedTask()
   auto classification = m_model->classification();
   if (classification->category(SAS) == nullptr)
   {
+    qDebug() << "create category tool 1";
+    for(auto category: m_model->classification()->categories())
+      qDebug() << category->classificationName();
 
-    m_undoStack->push(new AddCategoryCommand(m_model->classification()->categories().first()->parent(), SAS, m_model, QColor(255,255,0)));
+    m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
 
     m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
     m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));

@@ -19,6 +19,7 @@
 #ifndef SAS_INFORMATION_PROXY_H_
 #define SAS_INFORMATION_PROXY_H_
 
+// EspINA
 #include <GUI/Model/Proxies/InformationProxy.h>
 
 namespace EspINA

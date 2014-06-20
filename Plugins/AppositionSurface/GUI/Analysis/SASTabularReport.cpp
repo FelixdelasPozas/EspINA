@@ -17,8 +17,8 @@
  */
 
 // Plugin
-#include <Analysis/SASInformationProxy.h>
-#include <Analysis/SASTabularReport.h>
+#include "SASInformationProxy.h"
+#include "SASTabularReport.h"
 
 // EspINA
 #include <App/Dialogs/TabularReport/TabularReportEntry.h>

@@ -57,6 +57,7 @@ AppositionSurfaceFilter::AppositionSurfaceFilter(InputSList inputs, Type type, S
 , m_alreadyFetchedData{false}
 , m_lastModifiedMesh  {0}
 {
+  setDescription(tr("Compute SAS"));
 }
 
 //----------------------------------------------------------------------------
@@ -87,7 +88,13 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
     Q_ASSERT(m_inputs.size() == 1);
 
     auto inputVolume = volumetricData(m_inputs[0]->output());
-    update = (m_lastModifiedMesh < inputVolume->lastModified());
+    if(inputVolume == nullptr)
+    {
+      qWarning() << "SAS input es NULL";
+      update = false;
+    }
+    else
+      update = (m_lastModifiedMesh < inputVolume->lastModified());
   }
 
   return update;
@@ -107,8 +114,6 @@ void AppositionSurfaceFilter::execute()
   if (!canExecute()) return;
 
   m_input = volumetricData(m_inputs[0]->output())->itkImage();
-
-  //m_input = m_originSegmentation->volume()->toITK();
   m_input->SetBufferedRegion(m_input->GetLargestPossibleRegion());
 
   itkVolumeType::SizeType bounds;
@@ -177,7 +182,8 @@ void AppositionSurfaceFilter::execute()
   normalArray->SetNumberOfValues(3);
 
   double v[3], displacement[3];
-  for (int i = 0; i < 3; i++) {
+  for(auto i: {0,1,2})
+  {
     v[i] = avgMaxDistPoint[i] - obbCorners->GetPoint(0)[i];
     originArray->SetValue(i, obbCorners->GetPoint(0)[i]);
     normalArray->SetValue(i, normal[i]);
@@ -235,7 +241,8 @@ void AppositionSurfaceFilter::execute()
     transformer->Update();
 
     auxPlane->DeepCopy(transformer->GetOutput());
-    if (m_converge) {
+    if (m_converge)
+    {
       if (hasConverged(auxPlane->GetPoints(), pointsList, thresholdError))
       {
         //   qDebug() << "Total iterations: " << i << std::endl;
@@ -313,6 +320,7 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::segmentationPoints(cons
   itkVolumeType::SpacingType spacing = seg->GetSpacing();
 
   Points points = Points::New();
+  points->SetDataTypeToDouble();
 
   itkVolumeIterator it(seg, seg->GetLargestPossibleRegion());
   while (!it.IsAtEnd())
@@ -328,6 +336,9 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::segmentationPoints(cons
     }
     ++it;
   }
+  points->Squeeze();
+  points->Modified();
+
   return points;
 }
 
@@ -335,6 +346,8 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::segmentationPoints(cons
 AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(const double corner[3], const double max[3], const double mid[3], const double min[3]) const
 {
   Points points = Points::New();
+  points->SetDataTypeToDouble();
+
   double x[3];
   
   // {0,0,0}  <- in a cube
@@ -378,6 +391,9 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(const double co
   x[2] = corner[2] + max[2] + mid[2] + min[2];
   points->InsertNextPoint(x);
   
+  points->Squeeze();
+  points->Modified();
+
   return points;
 }
 
@@ -633,7 +649,7 @@ int AppositionSurfaceFilter::computeMeanEuclideanError(vtkPoints * pointsA, vtkP
 }
 
 //----------------------------------------------------------------------------
-AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(PolyData plane, vtkImageData* image) const
+AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(vtkPolyData *plane, vtkImageData* image) const
 {
   vtkSmartPointer<vtkImplicitVolume> implicitVolFilter = vtkSmartPointer<vtkImplicitVolume>::New();
   implicitVolFilter->SetVolume(image);
@@ -669,7 +685,7 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData 
   normals->Update();
   
   PolyData resultPlane = PolyData::New();
-  resultPlane->ShallowCopy(normals->GetOutput());
+  resultPlane->DeepCopy(normals->GetOutput());
   
   return resultPlane;
 }

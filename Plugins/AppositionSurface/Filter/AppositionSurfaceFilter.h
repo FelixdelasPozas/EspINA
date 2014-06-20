@@ -178,7 +178,7 @@ namespace EspINA
 
     bool hasConverged(vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const;
     int computeMeanEuclideanError(vtkPoints * pointsA, vtkPoints * pointsB, double & euclideanError) const;
-    PolyData clipPlane(PolyData plane, vtkImageData* image) const;
+    PolyData clipPlane(vtkPolyData *plane, vtkImageData* image) const;
     PolyData triangulate(PolyData plane) const;
 
   private:
