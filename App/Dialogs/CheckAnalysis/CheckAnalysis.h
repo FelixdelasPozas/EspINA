@@ -101,7 +101,7 @@ namespace EspINA
       /* \brief Signal emitted when a problem has been found with the item being checked.
        * \param[out] struct Problem, problem description.
        */
-      void problem(struct Problem);
+      void problem(struct Problem) const;
 
     protected:
       /* \brief Implements Task::run().
@@ -110,25 +110,36 @@ namespace EspINA
       virtual void run();
 
     private:
-      /* \brief Checks if a segmentation is empty, emits problem(struct Problem) if it is.
+      /* \brief Checks if a segmentation volume is empty, emits problem(struct Problem) if it is.
        *
        */
-      void checkIsEmpty();
+      void checkVolumeIsEmpty() const;
+
+      /* \brief Checks if a segmentation mesh is empty, emits problem(struct Problem) if it is.
+       *
+       */
+      void checkMeshIsEmpty() const;
 
       /* \brief Checks if the segmentation has a channel assigned as a location, emits problem(struct Problem) if not.
        *
        */
-      void checkHasChannel();
+      void checkSegmentationHasChannel() const;
 
       /* \brief Checks segmentation relations and emits problem(struct Problem) for each problem found.
        *
        */
-      void checkSegmentationRelations();
+      void checkSegmentationRelations() const;
 
       /* \brief Checks channel relations and emits problem(struct Problem) for each problem found.
        *
        */
-      void checkChannelRelations();
+      void checkChannelRelations() const;
+
+      /* \brief Checks ViewItem output for existence and emits problem(struct Problem) for each problem found.
+       * Returns true if no problem are found, and false otherwise.
+       *
+       */
+      void checkViewItemOutputs() const;
 
       NeuroItemAdapterSPtr m_item;
       ModelAdapterSPtr     m_model;

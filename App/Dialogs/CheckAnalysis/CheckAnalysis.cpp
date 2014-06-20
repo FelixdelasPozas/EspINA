@@ -17,11 +17,12 @@
  */
 
 // EspINA
+#include "CheckAnalysis.h"
 #include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include "CheckAnalysis.h"
 
 
 namespace EspINA
@@ -98,11 +99,12 @@ namespace EspINA
     switch(m_item->type())
     {
       case ItemAdapter::Type::SEGMENTATION:
-        checkIsEmpty();
-        checkHasChannel();
+        checkViewItemOutputs();
+        checkSegmentationHasChannel();
         checkSegmentationRelations();
         break;
       case ItemAdapter::Type::CHANNEL:
+        checkViewItemOutputs();
         checkChannelRelations();
         break;
       case ItemAdapter::Type::SAMPLE:
@@ -113,36 +115,70 @@ namespace EspINA
   }
 
   //------------------------------------------------------------------------
-  void CheckTask::checkIsEmpty()
+  void CheckTask::checkVolumeIsEmpty() const
+  {
+    switch(m_item->type())
+    {
+      case ItemAdapter::Type::SEGMENTATION:
+        {
+          auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
+          auto volume = volumetricData(seg->output());
+          if(volume == nullptr || volume->isEmpty())
+          {
+            struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation volume is empty or null.", "Delete segmentation."};
+            emit problem(segProblem);
+          }
+        }
+        break;
+      case ItemAdapter::Type::CHANNEL:
+        {
+          auto channel = std::dynamic_pointer_cast<ChannelAdapter>(m_item);
+          auto volume = volumetricData(channel->output());
+          if(volume == nullptr)
+          {
+            struct Problem channelProblem{channel->data().toString(), Severity::CRITICAL, "Channel volume is null.", "Delete channel."};
+            emit problem(channelProblem);
+          }
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
+
+  //------------------------------------------------------------------------
+  void CheckTask::checkMeshIsEmpty() const
   {
     auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
-    auto volume = volumetricData(seg->output());
-    if(volume->isEmpty())
+    auto mesh = meshData(seg->output());
+
+    if(mesh == nullptr || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
     {
-      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation data is empty.", "Delete segmentation"};
+      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation mesh is empty or null.", "Delete segmentation"};
       emit problem(segProblem);
     }
   }
 
   //------------------------------------------------------------------------
-  void CheckTask::checkHasChannel()
+  void CheckTask::checkSegmentationHasChannel() const
   {
     auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
     auto channels = QueryAdapter::channels(seg);
 
     if(channels.empty())
     {
-      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any channel.", "Delete segmentation"};
+      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any channel.", "Delete segmentation."};
       emit problem(segProblem);
     }
   }
 
   //------------------------------------------------------------------------
-  void CheckTask::checkSegmentationRelations()
+  void CheckTask::checkSegmentationRelations() const
   {
     auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
-
     auto relations = m_model->relations(seg.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
+
     if(relations.empty())
     {
       struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any sample.", "Delete segmentation."};
@@ -151,10 +187,9 @@ namespace EspINA
   }
 
   //------------------------------------------------------------------------
-  void CheckTask::checkChannelRelations()
+  void CheckTask::checkChannelRelations() const
   {
     auto channel = std::dynamic_pointer_cast<ChannelAdapter>(m_item);
-
     auto relations = m_model->relations(channel.get(), RelationType::RELATION_INOUT, Channel::STAIN_LINK);
 
     if(relations.empty())
@@ -162,6 +197,49 @@ namespace EspINA
       struct Problem segProblem{channel->data().toString(), Severity::CRITICAL, "Channel is not related to any sample.", "Change relations in the \"Channel Explorer\" dialog."};
       emit problem(segProblem);
     }
+  }
+
+  //------------------------------------------------------------------------
+  void CheckTask::checkViewItemOutputs() const
+  {
+    auto viewItem = std::dynamic_pointer_cast<ViewItemAdapter>(m_item);
+    auto output = viewItem->output();
+    auto filter = viewItem->filter();
+
+    if (output == nullptr)
+    {
+      struct Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, "Item does not have an output.", "Delete item." };
+      emit problem(segProblem);
+    }
+    else
+    {
+      int numberOfDatas = 0;
+      if (output->hasData(MeshData::TYPE))
+      {
+        checkMeshIsEmpty();
+        ++numberOfDatas;
+      }
+
+      if (output->hasData(VolumetricData<itkVolumeType>::TYPE))
+      {
+        checkVolumeIsEmpty();
+        ++numberOfDatas;
+      }
+
+      if (numberOfDatas == 0)
+      {
+        struct Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, "Item does not have any data.", "Delete item." };
+        emit problem(segProblem);
+      }
+    }
+
+    if (filter == nullptr)
+    {
+      struct Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, "Item does not have a filter.", "Delete item." };
+      emit problem(segProblem);
+    }
+
+    // TODO: fix output if filter != nullptr, requires model??
   }
 
 } // namespace EspINA

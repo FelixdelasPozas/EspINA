@@ -57,6 +57,7 @@ namespace EspINA
     public:
       /* \brief ProblemListDialog class constructor.
        * \param[in] problems, list of problem descriptions as Problem structs.
+       *
        */
       explicit ProblemListDialog(ProblemList problemsList);
       virtual ~ProblemListDialog();
