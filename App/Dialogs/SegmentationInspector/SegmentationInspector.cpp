@@ -16,14 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "SegmentationInspector.h"
 #include <Dialogs/TabularReport/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
 #include <Support/Settings/EspinaSettings.h>
-
-// EspINA
 
 // Qt
 #include <QSettings>
@@ -35,6 +34,7 @@
 
 const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector Window Geometry");
 const QString SegmentationInspectorSplitterKey = QString("Segmentation Inspector Splitter State");
+const QString RENDERERS                        = QString("DefaultView::renderers");
 
 using namespace EspINA;
 
@@ -66,9 +66,23 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
             this,         SLOT(updateScene(ItemAdapterPtr)));
   }
 
+  QSettings settings(CESVIMA, ESPINA);
+
+  QStringList defaultRenderers;
+  if (!settings.contains(RENDERERS) || !settings.value(RENDERERS).isValid())
+  {
+    defaultRenderers << m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW3D);
+
+    settings.setValue(RENDERERS, defaultRenderers);
+  }
+
+  defaultRenderers = settings.value(RENDERERS).toStringList();
+
   RendererSList renderers;
-  renderers << RendererSPtr{new MeshRenderer()};
-  // TODO: use view manager's
+  for(auto name: defaultRenderers)
+    if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
+      renderers << m_viewManager->cloneRenderer(name);
+
   m_view->setRenderers(renderers);
   m_view->setColorEngine(m_viewManager->colorEngine());
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -76,7 +90,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   m_view->updateView();
 
   SegmentationExtension::InfoTagList tags;
-  tags << tr("Name") << tr("Taxonomy");
+  tags << tr("Name") << tr("Category");
 //   foreach(Segmentation::InformationExtension extension, m_model->factory()->segmentationExtensions())
 //   {
 //     if (extension->validTaxonomy(""))
@@ -107,7 +121,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
 //   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
 //           this, SLOT(updateSelection(ViewManager::Selection)));
 
-  QSettings settings(CESVIMA, ESPINA);
   QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
   if (!geometry.isEmpty())
     restoreGeometry(geometry);

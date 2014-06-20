@@ -453,7 +453,7 @@ void ClassificationLayout::createCategory()
     if (!parentCategory->subCategory(name))
     {
       m_undoStack->beginMacro("Create Category");
-      m_undoStack->push(new AddCategoryCommand(parentCategory, name, m_model, parentCategory->color()));
+      m_undoStack->push(new AddCategoryCommand(m_model->smartPointer(parentCategory), name, m_model, parentCategory->color()));
       m_undoStack->endMacro();
     }
   }
@@ -477,7 +477,7 @@ void ClassificationLayout::createSubCategory()
     if (!category->subCategory(name))
     {
       m_undoStack->beginMacro("Create Category");
-      m_undoStack->push(new AddCategoryCommand(category, name, m_model, category->color()));
+      m_undoStack->push(new AddCategoryCommand(m_model->smartPointer(category), name, m_model, category->color()));
       m_undoStack->endMacro();
     }
   }

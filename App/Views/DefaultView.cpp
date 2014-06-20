@@ -52,14 +52,12 @@ const QString RENDERERS    = "DefaultView::renderers";
 DefaultView::DefaultView(ModelAdapterSPtr     model,
                          ViewManagerSPtr      viewManager,
                          QUndoStack          *undoStack,
-                         const RendererSList &renderers,
                          QMainWindow         *parent)
 : QAbstractItemView(parent)
 , m_model(model)
 , m_viewManager(viewManager)
 , m_showProcessing(false)
 , m_showSegmentations(true)
-, m_renderers(renderers)
 //, m_contextMenu(new DefaultContextualMenu(SegmentationList(), model, undoStack, viewManager))
 {
   QSettings settins(CESVIMA, ESPINA);
@@ -99,39 +97,39 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D = new QDockWidget(tr("3D"), parent);
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
+
   QSettings settings(CESVIMA, ESPINA);
 
-  if (!settings.contains(RENDERERS))
+  QStringList storedRenderers;
+  if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
   {
-    QStringList defaultRenderers;
+    storedRenderers = settings.value(RENDERERS).toStringList();
+  }
+  else
+  {
+    storedRenderers << m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW2D);
+    storedRenderers << m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW3D);
 
-    defaultRenderers << "Crosshairs"
-                     << "Volumetric"
-                     << "Volumetric GPU"
-                     << "Mesh"
-                     << "Smoothed Mesh"
-                     << "Slice"
-                     << "Slice (Cached)"
-                     << "Contour";
-
-    settings.setValue(RENDERERS, defaultRenderers);
+    settings.setValue(RENDERERS, storedRenderers);
   }
 
-  RendererSList activeRenderers;
+  QStringList available2DRenderers = m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW2D);
+  QStringList available3DRenderers = m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW3D);
+  RendererSList renderers2D, renderers3D;
 
-  for(auto name : settings.value(RENDERERS).toStringList())
+  for(auto name : storedRenderers)
   {
-    auto previousRenderer = renderer(name);
-    if (previousRenderer && !activeRenderers.contains(previousRenderer))
-    {
-      activeRenderers << previousRenderer;
-    }
+    if(available2DRenderers.contains(name))
+      renderers2D << m_viewManager->cloneRenderer(name);
+    else
+      if(available3DRenderers.contains(name))
+        renderers3D << m_viewManager->cloneRenderer(name);
   }
 
-  m_view3D->setRenderers(activeRenderers);
-  m_viewXY->setRenderers(activeRenderers);
-  m_viewXZ->setRenderers(activeRenderers);
-  m_viewYZ->setRenderers(activeRenderers);
+  m_view3D->setRenderers(renderers3D);
+  m_viewXY->setRenderers(renderers2D);
+  m_viewXZ->setRenderers(renderers2D);
+  m_viewYZ->setRenderers(renderers2D);
 
   connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));

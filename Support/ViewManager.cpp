@@ -136,6 +136,49 @@ void ViewManager::unregisterView(View2D* view)
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::registerRenderer(RendererSPtr newRenderer)
+{
+  for(auto renderer: m_availableRenderers)
+    if(renderer->name() == newRenderer->name())
+      return;
+
+  m_availableRenderers << newRenderer;
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterRenderer(const QString &name)
+{
+  for (auto renderer: m_availableRenderers)
+    if(renderer->name() == name)
+    {
+      m_availableRenderers.removeOne(renderer);
+      return;
+    }
+}
+
+//----------------------------------------------------------------------------
+QStringList ViewManager::renderers(const RendererType type) const
+{
+  QStringList rendererNames;
+
+  for(auto renderer: m_availableRenderers)
+    if(renderer->renderType().testFlag(type))
+      rendererNames << renderer->name();
+
+  return rendererNames;
+}
+
+//----------------------------------------------------------------------------
+RendererSPtr ViewManager::cloneRenderer(const QString &name) const
+{
+  for(auto renderer: m_availableRenderers)
+    if(renderer->name() == name)
+      return RendererSPtr{renderer->clone()};
+
+  return RendererSPtr{};
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::setSelectionEnabled(bool enable)
 {
   for(auto view: m_renderViews)

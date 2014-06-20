@@ -292,7 +292,7 @@ void View3D::centerViewOn(const NmVector3& point, bool force)
   {
     NmVector3 minSpacing = m_channelStates.begin().key()->output()->spacing();
 
-    foreach(ChannelAdapterPtr channel, m_channelStates.keys())
+    for(auto channel: m_channelStates.keys())
     {
       NmVector3 spacing;
       spacing = channel->output()->spacing();

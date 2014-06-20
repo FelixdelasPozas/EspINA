@@ -29,7 +29,6 @@
 #include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
 
-
 // Forward-declaration
 class QMainWindow;
 class QDockWidget;
@@ -48,7 +47,6 @@ namespace EspINA
     explicit DefaultView(ModelAdapterSPtr    model,
                          ViewManagerSPtr     viewManager,
                          QUndoStack         *undoStack,
-                         const RendererSList &renderers,
                          QMainWindow        *parent=0
     );
     virtual ~DefaultView();
@@ -142,7 +140,7 @@ namespace EspINA
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
     View3D *m_view3D;
 
-    const RendererSList &m_renderers;
+    RendererSList m_renderers;
 
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;

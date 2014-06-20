@@ -32,6 +32,7 @@
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <Support/EventHandler.h>
@@ -87,10 +88,31 @@ namespace EspINA
     QList<View2D *> sliceViews()
     { return m_sliceViews; }
 
+    /* \brief Register a renderer.
+     * \param[in] renderer, renderer prototype.
+     */
+    void registerRenderer(RendererSPtr renderer);
+
+    /* \brief Unregister a renderer and remove it from the list of renderers.
+     * \param[in] name, name of the renderer to unregister.
+     */
+    void unregisterRenderer(const QString &name);
+
+    /* \brief Returns a list of renderers for the specified view type.
+     * \param[in] type, view type.
+     */
+    QStringList renderers(const RendererType type) const;
+
+    /* \brief Returns an instance of the specified renderer.
+     * \param[in] name, name of the renderer to clone.
+     */
+    RendererSPtr cloneRenderer(const QString &name) const;
+
   private:
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
     QList<View2D *>         m_sliceViews;
+    RendererSList           m_availableRenderers;
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/

@@ -16,14 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_SEGMENTATION_INSPECTOR_H
 #define EPSINA_SEGMENTATION_INSPECTOR_H
 
 // EspINA
-#include <QWidget>
 #include "ui_SegmentationInspector.h"
-
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 
 // Qt
@@ -35,7 +32,6 @@ class QUndoStack;
 
 namespace EspINA
 {
-
   class TabularReport;
   class View3D;
 

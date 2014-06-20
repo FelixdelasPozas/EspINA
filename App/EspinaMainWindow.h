@@ -186,7 +186,6 @@ class MainToolBar;
     QAction         *m_redoAction;
 
     ExtensionFactorySList m_extensionFactories;
-    RendererSList         m_availableRenderers;
     SettingsPanelSList    m_availableSettingsPanels;
 
     MainToolBar     *m_mainToolBar;

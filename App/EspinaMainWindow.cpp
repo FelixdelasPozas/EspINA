@@ -121,14 +121,14 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory(m_scheduler)});
   m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory(m_scheduler)});
 
-  m_availableRenderers << RendererSPtr(new CrosshairRenderer());
-  m_availableRenderers << RendererSPtr(new MeshRenderer());
-  m_availableRenderers << RendererSPtr(new SmoothedMeshRenderer());
-  m_availableRenderers << RendererSPtr(new SliceRenderer());
-  m_availableRenderers << RendererSPtr(new VolumetricRenderer<itkVolumeType>());
-  m_availableRenderers << RendererSPtr(new VolumetricGPURenderer<itkVolumeType>());
-  m_availableRenderers << RendererSPtr(new ContourRenderer());
-  m_availableRenderers << RendererSPtr(new CachedSliceRenderer(m_scheduler));
+  m_viewManager->registerRenderer(RendererSPtr{new CrosshairRenderer()});
+  m_viewManager->registerRenderer(RendererSPtr{new MeshRenderer()});
+  m_viewManager->registerRenderer(RendererSPtr{new SmoothedMeshRenderer()});
+  m_viewManager->registerRenderer(RendererSPtr{new SliceRenderer()});
+  m_viewManager->registerRenderer(RendererSPtr{new VolumetricRenderer<itkVolumeType>()});
+  m_viewManager->registerRenderer(RendererSPtr{new VolumetricGPURenderer<itkVolumeType>()});
+  m_viewManager->registerRenderer(RendererSPtr{new ContourRenderer()});
+  m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
 
   m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, new ROISettings(), m_viewManager));
 
@@ -326,7 +326,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   statusBar()->clearMessage();
 
-  m_view = DefaultViewSPtr{new DefaultView(m_model, m_viewManager, m_undoStack, m_availableRenderers, this)};
+  m_view = DefaultViewSPtr{new DefaultView(m_model, m_viewManager, m_undoStack, this)};
   m_view->createViewMenu(m_viewMenu);
 
   QSettings settings(CESVIMA, ESPINA);
@@ -436,7 +436,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       for (auto renderer : validPlugin->renderers())
       {
         qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
-        m_availableRenderers << renderer;
+        m_viewManager->registerRenderer(renderer);
       }
 
       for(auto entry: validPlugin->menuEntries())

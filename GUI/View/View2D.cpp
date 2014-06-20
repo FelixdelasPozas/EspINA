@@ -1533,6 +1533,16 @@ void View2D::addRendererControls(RendererSPtr renderer)
   }
   configMenu->add(renderer);
 
+  m_zoomButton->setEnabled(false);
+  m_snapshot->setEnabled(false);
+  for(auto renderer: m_renderers)
+    if(!renderer->isHidden())
+    {
+      m_zoomButton->setEnabled(true);
+      m_snapshot->setEnabled(true);
+      break;
+    }
+
   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
 }
 
@@ -1595,6 +1605,17 @@ void View2D::removeRendererControls(QString name)
       m_renderConfig->setEnabled(false);
     }
   }
+
+  m_zoomButton->setEnabled(false);
+  m_snapshot->setEnabled(false);
+  for(auto renderer: m_renderers)
+    if(!renderer->isHidden())
+    {
+      m_zoomButton->setEnabled(true);
+      m_snapshot->setEnabled(true);
+      break;
+    }
+
   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
 }
 
