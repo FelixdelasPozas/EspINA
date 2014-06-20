@@ -22,46 +22,43 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-AddCategoryCommand::AddCategoryCommand(CategoryAdapterPtr parentCategory,
-                                       CategoryAdapterPtr category,
-                                       ModelAdapterSPtr   model,
-                                       QUndoCommand*      parent)
+AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
+                                       CategoryAdapterSPtr category,
+                                       ModelAdapterSPtr    model,
+                                       QUndoCommand*       parent)
 : QUndoCommand(parent)
-, m_model(model)
-, m_name (category->name())
-, m_color(category->color())
-// , m_category(category)
-// , m_parentCategory(parentCategory)
+, m_model         {model}
+, m_name          {category->name()}
+, m_color         {category->color()}
+, m_category      {category}
+, m_parentCategory{parentCategory}
 {
-
 }
 
 //------------------------------------------------------------------------
-AddCategoryCommand::AddCategoryCommand(CategoryAdapterPtr parentClassification,
-                                       const QString&     name,
-                                       ModelAdapterSPtr   model,
-                                       QColor             color,
-                                       QUndoCommand*      parent)
+AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
+                                       const QString&      name,
+                                       ModelAdapterSPtr    model,
+                                       QColor              color,
+                                       QUndoCommand*       parent)
 : QUndoCommand(parent)
-, m_model(model)
-, m_name (name)
-, m_color(color)
-, m_parentCategory(m_model->smartPointer(parentClassification))
+, m_model         {model}
+, m_name          {name}
+, m_color         {color}
+, m_category      {nullptr}
+, m_parentCategory{parentCategory}
 {
 }
 
 //------------------------------------------------------------------------
 AddCategoryCommand::~AddCategoryCommand()
 {
-
 }
 
 //------------------------------------------------------------------------
 void AddCategoryCommand::redo()
 {
-  // if it has been used before, we should use the same object in case other
-  // commands keep its reference
-  if (!m_category)
+  if (m_category == nullptr)
   {
     m_category = m_model->createCategory(m_name, m_parentCategory);
     m_category->setColor(m_color);

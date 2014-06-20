@@ -97,7 +97,7 @@ void ClassificationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 
   QAbstractProxyModel::setSourceModel(m_model.get());
 
-  sourceRowsInserted(m_model->classificationRoot(), 0, m_model->rowCount(m_model->classificationRoot())     - 1);
+  sourceRowsInserted(m_model->classificationRoot(), 0, m_model->rowCount(m_model->classificationRoot()) - 1);
   sourceRowsInserted(m_model->segmentationRoot()  , 0, m_model->rowCount(m_model->segmentationRoot()) - 1);
 }
 
@@ -331,6 +331,7 @@ QModelIndex ClassificationProxy::mapFromSource(const QModelIndex& sourceIndex) c
     }
     default:
       proxyIndex = QModelIndex();
+      break;
   }
 
   return proxyIndex;
@@ -605,57 +606,60 @@ void ClassificationProxy::sourceRowsInserted(const QModelIndex& sourceParent, in
       addCategory(insertedElement);
     }
     endInsertRows();
-  } else if (sourceParent == m_model->segmentationRoot())
-  {
-    QMap<CategoryAdapterPtr , QList<ItemAdapterPtr > > relations;
-
-    for (int row=start; row <= end; row++)
-    {
-      auto sourceIndex  = m_model->index(row, 0, sourceParent);
-      auto sourceItem   = itemAdapter(sourceIndex);
-      auto segmentation = segmentationPtr(sourceItem);
-      auto category     = segmentation->category().get();
-
-      if (category)
-        relations[category] << sourceItem;
-    }
-
-    for(auto category : relations.keys())
-    {
-      int numTaxs = numSubCategories(category);
-      int numSegs = numSegmentations(category);
-
-      int startRow = numTaxs + numSegs;
-      int endRow   = startRow + relations[category].size() - 1;
-
-      auto proxyCategory = mapFromSource(m_model->categoryIndex(category));
-
-      beginInsertRows(proxyCategory, startRow, endRow);
-      m_categorySegmentations[category] << relations[category];
-      endInsertRows();
-    }
-  } else
-  {
-    ItemAdapterPtr parentItem = itemAdapter(sourceParent);
-    if (isCategory(parentItem))
-    {
-      beginInsertRows(mapFromSource(sourceParent), start, end);
-      for (int row = start; row <= end; row++)
-      {
-        auto sourceRow  = itemAdapter(m_model->index(row, 0, sourceParent));
-        auto category   = categoryPtr(sourceRow);
-        auto parentNode = category->parent();
-
-        if (parentNode != m_model->classification()->root().get())
-        {
-          m_numCategories[parentNode] += 1;
-        }
-        m_numCategories[category]      = category->subCategories().size();
-        m_categoryVisibility[category] = Qt::Checked;
-      }
-      endInsertRows();
-    }
   }
+  else
+    if (sourceParent == m_model->segmentationRoot())
+    {
+      QMap<CategoryAdapterPtr , QList<ItemAdapterPtr > > relations;
+
+      for (int row=start; row <= end; row++)
+      {
+        auto sourceIndex  = m_model->index(row, 0, sourceParent);
+        auto sourceItem   = itemAdapter(sourceIndex);
+        auto segmentation = segmentationPtr(sourceItem);
+        auto category     = segmentation->category().get();
+
+        if (category)
+          relations[category] << sourceItem;
+      }
+
+      for(auto category : relations.keys())
+      {
+        int numTaxs = numSubCategories(category);
+        int numSegs = numSegmentations(category);
+
+        int startRow = numTaxs + numSegs;
+        int endRow   = startRow + relations[category].size() - 1;
+
+        auto proxyCategory = mapFromSource(m_model->categoryIndex(category));
+
+        beginInsertRows(proxyCategory, startRow, endRow);
+        m_categorySegmentations[category] << relations[category];
+        endInsertRows();
+      }
+    }
+    else
+    {
+      ItemAdapterPtr parentItem = itemAdapter(sourceParent);
+      if (isCategory(parentItem))
+      {
+        beginInsertRows(mapFromSource(sourceParent), start, end);
+        for (int row = start; row <= end; row++)
+        {
+          auto sourceRow  = itemAdapter(m_model->index(row, 0, sourceParent));
+          auto category   = categoryPtr(sourceRow);
+          auto parentNode = category->parent();
+
+          if (parentNode != m_model->classification()->root().get())
+          {
+            m_numCategories[parentNode] += 1;
+          }
+          m_numCategories[category]      = category->subCategories().size();
+          m_categoryVisibility[category] = Qt::Checked;
+        }
+        endInsertRows();
+      }
+    }
 }
 
 //------------------------------------------------------------------------

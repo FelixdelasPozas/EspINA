@@ -17,8 +17,11 @@
  *
  */
 
+// EspINA
 #include "ClassificationXML.h"
 
+// Qt
+#include <QStack>
 #include <QXmlStreamReader>
 
 using namespace EspINA;
@@ -32,35 +35,45 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
   ClassificationSPtr classification{new Classification(name.toString())};
 
-  CategorySPtr parent;
+  QStack<CategorySPtr> stack;
 
   while (!stream.atEnd())
   {
     stream.readNextStartElement();
-    if (stream.name() == "category" || stream.name() == "node") //node was used by taxonomies
+    if (stream.name() == "category" || stream.name() == "node") //node was used by categories
     {
       if (stream.isStartElement())
       {
         name  = stream.attributes().value("name");
         QStringRef color = stream.attributes().value("color");
 
+        CategorySPtr parent;
+        if(stack.isEmpty())
+          parent = nullptr;
+        else
+          parent = stack.front();
+
         CategorySPtr category = classification->createNode(name.toString(), parent);
+
+        stack.push(category);
+
         category->setColor(color.toString());
 
-        QXmlStreamAttribute attrib;
-        foreach(attrib, stream.attributes())
+        for(auto attrib: stream.attributes())
         {
           if (attrib.name() == "name" || attrib.name() == "color")
-          continue;
+            continue;
+
           category->addProperty(attrib.name().toString(), attrib.value().toString());
         }
 
         parent = category;
       }
-      else if (stream.isEndElement())
-      {
-        parent = classification->parent(parent);
-      }
+      else
+        if (stream.isEndElement())
+        {
+          stack.pop();
+        }
     }
   }
 
@@ -74,11 +87,13 @@ void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
   stream.writeAttribute("name", category->name());
   stream.writeAttribute("color", category->color().name());
 
-  foreach(QString prop, category->properties()){
+  for(auto prop: category->properties())
+  {
     stream.writeAttribute(prop, category->property(prop).toString());
   }
 
-  foreach(CategorySPtr subCategory, category->subCategories()){
+  for(auto subCategory: category->subCategories())
+  {
     dumpCategoryXML(subCategory, stream);
   }
 
@@ -94,7 +109,7 @@ void dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& 
   stream.writeStartElement("classification");
   stream.writeAttribute("name", classification->name());
 
-  foreach(CategorySPtr category, classification->root()->subCategories())
+  for(auto category: classification->root()->subCategories())
   {
     dumpCategoryXML(category, stream);
   }

@@ -31,16 +31,16 @@ namespace EspINA {
   : public QUndoCommand
   {
   public:
-    explicit AddCategoryCommand(CategoryAdapterPtr parentCategory,
-                                CategoryAdapterPtr category,
-                                ModelAdapterSPtr   model,
-                                QUndoCommand*      parent = nullptr);
+    explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
+                                CategoryAdapterSPtr category,
+                                ModelAdapterSPtr    model,
+                                QUndoCommand*       parent = nullptr);
 
-    explicit AddCategoryCommand(CategoryAdapterPtr parentCategory,
-                                const QString&     name,
-                                ModelAdapterSPtr   model,
-                                QColor             color,
-                                QUndoCommand*      parent = nullptr);
+    explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
+                                const QString&      name,
+                                ModelAdapterSPtr    model,
+                                QColor              color,
+                                QUndoCommand*       parent = nullptr);
     virtual ~AddCategoryCommand();
 
     virtual void redo();
@@ -48,11 +48,9 @@ namespace EspINA {
     virtual void undo();
 
   private:
-    ModelAdapterSPtr m_model;
-
-    QString m_name;
-    QColor  m_color;
-    
+    ModelAdapterSPtr    m_model;
+    QString             m_name;
+    QColor              m_color;
     CategoryAdapterSPtr m_category;
     CategoryAdapterSPtr m_parentCategory;
   };

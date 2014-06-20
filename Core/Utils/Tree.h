@@ -26,6 +26,7 @@
 #include <QMap>
 #include <QStringList>
 
+// C++
 #include <memory>
 
 namespace EspINA
@@ -34,7 +35,7 @@ namespace EspINA
 
   struct Already_Defined_Node_Exception{};
 
-  /// Tree-like structure representing taxonomical relationships
+  /// Tree-like structure representing categorical relationships
   template<typename T>
   class EspinaCore_EXPORT Tree
   {
@@ -53,11 +54,11 @@ namespace EspINA
     { return m_name; }
 
     Node createNode(const QString &relativeName,
-                 Node parent = Node());
+                    Node parent = Node());
 
     void removeNode(Node element);
 
-    Node  root(){return m_root;}
+    Node  root() const {return m_root;}
     Node  node(const QString &classificationName);
     Node  parent(const Node node) const;
 
@@ -69,7 +70,125 @@ namespace EspINA
   template<typename T>
   QString print(std::shared_ptr<Tree<T>> tree, int indent = 0);
 
-#include "Core/Utils/Tree.txx"
+  template<typename T>
+  Tree<T>::Tree(const QString& name)
+  : m_name(name)
+  , m_root(new T(nullptr, QString()))
+  {
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Tree<T>::~Tree()
+  {
+     //qDebug() << "Destroy classification";
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename Tree<T>::Node Tree<T>::createNode(const QString& relativeName, Node parent)
+  {
+    T *parentNode = parent.get();
+
+    if (!parentNode)
+      parentNode = m_root.get();
+
+    Node requestedNode;
+
+    if (!relativeName.isEmpty())
+    {
+      QStringList path = relativeName.split("/", QString::SkipEmptyParts);
+      for (int i = 0; i < path.size(); ++i)
+      {
+        requestedNode = parentNode->subCategory(path.at(i));
+        if (i == path.size() - 1 && requestedNode != nullptr)
+        {
+          throw Already_Defined_Node_Exception();
+        }
+
+        if (!requestedNode)
+        {
+          requestedNode = parentNode->createSubCategory(path.at(i));
+        }
+        parentNode = requestedNode.get();
+      }
+    }
+    else
+    {
+      requestedNode = parentNode->subCategory(QString("Unspecified"));
+
+      if (!requestedNode)
+        requestedNode = parentNode->createSubCategory(QString("Unspecified"));
+    }
+
+    return requestedNode;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void Tree<T>::removeNode(Node node)
+  {
+    Q_ASSERT(node);
+
+    if (node != m_root)
+    {
+      T *parentElement = node->parent();
+      parentElement->removeSubCategory(node);
+    }
+    else
+      m_root.reset();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename Tree<T>::Node Tree<T>::node(const QString& qualifiedName)
+  {
+    QStringList path = qualifiedName.split("/", QString::SkipEmptyParts);
+    Node node = m_root;
+
+    int i = 0;
+    while (node.get() != nullptr && i < path.length())
+    {
+      node = node->subCategory(path[i]);
+      ++i;
+    }
+
+    if (node == m_root)
+      node.reset();
+
+    return node;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename Tree<T>::Node Tree<T>::parent(const Node subCategory) const
+  {
+    QStringList path = subCategory->classificationName().split("/", QString::SkipEmptyParts);
+
+    Node parent = m_root;
+    for(int i = 0; i < path.length() - 1; i++)
+    {
+      parent = parent->subCategory(path[i]);
+      Q_ASSERT(parent.get() != nullptr);
+    }
+
+    return parent;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  QString print(std::shared_ptr<Tree<T>> tree, int indent)
+  {
+    QString out = QString("Tree: %1\n").arg(tree->name());
+
+    foreach(typename Tree<T>::Node node, tree->root()->subCategories())
+    {
+      out += QString("%1").arg(print(node, indent));
+    }
+
+    return out;
+  }
+
 }// namespace EspINA
 
 #endif // ESPINA_TREE_H

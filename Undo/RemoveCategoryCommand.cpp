@@ -26,16 +26,15 @@ RemoveCategoryCommand::RemoveCategoryCommand(CategoryAdapterPtr category,
                                              ModelAdapterSPtr   model,
                                              QUndoCommand*      parent)
 : QUndoCommand(parent)
-, m_model(model)
-, m_category(m_model->smartPointer(category))
-, m_parent  (m_model->smartPointer(category->parent()))
+, m_model   {model}
+, m_category{m_model->smartPointer(category)}
+, m_parent  {m_model->smartPointer(category->parent())}
 {
 }
 
 //------------------------------------------------------------------------
 RemoveCategoryCommand::~RemoveCategoryCommand()
 {
-
 }
 
 //------------------------------------------------------------------------

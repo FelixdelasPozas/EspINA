@@ -25,6 +25,33 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
+CategoryAdapter::CategoryAdapter(CategorySPtr category)
+: ItemAdapter(PersistentSPtr())
+, m_category{category}
+, m_parent  {nullptr}
+{
+  // NOTE: parent need to be set by intance creator.
+}
+
+//------------------------------------------------------------------------
+CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
+: ItemAdapter(PersistentSPtr())
+, m_category{nullptr}
+, m_parent{parent}
+{
+  // NOTE: m_category needs to be set by instance creator.
+}
+
+//------------------------------------------------------------------------
+CategoryAdapter::~CategoryAdapter()
+{
+  auto parent = m_category->parent();
+
+  if(parent != nullptr)
+    parent->removeSubCategory(m_category);
+}
+
+//------------------------------------------------------------------------
 QVariant CategoryAdapter::data(int role) const
 {
   switch (role)
@@ -54,11 +81,13 @@ bool CategoryAdapter::setData(const QVariant& value, int role)
   {
     setName(value.toString());
     successful = true;
-  } else if (role == Qt::DecorationRole)
-  {
-    setColor(value.value<QColor>());
-    successful = true;
   }
+  else
+    if (role == Qt::DecorationRole)
+    {
+      setColor(value.value<QColor>());
+      successful = true;
+    }
 
   return successful;
 }
@@ -96,26 +125,16 @@ void CategoryAdapter::addProperty(const QString& prop, const QVariant& value)
 //------------------------------------------------------------------------
 void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
 {
+  // do not add if already present
+  for(auto category: m_subCategories)
+    if(category == subCategory)
+      return;
+
   subCategory->m_parent = this;
   m_subCategories << subCategory;
+
+  m_category->addSubCategory(subCategory->m_category);
 }
-
-//------------------------------------------------------------------------
-CategoryAdapter::CategoryAdapter(CategorySPtr category)
-: ItemAdapter(PersistentSPtr())
-, m_category(category)
-, m_parent(nullptr)
-{
-
-}
-
-//------------------------------------------------------------------------
-CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
-: ItemAdapter(PersistentSPtr())
-, m_parent(parent)
-{
-}
-
 
 //------------------------------------------------------------------------
 CategoryAdapterSPtr CategoryAdapter::createSubCategory(const QString& name)
@@ -149,7 +168,7 @@ QVariant CategoryAdapter::property(const QString& prop) const
 //------------------------------------------------------------------------
 void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
 {
-  CategoryAdapterSPtr subNode;
+  CategoryAdapterSPtr subNode = nullptr;
 
   int index = 0;
   while (!subNode && index < m_subCategories.size())
@@ -160,9 +179,13 @@ void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
       index++;
   }
 
-  if (subNode) {
+  if (subNode)
+  {
     subNode->m_parent = nullptr;
     m_subCategories.removeAt(index);
+
+    auto parent = subCategory->m_category->parent();
+    parent->removeSubCategory(subCategory->m_category);
   }
 }
 
@@ -175,7 +198,7 @@ void CategoryAdapter::setColor(const QColor& color)
 //------------------------------------------------------------------------
 CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
 {
-  CategoryAdapterSPtr res;
+  CategoryAdapterSPtr res = nullptr;
 
   int i = 0;
   while (!res && i < m_subCategories.size())
@@ -186,11 +209,6 @@ CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
   }
 
   return res;
-}
-
-//------------------------------------------------------------------------
-CategoryAdapter::~CategoryAdapter()
-{
 }
 
 //------------------------------------------------------------------------
@@ -205,7 +223,7 @@ CategoryAdapterPtr EspINA::categoryPtr(ItemAdapterPtr item)
   return static_cast<CategoryAdapterPtr>(item);
 }
 
-
+//------------------------------------------------------------------------
 QString EspINA::print(CategoryAdapterSPtr category, int level)
 {
   return print(category->m_category, level);

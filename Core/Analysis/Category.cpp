@@ -1,11 +1,10 @@
 #include "Core/Analysis/Category.h"
 
-#include <QFile>
-#include <QPixmap>
+// Qt
+#include <QString>
 
+// C++
 #include <iostream>
-#include <QDebug>
-#include <assert.h>
 
 //#include <assert.h>
 /*
@@ -87,7 +86,10 @@ CategorySPtr Category::createSubCategory(const QString& name)
 //-----------------------------------------------------------------------------
 void Category::addSubCategory(CategorySPtr subCategory)
 {
-//   Q_ASSERT(!m_subCategories.contains(taxElement));
+  // check if already present
+  for(auto category: m_subCategories)
+    if(category == subCategory)
+      return;
 
   subCategory->m_parent = this;
 
@@ -108,7 +110,8 @@ void Category::removeSubCategory(CategoryPtr subCategory)
       index++;
   }
 
-  if (subNode) {
+  if (subNode)
+  {
     subNode->m_parent = nullptr;
     m_subCategories.removeAt(index);
   }
@@ -124,6 +127,7 @@ CategorySPtr Category::subCategory(const QString& name) const
   {
     if (m_subCategories[i]->name() == name)
       res = m_subCategories[i];
+
     i++;
   }
 
@@ -149,25 +153,18 @@ QVariant Category::property(const QString& prop) const
   return m_properties.value(prop,QVariant());
 }
 
-
 //------------------------------------------------------------------------
 QString EspINA::print(CategorySPtr category, int level)
 {
   QString out = QString("%1%2\n").arg(QString(level*2, ' ')).arg(category->name());
 
-  foreach(QString property, category->properties())
+  for(auto prop: category->properties())
   {
-    //       std::cout << std::string(level*2, ' ') << "<" << std::endl;
-    //       foreach(QString key, m_properties.keys())
-    //       {
-    //         std::cout << std::string((level+1)*2, ' ')
-    //         << key.toStdString() << ": " << m_properties[key].toString().toStdString()
-    //         << std::endl;
-    //       }
-    //       std::cout << std::string(level*2, ' ') << ">" << std::endl;
+    out += QString("%1Property: %2 = %3\n").arg(QString(level*2, ' ')).arg(prop).arg(category->property(prop).toString());
   }
 
-  foreach (CategorySPtr subCategory, category->subCategories()) {
+  for(auto subCategory: category->subCategories())
+  {
     out += QString("%1").arg(print(subCategory, level+1));
   }
 

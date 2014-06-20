@@ -16,9 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "ClassificationAdapter.h"
 
-// EspINA
+#include <QDebug>
 
 using namespace EspINA;
 
@@ -105,11 +106,14 @@ CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificatio
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativeName, CategoryAdapterSPtr parent)
 {
-  CategoryAdapterPtr parentCategoryAdapter = parent.get();
+  CategoryAdapterPtr parentCategoryAdapter = nullptr;
 
-  if (!parentCategoryAdapter)
+  if(parent != nullptr)
   {
-    parentCategoryAdapter = m_classificationAdapter.root().get();
+    parentCategoryAdapter = parent.get();
+
+    if(parentCategoryAdapter == nullptr)
+      parentCategoryAdapter = m_classificationAdapter.root().get();
   }
 
   CategoryPtr parentCategory = parentCategoryAdapter->m_category.get();
@@ -125,7 +129,8 @@ CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativ
       requestedCategory        = parentCategory->subCategory(path.at(i));
       requestedCategoryAdapter = parentCategoryAdapter->subCategory(path.at(i));
 
-      if (i == path.size() - 1 && requestedCategory != nullptr) {
+      if (i == path.size() - 1 && requestedCategory != nullptr)
+      {
         throw Already_Defined_Node_Exception();
       }
 
@@ -139,7 +144,9 @@ CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativ
       parentCategory        = requestedCategory.get();
       parentCategoryAdapter = requestedCategoryAdapter.get();
     }
-  } else {
+  }
+  else
+  {
     QString defaultName{"Undefined"};
 
     requestedCategory = parentCategory->subCategory(defaultName);

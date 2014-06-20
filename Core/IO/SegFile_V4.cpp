@@ -432,7 +432,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
 
     if (file != FORMAT_INFO_FILE
       && file != CLASSIFICATION_FILE
-      && file != TRACE_FILE)
+      && file != TRACE_FILE
+      && !file.endsWith("/"))
     {
       // Translate filenames to expected format
       if (file.contains("Outputs/"))
