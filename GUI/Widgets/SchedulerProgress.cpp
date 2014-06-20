@@ -73,11 +73,13 @@ throw (Duplicated_Task_Exception)
   if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
 
   TaskProgressSPtr taskProgress{new TaskProgress(task)};
+
   m_tasks[task] = taskProgress;
   connect(taskProgress.get(), SIGNAL(aborted()),
           this, SLOT(onProgressAborted()));
 
   m_notification->layout()->addWidget(m_tasks[task].get());
+  taskProgress->setHidden(true);
 
   connect(task.get(), SIGNAL(progress(int)),
           this, SLOT(updateProgress()));
@@ -151,6 +153,12 @@ void SchedulerProgress::onProgressAborted()
 //------------------------------------------------------------------------
 void SchedulerProgress::updateNotificationWidget()
 {
+  for(auto task: m_tasks.keys())
+    if(task->isRunning())
+      m_tasks[task]->setHidden(false);
+    else
+      m_tasks[task]->setHidden(true);
+
   m_notification->adjustSize();
 
   int xShift = m_showTasks->width() - m_width;
