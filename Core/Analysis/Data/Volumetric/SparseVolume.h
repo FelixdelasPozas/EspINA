@@ -851,22 +851,20 @@ namespace EspINA
       return true;
 
     auto splittedBounds = boundsPartition();
+    typename T::Pointer image;
 
     for(auto bounds : splittedBounds)
     {
-      typename T::Pointer image = itkImage(bounds.bounds());
-      bool empty = true;
+      image = itkImage(bounds.bounds());
+
       itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
       it.GoToBegin();
-      while (empty && !it.IsAtEnd())
+      while (!it.IsAtEnd())
       {
-        empty = it.Get() == this->backgroundValue();
-        ++it;
-      }
+        if(it.Get() != this->backgroundValue())
+          return false;
 
-      if (!empty)
-      {
-        return false;
+        ++it;
       }
     }
 

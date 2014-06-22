@@ -39,6 +39,9 @@
 #include <vtkImplicitPolyDataDistance.h>
 #include <vtkImageExport.h>
 
+// Qt
+#include <QMutex>
+
 namespace EspINA
 {
   template<typename T>
@@ -126,8 +129,8 @@ namespace EspINA
     void rasterize() const;
 
     vtkSmartPointer<vtkPolyData> m_mesh;
-
-    mutable unsigned long int m_rasterizationTime;
+    mutable unsigned long int    m_rasterizationTime;
+    mutable QMutex               m_mutex;
   };
 
   template<class T> using RasterizedVolumePtr = RasterizedVolume<T> *;
@@ -265,15 +268,24 @@ namespace EspINA
   template<typename T>
   void RasterizedVolume<T>::rasterize() const
   {
-    if (m_rasterizationTime == m_mesh->GetMTime())
+    this->m_mutex.lock();
+
+    // try to see if already rasterized while waiting in the mutex.
+    if (!this->m_blocks.empty() && m_rasterizationTime == m_mesh->GetMTime())
     {
       // already rasterized
+      this->m_mutex.unlock();
       return;
     }
 
     double minSpacing = std::min(this->m_spacing[0], std::min(this->m_spacing[1], this->m_spacing[2]));
-
     double meshBounds[6];
+    double point[3];
+
+    vtkSmartPointer<vtkImplicitPolyDataDistance> distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    distance->SetInput(m_mesh);
+    distance->SetTolerance(0);
+
     m_mesh->GetBounds(meshBounds);
     auto rasterizationBounds = Bounds{meshBounds[0], meshBounds[1], meshBounds[2], meshBounds[3], meshBounds[4], meshBounds[5]};
 
@@ -282,12 +294,6 @@ namespace EspINA
 
     itk::ImageRegionIteratorWithIndex<T> it(image, image->GetLargestPossibleRegion());
     it.GoToBegin();
-
-    vtkSmartPointer<vtkImplicitPolyDataDistance> distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-    distance->SetInput(m_mesh);
-    distance->SetTolerance(0);
-
-    double point[3];
     while(!it.IsAtEnd())
     {
       auto index = it.GetIndex();
@@ -304,14 +310,12 @@ namespace EspINA
 
       ++it;
     }
-
     m_rasterizationTime = m_mesh->GetMTime();
 
-    // a new rasterization invalidates previous modifications.
-    while(!this->m_blocks.empty())
-      this->m_blocks.pop_back();
+    setBlock(image, false);
+    updateModificationTime();
 
-    draw(image);
+    this->m_mutex.unlock();
   }
 
 } // namespace EspINA

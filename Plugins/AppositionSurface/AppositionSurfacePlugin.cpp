@@ -248,7 +248,6 @@ void AppositionSurface::createSASAnalysis()
   {
     if (m_model->classification()->category(SAS) == nullptr)
     {
-      qDebug() << "create category plugin 2";
       m_undoStack->beginMacro(tr("Apposition Surface"));
       m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
       m_undoStack->endMacro();
@@ -375,7 +374,6 @@ void AppositionSurface::finishedTask()
   auto classification = m_model->classification();
   if (classification->category(SAS) == nullptr)
   {
-    qDebug() << "create category plugin 1";
     m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
 
     m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));

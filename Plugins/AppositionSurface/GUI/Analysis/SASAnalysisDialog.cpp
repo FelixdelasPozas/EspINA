@@ -33,7 +33,6 @@
 // Qt
 #include <QPushButton>
 #include <QFileDialog>
-#include <QMessageBox>
 #include <QSettings>
 #include <QHBoxLayout>
 #include <QDialogButtonBox>

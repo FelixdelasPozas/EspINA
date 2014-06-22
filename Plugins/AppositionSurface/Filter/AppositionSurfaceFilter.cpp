@@ -16,7 +16,6 @@
 
 // Qt
 #include <QtGlobal>
-#include <QDebug>
 #include <QMessageBox>
 
 // VTK

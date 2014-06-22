@@ -34,7 +34,6 @@
 // STL
 #include <list>
 
-// Qt
 class QString;
 
 namespace EspINA
@@ -91,7 +90,7 @@ namespace EspINA
      *
      */
     virtual void restoreState(const State& state)
-    {}
+    {};
 
     /* \brief Implements Persistent::state().
      *

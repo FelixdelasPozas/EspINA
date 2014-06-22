@@ -33,6 +33,7 @@
 #include <QString>
 #include <QVariant>
 #include <QDebug>
+#include <QMessageBox>
 
 using namespace EspINA;
 
@@ -132,7 +133,10 @@ void AppositionSurfaceToolGroup::createSAS()
   }
 
   if(validSegmentations.empty())
+  {
+    QMessageBox::information(nullptr, tr("EspINA"), tr("Selected Synapses already have an associated Apposittion Surface."));
     return;
+  }
 
   for(auto seg: validSegmentations)
   {
@@ -173,10 +177,6 @@ void AppositionSurfaceToolGroup::finishedTask()
   auto classification = m_model->classification();
   if (classification->category(SAS) == nullptr)
   {
-    qDebug() << "create category tool 1";
-    for(auto category: m_model->classification()->categories())
-      qDebug() << category->classificationName();
-
     m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
 
     m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));

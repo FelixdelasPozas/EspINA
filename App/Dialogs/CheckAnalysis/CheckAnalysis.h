@@ -27,9 +27,6 @@
 #include <QDialog>
 #include "ui_CheckAnalysisDialog.h"
 
-// C++
-#include <mutex>
-
 namespace EspINA
 {
   //------------------------------------------------------------------------

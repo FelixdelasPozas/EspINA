@@ -24,7 +24,6 @@
 #include <Core/Analysis/Channel.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
-
 namespace EspINA
 {
   //------------------------------------------------------------------------
