@@ -69,11 +69,10 @@ set (ESPINA_USE_FILE       "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMake/Modules/")
 
-find_package(Quazip REQUIRED)
-# WIN64: deshabilitado, configurar a mano. Provoca el error "include called with wrong number of arguments.  Include only takes one file"
-if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
-  include(${QUAZIP_USE_FILE})
-endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
+find_package(QuaZip REQUIRED)
+#if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
+#  include(${QUAZIP_USE_FILE})
+#endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})

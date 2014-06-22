@@ -22,7 +22,7 @@
 
 #include "Core/IO/ErrorHandler.h"
 #include <Core/Analysis/Analysis.h>
-#include <quazip.h>
+#include <quazip/quazip.h>
 
 namespace EspINA 
 {

@@ -27,8 +27,8 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/CoreFactory.h>
 
-#include <quazip.h>
-#include <quazipfile.h>
+#include <quazip/quazip.h>
+#include <quazip/quazipfile.h>
 
 using namespace EspINA;
 using namespace EspINA::IO;

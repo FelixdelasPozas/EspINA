@@ -20,7 +20,7 @@
 #ifndef ESPINA_IO_ZIP_UTILS_H
 #define ESPINA_IO_ZIP_UTILS_H
 
-#include <quazip.h>
+#include <quazip/quazip.h>
 
 namespace EspINA {
   namespace IO {

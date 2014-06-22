@@ -20,7 +20,7 @@
 #include "SegFileInterface.h"
 #include "SegFile.h"
 
-#include <quazipfile.h>
+#include <quazip/quazipfile.h>
 #include <QUuid>
 
 using namespace EspINA;

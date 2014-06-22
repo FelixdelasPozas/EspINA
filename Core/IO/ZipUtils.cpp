@@ -19,7 +19,7 @@
 
 #include "ZipUtils.h"
 
-#include <quazipfile.h>
+#include <quazip/quazipfile.h>
 #include <QDebug>
 
 using namespace EspINA;
