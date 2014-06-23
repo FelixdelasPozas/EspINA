@@ -19,6 +19,7 @@
 // plugin
 #include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
+#include <Filter/SASFetchBehaviour.h>
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceToolGroup.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
@@ -71,7 +72,7 @@ FilterSPtr AppositionSurface::ASFilterFactory::createFilter(InputSList          
 
   if (!m_fetchBehaviour)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new RasterizedVolumeFromFetchedMeshData()};
+    m_fetchBehaviour = FetchBehaviourSPtr{new SASFetchBehaviour()};
   }
   filter->setFetchBehaviour(m_fetchBehaviour);
 

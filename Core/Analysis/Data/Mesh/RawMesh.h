@@ -22,9 +22,11 @@
 
 #include "EspinaCore_Export.h"
 
+// EspINA
 #include <Core/Analysis/Data/MeshData.h>
 #include "MeshProxy.h"
 
+// VTK
 #include <vtkSmartPointer.h>
 
 namespace EspINA

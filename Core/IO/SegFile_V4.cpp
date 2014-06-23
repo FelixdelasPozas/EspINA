@@ -317,7 +317,6 @@ void SegFile_V4::Loader::loadTrace()
   {
     inflateVertexV4(roVertex);
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -471,6 +470,22 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
           auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
           m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
         }
+      } else if (file.contains("MeshOutputType/"))
+      {
+        auto oldFile = file.remove(0, 15);
+        auto parts   = oldFile.split("_");
+        auto vertex  = parts[0].toInt();
+        if (vertex == filterVertex)
+        {
+          auto newFile = QString("Filters/%1/").arg(uuid.toString());
+          Q_ASSERT(parts[1].endsWith(".vtp"));
+          auto strings = parts[1].split("-");
+          newFile += QString("MeshData_%1.vtp").arg(strings[0]);
+
+          auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+          m_storage->saveSnapshot(SnapshotData(newFile, currentFile));
+        }
+
       }
     }
 

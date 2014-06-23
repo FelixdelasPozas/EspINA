@@ -7,6 +7,8 @@
 
 // Plugin
 #include "AppositionSurfaceFilter.h"
+
+// EspINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
@@ -82,18 +84,19 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
 
   bool update = true;
 
-  if (!m_inputs.isEmpty())
+  if (!m_inputs.isEmpty() && m_alreadyFetchedData)
   {
     Q_ASSERT(m_inputs.size() == 1);
 
     auto inputVolume = volumetricData(m_inputs[0]->output());
-    if(inputVolume == nullptr)
+    if(inputVolume != nullptr)
     {
-      qWarning() << "SAS input es NULL";
-      update = false;
+      update = (m_lastModifiedMesh < inputVolume->lastModified());
     }
     else
-      update = (m_lastModifiedMesh < inputVolume->lastModified());
+    {
+      qWarning() << "SAS input es NULL - filter id:" << this->id();
+    }
   }
 
   return update;

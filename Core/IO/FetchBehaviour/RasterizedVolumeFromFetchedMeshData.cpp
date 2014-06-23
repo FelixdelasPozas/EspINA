@@ -16,8 +16,9 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// EspINA
+#include "RasterizedVolumeFromFetchedMeshData.h"
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
-#include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
 
 namespace EspINA
 {
@@ -59,18 +60,20 @@ namespace EspINA
                                                                           TemporalStorageSPtr storage,
                                                                           QString prefix)
   {
-    MeshDataSPtr mesh;
+    MeshDataSPtr mesh = nullptr;
 
     if (!output->hasData(MeshData::TYPE))
     {
       auto data = DataSPtr{new RawMesh()};
       data->setOutput(output.get());
+
       if (data->fetchData(storage, prefix))
       {
         output->setData(data);
-        mesh = meshData(output);
       }
     }
+
+    mesh = meshData(output);
 
     return mesh;
   }

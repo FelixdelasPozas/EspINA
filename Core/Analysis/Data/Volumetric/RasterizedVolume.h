@@ -312,8 +312,8 @@ namespace EspINA
     }
     m_rasterizationTime = m_mesh->GetMTime();
 
-    setBlock(image, false);
-    updateModificationTime();
+    this->setBlock(image, false);
+    this->updateModificationTime();
 
     this->m_mutex.unlock();
   }

@@ -38,6 +38,8 @@ class QString;
 
 namespace EspINA
 {
+  class SASFetchBehaviour;
+
   const Filter::Type AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
 
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceFilter
@@ -191,7 +193,7 @@ namespace EspINA
     bool m_alreadyFetchedData;
     TimeStamp m_lastModifiedMesh;
 
-    friend class AppositionSurfaceVolume;
+    friend class SASFetchBehaviour;
   };
 
   using AppositionSurfaceFilterPtr  = AppositionSurfaceFilter *;

@@ -17,16 +17,21 @@
  *
  */
 
+// EspINA
 #include "RawMesh.h"
 #include <Core/Analysis/Filter.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
+// VTK
 #include <vtkPointData.h>
 #include <vtkDoubleArray.h>
 
+// Qt
 #include <QDir>
 
 using namespace EspINA;
+
+static QString MESHDATA_FILE = QString("MeshData_%1.vtp");
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(OutputSPtr output)
@@ -46,9 +51,8 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
 {
   bool dataFetched = false;
-  int  error = 0;
 
-  QString fileName = storage->absoluteFilePath(prefix + QString("MeshData_%1.vtp").arg(m_output->id()));
+  QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
 
   QFileInfo meshFile(fileName);
 
@@ -58,13 +62,13 @@ bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString& prefix
     dataFetched = true;
   }
 
-  return dataFetched && (error != 0);
+  return dataFetched;
 }
 
 //----------------------------------------------------------------------------
 Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &prefix) const
 {
-  QString fileName = prefix + QString("MeshData_%1.vtp").arg(m_output->id());
+  QString fileName = prefix + QString(MESHDATA_FILE).arg(m_output->id());
   Snapshot snapshot;
 
   storage->makePath(prefix);

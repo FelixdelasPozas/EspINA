@@ -16,20 +16,24 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
-#define ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
+#ifndef SAS_FETCH_BEHAVIOUR_H_
+#define SAS_FETCH_BEHAVIOUR_H_
 
 // EspINA
-#include <Core/Analysis/FetchBehaviour.h>
-#include <Core/Analysis/Data/MeshData.h>
+#include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
 
 namespace EspINA
 {
-  class RasterizedVolumeFromFetchedMeshData
-  : public FetchBehaviour
+  
+  class SASFetchBehaviour
+  : public RasterizedVolumeFromFetchedMeshData
   {
     public:
-      virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
+      /* \brief SASFetchBehaviour class virtual destructor.
+       *
+       */
+      virtual ~SASFetchBehaviour()
+      {};
 
     protected:
       virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
@@ -37,4 +41,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif // RASTERIZEDVOLUMEFROMFETCHEDMESHDATA_H_
+#endif // SAS_FETCH_BEHAVIOUR_H_

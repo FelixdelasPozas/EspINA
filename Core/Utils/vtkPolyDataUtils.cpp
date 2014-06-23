@@ -52,6 +52,9 @@ vtkSmartPointer<vtkPolyData> EspINA::PolyDataUtils::readPolyDataFromFile(QString
   if (reader->GetErrorCode() != 0)
     throw IO_Error_Exception();
 
-  return vtkSmartPointer<vtkPolyData>(reader->GetPolyDataOutput());
+  vtkSmartPointer<vtkPolyData> mesh = vtkSmartPointer<vtkPolyData>::New();
+  mesh->DeepCopy(reader->GetPolyDataOutput());
+
+  return mesh;
 }
 

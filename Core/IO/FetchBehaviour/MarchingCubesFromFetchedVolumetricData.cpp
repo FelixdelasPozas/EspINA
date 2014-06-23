@@ -15,8 +15,8 @@
  *
  */
 
+// EspINA
 #include "MarchingCubesFromFetchedVolumetricData.h"
-
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
@@ -37,7 +37,8 @@ void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, 
     if (data->fetchData(storage, prefix))
     {
       output->setData(data);
-    } else
+    }
+    else
     {
       auto volume = fetchVolumetricData(output, storage, prefix);
       if (volume)
@@ -52,7 +53,7 @@ void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, 
 //----------------------------------------------------------------------------
 EspINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix)
 {
-  DefaultVolumetricDataSPtr volume;
+  DefaultVolumetricDataSPtr volume = nullptr;
 
   if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
@@ -61,9 +62,10 @@ EspINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchV
     if (data->fetchData(storage, prefix))
     {
       output->setData(data);
-      volume = volumetricData(output);
     }
   }
+
+  volume = volumetricData(output);
 
   return volume;
 }

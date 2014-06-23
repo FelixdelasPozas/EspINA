@@ -29,8 +29,8 @@ namespace EspINA
   public:
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
 
-  private:
-    DefaultVolumetricDataSPtr fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
+  protected:
+    virtual DefaultVolumetricDataSPtr fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
 } // namespace EspINA
 

@@ -25,13 +25,13 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// EspINA
 #include "Output.h"
-
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/DataProxy.h"
+#include "Filter.h"
+#include "DataProxy.h"
 #include "Analysis.h"
 
+// VTK
 #include <vtkMath.h>
 
 using namespace EspINA;
