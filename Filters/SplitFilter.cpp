@@ -64,8 +64,14 @@ void SplitFilter::execute()
   Q_ASSERT(m_inputs.size() == 1);
   auto volume = volumetricData(m_inputs.first()->output());
 
-  if (nullptr == m_stencil)
-    Q_ASSERT(fetchCacheStencil());
+  if (nullptr == m_stencil && !fetchCacheStencil())
+  {
+    if (m_outputs.isEmpty())
+      Q_ASSERT(false);
+    else
+      // read-only filter.
+      return;
+  }
 
   auto itkVolume = volume->itkImage();
   auto itkRegion = itkVolume->GetLargestPossibleRegion();
@@ -217,27 +223,28 @@ bool SplitFilter::fetchCacheStencil() const
 //-----------------------------------------------------------------------------
 Snapshot SplitFilter::saveFilterSnapshot() const
 {
-  // check if the stencil is in the cache and hasn't been loaded (because a run() wasn't needed)
-  if (nullptr == m_stencil)
-    Q_ASSERT(fetchCacheStencil());
-
-  Q_ASSERT(m_stencil != nullptr);
-
-  vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
-  convert->SetInputData(m_stencil);
-  convert->SetInsideValue(1);
-  convert->SetOutsideValue(0);
-  convert->SetOutputScalarTypeToUnsignedChar();
-  convert->Update();
-
-  vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
-  stencilWriter->SetInputConnection(convert->GetOutputPort());
-  stencilWriter->SetFileTypeToBinary();
-  stencilWriter->SetWriteToOutputString(true);
-  stencilWriter->Write();
-
   Snapshot snapshot;
-  snapshot << SnapshotData{stencilFile(), QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
 
+  // next line loads the stencil file from disk (if it exists, see note)
+  // NOTE: not aborting if the file is not found fixes a bug in earlier versions that didn't store
+  // the vti file in the seg, this renders this filter a read-only filter, that is, cannot be executed
+  // again.
+  if(m_stencil != nullptr || fetchCacheStencil())
+  {
+    vtkSmartPointer<vtkImageStencilToImage> convert = vtkSmartPointer<vtkImageStencilToImage>::New();
+    convert->SetInputData(m_stencil);
+    convert->SetInsideValue(1);
+    convert->SetOutsideValue(0);
+    convert->SetOutputScalarTypeToUnsignedChar();
+    convert->Update();
+
+    vtkSmartPointer<vtkGenericDataObjectWriter> stencilWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
+    stencilWriter->SetInputConnection(convert->GetOutputPort());
+    stencilWriter->SetFileTypeToBinary();
+    stencilWriter->SetWriteToOutputString(true);
+    stencilWriter->Write();
+
+    snapshot << SnapshotData{stencilFile(), QByteArray{stencilWriter->GetOutputString(), stencilWriter->GetOutputStringLength()}};
+  }
   return snapshot;
 }

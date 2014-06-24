@@ -16,52 +16,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "SourceFilter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
-
 using namespace EspINA;
-
-//-----------------------------------------------------------------------------
-SourceFilter::SourceFilter(InputSList    inputs,
-                           Filter::Type  type,
-                           SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
-{
-}
-
-//-----------------------------------------------------------------------------
-SourceFilter::~SourceFilter()
-{
-}
-
-//------------------------------------------------------------------------
-void SourceFilter::restoreState(const State& state)
-{
-}
-
-//-----------------------------------------------------------------------------
-State SourceFilter::state() const
-{
-  return State();
-}
 
 //-----------------------------------------------------------------------------
 void SourceFilter::addOutput(Output::Id id, OutputSPtr output)
 {
   m_outputs[id] = output;
-}
-
-//-----------------------------------------------------------------------------
-Snapshot SourceFilter::saveFilterSnapshot() const
-{
-  return Snapshot();
-}
-
-//----------------------------------------------------------------------------
-bool SourceFilter::needUpdate() const
-{
-  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -78,33 +42,4 @@ void SourceFilter::execute(Output::Id id)
   if (!m_outputs.contains(id)) throw Undefined_Output_Exception();
 
   if (m_inputs.size() != 0) throw Invalid_Number_Of_Inputs_Exception();
-
-//   emit progress(25);
-//
-//   if (!m_outputs.contains(0))
-//   {
-//     m_outputs[0] = OutputSPtr(new Output(this, 0));
-//   }
-//
-//   emit progress(50);
-//   if (!canExecute()) return;
-//
-//   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
-//   auto sparseVolume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volume);
-//   sparseVolume->draw(m_mask);
-//
-//   emit progress(75);
-//   if (!canExecute()) return;
-//
-//   m_outputs[0]->setData(volume);
-//   m_outputs[0]->setData(MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)});
-//   m_outputs[0]->setSpacing(m_mask->spacing());
-//
-//   emit progress(100);
-}
-
-//----------------------------------------------------------------------------
-bool SourceFilter::invalidateEditedRegions()
-{
-  return false;
 }

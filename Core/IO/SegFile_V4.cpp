@@ -97,7 +97,8 @@ AnalysisSPtr SegFile_V4::Loader::load()
       && file != CLASSIFICATION_FILE
       && file != TRACE_FILE
       && !file.contains("Outputs/")
-      && !file.contains("SegmentationVolume/"))
+      && !file.contains("SegmentationVolume/")
+      && !file.contains("MeshOutputType/"))
     {
       auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
       m_storage->saveSnapshot(SnapshotData(file, currentFile));

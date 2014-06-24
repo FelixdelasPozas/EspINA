@@ -30,18 +30,27 @@ namespace EspINA
   public:
     explicit SourceFilter(InputSList    inputs,
                           Filter::Type  type,
-                          SchedulerSPtr scheduler);
-    virtual ~SourceFilter();
+                          SchedulerSPtr scheduler)
+    : Filter(inputs, type, scheduler)
+    {};
 
-    virtual void restoreState(const State &state);
-    virtual State state() const;
+    virtual ~SourceFilter()
+    {};
+
+    virtual void restoreState(const State &state)
+    {};
+
+    virtual State state() const
+    { return State(); }
 
     void addOutput(Output::Id id, OutputSPtr output);
 
   protected:
-    virtual Snapshot saveFilterSnapshot() const;
+    virtual Snapshot saveFilterSnapshot() const
+    { return Snapshot(); }
 
-    virtual bool needUpdate() const;
+    virtual bool needUpdate() const
+    { return false; }
 
     virtual bool needUpdate(Output::Id oId) const;
 
@@ -53,7 +62,8 @@ namespace EspINA
     virtual bool ignoreStorageContent() const
     { return false; }
 
-    virtual bool invalidateEditedRegions();
+    virtual bool invalidateEditedRegions()
+    { return false; }
   };
 
   using SourceFilterSPtr = std::shared_ptr<SourceFilter>;
