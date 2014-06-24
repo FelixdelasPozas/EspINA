@@ -16,7 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Plugin
 #include "SegmhaImporterPlugin.h"
+
+// EspINA
+#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Filters/SourceFilter.h>
 
 using namespace EspINA;
 
@@ -24,10 +29,38 @@ using namespace EspINA;
 
 static const QString SEGMHA = "segmha";
 
+static const Filter::Type SEGMHA_FILTER_V4 = "Segmha Importer";
+static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
+
+//-----------------------------------------------------------------------------
+FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+{
+  if(type != SEGMHA_FILTER && type != SEGMHA_FILTER_V4)
+    throw Unknown_Filter_Exception();
+
+  auto filter = FilterSPtr{new SourceFilter(inputs, type, scheduler)};
+  filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
+
+  return filter;
+}
+
+//-----------------------------------------------------------------------------
+FilterTypeList SegmhaFilterFactory::providedFilters() const
+{
+  FilterTypeList filters;
+
+  filters << SEGMHA_FILTER;
+  filters << SEGMHA_FILTER_V4;
+
+  return filters;
+}
+
+
 //-----------------------------------------------------------------------------
 SegmhaImporterPlugin::SegmhaImporterPlugin()
-: m_undoStack(nullptr)
-, m_reader(new SegmhaReader())
+: m_undoStack    {nullptr}
+, m_reader       {new SegmhaReader()}
+, m_filterFactory{new SegmhaFilterFactory()}
 {
 }
 
@@ -97,7 +130,11 @@ SegmentationExtensionFactorySList SegmhaImporterPlugin::segmentationExtensionFac
 //------------------------------------------------------------------------
 FilterFactorySList SegmhaImporterPlugin::filterFactories() const
 {
-  return FilterFactorySList();
+  FilterFactorySList factories;
+
+  factories << m_filterFactory;
+
+  return factories;
 }
 
 //------------------------------------------------------------------------

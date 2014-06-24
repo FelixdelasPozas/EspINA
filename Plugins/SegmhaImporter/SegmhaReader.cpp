@@ -60,6 +60,8 @@ using LabelMap              = itk::LabelMap<LabelMapObject>;
 using Image2LabelFilter     = itk::LabelImageToShapeLabelMapFilter<SegmentationLabelMap, LabelMap>;
 using Label2VolumeFilter    = itk::LabelMapToLabelImageFilter<LabelMap, itkVolumeType>;
 
+static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
+
 //---------------------------------------------------------------------------
 IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 {
@@ -183,7 +185,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   auto labelMap = image2label->GetOutput();
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
-  auto sourceFilter = factory->createFilter<SourceFilter>(InputSList(), "SegmhaReader");
+  auto sourceFilter = factory->createFilter<SourceFilter>(InputSList(), SEGMHA_FILTER);
 
   auto sample  = analysis->samples().first();
   auto channel = analysis->channels().first();
@@ -254,8 +256,6 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   }
 
   // TODO 2014-05-27 Restore CF if available
-
-
 
   return analysis;
 }

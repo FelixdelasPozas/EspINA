@@ -20,15 +20,17 @@
 
 #include "SegmhaImporterPlugin_Export.h"
 
-#include <Support/Plugin.h>
+// Plugin
 #include "SegmhaReader.h"
 
+// EspINA
+#include <Support/Plugin.h>
+
+// Qt
 #include <QUndoCommand>
 
 namespace EspINA
 {
-
-  /// Segmha Reader Plugin
   class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
   : public Plugin
   {
@@ -102,7 +104,22 @@ namespace EspINA
     SchedulerSPtr    m_scheduler;
     QUndoStack*      m_undoStack;
 
-    SegmhaReaderSPtr m_reader;
+    SegmhaReaderSPtr  m_reader;
+    FilterFactorySPtr m_filterFactory;
+  };
+
+  class SegmhaFilterFactory
+  : public FilterFactory
+  {
+    public:
+      virtual ~SegmhaFilterFactory()
+      {};
+
+      virtual FilterSPtr createFilter(InputSList          inputs,
+                                      const Filter::Type& filter,
+                                      SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception);
+
+      virtual FilterTypeList providedFilters() const;
   };
 
 } // namespace EspINA
