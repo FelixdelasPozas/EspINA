@@ -66,15 +66,11 @@ FilterSPtr AppositionSurface::ASFilterFactory::createFilter(InputSList          
                                                             const Filter::Type& type,
                                                             SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
+
   if (type != AS_FILTER) throw Unknown_Filter_Exception();
 
   auto filter = FilterSPtr{new AppositionSurfaceFilter(inputs, type, scheduler)};
-
-  if (!m_fetchBehaviour)
-  {
-    m_fetchBehaviour = FetchBehaviourSPtr{new SASFetchBehaviour()};
-  }
-  filter->setFetchBehaviour(m_fetchBehaviour);
+  filter->setFetchBehaviour(FetchBehaviourSPtr{new SASFetchBehaviour()});
 
   return filter;
 }

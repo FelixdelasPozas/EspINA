@@ -43,7 +43,7 @@
 namespace EspINA
 {
   const Filter::Type SPLIT_FILTER    = "SplitFilter";
-  const Filter::Type SPLIT_FILTER_V4 = "SplitFilterV4"; // TODO: put correct string for split filter v4
+  const Filter::Type SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
 
   //-----------------------------------------------------------------------------
   FilterTypeList SplitTool::SplitFilterFactory::providedFilters() const
