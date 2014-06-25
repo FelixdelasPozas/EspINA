@@ -21,6 +21,7 @@
 
 // EspINA
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/ReadOnlyFilter.h>
 #include <Filters/SourceFilter.h>
 
 using namespace EspINA;
@@ -35,12 +36,21 @@ static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
 //-----------------------------------------------------------------------------
 FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
 {
-  if(type != SEGMHA_FILTER && type != SEGMHA_FILTER_V4)
-    throw Unknown_Filter_Exception();
+  FilterSPtr filter;
 
-  auto filter = FilterSPtr{new SourceFilter(inputs, type, scheduler)};
+  if(type == SEGMHA_FILTER)
+  {
+    filter = FilterSPtr{new SourceFilter(inputs, type, scheduler)};
+  }
+  else
+    if(type == SEGMHA_FILTER_V4)
+    {
+      filter = FilterSPtr{new IO::SegFile::ReadOnlyFilter(inputs, type)};
+    }
+    else
+      throw Unknown_Filter_Exception();
+
   filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
-
   return filter;
 }
 
