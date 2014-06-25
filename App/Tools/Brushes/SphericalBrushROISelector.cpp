@@ -172,7 +172,7 @@ namespace EspINA
                               m_lastUdpdatePoint[1] + static_cast<int>(delta[1] * i),
                               m_lastUdpdatePoint[2] + static_cast<int>(delta[2] * i)};
 
-          m_brushes << createBrushShape(m_referenceItem, points.last(), m_radius, m_plane);
+          m_brushes << createBrushShape(m_item, points.last(), m_radius, m_plane);
         }
       }
       else
@@ -263,13 +263,13 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SphericalBrushROISelector::stopStroke(RenderView* view)
   {
-    if(!m_referenceItem)
+    if(!m_item)
       return;
 
     if (!m_brushes.empty())
     {
       auto mask = voxelSelectionMask();
-      Selector::SelectionItem item{QPair<SelectionMask, NeuroItemAdapterPtr>{mask, m_referenceItem}};
+      Selector::SelectionItem item{QPair<SelectionMask, NeuroItemAdapterPtr>{mask, m_item}};
       Selector::Selection selection;
       selection << item;
 

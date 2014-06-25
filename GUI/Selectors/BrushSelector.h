@@ -115,7 +115,7 @@ namespace EspINA
       bool ShiftKeyIsDown();
 
     protected:
-      ViewItemAdapterPtr m_referenceItem;
+      ViewItemAdapterPtr m_item;
 
       int     m_displayRadius; //In screen pixels
       QColor  m_borderPaintColor;

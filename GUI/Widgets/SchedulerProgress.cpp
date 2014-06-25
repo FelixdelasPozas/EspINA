@@ -154,7 +154,7 @@ void SchedulerProgress::onProgressAborted()
 void SchedulerProgress::updateNotificationWidget()
 {
   for(auto task: m_tasks.keys())
-    if(task->isRunning())
+    if(task->isRunning() && !task->isHidden())
       m_tasks[task]->setHidden(false);
     else
       m_tasks[task]->setHidden(true);

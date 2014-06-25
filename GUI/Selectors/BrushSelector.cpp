@@ -57,7 +57,7 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 BrushSelector::BrushSelector()
-: m_referenceItem   {nullptr}
+: m_item   {nullptr}
 , m_displayRadius   {15}
 , m_borderPaintColor{Qt::blue}
 , m_borderEraseColor{Qt::red}
@@ -135,7 +135,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
     case QEvent::KeyPress:
       {
         ke = static_cast<QKeyEvent *>(e);
-        if ((ke->key() == Qt::Key_Shift) && !m_tracking && m_referenceItem && (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION))
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking && m_item && (m_item->type() == ViewItemAdapter::Type::SEGMENTATION))
         {
           m_drawing = false;
           buildCursor();
@@ -268,13 +268,13 @@ void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
 {
   if (!item)
   {
-    m_referenceItem = nullptr;
+    m_item = nullptr;
     m_origin = NmVector3();
     m_spacing[0] = m_spacing[1] = m_spacing[2] = 0;
     return;
   }
 
-  m_referenceItem = item;
+  m_item = item;
   NmVector3 spacing;
 
   auto volume = volumetricData(item->output());
@@ -360,7 +360,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 //-----------------------------------------------------------------------------
 void BrushSelector::startStroke(QPoint pos, RenderView* view)
 {
-  if (!m_referenceItem)
+  if (!m_item)
     return;
 
   m_pBounds = view->previewBounds(false);
@@ -395,7 +395,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
   if (validStroke(center))
   {
     m_lastDot = pos;
-    m_brushes << createBrushShape(m_referenceItem, center, m_radius, m_plane);
+    m_brushes << createBrushShape(m_item, center, m_radius, m_plane);
     updatePreview(center, view);
   }
 }
@@ -403,7 +403,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 {
-  if (!m_referenceItem)
+  if (!m_item)
     return;
 
   if (!m_brushes.empty() > 0 && QLineF(m_lastDot, pos).length() < m_displayRadius/2.0)
@@ -415,7 +415,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
   if (validStroke(center))
   {
     m_lastDot = pos;
-    m_brushes << createBrushShape(m_referenceItem, center, m_radius, m_plane);
+    m_brushes << createBrushShape(m_item, center, m_radius, m_plane);
     updatePreview(center, view);
   }
 
@@ -425,13 +425,13 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::stopStroke(RenderView* view)
 {
-  if(!m_referenceItem)
+  if(!m_item)
     return;
 
   if (!m_brushes.empty())
   {
     auto mask = voxelSelectionMask();
-    Selector::SelectionItem item{QPair<SelectionMask, NeuroItemAdapterPtr>{mask, m_referenceItem}};
+    Selector::SelectionItem item{QPair<SelectionMask, NeuroItemAdapterPtr>{mask, m_item}};
     Selector::Selection selection;
     selection << item;
 
@@ -459,7 +459,7 @@ void BrushSelector::startPreview(RenderView* view)
 
   NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
   VolumeBounds previewBounds{ view->previewBounds(false), spacing, m_origin};
-  auto volume = volumetricData(m_referenceItem->output());
+  auto volume = volumetricData(m_item->output());
   m_previewView = view;
 
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
@@ -505,7 +505,7 @@ void BrushSelector::startPreview(RenderView* view)
     Q_ASSERT(view2d);
     connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(updateSliceChange()));
 
-    for(auto prototype: m_referenceItem->representations())
+    for(auto prototype: m_item->representations())
       prototype->setActive(false, m_previewView);
 
     m_previewBounds = VolumeBounds(intersection(previewBounds.bounds(), volume->bounds()), spacing, m_origin).bounds();
@@ -551,7 +551,7 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
     startPreview(view);
 
     m_pBounds = m_previewView->previewBounds(false);
-    auto volume = volumetricData(m_referenceItem->output());
+    auto volume = volumetricData(m_item->output());
     if (!intersect(VolumeBounds(m_pBounds, NmVector3{m_spacing[0], m_spacing[1], m_spacing[2]}, m_origin).bounds(), volume->bounds()))
         return;
   }
@@ -580,7 +580,7 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
                             m_lastUdpdatePoint[1] + static_cast<int>(delta[1] * i),
                             m_lastUdpdatePoint[2] + static_cast<int>(delta[2] * i)};
 
-        m_brushes << createBrushShape(m_referenceItem, points.last(), m_radius, m_plane);
+        m_brushes << createBrushShape(m_item, points.last(), m_radius, m_plane);
       }
     }
     else
@@ -597,7 +597,6 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
       Bounds pointBounds = intersection(m_previewBounds,brushBounds);
       double pointCenter[3]{ point[0], point[1], point[2] };
       int depth;
-
 
       switch(m_plane)
       {
@@ -681,8 +680,8 @@ void BrushSelector::stopPreview(RenderView* view)
   m_actor = nullptr;
   m_previewBounds = m_lastUpdateBounds = Bounds();
 
-  if (m_referenceItem->type() == ViewItemAdapter::Type::SEGMENTATION)
-    for(auto prototype: m_referenceItem->representations())
+  if (m_item->type() == ViewItemAdapter::Type::SEGMENTATION)
+    for(auto prototype: m_item->representations())
       prototype->setActive(true, m_previewView);
 
   m_previewView->updateView();
@@ -745,10 +744,8 @@ Bounds BrushSelector::buildBrushBounds(NmVector3 center)
   bounds[2*index+1] = m_pBounds[2*index+1];
   bounds.setUpperInclusion(toAxis(index), true);
 
-  auto volume = volumetricData(m_referenceItem->output());
-  NmVector3 spacing = volume->spacing();
-  NmVector3 origin = volume->origin();
-  VolumeBounds adjustedBounds(bounds, spacing, origin);
+  NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
+  VolumeBounds adjustedBounds(bounds, spacing, m_origin);
 
   return adjustedBounds.bounds();
 }

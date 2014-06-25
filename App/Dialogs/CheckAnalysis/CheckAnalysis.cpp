@@ -124,7 +124,7 @@ namespace EspINA
           auto volume = volumetricData(seg->output());
           if(volume == nullptr || volume->isEmpty())
           {
-            struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation volume is empty or null.", "Delete segmentation."};
+            struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation has a volume data associated but is empty or null.", "Delete segmentation."};
             emit problem(segProblem);
           }
         }
@@ -135,7 +135,7 @@ namespace EspINA
           auto volume = volumetricData(channel->output());
           if(volume == nullptr)
           {
-            struct Problem channelProblem{channel->data().toString(), Severity::CRITICAL, "Channel volume is null.", "Delete channel."};
+            struct Problem channelProblem{channel->data().toString(), Severity::CRITICAL, "Channel has a volume data associated but is null.", "Delete channel."};
             emit problem(channelProblem);
           }
         }
@@ -154,7 +154,7 @@ namespace EspINA
 
     if(mesh == nullptr || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
     {
-      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation mesh is empty or null.", "Delete segmentation"};
+      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation has a mesh data associated but is empty or null.", "Delete segmentation"};
       emit problem(segProblem);
     }
   }
@@ -238,7 +238,7 @@ namespace EspINA
       emit problem(segProblem);
     }
 
-    // TODO: fix output if filter != nullptr, requires model??
+    // TODO: fix output if filter != nullptr??
   }
 
 } // namespace EspINA

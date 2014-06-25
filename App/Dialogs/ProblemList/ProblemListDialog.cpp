@@ -26,46 +26,57 @@ namespace EspINA
   {
     setupUi(this);
     setWindowTitle(tr("Current session problems"));
-
     m_problemTable->setAlternatingRowColors(true);
     m_problemTable->setRowCount(problemList.size());
-    m_problemTable->setColumnCount(3);
+    m_problemTable->setColumnCount(4);
     m_problemTable->setSortingEnabled(true);
     QStringList headerLabels;
     headerLabels << tr("Element");
+    headerLabels << tr("Severity");
     headerLabels << tr("Problem");
     headerLabels << tr("Suggestion");
     m_problemTable->setHorizontalHeaderLabels(headerLabels);
-    m_problemTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
-    m_problemTable->horizontalHeader()->setStretchLastSection(true);
     
     int row = 0;
     for(auto problem: problemList)
     {
       ProblemTableWidgetItem *item = new ProblemTableWidgetItem(problem.element);
+      item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+
+      QTableWidgetItem *severity = new QTableWidgetItem();
       switch(problem.severity)
       {
         case Severity::CRITICAL:
-          item->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxCritical));
+          severity->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxCritical));
+          severity->setData(Qt::DisplayRole, tr("Critical"));
           break;
         case Severity::WARNING:
-          item->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning));
+          severity->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxWarning));
+          severity->setData(Qt::DisplayRole, tr("Warning"));
           break;
         case Severity::INFORMATION:
-          item->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation));
+          severity->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxInformation));
+          severity->setData(Qt::DisplayRole, tr("Information"));
           break;
         default:
           break;
       }
 
-      m_problemTable->setItem(row, 0, item);
       QTableWidgetItem *description = new QTableWidgetItem(problem.message);
-      m_problemTable->setItem(row, 1, description);
+      description->setFlags(description->flags() ^ Qt::ItemIsEditable);
       QTableWidgetItem *suggestion = new QTableWidgetItem(problem.suggestion);
-      m_problemTable->setItem(row, 2, suggestion);
+      suggestion->setFlags(suggestion->flags() ^ Qt::ItemIsEditable);
+
+      m_problemTable->setItem(row, 0, item);
+      m_problemTable->setItem(row, 1, severity);
+      m_problemTable->setItem(row, 2, description);
+      m_problemTable->setItem(row, 3, suggestion);
       ++row;
     }
 
+    m_problemTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+    m_problemTable->horizontalHeader()->setStretchLastSection(true);
+    m_problemTable->adjustSize();
     m_problemTable->sortByColumn(0, Qt::AscendingOrder);
     m_problemTable->horizontalHeader()->setSortIndicatorShown(true);
   }
