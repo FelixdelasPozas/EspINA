@@ -17,7 +17,6 @@ qt4_add_resources(ESPINA_RCC
 qt4_wrap_cpp (ESPINA_MOC
   EspinaMainWindow.h
   Dialogs/CheckAnalysis/CheckAnalysis.h
-  Dialogs/ProblemList/ProblemListDialog.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/TabularReport/TabularReport.h
   Dialogs/TabularReport/TabularReportEntry.h

@@ -95,7 +95,7 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
     }
     else
     {
-      qWarning() << "SAS input es NULL - filter id:" << this->id();
+      qWarning() << "SAS input volume es NULL";
     }
   }
 

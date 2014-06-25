@@ -30,6 +30,7 @@ namespace EspINA
     m_problemTable->setAlternatingRowColors(true);
     m_problemTable->setRowCount(problemList.size());
     m_problemTable->setColumnCount(3);
+    m_problemTable->setSortingEnabled(true);
     QStringList headerLabels;
     headerLabels << tr("Element");
     headerLabels << tr("Problem");
@@ -41,7 +42,7 @@ namespace EspINA
     int row = 0;
     for(auto problem: problemList)
     {
-      QTableWidgetItem *item = new QTableWidgetItem(problem.element);
+      ProblemTableWidgetItem *item = new ProblemTableWidgetItem(problem.element);
       switch(problem.severity)
       {
         case Severity::CRITICAL:
@@ -64,6 +65,9 @@ namespace EspINA
       m_problemTable->setItem(row, 2, suggestion);
       ++row;
     }
+
+    m_problemTable->sortByColumn(0, Qt::AscendingOrder);
+    m_problemTable->horizontalHeader()->setSortIndicatorShown(true);
   }
 
   //------------------------------------------------------------------------

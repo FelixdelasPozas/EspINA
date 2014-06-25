@@ -61,8 +61,42 @@ namespace EspINA
        */
       explicit ProblemListDialog(ProblemList problemsList);
       virtual ~ProblemListDialog();
+  };
 
-    private:
+  class ProblemTableWidgetItem
+  : public QTableWidgetItem
+  {
+    public:
+      /* \brief ProblemTableWidgetItem class constructor.
+       * \param[in] text, data of the item.
+       *
+       */
+      ProblemTableWidgetItem(const QString &text)
+      : QTableWidgetItem(text)
+      {}
+
+      /* \brief ProblemTableWidget class virtual destructor.
+       *
+       */
+      virtual ~ProblemTableWidgetItem()
+      {};
+
+      virtual bool operator<(const QTableWidgetItem & other) const
+      {
+        auto ownData = this->data(Qt::DisplayRole).toString();
+        auto otherData = other.data(Qt::DisplayRole).toString();
+
+        if(ownData.length() < otherData.length())
+          return true;
+
+        auto ownStrings = ownData.split(" ");
+        auto otherStrings = otherData.split(" ");
+
+        if(ownStrings[1].toInt() < otherStrings[1].toInt())
+          return true;
+
+        return false;
+      }
   };
 
 } // namespace EspINA
