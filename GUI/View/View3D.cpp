@@ -708,9 +708,10 @@ void View3D::updateRenderersControls()
 
   for(auto renderer: m_renderers)
   {
-    bool canRenderItems = renderer->numberOfRenderedItems() != 0;
+    if(renderer->isHidden())
+      continue;
 
-    canTakeSnapshot |= (!renderer->isHidden()) && canRenderItems;
+    canTakeSnapshot |= (renderer->numberOfRenderedItems() != 0);
     canBeExported |= canTakeSnapshot && (renderer->numberOfvtkActors() != 0);
   }
 
