@@ -120,12 +120,46 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
   ItemAdapterPtr rightItem = itemAdapter(right);
 
   if (leftItem->type() == rightItem->type())
+  {
     if (ItemAdapter::Type::SEGMENTATION == leftItem->type())
       return sortSegmentationLessThan(leftItem, rightItem);
     else
-      return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
-    else
-      return leftItem->type() == ItemAdapter::Type::CATEGORY;
+    {
+      auto stringLeft = leftItem->data(Qt::DisplayRole).toString();
+      auto stringRight = rightItem->data(Qt::DisplayRole).toString();
+
+      QRegExp categoryExtractor("(\\D+)");
+      categoryExtractor.setMinimal(false);
+
+      if ((categoryExtractor.indexIn(stringLeft) == -1) || (categoryExtractor.indexIn(stringRight) == -1))
+        return stringLeft < stringRight;
+
+      categoryExtractor.indexIn(stringLeft);
+      auto categoryLeft = categoryExtractor.cap(1);
+
+      categoryExtractor.indexIn(stringRight);
+      auto categoryRight = categoryExtractor.cap(1);
+
+      if(categoryLeft != categoryRight)
+        return categoryLeft < categoryRight;
+
+      QRegExp numExtractor("(\\d+)");
+      numExtractor.setMinimal(false);
+
+      if ((numExtractor.indexIn(stringLeft) == -1) || (numExtractor.indexIn(stringRight) == -1))
+        return stringLeft < stringRight;
+
+      numExtractor.indexIn(stringLeft);
+      auto numLeft = numExtractor.cap(1).toInt();
+
+      numExtractor.indexIn(stringRight);
+      auto numRight = numExtractor.cap(1).toInt();
+
+      return numLeft < numRight;
+    }
+  }
+  else
+    return leftItem->type() == ItemAdapter::Type::CATEGORY;
 }
 
 //------------------------------------------------------------------------
@@ -157,6 +191,8 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
           this,  SLOT(updateSelection()));
   connect(m_model.get(), SIGNAL(modelReset()),
           this,  SLOT(updateSelection()));
+
+  m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
 }
 
 //------------------------------------------------------------------------
@@ -550,6 +586,7 @@ void ClassificationLayout::updateSelection()
   m_createCategory->setEnabled(m_model->classification().get());
   m_createSubCategory->setEnabled(enabled);
   m_changeCategoryColor->setEnabled(enabled);
+  m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
 }
 
 //------------------------------------------------------------------------

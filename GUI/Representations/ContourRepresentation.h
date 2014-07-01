@@ -24,10 +24,9 @@
 #include "EspinaGUI_Export.h"
 
 // EspINA
-#include "GUI/Representations/Representation.h"
-
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/NmVector3.h>
+#include "GUI/Representations/Representation.h"
 
 // VTK
 #include <vtkSmartPointer.h>

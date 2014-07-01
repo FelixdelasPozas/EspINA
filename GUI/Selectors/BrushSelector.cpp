@@ -18,19 +18,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "BrushSelector.h"
-
 // EspINA
+#include "BrushSelector.h"
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/Spatial.h>
-#include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
-
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/Selection.h>
@@ -59,7 +56,7 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 BrushSelector::BrushSelector()
-: m_item   {nullptr}
+: m_item            {nullptr}
 , m_displayRadius   {15}
 , m_borderPaintColor{Qt::blue}
 , m_borderEraseColor{Qt::red}

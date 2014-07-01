@@ -299,7 +299,7 @@ bool EspINA::operator!=(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterPtr EspINA::segmentationPtr(ViewItemAdapterPtr item)
+SegmentationAdapterPtr EspINA::segmentationPtr(ItemAdapterPtr item)
 {
   return dynamic_cast<SegmentationAdapterPtr>(item);
 }

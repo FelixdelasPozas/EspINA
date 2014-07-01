@@ -19,9 +19,10 @@
  *
  */
 
-#include "BasicRepresentationFactory.h"
+// EspINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include "BasicRepresentationFactory.h"
 #include "CrosshairRepresentation.h"
 #include "SliceRepresentation.h"
 #include "ContourRepresentation.h"
@@ -165,45 +166,3 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
   return representation;
 }
-
-// void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(ChannelOutputSPtr output)
-// {
-//   ChannelVolumeSPtr volumeData = channelVolume(output);
-//   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new ChannelSliceRepresentation(volumeData, NULL)));
-//   output->addGraphicalRepresentation(GraphicalRepresentationSPtr(new CrosshairRepresentation(volumeData, NULL)));
-// }
-// 
-// void BasicGraphicalRepresentationFactory::createGraphicalRepresentations(SegmentationOutputSPtr output)
-// {
-//   if (output && output->isValid())
-//   {
-//     SegmentationVolumeSPtr volumeRep = segmentationVolume(output);
-//     MeshRepresentationSPtr meshRep   = meshRepresentation(output);
-// 
-//     GraphicalRepresentationSPtr simpleMeshRepresentation      (new SimpleMeshRepresentation       (meshRep,   NULL));
-//     GraphicalRepresentationSPtr smoothedMeshRepresentation    (new SmoothedMeshRepresentation     (meshRep,   NULL));
-//     GraphicalRepresentationSPtr volumeRaycastRepresentation   (new VolumeRaycastRepresentation    (volumeRep, NULL));
-//     GraphicalRepresentationSPtr volumeGPURayCastRepresentation(new VolumeGPURaycastRepresentation (volumeRep, NULL));
-//     GraphicalRepresentationSPtr sliceRepresentation           (new SegmentationSliceRepresentation(volumeRep, NULL));
-//     GraphicalRepresentationSPtr contourRepresentation         (new ContourRepresentation          (volumeRep, NULL));
-// 
-//     output->addGraphicalRepresentation(simpleMeshRepresentation      );
-//     output->addGraphicalRepresentation(smoothedMeshRepresentation    );
-//     output->addGraphicalRepresentation(volumeRaycastRepresentation   );
-//     output->addGraphicalRepresentation(volumeGPURayCastRepresentation);
-//     output->addGraphicalRepresentation(sliceRepresentation           );
-//     output->addGraphicalRepresentation(contourRepresentation         );
-//   }
-// }
-// 
-// void EspINA::SetBasicGraphicalRepresentationFactory(Filter *filter)
-// {
-//   GraphicalRepresentationFactorySPtr factory(new BasicGraphicalRepresentationFactory);
-//   filter->setGraphicalRepresentationFactory(factory);
-// }
-// 
-// void EspINA::SetBasicGraphicalRepresentationFactory(FilterSPtr filter)
-// {
-//   SetBasicGraphicalRepresentationFactory(filter.get());
-// }
-// 

@@ -389,61 +389,61 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for (auto colorEngine : validPlugin->colorEngines())
       {
-        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
+//        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
         m_colorEngines->addColorEngine(colorEngine.first,  colorEngine.second);
       }
 
       for (auto extensionFactory : validPlugin->channelExtensionFactories())
       {
-        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
+//        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
         m_factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto toolGroup : validPlugin->toolGroups())
       {
-        qDebug() << plugin << "- ToolGroup " << toolGroup->toolTip() << " ...... OK";
+//        qDebug() << plugin << "- ToolGroup " << toolGroup->toolTip() << " ...... OK";
         registerToolGroup(toolGroup);
       }
 
       for (auto dock : validPlugin->dockWidgets())
       {
-        qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
+//        qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
         registerDockWidget(Qt::LeftDockWidgetArea, dock);
       }
 
       for(auto factory: validPlugin->filterFactories())
       {
-        qDebug() << plugin << "- Filter Factory  ...... OK";
+//        qDebug() << plugin << "- Filter Factory  ...... OK";
         m_factory->registerFilterFactory(factory);
       }
 
       for(auto reader: validPlugin->analysisReaders())
       {
-        qDebug() << plugin << "- Analysis Reader  ...... OK";
+//        qDebug() << plugin << "- Analysis Reader  ...... OK";
         m_factory->registerAnalysisReader(reader.get());
       }
 
       for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
       {
-        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
+//        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK";
         m_factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto settings : validPlugin->settingsPanels())
       {
-        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
+//        qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
         m_availableSettingsPanels << settings;
       }
 
       for (auto renderer : validPlugin->renderers())
       {
-        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
+//        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
         m_viewManager->registerRenderer(renderer);
       }
 
       for(auto entry: validPlugin->menuEntries())
       {
-        qDebug() << plugin << "- Menu Entries " << entry;
+//        qDebug() << plugin << "- Menu Entries " << entry;
         createDynamicMenu(entry);
       }
     }
