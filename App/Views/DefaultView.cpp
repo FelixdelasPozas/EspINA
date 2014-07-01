@@ -191,18 +191,15 @@ void DefaultView::initView2D(View2D *view)
 //-----------------------------------------------------------------------------
 RendererSPtr DefaultView::renderer(const QString& name) const
 {
-  RendererSPtr result;
+  for(auto renderer : m_viewManager->renderers(RendererType::RENDERER_VIEW2D))
+    if (renderer == name)
+      return m_viewManager->cloneRenderer(name);
 
-  for(auto renderer : m_renderers)
-  {
-    if (renderer->name() == name)
-    {
-      result = renderer;
-      break;
-    }
-  }
+  for(auto renderer : m_viewManager->renderers(RendererType::RENDERER_VIEW3D))
+    if (renderer == name)
+      return m_viewManager->cloneRenderer(name);
 
-  return result;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -304,7 +301,15 @@ void DefaultView::setModel(QAbstractItemModel* model)
 //-----------------------------------------------------------------------------
 SettingsPanelSPtr DefaultView::settingsPanel()
 {
-  return SettingsPanelSPtr(new DefaultViewSettingsPanel(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, m_renderers, m_renderersMenu));
+  RendererSList renderers;
+
+  for(auto name : m_viewManager->renderers(RendererType::RENDERER_VIEW2D))
+    renderers << m_viewManager->cloneRenderer(name);
+
+  for(auto name : m_viewManager->renderers(RendererType::RENDERER_VIEW3D))
+    renderers << m_viewManager->cloneRenderer(name);
+
+  return SettingsPanelSPtr(new DefaultViewSettingsPanel(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu));
 }
 
 //-----------------------------------------------------------------------------

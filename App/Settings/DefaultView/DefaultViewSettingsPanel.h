@@ -70,8 +70,6 @@ namespace EspINA {
 
     RendererSList m_renderers;
 
-    Nm m_slicingStep;
-
     View2DSettingsPanel  *m_panelXY, *m_panelXZ, *m_panelYZ;
     View3DSettingsPanel  *m_panel3D;
     View2DRenderersPanel *m_panel2D;
