@@ -93,6 +93,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                   m_selectorSwitch);
 
     SelectorSPtr selector{new PixelSelector()};
+    selector->setMultiSelection(false);
 
     addVoxelSelector(action, selector);
   }
@@ -104,6 +105,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                   m_selectorSwitch);
 
     SelectorSPtr selector{new BestPixelSelector()};
+    selector->setMultiSelection(false);
+
     QCursor      cursor(QPixmap(":/espina/crossRegion.svg"));
 
     selector->setCursor(cursor);

@@ -1728,7 +1728,7 @@ double View2D::viewHeightLength()
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection View2D::select(const Selector::SelectionFlags flags, const int x, const int y) const
+Selector::Selection View2D::select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
   QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
@@ -1742,7 +1742,7 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
     {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), true))
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
       {
         auto rendererPoint = repRenderer->pickCoordinates();
         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
@@ -1757,7 +1757,7 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
     {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), true))
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
       {
         if(flags.contains(Selector::CHANNEL))
         {

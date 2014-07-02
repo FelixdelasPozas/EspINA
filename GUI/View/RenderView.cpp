@@ -726,13 +726,14 @@ unsigned int RenderView::numEnabledRenderersForViewItem(RenderableType type)
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask) const
+Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
 {
   Selector::Selection selectedItems;
 
   if(flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE))
   {
     for(auto channelAdapter: m_channelStates.keys())
+    {
       if (intersect(channelAdapter->bounds(), mask->bounds().bounds()))
       {
         auto intersectionBounds = intersection(channelAdapter->bounds(), mask->bounds().bounds());
@@ -790,11 +791,16 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
           selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, sampleAdapter.get());
         }
       }
+
+      if(!multiselection && selectedItems.size() == 1)
+        break;
+    }
   }
 
   if(flags.contains(Selector::SEGMENTATION))
   {
     for(auto segAdapter: m_segmentationStates.keys())
+    {
       if(intersect(segAdapter->bounds(), mask->bounds().bounds()))
       {
         auto intersectionBounds = intersection(segAdapter->bounds(), mask->bounds().bounds());
@@ -851,18 +857,22 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 
         selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, segAdapter);
       }
+
+      if(!multiselection && selectedItems.size() == 1)
+        break;
+    }
   }
 
   return selectedItems;
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const NmVector3 &point) const
+Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const
 {
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToWorld();
   coords->SetValue(point[0], point[1], point[2]);
   int *displayCoords = coords->GetComputedDisplayValue(m_renderer);
 
-  return select(flags, displayCoords[0], displayCoords[1]);
+  return select(flags, displayCoords[0], displayCoords[1], multiselection);
 }

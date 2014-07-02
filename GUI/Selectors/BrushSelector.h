@@ -112,7 +112,7 @@ namespace EspINA
       virtual void updateStroke(QPoint pos, RenderView *view);
       virtual void stopStroke(RenderView *view);
       virtual void startPreview(RenderView *view);
-      virtual void updatePreview(NmVector3 center, RenderView *view);
+      virtual void updatePreview(BrushShape shape, RenderView *view);
       virtual void stopPreview(RenderView *view);
       bool ShiftKeyIsDown();
 

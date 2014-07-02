@@ -729,9 +729,29 @@ void View3D::updateRenderersControls()
     resetCamera();
 
   m_numEnabledRenderers = 0;
+  bool channelRendererIsEnabled = false;
+
   for(RendererSPtr render: m_renderers)
+  {
     if(!render->isHidden())
       ++m_numEnabledRenderers;
+
+    if(m_showCrosshairPlaneSelectors)
+    {
+      auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(render);
+      if(channelRenderer != nullptr)
+      {
+        channelRendererIsEnabled |= !channelRenderer->isHidden();
+        m_axialScrollBar->setEnabled(channelRendererIsEnabled);
+        m_coronalScrollBar->setEnabled(channelRendererIsEnabled);
+        m_sagittalScrollBar->setEnabled(channelRendererIsEnabled);
+        updateScrollBarsLimits();
+      }
+    }
+
+  }
+
+
 }
 
 //-----------------------------------------------------------------------------
@@ -762,6 +782,7 @@ void View3D::scrollBarMoved(int value)
     {
       channelRenderer->setCrosshair(point);
       needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
+      break;
     }
   }
 
@@ -772,10 +793,10 @@ void View3D::scrollBarMoved(int value)
 //-----------------------------------------------------------------------------
 void View3D::updateScrollBarsLimits()
 {
-  if (!m_showCrosshairPlaneSelectors)
+  if(!m_showCrosshairPlaneSelectors)
     return;
 
-  if(m_channelStates.isEmpty())
+  if (m_channelStates.isEmpty())
   {
     m_axialScrollBar   ->setMinimum(0);
     m_axialScrollBar   ->setMaximum(0);
@@ -798,11 +819,11 @@ void View3D::updateScrollBarsLimits()
   }
 
   m_axialScrollBar   ->setMinimum(vtkMath::Round(maxBounds[0]/minSpacing[0]));
-  m_axialScrollBar   ->setMaximum(vtkMath::Round(maxBounds[1]/minSpacing[0]));
+  m_axialScrollBar   ->setMaximum(vtkMath::Round(maxBounds[1]/minSpacing[0])-1);
   m_coronalScrollBar ->setMinimum(vtkMath::Round(maxBounds[2]/minSpacing[1]));
-  m_coronalScrollBar ->setMaximum(vtkMath::Round(maxBounds[3]/minSpacing[1]));
+  m_coronalScrollBar ->setMaximum(vtkMath::Round(maxBounds[3]/minSpacing[1])-1);
   m_sagittalScrollBar->setMinimum(vtkMath::Round(maxBounds[4]/minSpacing[2]));
-  m_sagittalScrollBar->setMaximum(vtkMath::Round(maxBounds[5]/minSpacing[2]));
+  m_sagittalScrollBar->setMaximum(vtkMath::Round(maxBounds[5]/minSpacing[2])-1);
 }
 
 //-----------------------------------------------------------------------------
@@ -832,7 +853,20 @@ void View3D::activateRender(const QString &rendererName)
 
   for(auto renderer: m_renderers)
     if (renderer->name() == rendererName)
+    {
       renderer->setEnable(true);
+
+      auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(renderer);
+      if(channelRenderer != nullptr && m_showCrosshairPlaneSelectors)
+      {
+        m_axialScrollBar->setEnabled(true);
+        m_coronalScrollBar->setEnabled(true);
+        m_sagittalScrollBar->setEnabled(true);
+        updateScrollBarsLimits();
+      }
+
+      break;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -844,7 +878,21 @@ void View3D::deactivateRender(const QString &rendererName)
 
   for(auto renderer: m_renderers)
     if (renderer->name() == rendererName)
+    {
       renderer->setEnable(false);
+
+      auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(renderer);
+
+      if(channelRenderer != nullptr && m_showCrosshairPlaneSelectors)
+      {
+        m_axialScrollBar->setEnabled(false);
+        m_coronalScrollBar->setEnabled(false);
+        m_sagittalScrollBar->setEnabled(false);
+        updateScrollBarsLimits();
+      }
+
+      break;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -880,7 +928,7 @@ struct RenderView::VisualState View3D::visualState()
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection View3D::select(const Selector::SelectionFlags flags, const int x, const int y) const
+Selector::Selection View3D::select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
   QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
@@ -894,7 +942,7 @@ Selector::Selection View3D::select(const Selector::SelectionFlags flags, const i
 
     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
     {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), true))
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
       {
         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
         BinaryMask<unsigned char>::iterator bmit(bm.get());
@@ -907,7 +955,7 @@ Selector::Selection View3D::select(const Selector::SelectionFlags flags, const i
 
     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
     {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), true))
+      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
       {
         if(flags.contains(Selector::CHANNEL))
         {

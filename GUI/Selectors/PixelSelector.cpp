@@ -120,7 +120,7 @@ Selector::Selection PixelSelector::generateSelection(RenderView *view)
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
 
-  auto selectedItems = view->select(m_flags, xPos, yPos);
+  auto selectedItems = view->select(m_flags, xPos, yPos, m_multiSelection);
 
   if(!validSelection(selectedItems))
     return Selector::Selection();

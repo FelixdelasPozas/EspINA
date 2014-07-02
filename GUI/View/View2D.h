@@ -142,7 +142,7 @@ namespace EspINA
     /* \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
      *
      */
-    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y) const;
+    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
   public slots:
     /// Show/Hide Preprocessing

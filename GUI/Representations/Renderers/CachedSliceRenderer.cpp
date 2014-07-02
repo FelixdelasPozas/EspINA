@@ -273,7 +273,9 @@ namespace EspINA
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
 
-    CachedRepresentationSList repList = validRepresentationsForPosition(z);
+    auto realZ = m_view->crosshairPoint()[m_planeIndex];
+    CachedRepresentationSList repList = validRepresentationsForPosition(realZ);
+
     for(auto rep: repList)
       if (m_representationsActors[rep] != nullptr)
         m_picker->AddPickList(m_representationsActors[rep]);
@@ -283,7 +285,7 @@ namespace EspINA
       double point[3];
       m_picker->GetPickPosition(point);
       m_lastValidPickPosition = NmVector3{ point[0], point[1], point[2] };
-      point[m_planeIndex] = z;
+      point[m_planeIndex] = realZ;
 
       vtkProp *pickedProp = m_picker->GetViewProp();
       Q_ASSERT(pickedProp);

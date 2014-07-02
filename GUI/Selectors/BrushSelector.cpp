@@ -362,7 +362,6 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
   if (!m_item)
     return;
 
-  m_pBounds = view->previewBounds(false);
   View2D *previewView = static_cast<View2D*>(view);
   m_plane = previewView->plane();
 
@@ -394,8 +393,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
   if (validStroke(center))
   {
     m_lastDot = pos;
-    m_brushes << createBrushShape(m_item, center, m_radius, m_plane);
-    updatePreview(center, view);
+    updatePreview(createBrushShape(m_item, center, m_radius, m_plane), view);
   }
 }
 
@@ -414,8 +412,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
   if (validStroke(center))
   {
     m_lastDot = pos;
-    m_brushes << createBrushShape(m_item, center, m_radius, m_plane);
-    updatePreview(center, view);
+    updatePreview(createBrushShape(m_item, center, m_radius, m_plane), view);
   }
 
   m_lastUdpdatePoint = center;
@@ -456,6 +453,7 @@ void BrushSelector::startPreview(RenderView* view)
   if (m_previewView != nullptr)
     return;
 
+  m_pBounds = view->previewBounds(false);
   NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
   VolumeBounds previewBounds{ view->previewBounds(false), spacing, m_origin};
   auto volume = volumetricData(m_item->output());
@@ -543,58 +541,60 @@ void BrushSelector::startPreview(RenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
+void BrushSelector::updatePreview(BrushShape shape, RenderView* view)
 {
   if (m_previewView == nullptr)
   {
     startPreview(view);
 
-    m_pBounds = m_previewView->previewBounds(false);
     auto volume = volumetricData(m_item->output());
     if (!intersect(VolumeBounds(m_pBounds, NmVector3{m_spacing[0], m_spacing[1], m_spacing[2]}, m_origin).bounds(), volume->bounds()))
         return;
   }
 
-  Bounds brushBounds = buildBrushBounds(center);
-  QList<NmVector3> points;
-  double r2 = m_radius*m_radius;
+  Bounds brushBounds = shape.second;
+  NmVector3 center{(brushBounds[0]+brushBounds[1])/2, (brushBounds[2]+brushBounds[3])/2, (brushBounds[4]+brushBounds[5])/2};
+
+  m_radius = std::max(std::max(center[0]-brushBounds[0], center[1]-brushBounds[2]), center[2]-brushBounds[4]);
+  auto r2 = m_radius * m_radius;
+
+  BrushShapeList brushes;
+  brushes << shape;
 
   if (intersect(brushBounds, m_previewBounds))
   {
     double point1[3] = { static_cast<double>(m_lastUdpdatePoint[0]), static_cast<double>(m_lastUdpdatePoint[1]), static_cast<double>(m_lastUdpdatePoint[2])};
-    double point2[3] = { static_cast<double>(center[0]),static_cast<double>(center[1]),static_cast<double>(center[2]) };
+    double point2[3] = { center[0], center[1], center[2] };
     double distance = vtkMath::Distance2BetweenPoints(point1,point2);
 
     // apply stroke interpolation
     if ((distance >= r2) && m_lastUpdateBounds.areValid())
     {
-      m_brushes.pop_back(); // we must delete the last one because we are going to replace it;
+      brushes.clear(); // we are going to replace it with a list of brushes.
 
       double vector[3] = { point2[0]-point1[0], point2[1]-point1[1], point2[2]-point1[2] };
-      int chunks = 2* static_cast<int>(distance/r2);
+      int chunks = 2 * static_cast<int>(distance/r2);
       double delta[3] = { vector[0]/chunks, vector[1]/chunks, vector[2]/chunks };
       for(auto i = 0; i < chunks; ++i)
       {
-        points << NmVector3{m_lastUdpdatePoint[0] + static_cast<int>(delta[0] * i),
-                            m_lastUdpdatePoint[1] + static_cast<int>(delta[1] * i),
-                            m_lastUdpdatePoint[2] + static_cast<int>(delta[2] * i)};
+        auto pointCenter = NmVector3{m_lastUdpdatePoint[0] + static_cast<int>(delta[0] * i),
+                                     m_lastUdpdatePoint[1] + static_cast<int>(delta[1] * i),
+                                     m_lastUdpdatePoint[2] + static_cast<int>(delta[2] * i)};
 
-        m_brushes << createBrushShape(m_item, points.last(), m_radius, m_plane);
+        brushes << createBrushShape(m_item, pointCenter, m_radius, m_plane);;
       }
     }
-    else
-      points << center;
+
+    m_brushes << brushes;
 
     int extent[6];
     m_preview->GetExtent(extent);
-    for (auto point: points)
+    for (auto brush: brushes)
     {
-      Bounds brushBounds = buildBrushBounds(point);
-      if (!intersect(m_previewBounds, brushBounds))
+      if (!intersect(m_previewBounds, brush.second))
         continue;
 
-      Bounds pointBounds = intersection(m_previewBounds,brushBounds);
-      double pointCenter[3]{ point[0], point[1], point[2] };
+      Bounds pointBounds = intersection(m_previewBounds, brush.second);
       int depth;
 
       switch(m_plane)
@@ -609,8 +609,7 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
             if (y < extent[2] || y > extent[3])
               continue;
 
-            double pixel[3]{x*m_spacing[0], y*m_spacing[1], m_previewBounds[4]};
-            if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
+            if (brush.first->FunctionValue(x * m_spacing[0], y * m_spacing[1], m_previewBounds[4]) <= 0)
             {
               unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,depth));
               *pixel = (m_drawing ? 1 : 0);
@@ -627,8 +626,7 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
             if (z < extent[4] || z > extent[5])
               continue;
 
-            double pixel[3] = {x*m_spacing[0], m_previewBounds[2], z*m_spacing[2]};
-            if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
+            if (brush.first->FunctionValue(x * m_spacing[0], m_previewBounds[2], z * m_spacing[2]) <= 0)
             {
               unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,depth,z));
               *pixel = (m_drawing ? 1 : 0);
@@ -645,8 +643,7 @@ void BrushSelector::updatePreview(NmVector3 center, RenderView* view)
             if (z < extent[4] || z > extent[5])
               continue;
 
-            double pixel[3] = {m_previewBounds[0], y*m_spacing[1], z*m_spacing[2]};
-            if (vtkMath::Distance2BetweenPoints(pointCenter,pixel) < r2)
+            if (brush.first->FunctionValue(m_previewBounds[0], y * m_spacing[1], z * m_spacing[2]) <= 0)
             {
               unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(depth,y,z));
               *pixel = (m_drawing ? 1 : 0);
