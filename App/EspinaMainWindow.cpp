@@ -35,6 +35,7 @@
 #include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
+#include <App/Settings/MetaData/MetaDataSettingsPanel.h>
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -133,6 +134,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
 
   m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, new ROISettings(), m_viewManager));
+  m_availableSettingsPanels << SettingsPanelSPtr(new MetaDataSettingsPanel());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);

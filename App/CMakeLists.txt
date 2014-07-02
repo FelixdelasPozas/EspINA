@@ -139,6 +139,7 @@ set (ESPINA_SOURCES
   Settings/DefaultView/DefaultViewSettingsPanel.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
+  Settings/MetaData/MetaDataSettingsPanel.cpp
 #   Settings/Editor/SettingsPanel.cpp
 #  Settings/SeedGrowSegmentation/SettingsPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp

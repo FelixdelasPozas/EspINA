@@ -97,5 +97,6 @@
         <file>voi_brush.svg</file>
         <file>voi_clean.svg</file>
         <file>voi_ortogonal.svg</file>
+        <file>database.png</file>
     </qresource>
 </RCC>
