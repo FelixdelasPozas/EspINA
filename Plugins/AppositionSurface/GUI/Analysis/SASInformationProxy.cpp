@@ -31,6 +31,7 @@
 using namespace EspINA;
 
 const QString SAS = QObject::tr("SAS");
+const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
 class SASInformationProxy::SASInformationFetcher
 : public InformationProxy::InformationFetcher
@@ -41,7 +42,7 @@ public:
                         const SegmentationExtension::InfoTagList &tags,
                         SchedulerSPtr scheduler)
   : InformationProxy::InformationFetcher(segmentation, tags, scheduler)
-  , m_sas         {sas}
+  , m_sas{sas}
   {
     auto id = Segmentation->data(Qt::DisplayRole).toString();
     setDescription(tr("%1 information").arg(id));
@@ -53,9 +54,9 @@ public:
     bool ready = true;
     for (auto tag : m_tags)
     {
-      if(tag.startsWith("SAS "))
+      if(tag.startsWith(SASTAG_PREPEND))
       {
-        auto sasTag = QString(tag).remove(0,4);
+        auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
         ready &= m_sas->isInformationReady(sasTag);
       }
       else
@@ -79,10 +80,9 @@ protected:
       auto tag = m_tags[i];
       if (tag != NAME_TAG && tag != CATEGORY_TAG)
       {
-        if(tag.startsWith(tr("SAS ")))
+        if(tag.startsWith(SASTAG_PREPEND))
         {
-          auto sasTag = QString(tag).remove(0,4);
-
+          auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
           if(!m_sas->isInformationReady(sasTag))
           {
             setWaiting(true);
@@ -195,11 +195,11 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
       return "";
     }
-    else if(tag.startsWith(tr("SAS ")))
+    else if(tag.startsWith(SASTAG_PREPEND))
     {
       auto sasItem = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).first().get();
       auto sas = segmentationPtr(sasItem);
-      auto sasTag = QString(tag).remove(0,4);
+      auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
 
       if(sas->informationTags().contains(sasTag))
       {
@@ -216,14 +216,17 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
                     this, SLOT(onTaskFininished()));
             //qDebug() << "Launching Task";
             Task::submit(task);
-          } else // we avoid overloading the scheduler
+          }
+          else // we avoid overloading the scheduler
           {
             return sas->information(sasTag);
           }
-        } else if (m_pendingInformation[segmentation]->hasFinished())
-        {
-          return sas->information(sasTag);
         }
+        else
+          if (m_pendingInformation[segmentation]->hasFinished())
+          {
+            return sas->information(sasTag);
+          }
 
         return "";
       }
@@ -232,8 +235,10 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     {
       return tr("Unavailable");
     }
-  } else if (proxyIndex.column() > 0)
-    return QVariant();//To avoid checkrole or other roles
+  }
+  else
+    if (proxyIndex.column() > 0)
+      return QVariant();//To avoid checkrole or other roles
 
-    return QAbstractProxyModel::data(proxyIndex, role);
+  return QAbstractProxyModel::data(proxyIndex, role);
 }

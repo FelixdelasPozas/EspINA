@@ -259,7 +259,8 @@ void AppositionSurface::createSASAnalysis()
     // check segmentations for SAS and create it if needed
     for(auto segmentation: synapsis)
     {
-      if(m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).empty())
+      auto sasItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
+      if(sasItems.empty())
       {
         if(!m_delayedAnalysis)
         {
@@ -278,6 +279,17 @@ void AppositionSurface::createSASAnalysis()
 
         connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
         adapter->submit();
+      }
+      else
+      {
+        Q_ASSERT(sasItems.size() == 1);
+        auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
+        if(!sas->hasExtension(AppositionSurfaceExtension::TYPE))
+        {
+          auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+          std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_model->smartPointer(segmentation));
+          sas->addExtension(extension);
+        }
       }
     }
 

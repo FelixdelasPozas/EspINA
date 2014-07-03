@@ -55,7 +55,6 @@ namespace EspINA
     protected:
       ModelAdapterSPtr m_model;
       SegmentationExtension::InfoTagList m_sasTags;
-
   };
 
 } // namespace EspINA

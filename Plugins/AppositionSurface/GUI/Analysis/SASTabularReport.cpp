@@ -35,6 +35,7 @@
 #include <QStandardItemModel>
 
 const QString SEGMENTATION_GROUP = "Segmentation";
+const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
 //------------------------------------------------------------------------
 class DataSortFiler
@@ -76,12 +77,12 @@ namespace EspINA
 
     if (m_tabs->tabText(i) != category)
     {
-      Entry *entry = new Entry(category, m_model, m_factory);
+      auto entry = new Entry(category, m_model, m_factory);
 
       connect(entry, SIGNAL(informationReadyChanged()),
               this,  SLOT(updateExportStatus()));
 
-      SASInformationProxy *infoProxy = new SASInformationProxy(m_model, m_sasTags, m_factory->scheduler());
+      auto infoProxy = new SASInformationProxy(m_model, m_sasTags, m_factory->scheduler());
       infoProxy->setCategory(category);
       infoProxy->setFilter(&m_filter);
       infoProxy->setSourceModel(m_model);
@@ -89,11 +90,11 @@ namespace EspINA
                this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
       entry->setProxy(infoProxy);
 
-      DataSortFiler *sortFilter = new DataSortFiler();
+      auto sortFilter = new DataSortFiler();
       sortFilter->setSourceModel(infoProxy);
       sortFilter->setDynamicSortFilter(true);
 
-      CheckableTableView *tableView = entry->tableView;
+      auto tableView = entry->tableView;
       tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
       tableView->setModel(sortFilter);
       tableView->setSortingEnabled(true);
@@ -127,9 +128,9 @@ namespace EspINA
     }
 
     for(auto tag: m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations())
-        info[QString(AppositionSurfaceExtension::TYPE).prepend(tr("SAS "))] << QString(tag).prepend(tr("SAS "));
+        info[QString(AppositionSurfaceExtension::TYPE).prepend(SASTAG_PREPEND)] << QString(tag).prepend(SASTAG_PREPEND);
 
-    // a synapse can't have a Apposition surface extension
+    // in case we have extensions not registered in the factory add them too. Will be read-only extensions.
     for (auto item : m_proxy->displayedItems())
     {
       Q_ASSERT(isSegmentation(item));
@@ -137,15 +138,11 @@ namespace EspINA
       auto segmentation = segmentationPtr(item);
 
       for (auto extension : segmentation->extensions())
-      {
         info[extension->type()] << extension->availableInformations();
-      }
     }
 
     for (auto tag : info.keys())
-    {
       info[tag].removeDuplicates();
-    }
 
     return info;
   }
@@ -181,7 +178,7 @@ namespace EspINA
   {
     for(auto extensionType : extensionInformations.keys())
     {
-      if(extensionType.startsWith(tr("SAS ")))
+      if(extensionType.startsWith(SASTAG_PREPEND))
         continue;
 
       for (auto segmentation : m_model->segmentations())

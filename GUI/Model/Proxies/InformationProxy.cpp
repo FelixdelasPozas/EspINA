@@ -228,7 +228,6 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     }
   }
 
-
   if (role == Qt::DisplayRole && !m_tags.isEmpty())
   {
     auto tag = m_tags[proxyIndex.column()];
