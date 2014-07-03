@@ -27,7 +27,7 @@
 #ifndef ESPINA_SEGMENTATION_H
 #define ESPINA_SEGMENTATION_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Extension.h"

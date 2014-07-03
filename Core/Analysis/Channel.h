@@ -22,7 +22,7 @@
 #ifndef ESPINA_CHANNEL_H
 #define ESPINA_CHANNEL_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/Analysis/Data.h"
 #include "Core/Analysis/ViewItem.h"

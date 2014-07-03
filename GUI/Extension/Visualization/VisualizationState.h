@@ -22,7 +22,7 @@
 #ifndef ESPINA_VISUALIZATION_STATE_H
 #define ESPINA_VISUALIZATION_STATE_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Extension.h>

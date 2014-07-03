@@ -21,7 +21,7 @@
 #ifndef XLSUTILS_H
 #define XLSUTILS_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QVariant>
 

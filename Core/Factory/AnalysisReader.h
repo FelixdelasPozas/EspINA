@@ -22,7 +22,7 @@
 #ifndef ESPINA_ANALYSIS_READER_H
 #define ESPINA_ANALYSIS_READER_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/Analysis/Analysis.h>
 #include <Core/IO/ErrorHandler.h>

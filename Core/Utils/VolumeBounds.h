@@ -29,7 +29,7 @@
 #ifndef ESPINA_VOLUME_BOUNDS_H
 #define ESPINA_VOLUME_BOUNDS_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/Utils/Spatial.h"
 #include "Core/Utils/NmVector3.h"

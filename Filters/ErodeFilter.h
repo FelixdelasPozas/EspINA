@@ -22,7 +22,7 @@
 #ifndef ESPINA_ERODE_FILTER_H
 #define ESPINA_ERODE_FILTER_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "MorphologicalEditionFilter.h"
 

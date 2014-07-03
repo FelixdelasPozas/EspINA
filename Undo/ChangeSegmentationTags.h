@@ -29,7 +29,7 @@
 #ifndef ESPINA_CHANGE_SEGMENTATION_TAGS_H
 #define ESPINA_CHANGE_SEGMENTATION_TAGS_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 #include <GUI/Model/SegmentationAdapter.h>
 
 // Qt

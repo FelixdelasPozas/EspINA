@@ -1,7 +1,7 @@
 #ifndef ESPINATYPES_H
 #define ESPINATYPES_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 #include <itkImage.h>
 
 #include <QList>

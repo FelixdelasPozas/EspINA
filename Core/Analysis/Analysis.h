@@ -22,7 +22,7 @@
 #ifndef ESPINA_ANALYSIS_H
 #define ESPINA_ANALYSIS_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"

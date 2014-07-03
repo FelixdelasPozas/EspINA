@@ -22,7 +22,7 @@
 #ifndef ESPINA_REPRESENTATION_FACTORY_H
 #define ESPINA_REPRESENTATION_FACTORY_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include "GUI/Representations/Representation.h"
 #include <Core/MultiTasking/Scheduler.h>

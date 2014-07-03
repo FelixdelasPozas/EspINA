@@ -52,6 +52,8 @@ endif(DEFINED MINGW OR DEFINED MSVC)
 
 add_library (EspinaFilters SHARED ${FILTERS_SOURCES})
 
+target_link_libraries (EspinaFilters EspinaCore ${FILTERS_EXTERNAL_LIBS})
+
 GENERATE_EXPORT_HEADER(
   EspinaFilters
   BASE_NAME EspinaFilters
@@ -59,4 +61,18 @@ GENERATE_EXPORT_HEADER(
   EXPORT_FILE_NAME EspinaFilters_Export.h
   )
 
-target_link_libraries (EspinaFilters EspinaCore ${FILTERS_EXTERNAL_LIBS})
+#set (FILTERS_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaFilers_Export.h"
+#  )
+#
+#set_target_properties(EspinaFilters PROPERTIES
+#  PUBLIC_HEADER "${FILTERS_HEADERS}")
+ 
+install(TARGETS EspinaFilters
+  # IMPORTANT: Add the EspinaFilters library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

@@ -29,7 +29,7 @@
 #ifndef CHECKABLETABLEVIEW_H
 #define CHECKABLETABLEVIEW_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QTableView>
 

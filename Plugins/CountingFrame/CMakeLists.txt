@@ -114,9 +114,7 @@ if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   set_target_properties(CountingFramePlugin PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-# install(
-#   TARGETS CountingFrame
-#   LIBRARY
-#   DESTINATION bin/plugins
-#   #COMPONENT CountingFrame
-#   )
+install(
+  TARGETS CountingFramePlugin
+  LIBRARY DESTINATION ${INSTALL_BIN_DIR}/plugins
+  )

@@ -1,7 +1,7 @@
 #ifndef _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 #define _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkContourToPolygonFilter.h"

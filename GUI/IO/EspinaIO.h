@@ -1,7 +1,7 @@
 #ifndef ESPINAIO_H
 #define ESPINAIO_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <Core/Model/Channel.h>
 #include <Core/IO/IOErrorHandler.h>

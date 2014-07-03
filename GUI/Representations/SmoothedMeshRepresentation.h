@@ -21,7 +21,7 @@
 #ifndef ESPINA_SMOOTHED_MESH_REPRESENTATION_H_
 #define ESPINA_SMOOTHED_MESH_REPRESENTATION_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "MeshRepresentation.h"

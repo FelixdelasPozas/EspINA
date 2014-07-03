@@ -8,7 +8,7 @@
 #ifndef HUESELECTOR_H_
 #define HUESELECTOR_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // Qt includes
 #include <QWidget>

@@ -22,7 +22,7 @@
 #ifndef ESPINA_ACTION_SELECTOR_WIDGET_H
 #define ESPINA_ACTION_SELECTOR_WIDGET_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QToolButton>
 

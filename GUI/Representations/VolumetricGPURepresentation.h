@@ -21,7 +21,7 @@
 #ifndef VOLUMEGPUREPRESENTATION_H_
 #define VOLUMEGPUREPRESENTATION_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "Representation.h"

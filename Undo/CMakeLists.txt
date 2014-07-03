@@ -36,10 +36,28 @@ if(DEFINED MINGW OR DEFINED MSVC)
 endif(DEFINED MINGW OR DEFINED MSVC)
 
 add_library (EspinaUndo SHARED ${UNDO_SOURCES})
+
+target_link_libraries (EspinaUndo ${UNDO_EXTERNAL_LIBS})
+
 GENERATE_EXPORT_HEADER(
              EspinaUndo
              BASE_NAME EspinaUndo
              EXPORT_MACRO_NAME EspinaUndo_EXPORT
              EXPORT_FILE_NAME EspinaUndo_Export.h
   )
-target_link_libraries (EspinaUndo ${UNDO_EXTERNAL_LIBS})
+
+#set (UNDO_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaUndo_Export.h"
+#  )
+#
+#set_target_properties(EspinaUndo PROPERTIES
+#  PUBLIC_HEADER "${UNDO_HEADERS}")
+ 
+install(TARGETS EspinaUndo
+  # IMPORTANT: Add the EspinaUndo library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

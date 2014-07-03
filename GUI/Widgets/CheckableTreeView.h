@@ -22,7 +22,7 @@
 #ifndef CHECKABLETREEVIEW_H
 #define CHECKABLETREEVIEW_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QTreeView>
 

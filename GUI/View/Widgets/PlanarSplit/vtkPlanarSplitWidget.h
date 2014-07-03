@@ -8,7 +8,7 @@
 #ifndef VTKPLANARSPLITWIDGET_H_
 #define VTKPLANARSPLITWIDGET_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>

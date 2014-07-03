@@ -29,7 +29,7 @@
 #ifndef ESPINA_DATA_H
 #define ESPINA_DATA_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
 #include <Core/Utils/Bounds.h>

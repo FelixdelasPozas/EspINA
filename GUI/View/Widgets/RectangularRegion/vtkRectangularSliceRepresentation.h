@@ -1,7 +1,7 @@
 #ifndef VTKRECTANGULARSLICEREPRESENTATION_H
 #define VTKRECTANGULARSLICEREPRESENTATION_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include "vtkWidgetRepresentation.h"
 

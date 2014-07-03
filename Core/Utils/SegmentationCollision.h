@@ -22,7 +22,7 @@
 #ifndef SEGMENTATIONCOLLISION_H
 #define SEGMENTATIONCOLLISION_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/OutputRepresentations/RawVolume.h>
 

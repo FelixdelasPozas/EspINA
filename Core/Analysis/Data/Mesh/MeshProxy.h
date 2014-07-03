@@ -22,7 +22,7 @@
 #ifndef ESPINA_MESH_PROXY_H
 #define ESPINA_MESH_PROXY_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/DataProxy.h>

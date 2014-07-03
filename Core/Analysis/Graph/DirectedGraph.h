@@ -21,7 +21,7 @@
 #ifndef ESPINA_DIRECTED_GRAPH_H
 #define ESPINA_DIRECTED_GRAPH_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <boost/graph/adjacency_list.hpp>
 

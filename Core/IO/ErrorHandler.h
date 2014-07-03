@@ -8,7 +8,7 @@
 #ifndef ESPINA_IO_ERRORHANDLER_H
 #define ESPINA_IO_ERRORHANDLER_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <QDir>
 #include <QFileInfo>

@@ -38,9 +38,8 @@ using namespace EspINA;
 using SliceWidgetAdapter = EspinaInteractorAdapter<vtkRectangularSliceWidget>;
 
 //----------------------------------------------------------------------------
-RectangularRegion::RectangularRegion(Bounds bounds, ViewManagerSPtr vm)
-: m_viewManager{vm}
-, m_bounds     {bounds}
+RectangularRegion::RectangularRegion(Bounds bounds)
+: m_bounds     {bounds}
 , m_pattern    {0xFFFF}
 , m_command    {vtkSmartPointer<vtkRectangularRegionCommand>::New()}
 {
@@ -192,8 +191,8 @@ void vtkRectangularRegionCommand::Execute(vtkObject* caller, long unsigned int e
 
   m_widget->emitModifiedSignal();
 
-  if (m_widget->m_viewManager)
-    m_widget->m_viewManager->updateViews();
+//   if (m_widget->m_viewManager)
+//     m_widget->m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------

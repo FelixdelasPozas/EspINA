@@ -29,7 +29,7 @@
 #ifndef TAGSELECTOR_H
 #define TAGSELECTOR_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QDialog>
 #include <QStandardItemModel>

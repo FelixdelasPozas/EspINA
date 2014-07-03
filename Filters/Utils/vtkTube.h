@@ -22,7 +22,7 @@
 #ifndef VTKTUBE_H
 #define VTKTUBE_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <vtkImplicitFunction.h>
 

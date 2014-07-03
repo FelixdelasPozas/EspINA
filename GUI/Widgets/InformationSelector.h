@@ -22,7 +22,7 @@
 #ifndef ESPINA_INFORMATION_SELECTOR_H
 #define ESPINA_INFORMATION_SELECTOR_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/ModelFactory.h>

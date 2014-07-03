@@ -21,7 +21,7 @@
 #ifndef ESPINA_SLICE_RENDERER_H_
 #define ESPINA_SLICE_RENDERER_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "RepresentationRenderer.h"

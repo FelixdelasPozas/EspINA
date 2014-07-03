@@ -8,21 +8,19 @@
 #ifndef ESPINA_ZOOM_SELECTION_WIDGET_H_
 #define ESPINA_ZOOM_SELECTION_WIDGET_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "vtkZoomSelectionWidget.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
-#include <Support/ViewManager.h>
+#include <GUI/View/EventHandler.h>
 
 // Qt
 #include <QList>
 
 // vtk
 #include <vtkSmartPointer.h>
-
-
 
 class QEvent;
 class vtkAbstractWidget;

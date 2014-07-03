@@ -29,7 +29,7 @@
 #ifndef NOTEEDITOR_H
 #define NOTEEDITOR_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QDialog>
 

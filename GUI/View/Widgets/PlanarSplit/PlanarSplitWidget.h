@@ -8,7 +8,7 @@
 #ifndef PLANARSPLITWIDGET_H_
 #define PLANARSPLITWIDGET_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <GUI/View/Widgets/EspinaWidget.h>

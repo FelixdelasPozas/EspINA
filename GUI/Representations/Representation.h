@@ -21,7 +21,7 @@
 #ifndef ESPINA_REPRESENTATION_H
 #define ESPINA_REPRESENTATION_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // Qt
 #include <QList>

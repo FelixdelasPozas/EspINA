@@ -28,7 +28,7 @@
 #ifndef ESPINA_MARCHING_CUBES_MESH_H
 #define ESPINA_MARCHING_CUBES_MESH_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/Analysis/Data/MeshData.h"
 #include "Core/Analysis/Data/VolumetricData.h"

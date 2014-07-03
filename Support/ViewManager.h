@@ -37,7 +37,7 @@
 #include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
-#include <Support/EventHandler.h>
+#include <GUI/View/EventHandler.h>
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 
 // Qt

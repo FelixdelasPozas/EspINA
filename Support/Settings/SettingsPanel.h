@@ -1,7 +1,7 @@
 #ifndef ESPINA_ISETTINGSPANEL_H
 #define ESPINA_ISETTINGSPANEL_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QWidget>
 #include <QIcon>

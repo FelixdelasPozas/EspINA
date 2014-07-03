@@ -22,7 +22,7 @@
 #ifndef ESPINA_ADD_CATEGORY_COMMAND_H
 #define ESPINA_ADD_CATEGORY_COMMAND_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 #include <QUndoStack>
 
 #include <GUI/Model/ModelAdapter.h>

@@ -31,7 +31,6 @@
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/Selection.h>
-#include <Support/ViewManager.h>
 
 // Qt
 #include <QApplication>

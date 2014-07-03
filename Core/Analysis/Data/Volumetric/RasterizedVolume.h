@@ -22,7 +22,7 @@
 #ifndef ESPINA_RASTERIZED_VOLUME_H
 #define ESPINA_RASTERIZED_VOLUME_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // EspINA
 #include <Core/Analysis/Data/VolumetricData.h>

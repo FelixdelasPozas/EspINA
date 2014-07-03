@@ -9,7 +9,7 @@
 #define ESPINA_ZOOM_AREA_H
 
 // EspINA
-#include <Support/EventHandler.h>
+#include <GUI/View/EventHandler.h>
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/View/Widgets/EspinaWidget.h>

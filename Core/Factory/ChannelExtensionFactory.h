@@ -22,7 +22,7 @@
 #ifndef ESPINA_CHANNEL_EXTENSION_FACTORY_H
 #define ESPINA_CHANNEL_EXTENSION_FACTORY_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/Analysis/Extension.h>
 

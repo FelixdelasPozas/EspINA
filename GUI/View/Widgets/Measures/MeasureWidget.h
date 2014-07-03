@@ -8,11 +8,11 @@
 #ifndef ESPINA_MEASURE_WIDGET_H_
 #define ESPINA_MEASURE_WIDGET_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Support/EventHandler.h>
+#include <GUI/View/EventHandler.h>
 
 // VTK
 #include <vtkCommand.h>

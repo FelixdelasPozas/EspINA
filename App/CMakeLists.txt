@@ -2,7 +2,8 @@ find_package(XLSLIB REQUIRED)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
+  ${CMAKE_BINARY_DIR}     # Generated EspinaConfig.h
+  ${CMAKE_BINARY_DIR}/GUI # Generated UI files
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   ${XLSLIB_INCLUDE_DIRS}
   )
@@ -230,14 +231,11 @@ else (DEFINED MINGW OR DEFINED MSVC)
 endif (DEFINED MINGW OR DEFINED MSVC)
 
 add_executable(espina ${ESPINA_SOURCES})
+
 target_link_libraries (espina ${ESPINA_LIBRARIES} ${EXTERNAL_LIBRARIES})
 
-#install (
-#  TARGETS espina
-#  RUNTIME
-#  DESTINATION bin
-##  COMPONENT espina
-#  )
-#
-#
-#add_subdirectory (plugins)
+install(TARGETS espina
+  # IMPORTANT: Add the espina executable to the "export-set"
+  EXPORT ESPINATargets
+  RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+  )

@@ -24,7 +24,6 @@
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 #include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
-#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkImageCanvasSource2D.h>
@@ -41,7 +40,7 @@ namespace EspINA
   : m_vm{vm}
   , m_ROI{nullptr}
   {
-    connect(m_vm, SIGNAL(ROIChanged()), this, SLOT(updateROIPointer()));
+    //FIXME: connect(m_vm, SIGNAL(ROIChanged()), this, SLOT(updateROIPointer()));
   }
   
   //-----------------------------------------------------------------------------
@@ -53,6 +52,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void ROIWidget::updateActor(View2D *view)
   {
+    /* FIXME
     if(m_vm->currentROI() == nullptr)
     {
       if(m_representations[view].actor != nullptr)
@@ -119,6 +119,7 @@ namespace EspINA
 
       view->updateView();
     }
+    */
   }
 
   //-----------------------------------------------------------------------------
@@ -174,6 +175,7 @@ namespace EspINA
   //----------------------------------------------------------------------------
   void ROIWidget::updateROIPointer()
   {
+    /* FIXME
     if(m_ROI != nullptr)
       disconnect(m_ROI.get(), SIGNAL(dataChanged()), this, SLOT(updateROIRepresentations()));
 
@@ -182,6 +184,7 @@ namespace EspINA
     if(m_ROI != nullptr)
       connect(m_ROI.get(), SIGNAL(dataChanged()), this, SLOT(updateROIRepresentations()));
 
+    */
     updateROIRepresentations();
   }
 

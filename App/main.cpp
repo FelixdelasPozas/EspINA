@@ -39,6 +39,7 @@ int main(int argc, char **argv)
   app.installTranslator(&translator);
 
   QDir pluginsDir = QDir(app.applicationDirPath());
+  qDebug() << "Loading Plugins from path: " << pluginsDir.absolutePath();
 
   #if defined(Q_OS_MAC)
     if (pluginsDir.dirName() == "MacOS")

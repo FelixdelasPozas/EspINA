@@ -21,7 +21,7 @@
 #ifndef ESPINA_SAMPLE_H
 #define ESPINA_SAMPLE_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
 

@@ -22,7 +22,7 @@
 #ifndef ESPINA_CONTEXTUAL_MENU_H
 #define ESPINA_CONTEXTUAL_MENU_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <Core/EspinaTypes.h>
 #include "GUI/Model/ViewItemAdapter.h"

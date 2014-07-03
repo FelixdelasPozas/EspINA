@@ -7,7 +7,7 @@
 #ifndef _VTKPLANECONTOURWIDGET_H_
 #define _VTKPLANECONTOURWIDGET_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>

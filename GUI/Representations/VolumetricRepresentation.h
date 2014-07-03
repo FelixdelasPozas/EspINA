@@ -21,7 +21,7 @@
 #ifndef ESPINA_VOLUMETRIC_REPRESENTATION_H_
 #define ESPINA_VOLUMETRIC_REPRESENTATION_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "VolumetricRepresentation.h"

@@ -22,7 +22,7 @@
 #ifndef ESPINA_CONDITIONS_H
 #define ESPINA_CONDITIONS_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 #include <QString>
 
 namespace EspINA

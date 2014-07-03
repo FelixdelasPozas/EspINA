@@ -8,7 +8,7 @@
 #ifndef ESPINA_CONTOUR_SELECTOR_H_
 #define ESPINA_CONTOUR_SELECTOR_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 #include <GUI/Selectors/Selector.h>
 
 class QCursor;

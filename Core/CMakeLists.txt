@@ -88,14 +88,30 @@ if(DEFINED MINGW OR DEFINED MSVC)
 
 endif(DEFINED MINGW OR DEFINED MSVC)
 
-
 add_library (EspinaCore SHARED ${CORE_SOURCES})
+
+target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})
 
 GENERATE_EXPORT_HEADER(
   EspinaCore
-  BASE_NAME EspinaCore
+  BASE_NAME         EspinaCore
   EXPORT_MACRO_NAME EspinaCore_EXPORT
-  EXPORT_FILE_NAME EspinaCore_Export.h
+  EXPORT_FILE_NAME  EspinaCore_Export.h
   )
 
-target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})
+#file (GLOB_RECURSE CORE_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h)
+#set  (CORE_HEADERS 
+#  ${CORE_HEADERS}
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaCore_Export.h"
+#  )
+#
+#set_target_properties(EspinaCore PROPERTIES
+#  PUBLIC_HEADER "${CORE_HEADERS}")
+ 
+install(TARGETS EspinaCore
+  # IMPORTANT: Add the EspinaCore library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

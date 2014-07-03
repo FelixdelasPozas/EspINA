@@ -22,7 +22,7 @@
 #ifndef QCOMBOTREEVIEW_H
 #define QCOMBOTREEVIEW_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <QComboBox>
 #include <QTreeView>

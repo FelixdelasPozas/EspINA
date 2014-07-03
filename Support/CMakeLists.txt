@@ -10,7 +10,6 @@ include_directories(
 
 qt4_wrap_cpp(Support_MOC
   DockWidget.h
-  EventHandler.h
   Plugin.h
   ToolGroup.h
   ViewManager.h
@@ -49,7 +48,6 @@ set (Support_SOURCES
   ${METADONA_UI}
   ${METADONA_SOURCES}
   ActionGroupWidget.cpp
-  EventHandler.cpp
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp
   ToolGroup.cpp
@@ -90,6 +88,9 @@ if(APPLE)
 endif (APPLE)
 
 add_library (EspinaSupport SHARED ${Support_SOURCES})
+
+target_link_libraries (EspinaSupport ${Support_EXTERNAL_LIBS})
+
 GENERATE_EXPORT_HEADER(
              EspinaSupport
              BASE_NAME EspinaSupport
@@ -97,4 +98,18 @@ GENERATE_EXPORT_HEADER(
              EXPORT_FILE_NAME EspinaSupport_Export.h
   )
 
-target_link_libraries (EspinaSupport ${Support_EXTERNAL_LIBS})
+#set (SUPPORT_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaSupport_Export.h"
+#  )
+#
+#set_target_properties(EspinaSupport PROPERTIES
+#  PUBLIC_HEADER "${SUPPORT_HEADERS}")
+ 
+install(TARGETS EspinaSupport
+  # IMPORTANT: Add the EspinaSupport library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

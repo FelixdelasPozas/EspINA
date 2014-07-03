@@ -21,7 +21,7 @@
 #ifndef ESPINAINTERACTORADAPTER_H
 #define ESPINAINTERACTORADAPTER_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // VTK
 #include <vtkAbstractWidget.h>

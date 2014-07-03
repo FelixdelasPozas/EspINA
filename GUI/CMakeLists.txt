@@ -23,6 +23,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/Renderers/CachedSliceRendererTask.h
   Selectors/Selector.h
   Selectors/BrushSelector.h
+  View/EventHandler.h
   View/RenderView.h
   View/Selection.h
   View/View2D.h
@@ -117,6 +118,7 @@ set (GUI_SOURCES
   Utils/Conditions.cpp
   Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
+  View/EventHandler.cpp
   View/RenderView.cpp
   View/Selection.cpp
   View/View2D.cpp
@@ -184,12 +186,30 @@ if(APPLE)
    set(GUI_EXTERNAL_LIBS ${GUI_EXTERNAL_LIBS} ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
 endif (APPLE)
 
+
 add_library (EspinaGUI SHARED ${GUI_SOURCES})
-GENERATE_EXPORT_HEADER(
-             EspinaGUI
-             BASE_NAME EspinaGUI
-             EXPORT_MACRO_NAME EspinaGUI_EXPORT
-             EXPORT_FILE_NAME EspinaGUI_Export.h
-			 )
 
 target_link_libraries (EspinaGUI ${GUI_EXTERNAL_LIBS})
+
+GENERATE_EXPORT_HEADER(
+  EspinaGUI
+  BASE_NAME         EspinaGUI
+  EXPORT_MACRO_NAME EspinaGUI_EXPORT
+  EXPORT_FILE_NAME  EspinaGUI_Export.h
+	)
+
+#set (GUI_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaGUI_Export.h"
+#  )
+#
+#set_target_properties(EspinaGUI PROPERTIES
+#  PUBLIC_HEADER "${GUI_HEADERS}")
+ 
+install(TARGETS EspinaGUI
+  # IMPORTANT: Add the EspinaGUI library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

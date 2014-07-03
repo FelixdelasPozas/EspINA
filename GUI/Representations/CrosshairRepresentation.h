@@ -21,7 +21,7 @@
 #ifndef ESPINA_CROSSHAIR_REPRESENTATION_H
 #define ESPINA_CROSSHAIR_REPRESENTATION_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "Representation.h"

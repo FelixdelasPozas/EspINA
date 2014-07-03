@@ -22,7 +22,7 @@
 #ifndef ESPINA_CHANGE_CATEGORY_COMMAND_H
 #define ESPINA_CHANGE_CATEGORY_COMMAND_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 
 // EspINA
 #include <GUI/Model/CategoryAdapter.h>

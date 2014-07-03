@@ -34,7 +34,7 @@
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Support/EventHandler.h>
+#include <GUI/View/EventHandler.h>
 
 // Qt
 #include <QMenu>

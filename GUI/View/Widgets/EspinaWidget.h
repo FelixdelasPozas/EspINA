@@ -21,7 +21,7 @@
 #ifndef ESPINA_WIDGET_H
 #define ESPINA_WIDGET_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // VTK
 #include <vtkCommand.h>

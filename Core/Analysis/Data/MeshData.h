@@ -22,7 +22,7 @@
 #ifndef ESPINA_MESH_DATA_H
 #define ESPINA_MESH_DATA_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/Analysis/Data.h>
 #include <Core/Utils/Bounds.h>

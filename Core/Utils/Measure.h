@@ -8,7 +8,7 @@
 #ifndef MEASURE_H_
 #define MEASURE_H_
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // Qt
 #include <QStringList>

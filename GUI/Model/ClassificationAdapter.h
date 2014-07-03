@@ -22,7 +22,7 @@
 #ifndef ESPINA_CLASSIFICATION_ADAPTER_H
 #define ESPINA_CLASSIFICATION_ADAPTER_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include "GUI/Model/ItemAdapter.h"
 #include "GUI/Model/CategoryAdapter.h"

@@ -22,7 +22,7 @@
 #ifndef ESPINA_MODEL_FACTORY_H
 #define ESPINA_MODEL_FACTORY_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include "GUI/Model/FilterAdapter.h"
 #include "Model/SegmentationAdapter.h"

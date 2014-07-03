@@ -10,7 +10,6 @@
 #include "vtkZoomSelectionWidget.h"
 #include <GUI/View/RenderView.h>
 #include "vtkZoomSelectionWidget.h"
-#include <Support/ViewManager.h>
 #include <GUI/View/View2D.h>
 
 // vtk

@@ -22,7 +22,7 @@
 #ifndef ESPINA_CORE_FACTORY_H
 #define ESPINA_CORE_FACTORY_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/Factory/FilterFactory.h"
 #include "Core/Factory/ChannelExtensionFactory.h"

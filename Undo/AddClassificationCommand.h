@@ -22,7 +22,7 @@
 #ifndef ESPINA_ADD_CLASSIFICATION_COMMAND_H
 #define ESPINA_ADD_CLASSIFICATION_COMMAND_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 #include <QUndoStack>
 
 #include <Core/Analysis/Category.h>

@@ -22,7 +22,7 @@
 #ifndef ESPINA_MORPHOLOGICAL_INFORMATION_H
 #define ESPINA_MORPHOLOGICAL_INFORMATION_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/Analysis/Extension.h>
 

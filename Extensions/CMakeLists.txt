@@ -47,6 +47,8 @@ endif(DEFINED MINGW OR DEFINED MSVC)
 
 add_library (EspinaExtensions SHARED ${EXTENSIONS_SOURCES})
 
+target_link_libraries (EspinaExtensions EspinaCore ${EXTENSIONS_EXTERNAL_LIBS})
+
 GENERATE_EXPORT_HEADER(
   EspinaExtensions
   BASE_NAME EspinaExtensions
@@ -54,4 +56,18 @@ GENERATE_EXPORT_HEADER(
   EXPORT_FILE_NAME EspinaExtensions_Export.h
   )
 
-target_link_libraries (EspinaExtensions EspinaCore ${EXTENSIONS_EXTERNAL_LIBS})
+#set (EXTENSIONS_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaExtensions_Export.h"
+#  )
+#
+#set_target_properties(EspinaExtensions PROPERTIES
+#  PUBLIC_HEADER "${EXTENSIONS_HEADERS}")
+ 
+install(TARGETS EspinaExtensions
+  # IMPORTANT: Add the EspinaExtensions library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

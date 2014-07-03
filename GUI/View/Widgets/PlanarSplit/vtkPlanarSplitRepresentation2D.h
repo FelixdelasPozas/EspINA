@@ -8,7 +8,7 @@
 #ifndef VTKPLANARSPLITREPRESENTATION2D_H_
 #define VTKPLANARSPLITREPRESENTATION2D_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>

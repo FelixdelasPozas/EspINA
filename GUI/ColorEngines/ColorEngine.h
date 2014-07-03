@@ -21,7 +21,7 @@
 #ifndef ESPINA_COLOR_ENGINE_H
 #define ESPINA_COLOR_ENGINE_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 #include <GUI/Model/SegmentationAdapter.h>
 
 #include <QColor>

@@ -20,9 +20,9 @@
 #ifndef ESPINA_EVENT_HANDLER_H_
 #define ESPINA_EVENT_HANDLER_H_
 
-#include <boost/shared_ptr.hpp>
 #include <QObject>
 #include <QCursor>
+#include <memory>
 
 class QEvent;
 

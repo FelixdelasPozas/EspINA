@@ -106,8 +106,7 @@ if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   set_target_properties(AppositionSurfacePlugin PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-#if (BUILD_TESTING)
-#
-#  add_subdirectory(tests)
-#
-#endif()
+install(
+  TARGETS AppositionSurfacePlugin
+  LIBRARY DESTINATION ${INSTALL_BIN_DIR}/plugins
+  )

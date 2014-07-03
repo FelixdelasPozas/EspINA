@@ -29,7 +29,7 @@
 #ifndef ESPINA_SPARSE_VOLUME_H
 #define ESPINA_SPARSE_VOLUME_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>

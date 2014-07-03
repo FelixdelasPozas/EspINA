@@ -22,7 +22,6 @@
 #define ESPINA_RENDERERS_SELECTOR_H_
 
 // EspINA
-#include <Support/Settings/SettingsPanel.h>
 #include <GUI/Representations/Renderers/Renderer.h>
 #include "ui_RenderersSelector.h"
 

@@ -24,15 +24,15 @@
 
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Support/ViewManager.h>
 
 // Qt
 #include <QList>
 #include <QObject>
 
 // VTK
-#include <vtkCommand.h>
 #include <vtkAbstractWidget.h>
+#include <vtkCommand.h>
+#include <vtkSmartPointer.h>
 
 namespace EspINA
 {
@@ -87,7 +87,7 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    explicit RectangularRegion(Bounds bounds, ViewManagerSPtr vm);
+    explicit RectangularRegion(Bounds bounds);
     virtual ~RectangularRegion();
 
     virtual void registerView  (RenderView *view);
@@ -118,7 +118,6 @@ namespace EspINA
     void emitModifiedSignal()
     { emit modified(m_bounds); }
 
-    ViewManagerSPtr m_viewManager;
     Bounds m_bounds;
     NmVector3 m_resolution;
     QMap<RenderView *, vtkRectangularSliceWidget *> m_widgets;

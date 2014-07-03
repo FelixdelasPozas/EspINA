@@ -22,7 +22,7 @@
 #ifndef ESPINA_REMOVE_CATEGORY_COMMAND_H
 #define ESPINA_REMOVE_CATEGORY_COMMAND_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 #include <QUndoCommand>
 
 #include <GUI/Model/ModelAdapter.h>

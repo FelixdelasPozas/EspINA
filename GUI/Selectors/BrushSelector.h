@@ -22,12 +22,11 @@
 #ifndef ESPINA_BRUSH_SELECTOR_H
 #define ESPINA_BRUSH_SELECTOR_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Model/SegmentationAdapter.h>
-#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkSmartPointer.h>

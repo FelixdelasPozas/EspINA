@@ -21,7 +21,7 @@
 #ifndef ESPINA_VTKVOXELCONTOUR2D_H_
 #define ESPINA_VTKVOXELCONTOUR2D_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <vtkPolyDataAlgorithm.h>
 

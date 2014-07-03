@@ -22,7 +22,7 @@
 #ifndef VTKINTERACTORSTYLEESPINASLICE_H
 #define VTKINTERACTORSTYLEESPINASLICE_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <vtkInteractorStyleImage.h>
 #include <vtkSmartPointer.h>

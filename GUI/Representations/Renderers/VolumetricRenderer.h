@@ -21,14 +21,13 @@
 #ifndef ESPINA_VOLUMETRIC_RENDERER_H
 #define ESPINA_VOLUMETRIC_RENDERER_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "RepresentationRenderer.h"
 #include <GUI/Representations/VolumetricRepresentation.h>
 #include <GUI/View/RenderView.h>
 #include <Core/EspinaTypes.h>
-#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkVolumePicker.h>

@@ -21,7 +21,7 @@
 #ifndef ESPINA_VOLUMETRIC_GPU_RENDERER_H
 #define ESPINA_VOLUMETRIC_GPU_RENDERER_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include "VolumetricRenderer.h"

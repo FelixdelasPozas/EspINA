@@ -22,7 +22,7 @@
 #ifndef ESPINA_BASIC_REPRESENTATION_FACTORY_H
 #define ESPINA_BASIC_REPRESENTATION_FACTORY_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 #include "GUI/Representations/RepresentationFactory.h"
 #include <GUI/Model/FilterAdapter.h>
 

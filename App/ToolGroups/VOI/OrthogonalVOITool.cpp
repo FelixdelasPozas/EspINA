@@ -184,7 +184,7 @@ void OrthogonalVOITool::defineROI(Selector::Selection channels)
                  pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
                  pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
 
-  auto rrWidget = new RectangularRegion(bounds, m_viewManager);
+  auto rrWidget = new RectangularRegion(bounds);
   m_widget = EspinaWidgetSPtr(rrWidget);
   Q_ASSERT(m_widget);
   rrWidget->setResolution(m_spacing);

@@ -21,13 +21,13 @@
 #ifndef ESPINA_SELECTOR_H
 #define ESPINA_SELECTOR_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 // EspINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/BinaryMask.h>
 #include <GUI/Model/NeuroItemAdapter.h>
-#include <Support/EventHandler.h>
+#include <GUI/View/EventHandler.h>
 
 // Qt
 #include <QObject>

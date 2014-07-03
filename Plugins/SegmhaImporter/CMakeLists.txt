@@ -69,11 +69,10 @@ if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   set_target_properties(SegmhaImporterPlugin PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-# install (
-#   TARGETS SegmhaImporter
-#   LIBRARY
-#   DESTINATION bin/plugins
-#   )
+install (
+  TARGETS SegmhaImporterPlugin
+  LIBRARY DESTINATION ${INSTALL_BIN_DIR}/plugins
+  )
 #
 # set (CPACK_PACKAGE_VERSION_MAJOR ${PLUGIN_VERSION_MAJOR})
 # set (CPACK_PACKAGE_VERSION_MINOR ${PLUGIN_VERSION_MINOR})

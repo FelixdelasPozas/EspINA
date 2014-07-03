@@ -21,7 +21,7 @@
 #ifndef TUBULARSOURCE_H
 #define TUBULARSOURCE_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // EspINA
 #include <Core/Model/Filter.h>

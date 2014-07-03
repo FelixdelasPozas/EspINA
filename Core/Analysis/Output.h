@@ -29,7 +29,7 @@
 #ifndef ESPINA_OUTPUT_H
 #define ESPINA_OUTPUT_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Data.h"

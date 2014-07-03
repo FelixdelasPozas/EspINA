@@ -31,7 +31,7 @@
 #ifndef __vtkContourToPolygonFilter_h
 #define __vtkContourToPolygonFilter_h
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include "vtkPolyDataAlgorithm.h"
 

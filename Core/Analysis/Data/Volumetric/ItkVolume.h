@@ -22,7 +22,7 @@
 #ifndef ESPINA_RAW_VOLUME_H
 #define ESPINA_RAW_VOLUME_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // EspINA
 #include "Core/EspinaTypes.h"
