@@ -130,7 +130,7 @@ void Selection::set(ViewItemAdapterList selection)
       emit selectionStateChanged();
 
     if(!modifiedSegmentations.empty())
-      emit selectionStateChanged(m_segmentations);
+      emit selectionStateChanged(modifiedSegmentations);
 
     if(!modifiedChannels.empty())
       emit selectionStateChanged(modifiedChannels);
