@@ -63,6 +63,12 @@ void TaskProgress::showEvent(QShowEvent *event)
 //------------------------------------------------------------------------
 void TaskProgress::updateProgress(int value)
 {
+  if(m_task->isAborted())
+  {
+    emit aborted();
+    return;
+  }
+
   QString text = m_task->description();
 
   int valueWidth = m_progressBar->fontMetrics().width(": 100%");

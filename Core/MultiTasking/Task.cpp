@@ -160,7 +160,8 @@ bool Task::canExecute()
 //-----------------------------------------------------------------------------
 void Task::runWrapper()
 {
-  run();
+  if(!isAborted())
+    run();
 
   m_pendingPause = false;
   m_pendingUserPause = false;

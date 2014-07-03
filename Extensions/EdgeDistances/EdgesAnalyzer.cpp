@@ -76,9 +76,10 @@ void EdgesAnalyzer::run()
       m_extension->m_backgroundColor = m_bgIntensity / (NUM_EDGES - m_useDistanceToBounds);
       m_extension->m_threshold       = 10;
     }
+
+    m_extension->m_analysisResultMutex.unlock();
   }
 
-  m_extension->m_analysisResultMutex.unlock();
   //qDebug() << "Adaptive Edges Analyzed" << m_extension->m_extendedItem->name();
 }
 

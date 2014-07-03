@@ -48,6 +48,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
+#include <QThread>
 #include <boost/iterator/iterator_concepts.hpp>
 
 using namespace EspINA;
@@ -84,8 +85,15 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                     scheduler,
 //-----------------------------------------------------------------------------
 ChannelEdges::~ChannelEdges()
 {
-  m_edgesAnalyzer->abort();
-  m_edgesAnalyzer->abort();
+  if(!m_edgesAnalyzer->hasFinished())
+  {
+    m_edgesAnalyzer->abort();
+
+    if (!m_edgesAnalyzer->thread()->wait(500))
+      m_edgesAnalyzer->thread()->terminate();
+  }
+
+  m_edgesAnalyzer = nullptr;
 }
 
 //-----------------------------------------------------------------------------
