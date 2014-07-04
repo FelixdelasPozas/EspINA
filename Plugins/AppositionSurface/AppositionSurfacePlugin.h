@@ -36,7 +36,7 @@
 
 namespace EspINA
 {
-  class AppositionSurfacePlugin_EXPORT AppositionSurface
+  class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
   : public Plugin
   {
     Q_OBJECT
@@ -50,8 +50,8 @@ namespace EspINA
     };
 
   public:
-    explicit AppositionSurface();
-    virtual ~AppositionSurface();
+    explicit AppositionSurfacePlugin();
+    virtual ~AppositionSurfacePlugin();
 
     virtual void init(ModelAdapterSPtr model,
                       ViewManagerSPtr  viewManager,
@@ -142,6 +142,8 @@ namespace EspINA
 
     QMap<FilterAdapterPtr, struct Data> m_executingTasks;
     QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
+
+    friend class AppositionSurfaceToolGroup;
   };
 
 } // namespace EspINA

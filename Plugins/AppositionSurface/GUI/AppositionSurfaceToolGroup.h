@@ -38,8 +38,9 @@ class QString;
 
 namespace EspINA
 {
-  class AppositionSurfaceTool;
+  class AppositionSurfacePlugin;
 
+  class AppositionSurfaceTool;
   using SASToolPtr   = AppositionSurfaceTool *;
   using SASToolSPtr  = std::shared_ptr<AppositionSurfaceTool>;
 
@@ -55,7 +56,8 @@ namespace EspINA
     explicit AppositionSurfaceToolGroup(ModelAdapterSPtr model,
                                         QUndoStack *undoStack,
                                         ModelFactorySPtr factory,
-                                        ViewManagerSPtr viewManager);
+                                        ViewManagerSPtr viewManager,
+                                        AppositionSurfacePlugin *plugin);
 
     /* \brief AppositionSurfaceToolGroup class virtual destructor.
      *
@@ -88,36 +90,13 @@ namespace EspINA
      */
     void createSAS();
 
-    /* \brief Counts the number of SAS created (tasks finished) and adds them to the model once all
-     * have finished.
-     */
-    void finishedTask();
-
   private:
-    struct Data
-    {
-      FilterAdapterSPtr adapter;
-      SegmentationAdapterSPtr segmentation;
-
-      Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
-      Data(): adapter{nullptr}, segmentation{nullptr} {};
-    };
-
-    /* \brief Returns true if the segmentation passed as argument is a synapse.
-     * \param[in] segmentation, segmentation to test.
-     *
-     */
-    static bool isSynapse(SegmentationAdapterPtr segmentation);
-
-  private:
-    ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    QUndoStack      *m_undoStack;
-    SASToolSPtr      m_tool;
-    bool             m_enabled;
-
-    QMap<FilterAdapterPtr, struct Data> m_executingTasks;
-    QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
+    ModelAdapterSPtr         m_model;
+    ModelFactorySPtr         m_factory;
+    QUndoStack              *m_undoStack;
+    SASToolSPtr              m_tool;
+    bool                     m_enabled;
+    AppositionSurfacePlugin *m_plugin;
   };
 
   //-----------------------------------------------------------------------------

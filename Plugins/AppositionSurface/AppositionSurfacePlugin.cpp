@@ -50,11 +50,12 @@
 #include <QVariant>
 
 const QString SAS = QObject::tr("SAS");
+const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-FilterTypeList AppositionSurface::ASFilterFactory::providedFilters() const
+FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -64,7 +65,7 @@ FilterTypeList AppositionSurface::ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr AppositionSurface::ASFilterFactory::createFilter(InputSList          inputs,
+FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList          inputs,
                                                             const Filter::Type& type,
                                                             SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
@@ -78,7 +79,7 @@ FilterSPtr AppositionSurface::ASFilterFactory::createFilter(InputSList          
 }
 
 //-----------------------------------------------------------------------------
-AppositionSurface::AppositionSurface()
+AppositionSurfacePlugin::AppositionSurfacePlugin()
 : m_model           {nullptr}
 , m_factory         {nullptr}
 , m_viewManager     {nullptr}
@@ -101,7 +102,7 @@ AppositionSurface::AppositionSurface()
 }
 
 //-----------------------------------------------------------------------------
-AppositionSurface::~AppositionSurface()
+AppositionSurfacePlugin::~AppositionSurfacePlugin()
 {
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Apposition Surface Plugin";
@@ -109,7 +110,7 @@ AppositionSurface::~AppositionSurface()
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::init(ModelAdapterSPtr model,
+void AppositionSurfacePlugin::init(ModelAdapterSPtr model,
                              ViewManagerSPtr  viewManager,
                              ModelFactorySPtr factory,
                              SchedulerSPtr    scheduler,
@@ -125,7 +126,7 @@ void AppositionSurface::init(ModelAdapterSPtr model,
   m_scheduler = scheduler;
   m_undoStack = undoStack;
 
-  m_toolGroup = new AppositionSurfaceToolGroup{m_model, m_undoStack, m_factory, m_viewManager};
+  m_toolGroup = new AppositionSurfaceToolGroup{m_model, m_undoStack, m_factory, m_viewManager, this};
 
   // for automatic computation of SAS
   connect(m_model.get(), SIGNAL(segmentationsAdded(SegmentationAdapterSList)),
@@ -133,13 +134,13 @@ void AppositionSurface::init(ModelAdapterSPtr model,
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionFactorySList AppositionSurface::channelExtensionFactories() const
+ChannelExtensionFactorySList AppositionSurfacePlugin::channelExtensionFactories() const
 {
   return ChannelExtensionFactorySList();
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionFactorySList AppositionSurface::segmentationExtensionFactories() const
+SegmentationExtensionFactorySList AppositionSurfacePlugin::segmentationExtensionFactories() const
 {
   SegmentationExtensionFactorySList extensionFactories;
 
@@ -149,7 +150,7 @@ SegmentationExtensionFactorySList AppositionSurface::segmentationExtensionFactor
 }
 
 //-----------------------------------------------------------------------------
-FilterFactorySList AppositionSurface::filterFactories() const
+FilterFactorySList AppositionSurfacePlugin::filterFactories() const
 {
   FilterFactorySList factories;
 
@@ -159,13 +160,13 @@ FilterFactorySList AppositionSurface::filterFactories() const
 }
 
 //-----------------------------------------------------------------------------
-NamedColorEngineSList AppositionSurface::colorEngines() const
+NamedColorEngineSList AppositionSurfacePlugin::colorEngines() const
 {
   return NamedColorEngineSList();
 }
 
 //-----------------------------------------------------------------------------
-QList<ToolGroup *> AppositionSurface::toolGroups() const
+QList<ToolGroup *> AppositionSurfacePlugin::toolGroups() const
 {
   QList<ToolGroup *> tools;
 
@@ -175,19 +176,19 @@ QList<ToolGroup *> AppositionSurface::toolGroups() const
 }
 
 //-----------------------------------------------------------------------------
-QList<DockWidget *> AppositionSurface::dockWidgets() const
+QList<DockWidget *> AppositionSurfacePlugin::dockWidgets() const
 {
   return QList<DockWidget *>();
 }
 
 //-----------------------------------------------------------------------------
-RendererSList AppositionSurface::renderers() const
+RendererSList AppositionSurfacePlugin::renderers() const
 {
   return RendererSList();
 }
 
 //-----------------------------------------------------------------------------
-SettingsPanelSList AppositionSurface::settingsPanels() const
+SettingsPanelSList AppositionSurfacePlugin::settingsPanels() const
 {
   SettingsPanelSList settingsPanels;
 
@@ -197,7 +198,7 @@ SettingsPanelSList AppositionSurface::settingsPanels() const
 }
 
 //-----------------------------------------------------------------------------
-QList<MenuEntry> AppositionSurface::menuEntries() const
+QList<MenuEntry> AppositionSurfacePlugin::menuEntries() const
 {
   QList<MenuEntry> entries;
 
@@ -207,13 +208,13 @@ QList<MenuEntry> AppositionSurface::menuEntries() const
 }
 
 //-----------------------------------------------------------------------------
-AnalysisReaderSList AppositionSurface::analysisReaders() const
+AnalysisReaderSList AppositionSurfacePlugin::analysisReaders() const
 {
   return AnalysisReaderSList();
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::createSASAnalysis()
+void AppositionSurfacePlugin::createSASAnalysis()
 {
   // if not initialized just return
   if(m_model == nullptr)
@@ -308,13 +309,13 @@ void AppositionSurface::createSASAnalysis()
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurface::isSynapse(SegmentationAdapterPtr segmentation)
+bool AppositionSurfacePlugin::isSynapse(SegmentationAdapterPtr segmentation)
 {
   return segmentation->category()->classificationName().contains(tr("Synapse"));
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::segmentationsAdded(SegmentationAdapterSList segmentations)
+void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmentations)
 {
   QSettings settings(CESVIMA, ESPINA);
   settings.beginGroup("Apposition Surface");
@@ -363,7 +364,7 @@ void AppositionSurface::segmentationsAdded(SegmentationAdapterSList segmentation
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurface::finishedTask()
+void AppositionSurfacePlugin::finishedTask()
 {
   auto filter = qobject_cast<FilterAdapterPtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
@@ -393,11 +394,13 @@ void AppositionSurface::finishedTask()
   }
 
   CategoryAdapterSPtr category = classification->category(SAS);
+  SegmentationAdapterList createdSegmentations;
 
   for(auto filter: m_finishedTasks.keys())
   {
     auto segmentation = m_factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
     segmentation->setCategory(category);
+    segmentation->setData(SASTAG_PREPEND + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
 
     auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
     std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_finishedTasks[filter].segmentation);
@@ -408,8 +411,13 @@ void AppositionSurface::finishedTask()
 
     m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
     m_undoStack->push(new AddRelationCommand(m_finishedTasks[filter].segmentation, segmentation, SAS, m_model));
+
+    createdSegmentations << segmentation.get();
   }
   m_undoStack->endMacro();
+
+  m_viewManager->updateSegmentationRepresentations(createdSegmentations);
+  m_viewManager->updateViews();
 
   m_finishedTasks.clear();
 
@@ -426,5 +434,5 @@ void AppositionSurface::finishedTask()
   }
 }
 
-Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, EspINA::AppositionSurface)
+Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, EspINA::AppositionSurfacePlugin)
 

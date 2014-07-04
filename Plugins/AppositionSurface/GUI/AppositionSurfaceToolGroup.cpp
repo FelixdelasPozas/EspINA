@@ -20,6 +20,7 @@
 
 // plugin
 #include "AppositionSurfaceToolGroup.h"
+#include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
 
 // EspINA
@@ -39,16 +40,19 @@
 
 using namespace EspINA;
 
-const QString SAS = QObject::tr("SAS");
-
 //-----------------------------------------------------------------------------
-AppositionSurfaceToolGroup::AppositionSurfaceToolGroup(ModelAdapterSPtr model, QUndoStack *undoStack, ModelFactorySPtr factory, ViewManagerSPtr viewManager)
+AppositionSurfaceToolGroup::AppositionSurfaceToolGroup(ModelAdapterSPtr model,
+                                                       QUndoStack      *undoStack,
+                                                       ModelFactorySPtr factory,
+                                                       ViewManagerSPtr viewManager,
+                                                       AppositionSurfacePlugin *plugin)
 : ToolGroup(viewManager, QIcon(":/AppSurface.svg"), tr("Apposition Surface Tools"), nullptr)
 , m_model    {model}
 , m_factory  {factory}
 , m_undoStack{undoStack}
 , m_tool     {SASToolSPtr{new AppositionSurfaceTool{QIcon(":/AppSurface.svg"), tr("Create a synaptic apposition surface from selected segmentations.")}}}
 , m_enabled  {true}
+, m_plugin   {plugin}
 {
   m_tool->setToolTip("Create a synaptic apposition surface from selected segmentations.");
   connect(m_tool.get(), SIGNAL(triggered()), this, SLOT(createSAS()));
@@ -94,7 +98,7 @@ void AppositionSurfaceToolGroup::selectionChanged()
 
   for(auto segmentation: m_viewManager->selection()->segmentations())
   {
-    if (isSynapse(segmentation))
+    if (m_plugin->isSynapse(segmentation))
     {
       enabled = true;
       break;
@@ -115,7 +119,7 @@ void AppositionSurfaceToolGroup::createSAS()
   SegmentationAdapterList validSegmentations;
   for(auto seg: segmentations)
   {
-    if (isSynapse(seg))
+    if (m_plugin->isSynapse(seg))
     {
       bool valid = true;
       for (auto item : m_model->relatedItems(seg, RELATION_OUT))
@@ -147,80 +151,12 @@ void AppositionSurfaceToolGroup::createSAS()
 
     auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-    struct Data data(adapter, m_model->smartPointer(seg));
-    m_executingTasks.insert(adapter.get(), data);
+    struct AppositionSurfacePlugin::Data data(adapter, m_model->smartPointer(seg));
+    m_plugin->m_executingTasks.insert(adapter.get(), data);
 
-    connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+    connect(adapter.get(), SIGNAL(finished()), m_plugin, SLOT(finishedTask()));
     adapter->submit();
   }
-}
-
-//-----------------------------------------------------------------------------
-void AppositionSurfaceToolGroup::finishedTask()
-{
-  auto filter = qobject_cast<FilterAdapterPtr>(sender());
-
-  disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
-
-  if(!filter->isAborted())
-    m_finishedTasks.insert(filter, m_executingTasks[filter]);
-
-  m_executingTasks.remove(filter);
-
-  if (!m_executingTasks.empty())
-    return;
-
-  // maybe all tasks have been aborted
-  if(m_finishedTasks.empty())
-    return;
-
-  m_undoStack->beginMacro("Create Synaptic Apposition Surfaces");
-
-  auto classification = m_model->classification();
-  if (classification->category(SAS) == nullptr)
-  {
-    m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
-
-    m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
-    m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
-    m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
-  }
-
-  CategoryAdapterSPtr category = classification->category(SAS);
-  Q_ASSERT(category);
-
-  SegmentationAdapterList createdSegmentations;
-
-  for(auto filter: m_finishedTasks.keys())
-  {
-    auto segmentation = m_factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
-    segmentation->setCategory(category);
-
-    auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-    std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_finishedTasks[filter].segmentation);
-    segmentation->addExtension(extension);
-
-    auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
-    Q_ASSERT(!samples.empty());
-
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-    m_undoStack->push(new AddRelationCommand(m_finishedTasks[filter].segmentation, segmentation, SAS, m_model));
-
-    createdSegmentations << segmentation.get();
-  }
-  m_undoStack->endMacro();
-
-  m_viewManager->updateSegmentationRepresentations(createdSegmentations);
-  m_viewManager->updateViews();
-
-  m_finishedTasks.clear();
-}
-
-
-//-----------------------------------------------------------------------------
-bool AppositionSurfaceToolGroup::isSynapse(SegmentationAdapterPtr segmentation)
-{
-  return segmentation->category()->classificationName().contains(tr("Synapse"));
 }
 
 //-----------------------------------------------------------------------------
