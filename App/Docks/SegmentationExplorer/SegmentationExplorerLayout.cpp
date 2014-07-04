@@ -234,10 +234,25 @@ bool EspINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
 
   if (leftSeg->category()->name() == rightSeg->category()->name())
   {
-    if (leftSeg->number() == rightSeg->number())
+    QRegExp numExtractor("(\\d+)");
+    numExtractor.setMinimal(false);
+
+    auto stringLeft = leftSeg->data(Qt::DisplayRole).toString();
+    auto stringRight = rightSeg->data(Qt::DisplayRole).toString();
+
+    if ((numExtractor.indexIn(stringLeft) == -1) || (numExtractor.indexIn(stringRight) == -1))
+      return stringLeft < stringRight;
+
+    numExtractor.indexIn(stringLeft);
+    auto numLeft = numExtractor.cap(1).toInt();
+
+    numExtractor.indexIn(stringRight);
+    auto numRight = numExtractor.cap(1).toInt();
+
+    if (numLeft == numRight)
       return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
     else
-      return leftSeg->number() < rightSeg->number();
+      return numLeft < numRight;
   }
   else 
   {
