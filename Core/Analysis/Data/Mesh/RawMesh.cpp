@@ -95,7 +95,7 @@ vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
 //----------------------------------------------------------------------------
 NmVector3 RawMesh::spacing() const
 {
-  return NmVector3();
+  return m_output->spacing();
 }
 
 //----------------------------------------------------------------------------
