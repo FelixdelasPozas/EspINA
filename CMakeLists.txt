@@ -1,13 +1,14 @@
+cmake_minimum_required (VERSION 2.8.6)
+
+cmake_policy(SET CMP0048 OLD) # Don't use project version
+
 project (ESPINA)
 
-cmake_minimum_required (VERSION 2.8.6)
 
 add_definitions(
   -std=c++11
   -fpermissive
   )
-
-
 
 find_package(QuaZip REQUIRED)
 #if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
@@ -29,13 +30,32 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 # Notify basic plugins to avoid searching for ESPINA CMake files
 set (COMPILING_ESPINA 1)
 
-# Version Number
-set (ESPINA_VERSION_MAJOR 2)
-set (ESPINA_VERSION_MINOR 0)
-set (ESPINA_VERSION_PATCH 0)
+set (AUTOMATIC_VERSION TRUE CACHE BOOL "Detect ESPINA version automatically from git tags")
+
+if (AUTOMATIC_VERSION)
+ 
+  execute_process(COMMAND git describe --tags COMMAND cut -d. -f1 OUTPUT_VARIABLE ESPINA_VERSION_MAJOR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND git describe --tags COMMAND cut -d. -f2 OUTPUT_VARIABLE ESPINA_VERSION_MINOR OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process(COMMAND git describe --tags COMMAND cut -d. -f3 OUTPUT_VARIABLE ESPINA_VERSION_PATCH OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+endif ()
+
+if (NOT AUTOMATIC_VERSION
+    OR  ESPINA_VERSION_MAJOR STREQUAL ""
+    OR  ESPINA_VERSION_MINOR STREQUAL ""
+    OR  ESPINA_VERSION_PATCH STREQUAL "")
+  
+  # Version Number
+  set (ESPINA_VERSION_MAJOR ${FOUND_ESPINA_VERSION_MAJOR} CACHE INTEGER "ESPINA major version")
+  set (ESPINA_VERSION_MINOR ${FOUND_ESPINA_VERSION_MINOR} CACHE INTEGER "ESPINA minor version")
+  set (ESPINA_VERSION_PATCH ${FOUND_ESPINA_VERSION_PATCH} CACHE INTEGER "ESPINA patch version")
+
+endif ()
+
 set (ESPINA_VERSION
   ${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}.${ESPINA_VERSION_PATCH}
   )
+message(STATUS "ESPINA Version: ${ESPINA_VERSION}")
 
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR     lib     CACHE PATH "Installation directory for libraries")
