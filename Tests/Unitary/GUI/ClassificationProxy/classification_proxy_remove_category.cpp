@@ -31,85 +31,60 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include <Core/IO/ClassificationXML.h>
 
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "channel_proxy_testing_support.h"
+#include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
 
 using namespace std;
 using namespace EspINA;
 using namespace Testing;
 
-int channel_proxy_remove_segmentation( int argc, char** argv )
+int classification_proxy_remove_category( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  QFileInfo defaultClassification(":/espina/defaultClassification.xml");
+  auto classification = IO::ClassificationXML::load(defaultClassification);
+  analysis->setClassification(classification);
+
+
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter);
+  ModelTest           modelTester(&proxy);
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
-  OutputSList inputs;
-  Filter::Type type{"DummyFilter"};
+  modelAdapter->setAnalysis(analysis, factory);
 
-  FilterAdapterSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);
-  SegmentationAdapterSPtr segmentation = factory.createSegmentation(filter, 0);
+  auto mitocondrion = modelAdapter->classification()->category("Mitochondrion");
+  modelAdapter->removeRootCategory(mitocondrion);
 
-  modelAdapter->add(segmentation);
-
-  modelAdapter->remove(segmentation);
-
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
+//  modelAdapter->setClassification(classification);
+//
+//   auto l1   = modelAdapter->createRootCategory("Level 1");
+//   auto l1_1 = modelAdapter->createCategory("Level 1-1", l1);
+//   auto l2   = modelAdapter->createRootCategory("Level 2");
+//
+//   if (proxy.rowCount() != 2) {
+//     cerr << "Unexpected number of root categories" << endl;
+//     error = true;
+//   }
+//
+//   modelAdapter->removeRootCategory(l2);
+//
+//   if (proxy.rowCount() != 1) {
+//     cerr << "Unexpected number of root categories" << endl;
+//     error = true;
+//   }
 
   return error;
 }

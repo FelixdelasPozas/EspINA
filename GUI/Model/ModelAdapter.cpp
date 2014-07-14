@@ -289,6 +289,7 @@ QModelIndex ModelAdapter::categoryIndex(CategoryAdapterPtr category) const
   Q_ASSERT(parentCategory);
 
   CategoryAdapterSPtr subNode = parentCategory->subCategory(category->name());
+
   int row = parentCategory->subCategories().indexOf(subNode);
 
   ItemAdapterPtr internalPtr = category;
@@ -348,6 +349,12 @@ QModelIndex ModelAdapter::classificationRoot() const
 int ModelAdapter::columnCount(const QModelIndex& parent) const
 {
   return 1;
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterSPtr ModelAdapter::createRootCategory(const QString& name)
+{
+  return createCategory(name, CategoryAdapterSPtr());
 }
 
 //------------------------------------------------------------------------
@@ -883,6 +890,12 @@ void ModelAdapter::removeCategory(CategoryAdapterSPtr category, CategoryAdapterS
     parent->removeSubCategory(category);
   }
   endRemoveRows();
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::removeRootCategory(CategoryAdapterSPtr category)
+{
+  removeCategory(category, m_classification->root());
 }
 
 //------------------------------------------------------------------------

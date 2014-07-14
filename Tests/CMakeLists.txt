@@ -21,6 +21,7 @@ set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
 set( GUI_DIR        ${CMAKE_SOURCE_DIR}/GUI        )
 set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
+set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
 
 if (BUILD_UNIT_TESTS)

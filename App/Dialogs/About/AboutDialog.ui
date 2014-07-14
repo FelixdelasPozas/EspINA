@@ -38,7 +38,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="../rsc/espina.qrc">:/espina/cajalbbp.svg</pixmap>
+    <pixmap resource="../../rsc/espina.qrc">:/espina/cajalbbp.svg</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -47,11 +47,17 @@
   <widget class="QLabel" name="version">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>20</x>
      <y>60</y>
-     <width>201</width>
+     <width>351</width>
      <height>20</height>
     </rect>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
    </property>
    <property name="text">
     <string/>
@@ -73,7 +79,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="../rsc/espina.qrc">:/espina/cesvima.svg</pixmap>
+    <pixmap resource="../../rsc/espina.qrc">:/espina/cesvima.svg</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -92,7 +98,7 @@
     <string/>
    </property>
    <property name="pixmap">
-    <pixmap resource="../rsc/espina.qrc">:/espina/upm.gif</pixmap>
+    <pixmap resource="../../rsc/espina.qrc">:/espina/upm.gif</pixmap>
    </property>
    <property name="scaledContents">
     <bool>true</bool>
@@ -144,6 +150,7 @@ p, li { white-space: pre-wrap; }
   </widget>
  </widget>
  <resources>
+  <include location="../../rsc/espina.qrc"/>
   <include location="../rsc/espina.qrc"/>
  </resources>
  <connections/>

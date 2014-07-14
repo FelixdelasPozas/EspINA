@@ -26,47 +26,62 @@
  *
  */
 
-#include "Core/Analysis/Analysis.h"
-#include <GUI/Model/ClassificationAdapter.h>
+#include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/MultiTasking/Scheduler.h>
+#include <Core/IO/ClassificationXML.h>
 
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
+#include <GUI/ModelFactory.h>
+
+#include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
 
-using namespace EspINA;
 using namespace std;
+using namespace EspINA;
+using namespace Testing;
 
-int channel_proxy_replace_classification( int argc, char** argv )
+int classification_proxy_set_default_classification( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  QFileInfo defaultClassification(":/espina/defaultClassification.xml");
+  auto classification = IO::ClassificationXML::load(defaultClassification);
+  analysis->setClassification(classification);
 
-  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
-  classification->setName("Test");
-  classification->createCategory("Level 1/Level 2");
 
-  modelAdapter->setClassification(classification);
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter);
+  ModelTest           modelTester(&proxy);
 
-  if (analysis->classification()->name() != classification->name()) {
-    cerr << "Unexpected classification name in analysis" << endl;
-    error = true;
-  }
+  SchedulerSPtr sch;
+  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
+  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
-  ClassificationAdapterSPtr classification2{new ClassificationAdapter()};
-  classification->setName("Test2");
-  classification->createCategory("Level 21/Level 22");
+  modelAdapter->setAnalysis(analysis, factory);
 
-  modelAdapter->setClassification(classification2);
-
-  if (analysis->classification()->name() != classification2->name()) {
-    cerr << "Unexpected classification name in analysis" << endl;
-    error = true;
-  }
+//  modelAdapter->setClassification(classification);
+//
+//   auto l1   = modelAdapter->createRootCategory("Level 1");
+//   auto l1_1 = modelAdapter->createCategory("Level 1-1", l1);
+//   auto l2   = modelAdapter->createRootCategory("Level 2");
+//
+//   if (proxy.rowCount() != 2) {
+//     cerr << "Unexpected number of root categories" << endl;
+//     error = true;
+//   }
+//
+//   modelAdapter->removeRootCategory(l2);
+//
+//   if (proxy.rowCount() != 1) {
+//     cerr << "Unexpected number of root categories" << endl;
+//     error = true;
+//   }
 
   return error;
 }

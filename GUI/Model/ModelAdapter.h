@@ -127,11 +127,13 @@ namespace EspINA
 
     const ClassificationAdapterSPtr classification() const;
 
-    CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterPtr  parent=nullptr);
-    CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterSPtr parent=CategoryAdapterSPtr());
+    CategoryAdapterSPtr createRootCategory(const QString& name);
+    CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterPtr  parent);
+    CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterSPtr parent);
 
-    void addCategory   (CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
-    void removeCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
+    void addCategory       (CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
+    void removeCategory    (CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
+    void removeRootCategory(CategoryAdapterSPtr category);
 
     //TODO 2013-10-21: Throw exception if they don't belong to the same classification
     void reparentCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);

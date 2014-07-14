@@ -108,14 +108,11 @@ CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificatio
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativeName, CategoryAdapterSPtr parent)
 {
-  CategoryAdapterPtr parentCategoryAdapter = nullptr;
+  CategoryAdapterPtr parentCategoryAdapter = parent.get();
 
-  if(parent != nullptr)
+  if(parentCategoryAdapter == nullptr)
   {
-    parentCategoryAdapter = parent.get();
-
-    if(parentCategoryAdapter == nullptr)
-      parentCategoryAdapter = m_classificationAdapter.root().get();
+    parentCategoryAdapter = m_classificationAdapter.root().get();
   }
 
   CategoryPtr parentCategory = parentCategoryAdapter->m_category.get();

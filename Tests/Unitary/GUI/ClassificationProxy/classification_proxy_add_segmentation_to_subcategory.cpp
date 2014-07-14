@@ -33,89 +33,85 @@
 #include <Core/MultiTasking/Scheduler.h>
 
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "channel_proxy_testing_support.h"
+#include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
 
 using namespace std;
 using namespace EspINA;
 using namespace Testing;
 
-int channel_proxy_reset( int argc, char** argv )
+int classification_proxy_add_segmentation_to_subcategory( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter);
+  ModelTest           modelTester(&proxy);
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
+  classification->setName("Test");
+  auto category1   = classification->createCategory("Level 1");
+  auto category1_1 = classification->createCategory("Level 1/Level 1-1");
+
+  modelAdapter->setClassification(classification);
+
+  if (proxy.rowCount() != 1) {
+    cerr << "Unexpected number of root categories" << endl;
+    error = true;
+  }
+
+  auto level1 = proxy.index(0, 0);
+  if (proxy.rowCount(level1) != 1) {
+    cerr << "Unexpected number of level 1 row count" << endl;
+    error = true;
+  }
+
+  auto level1_1 = level1.child(0, 0);
+  if (proxy.rowCount(level1_1) != 0) {
+    cerr << "Unexpected number of level 1-1 row count" << endl;
+    error = true;
+  }
 
   SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  ModelFactory factory(CoreFactorySPtr{new CoreFactory(sch)});
 
-  SampleAdapterSPtr sample = factory.createSample("sample");
-  modelAdapter->add(sample);
-
-  OutputSList inputs;
+  InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);
+  FilterAdapterSPtr       filter          = factory.createFilter<DummyFilter>(inputs, type);
+  SegmentationAdapterSPtr segmentation1   = factory.createSegmentation(filter, 0);
 
-  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
-  modelAdapter->add(channel);
+  segmentation1->setCategory(category1);
 
-  SegmentationAdapterSPtr segmentation = factory.createSegmentation(filter, 0);
-  modelAdapter->add(segmentation);
+  modelAdapter->add(segmentation1);
 
-  modelAdapter->reset();
-
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
+  if (proxy.rowCount(level1) != 2) {
+    cerr << "Unexpected number of level 1 row count" << endl;
     error = true;
   }
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
+  if (proxy.rowCount(level1_1) != 0) {
+    cerr << "Unexpected number of level 1-1 row count" << endl;
     error = true;
   }
 
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
+  SegmentationAdapterSPtr segmentation1_1 = factory.createSegmentation(filter, 0);
+
+  segmentation1_1->setCategory(category1_1);
+
+  modelAdapter->add(segmentation1_1);
+
+  if (proxy.rowCount(level1) != 2) {
+    cerr << "Unexpected number of level 1 row count" << endl;
     error = true;
   }
 
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
+  if (proxy.rowCount(level1_1) != 1) {
+    cerr << "Unexpected number of level 1-1 row count" << endl;
     error = true;
   }
-
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
-
   return error;
 }

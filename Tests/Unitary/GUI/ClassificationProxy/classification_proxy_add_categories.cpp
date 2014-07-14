@@ -33,84 +33,58 @@
 #include <Core/MultiTasking/Scheduler.h>
 
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "channel_proxy_testing_support.h"
+#include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
 
 using namespace std;
 using namespace EspINA;
 using namespace Testing;
 
-int channel_proxy_remove_non_existing_channel( int argc, char** argv )
+int classification_proxy_add_categories( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter);
+  ModelTest           modelTester(&proxy);
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter(analysis));
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
 
-  SchedulerSPtr sch;
-  ModelFactory factory(sch);
+  modelAdapter->setClassification(classification);
 
-  OutputSList inputs;
-  Filter::Type type{"DummyFilter"};
+  auto l1 = modelAdapter->createRootCategory("Level 1");
 
-  FilterAdapterSPtr  filter  = factory.createFilter<DummyFilter>(inputs, type);
-  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
-
-  try {
-    modelAdapter->remove(channel);
-    cerr << "Non existing channel removed" << endl;
-  } catch (ModelAdapter::Item_Not_Found_Exception e) {
-    error = false;
-  }
-
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
+  if (proxy.rowCount() != 1) {
+    cerr << "Unexpected number of root categories" << endl;
     error = true;
   }
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
+  auto level1 = proxy.index(0, 0);
+
+  if (proxy.rowCount(level1) != 0) {
+    cerr << "Unexpected number of level 1 row count" << endl;
     error = true;
   }
 
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
+  auto l1_1 = modelAdapter->createCategory("Level 1-1", l1);
+
+  if (proxy.rowCount() != 1) {
+    cerr << "Unexpected number of root categories" << endl;
     error = true;
   }
 
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
+  if (proxy.rowCount(level1) != 1) {
+    cerr << "Unexpected number of level 1 row count" << endl;
     error = true;
   }
 
-  if (!analysis->extensionProviders().isEmpty()) {
-    cerr << "Unexpected number of extension providers in analysis" << endl;
-    error = true;
-  }
+  auto l2 = modelAdapter->createRootCategory("Level 2");
 
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
+  if (proxy.rowCount() != 2) {
+    cerr << "Unexpected number of root categories" << endl;
     error = true;
   }
 

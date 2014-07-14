@@ -129,8 +129,9 @@ void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
 {
   // do not add if already present
   for(auto category: m_subCategories)
-    if(category == subCategory)
-      return;
+  {
+    if(category == subCategory) return;
+  }
 
   subCategory->m_parent = this;
   m_subCategories << subCategory;
@@ -185,9 +186,6 @@ void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
   {
     subNode->m_parent = nullptr;
     m_subCategories.removeAt(index);
-
-    auto parent = subCategory->m_category->parent();
-    parent->removeSubCategory(subCategory->m_category);
   }
 }
 
