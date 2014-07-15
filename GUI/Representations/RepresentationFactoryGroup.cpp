@@ -19,10 +19,12 @@
  *
  */
 
+// EspINA
 #include "RepresentationFactoryGroup.h"
 
 using namespace EspINA;
 
+//-----------------------------------------------------------------------------
 void RepresentationFactoryGroup::addRepresentationFactory(RepresentationFactorySPtr factory)
 {
   for(auto representation : factory->representations())
@@ -33,12 +35,13 @@ void RepresentationFactoryGroup::addRepresentationFactory(RepresentationFactoryS
   }
 }
 
+//-----------------------------------------------------------------------------
 RepresentationTypeList RepresentationFactoryGroup::representations() const
 {
   return m_factories.keys();
 }
 
-
+//-----------------------------------------------------------------------------
 RepresentationSPtr RepresentationFactoryGroup::createRepresentation(OutputSPtr output, Representation::Type type)
 {
   return m_factories[type]->createRepresentation(output, type);

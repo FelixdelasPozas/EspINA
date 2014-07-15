@@ -50,21 +50,21 @@ TransparencySelectionHighlighter *ContourRepresentation::s_highlighter = new Tra
 //-----------------------------------------------------------------------------
 ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
                                              RenderView               *view)
-: Representation(view)
-, m_planeIndex{-1}
+: Representation{view}
+, m_planeIndex  {-1}
 , m_reslicePoint{-1}
-, m_data{data}
+, m_data        {data}
 , m_voxelContour{nullptr}
-, m_textureIcon{nullptr}
-, m_texture{nullptr}
-, m_tubes{nullptr}
-, m_mapper{nullptr}
-, m_actor{nullptr}
-, m_width{medium}
-, m_pattern{normal}
-, m_minSpacing{0}
+, m_textureIcon {nullptr}
+, m_texture     {nullptr}
+, m_tubes       {nullptr}
+, m_mapper      {nullptr}
+, m_actor       {nullptr}
+, m_width       {medium}
+, m_pattern     {normal}
+, m_minSpacing  {0}
 {
-  setType(tr("Contour"));
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -80,8 +80,7 @@ void ContourRepresentation::setColor(const QColor &color)
 
   if (m_actor != nullptr)
   {
-    LUTSPtr lut = s_highlighter->lut(m_color, m_highlight);
-
+    auto lut = s_highlighter->lut(m_color, m_highlight);
     double rgba[4];
     s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
 
@@ -126,7 +125,7 @@ bool ContourRepresentation::isInside(const NmVector3 &point) const
   if (!intersect(m_data->bounds(), bounds))
     return false;
 
-  itkVolumeType::Pointer voxel = m_data->itkImage(bounds);
+  auto voxel = m_data->itkImage(bounds);
 
   return (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
 }
@@ -140,7 +139,7 @@ void ContourRepresentation::initializePipeline()
   Bounds imageBounds = m_data->bounds();
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> image = nullptr;
 
   if (valid)
   {
@@ -155,9 +154,10 @@ void ContourRepresentation::initializePipeline()
     m_reslicePoint = -1;
     int extent[6] = { 0,1,0,1,0,1 };
     extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
+    image = vtkSmartPointer<vtkImageData>::New();
     image->SetExtent(extent);
 
-    vtkInformation *info = image->GetInformation();
+    auto info = image->GetInformation();
     vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
     vtkImageData::SetNumberOfScalarComponents(1, info);
     image->SetInformation(info);
@@ -230,7 +230,7 @@ void ContourRepresentation::updateRepresentation()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid)
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid && isVisible())
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
 
@@ -276,7 +276,7 @@ QList<vtkProp*> ContourRepresentation::getActors()
 //-----------------------------------------------------------------------------
 RepresentationSPtr ContourRepresentation::cloneImplementation(View2D *view)
 {
-  ContourRepresentation *representation = new ContourRepresentation(m_data, view);
+  auto representation = new ContourRepresentation(m_data, view);
   representation->setView(view);
   representation->setPlane(view->plane());
 
@@ -286,6 +286,9 @@ RepresentationSPtr ContourRepresentation::cloneImplementation(View2D *view)
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updateVisibility(bool visible)
 {
+  if(visible && m_actor != nullptr && needUpdate())
+    updateRepresentation();
+
   if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }
@@ -301,7 +304,7 @@ void ContourRepresentation::setLineWidth(ContourRepresentation::LineWidth width)
 
   for (auto clone: m_clones)
   {
-    ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
+    auto contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLineWidth(width);
   }
 }
@@ -323,7 +326,7 @@ void ContourRepresentation::setLinePattern(ContourRepresentation::LinePattern pa
 
   for (auto clone: m_clones)
   {
-    ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
+    auto contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLinePattern(pattern);
   }
 }

@@ -25,24 +25,23 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// EspINA
 #include "Representation.h"
-
 #include <GUI/View/View2D.h>
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 Representation::Representation(RenderView *view) 
-: m_brightness(0)
-, m_contrast(1)
-, m_opacity(1)
-, m_color(Qt::white)
-, m_highlight(false)
-, m_view(view)
-, m_lastUpdatedTime(0)
-, m_active(true)
-, m_visible(true)
+: m_brightness     {0}
+, m_contrast       {1}
+, m_opacity        {1}
+, m_color          {Qt::white}
+, m_highlight      {false}
+, m_view           {view}
+, m_lastUpdatedTime{0}
+, m_active         {true}
+, m_visible        {true}
 {}
 
 //-----------------------------------------------------------------------------

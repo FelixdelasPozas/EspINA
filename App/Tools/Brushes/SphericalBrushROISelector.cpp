@@ -101,7 +101,7 @@ namespace EspINA
     }
     m_preview = vtkSmartPointer<vtkImageData>::New();
     m_preview->SetOrigin(0, 0, 0);
-    vtkInformation *info = m_preview->GetInformation();
+    auto info = m_preview->GetInformation();
     m_preview->SetExtent(extent);
     m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
     vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
@@ -109,7 +109,7 @@ namespace EspINA
     m_preview->SetInformation(info);
     m_preview->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
     m_preview->Modified();
-    unsigned char *imagePointer = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer());
+    auto imagePointer = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer());
     memset(imagePointer, 0, m_preview->GetNumberOfPoints());
     m_previewBounds = previewBounds.bounds();
     m_preview->Modified();
@@ -133,11 +133,11 @@ namespace EspINA
     m_actor->Update();
 
     // preview actor must be above others or it will be occluded
-    View2D* view2d = qobject_cast<View2D *>(m_previewView);
+    auto view2d = qobject_cast<View2D *>(m_previewView);
     double pos[3];
     m_actor->GetPosition(pos);
     int index = normalCoordinateIndex(view2d->plane());
-    pos[index] = pos[index] + ((index == 2) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT);
+    pos[index] += view2d->segmentationDepth();
     m_actor->SetPosition(pos);
 
     m_previewView->addActor(m_actor);

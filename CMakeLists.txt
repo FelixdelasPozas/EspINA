@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8.6)
 
-cmake_policy(SET CMP0048 OLD) # Don't use project version
+if(CMAKE_MAJOR_VERSION EQUAL 3 OR CMAKE_MAJOR_VERSION GREATER 3)
+  cmake_policy(SET CMP0048 OLD) # Don't use project version
+endif()
 
 project (ESPINA)
 

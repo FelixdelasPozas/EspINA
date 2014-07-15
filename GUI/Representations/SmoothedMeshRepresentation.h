@@ -60,7 +60,7 @@ namespace EspINA
     void initializePipeline();
 
   private:
-    vtkSmartPointer<vtkDecimatePro>                m_decimate;
+    vtkSmartPointer<vtkDecimatePro> m_decimate;
   };
 
   using SmoothedMeshRepresentationSPtr  = std::shared_ptr<SmoothedMeshRepresentation>;

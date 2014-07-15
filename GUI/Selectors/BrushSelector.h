@@ -58,7 +58,7 @@ namespace EspINA
       enum BrushMode {BRUSH, ERASER};
       enum DrawMode {CREATE, MODIFY};
 
-      using BrushShape     = QPair<vtkImplicitFunction*, Bounds>;
+      using BrushShape     = QPair<vtkSmartPointer<vtkImplicitFunction>, Bounds>;
       using BrushShapeList = QList<BrushShape>;
 
       using Spacing = itkVolumeType::SpacingType;

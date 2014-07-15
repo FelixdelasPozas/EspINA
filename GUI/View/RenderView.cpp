@@ -45,18 +45,16 @@
 #include <QPushButton>
 #include <QDebug>
 
-//using EspINA::ModelAdapterUtils::volumetricData;
-
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 RenderView::RenderView(QWidget* parent)
-: QWidget(parent)
-, m_colorEngine{new NumberColorEngine()}
-, m_view{new QVTKWidget()}
-, m_sceneResolution{1, 1, 1}
-, m_sceneCameraInitialized(false)
-, m_showSegmentations(true)
+: QWidget                 {parent}
+, m_colorEngine           {new NumberColorEngine()}
+, m_view                  {new QVTKWidget()}
+, m_sceneResolution       {1, 1, 1}
+, m_sceneCameraInitialized{false}
+, m_showSegmentations     {true}
 {
 }
 
@@ -65,6 +63,8 @@ RenderView::~RenderView()
 {
   m_widgets.clear();
   m_renderers.clear();
+
+  delete m_view;
 }
 
 //-----------------------------------------------------------------------------
@@ -268,12 +268,6 @@ void RenderView::add(ChannelAdapterPtr channel)
   updateSceneBounds();
 
   updateRepresentation(channel, false);
-
-  // NOTE: this signal is not disconnected when a channel is removed because is
-  // used in the redo/undo of UnloadChannelCommand
-  //TODO 2013-10-04 
-//   connect(channel->volume().get(), SIGNAL(representationChanged()),
-//           this, SLOT(updateSceneBounds()));
 }
 
 

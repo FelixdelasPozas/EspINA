@@ -82,9 +82,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SmoothedMeshRenderer::managesRepresentation(const QString &repName) const
+  bool SmoothedMeshRenderer::managesRepresentation(const QString &repType) const
   {
-    return (repName == SmoothedMeshRepresentation::TYPE);
+    return (repType == SmoothedMeshRepresentation::TYPE);
   }
   
 } // namespace EspINA

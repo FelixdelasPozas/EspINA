@@ -489,6 +489,9 @@ void ChannelEdges::computeSurfaces()
     poly->SetPoints(facePoints);
     poly->SetPolys(faceCells);
 
+    facePoints->Delete();
+    faceCells->Delete();
+
     m_faces[face] = poly;
  }
 }

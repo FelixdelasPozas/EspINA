@@ -89,9 +89,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool ContourRenderer::managesRepresentation(const QString &repName) const
+  bool ContourRenderer::managesRepresentation(const QString &repType) const
   {
-    return (repName == ContourRepresentation::TYPE);
+    return (repType == ContourRepresentation::TYPE);
   }
 
   //-----------------------------------------------------------------------------

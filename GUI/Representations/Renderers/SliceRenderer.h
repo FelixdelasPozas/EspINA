@@ -48,7 +48,7 @@ namespace EspINA
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
       virtual bool hasRepresentation(RepresentationSPtr rep) const;
-      virtual bool managesRepresentation(const QString &representationName) const;
+      virtual bool managesRepresentation(const QString &representationType) const;
 
       virtual RendererSPtr clone() const        { return RendererSPtr(new SliceRenderer()); }
 
@@ -64,6 +64,11 @@ namespace EspINA
                                        vtkSmartPointer<vtkRenderer> renderer,
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);
+
+      /* \brief Implements Renderer::setView(RenderView *view);
+       *
+       */
+      virtual void setView(RenderView *view);
 
     protected:
       virtual void hide();

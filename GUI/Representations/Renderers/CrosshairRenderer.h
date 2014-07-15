@@ -56,7 +56,7 @@ namespace EspINA
     virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
     virtual void removeRepresentation(RepresentationSPtr rep);
     virtual bool hasRepresentation(RepresentationSPtr rep) const;
-    virtual bool managesRepresentation(const QString &representationName) const;
+    virtual bool managesRepresentation(const QString &representationType) const;
 
     virtual RendererSPtr clone() const { return RendererSPtr(new CrosshairRenderer()); }
 
@@ -79,6 +79,11 @@ namespace EspINA
     void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
     void setCrosshair(NmVector3 point);
     void setPlanePosition(Plane plane, Nm dist);
+
+    /* \brief Implements Renderer::setView(RenderView *view);
+     *
+     */
+    virtual void setView(RenderView *view);
 
   private:
     virtual void hide();

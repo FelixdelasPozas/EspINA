@@ -33,8 +33,8 @@ TransparencySelectionHighlighter *MeshRepresentationBase::s_highlighter = new Tr
 
 //-----------------------------------------------------------------------------
 MeshRepresentationBase::MeshRepresentationBase(MeshDataSPtr mesh, RenderView *view)
-: Representation(view)
-, m_data(mesh)
+: Representation{view}
+, m_data        {mesh}
 {
 }
 
@@ -45,7 +45,7 @@ void MeshRepresentationBase::setColor(const QColor &color)
 
   if (m_actor != nullptr)
   {
-    LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
+    auto colors = s_highlighter->lut(m_color, m_highlight);
     double *rgba = colors->GetTableValue(1);
     m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
@@ -59,7 +59,7 @@ void MeshRepresentationBase::setHighlighted(bool highlighted)
 
   if (m_actor != nullptr)
   {
-    LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
+    auto colors = s_highlighter->lut(m_color, m_highlight);
     double *rgba = colors->GetTableValue(1);
     m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
@@ -96,6 +96,9 @@ QList<vtkProp *> MeshRepresentationBase::getActors()
 //-----------------------------------------------------------------------------
 void MeshRepresentationBase::updateVisibility(bool visible)
 {
+  if(visible && needUpdate())
+    updateRepresentation();
+
   if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }

@@ -46,6 +46,8 @@ namespace EspINA
     };
     Q_DECLARE_FLAGS(Composition, Components)
 
+    using LUTMap = QMap<QString, LUTSPtr>;
+
   public:
     virtual QColor color(SegmentationAdapterPtr seg) = 0;
     virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;

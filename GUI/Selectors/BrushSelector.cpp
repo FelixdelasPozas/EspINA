@@ -476,9 +476,10 @@ void BrushSelector::startPreview(RenderView* view)
     }
     m_preview = vtkSmartPointer<vtkImageData>::New();
     m_preview->SetOrigin(0, 0, 0);
-    vtkInformation *info = m_preview->GetInformation();
     m_preview->SetExtent(extent);
     m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
+
+    auto info = m_preview->GetInformation();
     vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
     vtkImageData::SetNumberOfScalarComponents(1, info);
     m_preview->SetInformation(info);
@@ -528,7 +529,7 @@ void BrushSelector::startPreview(RenderView* view)
   m_actor->Update();
 
   // preview actor must be above others or it will be occluded
-  View2D* view2d = qobject_cast<View2D *>(m_previewView);
+  auto view2d = qobject_cast<View2D *>(m_previewView);
   double pos[3];
   m_actor->GetPosition(pos);
   int index = normalCoordinateIndex(view2d->plane());

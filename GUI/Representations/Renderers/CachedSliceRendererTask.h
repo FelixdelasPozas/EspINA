@@ -60,12 +60,6 @@ namespace EspINA
        */
       virtual void setInput(CachedSliceRenderer::CacheNode *node, CachedRepresentationSList representations);
 
-      /* \brief Returns the time in milliseconds the task run() method has executed doing the work.
-       *
-       */
-      long long getExecutionTime()
-      { return m_executionTime; }
-
     signals:
       void ready(CachedSliceRenderer::CacheNode *);
 
@@ -92,8 +86,6 @@ namespace EspINA
       bool needToRestart();
 
       QMap<CachedRepresentationSPtr, vtkSmartPointer<vtkImageActor>> m_representations;
-
-      long long                       m_executionTime;
       CachedSliceRenderer::CacheNode *m_node;
       Nm                              m_position;
   };

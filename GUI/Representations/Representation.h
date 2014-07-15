@@ -172,9 +172,9 @@ namespace EspINA
     QColor m_color;
     bool   m_highlight;
 
-    RenderView*   m_view;
-    NmVector3     m_crosshair;
-    mutable TimeStamp     m_lastUpdatedTime;
+    RenderView       *m_view;
+    NmVector3         m_crosshair;
+    mutable TimeStamp m_lastUpdatedTime;
 
     RepresentationSList m_clones;
 

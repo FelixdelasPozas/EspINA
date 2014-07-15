@@ -156,8 +156,8 @@ namespace EspINA
 
   protected:
     explicit Renderer(QObject* parent = 0)
-    : m_enable(false)
-    , m_view (nullptr)
+    : m_enable{false}
+    , m_view  {nullptr}
     {}
 
   protected:

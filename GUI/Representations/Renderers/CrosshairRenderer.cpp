@@ -33,10 +33,9 @@ using namespace EspINA;
 
 //-----------------------------------------------------------------------------
 CrosshairRenderer::CrosshairRenderer(QObject* parent)
-: ChannelRenderer(parent)
-, m_picker(vtkSmartPointer<vtkPropPicker>::New())
+: ChannelRenderer{parent}
+, m_picker       {nullptr}
 {
-  m_picker->PickFromListOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -45,18 +44,26 @@ CrosshairRenderer::~CrosshairRenderer()
   for(auto item: m_representations.keys())
   {
     if (m_enable)
-    {
       for(auto rep: m_representations[item])
         for(auto prop: rep->getActors())
-        {
           m_view->removeActor(prop);
-          m_picker->DeletePickList(prop);
-        }
-    }
 
     m_representations[item].clear();
   }
   m_representations.clear();
+
+  if(m_picker != nullptr)
+    m_picker->GetPickList()->RemoveAllItems();
+}
+
+//-----------------------------------------------------------------------------
+void CrosshairRenderer::setView(RenderView *view)
+{
+  Renderer::setView(view);
+
+  m_picker = vtkSmartPointer<vtkPropPicker>::New();
+  m_picker->InitializePickList();
+  m_picker->PickFromListOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -120,9 +127,9 @@ bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep) const
 }
 
 //-----------------------------------------------------------------------------
-bool CrosshairRenderer::managesRepresentation(const QString &repName) const
+bool CrosshairRenderer::managesRepresentation(const QString &repType) const
 {
-  return (repName == CrosshairRepresentation::TYPE);
+  return (repType == CrosshairRepresentation::TYPE);
 }
 
 //-----------------------------------------------------------------------------

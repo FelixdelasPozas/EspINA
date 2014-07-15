@@ -40,7 +40,7 @@ namespace EspINA
   {
     public:
       explicit RepresentationRenderer(QObject* parent = nullptr)
-      : Renderer(parent)
+      : Renderer{parent}
       {};
 
       virtual ~RepresentationRenderer()
@@ -49,7 +49,7 @@ namespace EspINA
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) = 0;
       virtual void removeRepresentation(RepresentationSPtr rep) = 0;
       virtual bool hasRepresentation(RepresentationSPtr rep) const = 0;
-      virtual bool managesRepresentation(const QString &representationName) const = 0;
+      virtual bool managesRepresentation(const QString &representationType) const = 0;
 
       virtual RenderableItems renderableItems() const
       { return RenderableItems(); }

@@ -100,6 +100,14 @@ namespace EspINA
       TimeStamp getModificationTime()
       { return m_lastUpdatedTime; }
 
+      /* \brief Implements Representation::needUpdate();
+       *
+       */
+      virtual bool needUpdate() const
+      {
+        return (m_data->lastModified() != m_lastUpdatedTime);
+      }
+
     protected:
       /* \brief Compute the values of m_min && m_max for the representation.
        *
@@ -297,7 +305,7 @@ namespace EspINA
       { return RepresentationSPtr(); }
 
     private:
-      NmVector3                 m_depth;      // depth of the actor for this view
+      NmVector3 m_depth; // depth of the actor for this view
   };
 
   using SegmentationSliceCachedRepresentationPtr  = SegmentationSliceCachedRepresentation *;

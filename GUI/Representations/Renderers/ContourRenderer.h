@@ -41,7 +41,7 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(const QString &repName) const;
+      virtual bool managesRepresentation(const QString &representationType) const;
 
       virtual RendererSPtr clone() const           { return RendererSPtr(new ContourRenderer()); }
       virtual RendererTypes renderType() const     { return RendererTypes(RENDERER_VIEW2D); }

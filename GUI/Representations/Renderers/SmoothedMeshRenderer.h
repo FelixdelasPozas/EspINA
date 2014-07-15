@@ -43,7 +43,7 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(const QString &repName) const;
+      virtual bool managesRepresentation(const QString &repType) const;
 
       virtual RendererSPtr clone() const    { return RendererSPtr(new SmoothedMeshRenderer()); }
   };

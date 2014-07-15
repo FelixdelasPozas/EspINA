@@ -38,11 +38,11 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   CachedRepresentation::CachedRepresentation(DefaultVolumetricDataSPtr data,
                                              View2D *view)
-  : Representation(view)
-  , m_data{data}
-  , m_planeIndex{-1}
-  , m_min{-1}
-  , m_max{-1}
+  : Representation{view}
+  , m_data        {data}
+  , m_planeIndex  {-1}
+  , m_min         {-1}
+  , m_max         {-1}
   {}
 
   //-----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   RepresentationSPtr ChannelSliceCachedRepresentation::cloneImplementation(View2D* view)
   {
-    ChannelSliceCachedRepresentation *representation =  new ChannelSliceCachedRepresentation(m_data, view);
+    auto representation =  new ChannelSliceCachedRepresentation(m_data, view);
     representation->setView(view);
 
     return RepresentationSPtr(representation);
@@ -117,7 +117,7 @@ namespace EspINA
 
     auto slice = vtkImage(m_data, imageBounds);
 
-    vtkSmartPointer<vtkImageShiftScale> shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
+    auto shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
     shiftScaleFilter->SetInputData(slice);
     shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
     shiftScaleFilter->SetScale(m_contrast);
@@ -125,7 +125,7 @@ namespace EspINA
     shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
     shiftScaleFilter->Update();
 
-    vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+    auto lut = vtkSmartPointer<vtkLookupTable>::New();
     lut->Allocate();
     lut->SetTableRange(0,255);
     lut->SetHueRange(m_color.hueF(), m_color.hueF());
@@ -136,13 +136,13 @@ namespace EspINA
     lut->SetRampToLinear();
     lut->Build();
 
-    vtkSmartPointer<vtkImageMapToColors> mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+    auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
     mapToColors->SetInputConnection(shiftScaleFilter->GetOutputPort());
     mapToColors->SetLookupTable(lut);
     mapToColors->SetNumberOfThreads(1);
     mapToColors->Update();
 
-    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    auto actor = vtkSmartPointer<vtkImageActor>::New();
     actor->SetInterpolate(false);
     actor->GetMapper()->BorderOn();
     actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
@@ -158,7 +158,10 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ChannelSliceCachedRepresentation::updateRepresentation()
   {
-    if(m_data->lastModified() != m_lastUpdatedTime)
+    if(!isVisible())
+      return;
+
+    if(needUpdate())
     {
       computeLimits();
       emit update();
@@ -181,8 +184,8 @@ namespace EspINA
 
   //-----------------------------------------------------------------------------
   SegmentationSliceCachedRepresentation::SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data, View2D *view)
-  : CachedRepresentation(data, view)
-  , m_depth{NmVector3()}
+  : CachedRepresentation{data, view}
+  , m_depth             {NmVector3()}
   {
     setType(TYPE);
     connect(data.get(), SIGNAL(dataChanged()), this, SLOT(dataChanged()), Qt::QueuedConnection);
@@ -207,8 +210,7 @@ namespace EspINA
       QStringList values = settings.split(";");
 
       double alphaF = values[1].toDouble();
-
-      QColor currentColor = color();
+      auto currentColor = color();
       currentColor.setAlphaF(alphaF);
 
       Representation::restoreSettings(values[0]);
@@ -255,7 +257,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   RepresentationSPtr SegmentationSliceCachedRepresentation::cloneImplementation(View2D* view)
   {
-    SegmentationSliceCachedRepresentation *representation =  new SegmentationSliceCachedRepresentation(m_data, view);
+    auto representation =  new SegmentationSliceCachedRepresentation(m_data, view);
     representation->setView(view);
 
     return RepresentationSPtr(representation);
@@ -277,13 +279,13 @@ namespace EspINA
 
     auto slice = vtkImage(m_data, imageBounds);
 
-    vtkSmartPointer<vtkImageMapToColors> mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+    auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
     mapToColors->SetInputData(slice);
     mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
     mapToColors->SetNumberOfThreads(1);
     mapToColors->Update();
 
-    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    auto actor = vtkSmartPointer<vtkImageActor>::New();
     actor->SetInterpolate(false);
     actor->GetMapper()->BorderOn();
     actor->GetMapper()->ReleaseDataFlagOn();
@@ -317,7 +319,10 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::updateRepresentation()
   {
-    if(m_data->lastModified() != m_lastUpdatedTime)
+    if(!isVisible())
+      return;
+
+    if(needUpdate())
     {
       computeLimits();
       emit update();
@@ -338,12 +343,11 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::dataChanged()
   {
-    if(m_data->lastModified() != m_lastUpdatedTime)
+    if(needUpdate())
     {
       computeLimits();
       emit update();
     }
   }
-
 
 } // namespace EspINA

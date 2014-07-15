@@ -140,10 +140,10 @@ namespace EspINA
     // GUI
     QVBoxLayout *m_mainLayout;
     QHBoxLayout *m_controlLayout;
-    QPushButton m_snapshot;
-    QPushButton m_export;
-    QPushButton m_zoom;
-    QPushButton m_renderConfig;
+    QPushButton *m_snapshot;
+    QPushButton *m_export;
+    QPushButton *m_zoom;
+    QPushButton *m_renderConfig;
 
     // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;

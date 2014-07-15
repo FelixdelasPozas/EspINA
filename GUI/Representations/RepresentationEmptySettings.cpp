@@ -32,11 +32,9 @@ RepresentationEmptySettings::RepresentationEmptySettings()
 //----------------------------------------------------------------------------
 void RepresentationEmptySettings::get(RepresentationSPtr representation)
 {
-
 }
 
 //----------------------------------------------------------------------------
 void RepresentationEmptySettings::set(RepresentationSPtr representation)
 {
-
 }

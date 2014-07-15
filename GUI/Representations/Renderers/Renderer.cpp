@@ -1,6 +1,6 @@
 /*
     
-    Copyright (C) 2014  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "Renderer.h"
 
 //-----------------------------------------------------------------------------

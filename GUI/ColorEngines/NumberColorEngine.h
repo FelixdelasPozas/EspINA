@@ -39,7 +39,7 @@ namespace EspINA
     { return ColorEngine::Color; }
 
   private:
-    QMap<QString, LUTSPtr> m_LUT;
+    LUTMap m_LUT;
   };
 
   using NumberColorEngineSPtr = std::shared_ptr<NumberColorEngine>;

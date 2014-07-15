@@ -367,7 +367,7 @@ namespace EspINA {
     transform->SetInput(itkImage);
     transform->Update();
 
-    vtkSmartPointer<vtkImageData> returnImage = vtkImageData::New();
+    auto returnImage = vtkSmartPointer<vtkImageData>::New();
     returnImage->DeepCopy(transform->GetOutput());
     return returnImage;
   }
@@ -388,8 +388,6 @@ namespace EspINA {
     typename T::Pointer image = volume->itkImage(bounds);
     return vtkImage<T>(image, bounds);
   }
-
-
 
   //-----------------------------------------------------------------------------
   template<typename T>

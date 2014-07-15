@@ -108,7 +108,7 @@ namespace EspINA
     private:
       void setView(RenderView *view) { m_view = view; };
 
-      VolumeSPtr                   m_data;
+      VolumeSPtr m_data;
 
       using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 

@@ -88,28 +88,28 @@ const double View2D::WIDGET_SHIFT = 0.15;
 // SLICE VIEW
 //-----------------------------------------------------------------------------
 View2D::View2D(Plane plane, QWidget* parent)
-: RenderView(parent)
-, m_mainLayout(new QVBoxLayout())
-, m_controlLayout(new QHBoxLayout())
-, m_fromLayout(new QHBoxLayout())
-, m_toLayout(new QHBoxLayout())
-, m_scrollBar(new QScrollBar(Qt::Horizontal))
-, m_spinBox(new QDoubleSpinBox())
-, m_zoomButton(nullptr)
-, m_snapshot(nullptr)
-, m_renderConfig(nullptr)
-, m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
-, m_slicingStep{1, 1, 1}
-, m_showThumbnail(true)
+: RenderView        {parent}
+, m_mainLayout      {new QVBoxLayout()}
+, m_controlLayout   {new QHBoxLayout()}
+, m_fromLayout      {new QHBoxLayout()}
+, m_toLayout        {new QHBoxLayout()}
+, m_scrollBar       {new QScrollBar(Qt::Horizontal)}
+, m_spinBox         {new QDoubleSpinBox()}
+, m_zoomButton      {nullptr}
+, m_snapshot        {nullptr}
+, m_renderConfig    {nullptr}
+, m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
+, m_slicingStep     {1, 1, 1}
+, m_showThumbnail   {true}
 // , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(nullptr, nullptr))
-, m_inThumbnail(false)
-, m_sceneReady(false)
-, m_plane{plane}
-, m_normalCoord{normalCoordinateIndex(plane)}
-, m_fitToSlices{true}
+, m_inThumbnail     {false}
+, m_sceneReady      {false}
+, m_plane           {plane}
+, m_normalCoord     {normalCoordinateIndex(plane)}
+, m_fitToSlices     {true}
 , m_invertSliceOrder{false}
-, m_invertWheel{false}
-, m_rulerVisibility{true}
+, m_invertWheel     {false}
+, m_rulerVisibility {true}
 , m_inThumbnailClick{true}
 {
   setupUI();
@@ -133,7 +133,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   };
 
   // Init Render Window
-  vtkRenderWindow* renderWindow = m_view->GetRenderWindow();
+  auto renderWindow = m_view->GetRenderWindow();
   renderWindow->DoubleBufferOn();
   renderWindow->SetNumberOfLayers(2);
 
@@ -143,9 +143,11 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_renderer->GetActiveCamera()->SetThickness(2000);
   m_renderer->SetNearClippingPlaneTolerance(0.001);
   m_renderer->LightFollowCameraOn();
+  m_renderer->BackingStoreOff();
   m_renderer->SetLayer(0);
   m_thumbnail = vtkSmartPointer<vtkRenderer>::New();
   m_thumbnail->SetViewport(0.75, 0.0, 1.0, 0.25);
+  m_thumbnail->BackingStoreOff();
   m_thumbnail->SetLayer(1);
   m_thumbnail->InteractiveOff();
   m_thumbnail->GetActiveCamera()->ParallelProjectionOn();
@@ -165,7 +167,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_ruler->SizeFontRelativeToAxisOff();
   m_renderer->AddViewProp(m_ruler);
 
-  View2DInteractor interactor = View2DInteractor::New();
+  auto interactor = View2DInteractor::New();
   interactor->AutoAdjustCameraClippingRangeOff();
   interactor->KeyPressActivationOff();
   renderWindow->AddRenderer(m_renderer);
@@ -195,6 +197,8 @@ View2D::~View2D()
 //   qDebug() << "              Destroying Slice View" << m_plane;
 //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
+
+  m_renderer->RemoveViewProp(m_ruler);
 
   m_channelStates.clear();
   m_segmentationStates.clear();
@@ -280,7 +284,8 @@ void View2D::updateRuler()
 
   double *value;
   Nm left, right;
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToNormalizedViewport();
 
   coords->SetValue(0, 0); //Viewport Lower Left Corner
@@ -314,13 +319,14 @@ void View2D::updateThumbnail()
   // Depending on the plane being shown can refer to different
   // bound components
   double viewLeft, viewRight, viewUpper, viewLower;
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
 
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetViewport(m_renderer);
   coords->SetCoordinateSystemToNormalizedViewport();
 
   int h = m_plane == Plane::YZ ? 2 : 0;
   int v = m_plane == Plane::XZ ? 2 : 1;
+
   coords->SetValue(0, 0); // Viewport Lower Left Corner
   value = coords->GetComputedWorldValue(m_renderer);
   viewLeft  = value[h]; // Left Margin in World Coordinates
@@ -385,14 +391,14 @@ void View2D::updateSceneBounds()
 void View2D::initBorders(vtkPolyData* data, vtkActor* actor)
 {
   double unusedPoint[3]{0,0,0};
-  vtkSmartPointer<vtkPoints> corners = vtkSmartPointer<vtkPoints>::New();
+  auto corners = vtkPoints::New();
   corners->SetNumberOfPoints(4);
   corners->InsertNextPoint(unusedPoint);
   corners->InsertNextPoint(unusedPoint);
   corners->InsertNextPoint(unusedPoint);
   corners->InsertNextPoint(unusedPoint);
 
-  vtkSmartPointer<vtkCellArray> borders = vtkSmartPointer<vtkCellArray>::New();
+  auto borders = vtkCellArray::New();
   borders->EstimateSize(4, 2);
   for (int i=0; i < 4; i++)
   {
@@ -404,7 +410,10 @@ void View2D::initBorders(vtkPolyData* data, vtkActor* actor)
   data->SetLines(borders);
   data->Modified();
 
-  vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  corners->Delete();
+  borders->Delete();
+
+  auto Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   Mapper->SetInputData(data);
   actor->SetMapper(Mapper);
   actor->GetProperty()->SetLineWidth(2);
@@ -414,7 +423,7 @@ void View2D::initBorders(vtkPolyData* data, vtkActor* actor)
 //-----------------------------------------------------------------------------
 void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm lower)
 {
-  vtkSmartPointer<vtkPoints> corners = data->GetPoints();
+  auto corners = data->GetPoints();
   Nm zShift;
   switch(m_plane)
   {
@@ -495,10 +504,10 @@ int View2D::voxelSlice(const Nm position, const Plane plane) const
 //-----------------------------------------------------------------------------
 void View2D::buildCrosshairs()
 {
-  vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
+  auto HPoints = vtkPoints::New();
   HPoints->InsertNextPoint(-0.5, 0, 0);
   HPoints->InsertNextPoint(0.5, 0, 0);
-  vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
+  auto HLine = vtkCellArray::New();
   HLine->EstimateSize(1, 2);
   HLine->InsertNextCell (2);
   HLine->InsertCellPoint(0);
@@ -508,7 +517,10 @@ void View2D::buildCrosshairs()
   m_HCrossLineData->SetPoints(HPoints);
   m_HCrossLineData->SetLines (HLine);
   
-  vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  HPoints->Delete();
+  HLine->Delete();
+
+  auto HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   HMapper->SetInputData(m_HCrossLineData);
   
   m_HCrossLine = vtkSmartPointer<vtkActor>::New();
@@ -516,10 +528,10 @@ void View2D::buildCrosshairs()
   m_HCrossLine->GetProperty()->SetLineWidth(2);
   m_HCrossLine->SetPickable(false);
   
-  vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
+  auto VPoints = vtkPoints::New();
   VPoints->InsertNextPoint(0, -0.5, 0);
   VPoints->InsertNextPoint(0, 0.5, 0);
-  vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
+  auto VLine = vtkCellArray::New();
   VLine->EstimateSize(1, 2);
   VLine->InsertNextCell (2);
   VLine->InsertCellPoint(0);
@@ -529,7 +541,10 @@ void View2D::buildCrosshairs()
   m_VCrossLineData->SetPoints(VPoints);
   m_VCrossLineData->SetLines(VLine);
   
-  vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  VPoints->Delete();
+  VLine->Delete();
+
+  auto VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   VMapper->SetInputData(m_VCrossLineData);
   
   m_VCrossLine = vtkSmartPointer<vtkActor>::New();
@@ -562,9 +577,6 @@ void View2D::setupUI()
 
   m_renderConfig = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
 
-  // TODO
-  //connect(m_renderConfig,SIGNAL(clicked(bool)),this,SLOT(renderContextualMenu()));
-
   connect(m_spinBox,   SIGNAL(valueChanged(double)),
           this,        SLOT(spinValueChanged(double)));
 
@@ -583,7 +595,7 @@ void View2D::setupUI()
   m_mainLayout->addLayout(m_controlLayout);
 
   // Color background
-  QPalette pal = this->palette();
+  auto pal = this->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
@@ -691,7 +703,7 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
   // but in vtk coordinates UR[V] < LL[V]
   double LL[3], UR[3];
   // Display bounds in world coordinates
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetViewport(m_renderer);
   coords->SetCoordinateSystemToNormalizedViewport();
   coords->SetValue(0, 0); //LL
@@ -1100,21 +1112,6 @@ void View2D::onTakeSnapshot()
   takeSnapshot(m_renderer);
 }
 
-////-----------------------------------------------------------------------------
-//bool View2D::pick(vtkPropPicker *picker, int x, int y, Nm pickPos[3])
-//{
-//  if (m_thumbnail->GetDraw() && picker->Pick(x, y, 0.1, m_thumbnail))
-//    return false;
-//
-//  if (!picker->Pick(x, y, 0.1, m_renderer))
-//      return false;
-//
-//  picker->GetPickPosition(pickPos);
-//  pickPos[m_normalCoord] = slicingPosition();
-//
-//  return true;
-//}
-
 //-----------------------------------------------------------------------------
 void View2D::setShowPreprocessing(bool visible)
 {
@@ -1359,52 +1356,6 @@ void View2D::centerViewOnPosition(const NmVector3& center)
 
   updateView();
 }
-
-////-----------------------------------------------------------------------------
-//Selector::WorldRegion View2D::worldRegion(const Selector::DisplayRegion& region,
-//                                              ViewItemAdapterPtr item)
-//{
-//  Selector::WorldRegion wRegion = Selector::WorldRegion::New();
-//
-//  for(auto point: region)
-//  {
-//    Nm pickPos[3];
-//    if (ItemAdapter::Type::CHANNEL == item->type())
-//    {
-//      for(auto renderer: m_renderers)
-//        if(renderer->type() == Renderer::Type::Representation)
-//        {
-//          auto repRenderer = representationRenderer(renderer);
-//          if (canRender(repRenderer, RenderableType::CHANNEL) &&
-//              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), false).isEmpty())
-//          {
-//            auto pc = repRenderer->pickCoordinates();
-//            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
-//            pickPos[m_normalCoord] = slicingPosition();
-//            wRegion->InsertNextPoint(pickPos);
-//          }
-//        }
-//    }
-//    else
-//    {
-//      for(auto renderer: m_renderers)
-//        if(renderer->type() == Renderer::Type::Representation)
-//        {
-//          auto repRenderer = representationRenderer(renderer);
-//          if (canRender(repRenderer, RenderableType::SEGMENTATION) &&
-//              !repRenderer->pick(point.x(), point.y(), slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), false).isEmpty())
-//          {
-//            auto pc = repRenderer->pickCoordinates();
-//            for(int i = 0; i < 3; ++i) pickPos[i] = pc[i];
-//            pickPos[m_normalCoord] = slicingPosition();
-//            wRegion->InsertNextPoint(pickPos);
-//          }
-//        }
-//    }
-//  }
-//
-//  return wRegion;
-//}
 
 //-----------------------------------------------------------------------------
 RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation)
@@ -1752,7 +1703,6 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
         selectedItems[item] = bm;
       }
-
     }
 
     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
@@ -1769,7 +1719,6 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
 
           selectedItems[item] = bm;
         }
-
 
         if(flags.contains(Selector::SAMPLE))
         {

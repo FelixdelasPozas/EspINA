@@ -46,7 +46,7 @@ namespace EspINA
     QMap<QString, QColor> m_userColors;
     QList<QColor>         m_colors;
     int                   m_lastColor;
-    QMap<QString, LUTSPtr> m_LUT;
+    LUTMap                m_LUT;
   };
 
 }// namespace EspINA
