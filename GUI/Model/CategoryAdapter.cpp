@@ -133,7 +133,12 @@ void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
     if(category == subCategory) return;
   }
 
+  if (subCategory->m_parent)
+  {
+    subCategory->m_parent->removeSubCategory(subCategory);
+  }
   subCategory->m_parent = this;
+
   m_subCategories << subCategory;
 
   m_category->addSubCategory(subCategory->m_category);

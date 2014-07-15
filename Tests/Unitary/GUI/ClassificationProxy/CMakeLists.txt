@@ -4,10 +4,13 @@ create_test_sourcelist(ClassificationProxy_Tests ClassificationProxy_Tests.cpp #
   classification_proxy_add_segmentation.cpp
   classification_proxy_add_segmentation_to_subcategory.cpp
   classification_proxy_add_segmentation_without_category.cpp
+  classification_proxy_change_category_parent.cpp
+  classification_proxy_change_segmentation_category.cpp
   classification_proxy_empty_analysis_constructor.cpp
   classification_proxy_remove_category.cpp
   classification_proxy_remove_segmentation.cpp
   classification_proxy_remove_segmentation_from_subcategory.cpp
+  classification_proxy_rename_category.cpp
   classification_proxy_set_classification.cpp
   classification_proxy_set_default_classification.cpp
   classification_proxy_set_empty_classification.cpp
@@ -97,5 +100,8 @@ add_test("\"Classification Proxy: Set Default Classification\""              Cla
 add_test("\"Classification Proxy: Add Segmentation\""                        ClassificationProxy_Tests classification_proxy_add_segmentation)
 add_test("\"Classification Proxy: Add Segmentation To Subcategory\""         ClassificationProxy_Tests classification_proxy_add_segmentation_to_subcategory)
 add_test("\"Classification Proxy: Add Segmentation Without Category\""       ClassificationProxy_Tests classification_proxy_add_segmentation_without_category)
+add_test("\"Classification Proxy: Change Segmentation Category\""            ClassificationProxy_Tests classification_proxy_change_segmentation_category)
 add_test("\"Classification Proxy: Remove Segmentation\""                     ClassificationProxy_Tests classification_proxy_remove_segmentation)
 add_test("\"Classification Proxy: Remove Segmentation From Subcategory\""    ClassificationProxy_Tests classification_proxy_remove_segmentation_from_subcategory)
+add_test("\"Classification Proxy: Rename Category \""                        ClassificationProxy_Tests classification_proxy_rename_category)
+add_test("\"Classification Proxy: Change Category Parent\""                  ClassificationProxy_Tests classification_proxy_change_category_parent)

@@ -937,7 +937,6 @@ void ModelAdapter::reset()
     m_segmentations.clear();
     m_channels.clear();
     m_samples.clear();
-
     m_classification.reset();
 
     m_analysis->reset();

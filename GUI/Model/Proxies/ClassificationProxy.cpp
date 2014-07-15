@@ -273,9 +273,10 @@ QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
     case ItemAdapter::Type::CATEGORY:
     {
       auto childCategory        = categoryPtr(childItem);
-      auto parentCategory       = childCategory->parent();
+      auto sourceParentCategory       = childCategory->parent();
+      auto proxyParentCategory  = toProxyPtr(sourceParentCategory);
 
-      parent = categoryIndex(parentCategory);
+      parent = categoryIndex(proxyParentCategory);
       break;
     }
     case ItemAdapter::Type::SEGMENTATION:
@@ -360,10 +361,8 @@ QModelIndex ClassificationProxy::mapToSource(const QModelIndex& proxyIndex) cons
   {
     case ItemAdapter::Type::CATEGORY:
     {
-      auto proxyCategory  = categoryPtr(proxyItem);
-      auto sourceCategory = toSourceSPtr(proxyCategory);
+      auto sourceCategory  = categoryPtr(proxyItem);
 
-      Q_ASSERT(proxyCategory);
       sourceIndex = m_model->categoryIndex(sourceCategory);
 
       break;
@@ -463,19 +462,19 @@ bool ClassificationProxy::dropMimeData(const QMimeData *data, Qt::DropAction act
     }
     Q_ASSERT(newCategory);
 
-    emit segmentationsDragged(sources, newCategory);
+    emit segmentationsDropped(sources, newCategory);
   }
 
   // Change category parent
   else if (CategorySource == source && isCategory(parentItem))
   {
     CategoryAdapterList sources;
-    foreach(DraggedItem draggedItem , draggedItems)
+    for(DraggedItem draggedItem : draggedItems)
     {
-      ItemAdapterPtr item = reinterpret_cast<ItemAdapterPtr>(draggedItem[RawPointerRole].value<quintptr>());
+      auto item = reinterpret_cast<ItemAdapterPtr>(draggedItem[RawPointerRole].value<quintptr>());
       sources << categoryPtr(item);
     }
-    emit categoriesDragged(sources, categoryPtr(parentItem));
+    emit categoriesDropped(sources, categoryPtr(parentItem));
   }
   else if (InvalidSource == source)
     return false;
@@ -769,29 +768,38 @@ void ClassificationProxy::sourceRowsAboutToBeMoved(const QModelIndex &sourcePare
   beginMoveRows(proxySourceParent, sourceStart, sourceEnd,
                 proxyDestionationParent, destinationRow);
 
-  ItemAdapterPtr movingItem = itemAdapter(sourceParent.child(sourceStart, 0));
-  CategoryAdapterPtr movingCategory = categoryPtr(movingItem);
+  auto movingItem     = itemAdapter(sourceParent.child(sourceStart, 0));
+  auto movingCategory = toProxySPtr(categoryPtr(movingItem));
+
+  //movingCategory->parent()->removeSubCategory(movingCategory);
 
   if (proxySourceParent.isValid())
   {
-    ItemAdapterPtr sourceItem = itemAdapter(proxySourceParent);
-    CategoryAdapterPtr sourceCategory = categoryPtr(sourceItem);
-    m_numCategories[sourceCategory] -=1;
+    auto proxySourceItem     = itemAdapter(proxySourceParent);
+    auto proxySourceCategory = toProxyPtr(categoryPtr(proxySourceItem));
+
+    m_numCategories[proxySourceCategory] -=1;
   } else
   {
-    m_rootCategories.removeOne(movingCategory);
+    m_rootCategories.removeOne(movingCategory.get());
   }
 
+  CategoryAdapterPtr proxyDestinationCategory = nullptr;
   if (proxyDestionationParent.isValid())
   {
-    ItemAdapterPtr destinationItem = itemAdapter(destinationParent);
-    CategoryAdapterPtr destinationCategory = categoryPtr(destinationItem);
+    auto proxyDestinationItem = itemAdapter(destinationParent);
+    proxyDestinationCategory  = toProxyPtr(categoryPtr(proxyDestinationItem));
 
-    m_numCategories[destinationCategory] +=1;
+    m_numCategories[proxyDestinationCategory] +=1;
+
   } else
   {
-    m_rootCategories << movingCategory;
+    proxyDestinationCategory = m_classification->root().get();
+
+    m_rootCategories << movingCategory.get();
   }
+
+  proxyDestinationCategory->addSubCategory(movingCategory);
 }
 
 //------------------------------------------------------------------------
@@ -849,10 +857,10 @@ void ClassificationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, co
 
   for(auto source : sources)
   {
+    auto sourceItem = itemAdapter(source);
     if (source.parent() == m_model->segmentationRoot())
     {
       bool indexChanged = true;
-      auto sourceItem   = itemAdapter(source);
       auto segmentation = segmentationPtr(sourceItem);
 
       CategoryAdapterPtr prevCategory = nullptr;
@@ -869,20 +877,26 @@ void ClassificationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, co
 
       if (prevCategory && indexChanged)
       {
-        auto source      = m_model->categoryIndex(prevCategory);
-        auto destination = m_model->categoryIndex(segmentation->category());
-
-        auto proxySource      = mapFromSource(source);
-        auto proxyDestination = mapFromSource(destination);
+        auto newCategory      = toProxyPtr(segmentation->category().get());
+        auto proxySource      = categoryIndex(prevCategory);
+        auto proxyDestination = categoryIndex(newCategory);
 
         int currentRow = numSubCategories(prevCategory) + m_categorySegmentations[prevCategory].indexOf(sourceItem);
         int newRow     = rowCount(proxyDestination);
 
         beginMoveRows(proxySource, currentRow, currentRow, proxyDestination, newRow);
         m_categorySegmentations[prevCategory].removeOne(sourceItem);
-        m_categorySegmentations[segmentation->category().get()] << sourceItem;
+        m_categorySegmentations[newCategory] << sourceItem;
         endMoveRows();
       }
+    }
+    else if (isCategory(sourceItem))
+    {
+      auto sourceCategory = categoryPtr(sourceItem);
+      auto proxyCategory  = toProxyPtr(sourceCategory);
+
+      proxyCategory->setName (sourceCategory->name());
+      proxyCategory->setColor(sourceCategory->color());
     }
 
     auto proxyIndex = mapFromSource(source);
@@ -898,6 +912,7 @@ void ClassificationProxy::sourceModelReset()
 {
   beginResetModel();
   {
+    m_classification = ClassificationAdapterSPtr{new ClassificationAdapter()};
     m_rootCategories.clear();
     m_numCategories.clear();
     m_categorySegmentations.clear();
@@ -925,21 +940,23 @@ void ClassificationProxy::addCategory(CategoryAdapterPtr category)
 }
 
 //------------------------------------------------------------------------
-void ClassificationProxy::removeCategory(CategoryAdapterPtr category)
+void ClassificationProxy::removeCategory(CategoryAdapterPtr proxyCategory)
 {
   // First remove its subCategories
-  for(auto subCategory : category->subCategories())
+  for(auto subCategory : proxyCategory->subCategories())
   {
     removeCategory(subCategory.get());
   }
 
-  m_rootCategories.removeOne(category); //Safe even if it's not root category
-  m_numCategories.remove(category);
-  m_categorySegmentations.remove(category);
+  auto sptr = m_classification->category(proxyCategory->classificationName());
+  m_classification->removeCategory(sptr);
 
-  m_classification->removeCategory(toProxySPtr(category));
+  m_rootCategories       .removeOne(proxyCategory); //Safe even if it's not root category
+  m_numCategories        .remove(proxyCategory);
+  m_categorySegmentations.remove(proxyCategory);
+  m_sourceCategory       .remove(proxyCategory);
 
-  auto parentNode = category->parent();
+  auto parentNode = proxyCategory->parent();
   if (parentNode != m_classification->root().get())
   {
     m_numCategories[parentNode] -= 1;
@@ -947,11 +964,9 @@ void ClassificationProxy::removeCategory(CategoryAdapterPtr category)
 }
 
 //------------------------------------------------------------------------
-QModelIndex ClassificationProxy::categoryIndex(CategoryAdapterPtr category) const
+QModelIndex ClassificationProxy::categoryIndex(CategoryAdapterPtr proxyCategory) const
 {
   int row = 0;
-
-  auto proxyCategory = toProxyPtr(category);
 
   if (proxyCategory && proxyCategory->parent())
   {
@@ -975,6 +990,7 @@ CategoryAdapterPtr ClassificationProxy::createProxyCategory(CategoryAdapterPtr s
 
   proxyCategory->setColor(sourceCategory->color());
   //proxyCategory->setData(sourceCategory->data(Qt::CheckStateRole), Qt::CheckStateRole);
+  m_sourceCategory[proxyCategory] = sourceCategory;
 
   return proxyCategory;
 }
@@ -996,7 +1012,23 @@ CategoryAdapterPtr ClassificationProxy::toProxyPtr(CategoryAdapterPtr sourceCate
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationProxy::toProxySPtr(CategoryAdapterPtr sourceCategory) const
 {
-  return sourceCategory?m_classification->category(sourceCategory->classificationName()):CategoryAdapterSPtr();
+  //return sourceCategory?m_classification->category(sourceCategory->classificationName()):CategoryAdapterSPtr();
+  CategoryAdapterSPtr proxyCategory;
+
+  if (sourceCategory)
+  {
+    if (sourceCategory->parent())
+    {
+      auto proxyCategoryPtr = m_sourceCategory.key(sourceCategory);
+
+      proxyCategory = proxyCategoryPtr->parent()->subCategory(proxyCategoryPtr->name());
+    } else
+    {
+      proxyCategory = m_classification->root();
+    }
+  }
+
+  return proxyCategory;
 }
 
 //------------------------------------------------------------------------
@@ -1009,7 +1041,11 @@ CategoryAdapterPtr ClassificationProxy::toSourcePtr(CategoryAdapterPtr proxyCate
 CategoryAdapterSPtr ClassificationProxy::toSourceSPtr(CategoryAdapterPtr proxyCategory) const
 {
   Q_ASSERT(proxyCategory);
-  return m_model->classification()->category(proxyCategory->classificationName());
+
+  auto sourceCategory = m_sourceCategory[proxyCategory];
+
+  return m_model->classification()->category(sourceCategory->classificationName());
+  //return m_model->classification()->category(proxyCategory->classificationName());
 }
 
 //------------------------------------------------------------------------

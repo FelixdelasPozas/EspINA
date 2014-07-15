@@ -75,8 +75,8 @@ namespace EspINA
     void sourceModelReset();
 
   signals:
-    void categoriesDragged(CategoryAdapterList sources, CategoryAdapterPtr parent);
-    void segmentationsDragged(SegmentationAdapterList sources, CategoryAdapterPtr category);
+    void categoriesDropped(CategoryAdapterList sources, CategoryAdapterPtr parent);
+    void segmentationsDropped(SegmentationAdapterList sources, CategoryAdapterPtr category);
 
   protected:
     bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
@@ -108,10 +108,11 @@ namespace EspINA
     // We need to rely on our own row count for each item in the proxy's model
     // If we rely on the source's model, there are some inconsistencies during
     // rows insertion/deletion
-    mutable ClassificationAdapterSPtr                  m_classification;
-    mutable QMap<CategoryAdapterPtr, int            >  m_numCategories;
-    mutable QMap<CategoryAdapterPtr, ItemAdapterList>  m_categorySegmentations;
-    mutable QMap<CategoryAdapterPtr, Qt::CheckState >  m_categoryVisibility;
+    mutable QMap<CategoryAdapterPtr, CategoryAdapterPtr> m_sourceCategory;
+    mutable ClassificationAdapterSPtr                    m_classification;
+    mutable QMap<CategoryAdapterPtr, int            >    m_numCategories;
+    mutable QMap<CategoryAdapterPtr, ItemAdapterList>    m_categorySegmentations;
+    mutable QMap<CategoryAdapterPtr, Qt::CheckState >    m_categoryVisibility;
   };
 
 } // namespace EspINA

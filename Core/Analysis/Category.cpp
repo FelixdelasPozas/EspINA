@@ -88,9 +88,14 @@ void Category::addSubCategory(CategorySPtr subCategory)
 {
   // check if already present
   for(auto category: m_subCategories)
-    if(category == subCategory)
-      return;
+  {
+    if(category == subCategory) return;
+  }
 
+  if (subCategory->m_parent)
+  {
+    subCategory->m_parent->removeSubCategory(subCategory);
+  }
   subCategory->m_parent = this;
 
   m_subCategories << subCategory;

@@ -83,10 +83,10 @@ namespace EspINA
     void changeCategoryColor();
     void selectCategoryAdapters();
 
-    void segmentationsDragged(SegmentationAdapterList segmentations,
+    void segmentationsDropped(SegmentationAdapterList segmentations,
                               CategoryAdapterPtr      category);
 
-    void categoriesDragged(CategoryAdapterList subCategories,
+    void categoriesDropped(CategoryAdapterList subCategories,
                            CategoryAdapterPtr  category);
 
     void updateSelection();
