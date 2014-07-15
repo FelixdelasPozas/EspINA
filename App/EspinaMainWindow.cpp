@@ -35,7 +35,6 @@
 #include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
-#include <App/Settings/MetaData/MetaDataSettingsPanel.h>
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -63,6 +62,9 @@
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
 
+#if USE_METADONA
+  #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
+#endif
 // Std
 #include <sstream>
 
@@ -134,7 +136,10 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
 
   m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, new ROISettings(), m_viewManager));
+
+#if USE_METADONA
   m_availableSettingsPanels << SettingsPanelSPtr(new MetaDataSettingsPanel());
+#endif
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"), this);

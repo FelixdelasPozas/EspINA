@@ -283,7 +283,7 @@ void CrosshairRepresentation::updateRepresentation()
     auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
-    qDebug() << coronalLines->InsertNextCell(line);
+    coronalLines->InsertNextCell(line);
     line->Delete();
   }
 

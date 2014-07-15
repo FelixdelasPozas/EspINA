@@ -154,8 +154,8 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
     {
       if (isCategory(item))
       {
-        CategoryAdapterPtr category = categoryPtr(item);
-        m_categoryVisibility[category] = value.toBool()?Qt::Checked:Qt::Unchecked;
+        auto proxyCategory = toProxyPtr(categoryPtr(item));
+        m_categoryVisibility[proxyCategory] = value.toBool()?Qt::Checked:Qt::Unchecked;
 
         int rows = rowCount(index);
         for (int r=0; r<rows; r++)
@@ -171,26 +171,33 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
       }
 
       QModelIndex parentIndex = parent(index);
-      if (parentIndex.isValid())
+      while (parentIndex.isValid())
       {
-        ItemAdapterPtr parentItem = itemAdapter(parentIndex);
-        CategoryAdapterPtr parentCategory = categoryPtr(parentItem);
-        int parentRows = rowCount(parentIndex);
-        Qt::CheckState checkState = Qt::Unchecked;
-        for(int r=0; r < parentRows; r++)
+        if (parentIndex.isValid())
         {
-          Qt::CheckState rowState = parentIndex.child(r, 0).data(Qt::CheckStateRole).toBool()?Qt::Checked:Qt::Unchecked;
-          if (0 == r)
-            checkState = rowState;
-          else
-            if (checkState != rowState)
+          auto parentItem          = itemAdapter(parentIndex);
+          auto proxyParentCategory = toProxyPtr(categoryPtr(parentItem));
+
+          int parentRows = rowCount(parentIndex);
+          Qt::CheckState checkState = Qt::Unchecked;
+          for(int r=0; r < parentRows; r++)
+          {
+            Qt::CheckState rowState = parentIndex.child(r, 0).data(Qt::CheckStateRole).toBool()?Qt::Checked:Qt::Unchecked;
+            if (0 == r)
+            {
+              checkState = rowState;
+            }
+            else if (checkState != rowState)
             {
               checkState = Qt::PartiallyChecked;
               break;
             }
+          }
+          m_categoryVisibility[proxyParentCategory] = checkState;
+          emit dataChanged(parentIndex, parentIndex);
         }
-        m_categoryVisibility[parentCategory] = checkState;
-        emit dataChanged(parentIndex, parentIndex);
+
+        parentIndex = parent(parentIndex);
       }
     }
     else

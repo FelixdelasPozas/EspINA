@@ -107,10 +107,17 @@ qt4_wrap_ui (ESPINA_UI
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
   )
 
+if (METADONA_FOUND)
+  set (METADONA_SOURCES
+    Settings/MetaData/MetaDataSettingsPanel.cpp
+    )
+endif (METADONA_FOUND)
+
 set (ESPINA_SOURCES
   ${ESPINA_RCC}
   ${ESPINA_MOC}
   ${ESPINA_UI}
+  ${METADONA_SOURCES}
   main.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
@@ -140,7 +147,6 @@ set (ESPINA_SOURCES
   Settings/DefaultView/DefaultViewSettingsPanel.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
-  Settings/MetaData/MetaDataSettingsPanel.cpp
 #   Settings/Editor/SettingsPanel.cpp
 #  Settings/SeedGrowSegmentation/SettingsPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
