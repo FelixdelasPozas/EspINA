@@ -92,10 +92,24 @@ void CategorySelector::resetRootItem()
 }
 
 //------------------------------------------------------------------------
+void CategorySelector::selectedCategory(CategoryAdapterSPtr category)
+{
+  m_selectedCategory = category;
+
+  for (auto object : m_pool)
+  {
+    auto categorySelector = dynamic_cast<QComboTreeView *>(object);
+    categorySelector->setCurrentModelIndex(m_model->categoryIndex(category));
+  }
+}
+
+//------------------------------------------------------------------------
 CategoryAdapterSPtr CategorySelector::selectedCategory()
 {
   if (!m_selectedCategory)
+  {
     m_selectedCategory = m_model->classification()->categories().first();
+  }
 
   return m_selectedCategory;
 }

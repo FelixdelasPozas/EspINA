@@ -69,6 +69,7 @@ BrushSelector::BrushSelector()
 , m_mapToColors     {nullptr}
 , m_actor           {nullptr}
 , m_previewBounds   {Bounds()}
+, m_eraseMode       {false}
 , m_drawing         {true}
 , m_lastUpdateBounds{Bounds()}
 , m_tracking        {false}
@@ -110,7 +111,8 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
           stopStroke(view);
           m_tracking = false;
         }
-        m_drawing = true;
+
+        m_drawing = !m_eraseMode;
 
         if (m_previewView != nullptr)
           stopPreview(view);
@@ -120,14 +122,7 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
       break;
     case QEvent::Enter:
       {
-        m_drawing = !ShiftKeyIsDown();
-        buildCursor();
-        view->setCursor(m_cursor);
-
-        if (!m_drawing)
-          startPreview(view);
-
-        emit drawingModeChanged(m_drawing);
+        updateCurrentDrawingMode(view);
       }
       break;
     case QEvent::KeyPress:
@@ -135,12 +130,8 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         ke = static_cast<QKeyEvent *>(e);
         if ((ke->key() == Qt::Key_Shift) && !m_tracking && m_item && (m_item->type() == ViewItemAdapter::Type::SEGMENTATION))
         {
-          m_drawing = false;
-          buildCursor();
-          view->setCursor(m_cursor);
-          startPreview(view);
+          updateCurrentDrawingMode(view);
 
-          emit drawingModeChanged(m_drawing);
           return true;
         }
       }
@@ -148,14 +139,9 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
     case QEvent::KeyRelease:
       {
         ke = static_cast<QKeyEvent *>(e);
-        if ((ke->key() == Qt::Key_Shift) && !m_tracking && !m_drawing)
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking)
         {
-          stopPreview(view);
-          m_drawing = true;
-          buildCursor();
-          view->setCursor(m_cursor);
-
-          emit drawingModeChanged(m_drawing);
+          updateCurrentDrawingMode(view);
           return true;
         }
       }
@@ -214,6 +200,13 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
   }
 
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::setEraseMode(bool value)
+{
+  m_eraseMode = value;
+  buildCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -433,15 +426,7 @@ void BrushSelector::stopStroke(RenderView* view)
     emit itemsSelected(selection);
   }
 
-  m_drawing = !ShiftKeyIsDown();
-  if (m_drawing)
-  {
-    stopPreview(view);
-    buildCursor();
-    view->setCursor(m_cursor);
-    emit drawingModeChanged(m_drawing);
-    view->updateView();
-  }
+  updateCurrentDrawingMode(view);
 
   m_brushes.clear();
 }
@@ -757,11 +742,8 @@ void BrushSelector::updateSliceChange()
     stopStroke(view);
     m_tracking = false;
   }
-  m_drawing = true;
-  stopPreview(view);
-  buildCursor();
-  view->setCursor(m_cursor);
-  emit drawingModeChanged(m_drawing);
+
+  updateCurrentDrawingMode(view);
 }
 
 //-----------------------------------------------------------------------------
@@ -770,6 +752,32 @@ bool BrushSelector::ShiftKeyIsDown()
   // true if Shift button is down.
   return QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
 }
+
+//-----------------------------------------------------------------------------
+void BrushSelector::updateCurrentDrawingMode(RenderView* view)
+{
+  if (ShiftKeyIsDown())
+  {
+    m_drawing = m_eraseMode;
+  } else
+  {
+    m_drawing = !m_eraseMode;
+  }
+
+  buildCursor();
+  view->setCursor(m_cursor);
+
+  if (m_drawing)
+  {
+    stopPreview(view);
+  } else
+  {
+    startPreview(view);
+  }
+
+  emit drawingModeChanged(m_drawing);
+}
+
 
 //-----------------------------------------------------------------------------
 void BrushSelector::abortOperation()
@@ -783,10 +791,5 @@ void BrushSelector::abortOperation()
     stopStroke(m_previewView);
   }
 
-  RenderView *view = m_previewView;
-  stopPreview(view);
-  m_drawing = true;
-  buildCursor();
-  view->setCursor(m_cursor);
-  emit drawingModeChanged(m_drawing);
+  updateCurrentDrawingMode(m_previewView);
 }

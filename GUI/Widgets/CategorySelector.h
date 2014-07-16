@@ -41,6 +41,8 @@ namespace EspINA
 
     virtual QWidget* createWidget(QWidget* parent);
 
+    void selectedCategory(CategoryAdapterSPtr category);
+
     CategoryAdapterSPtr selectedCategory();
 
   signals:

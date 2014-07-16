@@ -43,20 +43,16 @@ namespace EspINA
   , m_categorySelector    {new CategorySelector(model)}
   , m_radiusWidget        {new SliderAction()}
   , m_opacityWidget       {new SliderAction()}
-  , m_showOpacityControls {true}
-  , m_showRadiusControls  {true}
+  , m_eraserWidget              {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
   , m_showCategoryControls{true}
+  , m_showRadiusControls  {true}
+  , m_showOpacityControls {true}
+  , m_showEraserControls  {true}
   , m_enabled             {false}
   {
     qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
     qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
     qRegisterMetaType<BinaryMaskSPtr<unsigned char>>("BinaryMaskSPtr<unsigned char>");
-
-    connect(m_radiusWidget, SIGNAL(valueChanged(int)),
-            this, SLOT(changeRadius(int)));
-
-    connect(m_opacityWidget, SIGNAL(valueChanged(int)),
-            this, SLOT(changeOpacity(int)));
 
     // draw with a disc
     m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
@@ -133,14 +129,29 @@ namespace EspINA
     m_radiusWidget->setValue(radius);
     m_radiusWidget->setLabelText(tr("Radius Size"));
 
+    connect(m_radiusWidget, SIGNAL(valueChanged(int)),
+            this, SLOT(changeRadius(int)));
+
+
     m_opacityWidget->setSliderMinimum(1);
     m_opacityWidget->setSliderMaximum(100);
     m_opacityWidget->setValue(opacity);
     m_opacityWidget->setLabelText(tr("Opacity"));
 
+    connect(m_opacityWidget, SIGNAL(valueChanged(int)),
+            this, SLOT(changeOpacity(int)));
+
+
+    m_eraserWidget->setCheckable(true);
+
+    connect(m_eraserWidget, SIGNAL(toggled(bool)),
+            this, SLOT(setEraserMode(bool)));
+
+
     m_categorySelector->setVisible(false);
-    m_radiusWidget->setVisible(false);
-    m_opacityWidget->setVisible(false);
+    m_radiusWidget    ->setVisible(false);
+    m_opacityWidget   ->setVisible(false);
+    m_eraserWidget    ->setVisible(false);
 
     connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
             this, SLOT(updateReferenceItem()));
@@ -164,17 +175,12 @@ namespace EspINA
   void ManualEditionTool::changeSelector(QAction* action)
   {
     Q_ASSERT(m_drawTools.keys().contains(action));
-    if(m_showCategoryControls)
-      m_categorySelector->setVisible(true);
 
-    if(m_showRadiusControls)
-      m_radiusWidget->setVisible(true);
+    setControlVisibility(true);
 
-    if(m_showOpacityControls)
-      m_opacityWidget->setVisible(true);
-
-    SelectionSPtr selection = m_viewManager->selection();
+    SelectionSPtr selection      = m_viewManager->selection();
     SegmentationAdapterList segs = selection->segmentations();
+
     QColor color = m_categorySelector->selectedCategory()->color();
     if (segs.size() == 1)
     {
@@ -191,16 +197,10 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ManualEditionTool::unsetSelector()
   {
-    if(m_showCategoryControls)
-      this->m_categorySelector->setVisible(false);
-
-    if(m_showRadiusControls)
-      this->m_radiusWidget->setVisible(false);
-
-    if(m_showOpacityControls)
-      this->m_opacityWidget->setVisible(false);
+    setControlVisibility(false);
 
     m_viewManager->setEventHandler(nullptr);
+
     m_currentSelector.reset();
   }
 
@@ -274,6 +274,7 @@ namespace EspINA
 
     actions << m_drawToolSelector;
     actions << m_categorySelector;
+    actions << m_eraserWidget;
     actions << m_radiusWidget;
     actions << m_opacityWidget;
 
@@ -336,6 +337,7 @@ namespace EspINA
     auto selection = m_viewManager->selection();
     QImage image;
     QColor borderColor{Qt::blue};
+    bool enableEraser = true;
 
     ViewItemAdapterPtr item = nullptr;
 
@@ -348,16 +350,27 @@ namespace EspINA
     {
       item = m_viewManager->activeChannel();
       image = QImage(":/espina/add.svg");
+      enableEraser = false;
     }
 
     if(selection->items().empty())
+    {
       item = m_viewManager->activeChannel();
+    }
     else
     {
-      if(!selection->segmentations().empty())
-        item = selection->segmentations().first();
-      else
+      if(selection->segmentations().empty())
+      {
         item = selection->channels().first();
+      }
+      else
+      {
+        auto segmentation = selection->segmentations().first();
+
+        item = segmentation;
+
+        m_categorySelector->selectedCategory(segmentation->category());
+      }
     }
 
     m_circularBrushSelector->setReferenceItem(item);
@@ -365,6 +378,24 @@ namespace EspINA
 
     m_sphericalBrushSelector->setReferenceItem(item);
     m_sphericalBrushSelector->setBrushImage(image);
+
+    m_eraserWidget->setEnabled(enableEraser);
+  }
+
+  //------------------------------------------------------------------------
+  void ManualEditionTool::setControlVisibility(bool visible)
+  {
+    if(m_showCategoryControls) m_categorySelector->setVisible(visible);
+    if(m_showRadiusControls)   m_radiusWidget    ->setVisible(visible);
+    if(m_showOpacityControls)  m_opacityWidget   ->setVisible(visible);
+    if(m_showEraserControls)   m_eraserWidget    ->setVisible(visible);
+  }
+
+  //------------------------------------------------------------------------
+  void ManualEditionTool::setEraserMode(bool value)
+  {
+    m_currentSelector->setEraseMode(value);
+    drawingModeChanged(!value);
   }
 
 } // namespace EspINA

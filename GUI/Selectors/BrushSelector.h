@@ -69,6 +69,8 @@ namespace EspINA
 
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
 
+      void setEraseMode(bool value);
+
       // radius of the brush in screen pixels
       void setRadius(int radius);
       int radius() const
@@ -91,6 +93,7 @@ namespace EspINA
       BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
 
       void abortOperation();
+
     signals:
       void radiusChanged(int);
       void drawingModeChanged(bool);
@@ -113,7 +116,11 @@ namespace EspINA
       virtual void startPreview(RenderView *view);
       virtual void updatePreview(BrushShape shape, RenderView *view);
       virtual void stopPreview(RenderView *view);
+
       bool ShiftKeyIsDown();
+
+  private:
+    void updateCurrentDrawingMode(RenderView* view);
 
     protected:
       ViewItemAdapterPtr m_item;
@@ -141,12 +148,14 @@ namespace EspINA
       vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
       vtkSmartPointer<vtkImageActor>  m_actor;
       Bounds                          m_previewBounds;
-      bool                            m_drawing;
-      BrushShapeList                  m_brushes;
-      NmVector3                       m_lastUdpdatePoint;
-      Bounds                          m_lastUpdateBounds;
-      bool                            m_tracking;
-      RenderView                     *m_previewView;
+
+      bool           m_eraseMode;
+      bool           m_drawing;
+      BrushShapeList m_brushes;
+      NmVector3      m_lastUdpdatePoint;
+      Bounds         m_lastUpdateBounds;
+      bool           m_tracking;
+      RenderView*    m_previewView;
 
       static const int MAX_RADIUS = 30;
     };

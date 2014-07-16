@@ -55,23 +55,29 @@ namespace EspINA
 
     virtual void abortOperation();
 
-    void showOpacityControls(bool value)
-    { m_showOpacityControls = value; }
+    void showCategoryControls(bool value)
+    { m_showCategoryControls = value; }
 
     void showRadiusControls(bool value)
     { m_showRadiusControls = value; }
 
-    void showCategoryControls(bool value)
-    { m_showCategoryControls = value; }
+    void showOpacityControls(bool value)
+    { m_showOpacityControls = value; }
 
-    bool opacityControls()
-    { return m_showOpacityControls; }
+    void showEraserControls(bool value)
+    { m_showEraserControls = value; }
 
-    bool radiusControls()
+    bool categoryControlsVisibility()
+    { return m_showCategoryControls; }
+
+    bool radiusControlsVisibility()
     { return m_showRadiusControls; }
 
-    bool categoryControls()
-    { return m_showCategoryControls; }
+    bool opacityControlsVisibility()
+    { return m_showOpacityControls; }
+
+    bool eraserControlsVisibility()
+    { return m_showEraserControls; }
 
     void setPencil2DIcon(QIcon icon)
     { m_discTool->setIcon(icon); }
@@ -104,6 +110,12 @@ namespace EspINA
     virtual void unsetSelector();
     virtual void categoryChanged(CategoryAdapterSPtr category);
 
+  private:
+    void setControlVisibility(bool visible);
+
+  private slots:
+    void setEraserMode(bool value);
+
   protected:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
@@ -118,13 +130,15 @@ namespace EspINA
 
     SliderAction *m_radiusWidget;
     SliderAction *m_opacityWidget;
+    QAction      *m_eraserWidget;
 
     QAction *m_discTool;
     QAction *m_sphereTool;
 
-    bool m_showOpacityControls;
-    bool m_showRadiusControls;
     bool m_showCategoryControls;
+    bool m_showRadiusControls;
+    bool m_showOpacityControls;
+    bool m_showEraserControls;
 
     bool m_enabled;
   };
