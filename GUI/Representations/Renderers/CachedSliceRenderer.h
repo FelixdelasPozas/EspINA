@@ -112,10 +112,15 @@ namespace EspINA
        */
       virtual unsigned long long getEstimatedMemoryUsed();
 
-      /* \brief Implements Renderer::setView.
+      /* \brief Implements Renderer::setView(RenderView *)
        *
        */
       virtual void setView(RenderView* rView);
+
+      /* \brief Implements Renderer::setEnable(bool).
+       *
+       */
+      virtual void setEnable(bool value);
 
     protected:
       virtual void hide();

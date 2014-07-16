@@ -105,6 +105,30 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
+  void CachedSliceRenderer::setEnable(bool value)
+  {
+    Renderer::setEnable(value);
+
+    if(m_view != nullptr)
+    {
+      auto view = dynamic_cast<View2D *>(m_view);
+      Q_ASSERT(view);
+
+      if(value)
+      {
+        connect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changePosition(Plane, Nm)), Qt::QueuedConnection);
+        connect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()), Qt::QueuedConnection);
+        setPosition(view->crosshairPoint()[normalCoordinateIndex(view->plane())]);
+      }
+      else
+      {
+        disconnect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changePosition(Plane, Nm)));
+        disconnect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()));
+      }
+    }
+  }
+
+  //-----------------------------------------------------------------------------
   void CachedSliceRenderer::setView(RenderView* rView)
   {
     m_view = rView;
@@ -159,6 +183,9 @@ namespace EspINA
     if (rep->type() == SegmentationSliceCachedRepresentation::TYPE)
       connect(rep.get(), SIGNAL(changeColor()), this, SLOT(updateRepresentationColor()), Qt::QueuedConnection);
 
+    if(!m_enable)
+      return;
+
     auto node = m_actualPos;
     CachedRepresentationSList repList;
     repList << cachedRep;
@@ -204,7 +231,7 @@ namespace EspINA
       }
 
     auto cachedRep = std::dynamic_pointer_cast<CachedRepresentation>(rep);
-    if (m_representationsActors[cachedRep] != nullptr)
+    if (m_representationsActors[cachedRep] != nullptr && m_enable)
       m_view->removeActor(m_representationsActors[cachedRep]);
 
     m_representationsActors[cachedRep] = nullptr;
@@ -258,9 +285,10 @@ namespace EspINA
   {
     int numActors = 0;
 
-    for(auto rep: m_representationsActors.keys())
-      if (m_representationsActors[rep] != nullptr)
-        ++numActors;
+    if(m_enable)
+      for(auto rep: m_representationsActors.keys())
+        if (m_representationsActors[rep] != nullptr)
+          ++numActors;
 
     return numActors;
   }
@@ -270,7 +298,7 @@ namespace EspINA
   {
     ViewItemAdapterList selection;
 
-    if (m_representationsActors.keys().size() == 0)
+    if (m_representationsActors.keys().size() == 0 || !m_enable)
       return selection;
 
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
@@ -355,6 +383,8 @@ namespace EspINA
     for(auto rep: m_representationsActors.keys())
       if(m_representationsActors[rep] != nullptr)
         m_view->removeActor(m_representationsActors[rep]);
+
+    emit renderRequested();
   }
   
   //-----------------------------------------------------------------------------
@@ -363,6 +393,8 @@ namespace EspINA
     for(auto rep: m_representationsActors.keys())
       if(m_representationsActors[rep] != nullptr)
         m_view->addActor(m_representationsActors[rep]);
+
+    emit renderRequested();
   }
 
   //-----------------------------------------------------------------------------
@@ -513,7 +545,7 @@ namespace EspINA
     auto channelRep = qobject_cast<ChannelSliceCachedRepresentationPtr>(sender());
     auto segRep = qobject_cast<SegmentationSliceCachedRepresentationPtr>(sender());
 
-    if (channelRep == nullptr && segRep == nullptr)
+    if ((channelRep == nullptr && segRep == nullptr) || !m_enable)
       return;
 
     CachedRepresentationSPtr rep = nullptr;
@@ -560,7 +592,7 @@ namespace EspINA
     auto channelRep = qobject_cast<ChannelSliceCachedRepresentationPtr>(sender());
     auto segRep = qobject_cast<SegmentationSliceCachedRepresentationPtr>(sender());
 
-    if (channelRep == nullptr && segRep == nullptr)
+    if ((channelRep == nullptr && segRep == nullptr) || !m_enable)
       return;
 
     CachedRepresentationSPtr rep = nullptr;
@@ -588,7 +620,7 @@ namespace EspINA
   void CachedSliceRenderer::updateRepresentationColor()
   {
     SegmentationSliceCachedRepresentation *segRep = qobject_cast<SegmentationSliceCachedRepresentation *>(sender());
-    if (!segRep)
+    if (!segRep || !m_enable)
       return;
 
     CachedRepresentationSPtr rep = nullptr;
@@ -853,17 +885,19 @@ namespace EspINA
 
             if(m_representationsActors[rep] != nullptr)
             {
-              m_view->removeActor(m_representationsActors[rep]);
+              if(m_enable)
+                m_view->removeActor(m_representationsActors[rep]);
+
               m_representationsActors[rep] = nullptr;
             }
             m_representationsActors[rep] = node->representations[rep];
 
-            if (rep->isVisible() && node->representations[rep] != nullptr)
+            if (m_enable && rep->isVisible() && node->representations[rep] != nullptr)
               m_view->addActor(node->representations[rep]);
           }
         }
 
-        if(resetCamera || update)
+        if((resetCamera || update) && m_enable)
         {
           if(resetCamera)
           {
