@@ -375,6 +375,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
 
+  delete m_colorEngines;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
 
