@@ -131,6 +131,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   if (!state.isEmpty())
     m_splitter->restoreState(state);
 
+  m_viewManager->registerView(m_view);
+
   generateWindowTitle();
   updateSelection(m_viewManager->selection());
 }
@@ -150,6 +152,8 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
+  m_viewManager->unregisterView(m_view);
+
   delete m_view;
   delete m_tabularReport;
 }
