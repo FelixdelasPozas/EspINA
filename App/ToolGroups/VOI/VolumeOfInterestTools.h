@@ -21,11 +21,9 @@
 #define ESPINA_VOI_TOOLS_H
 
 // EspINA
+#include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Support/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
-#include "CleanVOITool.h"
-#include "ManualVOITool.h"
-#include "OrthogonalVOITool.h"
 
 // Qt
 #include <QAction>
@@ -34,32 +32,81 @@ class QUndoStack;
 
 namespace EspINA
 {
+  class ManualVOITool;
+  class OrthogonalVOITool;
+  class CleanVOITool;
+
   /// Seed Growing Segmentation Plugin
-  class VolumeOfInterestTools
+  class VOIToolsGroup
   : public ToolGroup
   {
   Q_OBJECT
   public:
-    VolumeOfInterestTools(ModelAdapterSPtr model,
-                          ModelFactorySPtr factory,
-                          ViewManagerSPtr  viewManager,
-                          QUndoStack      *undoStack,
-                          QWidget         *parent = nullptr);
+    /* \brief VolumeOfInterestTools class constructor.
+     * \param[in] model       analysis model.
+     * \param[in] factory     application factory.
+     * \param[in] viewManager application view manager.
+     * \param[in] undoStack   qt undo stack.
+     * \param[in] parent      parent widget.
+     */
+    VOIToolsGroup(ModelAdapterSPtr model,
+                  ModelFactorySPtr factory,
+                  ViewManagerSPtr  viewManager,
+                  QUndoStack      *undoStack,
+                  QWidget         *parent = nullptr);
 
-    virtual ~VolumeOfInterestTools();
+    /* \brief VolumeOfInteresetTools class virtual destructor.
+     *
+     */
+    virtual ~VOIToolsGroup();
 
+    /* \brief Implements ToolGroup::setEnabled(bool).
+     *
+     */
     virtual void setEnabled(bool value);
 
+    /* \brief Implements ToolGroup::enabled().
+     *
+     */
     virtual bool enabled() const;
 
+    /* \brief Implements ToolGroup::tools().
+     *
+     */
     virtual ToolSList tools();
 
+    /* \brief Sets the value of roi accumulator and passes it to ViewManager.
+     *
+     */
+    void setCurrentROI(ROISPtr roi);
+
+    /* \brief Gets the current accumulator value.
+     *
+     */
+    ROISPtr currentROI();
+
+  private slots:
+    /* \brief Changes the roi and associated widget when the
+     * ROI is updated elsewhere (i.e. seedgrowsegmentation)
+     * and not using ROI tools.
+     *
+     */
+    void updateROI();
+
   private:
+    using ManualVOIToolSPtr = std::shared_ptr<ManualVOITool>;
+    using OrthogonalVOIToolSPtr = std::shared_ptr<OrthogonalVOITool>;
+    using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;
+
     ManualVOIToolSPtr     m_manualVOITool;
     OrthogonalVOIToolSPtr m_ortogonalVOITool;
     CleanVOIToolSPtr      m_cleanVOITool;
+    ViewManagerSPtr       m_viewManager;
 
     bool m_enabled;
+
+    ROISPtr m_accumulator;
+    EspinaWidgetSPtr m_accumulatorWidget;
   };
 
 } // namespace EspINA

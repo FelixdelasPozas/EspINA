@@ -120,8 +120,8 @@ namespace EspINA
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
 
-    CircularBrushSelectorSPtr  m_circularBrushSelector;
-    SphericalBrushSelectorSPtr m_sphericalBrushSelector;
+    BrushSelectorSPtr m_circularBrushSelector;
+    BrushSelectorSPtr m_sphericalBrushSelector;
 
     BrushSelectorSPtr m_currentSelector;
     ActionSelector   *m_drawToolSelector;

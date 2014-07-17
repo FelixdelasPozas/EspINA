@@ -20,6 +20,7 @@
 
 // EspINA
 #include "OrthogonalVOITool.h"
+#include "VolumeOfInterestTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/View/Widgets/RectangularRegion/RectangularRegion.h>
@@ -35,18 +36,20 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 OrthogonalVOITool::OrthogonalVOITool(ModelAdapterSPtr model,
                                      ViewManagerSPtr  viewManager,
-                                     QUndoStack      *undoStack)
+                                     QUndoStack      *undoStack,
+                                     VOIToolsGroup   *toolGroup)
 : m_model        {model}
 , m_viewManager  {viewManager}
 , m_undoStack    {undoStack}
+, m_toolGroup    {toolGroup}
 , m_applyVOI     {new QAction(QIcon(":/espina/voi_ortogonal.svg"), tr("Orthogonal Volume Of Interest"), this)}
 , m_enabled      {true}
 , m_widget       {nullptr}
 , m_sliceSelector{nullptr}
-, m_settings     { new ROISettings()}
+, m_settings     {new ROISettings()}
 {
   m_applyVOI->setCheckable(true);
-  m_applyVOI->setEnabled(m_viewManager->currentROI() == nullptr);
+  m_applyVOI->setEnabled(m_toolGroup->currentROI() == nullptr);
 
   connect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
           this,                SLOT(commitROI()));
@@ -66,6 +69,9 @@ OrthogonalVOITool::OrthogonalVOITool(ModelAdapterSPtr model,
 OrthogonalVOITool::~OrthogonalVOITool()
 {
   delete m_settings;
+
+  disconnect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
+             this,                SLOT(commitROI()));
 
   disconnect(m_applyVOI, SIGNAL(triggered(bool)),
              this,       SLOT(initTool(bool)));
@@ -144,12 +150,12 @@ void OrthogonalVOITool::commitROI()
       ++it;
     }
 
-    if(m_viewManager->currentROI() == nullptr)
+    if(m_toolGroup->currentROI() == nullptr)
       m_undoStack->beginMacro("Create Region Of Interest");
     else
       m_undoStack->beginMacro("Modify Region Of Interest");
 
-    m_undoStack->push(new ModifyROIUndoCommand{m_viewManager, mask});
+    m_undoStack->push(new ModifyROIUndoCommand{m_toolGroup, mask});
     m_undoStack->endMacro();
 
     m_viewManager->removeWidget(m_widget);
@@ -165,14 +171,25 @@ void OrthogonalVOITool::defineROI(Selector::Selection channels)
   if (channels.isEmpty())
     return;
 
-  Q_ASSERT(channels.size() == 1); //Only one element is selected
-  auto pickedItem = channels.first();
+  auto activeChannel = m_viewManager->activeChannel();
+  bool valid = false;
+  Selector::SelectionItem selectedChannel;
+  for(auto channel: channels)
+    if(channel.second == activeChannel)
+    {
+      valid = true;
+      selectedChannel = channel;
+      break;
+    }
 
-  Q_ASSERT(pickedItem.first->numberOfVoxels() == 1); //Only one pixel's selected
-  auto pointBounds = pickedItem.first->bounds();
+  if(!valid)
+    return;
+
+  Q_ASSERT(selectedChannel.first->numberOfVoxels() == 1); //Only one pixel's selected
+  auto pointBounds = selectedChannel.first->bounds();
   NmVector3 pos{ (pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
 
-  auto pItem = pickedItem.second;
+  auto pItem = selectedChannel.second;
   if (ItemAdapter::Type::CHANNEL != pItem->type())
     return;
 

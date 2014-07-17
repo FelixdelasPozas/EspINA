@@ -35,6 +35,7 @@ namespace EspINA
   class RectangularRegion;
   class RectangularRegionSliceSelector;
   class ROISettings;
+  class VOIToolsGroup;
 
   /// Volume Of Interest Toolbar
   class OrthogonalVOITool
@@ -42,15 +43,35 @@ namespace EspINA
   {
     Q_OBJECT
   public:
+    /* \brief OrthogonalVOITool class constructor.
+     * \param[in] model       Analysis model adapter
+     * \param[in] viewManager Application view manager.
+     * \param[in] undoStack   Application qt undo stack.
+     * \param[in] toolGroup   VOIToolsGroup pointer that contains VOI accumulator.
+     */
     explicit OrthogonalVOITool(ModelAdapterSPtr model,
                                ViewManagerSPtr  viewManager,
-                               QUndoStack      *undoStack);
+                               QUndoStack      *undoStack,
+                               VOIToolsGroup   *toolgroup);
+
+    /* \brief OrthogonalVOITool class virtual destructor.
+     *
+     */
     virtual ~OrthogonalVOITool();
 
+    /* \brief Implements Tool::setEnabled(bool).
+     *
+     */
     virtual void setEnabled(bool value);
 
+    /* \brief Implements Tool::enabled().
+     *
+     */
     virtual bool enabled() const;
 
+    /* \brief Implements Tool::actions().
+     *
+     */
     virtual QList<QAction *> actions() const;
 
   protected slots:
@@ -62,6 +83,7 @@ namespace EspINA
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
+    VOIToolsGroup   *m_toolGroup;
 
     QAction         *m_applyVOI;
     bool             m_enabled;

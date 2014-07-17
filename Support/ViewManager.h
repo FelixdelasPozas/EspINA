@@ -38,7 +38,6 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
-#include <GUI/View/Widgets/ROI/ROIWidget.h>
 
 // Qt
 #include <QList>
@@ -75,11 +74,9 @@ namespace EspINA
 
     void registerView(SelectableView* view);
     void registerView(RenderView*     view);
-    void registerView(View2D*         view);
 
     void unregisterView(SelectableView* view);
     void unregisterView(RenderView*     view);
-    void unregisterView(View2D*         view);
 
     QList<RenderView*> renderViews()
     { return m_renderViews; }
@@ -87,8 +84,7 @@ namespace EspINA
     QList<SelectableView*> selectableViews()
     { return m_espinaViews; }
 
-    QList<View2D *> sliceViews()
-    { return m_sliceViews; }
+    QList<View2D *> sliceViews();
 
     /* \brief Register a renderer.
      * \param[in] renderer, renderer prototype.
@@ -113,7 +109,6 @@ namespace EspINA
   private:
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
-    QList<View2D *>         m_sliceViews;
     RendererSList           m_availableRenderers;
 
     //---------------------------------------------------------------------------
@@ -153,8 +148,6 @@ namespace EspINA
 
     void hideTools(ToolGroupPtr group);
 
-//     ToolGroupPtr toolGroup()
-//     { return m_toolGroup; }
     void setEventHandler(EventHandlerSPtr eventHandler);
 
     void unsetActiveEventHandler();
@@ -164,7 +157,8 @@ namespace EspINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setCurrentROI(ROISPtr roi);
+    void setCurrentROI(ROISPtr roi)
+    { m_roi = roi; emit ROIChanged(); }
 
     ROISPtr currentROI() const
     { return m_roi; }
@@ -175,7 +169,6 @@ namespace EspINA
 
   private:
     ROISPtr          m_roi;
-    EspinaWidgetSPtr m_roiWidget;
     QToolBar        *m_contextualToolBar;
     ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;
@@ -186,6 +179,9 @@ namespace EspINA
   public:
     void addWidget   (EspinaWidgetSPtr widget);
     void removeWidget(EspinaWidgetSPtr widget);
+
+  private:
+    QList<EspinaWidgetSPtr> m_widgets;
 
     //---------------------------------------------------------------------------
     /*********************** View Synchronization API **************************/

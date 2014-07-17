@@ -36,46 +36,44 @@
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
-  ROIWidget::ROIWidget(ViewManager *vm)
-  : m_vm{vm}
-  , m_ROI{nullptr}
+  ROIWidget::ROIWidget(ROISPtr roi)
+  : m_ROI{roi}
   {
-    //FIXME: connect(m_vm, SIGNAL(ROIChanged()), this, SLOT(updateROIPointer()));
+    connect(m_ROI.get(), SIGNAL(dataChanged()),
+            this,        SLOT(updateROIRepresentations()), Qt::QueuedConnection);
   }
   
   //-----------------------------------------------------------------------------
   ROIWidget::~ROIWidget()
   {
+    disconnect(m_ROI.get(), SIGNAL(dataChanged()),
+               this,        SLOT(updateROIRepresentations()));
+
     m_representations.clear();
   }
   
   //----------------------------------------------------------------------------
   void ROIWidget::updateActor(View2D *view)
   {
-    /* FIXME
-    if(m_vm->currentROI() == nullptr)
-    {
-      if(m_representations[view].actor != nullptr)
-        m_representations[view].actor->SetVisibility(false);
-
-      return;
-    }
-
-    auto bounds = m_vm->currentROI()->bounds();
+    auto bounds = m_ROI->bounds();
     auto index = normalCoordinateIndex(view->plane());
     auto pos = view->crosshairPoint()[index];
     bounds[2 * index] = bounds[(2 * index) + 1] = pos;
+    bounds.setUpperInclusion(toAxis(index), true);
 
-    if (!intersect(m_vm->currentROI()->bounds(), bounds))
+    if (!intersect(m_ROI->bounds(), bounds))
     {
       if(m_representations[view].actor != nullptr)
+      {
         m_representations[view].actor->SetVisibility(false);
+        view->updateView();
+      }
       return;
     }
 
     if(m_representations[view].actor == nullptr)
     {
-      vtkSmartPointer<vtkImageData> image = vtkImage<itkVolumeType>(m_vm->currentROI()->itkImage(bounds), bounds);
+      vtkSmartPointer<vtkImageData> image = vtkImage<itkVolumeType>(m_ROI->itkImage(bounds), bounds);
       m_representations[view].contour = vtkSmartPointer<vtkVoxelContour2D>::New();
       m_representations[view].contour->SetInputData(image);
       m_representations[view].contour->UpdateWholeExtent();
@@ -106,7 +104,7 @@ namespace EspINA
     }
     else
     {
-      vtkSmartPointer<vtkImageData> image = vtkImage<itkVolumeType>(m_vm->currentROI()->itkImage(bounds), bounds);
+      vtkSmartPointer<vtkImageData> image = vtkImage<itkVolumeType>(m_ROI->itkImage(bounds), bounds);
       m_representations[view].contour->SetInputData(image);
       m_representations[view].contour->SetUpdateExtent(image->GetExtent());
       m_representations[view].contour->Update();
@@ -116,10 +114,8 @@ namespace EspINA
 
       m_representations[view].actor->SetVisibility(true);
       m_representations[view].actor->Modified();
-
       view->updateView();
     }
-    */
   }
 
   //-----------------------------------------------------------------------------
@@ -170,22 +166,6 @@ namespace EspINA
         updateActor(view);
         return;
       }
-  }
-
-  //----------------------------------------------------------------------------
-  void ROIWidget::updateROIPointer()
-  {
-    /* FIXME
-    if(m_ROI != nullptr)
-      disconnect(m_ROI.get(), SIGNAL(dataChanged()), this, SLOT(updateROIRepresentations()));
-
-    m_ROI = m_vm->currentROI();
-
-    if(m_ROI != nullptr)
-      connect(m_ROI.get(), SIGNAL(dataChanged()), this, SLOT(updateROIRepresentations()));
-
-    */
-    updateROIRepresentations();
   }
 
   //----------------------------------------------------------------------------

@@ -51,10 +51,10 @@ namespace EspINA
     Q_OBJECT
     public:
       /* \brief ROIWidget class constructor.
-       * \param[in] vm ViewManagerSPtr
+       * \param[in] roi Region of interest object smart pointer.
        *
        */
-      explicit ROIWidget(ViewManager *);
+      explicit ROIWidget(ROISPtr roi);
 
       /* \brief ROIWidget class virtual destructor.
        *
@@ -79,7 +79,6 @@ namespace EspINA
     private slots:
       void sliceChanged(Plane, Nm);
       void updateROIRepresentations();
-      void updateROIPointer();
 
     private:
       void updateActor(View2D *view);
@@ -96,7 +95,6 @@ namespace EspINA
 
       QMap<View2D *, struct pipeline> m_representations;
 
-      ViewManager                *m_vm;
       ROISPtr                     m_ROI;
   };
 

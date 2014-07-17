@@ -289,7 +289,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto measuresTools = new MeasuresTools(m_viewManager, this);
   registerToolGroup(measuresTools);
 
-  auto voiTools = new VolumeOfInterestTools(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto voiTools = new VOIToolsGroup(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(voiTools);
 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);

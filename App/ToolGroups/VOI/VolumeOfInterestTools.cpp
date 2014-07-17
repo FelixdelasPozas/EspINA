@@ -19,31 +19,41 @@
 */
 
 // EspINA
+#include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "VolumeOfInterestTools.h"
+#include "CleanVOITool.h"
+#include "ManualVOITool.h"
+#include "OrthogonalVOITool.h"
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VolumeOfInterestTools::VolumeOfInterestTools(ModelAdapterSPtr model,
+VOIToolsGroup::VOIToolsGroup(ModelAdapterSPtr model,
                                              ModelFactorySPtr factory,
                                              ViewManagerSPtr  viewManager,
                                              QUndoStack      *undoStack,
                                              QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent)
-, m_manualVOITool   {new ManualVOITool(model, viewManager, undoStack)}
-, m_ortogonalVOITool{new OrthogonalVOITool(model, viewManager, undoStack)}
-, m_cleanVOITool    {new CleanVOITool(model, viewManager, undoStack)}
-, m_enabled         {true}
+, m_viewManager      {viewManager}
+, m_enabled          {true}
+, m_accumulator      {nullptr}
+, m_accumulatorWidget{nullptr}
+{
+  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
+          this,                SLOT(updateROI()), Qt::QueuedConnection);
+
+  m_manualVOITool    = ManualVOIToolSPtr{new ManualVOITool(model, viewManager, undoStack, this)};
+  m_ortogonalVOITool = OrthogonalVOIToolSPtr{new OrthogonalVOITool(model, viewManager, undoStack, this)};
+  m_cleanVOITool     = CleanVOIToolSPtr{new CleanVOITool(model, viewManager, undoStack, this)};
+}
+
+//-----------------------------------------------------------------------------
+VOIToolsGroup::~VOIToolsGroup()
 {
 }
 
 //-----------------------------------------------------------------------------
-VolumeOfInterestTools::~VolumeOfInterestTools()
-{
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterestTools::setEnabled(bool value)
+void VOIToolsGroup::setEnabled(bool value)
 {
   if(m_enabled == value)
     return;
@@ -55,13 +65,13 @@ void VolumeOfInterestTools::setEnabled(bool value)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeOfInterestTools::enabled() const
+bool VOIToolsGroup::enabled() const
 {
   return m_enabled;
 }
 
 //-----------------------------------------------------------------------------
-ToolSList VolumeOfInterestTools::tools()
+ToolSList VOIToolsGroup::tools()
 {
   ToolSList availableTools;
 
@@ -70,4 +80,46 @@ ToolSList VolumeOfInterestTools::tools()
   availableTools << m_cleanVOITool;
 
   return availableTools;
+}
+
+//-----------------------------------------------------------------------------
+void VOIToolsGroup::setCurrentROI(ROISPtr roi)
+{
+  if(m_accumulator != nullptr)
+    m_viewManager->removeWidget(m_accumulatorWidget);
+
+  if(roi != nullptr)
+  {
+    m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
+    m_viewManager->addWidget(m_accumulatorWidget);
+  }
+
+  m_accumulator = roi;
+  m_viewManager->setCurrentROI(m_accumulator);
+}
+
+//-----------------------------------------------------------------------------
+ROISPtr VOIToolsGroup::currentROI()
+{
+  if(m_viewManager->currentROI() != m_accumulator)
+    m_accumulator = m_viewManager->currentROI();
+
+  return m_accumulator;
+}
+
+//-----------------------------------------------------------------------------
+void VOIToolsGroup::updateROI()
+{
+  auto roi = m_viewManager->currentROI();
+
+  if(m_accumulator != nullptr)
+    m_viewManager->removeWidget(m_accumulatorWidget);
+
+  if(roi != nullptr)
+  {
+    m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
+    m_viewManager->addWidget(m_accumulatorWidget);
+  }
+
+  m_accumulator = roi;
 }

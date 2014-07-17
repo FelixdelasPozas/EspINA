@@ -62,7 +62,9 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edition/MorphologicalEditionTool.h
   ToolGroups/Measures/MeasuresTools.h
   Tools/Brushes/CircularBrushSelector.h
+  Tools/Brushes/CircularBrushROISelector.h
   Tools/Brushes/SphericalBrushSelector.h
+  Tools/Brushes/SphericalBrushROISelector.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/Measure/MeasureTool.h
@@ -182,6 +184,7 @@ set (ESPINA_SOURCES
   Tools/Brushes/CircularBrushROISelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp
   Tools/Brushes/SphericalBrushROISelector.cpp
+  Tools/Brushes/ROISelectorBase.cpp
 #   Tools/Contour/FilledContour.cpp
   Tools/Measure/MeasureTool.cpp
 #   Tools/PlanarSplit/PlanarSplitTool.cpp

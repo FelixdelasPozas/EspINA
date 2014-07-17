@@ -18,14 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// EspINA
 #include "ManualVOITool.h"
-
+#include "VolumeOfInterestTools.h"
 #include <GUI/Widgets/SliderAction.h>
+#include <Tools/Brushes/CircularBrushSelector.h>
+#include <Tools/Brushes/SphericalBrushSelector.h>
 #include <Tools/Brushes/CircularBrushROISelector.h>
 #include <Tools/Brushes/SphericalBrushROISelector.h>
 #include <Undo/ROIUndoCommand.h>
-
-// EspINA
 
 // Qt
 #include <QDebug>
@@ -36,9 +37,11 @@ using namespace EspINA;
 //-----------------------------------------------------------------------------
 ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
                              ViewManagerSPtr  viewManager,
-                             QUndoStack      *undoStack)
+                             QUndoStack      *undoStack,
+                             VOIToolsGroup   *toolGroup)
 : ManualEditionTool{model, viewManager}
 , m_undoStack      {undoStack}
+, m_toolGroup      {toolGroup}
 {
 
   disconnect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
@@ -150,7 +153,7 @@ ManualVOITool::~ManualVOITool()
 //-----------------------------------------------------------------------------
 void ManualVOITool::ROIChanged()
 {
-  bool hasROI = (m_viewManager->currentROI() != nullptr);
+  bool hasROI = (m_toolGroup->currentROI() != nullptr);
 
   auto disc = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
   disc->setHasROI(hasROI);
@@ -217,12 +220,12 @@ void ManualVOITool::drawingModeChanged(bool isDrawing)
 //------------------------------------------------------------------------
 void ManualVOITool::drawStroke(Selector::Selection selection)
 {
-  if(m_viewManager->currentROI() == nullptr)
+  if(m_toolGroup->currentROI() == nullptr)
     m_undoStack->beginMacro("Create Region Of Interest");
   else
     m_undoStack->beginMacro("Modify Region Of Interest");
 
-  m_undoStack->push(new ModifyROIUndoCommand{m_viewManager, selection.first().first});
+  m_undoStack->push(new ModifyROIUndoCommand{m_toolGroup, selection.first().first});
   m_undoStack->endMacro();
 
   updateReferenceItem(m_viewManager->selection());
@@ -239,7 +242,7 @@ void ManualVOITool::updateReferenceItem(SelectionSPtr selection)
 {
   m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
 
-  if(m_viewManager->currentROI() != nullptr)
+  if(m_toolGroup->currentROI() != nullptr)
   {
     auto disk = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
     disk->setHasROI(true);

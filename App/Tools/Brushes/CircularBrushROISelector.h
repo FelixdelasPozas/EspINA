@@ -21,54 +21,26 @@
 #ifndef ESPINA_CIRCULAR_BRUSH_ROI_SELECTOR_H_
 #define ESPINA_CIRCULAR_BRUSH_ROI_SELECTOR_H_
 
-#include <App/Tools/Brushes/CircularBrushSelector.h>
+// EspINA
+#include "ROISelectorBase.h"
+
+// Qt
+#include <QObject>
 
 namespace EspINA
 {
-  
   class CircularBrushROISelector
-  : public CircularBrushSelector
+  : public ROISelectorBase
   {
+    Q_OBJECT
     public:
-      /* \brief CircularBrushROISelector class constructor.
-       *
-       */
       explicit CircularBrushROISelector();
 
-      /* \brief CircularBrushROISelector class virtual destructor.
-       *
-       */
-      virtual ~CircularBrushROISelector();
-
-      /* \brief Implements BrushSelector::filterEvent().
-       *
-       */
-      virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
-
-      /* \brief Method to set the bool to avoi erasing when there isnt a ROI
-       *
-       */
-      void setHasROI(bool value)
-      { m_hasROI = value; }
-
-    protected:
-      /* \brief Implements BrushSelector::startPreview().
-       *
-       */
-      virtual void startPreview(RenderView *view);
-
-      /* \brief Implements BrushSelector::updatePreview().
-       *
-       */
-      virtual void updatePreview(NmVector3 center, RenderView *view);
-
-      /* \brief Implements BrushSelector::stopStroke().
-       *
-       */
-      virtual void stopStroke(RenderView* view);
-
-    private:
-      bool m_hasROI;
+    protected slots:
+      virtual BrushSelector::BrushShape createBrushShape(ViewItemAdapterPtr item,
+                                                         NmVector3 center,
+                                                         Nm radius,
+                                                         Plane plane);
   };
 
   using CircularBrushROISelectorSPtr = std::shared_ptr<CircularBrushROISelector>;

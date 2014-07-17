@@ -21,8 +21,8 @@
 #define ESPINA_CLEAN_VOI_H
 
 // EspINA
-#include <Support/Tool.h>
 #include <Support/ViewManager.h>
+#include <Support/Tool.h>
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
@@ -31,21 +31,43 @@
 class QAction;
 namespace EspINA
 {
+  class VOIToolsGroup;
+
   /// Volume Of Interest Toolbar
   class CleanVOITool
   : public Tool
   {
     Q_OBJECT
   public:
-    explicit CleanVOITool(ModelAdapterSPtr model,
-                          ViewManagerSPtr  viewManager,
-                          QUndoStack      *undoStack);
+    /* \brief CleanVOITool class constructor.
+     * \param[in] model       Analysis model adapter.
+     * \param[in] viewManager Application view manager.
+     * \param[in] undoStack   Application qt undo stack.
+     * \param[in] toolGroup   VOIToolsGroup pointer containing the VOI accumulator.
+     */
+    explicit CleanVOITool(ModelAdapterSPtr  model,
+                          ViewManagerSPtr   viewManager,
+                          QUndoStack       *undoStack,
+                          VOIToolsGroup    *toolGroup);
+
+    /* \brief CleanVOITool class virtual destructor.
+     *
+     */
     virtual ~CleanVOITool();
 
+    /* \brief Implements Tool::setEnabled(bool).
+     *
+     */
     virtual void setEnabled(bool value);
 
+    /* \brief Implements Tool::enabled().
+     *
+     */
     virtual bool enabled() const;
 
+    /* \implements Tool::actions().
+     *
+     */
     virtual QList<QAction *> actions() const;
 
   protected slots:
@@ -53,12 +75,12 @@ namespace EspINA
     void ROIChanged();
 
   private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
-
-    QAction *m_cleanVOI;
-    bool m_enabled;
+    ModelAdapterSPtr  m_model;
+    ViewManagerSPtr   m_viewManager;
+    QUndoStack       *m_undoStack;
+    VOIToolsGroup    *m_toolGroup;
+    QAction          *m_cleanVOI;
+    bool              m_enabled;
   };
 
   using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;
