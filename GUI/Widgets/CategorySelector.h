@@ -41,7 +41,7 @@ namespace EspINA
 
     virtual QWidget* createWidget(QWidget* parent);
 
-    void selectedCategory(CategoryAdapterSPtr category);
+    void selectCategory(CategoryAdapterSPtr category);
 
     CategoryAdapterSPtr selectedCategory();
 
@@ -51,6 +51,7 @@ namespace EspINA
   private slots:
     void categorySelected(const QModelIndex& index);
     void onWidgetDestroyed(QObject* object);
+    void invalidateState();
     void resetRootItem();
 
   private:

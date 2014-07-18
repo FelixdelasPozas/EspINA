@@ -264,8 +264,9 @@ void ViewManager::unsetActiveEventHandler()
 //----------------------------------------------------------------------------
 void ViewManager::unsetEventHandler(EventHandlerSPtr eventHandler)
 {
-  if (m_eventHandler == eventHandler)
+  if (eventHandler && m_eventHandler == eventHandler)
   {
+    m_eventHandler->setInUse(false);
     m_eventHandler.reset();
 
     for(auto view : m_renderViews)

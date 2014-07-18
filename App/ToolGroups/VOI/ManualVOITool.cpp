@@ -47,8 +47,6 @@ ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
   disconnect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
              this,                          SLOT(  drawStroke(Selector::Selection)));
   disconnect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-             m_drawToolSelector,            SLOT(         setChecked(bool)));
-  disconnect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
              this,                          SLOT(      selectorInUse(bool)));
   disconnect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)),
              this,                          SLOT(  radiusChanged(int)));
@@ -166,11 +164,7 @@ void ManualVOITool::changeSelector(QAction* action)
 {
   Q_ASSERT(m_drawTools.keys().contains(action));
 
-  if (m_showRadiusControls)
-    m_radiusWidget->setVisible(true);
-
-  if (m_showOpacityControls)
-    m_opacityWidget->setVisible(true);
+  setControlVisibility(true);
 
   m_currentSelector = m_drawTools[action];
   m_currentSelector->setBrushColor(Qt::yellow);
@@ -188,6 +182,9 @@ void ManualVOITool::selectorInUse(bool value)
     m_currentSelector = nullptr;
     emit stopDrawing();
   }
+
+  m_drawToolSelector->setChecked(value);
+  setControlVisibility(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -256,4 +253,14 @@ void ManualVOITool::updateReferenceItem(SelectionSPtr selection)
     m_currentSelector->setBrushImage(QImage(":/espina/add.svg"));
     m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
   }
+}
+
+//-----------------------------------------------------------------------------
+void ManualVOITool::setControlVisibility(bool value)
+{
+  if (m_showRadiusControls)
+    m_radiusWidget->setVisible(value);
+
+  if (m_showOpacityControls)
+    m_opacityWidget->setVisible(value);
 }

@@ -133,11 +133,6 @@ namespace EspINA
       QCursor cursor() const
       { return QCursor(Qt::CrossCursor); }
 
-      /* \brief Implements EventHandler::setInUse.
-       *
-       */
-      virtual void setInUse(bool value)
-      { m_inUse = value; }
 
       /* \brief Implements EventHandler::filterEvent.
        *

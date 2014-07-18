@@ -43,7 +43,7 @@ namespace EspINA
   , m_categorySelector    {new CategorySelector(model)}
   , m_radiusWidget        {new SliderAction()}
   , m_opacityWidget       {new SliderAction()}
-  , m_eraserWidget              {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
+  , m_eraserWidget        {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
   , m_showCategoryControls{true}
   , m_showRadiusControls  {true}
   , m_showOpacityControls {true}
@@ -119,8 +119,6 @@ namespace EspINA
             this,               SLOT(changeSelector(QAction*)));
     connect(m_drawToolSelector, SIGNAL(actionCanceled()),
             this,               SLOT(   unsetSelector()));
-    connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-            this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
 
     QSettings settings(CESVIMA, ESPINA);
     int radius  = settings.value(BRUSH_RADIUS,  20).toInt();
@@ -148,15 +146,10 @@ namespace EspINA
             this, SLOT(setEraserMode(bool)));
 
 
-    m_categorySelector->setVisible(false);
-    m_radiusWidget    ->setVisible(false);
-    m_opacityWidget   ->setVisible(false);
-    m_eraserWidget    ->setVisible(false);
+    setControlVisibility(false);
 
     connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
             this, SLOT(updateReferenceItem()));
-
-    updateReferenceItem();
   }
 
   //------------------------------------------------------------------------
@@ -168,7 +161,9 @@ namespace EspINA
     settings.sync();
 
     if (m_currentSelector)
+    {
       m_viewManager->unsetEventHandler(m_currentSelector);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -178,17 +173,19 @@ namespace EspINA
 
     setControlVisibility(true);
 
-    SelectionSPtr selection      = m_viewManager->selection();
-    SegmentationAdapterList segs = selection->segmentations();
+    updateReferenceItem();
 
-    QColor color = m_categorySelector->selectedCategory()->color();
-    if (segs.size() == 1)
-    {
-      color = segs.first()->category()->color();
-    }
+//     SelectionSPtr selection      = m_viewManager->selection();
+//     SegmentationAdapterList segs = selection->segmentations();
+//
+//     QColor color = m_categorySelector->selectedCategory()->color();
+//     if (segs.size() == 1)
+//     {
+//       color = segs.first()->category()->color();
+//     }
 
     m_currentSelector = m_drawTools[action];
-    m_currentSelector->setBrushColor(color);
+    //m_currentSelector->setBrushColor(color);
     m_currentSelector->setRadius(m_radiusWidget->value());
 
     m_viewManager->setEventHandler(m_currentSelector);
@@ -197,33 +194,52 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ManualEditionTool::unsetSelector()
   {
-    setControlVisibility(false);
+    if (m_currentSelector != nullptr)
+    {
+      setControlVisibility(false);
 
-    m_viewManager->setEventHandler(nullptr);
+      m_drawToolSelector->blockSignals(true);
+      m_drawToolSelector->setChecked(false);
+      m_drawToolSelector->blockSignals(false);
 
-    m_currentSelector.reset();
+      m_circularBrushSelector->setReferenceItem(nullptr);
+      m_circularBrushSelector->setReferenceItem(nullptr);
+
+      // This tool can be unset either by the tool itself or by other
+      // event handler through the view manager
+      m_viewManager->unsetEventHandler(m_currentSelector);
+
+      m_currentSelector.reset();
+    }
   }
 
   //-----------------------------------------------------------------------------
   void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
   {
-    if (m_currentSelector != nullptr)
+
+    if (m_categorySelector)
     {
+      m_eraserWidget->setChecked(false);
+
       auto selection = m_viewManager->selection();
       selection->clear();
+
       ChannelAdapterList channels;
       channels << m_viewManager->activeChannel();
       selection->set(channels);
-      m_currentSelector->setBrushColor(category->color());
-      updateReferenceItem();
+
     }
+
+    updateReferenceItem();
   }
 
   //-----------------------------------------------------------------------------
   void ManualEditionTool::changeRadius(int value)
   {
     if (m_currentSelector != nullptr)
+    {
       m_currentSelector->setRadius(m_radiusWidget->value());
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -238,7 +254,7 @@ namespace EspINA
   {
     if (!value)
     {
-      m_currentSelector = nullptr;
+      unsetSelector();
       emit stopDrawing();
     }
     else
@@ -270,6 +286,8 @@ namespace EspINA
     if (m_currentSelector != nullptr)
     {
       m_drawToolSelector->setChecked(m_viewManager->eventHandler() == m_currentSelector);
+    } else {
+      m_drawToolSelector->setChecked(false);
     }
 
     actions << m_drawToolSelector;
@@ -292,8 +310,7 @@ namespace EspINA
   //------------------------------------------------------------------------
   void ManualEditionTool::abortOperation()
   {
-    if (m_currentSelector != nullptr)
-      m_currentSelector->abortOperation();
+    unsetSelector();
   }
 
   //------------------------------------------------------------------------
@@ -334,22 +351,24 @@ namespace EspINA
   //------------------------------------------------------------------------
   void ManualEditionTool::updateReferenceItem()
   {
-    auto selection = m_viewManager->selection();
     QImage image;
-    QColor borderColor{Qt::blue};
-    bool enableEraser = true;
+    QColor borderColor {Qt::blue};
+    QColor fillColor   {Qt::gray};
+    bool   enableEraser{true};
 
     ViewItemAdapterPtr item = nullptr;
 
-    auto segs = selection->segmentations();
-    if (segs.size() == 1)
+    auto selection     = m_viewManager->selection();
+    auto segmentations = selection->segmentations();
+
+    if (segmentations.size() == 1)
     {
-      item = segs.first();
+      item = segmentations.first();
     }
     else
     {
       item = m_viewManager->activeChannel();
-      image = QImage(":/espina/add.svg");
+      image = QImage(":/espina/brush_new.svg");
       enableEraser = false;
     }
 
@@ -366,12 +385,23 @@ namespace EspINA
       else
       {
         auto segmentation = selection->segmentations().first();
+        auto category     = segmentation->category();
+
+        m_categorySelector->blockSignals(true);
+        if (m_categorySelector->selectedCategory() != category)
+        {
+          m_categorySelector->selectCategory(category);
+        }
+        m_categorySelector->blockSignals(false);
 
         item = segmentation;
-
-        m_categorySelector->selectedCategory(segmentation->category());
       }
     }
+
+    auto category = m_categorySelector->selectedCategory();
+
+    m_circularBrushSelector->setBrushColor (category->color());
+    m_sphericalBrushSelector->setBrushColor(category->color());
 
     m_circularBrushSelector->setReferenceItem(item);
     m_circularBrushSelector->setBrushImage(image);
@@ -389,6 +419,44 @@ namespace EspINA
     if(m_showRadiusControls)   m_radiusWidget    ->setVisible(visible);
     if(m_showOpacityControls)  m_opacityWidget   ->setVisible(visible);
     if(m_showEraserControls)   m_eraserWidget    ->setVisible(visible);
+
+    if (visible)
+    {
+      auto currentCategory = currentReferenceCategory();
+
+      if (currentCategory)
+      {
+        m_categorySelector->blockSignals(true);
+        m_categorySelector->selectCategory(currentCategory);
+        m_categorySelector->blockSignals(false);
+      }
+
+      connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+              this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
+    } else {
+      disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+                 this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
+    }
+  }
+
+  //------------------------------------------------------------------------
+  CategoryAdapterSPtr ManualEditionTool::currentReferenceCategory()
+  {
+    CategoryAdapterSPtr currentCategory{nullptr};
+
+    if (m_currentSelector)
+    {
+      auto item = m_currentSelector->referenceItem();
+
+      if (item && isSegmentation(item))
+      {
+        auto segmentation = segmentationPtr(item);
+
+        currentCategory = segmentation->category();
+      }
+    }
+
+    return currentCategory;
   }
 
   //------------------------------------------------------------------------

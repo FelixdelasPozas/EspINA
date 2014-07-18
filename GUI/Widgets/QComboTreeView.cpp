@@ -68,10 +68,12 @@ void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 {
   QComboBox::setRootModelIndex(index);
 
+  m_rootModelIndex    = index;
+  m_currentModelIndex = index;
+
   if (count() > 0)
   {
     setCurrentIndex(0);
-    m_rootModelIndex    = index;
     m_currentModelIndex = index.child(0,0);
     indexActivated();
   }

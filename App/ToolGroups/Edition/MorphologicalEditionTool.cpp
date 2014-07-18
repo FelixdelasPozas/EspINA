@@ -365,6 +365,8 @@ void MorphologicalEditionTool::onOpenToggled(bool toggled)
 {
   if (toggled)
   {
+    m_viewManager->unsetActiveEventHandler();
+
     m_close .toggleToolWidgets(false);
     m_dilate.toggleToolWidgets(false);
     m_erode .toggleToolWidgets(false);
@@ -376,6 +378,8 @@ void MorphologicalEditionTool::onDilateToggled(bool toggled)
 {
   if (toggled)
   {
+    m_viewManager->unsetActiveEventHandler();
+
     m_close.toggleToolWidgets(false);
     m_open .toggleToolWidgets(false);
     m_erode.toggleToolWidgets(false);
@@ -387,6 +391,8 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 {
   if (toggled)
   {
+    m_viewManager->unsetActiveEventHandler();
+
     m_close .toggleToolWidgets(false);
     m_open  .toggleToolWidgets(false);
     m_dilate.toggleToolWidgets(false);

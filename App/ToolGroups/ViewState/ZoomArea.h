@@ -59,13 +59,13 @@ namespace EspINA
       /* \brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
        *
        */
-      void initTool(bool value);
+      void activateTool(bool value);
 
     private:
       bool                 m_enabled;
-      EspinaWidgetSPtr     m_widget;
       ViewManagerSPtr      m_viewManager;
       QAction             *m_zoomArea;
+      EspinaWidgetSPtr     m_widget;
       EventHandlerSPtr     m_zoomHandler;
   };
 

@@ -103,7 +103,7 @@ namespace EspINA
     m_enabled = value;
 
     m_manualEdition->setEnabled(value);
-    m_split->setEnabled(value);
+    m_split        ->setEnabled(value);
     m_morphological->setEnabled(value);
   }
 
@@ -117,7 +117,7 @@ namespace EspINA
   ToolSList EditionTools::tools()
   {
     m_manualEdition->setEnabled(true);
-    m_split->setEnabled(true);
+    m_split        ->setEnabled(true);
     m_morphological->setEnabled(true);
 
     selectionChanged();
@@ -147,7 +147,7 @@ namespace EspINA
   void EditionTools::abortOperation()
   {
     m_manualEdition->abortOperation();
-    m_split->abortOperation();
+    m_split        ->abortOperation();
   }
 
   //-----------------------------------------------------------------------------
@@ -172,37 +172,38 @@ namespace EspINA
       m_undoStack->push(new DrawUndoCommand(segmentation, mask));
       m_undoStack->endMacro();
     }
+    else if(!selection->channels().empty())
+    {
+      InputSList inputs;
+      inputs << m_viewManager->activeChannel()->asInput();
+      auto adapter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
+      auto filter = adapter->get();
+      filter->setMask(mask);
+
+      segmentation = m_factory->createSegmentation(adapter, 0);
+      segmentation->setCategory(category);
+
+      auto item = selection->channels().first();
+      auto channelItem = static_cast<ChannelAdapterPtr>(item);
+
+      SampleAdapterSList samples;
+      samples << QueryAdapter::sample(channelItem);
+      Q_ASSERT(channelItem && (samples.size() == 1));
+
+      m_undoStack->beginMacro(tr("Add Segmentation"));
+      m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+      m_undoStack->endMacro();
+
+      SegmentationAdapterList list;
+      list << segmentation.get();
+      m_viewManager->selection()->clear();
+      m_viewManager->selection()->set(list);
+      tool->updateReferenceItem();
+    }
     else
-      if(!selection->channels().empty())
-      {
-        InputSList inputs;
-        inputs << m_viewManager->activeChannel()->asInput();
-        auto adapter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
-        auto filter = adapter->get();
-        filter->setMask(mask);
-
-        segmentation = m_factory->createSegmentation(adapter, 0);
-        segmentation->setCategory(category);
-
-        auto item = selection->channels().first();
-        auto channelItem = static_cast<ChannelAdapterPtr>(item);
-
-        SampleAdapterSList samples;
-        samples << QueryAdapter::sample(channelItem);
-        Q_ASSERT(channelItem && (samples.size() == 1));
-
-        m_undoStack->beginMacro(tr("Add Segmentation"));
-        m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-        m_undoStack->endMacro();
-
-        SegmentationAdapterList list;
-        list << segmentation.get();
-        m_viewManager->selection()->clear();
-        m_viewManager->selection()->set(list);
-        tool->updateReferenceItem();
-      }
-      else
-        Q_ASSERT(false);
+    {
+      Q_ASSERT(false);
+    }
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();

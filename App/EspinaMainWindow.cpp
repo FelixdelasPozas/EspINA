@@ -606,8 +606,6 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 bool EspinaMainWindow::closeCurrentAnalysis()
 {
-  emit analysisClosed();
-
   if (isModelModified())
   {
     QMessageBox warning;
@@ -629,9 +627,11 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     }
   }
 
+  emit analysisClosed();
+
   m_viewManager->setActiveChannel(ChannelAdapterPtr());
   m_viewManager->setActiveCategory(CategoryAdapterPtr());
-  //m_viewManager->hideTools();
+  m_viewManager->setEventHandler(EventHandlerSPtr());
   m_viewManager->selection()->clear();
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();

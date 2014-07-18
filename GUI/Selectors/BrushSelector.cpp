@@ -315,7 +315,9 @@ void BrushSelector::buildCursor()
   painter.drawEllipse(0, 0, width-1, width-1);
 
   if (m_brushImage)
+  {
     painter.drawImage(QPoint(m_displayRadius/2,m_displayRadius/2), m_brushImage->scaledToWidth(m_displayRadius));
+  }
 
   m_cursor = QCursor(pix);
 }

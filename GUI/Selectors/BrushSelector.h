@@ -88,6 +88,9 @@ namespace EspINA
 
       /// @item is used to specify the spacing of the stroke
       void setReferenceItem(ViewItemAdapterPtr item);
+      ViewItemAdapterPtr referenceItem() const
+      { return m_item; }
+
       Spacing referenceSpacing() const;
 
       BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;

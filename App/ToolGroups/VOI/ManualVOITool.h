@@ -93,6 +93,9 @@ namespace EspINA
     void ROIChanged();
 
   private:
+    void setControlVisibility(bool value);
+
+  private:
     QUndoStack    *m_undoStack;
     VOIToolsGroup *m_toolGroup;
   };

@@ -95,8 +95,14 @@ namespace EspINA
     m_planarSplitAction->setChecked(false);
     m_applyButton->setVisible(false);
     m_applyButton->setCheckable(false);
-    connect(m_planarSplitAction, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
-    connect(m_applyButton, SIGNAL(triggered()), this, SLOT(applyCurrentState()), Qt::QueuedConnection);
+
+    connect(m_planarSplitAction, SIGNAL(triggered(bool)),
+            this,                SLOT(initTool(bool)));
+    connect(m_applyButton, SIGNAL(triggered()),
+            this,          SLOT(applyCurrentState()));
+    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,            SLOT(initTool(bool)));
+
     m_factory->registerFilterFactory(FilterFactorySPtr(new SplitFilterFactory()));
   }
 
@@ -141,12 +147,13 @@ namespace EspINA
   {
     if(value)
     {
+      if (m_widget) return;
+
       auto widget = PlanarSplitWidget::New();
       m_widget = EspinaWidgetSPtr{widget};
-      m_viewManager->addWidget(m_widget);
-      m_viewManager->setSelectionEnabled(false);
       m_viewManager->setEventHandler(m_handler);
-      m_applyButton->setVisible(true);
+      m_viewManager->setSelectionEnabled(false);
+      m_viewManager->addWidget(m_widget);
 
       auto selectedSegs = m_viewManager->selection()->segmentations();
       Q_ASSERT(selectedSegs.size() == 1);
@@ -161,17 +168,21 @@ namespace EspINA
       if(m_widget == nullptr)
         return;
 
-      m_viewManager->setSelectionEnabled(true);
-      m_planarSplitAction->setChecked(false);
-      m_applyButton->setVisible(false);
       m_widget->setEnabled(false);
       m_viewManager->removeWidget(m_widget);
-      m_viewManager->setEventHandler(nullptr);
-      m_widget = nullptr;
+      m_viewManager->unsetEventHandler(m_handler);
+      m_viewManager->setSelectionEnabled(true);
       m_viewManager->updateViews();
+
+      m_widget = nullptr;
 
       emit splittingStopped();
     }
+
+    m_planarSplitAction->blockSignals(true);
+    m_planarSplitAction->setChecked(value);
+    m_planarSplitAction->blockSignals(false);
+    m_applyButton->setVisible(value);
   }
 
   //------------------------------------------------------------------------

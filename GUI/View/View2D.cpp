@@ -796,13 +796,20 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
   int xPos, yPos;
   eventPosition(xPos, yPos);
+
   if (m_thumbnail != nullptr)
+  {
     m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(xPos, yPos) != nullptr);
+  }
   else
+  {
     m_inThumbnail = false;
+  }
 
   if (!m_inThumbnail && m_eventHandler && m_eventHandler->filterEvent(e, this))
+  {
     return true;
+  }
 
   switch (e->type())
   {

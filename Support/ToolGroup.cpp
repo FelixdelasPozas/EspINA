@@ -46,6 +46,7 @@ void ToolGroup::showTools(bool value)
   {
     m_viewManager->hideTools(this);
   }
+
   blockSignals(true);
   setChecked(value);
   blockSignals(false);

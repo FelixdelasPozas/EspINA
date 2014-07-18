@@ -113,6 +113,8 @@ namespace EspINA
   private:
     void setControlVisibility(bool visible);
 
+    CategoryAdapterSPtr currentReferenceCategory();
+
   private slots:
     void setEraserMode(bool value);
 
@@ -122,8 +124,8 @@ namespace EspINA
 
     BrushSelectorSPtr m_circularBrushSelector;
     BrushSelectorSPtr m_sphericalBrushSelector;
-
     BrushSelectorSPtr m_currentSelector;
+
     ActionSelector   *m_drawToolSelector;
     CategorySelector *m_categorySelector;
     QMap<QAction *, SelectorSPtr> m_drawTools;
