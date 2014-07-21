@@ -48,7 +48,15 @@ namespace EspINA
   //TODO 2013-10-21: Mark edit operations as private, except for Classification
   class EspinaCore_EXPORT Category
   {
-   public:
+  public:
+    static const QString DIM_X()
+    { return X_DIM; }
+    static const QString DIM_Y()
+    { return Y_DIM; }
+    static const QString DIM_Z()
+    { return Z_DIM; }
+
+   private:
      static const QString X_DIM;
      static const QString Y_DIM;
      static const QString Z_DIM;

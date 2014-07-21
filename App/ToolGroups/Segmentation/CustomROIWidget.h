@@ -19,29 +19,37 @@
 */
 
 
-#ifndef ESPINA_DEFAULT_VOI_ACTION_H
-#define ESPINA_DEFAULT_VOI_ACTION_H
+#ifndef ESPINA_CUSTOM_ROI_ACTION_H
+#define ESPINA_CUSTOM_ROI_ACTION_H
 
 #include <QWidgetAction>
 
 #include <QLabel>
 #include <QSpinBox>
+#include <Core/Utils/Spatial.h>
 
 namespace EspINA
 {
 
-  class ApplyROI
+  class CustomROIWidget
   : public QWidgetAction
   {
     Q_OBJECT
 
   public:
-    explicit ApplyROI(QObject* parent=nullptr);
+    explicit CustomROIWidget(QObject* parent=nullptr);
 
     virtual QWidget* createWidget(QWidget* parent);
 
+    virtual void deleteWidget(QWidget* widget);
+
     bool applyROI()
     {return m_useROI;}
+
+    void setValue(Axis axis, unsigned int value);
+
+    unsigned int value(Axis axis) const
+    { return m_values[idx(axis)]; }
 
   protected slots:
     void onValueChanged(bool val);
@@ -52,10 +60,11 @@ namespace EspINA
   private:
     bool    m_useROI;
 
-    QLabel   *m_labelROI[3];
-    QSpinBox *m_spinBoxROI[3];
+    unsigned int m_values    [3];
+    QLabel      *m_labelROI  [3];
+    QSpinBox    *m_spinBoxROI[3];
   };
 
 } // namespace EspINA
 
-#endif // ESPINA_DEFAULT_VOI_ACTION_H
+#endif // ESPINA_CUSTOM_ROI_ACTION_H

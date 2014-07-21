@@ -47,6 +47,7 @@ namespace EspINA
 
   signals:
     void categoryChanged(CategoryAdapterSPtr);
+    void widgetCreated();
 
   private slots:
     void categorySelected(const QModelIndex& index);

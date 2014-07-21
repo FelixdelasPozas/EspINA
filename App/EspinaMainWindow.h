@@ -53,6 +53,8 @@ class QShortcut;
 namespace EspINA
 {
 
+class ROISettings;
+
 class MainToolBar;
 
   class ColorEngineMenu;
@@ -170,6 +172,7 @@ class MainToolBar;
     AnalysisReaderSPtr m_segFileReader;
 
     GeneralSettingsSPtr m_settings;
+    ROISettings*        m_roiSettings;
 
     // GUI
     QMenu           *m_addMenu;

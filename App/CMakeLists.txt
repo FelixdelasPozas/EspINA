@@ -49,8 +49,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ViewState/ToggleCrosshairVisibility.h
   ToolGroups/ViewState/ResetZoom.h
   ToolGroups/ViewState/ZoomArea.h
-  ToolGroups/VOI/VolumeOfInterestTools.h
-  ToolGroups/Segmentation/ApplyROI.h
+  ToolGroups/ROI/ROITools.h
+  ToolGroups/Segmentation/CustomROIWidget.h
   ToolGroups/Segmentation/SeedThreshold.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Edition/EditionTools.h
@@ -69,9 +69,9 @@ qt4_wrap_cpp (ESPINA_MOC
 #   Tools/PlanarSplit/PlanarSplitTool.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
-  ToolGroups/VOI/ManualVOITool.h
-  ToolGroups/VOI/CleanVOITool.h
-  ToolGroups/VOI/OrthogonalVOITool.h
+  ToolGroups/ROI/ManualROITool.h
+  ToolGroups/ROI/CleanROITool.h
+  ToolGroups/ROI/OrthogonalROITool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
   Views/DefaultView.h
 #   Dialogs/Connectomics/ConnectomicsDialog.h
@@ -101,7 +101,7 @@ qt4_wrap_ui (ESPINA_UI
 #  Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
-  Settings/ROI/RectangularROISettings.ui
+  Settings/ROI/OrthogonalROISettings.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
@@ -162,7 +162,7 @@ set (ESPINA_SOURCES
 #   Toolbars/Main/MainToolBar.cpp
 #  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Edition/CODETool.cpp
-  ToolGroups/Segmentation/ApplyROI.cpp
+  ToolGroups/Segmentation/CustomROIWidget.cpp
   ToolGroups/Segmentation/SegmentationTools.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp
@@ -176,10 +176,10 @@ set (ESPINA_SOURCES
   ToolGroups/Edition/MorphologicalEditionTool.cpp
   ToolGroups/Edition/ManualEditionTool.cpp
   ToolGroups/Measures/MeasuresTools.cpp
-  ToolGroups/VOI/ManualVOITool.cpp
-  ToolGroups/VOI/CleanVOITool.cpp
-  ToolGroups/VOI/OrthogonalVOITool.cpp
-  ToolGroups/VOI/VolumeOfInterestTools.cpp
+  ToolGroups/ROI/ManualROITool.cpp
+  ToolGroups/ROI/CleanROITool.cpp
+  ToolGroups/ROI/OrthogonalROITool.cpp
+  ToolGroups/ROI/ROITools.cpp
   Tools/Brushes/CircularBrushSelector.cpp
   Tools/Brushes/CircularBrushROISelector.cpp
   Tools/Brushes/SphericalBrushSelector.cpp

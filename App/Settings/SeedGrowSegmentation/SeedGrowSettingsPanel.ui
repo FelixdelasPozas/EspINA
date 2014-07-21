@@ -111,7 +111,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Default VOI Size</string>
+      <string>Default ROI Size</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
@@ -188,9 +188,9 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="m_taxonomicalVOI">
+       <widget class="QCheckBox" name="m_taxonomicalROI">
         <property name="text">
-         <string>Use default VOI sizes depending on the active category</string>
+         <string>Use default ROI sizes depending on the active category</string>
         </property>
        </widget>
       </item>
@@ -200,7 +200,7 @@
          <number>1</number>
         </property>
         <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; Category default sizes can be modified in the VOI settings panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; Category default sizes can be modified in the ROI settings panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="textFormat">
          <enum>Qt::RichText</enum>

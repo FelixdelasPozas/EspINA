@@ -19,8 +19,8 @@
 */
 
 // EspINA
-#include "OrthogonalVOITool.h"
-#include "VolumeOfInterestTools.h"
+#include "OrthogonalROITool.h"
+#include "ROITools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/View/Widgets/RectangularRegion/RectangularRegion.h>
@@ -34,27 +34,28 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-OrthogonalVOITool::OrthogonalVOITool(ModelAdapterSPtr model,
+OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
+                                     ModelAdapterSPtr model,
                                      ViewManagerSPtr  viewManager,
                                      QUndoStack      *undoStack,
-                                     VOIToolsGroup   *toolGroup)
+                                     ROIToolsGroup   *toolGroup)
 : m_model        {model}
 , m_viewManager  {viewManager}
 , m_undoStack    {undoStack}
 , m_toolGroup    {toolGroup}
-, m_applyVOI     {new QAction(QIcon(":/espina/voi_ortogonal.svg"), tr("Orthogonal Volume Of Interest"), this)}
+, m_applyROI     {new QAction(QIcon(":/espina/voi_ortogonal.svg"), tr("Orthogonal Volume Of Interest"), this)}
 , m_enabled      {true}
 , m_widget       {nullptr}
 , m_sliceSelector{nullptr}
-, m_settings     {new ROISettings()}
+, m_settings     {settings}
 {
-  m_applyVOI->setCheckable(true);
-  m_applyVOI->setEnabled(m_toolGroup->currentROI() == nullptr);
+  m_applyROI->setCheckable(true);
+  m_applyROI->setEnabled(m_toolGroup->currentROI() == nullptr);
 
   connect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
           this,                SLOT(commitROI()));
 
-  connect(m_applyVOI, SIGNAL(triggered(bool)),
+  connect(m_applyROI, SIGNAL(triggered(bool)),
           this,       SLOT(initTool(bool)));
 
   auto eventHandler = new PixelSelector();
@@ -66,17 +67,17 @@ OrthogonalVOITool::OrthogonalVOITool(ModelAdapterSPtr model,
 }
 
 //-----------------------------------------------------------------------------
-OrthogonalVOITool::~OrthogonalVOITool()
+OrthogonalROITool::~OrthogonalROITool()
 {
   delete m_settings;
 
   disconnect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
              this,                SLOT(commitROI()));
 
-  disconnect(m_applyVOI, SIGNAL(triggered(bool)),
+  disconnect(m_applyROI, SIGNAL(triggered(bool)),
              this,       SLOT(initTool(bool)));
 
-  delete m_applyVOI;
+  delete m_applyROI;
 
   if (m_widget != nullptr)
   {
@@ -86,33 +87,33 @@ OrthogonalVOITool::~OrthogonalVOITool()
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalVOITool::setEnabled(bool value)
+void OrthogonalROITool::setEnabled(bool value)
 {
   if(m_enabled == value)
     return;
 
-  m_applyVOI->setEnabled(value);
+  m_applyROI->setEnabled(value);
   m_enabled = value;
 }
 
 //-----------------------------------------------------------------------------
-bool OrthogonalVOITool::enabled() const
+bool OrthogonalROITool::enabled() const
 {
   return m_enabled;
 }
 
 //-----------------------------------------------------------------------------
-QList<QAction *> OrthogonalVOITool::actions() const
+QList<QAction *> OrthogonalROITool::actions() const
 {
   QList<QAction *> actions;
 
-  actions << m_applyVOI;
+  actions << m_applyROI;
 
   return actions;
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalVOITool::initTool(bool value)
+void OrthogonalROITool::initTool(bool value)
 {
   switch(value)
   {
@@ -128,7 +129,7 @@ void OrthogonalVOITool::initTool(bool value)
         m_viewManager->unsetEventHandler(m_selector);
         disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
                    this,             SLOT(defineROI(Selector::Selection)));
-        m_applyVOI->setChecked(false);
+        m_applyROI->setChecked(false);
       break;
     default:
       break;
@@ -136,7 +137,7 @@ void OrthogonalVOITool::initTool(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalVOITool::commitROI()
+void OrthogonalROITool::commitROI()
 {
   if(m_widget != nullptr)
   {
@@ -166,7 +167,7 @@ void OrthogonalVOITool::commitROI()
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalVOITool::defineROI(Selector::Selection channels)
+void OrthogonalROITool::defineROI(Selector::Selection channels)
 {
   if (channels.isEmpty())
     return;

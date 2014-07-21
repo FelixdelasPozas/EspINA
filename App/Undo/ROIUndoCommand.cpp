@@ -24,7 +24,7 @@
 namespace EspINA
 {
   //-----------------------------------------------------------------------------
-  ModifyROIUndoCommand::ModifyROIUndoCommand(VOIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
+  ModifyROIUndoCommand::ModifyROIUndoCommand(ROIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
   : m_newROI    {nullptr}
   , m_toolGroup {toolsGroup}
   , m_mask      {mask}
@@ -67,7 +67,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ClearROIUndoCommand::ClearROIUndoCommand(VOIToolsGroup *toolsGroup)
+  ClearROIUndoCommand::ClearROIUndoCommand(ROIToolsGroup *toolsGroup)
   : m_toolGroup{toolsGroup}
   , m_roi      {nullptr}
   {}

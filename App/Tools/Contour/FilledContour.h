@@ -38,7 +38,7 @@ namespace EspINA
   class ContourWidget;
 
   class FilledContour
-  : public ITool  // TODO Change to IVOI to use countour as VOI
+  : public ITool  // TODO Change to IROI to use countour as ROI
   {
     Q_OBJECT
     public:

@@ -33,10 +33,10 @@ const QString BEST_PIXEL     ("SeedGrowSegmentation::BestPixelValue");
 const QString CLOSING        ("SeedGrowSegmentation::Closing");
 
 // new tags
-const QString DEFAULT_VOI_X_SIZE   ("SeedGrowSegmentation::DefaultVOI::X_SIZE");
-const QString DEFAULT_VOI_Y_SIZE   ("SeedGrowSegmentation::DefaultVOI::Y_SIZE");
-const QString DEFAULT_VOI_Z_SIZE   ("SeedGrowSegmentation::DefaultVOI::Z_SIZE");
-const QString TAXONOMICAL_VOI_USAGE("SeedGrowSegmentation::DefaultVOI::USE_TAXONOMY_SIZE");
+const QString DEFAULT_ROI_X_SIZE   ("SeedGrowSegmentation::DefaultROI::X_SIZE");
+const QString DEFAULT_ROI_Y_SIZE   ("SeedGrowSegmentation::DefaultROI::Y_SIZE");
+const QString DEFAULT_ROI_Z_SIZE   ("SeedGrowSegmentation::DefaultROI::Z_SIZE");
+const QString TAXONOMICAL_ROI_USAGE("SeedGrowSegmentation::DefaultROI::USE_TAXONOMY_SIZE");
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelSelector *selector)
@@ -47,10 +47,10 @@ SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelSelector *se
   m_selector->setBestPixelValue(settings.value(BEST_PIXEL, 0).toInt());
   m_closing = settings.value(CLOSING, 0).toInt();
 
-  m_xSize = settings.value(DEFAULT_VOI_X_SIZE, 500).toInt();
-  m_ySize = settings.value(DEFAULT_VOI_Y_SIZE, 500).toInt();
-  m_zSize = settings.value(DEFAULT_VOI_Z_SIZE, 500).toInt();
-  m_taxonomicalVOI = settings.value(TAXONOMICAL_VOI_USAGE, true).toBool();
+  m_xSize = settings.value(DEFAULT_ROI_X_SIZE, 500).toInt();
+  m_ySize = settings.value(DEFAULT_ROI_Y_SIZE, 500).toInt();
+  m_zSize = settings.value(DEFAULT_ROI_Z_SIZE, 500).toInt();
+  m_taxonomicalROI = settings.value(TAXONOMICAL_ROI_USAGE, true).toBool();
 }
 
 //------------------------------------------------------------------------
@@ -58,7 +58,7 @@ void SeedGrowSegmentationSettings::setXSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
-  settings.setValue(DEFAULT_VOI_X_SIZE, value);
+  settings.setValue(DEFAULT_ROI_X_SIZE, value);
   settings.sync();
   m_xSize = value;
 }
@@ -68,7 +68,7 @@ void SeedGrowSegmentationSettings::setYSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
-  settings.setValue(DEFAULT_VOI_Y_SIZE, value);
+  settings.setValue(DEFAULT_ROI_Y_SIZE, value);
   settings.sync();
   m_ySize = value;
 }
@@ -78,19 +78,19 @@ void SeedGrowSegmentationSettings::setZSize(int value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
-  settings.setValue(DEFAULT_VOI_Z_SIZE, value);
+  settings.setValue(DEFAULT_ROI_Z_SIZE, value);
   settings.sync();
   m_zSize = value;
 }
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentationSettings::setTaxonomicalVOI(bool value)
+void SeedGrowSegmentationSettings::setTaxonomicalROI(bool value)
 {
   QSettings settings(CESVIMA, ESPINA);
 
-  settings.setValue(TAXONOMICAL_VOI_USAGE, value);
+  settings.setValue(TAXONOMICAL_ROI_USAGE, value);
   settings.sync();
-  m_taxonomicalVOI = value;
+  m_taxonomicalROI = value;
 }
 
 //------------------------------------------------------------------------

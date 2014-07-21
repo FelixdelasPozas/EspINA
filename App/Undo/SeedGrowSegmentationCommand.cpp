@@ -34,7 +34,7 @@
 
 using namespace EspINA;
 
-const QString SGS_VOI = "SGS VOI";
+const QString SGS_ROI = "SGS ROI";
 
 const Filter::FilterType SeedGrowSegmentationCommand::FILTER_TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
@@ -65,7 +65,7 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   params.setSeed(seed);
   params.setLowerThreshold(lowerThreshold);
   params.setUpperThreshold(upperThreshold);
-  params.setVOI(voiExtent);
+  params.setROI(voiExtent);
   params.setCloseValue(applyClosing);
 
   inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
@@ -84,12 +84,12 @@ SeedGrowSegmentationCommand::SeedGrowSegmentationCommand(ChannelPtr             
   m_segmentation = m_model->factory()->createSegmentation(m_filter, 0);
   m_segmentation->setTaxonomy(m_taxonomy);
 
-  if (sgsFilter->isTouchingVOI())
+  if (sgsFilter->isTouchingROI())
   {
     QMessageBox warning;
     warning.setIcon(QMessageBox::Warning);
     warning.setWindowTitle(QObject::tr("Seed Grow Segmentation Filter Information"));
-    warning.setText(QObject::tr("Segmentation may be incomplete due to VOI restriction."));
+    warning.setText(QObject::tr("Segmentation may be incomplete due to ROI restriction."));
     warning.exec();
   }
 

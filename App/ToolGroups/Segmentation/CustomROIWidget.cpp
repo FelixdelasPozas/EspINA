@@ -19,7 +19,7 @@
 */
 
 
-#include "ApplyROI.h"
+#include "CustomROIWidget.h"
 
 #include <QCheckBox>
 #include <QHBoxLayout>
@@ -27,20 +27,21 @@
 using namespace EspINA;
 
 //------------------------------------------------------------------------
-ApplyROI::ApplyROI(QObject* parent)
+CustomROIWidget::CustomROIWidget(QObject* parent)
 : QWidgetAction(parent)
 , m_useROI(true)
 {
   for(int i = 0; i < 3; ++i)
   {
-    m_labelROI[i]   = nullptr;
+    m_values    [i] = 0;
+    m_labelROI  [i] = nullptr;
     m_spinBoxROI[i] = nullptr;
   }
 }
 
 
 //------------------------------------------------------------------------
-QWidget* ApplyROI::createWidget(QWidget* parent)
+QWidget* CustomROIWidget::createWidget(QWidget* parent)
 {
   //if (m_currentWidget) delete m_currentWidget;
 
@@ -60,6 +61,8 @@ QWidget* ApplyROI::createWidget(QWidget* parent)
     m_spinBoxROI[i]->setVisible(m_useROI);
     m_spinBoxROI[i]->setMinimum(0);
     m_spinBoxROI[i]->setMaximum(1000);
+    m_spinBoxROI[i]->setValue(m_values[i]);
+    m_spinBoxROI[i]->setSuffix("nm");
   }
 
   QHBoxLayout *mainLaout = new QHBoxLayout(widget);
@@ -79,7 +82,28 @@ QWidget* ApplyROI::createWidget(QWidget* parent)
 }
 
 //------------------------------------------------------------------------
-void ApplyROI::onValueChanged(bool value)
+void CustomROIWidget::deleteWidget(QWidget* widget)
+{
+  QWidgetAction::deleteWidget(widget);
+
+  for(int i = 0; i < 3; ++i)
+  {
+    m_labelROI  [i] = nullptr;
+    m_spinBoxROI[i] = nullptr;
+  }
+}
+
+//------------------------------------------------------------------------
+void CustomROIWidget::setValue(Axis axis, unsigned int value)
+{
+  int i = idx(axis);
+
+  m_values[i] = value;
+  if (m_spinBoxROI[i]) m_spinBoxROI[i]->setValue(value);
+}
+
+//------------------------------------------------------------------------
+void CustomROIWidget::onValueChanged(bool value)
 {
    m_useROI = value;
 

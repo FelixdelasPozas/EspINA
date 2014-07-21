@@ -82,7 +82,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
 , m_categorySelector{new CategorySelector(m_model)}
 , m_selectorSwitch  {new ActionSelector()}
 , m_seedThreshold   {new SeedThreshold()}
-, m_applyVOI        {new ApplyROI()}
+, m_voi             {new CustomROIWidget()}
 , m_filterFactory   {new SGSFilterFactory()}
 {
   m_factory->registerFilterFactory(m_filterFactory);
@@ -121,14 +121,19 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
 
   connect(m_selectorSwitch, SIGNAL(actionCanceled()),
           this, SLOT(unsetSelector()));
+  connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
+  connect(m_categorySelector, SIGNAL(widgetCreated()),
+          this, SLOT(onCategorySelectorWidgetCreation()));
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 {
+  delete m_categorySelector;
   delete m_selectorSwitch;
   delete m_seedThreshold;
-  delete m_applyVOI;
+  delete m_voi;
 }
 
 //-----------------------------------------------------------------------------
@@ -144,7 +149,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
   actions << m_categorySelector;
   actions << m_selectorSwitch;
   actions << m_seedThreshold;
-  actions << m_applyVOI;
+  actions << m_voi;
 
   return actions;
 }
@@ -213,7 +218,8 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   auto volume = volumetricData(channel->output());
 
   NmVector3 seed;
-  Bounds seedBounds;
+  Bounds    seedBounds;
+  ROISPtr   roi;
 
   for (int i = 0; i < 3; ++i)
   {
@@ -221,36 +227,28 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  if ((m_viewManager->currentROI() == nullptr) && m_applyVOI->isChecked())
+  if (!m_viewManager->currentROI() && m_voi->applyROI())
   {
     // Create default ROI
-    auto category = m_categorySelector->selectedCategory();
-    QVariant xSize = category->property(Category::X_DIM);
-    QVariant ySize = category->property(Category::Y_DIM);
-    QVariant zSize = category->property(Category::Z_DIM);
+    auto xSize = std::max(m_voi->value(Axis::X), (unsigned int) 2);
+    auto ySize = std::max(m_voi->value(Axis::Y), (unsigned int) 2);
+    auto zSize = std::max(m_voi->value(Axis::Z), (unsigned int) 2);
 
-    if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
-    {
-      QSettings settings(CESVIMA, ESPINA);
-      settings.beginGroup(ROI_SETTINGS_GROUP);
-
-      xSize   = settings.value(DEFAULT_VOI_X, 500).toInt();
-      ySize   = settings.value(DEFAULT_VOI_Y, 500).toInt();
-      zSize   = settings.value(DEFAULT_VOI_Z, 500).toInt();
-    }
-
-    Bounds bounds{seed[0]-xSize.toInt()/2, seed[0]+xSize.toInt()/2,
-                  seed[1]-ySize.toInt()/2, seed[1]+ySize.toInt()/2,
-                  seed[2]-zSize.toInt()/2, seed[2]+zSize.toInt()/2};
+    Bounds bounds{seed[0]-xSize/2, seed[0]+xSize/2,
+                  seed[1]-ySize/2, seed[1]+ySize/2,
+                  seed[2]-zSize/2, seed[2]+zSize/2};
 
     auto spacing = channel->output()->spacing();
-    auto origin = channel->position();
+    auto origin  = channel->position();
 
-    m_viewManager->setCurrentROI(ROISPtr(new ROI(bounds, spacing, origin)));
+    bounds = intersection(bounds, channel->bounds(), spacing);
+
+    roi = ROISPtr{new ROI(bounds, spacing, origin)};
+  } else {
+    roi = m_viewManager->currentROI();
   }
 
-  auto roi = m_viewManager->currentROI();
-  bool validSeed = ((roi != nullptr) && isSegmentationVoxel<itkVolumeType>(roi, seed)) ||
+  bool validSeed = (roi && isSegmentationVoxel<itkVolumeType>(roi, seed)) ||
                    contains(volume->bounds(), seed);
 
   if (validSeed)
@@ -269,7 +267,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setLowerThreshold(m_seedThreshold->lowerThreshold());
     filter->setDescription(tr("Seed Grow Segmentation"));
     if(roi != nullptr)
+    {
       filter->setROI(ROISPtr(roi->clone()));
+    }
 
     m_executingTasks[adapter.get()] = adapter;
 
@@ -335,4 +335,31 @@ void SeedGrowSegmentationTool::createSegmentation()
    //m_selectorSwitch->setEnabled(true);
 }
 
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
+{
+  QVariant xSize = category->property(Category::DIM_X());
+  QVariant ySize = category->property(Category::DIM_Y());
+  QVariant zSize = category->property(Category::DIM_Z());
+
+  if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
+  {
+    QSettings settings(CESVIMA, ESPINA);
+    settings.beginGroup(ROI_SETTINGS_GROUP);
+
+    xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
+    ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
+    zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
+  }
+
+  m_voi->setValue(Axis::X, xSize.toInt());
+  m_voi->setValue(Axis::Y, ySize.toInt());
+  m_voi->setValue(Axis::Z, zSize.toInt());
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onCategorySelectorWidgetCreation()
+{
+  onCategoryChanged(m_categorySelector->selectedCategory());
+}
 

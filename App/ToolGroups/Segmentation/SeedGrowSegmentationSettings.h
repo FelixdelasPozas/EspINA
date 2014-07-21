@@ -43,8 +43,8 @@ namespace EspINA
     void setZSize(int value);
     int zSize() const {return m_zSize;}
 
-    void setTaxonomicalVOI(bool value);
-    bool taxonomicalVOI() const { return m_taxonomicalVOI; }
+    void setTaxonomicalROI(bool value);
+    bool taxonomicalROI() const { return m_taxonomicalROI; }
 
     void setBestPixelValue(int value);
     int bestPixelValue() const;
@@ -55,7 +55,7 @@ namespace EspINA
   private:
     BestPixelSelector *m_selector;
     int m_xSize, m_ySize, m_zSize, m_closing;
-    bool m_taxonomicalVOI;
+    bool m_taxonomicalROI;
   };
 
 } // namespace EspINA

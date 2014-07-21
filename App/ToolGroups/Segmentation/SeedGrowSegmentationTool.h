@@ -26,7 +26,7 @@
 #include <Support/ViewManager.h>
 
 #include "SeedThreshold.h"
-#include "ApplyROI.h"
+#include "CustomROIWidget.h"
 #include <GUI/Widgets/ActionSelector.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Selectors/Selector.h>
@@ -78,6 +78,10 @@ namespace EspINA
 
     void createSegmentation();
 
+    void onCategoryChanged(CategoryAdapterSPtr category);
+
+    void onCategorySelectorWidgetCreation();
+
   private:
     ModelAdapterSPtr m_model;
     ModelFactorySPtr m_factory;
@@ -89,7 +93,7 @@ namespace EspINA
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;
     SeedThreshold    *m_seedThreshold;
-    ApplyROI         *m_applyVOI;
+    CustomROIWidget  *m_voi;
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
     SelectorSPtr m_currentSelector;

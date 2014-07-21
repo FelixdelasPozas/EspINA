@@ -64,7 +64,7 @@ public:
   virtual bool eventFilter(QObject* sender, QEvent* e );
 
 protected slots:
-  void redefineVOI(double *bounds);
+  void redefineROI(double *bounds);
   void modifyFilter();
   void updateRegionBounds();
   void modifyCloseValue(int);

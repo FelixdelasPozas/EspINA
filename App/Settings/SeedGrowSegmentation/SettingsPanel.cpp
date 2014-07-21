@@ -68,12 +68,12 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
     m_zSize->setSuffix(QString(" nm"));
   }
 
-  m_taxonomicalVOI->setChecked(settings->taxonomicalVOI());
-  m_xSize->setEnabled(!settings->taxonomicalVOI());
-  m_ySize->setEnabled(!settings->taxonomicalVOI());
-  m_zSize->setEnabled(!settings->taxonomicalVOI());
+  m_taxonomicalROI->setChecked(settings->taxonomicalROI());
+  m_xSize->setEnabled(!settings->taxonomicalROI());
+  m_ySize->setEnabled(!settings->taxonomicalROI());
+  m_zSize->setEnabled(!settings->taxonomicalROI());
 
-  connect(m_taxonomicalVOI, SIGNAL(stateChanged(int)),
+  connect(m_taxonomicalROI, SIGNAL(stateChanged(int)),
           this, SLOT(changeTaxonomicalCheck(int)));
 
   // the rounding of fit to slices on the z value was making the dialog ask the
@@ -95,7 +95,7 @@ void SeedGrowSegmentationsSettingsPanel::acceptChanges()
 {
   m_settings->setBestPixelValue(m_pixelValue->value());
 
-  if (!m_taxonomicalVOI->isChecked())
+  if (!m_taxonomicalROI->isChecked())
   {
     m_settings->setXSize(m_xSize->value());
     m_settings->setYSize(m_ySize->value());
@@ -106,7 +106,7 @@ void SeedGrowSegmentationsSettingsPanel::acceptChanges()
 
     m_settings->setZSize(m_zSize->value()*zSpacing);
   }
-  m_settings->setTaxonomicalVOI(m_taxonomicalVOI->isChecked());
+  m_settings->setTaxonomicalROI(m_taxonomicalROI->isChecked());
 
   if (m_applyClosing->isChecked())
     m_settings->setClosing(m_closing->value());
@@ -128,7 +128,7 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
   returnValue |= m_zValueChanged;
-  returnValue |= (m_taxonomicalVOI->isChecked() != m_settings->taxonomicalVOI());
+  returnValue |= (m_taxonomicalROI->isChecked() != m_settings->taxonomicalROI());
   returnValue |= (m_pixelValue->value() != m_settings->bestPixelValue());
   returnValue |= ((m_applyClosing->isChecked() ? m_closing->value() : 0) != m_settings->closing());
 

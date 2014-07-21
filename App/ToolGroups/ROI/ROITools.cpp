@@ -20,19 +20,20 @@
 
 // EspINA
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
-#include "VolumeOfInterestTools.h"
-#include "CleanVOITool.h"
-#include "ManualVOITool.h"
-#include "OrthogonalVOITool.h"
+#include "ROITools.h"
+#include "CleanROITool.h"
+#include "ManualROITool.h"
+#include "OrthogonalROITool.h"
 
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-VOIToolsGroup::VOIToolsGroup(ModelAdapterSPtr model,
-                                             ModelFactorySPtr factory,
-                                             ViewManagerSPtr  viewManager,
-                                             QUndoStack      *undoStack,
-                                             QWidget         *parent)
+ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
+                             ModelAdapterSPtr model,
+                             ModelFactorySPtr factory,
+                             ViewManagerSPtr  viewManager,
+                             QUndoStack      *undoStack,
+                             QWidget         *parent)
 : ToolGroup(viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent)
 , m_viewManager      {viewManager}
 , m_enabled          {true}
@@ -42,48 +43,48 @@ VOIToolsGroup::VOIToolsGroup(ModelAdapterSPtr model,
   connect(m_viewManager.get(), SIGNAL(ROIChanged()),
           this,                SLOT(updateROI()), Qt::QueuedConnection);
 
-  m_manualVOITool    = ManualVOIToolSPtr{new ManualVOITool(model, viewManager, undoStack, this)};
-  m_ortogonalVOITool = OrthogonalVOIToolSPtr{new OrthogonalVOITool(model, viewManager, undoStack, this)};
-  m_cleanVOITool     = CleanVOIToolSPtr{new CleanVOITool(model, viewManager, undoStack, this)};
+  m_manualROITool    = ManualROIToolSPtr{new ManualROITool(model, viewManager, undoStack, this)};
+  m_ortogonalROITool = OrthogonalROIToolSPtr{new OrthogonalROITool(settings, model, viewManager, undoStack, this)};
+  m_cleanROITool     = CleanROIToolSPtr{new CleanROITool(model, viewManager, undoStack, this)};
 }
 
 //-----------------------------------------------------------------------------
-VOIToolsGroup::~VOIToolsGroup()
+ROIToolsGroup::~ROIToolsGroup()
 {
 }
 
 //-----------------------------------------------------------------------------
-void VOIToolsGroup::setEnabled(bool value)
+void ROIToolsGroup::setEnabled(bool value)
 {
   if(m_enabled == value)
     return;
 
-  m_manualVOITool->setEnabled(value);
-  m_ortogonalVOITool->setEnabled(value);
-  m_cleanVOITool->setEnabled(value);
+  m_manualROITool->setEnabled(value);
+  m_ortogonalROITool->setEnabled(value);
+  m_cleanROITool->setEnabled(value);
   m_enabled = value;
 }
 
 //-----------------------------------------------------------------------------
-bool VOIToolsGroup::enabled() const
+bool ROIToolsGroup::enabled() const
 {
   return m_enabled;
 }
 
 //-----------------------------------------------------------------------------
-ToolSList VOIToolsGroup::tools()
+ToolSList ROIToolsGroup::tools()
 {
   ToolSList availableTools;
 
-  availableTools << m_manualVOITool;
-  availableTools << m_ortogonalVOITool;
-  availableTools << m_cleanVOITool;
+  availableTools << m_manualROITool;
+  availableTools << m_ortogonalROITool;
+  availableTools << m_cleanROITool;
 
   return availableTools;
 }
 
 //-----------------------------------------------------------------------------
-void VOIToolsGroup::setCurrentROI(ROISPtr roi)
+void ROIToolsGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator != nullptr)
     m_viewManager->removeWidget(m_accumulatorWidget);
@@ -99,7 +100,7 @@ void VOIToolsGroup::setCurrentROI(ROISPtr roi)
 }
 
 //-----------------------------------------------------------------------------
-ROISPtr VOIToolsGroup::currentROI()
+ROISPtr ROIToolsGroup::currentROI()
 {
   if(m_viewManager->currentROI() != m_accumulator)
     m_accumulator = m_viewManager->currentROI();
@@ -108,7 +109,7 @@ ROISPtr VOIToolsGroup::currentROI()
 }
 
 //-----------------------------------------------------------------------------
-void VOIToolsGroup::updateROI()
+void ROIToolsGroup::updateROI()
 {
   auto roi = m_viewManager->currentROI();
 

@@ -17,8 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ESPINA_CLEAN_VOI_H
-#define ESPINA_CLEAN_VOI_H
+#ifndef ESPINA_CLEAN_ROI_H
+#define ESPINA_CLEAN_ROI_H
 
 // EspINA
 #include <Support/ViewManager.h>
@@ -31,29 +31,29 @@
 class QAction;
 namespace EspINA
 {
-  class VOIToolsGroup;
+  class ROIToolsGroup;
 
   /// Volume Of Interest Toolbar
-  class CleanVOITool
+  class CleanROITool
   : public Tool
   {
     Q_OBJECT
   public:
-    /* \brief CleanVOITool class constructor.
+    /* \brief CleanROITool class constructor.
      * \param[in] model       Analysis model adapter.
      * \param[in] viewManager Application view manager.
      * \param[in] undoStack   Application qt undo stack.
-     * \param[in] toolGroup   VOIToolsGroup pointer containing the VOI accumulator.
+     * \param[in] toolGroup   ROIToolsGroup pointer containing the ROI accumulator.
      */
-    explicit CleanVOITool(ModelAdapterSPtr  model,
+    explicit CleanROITool(ModelAdapterSPtr  model,
                           ViewManagerSPtr   viewManager,
                           QUndoStack       *undoStack,
-                          VOIToolsGroup    *toolGroup);
+                          ROIToolsGroup    *toolGroup);
 
-    /* \brief CleanVOITool class virtual destructor.
+    /* \brief CleanROITool class virtual destructor.
      *
      */
-    virtual ~CleanVOITool();
+    virtual ~CleanROITool();
 
     /* \brief Implements Tool::setEnabled(bool).
      *
@@ -78,13 +78,13 @@ namespace EspINA
     ModelAdapterSPtr  m_model;
     ViewManagerSPtr   m_viewManager;
     QUndoStack       *m_undoStack;
-    VOIToolsGroup    *m_toolGroup;
-    QAction          *m_cleanVOI;
+    ROIToolsGroup    *m_toolGroup;
+    QAction          *m_cleanROI;
     bool              m_enabled;
   };
 
-  using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;
+  using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;
 
 } // namespace EspINA
 
-#endif // ESPINA_CLEAN_VOI_H
+#endif // ESPINA_CLEAN_ROI_H

@@ -216,7 +216,6 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
   {
-
     if (m_categorySelector)
     {
       m_eraserWidget->setChecked(false);

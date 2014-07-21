@@ -17,8 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ESPINA_BRUSH_VOI_H
-#define ESPINA_BRUSH_VOI_H
+#ifndef ESPINA_BRUSH_ROI_H
+#define ESPINA_BRUSH_ROI_H
 
 // EspINA
 #include <Support/Tool.h>
@@ -32,29 +32,29 @@
 class QAction;
 namespace EspINA
 {
-  class VOIToolsGroup;
+  class ROIToolsGroup;
 
   // Volume Of Interest Toolbar
-  class ManualVOITool
+  class ManualROITool
   : public ManualEditionTool
   {
     Q_OBJECT
   public:
-    /* \brief ManualVOITool class constructor.
+    /* \brief ManualROITool class constructor.
      * \param[in] model       Analysis model adapter.
      * \param[in] viewManager Application view manager.
      * \param[in] undoStack   Application qt undo stack pointer.
-     * \param[in] toolGroup   VOIToolsGroup pointer containing VOI accumulator.
+     * \param[in] toolGroup   ROIToolsGroup pointer containing ROI accumulator.
      */
-    explicit ManualVOITool(ModelAdapterSPtr model,
+    explicit ManualROITool(ModelAdapterSPtr model,
                            ViewManagerSPtr  viewManager,
                            QUndoStack      *undoStack,
-                           VOIToolsGroup   *toolGroup);
+                           ROIToolsGroup   *toolGroup);
 
-    /* \brief ManualVOITool class virtual destructor.
+    /* \brief ManualROITool class virtual destructor.
      *
      */
-    virtual ~ManualVOITool();
+    virtual ~ManualROITool();
 
   protected slots:
     /* \brief Implements ManualEditionTool::drawingModeChanged(bool) slot.
@@ -85,7 +85,7 @@ namespace EspINA
     /* \brief Aborts current tool operation.
      *
      */
-    void cancelVOI();
+    void cancelROI();
 
     /* \brief Updates the selectors parameters based on ROI existence or not.
      *
@@ -97,11 +97,11 @@ namespace EspINA
 
   private:
     QUndoStack    *m_undoStack;
-    VOIToolsGroup *m_toolGroup;
+    ROIToolsGroup *m_toolGroup;
   };
 
-  using ManualVOIToolSPtr = std::shared_ptr<ManualVOITool>;
+  using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;
 
 } // namespace EspINA
 
-#endif // ESPINA_BRUSH_VOI_H
+#endif // ESPINA_BRUSH_ROI_H

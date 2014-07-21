@@ -973,10 +973,10 @@ void ClassificationProxy::removeCategory(CategoryAdapterPtr proxyCategory)
 //------------------------------------------------------------------------
 QModelIndex ClassificationProxy::categoryIndex(CategoryAdapterPtr proxyCategory) const
 {
-  int row = 0;
-
   if (proxyCategory && proxyCategory->parent())
   {
+    int row = 0;
+
     for (auto subCategory : proxyCategory->parent()->subCategories())
     {
       if (subCategory.get() == proxyCategory)

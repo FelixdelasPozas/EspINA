@@ -60,6 +60,8 @@ QWidget* CategorySelector::createWidget(QWidget* parent)
 
   m_pool << categorySelector;
 
+  emit widgetCreated();
+
   return categorySelector;
 }
 

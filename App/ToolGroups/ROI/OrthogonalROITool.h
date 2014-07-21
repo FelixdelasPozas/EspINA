@@ -17,8 +17,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef ESPINA_ORTHOGONAL_VOI_H
-#define ESPINA_ORTHOGONAL_VOI_H
+#ifndef ESPINA_ORTHOGONAL_ROI_H
+#define ESPINA_ORTHOGONAL_ROI_H
 
 // EspINA
 #include <Support/Tool.h>
@@ -35,29 +35,30 @@ namespace EspINA
   class RectangularRegion;
   class RectangularRegionSliceSelector;
   class ROISettings;
-  class VOIToolsGroup;
+  class ROIToolsGroup;
 
   /// Volume Of Interest Toolbar
-  class OrthogonalVOITool
+  class OrthogonalROITool
   : public Tool
   {
     Q_OBJECT
   public:
-    /* \brief OrthogonalVOITool class constructor.
+    /* \brief OrthogonalROITool class constructor.
      * \param[in] model       Analysis model adapter
      * \param[in] viewManager Application view manager.
      * \param[in] undoStack   Application qt undo stack.
-     * \param[in] toolGroup   VOIToolsGroup pointer that contains VOI accumulator.
+     * \param[in] toolGroup   ROIToolsGroup pointer that contains ROI accumulator.
      */
-    explicit OrthogonalVOITool(ModelAdapterSPtr model,
+    explicit OrthogonalROITool(ROISettings     *settings,
+                               ModelAdapterSPtr model,
                                ViewManagerSPtr  viewManager,
                                QUndoStack      *undoStack,
-                               VOIToolsGroup   *toolgroup);
+                               ROIToolsGroup   *toolgroup);
 
-    /* \brief OrthogonalVOITool class virtual destructor.
+    /* \brief OrthogonalROITool class virtual destructor.
      *
      */
-    virtual ~OrthogonalVOITool();
+    virtual ~OrthogonalROITool();
 
     /* \brief Implements Tool::setEnabled(bool).
      *
@@ -83,9 +84,9 @@ namespace EspINA
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
-    VOIToolsGroup   *m_toolGroup;
+    ROIToolsGroup   *m_toolGroup;
 
-    QAction         *m_applyVOI;
+    QAction         *m_applyROI;
     bool             m_enabled;
 
     EventHandlerSPtr m_selector;
@@ -96,8 +97,8 @@ namespace EspINA
     ROISettings                    *m_settings;
   };
 
-  using OrthogonalVOIToolSPtr = std::shared_ptr<OrthogonalVOITool>;
+  using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
 
 } // namespace EspINA
 
-#endif // ESPINA_ORTHOGONAL_VOI_H
+#endif // ESPINA_ORTHOGONAL_ROI_H

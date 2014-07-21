@@ -24,7 +24,27 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <unistd.h>
 
+// ITK
+#include <itkImage.h>
+#include <itkVTKImageToImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkConnectedThresholdImageFilter.h>
+#include <itkStatisticsLabelObject.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryMorphologicalClosingImageFilter.h>
+#include <itkExtractImageFilter.h>
+
 using namespace EspINA;
+
+using ExtractFilterType      = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
+using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
+using LabelObjectType        = itk::StatisticsLabelObject<unsigned int, 3>;
+using LabelMapType           = itk::LabelMap<LabelObjectType>;
+using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
+using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
+using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
+
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
@@ -194,22 +214,32 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
   itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
 
+  int  outValue      = 0;
+  auto extractFilter = ExtractFilterType::New();
+
   if(m_roi != nullptr)
   {
     auto image = input->itkImage();
     auto intersectionBounds = intersection(input->bounds(), m_roi->bounds());
-    auto extractRegion = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
+    auto extractRegion      = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
 
-    m_extractFilter = ExtractFilterType::New();
-    m_extractFilter->SetNumberOfThreads(1);
-    m_extractFilter->SetInput(image);
-    m_extractFilter->SetExtractionRegion(extractRegion);
-    m_extractFilter->ReleaseDataFlagOn();
-    m_extractFilter->Update();
+    extractFilter->SetNumberOfThreads(1);
+    extractFilter->SetInput(image);
+    extractFilter->SetExtractionRegion(extractRegion);
+    extractFilter->ReleaseDataFlagOn();
+    extractFilter->Update();
 
-    itkVolumeType::ValueType outValue = (std::min(seedIntensity + m_upperTh, 255) + 1) % 255;
-    m_roi->applyROI<itkVolumeType>(m_extractFilter->GetOutput(), outValue);
+    outValue = seedIntensity + m_upperTh + 1;
 
+    if (outValue > 255)
+    {
+      outValue = seedIntensity - m_lowerTh - 1;
+    }
+
+    if (outValue >= 0)
+    {
+      m_roi->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
+    }
   }
 
   emit progress(25);
@@ -220,7 +250,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 75);
 
   if(m_roi != nullptr)
-    connectedFilter->SetInput(m_extractFilter->GetOutput());
+    connectedFilter->SetInput(extractFilter->GetOutput());
   else
     connectedFilter->SetInput(input->itkImage());
 
@@ -231,6 +261,11 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   connectedFilter->SetNumberOfThreads(1);
   connectedFilter->ReleaseDataFlagOn();
   connectedFilter->Update();
+
+  if (outValue < 0)
+  {
+    m_roi->applyROI<itkVolumeType>(connectedFilter->GetOutput(), SEG_BG_VALUE);
+  }
 
   emit progress(75);
   if (!canExecute()) return;

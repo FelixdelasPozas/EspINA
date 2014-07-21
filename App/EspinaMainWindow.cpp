@@ -31,7 +31,7 @@
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include "ToolGroups/Edition/EditionTools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
-#include "ToolGroups/VOI/VolumeOfInterestTools.h"
+#include "ToolGroups/ROI/ROITools.h"
 #include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
@@ -106,7 +106,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 //, m_filterFactory(new EspinaMainWindow::FilterFactory())
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
-, m_settings     (new GeneralSettings())
+, m_settings     {new GeneralSettings()}
+, m_roiSettings{new ROISettings()}
 , m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy(false)
 , m_undoStackSavedIndex(0)
@@ -135,7 +136,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerRenderer(RendererSPtr{new ContourRenderer()});
   m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
 
-  m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, new ROISettings(), m_viewManager));
+  m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, m_roiSettings, m_viewManager));
 
 #if USE_METADONA
   m_availableSettingsPanels << SettingsPanelSPtr(new MetaDataSettingsPanel());
@@ -289,7 +290,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto measuresTools = new MeasuresTools(m_viewManager, this);
   registerToolGroup(measuresTools);
 
-  auto voiTools = new VOIToolsGroup(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto voiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(voiTools);
 
 //   VolumeOfInterest *voiToolBar = new VolumeOfInterest(m_model, m_viewManager);
@@ -375,6 +376,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
 
+  delete m_roiSettings;
   delete m_colorEngines;
   delete m_undoStack;
   delete m_dynamicMenuRoot;

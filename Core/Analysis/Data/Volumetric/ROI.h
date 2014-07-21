@@ -211,7 +211,7 @@ namespace EspINA
     }
 
     // if it's rectangular we're done now.
-    if(!this->isRectangular())
+    if(this->isRectangular())
     {
       auto image = this->itkImage(intersectionBounds);
       itk::ImageRegionIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());

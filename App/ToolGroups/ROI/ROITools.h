@@ -17,8 +17,8 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef ESPINA_VOI_TOOLS_H
-#define ESPINA_VOI_TOOLS_H
+#ifndef ESPINA_ROI_TOOLS_H
+#define ESPINA_ROI_TOOLS_H
 
 // EspINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
@@ -32,12 +32,14 @@ class QUndoStack;
 
 namespace EspINA
 {
-  class ManualVOITool;
-  class OrthogonalVOITool;
-  class CleanVOITool;
+
+  class ROISettings;
+  class ManualROITool;
+  class OrthogonalROITool;
+  class CleanROITool;
 
   /// Seed Growing Segmentation Plugin
-  class VOIToolsGroup
+  class ROIToolsGroup
   : public ToolGroup
   {
   Q_OBJECT
@@ -49,7 +51,8 @@ namespace EspINA
      * \param[in] undoStack   qt undo stack.
      * \param[in] parent      parent widget.
      */
-    VOIToolsGroup(ModelAdapterSPtr model,
+    ROIToolsGroup(ROISettings*     settings,
+                  ModelAdapterSPtr model,
                   ModelFactorySPtr factory,
                   ViewManagerSPtr  viewManager,
                   QUndoStack      *undoStack,
@@ -58,7 +61,7 @@ namespace EspINA
     /* \brief VolumeOfInteresetTools class virtual destructor.
      *
      */
-    virtual ~VOIToolsGroup();
+    virtual ~ROIToolsGroup();
 
     /* \brief Implements ToolGroup::setEnabled(bool).
      *
@@ -94,13 +97,13 @@ namespace EspINA
     void updateROI();
 
   private:
-    using ManualVOIToolSPtr = std::shared_ptr<ManualVOITool>;
-    using OrthogonalVOIToolSPtr = std::shared_ptr<OrthogonalVOITool>;
-    using CleanVOIToolSPtr = std::shared_ptr<CleanVOITool>;
+    using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;
+    using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
+    using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;
 
-    ManualVOIToolSPtr     m_manualVOITool;
-    OrthogonalVOIToolSPtr m_ortogonalVOITool;
-    CleanVOIToolSPtr      m_cleanVOITool;
+    ManualROIToolSPtr     m_manualROITool;
+    OrthogonalROIToolSPtr m_ortogonalROITool;
+    CleanROIToolSPtr      m_cleanROITool;
     ViewManagerSPtr       m_viewManager;
 
     bool m_enabled;
@@ -111,4 +114,4 @@ namespace EspINA
 
 } // namespace EspINA
 
-#endif// ESPINA_VOI_TOOLS_H
+#endif// ESPINA_ROI_TOOLS_H

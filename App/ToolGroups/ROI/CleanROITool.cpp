@@ -19,8 +19,8 @@
 */
 
 // EspINA
-#include "CleanVOITool.h"
-#include "VolumeOfInterestTools.h"
+#include "CleanROITool.h"
+#include "ROITools.h"
 #include <Undo/ROIUndoCommand.h>
 
 // Qt
@@ -30,40 +30,40 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-CleanVOITool::CleanVOITool(ModelAdapterSPtr  model,
+CleanROITool::CleanROITool(ModelAdapterSPtr  model,
                            ViewManagerSPtr   viewManager,
                            QUndoStack       *undoStack,
-                           VOIToolsGroup    *toolGroup)
+                           ROIToolsGroup    *toolGroup)
 : m_model      {model}
 , m_viewManager{viewManager}
 , m_undoStack  {undoStack}
 , m_toolGroup  {toolGroup}
-, m_cleanVOI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
+, m_cleanROI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
 , m_enabled    {true}
 {
   connect(m_viewManager.get(), SIGNAL(ROIChanged()),
           this,                SLOT(ROIChanged()));
 
-  connect(m_cleanVOI, SIGNAL(triggered(bool)),
+  connect(m_cleanROI, SIGNAL(triggered(bool)),
           this,       SLOT(cancelROI()));
 
   ROIChanged();
 }
 
 //-----------------------------------------------------------------------------
-CleanVOITool::~CleanVOITool()
+CleanROITool::~CleanROITool()
 {
   disconnect(m_viewManager.get(), SIGNAL(ROIChanged()),
              this,                SLOT(ROIChanged()));
 
-  disconnect(m_cleanVOI, SIGNAL(triggered(bool)),
+  disconnect(m_cleanROI, SIGNAL(triggered(bool)),
              this,       SLOT(cancelROI()));
 
-  delete m_cleanVOI;
+  delete m_cleanROI;
 }
 
 //-----------------------------------------------------------------------------
-void CleanVOITool::setEnabled(bool value)
+void CleanROITool::setEnabled(bool value)
 {
   if (m_enabled == value)
     return;
@@ -73,23 +73,23 @@ void CleanVOITool::setEnabled(bool value)
 }
 
 //-----------------------------------------------------------------------------
-bool CleanVOITool::enabled() const
+bool CleanROITool::enabled() const
 {
   return m_enabled;
 }
 
 //-----------------------------------------------------------------------------
-QList<QAction *> CleanVOITool::actions() const
+QList<QAction *> CleanROITool::actions() const
 {
   QList<QAction *> actions;
 
-  actions << m_cleanVOI;
+  actions << m_cleanROI;
 
   return actions;
 }
 
 //-----------------------------------------------------------------------------
-void CleanVOITool::cancelROI()
+void CleanROITool::cancelROI()
 {
   m_undoStack->beginMacro("Clear Region Of Interest");
   m_undoStack->push(new ClearROIUndoCommand{m_toolGroup});
@@ -97,7 +97,7 @@ void CleanVOITool::cancelROI()
 }
 
 //-----------------------------------------------------------------------------
-void CleanVOITool::ROIChanged()
+void CleanROITool::ROIChanged()
 {
-  m_cleanVOI->setEnabled(m_enabled && (m_viewManager->currentROI() != nullptr));
+  m_cleanROI->setEnabled(m_enabled && (m_viewManager->currentROI() != nullptr));
 }

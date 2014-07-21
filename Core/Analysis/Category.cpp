@@ -17,12 +17,14 @@
   assert(x)
 */
 
+
 using namespace EspINA;
 
-// const QString Category::X_DIM = "Dim_X";
-// const QString Category::Y_DIM = "Dim_Y";
-// const QString Category::Z_DIM = "Dim_Z";
+const QString Category::X_DIM = "Dim_X";
+const QString Category::Y_DIM = "Dim_Y";
+const QString Category::Z_DIM = "Dim_Z";
 
+#include <QDebug>
 //------------------------------------------------------------------------
 Category::Category(CategoryPtr parent,
                    const QString &name,

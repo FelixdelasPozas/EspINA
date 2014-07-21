@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RectangularROISettings</class>
- <widget class="QWidget" name="RectangularROISettings">
+ <class>OrthogonalROISettings</class>
+ <widget class="QWidget" name="OrthogonalROISettings">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Default VOI Size</string>
+      <string>Default ROI Size</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
@@ -117,7 +117,7 @@
    <item>
     <widget class="QGroupBox" name="m_categorySelectorGroup">
      <property name="title">
-      <string>Default VOI Size by Category</string>
+      <string>Default ROI Size by Category</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
@@ -160,7 +160,7 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Default VOI Size:</string>
+         <string>Default ROI Size:</string>
         </property>
        </widget>
       </item>
@@ -174,7 +174,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="m_xTaxSize">
+         <widget class="QSpinBox" name="m_xCategorySize">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -203,7 +203,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="m_yTaxSize">
+         <widget class="QSpinBox" name="m_yCategorySize">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -232,7 +232,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="m_zTaxSize">
+         <widget class="QSpinBox" name="m_zCategorySize">
           <property name="sizePolicy">
            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
             <horstretch>0</horstretch>

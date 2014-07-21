@@ -19,8 +19,8 @@
 */
 
 // EspINA
-#include "ManualVOITool.h"
-#include "VolumeOfInterestTools.h"
+#include "ManualROITool.h"
+#include "ROITools.h"
 #include <GUI/Widgets/SliderAction.h>
 #include <Tools/Brushes/CircularBrushSelector.h>
 #include <Tools/Brushes/SphericalBrushSelector.h>
@@ -35,10 +35,10 @@
 using namespace EspINA;
 
 //-----------------------------------------------------------------------------
-ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
+ManualROITool::ManualROITool(ModelAdapterSPtr model,
                              ViewManagerSPtr  viewManager,
                              QUndoStack      *undoStack,
-                             VOIToolsGroup   *toolGroup)
+                             ROIToolsGroup   *toolGroup)
 : ManualEditionTool{model, viewManager}
 , m_undoStack      {undoStack}
 , m_toolGroup      {toolGroup}
@@ -73,7 +73,7 @@ ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
 
   // draw with a disc
   m_discTool = new QAction(QIcon(":/espina/voi_brush2D.svg"),
-                           tr("Modify VOI drawing 2D discs"),
+                           tr("Modify ROI drawing 2D discs"),
                            m_drawToolSelector);
 
   m_circularBrushSelector = CircularBrushROISelectorSPtr(new CircularBrushROISelector());
@@ -94,7 +94,7 @@ ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
 
   // draw with a sphere
   m_sphereTool = new QAction(QIcon(":/espina/voi_brush3D.svg"),
-                             tr("Modify VOI drawing 3D spheres"),
+                             tr("Modify ROI drawing 3D spheres"),
                              m_drawToolSelector);
 
   m_sphericalBrushSelector = SphericalBrushROISelectorSPtr(new SphericalBrushROISelector());
@@ -144,12 +144,12 @@ ManualVOITool::ManualVOITool(ModelAdapterSPtr model,
 }
 
 //-----------------------------------------------------------------------------
-ManualVOITool::~ManualVOITool()
+ManualROITool::~ManualROITool()
 {
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::ROIChanged()
+void ManualROITool::ROIChanged()
 {
   bool hasROI = (m_toolGroup->currentROI() != nullptr);
 
@@ -160,7 +160,7 @@ void ManualVOITool::ROIChanged()
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::changeSelector(QAction* action)
+void ManualROITool::changeSelector(QAction* action)
 {
   Q_ASSERT(m_drawTools.keys().contains(action));
 
@@ -175,7 +175,7 @@ void ManualVOITool::changeSelector(QAction* action)
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::selectorInUse(bool value)
+void ManualROITool::selectorInUse(bool value)
 {
   if (!value)
   {
@@ -188,7 +188,7 @@ void ManualVOITool::selectorInUse(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::drawingModeChanged(bool isDrawing)
+void ManualROITool::drawingModeChanged(bool isDrawing)
 {
   QAction *actualAction = m_drawToolSelector->getCurrentAction();
   QIcon icon;
@@ -215,7 +215,7 @@ void ManualVOITool::drawingModeChanged(bool isDrawing)
 }
 
 //------------------------------------------------------------------------
-void ManualVOITool::drawStroke(Selector::Selection selection)
+void ManualROITool::drawStroke(Selector::Selection selection)
 {
   if(m_toolGroup->currentROI() == nullptr)
     m_undoStack->beginMacro("Create Region Of Interest");
@@ -229,13 +229,13 @@ void ManualVOITool::drawStroke(Selector::Selection selection)
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::cancelVOI()
+void ManualROITool::cancelROI()
 {
   m_currentSelector->abortOperation();
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::updateReferenceItem(SelectionSPtr selection)
+void ManualROITool::updateReferenceItem(SelectionSPtr selection)
 {
   m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
 
@@ -256,7 +256,7 @@ void ManualVOITool::updateReferenceItem(SelectionSPtr selection)
 }
 
 //-----------------------------------------------------------------------------
-void ManualVOITool::setControlVisibility(bool value)
+void ManualROITool::setControlVisibility(bool value)
 {
   if (m_showRadiusControls)
     m_radiusWidget->setVisible(value);
