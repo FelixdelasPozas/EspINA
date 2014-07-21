@@ -125,7 +125,8 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       {
         mergedChannel = channel;
         mergedAnalysis->add(channel);
-      } else 
+      }
+      else
       {
         Q_ASSERT(mergedChannel->outputId() == channel->outputId());
         // Filters using channel output as input need to be updated
@@ -134,7 +135,6 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         auto outputId     = mergedChannel->outputId();
 
         mergedFilters[filter] = mergedFilter;
-        channel->changeOutput(mergedFilter, outputId);
 
         for(auto vertex : analysis->content()->successors(filter))
         {
@@ -155,6 +155,8 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
             succesor->setInputs(updatedInputs);
           }
         }
+
+        channel->changeOutput(mergedFilter, outputId);
       }
       mergedChannels[channel] = mergedChannel;
       mergedItems[channel]    = mergedChannel;
