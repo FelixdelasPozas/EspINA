@@ -22,7 +22,7 @@
 #include <GUI/View/RenderView.h>
 #include <QAction>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   RenderersMenu::RenderersMenu(ViewManagerSPtr vm,
@@ -117,4 +117,4 @@ namespace EspINA
         view->deactivateRender(action->text());
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

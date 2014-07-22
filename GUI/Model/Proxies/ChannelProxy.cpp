@@ -31,7 +31,7 @@
 #include <QMimeData>
 #include <QFont>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using ChannelSet = QSet<ItemAdapterPtr>;
 
@@ -236,7 +236,7 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
   {
     ChannelAdapterPtr channel = channelPtr(sourceItem);
     Q_ASSERT(channel);
-    ItemAdapterSList samples = m_model->relatedItems(channel, EspINA::RELATION_IN, Channel::STAIN_LINK);
+    ItemAdapterSList samples = m_model->relatedItems(channel, ESPINA::RELATION_IN, Channel::STAIN_LINK);
     if (samples.size() > 0)
     {
       SampleAdapterPtr sample = samplePtr(samples[0].get());
@@ -403,7 +403,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
         Q_ASSERT(isSample(sourceRow));
         SampleAdapterPtr sample = samplePtr(sourceRow);
         m_samples << sample;
-        auto channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
+        auto channels = m_model->relatedItems(sample, ESPINA::RELATION_OUT, Channel::STAIN_LINK);
         for (auto channel : channels)
         {
           if (channel)
@@ -423,7 +423,7 @@ void ChannelProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start
       Q_ASSERT(isChannel(sourceRow));
       auto channel = channelPtr(sourceRow);
 
-      auto samples = m_model->relatedItems(channel, EspINA::RELATION_IN, Channel::STAIN_LINK);
+      auto samples = m_model->relatedItems(channel, ESPINA::RELATION_IN, Channel::STAIN_LINK);
       if (samples.size() == 1)
       {
         auto sample      = samplePtr(samples.first().get());
@@ -607,7 +607,7 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
       if (ItemAdapter::Type::SAMPLE == proxyItem->type())
       {
         SampleAdapterPtr sample = samplePtr(proxyItem);
-        ItemAdapterSList channels = m_model->relatedItems(sample, EspINA::RELATION_OUT, Channel::STAIN_LINK);
+        ItemAdapterSList channels = m_model->relatedItems(sample, ESPINA::RELATION_OUT, Channel::STAIN_LINK);
         ChannelSet prevChannels = m_channels[sample].toSet();
         // debugChannelSets("Previous Channels", prevChannels);
         ChannelSet currentChannels;

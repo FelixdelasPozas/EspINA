@@ -31,7 +31,7 @@
 #include <GUI/Model/ClassificationAdapter.h>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int classification_adapter_remove_subcategory( int argc, char** argv )
 {

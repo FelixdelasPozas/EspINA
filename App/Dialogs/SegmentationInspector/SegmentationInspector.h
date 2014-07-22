@@ -21,7 +21,7 @@
 #ifndef ESPINA_SEGMENTATION_INSPECTOR_H
 #define EPSINA_SEGMENTATION_INSPECTOR_H
 
-// EspINA
+// ESPINA
 #include "ui_SegmentationInspector.h"
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 
@@ -32,7 +32,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class TabularReport;
   class View3D;
@@ -94,6 +94,6 @@ namespace EspINA
     TabularReport* m_tabularReport;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_INSPECTOR_H

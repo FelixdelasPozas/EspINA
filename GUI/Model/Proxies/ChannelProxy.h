@@ -30,7 +30,7 @@
 
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   // Forward declaration
   class ViewManager;
@@ -96,6 +96,6 @@ namespace EspINA
     mutable QMap<SampleAdapterPtr, ItemAdapterList> m_channels;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CHANNEL_PROXY_H

@@ -29,7 +29,7 @@
 #include "classification_testing_support.h"
 #include <Category.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int classification_create_category( int argc, char** argv )

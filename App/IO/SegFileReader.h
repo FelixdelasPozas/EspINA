@@ -23,7 +23,7 @@
 #define ESPINA_SEGFILEREADER_H
 #include <Core/Factory/AnalysisReader.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class SegFileReader
   : public IO::AnalysisReader

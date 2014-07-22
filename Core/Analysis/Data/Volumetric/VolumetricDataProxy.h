@@ -29,7 +29,7 @@
 #include <vtkImageData.h>
 
 class vtkImplicitFunction;
-namespace EspINA
+namespace ESPINA
 {
   template <class T> class VolumetricData; 
 
@@ -174,6 +174,6 @@ namespace EspINA
 
     friend class Output;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VOLUMETRIC_DATA_PROXY_H

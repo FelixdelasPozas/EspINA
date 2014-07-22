@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ImageLogicFilter.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
@@ -29,7 +29,7 @@
 // ITK
 #include <itkImageRegionConstIterator.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ImageLogicFilter::ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)

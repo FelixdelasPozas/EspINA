@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SplitTool.h"
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
@@ -42,7 +42,7 @@
 #include <QMessageBox>
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   const Filter::Type SPLIT_FILTER    = "SplitFilter";
   const Filter::Type SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
@@ -229,7 +229,7 @@ namespace EspINA
     {
       QMessageBox warning;
       warning.setWindowModality(Qt::WindowModal);
-      warning.setWindowTitle(tr("EspINA"));
+      warning.setWindowTitle(tr("ESPINA"));
       warning.setIcon(QMessageBox::Warning);
       warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
       warning.setStandardButtons(QMessageBox::Yes);
@@ -280,7 +280,7 @@ namespace EspINA
         QApplication::restoreOverrideCursor();
         QMessageBox warning;
         warning.setWindowModality(Qt::WindowModal);
-        warning.setWindowTitle(tr("EspINA"));
+        warning.setWindowTitle(tr("ESPINA"));
         warning.setIcon(QMessageBox::Warning);
         warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
         warning.setStandardButtons(QMessageBox::Yes);
@@ -301,4 +301,4 @@ namespace EspINA
   }
 
 
-} // namespace EspINA
+} // namespace ESPINA

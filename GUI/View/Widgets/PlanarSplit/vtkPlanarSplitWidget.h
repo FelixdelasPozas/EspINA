@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/Spatial.h>
 
@@ -23,7 +23,7 @@ class vtkWidgetRepresentation;
 class vtkPoints;
 class vtkLineSource;
 
-namespace EspINA
+namespace ESPINA
 {
   class vtkPlanarSplitWidgetCallback;
   class vtkPlanarSplitRepresentation2D;
@@ -135,6 +135,6 @@ namespace EspINA
     bool m_permanentlyDisabled;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* VTKPLANARSPLITWIDGET_H_ */

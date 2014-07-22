@@ -22,7 +22,7 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using BMask = BinaryMask<unsigned char>;
 

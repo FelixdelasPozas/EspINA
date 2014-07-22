@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CamerasMenu.h"
 
 // Qt
@@ -26,7 +26,7 @@
 #include <QInputDialog>
 #include <QLineEdit>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CamerasMenu::CamerasMenu(ViewManagerSPtr vm, QWidget *parent)
@@ -136,4 +136,4 @@ namespace EspINA
       }
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

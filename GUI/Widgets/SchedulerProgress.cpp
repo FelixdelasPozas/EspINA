@@ -28,7 +28,7 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QDebug>
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,

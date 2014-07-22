@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "RulerTool.h"
 #include <GUI/View/Widgets/Ruler/RulerWidget.h>
 #include <Core/EspinaTypes.h>
@@ -34,7 +34,7 @@
 // Qt
 #include <QAction>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   RulerTool::RulerTool(ViewManagerSPtr vm)
@@ -202,4 +202,4 @@ namespace EspINA
   }
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

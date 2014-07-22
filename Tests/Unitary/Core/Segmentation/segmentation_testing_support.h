@@ -24,7 +24,7 @@
 
 #include <Core/Analysis/Filter.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace Testing {
     class DummyFilter
     : public Filter

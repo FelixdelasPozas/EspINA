@@ -23,8 +23,8 @@
 #include "Extensions/StereologicalInclusion.h"
 #include <Extensions/ExtensionUtils.h>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameColorEngine::CountingFrameColorEngine()

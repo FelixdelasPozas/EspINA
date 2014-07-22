@@ -26,7 +26,7 @@
 #include <Core/Filters/ImageLogicFilter.h>
 #include <Core/Model/EspinaModel.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ImageLogicCommand
   : public QUndoCommand
@@ -71,6 +71,6 @@ namespace EspINA
     SegmentationSPtr    m_segmentation;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // IMAGELOGICCOMMAND_H

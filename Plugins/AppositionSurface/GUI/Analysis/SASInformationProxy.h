@@ -21,10 +21,10 @@
 #ifndef SAS_INFORMATION_PROXY_H_
 #define SAS_INFORMATION_PROXY_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Model/Proxies/InformationProxy.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class SASInformationProxy
   : public InformationProxy
@@ -57,6 +57,6 @@ namespace EspINA
       SegmentationExtension::InfoTagList m_sasTags;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SAS_INFORMATION_PROXY_H_

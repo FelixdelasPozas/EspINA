@@ -24,9 +24,9 @@
 #include <Core/Factory/CoreFactory.h>
 #include <Support/Factory/DefaultChannelExtensionFactory.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
-EspINA::CoreFactorySPtr EspINA::espinaCoreFactory(SchedulerSPtr scheduler)
+ESPINA::CoreFactorySPtr ESPINA::espinaCoreFactory(SchedulerSPtr scheduler)
 {
   CoreFactorySPtr factory{new CoreFactory(scheduler)};
 

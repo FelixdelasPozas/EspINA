@@ -24,8 +24,8 @@
 #include <quazip/quazipfile.h>
 #include <QDebug>
 
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 //-----------------------------------------------------------------------------
 void ZipUtils::AddFileToZip(const QString&    fileName,

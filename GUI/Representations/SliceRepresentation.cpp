@@ -46,7 +46,7 @@
 
 #include <QList>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type ChannelSliceRepresentation::TYPE = "Slice";
 

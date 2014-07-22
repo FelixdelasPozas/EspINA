@@ -9,7 +9,7 @@
 #define SLICECONTOURWIDGET_H_
 
 
-// EspINA
+// ESPINA
 #include "vtkPlaneContourWidget.h"
 #include "ContourWidget.h"
 
@@ -18,7 +18,7 @@
 
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
 class EspinaGUI_EXPORT SliceContourWidget
 : public SliceWidget
@@ -47,6 +47,6 @@ class EspinaGUI_EXPORT SliceContourWidget
     Brush::BrushMode m_storedContourMode;
 };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif /* SLICECONTOURWIDGET_H_ */

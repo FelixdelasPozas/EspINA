@@ -26,7 +26,7 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
 
 class EspinaGUI_EXPORT CategoryColorEngine
@@ -52,6 +52,6 @@ class EspinaGUI_EXPORT CategoryColorEngine
 
 using CategoryColorEngineSPtr = std::shared_ptr<CategoryColorEngine>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CATEGORY_COLOR_ENGINE_H

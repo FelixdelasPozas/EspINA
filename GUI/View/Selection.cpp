@@ -24,7 +24,7 @@
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ChannelAdapterList Selection::setChannels(ChannelAdapterList channelList)

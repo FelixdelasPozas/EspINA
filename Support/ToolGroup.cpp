@@ -20,7 +20,7 @@
 
 #include "ToolGroup.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ToolGroup::ToolGroup(ViewManagerSPtr viewManager,

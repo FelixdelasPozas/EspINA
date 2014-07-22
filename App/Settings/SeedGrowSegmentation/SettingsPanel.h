@@ -27,7 +27,7 @@
 
 #include "Toolbars/Segmentation/SegmentationToolBar.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -66,6 +66,6 @@ namespace EspINA
     bool                          m_zValueChanged;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEEDGROWSEGMENTATIONPREFERENCES_H

@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "RectangularRegion.h"
 #include "vtkRectangularSliceWidget.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
@@ -33,7 +33,7 @@
 #include <QDebug>
 #include <QMouseEvent>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using SliceWidgetAdapter = EspinaInteractorAdapter<vtkRectangularSliceWidget>;
 

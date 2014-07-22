@@ -28,7 +28,7 @@
 
 #include <Core/Analysis/NeuroItem.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ModelAdapter;
   using ModelAdapterPtr = ModelAdapter *;
@@ -58,6 +58,6 @@ namespace EspINA {
 
   NeuroItemAdapterPtr neuroItemAdapter(ItemAdapterPtr item);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_NEURO_ITEM_ADAPTER_H

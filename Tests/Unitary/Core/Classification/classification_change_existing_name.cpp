@@ -28,7 +28,7 @@
 
 #include <Category.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int classification_change_existing_name( int argc, char** argv )

@@ -7,14 +7,14 @@
 
 #include "ZoomArea.h"
 
-// EspINA
+// ESPINA
 
 // Qt
 #include <QPixmap>
 #include <QAction>
 #include <GUI/View/Widgets/Zoom/ZoomSelectionWidget.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ZoomArea::ZoomArea(ViewManagerSPtr viewManager)

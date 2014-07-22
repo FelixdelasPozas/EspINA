@@ -27,7 +27,7 @@
 #include <QApplication>
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, const QString& nameFilters, const QString& hint)
@@ -69,11 +69,11 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, cons
 //------------------------------------------------------------------------
 void EspinaErrorHandler::error(const QString& msg)
 {
-  QMessageBox::warning(m_parent, "EspINA", msg);
+  QMessageBox::warning(m_parent, "ESPINA", msg);
 }
 
 //------------------------------------------------------------------------
 void EspinaErrorHandler::warning(const QString& msg)
 {
-  QMessageBox::warning(m_parent, "EspINA", msg);
+  QMessageBox::warning(m_parent, "ESPINA", msg);
 }

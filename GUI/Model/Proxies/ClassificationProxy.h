@@ -24,7 +24,7 @@
 #include <QAbstractProxyModel>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   /** \brief Group Segmentations by Category
    *
@@ -115,6 +115,6 @@ namespace EspINA
     mutable QMap<CategoryAdapterPtr, Qt::CheckState >    m_categoryVisibility;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CLASSIFICATION_PROXY_H

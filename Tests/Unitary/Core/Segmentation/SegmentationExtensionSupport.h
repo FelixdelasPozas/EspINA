@@ -22,7 +22,7 @@
 
 #include "Core/Analysis/Extension.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class DummySegmentationExtension
 : public SegmentationExtension

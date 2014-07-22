@@ -28,7 +28,7 @@
 
 #include "VolumeBounds.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int intersection( int argc, char** argv )
@@ -59,7 +59,7 @@ int intersection( int argc, char** argv )
   Bounds ib{-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
   VolumeBounds expectedIntersection{ib};
 
-  auto actualInteresction = EspINA::intersection(vb1, vb2);
+  auto actualInteresction = ESPINA::intersection(vb1, vb2);
   if (!isEquivalent(expectedIntersection, actualInteresction)) {
     cerr << "Expected bounds intersection " << expectedIntersection << " but got" << actualInteresction << " instead" << endl;
     error = true;
@@ -94,7 +94,7 @@ int intersection( int argc, char** argv )
 
   try
   {
-    auto invalidIntersection = EspINA::intersection(vb1, VolumeBounds());
+    auto invalidIntersection = ESPINA::intersection(vb1, VolumeBounds());
     error = true;
   } catch (Incompatible_Volume_Bounds_Exception e)
   {
@@ -110,7 +110,7 @@ int intersection( int argc, char** argv )
 
   try
   {
-    auto incompatibleIntersection = EspINA::intersection(vb1, incompatible);
+    auto incompatibleIntersection = ESPINA::intersection(vb1, incompatible);
     error = true;
   } catch (Incompatible_Volume_Bounds_Exception e)
   {

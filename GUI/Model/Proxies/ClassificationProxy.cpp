@@ -25,7 +25,7 @@
 #include <QPixmap>
 #include <QPainter>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 typedef QSet<ItemAdapterPtr > SegmentationSet;
 

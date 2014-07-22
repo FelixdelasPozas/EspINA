@@ -24,7 +24,7 @@
 
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveExtension(Extendible item)

@@ -40,7 +40,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Testing;
 
 int classification_proxy_change_segmentation_category( int argc, char** argv )

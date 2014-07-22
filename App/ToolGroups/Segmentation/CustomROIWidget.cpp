@@ -24,7 +24,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CustomROIWidget::CustomROIWidget(QObject* parent)

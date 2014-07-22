@@ -26,7 +26,7 @@
 #include <QComboBox>
 #include <QGroupBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Metadona;
 
 

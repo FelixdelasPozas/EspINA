@@ -19,10 +19,10 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "RepresentationFactoryGroup.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 void RepresentationFactoryGroup::addRepresentationFactory(RepresentationFactorySPtr factory)

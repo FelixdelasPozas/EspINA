@@ -37,8 +37,8 @@
   #include <Support/Metadona/StorageFactory.h>
 #endif
 
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 
 const Filter::Type VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStreamReader";

@@ -21,14 +21,14 @@
 #ifndef ESPINA_ROI_UNDO_COMMAND_H_
 #define ESPINA_ROI_UNDO_COMMAND_H_
 
-// EspINA
+// ESPINA
 #include <App/ToolGroups/ROI/ROITools.h>
 #include <Support/ViewManager.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class ModifyROIUndoCommand
   : public QUndoCommand
@@ -91,6 +91,6 @@ namespace EspINA
       ROISPtr        m_roi;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ROI_UNDO_COMMAND_H_

@@ -35,7 +35,7 @@
 
 #include <QStringListModel>
 
-namespace EspINA
+namespace ESPINA
 {
 
 
@@ -100,6 +100,6 @@ namespace EspINA
   using SegmentationTagsPtr  = SegmentationTags *;
   using SegmentationTagsSPtr = std::shared_ptr<SegmentationTags>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_TAGS

@@ -27,7 +27,7 @@
 #include <QLabel>
 #include <QLineEdit>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Metadona;
 
 //------------------------------------------------------------------------

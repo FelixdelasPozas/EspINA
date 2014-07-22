@@ -27,7 +27,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
 class SeedGrowSegmentationFilter;
 class ViewManager;
@@ -83,6 +83,6 @@ private:
   Nm  m_voiBounds[6];
 };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEEDGROWSEGMENTATIONFILTERINSPECTOR_H

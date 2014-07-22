@@ -22,7 +22,7 @@
 #include "SliceRepresentationSettings.h"
 #include "SliceRepresentation.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 SliceRepresentationSettings::SliceRepresentationSettings()

@@ -28,12 +28,12 @@
 namespace UnitTesting {
 
   class DummyItem 
-  : public EspINA::Persistent
+  : public ESPINA::Persistent
   {
   public:
-    virtual void restoreState(const EspINA::State& state){}
-    virtual EspINA::State state() const { return EspINA::State(); }
-    virtual EspINA::Snapshot snapshot() const {return EspINA::Snapshot();}
+    virtual void restoreState(const ESPINA::State& state){}
+    virtual ESPINA::State state() const { return ESPINA::State(); }
+    virtual ESPINA::Snapshot snapshot() const {return ESPINA::Snapshot();}
     virtual void unload(){}
   };
 

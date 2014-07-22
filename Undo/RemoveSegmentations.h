@@ -27,13 +27,13 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QUndoCommand>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -64,6 +64,6 @@ namespace EspINA
       RelationList             m_relations;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_REMOVE_SEGMENTATIONS_H

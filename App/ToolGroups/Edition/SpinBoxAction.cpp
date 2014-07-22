@@ -22,7 +22,7 @@
 
 #include <QHBoxLayout>
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   SpinBoxAction::SpinBoxAction(QObject *parent)
@@ -126,4 +126,4 @@ namespace EspINA
   }
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

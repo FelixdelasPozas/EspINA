@@ -15,7 +15,7 @@ BEGIN
       VALUE "InternalName", "SegmhaImporterPlugin"
       VALUE "LegalCopyright", "GNU Public License"
       VALUE "OriginalFilename", "libSegmhaImporterPlugin.dll"
-      VALUE "ProductName", "EspINA"
+      VALUE "ProductName", "ESPINA"
       VALUE "ProductVersion", "@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"
     END
   END

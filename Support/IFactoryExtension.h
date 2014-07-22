@@ -27,7 +27,7 @@
 #include <QtPlugin>
 #include <Core/Model/EspinaFactory.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT IFactoryExtension
   {
@@ -37,9 +37,9 @@ namespace EspINA
     virtual void initFactoryExtension(EspinaFactory *factory) = 0;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-Q_DECLARE_INTERFACE(EspINA::IFactoryExtension,
-                    "es.upm.cesvima.EspINA.IFactoryExtension/1.1")
+Q_DECLARE_INTERFACE(ESPINA::IFactoryExtension,
+                    "es.upm.cesvima.ESPINA.IFactoryExtension/1.1")
 
 #endif // IEXTENSIONPROVIDER_H

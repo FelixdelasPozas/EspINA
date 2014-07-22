@@ -19,14 +19,14 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "DefaultViewSettingsPanel.h"
 
 // Qt
 #include <QVBoxLayout>
 #include <QGroupBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,

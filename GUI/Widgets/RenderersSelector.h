@@ -21,11 +21,11 @@
 #ifndef ESPINA_RENDERERS_SELECTOR_H_
 #define ESPINA_RENDERERS_SELECTOR_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Representations/Renderers/Renderer.h>
 #include "ui_RenderersSelector.h"
 
-namespace EspINA
+namespace ESPINA
 {
   
   class RenderersSelector
@@ -67,6 +67,6 @@ namespace EspINA
       QStringList   m_activeRenderers;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_RENDERERS_SELECTOR_H_

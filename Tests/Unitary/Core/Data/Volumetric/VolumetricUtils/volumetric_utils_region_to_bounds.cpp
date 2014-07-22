@@ -30,7 +30,7 @@
 
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 bool Test_Bounds(const Bounds& bounds, itkVolumeType::Pointer image, bool passIfEquivalent = true) {
   bool pass = true;

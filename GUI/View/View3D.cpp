@@ -21,7 +21,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include "View3D.h"
 
-// EspINA
+// ESPINA
 #include "GUI/View/Widgets/EspinaWidget.h"
 #include "ViewRendererMenu.h"
 
@@ -55,7 +55,7 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)

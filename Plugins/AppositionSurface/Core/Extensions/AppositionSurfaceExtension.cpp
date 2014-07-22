@@ -22,7 +22,7 @@
 #include "AppositionSurfaceExtension.h"
 #include <Filter/AppositionSurfaceFilter.h>
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
 
@@ -48,7 +48,7 @@ using BoostConnectedComponents = vtkSmartPointer<vtkBoostConnectedComponents>;
 using EdgeListIterator = vtkSmartPointer<vtkEdgeListIterator>;
 using PolyDataNormals = vtkSmartPointer<vtkPolyDataNormals>;
 
-using namespace EspINA;
+using namespace ESPINA;
 
 ///-----------------------------------------------------------------------
 /// APPOSITION SURFACE EXTENSION-

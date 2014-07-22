@@ -32,7 +32,7 @@
 #include "GUI/Model/FilterAdapter.h"
 #include <GUI/ModelFactory.h>
 
-namespace EspINA
+namespace ESPINA
 {
   struct Relation
   {
@@ -252,6 +252,6 @@ namespace EspINA
   bool isChannel(ItemAdapterPtr item);
   bool isSegmentation(ItemAdapterPtr item);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MODEL_ADAPTER_H

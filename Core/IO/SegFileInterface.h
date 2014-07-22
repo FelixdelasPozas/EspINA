@@ -26,7 +26,7 @@
 #include <Core/Analysis/Analysis.h>
 #include <quazip/quazip.h>
 
-namespace EspINA 
+namespace ESPINA 
 {
   namespace IO
   {

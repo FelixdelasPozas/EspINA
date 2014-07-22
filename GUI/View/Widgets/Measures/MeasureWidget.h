@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
 
@@ -30,7 +30,7 @@ class vtkRenderWindowInteractor;
 
 class QEvent;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
   class MeasureWidget;
@@ -126,9 +126,9 @@ namespace EspINA
      virtual ~vtkDistanceCommand()
      {}
 
-     EspINA::MeasureWidget *m_widget;
+     ESPINA::MeasureWidget *m_widget;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_MEASURE_WIDGET_H_

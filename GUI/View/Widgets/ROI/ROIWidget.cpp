@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <GUI/View/View2D.h>
@@ -33,7 +33,7 @@
 #include <vtkProperty.h>
 #include <vtkTubeFilter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ROIWidget::ROIWidget(ROISPtr roi)
@@ -175,5 +175,5 @@ namespace EspINA
       updateActor(view);
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 

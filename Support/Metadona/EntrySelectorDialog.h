@@ -26,7 +26,7 @@
 #include <ui_EntrySelectorDialog.h>
 #include <Coordinator.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EntrySelectorDialog
   : public QDialog

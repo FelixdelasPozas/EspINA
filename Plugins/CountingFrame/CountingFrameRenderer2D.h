@@ -32,7 +32,7 @@
 
 class vtkCountingFrameSliceWidget;
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -79,6 +79,6 @@ namespace EspINA
         QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_insertedCFs;
     };
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_COUNTING_FRAME_2D_RENDERER_H

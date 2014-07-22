@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "GUI/Representations/MeshRepresentationBase.h"
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include "GUI/View/RenderView.h"
@@ -27,7 +27,7 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 TransparencySelectionHighlighter *MeshRepresentationBase::s_highlighter = new TransparencySelectionHighlighter();
 

@@ -13,7 +13,7 @@
 // Qt includes
 #include <QWidget>
 
-namespace EspINA
+namespace ESPINA
 {
 class EspinaGUI_EXPORT HueSelector
 : public QWidget
@@ -46,6 +46,6 @@ private:
   QPixmap *pix;
 };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // HUESELECTOR_H_

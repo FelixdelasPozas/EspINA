@@ -30,7 +30,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Tests/Unitary/Core/core_testing_support.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int analysis_remove_segmentation( int argc, char** argv )

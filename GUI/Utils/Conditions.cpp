@@ -20,9 +20,9 @@
 
 #include "Conditions.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
-QString EspINA::condition(const QString &icon, const QString &description)
+QString ESPINA::condition(const QString &icon, const QString &description)
 {
   return QString("<table style=\"margin: 0px\">"
                " <tr>"

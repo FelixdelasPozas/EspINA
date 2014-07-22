@@ -25,7 +25,7 @@
 #include <QWidget>
 #include "GUI/View/SelectableView.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Representations/Representation.h>
@@ -46,7 +46,7 @@ class vtkRenderWindow;
 class QVTKWidget;
 class QPushButton;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaWidget;
 
@@ -260,6 +260,6 @@ namespace EspINA
     bool m_showSegmentations;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINARENDERVIEW_H

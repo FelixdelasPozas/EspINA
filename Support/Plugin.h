@@ -36,7 +36,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   using NamedColorEngine      = QPair<QString, ColorEngineSPtr>;
   using NamedColorEngineSList = QList<NamedColorEngine>;
@@ -127,8 +127,8 @@ namespace EspINA
 //     TemporalStorageSPtr m_storage;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-Q_DECLARE_INTERFACE(EspINA::Plugin, "es.upm.cesvima.EspINA.Plugin/1.0")
+Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.0")
 
 #endif // ESPINA_PLUGIN_H

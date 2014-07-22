@@ -21,11 +21,11 @@
 
 #include "GUI/Selectors/Selector.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
-const Selector::SelectionTag Selector::SAMPLE = "EspINA_Sample";
-const Selector::SelectionTag Selector::CHANNEL = "EspINA_Channel";
-const Selector::SelectionTag Selector::SEGMENTATION = "EspINA_Segmentation";
+const Selector::SelectionTag Selector::SAMPLE = "ESPINA_Sample";
+const Selector::SelectionTag Selector::CHANNEL = "ESPINA_Channel";
+const Selector::SelectionTag Selector::SEGMENTATION = "ESPINA_Segmentation";
 
 //-----------------------------------------------------------------------------
 void Selector::setSelectionTag(const Selector::SelectionTag tag, bool selectable)

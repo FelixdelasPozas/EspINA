@@ -25,7 +25,7 @@
 #include <GUI/Representations/RepresentationFactory.h>
 #include <QMap>
 
-namespace EspINA {
+namespace ESPINA {
 
   class EspinaGUI_EXPORT RepresentationFactoryGroup 
   : public RepresentationFactory
@@ -43,7 +43,7 @@ namespace EspINA {
 
     virtual RepresentationTypeList representations() const;
 
-    virtual EspINA::RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
+    virtual ESPINA::RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
 
   private:
     QMap<Representation::Type, RepresentationFactorySPtr> m_factories;

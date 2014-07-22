@@ -22,13 +22,13 @@
 #ifndef ESPINA_REPRESENTATION_SETTINGS_H
 #define ESPINA_REPRESENTATION_SETTINGS_H
 
-// EspINA
+// ESPINA
 #include "Representation.h"
 
 // Qt
 #include <QWidget>
 
-namespace EspINA
+namespace ESPINA
 {
   class RepresentationSettings 
   : public QWidget
@@ -40,6 +40,6 @@ namespace EspINA
     virtual void set(RepresentationSPtr representation) = 0;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_SETTINGS_H

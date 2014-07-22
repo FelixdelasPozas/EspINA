@@ -34,7 +34,7 @@
 class QAction;
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class SpinBoxAction;
   
@@ -223,6 +223,6 @@ namespace EspINA
   using MorphologicalEditionToolPtr  = MorphologicalEditionTool *;
   using MorphologicalEditionToolSPtr = std::shared_ptr<MorphologicalEditionTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MORPHOLOGICAL_EDITION_TOOL_H_

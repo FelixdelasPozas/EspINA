@@ -29,7 +29,7 @@
 #include <Core/Analysis/DataProxy.h>
 #include "output_testing_support.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 class InvalidDataProxy;

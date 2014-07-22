@@ -18,14 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "ROITools.h"
 #include "CleanROITool.h"
 #include "ManualROITool.h"
 #include "OrthogonalROITool.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,

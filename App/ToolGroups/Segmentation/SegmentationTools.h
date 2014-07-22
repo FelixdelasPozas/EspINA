@@ -29,7 +29,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   /// Seed Growing Segmentation Plugin
   class SegmentationTools
@@ -53,6 +53,6 @@ namespace EspINA
     SeedGrowSegmentationToolSPtr m_sgsTool;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// ESPINA_SEGMENTATION_TOOLS_H

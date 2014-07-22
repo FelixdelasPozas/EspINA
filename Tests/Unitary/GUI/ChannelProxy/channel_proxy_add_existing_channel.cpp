@@ -39,9 +39,9 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Testing;
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int channel_proxy_add_existing_channel( int argc, char** argv )

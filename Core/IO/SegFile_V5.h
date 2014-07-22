@@ -27,7 +27,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/FetchBehaviour.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   namespace IO {
 

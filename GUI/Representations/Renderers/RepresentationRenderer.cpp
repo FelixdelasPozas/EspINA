@@ -18,19 +18,19 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "RepresentationRenderer.h"
 
 //-----------------------------------------------------------------------------
-bool EspINA::canRender(RepresentationRendererSPtr renderer, RenderableType type)
+bool ESPINA::canRender(RepresentationRendererSPtr renderer, RenderableType type)
 {
   return renderer->renderableItems().testFlag(type);
 }
 
 //-----------------------------------------------------------------------------
-EspINA::RepresentationRendererSPtr EspINA::representationRenderer(RendererSPtr renderer)
+ESPINA::RepresentationRendererSPtr ESPINA::representationRenderer(RendererSPtr renderer)
 {
-  auto repRenderer = std::dynamic_pointer_cast<EspINA::RepresentationRenderer>(renderer);
+  auto repRenderer = std::dynamic_pointer_cast<ESPINA::RepresentationRenderer>(renderer);
   Q_ASSERT(repRenderer);
   return repRenderer;
 }

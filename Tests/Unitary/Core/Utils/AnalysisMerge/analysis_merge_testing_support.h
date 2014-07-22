@@ -26,7 +26,7 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace Testing {
     class DummyFilter
     : public Filter

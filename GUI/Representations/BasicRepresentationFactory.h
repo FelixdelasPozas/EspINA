@@ -27,7 +27,7 @@
 #include <GUI/Model/FilterAdapter.h>
 
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT BasicChannelRepresentationFactory
   : public RepresentationFactory

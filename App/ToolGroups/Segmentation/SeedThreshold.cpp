@@ -36,7 +36,7 @@ const int MAX_THRESHOLD = 255;
 const QString LTHRESHOLD = "SeedGrowSegmentation::LowerThreshold";
 const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SeedThreshold::SeedThreshold(QObject* parent)
@@ -47,7 +47,7 @@ SeedThreshold::SeedThreshold(QObject* parent)
 , m_uth        (nullptr)
 , m_symmetrical(true)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   m_threshold[0] = settings.value(LTHRESHOLD, DEFAULT_THRESHOLD).toInt();
   m_threshold[1] = settings.value(UTHRESHOLD, DEFAULT_THRESHOLD).toInt();
 }
@@ -115,7 +115,7 @@ void SeedThreshold::setLowerThreshold(int th)
   else
     m_threshold[0] = th;
 
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.setValue(LTHRESHOLD, m_threshold[0]);
 
   emit lowerThresholdChanged(m_threshold[0]);
@@ -134,7 +134,7 @@ void SeedThreshold::setUpperThreshold(int th)
   else
     m_threshold[1] = th;
 
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.setValue(UTHRESHOLD, m_threshold[1]);
 
   emit upperThresholdChanged(m_threshold[1]);

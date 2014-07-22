@@ -27,7 +27,7 @@
 #include <QWidget>
 #include <QSortFilterProxyModel>
 
-// EspINA
+// ESPINA
 #include <GUI/ViewManager.h>
 #include <Core/Model/Proxies/InformationProxy.h>
 #include <Core/Model/Segmentation.h>
@@ -35,7 +35,7 @@
 
 #include "ui_ConnectomicsDialog.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ConnectomicsDialog
   : public QDialog
@@ -63,6 +63,6 @@ namespace EspINA
     ViewManager::Selection selection;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CONNECTOMICSDIALOG_H

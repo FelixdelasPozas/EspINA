@@ -34,7 +34,7 @@
 
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
   class SliderAction;
   
@@ -148,6 +148,6 @@ namespace EspINA
   using ManualEditionToolPtr = ManualEditionTool *;
   using ManualEditionToolSPtr = std::shared_ptr<ManualEditionTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MANUAL_EDITION_TOOL_H_

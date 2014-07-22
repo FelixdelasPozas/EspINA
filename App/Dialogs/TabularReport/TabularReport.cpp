@@ -18,7 +18,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
 #include <GUI/Widgets/CheckableTableView.h>
@@ -34,7 +34,7 @@
 #include <QMessageBox>
 #include <QTableView>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
@@ -405,7 +405,7 @@ void TabularReport::exportInformation()
   }
 
   if (!result)
-    QMessageBox::warning(this, "EspINA", tr("Unable to export %1").arg(fileName));
+    QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
 }
 
 //------------------------------------------------------------------------

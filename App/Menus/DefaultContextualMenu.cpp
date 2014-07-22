@@ -42,7 +42,7 @@
 #include <QStandardItemModel>
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,

@@ -21,7 +21,7 @@
 #include "FilledContour.h"
 #include <Undo/BrushUndoCommand.h>
 
-// EspINA
+// ESPINA
 #include <GUI/Pickers/ContourSelector.h>
 #include <GUI/vtkWidgets/ContourWidget.h>
 #include <GUI/ViewManager.h>
@@ -40,7 +40,7 @@
 #include <QUndoStack>
 #include <QtGui>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Filter::FilterType FilledContour::FILTER_TYPE = "EditorToolBar::ContourSource";
 
@@ -131,7 +131,7 @@ void FilledContour::setInUse(bool enable)
     SegmentationList selection;
     foreach(PickableItemPtr item, m_viewManager->selection())
     {
-      if (EspINA::SEGMENTATION == item->type())
+      if (ESPINA::SEGMENTATION == item->type())
       selection << segmentationPtr(item);
     }
 

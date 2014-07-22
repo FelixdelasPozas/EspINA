@@ -21,7 +21,7 @@
 #ifndef CONTOURUNDOCOMMAND_H_
 #define CONTOURUNDOCOMMAND_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
@@ -32,7 +32,7 @@
 
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class FilledContour;
@@ -104,5 +104,5 @@ namespace EspINA
     mutable ContourWidget::ContourData m_contour;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* CONTOURUNDOCOMMAND_H_ */

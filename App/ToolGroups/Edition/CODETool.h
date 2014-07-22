@@ -24,7 +24,7 @@
 
 #include <GUI/Widgets/SpinBoxAction.h>
 
-namespace EspINA {
+namespace ESPINA {
   class CODETool
   : public QObject
   {
@@ -56,6 +56,6 @@ namespace EspINA {
     QAction*       m_apply;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CODE_TOOL_H

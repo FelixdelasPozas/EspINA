@@ -18,7 +18,7 @@
 */
 
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString Category::X_DIM = "Dim_X";
 const QString Category::Y_DIM = "Dim_Y";
@@ -161,7 +161,7 @@ QVariant Category::property(const QString& prop) const
 }
 
 //------------------------------------------------------------------------
-QString EspINA::print(CategorySPtr category, int level)
+QString ESPINA::print(CategorySPtr category, int level)
 {
   QString out = QString("%1%2\n").arg(QString(level*2, ' ')).arg(category->name());
 

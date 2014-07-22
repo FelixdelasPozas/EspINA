@@ -21,7 +21,7 @@
 #include <Core/Analysis/FetchBehaviour.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class MarchingCubesFromFetchedVolumetricData
   : public FetchBehaviour
@@ -32,6 +32,6 @@ namespace EspINA
   protected:
     virtual DefaultVolumetricDataSPtr fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MARCHING_CUBES_FROM_FETCHED_VOLUMETRIC_DATA_H

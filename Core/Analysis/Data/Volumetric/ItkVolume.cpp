@@ -52,7 +52,7 @@
 
 #include <iostream>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 typedef itk::StatisticsLabelObject<unsigned int, 3>                       LabelMapObject;
 typedef itk::LabelMap<LabelMapObject>                                    LabelMap;
@@ -404,7 +404,7 @@ bool ItkVolume<T>::isEmpty() const
 
 //----------------------------------------------------------------------------
 template<class T>
-RawVolumeSPtr<T> EspINA::rawVolume(OutputSPtr output)
+RawVolumeSPtr<T> ESPINA::rawVolume(OutputSPtr output)
 {
   RawVolumeSPtr<T> volume = std::dynamic_pointer_cast<RawVolumeSPtr<T>>(output->data(RawVolume<T>::TYPE));
   Q_ASSERT(volume.get());
@@ -1264,7 +1264,7 @@ void ItkVolume<T>::draw(typename T::IndexType index,
 //}
 //
 ////----------------------------------------------------------------------------
-//RawSegmentationVolumeSPtr EspINA::rawSegmentationVolume(OutputSPtr output)
+//RawSegmentationVolumeSPtr ESPINA::rawSegmentationVolume(OutputSPtr output)
 //{
 //  SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
 //  Q_ASSERT(segmentationOutput.get());

@@ -21,12 +21,12 @@
 #include "SASFetchBehaviour.h"
 #include "AppositionSurfaceFilter.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   MeshDataSPtr SASFetchBehaviour::fetchMeshData(OutputSPtr output,
@@ -57,5 +57,5 @@ namespace EspINA
     return mesh;
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 

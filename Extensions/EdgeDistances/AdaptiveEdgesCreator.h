@@ -26,7 +26,7 @@
 
 #include <Core/MultiTasking/Task.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ChannelEdges;
 
@@ -48,6 +48,6 @@ namespace EspINA
   using AdaptiveEdgesCreatorPtr  = AdaptiveEdgesCreator *;
   using AdaptiveEdgesCreatorSPtr = std::shared_ptr<AdaptiveEdgesCreator>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_ADAPTIVE_EDGE_CREATOR_H

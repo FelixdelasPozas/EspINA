@@ -21,12 +21,12 @@
 #ifndef ESPINA_REPRESENTATION_RENDERER_H_
 #define ESPINA_REPRESENTATION_RENDERER_H_
 
-// EspINA
+// ESPINA
 #include "Renderer.h"
 #include <GUI/Representations/Representation.h>
 #include <GUI/Model/ViewItemAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   enum RenderableType
   {
@@ -99,6 +99,6 @@ namespace EspINA
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(RenderableItems)
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_RENDERER_H_

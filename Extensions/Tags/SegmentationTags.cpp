@@ -30,7 +30,7 @@
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Segmentation.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 const QString                        SegmentationTags::TYPE = "SegmentationTags";

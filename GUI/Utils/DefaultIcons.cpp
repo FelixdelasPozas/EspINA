@@ -24,8 +24,8 @@
 #include <QStyle>
 #include <QApplication>
 
-using namespace EspINA;
-using namespace EspINA::GUI;
+using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Save()

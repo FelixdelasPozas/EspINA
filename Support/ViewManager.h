@@ -28,7 +28,7 @@
 
 #include "Support/EspinaSupport_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Utils/Measure.h>
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <GUI/View/SelectableView.h>
@@ -53,7 +53,7 @@ class QAction;
 class QCursor;
 class QEvent;
 
-namespace EspINA
+namespace ESPINA
 {
   class SliceSelectorWidget;
   class RenderView;

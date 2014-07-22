@@ -21,4 +21,4 @@
 
 #include "ReadOnlyFilter.h"
 
-using namespace EspINA;
+using namespace ESPINA;

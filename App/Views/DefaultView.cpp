@@ -21,7 +21,7 @@
 #include "DefaultView.h"
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 
-// EspINA
+// ESPINA
 //#include <Menus/SegmentationContextualMenu.h>
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
@@ -41,7 +41,7 @@
 #include <QVBoxLayout>
 #include <QMenu>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString DEFAULT_VIEW_SETTINGS = "DefaultView";
 
@@ -62,14 +62,14 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 , m_showSegmentations(true)
 //, m_contextMenu(new DefaultContextualMenu(SegmentationList(), model, undoStack, viewManager))
 {
-  QSettings settins(CESVIMA, ESPINA);
-  settins.beginGroup(DEFAULT_VIEW_SETTINGS);
+  ESPINA_SETTINGS(settings);
+  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
 
-  m_xLine = settins.value(X_LINE_COLOR, QColor(Qt::blue))   .value<QColor>();
-  m_yLine = settins.value(Y_LINE_COLOR, QColor(Qt::magenta)).value<QColor>();
-  m_zLine = settins.value(Z_LINE_COLOR, QColor(Qt::cyan))   .value<QColor>();
+  m_xLine = settings.value(X_LINE_COLOR, QColor(Qt::blue))   .value<QColor>();
+  m_yLine = settings.value(Y_LINE_COLOR, QColor(Qt::magenta)).value<QColor>();
+  m_zLine = settings.value(Z_LINE_COLOR, QColor(Qt::cyan))   .value<QColor>();
 
-  settins.endGroup();
+  settings.endGroup();
 
   //   qDebug() << "New Default EspinaView";
   m_viewXY = new View2D(Plane::XY);
@@ -100,8 +100,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
 
-  QSettings settings(CESVIMA, ESPINA);
-
   QStringList storedRenderers;
   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
   {
@@ -109,14 +107,14 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   }
   else
   {
-    storedRenderers << m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW2D);
-    storedRenderers << m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW3D);
+    storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW2D);
+    storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
 
     settings.setValue(RENDERERS, storedRenderers);
   }
 
-  QStringList available2DRenderers = m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW2D);
-  QStringList available3DRenderers = m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW3D);
+  QStringList available2DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW2D);
+  QStringList available3DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
   RendererSList renderers2D, renderers3D;
 
   for(auto name : storedRenderers)
@@ -153,8 +151,8 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
-//   qDebug() << "Destroy Default EspINA View";
-  QSettings settings(CESVIMA, ESPINA);
+//   qDebug() << "Destroy Default ESPINA View";
+  ESPINA_SETTINGS(settings);
   QStringList activeRenderersNames;
 
   for(auto renderer : m_view3D->renderers())
@@ -205,7 +203,7 @@ RendererSPtr DefaultView::renderer(const QString& name) const
 //-----------------------------------------------------------------------------
 void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   switch (plane)
   {
@@ -236,6 +234,17 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
 //-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
+  m_renderersMenu = new RenderersMenu(m_viewManager, this);
+  for(auto renderer: m_view3D->renderers())
+    m_renderersMenu->addRenderer(renderer);
+  for(auto renderer: m_viewXY->renderers())
+    m_renderersMenu->addRenderer(renderer);
+  menu->addMenu(m_renderersMenu);
+
+  m_camerasMenu = new CamerasMenu(m_viewManager, this);
+  menu->addMenu(m_camerasMenu);
+
+
   QMenu *renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(dockYZ->toggleViewAction());
   renderMenu->addAction(dockXZ->toggleViewAction());
@@ -243,15 +252,8 @@ void DefaultView::createViewMenu(QMenu* menu)
   //renderMenu->addSeparator();
   menu->addMenu(renderMenu);
 
-  m_renderersMenu = new RenderersMenu(m_viewManager, this);
-  for(auto renderer: m_view3D->renderers())
-    m_renderersMenu->addRenderer(renderer);
-  for(auto renderer: m_viewXY->renderers())
-    m_renderersMenu->addRenderer(renderer);
 
-  menu->addMenu(m_renderersMenu);
-
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
 
   bool sr = settings.value("ShowRuler",     true).toBool();
@@ -282,9 +284,6 @@ void DefaultView::createViewMenu(QMenu* menu)
   menu->addAction(fitToSlices);
   connect(fitToSlices, SIGNAL(toggled(bool)),
           this, SLOT(setFitToSlices(bool)));
-
-  m_camerasMenu = new CamerasMenu(m_viewManager, this);
-  menu->addMenu(m_camerasMenu);
 
   setRulerVisibility(sr);
   showThumbnail(st);
@@ -457,7 +456,7 @@ void DefaultView::showCrosshair(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultView::setRulerVisibility(bool visible)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   settings.setValue("ShowRuler", visible);
   settings.endGroup();
@@ -479,7 +478,7 @@ void DefaultView::showSegmentations(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultView::showThumbnail(bool visible)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   settings.setValue("ShowThumbnail", visible);
   settings.endGroup();

@@ -29,10 +29,10 @@
 
 #include <Core/Analysis/Category.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
-bool EspINA::TestName(const CategorySPtr category, const QString& name)
+bool ESPINA::TestName(const CategorySPtr category, const QString& name)
 {
    bool error = false;
    
@@ -45,7 +45,7 @@ bool EspINA::TestName(const CategorySPtr category, const QString& name)
    return error;
  }
  
-bool EspINA::TestClassificationName(const CategorySPtr category, const QString& name)
+bool ESPINA::TestClassificationName(const CategorySPtr category, const QString& name)
 {
    bool error = false;
    

@@ -30,7 +30,7 @@
 
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 
 bool Test_Create_Region_From_Bounds(const Bounds& bounds, itkVolumeType::Pointer image, bool passIfEquivalent = true) {

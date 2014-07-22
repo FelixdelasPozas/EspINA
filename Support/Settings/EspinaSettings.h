@@ -26,11 +26,12 @@
 #include <QSettings>
 
 const QString CESVIMA = "CeSViMa";
-const QString ESPINA  = "EspINA2";
+
+#define ESPINA_SETTINGS(settings) QSettings settings("CeSViMa", "ESPINA");
 
 const QString USER_NAME("UserName");
 
-namespace EspINA
+namespace ESPINA
 {
   // TODO 2012-12-05 Remove this function and pass the general settings to
   // all the tools that require it

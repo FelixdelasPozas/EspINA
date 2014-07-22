@@ -35,7 +35,7 @@
 #include <QCoreApplication>
 #include <QThread>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 Task::Task(SchedulerSPtr scheduler)

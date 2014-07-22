@@ -21,7 +21,7 @@
 
 // Espina
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SegmentationTools::SegmentationTools(ModelAdapterSPtr model,

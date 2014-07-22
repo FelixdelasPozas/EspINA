@@ -21,7 +21,7 @@
 
 #include "AddClassificationCommand.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 AddClassificationCommand::AddClassificationCommand(ClassificationAdapterSPtr classification,

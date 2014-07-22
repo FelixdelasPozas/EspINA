@@ -31,7 +31,7 @@
 
 #include "Core/Analysis/Persistent.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   class Analysis;
   using AnalysisPtr = Analysis *;

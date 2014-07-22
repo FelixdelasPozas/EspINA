@@ -44,8 +44,8 @@ const QString ERODE_RADIUS ("MorphologicalEditionTools::ErodeRadius");
 const QString OPEN_RADIUS  ("MorphologicalEditionTools::OpenRadius");
 const QString CLOSE_RADIUS ("MorphologicalEditionTools::CloseRadius");
 
-using namespace EspINA;
-using namespace EspINA::GUI;
+using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 const Filter::Type CLOSE_FILTER          = "CloseSegmentation";
 const Filter::Type CLOSE_FILTER_V4       = "EditorToolBar::ClosingFilter";
@@ -177,7 +177,7 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
           this,   SLOT(fillHoles()));
 
 
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   m_erode .setRadius(settings.value(ERODE_RADIUS,  3).toInt());
   m_dilate.setRadius(settings.value(DILATE_RADIUS, 3).toInt());
   m_open  .setRadius(settings.value(OPEN_RADIUS,   3).toInt());

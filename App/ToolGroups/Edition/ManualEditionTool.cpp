@@ -32,7 +32,7 @@
 const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
 const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
@@ -120,7 +120,7 @@ namespace EspINA
     connect(m_drawToolSelector, SIGNAL(actionCanceled()),
             this,               SLOT(   unsetSelector()));
 
-    QSettings settings(CESVIMA, ESPINA);
+    ESPINA_SETTINGS(settings);
     int radius  = settings.value(BRUSH_RADIUS,  20).toInt();
     int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
 
@@ -155,7 +155,7 @@ namespace EspINA
   //------------------------------------------------------------------------
   ManualEditionTool::~ManualEditionTool()
   {
-    QSettings settings(CESVIMA, ESPINA);
+    ESPINA_SETTINGS(settings);
     settings.setValue(BRUSH_RADIUS, m_radiusWidget->value());
     settings.setValue(BRUSH_OPACITY, m_opacityWidget->value());
     settings.sync();
@@ -465,4 +465,4 @@ namespace EspINA
     drawingModeChanged(!value);
   }
 
-} // namespace EspINA
+} // namespace ESPINA

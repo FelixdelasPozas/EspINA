@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "ContourRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include "ContourRepresentationSettings.h"
@@ -41,7 +41,7 @@
 #include <vtkImageCanvasSource2D.h>
 #include <vtkTexture.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type ContourRepresentation::TYPE = "Contour";
 

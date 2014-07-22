@@ -31,7 +31,7 @@
 #include <Core/Analysis/Persistent.h>
 #include "DummyItem.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 

@@ -23,7 +23,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ActionGroupWidget::ActionGroupWidget(QObject* parent)

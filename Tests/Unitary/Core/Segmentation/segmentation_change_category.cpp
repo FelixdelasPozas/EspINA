@@ -29,8 +29,8 @@
 #include <QString>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int segmentation_change_category(int argc, char** argv)
 {

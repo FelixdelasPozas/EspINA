@@ -23,12 +23,12 @@
 #define ESPINA_METADATA_STORAGE_FACTORY_H
 #include <Storage.h>
 
-namespace EspINA {
+namespace ESPINA {
   class StorageFactory
   {
   public:
     static Metadona::StorageSPtr newStorage();
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_METADATA_STORAGE_FACTORY_H

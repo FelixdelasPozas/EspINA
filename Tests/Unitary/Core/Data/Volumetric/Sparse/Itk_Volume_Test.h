@@ -24,7 +24,7 @@
 
 #include <ItkVolume.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class Itk_Volume_Test
@@ -37,6 +37,6 @@ namespace EspINA
     static bool SameMemoryAllocated(const ItkVolume& volume, const ImageType::Pointer image);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ITK_VOLUME_TEST_H

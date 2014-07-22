@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   const Representation::Type VolumetricRepresentation<T>::TYPE = "Volumetric";

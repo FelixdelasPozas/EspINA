@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SliceCachedRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
@@ -33,7 +33,7 @@
 #include <vtkImageMapper3D.h>
 #include <vtkProperty.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CachedRepresentation::CachedRepresentation(DefaultVolumetricDataSPtr data,
@@ -350,4 +350,4 @@ namespace EspINA
     }
   }
 
-} // namespace EspINA
+} // namespace ESPINA

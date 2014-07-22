@@ -40,7 +40,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Testing;
 
 int channel_proxy_remove_non_existing_segmentation( int argc, char** argv )

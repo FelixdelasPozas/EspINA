@@ -33,7 +33,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class EditionTools
   : public ToolGroup
@@ -81,6 +81,6 @@ namespace EspINA
       bool                         m_enabled;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_EDITION_TOOLS_H_

@@ -21,7 +21,7 @@
 
 #include "output_testing_support.h"
 
-namespace EspINA {
+namespace ESPINA {
   namespace Testing {
     DataProxySPtr DummyData::createProxy() const
     {

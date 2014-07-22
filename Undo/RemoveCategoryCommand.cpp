@@ -21,7 +21,7 @@
 
 #include "RemoveCategoryCommand.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 RemoveCategoryCommand::RemoveCategoryCommand(CategoryAdapterPtr category,

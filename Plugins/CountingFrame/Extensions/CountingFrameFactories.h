@@ -26,7 +26,7 @@
 #include <Core/Factory/SegmentationExtensionFactory.h>
 #include <CountingFrameManager.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace CF {
 
     class ChannelExtensionFactoryCF
@@ -60,6 +60,6 @@ namespace EspINA {
     };
 
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CF_COUNTING_FRAME_FACTORIES_H

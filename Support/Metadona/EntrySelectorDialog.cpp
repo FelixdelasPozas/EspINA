@@ -23,7 +23,7 @@
 
 #include "ui_EntrySelectorDialog.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //------------------------------------------------------------------------

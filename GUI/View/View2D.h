@@ -21,7 +21,7 @@
 #ifndef ESPINA_VIEW_2D_H
 #define ESPINA_VIEW_2D_H
 
-// EspINA
+// ESPINA
 #include "GUI/View/RenderView.h"
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -44,7 +44,7 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QPushButton;
 
-namespace EspINA
+namespace ESPINA
 {
   class Representation;
   class EspinaWidget;
@@ -292,6 +292,6 @@ namespace EspINA
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectors)
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_H

@@ -23,7 +23,7 @@
 
 #include <vtkObjectFactory.h>
 
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 vtkStandardNewMacro(vtkNaiveFunction);

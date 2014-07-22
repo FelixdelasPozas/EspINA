@@ -8,7 +8,7 @@
 #ifndef ESPINA_ZOOM_AREA_H
 #define ESPINA_ZOOM_AREA_H
 
-// EspINA
+// ESPINA
 #include <GUI/View/EventHandler.h>
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
@@ -16,7 +16,7 @@
 
 class QCursor;
 
-namespace EspINA
+namespace ESPINA
 {
   class ZoomSelectionWidget;
 
@@ -71,6 +71,6 @@ namespace EspINA
 
   using ZoomAreaSPtr = std::shared_ptr<ZoomArea>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* ZOOMTOOL_H_ */

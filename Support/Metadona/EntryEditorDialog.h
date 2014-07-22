@@ -29,7 +29,7 @@
 #include <Coordinator.h>
 #include <functional>
 
-namespace EspINA
+namespace ESPINA
 {
   class EntryEditorDialog
   : public QDialog

@@ -22,13 +22,13 @@
 #ifndef ESPINA_RESET_ZOOM_TOOL_H
 #define ESPINA_RESET_ZOOM_TOOL_H
 
-// EspINA
+// ESPINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class ResetZoom
@@ -76,6 +76,6 @@ namespace EspINA
 
   using ResetZoomSPtr = std::shared_ptr<ResetZoom>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_TOOL_H

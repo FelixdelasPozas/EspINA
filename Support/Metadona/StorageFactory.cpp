@@ -23,7 +23,7 @@
 
 #include <IRODS_Storage.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 Metadona::StorageSPtr StorageFactory::newStorage()
 {

@@ -21,7 +21,7 @@
 #include <Core/Utils/BinaryMask.h>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using BMask = BinaryMask<unsigned char>;
 

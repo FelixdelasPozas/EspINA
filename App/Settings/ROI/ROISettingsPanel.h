@@ -28,7 +28,7 @@
 #include <Support/ViewManager.h>
 #include "ui_OrthogonalROISettings.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class ROISettings;
@@ -71,6 +71,6 @@ namespace EspINA
     ViewManagerSPtr     m_viewManager;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ROI_SETTINGS_PANEL_H_

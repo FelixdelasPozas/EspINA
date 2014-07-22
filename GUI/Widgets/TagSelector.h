@@ -34,7 +34,7 @@
 #include <QDialog>
 #include <QStandardItemModel>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT TagSelector
   : public QDialog
@@ -57,6 +57,6 @@ namespace EspINA
     GUI *m_gui;
     QStandardItemModel &m_tags;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // TAGSELECTOR_H

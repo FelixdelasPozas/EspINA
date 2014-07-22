@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CachedSliceRenderer.h"
 #include "CachedSliceRendererTask.h"
 #include <GUI/View/RenderView.h>
@@ -48,7 +48,7 @@ QString planeName(int plane)
   return QString();
 }
 
-namespace EspINA
+namespace ESPINA
 {
   const int CachedSliceRenderer::WINDOW_INCREMENT = 5;
 
@@ -1059,4 +1059,4 @@ namespace EspINA
 //    printBufferInfo();
   }
 
-} // namespace EspINA
+} // namespace ESPINA

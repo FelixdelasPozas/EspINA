@@ -20,7 +20,7 @@
 #ifndef RENDERERSMENU_H_
 #define RENDERERSMENU_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Representations/Renderers/Renderer.h>
 #include <Support/ViewManager.h>
 
@@ -31,7 +31,7 @@ class QWidget;
 class QString;
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
   
   class RenderersMenu: public QMenu
@@ -56,6 +56,6 @@ namespace EspINA
       QMenu          *m_menu3D;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif /* RENDERERSMENU_H_ */

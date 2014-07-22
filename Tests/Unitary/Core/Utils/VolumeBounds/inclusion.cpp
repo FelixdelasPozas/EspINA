@@ -29,7 +29,7 @@
 #include "VolumeBounds.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int inclusion( int argc, char** argv )
 {

@@ -23,7 +23,7 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Input.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ViewItem::ViewItem(InputSPtr input)

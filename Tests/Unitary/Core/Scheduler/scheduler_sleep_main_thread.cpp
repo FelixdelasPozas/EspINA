@@ -33,7 +33,7 @@
 #include <iostream>
 #include <unistd.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int scheduler_sleep_main_thread( int argc, char** argv )

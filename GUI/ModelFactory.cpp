@@ -27,7 +27,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Factory/CoreFactory.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ModelFactory::ModelFactory(CoreFactorySPtr factory,

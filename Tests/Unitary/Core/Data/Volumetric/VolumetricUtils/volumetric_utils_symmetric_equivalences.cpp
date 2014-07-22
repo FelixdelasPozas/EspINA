@@ -30,7 +30,7 @@
 
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int volumetric_utils_symmetric_equivalences( int argc, char** argv )
 {

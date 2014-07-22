@@ -26,7 +26,7 @@
 #include <ui_LevelSelectorDialog.h>
 #include <Coordinator.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class LevelSelectorDialog
   : public QDialog

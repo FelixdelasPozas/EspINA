@@ -28,8 +28,8 @@
 #include "output_testing_support.h"
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int output_replace_data( int argc, char** argv )
 {

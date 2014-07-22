@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "vtkZoomSelectionWidget.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
@@ -25,7 +25,7 @@
 class QEvent;
 class vtkAbstractWidget;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
   class vtkZoomCommand;
@@ -126,6 +126,6 @@ namespace EspINA
       ZoomSelectionWidget *m_widget;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_ZOOM_SELECTION_WIDGET_H_

@@ -27,14 +27,14 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaUndo_EXPORT AddChannel
   : public QUndoCommand
@@ -55,6 +55,6 @@ namespace EspINA
     ChannelSPtr     m_channel;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ADDCHANNEL_H

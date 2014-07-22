@@ -20,7 +20,7 @@
 
 #include "EventHandler.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 EventHandler::EventHandler()

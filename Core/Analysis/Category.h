@@ -35,7 +35,7 @@
 #include <QTextStream>
 #include <QVariant>
 
-namespace EspINA
+namespace ESPINA
 {
   const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
 
@@ -165,6 +165,6 @@ namespace EspINA
 
   using Classification     = Tree<Category>;
   using ClassificationSPtr = std::shared_ptr<Classification>;
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CATEGORY_H

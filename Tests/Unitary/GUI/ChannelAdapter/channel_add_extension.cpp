@@ -29,7 +29,7 @@
 #include "Core/Analysis/Channel.h"
 #include <Core/Analysis/Output.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int channel_add_extension(int argc, char** argv )

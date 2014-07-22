@@ -18,13 +18,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SphericalBrushROISelector.h"
 
 // VTK
 #include <vtkSphere.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   SphericalBrushROISelector::SphericalBrushROISelector()
@@ -51,4 +51,4 @@ namespace EspINA
 
     return BrushShape(brush, brushBounds);
   }
-} // namespace EspINA
+} // namespace ESPINA

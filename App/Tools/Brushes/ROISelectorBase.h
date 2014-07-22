@@ -23,7 +23,7 @@
 
 #include <GUI/Selectors/BrushSelector.h>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class ROISelectorBase
@@ -71,6 +71,6 @@ namespace EspINA
       bool m_hasROI;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ROI_SELECTOR_BASE_H_

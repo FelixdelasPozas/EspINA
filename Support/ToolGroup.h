@@ -33,7 +33,7 @@
 
 #include <QAction>
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -58,6 +58,6 @@ namespace EspINA
   };
 
   using ToolGroupPtr = ToolGroup *;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_TOOL_GROUP_H

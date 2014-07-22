@@ -21,11 +21,11 @@
 #ifndef ESPINA_IMAGE_LOGIC_FILTER_H
 #define ESPINA_IMAGE_LOGIC_FILTER_H
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaFilters_EXPORT ImageLogicFilter
   : public Filter
@@ -119,6 +119,6 @@ namespace EspINA
   using ImageLogicFilterPtr  = ImageLogicFilter *;
   using ImageLogicFilterSPtr = std::shared_ptr<ImageLogicFilter>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_IMAGE_LOGIC_FILTER_H

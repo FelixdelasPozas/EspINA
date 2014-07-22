@@ -24,7 +24,7 @@
 #include <Core/Utils/VolumeBounds.h>
 #include <itkImageRegionConstIterator.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   //-----------------------------------------------------------------------------
   template<typename T>
@@ -462,4 +462,4 @@ namespace EspINA {
     return image;
   }
 
-} // namespace EspINA
+} // namespace ESPINA

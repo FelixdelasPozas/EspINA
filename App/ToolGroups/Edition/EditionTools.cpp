@@ -27,12 +27,12 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 
-using EspINA::Filter;
+using ESPINA::Filter;
 
 const Filter::Type FREEFORM_FILTER    = "FreeFormSource";
 const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   FilterTypeList EditionTools::ManualFilterFactory::providedFilters() const
@@ -209,4 +209,4 @@ namespace EspINA
     m_viewManager->updateViews();
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

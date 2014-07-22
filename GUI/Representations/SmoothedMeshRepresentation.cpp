@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SmoothedMeshRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include "GUI/View/RenderView.h"
@@ -34,7 +34,7 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type SmoothedMeshRepresentation::TYPE = "Smoothed Mesh";
 

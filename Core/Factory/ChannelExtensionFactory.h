@@ -26,7 +26,7 @@
 
 #include <Core/Analysis/Extension.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT ChannelExtensionFactory
   {
@@ -47,6 +47,6 @@ namespace EspINA
   using ChannelExtensionFactorySPtr  = std::shared_ptr<ChannelExtensionFactory>;
   using ChannelExtensionFactorySList = QList<ChannelExtensionFactorySPtr>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CHANNEL_EXTENSION_FACTORY_H

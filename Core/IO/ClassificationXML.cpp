@@ -19,15 +19,15 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "ClassificationXML.h"
 
 // Qt
 #include <QStack>
 #include <QXmlStreamReader>
 
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 ClassificationSPtr parse(QXmlStreamReader& stream)
 {

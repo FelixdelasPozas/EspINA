@@ -21,7 +21,7 @@
 
 #include "MultiColorEngine.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 QColor MultiColorEngine::color(SegmentationAdapterPtr seg)

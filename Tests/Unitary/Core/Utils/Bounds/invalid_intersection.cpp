@@ -28,7 +28,7 @@
 
 #include "Bounds.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int invalid_intersection( int argc, char** argv )

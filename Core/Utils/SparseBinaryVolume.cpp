@@ -25,7 +25,7 @@
 #include <itkImageRegionIterator.h>
 #include <itkImage.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   SparseBinaryVolume::SparseBinaryVolume(const Bounds& bounds, const NmVector3 spacing) throw(Invalid_Image_Bounds_Exception)
@@ -566,4 +566,4 @@ namespace EspINA
     volume->draw(index, value);
   }
 
-} // namespace EspINA
+} // namespace ESPINA

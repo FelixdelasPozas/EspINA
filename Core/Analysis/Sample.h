@@ -29,7 +29,7 @@
 #include <Core/Utils/NmVector3.h>
 #include "Core/Analysis/NeuroItem.h"
 
-namespace EspINA
+namespace ESPINA
 {
   using SampleSList = QList<SampleSPtr>;
 
@@ -70,6 +70,6 @@ namespace EspINA
   private:
     Bounds  m_bounds;
   };
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_SAMPLE_H

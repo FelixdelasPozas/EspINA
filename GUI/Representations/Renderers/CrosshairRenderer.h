@@ -22,7 +22,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "RepresentationRenderer.h"
 #include <GUI/Representations/CrosshairRepresentation.h>
 #include <Core/EspinaTypes.h>
@@ -38,7 +38,7 @@ class vtkLookupTable;
 class vtkImageShiftScale;
 class vtkPropPicker;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -62,7 +62,7 @@ namespace EspINA
 
     virtual unsigned int numberOfvtkActors() const;
 
-    virtual RenderableItems renderableItems() const { return RenderableItems(EspINA::CHANNEL); };
+    virtual RenderableItems renderableItems() const { return RenderableItems(ESPINA::CHANNEL); };
 
     virtual RendererTypes renderType() const { return RendererTypes(RENDERER_VIEW3D); }
 
@@ -92,6 +92,6 @@ namespace EspINA
     vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CROSSHAIR_RENDERER_H

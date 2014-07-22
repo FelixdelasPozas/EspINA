@@ -21,7 +21,7 @@
 #ifndef ESPINA_CACHED_SLICE_RENDERER_H_
 #define ESPINA_CACHED_SLICE_RENDERER_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Representations/SliceCachedRepresentation.h>
@@ -33,7 +33,7 @@
 
 class vtkPropPicker;
 
-namespace EspINA
+namespace ESPINA
 {
   class CachedSliceRendererTask;
   using CachedSliceRendererTaskPtr  = CachedSliceRendererTask *;
@@ -228,6 +228,6 @@ namespace EspINA
       friend class CachedSliceRendererTask;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CACHED_SLICE_RENDERER_H_

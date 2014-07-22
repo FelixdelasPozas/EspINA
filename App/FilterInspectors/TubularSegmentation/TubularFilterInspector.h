@@ -23,7 +23,7 @@
 
 #include "ui_TubularFilterInspector.h"
 
-// EspINA
+// ESPINA
 #include <Core/Filters/TubularSegmentationFilter.h>
 #include <GUI/Pickers/PixelSelector.h>
 #include <GUI/Tools/ITool.h>
@@ -34,7 +34,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class TubularTool;

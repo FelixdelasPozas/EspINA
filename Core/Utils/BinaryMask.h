@@ -34,7 +34,7 @@
 
 #include <QByteArray>
 
-namespace EspINA
+namespace ESPINA
 {
   template<typename T > class BinaryMask
   {
@@ -947,7 +947,7 @@ namespace EspINA
   template<class T> using BinaryMaskPtr  = BinaryMask<T> *;
   template<class T> using BinaryMaskSPtr = std::shared_ptr<BinaryMask<T>>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 
 #endif // ESPINA_BINARY_MASK_H

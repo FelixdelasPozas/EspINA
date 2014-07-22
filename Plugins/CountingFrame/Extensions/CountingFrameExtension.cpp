@@ -33,8 +33,8 @@
 #include <QDebug>
 #include <QApplication>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 ChannelExtension::Type CountingFrameExtension::TYPE = "CountingFrame";
 
@@ -348,7 +348,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
 //   return true;
 // }
 //-----------------------------------------------------------------------------
-CountingFrameExtensionSPtr EspINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
+CountingFrameExtensionSPtr ESPINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
 {
   return std::dynamic_pointer_cast<CountingFrameExtension>(extension);
 }

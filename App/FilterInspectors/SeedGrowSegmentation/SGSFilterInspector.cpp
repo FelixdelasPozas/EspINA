@@ -20,7 +20,7 @@
 #include "SGSFilterInspector.h"
 #include <Undo/VolumeSnapshotCommand.h>
 
-// EspINA
+// ESPINA
 #include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/RectangularRegion.h>
@@ -32,7 +32,7 @@
 #include <QCheckBox>
 #include <QUndoCommand>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class SGSFilterModification
 : public QUndoCommand

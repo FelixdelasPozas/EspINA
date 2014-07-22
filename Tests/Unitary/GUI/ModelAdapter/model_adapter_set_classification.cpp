@@ -32,7 +32,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int model_adapter_set_classification( int argc, char** argv )

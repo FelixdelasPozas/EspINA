@@ -34,7 +34,7 @@
 #include <ui_TaskProgress.h>
 #include <memory>
 
-namespace EspINA {
+namespace ESPINA {
 
   class Task;
 

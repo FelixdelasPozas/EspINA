@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "RenderView.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
@@ -45,7 +45,7 @@
 #include <QPushButton>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RenderView::RenderView(QWidget* parent)

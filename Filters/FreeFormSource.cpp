@@ -20,7 +20,7 @@
 
 #include "FreeFormSource.h"
 
-// EspINA
+// ESPINA
 #include <GUI/ModelFactory.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
@@ -33,7 +33,7 @@
 // Qt
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(InputSList   inputs,

@@ -32,8 +32,8 @@
 #include <vtkSmartPointer.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 
 typedef unsigned char VoxelType;

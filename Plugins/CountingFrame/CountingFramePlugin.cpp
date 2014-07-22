@@ -6,8 +6,8 @@
 #include "ColorEngines/CountingFrameColorEngine.h"
 #include "Extensions/CountingFrameFactories.h"
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 CountingFramePlugin::CountingFramePlugin()
@@ -129,4 +129,4 @@ AnalysisReaderSList CountingFramePlugin::analysisReaders() const
   return AnalysisReaderSList();
 }
 
-Q_EXPORT_PLUGIN2(CountingFramePlugin, EspINA::CF::CountingFramePlugin)
+Q_EXPORT_PLUGIN2(CountingFramePlugin, ESPINA::CF::CountingFramePlugin)

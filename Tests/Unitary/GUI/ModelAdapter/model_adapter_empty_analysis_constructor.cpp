@@ -31,7 +31,7 @@
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int model_adapter_empty_analysis_constructor(int argc, char** argv )

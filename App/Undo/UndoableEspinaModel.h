@@ -33,7 +33,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class UndoableEspinaModel
@@ -185,6 +185,6 @@ namespace EspINA
     QUndoStack  *m_undoStack;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // UNDOABLEESPINAMODEL_H

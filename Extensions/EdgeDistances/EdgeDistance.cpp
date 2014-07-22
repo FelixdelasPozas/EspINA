@@ -29,7 +29,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const SegmentationExtension::Type EdgeDistance::TYPE = "EdgeDistance";
 
@@ -145,7 +145,7 @@ void EdgeDistance::updateDistances() const
 }
 
 //-----------------------------------------------------------------------------
-EdgeDistancePtr EspINA::edgeDistance(SegmentationExtensionPtr extension)
+EdgeDistancePtr ESPINA::edgeDistance(SegmentationExtensionPtr extension)
 {
   return dynamic_cast<EdgeDistancePtr>(extension);
 }

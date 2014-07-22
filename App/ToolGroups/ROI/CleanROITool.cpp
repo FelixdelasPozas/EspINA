@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "CleanROITool.h"
 #include "ROITools.h"
 #include <Undo/ROIUndoCommand.h>
@@ -27,7 +27,7 @@
 #include <QDebug>
 #include <QAction>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 CleanROITool::CleanROITool(ModelAdapterSPtr  model,

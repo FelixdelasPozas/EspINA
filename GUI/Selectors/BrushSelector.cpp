@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "BrushSelector.h"
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/Spatial.h>
@@ -52,7 +52,7 @@
 #include <vtkInformation.h>
 #include <vtkPoints.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 BrushSelector::BrushSelector()

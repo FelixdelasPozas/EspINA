@@ -39,7 +39,7 @@
 #include <QXmlStreamWriter>
 
 class QDir;
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaCore_EXPORT Output
@@ -137,6 +137,6 @@ namespace EspINA
   };
 
   using OutputIdList = QList<Output::Id>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_OUTPUT_H

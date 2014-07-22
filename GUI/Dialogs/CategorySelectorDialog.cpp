@@ -21,7 +21,7 @@
 
 #include "CategorySelectorDialog.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 CategorySelectorDialog::CategorySelectorDialog(ModelAdapterSPtr model,

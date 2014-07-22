@@ -35,10 +35,10 @@
 #include "Core/IO/ReadOnlyFilter.h"
 #include "Core/Utils/TemporalStorage.h"
 
-using namespace EspINA;
-using namespace EspINA::IO;
-using namespace EspINA::IO::SegFile;
-using namespace EspINA::IO::Graph;
+using namespace ESPINA;
+using namespace ESPINA::IO;
+using namespace ESPINA::IO::SegFile;
+using namespace ESPINA::IO::Graph;
 
 const QString SegFile::SegFile_V4::FORMAT_INFO_FILE = "settings.ini";
 

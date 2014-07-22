@@ -27,7 +27,7 @@
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <Extensions/StereologicalInclusion.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -52,6 +52,6 @@ namespace EspINA
     };
 
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_COUNTING_FRAME_COLOR_ENGINE_H

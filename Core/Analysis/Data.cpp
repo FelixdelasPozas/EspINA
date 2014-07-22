@@ -28,7 +28,7 @@
 
 #include "Data.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 TimeStamp Data::s_tick = 0;

@@ -28,7 +28,7 @@
 #include <QSpinBox>
 #include <Core/Utils/Spatial.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class CustomROIWidget
@@ -65,6 +65,6 @@ namespace EspINA
     QSpinBox    *m_spinBoxROI[3];
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CUSTOM_ROI_ACTION_H

@@ -33,7 +33,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class NoteEditor::GUI
 : public  Ui::NoteEditor

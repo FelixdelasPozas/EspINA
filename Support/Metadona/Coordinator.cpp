@@ -24,7 +24,7 @@
 #include "LevelSelectorDialog.h"
 #include "EntryEditorDialog.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 Metadona::Id Coordinator::selectEntry(const Metadona::Level& level, std::vector< Metadona::Id > entries) const

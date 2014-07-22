@@ -32,7 +32,7 @@
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int model_adapter_add_samples( int argc, char** argv )

@@ -35,7 +35,7 @@
 #include <QEvent>
 #include <QMouseEvent>
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   class EspinaGUI_EXPORT EspinaInteractorAdapter
@@ -147,6 +147,6 @@ namespace EspINA
 
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINAINTERACTORADAPTER_H

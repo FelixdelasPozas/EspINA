@@ -25,7 +25,7 @@ class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
-namespace EspINA
+namespace ESPINA
 {
 
 class EspinaGUI_EXPORT vtkRectangularSliceRepresentation
@@ -184,6 +184,6 @@ private:
   int m_pattern;
 };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif

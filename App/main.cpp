@@ -27,7 +27,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Analysis/Analysis.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 int main(int argc, char **argv)
 {

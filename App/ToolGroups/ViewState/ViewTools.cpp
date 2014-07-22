@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ViewTools.h"
 
 // #include <Tools/Zoom/ViewTool.h>
@@ -29,7 +29,7 @@
 #include <QObject>
 #include <QEvent>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)

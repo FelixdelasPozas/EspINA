@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
@@ -34,7 +34,7 @@ class vtkImplicitPlaneWidget2;
 class vtkAlgorithmOutput;
 class vtkImageStencilData;
 
-namespace EspINA
+namespace ESPINA
 {
   class PlanarSplitSliceWidget;
   class vtkSplitCommand;
@@ -112,7 +112,7 @@ namespace EspINA
        */
       virtual bool planeIsValid() const;
 
-      /* \brief Returns the EspINA::Plane equivalent to the SplitWidgetType type specified as parameter.
+      /* \brief Returns the ESPINA::Plane equivalent to the SplitWidgetType type specified as parameter.
        * \param[in] type, SplitWidgetType value.
        */
       static Plane toPlane(const SplitWidgetType type)
@@ -132,8 +132,8 @@ namespace EspINA
         return Plane::UNDEFINED;
       }
 
-      /* \brief Returns the SplitWidgetType equivalent to the EspINA::Plane type specified as parameter.
-       * \param[in] plane, EspINA::Plane value.
+      /* \brief Returns the SplitWidgetType equivalent to the ESPINA::Plane type specified as parameter.
+       * \param[in] plane, ESPINA::Plane value.
        */
       static SplitWidgetType toSplitType(const Plane plane)
       {
@@ -214,6 +214,6 @@ namespace EspINA
   };
 
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif /* PLANARSPLITWIDGET_H_ */

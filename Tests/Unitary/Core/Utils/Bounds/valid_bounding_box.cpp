@@ -28,7 +28,7 @@
 
 #include "Bounds.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int valid_bounding_box( int argc, char** argv )

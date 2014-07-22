@@ -28,7 +28,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 // the +0.1 is needed to draw the crosshair over the actors, right now the
 // segmentation's actors are been drawn View2D::SEGMENTATION_SHIFT over the

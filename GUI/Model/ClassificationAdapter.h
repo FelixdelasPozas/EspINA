@@ -36,7 +36,7 @@
 #include <QTextStream>
 #include <QVariant>
 
-namespace EspINA
+namespace ESPINA
 {
   class CategoryAdapter;
   using CategoryAdapterPtr   = CategoryAdapter *;
@@ -92,6 +92,6 @@ namespace EspINA
   using ClassificationAdapterSPtr = std::shared_ptr<ClassificationAdapter>;
 
   QString print(ClassificationAdapterSPtr classification, int indent = 0);
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CLASSIFICATION_ADAPTER_H

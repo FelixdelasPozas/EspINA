@@ -28,7 +28,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,

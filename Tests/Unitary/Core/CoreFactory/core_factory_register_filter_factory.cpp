@@ -30,8 +30,8 @@
 #include <Core/Factory/CoreFactory.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int core_factory_register_filter_factory(int argc, char** argv)
 {

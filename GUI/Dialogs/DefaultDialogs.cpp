@@ -22,8 +22,8 @@
 #include "DefaultDialogs.h"
 #include <QMessageBox>
 
-using namespace EspINA;
-using namespace EspINA::GUI;
+using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 QString DefaultDialogs::OpenFile(const QString& title, const QString& filters, const QString& path)

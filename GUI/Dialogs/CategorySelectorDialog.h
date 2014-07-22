@@ -27,7 +27,7 @@
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class CategorySelectorDialog
   : public QDialog

@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include <EspinaConfig.h>
 #include "ChannelInspector.h"
 #include <GUI/View/View2D.h>
@@ -48,7 +48,7 @@
 #include <itkChangeInformationImageFilter.h>
 #include <itkStatisticsImageFilter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 

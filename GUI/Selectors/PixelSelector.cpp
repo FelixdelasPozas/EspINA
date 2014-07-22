@@ -1,4 +1,4 @@
-// EspINA
+// ESPINA
 #include "PixelSelector.h"
 #include <GUI/View/View3D.h>
 #include <GUI/View/View2D.h>
@@ -22,7 +22,7 @@
 #include <itkImageRegionConstIterator.h>
 #include <itkExtractImageFilter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 bool PixelSelector::validSelection(Selector::Selection selectedItems)

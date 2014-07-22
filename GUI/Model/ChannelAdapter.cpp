@@ -22,7 +22,7 @@
 
 #include <Core/Analysis/Channel.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ChannelAdapter::ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel)
@@ -196,32 +196,32 @@ ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& typ
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator==(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
+bool ESPINA::operator==(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
 {
   return lhs->m_channel == rhs;
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
+bool ESPINA::operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 {
   return lhs == rhs->m_channel;
 }
 
 
 //------------------------------------------------------------------------
-bool EspINA::operator!=(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
+bool ESPINA::operator!=(ChannelAdapterSPtr lhs, ChannelSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
+bool ESPINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterPtr EspINA::channelPtr(ItemAdapterPtr item)
+ChannelAdapterPtr ESPINA::channelPtr(ItemAdapterPtr item)
 {
   return static_cast<ChannelAdapterPtr>(item);
 }

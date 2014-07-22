@@ -26,7 +26,7 @@
 #include "Core/Analysis/Filter.h"
 #include <itkCommand.h>
 
-namespace EspINA
+namespace ESPINA
 {
   template<typename T>
   class ITKProgressReporter
@@ -56,6 +56,6 @@ namespace EspINA
     int m_initialProgress;
     int m_delta;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MORPHOLOGICAL_EDITION_FILTER_H

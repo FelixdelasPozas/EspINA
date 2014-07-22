@@ -42,7 +42,7 @@ using SliceRepresentationYZ = vtkCountingFrameRepresentationYZ;
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
-: Plane(EspINA::Plane::XY)
+: Plane(ESPINA::Plane::XY)
 , Slice(0)
 {
   this->WidgetState = vtkCountingFrameSliceWidget::Start;
@@ -293,7 +293,7 @@ void vtkCountingFrameSliceWidget::centerMarginsOnVoxelCenter(vtkCountingFrameSli
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetPlane(EspINA::Plane plane)
+void vtkCountingFrameSliceWidget::SetPlane(ESPINA::Plane plane)
 {
   Plane = plane;
 
@@ -302,7 +302,7 @@ void vtkCountingFrameSliceWidget::SetPlane(EspINA::Plane plane)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameSliceWidget::SetSlice(ESPINA::Nm pos)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
@@ -314,27 +314,27 @@ void vtkCountingFrameSliceWidget::SetSlice(EspINA::Nm pos)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlicingStep(EspINA::NmVector3 slicingStep)
+void vtkCountingFrameSliceWidget::SetSlicingStep(ESPINA::NmVector3 slicingStep)
 {
   SlicingStep = slicingStep;
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                   EspINA::Nm inclusionOffset[3],
-                                                   EspINA::Nm exclusionOffset[3])
+                                                   ESPINA::Nm inclusionOffset[3],
+                                                   ESPINA::Nm exclusionOffset[3])
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
 
   centerMarginsOnVoxelCenter(this);
 
   // ensures consistency with the counting frame
-  memcpy(inclusionOffset, InclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(inclusionOffset, InclusionOffset, 3*sizeof(ESPINA::Nm));
+  memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
 
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
   rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, SlicingStep);
@@ -348,13 +348,13 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
   {
     switch (Plane)
     {
-      case EspINA::Plane::XY:
+      case ESPINA::Plane::XY:
         this->WidgetRep = SliceRepresentationXY::New();
         break;
-      case EspINA::Plane::XZ:
+      case ESPINA::Plane::XZ:
         this->WidgetRep = SliceRepresentationXZ::New();
         break;
-      case EspINA::Plane::YZ:
+      case ESPINA::Plane::YZ:
         this->WidgetRep = SliceRepresentationYZ::New();
         break;
       default:

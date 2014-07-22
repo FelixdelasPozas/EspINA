@@ -21,7 +21,7 @@
 
 #include "InformationProxy.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy(SchedulerSPtr scheduler)

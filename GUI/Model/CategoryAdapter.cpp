@@ -20,11 +20,11 @@
 
 #include "CategoryAdapter.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Category.h>
 #include <QPixmap>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategorySPtr category)
@@ -217,19 +217,19 @@ CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr EspINA::categoryPtr(const QModelIndex& index)
+CategoryAdapterPtr ESPINA::categoryPtr(const QModelIndex& index)
 {
   return static_cast<CategoryAdapterPtr>(index.internalPointer());
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr EspINA::categoryPtr(ItemAdapterPtr item)
+CategoryAdapterPtr ESPINA::categoryPtr(ItemAdapterPtr item)
 {
   return static_cast<CategoryAdapterPtr>(item);
 }
 
 //------------------------------------------------------------------------
-QString EspINA::print(CategoryAdapterSPtr category, int level)
+QString ESPINA::print(CategoryAdapterSPtr category, int level)
 {
   return print(category->m_category, level);
 }

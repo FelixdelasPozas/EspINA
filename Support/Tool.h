@@ -32,7 +32,7 @@
 class QEvent;
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -52,6 +52,6 @@ namespace EspINA
 
   using ToolSPtr  = std::shared_ptr<Tool>;
   using ToolSList = QList<ToolSPtr>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_TOOL_H

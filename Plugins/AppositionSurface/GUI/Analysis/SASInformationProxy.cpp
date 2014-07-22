@@ -21,14 +21,14 @@
 // Plugin
 #include "SASInformationProxy.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Extension.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
 
 // Qt
 #include <QString>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString SAS = QObject::tr("SAS");
 const QString SASTAG_PREPEND = QObject::tr("SAS ");

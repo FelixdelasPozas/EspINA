@@ -30,7 +30,7 @@
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT MorphologicalInformation
   : public SegmentationExtension
@@ -90,6 +90,6 @@ namespace EspINA
     double EquivalentEllipsoidSize[3];
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_MORPHOLOGICAL_INFORMATION_H

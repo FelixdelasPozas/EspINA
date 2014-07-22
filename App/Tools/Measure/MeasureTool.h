@@ -8,7 +8,7 @@
 #ifndef ESPINA_MEASURE_TOOL_H_
 #define ESPINA_MEASURE_TOOL_H_
 
-// EspINA
+// ESPINA
 #include <GUI/View/Widgets/Measures/MeasureWidget.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/Tool.h>
@@ -16,7 +16,7 @@
 
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class MeasureTool
@@ -59,6 +59,6 @@ namespace EspINA
   using MeasureToolPtr  = MeasureTool *;
   using MeasureToolSPtr = std::shared_ptr<MeasureTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* MEASURETOOL_H_ */

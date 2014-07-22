@@ -18,17 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "Renderer.h"
 
 //-----------------------------------------------------------------------------
-bool EspINA::canRender(RendererSPtr renderer, RendererType type)
+bool ESPINA::canRender(RendererSPtr renderer, RendererType type)
 {
   return renderer->renderType().testFlag(type);
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::canRender(RendererSPtr renderer, RendererTypes types)
+bool ESPINA::canRender(RendererSPtr renderer, RendererTypes types)
 {
   bool result = false;
   renderer->renderType();

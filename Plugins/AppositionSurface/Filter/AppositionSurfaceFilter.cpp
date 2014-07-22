@@ -8,7 +8,7 @@
 // Plugin
 #include "AppositionSurfaceFilter.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
@@ -41,7 +41,7 @@
 
 const double UNDEFINED = -1.;
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString SAS = "SAS";
 

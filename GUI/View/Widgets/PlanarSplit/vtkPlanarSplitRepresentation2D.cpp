@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "vtkPlanarSplitRepresentation2D.h"
 
 // Qt
@@ -24,7 +24,7 @@
 #include <vtkRenderer.h>
 #include <vtkProperty2D.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 vtkStandardNewMacro(vtkPlanarSplitRepresentation2D);
 

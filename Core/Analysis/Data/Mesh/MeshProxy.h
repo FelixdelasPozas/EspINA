@@ -32,7 +32,7 @@
 
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT MeshProxy
   : public MeshData
@@ -101,6 +101,6 @@ namespace EspINA
     using MeshProxyPtr = MeshProxy *;
     using MeshProxySPtr = std::shared_ptr<MeshProxy>;
 
-  } // namespace EspINA
+  } // namespace ESPINA
 
 #endif // ESPINA_MESH_PROXY_H

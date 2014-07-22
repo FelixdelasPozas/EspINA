@@ -21,7 +21,7 @@
 #ifndef ESPINA_CACHED_SLICE_RENDERER_TASK_H_
 #define ESPINA_CACHED_SLICE_RENDERER_TASK_H_
 
-// EspINA
+// ESPINA
 #include "CachedSliceRenderer.h"
 #include <Core/MultiTasking/Task.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -34,7 +34,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageActor.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class CachedSliceRendererTask
   : public Task
@@ -93,6 +93,6 @@ namespace EspINA
   using CachedSliceRendererTaskPtr  = CachedSliceRendererTask *;
   using CachedSliceRendererTaskSPtr = std::shared_ptr<CachedSliceRendererTask>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CACHED_SLICE_RENDERER_TASK_H_

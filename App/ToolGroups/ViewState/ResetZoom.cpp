@@ -19,13 +19,13 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "ResetZoom.h"
 
 // Qt
 #include <QAction>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   ResetZoom::ResetZoom(ViewManagerSPtr vm)

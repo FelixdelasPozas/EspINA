@@ -18,13 +18,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "RenderersSelector.h"
 
 // Qt
 #include <QStandardItemModel>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   RenderersSelector::RenderersSelector(RendererSList renderersList,
@@ -158,4 +158,4 @@ namespace EspINA
   }
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

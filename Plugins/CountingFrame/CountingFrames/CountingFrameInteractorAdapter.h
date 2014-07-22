@@ -17,7 +17,7 @@
 
 class QEvent;
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   class CountingFramePlugin_EXPORT CountingFrameInteractorAdapter
@@ -35,7 +35,7 @@ namespace EspINA
     }
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 
 #endif /* COUNTINGFRAMEINTERACTORADAPTER_H_ */

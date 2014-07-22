@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "Representation.h"
 #include <Core/Analysis/Data/MeshData.h>
 #include <GUI/View/View3D.h>
@@ -34,7 +34,7 @@
 class vtkPolyDataMapper;
 class vtkActor;
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
 
@@ -87,5 +87,5 @@ namespace EspINA
   using MeshRepresentationBaseSPtr  = std::shared_ptr<MeshRepresentationBase>;
   using MeshRepresentationBaseSList = QList<MeshRepresentationBaseSPtr>;
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_MESH_REPRESENTATION_BASE_H

@@ -22,8 +22,8 @@
 #include "SegFileReader.h"
 #include <Core/IO/SegFile.h>
 
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 //-----------------------------------------------------------------------------
 AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
@@ -33,7 +33,7 @@ AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
   Extensions extensions;
   extensions << "seg";
 
-  supportedExtensions["EspINA Analysis"] = extensions;
+  supportedExtensions["ESPINA Analysis"] = extensions;
 
   return supportedExtensions;
 }

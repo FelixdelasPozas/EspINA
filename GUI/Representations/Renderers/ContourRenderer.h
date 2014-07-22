@@ -23,10 +23,10 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "MeshRenderer.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT ContourRenderer
   : public MeshRenderer
@@ -52,5 +52,5 @@ namespace EspINA
                                        bool repeat = false);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_CONTOUR_RENDERER_H_

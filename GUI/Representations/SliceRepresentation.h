@@ -30,7 +30,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/Spatial.h>
 #include <GUI/Representations/Representation.h>
@@ -46,7 +46,7 @@ class vtkImageShiftScale;
 class vtkImageActor;
 class vtkLookupTable;
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
   class View2D;
@@ -191,6 +191,6 @@ namespace EspINA
   using SegmentationSliceRepresentationPtr  = SegmentationSliceRepresentation *;
   using SegmentationSliceRepresentationSPtr = std::shared_ptr<SegmentationSliceRepresentation>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SLICE_REPRESENTATION_H

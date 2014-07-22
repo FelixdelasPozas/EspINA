@@ -10,14 +10,14 @@
 
 #include "AppositionSurfacePlugin_Export.h"
 
-// EspINA
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
 #include "ui_AppositionSurfaceSettings.h"
 
 // Qt
 #include <QColor>
 
-namespace EspINA
+namespace ESPINA
 {
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceSettings
   : public SettingsPanel
@@ -45,6 +45,6 @@ namespace EspINA
     bool m_automaticComputation;
     bool m_modified;
   };
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif /* APPOSITIONSURFACESETTINGS_H_ */

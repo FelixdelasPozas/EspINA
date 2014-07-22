@@ -29,8 +29,8 @@
 #include <Core/IO/ClassificationXML.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 int io_classification_xml_io(int argc, char** argv)
 {

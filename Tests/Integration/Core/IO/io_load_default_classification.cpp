@@ -29,8 +29,8 @@
 #include <Core/IO/ClassificationXML.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 int io_load_default_classification(int argc, char** argv)
 {

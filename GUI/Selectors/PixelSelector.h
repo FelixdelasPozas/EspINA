@@ -26,7 +26,7 @@
 
 class QSize;
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   class EspinaGUI_EXPORT PixelSelector
@@ -72,6 +72,6 @@ namespace EspINA
     int    m_bestPixel;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_PIXEL_SELECTOR_H

@@ -20,7 +20,7 @@
 
 #include "View2D.h"
 
-// EspINA
+// ESPINA
 #include "View2DState.h"
 #include "ViewRendererMenu.h"
 #include "Widgets/EspinaWidget.h"
@@ -79,7 +79,7 @@
 #include <vtkAxisActor2D.h>
 #include <vtkRendererCollection.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const double View2D::SEGMENTATION_SHIFT = 0.05;
 const double View2D::WIDGET_SHIFT = 0.15;

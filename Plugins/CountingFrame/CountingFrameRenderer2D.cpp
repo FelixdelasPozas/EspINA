@@ -25,8 +25,8 @@
 #include <GUI/View/View2D.h>
 
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameRenderer2D::CountingFrameRenderer2D(CountingFrameManager& cfManager)

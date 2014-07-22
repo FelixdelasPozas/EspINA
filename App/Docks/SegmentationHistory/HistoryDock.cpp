@@ -28,7 +28,7 @@
 #include <QLayout>
 #include <QLabel>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 FilterInspectorDock::FilterInspectorDock(QUndoStack *undoStack,
@@ -85,7 +85,7 @@ void FilterInspectorDock::updatePannel()
   SegmentationList selectedSegs;
   foreach (PickableItemPtr item, m_viewManager->selection())
   {
-    if (EspINA::SEGMENTATION == item->type())
+    if (ESPINA::SEGMENTATION == item->type())
       selectedSegs << segmentationPtr(item);
   }
 

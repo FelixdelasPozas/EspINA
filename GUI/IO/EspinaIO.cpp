@@ -2,7 +2,7 @@
 
 #include <QFile>
 
-// EspINA
+// ESPINA
 #include "Core/Model/EspinaModel.h"
 #include "Core/Model/Output.h"
 #include "Core/Model/EspinaFactory.h"
@@ -35,7 +35,7 @@
 
 #include <stack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString TRACE_FILE    = "trace.dot";
 const QString CLASSIFICATION_FILE = "taxonomy.xml";

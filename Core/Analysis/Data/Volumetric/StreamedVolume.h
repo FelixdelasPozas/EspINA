@@ -38,7 +38,7 @@
 #include <itkImageFileReader.h>
 #include <itkExtractImageFilter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   template class VolumetricData<itk::Image<unsigned char, 3>>;
 

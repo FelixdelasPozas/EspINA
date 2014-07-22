@@ -27,10 +27,10 @@
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Segmentation.h"
 
-using namespace EspINA::IO;
-using namespace EspINA::IO::Graph;
+using namespace ESPINA::IO;
+using namespace ESPINA::IO::Graph;
 
-namespace EspINA {
+namespace ESPINA {
 
   const std::string CHANNEL_TYPE            = "trapezium";
   const std::string SEGMENTATION_TYPE       = "ellipse";

@@ -31,12 +31,12 @@
 #include <Core/EspinaTypes.h>
 #include "Core/Utils/Tree.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   bool TestName(const CategorySPtr category, const QString& name);
   
   bool TestClassificationName(const CategorySPtr category, const QString& name);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CLASSIFICATION_TESTING_SUPPORT_H

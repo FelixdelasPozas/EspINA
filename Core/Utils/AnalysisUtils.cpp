@@ -33,10 +33,10 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
+ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 {
   AnalysisSPtr mergedAnalysis{new Analysis()};
 
@@ -201,7 +201,7 @@ EspINA::AnalysisSPtr EspINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 }
 
 //-----------------------------------------------------------------------------
-SampleSPtr EspINA::findSample(SampleSPtr sample, SampleSList samples)
+SampleSPtr ESPINA::findSample(SampleSPtr sample, SampleSList samples)
 {
   for(auto result : samples)
   {
@@ -212,7 +212,7 @@ SampleSPtr EspINA::findSample(SampleSPtr sample, SampleSList samples)
 }
 
 //-----------------------------------------------------------------------------
-ChannelSPtr EspINA::findChannel(ChannelSPtr channel, ChannelSList channels)
+ChannelSPtr ESPINA::findChannel(ChannelSPtr channel, ChannelSList channels)
 {
   for(auto result : channels)
   {
@@ -223,7 +223,7 @@ ChannelSPtr EspINA::findChannel(ChannelSPtr channel, ChannelSList channels)
 }
 
 //-----------------------------------------------------------------------------
-unsigned int EspINA::firstUnusedSegmentationNumber(const AnalysisSPtr analysis)
+unsigned int ESPINA::firstUnusedSegmentationNumber(const AnalysisSPtr analysis)
 {
   unsigned int number = 0;
 

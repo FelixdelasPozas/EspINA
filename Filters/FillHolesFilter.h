@@ -26,7 +26,7 @@
 
 #include <Core/Analysis/Filter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaFilters_EXPORT FillHolesFilter
   : public Filter
@@ -62,6 +62,6 @@ namespace EspINA
 
   using FillHolesFilterPtr  = FillHolesFilter *;
   using FillHolesFilterSPtr = std::shared_ptr<FillHolesFilter>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_FILL_HOLES_FILTER_H

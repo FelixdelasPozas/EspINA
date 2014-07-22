@@ -24,7 +24,7 @@
 
 #include "Core/Analysis/Extension.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   class ReadOnlyChannelExtension
   : public ChannelExtension
@@ -67,6 +67,6 @@ namespace EspINA {
     State m_state;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_READ_ONLY_CHANNEL_EXTENSION_H

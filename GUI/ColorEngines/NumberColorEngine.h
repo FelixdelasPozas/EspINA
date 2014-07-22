@@ -25,7 +25,7 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT NumberColorEngine
   : public ColorEngine
@@ -44,6 +44,6 @@ namespace EspINA
 
   using NumberColorEngineSPtr = std::shared_ptr<NumberColorEngine>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_NUMBER_COLOR_ENGINE_H

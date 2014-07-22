@@ -26,7 +26,7 @@
 #include <Core/Model/Sample.h>
 
 
-namespace EspINA
+namespace ESPINA
 {
 
   class UnloadSampleCommand
@@ -46,6 +46,6 @@ namespace EspINA
     SampleSPtr   m_sample;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // UNLOADSAMPLECOMMAND_H

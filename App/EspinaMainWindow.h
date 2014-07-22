@@ -50,7 +50,7 @@ class QFrame;
 class QUndoStack;
 class QShortcut;
 
-namespace EspINA
+namespace ESPINA
 {
 
 class ROISettings;
@@ -158,8 +158,10 @@ class MainToolBar;
 
     bool isModelModified();
 
+    void enableWidgets(bool value);
+
   private:
-    // EspINA
+    // ESPINA
     SchedulerSPtr    m_scheduler;
     ModelFactorySPtr m_factory;
     AnalysisSPtr     m_analysis;
@@ -179,6 +181,7 @@ class MainToolBar;
     QAction         *m_saveAnalysis;
     QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
+    QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngines;
     QMenu           *m_dockMenu;
@@ -225,6 +228,6 @@ class MainToolBar;
     EspinaErrorHandlerSPtr m_errorHandler;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MAIN_WINDOW_H

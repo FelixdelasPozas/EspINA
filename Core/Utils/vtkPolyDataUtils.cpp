@@ -28,9 +28,9 @@
 #include <QByteArray>
 #include <QString>
 
-using namespace EspINA;
+using namespace ESPINA;
 
-QByteArray EspINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polyData) throw (IO_Error_Exception)
+QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polyData) throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
   polyWriter->SetInputData(polyData);
@@ -44,7 +44,7 @@ QByteArray EspINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
   return QByteArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
 }
 
-vtkSmartPointer<vtkPolyData> EspINA::PolyDataUtils::readPolyDataFromFile(QString fileName) throw (IO_Error_Exception)
+vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName) throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
   reader->SetFileName(fileName.toUtf8());

@@ -18,13 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "RemoveSegmentations.h"
 
 // Qt
 #include <QStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 RemoveSegmentations::RemoveSegmentations(SegmentationAdapterPtr segmentation,
@@ -68,12 +68,12 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 
     m_segmentations << m_model->smartPointer(segmentation);
 
-    m_relations << m_model->relations(segmentation, EspINA::RELATION_INOUT);
+    m_relations << m_model->relations(segmentation, ESPINA::RELATION_INOUT);
 
     //TODO: Add segmentations a new flag to indicate whether it has to be deleted if
     //      its input is deleted or add an special relation to notify that
 
-//    for(auto item : m_model->relatedItems(segmentation, EspINA::RELATION_OUT))
+//    for(auto item : m_model->relatedItems(segmentation, ESPINA::RELATION_OUT))
 //    {
 //      if (ItemAdapter::Type::SEGMENTATION == item->type())
 //      {
@@ -116,15 +116,15 @@ void RemoveSegmentations::undo()
 // //------------------------------------------------------------------------
 // void RemoveSegmentations::addFilterDependencies(FilterSPtr filter)
 // {
-//   ModelItemSList consumers = filter->relatedItems(EspINA::RELATION_OUT);
+//   ModelItemSList consumers = filter->relatedItems(ESPINA::RELATION_OUT);
 //   foreach(ModelItemSPtr consumer, consumers)
 //     switch(consumer->type())
 //     {
-//       case EspINA::SEGMENTATION:
+//       case ESPINA::SEGMENTATION:
 //         if (!m_segmentations.contains(segmentationPtr(consumer)))
 //           return;
 //         break;
-//       case EspINA::FILTER:
+//       case ESPINA::FILTER:
 //         if (!m_filters.contains(filterPtr(consumer)))
 //           return;
 //         break;
@@ -140,9 +140,9 @@ void RemoveSegmentations::undo()
 //     if (!isADupicatedRelation(relation))
 //       m_relations << relation;
 // 
-//   ModelItemSList ancestors = filter->relatedItems(EspINA::RELATION_IN);
+//   ModelItemSList ancestors = filter->relatedItems(ESPINA::RELATION_IN);
 //   foreach(ModelItemSPtr ancestor, ancestors)
-//     if (ancestor->type() == EspINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
+//     if (ancestor->type() == ESPINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
 //       addFilterDependencies(filterPtr(ancestor));
 // }
 

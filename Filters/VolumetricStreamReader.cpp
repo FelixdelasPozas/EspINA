@@ -28,7 +28,7 @@
 #include <itkImageFileWriter.h>
 #include <Core/IO/ErrorHandler.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)

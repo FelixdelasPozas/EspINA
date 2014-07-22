@@ -35,8 +35,8 @@
 #include "query_testing_support.h"
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int query_segmentation_channel(int argc, char** argv )
 {

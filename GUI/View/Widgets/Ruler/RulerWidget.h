@@ -23,7 +23,7 @@
 
 #include <EspinaGUI_Export.h>
 
-// EspINA
+// ESPINA
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 
@@ -34,7 +34,7 @@ class vtkCubeAxesActor2D;
 class vtkRenderWindowInteractor;
 class vtkAbstractWidget;
 
-namespace EspINA
+namespace ESPINA
 {
   class vtkRulerCommand;
 
@@ -125,5 +125,5 @@ namespace EspINA
       RulerWidget *m_widget;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_RULER_WIDGET_H_

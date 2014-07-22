@@ -28,7 +28,7 @@
 
 #include "Core/EspinaTypes.h"
 
-namespace EspINA
+namespace ESPINA
 {
 
   const int RawPointerRole = Qt::UserRole+1;
@@ -124,7 +124,7 @@ namespace EspINA
 // 
 //   bool operator!=(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
 //   bool operator!=(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
-} // EspINA
+} // ESPINA
 
 
 

@@ -29,7 +29,7 @@
 #include <QTime>
 
 #include <QDebug>
-using namespace EspINA;
+using namespace ESPINA;
 
 
 
@@ -41,7 +41,7 @@ GeneralSettingsDialog::GeneralSettingsDialog(QWidget *parent, Qt::WindowFlags fl
 {
   setupUi(this);
 
-  setWindowTitle(tr("EspINA Settings"));
+  setWindowTitle(tr("ESPINA Settings"));
 
   connect(components,SIGNAL(currentRowChanged(int)),
           this, SLOT(changePreferencePanel(int)));
@@ -95,7 +95,7 @@ void GeneralSettingsDialog::changePreferencePanel(int panel)
   if (m_activePanel && m_activePanel->modified())
   {
     QMessageBox msg;
-    msg.setWindowTitle(tr("EspINA"));
+    msg.setWindowTitle(tr("ESPINA"));
     msg.setText(tr("Settings panel \"%1\" have been modified.\n"
                 "Do you want to save the changes?")
                 .arg(m_activePanel->shortDescription()));

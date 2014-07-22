@@ -20,7 +20,7 @@
 #ifndef ESPINA_SEED_GROW_SEGMENTATION_FILTER_H
 #define ESPINA_SEED_GROW_SEGMENTATION_FILTER_H
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include "Core/Analysis/Filter.h"
 #include <Core/Utils/BinaryMask.h>
@@ -29,7 +29,7 @@
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
 
-namespace EspINA
+namespace ESPINA
 {
   class SeedGrowSegmentationFilter
   : public Filter
@@ -95,6 +95,6 @@ namespace EspINA
     ROISPtr   m_roi;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_FILTER_H

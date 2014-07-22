@@ -25,7 +25,7 @@
 #include "Core/EspinaCore_Export.h"
 #include <Core/Analysis/Extension.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT SegmentationExtensionFactory
   {
@@ -46,6 +46,6 @@ namespace EspINA
   using SegmentationExtensionFactorySPtr  = std::shared_ptr<SegmentationExtensionFactory>;
   using SegmentationExtensionFactorySList = QList<SegmentationExtensionFactorySPtr>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_EXTENSION_FACTORY_H

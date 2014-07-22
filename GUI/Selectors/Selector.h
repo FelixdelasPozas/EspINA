@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/BinaryMask.h>
 #include <GUI/Model/NeuroItemAdapter.h>
@@ -37,7 +37,7 @@
 #include <QSet>
 #include <QVector3D>
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -87,6 +87,6 @@ namespace EspINA
   };
 
   using SelectorSPtr = std::shared_ptr<Selector>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SELECTOR_H

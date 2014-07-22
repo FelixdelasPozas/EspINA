@@ -32,7 +32,7 @@
 
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT MeshData
   : public Data
@@ -58,6 +58,6 @@ namespace EspINA
 
   MeshDataSPtr meshData(OutputSPtr output);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MESH_DATA_H

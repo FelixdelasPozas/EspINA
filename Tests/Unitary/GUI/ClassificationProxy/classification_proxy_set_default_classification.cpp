@@ -41,7 +41,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Testing;
 
 int classification_proxy_set_default_classification( int argc, char** argv )

@@ -12,14 +12,14 @@
 
 #include "ui_AppositionSurfaceFilterInspector.h"
 
-// EspINA
+// ESPINA
 #include <Filter/AppositionSurfaceFilter.h>
 #include <Core/EspinaTypes.h>
 #include <GUI/ViewManager.h>
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   /// Filter Inspector
   //
@@ -56,5 +56,5 @@ namespace EspINA
   };
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* APPOSITIONSURFACEFILTERINSPECTOR_H_ */

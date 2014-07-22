@@ -20,7 +20,7 @@
 #ifndef ESPINA_ORTHOGONAL_ROI_H
 #define ESPINA_ORTHOGONAL_ROI_H
 
-// EspINA
+// ESPINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -30,7 +30,7 @@
 #include <QUndoCommand>
 
 class QAction;
-namespace EspINA
+namespace ESPINA
 {
   class RectangularRegion;
   class RectangularRegionSliceSelector;
@@ -99,6 +99,6 @@ namespace EspINA
 
   using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ORTHOGONAL_ROI_H

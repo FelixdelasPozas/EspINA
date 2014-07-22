@@ -36,7 +36,7 @@
 
 #include <QThreadPool>
  
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int scheduler_change_task_priority( int argc, char** argv )

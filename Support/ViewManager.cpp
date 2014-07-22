@@ -21,7 +21,7 @@
 #include "ViewManager.h"
 #include "ToolGroup.h"
 
-// EspINA
+// ESPINA
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
@@ -36,7 +36,7 @@
 #include <QDebug>
 #include <QToolBar>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
@@ -52,7 +52,7 @@ ViewManager::ViewManager()
 , m_activeChannel    {nullptr}
 , m_activeCategory   {nullptr}
 {
-//   QSettings settings(CESVIMA, ESPINA);
+//   QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
   bool fitEnabled = true;
 
 //   if (!settings.allKeys().contains(FIT_TO_SLICES))
@@ -286,7 +286,7 @@ void ViewManager::updateViews()
 //----------------------------------------------------------------------------
 void ViewManager::setFitToSlices(bool enabled)
 {
-//   QSettings settings(CESVIMA, ESPINA);
+//   QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
 //   settings.setValue(FIT_TO_SLICES, enabled);
 //   settings.sync();
   for(auto view: m_renderViews)
@@ -347,7 +347,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterPtr segme
 //   while (!stack.isEmpty())
 //   {
 //     SegmentationPtr seg = stack.pop();
-//     for(auto item : seg->relatedItems(EspINA::RELATION_OUT))
+//     for(auto item : seg->relatedItems(ESPINA::RELATION_OUT))
 //     {
 //       if (item->type() == SEGMENTATION)
 //       {
@@ -384,7 +384,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list
 //     while (!itemsStack.isEmpty())
 //     {
 //       SegmentationPtr segmentation = itemsStack.pop();
-//       foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
+//       foreach(ModelItemSPtr item, segmentation->relatedItems(ESPINA::RELATION_OUT))
 //         if (item->type() == SEGMENTATION)
 //         {
 //           SegmentationPtr relatedSeg = segmentationPtr(item.get());

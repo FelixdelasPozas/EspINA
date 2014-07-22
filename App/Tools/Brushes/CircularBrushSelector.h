@@ -24,7 +24,7 @@
 
 #include <GUI/Selectors/BrushSelector.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class CircularBrushSelector

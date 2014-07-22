@@ -23,7 +23,7 @@
 
 #include "QComboTreeView.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)

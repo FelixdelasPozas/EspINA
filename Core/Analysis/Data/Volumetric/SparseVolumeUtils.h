@@ -20,7 +20,7 @@
 
 #include "SparseVolume.h"
 
-namespace EspINA
+namespace ESPINA
 {
   // TODO: @Jorge: Review API (change to volume, volume/mask, [bounds])
   void expandAndDraw(SparseVolumeSPtr volume, const Bounds &bounds, const BinaryMaskSPtr<unsigned char> &mask)

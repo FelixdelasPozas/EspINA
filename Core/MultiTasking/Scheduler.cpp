@@ -37,7 +37,7 @@
 #include <QApplication>
 #include <unistd.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 void TaskQueue::orderedInsert(TaskSPtr worker)

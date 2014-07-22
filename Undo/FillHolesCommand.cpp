@@ -28,7 +28,7 @@
 
 #include <QApplication>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString FillHolesCommand::FILTER_TYPE = "EditorToolBar::FillHolesFilter";
 

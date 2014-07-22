@@ -21,7 +21,7 @@
 #ifndef ESPINA_VIEW_RENDERER_MENU_H_
 #define ESPINA_VIEW_RENDERER_MENU_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Representations/Renderers/Renderer.h>
 
 // Qt
@@ -30,7 +30,7 @@
 
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
   
   class ViewRendererMenu
@@ -53,6 +53,6 @@ namespace EspINA
       QMap<QAction *, RendererSPtr> m_renderers;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_RENDERER_MENU_H_

@@ -21,7 +21,7 @@
 #ifndef FILLEDCONTOUR_H
 #define FILLEDCONTOUR_H
 
-// EspINA
+// ESPINA
 #include <GUI/Tools/ITool.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
@@ -31,7 +31,7 @@
 class QUndoStack;
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   class ContourSelector;
   class ViewManager;
@@ -89,6 +89,6 @@ namespace EspINA
 
   typedef boost::shared_ptr<FilledContour> FilledContourSPtr;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // FILLEDCONTOUR_H

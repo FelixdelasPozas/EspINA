@@ -24,7 +24,7 @@
 #include <Core/Analysis/Query.h>
 #include <GUI/Model/ModelAdapter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ChannelAdapterSList QueryAdapter::channels(SampleAdapterSPtr sample)

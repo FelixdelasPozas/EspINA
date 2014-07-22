@@ -30,7 +30,7 @@
 #include <GUI/Model/ClassificationAdapter.h>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int classification_adapter_create_existing_category( int argc, char** argv )
 {

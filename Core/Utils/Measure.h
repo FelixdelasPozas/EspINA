@@ -17,7 +17,7 @@
 // Boost
 #include <boost/shared_ptr.hpp>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT Measure
   {
@@ -56,5 +56,5 @@ namespace EspINA
   typedef boost::shared_ptr<Measure> MeasureSPtr;
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* MEASURE_H_ */

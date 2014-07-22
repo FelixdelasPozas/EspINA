@@ -30,8 +30,8 @@
 #include <iostream>
 #include <QDebug>
 
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int segmentation_save_state(int argc, char** argv)
 {

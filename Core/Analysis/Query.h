@@ -24,7 +24,7 @@
 
 #include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace QueryContents
   {
@@ -72,6 +72,6 @@ namespace EspINA
     SegmentationSList segmentationsOnChannelSample(ChannelPtr channel);
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CORE_QUERY_H

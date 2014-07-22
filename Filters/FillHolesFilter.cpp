@@ -27,7 +27,7 @@
 
 #include <itkBinaryFillholeImageFilter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
 

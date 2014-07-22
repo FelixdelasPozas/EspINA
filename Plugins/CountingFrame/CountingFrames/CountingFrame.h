@@ -36,7 +36,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
-namespace EspINA
+namespace ESPINA
 {
 namespace CF {
 
@@ -280,6 +280,6 @@ namespace CF {
       CountingFrame *m_widget;
   };
 } // namsepace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // BOUNDINGREGION_H

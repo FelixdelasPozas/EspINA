@@ -21,5 +21,5 @@
 
 #include "gui_testing_support.h"
 
-const EspINA::Filter::Type EspINA::Testing::DummyFilter::TYPE = "DummyFilter";
+const ESPINA::Filter::Type ESPINA::Testing::DummyFilter::TYPE = "DummyFilter";
 

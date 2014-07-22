@@ -20,10 +20,10 @@
 #ifndef SAS_FETCH_BEHAVIOUR_H_
 #define SAS_FETCH_BEHAVIOUR_H_
 
-// EspINA
+// ESPINA
 #include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class SASFetchBehaviour
@@ -40,6 +40,6 @@ namespace EspINA
       virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SAS_FETCH_BEHAVIOUR_H_

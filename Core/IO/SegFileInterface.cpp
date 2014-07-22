@@ -25,9 +25,9 @@
 #include <quazip/quazipfile.h>
 #include <QUuid>
 
-using namespace EspINA;
-using namespace EspINA::IO;
-using namespace EspINA::IO::SegFile;
+using namespace ESPINA;
+using namespace ESPINA::IO;
+using namespace ESPINA::IO::SegFile;
 
 
 //-----------------------------------------------------------------------------

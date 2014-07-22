@@ -39,8 +39,8 @@
 #include <qinputdialog.h>
 #include <QPainter>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 class Panel::GUI

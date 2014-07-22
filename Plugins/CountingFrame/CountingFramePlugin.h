@@ -27,7 +27,7 @@
 
 #include "CountingFrameManager.h"
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -35,7 +35,7 @@ namespace EspINA
     : public Plugin
     {
       Q_OBJECT
-      Q_INTERFACES(EspINA::Plugin)
+      Q_INTERFACES(ESPINA::Plugin)
 
     public:
       explicit CountingFramePlugin();
@@ -115,6 +115,6 @@ namespace EspINA
       RendererSPtr m_renderer2d;
     };
   }
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_COUNTING_FRAME_PLUGIN_H

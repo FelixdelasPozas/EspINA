@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ROISettingsPanel.h"
 #include "ROISettings.h"
 #include <Support/Settings/EspinaSettings.h>
@@ -34,7 +34,7 @@
 #include <QSettings>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
@@ -53,7 +53,7 @@ ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
   m_ySize->setValue(m_settings->ySize());
   m_zSize->setValue(m_settings->zSize());
 
-  QSettings espinaSettings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(espinaSettings);
 
   if (espinaSettings.value(FIT_TO_SLICES).toBool())
   {

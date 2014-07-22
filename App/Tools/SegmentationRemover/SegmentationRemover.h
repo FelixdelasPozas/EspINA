@@ -25,7 +25,7 @@
 #include <GUI/Tools/ITool.h>
 #include <GUI/Pickers/ISelector.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class PixelSelector;
 
@@ -56,6 +56,6 @@ namespace EspINA
 
   typedef boost::shared_ptr<SegmentationRemover> SegmentationRemoverSPtr;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEGREMOVER_H

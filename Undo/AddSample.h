@@ -24,14 +24,14 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaUndo_EXPORT AddSample
   : public QUndoCommand
@@ -51,6 +51,6 @@ namespace EspINA
     SampleSPtr m_sample;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ADDSAMPLE_H

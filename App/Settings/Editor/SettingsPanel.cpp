@@ -25,7 +25,7 @@
 #include <QSettings>
 #include <QString>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 EditorToolBar::SettingsPanel::SettingsPanel(EditorToolBarSettings *settings)

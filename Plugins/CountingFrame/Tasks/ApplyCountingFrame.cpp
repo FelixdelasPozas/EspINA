@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ApplyCountingFrame.h"
 
 #include <Core/Analysis/Query.h>
@@ -30,8 +30,8 @@
 
 #include <QDebug>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 ApplyCountingFrame::ApplyCountingFrame(CountingFrame *countingFrame,

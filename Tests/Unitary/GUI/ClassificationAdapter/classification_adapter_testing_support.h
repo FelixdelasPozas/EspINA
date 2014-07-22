@@ -30,12 +30,12 @@
 
 #include <GUI/Model/CategoryAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   bool TestName(const CategoryAdapterSPtr category, const QString& name);
 
   bool TestClassificationName(const CategoryAdapterSPtr category, const QString& name);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CLASSIFICATION_TESTING_SUPPORT_H

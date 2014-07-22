@@ -21,7 +21,7 @@
 #ifndef SPINEINFORMATIONDIALOG_H
 #define SPINEINFORMATIONDIALOG_H
 
-// EspINA
+// ESPINA
 #include "ui_NodesInformationDialog.h"
 #include <Core/Filters/TubularSegmentationFilter.h>
 
@@ -32,7 +32,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class Tool;

@@ -18,7 +18,7 @@ p
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "CrosshairRenderer.h"
 #include <GUI/Representations/CrosshairRepresentation.h>
 
@@ -29,7 +29,7 @@ p
 // Qt
 #include <QApplication>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 CrosshairRenderer::CrosshairRenderer(QObject* parent)
@@ -188,7 +188,7 @@ ViewItemAdapterList CrosshairRenderer::pick(int x, int y, Nm z, vtkSmartPointer<
   ViewItemAdapterList selection;
   QList<vtkProp*> removedProps;
 
-  if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::CHANNEL))
+  if (!renderer || !renderer.GetPointer() || !itemType.testFlag(ESPINA::CHANNEL))
     return selection;
 
   while (m_picker->Pick(x, y, 0, renderer))

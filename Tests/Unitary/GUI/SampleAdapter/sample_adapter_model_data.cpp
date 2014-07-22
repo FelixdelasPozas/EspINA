@@ -29,7 +29,7 @@
 #include "GUI/Model/SampleAdapter.h"
 #include "GUI/ModelFactory.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int sample_adapter_model_data( int argc, char** argv )

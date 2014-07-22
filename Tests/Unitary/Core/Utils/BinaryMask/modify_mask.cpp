@@ -22,7 +22,7 @@
 
 #include <itkImageRegionConstIterator.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using BMask = BinaryMask<unsigned char>;
 

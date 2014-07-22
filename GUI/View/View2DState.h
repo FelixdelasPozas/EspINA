@@ -28,7 +28,7 @@ class vtkCamera;
 class vtkPolyData;
 class vtkProp3D;
 
-namespace EspINA
+namespace ESPINA
 {
   class View2D::State
   {
@@ -92,6 +92,6 @@ namespace EspINA
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_STATE_H

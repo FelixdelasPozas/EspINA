@@ -27,7 +27,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Tools/Brushes/Brush.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class StrokeSegmentationCommand
   : public QUndoCommand
@@ -52,6 +52,6 @@ namespace EspINA
     SegmentationSPtr    m_segmentation;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // STROKESEGMENTATIONCOMMAND_H

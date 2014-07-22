@@ -21,13 +21,13 @@
 #ifndef ESPINA_SPHERICAL_BRUSH_ROI_SELECTOR_H_
 #define ESPINA_SPHERICAL_BRUSH_ROI_SELECTOR_H_
 
-// EspINA
+// ESPINA
 #include "ROISelectorBase.h"
 
 // Qt
 #include <QObject>
 
-namespace EspINA
+namespace ESPINA
 {
   class SphericalBrushROISelector
   : public ROISelectorBase
@@ -45,6 +45,6 @@ namespace EspINA
 
   using SphericalBrushROISelectorSPtr = std::shared_ptr<SphericalBrushROISelector>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SPHERICAL_BRUSH_ROI_SELECTOR_H_

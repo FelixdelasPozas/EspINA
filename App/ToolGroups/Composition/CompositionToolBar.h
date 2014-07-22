@@ -29,7 +29,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class CompositionToolBar
   : public IToolBar
@@ -39,8 +39,8 @@ namespace EspINA
     Q_OBJECT
     Q_INTERFACES
     (
-      EspINA::IFactoryExtension
-      EspINA::IFilterCreator
+      ESPINA::IFactoryExtension
+      ESPINA::IFilterCreator
     )
 
   public:
@@ -74,6 +74,6 @@ namespace EspINA
     QAction *m_compose;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // COMPOSITIONTOOLBAR_H

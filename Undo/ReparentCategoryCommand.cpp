@@ -21,7 +21,7 @@
 
 #include "ReparentCategoryCommand.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ReparentCategoryCommand::ReparentCategoryCommand(CategoryAdapterPtr category,

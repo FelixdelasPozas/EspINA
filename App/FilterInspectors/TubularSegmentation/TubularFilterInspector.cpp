@@ -22,14 +22,14 @@
 #include <QFileDialog>
 #include <QTextStream>
 
-// EspINA
+// ESPINA
 #include "TubularFilterInspector.h"
 #include <App/Tools/TubularSegmentation/TubularTool.h>
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/TubularWidget.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   TubularFilterInspector::TubularFilterInspector(TubularSegmentationFilter::Pointer source,

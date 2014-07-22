@@ -36,7 +36,7 @@ class QMainWindow;
 class QDockWidget;
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderersMenu;
   class CamerasMenu;
@@ -155,6 +155,6 @@ namespace EspINA
 
   using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_DEFAULT_VIEW_H

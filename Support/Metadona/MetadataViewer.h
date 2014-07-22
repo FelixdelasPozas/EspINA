@@ -27,7 +27,7 @@
 #include <Support/ui_MetadataViewer.h>
 #include <GUI/Model/ChannelAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class MetadataLoader;
   using MetadataLoaderSPtr = std::shared_ptr<MetadataLoader>;
@@ -59,6 +59,6 @@ namespace EspINA {
     int                     m_animationStep;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_METADATA_VIEWER_H

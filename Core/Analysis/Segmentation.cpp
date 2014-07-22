@@ -33,7 +33,7 @@
 #include <string>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString STATE_NUMBER   = "Number";
 const QString STATE_ALIAS    = "Alias";

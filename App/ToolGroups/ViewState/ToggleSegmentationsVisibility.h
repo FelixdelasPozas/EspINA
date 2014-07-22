@@ -26,7 +26,7 @@
 #include <Support/ViewManager.h>
 #include <QAction>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ToggleSegmentationsVisibility
   : public Tool

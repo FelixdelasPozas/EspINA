@@ -27,7 +27,7 @@
 #include <Core/Utils/Spatial.h>
 #include <QObject>
 
-namespace EspINA
+namespace ESPINA
 {
   class View2D;
 
@@ -58,6 +58,6 @@ namespace EspINA
     View2D *m_view;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SLICE_SELECTOR_WIDGET_H

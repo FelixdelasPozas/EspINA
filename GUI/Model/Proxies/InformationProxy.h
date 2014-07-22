@@ -22,7 +22,7 @@
 #ifndef ESPINA_INFORMATION_PROXY_H
 #define ESPINA_INFORMATION_PROXY_H
 
-// EspINA
+// ESPINA
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Model/ModelAdapter.h>
 
@@ -30,10 +30,10 @@
 #include <QAbstractProxyModel>
 #include <QStringList>
 
-const EspINA::SegmentationExtension::InfoTag NAME_TAG     = QObject::tr("Name");
-const EspINA::SegmentationExtension::InfoTag CATEGORY_TAG = QObject::tr("Category");
+const ESPINA::SegmentationExtension::InfoTag NAME_TAG     = QObject::tr("Name");
+const ESPINA::SegmentationExtension::InfoTag CATEGORY_TAG = QObject::tr("Category");
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaCore_EXPORT InformationProxy
@@ -182,6 +182,6 @@ namespace EspINA
 
     ItemAdapterList m_elements;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // INFORMATIONPROXY_H

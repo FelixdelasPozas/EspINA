@@ -35,7 +35,7 @@
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 #include <itkExtractImageFilter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using ExtractFilterType      = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
 using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
@@ -149,7 +149,7 @@ void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 
 //------------------------------------------------------------------------
 template<typename T>
-EspINA::BinaryMask<T> SeedGrowSegmentationFilter::roi() const
+ESPINA::BinaryMask<T> SeedGrowSegmentationFilter::roi() const
 {
 
 }

@@ -36,7 +36,7 @@
 #include <QUndoCommand>
 #include <QStringList>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaUndo_EXPORT ChangeSegmentationNotes
   : public QUndoCommand
@@ -57,6 +57,6 @@ namespace EspINA
     SegmentationAdapterPtr m_segmentation;
     QString                m_formerNote;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CHANGE_SEGMENTATION_NOTES_H

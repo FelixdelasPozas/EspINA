@@ -29,7 +29,7 @@
 
 class QSettings;
 
-namespace EspINA
+namespace ESPINA
 {
 
   const QString AUTOSAVE_PATH("Autosave::Path");
@@ -51,8 +51,6 @@ namespace EspINA
     void setAutosavePath(const QString path);
 
   private:
-    QSettings *m_settings;
-
     QString m_userName;
     int     m_autosaveInterval;
     QDir    m_autosavePath;
@@ -60,6 +58,6 @@ namespace EspINA
 
   using GeneralSettingsSPtr = std::shared_ptr<GeneralSettings>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // GENERALSETTINGS_H

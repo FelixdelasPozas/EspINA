@@ -29,7 +29,7 @@
 // Forward declarations
 class QSpinBox;
 
-namespace EspINA
+namespace ESPINA
 {
   class MorphologicalEditionFilter;
   class ViewManager;
@@ -70,6 +70,6 @@ namespace EspINA
     MorphologicalEditionFilter *m_filter;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CODESETTINGS_H

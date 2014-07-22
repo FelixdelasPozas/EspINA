@@ -22,7 +22,7 @@
 #ifndef ESPINA_SAS_ANALYSIS_DIALOG_H
 #define ESPINA_SAS_ANALYSIS_DIALOG_H
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/ViewManager.h>
@@ -31,7 +31,7 @@
 #include <QDialog>
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class SASAnalysisDialog
   : public QDialog

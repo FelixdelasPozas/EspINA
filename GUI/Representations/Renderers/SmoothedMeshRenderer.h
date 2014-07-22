@@ -23,10 +23,10 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "MeshRenderer.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -48,6 +48,6 @@ namespace EspINA
       virtual RendererSPtr clone() const    { return RendererSPtr(new SmoothedMeshRenderer()); }
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif /* ESPINA_SMOOTHED_MESH_RENDERER_H_ */

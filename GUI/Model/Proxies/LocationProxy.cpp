@@ -31,7 +31,7 @@
 #include <QPixmap>
 #include <QSet>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 typedef QSet<ModelItemPtr> SegmentationSet;
 
@@ -75,13 +75,13 @@ QVariant LocationProxy::data(const QModelIndex& proxyIndex, int role) const
     return QVariant();
 
   ModelItemPtr item = indexPtr(proxyIndex);
-  if (EspINA::SAMPLE == item->type())
+  if (ESPINA::SAMPLE == item->type())
   {
     if (Qt::DecorationRole == role)
       return QColor(Qt::blue);
     else
       return item->data(role);
-  } else if (EspINA::SEGMENTATION == item->type())
+  } else if (ESPINA::SEGMENTATION == item->type())
   {
     return item->data(role);
   }
@@ -268,7 +268,7 @@ void LocationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       ModelItemPtr proxyItem = indexPtr(proxyIndex);
 
       ModelItemPtr   prevLocation = parentNode(proxyItem);
-      ModelItemSList relatedItems = proxyItem->relatedItems(EspINA::RELATION_IN, Relations::LOCATION);
+      ModelItemSList relatedItems = proxyItem->relatedItems(ESPINA::RELATION_IN, Relations::LOCATION);
 
       QModelIndex oldParent = proxyIndex.parent();
       int fromRow = proxyIndex.row();
@@ -346,7 +346,7 @@ ModelItemPtr LocationProxy::parentNode(const ModelItemPtr node) const
 //------------------------------------------------------------------------
 void LocationProxy::registerNodes(ModelItemPtr node)
 {
-  ModelItemSList parentItems = node->relatedItems(EspINA::RELATION_IN, Relations::LOCATION);
+  ModelItemSList parentItems = node->relatedItems(ESPINA::RELATION_IN, Relations::LOCATION);
   if (parentItems.isEmpty())
   {
     if (!m_rootNodes.contains(node))
@@ -362,7 +362,7 @@ void LocationProxy::registerNodes(ModelItemPtr node)
     }
   }
 
-  foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::RELATION_OUT, Relations::LOCATION))
+  foreach(ModelItemSPtr subItem, node->relatedItems(ESPINA::RELATION_OUT, Relations::LOCATION))
   {
     registerNodes(subItem.get());
   }

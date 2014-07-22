@@ -33,7 +33,7 @@
 
 #include <Core/Analysis/Extension.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaExtensions_EXPORT SegmentationNotes
@@ -84,6 +84,6 @@ namespace EspINA
   using SegmentationNotesPtr  = SegmentationNotes *;
   using SegmentationNotesSPtr = std::shared_ptr<SegmentationNotes>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_NOTES_H

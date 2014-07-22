@@ -21,7 +21,7 @@
 #ifndef ESPINA_SPLIT_TOOL_H_
 #define ESPINA_SPLIT_TOOL_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
@@ -34,7 +34,7 @@
 
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
   class SplitToolEventHandler;
   using SplitToolEventHandlerSPtr = std::shared_ptr<SplitToolEventHandler>;
@@ -140,6 +140,6 @@ namespace EspINA
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SPLIT_TOOL_H_

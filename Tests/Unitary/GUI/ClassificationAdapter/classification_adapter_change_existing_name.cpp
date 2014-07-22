@@ -31,7 +31,7 @@
 #include <GUI/Model/ClassificationAdapter.h>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int classification_adapter_change_existing_name( int argc, char** argv )
 {

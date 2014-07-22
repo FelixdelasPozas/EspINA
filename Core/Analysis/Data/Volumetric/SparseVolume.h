@@ -44,7 +44,7 @@
 #include <itkImageFileReader.h>
 #include <vtkImplicitFunction.h>
 
-namespace EspINA
+namespace ESPINA
 {
   struct Invalid_Image_Bounds_Exception{};
 

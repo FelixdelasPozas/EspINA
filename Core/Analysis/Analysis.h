@@ -29,7 +29,7 @@
 #include "Category.h"
 #include "ViewItem.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT Analysis
   {
@@ -131,6 +131,6 @@ namespace EspINA
   using AnalysisPtr  = Analysis *;
   using AnalysisSPtr = std::shared_ptr<Analysis>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ANALYSIS_H

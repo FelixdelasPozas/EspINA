@@ -25,7 +25,7 @@
 #include <QtGui/QUndoStack>
 #include <Core/Model/Channel.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class UnloadChannelCommand
   : public QUndoCommand
@@ -47,6 +47,6 @@ namespace EspINA
     ChannelSPtr m_channel;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // UNLOADCHANNELCOMMAND_H

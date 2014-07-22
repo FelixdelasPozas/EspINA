@@ -31,7 +31,7 @@
 // C++
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   //const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
 
@@ -214,6 +214,6 @@ namespace EspINA
     return out;
   }
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_TREE_H

@@ -26,8 +26,8 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,

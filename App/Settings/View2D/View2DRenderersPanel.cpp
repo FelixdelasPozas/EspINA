@@ -18,11 +18,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <Settings/View2D/View2DRenderersPanel.h>
 #include <GUI/View/View2D.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   View2DRenderersPanel::View2DRenderersPanel(RendererSList renderers,
@@ -47,19 +47,19 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void EspINA::View2DRenderersPanel::acceptChanges()
+  void ESPINA::View2DRenderersPanel::acceptChanges()
   {
     for(auto view: m_views)
       view->setRenderers(m_selector->getActiveRenderers());
   }
 
   //-----------------------------------------------------------------------------
-  void EspINA::View2DRenderersPanel::rejectChanges()
+  void ESPINA::View2DRenderersPanel::rejectChanges()
   {
   }
 
   //-----------------------------------------------------------------------------
-  bool EspINA::View2DRenderersPanel::modified() const
+  bool ESPINA::View2DRenderersPanel::modified() const
   {
     QSet<QString> current, previous;
 
@@ -73,10 +73,10 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  SettingsPanelPtr EspINA::View2DRenderersPanel::clone()
+  SettingsPanelPtr ESPINA::View2DRenderersPanel::clone()
   {
     return new View2DRenderersPanel(m_renderers, m_activeRenderers, m_filter, m_views);
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 

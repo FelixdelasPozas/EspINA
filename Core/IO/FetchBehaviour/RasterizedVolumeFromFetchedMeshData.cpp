@@ -18,11 +18,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "RasterizedVolumeFromFetchedMeshData.h"
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   void RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
@@ -58,7 +58,7 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  MeshDataSPtr EspINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr output,
+  MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr output,
                                                                           TemporalStorageSPtr storage,
                                                                           QString prefix)
   {
@@ -80,4 +80,4 @@ namespace EspINA
     return mesh;
   }
 
-} // namespace EspINA
+} // namespace ESPINA

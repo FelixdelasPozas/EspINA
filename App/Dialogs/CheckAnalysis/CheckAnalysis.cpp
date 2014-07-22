@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CheckAnalysis.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/MeshData.h>
@@ -26,7 +26,7 @@
 #include <Core/Analysis/Channel.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   CheckAnalysis::CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model)
@@ -243,4 +243,4 @@ namespace EspINA
     // TODO: fix output if filter != nullptr??
   }
 
-} // namespace EspINA
+} // namespace ESPINA

@@ -38,7 +38,7 @@
 #include <QList>
 #include <QString>
 
-namespace EspINA
+namespace ESPINA
 {
   /** \brief Minimal bounds that enclose all voxels of any volumetric data
    */

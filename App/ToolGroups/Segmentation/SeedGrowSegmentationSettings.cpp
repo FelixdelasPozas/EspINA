@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "SeedGrowSegmentationSettings.h"
 
 // Qt
@@ -27,7 +27,7 @@
 #include <GUI/Pickers/PixelSelector.h>
 #include <QStringList>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString BEST_PIXEL     ("SeedGrowSegmentation::BestPixelValue");
 const QString CLOSING        ("SeedGrowSegmentation::Closing");
@@ -42,7 +42,7 @@ const QString TAXONOMICAL_ROI_USAGE("SeedGrowSegmentation::DefaultROI::USE_TAXON
 SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelSelector *selector)
 : m_selector(selector)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   m_selector->setBestPixelValue(settings.value(BEST_PIXEL, 0).toInt());
   m_closing = settings.value(CLOSING, 0).toInt();
@@ -56,7 +56,7 @@ SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelSelector *se
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setXSize(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   settings.setValue(DEFAULT_ROI_X_SIZE, value);
   settings.sync();
@@ -66,7 +66,7 @@ void SeedGrowSegmentationSettings::setXSize(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setYSize(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   settings.setValue(DEFAULT_ROI_Y_SIZE, value);
   settings.sync();
@@ -76,7 +76,7 @@ void SeedGrowSegmentationSettings::setYSize(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setZSize(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   settings.setValue(DEFAULT_ROI_Z_SIZE, value);
   settings.sync();
@@ -86,7 +86,7 @@ void SeedGrowSegmentationSettings::setZSize(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setTaxonomicalROI(bool value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   settings.setValue(TAXONOMICAL_ROI_USAGE, value);
   settings.sync();
@@ -96,7 +96,7 @@ void SeedGrowSegmentationSettings::setTaxonomicalROI(bool value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   settings.setValue(BEST_PIXEL, value);
   settings.sync();
@@ -106,7 +106,7 @@ void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 //------------------------------------------------------------------------
 int SeedGrowSegmentationSettings::bestPixelValue() const
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   int bestValue = settings.value(BEST_PIXEL).toInt();
   Q_ASSERT(bestValue >= 0 && bestValue <= 255);
@@ -116,7 +116,7 @@ int SeedGrowSegmentationSettings::bestPixelValue() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setClosing(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS_SETTINGS);
 
   settings.setValue(CLOSING, value);
   settings.sync();

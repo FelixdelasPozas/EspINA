@@ -25,7 +25,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/TemporalStorage.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CoreFactory::CoreFactory(SchedulerSPtr scheduler)
@@ -79,7 +79,7 @@ throw (Unknown_Type_Exception)
 
 
 //-----------------------------------------------------------------------------
-EspINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id) const
+ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id) const
 {
   auto input = getInput(filter, id);
 

@@ -24,7 +24,7 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/MeshData.h>
@@ -44,7 +44,7 @@
 // Qt
 #include <QMutex>
 
-namespace EspINA
+namespace ESPINA
 {
   template<typename T>
   class EspinaCore_EXPORT RasterizedVolume
@@ -320,5 +320,5 @@ namespace EspINA
     this->m_mutex.unlock();
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_RASTERIZED_VOLUME_H

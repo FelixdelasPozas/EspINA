@@ -25,11 +25,11 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// EspINA
+// ESPINA
 #include "Representation.h"
 #include <GUI/View/View2D.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 Representation::Representation(RenderView *view) 

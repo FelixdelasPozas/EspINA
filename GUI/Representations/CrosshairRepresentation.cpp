@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CrosshairRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include <GUI/View/View3D.h>
@@ -45,7 +45,7 @@
 #include <QColor>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type CrosshairRepresentation::TYPE = "Crosshair";
 

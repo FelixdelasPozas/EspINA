@@ -24,7 +24,7 @@
 
 #include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class BestPixelSelector;
 
@@ -58,6 +58,6 @@ namespace EspINA
     bool m_taxonomicalROI;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEEDGROWSEGMENTATION_SETTINGS_H

@@ -21,10 +21,10 @@
 #ifndef METADATA_SETTINGS_PANEL_H_
 #define METADATA_SETTINGS_PANEL_H_
 
-// EspINA
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class MetaDataSettingsPanel
@@ -87,6 +87,6 @@ namespace EspINA
       virtual SettingsPanelPtr clone();
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // METADATASETTINGSPANEL_H_

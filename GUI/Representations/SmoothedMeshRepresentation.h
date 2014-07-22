@@ -23,12 +23,12 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "MeshRepresentation.h"
 
 class vtkDecimatePro;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT SmoothedMeshRepresentation
   : public MeshRepresentationBase
@@ -66,5 +66,5 @@ namespace EspINA
   using SmoothedMeshRepresentationSPtr  = std::shared_ptr<SmoothedMeshRepresentation>;
   using SmoothedMeshRepresentationSList = QList<SmoothedMeshRepresentationSPtr>;
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* ESPINA_SMOOTHED_MESH_REPRESENTATION_H_ */

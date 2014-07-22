@@ -33,7 +33,7 @@
 #include <GUI/ModelFactory.h>
 
 class QUndoStack;
-namespace EspINA
+namespace ESPINA
 {
   class SeedGrowSegmentationTool
   : public Tool
@@ -104,6 +104,6 @@ namespace EspINA
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_TOOL_H

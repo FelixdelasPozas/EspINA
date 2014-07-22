@@ -25,7 +25,7 @@
 #include <QLabel>
 #include <QSpinBox>
 
-namespace EspINA
+namespace ESPINA
 {
   class SpinBoxAction
   : public QWidgetAction
@@ -126,6 +126,6 @@ namespace EspINA
       int       m_minimumValue;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SPINBOX_ACTION_WIDGET_H_

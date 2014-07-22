@@ -28,7 +28,7 @@ class vtkPolyData;
 class QByteArray;
 class QString;
 
-namespace EspINA
+namespace ESPINA
 {
   namespace PolyDataUtils
   {

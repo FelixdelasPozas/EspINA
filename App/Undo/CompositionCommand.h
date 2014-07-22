@@ -26,7 +26,7 @@
 #include <Core/Filters/ImageLogicFilter.h>
 #include <Core/Model/EspinaModel.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class CompositionCommand
@@ -69,6 +69,6 @@ namespace EspINA
     SegmentationSPtr m_seg;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // COMPOSITIONCOMMAND_H

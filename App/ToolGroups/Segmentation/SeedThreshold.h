@@ -27,7 +27,7 @@
 class QSpinBox;
 class QLabel;
 
-namespace EspINA
+namespace ESPINA
 {
   class SeedThreshold
   : public QWidgetAction
@@ -65,6 +65,6 @@ namespace EspINA
     bool m_symmetrical;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_THRESHOLD_ACTION

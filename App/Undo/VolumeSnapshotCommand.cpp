@@ -30,7 +30,7 @@
 
 #include <Core/OutputRepresentations/VolumeRepresentation.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 VolumeSnapshotCommand::VolumeSnapshotCommand(OutputSPtr output)

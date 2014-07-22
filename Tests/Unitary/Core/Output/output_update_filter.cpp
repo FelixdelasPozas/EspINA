@@ -29,7 +29,7 @@
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 

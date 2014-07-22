@@ -30,7 +30,7 @@
 
 #include "NmVector3.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 bool Test_Bounds_Are_Inside(const Bounds& contained, const Bounds& container, bool pass_if_inside = true) {

@@ -23,7 +23,7 @@
 #include "SASAnalysisDialog.h"
 #include "SASTabularReport.h"
 
-// EspINA
+// ESPINA
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <Core/Factory/CoreFactory.h>
@@ -39,7 +39,7 @@
 #include <QHBoxLayout>
 #include <QDialogButtonBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);
 
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
 
   settings.beginGroup("Synaptic Apposition Surface Information Analysis");
   resize(settings.value("size", QSize (200, 200)).toSize());
@@ -78,7 +78,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
 //----------------------------------------------------------------------------
 void SASAnalysisDialog::closeEvent(QCloseEvent *event)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
 
   settings.beginGroup("Synaptic Apposition Surface Information Analysis");
   settings.setValue("size", size());

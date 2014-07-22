@@ -21,14 +21,14 @@
 #ifndef ESPINA_ROI_H_
 #define ESPINA_ROI_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaCore_Export.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
 // ITK
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT ROI
   : public SparseVolume<itkVolumeType>
@@ -262,6 +262,6 @@ namespace EspINA
     }
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

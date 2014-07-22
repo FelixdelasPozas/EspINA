@@ -25,13 +25,13 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// EspINA
+// ESPINA
 #include "ChangeSegmentationNotes.h"
 
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,

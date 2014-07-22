@@ -29,7 +29,7 @@
 #include "Core/Analysis/Extension.h"
 #include "Core/Analysis/Output.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT Channel
   : public ViewItem
@@ -194,6 +194,6 @@ namespace EspINA
     ChannelExtensionSMap m_extensions;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CHANNEL_H

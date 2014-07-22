@@ -18,12 +18,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CircularBrushROISelector.h"
 #include <Filters/Utils/vtkTube.h>
 #include <Core/Utils/Spatial.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CircularBrushROISelector::CircularBrushROISelector()

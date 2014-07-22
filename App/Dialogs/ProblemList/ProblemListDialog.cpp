@@ -21,7 +21,7 @@
 #include "ProblemListDialog.h"
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   ProblemListDialog::ProblemListDialog(ProblemList problemList)
@@ -88,4 +88,4 @@ namespace EspINA
   {
   }
 
-} // namespace EspINA
+} // namespace ESPINA

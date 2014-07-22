@@ -29,7 +29,7 @@
 #include "Core/Utils/Bounds.h"
 #include "Core/Analysis/Data/VolumetricDataUtils.h"
 
-namespace EspINA
+namespace ESPINA
 {
   namespace Testing {
 
@@ -68,6 +68,6 @@ namespace EspINA
 #include "Testing_Support.txx"
 
   } // namespace Testing
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_TESTING_SUPPORT_H

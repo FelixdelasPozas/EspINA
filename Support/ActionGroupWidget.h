@@ -24,7 +24,7 @@
 
 #include <QWidgetAction>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ActionGroupWidget
   : public QWidgetAction

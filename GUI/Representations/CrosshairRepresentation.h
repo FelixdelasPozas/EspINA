@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "Representation.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/Spatial.h>
@@ -43,7 +43,7 @@ class vtkLookupTable;
 class vtkImageShiftScale;
 class vtkImageMapToColors;
 
-namespace EspINA
+namespace ESPINA
 {
   class View2D;
   class View3D;
@@ -142,6 +142,6 @@ namespace EspINA
   typedef std::shared_ptr<CrosshairRepresentation> CrosshairRepresentationSPtr;
   typedef QList<CrosshairRepresentationSPtr> CrosshairRepresentationSList;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CROSSHAIR_REPRESENTATION_H

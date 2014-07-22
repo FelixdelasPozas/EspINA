@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.h>
 #include <Core/Utils/TemporalStorage.h>
@@ -37,7 +37,7 @@
 // VTK
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 Filter::~Filter()

@@ -25,7 +25,7 @@
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace Testing {
 //     bool checkAnalysisContent(Analysis& analysis,
 //                               int numSamples,

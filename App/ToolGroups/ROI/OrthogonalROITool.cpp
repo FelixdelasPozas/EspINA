@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "OrthogonalROITool.h"
 #include "ROITools.h"
 #include <App/Settings/ROI/ROISettings.h>
@@ -31,7 +31,7 @@
 #include <QAction>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,

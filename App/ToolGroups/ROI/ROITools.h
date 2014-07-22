@@ -20,7 +20,7 @@
 #ifndef ESPINA_ROI_TOOLS_H
 #define ESPINA_ROI_TOOLS_H
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Support/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -30,7 +30,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class ROISettings;
@@ -112,6 +112,6 @@ namespace EspINA
     EspinaWidgetSPtr m_accumulatorWidget;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// ESPINA_ROI_TOOLS_H

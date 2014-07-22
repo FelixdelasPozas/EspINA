@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "VolumetricRenderer.h"
 #include "GUI/View/RenderView.h"
 #include <GUI/Representations/VolumetricGPURepresentation.h>
@@ -34,7 +34,7 @@
 // Qt
 #include <QApplication>
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   class EspinaGUI_EXPORT VolumetricGPURenderer
@@ -125,6 +125,6 @@ namespace EspINA
     return (repType == VolumetricGPURepresentation<T>::TYPE);
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VOLUMETRIC_GPU_RENDERER_H

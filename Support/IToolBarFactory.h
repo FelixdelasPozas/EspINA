@@ -28,7 +28,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ModelAdapter;
   class ViewManager;
@@ -44,9 +44,9 @@ namespace EspINA
     virtual QList<IToolBar *> toolBars() const = 0;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-Q_DECLARE_INTERFACE(EspINA::IToolBarFactory,
-                    "es.upm.cesvima.EspINA.ToolBarInterface/1.4")
+Q_DECLARE_INTERFACE(ESPINA::IToolBarFactory,
+                    "es.upm.cesvima.ESPINA.ToolBarInterface/1.4")
 
 #endif //ITOOLBARFACTORY_H

@@ -23,7 +23,7 @@
 
 #include <QString>
 
-namespace EspINA
+namespace ESPINA
 {
   const QString DEFAULT_ROI_X("DefaultOrthogonalROI::X");
   const QString DEFAULT_ROI_Y("DefaultOrthogonalROI::Y");

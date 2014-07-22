@@ -27,7 +27,7 @@
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
 #include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF {
 
@@ -109,6 +109,6 @@ namespace EspINA
   CountingFrameExtensionSPtr countingFrameExtensionPtr(ChannelExtensionSPtr extension);
 
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_COUNTING_FRAME_EXTENSION_H

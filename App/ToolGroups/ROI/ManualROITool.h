@@ -20,7 +20,7 @@
 #ifndef ESPINA_BRUSH_ROI_H
 #define ESPINA_BRUSH_ROI_H
 
-// EspINA
+// ESPINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -30,7 +30,7 @@
 #include <QUndoStack>
 
 class QAction;
-namespace EspINA
+namespace ESPINA
 {
   class ROIToolsGroup;
 
@@ -102,6 +102,6 @@ namespace EspINA
 
   using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_BRUSH_ROI_H

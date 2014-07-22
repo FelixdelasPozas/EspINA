@@ -10,7 +10,7 @@
 
 #include "AppositionSurfacePlugin_Export.h"
 
-// EspINA
+// ESPINA
 #include <Filters/BasicSegmentationFilter.h>
 
 // ITK
@@ -36,7 +36,7 @@
 
 class QString;
 
-namespace EspINA
+namespace ESPINA
 {
   class SASFetchBehaviour;
 
@@ -199,5 +199,5 @@ namespace EspINA
   using AppositionSurfaceFilterPtr  = AppositionSurfaceFilter *;
   using AppositionSurfaceFilterSPtr = std::shared_ptr<AppositionSurfaceFilter>;
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* APPOSITIONSURFACEFILTER_H_ */

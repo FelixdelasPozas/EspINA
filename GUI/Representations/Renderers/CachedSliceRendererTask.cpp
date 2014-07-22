@@ -18,11 +18,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CachedSliceRendererTask.h"
 #include <GUI/Representations/SliceCachedRepresentation.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CachedSliceRendererTask::CachedSliceRendererTask(SchedulerSPtr scheduler)
@@ -145,4 +145,4 @@ namespace EspINA
     emit ready(m_node);
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

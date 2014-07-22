@@ -33,7 +33,7 @@
 #include <QColorDialog>
 #include <QItemDelegate>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 class RenameCategoryCommand

@@ -33,7 +33,7 @@
 class QPushButton;
 class QTableView;
 
-namespace EspINA
+namespace ESPINA
 {
   class TabularReport
   : public QAbstractItemView
@@ -134,6 +134,6 @@ namespace EspINA
     bool m_multiSelection;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // DATAVIEW_H

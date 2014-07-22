@@ -29,7 +29,7 @@
 class QLineEdit;
 class QBoxLayout;
 
-namespace EspINA {
+namespace ESPINA {
 
   class EntryWidget
   : public QGroupBox
@@ -62,6 +62,6 @@ namespace EspINA {
     std::vector<std::function<void()>> m_applyFunctors;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_METADONA_ENTRY_WIDGET_H

@@ -27,7 +27,7 @@
 #include <itkImageToImageFilter.h>
 #include <itkCommand.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaFilters_EXPORT MorphologicalEditionFilter
   : public Filter
@@ -78,6 +78,6 @@ namespace EspINA
 
   using MorphologicalEditionFilterPtr  = MorphologicalEditionFilter *;
   using MorphologicalEditionFilterSPtr = std::shared_ptr<MorphologicalEditionFilter>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MORPHOLOGICAL_EDITION_FILTER_H

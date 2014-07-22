@@ -25,7 +25,7 @@
 #include <GUI/ISettingsPanel.h>
 #include "ui_EditorSettingsPanel.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EditorToolBarSettings;
 
@@ -59,6 +59,6 @@ namespace EspINA
   EditorToolBarSettings *m_settings;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEEDGROWSEGMENTATIONPREFERENCES_H

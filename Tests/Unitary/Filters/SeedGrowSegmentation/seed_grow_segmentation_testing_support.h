@@ -24,7 +24,7 @@
 
 #include <Core/Analysis/Input.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace Testing {
     InputSPtr inputChannel();
   }

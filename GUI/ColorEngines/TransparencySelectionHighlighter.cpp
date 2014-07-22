@@ -22,7 +22,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 ColorEngine::LUTMap TransparencySelectionHighlighter::m_LUT;
 

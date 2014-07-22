@@ -22,8 +22,8 @@
 #include "CountingFrameFactories.h"
 #include "CountingFrameExtension.h"
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 ChannelExtensionFactoryCF::ChannelExtensionFactoryCF(CountingFrameManager* manager, SchedulerSPtr scheduler)

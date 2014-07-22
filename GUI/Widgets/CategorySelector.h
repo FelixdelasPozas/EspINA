@@ -28,7 +28,7 @@
 #include <QSpinBox>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class CategorySelector
@@ -62,6 +62,6 @@ namespace EspINA
     CategoryAdapterSPtr m_selectedCategory;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CATEGORY_SELECTOR_H

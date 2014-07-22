@@ -28,7 +28,7 @@
 
 #include "Core/Analysis/Graph/DirectedGraph.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int directed_graph_default_constructor( int argc, char** argv )

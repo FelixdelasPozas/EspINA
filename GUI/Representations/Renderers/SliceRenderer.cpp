@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SliceRenderer.h"
 #include "GUI/Representations/SliceRepresentation.h"
 #include "GUI/Representations/SliceCachedRepresentation.h"
@@ -35,7 +35,7 @@
 #include <QDebug>
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   SliceRenderer::SliceRenderer(QObject *parent)
@@ -246,4 +246,4 @@ namespace EspINA
     return selection;
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

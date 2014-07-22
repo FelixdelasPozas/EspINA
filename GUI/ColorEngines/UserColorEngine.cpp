@@ -24,7 +24,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;

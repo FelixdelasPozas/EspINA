@@ -21,7 +21,7 @@
 
 #include "RepresentationEmptySettings.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RepresentationEmptySettings::RepresentationEmptySettings()

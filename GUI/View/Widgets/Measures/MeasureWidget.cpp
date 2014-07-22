@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "MeasureWidget.h"
 #include <Core/EspinaTypes.h>
 #include <GUI/View/RenderView.h>
@@ -28,7 +28,7 @@
 #include <QMouseEvent>
 #include <QKeyEvent>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 MeasureWidget::MeasureWidget()

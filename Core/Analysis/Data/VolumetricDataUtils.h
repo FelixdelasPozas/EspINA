@@ -34,7 +34,7 @@
 #include <itkExtractImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   /** \brief Return the image reagion equivalent to the bounds.
    * 

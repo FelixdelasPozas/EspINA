@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "GUI/Representations/MeshRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include <GUI/View/View3D.h>
@@ -30,7 +30,7 @@
 #include <vtkLookupTable.h>
 #include <vtkProperty.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type MeshRepresentation::TYPE = "Mesh";
 

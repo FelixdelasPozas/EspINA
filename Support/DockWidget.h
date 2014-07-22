@@ -30,7 +30,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaSupport_EXPORT DockWidget
   : public QDockWidget

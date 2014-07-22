@@ -34,8 +34,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 OrtogonalCountingFrame::OrtogonalCountingFrame(CountingFrameExtension *channelExt,

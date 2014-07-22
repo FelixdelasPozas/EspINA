@@ -21,7 +21,7 @@
 
 #include "CODETool.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CODETool::CODETool(const QString& icon, const QString& tooltip)

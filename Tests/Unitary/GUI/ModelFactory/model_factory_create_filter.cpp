@@ -33,8 +33,8 @@
 #include "model_factory_testing_support.h"
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 
 int model_factory_create_filter(int argc, char** argv)

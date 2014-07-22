@@ -16,7 +16,7 @@
 
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace IO 
   {
@@ -48,6 +48,6 @@ namespace EspINA
 
   using ErrorHandlerPtr  = IO::ErrorHandler*;
   using ErrorHandlerSPtr = std::shared_ptr<IO::ErrorHandler>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_IO_ERRORHANDLER_H

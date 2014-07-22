@@ -8,7 +8,7 @@
 
 #include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class SettingsPanel;
 
@@ -35,6 +35,6 @@ namespace EspINA
 
     virtual SettingsPanelPtr clone() = 0;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// ISETTINGSPANEL_H

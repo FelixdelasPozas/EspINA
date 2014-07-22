@@ -29,7 +29,7 @@
 #include <QVariant>
 #include <QReadWriteLock>
 
-namespace EspINA
+namespace ESPINA
 {
 
   template<typename T>
@@ -207,6 +207,6 @@ namespace EspINA
   using SegmentationExtensionSMap     = QMap<QString,SegmentationExtensionSPtr>;
   using SegmentationExtensionTypeList = QList<SegmentationExtension::Type>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_EXTENSION_H

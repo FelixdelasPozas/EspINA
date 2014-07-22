@@ -19,7 +19,7 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
@@ -35,7 +35,7 @@
 #include <QUndoStack>
 #include <QSettings>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
@@ -344,7 +344,7 @@ void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {
-    QSettings settings(CESVIMA, ESPINA);
+    ESPINA_SETTINGS(settings);
     settings.beginGroup(ROI_SETTINGS_GROUP);
 
     xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();

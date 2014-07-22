@@ -29,7 +29,7 @@
 #include "TaskProgress.h"
 #include <Core/MultiTasking/Task.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 TaskProgress::TaskProgress(TaskSPtr task)
 : QWidget()

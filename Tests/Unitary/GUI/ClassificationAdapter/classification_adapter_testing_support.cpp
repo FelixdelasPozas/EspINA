@@ -27,10 +27,10 @@
  */
 #include "classification_adapter_testing_support.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
-bool EspINA::TestName(const CategoryAdapterSPtr category, const QString& name)
+bool ESPINA::TestName(const CategoryAdapterSPtr category, const QString& name)
 {
    bool error = false;
 
@@ -43,7 +43,7 @@ bool EspINA::TestName(const CategoryAdapterSPtr category, const QString& name)
    return error;
  }
 
-bool EspINA::TestClassificationName(const CategoryAdapterSPtr category, const QString& name)
+bool ESPINA::TestClassificationName(const CategoryAdapterSPtr category, const QString& name)
 {
    bool error = false;
 

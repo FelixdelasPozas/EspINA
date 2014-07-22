@@ -8,7 +8,7 @@
 #ifndef TUBULARTOOL_H_
 #define TUBULARTOOL_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Tools/ITool.h>
 #include <GUI/Pickers/PixelSelector.h>
 #include <Core/Model/EspinaModel.h>
@@ -19,7 +19,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ISelector;
   class Channel;

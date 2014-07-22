@@ -30,7 +30,7 @@
 
 #include <QShortcut>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewTools
   : public ToolGroup
@@ -62,6 +62,6 @@ namespace EspINA
     QShortcut *m_crosshairShortcut;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ZOOM_TOOLS_H

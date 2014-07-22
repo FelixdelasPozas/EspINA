@@ -38,7 +38,7 @@
 #include <QItemDelegate>
 #include <qvarlengtharray.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace xlslib_core;
 
 const QString SEGMENTATION_GROUP = "Segmentation";
@@ -241,7 +241,7 @@ void TabularReport::Entry::extractInformation()
   }
 
   if (!result)
-    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+    QMessageBox::warning(this, "ESPINA", tr("Couldn't export %1").arg(fileName));
 }
 
 //------------------------------------------------------------------------

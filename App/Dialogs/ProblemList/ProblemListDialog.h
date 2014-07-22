@@ -25,7 +25,7 @@
 #include <QDialog>
 #include "ui_ProblemListDialog.h"
 
-namespace EspINA
+namespace ESPINA
 {
   /* \brief Enumeration of problem severity.
    *
@@ -101,6 +101,6 @@ namespace EspINA
       }
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_PROBLEM_LIST_DIALOG_H_

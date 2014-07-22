@@ -22,7 +22,7 @@
 #include "SASInformationProxy.h"
 #include "SASTabularReport.h"
 
-// EspINA
+// ESPINA
 #include <App/Dialogs/TabularReport/TabularReportEntry.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Widgets/InformationSelector.h>
@@ -48,7 +48,7 @@ public:
 protected:
   virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
   {
-    int role = left.column() > 0 ? Qt::DisplayRole : EspINA::TypeRole + 1;
+    int role = left.column() > 0 ? Qt::DisplayRole : ESPINA::TypeRole + 1;
     bool ok1, ok2;
     double lv = left.data(role).toDouble(&ok1);
     double rv = right.data(role).toDouble(&ok2);
@@ -60,7 +60,7 @@ protected:
   }
 };
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   void SASTabularReport::createCategoryEntry(const QString& category)
@@ -170,7 +170,7 @@ namespace EspINA
     }
 
     if (!result)
-      QMessageBox::warning(this, "EspINA", tr("Unable to export %1").arg(fileName));
+      QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
   }
 
   //------------------------------------------------------------------------
@@ -236,10 +236,10 @@ namespace EspINA
     }
 
     if (!result)
-      QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+      QMessageBox::warning(this, "ESPINA", tr("Couldn't export %1").arg(fileName));
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 
 

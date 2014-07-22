@@ -23,14 +23,14 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "RepresentationRenderer.h"
 #include <GUI/View/SelectableView.h>
 #include <QFlags>
 
 class vtkPropPicker;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   
@@ -78,5 +78,5 @@ namespace EspINA
       vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_SLICE_RENDERER_H_

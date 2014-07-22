@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "MeshRenderer.h"
 #include <GUI/Representations/MeshRepresentation.h>
 
@@ -28,7 +28,7 @@
 // Qt
 #include <QApplication>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   MeshRenderer::MeshRenderer(QObject *parent)
@@ -182,7 +182,7 @@ namespace EspINA
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
 
-    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
+    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(ESPINA::SEGMENTATION))
       return selection;
 
     while (m_picker->Pick(x, y, 0, renderer))
@@ -221,5 +221,5 @@ namespace EspINA
     return selection;
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 

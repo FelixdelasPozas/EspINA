@@ -27,7 +27,7 @@
 
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   // Remove Taxonomical Element from model
   class EspinaUndo_EXPORT RemoveCategoryCommand
@@ -51,6 +51,6 @@ namespace EspINA
     CategoryAdapterSPtr m_parent;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // TAXONOMIESCOMMAND_H

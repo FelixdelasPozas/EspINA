@@ -28,7 +28,7 @@
 
 #include "VolumeBounds.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int default_constructor( int argc, char** argv )

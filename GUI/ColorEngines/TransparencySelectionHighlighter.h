@@ -27,7 +27,7 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
 // NOTE 2012-10-11 Consider unifying its interface with ColorEngine
 class EspinaGUI_EXPORT TransparencySelectionHighlighter
@@ -43,6 +43,6 @@ private:
   static ColorEngine::LUTMap m_LUT;
 };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H

@@ -27,7 +27,7 @@
 
 #include <ui_SchedulerProgress.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class SchedulerProgress 
   : public QWidget

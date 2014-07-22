@@ -34,7 +34,7 @@
 #include <memory>
 
 class vtkImplicitFunction;
-namespace EspINA
+namespace ESPINA
 {
   template<typename T>
   class EspinaCore_EXPORT VolumetricData
@@ -155,7 +155,7 @@ namespace EspINA
   DefaultVolumetricDataSPtr volumetricData(OutputSPtr output);
 
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #include "Core/Analysis/Data/VolumetricData.txx"
 

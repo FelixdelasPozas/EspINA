@@ -28,7 +28,7 @@
 
 #include <GUI/View/View3D.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaFactory;
 
@@ -63,6 +63,6 @@ namespace EspINA
     RenderersSelector   *m_rendererSelector;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_3D_SETTINGS_PANEL_H

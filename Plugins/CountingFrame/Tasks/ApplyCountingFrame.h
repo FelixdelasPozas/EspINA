@@ -29,7 +29,7 @@
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <GUI/Model/ChannelAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -70,6 +70,6 @@ namespace EspINA
     using ApplyCountingFrameSPtr = std::shared_ptr<ApplyCountingFrame>;
 
   } // namespace CF
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CREATE_COUNTING_FRAME_H

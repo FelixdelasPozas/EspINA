@@ -24,7 +24,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
@@ -46,7 +46,7 @@ class vtkImageData;
 class Channel;
 class PickableItem;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -166,6 +166,6 @@ namespace EspINA
   using BrushSelectorPtr  = BrushSelector *;
   using BrushSelectorSPtr = std::shared_ptr<BrushSelector>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_BRUSH_SELECTOR_H

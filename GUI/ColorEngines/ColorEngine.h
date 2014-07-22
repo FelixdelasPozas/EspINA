@@ -28,7 +28,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   using LUTSPtr = vtkSmartPointer<vtkLookupTable>;
 
@@ -62,6 +62,6 @@ namespace EspINA
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // COLORENGINE_H

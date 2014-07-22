@@ -31,7 +31,7 @@
 
 class CategorytemDelegate;
 
-namespace EspINA
+namespace ESPINA
 {
   class ClassificationLayout
   : public SegmentationExplorer::Layout
@@ -102,6 +102,6 @@ namespace EspINA
     QPushButton *m_changeCategoryColor;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CLASSIFICATION_LAYOUT_H

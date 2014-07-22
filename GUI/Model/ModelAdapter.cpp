@@ -27,9 +27,9 @@
 
 #include "GUI/Model/SegmentationAdapter.h"
 
-// EspINA
+// ESPINA
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ModelAdapter::ModelAdapter()
@@ -655,7 +655,7 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
 {
   RelationList relations;
 
-  if (EspINA::RELATION_IN == type || EspINA::RELATION_INOUT == type)
+  if (ESPINA::RELATION_IN == type || ESPINA::RELATION_INOUT == type)
   {
     for(auto edge : m_analysis->relationships()->inEdges(item->m_analysisItem, filter))
     {
@@ -667,7 +667,7 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
     }
   }
 
-  if (EspINA::RELATION_OUT == type || EspINA::RELATION_INOUT == type)
+  if (ESPINA::RELATION_OUT == type || ESPINA::RELATION_INOUT == type)
   {
     for(auto edge : m_analysis->relationships()->outEdges(item->m_analysisItem, filter))
     {
@@ -1121,37 +1121,37 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 }
 
 //------------------------------------------------------------------------
-ItemAdapterPtr EspINA::itemAdapter(const QModelIndex& index)
+ItemAdapterPtr ESPINA::itemAdapter(const QModelIndex& index)
 {
   return static_cast<ItemAdapterPtr>(index.internalPointer());
 }
 
 //------------------------------------------------------------------------
-bool EspINA::isClassification(ItemAdapterPtr item)
+bool ESPINA::isClassification(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::CLASSIFICATION == item->type();
 }
 
 //------------------------------------------------------------------------
-bool EspINA::isCategory(ItemAdapterPtr item)
+bool ESPINA::isCategory(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::CATEGORY == item->type();
 }
 
 //------------------------------------------------------------------------
-bool EspINA::isSample(ItemAdapterPtr item)
+bool ESPINA::isSample(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SAMPLE == item->type();
 }
 
 //------------------------------------------------------------------------
-bool EspINA::isChannel(ItemAdapterPtr item)
+bool ESPINA::isChannel(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::CHANNEL == item->type();
 }
 
 //------------------------------------------------------------------------
-bool EspINA::isSegmentation(ItemAdapterPtr item)
+bool ESPINA::isSegmentation(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SEGMENTATION == item->type();
 }
@@ -1560,19 +1560,19 @@ bool EspINA::isSegmentation(ItemAdapterPtr item)
 //   ModelItemSPtr res;
 //   switch (item->type())
 //   {
-//     case EspINA::TAXONOMY:
+//     case ESPINA::TAXONOMY:
 //       res = findTaxonomyElement(item);
 //       break;
-//     case EspINA::SAMPLE:
+//     case ESPINA::SAMPLE:
 //       res = findSample(item);
 //       break;
-//     case EspINA::CHANNEL:
+//     case ESPINA::CHANNEL:
 //       res = findChannel(item);
 //       break;
-//     case EspINA::FILTER:
+//     case ESPINA::FILTER:
 //       res = findFilter(item);
 //       break;
-//     case EspINA::SEGMENTATION:
+//     case ESPINA::SEGMENTATION:
 //       res = findSegmentation(item);
 //       break;
 //   };

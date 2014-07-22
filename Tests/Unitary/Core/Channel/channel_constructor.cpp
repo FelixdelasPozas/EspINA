@@ -31,7 +31,7 @@
 #include <Core/Analysis/Storage.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int output_valid_output( int argc, char** argv )

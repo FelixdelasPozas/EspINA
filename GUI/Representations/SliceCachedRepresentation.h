@@ -21,7 +21,7 @@
 #ifndef ESPINA_SLICE_CACHED_REPRESENTATION_H_
 #define ESPINA_SLICE_CACHED_REPRESENTATION_H_
 
-// EspINA
+// ESPINA
 #include "Representation.h"
 #include "RepresentationEmptySettings.h"
 #include <Core/Analysis/Data/VolumetricData.h>
@@ -33,7 +33,7 @@
 
 class vtkImageActor;
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
 
@@ -312,6 +312,6 @@ namespace EspINA
   using SegmentationSliceCachedRepresentationSPtr = std::shared_ptr<SegmentationSliceCachedRepresentation>;
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif /* SLICECACHEDREPRESENTATION_H_ */

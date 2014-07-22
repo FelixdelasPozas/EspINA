@@ -24,7 +24,7 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/ItemAdapter.h>
@@ -32,7 +32,7 @@
 // Qt
 #include <QUndoCommand>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaUndo_EXPORT AddRelationCommand
   : public QUndoCommand
@@ -54,6 +54,6 @@ namespace EspINA
     ModelAdapterSPtr m_model;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_ADD_RELATION_COMMAND_H

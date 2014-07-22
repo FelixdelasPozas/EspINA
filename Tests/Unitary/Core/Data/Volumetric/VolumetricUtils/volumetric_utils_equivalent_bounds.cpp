@@ -30,8 +30,8 @@
 
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int volumetric_utils_equivalent_bounds( int argc, char** argv )
 {

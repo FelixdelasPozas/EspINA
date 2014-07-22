@@ -32,7 +32,7 @@
 #include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString SGS_ROI = "SGS ROI";
 

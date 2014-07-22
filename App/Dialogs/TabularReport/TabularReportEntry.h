@@ -39,7 +39,7 @@
 #include <xlslib.h>
 #include <QSettings>
 
-namespace EspINA
+namespace ESPINA
 {
   using ExcelWorkBook = std::shared_ptr<xlslib_core::workbook>;
 
@@ -111,6 +111,6 @@ namespace EspINA
 
     InformationProxy *m_proxy;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_TABULAR_REPORT_ENTRY_H

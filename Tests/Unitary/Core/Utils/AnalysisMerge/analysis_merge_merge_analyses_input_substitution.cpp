@@ -26,8 +26,8 @@
 #include <Tests/Unitary/Core/Utils/AnalysisMerge/analysis_merge_testing_support.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int analysis_merge_merge_analyses_input_substitution( int argc, char** argv )
 {

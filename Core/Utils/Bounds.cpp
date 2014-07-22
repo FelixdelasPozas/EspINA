@@ -30,7 +30,7 @@
 
 #include <tgmath.h> // std::round(double)
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 Bounds::Bounds()
@@ -143,7 +143,7 @@ QString Bounds::toString() const
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
+bool ESPINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
 //   auto lessThan         = [](double a, double b){return a <  b;};
   auto lessEqualThan    = [](double a, double b){return a <= b;};
@@ -175,7 +175,7 @@ bool EspINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 
 
 //-----------------------------------------------------------------------------
-Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
+Bounds ESPINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
   Bounds res;
 
@@ -221,7 +221,7 @@ Bounds EspINA::intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacin
 }
 
 //-----------------------------------------------------------------------------
-Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
+Bounds ESPINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
 {
   Bounds bb;
 
@@ -245,7 +245,7 @@ Bounds EspINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing
 
 
 //-----------------------------------------------------------------------------
-std::ostream& EspINA::operator<<(std::ostream& os, const Bounds& bounds)
+std::ostream& ESPINA::operator<<(std::ostream& os, const Bounds& bounds)
 {
   os << bounds.toString().toStdString();
 
@@ -253,7 +253,7 @@ std::ostream& EspINA::operator<<(std::ostream& os, const Bounds& bounds)
 }
 
 //-----------------------------------------------------------------------------
-QDebug EspINA::operator<< (QDebug d, const Bounds &bounds)
+QDebug ESPINA::operator<< (QDebug d, const Bounds &bounds)
 {
   char borders[6];
   for(auto i: { 0,1,2 })
@@ -275,7 +275,7 @@ QDebug EspINA::operator<< (QDebug d, const Bounds &bounds)
 
 
 //-----------------------------------------------------------------------------
-bool EspINA::contains(const Bounds& container, const Bounds& contained, const NmVector3& spacing)
+bool ESPINA::contains(const Bounds& container, const Bounds& contained, const NmVector3& spacing)
 {
   //return intersection(container, contained) == contained;
 
@@ -307,7 +307,7 @@ bool EspINA::contains(const Bounds& container, const Bounds& contained, const Nm
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::contains(const Bounds& bounds, const NmVector3& point, const NmVector3& spacing)
+bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVector3& spacing)
 {
   int i = 0;
   int j = 0;
@@ -334,7 +334,7 @@ bool EspINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
 
 
 //-----------------------------------------------------------------------------
-bool EspINA::operator==(const Bounds &lhs, const Bounds &rhs)
+bool ESPINA::operator==(const Bounds &lhs, const Bounds &rhs)
 {
   for (int i = 0; i < 6; ++i) {
     if (!areEqual(lhs[i], rhs[i])) return false;
@@ -350,13 +350,13 @@ bool EspINA::operator==(const Bounds &lhs, const Bounds &rhs)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::operator!=(const Bounds &lhs, const Bounds &rhs)
+bool ESPINA::operator!=(const Bounds &lhs, const Bounds &rhs)
 {
   return !(lhs == rhs);
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
+bool ESPINA::areAdjacent(const Bounds &lhs, const Bounds &rhs)
 {
   int coincident = 0;
   int adjacent = 0;

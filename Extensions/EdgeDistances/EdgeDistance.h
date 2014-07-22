@@ -28,7 +28,7 @@
 #include <Core/Utils/Spatial.h>
 #include <QMutex>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaExtensions_EXPORT EdgeDistance
@@ -87,6 +87,6 @@ namespace EspINA
 
   EdgeDistancePtr edgeDistance(SegmentationExtensionPtr extension);
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_EDGE_DISTANCE_H

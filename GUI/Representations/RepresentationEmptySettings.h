@@ -25,7 +25,7 @@
 #include "GUI/Representations/RepresentationSettings.h"
 #include "ui_RepresentationEmptySettings.h"
 
-namespace EspINA
+namespace ESPINA
 {
 
   class RepresentationEmptySettings 
@@ -39,6 +39,6 @@ namespace EspINA
     virtual void set(RepresentationSPtr representation);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_EMPTY_SETTINGS_H

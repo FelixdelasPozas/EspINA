@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <GUI/View/View2D.h>
 #include <Tools/Brushes/ROISelectorBase.h>
 
@@ -34,7 +34,7 @@
 #include <QEvent>
 #include <QMouseEvent>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   ROISelectorBase::ROISelectorBase()
@@ -249,4 +249,4 @@ namespace EspINA
     m_brushes.clear();
   }
 
-} // namespace EspINA
+} // namespace ESPINA

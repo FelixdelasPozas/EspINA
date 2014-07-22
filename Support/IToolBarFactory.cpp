@@ -7,7 +7,7 @@
 
 #include "IToolBarFactory.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   IToolBarFactory::~IToolBarFactory()

@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "RepresentationRenderer.h"
 #include <GUI/Representations/VolumetricRepresentation.h>
 #include <GUI/View/RenderView.h>
@@ -36,7 +36,7 @@
 // Qt
 #include <QApplication>
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   class EspinaGUI_EXPORT VolumetricRenderer
@@ -59,7 +59,7 @@ namespace EspINA
 
     unsigned int numberOfvtkActors() const { return 0; }
 
-    RenderableItems renderableItems() const { return RenderableItems(EspINA::SEGMENTATION); }
+    RenderableItems renderableItems() const { return RenderableItems(ESPINA::SEGMENTATION); }
 
     RendererTypes renderType() const { return RendererTypes(RENDERER_VIEW3D); }
 
@@ -242,7 +242,7 @@ namespace EspINA
     ViewItemAdapterList selection;
     QList<vtkVolume *> removedProps;
 
-    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
+    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(ESPINA::SEGMENTATION))
       return selection;
 
     while (m_picker->Pick(x, y, 0, renderer))
@@ -281,6 +281,6 @@ namespace EspINA
     return selection;
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VOLUMETRIC_RENDERER_H

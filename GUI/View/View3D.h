@@ -23,7 +23,7 @@
 
 #include <GUI/View/RenderView.h>
 
-// EspINA
+// ESPINA
 #include "GUI/Representations/Renderers/Renderer.h"
 #include "GUI/Representations/Representation.h"
 
@@ -44,7 +44,7 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QScrollBar;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT View3D
   : public RenderView
@@ -90,7 +90,7 @@ namespace EspINA
 
     virtual bool eventFilter(QObject* caller, QEvent* e);
 
-    virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
+    virtual RepresentationSPtr cloneRepresentation(ESPINA::ViewItemAdapterPtr item, ESPINA::Representation::Type representation);
 
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
@@ -164,6 +164,6 @@ namespace EspINA
   inline View3D * view3D_cast(RenderView* view)
   { return dynamic_cast<View3D *>(view); }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_3D_H

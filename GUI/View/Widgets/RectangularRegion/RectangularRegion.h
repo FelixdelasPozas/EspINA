@@ -34,7 +34,7 @@
 #include <vtkCommand.h>
 #include <vtkSmartPointer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class vtkRectangularSliceWidget;
@@ -126,6 +126,6 @@ namespace EspINA
     vtkSmartPointer<vtkRectangularRegionCommand> m_command;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_RECTANGULAR_REGION_H

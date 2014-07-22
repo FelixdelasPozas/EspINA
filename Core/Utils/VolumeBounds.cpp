@@ -32,7 +32,7 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.h>
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 VolumeBounds::VolumeBounds(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
@@ -112,7 +112,7 @@ QString VolumeBounds::toString() const
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::isMultiple(Nm point, Nm spacing)
+bool ESPINA::isMultiple(Nm point, Nm spacing)
 {
   Nm indexValue = point / spacing;
 
@@ -122,7 +122,7 @@ bool EspINA::isMultiple(Nm point, Nm spacing)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::isAligned(Nm point, Nm origin, Nm spacing)
+bool ESPINA::isAligned(Nm point, Nm origin, Nm spacing)
 {
   Nm indexValue = (point - spacing/2.0 - origin) / spacing;
 
@@ -132,7 +132,7 @@ bool EspINA::isAligned(Nm point, Nm origin, Nm spacing)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::isCompatible(const VolumeBounds &lhs, const VolumeBounds &rhs)
+bool ESPINA::isCompatible(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   if (!lhs.areValid() || !rhs.areValid()) return false;
 
@@ -150,7 +150,7 @@ bool EspINA::isCompatible(const VolumeBounds &lhs, const VolumeBounds &rhs)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::isEquivalent(const VolumeBounds &lhs, const VolumeBounds &rhs)
+bool ESPINA::isEquivalent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   if (!isCompatible(lhs, rhs)) return false;
 
@@ -168,7 +168,7 @@ bool EspINA::isEquivalent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
+bool ESPINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
 {
   if (!isCompatible(lhs, rhs)) return false;
 
@@ -197,7 +197,7 @@ bool EspINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
 }
 
 //-----------------------------------------------------------------------------
-VolumeBounds EspINA::intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
+VolumeBounds ESPINA::intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
 throw (Incompatible_Volume_Bounds_Exception)
 {
   if (!isCompatible(lhs, rhs)) throw Incompatible_Volume_Bounds_Exception();
@@ -215,7 +215,7 @@ throw (Incompatible_Volume_Bounds_Exception)
 }
 
 //-----------------------------------------------------------------------------
-VolumeBounds EspINA::boundingBox(const VolumeBounds &lhs, const VolumeBounds &rhs)
+VolumeBounds ESPINA::boundingBox(const VolumeBounds &lhs, const VolumeBounds &rhs)
 throw (Incompatible_Volume_Bounds_Exception)
 {
   if (!isCompatible(lhs, rhs)) throw Incompatible_Volume_Bounds_Exception();
@@ -224,7 +224,7 @@ throw (Incompatible_Volume_Bounds_Exception)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::contains(const VolumeBounds &container, const VolumeBounds &contained)
+bool ESPINA::contains(const VolumeBounds &container, const VolumeBounds &contained)
 {
   if (!isCompatible(container, contained)) return false;
 
@@ -232,7 +232,7 @@ bool EspINA::contains(const VolumeBounds &container, const VolumeBounds &contain
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::contains(const VolumeBounds &bounds, const NmVector3 &point)
+bool ESPINA::contains(const VolumeBounds &bounds, const NmVector3 &point)
 {
   for (int i = 0; i < 3; ++i)
   {
@@ -248,7 +248,7 @@ bool EspINA::contains(const VolumeBounds &bounds, const NmVector3 &point)
 }
 
 //-----------------------------------------------------------------------------
-std::ostream &EspINA::operator<<(std::ostream &os, const VolumeBounds &bounds)
+std::ostream &ESPINA::operator<<(std::ostream &os, const VolumeBounds &bounds)
 {
   os << bounds.toString().toStdString();
 
@@ -256,7 +256,7 @@ std::ostream &EspINA::operator<<(std::ostream &os, const VolumeBounds &bounds)
 }
 
 //-----------------------------------------------------------------------------
-QDebug EspINA::operator<< (QDebug d, const VolumeBounds &bounds)
+QDebug ESPINA::operator<< (QDebug d, const VolumeBounds &bounds)
 {
   d << QString(bounds.toString());
 
@@ -264,7 +264,7 @@ QDebug EspINA::operator<< (QDebug d, const VolumeBounds &bounds)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::operator==(const VolumeBounds &lhs, const VolumeBounds &rhs)
+bool ESPINA::operator==(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return isEquivalent(lhs, rhs) && lhs.origin() == rhs.origin();
 /*
@@ -280,13 +280,13 @@ bool EspINA::operator==(const VolumeBounds &lhs, const VolumeBounds &rhs)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::operator!=(const VolumeBounds &lhs, const VolumeBounds &rhs)
+bool ESPINA::operator!=(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return !(lhs == rhs);
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
+bool ESPINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return areAdjacent(lhs.bounds(), rhs.bounds());
 }

@@ -33,7 +33,7 @@
 
 #include <QDialog>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT NoteEditor
   : public QDialog
@@ -57,6 +57,6 @@ namespace EspINA
   private:
     GUI *m_gui;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // NOTEEDITOR_H

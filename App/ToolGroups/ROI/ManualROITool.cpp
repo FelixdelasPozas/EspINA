@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ManualROITool.h"
 #include "ROITools.h"
 #include <GUI/Widgets/SliderAction.h>
@@ -32,7 +32,7 @@
 #include <QDebug>
 #include <QAction>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ManualROITool::ManualROITool(ModelAdapterSPtr model,

@@ -21,14 +21,14 @@
 #ifndef ESPINA_RENAME_SEGMENTATIONS_COMMAND_H_
 #define ESPINA_RENAME_SEGMENTATIONS_COMMAND_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
 //Qt
 #include <QUndoStack>
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   class RenameSegmentationsCommand
   : public QUndoCommand
@@ -44,6 +44,6 @@ namespace EspINA
       QMap<SegmentationAdapterPtr, QString> m_renames;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_RENAME_SEGMENTATIONS_COMMAND_H_

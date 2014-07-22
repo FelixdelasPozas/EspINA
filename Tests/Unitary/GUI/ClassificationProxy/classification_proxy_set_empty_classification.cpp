@@ -33,7 +33,7 @@
 #include <GUI/Model/Proxies/ClassificationProxy.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int classification_proxy_set_empty_classification( int argc, char** argv )

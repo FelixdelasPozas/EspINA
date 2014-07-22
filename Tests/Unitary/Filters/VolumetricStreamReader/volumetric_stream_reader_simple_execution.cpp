@@ -32,8 +32,8 @@
 #include <itkImageFileWriter.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int volumetric_stream_reader_simple_execution(int argc, char** argv)
 {

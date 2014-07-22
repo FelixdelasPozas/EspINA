@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
 
@@ -96,25 +96,25 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   int extent[6];
   image->GetExtent(extent);
 
-  EspINA::Plane plane;
+  ESPINA::Plane plane;
   Q_ASSERT((extent[0] == extent[1]) || (extent[2] == extent[3]) || (extent[4] == extent[5]));
   if (extent[0] == extent[1])
-    plane = EspINA::Plane::YZ;
+    plane = ESPINA::Plane::YZ;
   else
     if (extent[2] == extent[3])
-      plane = EspINA::Plane::XZ;
+      plane = ESPINA::Plane::XZ;
     else
       if (extent[4] == extent[5])
-        plane = EspINA::Plane::XY;
+        plane = ESPINA::Plane::XY;
       else
-        plane = EspINA::Plane::UNDEFINED;
+        plane = ESPINA::Plane::UNDEFINED;
 
-  EspINA::Nm spacing[3];
+  ESPINA::Nm spacing[3];
   image->GetSpacing(spacing);
   m_minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
   Q_ASSERT(m_minSpacing != 0);
 
-  EspINA::Nm origin[3];
+  ESPINA::Nm origin[3];
   image->GetOrigin(origin);
 
   unsigned char previousValue;
@@ -125,12 +125,12 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
   switch (plane)
   {
-    case EspINA::Plane::XY:
+    case ESPINA::Plane::XY:
     {
       dz = static_cast<double>(extent[5]);
       for (y = extent[2]; y <= extent[3]; ++y)
       {
-        previousValue = EspINA::SEG_BG_VALUE;
+        previousValue = ESPINA::SEG_BG_VALUE;
         for (x = extent[0]; x <= extent[1]; ++x)
         {
           voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
@@ -145,7 +145,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
           previousValue = *voxel;
         }
 
-        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        if (*voxel == ESPINA::SEG_VOXEL_VALUE)
         {
           dx = static_cast<double>(x);
           dy = static_cast<double>(y);
@@ -157,7 +157,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
       for (x = extent[0]; x <= extent[1]; ++x)
       {
-        previousValue = EspINA::SEG_BG_VALUE;
+        previousValue = ESPINA::SEG_BG_VALUE;
         for (y = extent[2]; y <= extent[3]; ++y)
         {
           voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, y, extent[4]));
@@ -172,7 +172,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
           previousValue = *voxel;
         }
 
-        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        if (*voxel == ESPINA::SEG_VOXEL_VALUE)
         {
           dx = static_cast<double>(x);
           dy = static_cast<double>(y);
@@ -183,12 +183,12 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
       }
     }
       break;
-    case EspINA::Plane::XZ:
+    case ESPINA::Plane::XZ:
     {
       dy = static_cast<double>(extent[2]);
       for (z = extent[4]; z <= extent[5]; ++z)
       {
-        previousValue = EspINA::SEG_BG_VALUE;
+        previousValue = ESPINA::SEG_BG_VALUE;
         for (x = extent[0]; x <= extent[1]; ++x)
         {
           voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, extent[2], z));
@@ -203,7 +203,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
           previousValue = *voxel;
         }
 
-        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        if (*voxel == ESPINA::SEG_VOXEL_VALUE)
         {
           dx = static_cast<double>(x);
           dz = static_cast<double>(z);
@@ -215,7 +215,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
       for (x = extent[0]; x <= extent[1]; ++x)
       {
-        previousValue = EspINA::SEG_BG_VALUE;
+        previousValue = ESPINA::SEG_BG_VALUE;
         for (z = extent[4]; z <= extent[5]; ++z)
         {
           voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x, extent[2], z));
@@ -230,7 +230,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
           previousValue = *voxel;
         }
 
-        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        if (*voxel == ESPINA::SEG_VOXEL_VALUE)
         {
           dx = static_cast<double>(x);
           dz = static_cast<double>(z);
@@ -242,12 +242,12 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
     }
       break;
-    case EspINA::Plane::YZ:
+    case ESPINA::Plane::YZ:
     {
       dx = static_cast<double>(extent[0]);
       for (z = extent[4]; z <= extent[5]; ++z)
       {
-        previousValue = EspINA::SEG_BG_VALUE;
+        previousValue = ESPINA::SEG_BG_VALUE;
         for (y = extent[2]; y <= extent[3]; ++y)
         {
           voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(extent[0], y, z));
@@ -262,7 +262,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
           previousValue = *voxel;
         }
 
-        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        if (*voxel == ESPINA::SEG_VOXEL_VALUE)
         {
           dy = static_cast<double>(y);
           dz = static_cast<double>(z);
@@ -274,7 +274,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
 
       for (y = extent[2]; y <= extent[3]; ++y)
       {
-        previousValue = EspINA::SEG_BG_VALUE;
+        previousValue = ESPINA::SEG_BG_VALUE;
         for (z = extent[4]; z <= extent[5]; ++z)
         {
           voxel = reinterpret_cast<unsigned char *>(image->GetScalarPointer(extent[0], y, z));
@@ -289,7 +289,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
           previousValue = *voxel;
         }
 
-        if (*voxel == EspINA::SEG_VOXEL_VALUE)
+        if (*voxel == ESPINA::SEG_VOXEL_VALUE)
         {
           dy = static_cast<double>(y);
           dz = static_cast<double>(z);
@@ -300,7 +300,7 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
       }
     }
       break;
-    case EspINA::Plane::UNDEFINED:
+    case ESPINA::Plane::UNDEFINED:
     default:
       Q_ASSERT(false);
       break;

@@ -33,7 +33,7 @@
 #include <Core/Utils/AnalysisUtils.h>
 #include <QInputDialog>
 
-namespace EspINA {
+namespace ESPINA {
 
   template<typename I, typename L>
   void SetUniqueIdWithUserConfirmation(I& item, QString id, const L& list)

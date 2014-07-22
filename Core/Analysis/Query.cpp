@@ -28,7 +28,7 @@
 // IMPORTANT NOTE: If current relation queries are not enough to retrieve segmentation channels
 //                 we add extra check to search by content
 
-namespace EspINA
+namespace ESPINA
 {
   namespace QueryContents
   {

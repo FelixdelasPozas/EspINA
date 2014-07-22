@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "SettingsPanel.h"
 #include <Toolbars/Segmentation/SeedGrowSegmentationSettings.h>
 #include <Core/EspinaSettings.h>
@@ -32,7 +32,7 @@
 // VTK
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
@@ -43,7 +43,7 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
 , m_zValueChanged(false)
 {
   setupUi(this);
-  QSettings espinaSettings(CESVIMA, ESPINA);
+  QSettings espinaSettings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
 
   connect(m_pixelValue,SIGNAL(valueChanged(int)),
           this, SLOT(displayColor(int)));
@@ -122,7 +122,7 @@ void SeedGrowSegmentationsSettingsPanel::rejectChanges()
 //------------------------------------------------------------------------
 bool SeedGrowSegmentationsSettingsPanel::modified() const
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
 
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());

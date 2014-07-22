@@ -28,10 +28,10 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
-void EspINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory)
+void ESPINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory)
 {
   if (analysis)
   {
@@ -90,13 +90,13 @@ void EspINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr
 }
 
 //------------------------------------------------------------------------
-DefaultVolumetricDataSPtr EspINA::ModelAdapterUtils::volumetricData(OutputSPtr output)
+DefaultVolumetricDataSPtr ESPINA::ModelAdapterUtils::volumetricData(OutputSPtr output)
 {
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));
 }
 
 //------------------------------------------------------------------------
-unsigned int EspINA::ModelAdapterUtils::firstUnusedSegmentationNumber(const ModelAdapterSPtr model)
+unsigned int ESPINA::ModelAdapterUtils::firstUnusedSegmentationNumber(const ModelAdapterSPtr model)
 {
   unsigned int number = 0;
 

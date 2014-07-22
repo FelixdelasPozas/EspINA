@@ -26,7 +26,7 @@
 #include <QDebug>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SphericalBrushSelector::SphericalBrushSelector()

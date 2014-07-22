@@ -21,12 +21,12 @@
 // Plugin
 #include "SegmhaImporterPlugin.h"
 
-// EspINA
+// ESPINA
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/IO/ReadOnlyFilter.h>
 #include <Filters/SourceFilter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
 
@@ -289,4 +289,4 @@ QList<MenuEntry> SegmhaImporterPlugin::menuEntries() const
 //   return true;
 // }
 
-Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, EspINA::SegmhaImporterPlugin)
+Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, ESPINA::SegmhaImporterPlugin)
