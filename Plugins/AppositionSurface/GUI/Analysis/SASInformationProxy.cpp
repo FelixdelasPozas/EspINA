@@ -48,8 +48,8 @@ public:
     setDescription(tr("%1 information").arg(id));
     setHidden(true);
 
-    m_tags.removeOne(NAME_TAG);
-    m_tags.removeOne(CATEGORY_TAG);
+    m_tags.removeOne(NameTag());
+    m_tags.removeOne(CategoryTag());
 
     bool ready = true;
     for (auto tag : m_tags)
@@ -78,7 +78,7 @@ protected:
       if (!canExecute()) break;
 
       auto tag = m_tags[i];
-      if (tag != NAME_TAG && tag != CATEGORY_TAG)
+      if (tag != NameTag() && tag != CategoryTag())
       {
         if(tag.startsWith(SASTAG_PREPEND))
         {
@@ -156,12 +156,12 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
   {
     auto tag = m_tags[proxyIndex.column()];
 
-    if (NAME_TAG == tag)
+    if (NameTag() == tag)
     {
       return segmentation->data(role);
     }
 
-    if (CATEGORY_TAG == tag)
+    if (CategoryTag() == tag)
     {
       return segmentation->category()->data(role);
     }

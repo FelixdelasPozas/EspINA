@@ -159,12 +159,9 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
   m_view->updateView();
 
   /// EDGES TAB
-  auto edgesExtension = channel->extension(ChannelEdges::TYPE);
-  ChannelEdgesSPtr channelEdgesExtension;
-  if (edgesExtension)
-    channelEdgesExtension = std::dynamic_pointer_cast<ChannelEdges>(edgesExtension);
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
 
-  m_useDistanceToEdges = (edgesExtension != nullptr) && !channelEdgesExtension->useDistanceToBounds();
+  m_useDistanceToEdges = !edgesExtension->useDistanceToBounds();
 
   radioStackEdges->setChecked(!m_useDistanceToEdges);
   radioImageEdges->setChecked(m_useDistanceToEdges);
@@ -176,8 +173,8 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
   connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
   connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
 
-  m_backgroundColor = (edgesExtension == nullptr) ? 0 : channelEdgesExtension->backgroundColor();
-  m_threshold = (edgesExtension == nullptr) ? 50 : channelEdgesExtension->threshold();
+  m_backgroundColor = (edgesExtension == nullptr) ? 0 : edgesExtension->backgroundColor();
+  m_threshold = (edgesExtension == nullptr) ? 50 : edgesExtension->threshold();
   colorBox->setValue(m_backgroundColor);
   thresholdBox->setValue(m_threshold);
 
