@@ -39,9 +39,9 @@ using namespace ESPINA;
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //------------------------------------------------------------------------
-ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
-                                   ROISettings *settings,
-                                   ViewManagerSPtr viewManager)
+ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
+                                   ModelAdapterSPtr model,
+                                   ViewManagerSPtr  viewManager)
 : m_model           {model}
 , m_settings        {settings}
 , m_activeCategory  {nullptr}
@@ -116,7 +116,7 @@ bool ROISettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr ROISettingsPanel::clone()
 {
-  return SettingsPanelPtr(new ROISettingsPanel(m_model, m_settings, m_viewManager));
+  return SettingsPanelPtr(new ROISettingsPanel(m_settings, m_model, m_viewManager));
 }
 
 //------------------------------------------------------------------------

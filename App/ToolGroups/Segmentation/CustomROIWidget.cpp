@@ -59,11 +59,19 @@ QWidget* CustomROIWidget::createWidget(QWidget* parent)
 
     m_spinBoxROI[i] = new QSpinBox(widget);
     m_spinBoxROI[i]->setVisible(m_useROI);
+    m_spinBoxROI[i]->setAlignment(Qt::AlignRight);
     m_spinBoxROI[i]->setMinimum(0);
-    m_spinBoxROI[i]->setMaximum(1000);
+    m_spinBoxROI[i]->setMaximum(100000);
     m_spinBoxROI[i]->setValue(m_values[i]);
     m_spinBoxROI[i]->setSuffix("nm");
   }
+
+  connect(m_spinBoxROI[0], SIGNAL(valueChanged(int)),
+          this,            SLOT(onXSizeChanged(int)));
+  connect(m_spinBoxROI[1], SIGNAL(valueChanged(int)),
+          this,            SLOT(onYSizeChanged(int)));
+  connect(m_spinBoxROI[2], SIGNAL(valueChanged(int)),
+          this,            SLOT(onZSizeChanged(int)));
 
   QHBoxLayout *mainLaout = new QHBoxLayout(widget);
   mainLaout->addWidget(roiCheckBox);
@@ -76,7 +84,7 @@ QWidget* CustomROIWidget::createWidget(QWidget* parent)
   widget->setLayout(mainLaout);
 
   connect(roiCheckBox, SIGNAL(toggled(bool)),
-          this, SLOT(onValueChanged(bool)));
+          this, SLOT(onApplyROIChanged(bool)));
 
   return widget;
 }
@@ -103,7 +111,7 @@ void CustomROIWidget::setValue(Axis axis, unsigned int value)
 }
 
 //------------------------------------------------------------------------
-void CustomROIWidget::onValueChanged(bool value)
+void CustomROIWidget::onApplyROIChanged(bool value)
 {
    m_useROI = value;
 
@@ -117,4 +125,21 @@ void CustomROIWidget::onValueChanged(bool value)
   }
 
    emit useROI(value);
+}
+
+//------------------------------------------------------------------------
+void CustomROIWidget::onXSizeChanged(int value)
+{
+  m_values[0] = value;
+}
+
+//------------------------------------------------------------------------
+void CustomROIWidget::onYSizeChanged(int value)
+{
+  m_values[1] = value;
+}
+//------------------------------------------------------------------------
+void CustomROIWidget::onZSizeChanged(int value)
+{
+  m_values[2] = value;
 }

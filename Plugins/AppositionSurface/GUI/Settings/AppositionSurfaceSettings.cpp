@@ -21,7 +21,7 @@ namespace ESPINA
   {
     setupUi(this);
 
-    QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
+    ESPINA_SETTINGS(settings);
     settings.beginGroup("Apposition Surface");
 
     if (settings.contains("Automatic Computation For Synapses"))
@@ -52,7 +52,7 @@ namespace ESPINA
     if (!m_modified)
       return;
 
-    QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
+    ESPINA_SETTINGS(settings);
     settings.beginGroup("Apposition Surface");
     settings.setValue("Automatic Computation For Synapses", m_automaticComputation);
     settings.sync();

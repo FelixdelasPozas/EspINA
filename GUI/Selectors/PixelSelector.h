@@ -56,16 +56,18 @@ namespace ESPINA
   class EspinaGUI_EXPORT BestPixelSelector
   : public PixelSelector
   {
+    Q_OBJECT
   public:
     explicit BestPixelSelector();
     virtual ~BestPixelSelector();
 
-    void setBestPixelValue(int value)
-    {m_bestPixel = value;}
-
     virtual void onMouseDown(const QPoint &pos, RenderView* view);
 
     virtual NmVector3 getPickPoint(RenderView* view);
+
+  public slots:
+    void setBestPixelValue(int value)
+    {m_bestPixel = value;}
 
   private:
     QSize *m_window;

@@ -39,8 +39,8 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit ROISettingsPanel(ModelAdapterSPtr model,
-                              ROISettings*     settings,
+    explicit ROISettingsPanel(ROISettings*     settings,
+                              ModelAdapterSPtr model,
                               ViewManagerSPtr  viewManager);
     virtual ~ROISettingsPanel();
 

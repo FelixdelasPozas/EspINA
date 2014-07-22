@@ -317,7 +317,7 @@ bool AppositionSurfacePlugin::isSynapse(SegmentationAdapterPtr segmentation)
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmentations)
 {
-  QSettings settings(CESVIMA, ESPINA_SETTINGS);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup("Apposition Surface");
   if (!settings.contains("Automatic Computation For Synapses") || !settings.value("Automatic Computation For Synapses").toBool())
     return;

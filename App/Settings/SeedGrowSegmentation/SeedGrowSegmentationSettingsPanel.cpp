@@ -19,10 +19,10 @@
 */
 
 // ESPINA
-#include "SettingsPanel.h"
-#include <Toolbars/Segmentation/SeedGrowSegmentationSettings.h>
-#include <Core/EspinaSettings.h>
-#include <GUI/ViewManager.h>
+#include "SeedGrowSegmentationSettingsPanel.h"
+
+#include <Support/Settings/EspinaSettings.h>
+#include <ToolGroups/Segmentation/SeedGrowSegmentationSettings.h>
 
 // Qt
 #include <QSettings>
@@ -37,13 +37,17 @@ using namespace ESPINA;
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager)
+SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings,
+                                                                       ViewManagerSPtr               viewManager)
 : m_settings(settings)
 , m_viewManager(viewManager)
 , m_zValueChanged(false)
 {
   setupUi(this);
-  QSettings espinaSettings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
+
+  m_closingGroup->setVisible(false); // Hide until implemented again
+
+  ESPINA_SETTINGS(espinaSettings);
 
   connect(m_pixelValue,SIGNAL(valueChanged(int)),
           this, SLOT(displayColor(int)));
@@ -53,28 +57,28 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
 
   m_xSize->setValue(settings->xSize());
   m_ySize->setValue(settings->ySize());
-  if (espinaSettings.value(FIT_TO_SLICES).toBool())
-  {
-    double zSpacing = 1.0;
-    if (m_viewManager->viewResolution() != NULL)
-      zSpacing = m_viewManager->viewResolution()[2];
+  m_zSize->setValue(settings->zSize());
 
-    m_zSize->setValue(vtkMath::Round(settings->zSize()/zSpacing));
-    m_zSize->setSuffix(QString(" slices"));
-  }
-  else
-  {
-    m_zSize->setValue(settings->zSize());
-    m_zSize->setSuffix(QString(" nm"));
-  }
+//   if (espinaSettings.value(FIT_TO_SLICES).toBool())
+//   {
+//     double zSpacing = m_viewManager->viewResolution()[2];
+//
+//     m_zSize->setValue(vtkMath::Round(settings->zSize()/zSpacing));
+//     m_zSize->setSuffix(QString(" slices"));
+//   }
+//   else
+//   {
+//     m_zSize->setValue(settings->zSize());
+//     m_zSize->setSuffix(QString(" nm"));
+//   }
 
-  m_taxonomicalROI->setChecked(settings->taxonomicalROI());
-  m_xSize->setEnabled(!settings->taxonomicalROI());
-  m_ySize->setEnabled(!settings->taxonomicalROI());
-  m_zSize->setEnabled(!settings->taxonomicalROI());
+  m_applyCategoryROI->setChecked(settings->applyCategoryROI());
+  m_xSize->setEnabled(!settings->applyCategoryROI());
+  m_ySize->setEnabled(!settings->applyCategoryROI());
+  m_zSize->setEnabled(!settings->applyCategoryROI());
 
-  connect(m_taxonomicalROI, SIGNAL(stateChanged(int)),
-          this, SLOT(changeTaxonomicalCheck(int)));
+  connect(m_applyCategoryROI, SIGNAL(stateChanged(int)),
+          this,               SLOT(changeTaxonomicalCheck(int)));
 
   // the rounding of fit to slices on the z value was making the dialog ask the
   // user if he wanted to save the changes even when the user hasn't changed
@@ -95,18 +99,13 @@ void SeedGrowSegmentationsSettingsPanel::acceptChanges()
 {
   m_settings->setBestPixelValue(m_pixelValue->value());
 
-  if (!m_taxonomicalROI->isChecked())
+  if (!m_applyCategoryROI->isChecked())
   {
     m_settings->setXSize(m_xSize->value());
     m_settings->setYSize(m_ySize->value());
-
-    double zSpacing = 1.0;
-    if (m_viewManager->viewResolution() != NULL)
-      zSpacing = m_viewManager->viewResolution()[2];
-
-    m_settings->setZSize(m_zSize->value()*zSpacing);
+    m_settings->setZSize(m_zSize->value());
   }
-  m_settings->setTaxonomicalROI(m_taxonomicalROI->isChecked());
+  m_settings->setApplyCategoryROI(m_applyCategoryROI->isChecked());
 
   if (m_applyClosing->isChecked())
     m_settings->setClosing(m_closing->value());
@@ -122,13 +121,13 @@ void SeedGrowSegmentationsSettingsPanel::rejectChanges()
 //------------------------------------------------------------------------
 bool SeedGrowSegmentationsSettingsPanel::modified() const
 {
-  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
+  ESPINA_SETTINGS(settings);
 
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
   returnValue |= m_zValueChanged;
-  returnValue |= (m_taxonomicalROI->isChecked() != m_settings->taxonomicalROI());
+  returnValue |= (m_applyCategoryROI->isChecked() != m_settings->applyCategoryROI());
   returnValue |= (m_pixelValue->value() != m_settings->bestPixelValue());
   returnValue |= ((m_applyClosing->isChecked() ? m_closing->value() : 0) != m_settings->closing());
 
@@ -136,9 +135,9 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanelPtr SeedGrowSegmentationsSettingsPanel::clone()
+SettingsPanelPtr SeedGrowSegmentationsSettingsPanel::clone()
 {
-  return ISettingsPanelPtr(new SeedGrowSegmentationsSettingsPanel(m_settings, m_viewManager));
+  return new SeedGrowSegmentationsSettingsPanel(m_settings, m_viewManager);
 }
 
 //------------------------------------------------------------------------

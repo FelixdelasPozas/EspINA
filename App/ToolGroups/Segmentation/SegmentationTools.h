@@ -31,12 +31,15 @@ class QUndoStack;
 
 namespace ESPINA
 {
+
+class SeedGrowSegmentationSettings;
   /// Seed Growing Segmentation Plugin
   class SegmentationTools
   : public ToolGroup
   {
   public:
-    SegmentationTools(ModelAdapterSPtr model,
+    SegmentationTools(SeedGrowSegmentationSettings* settings,
+                      ModelAdapterSPtr model,
                       ModelFactorySPtr factory,
                       ViewManagerSPtr  viewManager,
                       QUndoStack      *undoStack,

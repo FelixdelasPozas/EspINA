@@ -53,6 +53,8 @@ class QShortcut;
 namespace ESPINA
 {
 
+class SeedGrowSegmentationSettings;
+
 class ROISettings;
 
 class MainToolBar;
@@ -173,8 +175,9 @@ class MainToolBar;
     ChannelReaderSPtr  m_channelReader;
     AnalysisReaderSPtr m_segFileReader;
 
-    GeneralSettingsSPtr m_settings;
-    ROISettings*        m_roiSettings;
+    GeneralSettingsSPtr           m_settings;
+    ROISettings*                  m_roiSettings;
+    SeedGrowSegmentationSettings *m_sgsSettings;
 
     // GUI
     QMenu           *m_addMenu;
@@ -196,8 +199,8 @@ class MainToolBar;
     ExtensionFactorySList m_extensionFactories;
     SettingsPanelSList    m_availableSettingsPanels;
 
-    MainToolBar     *m_mainToolBar;
-    DefaultViewSPtr  m_view;
+    MainToolBar*          m_mainToolBar;
+    DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 
     RecentDocuments m_recentDocuments1;

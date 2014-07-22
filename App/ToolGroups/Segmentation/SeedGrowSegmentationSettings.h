@@ -19,19 +19,19 @@
  */
 
 
-#ifndef SEEDGROWSEGMENTATION_SETTINGS_H
-#define SEEDGROWSEGMENTATION_SETTINGS_H
+#ifndef ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_H
+#define ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_H
 
 #include <Core/EspinaTypes.h>
 
 namespace ESPINA
 {
-  class BestPixelSelector;
-
   class SeedGrowSegmentationSettings
+  : public QObject
   {
+    Q_OBJECT
   public:
-    explicit SeedGrowSegmentationSettings(BestPixelSelector *selector);
+    explicit SeedGrowSegmentationSettings();
     ~SeedGrowSegmentationSettings(){}
 
     void setXSize(int value);
@@ -43,21 +43,27 @@ namespace ESPINA
     void setZSize(int value);
     int zSize() const {return m_zSize;}
 
-    void setTaxonomicalROI(bool value);
-    bool taxonomicalROI() const { return m_taxonomicalROI; }
+    void setApplyCategoryROI(bool value);
+    bool applyCategoryROI() const
+    { return m_applyCategoryROI; }
 
     void setBestPixelValue(int value);
-    int bestPixelValue() const;
+    int bestPixelValue() const
+    { return m_bestValue; }
 
     void setClosing(int value);
     int closing() const {return m_closing;}
 
+  signals:
+    void applyCategoryROIChanged(bool value);
+    void bestValueChanged(int value);
+
   private:
-    BestPixelSelector *m_selector;
-    int m_xSize, m_ySize, m_zSize, m_closing;
-    bool m_taxonomicalROI;
+    int  m_xSize, m_ySize, m_zSize, m_closing;
+    int  m_bestValue;
+    bool m_applyCategoryROI;
   };
 
 } // namespace ESPINA
 
-#endif // SEEDGROWSEGMENTATION_SETTINGS_H
+#endif // ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_H

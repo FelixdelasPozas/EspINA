@@ -16,97 +16,98 @@ qt4_add_resources(ESPINA_RCC
 
 # Create header's MOC files
 qt4_wrap_cpp (ESPINA_MOC
-  EspinaMainWindow.h
+  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
+  Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/CheckAnalysis/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
+  Dialogs/Settings/GeneralSettingsDialog.h
   Dialogs/TabularReport/TabularReport.h
   Dialogs/TabularReport/TabularReportEntry.h
-  Dialogs/Settings/GeneralSettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
-  Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
-#   Docks/FilterInspectorDock/FilterInspectorDock.h
+  Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
-#   Docks/SegmentationExplorer/LayoutLocation.h
-#   Docks/SegmentationExplorer/LayoutComposition.h
-#   FilterInspectors/CODE/CODEFilterInspector.h
-#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
+  EspinaMainWindow.h
   Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
   Menus/RenderersMenu.h
-#   Settings/Editor/SettingsPanel.h
-#  Settings/SeedGrowSegmentation/SettingsPanel.h
-  Settings/View2D/View2DSettingsPanel.h
-  Settings/View2D/View2DRenderersPanel.h
   Settings/ROI/ROISettingsPanel.h
+  Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
+  Settings/View2D/View2DRenderersPanel.h
+  Settings/View2D/View2DSettingsPanel.h
+  Settings/View3D/View3DSettingsPanel.h
+  ToolGroups/Edition/CODETool.h
+  ToolGroups/Edition/EditionTools.h
+  ToolGroups/Edition/EditionTools.h
+  ToolGroups/Edition/ManualEditionTool.h
+  ToolGroups/Edition/MorphologicalEditionTool.h
+  ToolGroups/Edition/MorphologicalEditionTool.h
+  ToolGroups/Edition/SplitTool.h
+  ToolGroups/Measures/MeasuresTools.h
+  ToolGroups/ROI/CleanROITool.h
+  ToolGroups/ROI/ManualROITool.h
+  ToolGroups/ROI/OrthogonalROITool.h
+  ToolGroups/ROI/ROITools.h
+  ToolGroups/Segmentation/CustomROIWidget.h
+  ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
+  ToolGroups/Segmentation/SeedGrowSegmentationTool.h
+  ToolGroups/Segmentation/SeedThreshold.h
+  ToolGroups/ViewState/ResetZoom.h
+  ToolGroups/ViewState/ToggleCrosshairVisibility.h
+  ToolGroups/ViewState/ToggleSegmentationsVisibility.h
+  ToolGroups/ViewState/ViewTools.h
+  ToolGroups/ViewState/ZoomArea.h
+  Tools/Brushes/CircularBrushROISelector.h
+  Tools/Brushes/CircularBrushSelector.h
+  Tools/Brushes/SphericalBrushROISelector.h
+  Tools/Brushes/SphericalBrushSelector.h
+  Tools/Measure/MeasureTool.h
+  Tools/Ruler/RulerTool.h
+  Undo/BrushUndoCommand.h
+  Views/DefaultView.h
+#   Dialogs/Connectomics/ConnectomicsDialog.h
+#   Docks/FilterInspectorDock/FilterInspectorDock.h
+#   Docks/SegmentationExplorer/LayoutComposition.h
+#   Docks/SegmentationExplorer/LayoutLocation.h
+#   FilterInspectors/CODE/CODEFilterInspector.h
+#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
+#   FilterInspectors/TubularSegmentation/NodesInformationDialog.h
+#   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
+#   Settings/Editor/SettingsPanel.h
 #   Toolbars/Composition/CompositionToolBar.h
 #   Toolbars/Editor/EditorToolBar.h
 #   Toolbars/Main/MainToolBar.h
 #   Toolbars/Segmentation/SegmentationToolBar.h
-  ToolGroups/ViewState/ViewTools.h
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.h
-  ToolGroups/ViewState/ToggleCrosshairVisibility.h
-  ToolGroups/ViewState/ResetZoom.h
-  ToolGroups/ViewState/ZoomArea.h
-  ToolGroups/ROI/ROITools.h
-  ToolGroups/Segmentation/CustomROIWidget.h
-  ToolGroups/Segmentation/SeedThreshold.h
-  ToolGroups/Segmentation/SeedGrowSegmentationTool.h
-  ToolGroups/Edition/EditionTools.h
-  ToolGroups/Edition/SplitTool.h
-  ToolGroups/Edition/MorphologicalEditionTool.h
-  ToolGroups/Edition/ManualEditionTool.h
-  ToolGroups/Edition/CODETool.h
-  ToolGroups/Edition/EditionTools.h
-  ToolGroups/Edition/MorphologicalEditionTool.h
-  ToolGroups/Measures/MeasuresTools.h
-  Tools/Brushes/CircularBrushSelector.h
-  Tools/Brushes/CircularBrushROISelector.h
-  Tools/Brushes/SphericalBrushSelector.h
-  Tools/Brushes/SphericalBrushROISelector.h
 #   Tools/Contour/FilledContour.h
 #   Tools/PlanarSplit/PlanarSplitTool.h
-  Tools/Measure/MeasureTool.h
-  Tools/Ruler/RulerTool.h
-  ToolGroups/ROI/ManualROITool.h
-  ToolGroups/ROI/CleanROITool.h
-  ToolGroups/ROI/OrthogonalROITool.h
 #   Tools/SegmentationRemover/SegmentationRemover.h
-  Views/DefaultView.h
-#   Dialogs/Connectomics/ConnectomicsDialog.h
-  Dialogs/ChannelInspector/ChannelInspector.h
-  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
-  Undo/BrushUndoCommand.h
-  Settings/View3D/View3DSettingsPanel.h
 #   Tools/TubularSegmentation/TubularTool.h
-#   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
-#   FilterInspectors/TubularSegmentation/NodesInformationDialog.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 # Create Interface files
 qt4_wrap_ui (ESPINA_UI
+  Dialogs/About/AboutDialog.ui
+  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
+  Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/CheckAnalysis/CheckAnalysisDialog.ui
   Dialogs/ProblemList/ProblemListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
-  Dialogs/About/AboutDialog.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
   Dialogs/TabularReport/TabularReportEntry.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
-#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
-#   Settings/Editor/EditorSettingsPanel.ui
-#  Settings/SeedGrowSegmentation/SeedGrowSettingsPanel.ui
+  Settings/ROI/OrthogonalROISettings.ui
+  Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
-  Settings/ROI/OrthogonalROISettings.ui
 #   Dialogs/Connectomics/ConnectomicsDialog.ui
-  Dialogs/ChannelInspector/ChannelInspector.ui
-  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
-#   FilterInspectors/TubularSegmentation/TubularFilterInspector.ui
+#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
 #   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
+#   FilterInspectors/TubularSegmentation/TubularFilterInspector.ui
+#   Settings/Editor/EditorSettingsPanel.ui
   )
 
 if (METADONA_FOUND)
@@ -121,96 +122,97 @@ set (ESPINA_SOURCES
   ${ESPINA_UI}
   ${METADONA_SOURCES}
   main.cpp
-  EspinaErrorHandler.cpp
-  EspinaMainWindow.cpp
-  IO/SegFileReader.cpp
-  RecentDocuments.cpp
+  Dialogs/About/AboutDialog.cpp
+  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
+  Dialogs/ChannelInspector/ChannelInspector.cpp
   Dialogs/CheckAnalysis/CheckAnalysis.cpp
   Dialogs/ProblemList/ProblemListDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
-  Dialogs/TabularReport/TabularReport.cpp
-  Dialogs/TabularReport/RawInformationDialog.cpp
-  Dialogs/TabularReport/TabularReportEntry.cpp
-  Dialogs/About/AboutDialog.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
+  Dialogs/TabularReport/RawInformationDialog.cpp
+  Dialogs/TabularReport/TabularReport.cpp
+  Dialogs/TabularReport/TabularReportEntry.cpp
   Docks/ChannelExplorer/ChannelExplorer.cpp
-  Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
+  Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
+  EspinaErrorHandler.cpp
+  EspinaMainWindow.cpp
+  IO/SegFileReader.cpp
+  Menus/CamerasMenu.cpp
+  Menus/ColorEngineMenu.cpp
+  Menus/DefaultContextualMenu.cpp
+  Menus/RenderersMenu.cpp
+  RecentDocuments.cpp
+  Settings/DefaultView/DefaultViewSettingsPanel.cpp
+  Settings/GeneralSettings/GeneralSettings.cpp
+  Settings/GeneralSettings/GeneralSettingsPanel.cpp
+  Settings/ROI/ROISettings.cpp
+  Settings/ROI/ROISettingsPanel.cpp
+  Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
+  Settings/View2D/View2DRenderersPanel.cpp
+  Settings/View2D/View2DSettingsPanel.cpp
+  Settings/View3D/View3DSettingsPanel.cpp
+  ToolGroups/Edition/CODETool.cpp
+  ToolGroups/Edition/EditionTools.cpp
+  ToolGroups/Edition/ManualEditionTool.cpp
+  ToolGroups/Edition/MorphologicalEditionTool.cpp
+  ToolGroups/Edition/SplitTool.cpp
+  ToolGroups/Measures/MeasuresTools.cpp
+  ToolGroups/ROI/CleanROITool.cpp
+  ToolGroups/ROI/ManualROITool.cpp
+  ToolGroups/ROI/OrthogonalROITool.cpp
+  ToolGroups/ROI/ROITools.cpp
+  ToolGroups/Segmentation/CustomROIWidget.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
+  ToolGroups/Segmentation/SeedThreshold.cpp
+  ToolGroups/Segmentation/SegmentationTools.cpp
+  ToolGroups/ViewState/ResetZoom.cpp
+  ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
+  ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp
+  ToolGroups/ViewState/ViewTools.cpp
+  ToolGroups/ViewState/ZoomArea.cpp
+  Tools/Brushes/CircularBrushROISelector.cpp
+  Tools/Brushes/CircularBrushSelector.cpp
+  Tools/Brushes/ROISelectorBase.cpp
+  Tools/Brushes/SphericalBrushROISelector.cpp
+  Tools/Brushes/SphericalBrushSelector.cpp
+  Tools/Measure/MeasureTool.cpp
+  Tools/Ruler/RulerTool.cpp
+  Undo/BrushUndoCommand.cpp
+  Undo/ROIUndoCommand.cpp
+  Undo/RenameSegmentationsCommand.cpp
+  Views/DefaultView.cpp
+#   Dialogs/Connectomics/ConnectomicsDialog.cpp
 #   Docks/FilterInspectorDock/FilterInspectorDock.cpp
 #   Docks/SegmentationExplorer/LayoutComposition.cpp
 #   Docks/SegmentationExplorer/LayoutLocation.cpp
 #   FilterInspectors/CODE/CODEFilterInspector.cpp
 #   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
-  Menus/CamerasMenu.cpp
-  Menus/ColorEngineMenu.cpp
-  Menus/DefaultContextualMenu.cpp
-  Menus/RenderersMenu.cpp
-  Settings/DefaultView/DefaultViewSettingsPanel.cpp
-  Settings/GeneralSettings/GeneralSettings.cpp
-  Settings/GeneralSettings/GeneralSettingsPanel.cpp
+#   FilterInspectors/TubularSegmentation/NodesInformationDialog.cpp
+#   FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp
 #   Settings/Editor/SettingsPanel.cpp
-#  Settings/SeedGrowSegmentation/SettingsPanel.cpp
-  Settings/View2D/View2DSettingsPanel.cpp
-  Settings/View3D/View3DSettingsPanel.cpp
-  Settings/View2D/View2DRenderersPanel.cpp
-  Settings/ROI/ROISettings.cpp
-  Settings/ROI/ROISettingsPanel.cpp
 #   Toolbars/Composition/CompositionToolBar.cpp
 #   Toolbars/Editor/EditorToolBar.cpp
 #   Toolbars/Editor/Settings.cpp
 #   Toolbars/Main/MainToolBar.cpp
-#  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
-  ToolGroups/Edition/CODETool.cpp
-  ToolGroups/Segmentation/CustomROIWidget.cpp
-  ToolGroups/Segmentation/SegmentationTools.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
-  ToolGroups/Segmentation/SeedThreshold.cpp
-  ToolGroups/ViewState/ResetZoom.cpp
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp 
-  ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
-  ToolGroups/ViewState/ViewTools.cpp
-  ToolGroups/ViewState/ZoomArea.cpp
-  ToolGroups/Edition/EditionTools.cpp
-  ToolGroups/Edition/SplitTool.cpp
-  ToolGroups/Edition/MorphologicalEditionTool.cpp
-  ToolGroups/Edition/ManualEditionTool.cpp
-  ToolGroups/Measures/MeasuresTools.cpp
-  ToolGroups/ROI/ManualROITool.cpp
-  ToolGroups/ROI/CleanROITool.cpp
-  ToolGroups/ROI/OrthogonalROITool.cpp
-  ToolGroups/ROI/ROITools.cpp
-  Tools/Brushes/CircularBrushSelector.cpp
-  Tools/Brushes/CircularBrushROISelector.cpp
-  Tools/Brushes/SphericalBrushSelector.cpp
-  Tools/Brushes/SphericalBrushROISelector.cpp
-  Tools/Brushes/ROISelectorBase.cpp
 #   Tools/Contour/FilledContour.cpp
-  Tools/Measure/MeasureTool.cpp
 #   Tools/PlanarSplit/PlanarSplitTool.cpp
-  Tools/Ruler/RulerTool.cpp
 #   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
 #   Tools/SegmentationRemover/SegmentationRemover.cpp
+#   Tools/TubularSegmentation/TubularTool.cpp
 #   Tools/Zoom/ZoomTool.cpp
-#   Undo/AtomicModelOperations.cpp 
-  Undo/BrushUndoCommand.cpp
-  Undo/RenameSegmentationsCommand.cpp
-  Undo/ROIUndoCommand.cpp
+#   Undo/AtomicModelOperations.cpp
 #   Undo/CompositionCommand.cpp
+#   Undo/ContourUndoCommand.cpp
 #   Undo/ImageLogicCommand.cpp
 #   Undo/SeedGrowSegmentationCommand.cpp
 #   Undo/UndoableEspinaModel.cpp
 #   Undo/UnloadChannelCommand.cpp
 #   Undo/UnloadSampleCommand.cpp
 #   Undo/VolumeSnapshotCommand.cpp
-#   Undo/ContourUndoCommand.cpp
-  Views/DefaultView.cpp
-#   Dialogs/Connectomics/ConnectomicsDialog.cpp
-  Dialogs/ChannelInspector/ChannelInspector.cpp
-#   Tools/TubularSegmentation/TubularTool.cpp
-#   FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp
-#   FilterInspectors/TubularSegmentation/NodesInformationDialog.cpp
-  Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
+#  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   )
 
 set (ESPINA_LIBRARIES

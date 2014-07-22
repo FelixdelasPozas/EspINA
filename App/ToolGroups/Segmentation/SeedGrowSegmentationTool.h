@@ -35,6 +35,8 @@
 class QUndoStack;
 namespace ESPINA
 {
+  class SeedGrowSegmentationSettings;
+
   class SeedGrowSegmentationTool
   : public Tool
   {
@@ -52,10 +54,11 @@ namespace ESPINA
     };
 
   public:
-    explicit SeedGrowSegmentationTool(ModelAdapterSPtr model,
-                                      ModelFactorySPtr factory,
-                                      ViewManagerSPtr  viewManager,
-                                      QUndoStack      *undoStack);
+    explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
+                                      ModelAdapterSPtr              model,
+                                      ModelFactorySPtr              factory,
+                                      ViewManagerSPtr               viewManager,
+                                      QUndoStack*                   undoStack);
     virtual ~SeedGrowSegmentationTool();
 
     virtual void setEnabled(bool value);
@@ -82,6 +85,8 @@ namespace ESPINA
 
     void onCategorySelectorWidgetCreation();
 
+    void updateCurrentCategoryROIValues(bool update);
+
   private:
     ModelAdapterSPtr m_model;
     ModelFactorySPtr m_factory;
@@ -93,10 +98,12 @@ namespace ESPINA
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;
     SeedThreshold    *m_seedThreshold;
-    CustomROIWidget  *m_voi;
+    CustomROIWidget  *m_roi;
+
+    SeedGrowSegmentationSettings* m_settings;
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
-    SelectorSPtr m_currentSelector;
+    SelectorSPtr                  m_currentSelector;
 
     FilterFactorySPtr  m_filterFactory;
     QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;

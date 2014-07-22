@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SeedGrowSettingsPanel</class>
- <widget class="QWidget" name="SeedGrowSettingsPanel">
+ <class>SeedGrowSegmentationSettingsPanel</class>
+ <widget class="QWidget" name="SeedGrowSegmentationSettingsPanel">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -128,11 +128,14 @@
         </item>
         <item>
          <widget class="QSpinBox" name="m_xSize">
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
           <property name="suffix">
            <string> nm</string>
           </property>
           <property name="maximum">
-           <number>10000</number>
+           <number>100000</number>
           </property>
           <property name="singleStep">
            <number>2</number>
@@ -151,11 +154,14 @@
         </item>
         <item>
          <widget class="QSpinBox" name="m_ySize">
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
           <property name="suffix">
            <string> nm</string>
           </property>
           <property name="maximum">
-           <number>10000</number>
+           <number>100000</number>
           </property>
           <property name="singleStep">
            <number>2</number>
@@ -174,11 +180,14 @@
         </item>
         <item>
          <widget class="QSpinBox" name="m_zSize">
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
           <property name="suffix">
            <string> nm</string>
           </property>
           <property name="maximum">
-           <number>10000</number>
+           <number>100000</number>
           </property>
           <property name="singleStep">
            <number>2</number>
@@ -188,7 +197,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QCheckBox" name="m_taxonomicalROI">
+       <widget class="QCheckBox" name="m_applyCategoryROI">
         <property name="text">
          <string>Use default ROI sizes depending on the active category</string>
         </property>
@@ -214,7 +223,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_3">
+    <widget class="QGroupBox" name="m_closingGroup">
      <property name="title">
       <string>Closing</string>
      </property>

@@ -19,25 +19,26 @@
  */
 
 
-#ifndef SEEDGROWSEGMENTATIONPREFERENCES_H
-#define SEEDGROWSEGMENTATIONPREFERENCES_H
+#ifndef ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_PANEL_H
+#define ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_PANEL_H
 
-#include <GUI/ISettingsPanel.h>
-#include "ui_SeedGrowSettingsPanel.h"
-
-#include "Toolbars/Segmentation/SegmentationToolBar.h"
+#include <Support/Settings/SettingsPanel.h>
+#include <Support/ViewManager.h>
+#include "ui_SeedGrowSegmentationSettingsPanel.h"
 
 namespace ESPINA
 {
-  class ViewManager;
+
+  class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationsSettingsPanel
-  : public ISettingsPanel
-  , public Ui::SeedGrowSettingsPanel
+  : public SettingsPanel
+  , public Ui::SeedGrowSegmentationSettingsPanel
   {
     Q_OBJECT
   public:
-    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings, ViewManager *viewManager);
+    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings,
+                                                ViewManagerSPtr               viewManager);
     virtual ~SeedGrowSegmentationsSettingsPanel(){}
 
     virtual const QString shortDescription()
@@ -48,10 +49,10 @@ namespace ESPINA
     { return QIcon(":/espina/bestPixelSelector.svg"); }
 
     virtual void acceptChanges();
-  virtual void rejectChanges();
+    virtual void rejectChanges();
     virtual bool modified() const;
 
-    virtual ISettingsPanelPtr clone();
+    virtual SettingsPanelPtr clone();
 
   public slots:
     void displayColor(int value);
@@ -62,10 +63,10 @@ namespace ESPINA
 
   private:
     SeedGrowSegmentationSettings *m_settings;
-    ViewManager                  *m_viewManager;
+    ViewManagerSPtr               m_viewManager;
     bool                          m_zValueChanged;
   };
 
 } // namespace ESPINA
 
-#endif // SEEDGROWSEGMENTATIONPREFERENCES_H
+#endif // ESPINA_SEED_GROW_SEGMENTATION_SETTINGS_PANEL_H

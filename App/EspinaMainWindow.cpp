@@ -30,11 +30,13 @@
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include "ToolGroups/Edition/EditionTools.h"
-#include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/ROI/ROITools.h"
+#include "ToolGroups/Segmentation/SegmentationTools.h"
+#include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
+#include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
 #include <Core/IO/ClassificationXML.h>
 #include <Core/IO/SegFile.h>
 #include <Core/MultiTasking/Scheduler.h>
@@ -107,7 +109,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
 , m_settings     {new GeneralSettings()}
-, m_roiSettings{new ROISettings()}
+, m_sgsSettings  {new SeedGrowSegmentationSettings()}
+, m_roiSettings  {new ROISettings()}
 , m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy(false)
 , m_undoStackSavedIndex(0)
@@ -136,7 +139,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerRenderer(RendererSPtr{new ContourRenderer()});
   m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
 
-  m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_model, m_roiSettings, m_viewManager));
+  m_availableSettingsPanels << SettingsPanelSPtr(new SeedGrowSegmentationsSettingsPanel(m_sgsSettings, m_viewManager));
+  m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_roiSettings, m_model, m_viewManager));
 
 #if USE_METADONA
   m_availableSettingsPanels << SettingsPanelSPtr(new MetaDataSettingsPanel());
@@ -293,7 +297,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(roiTools);
 
-  auto segmentationTools = new SegmentationTools(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
 
   auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);

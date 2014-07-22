@@ -69,8 +69,6 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
 //-----------------------------------------------------------------------------
 OrthogonalROITool::~OrthogonalROITool()
 {
-  delete m_settings;
-
   disconnect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
              this,                SLOT(commitROI()));
 

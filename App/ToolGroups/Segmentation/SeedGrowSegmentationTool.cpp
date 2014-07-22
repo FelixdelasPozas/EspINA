@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
+#include "SeedGrowSegmentationSettings.h"
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -70,10 +71,11 @@ FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList  
 }
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
-                                                   ModelFactorySPtr factory,
-                                                   ViewManagerSPtr  viewManager,
-                                                   QUndoStack      *undoStack)
+SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
+                                                   ModelAdapterSPtr              model,
+                                                   ModelFactorySPtr              factory,
+                                                   ViewManagerSPtr               viewManager,
+                                                   QUndoStack*                   undoStack)
 : m_model           {model}
 , m_factory         {factory}
 , m_viewManager     {viewManager}
@@ -82,7 +84,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
 , m_categorySelector{new CategorySelector(m_model)}
 , m_selectorSwitch  {new ActionSelector()}
 , m_seedThreshold   {new SeedThreshold()}
-, m_voi             {new CustomROIWidget()}
+, m_roi             {new CustomROIWidget()}
+, m_settings        {settings}
 , m_filterFactory   {new SGSFilterFactory()}
 {
   m_factory->registerFilterFactory(m_filterFactory);
@@ -104,17 +107,29 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(ModelAdapterSPtr model,
                                   tr("Create segmentation based on best pixel (Ctrl +)"),
                                   m_selectorSwitch);
 
-    SelectorSPtr selector{new BestPixelSelector()};
+    std::shared_ptr<BestPixelSelector> selector{new BestPixelSelector()};
     selector->setMultiSelection(false);
 
-    QCursor      cursor(QPixmap(":/espina/crossRegion.svg"));
+    QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
 
     selector->setCursor(cursor);
+
+    selector->setBestPixelValue(m_settings->bestPixelValue());
+
+    connect(m_settings, SIGNAL(bestValueChanged(int)),
+            selector.get(), SLOT(setBestPixelValue(int)));
 
     addVoxelSelector(action, selector);
 
     m_selectorSwitch->setDefaultAction(action);
   }
+
+  m_roi->setValue(Axis::X, m_settings->xSize());
+  m_roi->setValue(Axis::Y, m_settings->ySize());
+  m_roi->setValue(Axis::Z, m_settings->zSize());
+
+  connect(m_settings, SIGNAL(applyCategoryROIChanged(bool)),
+          this,       SLOT(updateCurrentCategoryROIValues(bool)));
 
   connect(m_selectorSwitch, SIGNAL(triggered(QAction*)),
           this, SLOT(changeSelector(QAction*)));
@@ -133,7 +148,7 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
   delete m_categorySelector;
   delete m_selectorSwitch;
   delete m_seedThreshold;
-  delete m_voi;
+  delete m_roi;
 }
 
 //-----------------------------------------------------------------------------
@@ -149,7 +164,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
   actions << m_categorySelector;
   actions << m_selectorSwitch;
   actions << m_seedThreshold;
-  actions << m_voi;
+  actions << m_roi;
 
   return actions;
 }
@@ -227,12 +242,12 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  if (!m_viewManager->currentROI() && m_voi->applyROI())
+  if (!m_viewManager->currentROI() && m_roi->applyROI())
   {
     // Create default ROI
-    auto xSize = std::max(m_voi->value(Axis::X), (unsigned int) 2);
-    auto ySize = std::max(m_voi->value(Axis::Y), (unsigned int) 2);
-    auto zSize = std::max(m_voi->value(Axis::Z), (unsigned int) 2);
+    auto xSize = std::max(m_roi->value(Axis::X), (unsigned int) 2);
+    auto ySize = std::max(m_roi->value(Axis::Y), (unsigned int) 2);
+    auto zSize = std::max(m_roi->value(Axis::Z), (unsigned int) 2);
 
     Bounds bounds{seed[0]-xSize/2, seed[0]+xSize/2,
                   seed[1]-ySize/2, seed[1]+ySize/2,
@@ -338,23 +353,26 @@ void SeedGrowSegmentationTool::createSegmentation()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
-  QVariant xSize = category->property(Category::DIM_X());
-  QVariant ySize = category->property(Category::DIM_Y());
-  QVariant zSize = category->property(Category::DIM_Z());
 
-  if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
-  {
-    ESPINA_SETTINGS(settings);
-    settings.beginGroup(ROI_SETTINGS_GROUP);
+  if (m_settings->applyCategoryROI()) {
+    QVariant xSize = category->property(Category::DIM_X());
+    QVariant ySize = category->property(Category::DIM_Y());
+    QVariant zSize = category->property(Category::DIM_Z());
 
-    xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
-    ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
-    zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
+    if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
+    {
+      ESPINA_SETTINGS(settings);
+      settings.beginGroup(ROI_SETTINGS_GROUP);
+
+      xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
+      ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
+      zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
+    }
+
+    m_roi->setValue(Axis::X, xSize.toInt());
+    m_roi->setValue(Axis::Y, ySize.toInt());
+    m_roi->setValue(Axis::Z, zSize.toInt());
   }
-
-  m_voi->setValue(Axis::X, xSize.toInt());
-  m_voi->setValue(Axis::Y, ySize.toInt());
-  m_voi->setValue(Axis::Z, zSize.toInt());
 }
 
 //-----------------------------------------------------------------------------
@@ -363,3 +381,17 @@ void SeedGrowSegmentationTool::onCategorySelectorWidgetCreation()
   onCategoryChanged(m_categorySelector->selectedCategory());
 }
 
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategoryROI)
+{
+  if (applyCategoryROI)
+  {
+    onCategorySelectorWidgetCreation();
+  }
+  else
+  {
+    m_roi->setValue(Axis::X, m_settings->xSize());
+    m_roi->setValue(Axis::Y, m_settings->ySize());
+    m_roi->setValue(Axis::Z, m_settings->zSize());
+  }
+}

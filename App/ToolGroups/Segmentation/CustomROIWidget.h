@@ -51,8 +51,11 @@ namespace ESPINA
     unsigned int value(Axis axis) const
     { return m_values[idx(axis)]; }
 
-  protected slots:
-    void onValueChanged(bool val);
+  private slots:
+    void onApplyROIChanged(bool val);
+    void onXSizeChanged(int value);
+    void onYSizeChanged(int value);
+    void onZSizeChanged(int value);
 
   signals:
     void useROI(bool);

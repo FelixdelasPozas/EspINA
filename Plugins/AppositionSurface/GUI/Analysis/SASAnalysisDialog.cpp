@@ -67,7 +67,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);
 
-  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
+  ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Synaptic Apposition Surface Information Analysis");
   resize(settings.value("size", QSize (200, 200)).toSize());
@@ -78,7 +78,7 @@ SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
 //----------------------------------------------------------------------------
 void SASAnalysisDialog::closeEvent(QCloseEvent *event)
 {
-  QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
+  ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Synaptic Apposition Surface Information Analysis");
   settings.setValue("size", size());
