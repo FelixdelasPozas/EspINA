@@ -140,11 +140,14 @@ void CrosshairRenderer::hide()
 
   for (auto item: m_representations.keys())
     for(auto rep: m_representations[item])
+    {
+      rep->setVisible(false);
       for(auto prop: rep->getActors())
       {
         m_view->removeActor(prop);
         m_picker->DeletePickList(prop);
       }
+    }
 
   emit renderRequested();
 }
@@ -158,11 +161,14 @@ void CrosshairRenderer::show()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   for(auto item: m_representations.keys())
     for(auto rep: m_representations[item])
+    {
+      rep->setVisible(true);
       for(auto prop: rep->getActors())
       {
         m_view->addActor(prop);
         m_picker->AddPickList(prop);
       }
+    }
 
   QApplication::restoreOverrideCursor();
   emit renderRequested();

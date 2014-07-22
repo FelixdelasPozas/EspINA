@@ -162,71 +162,87 @@ bool CrosshairRepresentation::hasActor(vtkProp *actor) const
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::updateRepresentation()
 {
-  if (m_axial == nullptr)
+  if (m_axial == nullptr || !isVisible())
     return;
 
+  Bounds imageBounds;
   int coordIndex = normalCoordinateIndex(Plane::XY);
   int reslicePoint = m_point[coordIndex];
 
-  Bounds imageBounds = m_data->bounds();
-  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
-  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+  if(m_lastUpdatePoint[coordIndex] != reslicePoint)
+  {
+    imageBounds = m_data->bounds();
+    imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
-  m_axialExporter->SetInput(m_data->itkImage(imageBounds));
-  m_axialExporter->Update();
+    m_axialExporter->SetInput(m_data->itkImage(imageBounds));
+    m_axialExporter->Update();
 
-  m_axialScaler->SetInputData(m_axialExporter->GetOutput());
-  m_axialScaler->Update();
+    m_axialScaler->SetInputData(m_axialExporter->GetOutput());
+    m_axialScaler->Update();
 
-  m_axialImageMapToColors->SetInputConnection(m_axialScaler->GetOutputPort());
-  m_axialImageMapToColors->Update();
+    m_axialImageMapToColors->SetInputConnection(m_axialScaler->GetOutputPort());
+    m_axialImageMapToColors->Update();
 
-  m_axial->GetMapper()->SetInputConnection(m_axialImageMapToColors->GetOutputPort());
-  m_axial->SetDisplayExtent(m_axialExporter->GetOutput()->GetExtent());
-  m_axial->Update();
+    m_axial->GetMapper()->SetInputConnection(m_axialImageMapToColors->GetOutputPort());
+    m_axial->SetDisplayExtent(m_axialExporter->GetOutput()->GetExtent());
+    m_axial->Update();
+
+    m_lastUpdatePoint[coordIndex] = reslicePoint;
+  }
 
   coordIndex = normalCoordinateIndex(Plane::XZ);
   reslicePoint = m_point[coordIndex];
 
-  imageBounds = m_data->bounds();
-  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
-  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+  if(m_lastUpdatePoint[coordIndex] != reslicePoint)
+  {
+    imageBounds = m_data->bounds();
+    imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
-  m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_coronalExporter->Update();
+    m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
+    m_coronalExporter->Update();
 
-  m_coronalScaler->SetInputData(m_coronalExporter->GetOutput());
-  m_coronalScaler->Update();
+    m_coronalScaler->SetInputData(m_coronalExporter->GetOutput());
+    m_coronalScaler->Update();
 
-  m_coronalImageMapToColors->SetInputConnection(m_coronalScaler->GetOutputPort());
-  m_coronalImageMapToColors->Update();
+    m_coronalImageMapToColors->SetInputConnection(m_coronalScaler->GetOutputPort());
+    m_coronalImageMapToColors->Update();
 
-  m_coronal->GetMapper()->SetInputConnection(m_coronalImageMapToColors->GetOutputPort());
-  m_coronal->SetDisplayExtent(m_coronalExporter->GetOutput()->GetExtent());
-  m_coronal->Update();
+    m_coronal->GetMapper()->SetInputConnection(m_coronalImageMapToColors->GetOutputPort());
+    m_coronal->SetDisplayExtent(m_coronalExporter->GetOutput()->GetExtent());
+    m_coronal->Update();
+
+    m_lastUpdatePoint[coordIndex] = reslicePoint;
+  }
 
   coordIndex = normalCoordinateIndex(Plane::YZ);
   reslicePoint = m_point[coordIndex];
 
-  imageBounds = m_data->bounds();
-  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
-  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+  if(m_lastUpdatePoint[coordIndex] != reslicePoint)
+  {
+    imageBounds = m_data->bounds();
+    imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
-  auto image = m_data->itkImage(imageBounds);
-  image->Print(std::cerr);
-  m_sagittalExporter->ResetPipeline();
-  m_sagittalExporter->SetInput(image);
-  m_sagittalExporter->Update();
+    auto image = m_data->itkImage(imageBounds);
 
-  m_sagittalScaler->SetInputData(m_sagittalExporter->GetOutput());
-  m_sagittalScaler->Update();
+    m_sagittalExporter->ResetPipeline();
+    m_sagittalExporter->SetInput(image);
+    m_sagittalExporter->Update();
 
-  m_sagittalImageMapToColors->SetInputConnection(m_sagittalScaler->GetOutputPort());
-  m_sagittalImageMapToColors->Update();
+    m_sagittalScaler->SetInputData(m_sagittalExporter->GetOutput());
+    m_sagittalScaler->Update();
 
-  m_sagittal->GetMapper()->SetInputConnection(m_sagittalImageMapToColors->GetOutputPort());
-  m_sagittal->SetDisplayExtent(m_sagittalExporter->GetOutput()->GetExtent());
-  m_sagittal->Update();
+    m_sagittalImageMapToColors->SetInputConnection(m_sagittalScaler->GetOutputPort());
+    m_sagittalImageMapToColors->Update();
+
+    m_sagittal->GetMapper()->SetInputConnection(m_sagittalImageMapToColors->GetOutputPort());
+    m_sagittal->SetDisplayExtent(m_sagittalExporter->GetOutput()->GetExtent());
+    m_sagittal->Update();
+
+    m_lastUpdatePoint[coordIndex] = reslicePoint;
+  }
 
   m_bounds = m_data->bounds();
   double ap0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
@@ -585,6 +601,14 @@ void CrosshairRepresentation::initializePipeline()
   m_sagittalBorder->GetProperty()->SetPointSize(2);
   m_sagittalBorder->GetProperty()->SetLineWidth(1);
   m_sagittalBorder->SetPickable(false);
+
+  m_point = m_lastUpdatePoint = m_crosshair;
+
+  // this forces an update at the first call of updateRepresentation()
+  // by then we should know the correct crosshair position
+  --m_lastUpdatePoint[0];
+  --m_lastUpdatePoint[1];
+  --m_lastUpdatePoint[2];
 }
 
 //-----------------------------------------------------------------------------
@@ -596,9 +620,9 @@ QList<vtkProp*> CrosshairRepresentation::getActors()
   {
     initializePipeline();
     NmVector3 point = m_point;
-    m_point[0]--;
-    m_point[1]--;
-    m_point[2]--;
+    --m_point[0];
+    --m_point[1];
+    --m_point[2];
     setCrosshair(point);
   }
 
@@ -622,7 +646,7 @@ void CrosshairRepresentation::setCrosshairColors(double aColor[3], double cColor
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::setCrosshair(NmVector3 point)
 {
-  if (m_axial == nullptr)
+  if (m_axial == nullptr || !isVisible())
   {
     m_point = point;
     return;
@@ -754,5 +778,15 @@ void CrosshairRepresentation::updateVisibility(bool visible)
     m_axialBorder->SetVisibility(visible);
     m_coronalBorder->SetVisibility(visible);
     m_sagittalBorder->SetVisibility(visible);
+  }
+
+  if(visible)
+  {
+    // forces reposition of actors and computation of slices.
+    NmVector3 point = m_point;
+    --m_point[0];
+    --m_point[1];
+    --m_point[2];
+    setCrosshair(point);
   }
 }

@@ -134,6 +134,7 @@ namespace ESPINA
 
       mutable Bounds m_bounds;
       NmVector3 m_point;
+      NmVector3 m_lastUpdatePoint;
       bool m_tiling;
 
       friend class CrosshairRenderer;
