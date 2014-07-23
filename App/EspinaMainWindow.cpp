@@ -109,8 +109,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_channelReader{new ChannelReader()}
 , m_segFileReader{new SegFileReader()}
 , m_settings     {new GeneralSettings()}
-, m_sgsSettings  {new SeedGrowSegmentationSettings()}
 , m_roiSettings  {new ROISettings()}
+, m_sgsSettings  {new SeedGrowSegmentationSettings()}
 , m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy(false)
 , m_undoStackSavedIndex(0)
@@ -743,7 +743,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       mins = secs / 60;
       secs = secs % 60;
     }
-
 
     updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
 

@@ -383,7 +383,6 @@ QStringList TabularReport::Entry::lastInformationOrder()
     }
   }
 
-
   return informationTags;
 }
 

@@ -21,6 +21,7 @@
 #include <QApplication>
 #include <QPluginLoader>
 #include <QTranslator>
+#include <QDebug>
 
 #include "EspinaMainWindow.h"
 
@@ -88,5 +89,6 @@ int main(int argc, char **argv)
     delete plugin;
   }
 
+  qDebug() << "ESPINA exited with value" << res;
   return res;
 }

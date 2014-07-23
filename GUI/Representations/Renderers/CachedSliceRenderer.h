@@ -162,7 +162,13 @@ namespace ESPINA
       void updateRepresentationColor();
 
     protected slots:
-      void changePosition(Plane plane, Nm pos);
+      /* \brief Set position of the cache.
+       *
+       * Sets the position of the cache. If the position is not cached (not within the bounds of the
+       * cache window) the cache is emptied and filled again. If the position is cached the cache
+       * position shifts to that place and the borders of the window deletes/creates task and actors conveniently.
+       */
+      void setPosition(Plane plane, Nm pos);
       void resolutionChanged();
       void renderFrame(CachedSliceRenderer::CacheNode *node);
 
@@ -202,14 +208,6 @@ namespace ESPINA
        *
        */
       CachedRepresentationSList validRepresentationsForPosition(const Nm pos) const;
-
-      /* \brief Set position of the cache.
-       *
-       * Sets the position of the cache. If the position is not cached (not within the bounds of the
-       * cache window) the cache is emptied and filled again. If the position is cached the cache
-       * position shifts to that place and the borders of the window deletes/creates task and actors conveniently.
-       */
-      virtual void setPosition(Nm position);
 
       // Protected attributes.
       unsigned int   m_windowWidth;    // Actual cache window width

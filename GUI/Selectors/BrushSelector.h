@@ -111,7 +111,7 @@ namespace ESPINA
     protected:
       void buildCursor();
       Bounds buildBrushBounds(NmVector3 center);
-      void getBrushPosition(NmVector3 &center, QPoint pos);
+      void getBrushPosition(NmVector3 &center, QPoint const pos);
       bool validStroke(NmVector3 &center);
       virtual void startStroke(QPoint pos, RenderView *view);
       virtual void updateStroke(QPoint pos, RenderView *view);
@@ -150,7 +150,6 @@ namespace ESPINA
       vtkSmartPointer<vtkImageData>   m_preview;
       vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
       vtkSmartPointer<vtkImageActor>  m_actor;
-      Bounds                          m_previewBounds;
 
       bool           m_eraseMode;
       bool           m_drawing;

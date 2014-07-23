@@ -614,6 +614,9 @@ void View2D::setCrosshairColors(const QColor& vColor, const QColor& hColor)
 //-----------------------------------------------------------------------------
 void View2D::setCrosshairVisibility(bool visible)
 {
+  if(visible == this->m_renderer->HasViewProp(this->m_HCrossLine))
+    return;
+
   if (visible)
   {
     m_renderer->AddViewProp(m_HCrossLine);
@@ -631,6 +634,9 @@ void View2D::setCrosshairVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void View2D::setThumbnailVisibility(bool visible)
 {
+  if(m_showThumbnail == visible)
+    return;
+
   m_showThumbnail = visible;
 
   m_thumbnail->SetDraw(visible && m_sceneReady);
@@ -1145,6 +1151,9 @@ void View2D::setShowPreprocessing(bool visible)
 //-----------------------------------------------------------------------------
 void View2D::setRulerVisibility(bool visible)
 {
+  if(m_rulerVisibility == visible)
+    return;
+
   m_rulerVisibility = visible;
   updateRuler();
   updateView();

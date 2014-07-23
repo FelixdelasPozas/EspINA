@@ -113,7 +113,6 @@ namespace ESPINA
     m_preview->Modified();
     unsigned char *imagePointer = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer());
     memset(imagePointer, 0, m_preview->GetNumberOfPoints());
-    m_previewBounds = previewBounds.bounds();
     m_preview->Modified();
     m_preview->GetExtent(extent);
 
@@ -139,7 +138,7 @@ namespace ESPINA
     double pos[3];
     m_actor->GetPosition(pos);
     int index = normalCoordinateIndex(view2d->plane());
-    pos[index] = pos[index] + ((index == 2) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT);
+    pos[index] += 2* view2d->segmentationDepth();
     m_actor->SetPosition(pos);
 
     m_previewView->addActor(m_actor);
@@ -156,7 +155,7 @@ namespace ESPINA
     NmVector3 center{(brushBounds[0]+brushBounds[1])/2, (brushBounds[2]+brushBounds[3])/2, (brushBounds[4]+brushBounds[5])/2};
     double r2 = m_radius*m_radius;
 
-    if (intersect(brushBounds, m_previewBounds))
+    if (intersect(brushBounds, m_pBounds))
     {
       double point1[3] = { static_cast<double>(m_lastUdpdatePoint[0]), static_cast<double>(m_lastUdpdatePoint[1]), static_cast<double>(m_lastUdpdatePoint[2])};
       double point2[3] = { center[0], center[1], center[2] };
@@ -188,13 +187,13 @@ namespace ESPINA
       NmVector3 nmSpacing{m_spacing[0], m_spacing[1], m_spacing[2]};
       for (auto brush: brushes)
       {
-        if (!intersect(m_previewBounds, brush.second))
+        if (!intersect(m_pBounds, brush.second))
         {
           brushes.removeOne(brush);
           continue;
         }
 
-        Bounds pointBounds = intersection(m_previewBounds, brush.second);
+        Bounds pointBounds = intersection(m_pBounds, brush.second);
         auto region = equivalentRegion<itkVolumeType>(m_origin, nmSpacing, pointBounds);
         auto tempImage = create_itkImage<itkVolumeType>(pointBounds, SEG_BG_VALUE, nmSpacing, m_origin);
 
