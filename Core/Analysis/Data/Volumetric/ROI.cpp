@@ -86,12 +86,17 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  ROI *ROI::clone() const
+  ROISPtr ROI::clone() const
   {
-    auto newROI = new ROI(bounds(), spacing(), origin());
-    auto image = itkImage();
+    ROISPtr newROI{new ROI(bounds(), spacing(), origin())};
 
-    newROI->draw(image);
+    if (!isRectangular())
+    {
+      auto image = itkImage();
+
+      newROI->draw(image);
+    }
+
     return newROI;
   }
 

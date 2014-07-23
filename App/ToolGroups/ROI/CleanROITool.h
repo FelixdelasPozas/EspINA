@@ -71,8 +71,8 @@ namespace ESPINA
     virtual QList<QAction *> actions() const;
 
   protected slots:
+    void onROIChanged();
     void cancelROI();
-    void ROIChanged();
 
   private:
     ModelAdapterSPtr  m_model;

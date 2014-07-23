@@ -25,6 +25,7 @@
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
+#include <GUI/Selectors/PixelSelector.h>
 
 // Qt
 #include <QUndoCommand>
@@ -75,10 +76,27 @@ namespace ESPINA
      */
     virtual QList<QAction *> actions() const;
 
+    /** \brief
+     *  Returns true if the Orthogonal widget has been placed
+     */
+    bool isDefined() const;
+
+    void cancelWidget();
+
+  signals:
+    void roiDefined();
+
   protected slots:
-    void initTool(bool);
+    void activateEventHandler(bool value);
+
+    void activateTool(bool value);
+
     void defineROI(Selector::Selection);
+
     void commitROI();
+
+  private:
+    void enableSelector(bool value);
 
   private:
     ModelAdapterSPtr m_model;
@@ -89,10 +107,10 @@ namespace ESPINA
     QAction         *m_applyROI;
     bool             m_enabled;
 
-    EventHandlerSPtr m_selector;
-    EspinaWidgetSPtr m_widget;
-    NmVector3        m_spacing;
-    NmVector3        m_origin;
+    PixelSelectorSPtr m_selector;
+    EspinaWidgetSPtr  m_widget;
+    NmVector3         m_spacing;
+    NmVector3         m_origin;
     RectangularRegionSliceSelector *m_sliceSelector;
     ROISettings                    *m_settings;
   };

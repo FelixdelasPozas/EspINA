@@ -45,35 +45,32 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
 , m_toolGroup    {toolGroup}
 , m_applyROI     {new QAction(QIcon(":/espina/voi_ortogonal.svg"), tr("Orthogonal Volume Of Interest"), this)}
 , m_enabled      {true}
+, m_selector     {new PixelSelector()}
 , m_widget       {nullptr}
 , m_sliceSelector{nullptr}
 , m_settings     {settings}
 {
   m_applyROI->setCheckable(true);
-  m_applyROI->setEnabled(m_toolGroup->currentROI() == nullptr);
 
-  connect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
-          this,                SLOT(commitROI()));
+  m_selector->setMultiSelection(false);
+  m_selector->setSelectionTag(Selector::CHANNEL, true);
 
   connect(m_applyROI, SIGNAL(triggered(bool)),
-          this,       SLOT(initTool(bool)));
+          this,       SLOT(activateEventHandler(bool)));
 
-  auto eventHandler = new PixelSelector();
-  eventHandler->setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
-  eventHandler->setMultiSelection(false);
-  eventHandler->setSelectionTag(Selector::CHANNEL, true);
+  connect(m_selector.get(), SIGNAL(eventHandlerInUse(bool)),
+          this,             SLOT(activateTool(bool)));
 
-  m_selector = EventHandlerSPtr{eventHandler};
 }
 
 //-----------------------------------------------------------------------------
 OrthogonalROITool::~OrthogonalROITool()
 {
-  disconnect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
-             this,                SLOT(commitROI()));
+  disconnect(m_selector.get(), SIGNAL(eventHandlerInUse(bool)),
+             this,             SLOT(activateTool(bool)));
 
   disconnect(m_applyROI, SIGNAL(triggered(bool)),
-             this,       SLOT(initTool(bool)));
+             this,       SLOT(activateTool(bool)));
 
   delete m_applyROI;
 
@@ -87,9 +84,9 @@ OrthogonalROITool::~OrthogonalROITool()
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setEnabled(bool value)
 {
-  if(m_enabled == value)
-    return;
+  if(m_enabled == value) return;
 
+  enableSelector(value);
   m_applyROI->setEnabled(value);
   m_enabled = value;
 }
@@ -111,27 +108,59 @@ QList<QAction *> OrthogonalROITool::actions() const
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalROITool::initTool(bool value)
+bool OrthogonalROITool::isDefined() const
 {
-  switch(value)
-  {
-    case true:
-      if(m_widget != nullptr)
-        commitROI();
+  return m_widget != nullptr;
+}
 
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::cancelWidget()
+{
+  if (m_widget)
+  {
+    m_viewManager->removeWidget(m_widget);
+    m_viewManager->updateViews();
+
+    m_widget->setEnabled(false);
+    m_widget = nullptr;
+
+    m_applyROI->blockSignals(true);
+    m_applyROI->setChecked(false);
+    m_applyROI->blockSignals(false);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::activateEventHandler(bool value)
+{
+  if (value)
+  {
+    if (m_viewManager->eventHandler() != m_selector) {
       m_viewManager->setEventHandler(m_selector);
       connect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
               this,             SLOT(defineROI(Selector::Selection)));
-      break;
-    case false:
-        m_viewManager->unsetEventHandler(m_selector);
-        disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
-                   this,             SLOT(defineROI(Selector::Selection)));
-        m_applyROI->setChecked(false);
-      break;
-    default:
-      break;
+    }
+
+    commitROI();
+
+    enableSelector(true);
   }
+  else
+  {
+    m_viewManager->unsetEventHandler(m_selector);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::activateTool(bool value)
+{
+  if (!value)
+  {
+    commitROI();
+    disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
+               this,             SLOT(defineROI(Selector::Selection)));
+  }
+  enableSelector(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -157,11 +186,27 @@ void OrthogonalROITool::commitROI()
     m_undoStack->push(new ModifyROIUndoCommand{m_toolGroup, mask});
     m_undoStack->endMacro();
 
-    m_viewManager->removeWidget(m_widget);
-    m_widget->setEnabled(false);
-    m_widget = nullptr;
-    m_viewManager->updateViews();
+    cancelWidget();
   }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::enableSelector(bool value)
+{
+  m_selector->setEnabled(value);
+
+  if (value)
+  {
+    m_selector->setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
+  }
+  else
+  {
+    m_selector->setCursor(Qt::ArrowCursor);
+  }
+
+  m_applyROI->blockSignals(true);
+  m_applyROI->setChecked(value);
+  m_applyROI->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -201,16 +246,19 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
                  pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
 
   auto rrWidget = new RectangularRegion(bounds);
-  m_widget = EspinaWidgetSPtr(rrWidget);
-  Q_ASSERT(m_widget);
   rrWidget->setResolution(m_spacing);
   rrWidget->setRepresentationPattern(0xFFF0);
+
+  m_widget = EspinaWidgetSPtr(rrWidget);
+  Q_ASSERT(m_widget);
 
   m_viewManager->addWidget(m_widget);
   m_viewManager->updateViews();
   rrWidget->setEnabled(true);
 
-  initTool(false);
+  enableSelector(false);
+
+  emit roiDefined();
 
 //  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
 //  m_sliceSelector->setLeftLabel ("From");

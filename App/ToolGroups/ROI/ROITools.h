@@ -88,6 +88,14 @@ namespace ESPINA
      */
     ROISPtr currentROI();
 
+    /** \brief
+     *  Whether or not there is any ROI active
+     */
+    bool hasValidROI();
+
+  signals:
+    void roiChanged();
+
   private slots:
     /* \brief Changes the roi and associated widget when the
      * ROI is updated elsewhere (i.e. seedgrowsegmentation)

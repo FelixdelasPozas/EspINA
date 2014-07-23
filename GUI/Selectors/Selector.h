@@ -64,6 +64,7 @@ namespace ESPINA
   public:
     explicit Selector()
     : m_multiSelection(false)
+    , m_enabled(true)
     {}
 
     virtual ~Selector(){};
@@ -76,12 +77,19 @@ namespace ESPINA
     bool multiSelection()
     { return m_multiSelection; }
 
+    void setEnabled(bool value)
+    { m_enabled = value; }
+
+    bool isEnabled() const
+    {return m_enabled; }
+
   signals:
     void itemsSelected(Selector::Selection);
     void startUsingSelector();
     void stopUsingSelector();
 
   protected:
+    bool           m_enabled;
     SelectionFlags m_flags;
     bool           m_multiSelection;
   };

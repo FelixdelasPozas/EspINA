@@ -39,13 +39,12 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 , m_enabled          {true}
 , m_accumulator      {nullptr}
 , m_accumulatorWidget{nullptr}
+, m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
+, m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
+, m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
 {
-  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
-          this,                SLOT(updateROI()), Qt::QueuedConnection);
-
-  m_manualROITool    = ManualROIToolSPtr{new ManualROITool(model, viewManager, undoStack, this)};
-  m_ortogonalROITool = OrthogonalROIToolSPtr{new OrthogonalROITool(settings, model, viewManager, undoStack, this)};
-  m_cleanROITool     = CleanROIToolSPtr{new CleanROITool(model, viewManager, undoStack, this)};
+  connect(m_ortogonalROITool.get(), SIGNAL(roiDefined()),
+          this,                     SIGNAL(roiChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -59,9 +58,10 @@ void ROIToolsGroup::setEnabled(bool value)
   if(m_enabled == value)
     return;
 
-  m_manualROITool->setEnabled(value);
+  m_manualROITool   ->setEnabled(value);
   m_ortogonalROITool->setEnabled(value);
-  m_cleanROITool->setEnabled(value);
+  m_cleanROITool    ->setEnabled(value);
+
   m_enabled = value;
 }
 
@@ -86,6 +86,7 @@ ToolSList ROIToolsGroup::tools()
 //-----------------------------------------------------------------------------
 void ROIToolsGroup::setCurrentROI(ROISPtr roi)
 {
+  // TODO: Manage ROI activation/deactivation inside ViewManager
   if(m_accumulator != nullptr)
     m_viewManager->removeWidget(m_accumulatorWidget);
 
@@ -94,18 +95,27 @@ void ROIToolsGroup::setCurrentROI(ROISPtr roi)
     m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
     m_viewManager->addWidget(m_accumulatorWidget);
   }
+  else
+  {
+    m_ortogonalROITool->cancelWidget();
+  }
 
   m_accumulator = roi;
   m_viewManager->setCurrentROI(m_accumulator);
+
+  emit roiChanged();
 }
 
 //-----------------------------------------------------------------------------
 ROISPtr ROIToolsGroup::currentROI()
 {
-  if(m_viewManager->currentROI() != m_accumulator)
-    m_accumulator = m_viewManager->currentROI();
-
   return m_accumulator;
+}
+
+//-----------------------------------------------------------------------------
+bool ROIToolsGroup::hasValidROI()
+{
+  return m_accumulator || m_ortogonalROITool->isDefined();
 }
 
 //-----------------------------------------------------------------------------

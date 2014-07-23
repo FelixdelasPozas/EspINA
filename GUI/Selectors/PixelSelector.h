@@ -52,6 +52,8 @@ namespace ESPINA
       bool validSelection(Selector::Selection);
   };
 
+  using PixelSelectorSPtr = std::shared_ptr<PixelSelector>;
+
   //------------------------------------------------------------------------
   class EspinaGUI_EXPORT BestPixelSelector
   : public PixelSelector
@@ -73,6 +75,8 @@ namespace ESPINA
     QSize *m_window;
     int    m_bestPixel;
   };
+
+  using BestPixelSelectorSPtr = std::shared_ptr<BestPixelSelector>;
 
 } // namespace ESPINA
 

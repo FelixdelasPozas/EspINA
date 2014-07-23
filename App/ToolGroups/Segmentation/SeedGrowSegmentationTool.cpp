@@ -283,7 +283,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     filter->setDescription(tr("Seed Grow Segmentation"));
     if(roi != nullptr)
     {
-      filter->setROI(ROISPtr(roi->clone()));
+      filter->setROI(roi->clone());
     }
 
     m_executingTasks[adapter.get()] = adapter;

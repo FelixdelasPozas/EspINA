@@ -41,20 +41,21 @@ CleanROITool::CleanROITool(ModelAdapterSPtr  model,
 , m_cleanROI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
 , m_enabled    {true}
 {
-  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
-          this,                SLOT(ROIChanged()));
+  m_cleanROI->setEnabled(false);
+
+  connect(m_toolGroup, SIGNAL(roiChanged()),
+          this,        SLOT(onROIChanged()));
 
   connect(m_cleanROI, SIGNAL(triggered(bool)),
           this,       SLOT(cancelROI()));
 
-  ROIChanged();
 }
 
 //-----------------------------------------------------------------------------
 CleanROITool::~CleanROITool()
 {
-  disconnect(m_viewManager.get(), SIGNAL(ROIChanged()),
-             this,                SLOT(ROIChanged()));
+  disconnect(m_toolGroup, SIGNAL(roiChanged()),
+             this,        SLOT(onROIChanged()));
 
   disconnect(m_cleanROI, SIGNAL(triggered(bool)),
              this,       SLOT(cancelROI()));
@@ -69,7 +70,8 @@ void CleanROITool::setEnabled(bool value)
     return;
 
   m_enabled = value;
-  ROIChanged();
+
+  onROIChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -97,7 +99,7 @@ void CleanROITool::cancelROI()
 }
 
 //-----------------------------------------------------------------------------
-void CleanROITool::ROIChanged()
+void CleanROITool::onROIChanged()
 {
-  m_cleanROI->setEnabled(m_enabled && (m_viewManager->currentROI() != nullptr));
+  m_cleanROI->setEnabled(m_enabled && m_toolGroup->hasValidROI());
 }

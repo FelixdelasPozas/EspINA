@@ -45,10 +45,11 @@ bool PixelSelector::validSelection(Selector::Selection selectedItems)
 //-----------------------------------------------------------------------------
 void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
+  if (!isEnabled()) return;
+
   Selection selectedItems = generateSelection(view);
 
-  if (selectedItems.empty())
-    return;
+  if (selectedItems.empty()) return;
 
   emit itemsSelected(selectedItems);
 }
@@ -56,18 +57,21 @@ void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 //-----------------------------------------------------------------------------
 bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
 {
-  // If successor didn't abort the filtering, apply its own filtering
-  if (QEvent::MouseButtonPress == e->type())
+  if (isEnabled())
   {
-    auto me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
+    // If successor didn't abort the filtering, apply its own filtering
+    if (QEvent::MouseButtonPress == e->type())
     {
-      onMouseDown(me->pos(), view);
-      auto selectedItems = generateSelection(view);
-      if (selectedItems.empty())
-        return false;
+      auto me = static_cast<QMouseEvent*>(e);
+      if (me->button() == Qt::LeftButton)
+      {
+        onMouseDown(me->pos(), view);
+        auto selectedItems = generateSelection(view);
+        if (selectedItems.empty())
+          return false;
 
-      return true;
+        return true;
+      }
     }
   }
 
@@ -242,10 +246,11 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
 //-----------------------------------------------------------------------------
 void BestPixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
+  if (!isEnabled()) return;
+
   auto selectedItems = generateSelection(view);
 
-  if(selectedItems.empty())
-    return;
+  if(selectedItems.empty()) return;
 
   auto point = getPickPoint(view);
   auto channelAdapter = channelPtr(selectedItems.first().second);

@@ -30,6 +30,11 @@
 
 namespace ESPINA
 {
+  class ROI;
+
+  using ROIPtr  = ROI *;
+  using ROISPtr = std::shared_ptr<ROI>;
+
   class EspinaCore_EXPORT ROI
   : public SparseVolume<itkVolumeType>
   {
@@ -57,7 +62,7 @@ namespace ESPINA
       /* \brief Returns a new ROI object that is a copy of this one.
        *
        */
-      ROI* clone() const;
+      ROISPtr clone() const;
 
       /* \brief Applies the ROI to the volume passed as argument.
        *
@@ -103,8 +108,6 @@ namespace ESPINA
       bool m_isRectangular;
   };
 
-  using ROIPtr  = ROI *;
-  using ROISPtr = std::shared_ptr<ROI>;
 
   //-----------------------------------------------------------------------------
   template<class T>
@@ -211,7 +214,7 @@ namespace ESPINA
     }
 
     // if it's rectangular we're done now.
-    if(this->isRectangular())
+    if(!this->isRectangular())
     {
       auto image = this->itkImage(intersectionBounds);
       itk::ImageRegionIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
