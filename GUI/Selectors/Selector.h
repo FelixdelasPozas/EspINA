@@ -63,8 +63,8 @@ namespace ESPINA
 
   public:
     explicit Selector()
-    : m_multiSelection(false)
-    , m_enabled(true)
+    : m_enabled(true)
+    , m_multiSelection(false)
     {}
 
     virtual ~Selector(){};
