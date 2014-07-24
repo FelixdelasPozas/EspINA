@@ -55,3 +55,40 @@ bool ESPINA::TestClassificationName(const CategoryAdapterSPtr category, const QS
 
    return error;
 }
+
+bool ESPINA::TestCategoryAndAdapterSync(const CategoryAdapterSPtr categoryAdapter, const CategorySPtr category)
+{
+  bool error = false;
+
+  if(category == nullptr && categoryAdapter != nullptr)
+    return true;
+
+  if(category != nullptr && categoryAdapter == nullptr)
+    return true;
+
+  if(category == nullptr && categoryAdapter == nullptr)
+    return false;
+
+  if(categoryAdapter->subCategories().size() != category->subCategories().size())
+  {
+    std::cerr << "Category adapter and adapter category for " << category->name().toStdString()
+              << " have different number of sub-categories." << std::endl;
+    error = true;
+  }
+
+  for(auto subCategoryAdapter: categoryAdapter->subCategories())
+  {
+    auto subCategory = category->subCategory(subCategoryAdapter->name());
+    if(!subCategory)
+    {
+      std::cerr << "Category " << category->name().toStdString()
+                << " must have sub-category" << subCategoryAdapter->name().toStdString() << std::endl;
+      error = true;
+      continue;
+    }
+
+    error |= TestCategoryAndAdapterSync(subCategoryAdapter, subCategory);
+  }
+
+  return error;
+}
