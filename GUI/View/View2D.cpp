@@ -46,6 +46,7 @@
 #include <QWheelEvent>
 #include <QMenu>
 #include <QToolButton>
+#include <QStyle>
 #include <QVTKWidget.h>
 
 // VTK
@@ -576,6 +577,7 @@ void View2D::setupUI()
   m_spinBox->setSingleStep(1);
 
   m_renderConfig = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
+  m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
   connect(m_spinBox,   SIGNAL(valueChanged(double)),
           this,        SLOT(spinValueChanged(double)));

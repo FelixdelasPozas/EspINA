@@ -651,7 +651,7 @@ QPushButton* RenderView::createButton(const QString& icon, const QString& toolti
   button->setMinimumSize(QSize(22,22));
   button->setMaximumSize(QSize(22,22));
   button->setEnabled(false);
-  button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+  button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   return button;
 }

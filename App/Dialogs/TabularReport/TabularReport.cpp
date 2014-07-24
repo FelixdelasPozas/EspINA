@@ -71,13 +71,8 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
 , m_tabs(new QTabWidget())
 , m_multiSelection(false)
 {
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  QPalette pal = this->palette();
-  pal.setColor(QPalette::Base, pal.color(QPalette::Background));
-  this->setPalette(pal);
-
-  layout->addWidget(m_tabs);
-  setLayout(layout);
+  QHBoxLayout *general = new QHBoxLayout();
+  general->setAlignment(Qt::AlignRight);
 
   m_exportButton = new QPushButton();
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
@@ -85,11 +80,24 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
   m_exportButton->setFlat(false);
   m_exportButton->setEnabled(false);
   m_exportButton->setToolTip("Save All Data");
-  m_exportButton->setMinimumSize(40,40);
-
+  m_exportButton->setFlat(true);
+  m_exportButton->setIconSize(QSize(22,22));
+  m_exportButton->setMinimumSize(32,32);
+  m_exportButton->setMaximumSize(32,32);
   connect(m_exportButton, SIGNAL(clicked(bool)),
           this, SLOT(exportInformation()));
-  m_tabs->setCornerWidget(m_exportButton);
+
+  general->addWidget(m_exportButton);
+
+  QVBoxLayout *layout = new QVBoxLayout();
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Background));
+  this->setPalette(pal);
+
+  layout->addWidget(m_tabs);
+  layout->addLayout(general);
+
+  setLayout(layout);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this, SLOT(updateSelection(SegmentationAdapterList)));

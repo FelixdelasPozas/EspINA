@@ -231,6 +231,7 @@ void View3D::buildControls()
   connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
   m_renderConfig = createButton(QString(":/espina/settings.png"), tr("Configure this view's renderers"));
+  m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
