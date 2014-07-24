@@ -58,6 +58,7 @@ AppositionSurfaceToolGroup::AppositionSurfaceToolGroup(ModelAdapterSPtr model,
   connect(m_tool.get(), SIGNAL(triggered()), this, SLOT(createSAS()));
 
   connect(viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+  selectionChanged();
 }
 
 //-----------------------------------------------------------------------------

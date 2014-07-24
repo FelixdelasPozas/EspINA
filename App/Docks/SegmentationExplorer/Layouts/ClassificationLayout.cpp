@@ -375,7 +375,7 @@ void ClassificationLayout::deleteSelectedItems()
     }
 
     // assuming categories are empty, because if they weren't then !segmentations.empty()
-    m_undoStack->beginMacro("Remove Category");
+    m_undoStack->beginMacro("Remove Categories and Segmentations");
     deleteSegmentations(segmentations.toList());
 
     categories << additionalCategories;

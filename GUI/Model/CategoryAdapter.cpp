@@ -23,6 +23,7 @@
 // ESPINA
 #include <Core/Analysis/Category.h>
 #include <QPixmap>
+#include <QDebug>
 
 using namespace ESPINA;
 
@@ -191,6 +192,7 @@ void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
   {
     subNode->m_parent = nullptr;
     m_subCategories.removeAt(index);
+    m_category->removeSubCategory(subNode->m_category);
   }
 }
 
