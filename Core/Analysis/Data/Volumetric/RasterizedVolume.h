@@ -109,10 +109,6 @@ namespace ESPINA
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE);
 
-    /* \brief Implements SparseVolume<T>::fitToContent().
-     *
-     */
-    virtual void fitToContent();
 
     /* \brief Implements SparseVolume<T>::resize().
      *
@@ -231,16 +227,6 @@ namespace ESPINA
       rasterize();
 
     SparseVolume<T>::draw(index, value);
-  }
-
-  //----------------------------------------------------------------------------
-  template<typename T>
-  void RasterizedVolume<T>::fitToContent()
-  {
-    if(this->m_blocks.empty())
-      rasterize();
-
-    SparseVolume<T>::fitToContent();
   }
 
   //----------------------------------------------------------------------------

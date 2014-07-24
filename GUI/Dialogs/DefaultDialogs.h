@@ -52,6 +52,8 @@ namespace ESPINA {
                                    const QString& suggestion = QString());
 
       static bool UserConfirmation(const QString& title, const QString& message);
+
+      static void InformationMessage(const QString& title, const QString& message);
     };
   } // namespace GUI
 } // namespace ESPINA

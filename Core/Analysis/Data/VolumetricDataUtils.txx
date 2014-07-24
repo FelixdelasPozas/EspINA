@@ -258,7 +258,7 @@ namespace ESPINA {
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueType value)
+  Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueType bgValue)
   {
     Bounds bounds;
 
@@ -269,7 +269,7 @@ namespace ESPINA {
     it.GoToBegin();
     while (!it.IsAtEnd())
     {
-      if (it.Get() != value)
+      if (it.Get() != bgValue)
       {
         auto index   = it.GetIndex();
         Bounds voxelBounds;
@@ -422,7 +422,13 @@ namespace ESPINA {
     volume->draw(drawnVolume);
   }
 
-
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void fitToContents(VolumetricDataSPtr<T> volume, typename T::ValueType bgValue)
+  {
+    auto bounds = minimalBounds<T>(volume->itkImage(), bgValue);
+    volume->resize(bounds);
+  }
 
   //-----------------------------------------------------------------------------
   template<typename T>

@@ -126,12 +126,6 @@ namespace ESPINA
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE)
     { m_data->draw(index, value); }
 
-    /** \brief Resize the volume to the minimum bounds containing all non background values
-     *
-     */
-    virtual void fitToContent()
-    { m_data->fitToContent(); }
-
     /** \brief Resize the volume to the given bounds
      *
      *  New voxels will be set to background value

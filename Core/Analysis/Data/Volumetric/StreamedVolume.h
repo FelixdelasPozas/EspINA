@@ -99,8 +99,6 @@ namespace ESPINA {
                       const typename T::PixelType value = SEG_VOXEL_VALUE){}
 
 
-    virtual void fitToContent(){}
-
     virtual void resize(const Bounds &bounds) {}
 
     virtual void undo() {}

@@ -92,8 +92,10 @@ namespace ESPINA
     { m_sphereTool->setText(text); }
 
   signals:
-    void stopDrawing();
     void brushModeChanged(BrushSelector::BrushMode);
+
+    void stopDrawing(ViewItemAdapterPtr item, bool eraseModeEntered);
+
     void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
 
   public slots:
@@ -143,6 +145,7 @@ namespace ESPINA
     bool m_showEraserControls;
 
     bool m_enabled;
+    bool m_hasEnteredEraserMode;
   };
 
   using ManualEditionToolPtr = ManualEditionTool *;

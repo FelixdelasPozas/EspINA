@@ -121,11 +121,6 @@ namespace ESPINA
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE) = 0;
 
-    /** \brief Resize the volume to the minimum bounds containing all non background values
-     *
-     */
-    virtual void fitToContent() = 0;
-
     /** \brief Resize the volume to the given bounds
      *
      *  New voxels will be set to background value

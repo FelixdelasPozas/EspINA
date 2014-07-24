@@ -179,8 +179,9 @@ void ManualROITool::selectorInUse(bool value)
 {
   if (!value)
   {
+    emit stopDrawing(m_currentSelector->referenceItem(), m_hasEnteredEraserMode);
+
     m_currentSelector = nullptr;
-    emit stopDrawing();
   }
 
   m_drawToolSelector->setChecked(value);

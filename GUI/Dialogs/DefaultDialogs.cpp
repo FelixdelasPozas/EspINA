@@ -121,3 +121,15 @@ bool DefaultDialogs::UserConfirmation(const QString& title, const QString& messa
 
   return dialog.exec() == QMessageBox::Ok;
 }
+
+//------------------------------------------------------------------------
+void DefaultDialogs::InformationMessage(const QString& title, const QString& message)
+{
+  QMessageBox dialog;
+
+  dialog.setWindowTitle(title);
+  dialog.setText(message);
+  dialog.setStandardButtons(QMessageBox::Ok);
+
+  dialog.exec();
+}
