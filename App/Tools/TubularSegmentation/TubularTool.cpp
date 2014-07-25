@@ -2,10 +2,10 @@
  * SpineTool.cpp
  *
  *  Created on: Oct 24, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include <GUI/Pickers/PixelSelector.h>
 #include <GUI/ViewManager.h>
 #include <Core/EspinaTypes.h>
@@ -23,7 +23,7 @@
 #include <QEvent>
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   TubularTool::UpdateSegmentationNodes::UpdateSegmentationNodes(TubularSegmentationFilter::Pointer filter,
@@ -47,7 +47,7 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  TubularTool::TubularTool(ViewManager *vm, QUndoStack *undo, EspinaModel *model)
+  TubularTool::TubularTool(ViewManager *vm, QUndoStack *undo, ModelAdapter *model)
   : m_model(model)
   , m_enabled(true)
   , m_inUse(false)
@@ -134,7 +134,7 @@ namespace EspINA
           FilterSPtr filteR;
           m_seg = m_model->factory()->createSegmentation(m_source, 0);
           m_undoStack->beginMacro("Create Tubular Segmentation");
-          m_undoStack->push(new AddSegmentation(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+          m_undoStack->push(new AddSegmentations(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
 
           SegmentationSList createdSegmentations;
           createdSegmentations << m_seg;
@@ -178,7 +178,7 @@ namespace EspINA
       if (!m_seg && m_source->outputs().size() == 1)
       {
         m_seg = m_model->factory()->createSegmentation(m_source, 0);
-        m_undoStack->push(new AddSegmentation(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
+        m_undoStack->push(new AddSegmentations(m_channel, m_source, m_seg, m_model->findTaxonomyElement(m_viewManager->activeTaxonomy()), m_model));
         createdSegmentations << m_seg;
       }
       else

@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/espina">
+    <file>defaultClassification.xml</file>
+  </qresource>
+</RCC>

@@ -1,8 +1,10 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * 
+ * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- * This program is free software: you can redistribute it and/or modify
+ * This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -20,43 +22,51 @@
 #include "ContourRepresentationSettings.h"
 #include "ContourRepresentation.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ContourRepresentationSettings::ContourRepresentationSettings()
 : m_init(false)
 {
   setupUi(this);
-  m_borderWidth->setEnabled(false);
+  m_widthCombo->addItem("Tiny");
+  m_widthCombo->addItem("Small");
+  m_widthCombo->addItem("Medium");
+  m_widthCombo->addItem("Large");
+  m_widthCombo->addItem("Huge");
+
+  m_patternCombo->addItem("Solid");
+  m_patternCombo->addItem("Dotted");
+  m_patternCombo->addItem("Dashed");
 }
 
 //----------------------------------------------------------------------------
-void ContourRepresentationSettings::Get(GraphicalRepresentationSPtr representation)
+void ContourRepresentationSettings::get(RepresentationSPtr representation)
 {
   ContourRepresentation *contourRepresentation = dynamic_cast<ContourRepresentation *>(representation.get());
 
   if (!m_init)
   {
-    m_borderWidth->setValue(contourRepresentation->lineWidth());
+    m_widthCombo->setCurrentIndex(contourRepresentation->lineWidth());
+    m_patternCombo->setCurrentIndex(contourRepresentation->linePattern());
     m_init = true;
   }
 
-  if (m_borderWidth->value() != contourRepresentation->lineWidth())
+  if (m_widthCombo->currentIndex() != contourRepresentation->lineWidth())
   {
-    m_borderWidth->setMinimum(0);
-    m_borderWidth->setValue(0);
-    m_borderWidth->setSpecialValueText(" ");
+    m_widthCombo->setCurrentIndex(2);
+    m_patternCombo->setCurrentIndex(0);
   }
 }
 
 //----------------------------------------------------------------------------
-void ContourRepresentationSettings::Set(GraphicalRepresentationSPtr representation)
+void ContourRepresentationSettings::set(RepresentationSPtr representation)
 {
   ContourRepresentation *contourRepresentation = dynamic_cast<ContourRepresentation *>(representation.get());
 
   if (m_init)
   {
-    if (m_borderWidth->value() > 0)
-      contourRepresentation->setLineWidth(m_borderWidth->value());
+    contourRepresentation->setLineWidth((ContourRepresentation::LineWidth)m_widthCombo->currentIndex());
+    contourRepresentation->setLinePattern((ContourRepresentation::LinePattern)m_patternCombo->currentIndex());
   }
 }

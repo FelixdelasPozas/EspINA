@@ -1,0 +1,22 @@
+# Find ESPINA includes and libraries
+#
+# Once done, this will define:
+# ESPINA_FOUND: ESPINA libraries are available
+# ESPINA_INCLUDE_DIRS: ESPINA include directories
+# ESPINA_USE_FILE: File to compile programs which use ESPINA
+
+# Name conventions: Dependencies use plural forms,
+# the package itself uses the singular forms defined
+# by find_path and find_library
+
+get_filename_component(ESPINA_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+set (ESPINA_FOUND 1)
+
+set (ESPINA_INCLUDE_DIR "@CONF_INCLUDE_DIRS@")
+
+set (ESPINA_LIBRARIES EspinaCore EspinaGUI EspinaExtensions EspinaFilters EspinaSupport EspinaUndo)
+
+set (ESPINA_LIBRARY_DIRECTORIES "@CONF_LIBRARIES_DIRS@")
+
+set (ESPINA_USE_FILE "@CONF_CMAKE_DIR@/ESPINAUse.cmake")

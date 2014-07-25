@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Laura Fernandez Soria <laura.fernandez@ctb.upm.es>
+ 
+ Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <Core/Model/EspinaModel.h>
 #include <Core/EspinaRegion.h>
 #include <Core/EspinaTypes.h>
@@ -41,7 +43,7 @@
 // itk
 #include <itkImage.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ConnectomicsDialog::ConnectomicsDialog(EspinaModel *model,
@@ -80,7 +82,7 @@ void ConnectomicsDialog::generateConectomicGraph(EspinaModel *m_model)
         SegmentationVolume::Pointer otherSegVolume = seg_others->volume();
         if (checkCollision(segVolume, otherSegVolume))
         {
-          res = seg->relatedItems(EspINA::RELATION_OUT, CONECTOMICA);
+          res = seg->relatedItems(ESPINA::RELATION_OUT, CONECTOMICA);
           bool no_existe = true;
           foreach (ModelItemSPtr i_res, res)
           {
@@ -141,7 +143,7 @@ void ConnectomicsDialog::showGraphConnectomicsInformation(QModelIndex index)
   ModelItemPtr item = indexPtr(index_proxy);
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
 
-  if (EspINA::SEGMENTATION != item->type())
+  if (ESPINA::SEGMENTATION != item->type())
     return;
 
   m_proxy_aux->setFilterBy(seg);
@@ -154,7 +156,7 @@ void ConnectomicsDialog::showGraphConnectomicsInformation(QModelIndex index)
   QModelIndex indexEspinaModel = m_model->index(row, 0, m_model->segmentationRoot());
 
   ModelItemPtr item2 = indexPtr(indexEspinaModel);
-  if (EspINA::SEGMENTATION != item2->type())
+  if (ESPINA::SEGMENTATION != item2->type())
     return;
   selection << dynamic_cast<PickableItem *>(item2);
   m_viewManager->setSelection(selection);

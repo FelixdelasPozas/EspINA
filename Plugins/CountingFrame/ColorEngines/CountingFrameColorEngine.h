@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  <copyright holder> <email>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -17,32 +19,39 @@
  */
 
 
-#ifndef COUNTINGFRAMECOLORENGINE_H
-#define COUNTINGFRAMECOLORENGINE_H
+#ifndef ESPINA_COUNTING_FRAME_COLOR_ENGINE_H
+#define ESPINA_COUNTING_FRAME_COLOR_ENGINE_H
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/ColorEngines/IColorEngine.h>
+#include <GUI/ColorEngines/ColorEngine.h>
+#include <Extensions/StereologicalInclusion.h>
 
-namespace EspINA
+namespace ESPINA
 {
-  class CountingFramePlugin_EXPORT CountingFrameColorEngine
-  : public ColorEngine
+  namespace CF
   {
 
-  public:
-    explicit CountingFrameColorEngine();
+    class CountingFramePlugin_EXPORT CountingFrameColorEngine
+    : public ColorEngine
+    {
 
-    virtual QColor color(SegmentationPtr seg);
-    virtual LUTPtr lut(SegmentationPtr seg);
-    virtual ColorEngine::Composition supportedComposition() const
-    { return ColorEngine::Transparency; }
+    public:
+      explicit CountingFrameColorEngine();
 
-  private:
-    LUTPtr m_excludedLUT;
-    LUTPtr m_includedLUT;
-  };
+      virtual QColor color(SegmentationAdapterPtr seg);
 
-} // namespace EspINA
+      virtual LUTSPtr lut(SegmentationAdapterPtr seg);
 
-#endif // COUNTINGFRAMECOLORENGINE_H
+      virtual ColorEngine::Composition supportedComposition() const
+      { return ColorEngine::Transparency; }
+
+    private:
+      LUTSPtr m_excludedLUT;
+      LUTSPtr m_includedLUT;
+    };
+
+  } // namespace CF
+} // namespace ESPINA
+
+#endif // ESPINA_COUNTING_FRAME_COLOR_ENGINE_H

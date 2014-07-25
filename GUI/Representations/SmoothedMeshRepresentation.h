@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,47 +18,53 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SMOOTHEDMESHREPRESENTATION_H_
-#define SMOOTHEDMESHREPRESENTATION_H_
+#ifndef ESPINA_SMOOTHED_MESH_REPRESENTATION_H_
+#define ESPINA_SMOOTHED_MESH_REPRESENTATION_H_
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
-// EspINA
-#include "IMeshRepresentation.h"
+// ESPINA
+#include "MeshRepresentation.h"
 
 class vtkDecimatePro;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT SmoothedMeshRepresentation
-  : public IMeshRepresentation
+  : public MeshRepresentationBase
   {
     Q_OBJECT
   public:
-    explicit SmoothedMeshRepresentation(MeshRepresentationSPtr mesh,
-                                        EspinaRenderView *view);
+    static const Representation::Type TYPE;
+
+  public:
+    explicit SmoothedMeshRepresentation(MeshDataSPtr mesh,
+                                        RenderView *view);
     virtual ~SmoothedMeshRepresentation() {};
 
-    virtual GraphicalRepresentationSettings *settingsWidget();
+    virtual RepresentationSettings *settingsWidget();
 
     virtual void updateRepresentation();
 
-  protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+    virtual bool crosshairDependent() const
+    { return false; }
 
-  private slots:
-    void updatePipelineConnections();
+    virtual bool needUpdate()
+    { return m_lastUpdatedTime != m_data->lastModified(); }
+
+  protected:
+    virtual RepresentationSPtr cloneImplementation(View3D *view);
 
   private:
-    void setView(VolumeView *view) { m_view = view; };
+    void setView(RenderView *view) { m_view = view; };
     void initializePipeline();
 
   private:
-    vtkSmartPointer<vtkDecimatePro>                m_decimate;
+    vtkSmartPointer<vtkDecimatePro> m_decimate;
   };
 
-  typedef boost::shared_ptr<SmoothedMeshRepresentation> SmoothedMeshRepresentationSPtr;
-  typedef QList<SmoothedMeshRepresentationSPtr> SmoothedMeshRepresentationSList;
+  using SmoothedMeshRepresentationSPtr  = std::shared_ptr<SmoothedMeshRepresentation>;
+  using SmoothedMeshRepresentationSList = QList<SmoothedMeshRepresentationSPtr>;
 
-} /* namespace EspINA */
-#endif /* SMOOTHEDMESHREPRESENTATION_H_ */
+} /* namespace ESPINA */
+#endif /* ESPINA_SMOOTHED_MESH_REPRESENTATION_H_ */

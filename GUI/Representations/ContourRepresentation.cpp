@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,15 +18,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "ContourRepresentation.h"
-#include "GraphicalRepresentationEmptySettings.h"
+#include "RepresentationEmptySettings.h"
 #include "ContourRepresentationSettings.h"
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/EspinaTypes.h>
-#include <GUI/QtWidget/SliceView.h>
-#include <GUI/QtWidget/VolumeView.h>
-#include <GUI/vtkWidgets/vtkVoxelContour2D.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
+#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 
 // VTK
 #include <vtkActor.h>
@@ -35,38 +37,50 @@
 #include <vtkRendererCollection.h>
 #include <vtkPolyData.h>
 #include <vtkImageData.h>
+#include <vtkTubeFilter.h>
+#include <vtkImageCanvasSource2D.h>
+#include <vtkTexture.h>
 
-using namespace EspINA;
+using namespace ESPINA;
+
+const Representation::Type ContourRepresentation::TYPE = "Contour";
 
 TransparencySelectionHighlighter *ContourRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
 //-----------------------------------------------------------------------------
-ContourRepresentation::ContourRepresentation(SegmentationVolumeSPtr data,
-                                             EspinaRenderView      *view)
-: SegmentationGraphicalRepresentation(view)
-, m_data(data)
-, m_width(5)
-, m_pattern(0xFFFF)
+ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
+                                             RenderView               *view)
+: Representation{view}
+, m_planeIndex  {-1}
+, m_reslicePoint{-1}
+, m_data        {data}
+, m_voxelContour{nullptr}
+, m_textureIcon {nullptr}
+, m_texture     {nullptr}
+, m_tubes       {nullptr}
+, m_mapper      {nullptr}
+, m_actor       {nullptr}
+, m_width       {medium}
+, m_pattern     {normal}
+, m_minSpacing  {0}
 {
-  setLabel(tr("Contour"));
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *ContourRepresentation::settingsWidget()
+RepresentationSettings *ContourRepresentation::settingsWidget()
 {
-  return new GraphicalRepresentationEmptySettings();
-  //return new  ContourRepresentationSettings();
+  return new ContourRepresentationSettings();
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
-    vtkSmartPointer<vtkLookupTable> lut = s_highlighter->lut(m_color, m_highlight);
-
+    auto lut = s_highlighter->lut(m_color, m_highlight);
     double rgba[4];
     s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
 
@@ -79,9 +93,9 @@ void ContourRepresentation::setColor(const QColor &color)
 //-----------------------------------------------------------------------------
 void ContourRepresentation::setHighlighted(bool highlighted)
 {
-  SegmentationGraphicalRepresentation::setHighlighted(highlighted);
+  Representation::setHighlighted(highlighted);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
     double rgba[4];
     s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
@@ -95,49 +109,98 @@ void ContourRepresentation::setHighlighted(bool highlighted)
 //-----------------------------------------------------------------------------
 bool ContourRepresentation::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-bool ContourRepresentation::isInside(Nm point[3])
+bool ContourRepresentation::isInside(const NmVector3 &point) const
 {
   Q_ASSERT(m_data.get());
-  Q_ASSERT(m_data->toITK().IsNotNull());
 
-  itkVolumeType::IndexType voxel = m_data->index(point[0], point[1], point[2]);
+  Bounds bounds{ '[', point[0], point[0], point[1], point[1], point[2], point[2], ']'};
 
-  return m_data->volumeRegion().IsInside(voxel)
-  && m_data->toITK()->GetPixel(voxel) == SEG_VOXEL_VALUE;
+  if (!intersect(m_data->bounds(), bounds))
+    return false;
+
+  auto voxel = m_data->itkImage(bounds);
+
+  return (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(voxel->GetBufferPointer())));
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::initializePipeline()
 {
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
+  if (m_planeIndex == -1)
+    return;
 
-  SliceView *view = reinterpret_cast<SliceView *>(m_view);
+  Bounds imageBounds = m_data->bounds();
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  m_reslice = vtkSmartPointer<vtkImageReslice>::New();
-  m_reslice->SetInputConnection(m_data->toVTK());
-  m_reslice->SetOutputDimensionality(2);
-  m_reslice->SetResliceAxes(slicingMatrix(view));
-  m_reslice->AutoCropOutputOn();
-  m_reslice->SetNumberOfThreads(1);
-  m_reslice->Update();
+  vtkSmartPointer<vtkImageData> image = nullptr;
+
+  if (valid)
+  {
+    m_reslicePoint = m_crosshair[m_planeIndex];
+    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+
+    image = vtkImage(m_data, imageBounds);
+  }
+  else
+  {
+    m_reslicePoint = -1;
+    int extent[6] = { 0,1,0,1,0,1 };
+    extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
+    image = vtkSmartPointer<vtkImageData>::New();
+    image->SetExtent(extent);
+
+    auto info = image->GetInformation();
+    vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+    vtkImageData::SetNumberOfScalarComponents(1, info);
+    image->SetInformation(info);
+    image->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    image->Modified();
+    memset(image->GetScalarPointer(), SEG_BG_VALUE, image->GetNumberOfPoints());
+  }
 
   m_voxelContour = vtkSmartPointer<vtkVoxelContour2D>::New();
-  m_voxelContour->SetInputConnection(m_reslice->GetOutputPort());
-  m_voxelContour->Update();
+  m_voxelContour->SetInputData(image);
+  m_voxelContour->UpdateWholeExtent();
+
+  m_tubes = vtkSmartPointer<vtkTubeFilter>::New();
+  m_tubes->SetInputData(m_voxelContour->GetOutput());
+  m_tubes->SetUpdateExtent(image->GetExtent());
+  m_tubes->SetCapping(false);
+  m_tubes->SetGenerateTCoordsToUseLength();
+  m_tubes->SetNumberOfSides(4);
+  m_tubes->SetOffset(1.0);
+  m_tubes->SetOnRatio(1.5);
+  m_tubes->UpdateWholeExtent();
 
   m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  m_mapper->SetInputConnection(m_voxelContour->GetOutputPort());
+  m_mapper->SetInputConnection(m_tubes->GetOutputPort());
+  m_mapper->SetUpdateExtent(image->GetExtent());
   m_mapper->SetColorModeToDefault();
   m_mapper->ScalarVisibilityOff();
   m_mapper->StaticOff();
+
+  m_textureIcon = vtkSmartPointer<vtkImageCanvasSource2D>::New();
+  m_textureIcon->SetScalarTypeToUnsignedChar();
+  m_textureIcon->SetExtent(0, 31, 0, 31, 0, 0);
+  m_textureIcon->SetNumberOfScalarComponents(4);
+  generateTexture();
+
+  m_texture = vtkSmartPointer<vtkTexture>::New();
+  m_texture->SetInputConnection(m_textureIcon->GetOutputPort());
+  m_texture->SetEdgeClamp(false);
+  m_texture->RepeatOn();
+  m_texture->InterpolateOff();
+  m_texture->Modified();
+
+  updateWidth();
   m_mapper->Update();
 
   double rgba[4];
@@ -145,30 +208,56 @@ void ContourRepresentation::initializePipeline()
 
   m_actor = vtkSmartPointer<vtkActor>::New();
   m_actor->SetMapper(m_mapper);
-  m_actor->GetProperty()->SetLineWidth(m_width);
-  m_actor->GetProperty()->SetLineStipplePattern(m_pattern);
   m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
   m_actor->GetProperty()->SetOpacity(rgba[3]);
   m_actor->GetProperty()->Modified();
   m_actor->SetVisibility(isVisible());
+  m_actor->SetDragable(false);
+  m_actor->SetTexture(m_texture);
   m_actor->Modified();
 
-  // need to reposition the actor so it will always be over the channels actors'
-  double pos[3];
-  m_actor->GetPosition(pos);
-  pos[view->plane()] = view->segmentationDepth();
-  m_actor->SetPosition(pos);
+  updatePattern();
+
+  m_lastUpdatedTime = m_data->lastModified();
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updateRepresentation()
 {
-  if (m_actor != NULL)
+  setCrosshairPoint(m_view->crosshairPoint());
+
+  Bounds imageBounds = m_data->bounds();
+
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid && isVisible())
   {
-    m_reslice->UpdateWholeExtent();
-    m_mapper->Update();
+    m_reslicePoint = m_crosshair[m_planeIndex];
+
+    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+
+    auto image = vtkImage(m_data, imageBounds);
+
+    m_voxelContour->SetInputData(image);
+    m_voxelContour->UpdateWholeExtent();
+    m_mapper->UpdateWholeExtent();
+    m_tubes->UpdateWholeExtent();
+
+    double rgba[4];
+    s_highlighter->lut(m_color, m_highlight)->GetTableValue(1, rgba);
+
+    m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
+    m_actor->GetProperty()->SetOpacity(rgba[3]);
+    m_actor->GetProperty()->Modified();
     m_actor->Modified();
+
+    m_lastUpdatedTime = m_data->lastModified();
   }
+
+  if (m_actor != nullptr)
+    m_actor->SetVisibility(valid && isVisible());
 }
 
 //-----------------------------------------------------------------------------
@@ -176,7 +265,7 @@ QList<vtkProp*> ContourRepresentation::getActors()
 {
   QList<vtkProp *> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
@@ -185,72 +274,147 @@ QList<vtkProp*> ContourRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr ContourRepresentation::cloneImplementation(SliceView *view)
+RepresentationSPtr ContourRepresentation::cloneImplementation(View2D *view)
 {
-  ContourRepresentation *representation = new ContourRepresentation(m_data, view);
+  auto representation = new ContourRepresentation(m_data, view);
   representation->setView(view);
+  representation->setPlane(view->plane());
 
-  return GraphicalRepresentationSPtr(representation);
+  return RepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
+  if(visible && m_actor != nullptr && needUpdate())
+    updateRepresentation();
+
+  if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
-void ContourRepresentation::updatePipelineConnections()
-{
-  if (m_actor == NULL)
-    return;
-
-  if (m_reslice->GetInputConnection(0,0) != m_data->toVTK())
-  {
-    m_reslice->SetInputConnection(m_data->toVTK());
-    m_reslice->Update();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void ContourRepresentation::setLineWidth(int width)
+void ContourRepresentation::setLineWidth(ContourRepresentation::LineWidth width)
 {
   if (m_width == width)
     return;
 
   m_width = width;
+  updateWidth();
 
-  if (m_actor)
+  for (auto clone: m_clones)
   {
-    m_actor->GetProperty()->SetLineWidth(m_width);
-    m_actor->Modified();
-  }
-
-  foreach (GraphicalRepresentationSPtr clone, m_clones)
-  {
-    ContourRepresentation *contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
+    auto contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
     contourClone->setLineWidth(width);
   }
 }
 
 //-----------------------------------------------------------------------------
-int ContourRepresentation::lineWidth() const
+ContourRepresentation::LineWidth ContourRepresentation::lineWidth() const
 {
   return m_width;
 }
 
 //-----------------------------------------------------------------------------
-void ContourRepresentation::setLinePattern(int pattern)
+void ContourRepresentation::setLinePattern(ContourRepresentation::LinePattern pattern)
 {
-	if (m_pattern == pattern)
-		return;
-
-  m_pattern = pattern;
-
-  if (m_actor == NULL)
+  if (m_pattern == pattern)
     return;
 
-  m_actor->GetProperty()->SetLineStipplePattern(m_pattern);
-  m_actor->Modified();
+  m_pattern = pattern;
+  updatePattern();
+
+  for (auto clone: m_clones)
+  {
+    auto contourClone = dynamic_cast<ContourRepresentation *>(clone.get());
+    contourClone->setLinePattern(pattern);
+  }
+}
+
+//-----------------------------------------------------------------------------
+ContourRepresentation::LinePattern ContourRepresentation::linePattern() const
+{
+  return m_pattern;
+}
+
+//-----------------------------------------------------------------------------
+void ContourRepresentation::updateWidth()
+{
+  if (m_tubes)
+  {
+    if (m_width == tiny)
+    {
+      m_mapper->SetInputData(m_voxelContour->GetOutput());
+      updatePattern();
+    }
+    else
+    {
+      m_mapper->SetInputData(m_tubes->GetOutput());
+      m_tubes->SetRadius(m_voxelContour->getMinimumSpacing() * ((int)m_width)/10.0);
+      m_tubes->UpdateWholeExtent();
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ContourRepresentation::updatePattern()
+{
+  if (m_width == tiny)
+  {
+    int linePattern;
+    switch(m_pattern)
+    {
+      case dotted:
+        linePattern = 0xAAAA;
+        break;
+      case dashed:
+        linePattern = 0xFF00;
+        break;
+      case normal:
+      default:
+        linePattern = 0xFFFF;
+        break;
+    }
+
+    if (m_actor.GetPointer() != nullptr)
+    {
+      m_actor->GetProperty()->SetLineStipplePattern(linePattern);
+      m_actor->SetTexture(nullptr);
+      m_actor->GetProperty()->Modified();
+    }
+  }
+  else
+  {
+    if (m_actor.GetPointer() != nullptr)
+    {
+      generateTexture();
+      m_actor->SetTexture(m_texture);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ContourRepresentation::generateTexture()
+{
+  m_textureIcon->SetDrawColor(255,255,255,255);  // solid white
+  m_textureIcon->FillBox(0,31,0,31);             // for background
+
+  m_textureIcon->SetDrawColor(0,0,0,0); // transparent
+
+  switch(m_pattern)
+  {
+    case dotted:
+      m_textureIcon->FillBox(16, 31, 0, 15);    // checkered pattern
+      m_textureIcon->FillBox(0, 15, 16, 31);
+      break;
+    case dashed:
+      m_textureIcon->FillBox(24, 31, 0, 7);      // small transparent square
+      m_textureIcon->FillBox(0, 7, 24, 31);      // small transparent square
+      break;
+    case normal:
+    default:
+      // nothing to do
+      break;
+  }
+  m_textureIcon->Update();
 }

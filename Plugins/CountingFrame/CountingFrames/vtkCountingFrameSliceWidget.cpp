@@ -15,9 +15,9 @@
 #include "vtkCountingFrameSliceWidget.h"
 
 #include "vtkCountingFrameSliceRepresentation.h"
-#include "vtkCountingFrameAxialSliceRepresentation.h"
-#include "vtkCountingFrameCoronalSliceRepresentation.h"
-#include "vtkCountingFrameSagittalSliceRepresentation.h"
+#include "vtkCountingFrameRepresentationXY.h"
+#include "vtkCountingFrameRepresentationXZ.h"
+#include "vtkCountingFrameRepresentationYZ.h"
 
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
@@ -35,14 +35,14 @@
 
 vtkStandardNewMacro(vtkCountingFrameSliceWidget);
 
-typedef vtkCountingFrameSliceRepresentation         SliceRepresentation;
-typedef vtkCountingFrameAxialSliceRepresentation    AxialSliceRepresentation;
-typedef vtkCountingFrameCoronalSliceRepresentation  CoronalSliceRepresentation;
-typedef vtkCountingFrameSagittalSliceRepresentation SagittalSliceRepresentation;
+using SliceRepresentation   = vtkCountingFrameSliceRepresentation;
+using SliceRepresentationXY = vtkCountingFrameRepresentationXY;
+using SliceRepresentationXZ = vtkCountingFrameRepresentationXZ;
+using SliceRepresentationYZ = vtkCountingFrameRepresentationYZ;
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
-: Plane(EspINA::AXIAL)
+: Plane(ESPINA::Plane::XY)
 , Slice(0)
 {
   this->WidgetState = vtkCountingFrameSliceWidget::Start;
@@ -54,12 +54,12 @@ vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Select,
                                           this, vtkCountingFrameSliceWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
@@ -70,22 +70,22 @@ vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::ControlModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Translate,
                                           this, vtkCountingFrameSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ControlModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::ShiftModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Translate,
                                           this, vtkCountingFrameSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ShiftModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrameSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
@@ -142,7 +142,7 @@ void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
   self->Render();
 }
 
@@ -185,7 +185,7 @@ void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
   self->Render();
 }
 
@@ -210,6 +210,7 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
   }
 
   // Okay, adjust the representation
+  self->SetHighlighted(true);
   double e[2];
   e[0] = static_cast<double>(X);
   e[1] = static_cast<double>(Y);
@@ -217,7 +218,7 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
 
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
-  self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::InteractionEvent,nullptr);
   self->Render();
 }
 
@@ -266,25 +267,33 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
   {
     rep->GetInclusionOffset(self->InclusionOffset);
     rep->GetExclusionOffset(self->ExclusionOffset);
-    for (int i = 0; i < 3; i++)
-    {
-      double shift = i < 2? 0.5: -0.5;
-      self->InclusionOffset[i] =
-        (vtkMath::Round(self->InclusionOffset[i]/self->Resolution[i]-shift)+shift)*self->Resolution[i];
-      self->ExclusionOffset[i] =
-        (vtkMath::Round(self->ExclusionOffset[i]/self->Resolution[i]-shift)+shift)*self->Resolution[i];
-    }
+
+    centerMarginsOnVoxelCenter(self);
   }
 
   self->EventCallbackCommand->SetAbortFlag(1);
   self->EndInteraction();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent,nullptr);
   self->Render();
   self->SetCursor(9999);
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetPlane(EspINA::PlaneType plane)
+void vtkCountingFrameSliceWidget::centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget *self)
+{
+  auto voxelCenter = [](double offset, double spacing)
+  { return int(offset/spacing)*spacing + spacing/2; };
+
+  for (int i = 0; i < 3; i++)
+  {
+    //double shift = i < 2? 0.5: -0.5;
+    self->InclusionOffset[i] = voxelCenter(self->InclusionOffset[i], self->SlicingStep[i]);
+    self->ExclusionOffset[i] = voxelCenter(self->ExclusionOffset[i], self->SlicingStep[i]);
+  }
+}
+
+//----------------------------------------------------------------------
+void vtkCountingFrameSliceWidget::SetPlane(ESPINA::Plane plane)
 {
   Plane = plane;
 
@@ -293,7 +302,7 @@ void vtkCountingFrameSliceWidget::SetPlane(EspINA::PlaneType plane)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameSliceWidget::SetSlice(ESPINA::Nm pos)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
@@ -305,24 +314,30 @@ void vtkCountingFrameSliceWidget::SetSlice(EspINA::Nm pos)
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlicingStep(EspINA::Nm slicingStep[3])
+void vtkCountingFrameSliceWidget::SetSlicingStep(ESPINA::NmVector3 slicingStep)
 {
-  memcpy(Resolution, slicingStep, 3*sizeof(EspINA::Nm));
+  SlicingStep = slicingStep;
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                     EspINA::Nm inclusionOffset[3],
-                                                     EspINA::Nm exclusionOffset[3])
+                                                   ESPINA::Nm inclusionOffset[3],
+                                                   ESPINA::Nm exclusionOffset[3])
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
+
+  centerMarginsOnVoxelCenter(this);
+
+  // ensures consistency with the counting frame
+  memcpy(inclusionOffset, InclusionOffset, 3*sizeof(ESPINA::Nm));
+  memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
 
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetCountingFrame(region, inclusionOffset, exclusionOffset, Resolution);
+  rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, SlicingStep);
   this->Render();
 }
 
@@ -333,22 +348,31 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
   {
     switch (Plane)
     {
-      case EspINA::AXIAL:
-        this->WidgetRep = AxialSliceRepresentation::New();
+      case ESPINA::Plane::XY:
+        this->WidgetRep = SliceRepresentationXY::New();
         break;
-      case EspINA::CORONAL:
-        this->WidgetRep = CoronalSliceRepresentation::New();
+      case ESPINA::Plane::XZ:
+        this->WidgetRep = SliceRepresentationXZ::New();
         break;
-      case EspINA::SAGITTAL:
-        this->WidgetRep = SagittalSliceRepresentation::New();
+      case ESPINA::Plane::YZ:
+        this->WidgetRep = SliceRepresentationYZ::New();
         break;
-      case EspINA::VOLUME:
       default:
         Q_ASSERT(false);
-        break;
     }
   }
 }
+
+//----------------------------------------------------------------------------
+void vtkCountingFrameSliceWidget::SetHighlighted(bool highlight)
+{
+  if (!this->WidgetRep)
+    CreateDefaultRepresentation();
+
+  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+  rep->SetHighlighted(highlight);
+}
+
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::PrintSelf(ostream& os, vtkIndent indent)

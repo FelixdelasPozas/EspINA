@@ -1,13 +1,13 @@
 #ifndef ESPINAIO_H
 #define ESPINAIO_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
 #include <Core/Model/Channel.h>
 #include <Core/IO/IOErrorHandler.h>
 #include <QFileInfo>
 
-namespace EspINA
+namespace ESPINA
 {
   class IEspinaModel;
 
@@ -18,7 +18,7 @@ namespace EspINA
   public:
     static bool isChannelExtension(const QString &fileExtension);
     /**
-     * Loads any file supported by EspINA.
+     * Loads any file supported by ESPINA.
      * @param file is the absolute path to be loaded
      * @param model is the EspinaModel in which the file is loaded into
      * @return Success if no other error is reported.
@@ -28,7 +28,7 @@ namespace EspINA
                                            IOErrorHandler *handler = NULL);
 
     /**
-     * Load channel files supported by EspINA. Current implementation
+     * Load channel files supported by ESPINA. Current implementation
      * supports the following extensions: mha, mhd, tiff, tif
      * @param file is the absolute path to be loaded
      * @param model is the EspinaModel in which the file is loaded into
@@ -42,6 +42,6 @@ namespace EspINA
   };
 
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINAIO_H

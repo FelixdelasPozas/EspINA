@@ -1,0 +1,115 @@
+include (GenerateExportHeader)
+
+find_package(XLSLIB REQUIRED)
+
+include_directories(
+  ${CMAKE_BINARY_DIR}         # Exports & Generated EspinaConfig.h
+  ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
+  ${XLSLIB_INCLUDE_DIRS}
+)
+
+qt4_wrap_cpp(Support_MOC
+  DockWidget.h
+  Plugin.h
+  ToolGroup.h
+  ViewManager.h
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+  )
+
+if (METADONA_FOUND)
+  qt4_wrap_cpp(METADONA_MOC
+    Metadona/EntrySelectorDialog.h
+    Metadona/EntryEditorDialog.h
+    Metadona/LevelSelectorDialog.h
+    Metadona/MetadataViewer.h
+    )
+  qt4_wrap_ui (METADONA_UI
+    Metadona/EntrySelectorDialog.ui
+    Metadona/EntryEditorDialog.ui
+    Metadona/LevelSelectorDialog.ui
+    Metadona/MetadataViewer.ui
+    )
+  set (METADONA_SOURCES
+    Metadona/Coordinator.cpp
+    Metadona/EntrySelectorDialog.cpp
+    Metadona/EntryEditorDialog.cpp
+    Metadona/LevelSelectorDialog.cpp
+    Metadona/MetadataViewer.cpp
+    Metadona/EntryWidget.cpp
+    Metadona/StorageFactory.cpp
+    )
+endif (METADONA_FOUND)
+
+
+set (Support_SOURCES
+  ${Support_MOC}
+  ${Support_UI}
+  ${METADONA_MOC}
+  ${METADONA_UI}
+  ${METADONA_SOURCES}
+  ActionGroupWidget.cpp
+  Factory/DefaultChannelExtensionFactory.cpp
+  Factory/DefaultSegmentationExtensionFactory.cpp
+  ToolGroup.cpp
+  Readers/ChannelReader.cpp
+  Utils/FactoryUtils.cpp
+  Utils/xlsUtils.cpp
+  ViewManager.cpp
+  )
+
+set(Support_EXTERNAL_LIBS
+  EspinaCore
+  EspinaGUI
+  ${METADONA_LIBRARIES}
+  ${QT_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${XLSLIB_LIBRARIES}
+)
+
+if(DEFINED MINGW OR DEFINED MSVC)
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    SET(Support_SOURCES ${Support_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    ENABLE_LANGUAGE(RC)
+  endif(DEFINED ESPINA_VERSION_MAJOR)
+endif(DEFINED MINGW OR DEFINED MSVC)
+
+if(APPLE)
+   include_directories ( /System/Library/Frameworks )
+   find_library(COCOA_LIBRARY Cocoa)
+   find_library(GLUT_LIBRARY GLUT )
+   find_library(OpenGL_LIBRARY OpenGL )
+   mark_as_advanced (COCOA_LIBRARY
+                     GLUT_LIBRARY
+                     OpenGL_LIBRARY)
+   set(Support_EXTERNAL_LIBS ${Support_EXTERNAL_LIBS} ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+endif (APPLE)
+
+add_library (EspinaSupport SHARED ${Support_SOURCES})
+
+target_link_libraries (EspinaSupport ${Support_EXTERNAL_LIBS})
+
+GENERATE_EXPORT_HEADER(
+             EspinaSupport
+             BASE_NAME EspinaSupport
+             EXPORT_MACRO_NAME EspinaSupport_EXPORT
+             EXPORT_FILE_NAME EspinaSupport_Export.h
+  )
+
+#set (SUPPORT_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaSupport_Export.h"
+#  )
+#
+#set_target_properties(EspinaSupport PROPERTIES
+#  PUBLIC_HEADER "${SUPPORT_HEADERS}")
+ 
+install(TARGETS EspinaSupport
+  # IMPORTANT: Add the EspinaSupport library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

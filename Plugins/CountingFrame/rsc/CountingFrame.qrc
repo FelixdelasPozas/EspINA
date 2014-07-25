@@ -1,15 +1,19 @@
 <RCC>
-    <qresource prefix="/">
-        <file>allPlanes.png</file>
-        <file>lower.png</file>
-        <file>upper.png</file>
-        <file>top.png</file>
-        <file>bottom.png</file>
-        <file>right.png</file>
-        <file>left.png</file>
-        <file>trash-full.svg</file>
-        <file>apply.svg</file>
-        <file>update-cr.svg</file>
-        <file>create-cr.svg</file>
-    </qresource>
+  <qresource prefix="/">
+    <file>create-cf.svg</file>
+    <file>activate.png</file>
+    <file>adaptive-frame.png</file>
+    <file>allPlanes.png</file>
+    <file>apply.svg</file>
+    <file>Bottom.png</file>
+    <file>deactivate.png</file>
+    <file>Left.png</file>
+    <file>Back.png</file>
+    <file>rectangular-frame.png</file>
+    <file>Right.png</file>
+    <file>Top.png</file>
+    <file>trash-full.svg</file>
+    <file>update-cr.svg</file>
+    <file>Front.png</file>
+  </qresource>
 </RCC>

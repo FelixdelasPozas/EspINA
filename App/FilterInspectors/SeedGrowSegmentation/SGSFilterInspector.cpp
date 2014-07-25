@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -18,7 +20,7 @@
 #include "SGSFilterInspector.h"
 #include <Undo/VolumeSnapshotCommand.h>
 
-// EspINA
+// ESPINA
 #include <Core/Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/RectangularRegion.h>
@@ -30,7 +32,7 @@
 #include <QCheckBox>
 #include <QUndoCommand>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class SGSFilterModification
 : public QUndoCommand
@@ -46,10 +48,10 @@ public:
   , m_threshold(threshold)
   , m_closeRadius(closeRadius)
   {
-    memcpy(m_VOI, voi, 6*sizeof(int));
+    memcpy(m_ROI, voi, 6*sizeof(int));
 
     m_oldThreshold = m_filter->lowerThreshold();
-    m_filter->voi(m_oldVOI);
+    m_filter->voi(m_oldROI);
     m_oldCloseRadius = m_filter->closeValue();
   }
 
@@ -69,7 +71,7 @@ public:
 
     m_filter->setLowerThreshold(m_threshold, ignoreUpdate);
     m_filter->setUpperThreshold(m_threshold, ignoreUpdate);
-    m_filter->setVOI(m_VOI, ignoreUpdate);
+    m_filter->setROI(m_ROI, ignoreUpdate);
     m_filter->setCloseValue(m_closeRadius, ignoreUpdate);
 
     if (m_newVolume.IsNull())
@@ -92,7 +94,7 @@ public:
   {
     m_filter->setLowerThreshold(m_oldThreshold, true);
     m_filter->setUpperThreshold(m_oldThreshold, true);
-    m_filter->setVOI(m_oldVOI, true);
+    m_filter->setROI(m_oldROI, true);
     m_filter->setCloseValue(m_oldCloseRadius, true);
 
     SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
@@ -119,7 +121,7 @@ private:
 private:
   SeedGrowSegmentationFilter *m_filter;
 
-  int m_VOI[6], m_oldVOI[6];
+  int m_ROI[6], m_oldROI[6];
   int m_threshold, m_oldThreshold;
   int m_closeRadius, m_oldCloseRadius;
 
@@ -245,11 +247,11 @@ bool SGSFilterInspector::Widget::eventFilter(QObject* sender, QEvent* e)
     {
       m_region = new RectangularRegion(m_voiBounds, m_viewManager);
       connect(m_region, SIGNAL(modified(double*)),
-              this, SLOT(redefineVOI(double*)));
+              this, SLOT(redefineROI(double*)));
       m_viewManager->addWidget(m_region);
       //m_sliceSelctor = new RectangularRegionSliceSelector(m_region);
-      //m_sliceSelctor->setLeftLabel("SVOI");
-      //m_sliceSelctor->setRightLabel("SVOI");
+      //m_sliceSelctor->setLeftLabel("SROI");
+      //m_sliceSelctor->setRightLabel("SROI");
       //m_viewManager->addSliceSelectors(m_sliceSelctor, ViewManager::From|ViewManager::To);
       m_viewManager->updateViews();
     }
@@ -259,7 +261,7 @@ bool SGSFilterInspector::Widget::eventFilter(QObject* sender, QEvent* e)
 }
 
 //----------------------------------------------------------------------------
-void SGSFilterInspector::Widget::redefineVOI(double* bounds)
+void SGSFilterInspector::Widget::redefineROI(double* bounds)
 {
   m_leftMargin  ->blockSignals(true);
   m_rightMargin ->blockSignals(true);
@@ -313,36 +315,36 @@ void SGSFilterInspector::Widget::modifyFilter()
   voiBounds[4] = m_upperMargin->value();
   voiBounds[5] = m_lowerMargin->value();
 
-  int VOI[6];
+  int ROI[6];
   for(int i=0; i < 6; i++)
-    VOI[i] = voiBounds[i]/spacing[i/2];
+    ROI[i] = voiBounds[i]/spacing[i/2];
 
   int x = m_xSeed->text().toInt();
   int y = m_ySeed->text().toInt();
   int z = m_zSeed->text().toInt();
 
-  if ( VOI[0] > x || VOI[1] < x
-    || VOI[2] > y || VOI[3] < y
-    || VOI[4] > z || VOI[5] < z )
+  if ( ROI[0] > x || ROI[1] < x
+    || ROI[2] > y || ROI[3] < y
+    || ROI[4] > z || ROI[5] < z )
   {
     QMessageBox::warning(this,
                          tr("Seed Grow Segmentation"),
-                         tr("Segmentation couldn't be modified. Seed is outside VOI"));
+                         tr("Segmentation couldn't be modified. Seed is outside ROI"));
                          return;
   }
 
   m_undoStack->beginMacro("Modify Seed GrowSegmentation Filter");
   {
-    m_undoStack->push(new SGSFilterModification(m_filter, VOI, m_threshold->value(), m_closeValue));
+    m_undoStack->push(new SGSFilterModification(m_filter, ROI, m_threshold->value(), m_closeValue));
   }
   m_undoStack->endMacro();
 
-  if (m_filter->isTouchingVOI())
+  if (m_filter->isTouchingROI())
   {
     QMessageBox warning;
     warning.setIcon(QMessageBox::Warning);
     warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
-    warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
+    warning.setText(tr("New segmentation may be incomplete due to ROI restriction."));
     warning.exec();
   }
 

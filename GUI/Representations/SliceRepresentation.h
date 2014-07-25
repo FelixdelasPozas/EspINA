@@ -25,16 +25,16 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef SLICEREPRESENTATION_H
-#define SLICEREPRESENTATION_H
+#ifndef ESPINA_SLICE_REPRESENTATION_H
+#define ESPINA_SLICE_REPRESENTATION_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
-// EspINA
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <Core/Model/HierarchyItem.h>
-#include <GUI/QtWidget/SliceView.h>
+// ESPINA
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Utils/Spatial.h>
+#include <GUI/Representations/Representation.h>
+#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -46,34 +46,35 @@ class vtkImageShiftScale;
 class vtkImageActor;
 class vtkLookupTable;
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
-  class SliceView;
+  class View2D;
 
   class EspinaGUI_EXPORT ChannelSliceRepresentation
-  : public ChannelGraphicalRepresentation
+  : public Representation
   {
-    Q_OBJECT
   public:
-    explicit ChannelSliceRepresentation(ChannelVolumeSPtr data,
-                                        SliceView        *view);
-    virtual ~ChannelSliceRepresentation() {};
+    static const Representation::Type TYPE;
+
+  public:
+    explicit ChannelSliceRepresentation(DefaultVolumetricDataSPtr data, View2D *view);
+    virtual ~ChannelSliceRepresentation();
+
+    virtual RepresentationSettings *settingsWidget();
+
+    virtual void setColor(const QColor &color);
 
     virtual void setBrightness(double value);
 
     virtual void setContrast(double value);
 
-    virtual GraphicalRepresentationSettings *settingsWidget();
-
-    virtual void setColor(const QColor &color);
-
     virtual void setOpacity(double value);
 
-    virtual bool isInside(Nm point[3]);
+    virtual bool isInside(const NmVector3 &point) const;
 
     virtual RenderableView canRenderOnView() const
-    { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
+    { return Representation::RENDERABLEVIEW_SLICE; }
 
     virtual bool hasActor(vtkProp *actor) const;
 
@@ -81,25 +82,35 @@ namespace EspINA
 
     virtual QList<vtkProp*> getActors();
 
-  protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
+    void setPlane(Plane plane)
+    { m_planeIndex = normalCoordinateIndex(plane); }
 
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
-    { return GraphicalRepresentationSPtr(); }
+    Plane plane()
+    { return toPlane(m_planeIndex); }
+
+    virtual bool crosshairDependent() const
+    { return true; }
+
+    virtual bool needUpdate()
+    { return m_lastUpdatedTime != m_data->lastModified(); }
+
+  protected:
+    virtual RepresentationSPtr cloneImplementation(View2D *view);
+
+    virtual RepresentationSPtr cloneImplementation(View3D *view)
+    { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
 
-  private slots:
-    void updatePipelineConnections();
-
   private:
-    void setView(SliceView *view) { m_view = view; };
+    void setView(View2D *view) { m_view = view; };
     void initializePipeline();
 
   private:
-    ChannelVolumeSPtr m_data;
+    DefaultVolumetricDataSPtr m_data;
+    int m_planeIndex;
+    Nm m_reslicePoint;
 
-    vtkSmartPointer<vtkImageReslice>     m_reslice;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
     vtkSmartPointer<vtkImageActor>       m_actor;
@@ -107,20 +118,21 @@ namespace EspINA
   };
 
   class EspinaGUI_EXPORT SegmentationSliceRepresentation
-  : public SegmentationGraphicalRepresentation
+  : public Representation
   {
-    Q_OBJECT
   public:
-    explicit SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                             SliceView             *view);
+    static const Representation::Type TYPE;
+
+  public:
+    explicit SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
+                                             View2D *view);
     virtual ~SegmentationSliceRepresentation();
 
-    virtual GraphicalRepresentationSettings *settingsWidget();
+    virtual RepresentationSettings *settingsWidget();
 
     virtual QString serializeSettings();
 
     virtual void restoreSettings(QString settings);
-
 
     virtual void setColor(const QColor &color);
 
@@ -128,10 +140,10 @@ namespace EspINA
 
     virtual void setHighlighted(bool highlighted);
 
-    virtual bool isInside(Nm point[3]);
+    virtual bool isInside(const NmVector3 &point) const;
 
     virtual RenderableView canRenderOnView() const
-    { return GraphicalRepresentation::RENDERABLEVIEW_SLICE; }
+    { return Representation::RENDERABLEVIEW_SLICE; }
 
     virtual bool hasActor(vtkProp *actor) const;
 
@@ -139,37 +151,46 @@ namespace EspINA
 
     virtual QList<vtkProp*> getActors();
 
-  protected:
-    virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
+    void setPlane(Plane plane)
+    { m_planeIndex = normalCoordinateIndex(plane); }
 
-    virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
-    { return GraphicalRepresentationSPtr(); }
+    Plane plane()
+    { return toPlane(m_planeIndex); }
+
+    virtual bool crosshairDependent() const
+    { return true; }
+
+    virtual bool needUpdate()
+    { return m_lastUpdatedTime != m_data->lastModified(); }
+
+  protected:
+    virtual RepresentationSPtr cloneImplementation(View2D *view);
+
+    virtual RepresentationSPtr cloneImplementation(View3D *view)
+    { return RepresentationSPtr(); }
 
     virtual void updateVisibility(bool visible);
 
-  private slots:
-    void updatePipelineConnections();
-
   private:
-    void setView(SliceView *view) { m_view = view; };
+    void setView(View2D *view) { m_view = view; };
     void initializePipeline();
 
   private:
-    SegmentationVolumeSPtr m_data;
-
-    vtkSmartPointer<vtkImageReslice>     m_reslice;
+    DefaultVolumetricDataSPtr m_data;
+    int m_planeIndex;
+    Nm m_reslicePoint;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageActor>       m_actor;
 
     static TransparencySelectionHighlighter *s_highlighter;
   };
 
-  typedef boost::shared_ptr<ChannelSliceRepresentation> ChannelSliceRepresentationSPtr;
-  typedef QList<ChannelSliceRepresentationSPtr> ChannelSliceRepresentationSList;
+  using ChannelSliceRepresentationPtr  = ChannelSliceRepresentation *;
+  using ChannelSliceRepresentationSPtr = std::shared_ptr<ChannelSliceRepresentation>;
 
-  typedef boost::shared_ptr<SegmentationSliceRepresentation> SegmentationSliceRepresentationSPtr;
-  typedef QList<SegmentationSliceRepresentationSPtr> SegmentationSliceRepresentationSList;
+  using SegmentationSliceRepresentationPtr  = SegmentationSliceRepresentation *;
+  using SegmentationSliceRepresentationSPtr = std::shared_ptr<SegmentationSliceRepresentation>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
-#endif // SLICEREPRESENTATION_H
+#endif // ESPINA_SLICE_REPRESENTATION_H

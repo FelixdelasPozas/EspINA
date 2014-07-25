@@ -33,9 +33,9 @@
 
 #include <Core/Model/EspinaModel.h>
 
-namespace EspINA
+namespace ESPINA
 {
-  class EspinaModel;
+  class ModelAdapter;
 
 #define AtomicCommand(TYPE)                                \
   class Add##TYPE##Command                                 \
@@ -116,12 +116,12 @@ namespace EspINA
     explicit AddRelationCommand(ModelItemSPtr  ancestor,
                                 ModelItemSPtr  succesor,
                                 const QString &relation,
-                                EspinaModel   *model);
+                                ModelAdapter   *model);
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     ModelItemSPtr m_ancestor;
     ModelItemSPtr m_succesor;
@@ -135,17 +135,17 @@ namespace EspINA
     explicit RemoveRelationCommand(ModelItemSPtr  ancestor,
                                 ModelItemSPtr  succesor,
                                 const QString &relation,
-                                EspinaModel   *model);
+                                ModelAdapter   *model);
     virtual void redo();
     virtual void undo();
 
   private:
-    EspinaModel *m_model;
+    ModelAdapter *m_model;
 
     ModelItemSPtr m_ancestor;
     ModelItemSPtr m_succesor;
     const QString m_relation;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ATOMICMODELOPERATIONS_H

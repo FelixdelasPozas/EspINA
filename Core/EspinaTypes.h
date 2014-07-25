@@ -1,102 +1,66 @@
 #ifndef ESPINATYPES_H
 #define ESPINATYPES_H
 
-#include "EspinaCore_Export.h"
+#include "Core/EspinaCore_Export.h"
 #include <itkImage.h>
 
 #include <QList>
 //#define QT_SHAREDPOINTER_TRACK_POINTERS
 #include <QSet>
-#include <boost/shared_ptr.hpp>
+#include <QVector3D>
 
-namespace EspINA
+namespace ESPINA
 {
-  class   ModelItem;
-  typedef ModelItem *                  ModelItemPtr;
-  typedef QList<ModelItemPtr   >       ModelItemList;
-  typedef boost::shared_ptr<ModelItem> ModelItemSPtr;
-  typedef QList<ModelItemSPtr>         ModelItemSList;
+  class Scheduler;
+  using SchedulerSPtr = std::shared_ptr<Scheduler>;
 
-  class   Taxonomy;
-  typedef boost::shared_ptr<Taxonomy> TaxonomySPtr;
+  class Category;
+  using CategoryPtr  = Category *;
+  using CategoryList = QList<CategoryPtr>;
+  using CategorySPtr = std::shared_ptr<Category>;
 
-  class   TaxonomyElement;
-  typedef TaxonomyElement *                  TaxonomyElementPtr;
-  typedef QList<TaxonomyElementPtr>          TaxonomyElementList;
-  typedef boost::shared_ptr<TaxonomyElement> TaxonomyElementSPtr;
+  class Persistent;
+  using PersistentPtr   = Persistent *;
+  using PersistentSPtr  = std::shared_ptr<Persistent>;
+  using PersistentSList = QList<PersistentSPtr>;
 
-  class   Sample;
-  typedef Sample *                  SamplePtr;
-  typedef QList<SamplePtr>          SampleList;
-  typedef boost::shared_ptr<Sample> SampleSPtr;
-  typedef QList<SampleSPtr>         SampleSList;
+  class Sample;
+  using SamplePtr   = Sample *;
+  using SampleList  = QList<SamplePtr>;
+  using SampleSPtr  = std::shared_ptr<Sample> ;
+  using SampleSList = QList<SampleSPtr>;
 
-  class   Channel;
-  typedef Channel *                  ChannelPtr;
-  typedef QList<ChannelPtr>          ChannelList;
-  typedef boost::shared_ptr<Channel> ChannelSPtr;
-  typedef QList<ChannelSPtr>         ChannelSList;
+  class Channel;
+  using ChannelPtr   = Channel *;
+  using ChannelList  = QList<ChannelPtr>;
+  using ChannelSPtr  = std::shared_ptr<Channel>;
+  using ChannelSList = QList<ChannelSPtr>;
 
+  class Segmentation;
+  using SegmentationPtr   = Segmentation *;
+  using SegmentationList  = QList<SegmentationPtr>;
+  using SegmentationSet   = QSet<SegmentationPtr>;
+  using SegmentationSPtr  = std::shared_ptr<Segmentation>;
+  using SegmentationSList = QList<SegmentationSPtr>;
 
-  class   Segmentation;
-  typedef Segmentation *                  SegmentationPtr;
-  typedef QList<SegmentationPtr>          SegmentationList;
-  typedef QSet<SegmentationPtr>           SegmentationSet;
-  typedef boost::shared_ptr<Segmentation> SegmentationSPtr;
-  typedef QList<SegmentationSPtr>         SegmentationSList;
+  class Filter;
+  using FilterPtr   = Filter *;
+  using FilterList  = QList<FilterPtr>;
+  using FilterSPtr  = std::shared_ptr<Filter>;
+  using FilterSList = QList<FilterSPtr>;
 
+  class Output;
+  using OutputPtr   = Output *;
+  using OutputSPtr  = std::shared_ptr<Output>;
+  using OutputSList = QList<OutputSPtr>;
 
-  class   Filter;
-  typedef Filter *         FilterPtr;
-  typedef QList<FilterPtr> FilterList;
-  typedef boost::shared_ptr<Filter> FilterSPtr;
-  typedef QList<FilterSPtr>      FilterSList;
+  class CoreFactory;
+  using CoreFactorySPtr = std::shared_ptr<CoreFactory>;
 
-  class   PickableItem;
-  typedef PickableItem *                  PickableItemPtr;
-  typedef boost::shared_ptr<PickableItem> PickableItemSPtr;
-
-//   class   ModelItemExtension;
-//   typedef ModelItemExtension *ModelItemExtensionPtr;
-// 
-//   class   SampleExtension;
-//   typedef SampleExtension           *SampleExtensionPtr;
-//   typedef QList<SampleExtensionPtr>  SampleExtensionList;
-// 
-//   class   ChannelExtension;
-//   typedef ChannelExtension           *ChannelExtensionPtr;
-//   typedef QList<ChannelExtensionPtr>  ChannelExtensionList;
-// 
-//   class   SegmentationExtension;
-//   typedef SegmentationExtension           *SegmentationExtensionPtr;
-//   typedef QList<SegmentationExtensionPtr>  SegmentationExtensionList;
-
-  class   EspinaFactory;
-
-  class   IFilterCreator;
-  typedef IFilterCreator *IFilterCreatorPtr;
-
-  class   IFileReader;
-  typedef IFileReader *IFileReaderPtr;
-
-  class   IRenderer;
-
-  typedef itk::Image<unsigned short, 3> SegmentationLabelMap;
-  typedef itk::Image<unsigned char , 3> itkVolumeType;
-
-  typedef double Nm;
+  using itkVolumeType = itk::Image<unsigned char , 3>;
 
   const itkVolumeType::PixelType SEG_VOXEL_VALUE = 255;
   const itkVolumeType::PixelType SEG_BG_VALUE = 0;
-
-  enum ModelItemType
-  {
-    TAXONOMY     = 0x1,
-    SAMPLE       = 0x2,
-    CHANNEL      = 0x4,
-    SEGMENTATION = 0x8,
-    FILTER       = 0x16
-  };
 
   enum RelationType
   {
@@ -104,25 +68,10 @@ namespace EspINA
     RELATION_OUT,
     RELATION_INOUT
   };
+  using RelationName = QString;
 
-  enum PlaneType
-  {
-    AXIAL = 2,    //XY
-    CORONAL = 1,  //ZX
-    SAGITTAL = 0, //YZ
-    VOLUME = 3,    //3D
-    UNDEFINED = 255
-  };
 
-  typedef unsigned long long EspinaTimeStamp;
-
-  typedef QPair<QString, QByteArray> SnapshotEntry;
-  typedef QList<SnapshotEntry>       Snapshot;
-
-  const unsigned int MAX_UNDO_SIZE = 400*400*400; // In volume pixels
-
-  QString EspinaCore_EXPORT condition(const QString &icon, const QString &description);
-
-} // namespace EspINA
+  using TimeStamp = unsigned long long;
+} // namespace ESPINA
 
 #endif// ESPINATYPES_H

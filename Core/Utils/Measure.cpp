@@ -2,12 +2,12 @@
  * Measure.cpp
  *
  *  Created on: Jan 11, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #include "Core/Utils/Measure.h"
 
-namespace EspINA
+namespace ESPINA
 {
   void Measure::adjust()
   {
@@ -76,5 +76,5 @@ namespace EspINA
     m_units = units;
     m_adjust = false;
   }
-} /* namespace EspINA */
+} /* namespace ESPINA */
 

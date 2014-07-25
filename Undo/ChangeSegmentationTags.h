@@ -26,26 +26,25 @@
 */
 
 
-#ifndef CHANGESEGMENTATIONTAGS_H
-#define CHANGESEGMENTATIONTAGS_H
+#ifndef ESPINA_CHANGE_SEGMENTATION_TAGS_H
+#define ESPINA_CHANGE_SEGMENTATION_TAGS_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
+#include <GUI/Model/SegmentationAdapter.h>
 
 // Qt
 #include <QUndoCommand>
 #include <QStringList>
 
-namespace EspINA
+namespace ESPINA
 {
-  class SegmentationTags;
-  
   class EspinaUndo_EXPORT ChangeSegmentationTags
   : public QUndoCommand
   {
   public:
-    explicit ChangeSegmentationTags(SegmentationTags *tagExtension,
-                                    const QStringList &tags,
-                                    QUndoCommand *parent = 0);
+    explicit ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
+                                    const QStringList&  tags,
+                                    QUndoCommand*       parent = nullptr);
     virtual void redo();
 
     virtual void undo();
@@ -54,9 +53,9 @@ namespace EspINA
     void swapTags();
 
   private:
-    SegmentationTags *m_tagExtension;
-    QStringList       m_formerTags;
+    SegmentationAdapterPtr m_segmentation;
+    QStringList            m_formerTags;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CHANGESEGMENTATIONTAGS_H

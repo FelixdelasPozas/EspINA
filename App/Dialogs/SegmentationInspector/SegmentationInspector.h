@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -16,14 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef ESPINA_SEGMENTATION_INSPECTOR_H
+#define EPSINA_SEGMENTATION_INSPECTOR_H
 
-#ifndef SEGMENTATIONINSPECTOR_H
-#define SEGMENTATIONINSPECTOR_H
-
-// EspINA
+// ESPINA
 #include "ui_SegmentationInspector.h"
-#include <Core/Model/EspinaModel.h>
-#include <GUI/ViewManager.h>
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 
 // Qt
@@ -33,11 +32,10 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
-
   class TabularReport;
-  class VolumeView;
+  class View3D;
 
   class SegmentationInspector
   : public QWidget
@@ -45,27 +43,30 @@ namespace EspINA
   {
     Q_OBJECT
   public:
-    SegmentationInspector(SegmentationList seg,
-                          EspinaModel     *model,
-                          QUndoStack      *undoStack,
-                          ViewManager     *vm,
-                          QWidget         *parent = 0,
-                          Qt::WindowFlags  flags  = 0);
+    SegmentationInspector(SegmentationAdapterList  segmentation,
+                          ModelAdapterSPtr         model,
+                          ModelFactorySPtr         factory,
+                          ViewManagerSPtr          viewManager,
+                          QUndoStack*              undoStack,
+                          QWidget*                 parent = nullptr,
+                          Qt::WindowFlags          flags  = 0);
+
     virtual ~SegmentationInspector();
 
-    virtual void addSegmentation(SegmentationPtr segmentation);
-    virtual void removeSegmentation(SegmentationPtr segmentation);
+    virtual void addSegmentation(SegmentationAdapterPtr segmentation);
 
-    virtual void addChannel(ChannelPtr channel);
-    virtual void removeChannel(ChannelPtr channel);
+    virtual void removeSegmentation(SegmentationAdapterPtr segmentation);
+
+    virtual void addChannel(ChannelAdapterPtr channel);
+    virtual void removeChannel(ChannelAdapterPtr channel);
 
     virtual void dragEnterEvent(QDragEnterEvent *event);
     virtual void dropEvent(QDropEvent *event);
     virtual void dragMoveEvent(QDragMoveEvent *event);
 
   public slots:
-    void updateScene(ModelItemPtr);
-    void updateSelection(ViewManager::Selection selection);
+    void updateScene(ItemAdapterPtr item);
+    void updateSelection(SelectionSPtr selection);
 
   signals:
     void inspectorClosed(SegmentationInspector *);
@@ -81,19 +82,18 @@ namespace EspINA
     // helpher methods
     void generateWindowTitle();
 
-    EspinaModel *m_model;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack*      m_undoStack;
 
-    SegmentationList m_segmentations;
-    ChannelList      m_channels;
+    SegmentationAdapterList m_segmentations;
+    ChannelAdapterList      m_channels;
 
-    TabularReport *m_tabularReport;
-
-    VolumeView *m_view;
-    QScrollArea *m_filterArea;
+    View3D*        m_view;
+    QScrollArea*   m_filterArea;
+    TabularReport* m_tabularReport;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-#endif // SEGMENTATIONINSPECTOR_H
+#endif // ESPINA_SEGMENTATION_INSPECTOR_H

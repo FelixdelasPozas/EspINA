@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  <copyright holder> <email>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -16,93 +18,97 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COUNTINGFRAMEEXTENSION_H
-#define COUNTINGFRAMEEXTENSION_H
+#ifndef ESPINA_COUNTING_FRAME_EXTENSION_H
+#define ESPINA_COUNTING_FRAME_EXTENSION_H
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/Extensions/ChannelExtension.h>
+#include <Core/Analysis/Extension.h>
 #include <Plugins/CountingFrame/CountingFrames/CountingFrame.h>
+#include <Plugins/CountingFrame/Extensions/StereologicalInclusion.h>
 
-namespace EspINA
+namespace ESPINA
 {
+  namespace CF {
 
-class StereologicalInclusion;
-  class CountingFramePanel;
-  class ViewManager;
-
-  const ModelItem::ExtId CountingFrameExtensionID = "CountingFrameExtension";
+  class CountingFrameManager;
+  class StereologicalInclusion;
 
   class CountingFramePlugin_EXPORT CountingFrameExtension
-  : public Channel::Extension
+  : public ChannelExtension
   {
     Q_OBJECT
-
-    enum CFType {
-      ADAPTIVE    = 0,
-      RECTANGULAR = 1
-    };
-
-    struct CF
-    {
-      CFType Type;
-      Nm     Inclusion[3];
-      Nm     Exclusion[3];
-    };
-
-    typedef QMap<int, CF> ExtensionData;
-
-    typedef Cache<ChannelPtr, ExtensionData> ExtensionCache;
-
-    static ExtensionCache s_cache;
-
-    static const QString EXTENSION_FILE;
+    static const QString FILE;
 
   public:
-    explicit CountingFrameExtension(CountingFramePanel *plugin,
-                                    ViewManager        *viewManager);
+    static Type TYPE;
+
+  public:
+    explicit CountingFrameExtension(CountingFrameManager *manager,
+                                    SchedulerSPtr         scheduler,
+                                    const State          &state = State());
+
     virtual ~CountingFrameExtension();
 
-    virtual ModelItem::ExtId id()
-    { return CountingFrameExtensionID; }
+    virtual Type type() const
+    { return TYPE; }
 
-    virtual ModelItem::ExtIdList dependencies() const;
+    virtual bool invalidateOnChange() const
+    { return true; }
+
+    virtual State state() const;
+
+    virtual Snapshot snapshot() const;
+
+    virtual TypeList dependencies() const
+    { return TypeList(); }
+
+    virtual InfoTagList availableInformations() const
+    { return InfoTagList(); }
 
     virtual bool isCacheFile(const QString &file) const
-    { return EXTENSION_FILE == file; }
+    { return FILE == file; }
 
-    virtual void loadCache(QuaZipFile &file, const QDir &tmpDir, IEspinaModel *model);
+    void createCountingFrame(CFType type,
+                             Nm inclusion[3],
+                             Nm exclusion[3],
+                             const QString &constraint = QString());
 
-    virtual bool saveCache(Snapshot &cacheList);
-
-    virtual Channel::ExtensionPtr clone();
-
-    void addCountingFrame   (CountingFrame* countingFrame);
     void deleteCountingFrame(CountingFrame *countingFrame);
-    CountingFramePanel *plugin() const {return m_plugin;}
 
-    CountingFrameList countingFrames() const {return m_countingFrames;}
+    CountingFrameList countingFrames() const
+    { return m_countingFrames; }
 
-    virtual void initialize();
+  protected:
+    virtual QVariant cacheFail(const QString& tag) const
+    { return QVariant(); }
 
-    virtual void invalidate(ChannelPtr channel = 0);
+    virtual void onExtendedItemSet(Channel *channel);
 
   protected slots:
-    void countinfFrameUpdated(CountingFrame* countingFrame);
+    void onCountingFrameUpdated(CountingFrame *countingFrame);
 
   private:
-    /// Retrieves StereologicalInclusion extension from a segmentation model item
-    /// If no extension is found, a new one is add to the item
-    StereologicalInclusion *stereologicalInclusion(SegmentationPtr segmentation);
-
+    void createCountingFrame(CFType type,
+                             CountingFrame::Id id,
+                             Nm inclusion[3],
+                             Nm exclusion[3],
+                             const QString &constraint = QString());
   private:
-    CountingFramePanel *m_plugin;
-    ViewManager        *m_viewManager;
-    CountingFrameList   m_countingFrames;
+    CountingFrameManager *m_manager;
+    SchedulerSPtr         m_scheduler;
+
+    State m_prevState;
+
+    CountingFrameList m_countingFrames;
   };
 
-  typedef CountingFrameExtension * CountingFrameExtensionPtr;
-  CountingFrameExtensionPtr CountingFramePlugin_EXPORT countingFrameExtensionPtr(Channel::ExtensionPtr extension);
-}
+  using CountingFrameExtensionPtr  = CountingFrameExtension *;
+  using CountingFrameExtensionSPtr = std::shared_ptr<CountingFrameExtension>;
 
-#endif // COUNTINGFRAMEEXTENSION_H
+  CountingFrameExtensionSPtr countingFrameExtensionPtr(ChannelExtensionSPtr extension);
+
+  } // namespace CF
+} // namespace ESPINA
+
+#endif // ESPINA_COUNTING_FRAME_EXTENSION_H

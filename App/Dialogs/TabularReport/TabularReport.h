@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -17,49 +19,69 @@
  */
 
 
-#ifndef DATAVIEW_H
-#define DATAVIEW_H
+#ifndef ESPINA_TABULAR_REPORT_H
+#define ESPINA_TABULAR_REPORT_H
 
 #include <QWidget>
 
-#include <GUI/ViewManager.h>
-#include <Core/Model/Proxies/InformationProxy.h>
 #include <QSortFilterProxyModel>
 #include <QAbstractItemView>
 #include <QVBoxLayout>
+#include <Support/ViewManager.h>
+#include <GUI/Model/ModelAdapter.h>
 
+class QPushButton;
 class QTableView;
 
-namespace EspINA
+namespace ESPINA
 {
   class TabularReport
   : public QAbstractItemView
   {
     Q_OBJECT
 
+  protected:
     class Entry;
 
   public:
-    explicit TabularReport(ViewManager *viewManager,
-                           QWidget *parent = 0,
-                           Qt::WindowFlags f = 0);
+    explicit TabularReport(ModelFactorySPtr factory,
+                           ViewManagerSPtr  viewManager,
+                           QWidget         *parent = nullptr,
+                           Qt::WindowFlags  f = Qt::WindowFlags{Qt::WindowNoState});
     virtual ~TabularReport();
 
-    virtual int horizontalOffset() const{ return 0;}
-    virtual QModelIndex indexAt(const QPoint &point) const {return QModelIndex();}
-    virtual bool isIndexHidden(const QModelIndex &index) const {return false;}
-    virtual QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers){return QModelIndex();}
-    virtual void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible){}
-    virtual void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command){}
-    virtual int verticalOffset() const{return 0;} 
-    virtual QRect visualRect(const QModelIndex &index) const {return QRect();}
-    virtual QRegion visualRegionForSelection(const QItemSelection &selection) const {return QRegion();}
+    virtual int horizontalOffset() const
+    { return 0;}
 
-    virtual void setModel(EspinaModel *model);
+    virtual QModelIndex indexAt(const QPoint &point) const
+    { return QModelIndex(); }
+
+    virtual bool isIndexHidden(const QModelIndex &index) const
+    { return false; }
+
+    virtual QModelIndex moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
+    { return QModelIndex(); }
+
+    virtual void scrollTo(const QModelIndex &index, ScrollHint hint = EnsureVisible)
+    {}
+
+    virtual void setSelection(const QRect &rect, QItemSelectionModel::SelectionFlags command)
+    {}
+
+    virtual int verticalOffset() const
+    { return 0; }
+
+    virtual QRect visualRect(const QModelIndex &index) const
+    { return QRect(); }
+
+    virtual QRegion visualRegionForSelection(const QItemSelection &selection) const
+    {return QRegion();}
+
+    virtual void setModel(ModelAdapterSPtr model);
 
     /// Only display segmentations' information. If segmentations is empty, then
     /// all segmentations' information is displayed
-    virtual void setFilter(SegmentationList segmentations);
+    virtual void setFilter(SegmentationAdapterList segmentations);
 
   protected:
     virtual void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
@@ -68,39 +90,50 @@ namespace EspINA
     virtual bool event(QEvent *event);
     virtual void reset();
 
+    bool exportToCSV(const QFileInfo &filename);
+    bool exportToXLS(const QString &filename);
+
   public slots:
-    void updateSelection(ViewManager::Selection selection);
+    void updateSelection(SegmentationAdapterList selection);
 
   protected slots:
     void indexDoubleClicked(QModelIndex index);
+
     void updateRepresentation(const QModelIndex &index);
+
     void updateSelection(QItemSelection selected, QItemSelection deselected);
+
     void rowsRemoved(const QModelIndex &parent, int start, int end);
-    void exportInformation();
+
+    virtual void exportInformation();
+
+    void updateExportStatus();
 
   private:
-    bool acceptSegmentation(const SegmentationPtr segmentation);
-    void createTaxonomyEntry(const QString &taxonomy);
+    bool acceptSegmentation(const SegmentationAdapterPtr segmentation);
 
-    bool exportToCSV(const QFileInfo &filename);
-    bool exportToXLS(const QString &filename);
+    virtual void createCategoryEntry(const QString &category);
 
     QModelIndex mapToSource(const QModelIndex &index);
     QModelIndex mapFromSource(const QModelIndex &index, QSortFilterProxyModel *sortFilter);
 
     void removeTabsAndWidgets();
 
-  private:
-    EspinaModel   *m_model;
-    EspinaFactory *m_factory;
-    ViewManager   *m_viewManager;
+    static QString extraPath(const QString &file = QString())
+    { return "Extra/RawInformation/" + file; }
 
-    SegmentationList m_filter;
-    QTabWidget      *m_tabs;
+  protected:
+    ModelAdapterSPtr m_model;
+    ModelFactorySPtr m_factory;
+    ViewManagerSPtr  m_viewManager;
+
+    SegmentationAdapterList m_filter;
+    QTabWidget  *m_tabs;
+    QPushButton *m_exportButton;
 
     bool m_multiSelection;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // DATAVIEW_H

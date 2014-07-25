@@ -10,12 +10,12 @@ BEGIN
     BLOCK "040904B0"
     BEGIN
 	  VALUE "CompanyName", "CesViMa"
-	  VALUE "FileDescription", "EspINA Core Library"
+	  VALUE "FileDescription", "ESPINA Core Library"
       VALUE "FileVersion", "@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"
       VALUE "InternalName", "EspinaCore"
       VALUE "LegalCopyright", "GNU Public License"
       VALUE "OriginalFilename", "libEspinaCore.dll"
-      VALUE "ProductName", "EspINA"
+      VALUE "ProductName", "ESPINA"
       VALUE "ProductVersion", "@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"
     END
   END

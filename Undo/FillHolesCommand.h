@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  <copyright holder> <email>
+ 
+ Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,16 +21,16 @@
 #ifndef FILLHOLESCOMMAND_H
 #define FILLHOLESCOMMAND_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -57,6 +59,6 @@ namespace EspINA
       QList<Connection> m_oldConnections, m_newConnections;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // FILLHOLESCOMMAND_H

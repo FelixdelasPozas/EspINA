@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -20,16 +22,16 @@
 #ifndef ADDSAMPLE_H
 #define ADDSAMPLE_H
 
-#include "EspinaUndo_Export.h"
+#include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaUndo_EXPORT AddSample
   : public QUndoCommand
@@ -49,6 +51,6 @@ namespace EspINA
     SampleSPtr m_sample;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ADDSAMPLE_H

@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -39,12 +41,7 @@ public:
   vtkTypeMacro(vtkCountingFrame3DWidget, vtkCountingFrameWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, EspINA::Nm inclusionOffset[3], EspINA::Nm exclusionOffset[3]);
-
-  void SetCountingFrameVisibility(bool visible)
-  { m_visible = visible; }
-
-  virtual void SetEnabled(int enabled);
+  virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3]);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -72,8 +69,6 @@ protected:
 private:
   vtkCountingFrame3DWidget(const vtkCountingFrame3DWidget&);  //Not implemented
   void operator=(const vtkCountingFrame3DWidget&);  //Not implemented
-
-  bool m_visible;
 };
 
 #endif // VTKBOUNDINGFRAME3DWIDGET_H

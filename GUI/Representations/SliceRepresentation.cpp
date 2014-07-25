@@ -27,11 +27,15 @@
 
 
 #include "SliceRepresentation.h"
-#include "GraphicalRepresentationSettings.h"
+#include "RepresentationSettings.h"
 #include "SliceRepresentationSettings.h"
-#include "GraphicalRepresentationEmptySettings.h"
-#include <GUI/QtWidget/SliceView.h>
-#include <Core/ColorEngines/TransparencySelectionHighlighter.h>
+#include "RepresentationEmptySettings.h"
+#include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/View/View2D.h>
+
+#include <itkImage.h>
 
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
@@ -40,47 +44,62 @@
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
 
-using namespace EspINA;
+#include <QList>
+
+using namespace ESPINA;
+
+const Representation::Type ChannelSliceRepresentation::TYPE = "Slice";
 
 //-----------------------------------------------------------------------------
-ChannelSliceRepresentation::ChannelSliceRepresentation(ChannelVolumeSPtr data,
-                                                       SliceView        *view)
-: ChannelGraphicalRepresentation(view)
+ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr data,
+                                                       View2D *view)
+: Representation(view)
 , m_data(data)
+, m_planeIndex(-1)
+, m_reslicePoint(-1)
+, m_mapToColors(nullptr)
+, m_shiftScaleFilter(nullptr)
+, m_actor(nullptr)
+, m_lut(nullptr)
 {
-  setLabel(tr("Solid"));
+  setType(TYPE);
+}
+
+//-----------------------------------------------------------------------------
+ChannelSliceRepresentation::~ChannelSliceRepresentation()
+{
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setBrightness(double value)
 {
-  ChannelGraphicalRepresentation::setBrightness(value);
+  Representation::setBrightness(value);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setContrast(double value)
 {
-  ChannelGraphicalRepresentation::setContrast(value);
+  Representation::setContrast(value);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_shiftScaleFilter->SetScale(m_contrast);
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *ChannelSliceRepresentation::settingsWidget()
+RepresentationSettings *ChannelSliceRepresentation::settingsWidget()
 {
-  return new GraphicalRepresentationEmptySettings();
+  return new RepresentationEmptySettings();
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
   {
     m_lut->SetHueRange(color.hueF(), color.hueF());
     m_lut->SetSaturationRange(0.0, color.saturationF());
@@ -91,78 +110,86 @@ void ChannelSliceRepresentation::setColor(const QColor &color)
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::setOpacity(double value)
 {
-  ChannelGraphicalRepresentation::setOpacity(value);
+  Representation::setOpacity(value);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_actor->SetOpacity(m_opacity);
 }
 
 //-----------------------------------------------------------------------------
 bool ChannelSliceRepresentation::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-void ChannelSliceRepresentation::updateRepresentation()
+RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(View2D *view)
 {
-  if (m_actor != NULL)
-  {
-    m_reslice->UpdateWholeExtent();
-    m_mapToColors->Update();
-    m_shiftScaleFilter->Update();
-    m_actor->Update();
-  }
-}
-
-//-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr ChannelSliceRepresentation::cloneImplementation(SliceView *view)
-{
-  ChannelSliceRepresentation *representation = new ChannelSliceRepresentation(m_data, view);
+  auto representation =  new ChannelSliceRepresentation(m_data, view);
   representation->setView(view);
+  representation->m_planeIndex = normalCoordinateIndex(view->plane());
 
-  return GraphicalRepresentationSPtr(representation);
+  return RepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
-    m_actor->SetVisibility(visible);
-}
+  if(isVisible() && m_actor != nullptr && needUpdate())
+    updateRepresentation();
 
-//-----------------------------------------------------------------------------
-void ChannelSliceRepresentation::updatePipelineConnections()
-{
-  if ((m_actor != NULL) && (m_reslice->GetInputConnection(0,0) != m_data->toVTK()))
-  {
-    m_reslice->SetInputConnection(m_data->toVTK());
-    m_reslice->Update();
-  }
+  if (m_actor != nullptr)
+    m_actor->SetVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::initializePipeline()
 {
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
+  if (m_planeIndex == -1)
+    return;
 
-  m_reslice = vtkSmartPointer<vtkImageReslice>::New();
-  m_reslice->SetInputConnection(m_data->toVTK());
-  m_reslice->SetOutputDimensionality(2);
-  m_reslice->SetResliceAxes(slicingMatrix(reinterpret_cast<SliceView *>(m_view)));
-  m_reslice->SetNumberOfThreads(1);
-  m_reslice->Update();
+  m_reslicePoint = m_crosshair[m_planeIndex];
+
+  Bounds imageBounds = m_data->bounds();
+
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
+  vtkSmartPointer<vtkImageData> slice = nullptr;
+
+  if (valid)
+  {
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = m_reslicePoint;
+
+    slice = vtkImage(m_data, imageBounds);
+  }
+  else
+  {
+    int extent[6] = { 0,1,0,1,0,1 };
+    extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
+    slice = vtkSmartPointer<vtkImageData>::New();
+    slice->SetExtent(extent);
+
+    vtkInformation *info = slice->GetInformation();
+    vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+    vtkImageData::SetNumberOfScalarComponents(1, info);
+    slice->SetInformation(info);
+    slice->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    slice->Modified();
+    unsigned char *imagePointer = reinterpret_cast<unsigned char*>(slice->GetScalarPointer());
+    memset(imagePointer, SEG_BG_VALUE, slice->GetNumberOfPoints());
+  }
 
   m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_shiftScaleFilter->SetInputConnection(m_reslice->GetOutputPort());
+  m_shiftScaleFilter->SetInputData(slice);
   m_shiftScaleFilter->SetShift(static_cast<int>(m_brightness*255));
   m_shiftScaleFilter->SetScale(m_contrast);
   m_shiftScaleFilter->SetClampOverflow(true);
-  m_shiftScaleFilter->SetOutputScalarType(m_reslice->GetOutput()->GetScalarType());
+  m_shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
   m_shiftScaleFilter->Update();
 
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
@@ -186,8 +213,45 @@ void ChannelSliceRepresentation::initializePipeline()
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->SetDisplayExtent(slice->GetExtent());
   m_actor->SetVisibility(isVisible());
   m_actor->Update();
+
+  m_lastUpdatedTime = m_data->lastModified();
+}
+
+//-----------------------------------------------------------------------------
+void ChannelSliceRepresentation::updateRepresentation()
+{
+  setCrosshairPoint(m_view->crosshairPoint());
+
+  Bounds imageBounds = m_data->bounds();
+
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid && isVisible())
+  {
+    m_reslicePoint = m_crosshair[m_planeIndex];
+
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = m_reslicePoint;
+
+    auto slice = vtkImage(m_data, imageBounds);
+
+    m_shiftScaleFilter->SetInputData(slice);
+    m_shiftScaleFilter->Update();
+    m_mapToColors->SetInputConnection(m_shiftScaleFilter->GetOutputPort());
+    m_mapToColors->Update();
+    m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+    m_actor->SetDisplayExtent(slice->GetExtent());
+    m_actor->Update();
+
+    m_lastUpdatedTime = m_data->lastModified();
+  }
+
+  if (m_actor != nullptr)
+    m_actor->SetVisibility(valid && isVisible());
 }
 
 //-----------------------------------------------------------------------------
@@ -195,7 +259,7 @@ QList<vtkProp*> ChannelSliceRepresentation::getActors()
 {
   QList<vtkProp*> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
@@ -204,37 +268,37 @@ QList<vtkProp*> ChannelSliceRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-bool ChannelSliceRepresentation::isInside(Nm point[3])
+bool ChannelSliceRepresentation::isInside(const NmVector3 &point) const
 {
-  itkVolumeType::IndexType voxel = m_data->index(point[0], point[1], point[2]);
-  return m_data->volumeRegion().IsInside(voxel);
+  return contains(m_data->bounds(), point);
 };
 
 //-----------------------------------------------------------------------------
 TransparencySelectionHighlighter *SegmentationSliceRepresentation::s_highlighter = new TransparencySelectionHighlighter();
 
+const Representation::Type SegmentationSliceRepresentation::TYPE = "Slice";
+
 //-----------------------------------------------------------------------------
-SegmentationSliceRepresentation::SegmentationSliceRepresentation(SegmentationVolumeSPtr data,
-                                                                 SliceView             *view)
-: SegmentationGraphicalRepresentation(view)
-, m_data(data)
-, m_reslice(NULL)
-, m_mapToColors(NULL)
-, m_actor(NULL)
+SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
+                                                                 View2D *view)
+: Representation{view}
+, m_data        {data}
+, m_planeIndex  {-1}
+, m_reslicePoint{-1}
+, m_mapToColors {nullptr}
+, m_actor       {nullptr}
 {
-  setLabel(tr("Solid"));
-  //qDebug() << "Creating Solid Representation";
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------
 SegmentationSliceRepresentation::~SegmentationSliceRepresentation()
 {
-  //qDebug() << "Destroying Solid Representation";
 }
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSettings *SegmentationSliceRepresentation::settingsWidget()
+RepresentationSettings *SegmentationSliceRepresentation::settingsWidget()
 {
-  return new SegmentationSliceRepresentationSettings();
+  return new SliceRepresentationSettings();
 }
 
 //-----------------------------------------------------------------------------
@@ -242,7 +306,7 @@ QString SegmentationSliceRepresentation::serializeSettings()
 {
   QStringList values;
 
-  values << GraphicalRepresentation::serializeSettings();
+  values << Representation::serializeSettings();
   values << QString("%1").arg(m_color.alphaF());
 
   return values.join(";");
@@ -253,14 +317,12 @@ void SegmentationSliceRepresentation::restoreSettings(QString settings)
 {
   if (!settings.isEmpty())
   {
-    QStringList values = settings.split(";");
-
-    double alphaF = values[1].toDouble();
-
-    QColor currentColor = color();
+    auto values = settings.split(";");
+    auto alphaF = values[1].toDouble();
+    auto currentColor = color();
     currentColor.setAlphaF(alphaF);
 
-    GraphicalRepresentation::restoreSettings(values[0]);
+    Representation::restoreSettings(values[0]);
   }
 }
 
@@ -268,15 +330,16 @@ void SegmentationSliceRepresentation::restoreSettings(QString settings)
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setColor(const QColor &color)
 {
-  GraphicalRepresentation::setColor(color);
+  Representation::setColor(color);
 
-  if (m_actor != NULL)
-    m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
-
-  foreach (GraphicalRepresentationSPtr clone, m_clones)
+  if (m_actor != nullptr)
   {
-    clone->setColor(color);
+    m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
+    m_mapToColors->Update();
   }
+
+  for (auto clone: m_clones)
+    clone->setColor(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -285,85 +348,114 @@ QColor SegmentationSliceRepresentation::color() const
   if (!m_clones.isEmpty())
     return m_clones.first()->color();
   else
-    return EspINA::GraphicalRepresentation::color();
+    return Representation::color();
 }
 
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::setHighlighted(bool highlighted)
 {
-  SegmentationGraphicalRepresentation::setHighlighted(highlighted);
+  Representation::setHighlighted(highlighted);
 
-  if (m_actor != NULL)
+  if (m_actor != nullptr)
     m_mapToColors->SetLookupTable(s_highlighter->lut(m_color, m_highlight));
 }
 
 //-----------------------------------------------------------------------------
 bool SegmentationSliceRepresentation::hasActor(vtkProp *actor) const
 {
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     return false;
 
   return m_actor.GetPointer() == actor;
 }
 
 //-----------------------------------------------------------------------------
-bool SegmentationSliceRepresentation::isInside(Nm point[3])
+bool SegmentationSliceRepresentation::isInside(const NmVector3 &point) const
 {
-  Q_ASSERT(m_data.get());
-  Q_ASSERT(m_data->toITK().IsNotNull());
-
-  itkVolumeType::IndexType voxel = m_data->index(point[0], point[1], point[2]);
-
-  return m_data->volumeRegion().IsInside(voxel)
-      && m_data->toITK()->GetPixel(voxel) == SEG_VOXEL_VALUE;
+  return isSegmentationVoxel(m_data, point);
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::initializePipeline()
 {
-  connect(m_data.get(), SIGNAL(representationChanged()),
-          this, SLOT(updatePipelineConnections()));
+  if (m_planeIndex == -1)
+    return;
 
-  SliceView *view = reinterpret_cast<SliceView *>(m_view);
+  m_reslicePoint = m_crosshair[m_planeIndex] + 1; // trigger update
 
-  m_reslice = vtkSmartPointer<vtkImageReslice>::New();
-  m_reslice->SetInputConnection(m_data->toVTK());
-  m_reslice->SetOutputDimensionality(2);
-  m_reslice->SetResliceAxes(slicingMatrix(view));
-  m_reslice->SetNumberOfThreads(1);
-  m_reslice->Update();
+  auto view = reinterpret_cast<View2D *>(m_view);
 
-  // actor should be allocated first or the next call to setColor() would do nothing
-  m_actor = vtkSmartPointer<vtkImageActor>::New();
+  int extent[6] = { 0,1,0,1,0,1 };
+  extent[2*m_planeIndex] = extent[2*m_planeIndex +1];
+  auto image = vtkSmartPointer<vtkImageData>::New();
+  image->SetExtent(extent);
+
+  auto info = image->GetInformation();
+  vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+  vtkImageData::SetNumberOfScalarComponents(1, info);
+  image->SetInformation(info);
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  image->Modified();
+  unsigned char *imagePointer = reinterpret_cast<unsigned char *>(image->GetScalarPointer());
+  memset(imagePointer, SEG_BG_VALUE, image->GetNumberOfPoints());
 
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapToColors->SetInputConnection(m_reslice->GetOutputPort());
-  setColor(m_color);
+  m_mapToColors->SetInputData(image);
+  m_mapToColors->SetLookupTable(s_highlighter->lut(m_color));
   m_mapToColors->SetNumberOfThreads(1);
   m_mapToColors->Update();
 
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->SetDisplayExtent(image->GetExtent());
   m_actor->Update();
 
   // need to reposition the actor so it will always be over the channels actors'
   double pos[3];
   m_actor->GetPosition(pos);
-  pos[view->plane()] = view->segmentationDepth();
+  pos[m_planeIndex] += view->segmentationDepth();
   m_actor->SetPosition(pos);
+
+  m_lastUpdatedTime = m_data->lastModified();
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateRepresentation()
 {
-  if (m_actor != NULL)
+  setCrosshairPoint(m_view->crosshairPoint());
+
+  Bounds imageBounds = m_data->bounds();
+
+  bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
+
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid && isVisible())
   {
-    m_reslice->Update();
+    m_reslicePoint = m_crosshair[m_planeIndex];
+
+    imageBounds.setLowerInclusion(true);
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = m_reslicePoint;
+
+    auto slice = vtkImage(m_data, imageBounds);
+    m_mapToColors->SetInputData(slice);
     m_mapToColors->Update();
+    m_actor->SetDisplayExtent(slice->GetExtent());
     m_actor->Update();
+
+    m_lastUpdatedTime = m_data->lastModified();
+
+    // need to reposition the actor so it will always be over the channels actors'
+    auto view = reinterpret_cast<View2D *>(m_view);
+    double pos[3];
+    m_actor->GetPosition(pos);
+    pos[m_planeIndex] += view->segmentationDepth();
+    m_actor->SetPosition(pos);
   }
+
+  m_actor->SetVisibility(valid && isVisible());
 }
 
 //-----------------------------------------------------------------------------
@@ -371,7 +463,7 @@ QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 {
   QList<vtkProp *> list;
 
-  if (m_actor == NULL)
+  if (m_actor == nullptr)
     initializePipeline();
 
   list << m_actor.GetPointer();
@@ -380,27 +472,22 @@ QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 }
 
 //-----------------------------------------------------------------------------
-GraphicalRepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(SliceView *view)
+RepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(View2D *view)
 {
-  SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
+  auto representation = new SegmentationSliceRepresentation(m_data, view);
   representation->setView(view);
+  representation->m_planeIndex = normalCoordinateIndex(view->plane());
 
-  return GraphicalRepresentationSPtr(representation);
+  return RepresentationSPtr(representation);
 }
 
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateVisibility(bool visible)
 {
-  if (m_actor != NULL)
+  if(visible && m_actor != nullptr && needUpdate())
+    updateRepresentation();
+
+  if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }
 
-//-----------------------------------------------------------------------------
-void SegmentationSliceRepresentation::updatePipelineConnections()
-{
-  if ((m_actor != NULL) && (m_reslice->GetInputConnection(0,0) != m_data->toVTK()))
-  {
-    m_reslice->SetInputConnection(m_data->toVTK());
-    m_reslice->Update();
-  }
-}

@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -33,7 +35,7 @@ const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
 const QString SUBTRACTLINK  = "Substract";
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Filter::FilterType ImageLogicCommand::FILTER_TYPE = "EditorToolBar::ImageLogicFilter";
 
@@ -115,7 +117,7 @@ void ImageLogicCommand::redo()
   {
     m_model->addRelation(info.filter, m_filter, link(info.segmentation));
     // Remove Segmentation Relations
-    foreach(EspINA::Relation rel, info.relations)
+    foreach(ESPINA::Relation rel, info.relations)
     {
       m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
     }
@@ -138,14 +140,14 @@ void ImageLogicCommand::redo()
 void ImageLogicCommand::undo()
 {
   // Remove merge segmentation
-  foreach(EspINA::Relation relation,  m_segmentation->relations())
+  foreach(ESPINA::Relation relation,  m_segmentation->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
   m_model->removeSegmentation(m_segmentation);
 
   // Remove filter
-  foreach(EspINA::Relation relation,  m_filter->relations())
+  foreach(ESPINA::Relation relation,  m_filter->relations())
   {
     m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
@@ -157,7 +159,7 @@ void ImageLogicCommand::undo()
   m_model->addSegmentation(m_input);
   foreach(SegInfo info, m_infoList)
   {
-    foreach(EspINA::Relation rel, info.relations)
+    foreach(ESPINA::Relation rel, info.relations)
     {
       m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
     }

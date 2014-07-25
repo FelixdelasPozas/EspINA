@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -19,7 +21,7 @@
 #include "FilledContour.h"
 #include <Undo/BrushUndoCommand.h>
 
-// EspINA
+// ESPINA
 #include <GUI/Pickers/ContourSelector.h>
 #include <GUI/vtkWidgets/ContourWidget.h>
 #include <GUI/ViewManager.h>
@@ -38,7 +40,7 @@
 #include <QUndoStack>
 #include <QtGui>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Filter::FilterType FilledContour::FILTER_TYPE = "EditorToolBar::ContourSource";
 
@@ -129,7 +131,7 @@ void FilledContour::setInUse(bool enable)
     SegmentationList selection;
     foreach(PickableItemPtr item, m_viewManager->selection())
     {
-      if (EspINA::SEGMENTATION == item->type())
+      if (ESPINA::SEGMENTATION == item->type())
       selection << segmentationPtr(item);
     }
 
@@ -259,7 +261,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
     }
     catch (...)
     {
-      m_undoStack->push(new RemoveSegmentation(m_currentSeg.get(), m_model, m_viewManager));
+      m_undoStack->push(new RemoveSegmentations(m_currentSeg.get(), m_model, m_viewManager));
       emit changeMode(Brush::BRUSH);
       m_currentSeg.reset();
       m_currentSource.reset();

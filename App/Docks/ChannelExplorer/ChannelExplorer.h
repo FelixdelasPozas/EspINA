@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -17,48 +19,45 @@
  */
 
 
-#ifndef CHANNELEXPLORER_H
-#define CHANNELEXPLORER_H
+#ifndef ESPINA_CHANNEL_EXPLORER_H
+#define ESPINA_CHANNEL_EXPLORER_H
 
 //----------------------------------------------------------------------------
 // File:    ChannelExplorer.h
 // Purpose: Dock widget to manage channels in the model
 //----------------------------------------------------------------------------
-#include <Core/Interfaces/IDockWidget.h>
+#include <Core/EspinaTypes.h>
+#include <Support/DockWidget.h>
 
-// EspINA
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/ChannelProxy.h>
+// ESPINA
+#include <GUI/Model/Proxies/ChannelProxy.h>
 
 //Qt
 #include <QSortFilterProxyModel>
 
-#ifdef TEST_ESPINA_MODELS
-class ModelTest;
-#endif
 class QObject;
 
-namespace EspINA
+namespace ESPINA
 {
-
   class ChannelInspector;
   class ViewManager;
 
   class ChannelExplorer
-  : public IDockWidget
+  : public DockWidget
   {
     Q_OBJECT
     class CentralWidget;
   public:
-    explicit ChannelExplorer(EspinaModel *model,
-                             QUndoStack  *undoStack,
-                             ViewManager *viewManager,
-                             QWidget     *parent = 0);
+    explicit ChannelExplorer(ModelAdapterSPtr model,
+                             ViewManagerSPtr  viewManager,
+                             SchedulerSPtr    scheduler,
+                             QUndoStack      *undoStack,
+                             QWidget         *parent = 0);
     virtual ~ChannelExplorer();
 
-    virtual void initDockWidget(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager);
+    virtual void initDockWidget(ModelAdapterSPtr model,
+                                QUndoStack      *undoStack,
+                                ViewManagerSPtr  viewManager);
 
     virtual void reset(); // slot
 
@@ -78,22 +77,21 @@ namespace EspINA
     void dialogClosed(QObject *);
     void inspectorChangedSpacing();
 
-  private:
-    EspinaModel *m_model;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
 
-    boost::shared_ptr<ChannelProxy>          m_channelProxy;
-    boost::shared_ptr<QSortFilterProxyModel> m_sort;
+  private:
+    ModelAdapterSPtr m_model;
+    ViewManagerSPtr  m_viewManager;
+    SchedulerSPtr    m_scheduler;
+    QUndoStack      *m_undoStack;
+
+    std::shared_ptr<ChannelProxy>          m_channelProxy;
+    std::shared_ptr<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
-    QMap<Channel *, ChannelInspector *> m_informationDialogs;
-
-    #ifdef TEST_ESPINA_MODELS
-    boost::shared_ptr<ModelTest>   m_modelTester;
-    #endif
+    QMap<ChannelAdapterPtr, ChannelInspector *> m_informationDialogs;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-#endif // CHANNELEXPLORER_H
+#endif // ESPINA_CHANNEL_EXPLORER_H

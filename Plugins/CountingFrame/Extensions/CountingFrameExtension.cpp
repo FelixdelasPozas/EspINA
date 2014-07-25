@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -19,38 +21,37 @@
 
 #include "CountingFrameExtension.h"
 
-#include "CountingFramePanel.h"
-#include "StereologicalInclusion.h"
 #include "CountingFrames/CountingFrame.h"
-#include "CountingFrames/RectangularCountingFrame.h"
-#include "CountingFrames/AdaptiveCountingFrame.h"
-
-#include <Core/Model/Sample.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/Filter.h>
-#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
-#include <Core/Extensions/EdgeDistances/EdgeDistance.h>
-#include <Core/Relations.h>
-#include <GUI/ViewManager.h>
+#include "CountingFrames/OrtogonalCountingFrame.h"
+#include <CountingFrames/AdaptiveCountingFrame.h>
+#include <CountingFrameManager.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Query.h>
+#include <Core/Analysis/Channel.h>
+#include <Extensions/ExtensionUtils.h>
 
 #include <QDebug>
 #include <QApplication>
 
-using namespace EspINA;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
-const QString CountingFrameExtension::EXTENSION_FILE = CountingFrameExtensionID + "/CountingFrameExtension.ext";
+ChannelExtension::Type CountingFrameExtension::TYPE = "CountingFrame";
 
-const std::string FILE_VERSION = CountingFrameExtensionID.toStdString() + " 1.0\n";
+const QString CountingFrameExtension::FILE = CountingFrameExtension::TYPE + "/CountingFrame.ext";
+
+const std::string FILE_VERSION = CountingFrameExtension::TYPE.toStdString() + " 2.0\n";
 
 const char SEP = ';';
 
-CountingFrameExtension::ExtensionCache CountingFrameExtension::s_cache;
-
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension(CountingFramePanel *plugin,
-                                               ViewManager        *viewManager)
-: m_plugin(plugin)
-, m_viewManager(viewManager)
+CountingFrameExtension::CountingFrameExtension(CountingFrameManager* manager,
+                                               SchedulerSPtr         scheduler,
+                                               const State          &state)
+: ChannelExtension(InfoCache())
+, m_manager(manager)
+, m_scheduler(scheduler)
+, m_prevState(state)
 {
 }
 
@@ -58,98 +59,245 @@ CountingFrameExtension::CountingFrameExtension(CountingFramePanel *plugin,
 CountingFrameExtension::~CountingFrameExtension()
 {
   //qDebug() << "Deleting Counting Frame Channel Extension";
-  foreach(CountingFrame *cf, m_countingFrames)
-    m_plugin->deleteCountingFrame(cf);
-}
-
-//-----------------------------------------------------------------------------
-ModelItem::ExtIdList CountingFrameExtension::dependencies() const
-{
-  ModelItem::ExtIdList deps;
-  deps << AdaptiveEdgesID;
-  return deps;
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::loadCache(QuaZipFile  &file,
-                                       const QDir  &tmpDir,
-                                       IEspinaModel *model)
-{
-  QString header(file.readLine());
-  if (header.toStdString() == FILE_VERSION)
+  for (auto cf : m_countingFrames)
   {
-    ChannelPtr extensionChannel = NULL;
-    CountingFrameExtensionPtr cfExtension = NULL;
+    m_manager->unregisterCountingFrame(cf);
+  }
+}
 
-    char buffer[1024];
-    while (file.readLine(buffer, sizeof(buffer)) > 0)
+//-----------------------------------------------------------------------------
+State CountingFrameExtension::state() const
+{
+  State state;
+
+  QString br =  "";
+  for(auto cf : m_countingFrames)
+  {
+    Nm inclusion[3], exclusion[3];
+    cf->margins(inclusion, exclusion);
+    // Id,Type,Constraint,Left, Top, Front, Right, Bottom, Back
+    state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9,%10").arg(br)
+                                                 .arg(cf->id())
+                                                 .arg(cf->cfType())
+                                                 .arg(cf->categoryConstraint())
+                                                 .arg(inclusion[0])
+                                                 .arg(inclusion[1])
+                                                 .arg(inclusion[2])
+                                                 .arg(exclusion[0])
+                                                 .arg(exclusion[1])
+                                                 .arg(exclusion[2]);
+    br = '\n';
+  }
+
+  return state;
+}
+
+//-----------------------------------------------------------------------------
+Snapshot CountingFrameExtension::snapshot() const
+{
+  return Snapshot();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::createCountingFrame(CFType type,
+                                                 Nm inclusion[3],
+                                                 Nm exclusion[3],
+                                                 const QString& constraint)
+{
+  createCountingFrame(type,
+                      m_manager->defaultCountingFrameId(constraint),
+                      inclusion,
+                      exclusion,
+                      constraint);
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
+{
+  Q_ASSERT(m_countingFrames.contains(countingFrame));
+  for (auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
+  {
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    extension->removeCountingFrame(countingFrame);
+  }
+
+  m_countingFrames.removeOne(countingFrame);
+
+  m_manager->unregisterCountingFrame(countingFrame);
+
+  if (m_countingFrames.isEmpty())
+  {
+    m_extendedItem->deleteExtension(TYPE);
+  }
+
+  delete countingFrame;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::onExtendedItemSet(Channel *channel)
+{
+  const int ID_POS              = 0;
+  const int TYPE_POS            = 1;
+  const int CONSTRAINT_POS      = 2;
+  const int INCLUSION_START_POS = 3;
+  const int EXCLUSION_START_POS = 6;
+  const int NUM_FIELDS          = 9;
+
+  if (!m_prevState.isEmpty())
+  {
+    for (auto cfEntry : m_prevState.split("\n"))
     {
-      QString line(buffer);
-      QStringList fields = line.split(SEP);
 
-      if (fields.size() == 2)
+      auto params = cfEntry.split(",");
+
+      if (params.size() % NUM_FIELDS != 0)
       {
-        int i = 0;
-        while (!extensionChannel && i < model->channels().size())
-        {
-          ChannelSPtr channel = model->channels()[i];
-          if ( channel->filter()->id()       == fields[0]
-            && channel->outputId()           == fields[1].toInt()
-            && channel->filter()->cacheDir() == tmpDir)
-          {
-            extensionChannel = channel.get();
-          }
-          i++;
-        }
-        if (extensionChannel)
-        {
-          cfExtension = new CountingFrameExtension(m_plugin, m_viewManager);
-          extensionChannel->addExtension(cfExtension);
-        } else
-        {
-          qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
-        }
-      }
-      else if (fields.size() == 8)
+        qWarning() << "Invalid CF Extension state:\n" << m_prevState;
+      } else
       {
-        CF cfInfo;
-        CountingFrame::Id id = fields[0].toInt();
+        CFType type = static_cast<CFType>(params[TYPE_POS].toInt());
 
-        cfInfo.Type = static_cast<CFType>(fields[1].toInt());
-        for(int i=0; i<3; i++)
-          cfInfo.Inclusion[i] = fields[2+i].toDouble();
-        for(int i=0; i<3; i++)
-          cfInfo.Exclusion[i] = fields[5+i].toDouble();
+        Nm inclusion[3];
+        Nm exclusion[3];
 
-        ExtensionData &data = s_cache[extensionChannel].Data;
-        data.insert(id, cfInfo);
-
-        CountingFrame *cf = NULL;
-        switch(data[id].Type)
+        for (int i = 0; i < 3; ++i)
         {
-          case ADAPTIVE:
-            cf = AdaptiveCountingFrame::New(id, cfExtension, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
-            break;
-          case RECTANGULAR:
-            double borders[6];
-            extensionChannel->volume()->bounds(borders);
-            cf = RectangularCountingFrame::New(id, cfExtension, borders, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
-            break;
-        };
-        if (cf)
-        {
-          m_plugin->registerCF(cfExtension, cf);
-        } else
-        {
-          qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
+          inclusion[i] = params[INCLUSION_START_POS + i].toDouble();
+          exclusion[i] = params[EXCLUSION_START_POS + i].toDouble();
         }
-      }
-      else
-        Q_ASSERT(false);
 
+        createCountingFrame(type, params[ID_POS], inclusion, exclusion, params[CONSTRAINT_POS]);
+      }
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::onCountingFrameUpdated(CountingFrame* countingFrame)
+{
+  for(auto segmentation : QueryContents::segmentationsOnChannelSample(m_extendedItem))
+  {
+    auto extension = retrieveOrCreateExtension<StereologicalInclusion>(segmentation);
+    extension->evaluateCountingFrame(countingFrame);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameExtension::createCountingFrame(CFType type,
+                                                 CountingFrame::Id id,
+                                                 Nm inclusion[3],
+                                                 Nm exclusion[3],
+                                                 const QString& constraint)
+{
+  CountingFrame *cf;
+
+  if (CFType::ORTOGONAL == type)
+  {
+    cf = OrtogonalCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
+  } else if (CFType::ADAPTIVE == type)
+  {
+    cf = AdaptiveCountingFrame::New(this, m_extendedItem->bounds(), inclusion, exclusion, m_scheduler);
+  } else
+  {
+    Q_ASSERT(false);
+  }
+
+  cf->setId(id);
+  cf->setCategoryConstraint(constraint);
+
+  m_countingFrames << cf;
+
+  m_manager->registerCountingFrame(cf);
+}
+
+//-----------------------------------------------------------------------------
+//TODO ModelItem::ExtIdList CountingFrameExtension::dependencies() const
+// {
+//   ModelItem::ExtIdList deps;
+//   deps << AdaptiveEdgesID;
+//   return deps;
+// }
+
+// //-----------------------------------------------------------------------------
+// void CountingFrameExtension::loadCache(QuaZipFile  &file,
+//                                        const QDir  &tmpDir,
+//                                        IEspinaModel *model)
+// {
+//   QString header(file.readLine());
+//   if (header.toStdString() == FILE_VERSION)
+//   {
+//     ChannelPtr extensionChannel = NULL;
+//     CountingFrameExtensionPtr cfExtension = NULL;
+//
+//     char buffer[1024];
+//     while (file.readLine(buffer, sizeof(buffer)) > 0)
+//     {
+//       QString line(buffer);
+//       QStringList fields = line.split(SEP);
+//
+//       if (fields.size() == 2)
+//       {
+//         int i = 0;
+//         while (!extensionChannel && i < model->channels().size())
+//         {
+//           ChannelSPtr channel = model->channels()[i];
+//           if ( channel->filter()->id()       == fields[0]
+//             && channel->outputId()           == fields[1].toInt()
+//             && channel->filter()->cacheDir() == tmpDir)
+//           {
+//             extensionChannel = channel.get();
+//           }
+//           i++;
+//         }
+//         if (extensionChannel)
+//         {
+//           cfExtension = new CountingFrameExtension(m_plugin, m_viewManager);
+//           extensionChannel->addExtension(cfExtension);
+//         } else
+//         {
+//           qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
+//         }
+//       }
+//       else if (fields.size() == 8)
+//       {
+//         CF cfInfo;
+//         CountingFrame::Id id = fields[0].toInt();
+//
+//         cfInfo.Type = static_cast<CFType>(fields[1].toInt());
+//         for(int i=0; i<3; i++)
+//           cfInfo.Inclusion[i] = fields[2+i].toDouble();
+//         for(int i=0; i<3; i++)
+//           cfInfo.Exclusion[i] = fields[5+i].toDouble();
+//
+//         ExtensionData &data = s_cache[extensionChannel].Data;
+//         data.insert(id, cfInfo);
+//
+//         CountingFrame *cf = NULL;
+//         switch(data[id].Type)
+//         {
+//           case ADAPTIVE:
+//             cf = AdaptiveCountingFrame::New(id, cfExtension, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
+//             break;
+//           case RECTANGULAR:
+//             double borders[6];
+//             extensionChannel->volume()->bounds(borders);
+//             cf = RectangularCountingFrame::New(id, cfExtension, borders, cfInfo.Inclusion, cfInfo.Exclusion, m_viewManager);
+//             break;
+//         };
+//         if (cf)
+//         {
+//           m_plugin->registerCF(cfExtension, cf);
+//         } else
+//         {
+//           qWarning() << CountingFrameExtensionID << "Invalid Cache Entry:" << line;
+//         }
+//       }
+//       else
+//         Q_ASSERT(false);
+//
+//     }
+//   }
+// }
 
 // File Output:
 // ID version
@@ -159,149 +307,48 @@ void CountingFrameExtension::loadCache(QuaZipFile  &file,
 // List of counting frames definitions separated by endl
 // ...
 //-----------------------------------------------------------------------------
-bool CountingFrameExtension::saveCache(Snapshot &cacheList)
-{
-  s_cache.purge();
-
-  if (s_cache.isEmpty())
-    return false;
-
-  std::ostringstream cache;
-  cache << FILE_VERSION;
-
-  ChannelPtr channel;
-  foreach(channel, s_cache.keys())
-  {
-    cache << channel->filter()->id().toStdString();
-    cache << SEP << channel->outputId();
-    cache << std::endl;
-
-    ExtensionData &data = s_cache[channel].Data;
-
-    ExtensionData::iterator cf = data.begin();
-    while(cf != data.end())
-    {
-      cache << cf.key();
-      cache << SEP << cf->Type;
-
-      for(int i=0; i<3; i++)
-        cache << SEP << cf->Inclusion[i];
-
-      for(int i=0; i<3; i++)
-        cache << SEP << cf->Exclusion[i];
-
-      cache << std::endl;
-      ++cf;
-    }
-  }
-
-  cacheList << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
-
-  return true;
-}
-
+// bool CountingFrameExtension::saveCache(Snapshot &cacheList)
+// {
+//   s_cache.purge();
+//
+//   if (s_cache.isEmpty())
+//     return false;
+//
+//   std::ostringstream cache;
+//   cache << FILE_VERSION;
+//
+//   ChannelPtr channel;
+//   foreach(channel, s_cache.keys())
+//   {
+//     cache << channel->filter()->id().toStdString();
+//     cache << SEP << channel->outputId();
+//     cache << std::endl;
+//
+//     ExtensionData &data = s_cache[channel].Data;
+//
+//     ExtensionData::iterator cf = data.begin();
+//     while(cf != data.end())
+//     {
+//       cache << cf.key();
+//       cache << SEP << cf->Type;
+//
+//       for(int i=0; i<3; i++)
+//         cache << SEP << cf->Inclusion[i];
+//
+//       for(int i=0; i<3; i++)
+//         cache << SEP << cf->Exclusion[i];
+//
+//       cache << std::endl;
+//       ++cf;
+//     }
+//   }
+//
+//   cacheList << SnapshotEntry(FILE, cache.str().c_str());
+//
+//   return true;
+// }
 //-----------------------------------------------------------------------------
-Channel::ExtensionPtr CountingFrameExtension::clone()
+CountingFrameExtensionSPtr ESPINA::CF::countingFrameExtensionPtr(ChannelExtensionSPtr extension)
 {
-  return new CountingFrameExtension(m_plugin, m_viewManager);
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::addCountingFrame(CountingFrame* countingFrame)
-{
-  Q_ASSERT(!m_countingFrames.contains(countingFrame));
-  m_countingFrames << countingFrame;
-
-  CF cf;
-  if (countingFrame->name() == ADAPTIVE_CF)
-    cf.Type = ADAPTIVE;
-  else if (countingFrame->name() == RECTANGULAR_CF)
-    cf.Type = RECTANGULAR;
-  else
-    Q_ASSERT(false);
-
-  countingFrame->margins(cf.Inclusion, cf.Exclusion);
-
-  s_cache[m_channel].Data.insert(countingFrame->id() ,cf);
-  s_cache.markAsClean(m_channel);
-
-  SampleSPtr sample = m_channel->sample();
-  foreach(SegmentationPtr segmentation, sample->segmentations())
-  {
-    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
-    inclusionExtension->setCountingFrames(m_countingFrames);
-  }
-  connect(countingFrame, SIGNAL(modified(CountingFrame*)),
-          this, SLOT(countinfFrameUpdated(CountingFrame*)));
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::deleteCountingFrame(CountingFrame* countingFrame)
-{
-  Q_ASSERT(m_countingFrames.contains(countingFrame));
-  m_countingFrames.removeOne(countingFrame);
-
-  SampleSPtr sample = m_channel->sample();
-  foreach(SegmentationPtr segmentation, sample->segmentations())
-  {
-    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
-    inclusionExtension->setCountingFrames(m_countingFrames);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::initialize()
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::invalidate(ChannelPtr channel)
-{
-  if (!channel)
-    channel = m_channel;
-
-  if (channel)
-  {
-    //qDebug() << "Invalidate" << m_channel->data().toString() << MorphologicalInformationID;
-    s_cache.markAsDirty(channel);
-  }
-
-}
-
-
-//-----------------------------------------------------------------------------
-void CountingFrameExtension::countinfFrameUpdated(CountingFrame* countingFrame)
-{
-  SampleSPtr sample = m_channel->sample();
-  foreach(SegmentationPtr segmentation, sample->segmentations())
-  {
-    StereologicalInclusion *inclusionExtension = stereologicalInclusion(segmentation);
-    inclusionExtension->evaluateCountingFrame(countingFrame);
-  }
-}
-
-//-----------------------------------------------------------------------------
-StereologicalInclusion *CountingFrameExtension::stereologicalInclusion(SegmentationPtr segmentation)
-{
-  StereologicalInclusion *inclusionExtension   = NULL;
-  Segmentation::InformationExtension extension = segmentation->informationExtension(StereologicalInclusionID);
-  if (extension)
-  {
-    inclusionExtension = dynamic_cast<StereologicalInclusion *>(extension);
-  }
-  else
-  {
-    inclusionExtension = new StereologicalInclusion();
-    segmentation->addExtension(inclusionExtension);
-  }
-  Q_ASSERT(inclusionExtension);
-
-  return inclusionExtension;
-}
-
-//-----------------------------------------------------------------------------
-CountingFrameExtensionPtr EspINA::countingFrameExtensionPtr(Channel::ExtensionPtr extension)
-{
-  return dynamic_cast<CountingFrameExtensionPtr>(extension);
+  return std::dynamic_pointer_cast<CountingFrameExtension>(extension);
 }

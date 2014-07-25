@@ -2,7 +2,7 @@
  * AppositionSurfaceFilterInspector.h
  *
  *  Created on: Jan 18, 2013
- *      Author: FÈlix de las Pozas ¡lvarez
+ *      Author: F√©lix de las Pozas √Ålvarez
  */
 
 #ifndef APPOSITIONSURFACEFILTERINSPECTOR_H_
@@ -12,14 +12,14 @@
 
 #include "ui_AppositionSurfaceFilterInspector.h"
 
-// EspINA
+// ESPINA
 #include <Filter/AppositionSurfaceFilter.h>
 #include <Core/EspinaTypes.h>
 #include <GUI/ViewManager.h>
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   /// Filter Inspector
   //
@@ -27,7 +27,7 @@ namespace EspINA
   : public Filter::FilterInspector
   {
     public:
-      explicit AppositionSurfaceFilterInspector(FilterSPtr filter);
+      explicit AppositionSurfaceFilterInspector(FilterSPtr filter, EspinaModel *model);
       virtual ~AppositionSurfaceFilterInspector() {};
 
       virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager);
@@ -36,6 +36,7 @@ namespace EspINA
 
     private:
       FilterSPtr m_filter;
+      EspinaModel *m_model;
   };
 
   /// Filter Inspector Widget
@@ -46,13 +47,14 @@ namespace EspINA
   {
       Q_OBJECT
     public:
-      Widget(FilterSPtr filter);
+      Widget(FilterSPtr filter, EspinaModel *model);
       ~Widget() {};
 
     private:
       AppositionSurfaceFilter::Pointer m_filter;
+      EspinaModel *m_model;
   };
 
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* APPOSITIONSURFACEFILTERINSPECTOR_H_ */

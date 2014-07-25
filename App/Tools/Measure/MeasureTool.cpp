@@ -2,84 +2,85 @@
  * MeasureTool.cpp
  *
  *  Created on: Dec 11, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "MeasureTool.h"
-#include <GUI/ViewManager.h>
-#include <GUI/vtkWidgets/MeasureWidget.h>
+#include <GUI/View/Widgets/Measures/MeasureWidget.h>
 
-using namespace EspINA;
+// Qt
+#include <QAction>
 
-//----------------------------------------------------------------------------
-MeasureTool::MeasureTool(ViewManager *vm)
-: m_enabled(false)
-, m_inUse(false)
-, m_widget(NULL)
-, m_viewManager(vm)
+namespace ESPINA
 {
-}
-
-//----------------------------------------------------------------------------
-MeasureTool::~MeasureTool()
-{
-  if(m_widget)
+  //----------------------------------------------------------------------------
+  MeasureTool::MeasureTool(ViewManagerSPtr vm)
+  : m_enabled{false}
+  , m_widget{nullptr}
+  , m_handler{nullptr}
+  , m_viewManager(vm)
+  , m_action{new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
   {
-    m_widget->setEnabled(false);
-    m_widget->Delete();
-    m_widget = NULL;
-  }
-}
-
-//----------------------------------------------------------------------------
-bool MeasureTool::filterEvent(QEvent *e, EspinaRenderView *view)
-{
-  if (m_inUse && m_enabled && m_widget)
-    return m_widget->filterEvent(e, view);
-
-  return false;
-}
-
-//----------------------------------------------------------------------------
-void MeasureTool::setInUse(bool value)
-{
-  if(m_inUse == value)
-    return;
-
-  m_inUse = value;
-
-  if (m_inUse)
-  {
-    m_widget = MeasureWidget::New();
-    m_viewManager->addWidget(m_widget);
-    m_viewManager->setSelectionEnabled(false);
-    m_widget->setEnabled(true);
-  }
-  else
-  {
-    m_widget->setEnabled(false);
-    m_viewManager->removeWidget(m_widget);
-    m_viewManager->setSelectionEnabled(true);
-    m_widget->Delete();
-    m_widget = NULL;
+    m_action->setCheckable(true);
+    connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
   }
 
-  if (!value)
-    emit stopMeasuring();
-}
+  //----------------------------------------------------------------------------
+  MeasureTool::~MeasureTool()
+  {
+    if(m_widget)
+    {
+      m_widget->setEnabled(false);
+      m_widget = nullptr;
+    }
+  }
 
-//----------------------------------------------------------------------------
-void MeasureTool::setEnabled(bool value)
-{
-  m_enabled = value;
+  //----------------------------------------------------------------------------
+  QList< QAction* > MeasureTool::actions() const
+  {
+    QList<QAction *> actions;
+    actions << m_action;
 
-  if (m_widget)
-    m_widget->setEnabled(value);
-}
+    return actions;
+  }
 
-//----------------------------------------------------------------------------
-bool MeasureTool::enabled() const
-{
-  return m_enabled;
+  //----------------------------------------------------------------------------
+  void MeasureTool::setEnabled(bool value)
+  {
+    m_enabled = value;
+
+    if (m_widget)
+      m_widget->setEnabled(value);
+  }
+
+  //----------------------------------------------------------------------------
+  bool MeasureTool::enabled() const
+  {
+    return m_enabled;
+  }
+
+  //----------------------------------------------------------------------------
+  void MeasureTool::initTool(bool value)
+  {
+    if (value)
+    {
+      m_widget = EspinaWidgetSPtr(new MeasureWidget());
+      m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
+      m_viewManager->setEventHandler(m_handler);
+      m_viewManager->addWidget(m_widget);
+      m_viewManager->setSelectionEnabled(false);
+      m_widget->setEnabled(true);
+    }
+    else
+    {
+      m_widget->setEnabled(false);
+      m_viewManager->removeWidget(m_widget);
+      m_viewManager->unsetEventHandler(m_handler);
+      m_handler = nullptr;
+      m_viewManager->setSelectionEnabled(true);
+      m_widget = nullptr;
+      emit stopMeasuring();
+    }
+  }
 }

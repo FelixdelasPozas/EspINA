@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  <copyright holder> <email>
+ 
+ Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,7 +21,7 @@
 #ifndef FILLEDCONTOUR_H
 #define FILLEDCONTOUR_H
 
-// EspINA
+// ESPINA
 #include <GUI/Tools/ITool.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
@@ -29,14 +31,14 @@
 class QUndoStack;
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   class ContourSelector;
   class ViewManager;
   class ContourWidget;
 
   class FilledContour
-  : public ITool  // TODO Change to IVOI to use countour as VOI
+  : public ITool  // TODO Change to IROI to use countour as ROI
   {
     Q_OBJECT
     public:
@@ -87,6 +89,6 @@ namespace EspINA
 
   typedef boost::shared_ptr<FilledContour> FilledContourSPtr;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // FILLEDCONTOUR_H

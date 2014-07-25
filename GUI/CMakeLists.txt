@@ -1,155 +1,180 @@
-find_package(XLSLIB REQUIRED)
-
 include (GenerateExportHeader)
 
 include_directories(
   ${CMAKE_BINARY_DIR}         # Exports & Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
-  ${XLSLIB_INCLUDE_DIRS}
 )
 
 qt4_wrap_cpp(GUI_MOC
-  Analysis/InformationSelector.h
-  Pickers/BrushPicker.h
-  Pickers/ISelector.h
-  QtWidget/ActionSelector.h
-  QtWidget/ActionSelectorWidget.h
-  QtWidget/CheckableTableView.h
-  QtWidget/CheckableTreeView.h
-  QtWidget/EspinaRenderView.h
-  QtWidget/HueSelector.h
-  QtWidget/QComboTreeView.h
-  QtWidget/NoteEditor.h
-  QtWidget/TagSelector.h
-  QtWidget/SegmentationVisualizationSettingsDialog.h
-  QtWidget/SliceView.h
-  QtWidget/VolumeView.h
-  Representations/ContourRepresentation.h
-  Representations/CrosshairRepresentation.h
-  Representations/IMeshRepresentation.h
-  Representations/SliceRepresentation.h
-  Representations/SimpleMeshRepresentation.h
+  ColorEngines/CategoryColorEngine.h
+  ColorEngines/ColorEngine.h
+  Model/FilterAdapter.h
+  Model/ItemAdapter.h
+  Model/ModelAdapter.h
+  Model/Proxies/ChannelProxy.h
+  Model/Proxies/ClassificationProxy.h
+  Model/Proxies/InformationProxy.h
+  Representations/MeshRepresentation.h
+  Representations/MeshRepresentationBase.h
+  Representations/Renderers/Renderer.h
   Representations/SmoothedMeshRepresentation.h
-  Representations/VolumeGPURepresentation.h
-  Representations/VolumeRaycastRepresentation.h
-  Renderers/Renderer.h
-  vtkWidgets/RectangularRegion.h
-  vtkWidgets/RectangularRegionSliceSelector.h
-  ViewManager.h
-  vtkWidgets/TubularWidget.h
-  vtkWidgets/ContourWidget.h
+  Representations/SliceCachedRepresentation.h
+  Representations/Renderers/CachedSliceRenderer.h
+  Representations/Renderers/CachedSliceRendererTask.h
+  Selectors/Selector.h
+  Selectors/PixelSelector.h
+  Selectors/BrushSelector.h
+  View/EventHandler.h
+  View/RenderView.h
+  View/Selection.h
+  View/View2D.h
+  View/ViewRendererMenu.h
+  View/View3D.h
+  View/Widgets/PlanarSplit/PlanarSplitWidget.h
+  View/Widgets/RectangularRegion/RectangularRegion.h
+  View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
+  View/Widgets/ROI/ROIWidget.h
+  View/Widgets/Ruler/RulerWidget.h
+  Widgets/ActionSelector.h
+  Widgets/ActionSelectorWidget.h
+  Widgets/CategorySelector.h
+  Widgets/CheckableTableView.h
+  Widgets/CheckableTreeView.h
+  Widgets/HueSelector.h
+  Widgets/InformationSelector.h
+  Widgets/NoteEditor.h
+  Widgets/QComboTreeView.h
+  Widgets/TagSelector.h
+  Widgets/RenderersSelector.h
+  Widgets/SchedulerProgress.h
+  Widgets/SpinBoxAction.h
+  Widgets/SliderAction.h
+  Widgets/TaskProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 qt4_wrap_ui (GUI_UI
-  Analysis/InformationSelector.ui
-  QtWidget/HueSelector.ui
-  QtWidget/NoteEditor.ui
-  QtWidget/SegmentationVisualizationSettingsDialog.ui
-  QtWidget/TagSelector.ui
-  Representations/GraphicalRepresentationEmptySettings.ui
-  Representations/ContourRepresentationSettings.ui
+  Dialogs/CategorySelectorDialog.ui
+  Representations/RepresentationEmptySettings.ui
   Representations/SliceRepresentationSettings.ui
+  Representations/ContourRepresentationSettings.ui
+  Widgets/InformationSelector.ui
+  Widgets/NoteEditor.ui
+  Widgets/RenderersSelector.ui
+  Widgets/TagSelector.ui
+  Widgets/SchedulerProgress.ui
+  Widgets/TaskProgress.ui
   )
 
-set (GUI_SOURCES 
+set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
-  Analysis/InformationSelector.cpp
-  Analysis/xlsUtils.cpp
-  Extensions/Visualization/VisualizationState.cpp
-  IO/EspinaIO.cpp
-  Pickers/BrushPicker.cpp
-  Pickers/ContourSelector.cpp
-  Pickers/ISelector.cpp
-  Pickers/PixelSelector.cpp
-  Representations/BasicGraphicalRepresentationFactory.cpp 
-  QtWidget/ActionSelector.cpp
-  QtWidget/ActionSelectorWidget.cpp
-  QtWidget/CheckableTableView.cpp
-  QtWidget/CheckableTreeView.cpp
-  QtWidget/EspinaRenderView.cpp
-  QtWidget/HueSelector.cpp
-  QtWidget/NoteEditor.cpp 
-  QtWidget/TagSelector.cpp 
-  QtWidget/QComboTreeView.cpp
-  QtWidget/SegmentationVisualizationSettingsDialog.cpp
-  QtWidget/SliceView.cpp
-  QtWidget/SliceViewState.cpp
-  QtWidget/VolumeView.cpp
-  QtWidget/vtkInteractorStyleEspinaSlice.cpp
+  ColorEngines/CategoryColorEngine.cpp
+  ColorEngines/MultiColorEngine.cpp
+  ColorEngines/NumberColorEngine.cpp
+  ColorEngines/TransparencySelectionHighlighter.cpp
+  ColorEngines/UserColorEngine.cpp
+  Dialogs/CategorySelectorDialog.cpp
+  Dialogs/DefaultDialogs.cpp
+  Extension/Visualization/VisualizationState.cpp
+  Model/CategoryAdapter.cpp
+  Model/ChannelAdapter.cpp
+  Model/ClassificationAdapter.cpp
+  Model/ModelAdapter.cpp
+  Model/Proxies/ChannelProxy.cpp
+  Model/Proxies/ClassificationProxy.cpp
+  Model/Proxies/InformationProxy.cpp
+  Model/SampleAdapter.cpp
+  Model/SegmentationAdapter.cpp
+  Model/Utils/ModelAdapterUtils.cpp
+  Model/Utils/QueryAdapter.cpp
+  Model/ViewItemAdapter.cpp
+  Model/NeuroItemAdapter.cpp
+  ModelFactory.cpp
+  Representations/BasicRepresentationFactory.cpp
   Representations/ContourRepresentation.cpp
   Representations/ContourRepresentationSettings.cpp
+  Representations/MeshRepresentation.cpp 
+  Representations/MeshRepresentationBase.cpp
   Representations/CrosshairRepresentation.cpp
-  Representations/GraphicalRepresentation.cpp
-  Representations/GraphicalRepresentationEmptySettings.cpp 
-  Representations/IMeshRepresentation.cpp
+  Representations/Renderers/ContourRenderer.cpp
+  Representations/Renderers/MeshRenderer.cpp
+  Representations/Renderers/SmoothedMeshRenderer.cpp
+  Representations/Renderers/Renderer.cpp
+  Representations/Renderers/RepresentationRenderer.cpp
+  Representations/Renderers/SliceRenderer.cpp
+  Representations/Renderers/CrosshairRenderer.cpp
+  Representations/Renderers/CachedSliceRenderer.cpp
+  Representations/Renderers/CachedSliceRendererTask.cpp
+  Representations/Representation.cpp
+  Representations/RepresentationEmptySettings.cpp
+  Representations/RepresentationFactoryGroup.cpp 
   Representations/SliceRepresentation.cpp
   Representations/SliceRepresentationSettings.cpp 
-  Representations/SimpleMeshRepresentation.cpp
   Representations/SmoothedMeshRepresentation.cpp
-  Representations/VolumeGPURepresentation.cpp
-  Representations/VolumeRaycastRepresentation.cpp
-  Renderers/ContourRenderer.cpp 
-  Renderers/CrosshairRenderer.cpp
-  Renderers/SliceRenderer.cpp
-  Renderers/MeshRenderer.cpp
-  Renderers/SmoothedMeshRenderer.cpp
-  Renderers/VolumetricRenderer.cpp
-  Renderers/VolumetricGPURenderer.cpp
-  vtkWidgets/ContourWidget.cpp
-  vtkWidgets/EspinaWidget.cpp
-  vtkWidgets/PlanarSplitSliceWidget.cpp
-  vtkWidgets/PlanarSplitWidget.cpp
-  vtkWidgets/RectangularRegion.cpp
-  vtkWidgets/RectangularRegionSliceSelector.cpp
-  vtkWidgets/RulerSliceWidget.cpp
-  vtkWidgets/RulerWidget.cpp
-  vtkWidgets/SliceContourWidget.cpp
-  vtkWidgets/vtkClipClosedSurface.cxx
-  vtkWidgets/vtkContourToPolygonFilter.cxx
-  vtkWidgets/vtkNonRotatingBoxRepresentation.cpp
-  vtkWidgets/vtkNonRotatingBoxWidget.cpp
-  vtkWidgets/vtkPlanarSplitRepresentation2D.cpp
-  vtkWidgets/vtkPlanarSplitWidget.cpp
-  vtkWidgets/vtkPlaneContourRepresentation.cpp
-  vtkWidgets/vtkPlaneContourRepresentationGlyph.cpp
-  vtkWidgets/vtkPlaneContourWidget.cpp
-  vtkWidgets/vtkRectangularSliceRepresentation.cpp
-  vtkWidgets/vtkRectangularSliceWidget.cpp
-  vtkWidgets/vtkRulerWidget.cpp
-  vtkWidgets/vtkRulerWidget3D.cpp
-  vtkWidgets/vtkZoomSelectionWidget.cpp
-  vtkWidgets/vtkZoomSelectionWidgetRepresentation.cpp
-  vtkWidgets/ZoomSelectionSliceWidget.cpp
-  vtkWidgets/ZoomSelectionWidget.cpp
-  ViewManager.cpp
-  vtkWidgets/MeasureWidget.cpp
-  vtkWidgets/MeasureSliceWidget.cpp
-  vtkWidgets/TubularWidget.cpp
-  vtkWidgets/TubularSliceWidget.cpp
-  vtkWidgets/vtkTubeSource.cxx
-  vtkWidgets/vtkTubularRepresentation.cpp
-  vtkWidgets/vtkTubularWidget.cpp
-  vtkWidgets/vtkVoxelContour2D.cpp
+  Representations/SliceCachedRepresentation.cpp
+  Selectors/BrushSelector.cpp
+  Selectors/PixelSelector.cpp
+  Selectors/Selector.cpp
+  Utils/Conditions.cpp
+  Utils/DefaultIcons.cpp
+  Utils/QtModelUtils.cpp
+  View/EventHandler.cpp
+  View/RenderView.cpp
+  View/Selection.cpp
+  View/View2D.cpp
+  View/ViewRendererMenu.cpp
+  View/View2DState.cpp
+  View/View3D.cpp
+  View/Widgets/Contour/vtkVoxelContour2D.cpp
+  View/Widgets/Zoom/ZoomSelectionWidget.cpp
+  View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
+  View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
+  View/Widgets/Measures/MeasureWidget.cpp
+  View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
+  View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
+  View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
+  View/Widgets/RectangularRegion/RectangularRegion.cpp
+  View/Widgets/RectangularRegion/RectangularRegionSliceSelector.cpp
+  View/Widgets/RectangularRegion/vtkRectangularSliceWidget.cpp
+  View/Widgets/RectangularRegion/vtkRectangularSliceRepresentation.cpp
+  View/Widgets/ROI/ROIWidget.cpp
+  View/Widgets/Ruler/RulerWidget.cpp
+  View/Widgets/Ruler/vtkRulerWidget.cpp
+  View/Widgets/Ruler/vtkRulerWidget3D.cpp
+  View/vtkInteractorStyleEspinaSlice.cpp
+  Widgets/ActionSelector.cpp
+  Widgets/ActionSelectorWidget.cpp
+  Widgets/CategorySelector.cpp
+  Widgets/CheckableTableView.cpp
+  Widgets/CheckableTreeView.cpp
+  Widgets/HueSelector.cpp
+  Widgets/InformationSelector.cpp
+  Widgets/NoteEditor.cpp 
+  Widgets/QComboTreeView.cpp
+  Widgets/RenderersSelector.cpp
+  Widgets/TagSelector.cpp 
+  Widgets/SchedulerProgress.cpp
+  Widgets/SpinBoxAction.cpp
+  Widgets/SliderAction.cpp
+  Widgets/TaskProgress.cpp
   )
 
 set(GUI_EXTERNAL_LIBS
-  QVTK
   EspinaCore
+  ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
-  ${XLSLIB_LIBRARIES}
 )
 
-if(MINGW)
+if(DEFINED MINGW OR DEFINED MSVC)
   if(DEFINED ESPINA_VERSION_MAJOR)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
     SET(GUI_SOURCES ${GUI_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     ENABLE_LANGUAGE(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-endif(MINGW)
+endif(DEFINED MINGW OR DEFINED MSVC)
 
 if(APPLE)
    include_directories ( /System/Library/Frameworks )
@@ -162,11 +187,30 @@ if(APPLE)
    set(GUI_EXTERNAL_LIBS ${GUI_EXTERNAL_LIBS} ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
 endif (APPLE)
 
-add_library           (EspinaGUI SHARED ${GUI_SOURCES})
-GENERATE_EXPORT_HEADER(
-             EspinaGUI
-             BASE_NAME EspinaGUI
-             EXPORT_MACRO_NAME EspinaGUI_EXPORT
-             EXPORT_FILE_NAME EspinaGUI_Export.h
-			 )
+
+add_library (EspinaGUI SHARED ${GUI_SOURCES})
+
 target_link_libraries (EspinaGUI ${GUI_EXTERNAL_LIBS})
+
+GENERATE_EXPORT_HEADER(
+  EspinaGUI
+  BASE_NAME         EspinaGUI
+  EXPORT_MACRO_NAME EspinaGUI_EXPORT
+  EXPORT_FILE_NAME  EspinaGUI_Export.h
+	)
+
+#set (GUI_HEADERS 
+#  #TODO: set all header files required to develop external apps
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaGUI_Export.h"
+#  )
+#
+#set_target_properties(EspinaGUI PROPERTIES
+#  PUBLIC_HEADER "${GUI_HEADERS}")
+ 
+install(TARGETS EspinaGUI
+  # IMPORTANT: Add the EspinaGUI library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

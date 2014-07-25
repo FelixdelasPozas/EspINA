@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -17,34 +19,33 @@
  */
 
 
-#ifndef DATAVIEWPANEL_H
-#define DATAVIEWPANEL_H
+#ifndef ESPINA_RAW_INFORMATION_DIALOG_H
+#define ESPINA_RAW_INFORMATION_DIALOG_H
 
 #include <QDialog>
 
 #include <Core/EspinaTypes.h>
 #include <EspinaConfig.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/Proxies/TaxonomyProxy.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/ViewManager.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
-class ViewManager;
-
-class RawInformationDialog
+  class RawInformationDialog
   : public QDialog
-{
-public:
-  explicit RawInformationDialog(EspinaModel *model,
-                         ViewManager *viewManager,
-                         QWidget     *parent = 0);
-  virtual ~RawInformationDialog();
+  {
+  public:
+    explicit RawInformationDialog(ModelAdapterSPtr model,
+                                  ModelFactorySPtr factory,
+                                  ViewManagerSPtr  viewManager,
+                                  QWidget         *parent = 0);
+    virtual ~RawInformationDialog();
 
-protected:
-  virtual void closeEvent(QCloseEvent *event);
-};
+  protected:
+    virtual void closeEvent(QCloseEvent *event);
+  };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-#endif // DATAVIEWPANEL_H
+#endif // ESPINA_RAW_INFORMATION_DIALOG_H

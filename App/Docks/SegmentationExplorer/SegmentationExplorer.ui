@@ -310,7 +310,7 @@ QTreeView::indicator:unchecked {
   <customwidget>
    <class>CheckableTreeView</class>
    <extends>QTreeView</extends>
-   <header>GUI/QtWidget/CheckableTreeView.h</header>
+   <header>GUI/Widgets/CheckableTreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

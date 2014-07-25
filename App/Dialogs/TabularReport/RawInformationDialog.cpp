@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -20,28 +22,27 @@
 #include "RawInformationDialog.h"
 
 #include "TabularReport.h"
-#include <Core/Model/Proxies/TaxonomyProxy.h>
-#include <Core/EspinaSettings.h>
+#include <Support/Settings/EspinaSettings.h>
+
 #include <QSettings>
 #include <QDialogButtonBox>
+#include <QLayout>
 
-#ifdef TEST_ESPINA_MODELS
-#include <Core/Model/ModelTest.h>
-#endif
-
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawInformationDialog::RawInformationDialog(EspinaModel *model,
-                             ViewManager *viewManager,
-                             QWidget     *parent)
+RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
+                                           ModelFactorySPtr factory,
+                                           ViewManagerSPtr  viewManager,
+                                           QWidget         *parent)
+
 : QDialog(parent)
 {
   setObjectName("Raw Information Analysis");
 
   setWindowTitle(tr("Raw Information"));
 
-  TabularReport *report = new TabularReport(viewManager, this);
+  TabularReport *report = new TabularReport(factory, viewManager, this);
   report->setModel(model);
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
@@ -51,11 +52,11 @@ RawInformationDialog::RawInformationDialog(EspinaModel *model,
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);
 
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Raw Information Analysis");
-  resize(settings.value("size", QSize(200, 200)).toSize());
-  move(settings.value("pos", QPoint(200, 200)).toPoint());
+  resize(settings.value("size", QSize (200, 200)).toSize());
+  move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
 }
 
@@ -68,7 +69,7 @@ RawInformationDialog::~RawInformationDialog()
 //----------------------------------------------------------------------------
 void RawInformationDialog::closeEvent(QCloseEvent *event)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Raw Information Analysis");
   settings.setValue("size", size());

@@ -5,136 +5,113 @@ include_directories(
 
 include (GenerateExportHeader)
 
-qt4_wrap_cpp(CORE_MOC
-  ColorEngines/IColorEngine.h
-  ColorEngines/TaxonomyColorEngine.h
-  Model/Output.h
-  Extensions/ChannelExtension.h
-  Extensions/SegmentationExtension.h
-  Model/EspinaModel.h
-  Model/ModelTest.h
-  Model/ModelItem.h
-  Model/PickableItem.h
-  Model/Output.h
-  Model/OutputRepresentation.h
-  Model/MarchingCubesMesh.h
-  Model/Segmentation.h
-  Model/Taxonomy.h
-  Model/Proxies/ChannelProxy.h
-  Model/Proxies/LocationProxy.h
-  Model/Proxies/RelationProxy.h
-  Model/Proxies/TaxonomyProxy.h
-  Model/Proxies/InformationProxy.h
-  Model/Proxies/ConnectomicProxy.h
-  OutputRepresentations/ChannelVolumeProxy.h
-  OutputRepresentations/VolumeProxy.h
-  Interfaces/IDockWidget.h
-  Interfaces/IToolBar.h
+# Add Qt Resource files
+qt4_add_resources(CORE_RCC
+  Analysis/rsc/core.qrc
+  )
 
+qt4_wrap_cpp(CORE_MOC
+  Analysis/Data.h
+  Analysis/Extension.h
+  Analysis/Output.h
+  Analysis/ViewItem.h
+  MultiTasking/Scheduler.h
+  MultiTasking/Task.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-set (CORE_SOURCES 
+set (CORE_SOURCES
+  ${CORE_RCC}
   ${CORE_MOC}
   ${CORE_UI}
-  EspinaRegion.cpp
-  EspinaSettings.cpp
-  Model/Output.cpp
-  Model/OutputRepresentation.cpp
-  EspinaTypes.cpp
-  ColorEngines/MultiColorEngine.cpp
-  ColorEngines/NumberColorEngine.cpp
-  ColorEngines/TransparencySelectionHighlighter.cpp
-  ColorEngines/TaxonomyColorEngine.cpp
-  ColorEngines/UserColorEngine.cpp
-  IO/SegFileReader.cpp
-  Interfaces/IColorEngineProvider.cpp
-  Interfaces/IDockWidget.cpp
-  Interfaces/IDynamicMenu.cpp
-  Interfaces/IFactoryExtension.cpp
-  Interfaces/IFileReader.cpp
-  Interfaces/IFilterCreator.cpp
-  Interfaces/IToolBar.cpp
-  Interfaces/IToolBarFactory.cpp
-  Extensions/ChannelExtension.cpp
-  Extensions/EdgeDistances/EdgeDetector.cpp
-  Extensions/EdgeDistances/AdaptiveEdges.cpp
-  Extensions/EdgeDistances/EdgeDistance.cpp
-  Extensions/ModelItemExtension.cpp
-  Extensions/Morphological/MorphologicalInformation.cpp
-  Extensions/SampleExtension.cpp
-  Extensions/SegmentationExtension.cpp
-  Extensions/Notes/SegmentationNotes.cpp 
-  Extensions/Tags/TagExtension.cpp
-  Model/Channel.cpp
-  Model/EspinaFactory.cpp
-  Model/EspinaModel.cpp
-  Model/Filter.cpp
-  Model/QtModelUtils.cpp
-  Model/MarchingCubesMesh.cpp 
-  Model/ModelItem.cpp
-  Model/ModelTest.cpp
-  Model/PickableItem.cpp
-  Model/RelationshipGraph.cpp
-  Model/Sample.cpp
-  Model/Segmentation.cpp
-  Model/Taxonomy.cpp
-  EspinaTypes.cpp
-  Model/Proxies/ChannelProxy.cpp
-  Model/Proxies/LocationProxy.cpp
-  Model/Proxies/TaxonomyProxy.cpp
-  Model/Proxies/RelationProxy.cpp
-  Model/Proxies/InformationProxy.cpp
-  Model/Proxies/ConnectomicProxy.cpp
-  Filters/BasicSegmentationFilter.cpp
-  Filters/ChannelReader.cpp
-  Filters/ClosingFilter.cpp
-  Filters/DilateFilter.cpp
-  Filters/ErodeFilter.cpp
-  Filters/FillHolesFilter.cpp
-  Filters/FreeFormSource.cpp
-  Filters/ImageLogicFilter.cpp
-  Filters/MorphologicalEditionFilter.cpp
-  Filters/OpeningFilter.cpp
-  Filters/SeedGrowSegmentationFilter.cpp
-  Filters/SplitFilter.cpp
-  Filters/TubularSegmentationFilter.cpp
-  OutputRepresentations/ChannelVolumeProxy.cpp 
-  OutputRepresentations/MeshType.cpp
-  OutputRepresentations/MeshProxy.cpp 
-  OutputRepresentations/RawMesh.cpp 
-  OutputRepresentations/RawVolume.cpp
-  OutputRepresentations/RasterizedVolume.cpp
-  OutputRepresentations/VolumeProxy.cpp 
-  OutputRepresentations/VolumeRepresentation.cpp 
-  VTK/vtkTube.cxx
-  Utils/SegmentationCollision.cpp
-  Model/HierarchyItem.cpp
+  Analysis/Analysis.cpp
+  Analysis/Category.cpp
+  Analysis/Channel.cpp
+  Analysis/Data.cpp
+  Analysis/Data/MeshData.cpp
+  Analysis/Data/Mesh/RawMesh.cpp
+  Analysis/Data/VolumetricData.cpp
+  Analysis/Data/Volumetric/ROI.cpp
+  Analysis/Filter.cpp
+  Analysis/Graph/DirectedGraph.cpp
+  Analysis/Input.cpp
+  Analysis/Output.cpp
+  Analysis/Query.cpp
+  Analysis/Sample.cpp
+  Analysis/Segmentation.cpp
+  Analysis/ViewItem.cpp
+  Factory/CoreFactory.cpp
+  IO/ClassificationXML.cpp
+  IO/FetchBehaviour/FetchRawData.cpp
+  IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
+  IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.cpp
+  IO/GraphIO.cpp
+  IO/ReadOnlyChannelExtension.cpp
+  IO/ReadOnlySegmentationExtension.cpp
+  IO/SegFile.cpp
+  IO/SegFileInterface.cpp
+  IO/SegFile_V4.cpp
+  IO/SegFile_V5.cpp
+  IO/ZipUtils.cpp
+  MultiTasking/Scheduler.cpp
+  MultiTasking/Task.cpp
+  Utils/AnalysisUtils.cpp
+  Utils/Bounds.cpp
   Utils/Measure.cpp
+  Utils/NmVector3.cpp
+  Utils/SparseBinaryVolume.cpp
+  Utils/TemporalStorage.cpp
+  Utils/VolumeBounds.cpp
+  Utils/vtkPolyDataUtils.cpp
   )
 
 set(CORE_EXTERNAL_LIBS
+  ${QT_LIBRARIES}
   ${QUAZIP_LIBRARIES}
   ${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
-  ${QT_LIBRARIES}
 )
 
-if(MINGW)
-	if(DEFINED ESPINA_VERSION_MAJOR)
-		configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
-		SET(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
-		SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
-    ENABLE_LANGUAGE(RC)
+if(DEFINED MINGW OR DEFINED MSVC)
+
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    SET (CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
+  endif (CMAKE_BUILD_TYPE MATCHES Debug)
+
+  if(DEFINED ESPINA_VERSION_MAJOR)
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
+    set(CORE_SOURCES ${CORE_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
+    enable_language(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-endif(MINGW)
+
+endif(DEFINED MINGW OR DEFINED MSVC)
 
 add_library (EspinaCore SHARED ${CORE_SOURCES})
-GENERATE_EXPORT_HEADER(
-             EspinaCore
-             BASE_NAME EspinaCore
-             EXPORT_MACRO_NAME EspinaCore_EXPORT
-             EXPORT_FILE_NAME EspinaCore_Export.h
-			 )
+
 target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})
+
+GENERATE_EXPORT_HEADER(
+  EspinaCore
+  BASE_NAME         EspinaCore
+  EXPORT_MACRO_NAME EspinaCore_EXPORT
+  EXPORT_FILE_NAME  EspinaCore_Export.h
+  )
+
+#file (GLOB_RECURSE CORE_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h)
+#set  (CORE_HEADERS 
+#  ${CORE_HEADERS}
+#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaCore_Export.h"
+#  )
+#
+#set_target_properties(EspinaCore PROPERTIES
+#  PUBLIC_HEADER "${CORE_HEADERS}")
+ 
+install(TARGETS EspinaCore
+  # IMPORTANT: Add the EspinaCore library to the "export-set"
+  EXPORT        ESPINATargets
+  RUNTIME       DESTINATION "${INSTALL_BIN_DIR}"            COMPONENT bin
+  LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
+  PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
+  )

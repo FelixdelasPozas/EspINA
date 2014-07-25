@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,13 +21,13 @@
 #ifndef ADAPTIVEEDGESDIALOG_H_
 #define ADAPTIVEEDGESDIALOG_H_
 
-// EspINA
+// ESPINA
 #include <ui_AdaptiveEdgesDialog.h>
 
 // Qt
 #include <QDialog>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class AdaptiveEdgesDialog
@@ -42,10 +44,12 @@ namespace EspINA
       int color()             { return m_backgroundColor; }
       bool useAdaptiveEdges() { return m_adaptiveEdgesEnabled; }
 
-    public slots:
+    private slots:
       void radioChanged(bool);
       void bgColorChanged(int value);
       void thresholdChanged(int value);
+      void setBlackBgColor();
+      void setWhiteBgColor();
 
     private:
       bool m_adaptiveEdgesEnabled;
@@ -53,5 +57,5 @@ namespace EspINA
       int m_threshold;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* ADAPTIVEEDGESDIALOG_H_ */

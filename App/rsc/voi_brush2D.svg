@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="48"
+   height="48"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.48.4 r9939"
+   version="1.0"
+   sodipodi:docname="voi_brush2D.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 526.18109 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="744.09448 : 526.18109 : 1"
+       inkscape:persp3d-origin="372.04724 : 350.78739 : 1"
+       id="perspective10" />
+    <filter
+       inkscape:collect="always"
+       id="filter3217">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="1.0225504"
+         id="feGaussianBlur3219" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="11.2"
+     inkscape:cx="35.150542"
+     inkscape:cy="21.34872"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1276"
+     inkscape:window-height="993"
+     inkscape:window-x="65"
+     inkscape:window-y="35"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Capa 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g4610">
+      <rect
+         y="6.464591"
+         x="5.5814853"
+         height="36.959084"
+         width="38.444946"
+         id="rect3155"
+         style="opacity:1;fill:none;fill-opacity:0.97590362;stroke:#000000;stroke-width:3.20000005;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:6.4, 3.2;stroke-dashoffset:0;stroke-opacity:1;filter:url(#filter3217)" />
+      <rect
+         y="5.5717349"
+         x="4.8671999"
+         height="36.959084"
+         width="38.444946"
+         id="rect2383"
+         style="opacity:1;fill:none;fill-opacity:0.97590362;stroke:#edd400;stroke-width:3.20000005;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:6.4, 3.2;stroke-dashoffset:0;stroke-opacity:1" />
+    </g>
+    <image
+       y="8.6071424"
+       x="8.1964293"
+       id="image9098"
+       xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAvJJREFU WIW91N9PzXEcx/Hn6ZzzJcXq9EOJzmHlTLLGdHIyRDe48uPGujGbyubCbK7sZEwNmzFddEOajcWM ZfkxG2uTNZI5GRVJSn4cOk6dOdXne+r7dVFRkn6d73n/A4/X5/3joyM4JdWfeigUZQAG+lnp2DoL kAFCgoE3FFaJSKsV0+oUBuIWuOoOXxeAFIwAUtmVq+J+VANShJH4jFjCo0Pnd0fGfXt6sEwAkkFL vLS8UqRaE7GYF9IjfHys+oj7rRsUNRa/DBCmVQekZ4408aPLR6J5MVEmE99dnVx+cw21X0X0+VEV BcCo1wKvcdhExs4YMi09uAybaHnfzEunE6+ni5dKE3aXSnpJ/hrge6BHINU4bMK+Ixr0qWDOY0ld PhdrszD4vXS0dxAWE8Gqktz1wCfAp9MEN6SCZR88K4TmW6CXOdRxDFX2cObE8fVAK/ANkAM1gn/g RdB8B3QGMOhxt7Vx6PTVUTgE5gzHwW8DejDqKHVayTn3fAweiAAT4HDemcTe4up/4gAz2QGppsAm 7NujwbACLPlj8fok8oofjYsDTPcKpJoCm0hbGw7GFWCeHg7T68AQPpc5CavBPLztU8dh6jvw++WB wGFqHfizcDNs+8iabAdGb3uAcJhcByY+tWnikwmgKT5RAM3x/wUICj5egKDhMPYnlGqPpIv0baag 4H8HCDmbu2xPtC0FIjMhciPUHod3dzXDYfQ/MCveNPtoYmoWJObgb62ANxWg6jTDRwbQFe622jOz M+NC+tzILTeRhY9+yxYwKlzQCIc/IzCusyUfWGRNYsDrA/EBVVZ41f6TF43J5GqEw9AV7MpKiLNv yP7i8kJR3nKanI1UPXgsV792nyt/4qkA2rXAYbAD+i2bsxyXqhWyl/Zwo7yy/nzl6wv3X3icgBvo BLq1wIcDhH7ujdq/bfm7eydLH5Z8douvgGcI9QECULTAYXAE84AFgBHoArxAL+AHVK3gkQEkIJTB V/YC/VqjI+sXu+qzwoM9xqQAAAAASUVORK5CYII= "
+       height="32"
+       width="32" />
+    <text
+       xml:space="preserve"
+       style="font-size:15.85263157px;font-style:normal;font-weight:bold;text-align:center;line-height:104.99999523%;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans;-inkscape-font-specification:Sans Bold"
+       x="31.971794"
+       y="38.53368"
+       id="text3464"
+       sodipodi:linespacing="105%"
+       transform="scale(0.95402722,1.0481881)">2D</text>
+  </g>
+</svg>

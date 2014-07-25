@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -19,28 +21,33 @@
 
 #include "AdaptiveCountingFrame.h"
 
-#include <Core/Model/Channel.h>
 #include "vtkCountingFrameSliceWidget.h"
-#include <Core/Extensions/EdgeDistances/AdaptiveEdges.h>
 #include "Extensions/CountingFrameExtension.h"
+
+#include <Core/Analysis/Channel.h>
 
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
+#include <vtkRenderWindow.h>
 #include "vtkCountingFrame3DWidget.h"
-#include <GUI/QtWidget/SliceView.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 
-using namespace EspINA;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
-                                             CountingFrameExtension *channelExt,
+AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
+                                             const Bounds &bounds,
                                              Nm inclusion[3],
                                              Nm exclusion[3],
-                                             ViewManager *vm)
-: CountingFrame(id, channelExt, inclusion, exclusion, vm)
-, m_channel(channelExt->channel())
+                                             SchedulerSPtr scheduler)
+: CountingFrame(channelExt, inclusion, exclusion, scheduler)
+, m_channel(channelExt->extendedItem())
 {
   updateCountingFrame();
 }
@@ -48,200 +55,219 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(Id id,
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::~AdaptiveCountingFrame()
 {
-//   foreach(vtkAbstractWidget *w, m_widgets2D)
-//   {
-//     w->EnabledOn();
-//     w->Delete();
-//   }
-  foreach(vtkAbstractWidget *w, m_widgets3D)
+  for(auto view: m_widgets2D.keys())
+    unregisterView(view);
+
+  for(auto view: m_widgets3D.keys())
+    unregisterView(view);
+}
+
+//-----------------------------------------------------------------------------
+void AdaptiveCountingFrame::registerView(RenderView *view)
+{
+  QMutexLocker lock(&m_widgetMutex);
+
+  View3D *view3d = dynamic_cast<View3D *>(view);
+  if (view3d)
   {
-    w->EnabledOn();
-    w->Delete();
+    if (m_widgets3D.keys().contains(view3d))
+      return;
+
+    QReadLocker lockMargins(&m_marginsMutex);
+    auto wa = CountingFrame3DWidgetAdapter::New();
+    wa->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
+    wa->SetCurrentRenderer(view3d->mainRenderer());
+    wa->SetInteractor(view3d->renderWindow()->GetInteractor());
+    wa->SetEnabled(true);
+
+    m_widgets3D[view3d] = wa;
   }
-  m_widgets2D.clear();
-  m_widgets3D.clear();
-}
-
-//-----------------------------------------------------------------------------
-QVariant AdaptiveCountingFrame::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return tr("%1 - CF %2: Adaptive")
-             .arg(m_channelExt->channel()->data().toString())
-             .arg(m_id);
-
-  return CountingFrame::data(role);
-}
-
-//-----------------------------------------------------------------------------
-vtkAbstractWidget* AdaptiveCountingFrame::create3DWidget(VolumeView* view)
-{
-  CountingFrame3DWidgetAdapter *wa = new CountingFrame3DWidgetAdapter();
-  Q_ASSERT(wa);
-  wa->SetCountingFrame(m_boundingRegion, m_inclusion, m_exclusion);
-
-  m_widgets3D << wa;
-
-  return wa;
-}
-
-// //-----------------------------------------------------------------------------
-// void AdaptiveCountingFrame::deleteWidget(vtkAbstractWidget* widget)
-// {
-//   widget->Off();
-//   widget->RemoveAllObservers();
-// 
-//   CountingFrame3DWidgetAdapter *brwa3D = dynamic_cast<CountingFrame3DWidgetAdapter *>(widget);
-//   if (brwa3D)
-//     m_widgets3D.removeAll(brwa3D);
-//   else
-//   {
-//     CountingFrame2DWidgetAdapter *brwa2D = dynamic_cast<CountingFrame2DWidgetAdapter *>(widget);
-//     if (brwa2D)
-//       m_widgets2D.removeAll(brwa2D);
-//     else
-//       Q_ASSERT(false);
-//   }
-// 
-//   widget->Delete();
-// }
-
-//-----------------------------------------------------------------------------
-SliceWidget* AdaptiveCountingFrame::createSliceWidget(SliceView *view)
-{
-  Channel *channel = m_channelExt->channel();
-  double spacing[3];
-  channel->volume()->spacing(spacing);
-
-  CountingFrame2DWidgetAdapter *wa = new CountingFrame2DWidgetAdapter();
-  Q_ASSERT(wa);
-  wa->AddObserver(vtkCommand::EndInteractionEvent, this);
-  wa->SetPlane(view->plane());
-  wa->SetSlicingStep(spacing);
-  wa->SetCountingFrame(m_representation, m_inclusion, m_exclusion);
-
-  m_widgets2D << wa;
-
-  return new CountingFrameSliceWidget(wa);
-}
-
-//-----------------------------------------------------------------------------
-bool AdaptiveCountingFrame::processEvent(vtkRenderWindowInteractor* iren,
-                                          long unsigned int event)
-{
-  foreach(CountingFrame2DWidgetAdapter *wa, m_widgets2D)
+  else
   {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
-  }
-  foreach(CountingFrame3DWidgetAdapter *wa, m_widgets3D)
-  {
-    if (wa->GetInteractor() == iren)
-      return wa->ProcessEventsHandler(event);
-  }
+    View2D *view2d = dynamic_cast<View2D *>(view);
+    if (view2d)
+    {
+      if(m_widgets2D.keys().contains(view2d))
+        return;
 
-  return false;
+      QReadLocker lockMargins(&m_marginsMutex);
+      auto wa = CountingFrame2DWidgetAdapter::New();
+      wa->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+      wa->SetPlane(view2d->plane());
+      wa->SetSlicingStep(m_channel->output()->spacing());
+      wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+      wa->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
+      wa->SetCurrentRenderer(view2d->mainRenderer());
+      wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
+      wa->SetEnabled(true);
+
+      m_widgets2D[view2d] = wa;
+
+      connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
+    }
+  }
 }
-
 
 //-----------------------------------------------------------------------------
-void AdaptiveCountingFrame::setEnabled(bool enable)
+void AdaptiveCountingFrame::unregisterView(RenderView *view)
 {
-  Q_ASSERT(false);
-}
+  QMutexLocker lock(&m_widgetMutex);
 
-#include <QDebug>
+  View3D *view3d = dynamic_cast<View3D *>(view);
+  if (view3d)
+  {
+    if(!m_widgets3D.keys().contains(view3d))
+      return;
+
+    m_widgets3D[view3d]->SetEnabled(false);
+    view3d->mainRenderer()->RemoveActor(m_widgets3D[view3d]->GetRepresentation());
+    m_widgets3D[view3d]->SetCurrentRenderer(nullptr);
+    m_widgets3D[view3d]->SetInteractor(nullptr);
+    m_widgets3D[view3d]->Delete();
+
+    m_widgets3D.remove(view3d);
+  }
+  else
+  {
+    View2D *view2d = dynamic_cast<View2D *>(view);
+    if (view2d)
+    {
+      if(!m_widgets2D.keys().contains(view2d))
+        return;
+
+      m_widgets2D[view2d]->SetEnabled(false);
+      view2d->mainRenderer()->RemoveActor(m_widgets2D[view2d]->GetRepresentation());
+      m_widgets2D[view2d]->SetCurrentRenderer(nullptr);
+      m_widgets2D[view2d]->SetInteractor(nullptr);
+      m_widgets2D[view2d]->RemoveObserver(m_command);
+      m_widgets2D[view2d]->Delete();
+
+      m_widgets2D.remove(view2d);
+
+      disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+    }
+  }
+}
 
 //-----------------------------------------------------------------------------
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
-  double spacing[3];
-  m_channel->volume()->spacing(spacing);
-  int extent[6];
-  m_channel->volume()->extent(extent);
+  //qDebug() << "Updating CountingFrame Implementation";
+  auto volume  = volumetricData(m_channel->output());
+  auto origin  = volume->origin();
+  auto spacing = volume->spacing();
 
   m_inclusionVolume = 0;
 
-  AdaptiveEdgesPtr edgesExtension = NULL;
-  Channel::ExtensionPtr extension = m_channel->extension(AdaptiveEdgesID);
-  if (extension)
-  {
-    edgesExtension = dynamic_cast<AdaptiveEdgesPtr>(extension);
-  }
-  else
-  {
-    edgesExtension = new AdaptiveEdges(true);
-    m_channel->addExtension(edgesExtension);
-  }
-  Q_ASSERT(edgesExtension);
-  vtkSmartPointer<vtkPolyData> margins = edgesExtension->channelEdges();
-  Q_ASSERT(margins.GetPointer());
+  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
 
-  m_totalVolume = edgesExtension->computedVolume();
+  vtkSmartPointer<vtkPolyData> channelEdges = edgesExtension->channelEdges();
 
-  int inSliceOffset = upperOffset() / spacing[2];
-  int exSliceOffset = lowerOffset() / spacing[2];
+  m_totalVolume = 0;
 
-  int upperSlice = extent[4] + inSliceOffset;
-  upperSlice = std::max(upperSlice, extent[4]);
-  upperSlice = std::min(upperSlice, extent[5]);
+  int frontSliceOffset = frontOffset() / spacing[2];
+  int backSliceOffset  = backOffset()  / spacing[2];
 
-  int lowerSlice = extent[5] + exSliceOffset;
-  lowerSlice = std::max(lowerSlice, extent[4]);
-  lowerSlice = std::min(lowerSlice, extent[5]);
+  double bounds[6];
+  channelEdges->GetBounds(bounds);
+
+  int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
+  int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
+
+  int frontSlice = channelFrontSlice + frontSliceOffset;
+  frontSlice = std::max(frontSlice, channelFrontSlice);
+  frontSlice = std::min(frontSlice, channelBackSlice);
+
+  int backSlice = channelBackSlice - backSliceOffset;
+  backSlice = std::max(backSlice, channelFrontSlice);
+  backSlice = std::min(backSlice, channelBackSlice);
 
   // upper and lower refer to Espina's orientation
-  Q_ASSERT(upperSlice <= lowerSlice);
+  Q_ASSERT(frontSlice <= backSlice);
 
-  m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
-  m_representation = margins;
+  m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
+  m_channelEdges = channelEdges;
 
-  vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
+  vtkSmartPointer<vtkPoints>    regionVertex = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> faces        = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkIntArray>  faceData     = vtkSmartPointer<vtkIntArray>::New();
 
-  for (int slice = upperSlice; slice <= lowerSlice; slice++)
+  for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
+  {
+    double LB[3], LT[3], RT[3], RB[3];
+    channelEdges->GetPoint(4*slice+0, LB);
+    channelEdges->GetPoint(4*slice+1, LT);
+    channelEdges->GetPoint(4*slice+2, RT);
+    channelEdges->GetPoint(4*slice+3, RB);
+
+    Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], 0, 0};
+    m_totalVolume += equivalentVolume(sliceBounds);
+  }
+
+  vtkIdType lastCell[4] = {-1, -1, -1, -1};
+  for (int slice = frontSlice; slice <= backSlice; slice++)
   {
     vtkIdType cell[4];
-    vtkIdType lastCell[4];
 
     double LB[3], LT[3], RT[3], RB[3];
+    double zOffset = 0;
 
-    margins->GetPoint(4*slice+0, LB);
-    applyOffset(LB[0], leftOffset());
-    applyOffset(LB[1], bottomOffset());
-    applyOffset(LB[2], 0);
+    if (slice == frontSlice)
+    {
+      zOffset = frontOffset();
+      if (frontSliceOffset > 0)
+      {
+        zOffset -= frontSliceOffset*spacing[2];
+      }
+    } else if (slice == backSlice)
+    {
+      zOffset = -backOffset();
+      if (backSliceOffset > 0)
+      {
+        zOffset += backSliceOffset*spacing[2];
+      }
+    }
+
+
+    channelEdges->GetPoint(4*slice+0, LB);
+    LB[0] += leftOffset();
+    LB[1] -= bottomOffset();
+    LB[2] += zOffset;
     cell[0] = regionVertex->InsertNextPoint(LB);
 
-    margins->GetPoint(4*slice+1, LT);
-    applyOffset(LT[0], leftOffset());
-    applyOffset(LT[1], topOffset());
-    applyOffset(LT[2], 0);
+    channelEdges->GetPoint(4*slice+1, LT);
+    LT[0] += leftOffset();
+    LT[1] += topOffset();
+    LT[2] += zOffset;
     cell[1] = regionVertex->InsertNextPoint(LT);
 
-    margins->GetPoint(4*slice+2, RT);
-    applyOffset(RT[0], rightOffset());
-    applyOffset(RT[1], topOffset());
-    applyOffset(RT[2], 0);
+    channelEdges->GetPoint(4*slice+2, RT);
+    RT[0] -= rightOffset();
+    RT[1] += topOffset();
+    RT[2] += zOffset;
     cell[2] = regionVertex->InsertNextPoint(RT);
 
-    margins->GetPoint(4*slice+3, RB);
-    applyOffset(RB[0], rightOffset());
-    applyOffset(RB[1], bottomOffset());
-    applyOffset(RB[2], 0);
+    channelEdges->GetPoint(4*slice+3, RB);
+    RB[0] -= rightOffset();
+    RB[1] -= bottomOffset();
+    RB[2] += zOffset;
     cell[3] = regionVertex->InsertNextPoint(RB);
-    if (slice == upperSlice)
+    if (slice == frontSlice)
     {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(INCLUSION_FACE);
-    } else if (slice == lowerSlice)
+    } else if (slice == backSlice)
     {
       // Lower Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(EXCLUSION_FACE);
     } else
     {
+      Q_ASSERT(lastCell[0] != -1);
+      Q_ASSERT(lastCell[1] != -1);
+      Q_ASSERT(lastCell[2] != -1);
+      Q_ASSERT(lastCell[3] != -1);
       // Create lateral faces
 
       // Left Inclusion Face
@@ -283,15 +309,22 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     // Update Volumes
-    if (slice != lowerSlice)
+    if (slice < backSlice - 1)
     {
-      m_inclusionVolume += (RT[0] - LT[0])*(LB[1] - LT[1])*spacing[2];
+      // We don't care about the actual Z values
+      Bounds sliceBounds{LT[0], RT[0]-spacing[0],
+                         LT[1], LB[1]-spacing[1],
+                         origin[2]-spacing[2]/2, origin[2]+spacing[2]/2};
+      m_inclusionVolume += equivalentVolume(sliceBounds);
     }
   }
 
-  m_boundingRegion->SetPoints(regionVertex);
-  m_boundingRegion->SetPolys(faces);
-  vtkCellData *data = m_boundingRegion->GetCellData();
+  m_countingFrame->SetPoints(regionVertex);
+  m_countingFrame->SetPolys(faces);
+
+  vtkCellData *data = m_countingFrame->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
+
+  //qDebug() << "CountingFrame Implementation Updated";
 }

@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  <copyright holder> <email>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -17,30 +19,26 @@
  */
 
 
-#ifndef BRUSHUNDOCOMMAND_H
-#define BRUSHUNDOCOMMAND_H
+#ifndef ESPINA_BRUSH_UNDOCOMMAND_H
+#define ESPINA_BRUSH_UNDOCOMMAND_H
 
+// ESPINA
+#include <Core/Utils/BinaryMask.h>
+#include <GUI/Model/SegmentationAdapter.h>
+
+// Qt
 #include <QUndoCommand>
 
-#include <Tools/Brushes/Brush.h>
-
-class vtkImplicitFunction;
-
-namespace EspINA
+namespace ESPINA
 {
-  class ViewManager;
-
-  class Brush::DrawCommand
+  class DrawUndoCommand
   : public QObject
   , public QUndoCommand
   {
     Q_OBJECT
   public:
-    explicit DrawCommand(SegmentationSPtr seg,
-                         BrushShapeList brushes,
-                         itkVolumeType::PixelType value,
-                         ViewManager *vm,
-                         Brush *parent);
+    explicit DrawUndoCommand(SegmentationAdapterSPtr seg,
+                             BinaryMaskSPtr<unsigned char> mask);
     virtual void redo();
     virtual void undo();
 
@@ -49,42 +47,11 @@ namespace EspINA
 
 
   private:
-    typedef SegmentationVolume::EditedVolumeRegionSList EditedRegionSList;
-
-    SegmentationSPtr m_seg;
-    FilterOutputId   m_output;
-    BrushShapeList   m_brushes;
-    ViewManager     *m_viewManager;
-
-    double m_strokeBounds[6];
-
-    itkVolumeType::PixelType m_value;
-    itkVolumeType::Pointer   m_prevVolume;
-    itkVolumeType::Pointer   m_newVolume;
-    bool                     m_needReduction;
-    EditedRegionSList        m_prevRegions;
+    SegmentationAdapterSPtr       m_segmentation;
+    BinaryMaskSPtr<unsigned char> m_mask;
+    Bounds                        m_bounds;
   };
 
-  class Brush::SnapshotCommand
-  : public QUndoCommand
-  {
-  public:
-    explicit SnapshotCommand(SegmentationSPtr seg,
-                             FilterOutputId   output,
-                             ViewManager     *vm);
+} // namespace ESPINA
 
-    virtual void redo();
-    virtual void undo();
-
-  private:
-    SegmentationSPtr m_seg;
-    FilterOutputId   m_output;
-    ViewManager     *m_viewManager;
-
-    itkVolumeType::Pointer m_prevVolume;
-    itkVolumeType::Pointer m_newVolume;
-  };
-
-} // namespace EspINA
-
-#endif // BRUSHUNDOCOMMAND_H
+#endif // ESPINA_BRUSH_UNDOCOMMAND_H

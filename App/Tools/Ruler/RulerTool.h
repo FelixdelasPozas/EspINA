@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,44 +21,82 @@
 #ifndef RULERTOOL_H_
 #define RULERTOOL_H_
 
-// EspINA
-#include <GUI/Tools/ITool.h>
-#include <GUI/ViewManager.h>
+// ESPINA
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
-  class EspinaRenderView;
+  class RenderView;
   class RulerWidget;
   
   class RulerTool
-  : public ITool
+  : public Tool
   {
     Q_OBJECT
     public:
-      explicit RulerTool(ViewManager *);
+      explicit RulerTool(ViewManagerSPtr);
       virtual ~RulerTool();
 
-      // implements ITool
-      virtual QCursor cursor() const { return Qt::CrossCursor; };
-      virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
-      virtual void setInUse(bool value);
+      /* \brief Implements Tool::setEnabled.
+       *
+       */
       virtual void setEnabled(bool value);
+
+      /* \brief Implements Tool::enabled.
+       *
+       */
       virtual bool enabled() const;
 
+      /* \brief Implements Tool::actions.
+       *
+       */
+      virtual QList<QAction *> actions() const;
+
     public slots:
-      void selectionChanged(ViewManager::Selection, bool);
+      void initTool(bool value);
+      void selectionChanged();
       void selectedElementChanged();
 
     private:
-      bool m_enabled;
-      bool m_inUse;
-      RulerWidget *m_widget;
-      ViewManager *m_viewManager;
-      ViewManager::Selection m_selection;
+      bool             m_enabled;
+      QAction         *m_action;
+      EspinaWidgetSPtr m_widget;
+      ViewManagerSPtr  m_viewManager;
+      SelectionSPtr    m_selection;
+      EventHandlerSPtr m_handler;
   };
 
-  typedef boost::shared_ptr<RulerTool> RulerToolSPtr;
+  class RulerEventHandler
+  : public EventHandler
+  {
+    public:
+      /* \brief RulerEventHandler class constructor.
+       *
+       */
+      RulerEventHandler()
+      {}
 
-} /* namespace EspINA */
+      /* \brief RulerEventHadler class destructor.
+       *
+       */
+      ~RulerEventHandler()
+      {}
+
+      /* \brief Implements EventHandler::setInUse.
+       *
+       */
+      virtual void setInUse(bool value);
+
+      /* \brief Implements EventHandler::filterEvent.
+       *
+       */
+      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
+  };
+
+  using RulerToolPtr  = RulerTool *;
+  using RulerToolSPtr = std::shared_ptr<RulerTool>;
+
+} /* namespace ESPINA */
 #endif /* RULERTOOL_H_ */

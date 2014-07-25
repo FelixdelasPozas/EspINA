@@ -1,8 +1,10 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2013  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * 
+ * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- * This program is free software: you can redistribute it and/or modify
+ * This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -20,19 +22,22 @@
 #include "SliceRepresentationSettings.h"
 #include "SliceRepresentation.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-SegmentationSliceRepresentationSettings::SegmentationSliceRepresentationSettings()
+SliceRepresentationSettings::SliceRepresentationSettings()
 : m_init(false)
 {
   setupUi(this);
 }
 
 //----------------------------------------------------------------------------
-void SegmentationSliceRepresentationSettings::Get(GraphicalRepresentationSPtr representation)
+void SliceRepresentationSettings::get(RepresentationSPtr representation)
 {
-  SegmentationSliceRepresentation *sliceRepresentation = dynamic_cast<SegmentationSliceRepresentation *>(representation.get());
+  SegmentationSliceRepresentationSPtr sliceRepresentation = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(representation);
+
+  if (sliceRepresentation.get() == nullptr)
+    return;
 
   int opacity = int(sliceRepresentation->color().alphaF()*100);
 
@@ -51,9 +56,12 @@ void SegmentationSliceRepresentationSettings::Get(GraphicalRepresentationSPtr re
 }
 
 //----------------------------------------------------------------------------
-void SegmentationSliceRepresentationSettings::Set(GraphicalRepresentationSPtr representation)
+void SliceRepresentationSettings::set(RepresentationSPtr representation)
 {
-  SegmentationSliceRepresentation *sliceRepresentation = dynamic_cast<SegmentationSliceRepresentation *>(representation.get());
+  SegmentationSliceRepresentationSPtr sliceRepresentation = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(representation);
+
+  if (sliceRepresentation.get() == nullptr)
+    return;
 
   if (m_init)
   {

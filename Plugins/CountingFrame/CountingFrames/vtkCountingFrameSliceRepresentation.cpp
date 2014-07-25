@@ -46,8 +46,6 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
   // The initial state
   this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
 
-  Resolution[0] = Resolution[1] = Resolution[2] = 1;
-
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
@@ -69,7 +67,7 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 
     this->EdgePolyData[i]->SetPoints(this->Vertex);
     this->EdgePolyData[i]->SetLines(vtkCellArray::New());
-    this->EdgeMapper[i]->SetInput(this->EdgePolyData[i]);
+    this->EdgeMapper[i]->SetInputData(this->EdgePolyData[i]);
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
     if (i < RIGHT)
       this->EdgeActor[i]->SetProperty(this->InclusionEdgeProperty);
@@ -109,8 +107,8 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 void vtkCountingFrameSliceRepresentation::reset()
 {
 //   std::cout << "Shift's been reset" << std::endl;
-  memset(this->InclusionOffset, 0, 3*sizeof(EspINA::Nm));
-  memset(this->ExclusionOffset, 0, 3*sizeof(EspINA::Nm));
+  memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+  memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   CreateRegion();
 }
 
@@ -222,7 +220,7 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
-                                                        EspINA::Nm bounds[6])
+                                                       ESPINA::Nm bounds[6]) const
 {
   if (regionSlice < 0)
     vtkMath::UninitializeBounds(bounds);
@@ -241,7 +239,7 @@ void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
 }
 
 //----------------------------------------------------------------------------
-int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
+int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
@@ -250,8 +248,9 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
 //     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
 //     if (point[Plane] <= pos && pos < next[Plane])
     if (pos <= point[2])
-      return number;
+      return (NumSlices == 2 || number == 0)?number : number - 1;
   }
+
   return NumSlices-1;
 }
 
@@ -276,7 +275,7 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
 // }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSliceRepresentation::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameSliceRepresentation::SetSlice(ESPINA::Nm pos)
 {
   Slice = pos;
 //   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
@@ -297,21 +296,50 @@ void vtkCountingFrameSliceRepresentation::SetSlice(EspINA::Nm pos)
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                             EspINA::Nm inclusionOffset[3],
-                                                             EspINA::Nm exclusionOffset[3],
-                                                             EspINA::Nm slicingStep[3])
+                                                             ESPINA::Nm inclusionOffset[3],
+                                                             ESPINA::Nm exclusionOffset[3],
+                                                             ESPINA::NmVector3 slicingStep)
 {
   Region = region;
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(Resolution, slicingStep, 3*sizeof(EspINA::Nm));
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
+  SlicingStep = slicingStep;
 
-  this->Region->Update();
+  // this->Region->Update(); NOTE: is still needed with vtk6?
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;
   this->NumVertex = this->NumSlices * 2;
 
   CreateRegion();
+}
+
+//----------------------------------------------------------------------------
+void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
+{
+  if (highlight)
+  {
+    this->InclusionEdgeProperty->SetLineWidth(1.0);
+    this->ExclusionEdgeProperty->SetLineWidth(1.0);
+    this->SelectedInclusionProperty->SetLineWidth(2.0);
+    this->SelectedExclusionProperty->SetLineWidth(2.0);
+
+    this->InclusionEdgeProperty->SetLineStipplePattern(0xffff);
+    this->ExclusionEdgeProperty->SetLineStipplePattern(0xffff);
+    this->SelectedInclusionProperty->SetLineStipplePattern(0xffff);
+    this->SelectedExclusionProperty->SetLineStipplePattern(0xffff);
+  }
+  else
+  {
+//     this->InclusionEdgeProperty->SetLineWidth(0.5);
+//     this->ExclusionEdgeProperty->SetLineWidth(0.5);
+//     this->SelectedInclusionProperty->SetLineWidth(1.5);
+//     this->SelectedExclusionProperty->SetLineWidth(1.5);
+
+    this->InclusionEdgeProperty->SetLineStipplePattern(0x0ff0);
+    this->ExclusionEdgeProperty->SetLineStipplePattern(0x0ff0);
+    this->SelectedInclusionProperty->SetLineStipplePattern(0x0ff0);
+    this->SelectedExclusionProperty->SetLineStipplePattern(0x0ff0);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -487,17 +515,25 @@ void vtkCountingFrameSliceRepresentation::HighlightEdge(vtkActor* actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
-    if (this->EdgeActor[edge] == actor)
+    vtkActor *edgeActor = this->EdgeActor[edge];
+
+    if (edgeActor == actor)
     {
-      if (edge < RIGHT)
-	this->EdgeActor[edge]->SetProperty(this->SelectedInclusionProperty);
-      else
-	this->EdgeActor[edge]->SetProperty(this->SelectedExclusionProperty);
+      if (actor->GetProperty() == this->InclusionEdgeProperty)
+      {
+        actor->SetProperty(this->SelectedInclusionProperty);
+      } else {
+        actor->SetProperty(this->SelectedExclusionProperty);
+      }
     }
-    else if (edge < RIGHT)
-      this->EdgeActor[edge]->SetProperty(this->InclusionEdgeProperty);
-    else
-      this->EdgeActor[edge]->SetProperty(this->ExclusionEdgeProperty);
+    else if (edgeActor->GetProperty() == this->SelectedInclusionProperty)
+    {
+      edgeActor->SetProperty(this->InclusionEdgeProperty);
+    }
+    else if (edgeActor->GetProperty() == this->SelectedExclusionProperty)
+    {
+      edgeActor->SetProperty(this->ExclusionEdgeProperty);
+    }
   }
 }
 

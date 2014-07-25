@@ -1,8 +1,10 @@
 /*
- * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * 
+ * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- * This program is free software: you can redistribute it and/or modify
+ * This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -17,18 +19,17 @@
  */
 
 #include "ColorEngineMenu.h"
-#include <Core/EspinaSettings.h>
-#include <GUI/ViewManager.h>
-#include <QMenu>
+#include <Support/Settings/EspinaSettings.h>
+
 #include <QActionGroup>
 #include <QSettings>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString COLOR_ENGINE("ColorEngine");
 
 //-----------------------------------------------------------------------------
-ColorEngineMenu::ColorEngineMenu(ViewManager *vm,
+ColorEngineMenu::ColorEngineMenu(ViewManagerSPtr vm,
                                  const QString& title,
                                  QWidget* parent)
 : QMenu(title, parent)
@@ -45,27 +46,37 @@ ColorEngineMenu::~ColorEngineMenu()
 }
 
 //-----------------------------------------------------------------------------
-void ColorEngineMenu::addColorEngine(const QString& title, ColorEnginePtr engine)
+void ColorEngineMenu::addColorEngine(const QString& title, ColorEngineSPtr engine)
 {
-  QAction *taxonomy = addAction(title);
-  taxonomy->setCheckable(true);
-  m_availableEngines[taxonomy] = engine;
+  QAction *action = addAction(title);
+  action->setCheckable(true);
+  m_availableEngines[action] = engine;
 }
 
 //-----------------------------------------------------------------------------
 void ColorEngineMenu::restoreUserSettings()
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
-  QStringList activeActions = settings.value(COLOR_ENGINE, QStringList("Taxonomy")).toStringList();
+  QStringList activeActions = settings.value(COLOR_ENGINE, QStringList("Category")).toStringList();
 
-  foreach(QAction *action, m_availableEngines.keys())
+  bool validColorEngine = false;
+
+  for(QAction *action : m_availableEngines.keys())
   {
     if (activeActions.contains(action->text()))
     {
       action->setChecked(true);
       setColorEngine(action);
+      validColorEngine = true;
     }
+  }
+
+  if (!validColorEngine && !m_availableEngines.isEmpty())
+  {
+    QAction *action = m_availableEngines.keys().first();
+    setColorEngine(action);
+    action->setChecked(true);
   }
 }
 
@@ -73,17 +84,17 @@ void ColorEngineMenu::restoreUserSettings()
 void ColorEngineMenu::setColorEngine(QAction* action)
 {
   if (action->isChecked())
-    m_engine->addColorEngine(m_availableEngines[action]);
+    m_engine->add(m_availableEngines[action]);
   else
-    m_engine->removeColorEngine(m_availableEngines[action]);
+    m_engine->remove(m_availableEngines[action]);
 
-  m_viewManager->setColorEngine(m_engine.get());
+  m_viewManager->setColorEngine(m_engine);
 
   // Save user preferences
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   QStringList activeActions;
-  foreach(QAction *action, m_availableEngines.keys())
+  for(auto action: m_availableEngines.keys())
   {
     if (action->isChecked())
       activeActions << action->text();
@@ -92,4 +103,3 @@ void ColorEngineMenu::setColorEngine(QAction* action)
   settings.setValue(COLOR_ENGINE, activeActions);
   settings.sync();
 }
-

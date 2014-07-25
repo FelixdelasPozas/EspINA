@@ -1,11 +1,11 @@
 project (COUNTING_REGION_PLUGIN)
 
-include (GenerateExportHeader)
-
 # Version Number
-set (PLUGIN_VERSION_MAJOR 0)
-set (PLUGIN_VERSION_MINOR 2)
+set (PLUGIN_VERSION_MAJOR 2)
+set (PLUGIN_VERSION_MINOR 0)
 set (PLUGIN_VERSION_PATCH 0)
+
+include (GenerateExportHeader)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -24,53 +24,56 @@ IF (NOT COMPILING_ESPINA)
 ENDIF (NOT COMPILING_ESPINA)
 
 include_directories(
-  ${Espina_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR} # UI files
   )
 
-
-qt4_add_resources (RCC_BUILT_SOURCES 
+qt4_add_resources (RCC_BUILT_SOURCES
   rsc/CountingFrame.qrc
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  CountingFramePanel.ui
+  Dialogs/CFTypeSelectorDialog.ui
+  Panel.ui
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
-qt4_wrap_cpp(MOC_SRCS 
-  CountingFramePanel.h
-  CountingFrameRenderer.h
+qt4_wrap_cpp(MOC_SRCS
+  CountingFrameManager.h
+  CountingFramePlugin.h
+  CountingFrameRenderer2D.h
+  CountingFrameRenderer3D.h
+  CountingFrames/CountingFrame.h
+  Dialogs/CFTypeSelectorDialog.h
   Extensions/CountingFrameExtension.h
   Extensions/StereologicalInclusion.h
-  CountingFrames/CountingFrame.h
-
+  Panel.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-
-# file ( GLOB LOCAL_SOURCES *.cpp )
 set (LOCAL_SOURCES
-  CountingFramePanel.cpp
-  CountingFrameRenderer.cpp
-  Extensions/CountingFrameExtension.cpp
-  Extensions/StereologicalInclusion.cpp
-  )
-
-set (REGION_SOURCES
-  CountingFrames/vtkCountingFrameAxialSliceRepresentation.cpp
-  CountingFrames/vtkCountingFrameCoronalSliceRepresentation.cpp
-  CountingFrames/vtkCountingFrameSagittalSliceRepresentation.cpp
   ColorEngines/CountingFrameColorEngine.cpp
+  CountingFrameManager.cpp
+  CountingFramePlugin.cpp
+  CountingFrameRenderer2D.cpp
+  CountingFrameRenderer3D.cpp
   CountingFrames/AdaptiveCountingFrame.cpp
   CountingFrames/CountingFrame.cpp
-  CountingFrames/RectangularCountingFrame.cpp
-  CountingFrames/vtkCountingFrameSliceRepresentation.cpp
-  CountingFrames/vtkCountingFrameSliceWidget.cpp
+  CountingFrames/OrtogonalCountingFrame.cpp
   CountingFrames/vtkCountingFrame3DRepresentation.cpp
   CountingFrames/vtkCountingFrame3DWidget.cpp
+  CountingFrames/vtkCountingFrameRepresentationXY.cpp
+  CountingFrames/vtkCountingFrameRepresentationXZ.cpp
+  CountingFrames/vtkCountingFrameRepresentationYZ.cpp
+  CountingFrames/vtkCountingFrameSliceRepresentation.cpp
+  CountingFrames/vtkCountingFrameSliceWidget.cpp
+  Dialogs/CFTypeSelectorDialog.cpp
+  Extensions/CountingFrameExtension.cpp
+  Extensions/CountingFrameFactories.cpp
+  Extensions/StereologicalInclusion.cpp
+  Tasks/ApplyCountingFrame.cpp
+  Panel.cpp
   )
 
 set (PLUGIN_SOURCES
@@ -78,23 +81,23 @@ set (PLUGIN_SOURCES
   ${UI_BUILT_SOURCES}
   ${MOC_SRCS}
   ${LOCAL_SOURCES}
-  ${REGION_SOURCES}
   )
 
 set (PLUGIN_LIBRARIES
-  EspinaGUI
   EspinaCore
-  EspinaUndo
+  EspinaGUI
+  EspinaSupport
+  EspinaExtensions
   )
 
-if(MINGW)
+if(DEFINED MINGW OR DEFINED MSVC)
   if(DEFINED ESPINA_VERSION_MAJOR)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
     SET(PLUGIN_SOURCES ${PLUGIN_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     ENABLE_LANGUAGE(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-endif(MINGW)
+endif(DEFINED MINGW OR DEFINED MSVC)
 
 add_library(CountingFramePlugin SHARED ${PLUGIN_SOURCES})
 GENERATE_EXPORT_HEADER(
@@ -102,7 +105,8 @@ GENERATE_EXPORT_HEADER(
              BASE_NAME CountingFramePlugin
              EXPORT_MACRO_NAME CountingFramePlugin_EXPORT
              EXPORT_FILE_NAME CountingFramePlugin_Export.h
-			 )
+  )
+ADD_COMPILER_EXPORT_FLAGS()
 
 target_link_libraries (CountingFramePlugin ${PLUGIN_LIBRARIES})
 
@@ -110,9 +114,7 @@ if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
   set_target_properties(CountingFramePlugin PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-# install(
-#   TARGETS CountingFrame
-#   LIBRARY
-#   DESTINATION bin/plugins
-#   #COMPONENT CountingFrame
-#   )
+install(
+  TARGETS CountingFramePlugin
+  LIBRARY DESTINATION ${INSTALL_BIN_DIR}/plugins
+  )

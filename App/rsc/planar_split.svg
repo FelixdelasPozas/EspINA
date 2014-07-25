@@ -14,9 +14,9 @@
    height="48"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.48.3.1 r9886"
+   inkscape:version="0.48.4 r9939"
    version="1.0"
-   sodipodi:docname="apply.svg"
+   sodipodi:docname="planar_split.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs4">
@@ -94,14 +94,6 @@
        r="10.607718"
        gradientTransform="matrix(1.1925019,0,0,1.0610603,-8.2181611,0.8304362)"
        gradientUnits="userSpaceOnUse" />
-    <filter
-       inkscape:collect="always"
-       id="filter3561">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.93742522"
-         id="feGaussianBlur3563" />
-    </filter>
     <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient3170"
@@ -192,16 +184,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.74953319"
-     inkscape:cx="365.12081"
-     inkscape:cy="-198.88726"
+     inkscape:zoom="18.229095"
+     inkscape:cx="24.75259"
+     inkscape:cy="24.71107"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1920"
-     inkscape:window-height="1025"
-     inkscape:window-x="1438"
-     inkscape:window-y="32"
+     inkscape:window-height="1056"
+     inkscape:window-x="1920"
+     inkscape:window-y="24"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -211,7 +203,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -244,6 +236,37 @@
        id="path3997"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
+    <g
+       id="g3158">
+      <rect
+         y="-0.00018851871"
+         x="0.054857358"
+         height="48.000187"
+         width="3.5657284"
+         id="rect3471"
+         style="fill:#ffcc00" />
+      <rect
+         y="-0.055045888"
+         x="0.054857358"
+         height="3.3462987"
+         width="47.945332"
+         id="rect3491"
+         style="fill:#ffcc00" />
+      <rect
+         y="44.626274"
+         x="0.054857146"
+         height="3.3462987"
+         width="47.945332"
+         id="rect3491-4"
+         style="fill:#ffcc00;display:inline" />
+      <rect
+         y="-0.027616553"
+         x="44.461891"
+         height="48.000187"
+         width="3.5657284"
+         id="rect3471-0"
+         style="fill:#ffcc00;display:inline" />
+    </g>
   </g>
   <g
      inkscape:groupmode="layer"

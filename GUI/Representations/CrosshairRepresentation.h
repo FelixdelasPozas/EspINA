@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,59 +18,65 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CROSSHAIRREPRESENTATION_H_
-#define CROSSHAIRREPRESENTATION_H_
+#ifndef ESPINA_CROSSHAIR_REPRESENTATION_H
+#define ESPINA_CROSSHAIR_REPRESENTATION_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
-// EspINA
-#include "GUI/Representations/GraphicalRepresentation.h"
-#include <Core/EspinaTypes.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <GUI/QtWidget/VolumeView.h>
+// ESPINA
+#include "Representation.h"
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Utils/Spatial.h>
+#include <GUI/View/RenderView.h>
 
 // VTK
 #include <vtkSmartPointer.h>
 
+// ITK
+#include <itkImageToVTKImageFilter.h>
+
 class QColor;
 class vtkActor;
 class vtkImageActor;
-class vtkImageReslice;
 class vtkPolyData;
-class vtkMatrix4x4;
 class vtkLookupTable;
 class vtkImageShiftScale;
+class vtkImageMapToColors;
 
-namespace EspINA
+namespace ESPINA
 {
-  class SliceView;
-  class VolumeView;
-  class EspinaRenderView;
+  class View2D;
+  class View3D;
+  class RenderView;
   class CrosshairRenderer;
-  
+
+  using VolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+
   class EspinaGUI_EXPORT CrosshairRepresentation
-  :public ChannelGraphicalRepresentation
+  :public Representation
   {
-    Q_OBJECT
     public:
-      explicit CrosshairRepresentation(ChannelVolumeSPtr data,
-                                       VolumeView       *view);
+      static const Representation::Type TYPE;
+
+    public:
+      explicit CrosshairRepresentation(VolumeSPtr data,
+                                       RenderView *view);
       virtual ~CrosshairRepresentation() {};
 
       virtual void setBrightness(double value);
 
       virtual void setContrast(double value);
 
-      virtual GraphicalRepresentationSettings *settingsWidget();
+      virtual RepresentationSettings *settingsWidget();
 
       virtual void setColor(const QColor &color);
 
       virtual void setOpacity(double value);
 
-      virtual bool isInside(Nm point[3]);
+      virtual bool isInside(const NmVector3 &point) const;
 
       virtual RenderableView canRenderOnView() const
-      { return GraphicalRepresentation::RENDERABLEVIEW_VOLUME; }
+      { return Representation::RENDERABLEVIEW_VOLUME; }
 
       virtual bool hasActor(vtkProp *actor) const;
 
@@ -76,60 +84,65 @@ namespace EspINA
 
       virtual QList<vtkProp*> getActors();
 
+      virtual bool crosshairDependent() const
+      { return true; }
+
       void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
-      void setCrosshair(Nm point[3]);
-      void setPlanePosition(PlaneType plane, Nm dist);
+      void setCrosshair(NmVector3 point);
+      void setPlanePosition(Plane plane, Nm dist);
 
       bool tiling()              { return m_tiling; }
       void setTiling(bool value) { m_tiling = value; }
 
-  protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view)
-      { return GraphicalRepresentationSPtr(); }
+    protected:
+      virtual RepresentationSPtr cloneImplementation(View2D *view)
+      { return RepresentationSPtr(); }
 
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view);
+      virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     virtual void updateVisibility(bool visible);
 
-    private slots:
-      void updatePipelineConnections();
-
     private:
-      void setView(VolumeView *view) { m_view = view; };
       void initializePipeline();
 
     private:
-      ChannelVolumeSPtr                   m_data;
+      void setView(RenderView *view) { m_view = view; };
 
-      vtkSmartPointer<vtkImageReslice>    m_axialReslice;
-      vtkSmartPointer<vtkImageReslice>    m_coronalReslice;
-      vtkSmartPointer<vtkImageReslice>    m_sagittalReslice;
-      vtkSmartPointer<vtkImageActor>      m_axial;
-      vtkSmartPointer<vtkImageActor>      m_coronal;
-      vtkSmartPointer<vtkImageActor>      m_sagittal;
-      vtkSmartPointer<vtkActor>           m_axialBorder;
-      vtkSmartPointer<vtkActor>           m_coronalBorder;
-      vtkSmartPointer<vtkActor>           m_sagittalBorder;
-      vtkSmartPointer<vtkPolyData>        m_axialSquare;
-      vtkSmartPointer<vtkPolyData>        m_coronalSquare;
-      vtkSmartPointer<vtkPolyData>        m_sagittalSquare;
-      vtkSmartPointer<vtkMatrix4x4>       m_matAxial;
-      vtkSmartPointer<vtkMatrix4x4>       m_matCoronal;
-      vtkSmartPointer<vtkMatrix4x4>       m_matSagittal;
-      vtkSmartPointer<vtkLookupTable>     m_lut;
-      vtkSmartPointer<vtkImageShiftScale> m_axialScaler;
-      vtkSmartPointer<vtkImageShiftScale> m_coronalScaler;
-      vtkSmartPointer<vtkImageShiftScale> m_sagittalScaler;
+      VolumeSPtr m_data;
 
-      double m_bounds[6];
-      Nm m_point[3];
+      using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
+
+      ExporterType::Pointer                m_axialExporter;
+      ExporterType::Pointer                m_coronalExporter;
+      ExporterType::Pointer                m_sagittalExporter;
+      vtkSmartPointer<vtkImageActor>       m_axial;
+      vtkSmartPointer<vtkImageActor>       m_coronal;
+      vtkSmartPointer<vtkImageActor>       m_sagittal;
+      vtkSmartPointer<vtkImageMapToColors> m_axialImageMapToColors;
+      vtkSmartPointer<vtkImageMapToColors> m_coronalImageMapToColors;
+      vtkSmartPointer<vtkImageMapToColors> m_sagittalImageMapToColors;
+      vtkSmartPointer<vtkActor>            m_axialBorder;
+      vtkSmartPointer<vtkActor>            m_coronalBorder;
+      vtkSmartPointer<vtkActor>            m_sagittalBorder;
+      vtkSmartPointer<vtkPolyData>         m_axialSquare;
+      vtkSmartPointer<vtkPolyData>         m_coronalSquare;
+      vtkSmartPointer<vtkPolyData>         m_sagittalSquare;
+      vtkSmartPointer<vtkLookupTable>      m_lut;
+      vtkSmartPointer<vtkImageShiftScale>  m_axialScaler;
+      vtkSmartPointer<vtkImageShiftScale>  m_coronalScaler;
+      vtkSmartPointer<vtkImageShiftScale>  m_sagittalScaler;
+
+      mutable Bounds m_bounds;
+      NmVector3 m_point;
+      NmVector3 m_lastUpdatePoint;
       bool m_tiling;
 
       friend class CrosshairRenderer;
   };
 
-  typedef boost::shared_ptr<CrosshairRepresentation> CrosshairRepresentationSPtr;
+  typedef std::shared_ptr<CrosshairRepresentation> CrosshairRepresentationSPtr;
   typedef QList<CrosshairRepresentationSPtr> CrosshairRepresentationSList;
 
-} /* namespace EspINA */
-#endif /* CROSSHAIRREPRESENTATION_H_ */
+} // namespace ESPINA
+
+#endif // ESPINA_CROSSHAIR_REPRESENTATION_H

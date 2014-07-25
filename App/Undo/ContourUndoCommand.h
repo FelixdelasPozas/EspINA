@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,7 +21,7 @@
 #ifndef CONTOURUNDOCOMMAND_H_
 #define CONTOURUNDOCOMMAND_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
@@ -30,7 +32,7 @@
 
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class FilledContour;
@@ -102,5 +104,5 @@ namespace EspINA
     mutable ContourWidget::ContourData m_contour;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* CONTOURUNDOCOMMAND_H_ */

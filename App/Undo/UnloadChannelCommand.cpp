@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2013  <copyright holder> <email>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -23,7 +25,7 @@
 #include <Core/Model/Filter.h>
 
 //------------------------------------------------------------------------
-EspINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
+ESPINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
                                                    EspinaModel  *model,
                                                    QUndoCommand *parent)
 : QUndoCommand(parent)
@@ -36,7 +38,7 @@ EspINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
 }
 
 //------------------------------------------------------------------------
-void EspINA::UnloadChannelCommand::redo()
+void ESPINA::UnloadChannelCommand::redo()
 {
   m_model->removeRelation(m_sample, m_channel, Channel::STAIN_LINK);
   m_model->removeRelation(m_reader, m_channel, Channel::VOLUME_LINK);
@@ -49,7 +51,7 @@ void EspINA::UnloadChannelCommand::redo()
 }
 
 //------------------------------------------------------------------------
-void EspINA::UnloadChannelCommand::undo()
+void ESPINA::UnloadChannelCommand::undo()
 {
   m_model->addFilter  (m_reader);
   m_model->addChannel (m_channel);

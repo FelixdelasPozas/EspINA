@@ -133,20 +133,50 @@
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <spacer name="horizontalSpacer_2">
+          <item row="1" column="2">
+           <widget class="QPushButton" name="blackButton">
+            <property name="text">
+             <string>Black</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QLabel" name="thresholdLabel">
+            <property name="text">
+             <string>Color threshold:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="4">
+           <widget class="QSpinBox" name="thresholdBox">
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>16777215</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="4">
+           <widget class="QSlider" name="colorBox">
+            <property name="maximumSize">
+             <size>
+              <width>60</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="maximum">
+             <number>255</number>
+            </property>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
+           </widget>
           </item>
-          <item row="1" column="4">
+          <item row="2" column="5">
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -159,41 +189,26 @@
             </property>
            </spacer>
           </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="thresholdLabel">
-            <property name="text">
-             <string>Color threshold:</string>
+          <item row="2" column="0">
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLabel" name="colorLabel">
-            <property name="text">
-             <string>Outer frame color:
-(Black=0; White=255)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QSpinBox" name="colorBox">
-            <property name="maximumSize">
+            <property name="sizeHint" stdset="0">
              <size>
-              <width>60</width>
-              <height>16777215</height>
+              <width>40</width>
+              <height>20</height>
              </size>
             </property>
-            <property name="maximum">
-             <number>255</number>
-            </property>
-           </widget>
+           </spacer>
           </item>
-          <item row="2" column="3">
-           <widget class="QSpinBox" name="thresholdBox">
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>16777215</height>
-             </size>
+          <item row="1" column="5">
+           <widget class="QPushButton" name="whiteButton">
+            <property name="text">
+             <string>White</string>
+            </property>
+            <property name="flat">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

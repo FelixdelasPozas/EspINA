@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -16,67 +18,70 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ADAPTIVEBOUNDINGFRAME_H
-#define ADAPTIVEBOUNDINGFRAME_H
+#ifndef ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
+#define ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
 
 #include "CountingFramePlugin_Export.h"
 #include "CountingFrames/CountingFrame.h"
 
-namespace EspINA
+#include <Core/Utils/Bounds.h>
+
+namespace ESPINA
 {
-
-  const QString ADAPTIVE_CF = QObject::tr("Adaptive CF");
-
-  class CountingFramePlugin_EXPORT AdaptiveCountingFrame
-  : public CountingFrame
+  namespace CF
   {
-  public:
-    static AdaptiveCountingFrame *New(Id id,
-                                      CountingFrameExtension *channelExt,
-                                      Nm inclusion[3],
-                                      Nm exclusion[3],
-                                      ViewManager *vm)
-    { return new AdaptiveCountingFrame(id, channelExt, inclusion, exclusion, vm); }
+    class vtkCountingFrameCommand;
 
-    virtual ~AdaptiveCountingFrame();
+    const QString ADAPTIVE_CF = QObject::tr("Adaptive");
 
-    // Implements QStandardItem interface
-    virtual QVariant data(int role = Qt::UserRole + 1) const;
-    virtual QString name() const { return ADAPTIVE_CF; }
+    class CountingFramePlugin_EXPORT AdaptiveCountingFrame
+    : public CountingFrame
+    {
+    public:
+      static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
+                                        const Bounds &bounds,
+                                        Nm inclusion[3],
+                                        Nm exclusion[3],
+                                        SchedulerSPtr scheduler)
+      { return new AdaptiveCountingFrame(extension, bounds, inclusion, exclusion, scheduler); }
 
-    // Implements EspinaWidget itnerface
-    virtual vtkAbstractWidget *create3DWidget(VolumeView *view);
+      virtual ~AdaptiveCountingFrame();
 
-    virtual SliceWidget *createSliceWidget(SliceView *view);
+      virtual CFType cfType() const
+      { return CF::ADAPTIVE; }
 
-    virtual bool processEvent(vtkRenderWindowInteractor* iren,
-                              long unsigned int event);
-    virtual void setEnabled(bool enable);
+      virtual QString typeName() const { return ADAPTIVE_CF; }
 
-    virtual void updateCountingFrameImplementation();
+      // Implements EspinaWidget itnerface
+      virtual void registerView(RenderView *);
+      virtual void unregisterView(RenderView *);
 
-  protected:
+      virtual void updateCountingFrameImplementation();
 
-    explicit AdaptiveCountingFrame(Id id,
-                                   CountingFrameExtension *channelExt,
-                                   Nm inclusion[3],
-                                   Nm exclusion[3],
-                                   ViewManager *vm);
+    protected:
+      explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
+                                     const Bounds &bounds,
+                                     Nm inclusion[3],
+                                     Nm exclusion[3],
+                                     SchedulerSPtr scheduler);
 
-  protected:
-    double leftOffset()   const {return  m_inclusion[0];}
-    double topOffset()    const {return  m_inclusion[1];}
-    double upperOffset()  const {return  m_inclusion[2];}
-    double rightOffset()  const {return -m_exclusion[0];}
-    double bottomOffset() const {return -m_exclusion[1];}
-    double lowerOffset()  const {return -m_exclusion[2];}
-    void applyOffset(double &var, double offset)
-    {var = floor(var + offset + 0.5);}
+    protected:
+      Nm leftOffset()   const {QReadLocker lock(&m_marginsMutex); return m_inclusion[0];}
+      Nm topOffset()    const {QReadLocker lock(&m_marginsMutex); return m_inclusion[1];}
+      Nm frontOffset()  const {QReadLocker lock(&m_marginsMutex); return m_inclusion[2];}
+      Nm rightOffset()  const {QReadLocker lock(&m_marginsMutex); return m_exclusion[0];}
+      Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
+      Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
 
-  private:
-    Channel *m_channel;
-  };
+//       void applyOffset(double &var, double offset)
+//       {var = floor(var + offset + 0.5);}
 
-} // namespace EspINA
+    private:
+      Channel *m_channel;
 
-#endif // ADAPTIVEBOUNDINGFRAME_H
+      friend class vtkCountingFrameCommand;
+    };
+  } // namespace CF
+} // namespace ESPINA
+
+#endif // ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H

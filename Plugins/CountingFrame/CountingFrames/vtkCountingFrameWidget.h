@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -22,7 +24,7 @@
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Core/EspinaTypes.h>
+#include <Core/Utils/NmVector3.h>
 
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>
@@ -35,22 +37,22 @@ class CountingFramePlugin_EXPORT vtkCountingFrameWidget
 public:
   vtkTypeMacro(vtkCountingFrameWidget, vtkAbstractWidget);
 
-  vtkGetVector3Macro(InclusionOffset, EspINA::Nm);
-  vtkGetVector3Macro(ExclusionOffset, EspINA::Nm);
+  vtkGetVector3Macro(InclusionOffset, ESPINA::Nm);
+  vtkGetVector3Macro(ExclusionOffset, ESPINA::Nm);
 
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                 EspINA::Nm inclusionOffset[3],
-                                 EspINA::Nm exclusionOffset[3]) = 0;
+                                 ESPINA::Nm inclusionOffset[3],
+                                 ESPINA::Nm exclusionOffset[3]) = 0;
 
 protected:
-  EspINA::Nm InclusionOffset[3];
-  EspINA::Nm ExclusionOffset[3];
+  ESPINA::Nm InclusionOffset[3];
+  ESPINA::Nm ExclusionOffset[3];
 
 protected:
   vtkCountingFrameWidget()
   {
-    memset(InclusionOffset, 0, 3*sizeof(EspINA::Nm));
-    memset(ExclusionOffset, 0, 3*sizeof(EspINA::Nm));
+    memset(InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+    memset(ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   }
 };
 

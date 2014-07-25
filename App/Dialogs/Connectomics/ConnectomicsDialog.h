@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2012  Laura Fernandez Soria <laura.fernandez@ctb.upm.es>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -25,7 +27,7 @@
 #include <QWidget>
 #include <QSortFilterProxyModel>
 
-// EspINA
+// ESPINA
 #include <GUI/ViewManager.h>
 #include <Core/Model/Proxies/InformationProxy.h>
 #include <Core/Model/Segmentation.h>
@@ -33,7 +35,7 @@
 
 #include "ui_ConnectomicsDialog.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ConnectomicsDialog
   : public QDialog
@@ -61,6 +63,6 @@ namespace EspINA
     ViewManager::Selection selection;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CONNECTOMICSDIALOG_H

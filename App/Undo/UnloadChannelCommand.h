@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2013  <copyright holder> <email>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -23,7 +25,7 @@
 #include <QtGui/QUndoStack>
 #include <Core/Model/Channel.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class UnloadChannelCommand
   : public QUndoCommand
@@ -45,6 +47,6 @@ namespace EspINA
     ChannelSPtr m_channel;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // UNLOADCHANNELCOMMAND_H

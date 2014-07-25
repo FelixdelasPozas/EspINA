@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "ContourUndoCommand.h"
 #include <App/Tools/Contour/FilledContour.h>
 #include <GUI/ViewManager.h>
@@ -33,7 +35,7 @@
 // VTK
 #include <vtkMath.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ContourUndoCommand::ContourUndoCommand(SegmentationSPtr seg,
@@ -46,7 +48,7 @@ namespace EspINA
   , m_rasterized(false)
   {
   }
-  
+
   //-----------------------------------------------------------------------------
   ContourUndoCommand::~ContourUndoCommand()
   {
@@ -73,7 +75,7 @@ namespace EspINA
         m_tool->setContour(m_contour);
     }
   }
-  
+
   //-----------------------------------------------------------------------------
   void ContourUndoCommand::undo()
   {
@@ -146,7 +148,7 @@ namespace EspINA
       if (i == plane)
         continue;
 
-      int voxelIndex = vtkMath::Round((m_bounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
+      int voxelIndex = vtkMath::Floor((m_bounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
       m_bounds[2*i] = voxelIndex * spacingNm[i];
 
       voxelIndex = vtkMath::Floor((m_bounds[(2*i)+1]+spacingNm[i]/2)/spacingNm[i]);
@@ -274,7 +276,7 @@ namespace EspINA
       if (i == plane)
         continue;
 
-      int voxelIndex = vtkMath::Round((polyBounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
+      int voxelIndex = vtkMath::Floor((polyBounds[2*i]+spacingNm[i]/2)/spacingNm[i]);
       polyBounds[2*i] = voxelIndex * spacingNm[i];
 
       voxelIndex = vtkMath::Floor((polyBounds[(2*i)+1]+spacingNm[i]/2)/spacingNm[i]);
@@ -324,5 +326,5 @@ namespace EspINA
     return m_segmentation;
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 

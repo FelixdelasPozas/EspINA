@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
+ 
+ Copyright (C) 2014  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,7 +21,7 @@
 #ifndef SPINEINFORMATIONDIALOG_H
 #define SPINEINFORMATIONDIALOG_H
 
-// EspINA
+// ESPINA
 #include "ui_NodesInformationDialog.h"
 #include <Core/Filters/TubularSegmentationFilter.h>
 
@@ -30,11 +32,11 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
-  class ITool;
-  class EspinaModel;
+  class Tool;
+  class ModelAdapter;
 
   /// Display Information of all segmentations that have been created
   class NodesInformationDialog
@@ -43,7 +45,7 @@ namespace EspINA
   {
     Q_OBJECT
     public:
-      explicit NodesInformationDialog(EspinaModel *model,
+      explicit NodesInformationDialog(ModelAdapter *model,
                                       QUndoStack *undoStack,
                                       ViewManager *vm,
                                       TubularSegmentationFilter::Pointer filter,
@@ -56,11 +58,11 @@ namespace EspINA
     private:
       QUndoStack                           *m_undoStack;
       ViewManager                          *m_viewManager;
-      EspinaModel                          *m_model;
+      ModelAdapter                          *m_model;
       boost::shared_ptr<QSortFilterProxyModel> m_sort;
       TubularSegmentationFilter::Pointer    m_filter;
       QWidget                              *m_lastWidget;
-      ITool                                *tubularTool;
+      Tool                                *tubularTool;
   };
 }
 #endif // SPINEINFORMATIONDIALOG_H

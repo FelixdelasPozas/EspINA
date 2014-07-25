@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -29,7 +31,7 @@
 
 #include <QApplication>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
@@ -98,10 +100,10 @@ void CompositionCommand::redo()
   m_model->addFilter(m_filter);
   foreach(SegmentationSPtr seg, m_input)
   {
-//     SharedModelItemList segFilter = seg->relatedItems(EspINA::RELATION_IN, CREATELINK);
+//     SharedModelItemList segFilter = seg->relatedItems(ESPINA::RELATION_IN, CREATELINK);
 //     Q_ASSERT(segFilter.size() == 1);
 //     SharedModelItemPtr item = segFilter[0];
-//     Q_ASSERT(EspINA::FILTER == item->type());
+//     Q_ASSERT(ESPINA::FILTER == item->type());
     m_model->addRelation(seg->filter(), m_filter, link(seg));
   }
 

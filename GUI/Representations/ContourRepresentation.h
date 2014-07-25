@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,49 +18,57 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONTOURREPRESENTATION_H_
-#define CONTOURREPRESENTATION_H_
+#ifndef ESPINA_CONTOUR_REPRESENTATION_H
+#define ESPINA_CONTOUR_REPRESENTATION_H
 
-#include "EspinaGUI_Export.h"
+#include "GUI/EspinaGUI_Export.h"
 
-// EspINA
-#include <GUI/Representations/GraphicalRepresentation.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
-#include <GUI/QtWidget/SliceView.h>
+// ESPINA
+#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Utils/NmVector3.h>
+#include "GUI/Representations/Representation.h"
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkTubeFilter.h>
 
 class vtkImageReslice;
 class vtkPolyDataMapper;
 class vtkActor;
 class vtkVoxelContour2D;
+class vtkImageCanvasSource2D;
+class vtkTexture;
 
-namespace EspINA
+namespace ESPINA
 {
+  class RepresentationSettings;
   class TransparencySelectionHighlighter;
-  class SliceView;
-  class VolumeView;
+  class View2D;
+  class View3D;
 
   class EspinaGUI_EXPORT ContourRepresentation
-  : public SegmentationGraphicalRepresentation
+  : public Representation
   {
-    Q_OBJECT
     public:
-      ContourRepresentation(SegmentationVolumeSPtr data,
-                            EspinaRenderView      *view);
-      virtual ~ContourRepresentation() {};
+      typedef enum { tiny = 0, small, medium, large, huge } LineWidth;
+      typedef enum { normal = 0, dotted, dashed } LinePattern;
 
-      virtual GraphicalRepresentationSettings *settingsWidget();
+      static const Representation::Type TYPE;
+
+      ContourRepresentation(DefaultVolumetricDataSPtr data,
+                            RenderView      *view);
+      virtual ~ContourRepresentation() {};
+      
+      virtual RepresentationSettings *settingsWidget();
 
       virtual void setColor(const QColor &color);
 
       virtual void setHighlighted(bool highlighted);
 
-      virtual bool isInside(Nm point[3]);
+      virtual bool isInside(const NmVector3& point) const;
 
       virtual RenderableView canRenderOnView() const
-      { return GraphicalRepresentation::RenderableView(GraphicalRepresentation::RENDERABLEVIEW_SLICE); }
+      { return Representation::RenderableView(Representation::RENDERABLEVIEW_SLICE); }
 
       virtual bool hasActor(vtkProp *actor) const;
 
@@ -66,40 +76,59 @@ namespace EspINA
 
       virtual QList<vtkProp*> getActors();
 
-      void setLineWidth(int width);
-      int lineWidth() const;
+      void setLineWidth(LineWidth width);
+      LineWidth lineWidth() const;
 
-      void setLinePattern(int pattern);
+      void setLinePattern(LinePattern pattern);
+      LinePattern linePattern() const;
+
+      void updateWidth();
+      void updatePattern();
+
+      void setPlane(Plane plane)
+      { m_planeIndex = normalCoordinateIndex(plane); }
+
+      Plane plane()
+      { return toPlane(m_planeIndex); }
+
+      virtual bool crosshairDependent() const
+      { return true; }
+
+      virtual bool needUpdate()
+      { return m_lastUpdatedTime != m_data->lastModified(); }
 
     protected:
-      virtual GraphicalRepresentationSPtr cloneImplementation(SliceView *view);
-      virtual GraphicalRepresentationSPtr cloneImplementation(VolumeView *view)
-      { return GraphicalRepresentationSPtr(); }
+      virtual RepresentationSPtr cloneImplementation(View2D *view);
+      virtual RepresentationSPtr cloneImplementation(View3D *view)
+      { return RepresentationSPtr(); }
 
       virtual void updateVisibility(bool visible);
 
-    private slots:
-      void updatePipelineConnections();
-
     private:
-      void setView(SliceView *view) {m_view = view; };
+      void setView(RenderView *view) { m_view = view; };
       void initializePipeline();
 
     private:
-      SegmentationVolumeSPtr m_data;
-
-      vtkSmartPointer<vtkImageReslice>         m_reslice;
+      void generateTexture();
+      int m_planeIndex;
+      Nm  m_reslicePoint;
+      DefaultVolumetricDataSPtr                m_data;
       vtkSmartPointer<vtkVoxelContour2D>       m_voxelContour;
+      vtkSmartPointer<vtkImageCanvasSource2D>  m_textureIcon;
+      vtkSmartPointer<vtkTexture>              m_texture;
+      vtkSmartPointer<vtkTubeFilter>           m_tubes;
       vtkSmartPointer<vtkPolyDataMapper>       m_mapper;
       vtkSmartPointer<vtkActor>                m_actor;
       static TransparencySelectionHighlighter *s_highlighter;
 
-      int m_width;
-      int m_pattern;
+      LineWidth m_width;
+      LinePattern m_pattern;
+      Nm m_minSpacing;
     };
 
-    typedef boost::shared_ptr<ContourRepresentation> ContourRepresentationSPtr;
-    typedef QList<ContourRepresentationSPtr> ContourRepresentationSList;
-
-} /* namespace EspINA */
+    using ContourRepresentationPtr  = ContourRepresentation *;
+    using ContourRepresentationSPtr = std::shared_ptr<ContourRepresentation>;
+    using ContourRepresentationSList = QList<ContourRepresentationSPtr>;
+    
+} /* namespace ESPINA */
 #endif /* CONTOURREPRESENTATION_H_ */

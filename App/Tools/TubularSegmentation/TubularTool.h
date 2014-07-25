@@ -2,13 +2,13 @@
  * SpineTool.h
  *
  *  Created on: Oct 24, 2012
- *      Author: Felix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef TUBULARTOOL_H_
 #define TUBULARTOOL_H_
 
-// EspINA
+// ESPINA
 #include <GUI/Tools/ITool.h>
 #include <GUI/Pickers/PixelSelector.h>
 #include <Core/Model/EspinaModel.h>
@@ -19,11 +19,11 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ISelector;
   class Channel;
-  class EspinaModel;
+  class ModelAdapter;
   class Segmentation;
   class ViewManager;
   class TubularWidget;
@@ -49,7 +49,7 @@ namespace EspINA
       };
 
     public:
-      explicit TubularTool(ViewManager *, QUndoStack *, EspinaModel *);
+      explicit TubularTool(ViewManager *, QUndoStack *, ModelAdapter *);
       virtual ~TubularTool();
 
       virtual QCursor cursor() const;
@@ -81,7 +81,7 @@ namespace EspINA
     private:
       ChannelSPtr                         m_channel;
       SegmentationSPtr                    m_seg;
-      EspinaModel                        *m_model;
+      ModelAdapter                        *m_model;
       bool                                m_enabled;
       bool                                m_inUse;
       bool                                m_roundExtremes;

@@ -2,49 +2,63 @@
  * MeasureTool.h
  *
  *  Created on: Dec 11, 2012
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
-#ifndef MEASURETOOL_H_
-#define MEASURETOOL_H_
+#ifndef ESPINA_MEASURE_TOOL_H_
+#define ESPINA_MEASURE_TOOL_H_
 
-// EspINA
-#include <GUI/Tools/ITool.h>
+// ESPINA
+#include <GUI/View/Widgets/Measures/MeasureWidget.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
+#include <Support/Tool.h>
+#include <Support/ViewManager.h>
 
-class QCursor;
+class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
-  class ViewManager;
-  class MeasureWidget;
 
   class MeasureTool
-  : public ITool
+  : public Tool
   {
     Q_OBJECT
   public:
-    explicit MeasureTool(ViewManager *);
+    explicit MeasureTool(ViewManagerSPtr);
     virtual ~MeasureTool();
 
-    // implements ITool
-    virtual QCursor cursor() const { return Qt::CrossCursor; };
-    virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
-    virtual void setInUse(bool value);
+    /* \brief Implements Tool::setEnabled.
+     *
+     */
     virtual void setEnabled(bool value);
+
+    /* \brief Implements Tool::enabled.
+     *
+     */
     virtual bool enabled() const;
+
+    /* \brief Implements Tool::actions.
+     *
+     */
+    virtual QList<QAction *> actions() const;
+
+  public slots:
+    void initTool(bool);
 
   signals:
     void stopMeasuring();
 
   private:
-    bool m_enabled;
-    bool m_inUse;
-    MeasureWidget *m_widget;
-    ViewManager *m_viewManager;
+    bool             m_enabled;
+    EspinaWidgetSPtr m_widget;
+    EventHandlerSPtr m_handler;
+    ViewManagerSPtr  m_viewManager;
+    QAction         *m_action;
   };
 
-  typedef boost::shared_ptr<MeasureTool> MeasureToolSPtr;
+  using MeasureToolPtr  = MeasureTool *;
+  using MeasureToolSPtr = std::shared_ptr<MeasureTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* MEASURETOOL_H_ */

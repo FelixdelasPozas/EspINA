@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -16,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "LayoutComposition.h"
 #include <Menus/SegmentationContextualMenu.h>
 #include <Core/Model/Segmentation.h>
@@ -26,7 +28,7 @@
 // Qt
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 bool CompositionLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
@@ -123,13 +125,13 @@ void CompositionLayout::showSelectedItemsInformation()
   foreach(QModelIndex index, selectedIndexes)
   {
     ModelItemPtr itemPtr = item(index);
-    if (EspINA::SEGMENTATION == itemPtr->type())
+    if (ESPINA::SEGMENTATION == itemPtr->type())
     {
       subIndexes << indices(index, true);
       foreach(QModelIndex subIndex, subIndexes)
       {
         ModelItemPtr subItem = item(subIndex);
-        if (EspINA::SEGMENTATION == subItem->type())
+        if (ESPINA::SEGMENTATION == subItem->type())
         {
           SegmentationPtr seg = segmentationPtr(subItem);
           if (!segmentations.contains(seg))
@@ -151,7 +153,7 @@ bool CompositionLayout::selectedItems(SegmentationSet &segmentations)
     ModelItemPtr item = CompositionLayout::item(index);
     switch (item->type())
     {
-      case EspINA::SEGMENTATION:
+      case ESPINA::SEGMENTATION:
         segmentations << segmentationPtr(item);
         break;
       default:

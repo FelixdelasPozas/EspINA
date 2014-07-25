@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2012  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
+ 
+ Copyright (C) 2014  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "NodesInformationDialog.h"
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
@@ -26,7 +28,7 @@
 // Qt
 #include <QFileDialog>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class NodesFilter
@@ -52,7 +54,7 @@ namespace EspINA
   };
 
   //------------------------------------------------------------------------
-  NodesInformationDialog::NodesInformationDialog(EspinaModel *model,
+  NodesInformationDialog::NodesInformationDialog(ModelAdapter *model,
                                                  QUndoStack *undoStack,
                                                  ViewManager *vm,
                                                  TubularSegmentationFilter::Pointer filter,

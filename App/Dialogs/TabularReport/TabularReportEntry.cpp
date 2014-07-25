@@ -27,31 +27,92 @@
 
 
 #include "TabularReportEntry.h"
-#include <GUI/Analysis/xlsUtils.h>
-#include <GUI/Analysis/InformationSelector.h>
+
+#include <Support/Utils/xlsUtils.h>
+#include <Support/Settings/EspinaSettings.h>
+#include <GUI/Widgets/InformationSelector.h>
+
 #include <QFileDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QItemDelegate>
+#include <qvarlengtharray.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace xlslib_core;
 
+const QString SEGMENTATION_GROUP = "Segmentation";
+
+class InformationDelegate
+: public QItemDelegate
+{
+  virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+  {
+    if (index.column() == 0)
+    {
+      int progress = index.data(Qt::UserRole).toInt();
+      if (progress >= 0)
+      {
+        // Set up a QStyleOptionProgressBar to precisely mimic the
+        // environment of a progress bar.
+        QStyleOptionProgressBar progressBarOption;
+        progressBarOption.state = QStyle::State_Enabled;
+        progressBarOption.direction = QApplication::layoutDirection();
+        progressBarOption.rect = option.rect;
+        progressBarOption.fontMetrics = QApplication::fontMetrics();
+        progressBarOption.minimum = 0;
+        progressBarOption.maximum = 100;
+        progressBarOption.textAlignment = Qt::AlignCenter;
+        progressBarOption.textVisible = true;
+
+        progressBarOption.progress = progress;
+        progressBarOption.text = QString("%1%").arg(progressBarOption.progress);
+
+//         progressBarOption.text = QString("%1: %2%%").arg(index.data(Qt::DisplayRole).toString())
+//                                                     .arg(progressBarOption.progress);
+
+        // Draw the progress bar onto the view.
+        QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
+
+        return;
+      }
+    }
+
+    QItemDelegate::paint(painter, option, index);
+  }
+};
+
 //------------------------------------------------------------------------
-TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
+TabularReport::Entry::Entry(const QString   &category,
+                            ModelAdapterSPtr model,
+                            ModelFactorySPtr factory)
 : QWidget()
+, m_category(category)
+, m_model(model)
 , m_factory(factory)
-, m_taxonomy(taxonomy)
+, m_proxy(nullptr)
 {
   setupUi(this);
+
+  tableView->horizontalHeader()->setMovable(true);
+  tableView->setItemDelegate(new InformationDelegate());
+
+  connect(tableView->horizontalHeader(),SIGNAL(sectionMoved(int,int,int)),
+          this, SLOT(saveSelectedInformation()));
 
   setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  writeDataToFile->setIcon(iconSave);
-  connect(writeDataToFile, SIGNAL(clicked(bool)),
-          this, SLOT(extractInformation()));
-  connect(selectInformation, SIGNAL(clicked(bool)),
-          this, SLOT(changeDisplayedInformation()));
+  exportInformation->setIcon(iconSave);
+
+  connect(refreshInformation, SIGNAL(clicked(bool)),
+          this,               SLOT(refreshAllInformation()));
+
+  connect(exportInformation,    SIGNAL(clicked(bool)),
+          this,               SLOT(extractInformation()));
+
+  connect(selectInformation,  SIGNAL(clicked(bool)),
+          this,               SLOT(changeDisplayedInformation()));
 
   tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
@@ -59,7 +120,29 @@ TabularReport::Entry::Entry(QString taxonomy, EspinaFactory *factory)
 //------------------------------------------------------------------------
 TabularReport::Entry::~Entry()
 {
-  if (Proxy) delete Proxy;
+  if (m_proxy) delete m_proxy;
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::setProxy(InformationProxy* proxy)
+{
+  if (m_proxy)
+  {
+    disconnect(m_proxy, SIGNAL(informationProgress()),
+               this,    SLOT(refreshGUI()));
+  }
+
+  m_proxy = proxy;
+
+  if (m_proxy)
+  {
+    connect(m_proxy, SIGNAL(informationProgress()),
+            this,    SLOT(refreshGUI()));
+  }
+
+  setInformation(lastDisplayedInformation(), lastInformationOrder());
+
+  refreshGUI();
 }
 
 //------------------------------------------------------------------------
@@ -71,7 +154,7 @@ int TabularReport::Entry::rowCount() const
 //------------------------------------------------------------------------
 int TabularReport::Entry::columnCount() const
 {
-  return Proxy->informationTags().size();
+  return m_proxy->informationTags().size();
 }
 
 //------------------------------------------------------------------------
@@ -82,7 +165,7 @@ QVariant TabularReport::Entry::value(int row, int column) const
   if (row < rowCount() && column < columnCount())
   {
     if (row == 0)
-      result = Proxy->informationTags()[column];
+      result = m_proxy->informationTags()[column];
     else
       result = tableView->model()->index(row - 1, column, tableView->rootIndex()).data();
   }
@@ -92,24 +175,42 @@ QVariant TabularReport::Entry::value(int row, int column) const
 
 
 //------------------------------------------------------------------------
+void TabularReport::Entry::paintEvent(QPaintEvent* event)
+{
+  refreshGUI();
+  QWidget::paintEvent(event);
+}
+
+//------------------------------------------------------------------------
 void TabularReport::Entry::changeDisplayedInformation()
 {
-  InformationSelector::TaxonomyInformation tags;
-  tags[m_taxonomy] = Proxy->informationTags();
+  auto available = availableInformation();
 
-  InformationSelector tagSelector(tags, m_factory, this);
+  auto selection = lastDisplayedInformation();
+
+  InformationSelector tagSelector(available, selection, this);
 
   if (tagSelector.exec() == QDialog::Accepted)
   {
-    m_tags.clear();
-    m_tags << tr("Name") << tr("Taxonomy") << tags[m_taxonomy];
-
-    Proxy->setInformationTags(m_tags);
-
-    QStandardItemModel *header = new QStandardItemModel(1, m_tags.size(), this);
-    header->setHorizontalHeaderLabels(m_tags);
-    tableView->horizontalHeader()->setModel(header);
+    setInformation(selection, updateInformationOrder(selection));
   }
+  saveSelectedInformation();
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::saveSelectedInformation()
+{
+  QStringList informationOrder;
+
+  for (int i = 0; i < tableView->horizontalHeader()->count(); ++i)
+  {
+    int logicalIdx = tableView->horizontalHeader()->logicalIndex(i);
+    informationOrder << m_proxy->headerData(logicalIdx, Qt::Horizontal, Qt::DisplayRole).toString();
+  }
+
+  //qDebug() << "New order: " << informationOrder;
+  QByteArray selectedInformation = informationOrder.join("\n").toUtf8();
+  m_model->storage()->saveSnapshot(SnapshotData(selectedInformationFile(), selectedInformation));
 }
 
 //------------------------------------------------------------------------
@@ -117,12 +218,16 @@ void TabularReport::Entry::extractInformation()
 {
   QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
   QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export %1 Data").arg(m_taxonomy),
-                                                  QString("%1.xls").arg(m_taxonomy.replace("/","-")),
+                                                  tr("Export %1 Data").arg(m_category),
+                                                  QString("%1.xls").arg(m_category.replace("/","-")),
                                                   filter);
 
   if (fileName.isEmpty())
     return;
+
+  // some users are used to not enter an extension, and expect a default xls output.
+  if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
+    fileName += tr(".xls");
 
   bool result = false;
 
@@ -130,13 +235,52 @@ void TabularReport::Entry::extractInformation()
   {
     result = exportToCSV(fileName);
   }
-  else if (fileName.endsWith(".xls"))
+  else
   {
     result = exportToXLS(fileName);
   }
 
   if (!result)
-    QMessageBox::warning(this, "EspINA", tr("Couldn't export %1").arg(fileName));
+    QMessageBox::warning(this, "ESPINA", tr("Couldn't export %1").arg(fileName));
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::refreshAllInformation()
+{
+  int c = m_proxy->columnCount() - 1;
+
+  if (m_proxy->informationTags()[c] == tr("Category"))
+  {
+    --c; // Category tag doesn't span task
+  }
+
+  for (int r = 1; r <= m_proxy->rowCount(); ++r) {
+    auto data = value(r, c);
+  }
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::refreshGUI()
+{
+  int  progress   = m_proxy->progress();
+  bool inProgress = (progress < 100);
+
+  if (m_proxy->informationTags().size() == 1 || (m_proxy->informationTags().size() == 2 && m_proxy->informationTags()[1] == tr("Category")))
+  {
+    inProgress = false;
+  }
+
+  progressLabel->setVisible(inProgress);
+  progressBar->setVisible(inProgress);
+  progressBar->setValue(progress);
+
+  if (exportInformation->isEnabled() == inProgress) {
+    exportInformation->setEnabled(!inProgress);
+
+    emit informationReadyChanged();
+  }
+
+  tableView->viewport()->update();
 }
 
 //------------------------------------------------------------------------
@@ -168,7 +312,7 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
 {
   workbook wb;
 
-  worksheet *ws = wb.sheet(m_taxonomy.toStdString());
+  worksheet *ws = wb.sheet(m_category.replace("/",">").toStdString());
 
   for (int r = 0; r < rowCount(); ++r)
   {
@@ -181,4 +325,169 @@ bool TabularReport::Entry::exportToXLS(const QString &filename)
   wb.Dump(filename.toStdString());
 
   return true;
+}
+
+//------------------------------------------------------------------------
+InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
+{
+  InformationSelector::GroupedInfo info;
+
+  info[SEGMENTATION_GROUP] << tr("Category");
+
+  for (auto type : m_factory->availableSegmentationExtensions())
+  {
+    auto extension = m_factory->createSegmentationExtension(type);
+    info[type] << extension->availableInformations();
+  }
+
+  for (auto item : m_proxy->displayedItems())
+  {
+    Q_ASSERT(isSegmentation(item));
+
+    auto segmentation = segmentationPtr(item);
+
+    for (auto extension : segmentation->extensions())
+    {
+      info[extension->type()] << extension->availableInformations();
+    }
+  }
+
+  for (auto tag : info.keys())
+  {
+    info[tag].removeDuplicates();
+  }
+
+  return info;
+}
+
+//------------------------------------------------------------------------
+QStringList TabularReport::Entry::lastInformationOrder()
+{
+  QStringList informationTags, availableInformationTags;
+
+  QString entriesFile = TabularReport::extraPath(m_category + ".xml");
+
+  auto groupedInfo = availableInformation();
+  for (auto group : groupedInfo.keys())
+  {
+    availableInformationTags << groupedInfo[group];
+  }
+
+  QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+
+  for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+  {
+    if (availableInformationTags.contains(tag))
+    {
+      informationTags << tag;
+    }
+  }
+
+  return informationTags;
+}
+
+//------------------------------------------------------------------------
+InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation()
+{
+  InformationSelector::GroupedInfo info, available;
+
+  available = availableInformation();
+
+  QString selectedInformation(m_model->storage()->snapshot(selectedInformationFile()));
+  for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+  {
+    for (auto extension : available.keys())
+    {
+      if (available[extension].contains(tag))
+      {
+        info[extension] << tag;
+      }
+    }
+  }
+
+  if (info.isEmpty())
+  {
+    info[SEGMENTATION_GROUP]  << tr("Category");
+  }
+
+  return info;
+}
+
+//------------------------------------------------------------------------
+void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder)
+{
+  for(auto extensionType : extensionInformations.keys())
+  {
+    for (auto segmentation : m_model->segmentations())
+    {
+      if (!segmentation->hasExtension(extensionType))
+      {
+        if (m_factory->availableSegmentationExtensions().contains(extensionType))
+        {
+          auto extension = m_factory->createSegmentationExtension(extensionType);
+          if(extension->validCategory(segmentation->category()->classificationName()))
+            segmentation->addExtension(extension);
+        }
+        else if (extensionType != SEGMENTATION_GROUP)
+        {
+          qWarning() << extensionType << " is not available";
+        }
+      }
+    }
+  }
+
+  QStringList tags;
+  tags << tr("Name") << informationOrder;
+  m_proxy->setInformationTags(tags);
+
+  auto header = new QStandardItemModel(1, tags.size(), this);
+  header->setHorizontalHeaderLabels(tags);
+  tableView->horizontalHeader()->setModel(header);
+}
+
+
+//------------------------------------------------------------------------
+QStringList TabularReport::Entry::updateInformationOrder(InformationSelector::GroupedInfo extensionInformation)
+{
+  QStringList oldInformationList     = lastInformationOrder();
+  QStringList orderedInformationList = oldInformationList;
+
+  QStringList newInformationList = information(extensionInformation);
+
+  for (auto oldInformation : oldInformationList)
+  {
+    if (!newInformationList.contains(oldInformation))
+    {
+      orderedInformationList.removeAll(oldInformation);
+    }
+  }
+
+  for (auto newInformation : newInformationList)
+  {
+    if (!orderedInformationList.contains(newInformation))
+    {
+      orderedInformationList << newInformation;
+    }
+  }
+
+  return orderedInformationList;
+}
+
+//------------------------------------------------------------------------
+QStringList TabularReport::Entry::information(InformationSelector::GroupedInfo extensionInformations)
+{
+  QStringList informations;
+
+  for (auto extension : extensionInformations)
+  {
+    for (auto information : extension)
+    {
+      if (!informations.contains(information))
+      {
+        informations << information;
+      }
+    }
+  }
+
+  return informations;
 }

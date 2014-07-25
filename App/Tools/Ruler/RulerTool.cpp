@@ -1,8 +1,10 @@
 /*
- <one line to give the program's name and a brief idea of what it does.>
- Copyright (C) 2013 Félix de las Pozas Álvarez <felixdelaspozas@gmail.com>
+ 
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
- This program is free software: you can redistribute it and/or modify
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,28 +18,34 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "RulerTool.h"
-#include <GUI/vtkWidgets/RulerWidget.h>
+#include <GUI/View/Widgets/Ruler/RulerWidget.h>
 #include <Core/EspinaTypes.h>
-#include <Core/Model/PickableItem.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/Segmentation.h>
-#include <Core/OutputRepresentations/VolumeRepresentation.h>
+#include <Core/Utils/Bounds.h>
+#include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
+#include "GUI/Model/ItemAdapter.h"
 
 // VTK
 #include <vtkMath.h>
 
-namespace EspINA
+// Qt
+#include <QAction>
+
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  RulerTool::RulerTool(ViewManager *vm)
-  : m_enabled(false)
-  , m_inUse(false)
-  , m_widget(NULL)
-  , m_viewManager(vm)
-  , m_selection(ViewManager::Selection())
+  RulerTool::RulerTool(ViewManagerSPtr vm)
+  : m_enabled{false}
+  , m_action{ new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
+  , m_widget{nullptr}
+  , m_viewManager{vm}
+  , m_selection{new Selection()}
   {
+    m_action->setCheckable(true);
+    connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
   }
   
   //----------------------------------------------------------------------------
@@ -46,41 +54,27 @@ namespace EspINA
     if(m_widget)
     {
       m_widget->setEnabled(false);
-      delete m_widget;
-      m_widget = NULL;
+      m_widget = nullptr;
     }
   }
 
   //----------------------------------------------------------------------------
-  bool RulerTool::filterEvent(QEvent *e, EspinaRenderView *view)
+  void RulerTool::initTool(bool value)
   {
-    // this is a passive tool
-    return false;
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerTool::setInUse(bool value)
-  {
-    if(m_inUse == value)
-      return;
-
-    m_inUse = value;
-
-    if (m_inUse)
+    if (value)
     {
-      m_widget = new RulerWidget();
+      m_widget = EspinaWidgetSPtr(new RulerWidget());
       m_viewManager->addWidget(m_widget);
-      connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-              this,          SLOT(selectionChanged(ViewManager::Selection, bool)));
-      selectionChanged(m_viewManager->selection(), false);
+      connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
+              this,                             SLOT(selectionChanged()));
+      selectionChanged();
     }
     else
     {
       m_viewManager->removeWidget(m_widget);
-      disconnect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
-                 this,          SLOT(selectionChanged(ViewManager::Selection, bool)));
-      delete m_widget;
-      m_widget = NULL;
+      disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
+                 this,                             SLOT(selectionChanged()));
+      m_widget = nullptr;
     }
   }
 
@@ -97,13 +91,17 @@ namespace EspINA
   }
 
   //----------------------------------------------------------------------------
-  void RulerTool::selectionChanged(ViewManager::Selection selection, bool unused)
+  void RulerTool::selectionChanged()
   {
-    if (!m_selection.isEmpty())
+    if (!m_widget)
+      return;
+
+    auto selection = m_viewManager->selection();
+    if (!m_selection->items().empty())
     {
-      foreach(PickableItemPtr item, m_selection)
+      for(auto item: m_selection->items())
       {
-        if (item->type() == EspINA::SEGMENTATION)
+        if (item->type() == ItemAdapter::Type::SEGMENTATION)
         {
           disconnect(item->output().get(), SIGNAL(modified()),
                      this,                 SLOT(selectedElementChanged()));
@@ -111,23 +109,21 @@ namespace EspINA
       }
     }
 
-    Nm segmentationBounds[6], channelBounds[6];
-    vtkMath::UninitializeBounds(segmentationBounds);
-    vtkMath::UninitializeBounds(channelBounds);
+    Bounds segmentationBounds, channelBounds;
 
-    if (!selection.isEmpty())
+    if (!selection->items().empty())
     {
-      foreach(PickableItemPtr item, selection)
+      for(auto item: selection->items())
       {
         switch(item->type())
         {
-          case EspINA::CHANNEL:
-            if (!vtkMath::AreBoundsInitialized(channelBounds))
-              channelPtr(item)->volume()->bounds(channelBounds);
+          case ItemAdapter::Type::CHANNEL:
+            if (!channelBounds.areValid())
+              channelBounds = channelPtr(item)->bounds();
             else
             {
-              Nm bounds[6];
-              channelPtr(item)->volume()->bounds(bounds);
+              Bounds bounds;
+              bounds = channelPtr(item)->bounds();
               for (int i = 0, j = 1; i < 6; i += 2, j += 2)
               {
                 channelBounds[i] = std::min(bounds[i], channelBounds[i]);
@@ -135,16 +131,16 @@ namespace EspINA
               }
             }
             break;
-          case EspINA::SEGMENTATION:
+          case ItemAdapter::Type::SEGMENTATION:
           {
             connect(item->output().get(), SIGNAL(modified()),
                     this,                 SLOT(selectedElementChanged()));
-            if (!vtkMath::AreBoundsInitialized(segmentationBounds))
-              segmentationVolume(segmentationPtr(item)->output())->bounds(segmentationBounds);
+            if (!segmentationBounds.areValid())
+              segmentationBounds = segmentationPtr(item)->bounds();
             else
             {
-              Nm bounds[6];
-              segmentationVolume(segmentationPtr(item)->output())->bounds(bounds);
+              Bounds bounds;
+              bounds = segmentationPtr(item)->bounds();
               for (int i = 0, j = 1; i < 6; i += 2, j += 2)
               {
                 segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
@@ -160,21 +156,50 @@ namespace EspINA
       }
     }
 
-    if (vtkMath::AreBoundsInitialized(segmentationBounds))
-      m_widget->setBounds(segmentationBounds);
+    auto widget = dynamic_cast<RulerWidget *>(m_widget.get());
+    Q_ASSERT(widget);
+    if (segmentationBounds.areValid())
+      widget->setBounds(segmentationBounds);
     else
-      if (vtkMath::AreBoundsInitialized(channelBounds))
-        m_widget->setBounds(channelBounds);
+      if (channelBounds.areValid())
+        widget->setBounds(channelBounds);
       else
-        m_widget->setBounds(segmentationBounds);
+        widget->setBounds(segmentationBounds);
 
     m_selection = selection;
   }
 
   //----------------------------------------------------------------------------
+  QList<QAction*> RulerTool::actions() const
+  {
+    QList<QAction *> actionList;
+    actionList << m_action;
+
+    return actionList;
+  }
+  
+  //----------------------------------------------------------------------------
   void RulerTool::selectedElementChanged()
   {
-    selectionChanged(m_selection, false);
+    selectionChanged();
   }
 
-} /* namespace EspINA */
+  //----------------------------------------------------------------------------
+  bool RulerEventHandler::filterEvent(QEvent *e, RenderView *view)
+  {
+    // this is a passive tool
+    return false;
+  }
+
+  //----------------------------------------------------------------------------
+  void RulerEventHandler::setInUse(bool value)
+  {
+    if (m_inUse == value)
+      return;
+
+    m_inUse = value;
+    emit eventHandlerInUse(value);
+  }
+
+
+} /* namespace ESPINA */

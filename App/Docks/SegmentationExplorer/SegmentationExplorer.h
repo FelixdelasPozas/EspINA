@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -17,37 +19,28 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef ESPINA_SEGMENTATION_EXPLORER_H
+#define ESPINA_SEGMENTATION_EXPLORER_H
 
 //----------------------------------------------------------------------------
 // File:    SegmentationExplorer.h
 // Purpose: Dock widget to manage segmentations in the model
 //----------------------------------------------------------------------------
-#include <Core/Interfaces/IDockWidget.h>
+#include <Support/DockWidget.h>
 
-#include "GUI/QtWidget/IEspinaView.h"
 #include <ui_SegmentationExplorer.h>
-
-#include <GUI/ViewManager.h>
 
 class QUndoStack;
 
-#include "EspinaConfig.h"
-#include <Core/Model/EspinaModel.h>
 #include <QStringListModel>
 
-#ifdef TEST_ESPINA_MODELS
-class ModelTest;
-#endif
-
-namespace EspINA
+namespace ESPINA
 {
   class SegmentationInspector;
 
   class SegmentationExplorer
-  : public IDockWidget
-  , public IEspinaView
+  : public DockWidget
+  , public SelectableView
   {
     Q_OBJECT
     class GUI;
@@ -55,19 +48,24 @@ namespace EspINA
     class Layout;
 
   public:
-    explicit SegmentationExplorer(EspinaModel *model,
-                                  QUndoStack  *undoStack,
-                                  ViewManager *viewManager,
-                                  QWidget     *parent = 0);
+    explicit SegmentationExplorer(ModelAdapterSPtr model,
+                                  ModelFactorySPtr factory,
+                                  ViewManagerSPtr  viewManager,
+                                  QUndoStack      *undoStack,
+                                  QWidget         *parent = 0);
     virtual ~SegmentationExplorer();
 
-    virtual void initDockWidget(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager);
+    virtual void updateRepresentations(ChannelAdapterList list){}
+
+    virtual void updateRepresentations(SegmentationAdapterList list){}
+
+    virtual void updateRepresentations() {}
 
     virtual void reset(); // slot
 
   protected:
+    virtual void onSelectionSet(SelectionSPtr selection);
+
     void addLayout(const QString id, Layout *proxy);
 
     virtual bool eventFilter(QObject *sender, QEvent* e);
@@ -79,37 +77,31 @@ namespace EspINA
     void changeLayout(int index);
 
     void deleteSelectedItems();
+
     void showSelectedItemsInformation();
 
     void focusOnSegmentation(const QModelIndex &index);
 
-    void updateSelection(ViewManager::Selection selection);
-    void updateSelection(QItemSelection selected, QItemSelection deselected);
-
-    virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
-    virtual void updateChannelRepresentations(ChannelList list = ChannelList());
-
-    virtual void updateSelection();
+    void onModelSelectionChanged(QItemSelection selected, QItemSelection deselected);
 
     void updateSearchFilter();
 
+    void onSelectionChanged();
+
+    void onItemModified();
+
   protected:
-    EspinaModel *m_baseModel;
-    QUndoStack  *m_undoStack;
-    ViewManager *m_viewManager;
+    ModelAdapterSPtr m_baseModel;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
     GUI *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;
     QList<Layout *>  m_layouts;
     Layout          *m_layout;
-
-  private:
-    #ifdef TEST_ESPINA_MODELS
-    boost::shared_ptr<ModelTest>   m_modelTester;
-    #endif
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // ESPINA_SEGMENTATION_EXPLORER_H

@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -37,7 +39,7 @@ vtkStandardNewMacro(vtkCountingFrame3DWidget);
 
 //----------------------------------------------------------------------------
 vtkCountingFrame3DWidget::vtkCountingFrame3DWidget()
-: Volume(NULL)
+: Volume(nullptr)
 {
   this->WidgetState = vtkCountingFrame3DWidget::Start;
   this->ManagesCursor = 1;
@@ -48,12 +50,12 @@ vtkCountingFrame3DWidget::vtkCountingFrame3DWidget()
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Select,
                                           this, vtkCountingFrame3DWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonReleaseEvent,
@@ -61,12 +63,12 @@ vtkCountingFrame3DWidget::vtkCountingFrame3DWidget()
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ControlModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ShiftModifier,
-                                            0, 0, NULL,
+                                            0, 0, nullptr,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkCountingFrame3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
@@ -120,7 +122,7 @@ void vtkCountingFrame3DWidget::SelectAction(vtkAbstractWidget *w)
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
   self->Render();
 }
 
@@ -167,13 +169,13 @@ void vtkCountingFrame3DWidget::EndSelectAction(vtkAbstractWidget *w)
 
   self->EventCallbackCommand->SetAbortFlag(1);
   self->EndInteraction();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent,nullptr);
   self->Render();
   self->SetCursor(9999);
 }
 
 //----------------------------------------------------------------------
-void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > region, EspINA::Nm inclusionOffset[3], EspINA::Nm exclusionOffset[3])
+void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3])
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
@@ -181,12 +183,6 @@ void vtkCountingFrame3DWidget::SetCountingFrame(vtkSmartPointer< vtkPolyData > r
   vtkCountingFrame3DRepresentation *rep = reinterpret_cast<vtkCountingFrame3DRepresentation*>(this->WidgetRep);
   rep->SetCountingFrame(region);
   rep->reset();
-}
-
-//----------------------------------------------------------------------
-void vtkCountingFrame3DWidget::SetEnabled(int enabled)
-{
-  vtkAbstractWidget::SetEnabled(m_visible && enabled);
 }
 
 //----------------------------------------------------------------------

@@ -1,8 +1,10 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  <copyright holder> <email>
+    
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    This program is free software: you can redistribute it and/or modify
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -18,14 +20,18 @@
 
 
 #include "SegmentationExplorerLayout.h"
-#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
+#include <Undo/RemoveSegmentations.h>
 
-#include <Core/Model/Segmentation.h>
-#include <Core/Extensions/Tags/TagExtension.h>
-#include <Undo/RemoveSegmentation.h>
+#include <Dialogs/SegmentationInspector/SegmentationInspector.h>
+#include <Extensions/Tags/SegmentationTags.h>
+#include <Extensions/ExtensionUtils.h>
+
+// #include <Core/Model/Segmentation.h>
+// #include <Core/Extensions/Tags/TagExtension.h>
+// #include <Undo/RemoveSegmentation.h>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
   = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
@@ -51,19 +57,22 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
   if (!acceptRows)
   {
-    ModelItemPtr item = indexPtr(rowIndex);
-    if (EspINA::SEGMENTATION == item->type())
+    ItemAdapterPtr item = itemAdapter(rowIndex);
+    if (isSegmentation(item))
     {
-      SegmentationPtr segmentation = segmentationPtr(item);
-      SegmentationTags *tagExtension = dynamic_cast<SegmentationTags *>(
-        segmentation->informationExtension(SegmentationTagsID));
+      SegmentationAdapterPtr segmentation = segmentationPtr(item);
 
-      QStringList tags = tagExtension->tags();
-      int i = 0;
-      while (!acceptRows && i < tags.size())
+      if (segmentation->hasExtension(SegmentationTags::TYPE))
       {
-        acceptRows = tags[i].contains(filterRegExp());
-        ++i;
+        auto tagExtension = retrieveExtension<SegmentationTags>(segmentation);
+
+        QStringList tags = tagExtension->tags();
+        int i = 0;
+        while (!acceptRows && i < tags.size())
+        {
+          acceptRows = tags[i].contains(filterRegExp());
+          ++i;
+        }
       }
     }
   }
@@ -80,15 +89,17 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
-                                     EspinaModel       *model,
-                                     QUndoStack        *undoStack,
-                                     ViewManager       *viewManager)
+                                     ModelAdapterSPtr   model,
+                                     ModelFactorySPtr  factory,
+                                     ViewManagerSPtr    viewManager,
+                                     QUndoStack        *undoStack)
 : m_model      (model      )
-, m_undoStack  (undoStack  )
+, m_factory    (factory    )
 , m_viewManager(viewManager)
+, m_undoStack  (undoStack  )
 , m_view       (view       )
 {
-  connect(m_model, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+  connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 }
 
@@ -103,20 +114,20 @@ void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificC
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::Layout::deleteSegmentations(SegmentationList segmentations)
+void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
 {
-  m_undoStack->beginMacro("Delete Segmentations");
-  m_undoStack->push(new RemoveSegmentation(segmentations, m_model, m_viewManager));
+  m_undoStack->beginMacro(tr("Delete Segmentations"));
+  m_undoStack->push(new RemoveSegmentations(segmentations, m_model));
   m_undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationList segmentations)
+void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapterList segmentations)
 {
   SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_model, m_undoStack, m_viewManager);
+    inspector = new SegmentationInspector(segmentations, m_model, m_factory , m_viewManager, m_undoStack);
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
         SLOT(releaseInspectorResources(SegmentationInspector*)));
     m_inspectors[toKey(segmentations)] = inspector;
@@ -157,12 +168,13 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
     for(int row = start; row <= end; row++)
     {
       QModelIndex child = parent.child(row, 0);
-      ModelItemPtr item = indexPtr(child);
-      if (EspINA::SEGMENTATION == item->type())
+      ItemAdapterPtr item = itemAdapter(child);
+      if (isSegmentation(item))
       {
         SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
 
-        foreach(SegmentationInspectorKey key, m_inspectors.keys())
+        for(auto key : m_inspectors.keys())
+        {
           if (key.contains(segKey))
           {
             SegmentationInspector *inspector = m_inspectors[key];
@@ -181,16 +193,17 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
               inspector->removeSegmentation(segmentationPtr(item));
             }
           }
+        }
       }
     }
   }
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationList segmentations)
+QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
 {
   QString result;
-  foreach(SegmentationPtr seg, segmentations)
+  for(auto seg : segmentations)
     result += QString().number(reinterpret_cast<unsigned long long>(seg)) + QString("|");
 
   return result;
@@ -198,37 +211,52 @@ QString SegmentationExplorer::Layout::toKey(SegmentationList segmentations)
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::reset()
-{
-  foreach(SegmentationInspectorKey key, m_inspectors.keys())
-  {
-    m_inspectors[key]->close();
-    m_inspectors.remove(key);
-  }
+{//TODO
+//   foreach(SegmentationInspectorKey key, m_inspectors.keys())
+//   {
+//     m_inspectors[key]->close();
+//     m_inspectors.remove(key);
+//   }
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationPtr segmentation)
+QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 {
   QString result = QString().number(reinterpret_cast<unsigned long long>(segmentation)) + QString("|");
   return result;
 }
 
 //------------------------------------------------------------------------
-bool EspINA::sortSegmentationLessThan(ModelItemPtr left, ModelItemPtr right)
+bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
 {
-  SegmentationPtr leftSeg  = segmentationPtr(left);
-  SegmentationPtr rightSeg = segmentationPtr(right);
+  SegmentationAdapterPtr leftSeg  = segmentationPtr(left);
+  SegmentationAdapterPtr rightSeg = segmentationPtr(right);
 
-  if (leftSeg->taxonomy()->name() == rightSeg->taxonomy()->name())
+  if (leftSeg->category()->name() == rightSeg->category()->name())
   {
-    if (leftSeg->number() == rightSeg->number())
+    QRegExp numExtractor("(\\d+)");
+    numExtractor.setMinimal(false);
+
+    auto stringLeft = leftSeg->data(Qt::DisplayRole).toString();
+    auto stringRight = rightSeg->data(Qt::DisplayRole).toString();
+
+    if ((numExtractor.indexIn(stringLeft) == -1) || (numExtractor.indexIn(stringRight) == -1))
+      return stringLeft < stringRight;
+
+    numExtractor.indexIn(stringLeft);
+    auto numLeft = numExtractor.cap(1).toInt();
+
+    numExtractor.indexIn(stringRight);
+    auto numRight = numExtractor.cap(1).toInt();
+
+    if (numLeft == numRight)
       return left ->data(Qt::ToolTipRole).toString() < right->data(Qt::ToolTipRole).toString();
     else
-      return leftSeg->number() < rightSeg->number();
+      return numLeft < numRight;
   }
   else 
   {
-    return leftSeg->taxonomy()->name() < rightSeg->taxonomy()->name();
+    return leftSeg->category()->name() < rightSeg->category()->name();
   }
 
 }

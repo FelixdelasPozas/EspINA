@@ -1,8 +1,10 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+ *    
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
- *    This program is free software: you can redistribute it and/or modify
+ *    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -24,70 +26,126 @@
 // Plugin
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
-// EspINA
-#include <Core/Interfaces/IDynamicMenu.h>
-#include <Core/Interfaces/IFactoryExtension.h>
-#include <Core/Interfaces/IFilterCreator.h>
-#include <Core/Interfaces/IToolBarFactory.h>
-#include <GUI/ISettingsPanel.h>
-#include <GUI/ViewManager.h>
+// ESPINA
+#include <Support/ViewManager.h>
+#include <Support/Plugin.h>
+#include <Core/Analysis/Input.h>
+#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Factory/FilterFactory.h>
+#include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
-  class AppositionSurfacePlugin_EXPORT AppositionSurface
-  : public QObject
-  , public IToolBarFactory
-  , public IFactoryExtension
-  , public IFilterCreator
-  , public IDynamicMenu
+  class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
+  : public Plugin
   {
     Q_OBJECT
-    Q_INTERFACES
-    (
-      EspINA::IToolBarFactory
-      EspINA::IFactoryExtension
-      EspINA::IFilterCreator
-      EspINA::IDynamicMenu
-    )
+    Q_INTERFACES(ESPINA::Plugin)
+
+    class ASFilterFactory
+    : public FilterFactory
+    {
+        virtual FilterTypeList providedFilters() const;
+        virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+    };
 
   public:
-    explicit AppositionSurface();
-    virtual ~AppositionSurface();
+    explicit AppositionSurfacePlugin();
+    virtual ~AppositionSurfacePlugin();
 
-    virtual void initToolBarFactory(EspinaModel *model,
-                                    QUndoStack  *undoStack,
-                                    ViewManager *viewManager);
+    virtual void init(ModelAdapterSPtr model,
+                      ViewManagerSPtr  viewManager,
+                      ModelFactorySPtr factory,
+                      SchedulerSPtr    scheduler,
+                      QUndoStack      *undoStack);
 
-    virtual void initFactoryExtension(EspinaFactory *factory);
+    /* \brief Implements Plugin::channelExtensionFactories().
+     *
+     */
+    virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
-    virtual QList<IToolBar *> toolBars() const;
+    /* \brief Implements Plugin::segmentationExtensionFactories().
+     *
+     */
+    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-    virtual FilterSPtr createFilter(const QString              &filter,
-                                    const Filter::NamedInputs  &inputs,
-                                    const ModelItem::Arguments &args);
+    /* \brief Implements Plugin::colorEngines().
+     *
+     */
+    virtual NamedColorEngineSList colorEngines() const;
 
-    virtual QList<MenuEntry> menuEntries();
+    /* \brief Implements Plugin::toolGroups().
+     *
+     */
+    virtual QList<ToolGroup *> toolGroups() const;
 
-    virtual void resetMenus() {}
+    /* \brief Implements Plugin::dockWidgets().
+     *
+     */
+    virtual QList<DockWidget *> dockWidgets() const;
+
+    /* \brief Implements Plugin::renderers().
+     *
+     */
+    virtual RendererSList renderers() const;
+
+    /* \brief Implements Plugin::settingsPanels().
+     *
+     */
+    virtual SettingsPanelSList settingsPanels() const;
+
+    /* \brief Implements Plugin::menuEntries().
+     *
+     */
+    virtual QList<MenuEntry> menuEntries() const;
+
+    /* \brief Implements Plugin::analysisReaders().
+     *
+     */
+    virtual AnalysisReaderSList analysisReaders() const;
+
+    /* \brief Implements Plugin::filterFactories().
+     *
+     */
+    virtual FilterFactorySList filterFactories() const;
 
   public slots:
-    void createSynapticAppositionSurfaceAnalysis();
-
-    void segmentationAdded(SegmentationSPtr segmentation);
-
-  private:
-    static bool isSynapse(SegmentationPtr segmentation);
+    void createSASAnalysis();
+    void segmentationsAdded(SegmentationAdapterSList segmentations);
+    void finishedTask();
 
   private:
-    EspinaFactory                 *m_factory;
-    EspinaModel                   *m_model;
-    QUndoStack                    *m_undoStack;
-    ViewManager                   *m_viewManager;
-    IToolBar                      *m_toolbar;
-    ISettingsPanelPrototype        m_settings;
-    AppositionSurfaceExtensionSPtr m_extension;
+    struct Data
+    {
+      FilterAdapterSPtr adapter;
+      SegmentationAdapterSPtr segmentation;
+
+      Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
+      Data(): adapter{nullptr}, segmentation{nullptr} {};
+    };
+
+    static bool isSynapse(SegmentationAdapterPtr segmentation);
+
+  private:
+    ModelAdapterSPtr                 m_model;
+    ModelFactorySPtr                 m_factory;
+    ViewManagerSPtr                  m_viewManager;
+    SchedulerSPtr                    m_scheduler;
+    QUndoStack                      *m_undoStack;
+    SettingsPanelSPtr                m_settings;
+    SegmentationExtensionFactorySPtr m_extensionFactory;
+    ToolGroupPtr                     m_toolGroup;
+    MenuEntry                        m_menuEntry;
+    FilterFactorySPtr                m_filterFactory;
+    bool                             m_delayedAnalysis;
+    SegmentationAdapterList          m_analysisSynapses;
+
+    QMap<FilterAdapterPtr, struct Data> m_executingTasks;
+    QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
+
+    friend class AppositionSurfaceToolGroup;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// APPOSITIONSURFACE_H

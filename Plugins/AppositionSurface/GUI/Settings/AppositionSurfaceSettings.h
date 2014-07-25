@@ -2,7 +2,7 @@
  * AppositionSurfaceSettings.h
  *
  *  Created on: Jan 16, 2013
- *      Author: Félix de las Pozas Álvarez
+ *      Author: Felix de las Pozas Alvarez
  */
 
 #ifndef APPOSITIONSURFACESETTINGS_H_
@@ -10,17 +10,17 @@
 
 #include "AppositionSurfacePlugin_Export.h"
 
-// EspINA
-#include <GUI/ISettingsPanel.h>
+// ESPINA
+#include <Support/Settings/SettingsPanel.h>
 #include "ui_AppositionSurfaceSettings.h"
 
 // Qt
 #include <QColor>
 
-namespace EspINA
+namespace ESPINA
 {
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceSettings
-  : public ISettingsPanel
+  : public SettingsPanel
   , public Ui::AppositionSurfaceSettings
   {
     Q_OBJECT
@@ -35,7 +35,8 @@ namespace EspINA
     virtual void acceptChanges();
     virtual void rejectChanges();
     virtual bool modified() const;
-    virtual ISettingsPanel *clone();
+
+    virtual SettingsPanelPtr clone();
 
   public slots:
     void changeDefaultComputation(int);
@@ -44,6 +45,6 @@ namespace EspINA
     bool m_automaticComputation;
     bool m_modified;
   };
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif /* APPOSITIONSURFACESETTINGS_H_ */
