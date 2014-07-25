@@ -103,9 +103,12 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
   QMap<QString, bool> viewSettings;
   QStringList storedRenderers;
+  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
   {
     storedRenderers = settings.value(RENDERERS).toStringList();
+    for(auto name: storedRenderers)
+      viewSettings[name] = settings.value(name).toBool();
   }
   else
   {
@@ -120,6 +123,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
     settings.setValue(RENDERERS, storedRenderers);
   }
+  settings.endGroup();
 
   QStringList available2DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW2D);
   QStringList available3DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
@@ -139,12 +143,10 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   m_viewXZ->setRenderers(renderers2D);
   m_viewYZ->setRenderers(renderers2D);
 
-  if(!viewSettings.keys().empty())
-  {
-    m_viewXY->setRenderersState(viewSettings);
-    m_viewXZ->setRenderersState(viewSettings);
-    m_viewYZ->setRenderersState(viewSettings);
-  }
+  m_view3D->setRenderersState(viewSettings);
+  m_viewXY->setRenderersState(viewSettings);
+  m_viewXZ->setRenderersState(viewSettings);
+  m_viewYZ->setRenderersState(viewSettings);
 
   connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
@@ -168,16 +170,29 @@ DefaultView::~DefaultView()
 {
 //   qDebug() << "Destroy Default ESPINA View";
   ESPINA_SETTINGS(settings);
+  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   QStringList activeRenderersNames;
+  QMap<QString, bool> viewState;
 
   for(auto renderer : m_view3D->renderers())
+  {
     activeRenderersNames << renderer->name();
+    viewState[renderer->name()] = !renderer->isHidden();
+  }
 
   for(auto renderer : m_viewXY->renderers())
+  {
     activeRenderersNames << renderer->name();
+    viewState[renderer->name()] = !renderer->isHidden();
+  }
 
   settings.setValue(RENDERERS, activeRenderersNames);
+  for(auto name: activeRenderersNames)
+    settings.setValue(name, viewState[name]);
+
+  settings.endGroup();
   settings.sync();
+
 
   delete m_renderersMenu;
   delete m_camerasMenu;
