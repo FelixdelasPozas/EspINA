@@ -23,7 +23,8 @@
 #define ESPINA_CATEGORY_SELECTOR_DIALOG_H
 
 #include <QDialog>
-#include "ui_CategorySelectorDialog.h"
+
+#include "GUI/ui_CategorySelectorDialog.h"
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 
