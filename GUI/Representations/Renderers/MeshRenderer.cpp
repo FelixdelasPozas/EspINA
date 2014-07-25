@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "MeshRenderer.h"
 #include <GUI/Representations/MeshRepresentation.h>
 
@@ -28,14 +28,13 @@
 // Qt
 #include <QApplication>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   MeshRenderer::MeshRenderer(QObject *parent)
-  : RepresentationRenderer(parent)
-  , m_picker(vtkSmartPointer<vtkPropPicker>::New())
+  : RepresentationRenderer{parent}
+  , m_picker              {nullptr}
   {
-    m_picker->PickFromListOn();
   }
 
   //-----------------------------------------------------------------------------
@@ -45,17 +44,25 @@ namespace EspINA
     {
       if (m_enable)
         for (auto rep: m_representations[item])
-        {
           for (auto prop: rep->getActors())
-          {
             m_view->removeActor(prop);
-            m_picker->DeletePickList(prop);
-          }
-        }
 
       m_representations[item].clear();
     }
     m_representations.clear();
+
+    if(m_picker != nullptr)
+      m_picker->GetPickList()->RemoveAllItems();
+  }
+
+  //-----------------------------------------------------------------------------
+  void MeshRenderer::setView(RenderView *view)
+  {
+    Renderer::setView(view);
+
+    m_picker = vtkSmartPointer<vtkPropPicker>::New();
+    m_picker->InitializePickList();
+    m_picker->PickFromListOn();
   }
 
   //-----------------------------------------------------------------------------
@@ -107,9 +114,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool MeshRenderer::managesRepresentation(const QString &repName) const
+  bool MeshRenderer::managesRepresentation(const QString &repType) const
   {
-    return (repName == MeshRepresentation::TYPE);
+    return (repType == MeshRepresentation::TYPE);
   }
 
   //-----------------------------------------------------------------------------
@@ -175,7 +182,7 @@ namespace EspINA
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
 
-    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
+    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(ESPINA::SEGMENTATION))
       return selection;
 
     while (m_picker->Pick(x, y, 0, renderer))
@@ -198,7 +205,7 @@ namespace EspINA
 
           if (!repeat)
           {
-            foreach(vtkProp *actor, removedProps)
+            for(auto actor: removedProps)
               m_picker->AddPickList(actor);
 
             return selection;
@@ -214,5 +221,5 @@ namespace EspINA
     return selection;
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 

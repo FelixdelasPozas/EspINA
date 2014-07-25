@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "GUI/Representations/MeshRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include <GUI/View/View3D.h>
@@ -30,15 +30,15 @@
 #include <vtkLookupTable.h>
 #include <vtkProperty.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type MeshRepresentation::TYPE = "Mesh";
 
 //-----------------------------------------------------------------------------
 MeshRepresentation::MeshRepresentation(MeshDataSPtr mesh, RenderView *view)
-: MeshRepresentationBase(mesh, view)
+: MeshRepresentationBase{mesh, view}
 {
-  setType(tr("Mesh"));
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -55,8 +55,7 @@ void MeshRepresentation::initializePipeline()
   m_actor->SetMapper(m_mapper);
   m_actor->GetProperty()->SetSpecular(0.2);
 
-  LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
-
+  auto colors = s_highlighter->lut(m_color, m_highlight);
   double *rgba = colors->GetTableValue(1);
   m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
   m_actor->GetProperty()->SetOpacity(rgba[3]);
@@ -88,7 +87,7 @@ void MeshRepresentation::updateRepresentation()
 //-----------------------------------------------------------------------------
 RepresentationSPtr MeshRepresentation::cloneImplementation(View3D *view)
 {
-  MeshRepresentation *representation = new MeshRepresentation(m_data, view);
+  auto representation = new MeshRepresentation(m_data, view);
   representation->setView(view);
 
   return RepresentationSPtr(representation);

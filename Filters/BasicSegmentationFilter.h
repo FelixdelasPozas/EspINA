@@ -26,7 +26,7 @@
 
 #include <Core/Analysis/Filter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   // Provide common implementation for filters which generates volumetric outputs
   // with volumetric representations and marching cubes mesh representations

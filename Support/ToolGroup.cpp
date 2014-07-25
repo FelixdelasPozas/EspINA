@@ -20,7 +20,7 @@
 
 #include "ToolGroup.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ToolGroup::ToolGroup(ViewManagerSPtr viewManager,
@@ -46,6 +46,7 @@ void ToolGroup::showTools(bool value)
   {
     m_viewManager->hideTools(this);
   }
+
   blockSignals(true);
   setChecked(value);
   blockSignals(false);

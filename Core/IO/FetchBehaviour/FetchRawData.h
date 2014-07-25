@@ -21,7 +21,7 @@
 #include <Core/Analysis/FetchBehaviour.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class FetchRawData
   : public FetchBehaviour
@@ -29,6 +29,6 @@ namespace EspINA {
   public:
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_FETCH_RAW_DATA_H

@@ -27,7 +27,7 @@
 #include "GUI/Representations/Representation.h"
 #include <Core/MultiTasking/Scheduler.h>
 
-namespace EspINA
+namespace ESPINA
 {
   using RepresentationTypeList = QList<Representation::Type>;
 

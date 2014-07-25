@@ -30,7 +30,7 @@
 vtkStandardNewMacro(vtkCountingFrameRepresentationXY);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
 {
   Slice = pos;
 
@@ -43,8 +43,8 @@ void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
   double fs = frontSlice();
   double bs = backSlice();
 
-  if ((Slice < fs && !EspINA::areEqual(Slice, fs, SlicingStep[2]))
-    ||(bs < Slice && !EspINA::areEqual(Slice, bs, SlicingStep[2])))
+  if ((Slice < fs && !ESPINA::areEqual(Slice, fs, SlicingStep[2]))
+    ||(bs < Slice && !ESPINA::areEqual(Slice, bs, SlicingStep[2])))
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
@@ -55,7 +55,7 @@ void vtkCountingFrameRepresentationXY::SetSlice(EspINA::Nm pos)
     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
     {
       // Check if it is back slice
-      if (EspINA::areEqual(Slice, bs, SlicingStep[2]))
+      if (ESPINA::areEqual(Slice, bs, SlicingStep[2]))
       {
         this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
       } else
@@ -102,7 +102,7 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
 
   // Change its depth to be always on top of the XY plane
   // according to Espina's Camera
-  LB[2] = LT[2] = RT[2] = RB[2] = -EspINA::View2D::WIDGET_SHIFT;
+  LB[2] = LT[2] = RT[2] = RB[2] = -ESPINA::View2D::WIDGET_SHIFT;
 
   // Shift edges' points
   LB[0] += InclusionOffset[hCoord];
@@ -131,7 +131,7 @@ void vtkCountingFrameRepresentationXY::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord] - p1[hCoord];
 
-  EspINA::Nm offset   = InclusionOffset[hCoord] + shift;
+  ESPINA::Nm offset   = InclusionOffset[hCoord] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -170,7 +170,7 @@ void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord] - p1[hCoord];
 
-  EspINA::Nm offset = ExclusionOffset[hCoord] - shift;
+  ESPINA::Nm offset = ExclusionOffset[hCoord] - shift;
 
   if (offset < 0)
     offset = 0;
@@ -208,7 +208,7 @@ void vtkCountingFrameRepresentationXY::MoveRightEdge(double* p1, double* p2)
 void vtkCountingFrameRepresentationXY::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord] - p1[vCoord];
-  EspINA::Nm offset = InclusionOffset[vCoord] + shift;
+  ESPINA::Nm offset = InclusionOffset[vCoord] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -247,7 +247,7 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord] - p1[vCoord];
 
-  EspINA::Nm offset = ExclusionOffset[vCoord] - shift;
+  ESPINA::Nm offset = ExclusionOffset[vCoord] - shift;
 
   if (offset < 0)
     offset = 0;
@@ -283,7 +283,7 @@ void vtkCountingFrameRepresentationXY::MoveBottomEdge(double* p1, double* p2)
 
 
 //----------------------------------------------------------------------------
-EspINA::Nm vtkCountingFrameRepresentationXY::frontSlice() const
+ESPINA::Nm vtkCountingFrameRepresentationXY::frontSlice() const
 {
   double frontBounds[6];
 
@@ -295,7 +295,7 @@ EspINA::Nm vtkCountingFrameRepresentationXY::frontSlice() const
 }
 
 //----------------------------------------------------------------------------
-EspINA::Nm vtkCountingFrameRepresentationXY::backSlice() const
+ESPINA::Nm vtkCountingFrameRepresentationXY::backSlice() const
 {
   double backBounds[6];
 

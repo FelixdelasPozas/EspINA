@@ -28,7 +28,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -61,6 +61,6 @@ namespace EspINA
     SegmentationPtr m_seg;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // MODIFYFILTERPANEL_H

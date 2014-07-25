@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "SliceContourWidget.h"
 #include "vtkPlaneContourRepresentationGlyph.h"
 
@@ -16,7 +16,7 @@
 // Qt
 #include <QPolygon>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)

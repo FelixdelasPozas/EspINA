@@ -21,7 +21,7 @@
 #ifndef ESPINA_CHECK_ANALYSIS_H_
 #define ESPINA_CHECK_ANALYSIS_H_
 
-// EspINA
+// ESPINA
 #include <Dialogs/ProblemList/ProblemListDialog.h>
 #include <GUI/Model/ModelAdapter.h>
 
@@ -29,7 +29,7 @@
 #include <QDialog>
 #include "ui_CheckAnalysisDialog.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   class CheckAnalysis
@@ -144,6 +144,6 @@ namespace EspINA
       ModelAdapterSPtr     m_model;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CHECK_ANALYSIS_H_

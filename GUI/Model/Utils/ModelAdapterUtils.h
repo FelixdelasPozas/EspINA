@@ -29,7 +29,7 @@
 #include <GUI/ModelFactory.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace ModelAdapterUtils
   {
@@ -39,5 +39,5 @@ namespace EspINA
 
     unsigned int firstUnusedSegmentationNumber(const ModelAdapterSPtr model);
   }
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_MODEL_ADAPTER_UTILS_H

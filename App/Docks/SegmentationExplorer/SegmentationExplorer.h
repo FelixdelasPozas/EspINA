@@ -34,7 +34,7 @@ class QUndoStack;
 
 #include <QStringListModel>
 
-namespace EspINA
+namespace ESPINA
 {
   class SegmentationInspector;
 
@@ -102,6 +102,6 @@ namespace EspINA
     Layout          *m_layout;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEGMENTATION_EXPLORER_H

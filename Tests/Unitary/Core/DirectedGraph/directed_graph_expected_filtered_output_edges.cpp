@@ -30,7 +30,7 @@
 
 #include "DummyItem.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace UnitTesting;
 using namespace std;
 

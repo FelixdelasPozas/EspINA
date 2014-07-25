@@ -23,7 +23,7 @@
 
 #include "ui_LevelSelectorDialog.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //------------------------------------------------------------------------

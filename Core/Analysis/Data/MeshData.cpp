@@ -28,7 +28,7 @@
 #include <vtkPolyData.h>
 #include <vtkAlgorithm.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Data::Type MeshData::TYPE = "MeshData";
 
@@ -53,7 +53,7 @@ DataProxySPtr MeshData::createProxy() const
 }
 
 //----------------------------------------------------------------------------
-EspINA::MeshDataSPtr EspINA::meshData(OutputSPtr output)
+ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output)
 {
   MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshData>(output->data(MeshData::TYPE));
 

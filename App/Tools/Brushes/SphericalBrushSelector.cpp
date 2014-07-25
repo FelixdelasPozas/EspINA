@@ -26,7 +26,7 @@
 #include <QDebug>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SphericalBrushSelector::SphericalBrushSelector()
@@ -47,7 +47,7 @@ BrushSelector::BrushShape SphericalBrushSelector::createBrushShape(ViewItemAdapt
                       center[2] + radius};
 
   double brushCenter[3]{ center[0], center[1], center[2] };
-  vtkSphere *brush = vtkSphere::New();
+  auto brush = vtkSmartPointer<vtkSphere>::New();
   brush->SetCenter(brushCenter);
   brush->SetRadius(radius);
 

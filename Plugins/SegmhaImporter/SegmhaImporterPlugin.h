@@ -25,19 +25,19 @@
 // Plugin
 #include "SegmhaReader.h"
 
-// EspINA
+// ESPINA
 #include <Support/Plugin.h>
 
 // Qt
 #include <QUndoCommand>
 
-namespace EspINA
+namespace ESPINA
 {
   class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
   : public Plugin
   {
     Q_OBJECT
-    Q_INTERFACES(EspINA::Plugin)
+    Q_INTERFACES(ESPINA::Plugin)
 
   public:
     explicit SegmhaImporterPlugin();
@@ -124,6 +124,6 @@ namespace EspINA
       virtual FilterTypeList providedFilters() const;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// SEGMHAIMPORTER_H

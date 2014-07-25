@@ -24,7 +24,7 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/MeshData.h>
@@ -44,7 +44,7 @@
 // Qt
 #include <QMutex>
 
-namespace EspINA
+namespace ESPINA
 {
   template<typename T>
   class EspinaCore_EXPORT RasterizedVolume
@@ -109,10 +109,6 @@ namespace EspINA
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE);
 
-    /* \brief Implements SparseVolume<T>::fitToContent().
-     *
-     */
-    virtual void fitToContent();
 
     /* \brief Implements SparseVolume<T>::resize().
      *
@@ -235,16 +231,6 @@ namespace EspINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  void RasterizedVolume<T>::fitToContent()
-  {
-    if(this->m_blocks.empty())
-      rasterize();
-
-    SparseVolume<T>::fitToContent();
-  }
-
-  //----------------------------------------------------------------------------
-  template<typename T>
   void RasterizedVolume<T>::resize(const Bounds &bounds)
   {
     if(this->m_blocks.empty())
@@ -320,5 +306,5 @@ namespace EspINA
     this->m_mutex.unlock();
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_RASTERIZED_VOLUME_H

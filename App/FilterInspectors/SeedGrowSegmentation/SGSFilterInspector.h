@@ -27,7 +27,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
 class SeedGrowSegmentationFilter;
 class ViewManager;
@@ -64,7 +64,7 @@ public:
   virtual bool eventFilter(QObject* sender, QEvent* e );
 
 protected slots:
-  void redefineVOI(double *bounds);
+  void redefineROI(double *bounds);
   void modifyFilter();
   void updateRegionBounds();
   void modifyCloseValue(int);
@@ -83,6 +83,6 @@ private:
   Nm  m_voiBounds[6];
 };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEEDGROWSEGMENTATIONFILTERINSPECTOR_H

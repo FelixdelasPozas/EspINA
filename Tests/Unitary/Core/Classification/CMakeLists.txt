@@ -5,6 +5,7 @@ create_test_sourcelist(TEST_SOURCES Classification_Tests.cpp # this file is crea
   classification_change_existing_name.cpp
   classification_remove_category.cpp
   classification_remove_subcategory.cpp
+  classification_reparent_category.cpp
 )
 
 set( SUBJECT_DIR "${CORE_DIR}/Analysis")
@@ -41,3 +42,4 @@ add_test("\"Classification: Change Category Name\""          Classification_Test
 add_test("\"Classification: Change Category Existing Name\"" Classification_Tests classification_change_existing_name)
 add_test("\"Classification: Remove Category\""               Classification_Tests classification_remove_category)
 add_test("\"Classification: Remove Sub-Category\""           Classification_Tests classification_remove_subcategory)
+add_test("\"Classification: Reparent Category\""             Classification_Tests classification_reparent_category)

@@ -28,21 +28,21 @@ class vtkCamera;
 class vtkPolyData;
 class vtkProp3D;
 
-namespace EspINA
+namespace ESPINA
 {
   class View2D::State
   {
   public:
     virtual ~State() {}
 
-    virtual void setCrossHairs(vtkPolyData*     hline,
-                               vtkPolyData*     vline,
-                               const NmVector3& center,
-                               const Bounds&    bounds,
-                               const NmVector3& slicingStep) = 0;
+    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                               vtkSmartPointer<vtkPolyData> &vline,
+                               const NmVector3              &center,
+                               const Bounds                 &bounds,
+                               const NmVector3              &slicingStep) = 0;
 
-    virtual void updateCamera(vtkCamera *camera,
-                              const NmVector3& center) = 0;
+    virtual void updateCamera(vtkCamera       *camera,
+                              const NmVector3 &center) = 0;
   };
 
   class View2D::AxialState
@@ -51,14 +51,14 @@ namespace EspINA
   public:
     explicit AxialState(){}
 
-    virtual void setCrossHairs(vtkPolyData*     hline,
-                               vtkPolyData*     vline,
-                               const NmVector3& center,
-                               const Bounds&    bounds,
-                               const NmVector3& slicingStep);
+    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                               vtkSmartPointer<vtkPolyData> &vline,
+                               const NmVector3              &center,
+                               const Bounds                 &bounds,
+                               const NmVector3              &slicingStep);
 
-    virtual void updateCamera(vtkCamera *camera,
-                              const NmVector3& center);
+    virtual void updateCamera(vtkCamera       *camera,
+                              const NmVector3 &center);
   };
 
   class View2D::SagittalState
@@ -67,14 +67,14 @@ namespace EspINA
   public:
     explicit SagittalState(){}
 
-    virtual void setCrossHairs(vtkPolyData*     hline,
-                               vtkPolyData*     vline,
-                               const NmVector3& center,
-                               const Bounds&    bounds,
-                               const NmVector3& slicingStep);
+    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                               vtkSmartPointer<vtkPolyData> &vline,
+                               const NmVector3              &center,
+                               const Bounds                 &bounds,
+                               const NmVector3              &slicingStep);
 
-    virtual void updateCamera(vtkCamera *camera,
-                              const NmVector3& center);
+    virtual void updateCamera(vtkCamera       *camera,
+                              const NmVector3 &center);
   };
 
   class View2D::CoronalState
@@ -83,15 +83,15 @@ namespace EspINA
   public:
     explicit CoronalState(){}
 
-    virtual void setCrossHairs(vtkPolyData*     hline,
-                               vtkPolyData*     vline,
-                               const NmVector3& center,
-                               const Bounds&    bounds,
-                               const NmVector3& slicingStep);
+    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                               vtkSmartPointer<vtkPolyData> &vline,
+                               const NmVector3              &center,
+                               const Bounds                 &bounds,
+                               const NmVector3              &slicingStep);
 
-    virtual void updateCamera(vtkCamera *camera,
-                              const NmVector3& center);
+    virtual void updateCamera(vtkCamera       *camera,
+                              const NmVector3 &center);
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_STATE_H

@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "HueSelector.h"
 
 // Qt
@@ -13,7 +13,7 @@
 #include <QPainter>
 #include <QBrush>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 int HueSelector::x2val(int x)
 {

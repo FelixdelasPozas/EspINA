@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SmoothedMeshRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include "GUI/View/RenderView.h"
@@ -34,7 +34,7 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type SmoothedMeshRepresentation::TYPE = "Smoothed Mesh";
 
@@ -42,7 +42,7 @@ const Representation::Type SmoothedMeshRepresentation::TYPE = "Smoothed Mesh";
 SmoothedMeshRepresentation::SmoothedMeshRepresentation(MeshDataSPtr mesh, RenderView *view)
 : MeshRepresentationBase(mesh, view)
 {
-  setType(tr("Smoothed Mesh"));
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ void SmoothedMeshRepresentation::initializePipeline()
   m_decimate->SplittingOff();
   m_decimate->SetInputData(m_data->mesh());
 
-  vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+  auto smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   smoother->ReleaseDataFlagOn();
   smoother->SetGlobalWarningDisplay(false);
   smoother->BoundarySmoothingOn();
@@ -66,7 +66,7 @@ void SmoothedMeshRepresentation::initializePipeline()
   smoother->SetEdgeAngle(90);
   smoother->SetInputConnection(m_decimate->GetOutputPort());
 
-  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  auto normals = vtkSmartPointer<vtkPolyDataNormals>::New();
   normals->ReleaseDataFlagOn();
   normals->SetFeatureAngle(120);
   normals->SetInputConnection(smoother->GetOutputPort());
@@ -82,8 +82,7 @@ void SmoothedMeshRepresentation::initializePipeline()
   m_actor->SetMapper(m_mapper);
   m_actor->GetProperty()->SetSpecular(0.2);
 
-  LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
-
+  auto colors = s_highlighter->lut(m_color, m_highlight);
   double *rgba = colors->GetTableValue(1);
   m_actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
   m_actor->GetProperty()->SetOpacity(rgba[3]);
@@ -116,7 +115,7 @@ void SmoothedMeshRepresentation::updateRepresentation()
 //-----------------------------------------------------------------------------
 RepresentationSPtr SmoothedMeshRepresentation::cloneImplementation(View3D *view)
 {
-  SmoothedMeshRepresentation *representation = new SmoothedMeshRepresentation(m_data, view);
+  auto representation = new SmoothedMeshRepresentation(m_data, view);
   representation->setView(view);
 
   return RepresentationSPtr(representation);

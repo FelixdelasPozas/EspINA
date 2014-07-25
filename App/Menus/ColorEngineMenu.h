@@ -26,7 +26,7 @@
 #include <Support/ViewManager.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ColorEngineMenu
   : public QMenu
@@ -56,6 +56,6 @@ namespace EspINA
     QMap<QAction *, ColorEngineSPtr>  m_availableEngines;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // COLORENGINESETTINGS_H

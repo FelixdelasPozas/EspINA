@@ -31,7 +31,7 @@
 
 #include <Core/Analysis/Analysis.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   AnalysisSPtr merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
 

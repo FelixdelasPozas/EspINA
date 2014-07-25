@@ -25,7 +25,7 @@
 // #include <itkImageFileWriter.h>
 // #include <QDir>
 
-namespace EspINA 
+namespace ESPINA 
 {
   template <class T>
   DataProxySPtr VolumetricData<T>::createProxy() const
@@ -47,7 +47,7 @@ namespace EspINA
 // }
 // 
 // //----------------------------------------------------------------------------
-// ChannelVolumePtr EspINA::channelVolume(OutputPtr output)
+// ChannelVolumePtr ESPINA::channelVolume(OutputPtr output)
 // {
 //   ChannelOutputPtr channelOutput = dynamic_cast<ChannelOutputPtr>(output);
 //   Q_ASSERT(channelOutput);
@@ -55,7 +55,7 @@ namespace EspINA
 // }
 // 
 // //----------------------------------------------------------------------------
-// ChannelVolumeSPtr EspINA::channelVolume(OutputSPtr output)
+// ChannelVolumeSPtr ESPINA::channelVolume(OutputSPtr output)
 // {
 //   ChannelOutputSPtr channelOutput = boost::dynamic_pointer_cast<ChannelOutput>(output);
 //   Q_ASSERT(channelOutput.get());
@@ -143,7 +143,7 @@ namespace EspINA
 // }
 // 
 // //----------------------------------------------------------------------------
-// SegmentationVolumePtr EspINA::segmentationVolume(OutputPtr output)
+// SegmentationVolumePtr ESPINA::segmentationVolume(OutputPtr output)
 // {
 //   SegmentationOutputPtr segmentationOutput = dynamic_cast<SegmentationOutputPtr>(output);
 //   Q_ASSERT(segmentationOutput);
@@ -151,7 +151,7 @@ namespace EspINA
 // }
 // 
 // //----------------------------------------------------------------------------
-// SegmentationVolumeSPtr EspINA::segmentationVolume(OutputSPtr output)
+// SegmentationVolumeSPtr ESPINA::segmentationVolume(OutputSPtr output)
 // {
 //   SegmentationOutputSPtr segmentationOutput = boost::dynamic_pointer_cast<SegmentationOutput>(output);
 //   Q_ASSERT(segmentationOutput.get());
@@ -159,7 +159,7 @@ namespace EspINA
 // }
 // 
 // //----------------------------------------------------------------------------
-// SegmentationVolumeSPtr EspINA::segmentationVolume(SegmentationOutputSPtr output)
+// SegmentationVolumeSPtr ESPINA::segmentationVolume(SegmentationOutputSPtr output)
 // {
 //   return boost::dynamic_pointer_cast<SegmentationVolume>(output->representation(SegmentationVolume::TYPE));
 // }

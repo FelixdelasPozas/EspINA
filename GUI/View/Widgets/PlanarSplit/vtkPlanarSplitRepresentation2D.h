@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/Spatial.h>
 
@@ -25,7 +25,7 @@ class vtkActor;
 class vtkPointHandleRepresentation2D;
 class vtkHandleRepresentation;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaGUI_EXPORT vtkPlanarSplitRepresentation2D
@@ -120,6 +120,6 @@ namespace EspINA
     void operator=(const vtkPlanarSplitRepresentation2D&);  //Not implemented
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* VTKPLANARSPLITREPRESENTATION2D_H_ */

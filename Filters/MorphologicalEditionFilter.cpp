@@ -26,7 +26,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const unsigned int LABEL_VALUE = 255;
 

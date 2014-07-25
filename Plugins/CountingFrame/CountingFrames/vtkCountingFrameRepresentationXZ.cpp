@@ -29,7 +29,7 @@
 vtkStandardNewMacro(vtkCountingFrameRepresentationXZ);
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameRepresentationXZ::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameRepresentationXZ::SetSlice(ESPINA::Nm pos)
 {
   Slice = pos;
 
@@ -150,7 +150,7 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
     // LEFT
     Region->GetPoint(slice*4+0,point);
     point[0] += InclusionOffset[0];
-    point[1] = Slice + EspINA::View2D::WIDGET_SHIFT;
+    point[1] = Slice + ESPINA::View2D::WIDGET_SHIFT;
     if (slice == 0)
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
@@ -162,7 +162,7 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
     //RIGHT
     Region->GetPoint(slice*4+3,point);
     point[0] -= ExclusionOffset[0];
-    point[1] = Slice + EspINA::View2D::WIDGET_SHIFT;
+    point[1] = Slice + ESPINA::View2D::WIDGET_SHIFT;
     if (slice == 0)
       point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
@@ -183,7 +183,7 @@ void vtkCountingFrameRepresentationXZ::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[0] - p1[0];
 
-  EspINA::Nm offset   = InclusionOffset[0] + shift;
+  ESPINA::Nm offset   = InclusionOffset[0] + shift;
 
   if (offset < 0)
     offset = 0;
@@ -223,7 +223,7 @@ void vtkCountingFrameRepresentationXZ::MoveRightEdge(double* p1, double* p2)
 
   double shift = p2[0] - p1[0];
 
-  EspINA::Nm offset = ExclusionOffset[0] - shift;
+  ESPINA::Nm offset = ExclusionOffset[0] - shift;
 
   if (offset < 0)
     offset = 0;
@@ -262,14 +262,14 @@ void vtkCountingFrameRepresentationXZ::MoveTopEdge(double* p1, double* p2)
 {
 
   double shift = p2[2] - p1[2];
-  EspINA::Nm offset = InclusionOffset[2] + shift;
+  ESPINA::Nm offset = InclusionOffset[2] + shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-    EspINA::Nm nextTopEdge = realTopEdge() + offset;
-    EspINA::Nm bottomEdgeLimit  = bottomEdge() - SlicingStep[2];
+    ESPINA::Nm nextTopEdge = realTopEdge() + offset;
+    ESPINA::Nm bottomEdgeLimit  = bottomEdge() - SlicingStep[2];
 
     if (nextTopEdge > bottomEdgeLimit)
       offset = bottomEdgeLimit - realTopEdge();
@@ -311,14 +311,14 @@ void vtkCountingFrameRepresentationXZ::MoveBottomEdge(double* p1, double* p2)
 
   double shift = p2[2] - p1[2];
 
-  EspINA::Nm offset = ExclusionOffset[2] - shift;
+  ESPINA::Nm offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-    EspINA::Nm nextBottomEdge = realBottomEdge() - offset;
-    EspINA::Nm topEdgeLimit = topEdge() + SlicingStep[2];
+    ESPINA::Nm nextBottomEdge = realBottomEdge() - offset;
+    ESPINA::Nm topEdgeLimit = topEdge() + SlicingStep[2];
 
     if (topEdgeLimit > nextBottomEdge)
       offset = realBottomEdge() - topEdgeLimit;

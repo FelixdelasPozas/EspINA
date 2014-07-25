@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/Bounds.h>
 
@@ -33,7 +33,7 @@
 
 class vtkCubeAxesActor2D;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT vtkRulerWidget3D
   : public vtkAbstractWidget
@@ -73,5 +73,5 @@ namespace EspINA
       vtkSmartPointer<vtkCubeAxesActor2D> m_actor;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* VTKRULERWIDGET3D_H_ */

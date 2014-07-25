@@ -23,7 +23,7 @@
 
 #include "QComboTreeView.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)
@@ -31,6 +31,10 @@ CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)
 , m_model{model}
 , m_selectedCategory{nullptr}
 {
+  connect(m_model.get(), SIGNAL(modelAboutToBeReset()),
+          this,          SLOT(invalidateState()));
+  connect(m_model.get(), SIGNAL(modelReset()),
+          this,          SLOT(resetRootItem()));
 }
 
 
@@ -45,17 +49,18 @@ QWidget* CategorySelector::createWidget(QWidget* parent)
 
   connect(categorySelector, SIGNAL(activated(QModelIndex)),
           this,             SLOT(categorySelected(QModelIndex)));
-//   connect(m_model.get(),    SIGNAL(taxonomyAdded(TaxonomySPtr)),
-//           this,  SLOT(updateTaxonomy(TaxonomySPtr)));
-  connect(m_model.get(), SIGNAL(modelReset()),
-          this,          SLOT(resetRootItem()));
 
   connect(categorySelector, SIGNAL(destroyed(QObject*)),
           this, SLOT(onWidgetDestroyed(QObject *)));
 
-  categorySelected(categorySelector->currentModelIndex());
+  if (m_selectedCategory)
+  {
+    categorySelector->setCurrentModelIndex(m_model->categoryIndex(m_selectedCategory));
+  }
 
   m_pool << categorySelector;
+
+  emit widgetCreated();
 
   return categorySelector;
 }
@@ -75,10 +80,25 @@ void CategorySelector::categorySelected(const QModelIndex& index)
   auto item = itemAdapter(index);
   Q_ASSERT(ItemAdapter::Type::CATEGORY == item->type());
 
-  auto category = categoryPtr(item);
+  auto category = m_model->smartPointer(categoryPtr(item));
 
-  m_selectedCategory = m_model->smartPointer(category);
-  emit categoryChanged(m_selectedCategory);
+  if (m_selectedCategory != category)
+  {
+    m_selectedCategory = category;
+
+    emit categoryChanged(m_selectedCategory);
+  }
+}
+
+//------------------------------------------------------------------------
+void CategorySelector::invalidateState()
+{
+  m_selectedCategory.reset();
+  for (auto object : m_pool)
+  {
+    auto categorySelector = dynamic_cast<QComboTreeView *>(object);
+    categorySelector->setRootModelIndex(QModelIndex());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -92,10 +112,24 @@ void CategorySelector::resetRootItem()
 }
 
 //------------------------------------------------------------------------
+void CategorySelector::selectCategory(CategoryAdapterSPtr category)
+{
+  m_selectedCategory = category;
+
+  for (auto object : m_pool)
+  {
+    auto categorySelector = dynamic_cast<QComboTreeView *>(object);
+    categorySelector->setCurrentModelIndex(m_model->categoryIndex(category));
+  }
+}
+
+//------------------------------------------------------------------------
 CategoryAdapterSPtr CategorySelector::selectedCategory()
 {
   if (!m_selectedCategory)
+  {
     m_selectedCategory = m_model->classification()->categories().first();
+  }
 
   return m_selectedCategory;
 }

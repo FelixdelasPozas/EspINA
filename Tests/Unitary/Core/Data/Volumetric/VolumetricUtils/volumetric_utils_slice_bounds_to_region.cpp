@@ -30,7 +30,7 @@
 
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 bool Test_Create_Region_From_Slice_Bounds(int w, int h, int d, bool passIfEquivalent = true) {
   bool pass = true;

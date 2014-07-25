@@ -25,6 +25,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 #include <QWidgetAction>
+#include <memory>
 
 class QMenu;
 
@@ -78,5 +79,7 @@ private:
   bool                  m_enabled;
   bool                  m_checked;
 };
+
+using ActionSelectorSPtr = std::shared_ptr<ActionSelector>;
 
 #endif // ESPINA_ACTION_SELECTOR_H

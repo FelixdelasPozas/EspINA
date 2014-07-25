@@ -22,7 +22,7 @@
 #include "ContourRepresentationSettings.h"
 #include "ContourRepresentation.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ContourRepresentationSettings::ContourRepresentationSettings()

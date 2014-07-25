@@ -13,7 +13,7 @@
 
 class QCursor;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT ContourSelector
   : public Selector
@@ -32,6 +32,6 @@ namespace EspINA
 	  QCursor m_cursor;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* _CONTOURSELECTOR_H_ */

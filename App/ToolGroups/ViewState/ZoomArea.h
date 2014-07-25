@@ -8,7 +8,7 @@
 #ifndef ESPINA_ZOOM_AREA_H
 #define ESPINA_ZOOM_AREA_H
 
-// EspINA
+// ESPINA
 #include <GUI/View/EventHandler.h>
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
@@ -16,7 +16,7 @@
 
 class QCursor;
 
-namespace EspINA
+namespace ESPINA
 {
   class ZoomSelectionWidget;
 
@@ -59,18 +59,18 @@ namespace EspINA
       /* \brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
        *
        */
-      void initTool(bool value);
+      void activateTool(bool value);
 
     private:
       bool                 m_enabled;
-      EspinaWidgetSPtr     m_widget;
       ViewManagerSPtr      m_viewManager;
       QAction             *m_zoomArea;
+      EspinaWidgetSPtr     m_widget;
       EventHandlerSPtr     m_zoomHandler;
   };
 
   using ZoomAreaSPtr = std::shared_ptr<ZoomArea>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* ZOOMTOOL_H_ */

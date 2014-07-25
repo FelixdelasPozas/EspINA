@@ -32,7 +32,7 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Model/EspinaModel.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   /// Group Segmentations by Sample
@@ -79,6 +79,6 @@ namespace EspINA
     mutable QMap<ModelItemPtr, ModelItemList> m_subNodes;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // RELATIONPROXY_H

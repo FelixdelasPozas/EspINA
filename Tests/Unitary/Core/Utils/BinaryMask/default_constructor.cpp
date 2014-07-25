@@ -21,7 +21,7 @@
 #include <Core/Utils/BinaryMask.h>
 #include "TestSupport.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using BMask = BinaryMask<unsigned char>;
 

@@ -25,7 +25,7 @@
 #include <Core/Model/Filter.h>
 
 //------------------------------------------------------------------------
-EspINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
+ESPINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
                                                    EspinaModel  *model,
                                                    QUndoCommand *parent)
 : QUndoCommand(parent)
@@ -38,7 +38,7 @@ EspINA::UnloadChannelCommand::UnloadChannelCommand(ChannelPtr   channel,
 }
 
 //------------------------------------------------------------------------
-void EspINA::UnloadChannelCommand::redo()
+void ESPINA::UnloadChannelCommand::redo()
 {
   m_model->removeRelation(m_sample, m_channel, Channel::STAIN_LINK);
   m_model->removeRelation(m_reader, m_channel, Channel::VOLUME_LINK);
@@ -51,7 +51,7 @@ void EspINA::UnloadChannelCommand::redo()
 }
 
 //------------------------------------------------------------------------
-void EspINA::UnloadChannelCommand::undo()
+void ESPINA::UnloadChannelCommand::undo()
 {
   m_model->addFilter  (m_reader);
   m_model->addChannel (m_channel);

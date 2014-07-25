@@ -26,7 +26,7 @@
 
 #include "Core/Analysis/Filter.h"
 
-namespace EspINA
+namespace ESPINA
 {
   using FilterTypeList = QList<Filter::Type>;
 
@@ -50,6 +50,6 @@ namespace EspINA
   using FilterFactorySPtr = std::shared_ptr<FilterFactory>;
   using FilterFactorySList = QList<FilterFactorySPtr>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_FILTER_FACTORY_H

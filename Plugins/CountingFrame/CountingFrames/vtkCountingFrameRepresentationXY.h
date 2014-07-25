@@ -35,7 +35,7 @@ public:
   vtkTypeMacro(vtkCountingFrameRepresentationXY,
                vtkCountingFrameSliceRepresentation);
 
-  virtual void SetSlice(EspINA::Nm pos);
+  virtual void SetSlice(ESPINA::Nm pos);
 
 protected:
   static const int hCoord = 0;
@@ -43,38 +43,38 @@ protected:
 
   virtual void CreateRegion();
 
-  virtual EspINA::Nm realLeftEdge  (int slice=0)
+  virtual ESPINA::Nm realLeftEdge  (int slice=0)
   {
     double point[3];
     Region->GetPoint(slice*4+0, point);
     return point[hCoord];
   }
 
-  virtual EspINA::Nm realTopEdge   (int slice=0)
+  virtual ESPINA::Nm realTopEdge   (int slice=0)
   {
     double point[3];
     Region->GetPoint(slice*4+1, point);
     return point[vCoord];
   }
 
-  virtual EspINA::Nm realRightEdge (int slice=0)
+  virtual ESPINA::Nm realRightEdge (int slice=0)
   {
     double point[3];
     Region->GetPoint(slice*4+2, point);
     return point[hCoord];
   }
 
-  virtual EspINA::Nm realBottomEdge(int slice=0)
+  virtual ESPINA::Nm realBottomEdge(int slice=0)
   {
     double point[3];
     Region->GetPoint(slice*4+0, point);
     return point[vCoord];
   }
 
-  virtual EspINA::Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[hCoord];}
-  virtual EspINA::Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[vCoord];}
-  virtual EspINA::Nm rightEdge (int slice=0) {return realRightEdge (slice) - ExclusionOffset[hCoord];}
-  virtual EspINA::Nm bottomEdge(int slice=0) {return realBottomEdge(slice) - ExclusionOffset[vCoord];}
+  virtual ESPINA::Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[hCoord];}
+  virtual ESPINA::Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[vCoord];}
+  virtual ESPINA::Nm rightEdge (int slice=0) {return realRightEdge (slice) - ExclusionOffset[hCoord];}
+  virtual ESPINA::Nm bottomEdge(int slice=0) {return realBottomEdge(slice) - ExclusionOffset[vCoord];}
 
   virtual void MoveLeftEdge  (double* p1, double* p2);
   virtual void MoveRightEdge (double* p1, double* p2);
@@ -84,9 +84,9 @@ protected:
 protected:
   explicit vtkCountingFrameRepresentationXY(){}
 
-  EspINA::Nm frontSlice() const;
+  ESPINA::Nm frontSlice() const;
   
-  EspINA::Nm backSlice() const;
+  ESPINA::Nm backSlice() const;
 
 private:
   vtkCountingFrameRepresentationXY(const vtkCountingFrameRepresentationXY&);  //Not implemented

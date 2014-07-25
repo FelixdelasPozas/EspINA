@@ -37,7 +37,7 @@
 #include <QThreadPool>
 #include <QApplication>
  
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int scheduler_waiting_tasks( int argc, char** argv )

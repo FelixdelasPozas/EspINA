@@ -30,7 +30,7 @@
 
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 
 int volumetric_utils_create_itk_image( int argc, char** argv )

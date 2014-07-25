@@ -77,9 +77,9 @@ install (
 # set (CPACK_PACKAGE_VERSION_MAJOR ${PLUGIN_VERSION_MAJOR})
 # set (CPACK_PACKAGE_VERSION_MINOR ${PLUGIN_VERSION_MINOR})
 # set (CPACK_PACKAGE_VERSION_PATCH ${PLUGIN_VERSION_PATCH})
-# set (CPACK_PACKAGE_NAME "EspINA-SegmhaImporter")
+# set (CPACK_PACKAGE_NAME "ESPINA-SegmhaImporter")
 # set (CPACK_GENERATOR "DEB")
 # set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-# set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Import segmha segmentation files generated with python's EspINA")
+# set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Import segmha segmentation files generated with python's ESPINA")
 #
 # include (CPack)

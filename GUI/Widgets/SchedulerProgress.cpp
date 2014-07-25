@@ -28,7 +28,7 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QDebug>
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
@@ -38,6 +38,8 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 , m_scheduler(scheduler)
 , m_notification{new QWidget(0, Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint)}
 , m_width{350}
+, m_taskProgress{0}
+, m_taskTotal{0}
 {
   setupUi(this);
 
@@ -74,6 +76,8 @@ throw (Duplicated_Task_Exception)
 {
   if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
 
+  ++m_taskTotal;
+
   TaskProgressSPtr taskProgress{new TaskProgress(task)};
 
   m_tasks[task] = taskProgress;
@@ -99,6 +103,14 @@ void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 
     m_tasks[task]->setParent(0); // In case the notification are is open
     m_tasks.remove(task);
+
+    if (m_tasks.isEmpty())
+    {
+      m_taskProgress = 0;
+      m_taskTotal    = 0;
+    } else {
+      m_taskProgress += 100;
+    }
   }
 
   updateNotificationWidget();
@@ -132,7 +144,7 @@ void SchedulerProgress::updateProgress()
 
   if (total > 0)
   {
-    total = total / m_tasks.count();
+    total = (m_taskProgress + total) / m_taskTotal;
   } else
   {
     m_showTasks->setChecked(false);

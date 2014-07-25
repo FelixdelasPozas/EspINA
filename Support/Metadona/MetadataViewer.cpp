@@ -28,9 +28,9 @@
 #include <QScrollArea>
 #include <QApplication>
 
-using namespace EspINA;
+using namespace ESPINA;
 
-namespace EspINA
+namespace ESPINA
 {
   class MetadataLoader
   : public Task

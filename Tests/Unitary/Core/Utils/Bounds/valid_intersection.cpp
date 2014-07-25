@@ -28,7 +28,7 @@
 
 #include "Bounds.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 bool Test_Bounds_Intersection(const Bounds& b1, const Bounds& b2, const Bounds& res) {

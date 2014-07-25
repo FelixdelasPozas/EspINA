@@ -29,7 +29,7 @@
 #include <Core/Analysis/Sample.h>
 #include <Core/Utils/TemporalStorage.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int sample_save_snapshot( int argc, char** argv )

@@ -28,7 +28,7 @@
 
 #include "Bounds.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int comparison_operators( int argc, char** argv )

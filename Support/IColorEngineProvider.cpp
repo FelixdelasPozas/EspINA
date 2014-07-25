@@ -7,7 +7,7 @@
 
 #include "IColorEngineProvider.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   IColorEngineProvider::~IColorEngineProvider()

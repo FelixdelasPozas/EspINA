@@ -20,7 +20,7 @@
 
 #include "TubularSegmentationFilter.h"
 
-// EspINA
+// ESPINA
 #include <Core/VTK/vtkTube.h>
 #include <Core/OutputRepresentations/RawVolume.h>
 #include <App/Tools/TubularSegmentation/TubularTool.h>
@@ -34,7 +34,7 @@
 #include <QDebug>
 #include <QVector4D>
 
-namespace EspINA
+namespace ESPINA
 {
   const QString TubularSegmentationFilter::FILTER_TYPE = "TubularSegmentation::TubularSegmentationFilter";
 

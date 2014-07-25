@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #ifndef SEGMENTATIONCOLLISION_H
 #define SEGMENTATIONCOLLISION_H
 
@@ -26,7 +26,7 @@
 
 #include <Core/OutputRepresentations/RawVolume.h>
 
-namespace EspINA
+namespace ESPINA
 {
   // checks if both volumes collide at the voxel level
   bool checkCollision(SegmentationVolumeSPtr seg1,

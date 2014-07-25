@@ -34,7 +34,7 @@
 #include <QUndoCommand>
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class CODEModification
 : public QUndoCommand

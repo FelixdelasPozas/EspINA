@@ -22,7 +22,7 @@
 #include "Input.h"
 #include "Filter.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 Input::Input(FilterSPtr filter, OutputSPtr output)
@@ -33,13 +33,13 @@ Input::Input(FilterSPtr filter, OutputSPtr output)
 }
 
 //----------------------------------------------------------------------------
-InputSPtr EspINA::getInput(FilterSPtr filter, Output::Id id)
+InputSPtr ESPINA::getInput(FilterSPtr filter, Output::Id id)
 {
   return InputSPtr{new Input(filter, filter->output(id))};
 }
 
 //----------------------------------------------------------------------------
-InputSList EspINA::getInputs(FilterSPtr filter)
+InputSList ESPINA::getInputs(FilterSPtr filter)
 {
   InputSList outputs;
 

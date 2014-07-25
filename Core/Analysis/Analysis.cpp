@@ -26,7 +26,7 @@
 #include "Core/Analysis/Segmentation.h"
 #include <Core/Utils/AnalysisUtils.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 Analysis::Analysis()

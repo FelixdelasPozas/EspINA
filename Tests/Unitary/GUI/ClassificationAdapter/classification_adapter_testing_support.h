@@ -29,13 +29,16 @@
 #define CLASSIFICATION_TESTING_SUPPORT_H
 
 #include <GUI/Model/CategoryAdapter.h>
+#include <Core/Analysis/Category.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   bool TestName(const CategoryAdapterSPtr category, const QString& name);
 
   bool TestClassificationName(const CategoryAdapterSPtr category, const QString& name);
 
-} // namespace EspINA
+  bool TestCategoryAndAdapterSync(const CategoryAdapterSPtr categoryAdapter, const CategorySPtr category);
+
+} // namespace ESPINA
 
 #endif // CLASSIFICATION_TESTING_SUPPORT_H

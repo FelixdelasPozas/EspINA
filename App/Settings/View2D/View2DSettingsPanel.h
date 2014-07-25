@@ -27,7 +27,7 @@
 #include "ui_View2DSettingsPanel.h"
 #include <GUI/View/View2D.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class View2DSettingsPanel
   : public SettingsPanel
@@ -56,6 +56,6 @@ namespace EspINA
     View2D *m_view;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_SETTINGS_PANEL_H

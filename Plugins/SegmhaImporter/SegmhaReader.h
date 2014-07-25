@@ -25,7 +25,7 @@
 
 #include <Core/Factory/AnalysisReader.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class SegmhaImporterPlugin_EXPORT SegmhaReader
   : public IO::AnalysisReader
@@ -106,6 +106,6 @@ namespace EspINA
 
   using SegmhaReaderSPtr = std::shared_ptr<SegmhaReader>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEGMHA_READER_H

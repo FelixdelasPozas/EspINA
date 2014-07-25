@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   const Representation::Type VolumetricGPURepresentation<T>::TYPE = "Volumetric GPU";
@@ -32,7 +32,7 @@ namespace EspINA
   : Representation(view)
   , m_data(data)
   {
-    setType(tr("Volume GPU"));
+    setType(TYPE);
   }
 
   //-----------------------------------------------------------------------------
@@ -56,8 +56,7 @@ namespace EspINA
 
     if (m_actor != nullptr)
     {
-      LUTSPtr colors = s_highlighter->lut(m_color, m_highlight);
-
+      auto colors = s_highlighter->lut(m_color, m_highlight);
       double rgba[4], rgb[3], hsv[3];
       colors->GetTableValue(1, rgba);
       memcpy(rgb, rgba, 3 * sizeof(double));
@@ -96,7 +95,7 @@ namespace EspINA
   template<class T>
   void VolumetricGPURepresentation<T>::updateRepresentation()
   {
-    if ((m_actor != nullptr) && needUpdate())
+    if (isVisible() && (m_actor != nullptr) && needUpdate())
     {
       auto volume = vtkImage(m_data, m_data->bounds());
       m_mapper->SetInputData(volume);
@@ -114,7 +113,7 @@ namespace EspINA
   {
     auto volume = vtkImage(m_data, m_data->bounds());
 
-    vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
+    auto composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
     m_mapper = vtkSmartPointer<vtkGPUVolumeRayCastMapper>::New();
     m_mapper->ReleaseDataFlagOn();
     m_mapper->GlobalWarningDisplayOff();
@@ -133,12 +132,12 @@ namespace EspINA
     setColor(m_color);
     m_colorFunction->Modified();
 
-    vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
+    auto piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
     piecewise->AddPoint(0, 0.0);
     piecewise->AddPoint(SEG_VOXEL_VALUE, 1.0);
     piecewise->Modified();
 
-    vtkSmartPointer<vtkVolumeProperty> property = vtkSmartPointer<vtkVolumeProperty>::New();
+    auto property = vtkSmartPointer<vtkVolumeProperty>::New();
     property->SetColor(m_colorFunction);
     property->SetScalarOpacity(piecewise);
     property->DisableGradientOpacityOff();
@@ -186,6 +185,9 @@ namespace EspINA
   template<class T>
   void VolumetricGPURepresentation<T>::updateVisibility(bool visible)
   {
+    if(visible && m_actor != nullptr && needUpdate())
+      updateRepresentation();
+
     if (m_actor != nullptr)
       m_actor->SetVisibility(visible);
   }

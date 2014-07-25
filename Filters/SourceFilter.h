@@ -24,7 +24,7 @@
 
 #include <Core/Analysis/Filter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaFilters_EXPORT SourceFilter
   : public Filter
@@ -70,6 +70,6 @@ namespace EspINA
 
   using SourceFilterSPtr = std::shared_ptr<SourceFilter>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // FREEFORMSOURCE_H

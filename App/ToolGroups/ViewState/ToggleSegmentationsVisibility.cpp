@@ -23,7 +23,7 @@
 
 #include <QAction>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //----------------------------------------------------------------------------

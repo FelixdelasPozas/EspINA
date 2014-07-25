@@ -23,10 +23,10 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "MeshRepresentationBase.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
 
@@ -63,6 +63,6 @@ namespace EspINA
 
   using MeshRepresentationSPtr  = std::shared_ptr<MeshRepresentation>;
   using MeshRepresentationSList = QList<MeshRepresentationSPtr>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MESH_REPRESENTATION_H

@@ -33,7 +33,7 @@
 #include <GUI/Model/Proxies/ChannelProxy.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int channel_proxy_set_classification( int argc, char** argv )

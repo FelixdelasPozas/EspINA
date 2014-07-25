@@ -24,13 +24,13 @@
 
 #include "SegmentationExplorerLayout.h"
 
-// EspINA
+// ESPINA
 #include <Core/Model/Proxies/RelationProxy.h>
 
 // Qt
 #include <QSortFilterProxyModel>
 
-namespace EspINA
+namespace ESPINA
 {
   class CompositionLayout
   : public SegmentationExplorer::Layout
@@ -84,6 +84,6 @@ namespace EspINA
     QItemDelegate *m_delegate;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // COMPOSITIONLAYOUT_H

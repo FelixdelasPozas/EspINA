@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "NodesInformationDialog.h"
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
@@ -28,7 +28,7 @@
 // Qt
 #include <QFileDialog>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class NodesFilter

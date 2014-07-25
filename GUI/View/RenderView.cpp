@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "RenderView.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
@@ -45,18 +45,16 @@
 #include <QPushButton>
 #include <QDebug>
 
-//using EspINA::ModelAdapterUtils::volumetricData;
-
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RenderView::RenderView(QWidget* parent)
-: QWidget(parent)
-, m_colorEngine{new NumberColorEngine()}
-, m_view{new QVTKWidget()}
-, m_sceneResolution{1, 1, 1}
-, m_sceneCameraInitialized(false)
-, m_showSegmentations(true)
+: QWidget                 {parent}
+, m_colorEngine           {new NumberColorEngine()}
+, m_view                  {new QVTKWidget()}
+, m_sceneResolution       {1, 1, 1}
+, m_sceneCameraInitialized{false}
+, m_showSegmentations     {true}
 {
 }
 
@@ -65,6 +63,8 @@ RenderView::~RenderView()
 {
   m_widgets.clear();
   m_renderers.clear();
+
+  delete m_view;
 }
 
 //-----------------------------------------------------------------------------
@@ -268,12 +268,6 @@ void RenderView::add(ChannelAdapterPtr channel)
   updateSceneBounds();
 
   updateRepresentation(channel, false);
-
-  // NOTE: this signal is not disconnected when a channel is removed because is
-  // used in the redo/undo of UnloadChannelCommand
-  //TODO 2013-10-04 
-//   connect(channel->volume().get(), SIGNAL(representationChanged()),
-//           this, SLOT(updateSceneBounds()));
 }
 
 
@@ -657,7 +651,7 @@ QPushButton* RenderView::createButton(const QString& icon, const QString& toolti
   button->setMinimumSize(QSize(22,22));
   button->setMaximumSize(QSize(22,22));
   button->setEnabled(false);
-  button->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+  button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   return button;
 }
@@ -875,4 +869,25 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
   int *displayCoords = coords->GetComputedDisplayValue(m_renderer);
 
   return select(flags, displayCoords[0], displayCoords[1], multiselection);
+}
+
+//-----------------------------------------------------------------------------
+RendererSList RenderView::renderers() const
+{
+  return m_renderers;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::setRenderersState(QMap<QString, bool> state)
+{
+  for(auto renderer: m_renderers)
+  {
+    if(state.keys().contains(renderer->name()))
+    {
+      if(state[renderer->name()])
+        activateRender(renderer->name());
+       else
+         deactivateRender(renderer->name());
+    }
+  }
 }

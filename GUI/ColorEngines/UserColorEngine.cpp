@@ -24,7 +24,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
@@ -48,7 +48,7 @@ m_lastColor(0)
 //-----------------------------------------------------------------------------
 QColor UserColorEngine::color(SegmentationAdapterPtr seg)
 {
-  QString user = seg->users().last();
+  auto user = seg->users().last();
 
   if (!m_userColors.contains(user))
   {
@@ -62,14 +62,14 @@ QColor UserColorEngine::color(SegmentationAdapterPtr seg)
 LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = seg->users().join("");
+  auto lutName = seg->users().join("");
 
-  LUTSPtr seg_lut;
+  LUTSPtr seg_lut = nullptr;
 
   if (m_LUT.find(lutName) == m_LUT.end())
   {
-    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
-    QColor c = color(seg);
+    auto alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
+    auto c = color(seg);
 
     seg_lut = LUTSPtr::New();
     seg_lut->Allocate();
@@ -90,7 +90,7 @@ LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
     // with the old color.
     double rgb[3];
     m_LUT[lutName]->GetColor(1, rgb);
-    QColor segColor = seg->category()->color();
+    auto segColor = seg->category()->color();
 
     if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
       m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));

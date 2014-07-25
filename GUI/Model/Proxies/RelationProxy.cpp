@@ -29,7 +29,7 @@
 #include <QPixmap>
 #include <QSet>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 typedef QSet<ModelItemPtr> SegmentationSet;
 
@@ -73,7 +73,7 @@ QVariant RelationProxy::data(const QModelIndex& proxyIndex, int role) const
     return QVariant();
 
   ModelItemPtr item = indexPtr(proxyIndex);
-  Q_ASSERT(EspINA::SEGMENTATION == item->type());
+  Q_ASSERT(ESPINA::SEGMENTATION == item->type());
 //   if (Qt::DecorationRole == role)
 //   {
 //     QPixmap segIcon(3,16);
@@ -264,7 +264,7 @@ void RelationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
       ModelItemPtr proxyItem = indexPtr(proxyIndex);
 
       ModelItemPtr   prevLocation = parentNode(proxyItem);
-      ModelItemSList relatedItems = proxyItem->relatedItems(EspINA::RELATION_IN, m_relation);
+      ModelItemSList relatedItems = proxyItem->relatedItems(ESPINA::RELATION_IN, m_relation);
 
       QModelIndex oldParent = proxyIndex.parent();
       int fromRow = proxyIndex.row();
@@ -342,7 +342,7 @@ ModelItemPtr RelationProxy::parentNode(const ModelItemPtr node) const
 //------------------------------------------------------------------------
 void RelationProxy::registerNodes(ModelItemPtr node)
 {
-  ModelItemSList parentItems = node->relatedItems(EspINA::RELATION_IN, m_relation);
+  ModelItemSList parentItems = node->relatedItems(ESPINA::RELATION_IN, m_relation);
   if (parentItems.isEmpty())
   {
     if (!m_rootNodes.contains(node))
@@ -358,7 +358,7 @@ void RelationProxy::registerNodes(ModelItemPtr node)
     }
   }
 
-  foreach(ModelItemSPtr subItem, node->relatedItems(EspINA::RELATION_OUT, m_relation))
+  foreach(ModelItemSPtr subItem, node->relatedItems(ESPINA::RELATION_OUT, m_relation))
   {
     registerNodes(subItem.get());
   }

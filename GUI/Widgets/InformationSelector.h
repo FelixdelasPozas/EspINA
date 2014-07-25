@@ -32,7 +32,7 @@
 #include <QStringListModel>
 
 class QTreeWidgetItem;
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaFactory;

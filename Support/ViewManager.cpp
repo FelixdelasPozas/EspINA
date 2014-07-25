@@ -21,7 +21,7 @@
 #include "ViewManager.h"
 #include "ToolGroup.h"
 
-// EspINA
+// ESPINA
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
@@ -36,7 +36,7 @@
 #include <QDebug>
 #include <QToolBar>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
@@ -52,7 +52,7 @@ ViewManager::ViewManager()
 , m_activeChannel    {nullptr}
 , m_activeCategory   {nullptr}
 {
-//   QSettings settings(CESVIMA, ESPINA);
+//   QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
   bool fitEnabled = true;
 
 //   if (!settings.allKeys().contains(FIT_TO_SLICES))
@@ -69,8 +69,6 @@ ViewManager::ViewManager()
 
   connect(m_fitToSlices, SIGNAL(toggled(bool)),
           this,          SLOT(setFitToSlices(bool)));
-
-  m_roiWidget = EspinaWidgetSPtr(new ROIWidget(this));
 }
 
 //----------------------------------------------------------------------------
@@ -79,6 +77,20 @@ ViewManager::~ViewManager()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying View Manager";
 //   qDebug() << "********************************************************";
+}
+
+//----------------------------------------------------------------------------
+QList<View2D *> ViewManager::sliceViews()
+{
+  QList<View2D *> views;
+  for(auto view: m_renderViews)
+  {
+    auto view2d = dynamic_cast<View2D *>(view);
+    if(view2d != nullptr)
+      views << view2d;
+  }
+
+  return views;
 }
 
 //----------------------------------------------------------------------------
@@ -98,15 +110,9 @@ void ViewManager::registerView(RenderView* view)
 
   view->setEventHandler(m_eventHandler);
   view->setColorEngine(m_colorEngine);
-  m_roiWidget->registerView(view);
-}
 
-//----------------------------------------------------------------------------
-void ViewManager::registerView(View2D* view)
-{
-  Q_ASSERT(!m_sliceViews.contains(view));
-  m_sliceViews << view;
-  registerView(static_cast<RenderView *>(view));
+  for(auto widget: m_widgets)
+    view->addWidget(widget);
 }
 
 //----------------------------------------------------------------------------
@@ -121,20 +127,10 @@ void ViewManager::unregisterView(RenderView* view)
 {
   Q_ASSERT(m_renderViews.contains(view));
   m_renderViews.removeAll(view);
-  Q_ASSERT(m_espinaViews.contains(view));
-  m_espinaViews.removeAll(view);
-  m_roiWidget->unregisterView(view);
-}
+  unregisterView(static_cast<SelectableView *>(view));
 
-//----------------------------------------------------------------------------
-void ViewManager::unregisterView(View2D* view)
-{
-  Q_ASSERT(m_renderViews.contains(view));
-  m_renderViews.removeAll(view);
-  Q_ASSERT(m_espinaViews.contains(view));
-  m_espinaViews.removeAll(view);
-  Q_ASSERT(m_sliceViews.contains(view));
-  m_sliceViews.removeAll(view);
+  for(auto widget: m_widgets)
+    view->removeWidget(widget);
 }
 
 //----------------------------------------------------------------------------
@@ -193,7 +189,6 @@ void ViewManager::setSelection(ViewItemAdapterList selection)
   m_selection->set(selection);
 
   emit selectionChanged(m_selection);
-  //TODO 2012-10-07 computeSelectionCenter();
 }
 
 //----------------------------------------------------------------------------
@@ -208,7 +203,6 @@ void ViewManager::displayTools(ToolGroupPtr group)
 
   m_toolGroup = group;
 
-  //QAction *separator; // Cheap way of removing last separator without an 'if' in the external loop
   if (m_contextualToolBar)
   {
     for(auto tool : group->tools())
@@ -217,9 +211,7 @@ void ViewManager::displayTools(ToolGroupPtr group)
       {
         m_contextualToolBar->addAction(action);
       }
-      //separator = m_contextualToolBar->addSeparator();
     }
-    //m_contextualToolBar->removeAction(separator);
   }
 }
 
@@ -272,8 +264,9 @@ void ViewManager::unsetActiveEventHandler()
 //----------------------------------------------------------------------------
 void ViewManager::unsetEventHandler(EventHandlerSPtr eventHandler)
 {
-  if (m_eventHandler == eventHandler)
+  if (eventHandler && m_eventHandler == eventHandler)
   {
+    m_eventHandler->setInUse(false);
     m_eventHandler.reset();
 
     for(auto view : m_renderViews)
@@ -293,11 +286,15 @@ void ViewManager::updateViews()
 //----------------------------------------------------------------------------
 void ViewManager::setFitToSlices(bool enabled)
 {
-//   QSettings settings(CESVIMA, ESPINA);
+//   QSettings settings(CESVIMA, ESPINA_SETTINGS_SETTINGS);
 //   settings.setValue(FIT_TO_SLICES, enabled);
 //   settings.sync();
-  for(auto view: m_sliceViews)
-    view->setFitToSlices(enabled);
+  for(auto view: m_renderViews)
+  {
+    auto view2d = dynamic_cast<View2D*>(view);
+    if (view2d != nullptr)
+      view2d->setFitToSlices(enabled);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -310,15 +307,25 @@ void ViewManager::setActiveChannel(ChannelAdapterPtr channel)
 //----------------------------------------------------------------------------
 void ViewManager::addWidget(EspinaWidgetSPtr widget)
 {
+  if(m_widgets.contains(widget))
+    return;
+
   for(auto view: m_renderViews)
     view->addWidget(widget);
+
+  m_widgets << widget;
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::removeWidget(EspinaWidgetSPtr widget)
 {
+  if(!m_widgets.contains(widget))
+    return;
+
   for(auto view: m_renderViews)
     view->removeWidget(widget);
+
+  m_widgets.removeOne(widget);
 }
 
 //----------------------------------------------------------------------------
@@ -340,7 +347,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterPtr segme
 //   while (!stack.isEmpty())
 //   {
 //     SegmentationPtr seg = stack.pop();
-//     for(auto item : seg->relatedItems(EspINA::RELATION_OUT))
+//     for(auto item : seg->relatedItems(ESPINA::RELATION_OUT))
 //     {
 //       if (item->type() == SEGMENTATION)
 //       {
@@ -377,7 +384,7 @@ void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list
 //     while (!itemsStack.isEmpty())
 //     {
 //       SegmentationPtr segmentation = itemsStack.pop();
-//       foreach(ModelItemSPtr item, segmentation->relatedItems(EspINA::RELATION_OUT))
+//       foreach(ModelItemSPtr item, segmentation->relatedItems(ESPINA::RELATION_OUT))
 //         if (item->type() == SEGMENTATION)
 //         {
 //           SegmentationPtr relatedSeg = segmentationPtr(item.get());
@@ -415,9 +422,11 @@ void ViewManager::setSegmentationVisibility(bool visible)
 //----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
-  for(auto view: m_sliceViews)
+  for(auto view: m_renderViews)
   {
-    view->setCrosshairVisibility(value);
+    auto view2d = dynamic_cast<View2D *>(view);
+    if(view2d != nullptr)
+      view2d->setCrosshairVisibility(value);
   }
 }
 
@@ -480,18 +489,4 @@ MeasureSPtr ViewManager::measure(Nm distance)
   measure->toUnits(m_resolutionUnits);
 
   return MeasureSPtr(measure);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::setCurrentROI(ROISPtr roi)
-{
-  if((m_roi == nullptr) && (roi != nullptr))
-    addWidget(m_roiWidget);
-
-  if((m_roi != nullptr) && (roi == nullptr))
-    removeWidget(m_roiWidget);
-
-  m_roi = roi;
-
-  emit ROIChanged();
 }

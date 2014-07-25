@@ -22,7 +22,7 @@
 
 #include <QHBoxLayout>
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   SliderAction::SliderAction(QObject *parent)
@@ -129,4 +129,4 @@ namespace EspINA
       m_label->setText(m_text);
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

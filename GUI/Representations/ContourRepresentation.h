@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Utils/NmVector3.h>
 #include "GUI/Representations/Representation.h"
@@ -39,7 +39,7 @@ class vtkVoxelContour2D;
 class vtkImageCanvasSource2D;
 class vtkTexture;
 
-namespace EspINA
+namespace ESPINA
 {
   class RepresentationSettings;
   class TransparencySelectionHighlighter;
@@ -130,5 +130,5 @@ namespace EspINA
     using ContourRepresentationSPtr = std::shared_ptr<ContourRepresentation>;
     using ContourRepresentationSList = QList<ContourRepresentationSPtr>;
     
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* CONTOURREPRESENTATION_H_ */

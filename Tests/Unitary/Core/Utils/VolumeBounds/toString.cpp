@@ -31,7 +31,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int toString( int argc, char** argv )
 {

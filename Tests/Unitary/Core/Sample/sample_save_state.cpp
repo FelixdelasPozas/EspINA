@@ -28,7 +28,7 @@
 
 #include "Core/Analysis/Sample.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int sample_save_state(int argc, char** argv)

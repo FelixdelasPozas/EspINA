@@ -25,7 +25,7 @@
 #include "Core/Analysis/Extension.h"
 #include <boost/graph/graph_concepts.hpp>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ReadOnlySegmentationExtension
   : public SegmentationExtension
@@ -71,6 +71,6 @@ namespace EspINA {
     bool m_invalidateOnChange;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_READ_ONLY_SEGMENTATION_EXTENSION_H

@@ -28,7 +28,7 @@
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ChannelEdges;
 
@@ -56,6 +56,6 @@ namespace EspINA
   using EdgesAnalyzerPtr  = EdgesAnalyzer *;
   using EdgesAnalyzerSPtr = std::shared_ptr<EdgesAnalyzer>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_EDGES_ANALYZER_H

@@ -24,7 +24,7 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -34,7 +34,7 @@
 #include <QUndoStack>
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   class ModelAdapter;
   class ViewManager;
@@ -60,6 +60,6 @@ namespace EspINA
     QMap<SegmentationAdapterSPtr, CategoryAdapterSPtr> m_oldCategories;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CHANGE_CATEGORY_COMMAND_H

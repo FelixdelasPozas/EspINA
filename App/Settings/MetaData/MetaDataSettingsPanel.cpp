@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "MetaDataSettingsPanel.h"
 
 // Qt
@@ -34,13 +34,13 @@
   #include <Support/Metadona/StorageFactory.h>
 #endif
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   MetaDataSettingsPanel::MetaDataSettingsPanel()
   {
     auto label = new QLabel();
-    label->setText(tr("MetaData Storage hasn't been configured for this build of EspINA."));
+    label->setText(tr("MetaData Storage hasn't been configured for this build of ESPINA."));
     if(layout() == nullptr)
       setLayout(new QVBoxLayout());
 
@@ -70,4 +70,4 @@ namespace EspINA
     return new MetaDataSettingsPanel();
   }
 
-} // namespace EspINA
+} // namespace ESPINA

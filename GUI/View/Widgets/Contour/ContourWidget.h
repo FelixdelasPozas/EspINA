@@ -19,7 +19,7 @@
 
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   class SliceContourWidget;
 
@@ -78,6 +78,6 @@ namespace EspINA
     QColor m_color;
   };
 
-} // namespace EspINA;
+} // namespace ESPINA;
 
 #endif /* CONTOURWIDGET_H_ */

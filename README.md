@@ -54,7 +54,7 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DModule_vtkInfovi
 
 ```
 
-# Compile ITK 4.5.2
+# Compile ITK 4.4.2
 Ubuntu dependencies:
 freeglut3-dev
 libxt-dev
@@ -63,8 +63,8 @@ libqt4-opengl-dev
 libboost-graph-dev
 
 ```sh
-tar xzvf 
-cd 
+tar xzvf InsightToolkit-4.4.2.tar.gz
+cd InsightToolkit-4.4.2
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DBUILD_EXAMPLES=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING=OFF -DModule_ITKVtkGlue=ON -DVTK_DIR=<path to vtk build directory>  ..
@@ -74,8 +74,8 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 -DBUILD_EXAMPLES=O
 Ubuntu dependencies:
 
 ```sh
-tar xzvf 
-cd 
+tar xzvf metadona.tar.gz
+cd metadona
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 ..
@@ -86,5 +86,7 @@ Ubuntu dependencies:
 libboost-regex-dev
 
 ```sh
-
+mkdir build
+cd build
+ccmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++11 ..
 ```

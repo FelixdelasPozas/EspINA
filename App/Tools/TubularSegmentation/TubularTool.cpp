@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include <GUI/Pickers/PixelSelector.h>
 #include <GUI/ViewManager.h>
 #include <Core/EspinaTypes.h>
@@ -23,7 +23,7 @@
 #include <QEvent>
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   TubularTool::UpdateSegmentationNodes::UpdateSegmentationNodes(TubularSegmentationFilter::Pointer filter,

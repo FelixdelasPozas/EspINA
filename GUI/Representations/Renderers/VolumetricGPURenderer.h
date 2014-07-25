@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "VolumetricRenderer.h"
 #include "GUI/View/RenderView.h"
 #include <GUI/Representations/VolumetricGPURepresentation.h>
@@ -34,7 +34,7 @@
 // Qt
 #include <QApplication>
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   class EspinaGUI_EXPORT VolumetricGPURenderer
@@ -50,14 +50,81 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(const QString &representationName) const;
+      virtual bool managesRepresentation(const QString &representationType) const;
 
       virtual RendererSPtr clone() const {return RendererSPtr(new VolumetricGPURenderer());}
   };
 
+  //-----------------------------------------------------------------------------
+  template<class T>
+  VolumetricGPURenderer<T>::VolumetricGPURenderer(QObject* parent)
+  : VolumetricRenderer<T>{parent}
+  {
+  }
 
-} // namespace EspINA
+  //-----------------------------------------------------------------------------
+  template<class T>
+  VolumetricGPURenderer<T>::~VolumetricGPURenderer()
+  {
+  }
 
-#include "VolumetricGPURenderer.cpp"
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void VolumetricGPURenderer<T>::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
+  {
+    VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast < VolumetricGPURepresentation < T >> (rep);
+    if (volume.get() != nullptr)
+    {
+      if (this->m_representations.keys().contains(item))
+        this->m_representations[item] << rep;
+      else
+      {
+        RepresentationSList list;
+        list << rep;
+        this->m_representations.insert(item, list);
+      }
+
+      if (this->m_enable)
+        for (auto prop : rep->getActors())
+        {
+          this->m_view->addActor(prop);
+          this->m_picker->AddPickList(prop);
+        }
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void VolumetricGPURenderer<T>::removeRepresentation(RepresentationSPtr rep)
+  {
+    VolumetricGPURepresentationSPtr<T> volume = std::dynamic_pointer_cast < VolumetricGPURepresentation < T >> (rep);
+    if (volume.get() != nullptr)
+    {
+      for (auto item : this->m_representations.keys())
+        if (this->m_representations[item].contains(rep))
+        {
+          if (this->m_enable)
+            for (auto prop : rep->getActors())
+            {
+              this->m_view->removeActor(prop);
+              this->m_picker->DeletePickList(prop);
+            }
+
+          this->m_representations[item].removeAll(rep);
+
+          if (this->m_representations[item].isEmpty())
+            this->m_representations.remove(item);
+        }
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  bool VolumetricGPURenderer<T>::managesRepresentation(const QString &repType) const
+  {
+    return (repType == VolumetricGPURepresentation<T>::TYPE);
+  }
+
+} // namespace ESPINA
 
 #endif // ESPINA_VOLUMETRIC_GPU_RENDERER_H

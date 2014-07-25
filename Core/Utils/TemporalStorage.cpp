@@ -19,7 +19,7 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "TemporalStorage.h"
 
 // C++
@@ -29,7 +29,7 @@
 #include <QStack>
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   QList<TemporalStorage *> TemporalStorage::s_Storages;
 
@@ -193,4 +193,4 @@ namespace EspINA
     return removeRecursively(temporalPath.absolutePath());
   }
 
-} // namespace EspINA
+} // namespace ESPINA

@@ -23,10 +23,10 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "MeshRenderer.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT ContourRenderer
   : public MeshRenderer
@@ -41,7 +41,7 @@ namespace EspINA
 
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(const QString &repName) const;
+      virtual bool managesRepresentation(const QString &representationType) const;
 
       virtual RendererSPtr clone() const           { return RendererSPtr(new ContourRenderer()); }
       virtual RendererTypes renderType() const     { return RendererTypes(RENDERER_VIEW2D); }
@@ -52,5 +52,5 @@ namespace EspINA
                                        bool repeat = false);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_CONTOUR_RENDERER_H_

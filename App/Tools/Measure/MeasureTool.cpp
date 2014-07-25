@@ -5,14 +5,14 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "MeasureTool.h"
 #include <GUI/View/Widgets/Measures/MeasureWidget.h>
 
 // Qt
 #include <QAction>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   MeasureTool::MeasureTool(ViewManagerSPtr vm)

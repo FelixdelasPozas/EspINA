@@ -36,7 +36,7 @@
 #include <QApplication>
 #include <QThread>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int scheduler_simple_task_abort( int argc, char** argv )

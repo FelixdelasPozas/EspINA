@@ -19,7 +19,7 @@
  */
 #include <ToolGroups/Measures/MeasuresTools.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   MeasuresTools::MeasuresTools(ViewManagerSPtr viewManager, QWidget* parent)
@@ -61,4 +61,4 @@ namespace EspINA
     return tools;
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

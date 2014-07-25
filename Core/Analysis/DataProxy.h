@@ -30,7 +30,7 @@
 #define ESPINA_DATA_PROXY_H
 #include <memory>
 
-namespace EspINA {
+namespace ESPINA {
 
   class Data;
   using DataSPtr = std::shared_ptr<Data>;

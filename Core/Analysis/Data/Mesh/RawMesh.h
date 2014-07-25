@@ -24,14 +24,14 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/MeshData.h>
 #include "MeshProxy.h"
 
 // VTK
 #include <vtkSmartPointer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT RawMesh
   : public MeshData

@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "VolumetricRepresentation.h"
 #include <Core/Analysis/Data/VolumetricData.h>
 #include "RepresentationEmptySettings.h"
@@ -47,7 +47,7 @@ class vtkVolumeRayCastMapper;
 class vtkColorTransferFunction;
 class vtkVolume;
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
   
@@ -111,7 +111,7 @@ namespace EspINA
   template<class T> using VolumetricRepresentationSList = QList<VolumetricRepresentationSPtr<T>>;
 
   template class VolumetricRepresentation<itkVolumeType>;
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #include "VolumetricRepresentation.txx"
 

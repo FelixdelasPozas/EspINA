@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/RelationshipGraph.h>
 #include <Core/Model/EspinaModel.h>
@@ -27,7 +27,7 @@
 // Qt
 #include <QSortFilterProxyModel>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ConnectomicProxy::ConnectomicProxy(QObject* parent)
@@ -58,12 +58,12 @@ bool ConnectomicProxy::filterAcceptsRow(int sourceRow, const QModelIndex& source
 
   ModelItemPtr item = indexPtr(index);
 
-  if (EspINA::SEGMENTATION != item->type())
+  if (ESPINA::SEGMENTATION != item->type())
     return false;
 
   //   std::cout << "Check Segmentation " << item->data().toString().toStdString() << std::endl;
     SegmentationPtr seg = segmentationPtr(item);
-    ModelItemSList res = m_seg->relatedItems(EspINA::RELATION_OUT, CONECTOMICA); // elementos conectados a la seg de la vista
+    ModelItemSList res = m_seg->relatedItems(ESPINA::RELATION_OUT, CONECTOMICA); // elementos conectados a la seg de la vista
 
     foreach (ModelItemSPtr i_res, res)
     {

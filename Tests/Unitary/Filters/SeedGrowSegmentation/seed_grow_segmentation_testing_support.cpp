@@ -23,12 +23,12 @@
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 using ChannelVolume = SparseVolume<itkVolumeType>;
 
-InputSPtr EspINA::Testing::inputChannel()
+InputSPtr ESPINA::Testing::inputChannel()
 {
   class DummyFilter
   : public Filter

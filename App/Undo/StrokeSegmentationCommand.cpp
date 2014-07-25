@@ -25,7 +25,7 @@
 #include <Core/Model/Sample.h>
 #include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 StrokeSegmentationCommand::StrokeSegmentationCommand(ChannelPtr channel,

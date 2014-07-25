@@ -24,7 +24,7 @@
 
 #include <QIcon>
 
-namespace EspINA {
+namespace ESPINA {
   namespace GUI {
 
     class DefaultIcons
@@ -38,6 +38,6 @@ namespace EspINA {
     };
 
   } // namespace GUI
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_GUI_DEFAULTICONS_H

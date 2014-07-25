@@ -26,7 +26,7 @@
 
 #include <Core/Utils/Bounds.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -82,6 +82,6 @@ namespace EspINA
       friend class vtkCountingFrameCommand;
     };
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H

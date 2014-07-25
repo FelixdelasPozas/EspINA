@@ -26,7 +26,7 @@
 
 #include <QMouseEvent>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 SegmentationRemover::SegmentationRemover()
@@ -88,7 +88,7 @@ void SegmentationRemover::removeSegmentation(ISelector::PickList pickedSeg)
   ISelector::PickedItem element = pickedSeg.first();
 
   PickableItemPtr input = element.second;
-  Q_ASSERT(EspINA::SEGMENTATION == input->type());
+  Q_ASSERT(ESPINA::SEGMENTATION == input->type());
   SegmentationPtr seg = segmentationPtr(input);
 
   emit removeSegmentation(seg);

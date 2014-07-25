@@ -26,7 +26,7 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT UserColorEngine
   : public ColorEngine
@@ -46,9 +46,9 @@ namespace EspINA
     QMap<QString, QColor> m_userColors;
     QList<QColor>         m_colors;
     int                   m_lastColor;
-    QMap<QString, LUTSPtr> m_LUT;
+    LUTMap                m_LUT;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_USER_COLOR_ENGINE_H

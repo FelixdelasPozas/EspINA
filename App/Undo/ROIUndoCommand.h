@@ -21,23 +21,24 @@
 #ifndef ESPINA_ROI_UNDO_COMMAND_H_
 #define ESPINA_ROI_UNDO_COMMAND_H_
 
-// EspINA
+// ESPINA
+#include <App/ToolGroups/ROI/ROITools.h>
 #include <Support/ViewManager.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class ModifyROIUndoCommand
   : public QUndoCommand
   {
     public:
       /* \brief ModifyROIUndoCommand class constructor.
-       * \param[in] vm ViewManager shared pointer.
+       * \param[in] toolgroup ROIToolsGroup containing ROI accumulator.
        * \param[in] mask Mask to create/modify ROI.
        */
-      explicit ModifyROIUndoCommand(const ViewManagerSPtr vm, const BinaryMaskSPtr<unsigned char> mask);
+      explicit ModifyROIUndoCommand(ROIToolsGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
 
       /* \brief ModifyROIUndoCommand class virtual destructor.
        *
@@ -56,7 +57,7 @@ namespace EspINA
 
     private:
       ROISPtr                       m_newROI;
-      ViewManagerSPtr               m_viewManager;
+      ROIToolsGroup                *m_toolGroup;
       BinaryMaskSPtr<unsigned char> m_mask;
   };
 
@@ -65,10 +66,10 @@ namespace EspINA
   {
     public:
       /* \brief ClearROIUndoCommand class constructor.
-       * \param[in] vm Current view manager owner of the ROI to clear.
+       * \param[in] toolgroup ToolGroup that owns the ROI accumulator.
        *
        */
-      explicit ClearROIUndoCommand(const ViewManagerSPtr vm);
+      explicit ClearROIUndoCommand(ROIToolsGroup *toolgroup);
 
       /* \brief ClearROIUndoCommand class virtual destructor.
        *
@@ -86,10 +87,10 @@ namespace EspINA
       virtual void undo();
 
     private:
-      ViewManagerSPtr m_vm;
-      ROISPtr m_roi;
+      ROIToolsGroup *m_toolGroup;
+      ROISPtr        m_roi;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ROI_UNDO_COMMAND_H_

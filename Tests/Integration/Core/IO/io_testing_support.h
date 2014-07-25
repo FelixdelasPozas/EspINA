@@ -27,7 +27,7 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace IO_Testing {
     class DummyFilter
     : public Filter
@@ -54,6 +54,6 @@ namespace EspINA {
   }
 }
 
-bool operator!=(EspINA::Analysis &lhs, EspINA::Analysis &rhs);
+bool operator!=(ESPINA::Analysis &lhs, ESPINA::Analysis &rhs);
 
 #endif // TESTING_DUMMYFILTER_H

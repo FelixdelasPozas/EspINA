@@ -23,7 +23,7 @@
 
 #include <Core/Analysis/Data.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ChangeSignalDelayer
   {
@@ -52,6 +52,6 @@ namespace EspINA
       DataSPtr m_data;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif // ESPINA_CHANGE_SIGNAL_DELAYER_H_

@@ -21,7 +21,7 @@
 
 #include "InformationProxy.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy(SchedulerSPtr scheduler)
@@ -232,12 +232,12 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   {
     auto tag = m_tags[proxyIndex.column()];
 
-    if (NAME_TAG == tag)
+    if (NameTag() == tag)
     {
       return segmentation->data(role);
     }
 
-    if (CATEGORY_TAG == tag)
+    if (CategoryTag() == tag)
     {
       return segmentation->category()->data(role);
     }

@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CrosshairRepresentation.h"
 #include "RepresentationEmptySettings.h"
 #include <GUI/View/View3D.h>
@@ -29,6 +29,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkLine.h>
+#include <vtkPoints.h>
 #include <vtkCellArray.h>
 #include <vtkImageActor.h>
 #include <vtkActor.h>
@@ -44,35 +45,36 @@
 #include <QColor>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type CrosshairRepresentation::TYPE = "Crosshair";
 
 //------------------------------------------------------------------------
 CrosshairRepresentation::CrosshairRepresentation(VolumeSPtr data, RenderView *view)
-: Representation(view)
-, m_data(data)
-, m_axialExporter(nullptr)
-, m_coronalExporter(nullptr)
-, m_sagittalExporter(nullptr)
-, m_axial(nullptr)
-, m_coronal(nullptr)
-, m_sagittal(nullptr)
-, m_axialImageMapToColors(nullptr)
-, m_coronalImageMapToColors(nullptr)
-, m_sagittalImageMapToColors(nullptr)
-, m_axialBorder(nullptr)
-, m_coronalBorder(nullptr)
-, m_sagittalBorder(nullptr)
-, m_axialSquare(nullptr)
-, m_coronalSquare(nullptr)
-, m_sagittalSquare(nullptr)
-, m_lut(nullptr)
-, m_axialScaler(nullptr)
-, m_coronalScaler(nullptr)
-, m_sagittalScaler(nullptr)
-, m_tiling(false)
+: Representation{view}
+, m_data                    {data}
+, m_axialExporter           {nullptr}
+, m_coronalExporter         {nullptr}
+, m_sagittalExporter        {nullptr}
+, m_axial                   {nullptr}
+, m_coronal                 {nullptr}
+, m_sagittal                {nullptr}
+, m_axialImageMapToColors   {nullptr}
+, m_coronalImageMapToColors {nullptr}
+, m_sagittalImageMapToColors{nullptr}
+, m_axialBorder             {nullptr}
+, m_coronalBorder           {nullptr}
+, m_sagittalBorder          {nullptr}
+, m_axialSquare             {nullptr}
+, m_coronalSquare           {nullptr}
+, m_sagittalSquare          {nullptr}
+, m_lut                     {nullptr}
+, m_axialScaler             {nullptr}
+, m_coronalScaler           {nullptr}
+, m_sagittalScaler          {nullptr}
+, m_tiling                  {false}
 {
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -161,77 +163,87 @@ bool CrosshairRepresentation::hasActor(vtkProp *actor) const
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::updateRepresentation()
 {
-  if (m_axial == nullptr)
+  if (m_axial == nullptr || !isVisible())
     return;
 
+  Bounds imageBounds;
   int coordIndex = normalCoordinateIndex(Plane::XY);
   int reslicePoint = m_point[coordIndex];
 
-  Bounds imageBounds = m_data->bounds();
-  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
-  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+  if(m_lastUpdatePoint[coordIndex] != reslicePoint)
+  {
+    imageBounds = m_data->bounds();
+    imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
-  m_axialExporter = ExporterType::New();
-  m_axialExporter->ReleaseDataFlagOn();
-  m_axialExporter->SetNumberOfThreads(1);
-  m_axialExporter->SetInput(m_data->itkImage(imageBounds));
-  m_axialExporter->Update();
+    m_axialExporter->SetInput(m_data->itkImage(imageBounds));
+    m_axialExporter->Update();
 
-  m_axialScaler->SetInputData(m_axialExporter->GetOutput());
-  m_axialScaler->Update();
+    m_axialScaler->SetInputData(m_axialExporter->GetOutput());
+    m_axialScaler->Update();
 
-  m_axialImageMapToColors->SetInputConnection(m_axialScaler->GetOutputPort());
-  m_axialImageMapToColors->Update();
+    m_axialImageMapToColors->SetInputConnection(m_axialScaler->GetOutputPort());
+    m_axialImageMapToColors->Update();
 
-  m_axial->GetMapper()->SetInputConnection(m_axialImageMapToColors->GetOutputPort());
-  m_axial->SetDisplayExtent(m_axialExporter->GetOutput()->GetExtent());
-  m_axial->Update();
+    m_axial->GetMapper()->SetInputConnection(m_axialImageMapToColors->GetOutputPort());
+    m_axial->SetDisplayExtent(m_axialExporter->GetOutput()->GetExtent());
+    m_axial->Update();
+
+    m_lastUpdatePoint[coordIndex] = reslicePoint;
+  }
 
   coordIndex = normalCoordinateIndex(Plane::XZ);
   reslicePoint = m_point[coordIndex];
 
-  imageBounds = m_data->bounds();
-  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
-  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+  if(m_lastUpdatePoint[coordIndex] != reslicePoint)
+  {
+    imageBounds = m_data->bounds();
+    imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
-  m_coronalExporter = ExporterType::New();
-  m_coronalExporter->ReleaseDataFlagOn();
-  m_coronalExporter->SetNumberOfThreads(1);
-  m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_coronalExporter->Update();
+    m_coronalExporter->SetInput(m_data->itkImage(imageBounds));
+    m_coronalExporter->Update();
 
-  m_coronalScaler->SetInputData(m_coronalExporter->GetOutput());
-  m_coronalScaler->Update();
+    m_coronalScaler->SetInputData(m_coronalExporter->GetOutput());
+    m_coronalScaler->Update();
 
-  m_coronalImageMapToColors->SetInputConnection(m_coronalScaler->GetOutputPort());
-  m_coronalImageMapToColors->Update();
+    m_coronalImageMapToColors->SetInputConnection(m_coronalScaler->GetOutputPort());
+    m_coronalImageMapToColors->Update();
 
-  m_coronal->GetMapper()->SetInputConnection(m_coronalImageMapToColors->GetOutputPort());
-  m_coronal->SetDisplayExtent(m_coronalExporter->GetOutput()->GetExtent());
-  m_coronal->Update();
+    m_coronal->GetMapper()->SetInputConnection(m_coronalImageMapToColors->GetOutputPort());
+    m_coronal->SetDisplayExtent(m_coronalExporter->GetOutput()->GetExtent());
+    m_coronal->Update();
+
+    m_lastUpdatePoint[coordIndex] = reslicePoint;
+  }
 
   coordIndex = normalCoordinateIndex(Plane::YZ);
   reslicePoint = m_point[coordIndex];
 
-  imageBounds = m_data->bounds();
-  imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
-  imageBounds.setUpperInclusion(toAxis(coordIndex), true);
+  if(m_lastUpdatePoint[coordIndex] != reslicePoint)
+  {
+    imageBounds = m_data->bounds();
+    imageBounds[2*coordIndex] = imageBounds[(2*coordIndex)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(coordIndex), true);
 
-  m_sagittalExporter = ExporterType::New();
-  m_sagittalExporter->ReleaseDataFlagOn();
-  m_sagittalExporter->SetNumberOfThreads(1);
-  m_sagittalExporter->SetInput(m_data->itkImage(imageBounds));
-  m_sagittalExporter->Update();
+    auto image = m_data->itkImage(imageBounds);
 
-  m_sagittalScaler->SetInputData(m_sagittalExporter->GetOutput());
-  m_sagittalScaler->Update();
+    m_sagittalExporter->ResetPipeline();
+    m_sagittalExporter->SetInput(image);
+    m_sagittalExporter->Update();
 
-  m_sagittalImageMapToColors->SetInputConnection(m_sagittalScaler->GetOutputPort());
-  m_sagittalImageMapToColors->Update();
+    m_sagittalScaler->SetInputData(m_sagittalExporter->GetOutput());
+    m_sagittalScaler->Update();
 
-  m_sagittal->GetMapper()->SetInputConnection(m_sagittalImageMapToColors->GetOutputPort());
-  m_sagittal->SetDisplayExtent(m_sagittalExporter->GetOutput()->GetExtent());
-  m_sagittal->Update();
+    m_sagittalImageMapToColors->SetInputConnection(m_sagittalScaler->GetOutputPort());
+    m_sagittalImageMapToColors->Update();
+
+    m_sagittal->GetMapper()->SetInputConnection(m_sagittalImageMapToColors->GetOutputPort());
+    m_sagittal->SetDisplayExtent(m_sagittalExporter->GetOutput()->GetExtent());
+    m_sagittal->Update();
+
+    m_lastUpdatePoint[coordIndex] = reslicePoint;
+  }
 
   m_bounds = m_data->bounds();
   double ap0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
@@ -240,7 +252,7 @@ void CrosshairRepresentation::updateRepresentation()
   double ap3[3] = { m_bounds[1], m_bounds[2], m_bounds[4] };
 
   // Create a vtkPoints object and store the points in it
-  auto axialPoints = vtkSmartPointer<vtkPoints>::New();
+  auto axialPoints = vtkPoints::New();
   axialPoints->InsertNextPoint(ap0);
   axialPoints->InsertNextPoint(ap1);
   axialPoints->InsertNextPoint(ap2);
@@ -248,14 +260,15 @@ void CrosshairRepresentation::updateRepresentation()
   axialPoints->InsertNextPoint(ap0);
 
   // Create a cell array to store the lines in and add the lines to it
-  auto axialLines = vtkSmartPointer<vtkCellArray>::New();
+  auto axialLines = vtkCellArray::New();
 
   for (unsigned int i = 0; i < 4; i++)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
+    auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
     axialLines->InsertNextCell(line);
+    line->Delete();
   }
 
   m_axialSquare->Reset();
@@ -263,13 +276,16 @@ void CrosshairRepresentation::updateRepresentation()
   m_axialSquare->SetLines(axialLines);
   m_axialSquare->Modified();
 
+  axialPoints->Delete();
+  axialLines->Delete();
+
   double cp0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
   double cp1[3] = { m_bounds[0], m_bounds[2], m_bounds[5] };
   double cp2[3] = { m_bounds[1], m_bounds[2], m_bounds[5] };
   double cp3[3] = { m_bounds[1], m_bounds[2], m_bounds[4] };
 
   // Create a vtkPoints object and store the points in it
-  auto coronalPoints = vtkSmartPointer<vtkPoints>::New();
+  auto coronalPoints = vtkPoints::New();
   coronalPoints->InsertNextPoint(cp0);
   coronalPoints->InsertNextPoint(cp1);
   coronalPoints->InsertNextPoint(cp2);
@@ -277,14 +293,15 @@ void CrosshairRepresentation::updateRepresentation()
   coronalPoints->InsertNextPoint(cp0);
 
   // Create a cell array to store the lines in and add the lines to it
-  auto coronalLines = vtkSmartPointer<vtkCellArray>::New();
+  auto coronalLines = vtkCellArray::New();
 
   for (unsigned int i = 0; i < 4; i++)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
+    auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
     coronalLines->InsertNextCell(line);
+    line->Delete();
   }
 
   m_coronalSquare->Reset();
@@ -292,13 +309,16 @@ void CrosshairRepresentation::updateRepresentation()
   m_coronalSquare->SetLines(coronalLines);
   m_coronalSquare->Modified();
 
+  coronalPoints->Delete();
+  coronalLines->Delete();
+
   double sp0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
   double sp1[3] = { m_bounds[0], m_bounds[2], m_bounds[5] };
   double sp2[3] = { m_bounds[0], m_bounds[3], m_bounds[5] };
   double sp3[3] = { m_bounds[0], m_bounds[3], m_bounds[4] };
 
   // Create a vtkPoints object and store the points in it
-  auto sagittalPoints = vtkSmartPointer<vtkPoints>::New();
+  auto sagittalPoints = vtkPoints::New();
   sagittalPoints->InsertNextPoint(sp0);
   sagittalPoints->InsertNextPoint(sp1);
   sagittalPoints->InsertNextPoint(sp2);
@@ -306,20 +326,24 @@ void CrosshairRepresentation::updateRepresentation()
   sagittalPoints->InsertNextPoint(sp0);
 
   // Create a cell array to store the lines in and add the lines to it
-  auto sagittalLines = vtkSmartPointer<vtkCellArray>::New();
+  auto sagittalLines = vtkCellArray::New();
 
   for (unsigned int i = 0; i < 4; i++)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
+    auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
     sagittalLines->InsertNextCell(line);
+    line->Delete();
   }
 
   m_sagittalSquare->Reset();
   m_sagittalSquare->SetPoints(sagittalPoints);
   m_sagittalSquare->SetLines(sagittalLines);
   m_sagittalSquare->Modified();
+
+  sagittalPoints->Delete();
+  sagittalLines->Delete();
 
   m_axialBorder->Modified();
   m_coronalBorder->Modified();
@@ -418,7 +442,7 @@ void CrosshairRepresentation::initializePipeline()
   imageBounds[2 * coordIndex] = imageBounds[(2 * coordIndex) + 1] = reslicePoint;
 
   m_sagittalExporter = ExporterType::New();
-  m_sagittalExporter->ReleaseDataFlagOn();
+  m_sagittalExporter->ReleaseDataFlagOff();
   m_sagittalExporter->SetNumberOfThreads(1);
   m_sagittalExporter->SetInput(m_data->itkImage(imageBounds));
   m_sagittalExporter->UpdateLargestPossibleRegion();
@@ -452,7 +476,7 @@ void CrosshairRepresentation::initializePipeline()
   double ap3[3] = { m_bounds[1], m_bounds[2], m_bounds[4] };
 
   // Create a vtkPoints object and store the points in it
-  auto axialPoints = vtkSmartPointer<vtkPoints>::New();
+  auto axialPoints = vtkPoints::New();
   axialPoints->InsertNextPoint(ap0);
   axialPoints->InsertNextPoint(ap1);
   axialPoints->InsertNextPoint(ap2);
@@ -460,22 +484,25 @@ void CrosshairRepresentation::initializePipeline()
   axialPoints->InsertNextPoint(ap0);
 
   // Create a cell array to store the lines in and add the lines to it
-  auto axialLines = vtkSmartPointer<vtkCellArray>::New();
+  auto axialLines = vtkCellArray::New();
 
   for (unsigned int i = 0; i < 4; i++)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
+    auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
     axialLines->InsertNextCell(line);
+    line->Delete();
   }
 
   // Add the points & lines to the dataset
   m_axialSquare = vtkSmartPointer<vtkPolyData>::New();
-  m_axialSquare->Reset();
   m_axialSquare->SetPoints(axialPoints);
   m_axialSquare->SetLines(axialLines);
   m_axialSquare->Modified();
+
+  axialPoints->Delete();
+  axialLines->Delete();
 
   double cp0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
   double cp1[3] = { m_bounds[0], m_bounds[2], m_bounds[5] };
@@ -483,7 +510,7 @@ void CrosshairRepresentation::initializePipeline()
   double cp3[3] = { m_bounds[1], m_bounds[2], m_bounds[4] };
 
   // Create a vtkPoints object and store the points in it
-  auto coronalPoints = vtkSmartPointer<vtkPoints>::New();
+  auto coronalPoints = vtkPoints::New();
   coronalPoints->InsertNextPoint(cp0);
   coronalPoints->InsertNextPoint(cp1);
   coronalPoints->InsertNextPoint(cp2);
@@ -491,21 +518,24 @@ void CrosshairRepresentation::initializePipeline()
   coronalPoints->InsertNextPoint(cp0);
 
   // Create a cell array to store the lines in and add the lines to it
-  auto coronalLines = vtkSmartPointer<vtkCellArray>::New();
+  auto coronalLines = vtkCellArray::New();
 
   for (unsigned int i = 0; i < 4; i++)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
+    auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
     coronalLines->InsertNextCell(line);
+    line->Delete();
   }
 
   m_coronalSquare = vtkSmartPointer<vtkPolyData>::New();
-  m_coronalSquare->Reset();
   m_coronalSquare->SetPoints(coronalPoints);
   m_coronalSquare->SetLines(coronalLines);
   m_coronalSquare->Modified();
+
+  coronalPoints->Delete();
+  coronalLines->Delete();
 
   double sp0[3] = { m_bounds[0], m_bounds[2], m_bounds[4] };
   double sp1[3] = { m_bounds[0], m_bounds[2], m_bounds[5] };
@@ -513,7 +543,7 @@ void CrosshairRepresentation::initializePipeline()
   double sp3[3] = { m_bounds[0], m_bounds[3], m_bounds[4] };
 
   // Create a vtkPoints object and store the points in it
-  auto sagittalPoints = vtkSmartPointer<vtkPoints>::New();
+  auto sagittalPoints = vtkPoints::New();
   sagittalPoints->InsertNextPoint(sp0);
   sagittalPoints->InsertNextPoint(sp1);
   sagittalPoints->InsertNextPoint(sp2);
@@ -521,21 +551,24 @@ void CrosshairRepresentation::initializePipeline()
   sagittalPoints->InsertNextPoint(sp0);
 
   // Create a cell array to store the lines in and add the lines to it
-  auto sagittalLines = vtkSmartPointer<vtkCellArray>::New();
+  auto sagittalLines = vtkCellArray::New();
 
   for (unsigned int i = 0; i < 4; i++)
   {
-    auto line = vtkSmartPointer<vtkLine>::New();
+    auto line = vtkLine::New();
     line->GetPointIds()->SetId(0, i);
     line->GetPointIds()->SetId(1, i + 1);
     sagittalLines->InsertNextCell(line);
+    line->Delete();
   }
 
   m_sagittalSquare = vtkSmartPointer<vtkPolyData>::New();
-  m_sagittalSquare->Reset();
   m_sagittalSquare->SetPoints(sagittalPoints);
   m_sagittalSquare->SetLines(sagittalLines);
   m_sagittalSquare->Modified();
+
+  sagittalPoints->Delete();
+  sagittalLines->Delete();
 
   auto axialSquareMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   axialSquareMapper->SetInputData(m_axialSquare);
@@ -569,6 +602,14 @@ void CrosshairRepresentation::initializePipeline()
   m_sagittalBorder->GetProperty()->SetPointSize(2);
   m_sagittalBorder->GetProperty()->SetLineWidth(1);
   m_sagittalBorder->SetPickable(false);
+
+  m_point = m_lastUpdatePoint = m_crosshair;
+
+  // this forces an update at the first call of updateRepresentation()
+  // by then we should know the correct crosshair position
+  --m_lastUpdatePoint[0];
+  --m_lastUpdatePoint[1];
+  --m_lastUpdatePoint[2];
 }
 
 //-----------------------------------------------------------------------------
@@ -580,9 +621,9 @@ QList<vtkProp*> CrosshairRepresentation::getActors()
   {
     initializePipeline();
     NmVector3 point = m_point;
-    m_point[0]--;
-    m_point[1]--;
-    m_point[2]--;
+    --m_point[0];
+    --m_point[1];
+    --m_point[2];
     setCrosshair(point);
   }
 
@@ -606,7 +647,7 @@ void CrosshairRepresentation::setCrosshairColors(double aColor[3], double cColor
 //-----------------------------------------------------------------------------
 void CrosshairRepresentation::setCrosshair(NmVector3 point)
 {
-  if (m_axial == nullptr)
+  if (m_axial == nullptr || !isVisible())
   {
     m_point = point;
     return;
@@ -738,5 +779,15 @@ void CrosshairRepresentation::updateVisibility(bool visible)
     m_axialBorder->SetVisibility(visible);
     m_coronalBorder->SetVisibility(visible);
     m_sagittalBorder->SetVisibility(visible);
+  }
+
+  if(visible)
+  {
+    // forces reposition of actors and computation of slices.
+    NmVector3 point = m_point;
+    --m_point[0];
+    --m_point[1];
+    --m_point[2];
+    setCrosshair(point);
   }
 }

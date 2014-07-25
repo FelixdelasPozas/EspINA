@@ -17,12 +17,14 @@
   assert(x)
 */
 
-using namespace EspINA;
 
-// const QString Category::X_DIM = "Dim_X";
-// const QString Category::Y_DIM = "Dim_Y";
-// const QString Category::Z_DIM = "Dim_Z";
+using namespace ESPINA;
 
+const QString Category::X_DIM = "Dim_X";
+const QString Category::Y_DIM = "Dim_Y";
+const QString Category::Z_DIM = "Dim_Z";
+
+#include <QDebug>
 //------------------------------------------------------------------------
 Category::Category(CategoryPtr parent,
                    const QString &name,
@@ -88,9 +90,14 @@ void Category::addSubCategory(CategorySPtr subCategory)
 {
   // check if already present
   for(auto category: m_subCategories)
-    if(category == subCategory)
-      return;
+  {
+    if(category == subCategory) return;
+  }
 
+  if (subCategory->m_parent)
+  {
+    subCategory->m_parent->removeSubCategory(subCategory);
+  }
   subCategory->m_parent = this;
 
   m_subCategories << subCategory;
@@ -154,7 +161,7 @@ QVariant Category::property(const QString& prop) const
 }
 
 //------------------------------------------------------------------------
-QString EspINA::print(CategorySPtr category, int level)
+QString ESPINA::print(CategorySPtr category, int level)
 {
   QString out = QString("%1%2\n").arg(QString(level*2, ' ')).arg(category->name());
 

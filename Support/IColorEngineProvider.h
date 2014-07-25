@@ -29,7 +29,7 @@
 
 #include <Core/ColorEngines/IColorEngine.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT IColorEngineProvider
   {
@@ -41,9 +41,9 @@ namespace EspINA
 
     virtual EngineList colorEngines() = 0;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
-Q_DECLARE_INTERFACE(EspINA::IColorEngineProvider,
-                    "es.upm.cesvima.EspINA.ColorEngineProviderInterface/1.2")
+Q_DECLARE_INTERFACE(ESPINA::IColorEngineProvider,
+                    "es.upm.cesvima.ESPINA.ColorEngineProviderInterface/1.2")
 
 #endif // ICOLORENGINEPROVIDER_H

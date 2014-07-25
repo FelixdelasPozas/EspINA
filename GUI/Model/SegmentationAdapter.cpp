@@ -20,7 +20,7 @@
 
 #include "SegmentationAdapter.h"
 
-// // EspINA
+// // ESPINA
 #include <QPixmap>
 #include <QPainter>
 #include <Core/Analysis/Segmentation.h>
@@ -28,7 +28,7 @@
 #include <Extensions/Notes/SegmentationNotes.h>
 
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SegmentationAdapter::SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation)
@@ -274,32 +274,32 @@ QStringList SegmentationAdapter::users() const
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)
+bool ESPINA::operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)
 {
   return lhs->m_segmentation == rhs;
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator==(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
+bool ESPINA::operator==(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
 {
   return lhs == rhs->m_segmentation;
 }
 
 
 //------------------------------------------------------------------------
-bool EspINA::operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)
+bool ESPINA::operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator!=(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
+bool ESPINA::operator!=(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterPtr EspINA::segmentationPtr(ItemAdapterPtr item)
+SegmentationAdapterPtr ESPINA::segmentationPtr(ItemAdapterPtr item)
 {
   return dynamic_cast<SegmentationAdapterPtr>(item);
 }

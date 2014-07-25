@@ -25,7 +25,7 @@
 #include <QWidget>
 #include "GUI/View/SelectableView.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Representations/Representation.h>
@@ -46,7 +46,7 @@ class vtkRenderWindow;
 class QVTKWidget;
 class QPushButton;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaWidget;
 
@@ -182,6 +182,11 @@ namespace EspINA
     virtual void activateRender(const QString &rendererName) = 0;
     virtual void deactivateRender(const QString &rendererName) = 0;
 
+    virtual void setRenderers(RendererSList renderers) = 0;
+    RendererSList renderers() const;
+
+    void setRenderersState(QMap<QString, bool>);
+
     /* \brief Struct used to store/restore camera state. Used in
      * "view state" snapshots.
      *
@@ -260,6 +265,6 @@ namespace EspINA
     bool m_showSegmentations;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINARENDERVIEW_H

@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h"
 
 // Qt
@@ -28,7 +28,7 @@
 #include <qpaintengine.h>
 #include <qbitmap.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 AdaptiveEdgesDialog::AdaptiveEdgesDialog(QWidget *parent)

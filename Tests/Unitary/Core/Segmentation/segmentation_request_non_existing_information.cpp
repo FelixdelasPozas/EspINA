@@ -28,8 +28,8 @@
 #include "segmentation_testing_support.h"
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int segmentation_request_non_existing_information(int argc, char** argv)
 {

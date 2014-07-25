@@ -18,14 +18,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SmoothedMeshRenderer.h"
 #include "GUI/Representations/SmoothedMeshRepresentation.h"
 
 // VTK
 #include <vtkPropPicker.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   SmoothedMeshRenderer::SmoothedMeshRenderer(QObject* parent)
@@ -82,9 +82,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SmoothedMeshRenderer::managesRepresentation(const QString &repName) const
+  bool SmoothedMeshRenderer::managesRepresentation(const QString &repType) const
   {
-    return (repName == SmoothedMeshRepresentation::TYPE);
+    return (repType == SmoothedMeshRepresentation::TYPE);
   }
   
-} // namespace EspINA
+} // namespace ESPINA

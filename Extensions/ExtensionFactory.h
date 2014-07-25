@@ -25,7 +25,7 @@
 #include "Extensions/EspinaExtensions_Export.h"
 #include <Core/Analysis/Extension.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaExtensions_EXPORT ExtensionFactory
   {
@@ -40,6 +40,6 @@ namespace EspINA
   using ExtensionFactorySPtr  = std::shared_ptr<ExtensionFactory>;
   using ExtensionFactorySList = QList<ExtensionFactorySPtr>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_EXTENSION_FACTORY_H

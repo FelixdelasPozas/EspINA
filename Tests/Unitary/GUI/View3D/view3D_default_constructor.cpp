@@ -28,7 +28,7 @@
 
 #include "GUI/View/View3D.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int view3D_default_constructor(int argc, char** argv)

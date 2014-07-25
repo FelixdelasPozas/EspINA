@@ -32,7 +32,7 @@
 #include <iostream>
 #include <QList>
 
-namespace EspINA {
+namespace ESPINA {
 
   enum class Axis { X=0, Y=1, Z=2 };
 

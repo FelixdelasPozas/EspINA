@@ -36,7 +36,7 @@
 #include <QStringList>
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   class ExtensionProvider;
 
@@ -127,6 +127,6 @@ namespace EspINA
   };
 
   using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CORE_FACTORY_H

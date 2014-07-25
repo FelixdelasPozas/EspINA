@@ -39,10 +39,10 @@
 #include <Core/Factory/CoreFactory.h>
 #include <Core/IO/FetchBehaviour/FetchRawData.h>
 
-using namespace EspINA;
-using namespace EspINA::IO;
-using namespace EspINA::IO::SegFile;
-using namespace EspINA::IO::Graph;
+using namespace ESPINA;
+using namespace ESPINA::IO;
+using namespace ESPINA::IO::SegFile;
+using namespace ESPINA::IO::Graph;
 
 const QString SegFile::SegFile_V5::FORMAT_INFO_FILE = "formatInfo.ini";
 
@@ -63,7 +63,7 @@ QByteArray formatInfo()
   QTextStream infoStream(&info);
 
   infoStream << QString("SegFile Version=%1").arg(SEG_FILE_VERSION) << endl;
-  infoStream << QString("EspINA Version=%1").arg(ESPINA_VERSION) << endl;
+  infoStream << QString("ESPINA Version=%1").arg(ESPINA_VERSION) << endl;
 
   return info;
 }

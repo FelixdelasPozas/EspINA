@@ -1,10 +1,10 @@
 enable_testing()
 
-set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build EspINA Unit Tests")
+set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build ESPINA Unit Tests")
 
-set (BUILD_CI_TESTS   OFF  CACHE BOOL "Build EspINA Continous Integration Tests")
+set (BUILD_CI_TESTS   OFF  CACHE BOOL "Build ESPINA Continous Integration Tests")
 
-set (USE_DASHBOARD    OFF  CACHE BOOL "Use EspINA Unitary Tests Dashboard")
+set (USE_DASHBOARD    OFF  CACHE BOOL "Use ESPINA Unitary Tests Dashboard")
 
 if (${USE_DASHBOARD})
 
@@ -21,6 +21,7 @@ set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
 set( GUI_DIR        ${CMAKE_SOURCE_DIR}/GUI        )
 set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
+set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
 
 if (BUILD_UNIT_TESTS)

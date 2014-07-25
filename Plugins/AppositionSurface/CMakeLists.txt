@@ -9,7 +9,7 @@ set (PLUGIN_VERSION_PATCH 0)
 
 cmake_minimum_required(VERSION 2.6)
 
-  set (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
+  set (BUILD_TESTING OFF  CACHE BOOL "Build ESPINA Unitary Tests")
 
 
 if (NOT COMPILING_ESPINA)

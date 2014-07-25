@@ -21,7 +21,7 @@
 
 #include "MultiColorEngine.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
@@ -37,7 +37,7 @@ QColor MultiColorEngine::color(SegmentationAdapterPtr seg)
 
   for(auto engine: m_engines)
   {
-    QColor c = engine->color(seg);
+    auto c = engine->color(seg);
     if (engine->supportedComposition().testFlag(Color))
     {
       r += c.red();
@@ -73,9 +73,9 @@ LUTSPtr MultiColorEngine::lut(SegmentationAdapterPtr seg)
   if (m_engines.size() == 1)
     return m_engines.first()->lut(seg);
 
-  double alpha = 0.8;
-  QColor c = color(seg);
-  LUTSPtr seg_lut = LUTSPtr::New();
+  auto alpha = 0.8;
+  auto c = color(seg);
+  auto seg_lut = LUTSPtr::New();
   seg_lut->Allocate();
   seg_lut->SetNumberOfTableValues(2);
   seg_lut->Build();

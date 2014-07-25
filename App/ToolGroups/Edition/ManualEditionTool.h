@@ -34,7 +34,7 @@
 
 class QAction;
 
-namespace EspINA
+namespace ESPINA
 {
   class SliderAction;
   
@@ -55,23 +55,29 @@ namespace EspINA
 
     virtual void abortOperation();
 
-    void showOpacityControls(bool value)
-    { m_showOpacityControls = value; }
+    void showCategoryControls(bool value)
+    { m_showCategoryControls = value; }
 
     void showRadiusControls(bool value)
     { m_showRadiusControls = value; }
 
-    void showCategoryControls(bool value)
-    { m_showCategoryControls = value; }
+    void showOpacityControls(bool value)
+    { m_showOpacityControls = value; }
 
-    bool opacityControls()
-    { return m_showOpacityControls; }
+    void showEraserControls(bool value)
+    { m_showEraserControls = value; }
 
-    bool radiusControls()
+    bool categoryControlsVisibility()
+    { return m_showCategoryControls; }
+
+    bool radiusControlsVisibility()
     { return m_showRadiusControls; }
 
-    bool categoryControls()
-    { return m_showCategoryControls; }
+    bool opacityControlsVisibility()
+    { return m_showOpacityControls; }
+
+    bool eraserControlsVisibility()
+    { return m_showEraserControls; }
 
     void setPencil2DIcon(QIcon icon)
     { m_discTool->setIcon(icon); }
@@ -86,8 +92,10 @@ namespace EspINA
     { m_sphereTool->setText(text); }
 
   signals:
-    void stopDrawing();
     void brushModeChanged(BrushSelector::BrushMode);
+
+    void stopDrawing(ViewItemAdapterPtr item, bool eraseModeEntered);
+
     void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
 
   public slots:
@@ -104,34 +112,45 @@ namespace EspINA
     virtual void unsetSelector();
     virtual void categoryChanged(CategoryAdapterSPtr category);
 
+  private:
+    void setControlVisibility(bool visible);
+
+    CategoryAdapterSPtr currentReferenceCategory();
+
+  private slots:
+    void setEraserMode(bool value);
+
   protected:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
 
-    CircularBrushSelectorSPtr  m_circularBrushSelector;
-    SphericalBrushSelectorSPtr m_sphericalBrushSelector;
-
+    BrushSelectorSPtr m_circularBrushSelector;
+    BrushSelectorSPtr m_sphericalBrushSelector;
     BrushSelectorSPtr m_currentSelector;
+
     ActionSelector   *m_drawToolSelector;
     CategorySelector *m_categorySelector;
     QMap<QAction *, SelectorSPtr> m_drawTools;
 
     SliderAction *m_radiusWidget;
     SliderAction *m_opacityWidget;
+    QAction      *m_eraserWidget;
 
     QAction *m_discTool;
     QAction *m_sphereTool;
 
-    bool m_showOpacityControls;
-    bool m_showRadiusControls;
     bool m_showCategoryControls;
+    bool m_showRadiusControls;
+    bool m_showOpacityControls;
+    bool m_showEraserControls;
 
     bool m_enabled;
+    bool m_hasEnteredEraserMode;
   };
 
   using ManualEditionToolPtr = ManualEditionTool *;
   using ManualEditionToolSPtr = std::shared_ptr<ManualEditionTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MANUAL_EDITION_TOOL_H_

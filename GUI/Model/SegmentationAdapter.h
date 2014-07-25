@@ -30,7 +30,7 @@
 #include "GUI/Model/ViewItemAdapter.h"
 #include <Core/Analysis/Extension.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class CategoryAdapter;
   using CategoryAdapterPtr   = CategoryAdapter *;

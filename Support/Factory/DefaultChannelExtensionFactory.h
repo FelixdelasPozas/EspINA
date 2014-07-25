@@ -24,7 +24,7 @@
 
 #include <Core/Factory/ChannelExtensionFactory.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class DefaultChannelExtensionFactory
   : public ChannelExtensionFactory
@@ -41,6 +41,6 @@ namespace EspINA {
   private:
     SchedulerSPtr m_scheduler;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_DEFAULT_CHANNEL_EXTENSION_FACTORY_H

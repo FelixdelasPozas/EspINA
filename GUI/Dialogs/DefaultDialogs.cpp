@@ -22,8 +22,8 @@
 #include "DefaultDialogs.h"
 #include <QMessageBox>
 
-using namespace EspINA;
-using namespace EspINA::GUI;
+using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 QString DefaultDialogs::OpenFile(const QString& title, const QString& filters, const QString& path)
@@ -120,4 +120,16 @@ bool DefaultDialogs::UserConfirmation(const QString& title, const QString& messa
   dialog.setStandardButtons(QMessageBox::Ok|QMessageBox::Cancel);
 
   return dialog.exec() == QMessageBox::Ok;
+}
+
+//------------------------------------------------------------------------
+void DefaultDialogs::InformationMessage(const QString& title, const QString& message)
+{
+  QMessageBox dialog;
+
+  dialog.setWindowTitle(title);
+  dialog.setText(message);
+  dialog.setStandardButtons(QMessageBox::Ok);
+
+  dialog.exec();
 }

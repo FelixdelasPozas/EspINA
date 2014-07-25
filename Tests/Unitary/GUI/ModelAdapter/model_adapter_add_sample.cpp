@@ -33,7 +33,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int model_adapter_add_sample(int argc, char** argv )
 {

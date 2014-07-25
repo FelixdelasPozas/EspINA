@@ -38,7 +38,7 @@
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   template<typename T>
@@ -199,6 +199,6 @@ namespace EspINA
     m_mesh->DeepCopy(marchingCubes->GetOutput());
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MARCHING_CUBES_MESH_H

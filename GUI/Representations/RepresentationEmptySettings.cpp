@@ -21,7 +21,7 @@
 
 #include "RepresentationEmptySettings.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RepresentationEmptySettings::RepresentationEmptySettings()
@@ -32,11 +32,9 @@ RepresentationEmptySettings::RepresentationEmptySettings()
 //----------------------------------------------------------------------------
 void RepresentationEmptySettings::get(RepresentationSPtr representation)
 {
-
 }
 
 //----------------------------------------------------------------------------
 void RepresentationEmptySettings::set(RepresentationSPtr representation)
 {
-
 }

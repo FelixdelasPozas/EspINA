@@ -24,7 +24,7 @@
 #include <Core/Analysis/NeuroItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ViewItemAdapter::ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
@@ -55,7 +55,7 @@ RepresentationTypeList ViewItemAdapter::representationTypes() const
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterPtr EspINA::viewItemAdapter(ItemAdapterPtr item)
+ViewItemAdapterPtr ESPINA::viewItemAdapter(ItemAdapterPtr item)
 {
   return static_cast<ViewItemAdapterPtr>(item);
 }

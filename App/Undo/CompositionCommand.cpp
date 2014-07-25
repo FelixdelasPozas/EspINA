@@ -31,7 +31,7 @@
 
 #include <QApplication>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
@@ -100,10 +100,10 @@ void CompositionCommand::redo()
   m_model->addFilter(m_filter);
   foreach(SegmentationSPtr seg, m_input)
   {
-//     SharedModelItemList segFilter = seg->relatedItems(EspINA::RELATION_IN, CREATELINK);
+//     SharedModelItemList segFilter = seg->relatedItems(ESPINA::RELATION_IN, CREATELINK);
 //     Q_ASSERT(segFilter.size() == 1);
 //     SharedModelItemPtr item = segFilter[0];
-//     Q_ASSERT(EspINA::FILTER == item->type());
+//     Q_ASSERT(ESPINA::FILTER == item->type());
     m_model->addRelation(seg->filter(), m_filter, link(seg));
   }
 

@@ -23,7 +23,7 @@
 
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 DefaultChannelExtensionFactory::DefaultChannelExtensionFactory(SchedulerSPtr scheduler)

@@ -18,21 +18,17 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CachedSliceRendererTask.h"
 #include <GUI/Representations/SliceCachedRepresentation.h>
 
-// C++
-#include <chrono>
-
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CachedSliceRendererTask::CachedSliceRendererTask(SchedulerSPtr scheduler)
-  : Task{scheduler}
-  , m_executionTime{0}
-  , m_node{nullptr}
-  , m_position{0}
+  : Task           {scheduler}
+  , m_node         {nullptr}
+  , m_position     {0}
   {
   }
 
@@ -108,9 +104,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void CachedSliceRendererTask::run()
   {
-    auto start = std::chrono::high_resolution_clock::now();
     int count = 0;
-
     bool pendingData = true;
 
     while(pendingData)
@@ -148,10 +142,7 @@ namespace EspINA
     }
     m_node->mutex.unlock();
 
-    auto end = std::chrono::high_resolution_clock::now();
-    m_executionTime = std::chrono::duration_cast < std::chrono::milliseconds > (end - start).count();
-
     emit ready(m_node);
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

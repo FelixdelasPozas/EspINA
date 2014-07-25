@@ -29,7 +29,7 @@
 
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 bool LocationLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
@@ -37,12 +37,12 @@ bool LocationLayout::SortFilter::lessThan(const QModelIndex& left, const QModelI
   ModelItemPtr rightItem = indexPtr(right);
 
   if (leftItem->type() == rightItem->type())
-    if (EspINA::SEGMENTATION == leftItem->type())
+    if (ESPINA::SEGMENTATION == leftItem->type())
       return sortSegmentationLessThan(leftItem, rightItem);
     else
       return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
     else
-      return leftItem->type() == EspINA::TAXONOMY;
+      return leftItem->type() == ESPINA::TAXONOMY;
 }
 
 //------------------------------------------------------------------------
@@ -134,13 +134,13 @@ void LocationLayout::showSelectedItemsInformation()
     foreach(QModelIndex index, selectedIndexes)
     {
       ModelItemPtr itemPtr = item(index);
-      if (EspINA::SAMPLE == itemPtr->type())
+      if (ESPINA::SAMPLE == itemPtr->type())
       {
         subIndexes << indices(index, true);
         foreach(QModelIndex subIndex, subIndexes)
         {
           ModelItemPtr subItem = item(subIndex);
-          if (EspINA::SEGMENTATION == subItem->type())
+          if (ESPINA::SEGMENTATION == subItem->type())
           {
             SegmentationPtr seg = segmentationPtr(subItem);
             if (!segmentations.contains(seg))
@@ -158,13 +158,13 @@ void LocationLayout::showSelectedItemsInformation()
     foreach(QModelIndex index, selectedIndexes)
     {
       ModelItemPtr itemPtr = item(index);
-      if (EspINA::SEGMENTATION == itemPtr->type())
+      if (ESPINA::SEGMENTATION == itemPtr->type())
       {
         subIndexes << indices(index, true);
         foreach(QModelIndex subIndex, subIndexes)
         {
           ModelItemPtr subItem = item(subIndex);
-          if (EspINA::SEGMENTATION == subItem->type())
+          if (ESPINA::SEGMENTATION == subItem->type())
           {
             SegmentationPtr seg = segmentationPtr(subItem);
             if (!segmentations.contains(seg))
@@ -194,10 +194,10 @@ bool LocationLayout::selectedItems(SampleList &samples, SegmentationSet &segment
     ModelItemPtr item = LocationLayout::item(index);
     switch (item->type())
     {
-      case EspINA::SEGMENTATION:
+      case ESPINA::SEGMENTATION:
         segmentations << segmentationPtr(item);
         break;
-      case EspINA::SAMPLE:
+      case ESPINA::SAMPLE:
         samples << samplePtr(item);
         break;
       default:
@@ -224,7 +224,7 @@ void LocationLayout::selectLocationElements()
       continue;
 
     ModelItemPtr sortItem = item(sortIndex);
-    if (EspINA::SEGMENTATION != sortItem->type())
+    if (ESPINA::SEGMENTATION != sortItem->type())
       continue;
 
     QItemSelection selectedItem(sortIndex, sortIndex);
@@ -250,7 +250,7 @@ bool LocationLayout::hasInformationToShow()
     foreach(QModelIndex index, selectedIndexes)
     {
       ModelItemPtr itemPtr = item(index);
-      if (EspINA::SAMPLE == itemPtr->type())
+      if (ESPINA::SAMPLE == itemPtr->type())
       {
         subIndexes << indices(index, true);
         if (!subIndexes.empty())

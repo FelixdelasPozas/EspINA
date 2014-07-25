@@ -27,7 +27,7 @@
 #include "AppositionSurfacePlugin_Export.h"
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
-// EspINA
+// ESPINA
 #include <Support/ViewManager.h>
 #include <Support/ToolGroup.h>
 
@@ -36,7 +36,7 @@ class QIcon;
 class QObject;
 class QString;
 
-namespace EspINA
+namespace ESPINA
 {
   class AppositionSurfacePlugin;
 
@@ -157,6 +157,6 @@ namespace EspINA
       QAction *m_action;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// APPOSITIONSURFACETOOLBAR_H

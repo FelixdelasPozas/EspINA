@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "PlanarSplitWidget.h"
 #include "vtkPlanarSplitWidget.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
@@ -21,7 +21,7 @@
 #include <vtkAbstractWidget.h>
 #include <vtkImplicitPlaneRepresentation.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget::PlanarSplitWidget()

@@ -19,7 +19,7 @@
  */
 #include "NumberColorEngine.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const double SELECTED_ALPHA   = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
@@ -45,16 +45,16 @@ QColor NumberColorEngine::color(SegmentationAdapterPtr segmentation)
 LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = QString::number(segmentation->number());
+  auto lutName = QString::number(segmentation->number());
 //   if (seg->isSelected())
 //     lutName.append("_selected");
 
-  LUTSPtr seg_lut;
+  LUTSPtr seg_lut = nullptr;
 
   if (!m_LUT.contains(lutName))
   {
-    double alpha = (segmentation->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
-    QColor c = color(segmentation);
+    auto alpha = (segmentation->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
+    auto c = color(segmentation);
 
     seg_lut = LUTSPtr::New();
     seg_lut->Allocate();

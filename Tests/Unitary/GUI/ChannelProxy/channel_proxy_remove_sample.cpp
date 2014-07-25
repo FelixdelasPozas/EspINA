@@ -32,7 +32,7 @@
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int channel_proxy_remove_sample(int argc, char** argv)

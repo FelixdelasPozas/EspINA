@@ -34,7 +34,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int classification_proxy_set_classification( int argc, char** argv )
 {

@@ -26,7 +26,7 @@
 
 #include <Core/Analysis/Extension.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ChannelAdapter;
   using ChannelAdapterPtr   = ChannelAdapter *;
@@ -175,6 +175,6 @@ namespace EspINA
   bool operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
   ChannelAdapterPtr channelPtr(ItemAdapterPtr item);
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // CHANNEL_H

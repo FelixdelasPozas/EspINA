@@ -31,7 +31,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using BinaryClosingFilter    = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;

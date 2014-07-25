@@ -21,7 +21,7 @@
 #ifndef ESPINA_CAMERAS_MENU_H_
 #define ESPINA_CAMERAS_MENU_H_
 
-// EspINA
+// ESPINA
 #include <Support/ViewManager.h>
 #include <GUI/View/RenderView.h>
 
@@ -29,7 +29,7 @@
 #include <QMenu>
 #include <QList>
 
-namespace EspINA
+namespace ESPINA
 {
   class CamerasMenu
   : public QMenu
@@ -89,6 +89,6 @@ namespace EspINA
       CameraPositionsList m_cameraPositions;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_CAMERAS_MENU_H_

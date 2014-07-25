@@ -21,15 +21,20 @@
 #ifndef ESPINA_ROI_H_
 #define ESPINA_ROI_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaCore_Export.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
 // ITK
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 
-namespace EspINA
+namespace ESPINA
 {
+  class ROI;
+
+  using ROIPtr  = ROI *;
+  using ROISPtr = std::shared_ptr<ROI>;
+
   class EspinaCore_EXPORT ROI
   : public SparseVolume<itkVolumeType>
   {
@@ -57,7 +62,7 @@ namespace EspINA
       /* \brief Returns a new ROI object that is a copy of this one.
        *
        */
-      ROI* clone() const;
+      ROISPtr clone() const;
 
       /* \brief Applies the ROI to the volume passed as argument.
        *
@@ -103,8 +108,6 @@ namespace EspINA
       bool m_isRectangular;
   };
 
-  using ROIPtr  = ROI *;
-  using ROISPtr = std::shared_ptr<ROI>;
 
   //-----------------------------------------------------------------------------
   template<class T>
@@ -262,6 +265,6 @@ namespace EspINA
     }
   }
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

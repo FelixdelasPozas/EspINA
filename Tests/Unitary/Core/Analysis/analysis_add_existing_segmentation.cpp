@@ -33,7 +33,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Tests/Unitary/Core/core_testing_support.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int analysis_add_existing_segmentation( int argc, char** argv )

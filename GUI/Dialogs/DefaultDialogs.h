@@ -25,7 +25,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-namespace EspINA {
+namespace ESPINA {
   namespace GUI {
 
     class DefaultDialogs
@@ -52,8 +52,10 @@ namespace EspINA {
                                    const QString& suggestion = QString());
 
       static bool UserConfirmation(const QString& title, const QString& message);
+
+      static void InformationMessage(const QString& title, const QString& message);
     };
   } // namespace GUI
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_GUI_DEFAULTDIALOGS_H

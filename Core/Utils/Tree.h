@@ -31,7 +31,7 @@
 // C++
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   //const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
 
@@ -178,12 +178,35 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
+  // WARNING: Untested
+  template<typename T>
+  std::shared_ptr<Tree<T>> copy(const std::shared_ptr<Tree<T>> tree)
+  {
+    std::shared_ptr<Tree<T>> result;
+
+    typename Tree<T>::NodeList nodes;
+
+    nodes << tree->root()->subCategories();
+    while (!nodes.isEmpty())
+    {
+      auto node = nodes.takeFirst();
+      auto child = tree->createNode(node->classificationName());
+
+      child->setColor(node->color());
+
+      nodes << node->subCategories();
+    }
+
+    return result;
+  }
+
+  //-----------------------------------------------------------------------------
   template<typename T>
   QString print(std::shared_ptr<Tree<T>> tree, int indent)
   {
     QString out = QString("Tree: %1\n").arg(tree->name());
 
-    foreach(typename Tree<T>::Node node, tree->root()->subCategories())
+    for(typename Tree<T>::Node node : tree->root()->subCategories())
     {
       out += QString("%1").arg(print(node, indent));
     }
@@ -191,6 +214,6 @@ namespace EspINA
     return out;
   }
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_TREE_H

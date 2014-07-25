@@ -27,7 +27,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace CF {
 
     class CountingFrameManager

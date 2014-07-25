@@ -26,8 +26,8 @@
 #include "Core/MultiTasking/Scheduler.h"
 #include "segmentation_testing_support.h"
 
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int segmentation_change_output(int argc, char** argv)
 {

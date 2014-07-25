@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 
 // VTK
@@ -22,7 +22,7 @@ class vtkIncrementalOctreePointLocator;
 class vtkPointPlacer;
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------
   //BTX
@@ -450,6 +450,6 @@ namespace EspINA
     void operator=(const vtkPlaneContourRepresentation&); //Not implemented
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // _VTKPLANECONTOURREPRESENTATION_H_

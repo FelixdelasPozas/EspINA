@@ -26,7 +26,7 @@
 #include <memory>
 #include <Core/Analysis/Persistent.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class DirectedGraph;
   using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;

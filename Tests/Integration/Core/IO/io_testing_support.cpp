@@ -24,7 +24,7 @@
 #include <Core/Analysis/Analysis.h>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 bool operator!=(Analysis& lhs, Analysis& rhs)
 {

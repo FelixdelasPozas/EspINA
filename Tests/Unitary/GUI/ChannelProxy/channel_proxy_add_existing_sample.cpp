@@ -32,7 +32,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int channel_proxy_add_existing_sample( int argc, char** argv )
 {

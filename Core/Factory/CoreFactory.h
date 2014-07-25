@@ -31,7 +31,7 @@
 #include <QStringList>
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaCore_EXPORT CoreFactory
@@ -117,6 +117,6 @@ namespace EspINA
          SegmentationExtensionFactorySPtr> m_segmentationExtensionFactories;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CORE_FACTORY_H

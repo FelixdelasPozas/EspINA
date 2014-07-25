@@ -27,13 +27,11 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
 // NOTE 2012-10-11 Consider unifying its interface with ColorEngine
 class EspinaGUI_EXPORT TransparencySelectionHighlighter
 {
-  using LUTMap = QMap<QString, LUTSPtr>;
-
 public:
   QColor  color(const QColor &original, bool highlight=false);
   LUTSPtr lut  (const QColor &original, bool highlight=false);
@@ -42,9 +40,9 @@ private:
   QString colorKey(const QColor &color) const;
 
 private:
-  static LUTMap m_LUT;
+  static ColorEngine::LUTMap m_LUT;
 };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H

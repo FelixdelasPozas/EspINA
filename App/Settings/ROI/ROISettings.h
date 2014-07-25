@@ -18,17 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ROI_SETTINGS_H
-#define ROI_SETTINGS_H
+#ifndef ESPINA_ROI_SETTINGS_H
+#define ESPINA_ROI_SETTINGS_H
 
 #include <QString>
 
-namespace EspINA
+namespace ESPINA
 {
-  const QString DEFAULT_VOI_X("DefaultRectangularROI::X");
-  const QString DEFAULT_VOI_Y("DefaultRectangularROI::Y");
-  const QString DEFAULT_VOI_Z("DefaultRectangularROI::Z");
-  const QString ROI_SETTINGS_GROUP("Rectangular ROI Settings");
+  const QString DEFAULT_ROI_X("DefaultOrthogonalROI::X");
+  const QString DEFAULT_ROI_Y("DefaultOrthogonalROI::Y");
+  const QString DEFAULT_ROI_Z("DefaultOrthogonalROI::Z");
+  const QString ROI_SETTINGS_GROUP("Orthogonal ROI Settings");
 
   class ROISettings
   {
@@ -58,4 +58,4 @@ namespace EspINA
 
 }
 
-#endif // ROI_SETTINGS_H
+#endif // ESPINA_ROI_SETTINGS_H

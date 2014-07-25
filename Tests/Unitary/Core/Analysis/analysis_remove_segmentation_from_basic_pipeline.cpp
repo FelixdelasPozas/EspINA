@@ -32,8 +32,8 @@
 #include <Tests/Unitary/Core/core_testing_support.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int analysis_remove_segmentation_from_basic_pipeline(int argc, char** argv )
 {

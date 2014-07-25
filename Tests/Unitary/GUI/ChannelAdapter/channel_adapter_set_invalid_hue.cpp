@@ -32,8 +32,8 @@
 #include <Tests/Unitary/GUI/gui_testing_support.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int channel_adapter_set_invalid_hue(int argc, char** argv )
 {

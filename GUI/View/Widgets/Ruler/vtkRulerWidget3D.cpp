@@ -32,7 +32,7 @@
 #include <vtkTextProperty.h>
 
 
-namespace EspINA
+namespace ESPINA
 {
   vtkStandardNewMacro(vtkRulerWidget3D);
 
@@ -110,4 +110,4 @@ namespace EspINA
     CurrentRenderer->GetRenderWindow()->Render();
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

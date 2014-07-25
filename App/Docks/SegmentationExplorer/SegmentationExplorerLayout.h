@@ -29,7 +29,7 @@
 #include <QItemDelegate>
 #include <QSortFilterProxyModel>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class SegmentationInspector;
@@ -112,6 +112,6 @@ namespace EspINA
 
   bool sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEGMENTATIONEXPLORERLAYOUT_H

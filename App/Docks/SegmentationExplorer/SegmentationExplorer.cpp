@@ -28,7 +28,7 @@
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
 
-// EspINA
+// ESPINA
 // #include <Undo/RemoveSegmentation.h>
 
 // Qt
@@ -40,7 +40,7 @@
 #include <QUndoStack>
 #include <QWidgetAction>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI

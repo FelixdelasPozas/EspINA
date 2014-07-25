@@ -18,11 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ROI.h"
 #include "Core/EspinaTypes.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ROI::ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin)
@@ -86,12 +86,17 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  ROI *ROI::clone() const
+  ROISPtr ROI::clone() const
   {
-    auto newROI = new ROI(bounds(), spacing(), origin());
-    auto image = itkImage();
+    ROISPtr newROI{new ROI(bounds(), spacing(), origin())};
 
-    newROI->draw(image);
+    if (!isRectangular())
+    {
+      auto image = itkImage();
+
+      newROI->draw(image);
+    }
+
     return newROI;
   }
 

@@ -22,7 +22,7 @@
 
 #include <ui_InformationSelector.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class InformationSelector::GUI
 : public  Ui::InformationSelector

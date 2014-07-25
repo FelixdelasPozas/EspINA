@@ -30,7 +30,7 @@
 
 #include <QStringList>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 NmVector3::NmVector3()
@@ -75,7 +75,7 @@ QString NmVector3::toString() const
 }
 
 //-----------------------------------------------------------------------------
-std::ostream& EspINA::operator<<(std::ostream& os, const NmVector3& vector)
+std::ostream& ESPINA::operator<<(std::ostream& os, const NmVector3& vector)
 {
   os << vector.toString().toStdString();
 
@@ -85,7 +85,7 @@ std::ostream& EspINA::operator<<(std::ostream& os, const NmVector3& vector)
 
 
 //-----------------------------------------------------------------------------
-bool EspINA::operator==(const NmVector3 &lhs, const NmVector3 &rhs)
+bool ESPINA::operator==(const NmVector3 &lhs, const NmVector3 &rhs)
 {
   for (int i = 0; i < 3; ++i) {
     if (!areEqual(lhs[i], rhs[i])) return false;
@@ -95,13 +95,13 @@ bool EspINA::operator==(const NmVector3 &lhs, const NmVector3 &rhs)
 }
 
 //-----------------------------------------------------------------------------
-bool EspINA::operator!=(const NmVector3 &lhs, const NmVector3 &rhs)
+bool ESPINA::operator!=(const NmVector3 &lhs, const NmVector3 &rhs)
 {
   return !(lhs == rhs);
 }
 
 //-----------------------------------------------------------------------------
-QDebug EspINA::operator<< (QDebug d, const NmVector3 &vector)
+QDebug ESPINA::operator<< (QDebug d, const NmVector3 &vector)
 {
   d << "{" << vector[0] << "," << vector[1] << "," << vector[2] << "}";
   return d;

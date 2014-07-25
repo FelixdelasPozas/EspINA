@@ -29,8 +29,8 @@
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameRenderer3D::CountingFrameRenderer3D(CountingFrameManager& cfManager)

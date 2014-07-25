@@ -21,7 +21,7 @@
 #ifndef ESPINA_ROI_WIDGET_H_
 #define ESPINA_ROI_WIDGET_H_
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
@@ -38,7 +38,7 @@
 // Qt
 #include <QObject>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class View2D;
@@ -51,10 +51,10 @@ namespace EspINA
     Q_OBJECT
     public:
       /* \brief ROIWidget class constructor.
-       * \param[in] vm ViewManagerSPtr
+       * \param[in] roi Region of interest object smart pointer.
        *
        */
-      explicit ROIWidget(ViewManager *);
+      explicit ROIWidget(ROISPtr roi);
 
       /* \brief ROIWidget class virtual destructor.
        *
@@ -79,7 +79,6 @@ namespace EspINA
     private slots:
       void sliceChanged(Plane, Nm);
       void updateROIRepresentations();
-      void updateROIPointer();
 
     private:
       void updateActor(View2D *view);
@@ -96,10 +95,9 @@ namespace EspINA
 
       QMap<View2D *, struct pipeline> m_representations;
 
-      ViewManager                *m_vm;
       ROISPtr                     m_ROI;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_ROI_WIDGET_H_

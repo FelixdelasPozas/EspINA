@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "SegmentationInspector.h"
 #include <Dialogs/TabularReport/TabularReport.h>
 #include <GUI/View/View3D.h>
@@ -38,7 +38,7 @@ const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector
 const QString SegmentationInspectorSplitterKey = QString("Segmentation Inspector Splitter State");
 const QString RENDERERS                        = QString("DefaultView::renderers");
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentations,
@@ -68,12 +68,12 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
             this,         SLOT(updateScene(ItemAdapterPtr)));
   }
 
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   QStringList defaultRenderers;
   if (!settings.contains(RENDERERS) || !settings.value(RENDERERS).isValid())
   {
-    defaultRenderers << m_viewManager->renderers(EspINA::RendererType::RENDERER_VIEW3D);
+    defaultRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
 
     settings.setValue(RENDERERS, defaultRenderers);
   }
@@ -131,6 +131,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   if (!state.isEmpty())
     m_splitter->restoreState(state);
 
+  m_viewManager->registerView(m_view);
+
   generateWindowTitle();
   updateSelection(m_viewManager->selection());
 }
@@ -138,7 +140,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
 //------------------------------------------------------------------------
 void SegmentationInspector::closeEvent(QCloseEvent *e)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.setValue(SegmentationInspectorSettingsKey, this->saveGeometry());
   settings.setValue(SegmentationInspectorSplitterKey, m_splitter->saveState());
   settings.sync();
@@ -150,6 +152,8 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
+  m_viewManager->unregisterView(m_view);
+
   delete m_view;
   delete m_tabularReport;
 }
@@ -179,10 +183,10 @@ void SegmentationInspector::updateSelection(SelectionSPtr selection)
 //   // channels could be part of the selection, we're only interested in selected segmentations
 //   ViewManager::Selection clearedSelection;
 //   foreach (PickableItemPtr item, selection)
-//   if (item->type() == EspINA::SEGMENTATION)
+//   if (item->type() == ESPINA::SEGMENTATION)
 //     clearedSelection << item;
 //
-//   if ((clearedSelection.size() == 1) && (EspINA::SEGMENTATION == clearedSelection.first()->type()) && m_segmentations.contains(segmentationPtr(clearedSelection.first())))
+//   if ((clearedSelection.size() == 1) && (ESPINA::SEGMENTATION == clearedSelection.first()->type()) && m_segmentations.contains(segmentationPtr(clearedSelection.first())))
 //   {
 //     Filter::FilterInspectorPtr inspector = segmentationPtr(clearedSelection.first())->filter()->filterInspector();
 //     if (inspector)

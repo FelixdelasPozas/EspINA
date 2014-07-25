@@ -20,7 +20,7 @@
 
 #include <Task.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class SleepyTask 
   : public Task

@@ -23,7 +23,7 @@
 
 #include <unitary/Testing_Support.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 bool Itk_Volume_Test::SameLargestRegion(const ItkVolume &volume, const ImageType::Pointer image) {
 

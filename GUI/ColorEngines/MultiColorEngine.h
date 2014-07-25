@@ -25,7 +25,7 @@
 #include <QList>
 #include "ColorEngine.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT MultiColorEngine
   : public ColorEngine
@@ -43,6 +43,6 @@ namespace EspINA
   };
 
   using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_MULTI_COLOR_ENGINE_H

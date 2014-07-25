@@ -14,7 +14,7 @@ class vtkPolyData;
 class vtkGlyph3D;
 class vtkPoints;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaGUI_EXPORT vtkPlaneContourRepresentationGlyph
@@ -183,6 +183,6 @@ namespace EspINA
     QColor m_polygonColor;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // _VTKPLANECONTOURREPRESENTATIONGLYPH_H_

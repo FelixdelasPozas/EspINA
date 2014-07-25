@@ -26,7 +26,7 @@
 
 class QPushButton;
 
-namespace EspINA
+namespace ESPINA
 {
   class RectangularRegion;
 
@@ -62,7 +62,7 @@ namespace EspINA
     QString m_leftLabel;
     QString m_rightLabel;
   };
-}// namespace EspINA
+}// namespace ESPINA
 
 
 #endif // RECTANGULARREGIONSLICESELECTOR_H

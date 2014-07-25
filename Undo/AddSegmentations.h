@@ -24,13 +24,13 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
 #include <QUndoCommand>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaUndo_EXPORT AddSegmentations
   : public QUndoCommand
@@ -57,6 +57,6 @@ namespace EspINA
 
     SegmentationAdapterSList m_segmentations;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPIN_ADD_SEGMENTATION_H

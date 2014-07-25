@@ -19,7 +19,7 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Data/VolumetricData.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include "BasicRepresentationFactory.h"
@@ -32,7 +32,7 @@
 #include "VolumetricGPURepresentation.h"
 #include "SliceCachedRepresentation.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationTypeList BasicChannelRepresentationFactory::representations() const

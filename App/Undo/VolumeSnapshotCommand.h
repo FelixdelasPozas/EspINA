@@ -33,7 +33,7 @@
 #include <Core/Model/Filter.h>
 
 
-namespace EspINA
+namespace ESPINA
 {
   class VolumeSnapshotCommand 
   : public QUndoCommand

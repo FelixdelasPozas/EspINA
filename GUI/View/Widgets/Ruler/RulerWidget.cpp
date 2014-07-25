@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "RulerWidget.h"
 #include "vtkRulerWidget.h"
 #include "vtkRulerWidget3D.h"
@@ -31,7 +31,7 @@
 #include <vtkRendererCollection.h>
 #include <vtkCamera.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   RulerWidget::RulerWidget()
@@ -212,4 +212,4 @@ namespace EspINA
     }
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

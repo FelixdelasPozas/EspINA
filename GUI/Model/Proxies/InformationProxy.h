@@ -22,7 +22,7 @@
 #ifndef ESPINA_INFORMATION_PROXY_H
 #define ESPINA_INFORMATION_PROXY_H
 
-// EspINA
+// ESPINA
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Model/ModelAdapter.h>
 
@@ -30,10 +30,7 @@
 #include <QAbstractProxyModel>
 #include <QStringList>
 
-const EspINA::SegmentationExtension::InfoTag NAME_TAG     = QObject::tr("Name");
-const EspINA::SegmentationExtension::InfoTag CATEGORY_TAG = QObject::tr("Category");
-
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaCore_EXPORT InformationProxy
@@ -42,6 +39,11 @@ namespace EspINA
     Q_OBJECT
 
   protected:
+    static SegmentationExtension::InfoTag NameTag()
+    { return QObject::tr("Name"); }
+    static SegmentationExtension::InfoTag CategoryTag()
+    { return QObject::tr("Category"); }
+
     class InformationFetcher
     : public Task
     {
@@ -58,8 +60,8 @@ namespace EspINA
         setDescription(tr("%1 information").arg(id));
         setHidden(true);
 
-        m_tags.removeOne(NAME_TAG);
-        m_tags.removeOne(CATEGORY_TAG);
+        m_tags.removeOne(NameTag());
+        m_tags.removeOne(CategoryTag());
 
         bool ready = true;
         for (auto tag : m_tags)
@@ -84,7 +86,7 @@ namespace EspINA
           if (!canExecute()) break;
 
           auto tag = m_tags[i];
-          if (tag != NAME_TAG && tag != CATEGORY_TAG)
+          if (tag != NameTag() && tag != CategoryTag())
           {
             if (!Segmentation->isInformationReady(tag))
             {
@@ -102,7 +104,7 @@ namespace EspINA
 
     protected:
       SegmentationAdapterPtr Segmentation;
-      const SegmentationExtension::InfoTagList m_tags;
+      SegmentationExtension::InfoTagList m_tags;
       int   m_progress;
     };
 
@@ -182,6 +184,6 @@ namespace EspINA
 
     ItemAdapterList m_elements;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // INFORMATIONPROXY_H

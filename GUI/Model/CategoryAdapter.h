@@ -28,7 +28,7 @@
 #include <QColor>
 
 
-namespace EspINA
+namespace ESPINA
 {
   class CategoryAdapter;
   using CategoryAdapterPtr   = CategoryAdapter *;
@@ -156,6 +156,6 @@ namespace EspINA
   CategoryAdapterPtr categoryPtr(ItemAdapterPtr item);
 
   QString print(CategoryAdapterSPtr category, int level=0);
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CATEGORY_ADAPTER_H

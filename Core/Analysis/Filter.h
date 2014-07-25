@@ -34,7 +34,7 @@
 
 #include <QDir>
 
-namespace EspINA
+namespace ESPINA
 {
   class Analysis;
   using AnalysisPtr = Analysis *;
@@ -191,9 +191,9 @@ namespace EspINA
     FetchBehaviourSPtr m_fetchBehaviour;
     ErrorHandlerSPtr   m_handler;
 
-    // TODO : Remove with EspINA 2.1
+    // TODO : Remove with ESPINA 2.1
     friend class IO::SegFile::SegFile_V4;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_FILTER_H

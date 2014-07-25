@@ -31,7 +31,7 @@
 #include <Filters/SourceFilter.h>
 #include <Support/Readers/ChannelReader.h>
 
-// EspINA
+// ESPINA
 
 // Qt
 #include <QApplication>
@@ -51,7 +51,7 @@
 #include <itkShapeLabelObject.h>
 #include <itkVTKImageToImageFilter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using SegmentationLabelMap  = itk::Image<unsigned short , 3>;
 using LabelMapReader        = itk::ImageFileReader<SegmentationLabelMap>;
@@ -159,7 +159,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   labelMapReader->Update();
 
   //qDebug() << "Invert ITK image's slices";
-  // EspINA python used an inversed representation of the samples
+  // ESPINA python used an inversed representation of the samples
   auto originalImage = ImageToVTKImageFilter::New();
   originalImage->SetInput(labelMapReader->GetOutput());
   originalImage->Update();

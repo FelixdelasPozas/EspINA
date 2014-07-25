@@ -30,7 +30,7 @@
 
 #include "TestSupport.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 // bool Test_Bounds(const Bounds& bounds) {

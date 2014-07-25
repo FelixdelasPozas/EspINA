@@ -22,14 +22,14 @@
 #ifndef ESPINA_BRUSH_UNDOCOMMAND_H
 #define ESPINA_BRUSH_UNDOCOMMAND_H
 
-// EspINA
+// ESPINA
 #include <Core/Utils/BinaryMask.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
 // Qt
 #include <QUndoCommand>
 
-namespace EspINA
+namespace ESPINA
 {
   class DrawUndoCommand
   : public QObject
@@ -52,6 +52,6 @@ namespace EspINA
     Bounds                        m_bounds;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_BRUSH_UNDOCOMMAND_H

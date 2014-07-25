@@ -33,7 +33,7 @@
 
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class EditionTools
   : public ToolGroup
@@ -50,37 +50,40 @@ namespace EspINA
     };
 
     Q_OBJECT
-    public:
-      EditionTools(ModelAdapterSPtr model,
-                   ModelFactorySPtr factory,
-                   ViewManagerSPtr  viewManager,
-                   QUndoStack      *undoStack,
-                   QWidget         *parent = nullptr);
-      virtual ~EditionTools();
+  public:
+    EditionTools(ModelAdapterSPtr model,
+                 ModelFactorySPtr factory,
+                 ViewManagerSPtr  viewManager,
+                 QUndoStack      *undoStack,
+                 QWidget         *parent = nullptr);
+    virtual ~EditionTools();
 
-      virtual void setEnabled(bool value);
+    virtual void setEnabled(bool value);
 
-      virtual bool enabled() const;
+    virtual bool enabled() const;
 
-      virtual ToolSList tools();
+    virtual ToolSList tools();
 
-    public slots:
-      void selectionChanged();
-      void abortOperation();
-      void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
+  public slots:
+    void selectionChanged();
+    void abortOperation();
+    void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
 
-    private:
-      ManualEditionToolSPtr        m_manualEdition;
-      SplitToolSPtr                m_split;
-      MorphologicalEditionToolSPtr m_morphological;
-      ModelFactorySPtr             m_factory;
-      QUndoStack                  *m_undoStack;
-      ModelAdapterSPtr             m_model;
-      FilterFactorySPtr            m_filterFactory;
+  private slots:
+    void onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEntered);
 
-      bool                         m_enabled;
+  private:
+    ManualEditionToolSPtr        m_manualEdition;
+    SplitToolSPtr                m_split;
+    MorphologicalEditionToolSPtr m_morphological;
+    ModelFactorySPtr             m_factory;
+    QUndoStack                  *m_undoStack;
+    ModelAdapterSPtr             m_model;
+    FilterFactorySPtr            m_filterFactory;
+
+    bool                         m_enabled;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_EDITION_TOOLS_H_

@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "ZoomSelectionWidget.h"
 #include "vtkZoomSelectionWidget.h"
 #include <GUI/View/RenderView.h>
@@ -24,7 +24,7 @@
 #include <QMouseEvent>
 #include <QEvent>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ZoomSelectionWidget::ZoomSelectionWidget()

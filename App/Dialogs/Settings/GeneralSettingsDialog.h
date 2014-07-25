@@ -29,7 +29,7 @@
 #include <Core/EspinaTypes.h>
 #include <Support/Settings/SettingsPanel.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class GeneralSettingsDialog
   : public QDialog
@@ -56,6 +56,6 @@ namespace EspINA
     SettingsPanelSList m_panels;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_GENERAL_SETTINGS_DIALOG_H

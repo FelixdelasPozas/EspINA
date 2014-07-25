@@ -30,7 +30,7 @@
 // C++
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -50,7 +50,7 @@ namespace EspINA
   using EspinaWidgetPtr  = EspinaWidget *;
   using EspinaWidgetSPtr = std::shared_ptr<EspinaWidget>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 class vtkEspinaCommand
 : public vtkCommand
@@ -67,7 +67,7 @@ class vtkEspinaCommand
     /* \brief Sets the widget this vtkCommand executes to.
      *
      */
-    virtual void setWidget(EspINA::EspinaWidgetPtr widget) = 0;
+    virtual void setWidget(ESPINA::EspinaWidgetPtr widget) = 0;
 
     /* \brief Implements vtkCommand::Execute.
      *

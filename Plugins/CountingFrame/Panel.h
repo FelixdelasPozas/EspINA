@@ -31,7 +31,7 @@
 
 #include <QStandardItemModel>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -164,6 +164,6 @@ namespace EspINA
   };
 
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_COUNTING_FRAME_PANEL_H

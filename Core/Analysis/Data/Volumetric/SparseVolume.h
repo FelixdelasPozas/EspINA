@@ -44,7 +44,7 @@
 #include <itkImageFileReader.h>
 #include <vtkImplicitFunction.h>
 
-namespace EspINA
+namespace ESPINA
 {
   struct Invalid_Image_Bounds_Exception{};
 
@@ -149,12 +149,6 @@ namespace EspINA
      */
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE);
-
-    /** \brief Resizes the image to the minimum bounds that can contain the volume.
-     *
-     *  The resultant image is always smaller of equal in size to the original one.
-     */
-    virtual void fitToContent(){}
 
     /** \brief Resize the volume bounds. The given bounds must containt the original.
      */

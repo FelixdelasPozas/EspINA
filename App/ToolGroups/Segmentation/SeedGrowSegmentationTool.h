@@ -26,15 +26,17 @@
 #include <Support/ViewManager.h>
 
 #include "SeedThreshold.h"
-#include "ApplyROI.h"
+#include "CustomROIWidget.h"
 #include <GUI/Widgets/ActionSelector.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/ModelFactory.h>
 
 class QUndoStack;
-namespace EspINA
+namespace ESPINA
 {
+  class SeedGrowSegmentationSettings;
+
   class SeedGrowSegmentationTool
   : public Tool
   {
@@ -52,10 +54,11 @@ namespace EspINA
     };
 
   public:
-    explicit SeedGrowSegmentationTool(ModelAdapterSPtr model,
-                                      ModelFactorySPtr factory,
-                                      ViewManagerSPtr  viewManager,
-                                      QUndoStack      *undoStack);
+    explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
+                                      ModelAdapterSPtr              model,
+                                      ModelFactorySPtr              factory,
+                                      ViewManagerSPtr               viewManager,
+                                      QUndoStack*                   undoStack);
     virtual ~SeedGrowSegmentationTool();
 
     virtual void setEnabled(bool value);
@@ -78,6 +81,12 @@ namespace EspINA
 
     void createSegmentation();
 
+    void onCategoryChanged(CategoryAdapterSPtr category);
+
+    void onCategorySelectorWidgetCreation();
+
+    void updateCurrentCategoryROIValues(bool update);
+
   private:
     ModelAdapterSPtr m_model;
     ModelFactorySPtr m_factory;
@@ -89,10 +98,12 @@ namespace EspINA
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;
     SeedThreshold    *m_seedThreshold;
-    ApplyROI         *m_applyVOI;
+    CustomROIWidget  *m_roi;
+
+    SeedGrowSegmentationSettings* m_settings;
 
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
-    SelectorSPtr m_currentSelector;
+    SelectorSPtr                  m_currentSelector;
 
     FilterFactorySPtr  m_filterFactory;
     QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
@@ -100,6 +111,6 @@ namespace EspINA
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_TOOL_H

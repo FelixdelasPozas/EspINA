@@ -27,7 +27,7 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/IO/ErrorHandler.h>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace IO
   {
@@ -71,6 +71,6 @@ namespace EspINA
   using AnalysisReaderSPtr  = std::shared_ptr<IO::AnalysisReader>;
   using AnalysisReaderSList = QList<AnalysisReaderSPtr>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_ANALYSIS_READER_H

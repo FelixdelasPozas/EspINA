@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "EdgesAnalyzer.h"
 
 #include "ChannelEdges.h"
@@ -30,7 +30,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 EdgesAnalyzer::EdgesAnalyzer(ChannelEdges *extension,

@@ -10,7 +10,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "vtkZoomSelectionWidget.h"
 
 // VTK

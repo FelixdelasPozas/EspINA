@@ -31,7 +31,7 @@
 // #include <Undo/RemoveSegmentation.h>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
   = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
@@ -227,7 +227,7 @@ QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-bool EspINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
+bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
 {
   SegmentationAdapterPtr leftSeg  = segmentationPtr(left);
   SegmentationAdapterPtr rightSeg = segmentationPtr(right);

@@ -22,7 +22,7 @@
 
 #include <vtkObjectFactory.h>
 
-namespace EspINA {
+namespace ESPINA {
   
   
   template<typename T>

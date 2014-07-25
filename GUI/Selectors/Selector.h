@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/BinaryMask.h>
 #include <GUI/Model/NeuroItemAdapter.h>
@@ -37,7 +37,7 @@
 #include <QSet>
 #include <QVector3D>
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -63,7 +63,8 @@ namespace EspINA
 
   public:
     explicit Selector()
-    : m_multiSelection(false)
+    : m_enabled(true)
+    , m_multiSelection(false)
     {}
 
     virtual ~Selector(){};
@@ -76,17 +77,24 @@ namespace EspINA
     bool multiSelection()
     { return m_multiSelection; }
 
+    void setEnabled(bool value)
+    { m_enabled = value; }
+
+    bool isEnabled() const
+    {return m_enabled; }
+
   signals:
     void itemsSelected(Selector::Selection);
     void startUsingSelector();
     void stopUsingSelector();
 
   protected:
+    bool           m_enabled;
     SelectionFlags m_flags;
     bool           m_multiSelection;
   };
 
   using SelectorSPtr = std::shared_ptr<Selector>;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SELECTOR_H

@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "ContourUndoCommand.h"
 #include <App/Tools/Contour/FilledContour.h>
 #include <GUI/ViewManager.h>
@@ -35,7 +35,7 @@
 // VTK
 #include <vtkMath.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ContourUndoCommand::ContourUndoCommand(SegmentationSPtr seg,
@@ -326,5 +326,5 @@ namespace EspINA
     return m_segmentation;
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 

@@ -26,7 +26,7 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/AnalysisReader.h>
 
-namespace EspINA 
+namespace ESPINA 
 {
   namespace IO
   {

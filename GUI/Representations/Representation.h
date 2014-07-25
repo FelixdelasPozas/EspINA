@@ -28,7 +28,7 @@
 #include <QString>
 #include <QColor>
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
 
@@ -37,7 +37,7 @@ class vtkProp;
 class vtkMatrix4x4;
 class vtkLookupTable;
 
-namespace EspINA
+namespace ESPINA
 {
   class RepresentationSettings;
 
@@ -172,9 +172,9 @@ namespace EspINA
     QColor m_color;
     bool   m_highlight;
 
-    RenderView*   m_view;
-    NmVector3     m_crosshair;
-    mutable TimeStamp     m_lastUpdatedTime;
+    RenderView       *m_view;
+    NmVector3         m_crosshair;
+    mutable TimeStamp m_lastUpdatedTime;
 
     RepresentationSList m_clones;
 
@@ -187,6 +187,6 @@ namespace EspINA
   using RepresentationTypeList = QList<Representation::Type>;
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(Representation::RenderableView)
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_H

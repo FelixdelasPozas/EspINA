@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <GUI/View/View2D.h>
 #include "ContourRenderer.h"
 #include "GUI/Representations/ContourRepresentation.h"
@@ -26,7 +26,7 @@
 // VTK
 #include <vtkPropPicker.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ContourRenderer::ContourRenderer(QObject *parent)
@@ -89,9 +89,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool ContourRenderer::managesRepresentation(const QString &repName) const
+  bool ContourRenderer::managesRepresentation(const QString &repType) const
   {
-    return (repName == ContourRepresentation::TYPE);
+    return (repType == ContourRepresentation::TYPE);
   }
 
   //-----------------------------------------------------------------------------
@@ -103,7 +103,7 @@ namespace EspINA
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
 
-    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(EspINA::SEGMENTATION))
+    if (!renderer || !renderer.GetPointer() || !itemType.testFlag(ESPINA::SEGMENTATION))
       return selection;
 
     View2D *view = static_cast<View2D *>(m_view);
@@ -151,4 +151,4 @@ namespace EspINA
     return selection;
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

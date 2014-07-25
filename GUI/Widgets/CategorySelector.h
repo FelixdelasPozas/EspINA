@@ -28,7 +28,7 @@
 #include <QSpinBox>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class CategorySelector
@@ -41,14 +41,18 @@ namespace EspINA
 
     virtual QWidget* createWidget(QWidget* parent);
 
+    void selectCategory(CategoryAdapterSPtr category);
+
     CategoryAdapterSPtr selectedCategory();
 
   signals:
     void categoryChanged(CategoryAdapterSPtr);
+    void widgetCreated();
 
   private slots:
     void categorySelected(const QModelIndex& index);
     void onWidgetDestroyed(QObject* object);
+    void invalidateState();
     void resetRootItem();
 
   private:
@@ -58,6 +62,6 @@ namespace EspINA
     CategoryAdapterSPtr m_selectedCategory;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CATEGORY_SELECTOR_H

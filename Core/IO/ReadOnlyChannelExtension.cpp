@@ -21,7 +21,7 @@
 
 #include "ReadOnlyChannelExtension.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ReadOnlyChannelExtension::ReadOnlyChannelExtension(const ChannelExtension::Type type,

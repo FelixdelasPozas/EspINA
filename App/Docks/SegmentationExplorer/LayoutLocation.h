@@ -28,7 +28,7 @@
 
 #include <QSortFilterProxyModel>
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   class LocationLayout
@@ -81,6 +81,6 @@ namespace EspINA
     QItemDelegate *m_delegate;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SAMPLELAYOUT_H

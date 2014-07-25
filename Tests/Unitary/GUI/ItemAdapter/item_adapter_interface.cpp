@@ -28,7 +28,7 @@
 
 #include "GUI/Model/ViewItemAdapter.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int item_adapter_interface(int argc, char** argv)

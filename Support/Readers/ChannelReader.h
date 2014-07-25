@@ -24,7 +24,7 @@
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ChannelReader
   : public FilterFactory

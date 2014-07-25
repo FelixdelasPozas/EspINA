@@ -30,8 +30,8 @@
 
 #include "seed_grow_segmentation_testing_support.h"
 
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 using namespace std;
 
 int seed_grow_segmentation_simple_execution(int argc, char** argv)

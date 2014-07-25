@@ -18,13 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "BrushUndoCommand.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
 #include <Core/Utils/ChangeSignalDelayer.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<unsigned char> mask)

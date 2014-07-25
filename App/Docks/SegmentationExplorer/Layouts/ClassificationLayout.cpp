@@ -33,7 +33,7 @@
 #include <QColorDialog>
 #include <QItemDelegate>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 class RenameCategoryCommand
@@ -180,10 +180,10 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
   m_sort->setSourceModel(m_proxy.get());
   m_sort->setDynamicSortFilter(true);
 
-  connect(m_proxy.get(), SIGNAL(segmentationsDragged(SegmentationAdapterList,CategoryAdapterPtr)),
-          this,           SLOT  (segmentationsDragged(SegmentationAdapterList,CategoryAdapterPtr)));
-  connect(m_proxy.get(), SIGNAL(categoriesDragged(CategoryAdapterList,CategoryAdapterPtr)),
-          this,           SLOT  (categoriesDragged(CategoryAdapterList,CategoryAdapterPtr)));
+  connect(m_proxy.get(), SIGNAL(segmentationsDropped(SegmentationAdapterList,CategoryAdapterPtr)),
+          this,           SLOT(segmentationsDropped(SegmentationAdapterList,CategoryAdapterPtr)));
+  connect(m_proxy.get(), SIGNAL(categoriesDropped(CategoryAdapterList,CategoryAdapterPtr)),
+          this,           SLOT  (categoriesDropped(CategoryAdapterList,CategoryAdapterPtr)));
 
   connect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this,  SLOT(updateSelection()));
@@ -375,7 +375,7 @@ void ClassificationLayout::deleteSelectedItems()
     }
 
     // assuming categories are empty, because if they weren't then !segmentations.empty()
-    m_undoStack->beginMacro("Remove Category");
+    m_undoStack->beginMacro("Remove Categories and Segmentations");
     deleteSegmentations(segmentations.toList());
 
     categories << additionalCategories;
@@ -522,7 +522,7 @@ void ClassificationLayout::createSubCategory()
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::segmentationsDragged(SegmentationAdapterList   segmentations,
+void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmentations,
                                                 CategoryAdapterPtr        category)
 {
   m_undoStack->beginMacro(tr("Change Segmentation's Category"));
@@ -533,7 +533,7 @@ void ClassificationLayout::segmentationsDragged(SegmentationAdapterList   segmen
 }
 
 //------------------------------------------------------------------------
-void ClassificationLayout::categoriesDragged(CategoryAdapterList subCategories,
+void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
                                              CategoryAdapterPtr  category)
 {
   CategoryAdapterList validSubCategories;

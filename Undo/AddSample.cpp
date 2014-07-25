@@ -26,7 +26,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 AddSample::AddSample(SampleSPtr  sample,

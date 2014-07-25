@@ -28,7 +28,7 @@
 
 #include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
   const QString CONECTOMICA = "Conectomica";
 
@@ -50,6 +50,6 @@ namespace EspINA
     SegmentationPtr m_seg;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // CONNECTOMICPROXY_H

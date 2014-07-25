@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "vtkPlaneContourWidget.h"
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkPlaneContourRepresentationGlyph.h"
@@ -37,7 +37,7 @@
 #include <QPixmap>
 #include <QObject>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 vtkStandardNewMacro(vtkPlaneContourWidget);
 

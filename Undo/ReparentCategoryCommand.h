@@ -25,7 +25,7 @@
 #include <QUndoCommand>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ReparentCategoryCommand
   : public QUndoCommand

@@ -22,6 +22,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/Renderers/CachedSliceRenderer.h
   Representations/Renderers/CachedSliceRendererTask.h
   Selectors/Selector.h
+  Selectors/PixelSelector.h
   Selectors/BrushSelector.h
   View/EventHandler.h
   View/RenderView.h

@@ -42,7 +42,7 @@
 
 #include <QtGlobal>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 vtkStandardNewMacro(vtkPlaneContourRepresentationGlyph);
 

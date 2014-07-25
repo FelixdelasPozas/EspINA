@@ -5,7 +5,7 @@
  *      Author: Felix de las Pozas Alvarez
  */
 
-// EspINA
+// ESPINA
 #include "vtkZoomSelectionWidgetRepresentation.h"
 
 // vtk

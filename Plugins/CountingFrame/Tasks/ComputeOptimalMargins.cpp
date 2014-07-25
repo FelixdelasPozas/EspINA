@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
-namespace EspINA
+// ESPINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   template <typename C, typename S>

@@ -36,7 +36,7 @@ class QMainWindow;
 class QDockWidget;
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderersMenu;
   class CamerasMenu;
@@ -68,6 +68,9 @@ namespace EspINA
     virtual void setModel(QAbstractItemModel *model);
 
     SettingsPanelSPtr settingsPanel();
+
+    void loadSessionSettings(TemporalStorageSPtr storage);
+    void saveSessionSettings(TemporalStorageSPtr storage);
 
   protected:
     // AbstractItemView Interface
@@ -142,8 +145,6 @@ namespace EspINA
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
     View3D *m_view3D;
 
-    RendererSList m_renderers;
-
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;
 
@@ -155,6 +156,6 @@ namespace EspINA
 
   using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_DEFAULT_VIEW_H

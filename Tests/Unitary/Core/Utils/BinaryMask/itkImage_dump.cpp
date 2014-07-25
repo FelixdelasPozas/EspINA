@@ -26,7 +26,7 @@
 
 #include <QString>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using BMask = BinaryMask<unsigned char>;
 

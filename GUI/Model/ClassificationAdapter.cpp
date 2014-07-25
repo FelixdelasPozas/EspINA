@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ClassificationAdapter.h"
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(const QString& name)
@@ -108,14 +108,11 @@ CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificatio
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativeName, CategoryAdapterSPtr parent)
 {
-  CategoryAdapterPtr parentCategoryAdapter = nullptr;
+  CategoryAdapterPtr parentCategoryAdapter = parent.get();
 
-  if(parent != nullptr)
+  if(parentCategoryAdapter == nullptr)
   {
-    parentCategoryAdapter = parent.get();
-
-    if(parentCategoryAdapter == nullptr)
-      parentCategoryAdapter = m_classificationAdapter.root().get();
+    parentCategoryAdapter = m_classificationAdapter.root().get();
   }
 
   CategoryPtr parentCategory = parentCategoryAdapter->m_category.get();
@@ -202,7 +199,7 @@ void ClassificationAdapter::adaptCategory(CategoryAdapterSPtr category)
 }
 
 //------------------------------------------------------------------------
-QString EspINA::print(ClassificationAdapterSPtr classification, int indent)
+QString ESPINA::print(ClassificationAdapterSPtr classification, int indent)
 {
   QString out = QString("Classification: %1\n").arg(classification->name());
 

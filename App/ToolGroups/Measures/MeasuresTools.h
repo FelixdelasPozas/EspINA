@@ -25,7 +25,7 @@
 #include <Tools/Measure/MeasureTool.h>
 #include <Tools/Ruler/RulerTool.h>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class MeasuresTools
@@ -64,6 +64,6 @@ namespace EspINA
       bool            m_enabled;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif /* MEASURESTOOLS_H_ */

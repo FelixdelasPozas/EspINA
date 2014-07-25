@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SegmentationCollision.h"
 
 // itk
@@ -27,10 +27,10 @@
 // Qt
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-bool EspINA::checkCollision(SegmentationVolumeSPtr seg1, SegmentationVolumeSPtr seg2)
+bool ESPINA::checkCollision(SegmentationVolumeSPtr seg1, SegmentationVolumeSPtr seg2)
 {
   if (!seg1->espinaRegion().intersect(seg2->espinaRegion()))
     return false;

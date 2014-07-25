@@ -30,7 +30,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/ViewItem.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class FilterAdapterInterface;
   using FilterAdapterSPtr = std::shared_ptr<FilterAdapterInterface>;
@@ -122,6 +122,6 @@ namespace EspINA {
   ViewItemAdapterPtr viewItemAdapter(ItemAdapterPtr item);
 
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_ITEM_ADAPTER_H

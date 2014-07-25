@@ -7,7 +7,7 @@
 
 #include "ContourWidget.h"
 
-// EspINA
+// ESPINA
 #include "GUI/View/SliceView.h"
 #include "GUI/View/Widgets/Contour/SliceContourWidget.h"
 #include "GUI/View/Widgets/Contour/vtkPlaneContourWidget.h"
@@ -16,7 +16,7 @@
 // C++
 #include <iostream>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 typedef EspinaInteractorAdapter<vtkPlaneContourWidget> ContourWidgetAdapter;
 using ContourWidgetAdapter = EspinaInteractorAdapter<vtkPlaneContourWidget>

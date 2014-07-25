@@ -25,7 +25,7 @@
 #include "Core/Analysis/NeuroItem.h"
 #include "Input.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   class ViewItem
   : public QObject

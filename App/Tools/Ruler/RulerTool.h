@@ -21,11 +21,11 @@
 #ifndef RULERTOOL_H_
 #define RULERTOOL_H_
 
-// EspINA
+// ESPINA
 #include <Support/Tool.h>
 #include <Support/ViewManager.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class RenderView;
@@ -98,5 +98,5 @@ namespace EspINA
   using RulerToolPtr  = RulerTool *;
   using RulerToolSPtr = std::shared_ptr<RulerTool>;
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* RULERTOOL_H_ */

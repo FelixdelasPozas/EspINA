@@ -26,7 +26,7 @@
 
 class QEvent;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -59,6 +59,6 @@ namespace EspINA
   using EventHandlerPtr  = EventHandler *;
   using EventHandlerSPtr = std::shared_ptr<EventHandler>;
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif // ESPINA_EVENT_HANDLER_H_

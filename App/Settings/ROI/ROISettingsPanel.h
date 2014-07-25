@@ -26,28 +26,28 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
-#include "ui_RectangularROISettings.h"
+#include "ui_OrthogonalROISettings.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class ROISettings;
 
   class ROISettingsPanel
   : public SettingsPanel
-  , public Ui::RectangularROISettings
+  , public Ui::OrthogonalROISettings
   {
     Q_OBJECT
   public:
-    explicit ROISettingsPanel(ModelAdapterSPtr model,
-                              ROISettings *settings,
-                              ViewManagerSPtr viewManager);
+    explicit ROISettingsPanel(ROISettings*     settings,
+                              ModelAdapterSPtr model,
+                              ViewManagerSPtr  viewManager);
     virtual ~ROISettingsPanel();
 
     virtual const QString shortDescription()
-    { return tr("Cuboid VOI"); }
+    { return tr("Orthogonal ROI"); }
     virtual const QString longDescription()
-    { return tr("Cuboid Volume Of Interest"); }
+    { return tr("Orthogonal Region Of Interest"); }
     virtual const QIcon icon()
     { return QIcon(":/espina/voi.svg"); }
 
@@ -63,19 +63,14 @@ namespace EspINA
 
   private slots:
     void updateCategoryROI(const QModelIndex &index);
-    void zValueChanged(int);
 
   private:
-    ModelAdapterSPtr m_model;
-    ROISettings *m_settings;
+    ModelAdapterSPtr    m_model;
+    ROISettings*        m_settings;
     CategoryAdapterSPtr m_activeCategory;
-    ViewManagerSPtr m_viewManager;
-    Nm m_zSpacing;
-
-    bool m_zValueChanged;
-    bool m_zTaxValueChanged;
+    ViewManagerSPtr     m_viewManager;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ROI_SETTINGS_PANEL_H_

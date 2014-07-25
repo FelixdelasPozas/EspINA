@@ -26,15 +26,15 @@
 #include <QSettings>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 GeneralSettings::GeneralSettings()
-: m_settings(new QSettings(CESVIMA, ESPINA))
 {
-  m_userName         = m_settings->value(USER_NAME, "User").toString();
-  m_autosaveInterval = m_settings->value(AUTOSAVE_INTERVAL, 10).toInt();
-  m_autosavePath     = m_settings->value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString();
+  ESPINA_SETTINGS(settings);
+  m_userName         = settings.value(USER_NAME, "User").toString();
+  m_autosaveInterval = settings.value(AUTOSAVE_INTERVAL, 10).toInt();
+  m_autosavePath     = settings.value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString();
 }
 
 //-----------------------------------------------------------------------------
@@ -47,19 +47,25 @@ GeneralSettings::~GeneralSettings()
 void GeneralSettings::setUserName(QString name)
 {
   m_userName = name;
-  m_settings->setValue(USER_NAME, m_userName);
+
+  ESPINA_SETTINGS(settings);
+  settings.setValue(USER_NAME, m_userName);
 }
 
 //-----------------------------------------------------------------------------
 void GeneralSettings::setAutosaveInterval(int min)
 {
   m_autosaveInterval = min;
-  m_settings->setValue(AUTOSAVE_INTERVAL, min);
+
+  ESPINA_SETTINGS(settings);
+  settings.setValue(AUTOSAVE_INTERVAL, min);
 }
 
 //-----------------------------------------------------------------------------
 void GeneralSettings::setAutosavePath(const QString path)
 {
   m_autosavePath = QDir(path);
-  m_settings->setValue(AUTOSAVE_PATH, path);
+
+  ESPINA_SETTINGS(settings);
+  settings.setValue(AUTOSAVE_PATH, path);
 }

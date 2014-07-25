@@ -25,7 +25,7 @@
 
 #include "Plugins/CountingFrame/CountingFrames/CountingFrame.h"
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -80,6 +80,6 @@ namespace EspINA
   };
 
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CF_ORTOGONAL_COUNTING_FRAME_H

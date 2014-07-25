@@ -3,7 +3,7 @@
 
 #include <VolumeBounds.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   inline bool operator==(const VolumeBounds &lhs, const Bounds &rhs)

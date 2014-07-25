@@ -23,7 +23,7 @@
 #include <GUI/Representations/GraphicalRepresentationSettings.h>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 SegmentationVisualizationSettingsDialog::SegmentationVisualizationSettingsDialog(const QString  &title, 

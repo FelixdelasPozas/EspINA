@@ -7,7 +7,7 @@
 
 #include "IFactoryExtension.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   IFactoryExtension::~IFactoryExtension()

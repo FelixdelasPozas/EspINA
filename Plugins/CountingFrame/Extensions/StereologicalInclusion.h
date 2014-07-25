@@ -32,7 +32,7 @@
 class vtkPoints;
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF {
   class CountingFramePlugin_EXPORT StereologicalInclusion
@@ -112,6 +112,6 @@ namespace EspINA
   StereologicalInclusionSPtr stereologicalInclusion(SegmentationExtensionSPtr extension);
 
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // STEREOLOGICALINCLUSION_H

@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SplitTool.h"
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
@@ -42,7 +42,7 @@
 #include <QMessageBox>
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   const Filter::Type SPLIT_FILTER    = "SplitFilter";
   const Filter::Type SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
@@ -95,8 +95,14 @@ namespace EspINA
     m_planarSplitAction->setChecked(false);
     m_applyButton->setVisible(false);
     m_applyButton->setCheckable(false);
-    connect(m_planarSplitAction, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
-    connect(m_applyButton, SIGNAL(triggered()), this, SLOT(applyCurrentState()), Qt::QueuedConnection);
+
+    connect(m_planarSplitAction, SIGNAL(triggered(bool)),
+            this,                SLOT(initTool(bool)));
+    connect(m_applyButton, SIGNAL(triggered()),
+            this,          SLOT(applyCurrentState()));
+    connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+            this,            SLOT(initTool(bool)));
+
     m_factory->registerFilterFactory(FilterFactorySPtr(new SplitFilterFactory()));
   }
 
@@ -141,12 +147,13 @@ namespace EspINA
   {
     if(value)
     {
+      if (m_widget) return;
+
       auto widget = PlanarSplitWidget::New();
       m_widget = EspinaWidgetSPtr{widget};
-      m_viewManager->addWidget(m_widget);
-      m_viewManager->setSelectionEnabled(false);
       m_viewManager->setEventHandler(m_handler);
-      m_applyButton->setVisible(true);
+      m_viewManager->setSelectionEnabled(false);
+      m_viewManager->addWidget(m_widget);
 
       auto selectedSegs = m_viewManager->selection()->segmentations();
       Q_ASSERT(selectedSegs.size() == 1);
@@ -161,17 +168,21 @@ namespace EspINA
       if(m_widget == nullptr)
         return;
 
-      m_viewManager->setSelectionEnabled(true);
-      m_planarSplitAction->setChecked(false);
-      m_applyButton->setVisible(false);
       m_widget->setEnabled(false);
       m_viewManager->removeWidget(m_widget);
-      m_viewManager->setEventHandler(nullptr);
-      m_widget = nullptr;
+      m_viewManager->unsetEventHandler(m_handler);
+      m_viewManager->setSelectionEnabled(true);
       m_viewManager->updateViews();
+
+      m_widget = nullptr;
 
       emit splittingStopped();
     }
+
+    m_planarSplitAction->blockSignals(true);
+    m_planarSplitAction->setChecked(value);
+    m_planarSplitAction->blockSignals(false);
+    m_applyButton->setVisible(value);
   }
 
   //------------------------------------------------------------------------
@@ -218,7 +229,7 @@ namespace EspINA
     {
       QMessageBox warning;
       warning.setWindowModality(Qt::WindowModal);
-      warning.setWindowTitle(tr("EspINA"));
+      warning.setWindowTitle(tr("ESPINA"));
       warning.setIcon(QMessageBox::Warning);
       warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
       warning.setStandardButtons(QMessageBox::Yes);
@@ -269,7 +280,7 @@ namespace EspINA
         QApplication::restoreOverrideCursor();
         QMessageBox warning;
         warning.setWindowModality(Qt::WindowModal);
-        warning.setWindowTitle(tr("EspINA"));
+        warning.setWindowTitle(tr("ESPINA"));
         warning.setIcon(QMessageBox::Warning);
         warning.setText(tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations."));
         warning.setStandardButtons(QMessageBox::Yes);
@@ -290,4 +301,4 @@ namespace EspINA
   }
 
 
-} // namespace EspINA
+} // namespace ESPINA

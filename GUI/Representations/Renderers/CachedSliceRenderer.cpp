@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "CachedSliceRenderer.h"
 #include "CachedSliceRendererTask.h"
 #include <GUI/View/RenderView.h>
@@ -48,24 +48,23 @@ QString planeName(int plane)
   return QString();
 }
 
-namespace EspINA
+namespace ESPINA
 {
   const int CachedSliceRenderer::WINDOW_INCREMENT = 5;
 
   //-----------------------------------------------------------------------------
   CachedSliceRenderer::CachedSliceRenderer(SchedulerSPtr scheduler, QObject *parent)
-  : RepresentationRenderer(parent)
-  , m_windowWidth{15}
-  , m_maxWindowWidth{25}
-  , m_actualPos{nullptr}
-  , m_edgePos{nullptr}
-  , m_windowSpacing{-1}
-  , m_picker(vtkSmartPointer<vtkPropPicker>::New())
-  , m_scheduler{scheduler}
-  , m_planeIndex{-1}
-  , m_needCameraReset{true}
+  : RepresentationRenderer{parent}
+  , m_windowWidth         {5}
+  , m_maxWindowWidth      {25}
+  , m_actualPos           {nullptr}
+  , m_edgePos             {nullptr}
+  , m_windowSpacing       {-1}
+  , m_picker              {nullptr}
+  , m_scheduler           {scheduler}
+  , m_planeIndex          {-1}
+  , m_needCameraReset     {true}
   {
-    m_picker->PickFromListOn();
   }
 
   //-----------------------------------------------------------------------------
@@ -78,7 +77,7 @@ namespace EspINA
     for (auto rep: m_representationsActors.keys())
       m_representationsActors[rep] = nullptr;
 
-    CacheNode *node = m_actualPos;
+    auto node = m_actualPos;
     for (unsigned int i = 0; i < 2*m_windowWidth + 1; ++i)
     {
       node->mutex.lockForWrite();
@@ -99,12 +98,36 @@ namespace EspINA
       for(auto rep: node->representations.keys())
         node->representations[rep] = nullptr;
 
-      CacheNode *deleteNode = node;
+      auto deleteNode = node;
       node = node->next;
       delete deleteNode;
     }
   }
   
+  //-----------------------------------------------------------------------------
+  void CachedSliceRenderer::setEnable(bool value)
+  {
+    Renderer::setEnable(value);
+
+    if(m_view != nullptr)
+    {
+      auto view = dynamic_cast<View2D *>(m_view);
+      Q_ASSERT(view);
+
+      if(value)
+      {
+        connect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(setPosition(Plane, Nm)), Qt::DirectConnection);
+        connect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()), Qt::DirectConnection);
+        setPosition(view->plane(), view->crosshairPoint()[normalCoordinateIndex(view->plane())]);
+      }
+      else
+      {
+        disconnect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(setPosition(Plane, Nm)));
+        disconnect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()));
+      }
+    }
+  }
+
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::setView(RenderView* rView)
   {
@@ -115,10 +138,14 @@ namespace EspINA
     Q_ASSERT(view);
     m_planeIndex = normalCoordinateIndex(view->plane());
     m_windowSpacing = sceneResolution[m_planeIndex];
-    connect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changePosition(Plane, Nm)), Qt::QueuedConnection);
-    connect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()), Qt::QueuedConnection);
+    connect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(setPosition(Plane, Nm)), Qt::DirectConnection);
+    connect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()), Qt::DirectConnection);
 
     initCache();
+
+    m_picker = vtkSmartPointer<vtkPropPicker>::New();
+    m_picker->InitializePickList();
+    m_picker->PickFromListOn();
   }
 
   //-----------------------------------------------------------------------------
@@ -150,13 +177,16 @@ namespace EspINA
 
     auto cachedRep = std::dynamic_pointer_cast<CachedRepresentation>(rep);
     m_representationsActors.insert(cachedRep, nullptr);
-    connect(rep.get(), SIGNAL(update()), this, SLOT(updateRepresentation()), Qt::QueuedConnection);
-    connect(rep.get(), SIGNAL(changeVisibility()), this, SLOT(updateRepresentationVisibility()), Qt::QueuedConnection);
+    connect(rep.get(), SIGNAL(update()), this, SLOT(updateRepresentation()), Qt::DirectConnection);
+    connect(rep.get(), SIGNAL(changeVisibility()), this, SLOT(updateRepresentationVisibility()), Qt::DirectConnection);
 
     if (rep->type() == SegmentationSliceCachedRepresentation::TYPE)
-      connect(rep.get(), SIGNAL(changeColor()), this, SLOT(updateRepresentationColor()), Qt::QueuedConnection);
+      connect(rep.get(), SIGNAL(changeColor()), this, SLOT(updateRepresentationColor()), Qt::DirectConnection);
 
-    CacheNode *node = m_actualPos;
+    if(!m_enable)
+      return;
+
+    auto node = m_actualPos;
     CachedRepresentationSList repList;
     repList << cachedRep;
 
@@ -201,7 +231,7 @@ namespace EspINA
       }
 
     auto cachedRep = std::dynamic_pointer_cast<CachedRepresentation>(rep);
-    if (m_representationsActors[cachedRep] != nullptr)
+    if (m_representationsActors[cachedRep] != nullptr && m_enable)
       m_view->removeActor(m_representationsActors[cachedRep]);
 
     m_representationsActors[cachedRep] = nullptr;
@@ -212,7 +242,7 @@ namespace EspINA
     if (rep->type() == SegmentationSliceCachedRepresentation::TYPE)
       disconnect(rep.get(), SIGNAL(changeColor()), this, SLOT(updateRepresentationColor()));
 
-    CacheNode *node = m_actualPos;
+    auto node = m_actualPos;
     for(unsigned int i = 0; i < 2*m_windowWidth+1; ++i, node = node->next)
     {
       node->mutex.lockForWrite();
@@ -245,9 +275,9 @@ namespace EspINA
   }
   
   //-----------------------------------------------------------------------------
-  bool CachedSliceRenderer::managesRepresentation(const QString& repName) const
+  bool CachedSliceRenderer::managesRepresentation(const QString &repType) const
   {
-    return ((repName == ChannelSliceCachedRepresentation::TYPE) || (repName == SegmentationSliceCachedRepresentation::TYPE));
+    return ((repType == ChannelSliceCachedRepresentation::TYPE) || (repType == SegmentationSliceCachedRepresentation::TYPE));
   }
   
   //-----------------------------------------------------------------------------
@@ -255,9 +285,10 @@ namespace EspINA
   {
     int numActors = 0;
 
-    for(auto rep: m_representationsActors.keys())
-      if (m_representationsActors[rep] != nullptr)
-        ++numActors;
+    if(m_enable)
+      for(auto rep: m_representationsActors.keys())
+        if (m_representationsActors[rep] != nullptr)
+          ++numActors;
 
     return numActors;
   }
@@ -267,14 +298,14 @@ namespace EspINA
   {
     ViewItemAdapterList selection;
 
-    if (m_representationsActors.keys().size() == 0)
+    if (m_representationsActors.keys().size() == 0 || !m_enable)
       return selection;
 
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
 
     auto realZ = m_view->crosshairPoint()[m_planeIndex];
-    CachedRepresentationSList repList = validRepresentationsForPosition(realZ);
+    auto repList = validRepresentationsForPosition(realZ);
 
     for(auto rep: repList)
       if (m_representationsActors[rep] != nullptr)
@@ -313,14 +344,7 @@ namespace EspINA
 
             if (!repeat)
             {
-              auto collection = m_picker->GetPickList();
-              collection->InitTraversal();
-              auto prop = collection->GetNextProp();
-              while(prop != nullptr)
-              {
-                m_picker->DeletePickList(prop);
-                prop = collection->GetNextProp();
-              }
+              m_picker->GetPickList()->RemoveAllItems();
 
               return selection;
             }
@@ -331,33 +355,21 @@ namespace EspINA
       }
     }
 
-    auto collection = m_picker->GetPickList();
-    collection->InitTraversal();
-    auto prop = collection->GetNextProp();
-    while(prop != nullptr)
-    {
-      m_picker->DeletePickList(prop);
-      prop = collection->GetNextProp();
-    }
-
+    m_picker->GetPickList()->RemoveAllItems();
     return selection;
   }
   
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::resolutionChanged()
   {
-    auto sceneResolution = m_view->sceneResolution();
-    auto spacing = sceneResolution[m_planeIndex];
+    auto spacing = m_view->sceneResolution()[m_planeIndex];
 
     if (m_windowSpacing != spacing)
     {
       m_windowSpacing = spacing;
 
-      // try to adjust to actual position;
-      int iPos = m_actualPos->position / spacing;
-      Nm pos = static_cast<Nm>(iPos) * m_windowSpacing;
-
-      fillCache(pos);
+      // adjust to actual position;
+      fillCache(m_view->crosshairPoint()[m_planeIndex]);
     }
   }
 
@@ -367,6 +379,8 @@ namespace EspINA
     for(auto rep: m_representationsActors.keys())
       if(m_representationsActors[rep] != nullptr)
         m_view->removeActor(m_representationsActors[rep]);
+
+    emit renderRequested();
   }
   
   //-----------------------------------------------------------------------------
@@ -375,12 +389,14 @@ namespace EspINA
     for(auto rep: m_representationsActors.keys())
       if(m_representationsActors[rep] != nullptr)
         m_view->addActor(m_representationsActors[rep]);
+
+    emit renderRequested();
   }
 
   //-----------------------------------------------------------------------------
   CachedSliceRendererTaskSPtr CachedSliceRenderer::createTask(Priority priority)
   {
-    CachedSliceRendererTask *task = new CachedSliceRendererTask(m_scheduler);
+    auto task = new CachedSliceRendererTask(m_scheduler);
     task->setPriority(priority);
     connect(task, SIGNAL(ready(CachedSliceRenderer::CacheNode *)), this, SLOT(renderFrame(CachedSliceRenderer::CacheNode *)), Qt::BlockingQueuedConnection);
 
@@ -400,7 +416,7 @@ namespace EspINA
     bool smaller = (proposedWidth - m_windowWidth) < 0;
 
     CachedRepresentationSList validReps;
-    CacheNode *node = m_edgePos->next;
+    auto node = m_edgePos->next;
 
     for(int i = 0; i < diff; ++i)
     {
@@ -512,7 +528,7 @@ namespace EspINA
   {
     unsigned long long size = 0;
 
-    CacheNode *node = m_actualPos;
+    auto node = m_actualPos;
     for(unsigned int i = 0; i < ((2*m_windowWidth) + 1); ++i)
       size += getNodeExtimatedMemoryUsed(node);
 
@@ -525,20 +541,23 @@ namespace EspINA
     auto channelRep = qobject_cast<ChannelSliceCachedRepresentationPtr>(sender());
     auto segRep = qobject_cast<SegmentationSliceCachedRepresentationPtr>(sender());
 
-    CachedRepresentationSPtr rep = nullptr;
-    CachedRepresentationSList repList = m_representationsActors.keys();
-
-    if (channelRep == nullptr && segRep == nullptr)
+    if ((channelRep == nullptr && segRep == nullptr) || !m_enable)
       return;
+
+    CachedRepresentationSPtr rep = nullptr;
+    auto repList = m_representationsActors.keys();
 
     for(auto representation: repList)
       if (representation.get() == channelRep || representation.get() == segRep)
         rep = representation;
 
+    if(rep == nullptr)
+      return;
+
     CachedRepresentationSList segList;
     segList << rep;
 
-    CacheNode *node = m_actualPos;
+    auto node = m_actualPos;
     for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i, node = node->next)
     {
       node->mutex.lockForWrite();
@@ -569,24 +588,35 @@ namespace EspINA
     auto channelRep = qobject_cast<ChannelSliceCachedRepresentationPtr>(sender());
     auto segRep = qobject_cast<SegmentationSliceCachedRepresentationPtr>(sender());
 
-    CachedRepresentationSPtr rep = nullptr;
-    CachedRepresentationSList repList = m_representationsActors.keys();
-
-    if (channelRep == nullptr && segRep == nullptr)
+    if ((channelRep == nullptr && segRep == nullptr) || !m_enable)
       return;
+
+    CachedRepresentationSPtr rep = nullptr;
+    auto repList = m_representationsActors.keys();
 
     for(auto representation: repList)
       if (representation.get() == channelRep || representation.get() == segRep)
         rep = representation;
 
+    if(rep == nullptr)
+      return;
+
     if (m_representationsActors[rep] != nullptr)
     {
-      if (rep->isVisible())
-        m_view->addActor(m_representationsActors[rep]);
-      else
-        m_view->removeActor(m_representationsActors[rep]);
+      m_representationsActors[rep]->SetVisibility(rep->isVisible());
+      m_representationsActors[rep]->Update();
+    }
 
-      m_view->updateView();
+    auto node = m_actualPos;
+    for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i, node = node->next)
+    {
+      node->mutex.lockForWrite();
+      if(node->representations[rep] != nullptr)
+      {
+        node->representations[rep]->SetVisibility(rep->isVisible());
+        node->representations[rep]->Update();
+      }
+      node->mutex.unlock();
     }
   }
 
@@ -594,11 +624,11 @@ namespace EspINA
   void CachedSliceRenderer::updateRepresentationColor()
   {
     SegmentationSliceCachedRepresentation *segRep = qobject_cast<SegmentationSliceCachedRepresentation *>(sender());
-    if (!segRep)
+    if (!segRep || !m_enable)
       return;
 
-    CachedRepresentationSList repList = m_representationsActors.keys();
     CachedRepresentationSPtr rep = nullptr;
+    auto repList = m_representationsActors.keys();
     for(auto representation: repList)
       if (representation.get() == segRep)
         rep = representation;
@@ -613,15 +643,14 @@ namespace EspINA
       imageMapToColors->Update();
       m_representationsActors[rep]->GetMapper()->Update();
       m_representationsActors[rep]->Update();
-      m_view->updateView();
     }
 
-    CacheNode *node = m_actualPos;
+    auto node = m_actualPos;
     for(unsigned int i = 0; i < (2*m_windowWidth)+1; ++i, node = node->next)
     {
       if(rep->existsIn(node->position))
       {
-        node->mutex.lockForRead();
+        node->mutex.lockForWrite();
         if(node->representations[rep] != nullptr)
         {
           auto imageMapToColors = vtkImageMapToColors::SafeDownCast(node->representations[rep]->GetMapper()->GetInputAlgorithm(0,0));
@@ -636,15 +665,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void CachedSliceRenderer::changePosition(Plane plane, Nm pos)
-  {
-    setPosition(pos);
-  }
-
-  //-----------------------------------------------------------------------------
   void CachedSliceRenderer::printBufferInfo()
   {
-    CacheNode *node = m_edgePos->next;
+    auto node = m_edgePos->next;
     QString info = "| ";
     unsigned long long memUsed = 0;
 
@@ -671,13 +694,13 @@ namespace EspINA
   {
     auto view = dynamic_cast<View2D *>(m_view);
     auto point = view->crosshairPoint();
-    Nm position = point[m_planeIndex];
+    auto position = point[m_planeIndex];
 
     m_actualPos = new CacheNode();
     m_actualPos->next = m_actualPos->previous = m_actualPos;
     m_actualPos->position = position;
 
-    CacheNode * node = m_edgePos = m_actualPos;
+    auto node = m_edgePos = m_actualPos;
     for (unsigned int i = 1; i <= m_windowWidth; ++i)
     {
       m_edgePos->next = new CacheNode();
@@ -698,9 +721,7 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::fillCache(Nm position)
   {
-    CachedRepresentationSList repList = m_representationsActors.keys();
-    if (repList.size() == 0)
-      return;
+    auto repList = m_representationsActors.keys();
 
     for (auto rep: repList)
     {
@@ -719,7 +740,7 @@ namespace EspINA
       m_actualPos->representations[rep] = nullptr;
 
     Priority priority = Priority::VERY_HIGHT;
-    CachedRepresentationSList validReps = validRepresentationsForPosition(position);
+    auto validReps = validRepresentationsForPosition(position);
     if(!validReps.empty())
     {
       if (m_actualPos->worker != nullptr)
@@ -739,7 +760,7 @@ namespace EspINA
 
     m_actualPos->mutex.unlock();
 
-    CacheNode *node = m_edgePos = m_actualPos;
+    auto node = m_edgePos = m_actualPos;
     for(unsigned int i = 0; i < m_windowWidth; ++i)
     {
       m_edgePos = m_edgePos->next;
@@ -834,7 +855,7 @@ namespace EspINA
     if (node->restart)
     {
       node->restart = false;
-      CachedRepresentationSList repList = validRepresentationsForPosition(node->position);
+      auto repList = validRepresentationsForPosition(node->position);
       if(!repList.empty())
       {
         node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
@@ -859,17 +880,22 @@ namespace EspINA
 
             if(m_representationsActors[rep] != nullptr)
             {
-              m_view->removeActor(m_representationsActors[rep]);
+              if(m_enable)
+                m_view->removeActor(m_representationsActors[rep]);
+
               m_representationsActors[rep] = nullptr;
             }
             m_representationsActors[rep] = node->representations[rep];
 
-            if (rep->isVisible() && node->representations[rep] != nullptr)
+            if (m_enable && node->representations[rep] != nullptr)
+            {
+              node->representations[rep]->SetVisibility(rep->isVisible());
               m_view->addActor(node->representations[rep]);
+            }
           }
         }
 
-        if(resetCamera || update)
+        if((resetCamera || update) && m_enable)
         {
           if(resetCamera)
           {
@@ -895,10 +921,21 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  void CachedSliceRenderer::setPosition(Nm position)
+  void CachedSliceRenderer::setPosition(Plane plane, Nm position)
   {
     if (m_actualPos->position == position || (m_representationsActors.keys().size() == 0))
       return;
+
+    // this is necessary as setPosition() is called during file loading with incorrect
+    // values and that makes the cache positions invalid, if an invalid position is detected
+    // the cache forces a refill.
+    if(std::fabs(m_actualPos->position - position) < m_windowSpacing)
+    {
+      fillCache(position);
+      m_actualPos = m_actualPos->next;
+      setPosition(plane, position);
+      return;
+    }
 
     // check if is a complete reposition of the cache
     if (abs(m_actualPos->position - position) > static_cast<int>(m_windowWidth*m_windowSpacing))
@@ -999,8 +1036,10 @@ namespace EspINA
     int numActors = 0;
     for(auto rep: m_actualPos->representations.keys())
     {
-      if (m_actualPos->representations[rep] != nullptr) // && rep->isVisible())
+      if (m_actualPos->representations[rep] != nullptr)
       {
+        m_actualPos->representations[rep]->SetVisibility(rep->isVisible());
+        m_actualPos->representations[rep]->Update();
         m_view->addActor(m_actualPos->representations[rep]);
         ++numActors;
       }
@@ -1017,7 +1056,6 @@ namespace EspINA
         m_needCameraReset = false;
         m_view->resetCamera();
       }
-      m_view->updateView();
     }
 
     if(m_actualPos->worker != nullptr)
@@ -1031,4 +1069,4 @@ namespace EspINA
 //    printBufferInfo();
   }
 
-} // namespace EspINA
+} // namespace ESPINA

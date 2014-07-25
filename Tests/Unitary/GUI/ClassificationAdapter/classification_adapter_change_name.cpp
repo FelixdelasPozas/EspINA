@@ -31,7 +31,7 @@
 #include <GUI/Model/ClassificationAdapter.h>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int classification_adapter_change_name( int argc, char** argv )
 {
@@ -44,7 +44,7 @@ int classification_adapter_change_name( int argc, char** argv )
 
   error |= TestName(category, firstName);
 
-  QString secondName = "Oragnes";
+  QString secondName = "Oranges";
 
   category->setName(secondName);
   error |= TestName(category, secondName);

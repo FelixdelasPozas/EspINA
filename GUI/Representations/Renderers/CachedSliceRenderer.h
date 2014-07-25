@@ -21,7 +21,7 @@
 #ifndef ESPINA_CACHED_SLICE_RENDERER_H_
 #define ESPINA_CACHED_SLICE_RENDERER_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Representations/SliceCachedRepresentation.h>
@@ -33,7 +33,7 @@
 
 class vtkPropPicker;
 
-namespace EspINA
+namespace ESPINA
 {
   class CachedSliceRendererTask;
   using CachedSliceRendererTaskPtr  = CachedSliceRendererTask *;
@@ -61,7 +61,7 @@ namespace EspINA
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
       virtual bool hasRepresentation(RepresentationSPtr rep) const;
-      virtual bool managesRepresentation(const QString &representationName) const;
+      virtual bool managesRepresentation(const QString &representationType) const;
 
       virtual RendererSPtr clone() const        { return RendererSPtr(new CachedSliceRenderer(m_scheduler)); }
 
@@ -112,10 +112,15 @@ namespace EspINA
        */
       virtual unsigned long long getEstimatedMemoryUsed();
 
-      /* \brief Implements Renderer::setView.
+      /* \brief Implements Renderer::setView(RenderView *)
        *
        */
       virtual void setView(RenderView* rView);
+
+      /* \brief Implements Renderer::setEnable(bool).
+       *
+       */
+      virtual void setEnable(bool value);
 
     protected:
       virtual void hide();
@@ -157,7 +162,13 @@ namespace EspINA
       void updateRepresentationColor();
 
     protected slots:
-      void changePosition(Plane plane, Nm pos);
+      /* \brief Set position of the cache.
+       *
+       * Sets the position of the cache. If the position is not cached (not within the bounds of the
+       * cache window) the cache is emptied and filled again. If the position is cached the cache
+       * position shifts to that place and the borders of the window deletes/creates task and actors conveniently.
+       */
+      void setPosition(Plane plane, Nm pos);
       void resolutionChanged();
       void renderFrame(CachedSliceRenderer::CacheNode *node);
 
@@ -198,14 +209,6 @@ namespace EspINA
        */
       CachedRepresentationSList validRepresentationsForPosition(const Nm pos) const;
 
-      /* \brief Set position of the cache.
-       *
-       * Sets the position of the cache. If the position is not cached (not within the bounds of the
-       * cache window) the cache is emptied and filled again. If the position is cached the cache
-       * position shifts to that place and the borders of the window deletes/creates task and actors conveniently.
-       */
-      virtual void setPosition(Nm position);
-
       // Protected attributes.
       unsigned int   m_windowWidth;    // Actual cache window width
       unsigned int   m_maxWindowWidth; // Maximum allowed cache window width.
@@ -223,6 +226,6 @@ namespace EspINA
       friend class CachedSliceRendererTask;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CACHED_SLICE_RENDERER_H_

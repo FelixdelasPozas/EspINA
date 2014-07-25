@@ -23,7 +23,7 @@
 
 #include <GUI/View/RenderView.h>
 
-// EspINA
+// ESPINA
 #include "GUI/Representations/Renderers/Renderer.h"
 #include "GUI/Representations/Representation.h"
 
@@ -44,7 +44,7 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QScrollBar;
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT View3D
   : public RenderView
@@ -54,10 +54,6 @@ namespace EspINA
     explicit View3D(bool     showCrosshairPlaneSelectors = false,
                     QWidget* parent = 0);
     virtual ~View3D();
-
-    void setRenderers(RendererSList renderers);
-
-    RendererSList renderers() const;
 
     void setCameraFocus(const NmVector3& center);
 
@@ -90,8 +86,9 @@ namespace EspINA
 
     virtual bool eventFilter(QObject* caller, QEvent* e);
 
-    virtual RepresentationSPtr cloneRepresentation(EspINA::ViewItemAdapterPtr item, EspINA::Representation::Type representation);
+    virtual RepresentationSPtr cloneRepresentation(ESPINA::ViewItemAdapterPtr item, ESPINA::Representation::Type representation);
 
+    void setRenderers(RendererSList renderers);
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 
@@ -140,10 +137,10 @@ namespace EspINA
     // GUI
     QVBoxLayout *m_mainLayout;
     QHBoxLayout *m_controlLayout;
-    QPushButton m_snapshot;
-    QPushButton m_export;
-    QPushButton m_zoom;
-    QPushButton m_renderConfig;
+    QPushButton *m_snapshot;
+    QPushButton *m_export;
+    QPushButton *m_zoom;
+    QPushButton *m_renderConfig;
 
     // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;
@@ -164,6 +161,6 @@ namespace EspINA
   inline View3D * view3D_cast(RenderView* view)
   { return dynamic_cast<View3D *>(view); }
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_3D_H

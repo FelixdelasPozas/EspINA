@@ -21,7 +21,7 @@
 
 #include "GeneralSettingsPanel.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //------------------------------------------------------------------------

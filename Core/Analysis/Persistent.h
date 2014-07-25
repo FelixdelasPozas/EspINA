@@ -34,7 +34,7 @@
 #include <QDebug>
 #include <Core/Utils/TemporalStorage.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   using State = QString;
 

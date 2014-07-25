@@ -50,8 +50,12 @@ class QFrame;
 class QUndoStack;
 class QShortcut;
 
-namespace EspINA
+namespace ESPINA
 {
+
+class SeedGrowSegmentationSettings;
+
+class ROISettings;
 
 class MainToolBar;
 
@@ -156,8 +160,10 @@ class MainToolBar;
 
     bool isModelModified();
 
+    void enableWidgets(bool value);
+
   private:
-    // EspINA
+    // ESPINA
     SchedulerSPtr    m_scheduler;
     ModelFactorySPtr m_factory;
     AnalysisSPtr     m_analysis;
@@ -169,13 +175,16 @@ class MainToolBar;
     ChannelReaderSPtr  m_channelReader;
     AnalysisReaderSPtr m_segFileReader;
 
-    GeneralSettingsSPtr m_settings;
+    GeneralSettingsSPtr           m_settings;
+    ROISettings*                  m_roiSettings;
+    SeedGrowSegmentationSettings *m_sgsSettings;
 
     // GUI
     QMenu           *m_addMenu;
     QAction         *m_saveAnalysis;
     QAction         *m_saveSessionAnalysis;
     QAction         *m_closeAnalysis;
+    QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngines;
     QMenu           *m_dockMenu;
@@ -190,8 +199,8 @@ class MainToolBar;
     ExtensionFactorySList m_extensionFactories;
     SettingsPanelSList    m_availableSettingsPanels;
 
-    MainToolBar     *m_mainToolBar;
-    DefaultViewSPtr  m_view;
+    MainToolBar*          m_mainToolBar;
+    DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 
     RecentDocuments m_recentDocuments1;
@@ -222,6 +231,6 @@ class MainToolBar;
     EspinaErrorHandlerSPtr m_errorHandler;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_MAIN_WINDOW_H

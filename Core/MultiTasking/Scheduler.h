@@ -31,7 +31,7 @@
 
 #include "Task.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   class TaskQueue 
   : public QList<TaskSPtr> {

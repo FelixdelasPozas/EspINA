@@ -30,7 +30,7 @@
 class vtkPolyData;
 class vtkRectangularSliceRepresentation;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class EspinaGUI_EXPORT vtkRectangularSliceWidget
@@ -89,6 +89,6 @@ namespace EspINA
     void operator=(const vtkRectangularSliceWidget&);  //Not implemented
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VTK_RECTANGULAR_SLICE_WIDGET_H

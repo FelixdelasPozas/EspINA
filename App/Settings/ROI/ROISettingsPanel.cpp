@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "ROISettingsPanel.h"
 #include "ROISettings.h"
 #include <Support/Settings/EspinaSettings.h>
@@ -34,47 +34,37 @@
 #include <QSettings>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
-// declared in Core library.
-extern const QString Category::X_DIM;
-extern const QString Category::Y_DIM;
-extern const QString Category::Z_DIM;
-
 //------------------------------------------------------------------------
-ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
-                                   ROISettings *settings,
-                                   ViewManagerSPtr viewManager)
+ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
+                                   ModelAdapterSPtr model,
+                                   ViewManagerSPtr  viewManager)
 : m_model           {model}
 , m_settings        {settings}
 , m_activeCategory  {nullptr}
 , m_viewManager     {viewManager}
-, m_zValueChanged   {false}
-, m_zTaxValueChanged{false}
 {
   setupUi(this);
-  m_zSpacing = 1.0;
 
   m_xSize->setValue(m_settings->xSize());
   m_ySize->setValue(m_settings->ySize());
+  m_zSize->setValue(m_settings->zSize());
 
-  QSettings espinaSettings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(espinaSettings);
 
   if (espinaSettings.value(FIT_TO_SLICES).toBool())
   {
-    m_zSpacing = m_viewManager->viewResolution()[2];
     m_zSize->setSuffix(" slices");
-    m_zTaxSize->setSuffix(" slices");
+    m_zCategorySize->setSuffix(" slices");
   }
   else
   {
     m_zSize->setSuffix(" nm");
-    m_zTaxSize->setSuffix(" nm");
+    m_zCategorySize->setSuffix(" nm");
   }
-
-  m_zSize->setValue(vtkMath::Round(m_settings->zSize()/m_zSpacing));
 
   m_categorySelector->setModel(m_model.get());
 
@@ -88,12 +78,6 @@ ROISettingsPanel::ROISettingsPanel(ModelAdapterSPtr model,
           this, SLOT(updateCategoryROI(QModelIndex)));
 
   m_categorySelector->setRootModelIndex(m_model->classificationRoot());
-
-  // the rounding of fit to slices on the z value was making the dialog ask the
-  // user if he wanted to save the changes even when the user hasn't changed
-  // anything. this fixes it.
-  connect(m_zTaxSize, SIGNAL(valueChanged(int)), this, SLOT(zValueChanged(int)));
-  connect(m_zSize, SIGNAL(valueChanged(int)), this, SLOT(zValueChanged(int)));
 }
 
 //------------------------------------------------------------------------
@@ -107,7 +91,7 @@ void ROISettingsPanel::acceptChanges()
 {
   m_settings->setXSize(m_xSize->value());
   m_settings->setYSize(m_ySize->value());
-  m_settings->setZSize(m_zSize->value()*m_zSpacing);
+  m_settings->setZSize(m_zSize->value());
 
   writeCategoryProperties();
 }
@@ -123,7 +107,7 @@ bool ROISettingsPanel::modified() const
   bool returnValue = false;
   returnValue |= (m_xSize->value() != m_settings->xSize());
   returnValue |= (m_ySize->value() != m_settings->ySize());
-  returnValue |= m_zValueChanged;
+  returnValue |= (m_zSize->value() != m_settings->zSize());
   returnValue |= categoryROIModified();
 
   return returnValue;
@@ -132,7 +116,7 @@ bool ROISettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr ROISettingsPanel::clone()
 {
-  return SettingsPanelPtr(new ROISettingsPanel(m_model, m_settings, m_viewManager));
+  return SettingsPanelPtr(new ROISettingsPanel(m_settings, m_model, m_viewManager));
 }
 
 //------------------------------------------------------------------------
@@ -142,9 +126,9 @@ bool ROISettingsPanel::categoryROIModified() const
 
   if (m_activeCategory)
   {
-    modified |= (m_activeCategory->property(Category::X_DIM).toInt() != m_xTaxSize->value());
-    modified |= (m_activeCategory->property(Category::Y_DIM).toInt() != m_yTaxSize->value());
-    modified |= m_zTaxValueChanged;
+    modified |= (m_activeCategory->property(Category::DIM_X()).toInt() != m_xCategorySize->value());
+    modified |= (m_activeCategory->property(Category::DIM_Y()).toInt() != m_yCategorySize->value());
+    modified |= (m_activeCategory->property(Category::DIM_Z()).toInt() != m_zCategorySize->value());
   }
 
   return modified;
@@ -155,9 +139,9 @@ void ROISettingsPanel::writeCategoryProperties()
 {
   if (m_activeCategory)
   {
-    m_activeCategory->addProperty(Category::X_DIM, m_xTaxSize->value());
-    m_activeCategory->addProperty(Category::Y_DIM, m_yTaxSize->value());
-    m_activeCategory->addProperty(Category::Z_DIM, vtkMath::Round(m_zTaxSize->value()*m_zSpacing));
+    m_activeCategory->addProperty(Category::DIM_X(), m_xCategorySize->value());
+    m_activeCategory->addProperty(Category::DIM_Y(), m_yCategorySize->value());
+    m_activeCategory->addProperty(Category::DIM_Z(), m_zCategorySize->value());
   }
 }
 
@@ -168,17 +152,17 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
     return;
 
   ItemAdapterPtr itemPtr = itemAdapter(index);
-  if (ItemAdapter::Type::CATEGORY != itemPtr->type())
+  if (isCategory(itemPtr))
     return;
 
-  CategoryAdapterPtr elem = categoryPtr(itemPtr);
-  if (m_activeCategory && m_activeCategory.get() != elem)
+  CategoryAdapterPtr category = categoryPtr(itemPtr);
+  if (m_activeCategory && m_activeCategory.get() != category)
   {
     // Check for changes
     if (categoryROIModified())
     {
       QMessageBox msg;
-      msg.setWindowTitle(tr("EspINA"));
+      msg.setWindowTitle(tr("ESPINA"));
       msg.setText(tr("The properties of the category \"%1\" have been modified.\nDo you want to save the changes?").arg(m_activeCategory->data().toString()));
       msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
       if (msg.exec() == QMessageBox::Yes)
@@ -186,43 +170,30 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
     }
   }
 
-  m_activeCategory = m_model->smartPointer(elem);
-  m_zTaxValueChanged = false;
+  m_activeCategory = m_model->smartPointer(category);
 
-  // 2013-03-19 Fix missing taxonomy properties in some cases. By default revert to "default VOI" values.
-  if (!m_activeCategory->properties().contains(Category::X_DIM) ||
-      !m_activeCategory->properties().contains(Category::Y_DIM) ||
-      !m_activeCategory->properties().contains(Category::Z_DIM))
+  // 2013-03-19 Fix missing category properties in some cases. By default revert to "default ROI" values.
+  if (!m_activeCategory->properties().contains(Category::DIM_X()) ||
+      !m_activeCategory->properties().contains(Category::DIM_Y()) ||
+      !m_activeCategory->properties().contains(Category::DIM_Z()))
   {
-    m_activeCategory->addProperty(Category::X_DIM, QVariant(m_settings->xSize()));
-    m_activeCategory->addProperty(Category::Y_DIM, QVariant(m_settings->ySize()));
-    m_activeCategory->addProperty(Category::Z_DIM, QVariant(m_settings->zSize()));
+    m_activeCategory->addProperty(Category::DIM_X(), QVariant(m_settings->xSize()));
+    m_activeCategory->addProperty(Category::DIM_Y(), QVariant(m_settings->ySize()));
+    m_activeCategory->addProperty(Category::DIM_Z(), QVariant(m_settings->zSize()));
   }
 
-  QVariant xSize = elem->property(Category::X_DIM);
-  QVariant ySize = elem->property(Category::Y_DIM);
-  QVariant zSize = elem->property(Category::Z_DIM);
+  QVariant xSize = category->property(Category::DIM_X());
+  QVariant ySize = category->property(Category::DIM_Y());
+  QVariant zSize = category->property(Category::DIM_Z());
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {
     xSize = m_xSize->value();
     ySize = m_ySize->value();
-    zSize = m_zSize->value()*m_zSpacing;
+    zSize = m_zSize->value();
   }
 
-  m_xTaxSize->setValue(xSize.toInt());
-  m_yTaxSize->setValue(ySize.toInt());
-  m_zTaxSize->blockSignals(true);
-  m_zTaxSize->setValue(vtkMath::Round(zSize.toInt()/m_zSpacing));
-  m_zTaxSize->blockSignals(false);
-}
-
-//------------------------------------------------------------------------
-void ROISettingsPanel::zValueChanged(int unused)
-{
-  if (sender() == m_zSize)
-    m_zValueChanged = true;
-
-  if (sender() == m_zTaxSize)
-    m_zTaxValueChanged = true;
+  m_xCategorySize->setValue(xSize.toUInt());
+  m_yCategorySize->setValue(ySize.toUInt());
+  m_zCategorySize->setValue(zSize.toUInt());
 }

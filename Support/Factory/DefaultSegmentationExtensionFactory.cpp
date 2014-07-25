@@ -26,7 +26,7 @@
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SegmentationExtensionSPtr DefaultSegmentationExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,

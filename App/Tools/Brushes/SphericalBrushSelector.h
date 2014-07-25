@@ -24,7 +24,7 @@
 
 #include <GUI/Selectors/BrushSelector.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class SphericalBrushSelector
   : public BrushSelector
@@ -42,6 +42,6 @@ namespace EspINA
 
   using SphericalBrushSelectorSPtr = std::shared_ptr<SphericalBrushSelector>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SPHERICAL_BRUSH_SELECTOR_H

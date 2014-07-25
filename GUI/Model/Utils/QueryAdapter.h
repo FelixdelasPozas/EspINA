@@ -27,7 +27,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class QueryAdapter
   {
@@ -63,6 +63,6 @@ namespace EspINA {
 
     static SegmentationAdapterSList smartPointer(ModelAdapterPtr model, SegmentationSList adaptedSegmentations);
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_QUERY_ADAPTER_H

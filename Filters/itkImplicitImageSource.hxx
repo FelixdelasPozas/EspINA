@@ -21,7 +21,7 @@
 #ifndef ITKIMPLICITIMAGESOURCE_HXX
 #define ITKIMPLICITIMAGESOURCE_HXX
 
-// EspINA
+// ESPINA
 #include "itkImplicitImageSource.h"
 #include <Core/EspinaTypes.h>
 

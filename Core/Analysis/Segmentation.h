@@ -32,7 +32,7 @@
 #include "Core/Analysis/ViewItem.h"
 #include "Core/Analysis/Extension.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaCore_EXPORT Segmentation
   : public ViewItem

@@ -30,7 +30,7 @@
 #include <QApplication>
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const SegmentationExtension::Type MorphologicalInformation::TYPE = "MorphologicalInformation";
 

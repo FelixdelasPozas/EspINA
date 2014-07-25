@@ -25,7 +25,7 @@
 #include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class SampleAdapter;
   using SampleAdapterPtr   = SampleAdapter *;
@@ -87,6 +87,6 @@ namespace EspINA
 
   SampleAdapterPtr samplePtr(ItemAdapterPtr item);
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_SAMPLE_ADAPTER_H

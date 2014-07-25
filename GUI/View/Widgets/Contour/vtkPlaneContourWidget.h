@@ -9,7 +9,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <App/Tools/Brushes/Brush.h>
 
@@ -22,7 +22,7 @@
 
 class vtkPolyData;
 
-namespace EspINA
+namespace ESPINA
 {
   class vtkSliceContourRepresentation;
   class ContourWidget;
@@ -123,8 +123,8 @@ namespace EspINA
       this->Initialize(NULL);
     }
 
-    virtual void SetOrientation(EspINA::PlaneType plane);
-    virtual EspINA::PlaneType GetOrientation();
+    virtual void SetOrientation(ESPINA::PlaneType plane);
+    virtual ESPINA::PlaneType GetOrientation();
 
     // polygon appearance
     virtual void setPolygonColor(QColor);
@@ -157,7 +157,7 @@ namespace EspINA
     int FollowCursor;
     int ContinuousDraw;
     int ContinuousActive;
-    EspINA::PlaneType Orientation;
+    ESPINA::PlaneType Orientation;
     double ContinuousDrawTolerance;
 
     // Callback interface to capture events when placing the widget.
@@ -196,6 +196,6 @@ namespace EspINA
     Brush::BrushMode m_actualBrushMode;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // _VTKPLANECONTOURWIDGET_H_

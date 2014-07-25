@@ -18,17 +18,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ROIUndoCommand.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  ModifyROIUndoCommand::ModifyROIUndoCommand(const ViewManagerSPtr vm, const BinaryMaskSPtr<unsigned char> mask)
-  : m_newROI     {nullptr}
-  , m_viewManager{vm}
-  , m_mask       {mask}
+  ModifyROIUndoCommand::ModifyROIUndoCommand(ROIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
+  : m_newROI    {nullptr}
+  , m_toolGroup {toolsGroup}
+  , m_mask      {mask}
   {
-    if(vm->currentROI() == nullptr)
+    if(m_toolGroup->currentROI() == nullptr)
       m_newROI = ROISPtr{new ROI{mask, mask->foregroundValue()}};
   }
 
@@ -40,10 +41,10 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ModifyROIUndoCommand::redo()
   {
-    auto ROI = m_viewManager->currentROI();
+    auto ROI = m_toolGroup->currentROI();
 
     if(ROI == nullptr)
-      m_viewManager->setCurrentROI(m_newROI);
+      m_toolGroup->setCurrentROI(m_newROI);
     else
     {
       if(contains(ROI->bounds(), m_mask->bounds().bounds(), ROI->spacing()))
@@ -60,15 +61,15 @@ namespace EspINA
   void ModifyROIUndoCommand::undo()
   {
     if(m_newROI != nullptr)
-      m_viewManager->setCurrentROI(nullptr);
+      m_toolGroup->setCurrentROI(nullptr);
     else
-      m_viewManager->currentROI()->undo();
+      m_toolGroup->currentROI()->undo();
   }
 
   //-----------------------------------------------------------------------------
-  ClearROIUndoCommand::ClearROIUndoCommand(const ViewManagerSPtr vm)
-  : m_vm{vm}
-  , m_roi{nullptr}
+  ClearROIUndoCommand::ClearROIUndoCommand(ROIToolsGroup *toolsGroup)
+  : m_toolGroup{toolsGroup}
+  , m_roi      {nullptr}
   {}
 
   //-----------------------------------------------------------------------------
@@ -79,14 +80,14 @@ namespace EspINA
   //-----------------------------------------------------------------------------
   void ClearROIUndoCommand::redo()
   {
-    m_roi = m_vm->currentROI();
-    m_vm->setCurrentROI(nullptr);
+    m_roi = m_toolGroup->currentROI();
+    m_toolGroup->setCurrentROI(nullptr);
   }
 
   //-----------------------------------------------------------------------------
   void ClearROIUndoCommand::undo()
   {
-    m_vm->setCurrentROI(m_roi);
+    m_toolGroup->setCurrentROI(m_roi);
     m_roi = nullptr;
   }
 }

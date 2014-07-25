@@ -28,7 +28,7 @@
 #include <Core/Analysis/Category.h>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class AddClassificationCommand
   : public QUndoCommand
@@ -50,6 +50,6 @@ namespace EspINA {
     ClassificationAdapterSPtr m_prevClassification;
   };
 
-} // EspINA
+} // ESPINA
 
 #endif // ESPINA_ADD_CLASSIFICATION_COMMAND_H

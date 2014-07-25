@@ -32,7 +32,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int model_adapter_remove_non_existing_sample(int argc, char** argv)
 {

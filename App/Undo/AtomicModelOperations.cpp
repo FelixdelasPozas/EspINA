@@ -28,7 +28,7 @@
 
 #include "AtomicModelOperations.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //-----------------------------------------------------------------------------

@@ -29,7 +29,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace EspINA 
+namespace ESPINA 
 {
 
   class EspinaGUI_EXPORT Selection

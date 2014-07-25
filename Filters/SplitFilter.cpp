@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "SplitFilter.h"
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
@@ -42,7 +42,7 @@
 // Qt
 #include <QDir>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SplitFilter::SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)

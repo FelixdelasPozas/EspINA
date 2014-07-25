@@ -28,7 +28,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 // the +0.1 is needed to draw the crosshair over the actors, right now the
 // segmentation's actors are been drawn View2D::SEGMENTATION_SHIFT over the
@@ -36,11 +36,11 @@ using namespace EspINA;
 const double ACTORS_SHIFT = 0.1;
 
 //-----------------------------------------------------------------------------
-void View2D::AxialState::setCrossHairs(vtkPolyData* hline,
-                                       vtkPolyData* vline,
-                                       const NmVector3& center,
-                                       const Bounds&    bounds,
-                                       const NmVector3& slicingStep)
+void View2D::AxialState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                                       vtkSmartPointer<vtkPolyData> &vline,
+                                       const NmVector3              &center,
+                                       const Bounds                 &bounds,
+                                       const NmVector3              &slicingStep)
 {
   Nm hShift = 0.5*slicingStep[0];
   Nm vShift = 0.5*slicingStep[1];
@@ -56,7 +56,8 @@ void View2D::AxialState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center)
+void View2D::AxialState::updateCamera(vtkCamera       *camera,
+                                      const NmVector3 &center)
 {
   double oldPos[3];
   camera->GetPosition(oldPos);
@@ -69,11 +70,11 @@ void View2D::AxialState::updateCamera(vtkCamera* camera, const NmVector3& center
 }
 
 //-----------------------------------------------------------------------------
-void View2D::SagittalState::setCrossHairs(vtkPolyData* hline,
-                                          vtkPolyData* vline,
-                                          const NmVector3& center,
-                                          const Bounds&    bounds,
-                                          const NmVector3& slicingStep)
+void View2D::SagittalState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                                          vtkSmartPointer<vtkPolyData> &vline,
+                                          const NmVector3              &center,
+                                          const Bounds                 &bounds,
+                                          const NmVector3              &slicingStep)
 {
   Nm hShift = 0.5*slicingStep[2];
   Nm vShift = 0.5*slicingStep[1];
@@ -89,8 +90,8 @@ void View2D::SagittalState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::SagittalState::updateCamera(vtkCamera* camera,
-                                            const NmVector3& center)
+void View2D::SagittalState::updateCamera(vtkCamera       *camera,
+                                         const NmVector3 &center)
 {
   double *camPos = camera->GetPosition();
   if (camPos[0] == center[0])
@@ -102,11 +103,11 @@ void View2D::SagittalState::updateCamera(vtkCamera* camera,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::CoronalState::setCrossHairs(vtkPolyData*     hline,
-                                            vtkPolyData*     vline,
-                                            const NmVector3& center,
-                                            const Bounds&    bounds,
-                                            const NmVector3& slicingStep)
+void View2D::CoronalState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+                                         vtkSmartPointer<vtkPolyData> &vline,
+                                         const NmVector3              &center,
+                                         const Bounds                 &bounds,
+                                         const NmVector3              &slicingStep)
 {
   Nm hShift = 0.5*slicingStep[0];
   Nm vShift = 0.5*slicingStep[2];
@@ -122,8 +123,8 @@ void View2D::CoronalState::setCrossHairs(vtkPolyData*     hline,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::CoronalState::updateCamera(vtkCamera* camera,
-                                           const NmVector3& center)
+void View2D::CoronalState::updateCamera(vtkCamera       *camera,
+                                        const NmVector3 &center)
 {
   double *camPos = camera->GetPosition();
   if (camPos[1] == center[1])

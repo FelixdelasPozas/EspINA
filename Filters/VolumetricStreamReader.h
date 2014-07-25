@@ -26,7 +26,7 @@
 
 #include <Core/Analysis/Filter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   /** \brief Read a volume on demand from disk
    * 
@@ -71,6 +71,6 @@ namespace EspINA
     QFileInfo       m_fileName;
   };
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_STREAM_READER_H

@@ -24,7 +24,7 @@
 
 #include "Output.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   /** \class Input
    *

@@ -26,7 +26,7 @@
 #include <GUI/Model/SegmentationAdapter.h>
 #include "Selection.h"
 
-namespace EspINA
+namespace ESPINA
 {
 
   /** \brief Interface for views displaying items whose selection state may change
@@ -70,6 +70,6 @@ namespace EspINA
   using SelectableViewPtr  = SelectableView*;
   using SelectableViewSPtr = std::shared_ptr<SelectableView>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SELECTABLE_VIEW_H

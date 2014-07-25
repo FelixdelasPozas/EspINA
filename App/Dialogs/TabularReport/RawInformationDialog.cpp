@@ -28,7 +28,7 @@
 #include <QDialogButtonBox>
 #include <QLayout>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
@@ -52,7 +52,7 @@ RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);
 
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Raw Information Analysis");
   resize(settings.value("size", QSize (200, 200)).toSize());
@@ -69,7 +69,7 @@ RawInformationDialog::~RawInformationDialog()
 //----------------------------------------------------------------------------
 void RawInformationDialog::closeEvent(QCloseEvent *event)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Raw Information Analysis");
   settings.setValue("size", size());

@@ -23,7 +23,7 @@
 #include <Core/Model/EspinaModel.h>
 
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //-----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ UnloadSampleCommand::UnloadSampleCommand(SampleSPtr    sample,
 , m_model     (model )
 , m_sample    (sample)
 {
-  Q_ASSERT(sample->relatedItems(EspINA::RELATION_INOUT).isEmpty());
+  Q_ASSERT(sample->relatedItems(ESPINA::RELATION_INOUT).isEmpty());
 }
 
 //-----------------------------------------------------------------------------

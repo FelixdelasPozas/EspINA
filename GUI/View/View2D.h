@@ -21,7 +21,7 @@
 #ifndef ESPINA_VIEW_2D_H
 #define ESPINA_VIEW_2D_H
 
-// EspINA
+// ESPINA
 #include "GUI/View/RenderView.h"
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -44,7 +44,7 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QPushButton;
 
-namespace EspINA
+namespace ESPINA
 {
   class Representation;
   class EspinaWidget;
@@ -89,10 +89,6 @@ namespace EspINA
     bool invertSliceOrder() const
     { return m_invertSliceOrder; }
 
-    void setRenderers(RendererSList renderers);
-
-    RendererSList renderers() const;
-
     Plane plane() const
     { return m_plane; }
 
@@ -133,6 +129,7 @@ namespace EspINA
 
     virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
 
+    void setRenderers(RendererSList renderers);
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 
@@ -292,6 +289,6 @@ namespace EspINA
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectors)
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_H

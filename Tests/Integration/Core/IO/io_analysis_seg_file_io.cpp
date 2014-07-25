@@ -38,9 +38,9 @@
 #include "io_testing_dummy_extension.h"
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::IO;
-using namespace EspINA::IO_Testing;
+using namespace ESPINA;
+using namespace ESPINA::IO;
+using namespace ESPINA::IO_Testing;
 
 int io_analysis_seg_file_io( int argc, char** argv )
 {

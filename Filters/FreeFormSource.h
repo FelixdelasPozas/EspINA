@@ -29,7 +29,7 @@
 
 #include <QVector3D>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaFilters_EXPORT FreeFormSource
   : public Filter
@@ -68,7 +68,7 @@ namespace EspINA
       BinaryMaskSPtr<unsigned char> m_mask;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 
 #endif // ESPINA_FREE_FORM_SOURCE_H

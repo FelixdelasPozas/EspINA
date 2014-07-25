@@ -25,7 +25,7 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT NumberColorEngine
   : public ColorEngine
@@ -39,11 +39,11 @@ namespace EspINA
     { return ColorEngine::Color; }
 
   private:
-    QMap<QString, LUTSPtr> m_LUT;
+    LUTMap m_LUT;
   };
 
   using NumberColorEngineSPtr = std::shared_ptr<NumberColorEngine>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_NUMBER_COLOR_ENGINE_H

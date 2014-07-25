@@ -18,11 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "SourceFilter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 void SourceFilter::addOutput(Output::Id id, OutputSPtr output)

@@ -23,7 +23,7 @@
 
 using namespace std;
 
-bool EspINA::Testing::checkAnalysisExpectedElements(Analysis& analysis,
+bool ESPINA::Testing::checkAnalysisExpectedElements(Analysis& analysis,
                                                     int numSamples,
                                                     int numChannels,
                                                     int numSegmentations,

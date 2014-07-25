@@ -24,7 +24,7 @@
 
 #include <quazip/quazip.h>
 
-namespace EspINA {
+namespace ESPINA {
   namespace IO {
 
     struct IO_Zip_Exception{};
@@ -44,6 +44,6 @@ namespace EspINA {
     };
 
   } // namespace IO
-} // namesace EspINA
+} // namesace ESPINA
 
 #endif // ESPINA_IO_ZIP_UTILS_H

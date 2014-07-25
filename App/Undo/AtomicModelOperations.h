@@ -33,7 +33,7 @@
 
 #include <Core/Model/EspinaModel.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ModelAdapter;
 
@@ -146,6 +146,6 @@ namespace EspINA
     ModelItemSPtr m_succesor;
     const QString m_relation;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ATOMICMODELOPERATIONS_H

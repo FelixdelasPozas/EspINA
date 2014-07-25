@@ -29,7 +29,7 @@
 class QTreeView;
 class QUndoStack;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -79,6 +79,6 @@ namespace EspINA
       QTreeView *m_classification;
       SegmentationAdapterList m_segmentations;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // DEFAULTCONTEXTUALMENU_H

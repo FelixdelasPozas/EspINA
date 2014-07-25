@@ -27,7 +27,7 @@
 
 #include <GUI/Model/ModelAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class EspinaUndo_EXPORT AddCategoryCommand
   : public QUndoCommand
@@ -57,6 +57,6 @@ namespace EspINA {
     CategoryAdapterSPtr m_parentCategory;
   };
 
-} // EspINA
+} // ESPINA
 
 #endif // ESPINA_ADD_CATEGORY_COMMAND_H

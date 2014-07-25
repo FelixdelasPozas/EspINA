@@ -9,7 +9,7 @@
 #include <QSet>
 #include <QVector3D>
 
-namespace EspINA
+namespace ESPINA
 {
   class Scheduler;
   using SchedulerSPtr = std::shared_ptr<Scheduler>;
@@ -72,6 +72,6 @@ namespace EspINA
 
 
   using TimeStamp = unsigned long long;
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// ESPINATYPES_H

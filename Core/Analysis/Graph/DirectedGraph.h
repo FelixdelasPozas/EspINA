@@ -32,7 +32,7 @@
 
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   /// Graph like structure which contains all the relationships
   /// between different elements of the model
@@ -162,6 +162,6 @@ namespace EspINA
   DirectedGraph::Vertices rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph);
   DirectedGraph::Vertices rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph);
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_DIRECTED_GRAPH_H

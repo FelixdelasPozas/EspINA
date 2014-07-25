@@ -24,7 +24,7 @@
 #include <Core/Analysis/NeuroItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 NeuroItemAdapter::NeuroItemAdapter(NeuroItemSPtr item)
@@ -33,7 +33,7 @@ NeuroItemAdapter::NeuroItemAdapter(NeuroItemSPtr item)
 }
 
 //------------------------------------------------------------------------
-NeuroItemAdapterPtr EspINA::neuroItemAdapter(ItemAdapterPtr item)
+NeuroItemAdapterPtr ESPINA::neuroItemAdapter(ItemAdapterPtr item)
 {
   return static_cast<NeuroItemAdapterPtr>(item);
 }

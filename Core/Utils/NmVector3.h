@@ -36,7 +36,7 @@
 #include <QList>
 #include <QString>
 
-namespace EspINA {
+namespace ESPINA {
 
   using Nm = double;
 

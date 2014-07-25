@@ -26,7 +26,7 @@
 // Plugin
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
-// EspINA
+// ESPINA
 #include <Support/ViewManager.h>
 #include <Support/Plugin.h>
 #include <Core/Analysis/Input.h>
@@ -34,13 +34,13 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/EspinaTypes.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
   : public Plugin
   {
     Q_OBJECT
-    Q_INTERFACES(EspINA::Plugin)
+    Q_INTERFACES(ESPINA::Plugin)
 
     class ASFilterFactory
     : public FilterFactory
@@ -146,6 +146,6 @@ namespace EspINA
     friend class AppositionSurfaceToolGroup;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif// APPOSITIONSURFACE_H

@@ -31,7 +31,7 @@
 #include <QDebug>
 #include <QFileDialog>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const double MIN_BRIGHTNESS = -1.0;
 const double MAX_BRIGHTNESS =  1.0;

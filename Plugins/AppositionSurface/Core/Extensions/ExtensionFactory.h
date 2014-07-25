@@ -23,7 +23,7 @@
 
 #include <Core/Factory/SegmentationExtensionFactory.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class ASExtensionFactory
 : public SegmentationExtensionFactory

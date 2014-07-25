@@ -24,7 +24,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/ViewManager.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentations,

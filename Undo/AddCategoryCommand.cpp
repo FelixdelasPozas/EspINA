@@ -21,7 +21,7 @@
 
 #include "AddCategoryCommand.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,

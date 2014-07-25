@@ -23,14 +23,14 @@
 
 #include "Undo/EspinaUndo_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaModel.h>
 
 // Qt
 #include <QUndoStack>
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
 
@@ -59,6 +59,6 @@ namespace EspINA
       QList<Connection> m_oldConnections, m_newConnections;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // FILLHOLESCOMMAND_H

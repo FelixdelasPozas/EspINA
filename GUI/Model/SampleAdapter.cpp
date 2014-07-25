@@ -22,7 +22,7 @@
 
 #include <Core/Analysis/Sample.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //------------------------------------------------------------------------
@@ -103,31 +103,31 @@ Bounds SampleAdapter::bounds() const
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator==(SampleAdapterSPtr lhs, SampleSPtr rhs)
+bool ESPINA::operator==(SampleAdapterSPtr lhs, SampleSPtr rhs)
 {
   return lhs->m_sample == rhs;
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator==(SampleSPtr lhs, SampleAdapterSPtr rhs)
+bool ESPINA::operator==(SampleSPtr lhs, SampleAdapterSPtr rhs)
 {
   return lhs == rhs->m_sample;
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator!=(SampleAdapterSPtr lhs, SampleSPtr rhs)
+bool ESPINA::operator!=(SampleAdapterSPtr lhs, SampleSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
 
 //------------------------------------------------------------------------
-bool EspINA::operator!=(SampleSPtr lhs, SampleAdapterSPtr rhs)
+bool ESPINA::operator!=(SampleSPtr lhs, SampleAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
 
 //------------------------------------------------------------------------
-SampleAdapterPtr EspINA::samplePtr(ItemAdapterPtr item)
+SampleAdapterPtr ESPINA::samplePtr(ItemAdapterPtr item)
 {
   return static_cast<SampleAdapterPtr>(item);
 }

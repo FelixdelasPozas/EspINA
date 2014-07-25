@@ -36,7 +36,7 @@
 #include <QReadWriteLock>
 #include <Core/EspinaTypes.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   enum Priority { VERY_LOW, LOW, NORMAL, HIGH, VERY_HIGHT };
 

@@ -21,13 +21,14 @@
 #include <QApplication>
 #include <QPluginLoader>
 #include <QTranslator>
+#include <QDebug>
 
 #include "EspinaMainWindow.h"
 
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Analysis/Analysis.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 int main(int argc, char **argv)
 {
@@ -88,5 +89,6 @@ int main(int argc, char **argv)
     delete plugin;
   }
 
+  qDebug() << "ESPINA exited with value" << res;
   return res;
 }

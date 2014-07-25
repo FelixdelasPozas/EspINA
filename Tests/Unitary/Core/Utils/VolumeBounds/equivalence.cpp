@@ -29,7 +29,7 @@
 #include <VolumeBounds.h>
 #include "TestSupport.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int equivalence(int argc, char** argv )

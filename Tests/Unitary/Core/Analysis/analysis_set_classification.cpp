@@ -28,7 +28,7 @@
 
 #include "Core/Analysis/Analysis.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int analysis_set_classification( int argc, char** argv )

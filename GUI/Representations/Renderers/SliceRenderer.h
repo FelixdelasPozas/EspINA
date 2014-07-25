@@ -23,14 +23,14 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "RepresentationRenderer.h"
 #include <GUI/View/SelectableView.h>
 #include <QFlags>
 
 class vtkPropPicker;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   
@@ -48,7 +48,7 @@ namespace EspINA
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
       virtual void removeRepresentation(RepresentationSPtr rep);
       virtual bool hasRepresentation(RepresentationSPtr rep) const;
-      virtual bool managesRepresentation(const QString &representationName) const;
+      virtual bool managesRepresentation(const QString &representationType) const;
 
       virtual RendererSPtr clone() const        { return RendererSPtr(new SliceRenderer()); }
 
@@ -65,6 +65,11 @@ namespace EspINA
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);
 
+      /* \brief Implements Renderer::setView(RenderView *view);
+       *
+       */
+      virtual void setView(RenderView *view);
+
     protected:
       virtual void hide();
       virtual void show();
@@ -73,5 +78,5 @@ namespace EspINA
       vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 #endif // ESPINA_SLICE_RENDERER_H_

@@ -22,15 +22,15 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
-TransparencySelectionHighlighter::LUTMap TransparencySelectionHighlighter::m_LUT;
+ColorEngine::LUTMap TransparencySelectionHighlighter::m_LUT;
 
 //-----------------------------------------------------------------------------
 QColor TransparencySelectionHighlighter::color(const QColor& original,
                                                bool highlight)
 {
-  QColor suggestedColor = original;
+  auto suggestedColor = original;
 
   if (highlight)
     suggestedColor.setAlphaF(suggestedColor.alphaF()*1.0);
@@ -44,8 +44,8 @@ QColor TransparencySelectionHighlighter::color(const QColor& original,
 LUTSPtr TransparencySelectionHighlighter::lut(const QColor& original,
                                              bool highlight)
 {
-  QColor segColor = color(original, highlight);
-  QString key = colorKey(segColor);
+  auto segColor = color(original, highlight);
+  auto key = colorKey(segColor);
 
   if (!m_LUT.contains(key))
   {
@@ -58,7 +58,7 @@ LUTSPtr TransparencySelectionHighlighter::lut(const QColor& original,
       segColor.alphaF()
     };
 
-    LUTSPtr segLUT = LUTSPtr::New();
+    auto segLUT = LUTSPtr::New();
     segLUT->Allocate();
     segLUT->SetNumberOfTableValues(2);
     segLUT->Build();

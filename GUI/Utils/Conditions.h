@@ -25,9 +25,9 @@
 #include "GUI/EspinaGUI_Export.h"
 #include <QString>
 
-namespace EspINA
+namespace ESPINA
 {
   QString condition(const QString &icon, const QString &description);
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CONDITIONS_H

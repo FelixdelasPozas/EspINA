@@ -33,7 +33,7 @@
 
 #include <QXmlStreamReader>
 
-namespace EspINA {
+namespace ESPINA {
 
   class FetchBehaviour
   {

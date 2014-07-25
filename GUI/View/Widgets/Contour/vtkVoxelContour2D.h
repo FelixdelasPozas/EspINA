@@ -26,7 +26,7 @@
 #include <vtkPolyDataAlgorithm.h>
 
 // WARNING: this filter only works for slices in the axial plane (extent[4] == extent[5]),
-// like those used by EspINA, it's not a generic marching cubes for 2D or 3d volumes.
+// like those used by ESPINA, it's not a generic marching cubes for 2D or 3d volumes.
 
 class EspinaGUI_EXPORT vtkVoxelContour2D
 : public vtkPolyDataAlgorithm

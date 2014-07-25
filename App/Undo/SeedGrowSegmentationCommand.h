@@ -26,7 +26,7 @@
 
 #include <Core/Model/Filter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class SeedGrowSegmentationCommand
   : public QUndoCommand
@@ -64,6 +64,6 @@ namespace EspINA
     SegmentationSPtr m_segmentation;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // SEEDGROWSEGMENTATIONCOMMAND_H

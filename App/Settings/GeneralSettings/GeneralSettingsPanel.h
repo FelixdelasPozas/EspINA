@@ -27,7 +27,7 @@
 
 #include "Settings/GeneralSettings/GeneralSettings.h"
 
-namespace EspINA {
+namespace ESPINA {
 
   class GeneralSettingsPanel
   : public SettingsPanel
@@ -58,6 +58,6 @@ namespace EspINA {
     GeneralSettingsSPtr m_settings;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_GENERAL_SETTINGS_PANEL_H

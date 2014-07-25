@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "vtkRulerWidget.h"
 
 // VTK
@@ -32,7 +32,7 @@
 #include <vtkTextProperty.h>
 #include <vtkCamera.h>
 
-namespace EspINA
+namespace ESPINA
 {
   vtkStandardNewMacro(vtkRulerWidget);
   
@@ -217,4 +217,4 @@ namespace EspINA
     CurrentRenderer->DisplayToNormalizedDisplay(inout[0], inout[1]);
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

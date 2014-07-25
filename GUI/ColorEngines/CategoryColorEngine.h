@@ -26,32 +26,32 @@
 
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
 
 class EspinaGUI_EXPORT CategoryColorEngine
 : public ColorEngine
 {
   Q_OBJECT
-public:
-  explicit CategoryColorEngine(){}
+  public:
+    explicit CategoryColorEngine(){}
 
-  virtual QColor  color(SegmentationAdapterPtr seg);
+    virtual QColor  color(SegmentationAdapterPtr seg);
 
-  virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
+    virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
 
-  virtual ColorEngine::Composition supportedComposition() const
-  { return ColorEngine::Color; }
+    virtual ColorEngine::Composition supportedComposition() const
+    { return ColorEngine::Color; }
 
-protected slots:
-  void updateCategoryColor(CategoryAdapterSPtr tax);
+  protected slots:
+    void updateCategoryColor(CategoryAdapterSPtr tax);
 
-private:
-  QMap<QString, LUTSPtr> m_LUT;
+  private:
+    LUTMap m_LUT;
 };
 
 using CategoryColorEngineSPtr = std::shared_ptr<CategoryColorEngine>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CATEGORY_COLOR_ENGINE_H

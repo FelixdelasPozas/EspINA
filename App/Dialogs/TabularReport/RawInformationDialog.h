@@ -29,7 +29,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/ViewManager.h>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class RawInformationDialog
@@ -46,6 +46,6 @@ namespace EspINA
     virtual void closeEvent(QCloseEvent *event);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_RAW_INFORMATION_DIALOG_H

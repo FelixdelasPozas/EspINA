@@ -38,8 +38,8 @@
 #include <QDebug>
 #include <QApplication>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 const SegmentationExtension::InfoTag EDGE_TAG = "Touch Edge";
 
@@ -458,7 +458,7 @@ void StereologicalInclusion::checkSampleCountingFrames()
 }
 
 //------------------------------------------------------------------------
-StereologicalInclusionSPtr EspINA::CF::stereologicalInclusion(SegmentationExtensionSPtr extension)
+StereologicalInclusionSPtr ESPINA::CF::stereologicalInclusion(SegmentationExtensionSPtr extension)
 {
   return std::dynamic_pointer_cast<StereologicalInclusion>(extension);
 }

@@ -38,7 +38,7 @@
 #include <itkImageFileReader.h>
 #include <itkExtractImageFilter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   template class VolumetricData<itk::Image<unsigned char, 3>>;
 
@@ -98,8 +98,6 @@ namespace EspINA {
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE){}
 
-
-    virtual void fitToContent(){}
 
     virtual void resize(const Bounds &bounds) {}
 

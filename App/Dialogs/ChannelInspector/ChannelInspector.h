@@ -8,7 +8,7 @@
 #ifndef ESPINA_CHANNEL_INSPECTOR_H_
 #define ESPINA_CHANNEL_INSPECTOR_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -20,7 +20,7 @@
 
 class QCloseEvent;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class View2D;
@@ -89,6 +89,6 @@ namespace EspINA
     double    m_contrast;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif /* ESPINA_CHANNEL_INSPECTOR_H_ */

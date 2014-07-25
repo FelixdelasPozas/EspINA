@@ -24,10 +24,10 @@
 
 #include <Core/EspinaTypes.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   CoreFactorySPtr espinaCoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_FACTORY_UTILS_H

@@ -11,7 +11,7 @@
 #include <Core/Model/Segmentation.h>
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   /// Filter Inspector
   //
@@ -76,4 +76,4 @@ namespace EspINA
       m_tortuosity->setText("Not computed");
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

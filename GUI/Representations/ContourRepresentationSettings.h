@@ -25,7 +25,7 @@
 #include "GUI/Representations/RepresentationSettings.h"
 #include "ui_ContourRepresentationSettings.h"
 
-namespace EspINA
+namespace ESPINA
 {
 
   class ContourRepresentationSettings 
@@ -42,6 +42,6 @@ namespace EspINA
     bool m_init;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CONTOUR_REPRESENTATION_SETTINGS_H

@@ -33,7 +33,7 @@
 // VTK
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 BasicSegmentationFilter::BasicSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)

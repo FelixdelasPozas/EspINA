@@ -21,7 +21,7 @@
 
 #include <QStandardItemModel>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& renderers)

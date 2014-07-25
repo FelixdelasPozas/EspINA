@@ -26,7 +26,7 @@
 
 #include "MorphologicalEditionFilter.h"
 
-namespace EspINA
+namespace ESPINA
 {
 
 class EspinaFilters_EXPORT CloseFilter
@@ -46,7 +46,7 @@ protected:
   virtual void execute(Output::Id id);
 };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 
 #endif // CLOSINGFILTER_H

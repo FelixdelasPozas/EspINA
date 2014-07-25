@@ -19,15 +19,15 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "ClassificationXML.h"
 
 // Qt
 #include <QStack>
 #include <QXmlStreamReader>
 
-using namespace EspINA;
-using namespace EspINA::IO;
+using namespace ESPINA;
+using namespace ESPINA::IO;
 
 ClassificationSPtr parse(QXmlStreamReader& stream)
 {
@@ -39,6 +39,7 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
   QStack<CategorySPtr> stack;
 
+  CategorySPtr parent;
   while (!stream.atEnd())
   {
     stream.readNextStartElement();
@@ -46,18 +47,12 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
     {
       if (stream.isStartElement())
       {
+        stack.push(parent);
+
         name  = stream.attributes().value("name");
         QStringRef color = stream.attributes().value("color");
 
-        CategorySPtr parent;
-        if(stack.isEmpty())
-          parent = nullptr;
-        else
-          parent = stack.front();
-
         CategorySPtr category = classification->createNode(name.toString(), parent);
-
-        stack.push(category);
 
         category->setColor(color.toString());
 
@@ -71,11 +66,10 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
         parent = category;
       }
-      else
-        if (stream.isEndElement())
-        {
-          stack.pop();
-        }
+      else if (stream.isEndElement())
+      {
+        parent = stack.pop();
+      }
     }
   }
 

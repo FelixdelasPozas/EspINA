@@ -39,7 +39,7 @@
 #include "ModelTest.h"
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 using namespace Testing;
 
 int model_adapter_add_channels(int argc, char** argv )

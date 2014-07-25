@@ -28,7 +28,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   using LUTSPtr = vtkSmartPointer<vtkLookupTable>;
 
@@ -46,6 +46,8 @@ namespace EspINA
     };
     Q_DECLARE_FLAGS(Composition, Components)
 
+    using LUTMap = QMap<QString, LUTSPtr>;
+
   public:
     virtual QColor color(SegmentationAdapterPtr seg) = 0;
     virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;
@@ -60,6 +62,6 @@ namespace EspINA
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // COLORENGINE_H

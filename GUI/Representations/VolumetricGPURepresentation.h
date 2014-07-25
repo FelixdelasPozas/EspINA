@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include "Representation.h"
 #include "VolumetricGPURepresentation.h"
 #include "RepresentationEmptySettings.h"
@@ -47,7 +47,7 @@ class vtkGPUVolumeRayCastMapper;
 class vtkColorTransferFunction;
 class vtkVolume;
 
-namespace EspINA
+namespace ESPINA
 {
   class TransparencySelectionHighlighter;
   
@@ -109,7 +109,7 @@ namespace EspINA
   template<class T> using VolumetricGPURepresentationPtr  = VolumetricGPURepresentation<T> *;
   template<class T> using VolumetricGPURepresentationSPtr = std::shared_ptr<VolumetricGPURepresentation<T>>;
   template<class T> using VolumetricGPURepresentationSList = QList<VolumetricGPURepresentationSPtr<T>>;
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #include "VolumetricGPURepresentation.txx"
 

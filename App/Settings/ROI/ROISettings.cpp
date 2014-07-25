@@ -19,45 +19,55 @@
 */
 
 #include "ROISettings.h"
+
 #include <QSettings>
 #include <Support/Settings/EspinaSettings.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ROISettings::ROISettings()
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup(ROI_SETTINGS_GROUP);
 
-  m_xSize   = settings.value(DEFAULT_VOI_X, 500).toInt();
-  m_ySize   = settings.value(DEFAULT_VOI_Y, 500).toInt();
-  m_zSize   = settings.value(DEFAULT_VOI_Z, 500).toInt();
+  m_xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
+  m_ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
+  m_zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
 }
 
 //------------------------------------------------------------------------
 void ROISettings::setXSize(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
+  settings.beginGroup(ROI_SETTINGS_GROUP);
 
-  settings.setValue(DEFAULT_VOI_X, value);
+  settings.setValue(DEFAULT_ROI_X, value);
+  settings.sync();
+
   m_xSize = value;
 }
 
 //------------------------------------------------------------------------
 void ROISettings::setYSize(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
+  settings.beginGroup(ROI_SETTINGS_GROUP);
 
-  settings.setValue(DEFAULT_VOI_Y, value);
+  settings.setValue(DEFAULT_ROI_Y, value);
+  settings.sync();
+
   m_ySize = value;
 }
 
 //------------------------------------------------------------------------
 void ROISettings::setZSize(int value)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
+  settings.beginGroup(ROI_SETTINGS_GROUP);
 
-  settings.setValue(DEFAULT_VOI_Z, value);
+  settings.setValue(DEFAULT_ROI_Z, value);
+  settings.sync();
+
   m_zSize = value;
 }

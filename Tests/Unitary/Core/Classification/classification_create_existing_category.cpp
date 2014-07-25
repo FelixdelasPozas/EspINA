@@ -28,7 +28,7 @@
 
 #include <Category.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int classification_create_existing_category( int argc, char** argv )

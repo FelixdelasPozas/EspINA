@@ -30,7 +30,7 @@
 
 #include <memory>
 
-namespace EspINA
+namespace ESPINA
 {
   using SnapshotData = QPair<QString, QByteArray>;
   using Snapshot     = QList<SnapshotData>;

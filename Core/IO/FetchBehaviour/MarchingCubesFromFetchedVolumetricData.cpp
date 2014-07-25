@@ -15,13 +15,13 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "MarchingCubesFromFetchedVolumetricData.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info)
@@ -51,7 +51,7 @@ void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, 
 }
 
 //----------------------------------------------------------------------------
-EspINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix)
+ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix)
 {
   DefaultVolumetricDataSPtr volume = nullptr;
 

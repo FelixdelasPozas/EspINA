@@ -21,7 +21,7 @@
 #ifndef ESPINA_SPLIT_FILTER_H
 #define ESPINA_SPLIT_FILTER_H
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 
@@ -30,7 +30,7 @@
 
 class vtkImageStencilData;
 
-namespace EspINA
+namespace ESPINA
 {
   class SplitFilter
   : public Filter
@@ -124,6 +124,6 @@ namespace EspINA
   using SplitFilterPtr  = SplitFilter *;
   using SplitFilterSPtr = std::shared_ptr<SplitFilter>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SPLIT_FILTER_H

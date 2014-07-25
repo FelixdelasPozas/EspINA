@@ -23,7 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/View/SelectableView.h>
 
@@ -35,7 +35,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -156,8 +156,8 @@ namespace EspINA
 
   protected:
     explicit Renderer(QObject* parent = 0)
-    : m_enable(false)
-    , m_view (nullptr)
+    : m_enable{false}
+    , m_view  {nullptr}
     {}
 
   protected:
@@ -176,6 +176,6 @@ namespace EspINA
   bool canRender(RendererSPtr renderer, RendererTypes types);
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(RendererTypes)
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_RENDERER_H

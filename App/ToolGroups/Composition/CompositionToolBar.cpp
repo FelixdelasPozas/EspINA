@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "CompositionToolBar.h"
 #include <Undo/CompositionCommand.h>
 #include <Core/Model/EspinaModel.h>
@@ -30,7 +30,7 @@
 #include <QAction>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString COMPOSE_SEG_TOOLTIP = QObject::tr("Create compounded segmentation from selected segmentations");
 

@@ -26,7 +26,7 @@ AboutDialog::AboutDialog()
 {
   setupUi(this);
 
-  setWindowTitle(tr("About EspINA"));
+  setWindowTitle(tr("About ESPINA"));
   version->setText(QString("Version: %1").arg(ESPINA_VERSION));
 }
 

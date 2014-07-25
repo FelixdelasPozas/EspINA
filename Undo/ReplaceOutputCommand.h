@@ -25,7 +25,7 @@
 #include <QUndoCommand>
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class ReplaceOutputCommand
   : public QUndoCommand
@@ -47,6 +47,6 @@ namespace EspINA {
     InputSPtr              m_input;
   };
 
-} // namespace EspINA;
+} // namespace ESPINA;
 
 #endif // ESPINA_REPLACE_OUTPUT_COMMAND_H

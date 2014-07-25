@@ -27,7 +27,7 @@
 
 #include <QDebug>
 
-namespace EspINA
+namespace ESPINA
 {
   class SpinBoxAction
   : public QWidgetAction
@@ -122,6 +122,6 @@ namespace EspINA
       int       m_minimumValue;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_EDITION_TOOLSR_ADIUS_H_

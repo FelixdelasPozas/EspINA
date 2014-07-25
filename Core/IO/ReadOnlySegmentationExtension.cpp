@@ -21,7 +21,7 @@
 
 #include "ReadOnlySegmentationExtension.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ReadOnlySegmentationExtension::ReadOnlySegmentationExtension(const SegmentationExtension::Type &type,

@@ -30,7 +30,7 @@
 
 class QStandardItem;
 
-namespace EspINA
+namespace ESPINA
 {
   class GraphicalRepresentationSettings;
 

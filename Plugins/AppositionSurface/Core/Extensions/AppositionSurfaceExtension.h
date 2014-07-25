@@ -23,7 +23,7 @@
 
 #include "AppositionSurfacePlugin_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/Extension.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
@@ -33,7 +33,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   const QString SAS = QObject::tr("SAS");
 
@@ -162,6 +162,6 @@ namespace EspINA
   using AppositionSurfaceExtensionPtr  = AppositionSurfaceExtension *;
   using AppositionSurfaceExtensionSPtr = std::shared_ptr<AppositionSurfaceExtension>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // APPOSITION_SURFAC_EXTENSION_H

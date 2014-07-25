@@ -30,7 +30,7 @@
 #include <Core/Analysis/Output.h>
 #include <Tests/Unitary/Core/core_testing_support.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 bool TestSaturation(ChannelSPtr channel, double saturation) {

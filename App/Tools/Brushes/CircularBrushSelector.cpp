@@ -28,7 +28,7 @@
 #include <QDebug>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 CircularBrushSelector::CircularBrushSelector()
@@ -63,11 +63,11 @@ BrushSelector::BrushShape CircularBrushSelector::createBrushShape(ViewItemAdapte
   for (int i=0; i<3; i++)
     baseCenter[i] = topCenter[i] = center[i];
 
-  int index = normalCoordinateIndex(plane);
+  auto index = normalCoordinateIndex(plane);
   topCenter[index]  += 0.5 * m_spacing[index];
   baseCenter[index] -= 0.5 * m_spacing[index];
 
-  vtkTube *brush = vtkTube::New();
+  auto brush = vtkSmartPointer<vtkTube>::New();
   brush->SetBaseCenter(baseCenter);
   brush->SetBaseRadius(radius);
   brush->SetTopCenter(topCenter);

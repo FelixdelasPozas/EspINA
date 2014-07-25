@@ -31,7 +31,7 @@
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT VisualizationState
   : public SegmentationExtension
@@ -75,7 +75,7 @@ namespace EspINA
 
   using VisualizationStateSPtr = std::shared_ptr<VisualizationState>;
 
-}// namespace EspINA
+}// namespace ESPINA
 
 
 #endif // ESPINA_VISUALIZATION_STATE_H

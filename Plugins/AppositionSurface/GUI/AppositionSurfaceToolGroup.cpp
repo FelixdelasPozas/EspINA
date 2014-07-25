@@ -23,7 +23,7 @@
 #include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
 
-// EspINA
+// ESPINA
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/AddRelationCommand.h>
@@ -38,7 +38,7 @@
 #include <QDebug>
 #include <QMessageBox>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 AppositionSurfaceToolGroup::AppositionSurfaceToolGroup(ModelAdapterSPtr model,
@@ -58,6 +58,7 @@ AppositionSurfaceToolGroup::AppositionSurfaceToolGroup(ModelAdapterSPtr model,
   connect(m_tool.get(), SIGNAL(triggered()), this, SLOT(createSAS()));
 
   connect(viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+  selectionChanged();
 }
 
 //-----------------------------------------------------------------------------
@@ -140,7 +141,7 @@ void AppositionSurfaceToolGroup::createSAS()
 
   if(validSegmentations.empty())
   {
-    QMessageBox::information(nullptr, tr("EspINA"), tr("Selected Synapses already have an associated Apposittion Surface."));
+    QMessageBox::information(nullptr, tr("ESPINA"), tr("Selected Synapses already have an associated Apposittion Surface."));
     return;
   }
 

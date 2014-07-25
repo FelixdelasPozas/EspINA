@@ -23,7 +23,7 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// EspINA
+// ESPINA
 #include <Core/Model/Filter.h>
 #include <Core/EspinaTypes.h>
 #include "itkImplicitImageSource.h"
@@ -34,7 +34,7 @@
 class vtkImplicitFunction;
 class QVector4D;
 
-namespace EspINA
+namespace ESPINA
 {
   class ViewManager;
   class TubularWidget;

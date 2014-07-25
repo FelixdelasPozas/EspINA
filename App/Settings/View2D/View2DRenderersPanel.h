@@ -21,12 +21,12 @@
 #ifndef ESPINA_VIEW2D_RENDERERS_PANEL_H_
 #define ESPINA_VIEW2D_RENDERERS_PANEL_H_
 
-// EspINA
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
 #include <GUI/Widgets/RenderersSelector.h>
 #include <GUI/Representations/Renderers/Renderer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class View2DRenderersPanel
@@ -75,6 +75,6 @@ namespace EspINA
       RenderersSelector *m_selector;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VIEW2D_RENDERERS_PANEL_H_

@@ -31,7 +31,7 @@
 
 class vtkCountingFrame3DWidget;
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -82,6 +82,6 @@ namespace EspINA
       QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;
     };
   } // namespace CF
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_COUNTING_FRAME_3D_RENDERER_H

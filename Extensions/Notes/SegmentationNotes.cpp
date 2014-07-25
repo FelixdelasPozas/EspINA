@@ -29,7 +29,7 @@
 #include "SegmentationNotes.h"
 #include <GUI/Utils/Conditions.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString                        SegmentationNotes::TYPE = "SegmentationNotes";
 const SegmentationExtension::InfoTag SegmentationNotes::NOTES = "Notes";

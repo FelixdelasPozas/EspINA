@@ -34,7 +34,7 @@
 #include <itkExtractImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
 
-namespace EspINA
+namespace ESPINA
 {
   /** \brief Return the image reagion equivalent to the bounds.
    * 
@@ -221,8 +221,14 @@ namespace EspINA
   template<typename T>
   void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds());
 
+  /** \brief Resizes the image to the minimum bounds that can contain the volume.
+   *
+   *  The resultant image is always smaller or equal in size to the original one.
+   */
+  template<typename T>
+  void fitToContents(VolumetricDataSPtr<T> volume, typename T::ValueType bgValue);
 
-  
+
   template<typename T>
   typename T::Pointer define_itkImage(const NmVector3              &origin  = {0, 0, 0},
                                       const NmVector3              &spacing = {1, 1, 1});

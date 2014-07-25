@@ -30,7 +30,7 @@
 // TODO: no filter inspectors yet
 // #include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
 
-// EspINA
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
@@ -52,7 +52,7 @@
 const QString SAS = QObject::tr("SAS");
 const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
@@ -92,7 +92,7 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_delayedAnalysis {false}
 {
   QStringList hierarchy;
-  hierarchy << "Analysis";
+  hierarchy << "Reports";
 
   QAction *action = new QAction(tr("Synaptic Apposition Surface"), this);
   connect(action, SIGNAL(triggered(bool)),
@@ -304,7 +304,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
   }
   else
   {
-    QMessageBox::warning(nullptr, tr("EspINA"), tr("Current analysis does not contain any synapses"));
+    QMessageBox::warning(nullptr, tr("ESPINA"), tr("Current analysis does not contain any synapses"));
   }
 }
 
@@ -317,7 +317,7 @@ bool AppositionSurfacePlugin::isSynapse(SegmentationAdapterPtr segmentation)
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmentations)
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
   settings.beginGroup("Apposition Surface");
   if (!settings.contains("Automatic Computation For Synapses") || !settings.value("Automatic Computation For Synapses").toBool())
     return;
@@ -434,5 +434,5 @@ void AppositionSurfacePlugin::finishedTask()
   }
 }
 
-Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, EspINA::AppositionSurfacePlugin)
+Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)
 

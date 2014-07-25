@@ -31,7 +31,7 @@
 
 class CategorytemDelegate;
 
-namespace EspINA
+namespace ESPINA
 {
   class ClassificationLayout
   : public SegmentationExplorer::Layout
@@ -83,10 +83,10 @@ namespace EspINA
     void changeCategoryColor();
     void selectCategoryAdapters();
 
-    void segmentationsDragged(SegmentationAdapterList segmentations,
+    void segmentationsDropped(SegmentationAdapterList segmentations,
                               CategoryAdapterPtr      category);
 
-    void categoriesDragged(CategoryAdapterList subCategories,
+    void categoriesDropped(CategoryAdapterList subCategories,
                            CategoryAdapterPtr  category);
 
     void updateSelection();
@@ -102,6 +102,6 @@ namespace EspINA
     QPushButton *m_changeCategoryColor;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CLASSIFICATION_LAYOUT_H

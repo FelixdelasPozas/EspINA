@@ -21,7 +21,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include "View3D.h"
 
-// EspINA
+// ESPINA
 #include "GUI/View/Widgets/EspinaWidget.h"
 #include "ViewRendererMenu.h"
 
@@ -55,16 +55,15 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
 
-
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)
-: RenderView{parent}
-, m_mainLayout{new QVBoxLayout()}
-, m_controlLayout{new QHBoxLayout()}
+: RenderView                   {parent}
+, m_mainLayout                 {new QVBoxLayout()}
+, m_controlLayout              {new QHBoxLayout()}
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
-, m_numEnabledRenderers{0}
+, m_numEnabledRenderers        {0}
 {
   setupUI();
 }
@@ -79,33 +78,6 @@ View3D::~View3D()
   // Representation destructors may need to access slice view in their destructors
   m_channelStates.clear();
   m_segmentationStates.clear();
-}
-
-//-----------------------------------------------------------------------------
-void View3D::setRenderers(RendererSList renderers)
-{
-  QStringList oldRenderersNames, newRenderersNames;
-
-  for (auto renderer: m_renderers)
-    oldRenderersNames << renderer->name();
-
-  for (auto renderer: renderers)
-    newRenderersNames << renderer->name();
-
-  // remove controls of unused renderers
-  for (auto renderer : m_renderers)
-    if (!newRenderersNames.contains(renderer->name()))
-      removeRendererControls(renderer->name());
-
-  // add controls for new renderers
-  for (auto renderer: renderers)
-  {
-    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
-      continue;
-
-    if (!oldRenderersNames.contains(renderer->name()))
-      addRendererControls(renderer->clone());
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -129,7 +101,6 @@ void View3D::reset()
   updateRenderersControls();
 }
 
-
 //-----------------------------------------------------------------------------
 void View3D::addRendererControls(RendererSPtr renderer)
 {
@@ -147,12 +118,9 @@ void View3D::addRendererControls(RendererSPtr renderer)
     {
       auto repRenderer = representationRenderer(renderer);
       if (repRenderer->canRender(segmentation))
-      {
-
         for(auto rep : m_segmentationStates[segmentation].representations)
            if (repRenderer->managesRepresentation(rep->type()))
              repRenderer->addRepresentation(segmentation, rep);
-      }
     }
 
   // add channel representations to renderer
@@ -166,12 +134,12 @@ void View3D::addRendererControls(RendererSPtr renderer)
             repRenderer->addRepresentation(channel, rep);
     }
 
-  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig.menu());
+  auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
   if (configMenu == nullptr)
   {
-    configMenu = new ViewRendererMenu(&m_renderConfig);
-    m_renderConfig.setMenu(configMenu);
-    m_renderConfig.setEnabled(true);
+    configMenu = new ViewRendererMenu(m_renderConfig);
+    m_renderConfig->setMenu(configMenu);
+    m_renderConfig->setEnabled(true);
   }
   configMenu->add(renderer);
 
@@ -200,15 +168,15 @@ void View3D::removeRendererControls(const QString name)
   if (!removedRenderer->isHidden())
     removedRenderer->setEnable(false);
 
-  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig.menu());
+  auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
   if (configMenu != nullptr)
   {
     configMenu->remove(removedRenderer);
     if (configMenu->actions().isEmpty())
     {
-      m_renderConfig.setMenu(nullptr);
+      m_renderConfig->setMenu(nullptr);
       delete configMenu;
-      m_renderConfig.setEnabled(false);
+      m_renderConfig->setEnabled(false);
     }
   }
   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
@@ -222,44 +190,25 @@ void View3D::buildControls()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_zoom.setIcon(QIcon(":/espina/zoom_reset.png"));
-  m_zoom.setToolTip(tr("Reset Camera"));
-  m_zoom.setFlat(true);
-  m_zoom.setIconSize(QSize(22,22));
-  m_zoom.setMaximumSize(QSize(32,32));
-  m_zoom.setCheckable(false);
-  connect(&m_zoom, SIGNAL(clicked()), this, SLOT(resetView()));
+  m_zoom = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
+  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetView()));
 
-  m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
-  m_snapshot.setToolTip(tr("Save Scene as Image"));
-  m_snapshot.setFlat(true);
-  m_snapshot.setIconSize(QSize(22,22));
-  m_snapshot.setMaximumSize(QSize(32,32));
-  m_snapshot.setEnabled(false);
-  connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
+  m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
+  connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
 
-  m_export.setIcon(QIcon(":/espina/export_scene.svg"));
-  m_export.setToolTip(tr("Export 3D Scene"));
-  m_export.setFlat(true);
-  m_export.setIconSize(QSize(22,22));
-  m_export.setMaximumSize(QSize(32,32));
-  m_export.setEnabled(false);
-  connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+  m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
+  connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
-  m_renderConfig.setIcon(QIcon(":/espina/settings.png"));
-  m_renderConfig.setToolTip(tr("Configure this view's renderers"));
-  m_renderConfig.setFlat(true);
-  m_renderConfig.setIconSize(QSize(22,22));
-  m_renderConfig.setMaximumSize(QSize(32,32));
-  m_renderConfig.setEnabled(false);
+  m_renderConfig = createButton(QString(":/espina/settings.png"), tr("Configure this view's renderers"));
+  m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-  m_controlLayout->addWidget(&m_zoom);
-  m_controlLayout->addWidget(&m_snapshot);
-  m_controlLayout->addWidget(&m_export);
+  m_controlLayout->addWidget(m_zoom);
+  m_controlLayout->addWidget(m_snapshot);
+  m_controlLayout->addWidget(m_export);
   m_controlLayout->addItem(horizontalSpacer);
-  m_controlLayout->addWidget(&m_renderConfig);
+  m_controlLayout->addWidget(m_renderConfig);
 
   for(auto renderer : m_renderers)
     if (canRender(renderer, RendererType::RENDERER_VIEW3D))
@@ -337,11 +286,11 @@ void View3D::setCameraFocus(const NmVector3& center)
 //-----------------------------------------------------------------------------
 void View3D::resetCamera()
 {
-  this->m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
-  this->m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
-  this->m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
-  this->m_renderer->GetActiveCamera()->SetRoll(180);
-  this->m_renderer->ResetCamera();
+  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
+  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
+  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
+  m_renderer->GetActiveCamera()->SetRoll(180);
+  m_renderer->ResetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -412,12 +361,6 @@ Bounds View3D::previewBounds(bool cropToSceneBounds) const
   return resultBounds;
 }
 
-////-----------------------------------------------------------------------------
-//Selector::Selection View3D::select(Selector::SelectionFlags flags, Selector::SelectionMask mask)
-//{
-//  return Selector::Selection();
-//}
-
 //-----------------------------------------------------------------------------
 void View3D::setupUI()
 {
@@ -459,7 +402,8 @@ void View3D::setupUI()
   m_view->show();
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->LightFollowCameraOn();
-  vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  m_renderer->BackingStoreOff();
+  auto interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactorstyle->AutoAdjustCameraClippingRangeOn();
   interactorstyle->KeyPressActivationOff();
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
@@ -715,8 +659,9 @@ void View3D::updateRenderersControls()
     canBeExported |= canTakeSnapshot && (renderer->numberOfvtkActors() != 0);
   }
 
-  m_snapshot.setEnabled(canTakeSnapshot);
-  m_export.setEnabled(canBeExported);
+  m_zoom->setEnabled(canTakeSnapshot);
+  m_snapshot->setEnabled(canTakeSnapshot);
+  m_export->setEnabled(canBeExported);
 
   if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
   {
@@ -839,20 +784,14 @@ RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Represen
 }
 
 //-----------------------------------------------------------------------------
-RendererSList View3D::renderers() const
-{
-  return m_renderers;
-}
-
-//-----------------------------------------------------------------------------
 void View3D::activateRender(const QString &rendererName)
 {
-  for(auto action: m_renderConfig.menu()->actions())
+  for(auto action: m_renderConfig->menu()->actions())
     if (action->text() == rendererName)
       action->setChecked(true);
 
   for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName)
+    if (renderer->name() == rendererName && renderer->isHidden())
     {
       renderer->setEnable(true);
 
@@ -872,12 +811,12 @@ void View3D::activateRender(const QString &rendererName)
 //-----------------------------------------------------------------------------
 void View3D::deactivateRender(const QString &rendererName)
 {
-  for(auto action: m_renderConfig.menu()->actions())
+  for(auto action: m_renderConfig->menu()->actions())
     if (action->text() == rendererName)
       action->setChecked(false);
 
   for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName)
+    if (renderer->name() == rendererName && !renderer->isHidden())
     {
       renderer->setEnable(false);
 
@@ -988,3 +927,29 @@ Selector::Selection View3D::select(const Selector::SelectionFlags flags, const i
   return finalSelection;
 }
 
+//-----------------------------------------------------------------------------
+void View3D::setRenderers(RendererSList renderers)
+{
+  QStringList oldRenderersNames, newRenderersNames;
+
+  for (auto renderer: m_renderers)
+    oldRenderersNames << renderer->name();
+
+  for (auto renderer: renderers)
+    newRenderersNames << renderer->name();
+
+  // remove controls of unused renderers
+  for (auto renderer : m_renderers)
+    if (!newRenderersNames.contains(renderer->name()))
+      removeRendererControls(renderer->name());
+
+  // add controls for new renderers
+  for (auto renderer: renderers)
+  {
+    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
+      continue;
+
+    if (!oldRenderersNames.contains(renderer->name()))
+      addRendererControls(renderer->clone());
+  }
+}

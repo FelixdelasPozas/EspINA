@@ -19,7 +19,7 @@
  *
  */
 
-// EspINA
+// ESPINA
 #include "RawMesh.h"
 #include <Core/Analysis/Filter.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
@@ -31,7 +31,7 @@
 // Qt
 #include <QDir>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 static QString MESHDATA_FILE = QString("MeshData_%1.vtp");
 
@@ -128,7 +128,7 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
 
 
 //----------------------------------------------------------------------------
-RawMeshSPtr EspINA::rawMesh(OutputSPtr output)
+RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)
 {
   RawMeshSPtr meshData = std::dynamic_pointer_cast<RawMesh>(output->data(MeshData::TYPE));
   Q_ASSERT(meshData.get());

@@ -27,10 +27,10 @@
  */
 #include "classification_adapter_testing_support.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
-bool EspINA::TestName(const CategoryAdapterSPtr category, const QString& name)
+bool ESPINA::TestName(const CategoryAdapterSPtr category, const QString& name)
 {
    bool error = false;
 
@@ -43,7 +43,7 @@ bool EspINA::TestName(const CategoryAdapterSPtr category, const QString& name)
    return error;
  }
 
-bool EspINA::TestClassificationName(const CategoryAdapterSPtr category, const QString& name)
+bool ESPINA::TestClassificationName(const CategoryAdapterSPtr category, const QString& name)
 {
    bool error = false;
 
@@ -54,4 +54,41 @@ bool EspINA::TestClassificationName(const CategoryAdapterSPtr category, const QS
    }
 
    return error;
+}
+
+bool ESPINA::TestCategoryAndAdapterSync(const CategoryAdapterSPtr categoryAdapter, const CategorySPtr category)
+{
+  bool error = false;
+
+  if(category == nullptr && categoryAdapter != nullptr)
+    return true;
+
+  if(category != nullptr && categoryAdapter == nullptr)
+    return true;
+
+  if(category == nullptr && categoryAdapter == nullptr)
+    return false;
+
+  if(categoryAdapter->subCategories().size() != category->subCategories().size())
+  {
+    std::cerr << "Category adapter and adapter category for " << category->name().toStdString()
+              << " have different number of sub-categories." << std::endl;
+    error = true;
+  }
+
+  for(auto subCategoryAdapter: categoryAdapter->subCategories())
+  {
+    auto subCategory = category->subCategory(subCategoryAdapter->name());
+    if(!subCategory)
+    {
+      std::cerr << "Category " << category->name().toStdString()
+                << " must have sub-category" << subCategoryAdapter->name().toStdString() << std::endl;
+      error = true;
+      continue;
+    }
+
+    error |= TestCategoryAndAdapterSync(subCategoryAdapter, subCategory);
+  }
+
+  return error;
 }

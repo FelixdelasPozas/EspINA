@@ -25,7 +25,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/MultiTasking/Task.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class FilterInspector;
   using FilterInspectorSPtr = std::shared_ptr<FilterInspector>;

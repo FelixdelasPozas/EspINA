@@ -12,7 +12,7 @@
 #include <QApplication>
 #include <QVTKWidget.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 bool ContourSelector::filterEvent(QEvent* e, RenderView *view)

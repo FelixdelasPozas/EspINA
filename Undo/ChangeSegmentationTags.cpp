@@ -32,7 +32,7 @@
 #include <Extensions/Tags/SegmentationTags.h>
 
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ChangeSegmentationTags::ChangeSegmentationTags(SegmentationAdapterPtr segmentation,

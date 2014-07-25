@@ -24,7 +24,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-// EspINA
+// ESPINA
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
@@ -46,7 +46,7 @@ class vtkImageData;
 class Channel;
 class PickableItem;
 
-namespace EspINA
+namespace ESPINA
 {
   class RenderView;
 
@@ -58,7 +58,7 @@ namespace EspINA
       enum BrushMode {BRUSH, ERASER};
       enum DrawMode {CREATE, MODIFY};
 
-      using BrushShape     = QPair<vtkImplicitFunction*, Bounds>;
+      using BrushShape     = QPair<vtkSmartPointer<vtkImplicitFunction>, Bounds>;
       using BrushShapeList = QList<BrushShape>;
 
       using Spacing = itkVolumeType::SpacingType;
@@ -68,6 +68,8 @@ namespace EspINA
       virtual ~BrushSelector();
 
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
+
+      void setEraseMode(bool value);
 
       // radius of the brush in screen pixels
       void setRadius(int radius);
@@ -86,11 +88,15 @@ namespace EspINA
 
       /// @item is used to specify the spacing of the stroke
       void setReferenceItem(ViewItemAdapterPtr item);
+      ViewItemAdapterPtr referenceItem() const
+      { return m_item; }
+
       Spacing referenceSpacing() const;
 
       BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
 
       void abortOperation();
+
     signals:
       void radiusChanged(int);
       void drawingModeChanged(bool);
@@ -105,7 +111,7 @@ namespace EspINA
     protected:
       void buildCursor();
       Bounds buildBrushBounds(NmVector3 center);
-      void getBrushPosition(NmVector3 &center, QPoint pos);
+      void getBrushPosition(NmVector3 &center, QPoint const pos);
       bool validStroke(NmVector3 &center);
       virtual void startStroke(QPoint pos, RenderView *view);
       virtual void updateStroke(QPoint pos, RenderView *view);
@@ -113,7 +119,11 @@ namespace EspINA
       virtual void startPreview(RenderView *view);
       virtual void updatePreview(BrushShape shape, RenderView *view);
       virtual void stopPreview(RenderView *view);
+
       bool ShiftKeyIsDown();
+
+  private:
+    void updateCurrentDrawingMode(RenderView* view);
 
     protected:
       ViewItemAdapterPtr m_item;
@@ -140,13 +150,14 @@ namespace EspINA
       vtkSmartPointer<vtkImageData>   m_preview;
       vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
       vtkSmartPointer<vtkImageActor>  m_actor;
-      Bounds                          m_previewBounds;
-      bool                            m_drawing;
-      BrushShapeList                  m_brushes;
-      NmVector3                       m_lastUdpdatePoint;
-      Bounds                          m_lastUpdateBounds;
-      bool                            m_tracking;
-      RenderView                     *m_previewView;
+
+      bool           m_eraseMode;
+      bool           m_drawing;
+      BrushShapeList m_brushes;
+      NmVector3      m_lastUdpdatePoint;
+      Bounds         m_lastUpdateBounds;
+      bool           m_tracking;
+      RenderView*    m_previewView;
 
       static const int MAX_RADIUS = 30;
     };
@@ -154,6 +165,6 @@ namespace EspINA
   using BrushSelectorPtr  = BrushSelector *;
   using BrushSelectorSPtr = std::shared_ptr<BrushSelector>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_BRUSH_SELECTOR_H

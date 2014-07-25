@@ -18,11 +18,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include <GUI/View/ViewRendererMenu.h>
 #include <GUI/Representations/Renderers/Renderer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ViewRendererMenu::ViewRendererMenu(QWidget* parent)
@@ -76,4 +76,4 @@ namespace EspINA
     renderer->setEnable(renderer->isHidden());
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

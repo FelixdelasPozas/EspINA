@@ -30,7 +30,7 @@
 
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 using PadFilterType          = itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType>;
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;

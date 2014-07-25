@@ -28,7 +28,7 @@
 
 class QWidget;
 
-namespace EspINA {
+namespace ESPINA {
 
   class EspinaErrorHandler 
   : public IO::ErrorHandler

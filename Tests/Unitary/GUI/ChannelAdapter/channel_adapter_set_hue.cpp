@@ -32,8 +32,8 @@
 #include <Tests/Unitary/GUI/gui_testing_support.h>
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 bool TestHue(ChannelAdapterSPtr channel, double hue) {
   bool error = false;

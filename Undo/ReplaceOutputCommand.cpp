@@ -21,7 +21,7 @@
 
 #include "ReplaceOutputCommand.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ReplaceOutputCommand::ReplaceOutputCommand(SegmentationAdapterPtr segmentation,

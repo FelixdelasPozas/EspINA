@@ -51,7 +51,7 @@
 #include <QThread>
 #include <boost/iterator/iterator_concepts.hpp>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const ChannelExtension::Type ChannelEdges::TYPE = "AdaptiveEdges";
 
@@ -489,18 +489,21 @@ void ChannelEdges::computeSurfaces()
     poly->SetPoints(facePoints);
     poly->SetPolys(faceCells);
 
+    facePoints->Delete();
+    faceCells->Delete();
+
     m_faces[face] = poly;
  }
 }
 
 //-----------------------------------------------------------------------------
-ChannelEdgesPtr EspINA::channelEdgesExtension(ChannelExtensionPtr extension)
+ChannelEdgesPtr ESPINA::channelEdgesExtension(ChannelExtensionPtr extension)
 {
   return dynamic_cast<ChannelEdgesPtr>(extension);
 }
 
 //-----------------------------------------------------------------------------
-ChannelEdgesSPtr EspINA::channelEdgesExtension(ChannelPtr channel)
+ChannelEdgesSPtr ESPINA::channelEdgesExtension(ChannelPtr channel)
 {
   auto extension = channel->extension(ChannelEdges::TYPE);
 

@@ -5,7 +5,7 @@
  *      Author: F�lix de las Pozas �lvarez
  */
 
-// EspINA
+// ESPINA
 #include "vtkPlanarSplitWidget.h"
 #include "vtkPlanarSplitRepresentation2D.h"
 
@@ -24,7 +24,7 @@
 // Qt
 #include <QDebug>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 vtkStandardNewMacro(vtkPlanarSplitWidget);
 
@@ -32,7 +32,7 @@ vtkStandardNewMacro(vtkPlanarSplitWidget);
 // Here we create the command/observer classes to respond to the
 // handle widgets.
 
-namespace EspINA
+namespace ESPINA
 {
   class vtkPlanarSplitWidgetCallback : public vtkCommand
   {

@@ -20,7 +20,7 @@
 
 #include "RenameSegmentationsCommand.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //-------------------------------------------------------------------------
   RenameSegmentationsCommand::RenameSegmentationsCommand(QMap<SegmentationAdapterPtr, QString> renames)
@@ -52,4 +52,4 @@ namespace EspINA
     }
   }
 
-} // namespace EspINA
+} // namespace ESPINA

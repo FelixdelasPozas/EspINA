@@ -22,7 +22,7 @@
 #include "ToggleCrosshairVisibility.h"
 
 
-using namespace EspINA;
+using namespace ESPINA;
 
 
 //----------------------------------------------------------------------------

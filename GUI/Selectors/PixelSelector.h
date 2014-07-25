@@ -26,7 +26,7 @@
 
 class QSize;
 
-namespace EspINA
+namespace ESPINA
 {
   //------------------------------------------------------------------------
   class EspinaGUI_EXPORT PixelSelector
@@ -52,26 +52,32 @@ namespace EspINA
       bool validSelection(Selector::Selection);
   };
 
+  using PixelSelectorSPtr = std::shared_ptr<PixelSelector>;
+
   //------------------------------------------------------------------------
   class EspinaGUI_EXPORT BestPixelSelector
   : public PixelSelector
   {
+    Q_OBJECT
   public:
     explicit BestPixelSelector();
     virtual ~BestPixelSelector();
 
-    void setBestPixelValue(int value)
-    {m_bestPixel = value;}
-
     virtual void onMouseDown(const QPoint &pos, RenderView* view);
 
     virtual NmVector3 getPickPoint(RenderView* view);
+
+  public slots:
+    void setBestPixelValue(int value)
+    {m_bestPixel = value;}
 
   private:
     QSize *m_window;
     int    m_bestPixel;
   };
 
-} // namespace EspINA
+  using BestPixelSelectorSPtr = std::shared_ptr<BestPixelSelector>;
+
+} // namespace ESPINA
 
 #endif // ESPINA_PIXEL_SELECTOR_H

@@ -7,7 +7,7 @@
 
 #include "IFilterCreator.h"
 
-namespace EspINA
+namespace ESPINA
 {
   //----------------------------------------------------------------------------
   IFilterCreator::~IFilterCreator()

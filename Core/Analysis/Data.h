@@ -35,7 +35,7 @@
 #include <Core/Utils/Bounds.h>
 #include "Persistent.h"
 
-namespace EspINA
+namespace ESPINA
 {
   class ChangeSignalDelayer;
 
@@ -137,6 +137,6 @@ namespace EspINA
     friend class ChangeSignalDelayer;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_DATA_H

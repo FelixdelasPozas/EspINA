@@ -22,7 +22,7 @@
 #ifndef ESPINA_DEFAULT_VIEWSETTINGS_PANEL_H
 #define ESPINA_DEFAULT_VIEWSETTINGS_PANEL_H
 
-// EspINA
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
@@ -32,7 +32,7 @@
 #include <Settings/View3D/View3DSettingsPanel.h>
 
 
-namespace EspINA {
+namespace ESPINA {
 
   class DefaultViewSettingsPanel
   : public SettingsPanel

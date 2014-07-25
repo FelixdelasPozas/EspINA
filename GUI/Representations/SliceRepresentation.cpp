@@ -46,7 +46,7 @@
 
 #include <QList>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const Representation::Type ChannelSliceRepresentation::TYPE = "Slice";
 
@@ -63,13 +63,11 @@ ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr
 , m_lut(nullptr)
 {
   setType(TYPE);
-  //qDebug() << "Creating Solid Representation";
 }
 
 //-----------------------------------------------------------------------------
 ChannelSliceRepresentation::~ChannelSliceRepresentation()
 {
-  //qDebug() << "Destroying Solid Representation";
 }
 
 //-----------------------------------------------------------------------------
@@ -130,7 +128,7 @@ bool ChannelSliceRepresentation::hasActor(vtkProp *actor) const
 //-----------------------------------------------------------------------------
 RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(View2D *view)
 {
-  ChannelSliceRepresentation *representation =  new ChannelSliceRepresentation(m_data, view);
+  auto representation =  new ChannelSliceRepresentation(m_data, view);
   representation->setView(view);
   representation->m_planeIndex = normalCoordinateIndex(view->plane());
 
@@ -140,6 +138,9 @@ RepresentationSPtr ChannelSliceRepresentation::cloneImplementation(View2D *view)
 //-----------------------------------------------------------------------------
 void ChannelSliceRepresentation::updateVisibility(bool visible)
 {
+  if(isVisible() && m_actor != nullptr && needUpdate())
+    updateRepresentation();
+
   if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }
@@ -156,7 +157,7 @@ void ChannelSliceRepresentation::initializePipeline()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  vtkSmartPointer<vtkImageData> slice = vtkSmartPointer<vtkImageData>::New();
+  vtkSmartPointer<vtkImageData> slice = nullptr;
 
   if (valid)
   {
@@ -170,6 +171,7 @@ void ChannelSliceRepresentation::initializePipeline()
   {
     int extent[6] = { 0,1,0,1,0,1 };
     extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
+    slice = vtkSmartPointer<vtkImageData>::New();
     slice->SetExtent(extent);
 
     vtkInformation *info = slice->GetInformation();
@@ -227,7 +229,7 @@ void ChannelSliceRepresentation::updateRepresentation()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid)
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid && isVisible())
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
 
@@ -287,13 +289,11 @@ SegmentationSliceRepresentation::SegmentationSliceRepresentation(DefaultVolumetr
 , m_actor       {nullptr}
 {
   setType(TYPE);
-  //qDebug() << "Creating Solid Representation";
 }
 
 //-----------------------------------------------------------------------------
 SegmentationSliceRepresentation::~SegmentationSliceRepresentation()
 {
-  //qDebug() << "Destroying Solid Representation";
 }
 //-----------------------------------------------------------------------------
 RepresentationSettings *SegmentationSliceRepresentation::settingsWidget()
@@ -317,11 +317,9 @@ void SegmentationSliceRepresentation::restoreSettings(QString settings)
 {
   if (!settings.isEmpty())
   {
-    QStringList values = settings.split(";");
-
-    double alphaF = values[1].toDouble();
-
-    QColor currentColor = color();
+    auto values = settings.split(";");
+    auto alphaF = values[1].toDouble();
+    auto currentColor = color();
     currentColor.setAlphaF(alphaF);
 
     Representation::restoreSettings(values[0]);
@@ -386,14 +384,14 @@ void SegmentationSliceRepresentation::initializePipeline()
 
   m_reslicePoint = m_crosshair[m_planeIndex] + 1; // trigger update
 
-  View2D* view = reinterpret_cast<View2D *>(m_view);
+  auto view = reinterpret_cast<View2D *>(m_view);
 
   int extent[6] = { 0,1,0,1,0,1 };
   extent[2*m_planeIndex] = extent[2*m_planeIndex +1];
-  vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+  auto image = vtkSmartPointer<vtkImageData>::New();
   image->SetExtent(extent);
 
-  vtkInformation *info = image->GetInformation();
+  auto info = image->GetInformation();
   vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
   vtkImageData::SetNumberOfScalarComponents(1, info);
   image->SetInformation(info);
@@ -402,15 +400,13 @@ void SegmentationSliceRepresentation::initializePipeline()
   unsigned char *imagePointer = reinterpret_cast<unsigned char *>(image->GetScalarPointer());
   memset(imagePointer, SEG_BG_VALUE, image->GetNumberOfPoints());
 
-  // actor should be allocated first or the next call to setColor() would do nothing
-  m_actor = vtkSmartPointer<vtkImageActor>::New();
-
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
   m_mapToColors->SetInputData(image);
   m_mapToColors->SetLookupTable(s_highlighter->lut(m_color));
   m_mapToColors->SetNumberOfThreads(1);
   m_mapToColors->Update();
 
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
@@ -435,7 +431,7 @@ void SegmentationSliceRepresentation::updateRepresentation()
 
   bool valid = imageBounds[2*m_planeIndex] <= m_crosshair[m_planeIndex] && m_crosshair[m_planeIndex] <= imageBounds[2*m_planeIndex+1];
 
-  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid)
+  if (m_actor != nullptr && ((m_crosshair[m_planeIndex] != m_reslicePoint) || needUpdate()) && valid && isVisible())
   {
     m_reslicePoint = m_crosshair[m_planeIndex];
 
@@ -452,7 +448,7 @@ void SegmentationSliceRepresentation::updateRepresentation()
     m_lastUpdatedTime = m_data->lastModified();
 
     // need to reposition the actor so it will always be over the channels actors'
-    View2D* view = reinterpret_cast<View2D *>(m_view);
+    auto view = reinterpret_cast<View2D *>(m_view);
     double pos[3];
     m_actor->GetPosition(pos);
     pos[m_planeIndex] += view->segmentationDepth();
@@ -478,7 +474,7 @@ QList<vtkProp*> SegmentationSliceRepresentation::getActors()
 //-----------------------------------------------------------------------------
 RepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(View2D *view)
 {
-  SegmentationSliceRepresentation *representation = new SegmentationSliceRepresentation(m_data, view);
+  auto representation = new SegmentationSliceRepresentation(m_data, view);
   representation->setView(view);
   representation->m_planeIndex = normalCoordinateIndex(view->plane());
 
@@ -488,6 +484,9 @@ RepresentationSPtr SegmentationSliceRepresentation::cloneImplementation(View2D *
 //-----------------------------------------------------------------------------
 void SegmentationSliceRepresentation::updateVisibility(bool visible)
 {
+  if(visible && m_actor != nullptr && needUpdate())
+    updateRepresentation();
+
   if (m_actor != nullptr)
     m_actor->SetVisibility(visible);
 }

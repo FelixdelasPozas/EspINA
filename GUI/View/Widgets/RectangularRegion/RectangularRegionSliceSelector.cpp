@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// EspINA
+// ESPINA
 #include "RectangularRegionSliceSelector.h"
 #include "RectangularRegion.h"
 #include <GUI/View/View2D.h>
@@ -26,7 +26,7 @@
 // Qt
 #include <QPushButton>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RectangularRegionSliceSelector::RectangularRegionSliceSelector(RectangularRegion* region)

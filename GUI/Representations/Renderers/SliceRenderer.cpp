@@ -18,7 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "SliceRenderer.h"
 #include "GUI/Representations/SliceRepresentation.h"
 #include "GUI/Representations/SliceCachedRepresentation.h"
@@ -35,14 +35,13 @@
 #include <QDebug>
 #include <QMap>
 
-namespace EspINA
+namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   SliceRenderer::SliceRenderer(QObject *parent)
-  : RepresentationRenderer(parent)
-  , m_picker(vtkSmartPointer<vtkPropPicker>::New())
+  : RepresentationRenderer{parent}
+  , m_picker              {nullptr}
   {
-    m_picker->PickFromListOn();
   }
 
   //-----------------------------------------------------------------------------
@@ -52,17 +51,25 @@ namespace EspINA
     {
       if (m_enable)
         for (auto rep: m_representations[item])
-        {
           for (auto prop: rep->getActors())
-          {
             m_view->removeActor(prop);
-            m_picker->DeletePickList(prop);
-          }
-        }
 
       m_representations[item].clear();
     }
     m_representations.clear();
+
+    if(m_picker != nullptr)
+      m_picker->GetPickList()->RemoveAllItems();
+  }
+
+  //-----------------------------------------------------------------------------
+  void SliceRenderer::setView(RenderView *view)
+  {
+    Renderer::setView(view);
+
+    m_picker = vtkSmartPointer<vtkPropPicker>::New();
+    m_picker->InitializePickList();
+    m_picker->PickFromListOn();
   }
 
   //-----------------------------------------------------------------------------
@@ -118,9 +125,9 @@ namespace EspINA
   }
 
   //-----------------------------------------------------------------------------
-  bool SliceRenderer::managesRepresentation(const QString &repName) const
+  bool SliceRenderer::managesRepresentation(const QString &repType) const
   {
-    return ((repName == ChannelSliceRepresentation::TYPE) || (repName == SegmentationSliceRepresentation::TYPE));
+    return ((repType == ChannelSliceRepresentation::TYPE) || (repType == SegmentationSliceRepresentation::TYPE));
   }
 
   //-----------------------------------------------------------------------------
@@ -188,7 +195,7 @@ namespace EspINA
   {
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
-    View2D *view = reinterpret_cast<View2D *>(m_view);
+    auto view = reinterpret_cast<View2D *>(m_view);
 
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
@@ -233,11 +240,10 @@ namespace EspINA
       }
     }
 
-
     for (auto actor: removedProps)
       m_picker->AddPickList(actor);
 
     return selection;
   }
 
-} /* namespace EspINA */
+} /* namespace ESPINA */

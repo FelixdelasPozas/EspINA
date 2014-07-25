@@ -31,7 +31,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
-namespace EspINA
+namespace ESPINA
 {
 
   template <typename C, typename S>
@@ -63,7 +63,7 @@ namespace EspINA
     Nm m_inclusion[3];
     Nm m_exclusion[3];
   };
-}// namespace EspINA
+}// namespace ESPINA
 
 #include "ComputeOptimalMargins.cpp"
 

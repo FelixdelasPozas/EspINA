@@ -24,7 +24,7 @@
 
 #include <Coordinator.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class Coordinator
   : public Metadona::Coordinator

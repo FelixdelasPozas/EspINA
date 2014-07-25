@@ -30,7 +30,7 @@
 
 #include <QMenu>
 
-namespace EspINA
+namespace ESPINA
 {
   class EspinaGUI_EXPORT ContextualMenu
   : public QMenu
@@ -44,6 +44,6 @@ namespace EspINA
 
   using ContextualMenuSPtr = std::shared_ptr<ContextualMenu>;
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CONTEXTUAL_MENU_H

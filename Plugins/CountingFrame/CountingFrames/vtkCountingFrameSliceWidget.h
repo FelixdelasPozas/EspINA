@@ -42,15 +42,15 @@ public:
   vtkTypeMacro(vtkCountingFrameSliceWidget, vtkCountingFrameWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetPlane(EspINA::Plane plane);
+  virtual void SetPlane(ESPINA::Plane plane);
 
-  virtual void SetSlice(EspINA::Nm pos);
+  virtual void SetSlice(ESPINA::Nm pos);
 
-  virtual void SetSlicingStep(EspINA::NmVector3 slicingStep);
+  virtual void SetSlicingStep(ESPINA::NmVector3 slicingStep);
 
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> cf,
-                                EspINA::Nm   inclusionOffset[3],
-                                EspINA::Nm   exclusionOffset[3]);
+                                ESPINA::Nm   inclusionOffset[3],
+                                ESPINA::Nm   exclusionOffset[3]);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -81,9 +81,9 @@ protected:
   // helper methods for cursoe management
   virtual void SetCursor(int state);
 
-  EspINA::Plane     Plane;
-  EspINA::Nm        Slice;
-  EspINA::NmVector3 SlicingStep;
+  ESPINA::Plane     Plane;
+  ESPINA::Nm        Slice;
+  ESPINA::NmVector3 SlicingStep;
 
 private:
   vtkCountingFrameSliceWidget(const vtkCountingFrameSliceWidget&);  //Not implemented

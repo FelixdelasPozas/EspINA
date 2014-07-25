@@ -23,7 +23,7 @@
 
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class ROIConstrained
   {

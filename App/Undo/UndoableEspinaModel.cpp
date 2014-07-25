@@ -31,7 +31,7 @@
 #include "App/Undo/AtomicModelOperations.h"
 #include <Undo/TaxonomiesCommand.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //---------------------------------------------------------------------------
 void UndoableEspinaModel::setTaxonomy(TaxonomySPtr tax)

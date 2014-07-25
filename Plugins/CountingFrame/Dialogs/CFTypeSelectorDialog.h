@@ -21,7 +21,7 @@
 #ifndef ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H
 #define ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H
 
-// EspINA
+// ESPINA
 #include "ui_CFTypeSelectorDialog.h"
 
 #include <CountingFrames/CountingFrame.h>
@@ -31,7 +31,7 @@
 // Qt
 #include <QDialog>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace CF
   {
@@ -70,6 +70,6 @@ namespace EspINA
     };
 
   }
-} /* namespace EspINA */
+} /* namespace ESPINA */
 
 #endif // ESPINA_CF_CF_TYPE_SELECTOR_DIALOG_H

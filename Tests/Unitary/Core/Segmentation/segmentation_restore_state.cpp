@@ -27,8 +27,8 @@
 #include "segmentation_testing_support.h"
 
 using namespace std;
-using namespace EspINA;
-using namespace EspINA::Testing;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int segmentation_restore_state(int argc, char** argv)
 {

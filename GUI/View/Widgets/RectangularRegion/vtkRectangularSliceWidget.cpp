@@ -34,7 +34,7 @@
 #include "vtkRenderer.h"
 #include <vtkPolyData.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 vtkStandardNewMacro(vtkRectangularSliceWidget);
 

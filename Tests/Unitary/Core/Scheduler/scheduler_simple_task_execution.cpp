@@ -35,7 +35,7 @@
 #include <iostream>
 #include <unistd.h>
  
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int scheduler_simple_task_execution( int argc, char** argv )

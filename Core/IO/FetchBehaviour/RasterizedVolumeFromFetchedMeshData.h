@@ -21,11 +21,11 @@
 #ifndef ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
 #define ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
 
-// EspINA
+// ESPINA
 #include <Core/Analysis/FetchBehaviour.h>
 #include <Core/Analysis/Data/MeshData.h>
 
-namespace EspINA
+namespace ESPINA
 {
   class RasterizedVolumeFromFetchedMeshData
   : public FetchBehaviour
@@ -37,6 +37,6 @@ namespace EspINA
       virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // RASTERIZEDVOLUMEFROMFETCHEDMESHDATA_H_

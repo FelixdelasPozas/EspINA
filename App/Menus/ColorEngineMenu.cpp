@@ -24,7 +24,7 @@
 #include <QActionGroup>
 #include <QSettings>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const QString COLOR_ENGINE("ColorEngine");
 
@@ -56,7 +56,7 @@ void ColorEngineMenu::addColorEngine(const QString& title, ColorEngineSPtr engin
 //-----------------------------------------------------------------------------
 void ColorEngineMenu::restoreUserSettings()
 {
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   QStringList activeActions = settings.value(COLOR_ENGINE, QStringList("Category")).toStringList();
 
@@ -91,7 +91,7 @@ void ColorEngineMenu::setColorEngine(QAction* action)
   m_viewManager->setColorEngine(m_engine);
 
   // Save user preferences
-  QSettings settings(CESVIMA, ESPINA);
+  ESPINA_SETTINGS(settings);
 
   QStringList activeActions;
   for(auto action: m_availableEngines.keys())

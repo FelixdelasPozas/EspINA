@@ -25,7 +25,7 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-// EspINA
+// ESPINA
 #include "Output.h"
 #include "Filter.h"
 #include "DataProxy.h"
@@ -34,9 +34,9 @@
 // VTK
 #include <vtkMath.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
-const int EspINA::Output::INVALID_OUTPUT_ID = -1;
+const int ESPINA::Output::INVALID_OUTPUT_ID = -1;
 
 TimeStamp Output::s_tick = 0;
 

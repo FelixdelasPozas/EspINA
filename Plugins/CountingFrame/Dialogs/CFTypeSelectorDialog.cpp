@@ -18,7 +18,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "Dialogs/CFTypeSelectorDialog.h"
 #include <GUI/Model/ModelAdapter.h>
 #include <Extensions/ExtensionUtils.h>
@@ -28,8 +28,8 @@
 #include <QDialog>
 #include <QRadioButton>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent)

@@ -23,7 +23,7 @@
 
 #include <QString>
 
-namespace EspINA
+namespace ESPINA
 {
   namespace Relations
   {
@@ -31,6 +31,6 @@ namespace EspINA
     const QString LOCATION      = "where";
     const QString SPECIFICATION = "is";
   } // namespace Relation
-}; // namespace EspINA
+}; // namespace ESPINA
 
 #endif // RELATIONS_H

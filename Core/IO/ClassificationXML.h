@@ -27,7 +27,7 @@
 
 #include <QFileInfo>
 
-namespace EspINA {
+namespace ESPINA {
   namespace IO {
     namespace ClassificationXML
     {

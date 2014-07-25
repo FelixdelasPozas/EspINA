@@ -24,7 +24,7 @@
 
 #include <Core/Factory/SegmentationExtensionFactory.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class DefaultSegmentationExtensionFactory
   : public SegmentationExtensionFactory
@@ -36,6 +36,6 @@ namespace EspINA {
 
     virtual SegmentationExtensionTypeList providedExtensions() const;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_DEFAULT_SEGMENTATION_EXTENSION_FACTORY_H

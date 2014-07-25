@@ -20,7 +20,7 @@
 #include <iostream>
 #include <unistd.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 SleepyTask::SleepyTask(int sleepTime, SchedulerSPtr scheduler)
 : Task{scheduler}

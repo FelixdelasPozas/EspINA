@@ -23,9 +23,9 @@
 #include <QSettings>
 
 //------------------------------------------------------------------------
-QString EspINA::userName()
+QString ESPINA::userName()
 {
-  QSettings settings(CESVIMA, ESPINA);
+  QSettings settings(CESVIMA, ESPINA_SETTINGS);
 
   return settings.value(USER_NAME, "User").toString();
 }

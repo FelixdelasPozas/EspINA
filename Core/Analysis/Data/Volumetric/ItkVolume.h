@@ -24,7 +24,7 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// EspINA
+// ESPINA
 #include "Core/EspinaTypes.h"
 #include "Core/Utils/Bounds.h"
 #include "Core/Analysis/Data/VolumetricData.h"
@@ -33,7 +33,7 @@
 #include <itkImageToVTKImageFilter.h>
 #include <vtkSmartPointer.h>
 
-namespace EspINA
+namespace ESPINA
 {
   template<class T>
   class EspinaCore_EXPORT ItkVolume
@@ -300,6 +300,6 @@ namespace EspINA
 
 #include "ItkVolume.cpp"
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_RAW_VOLUME_H

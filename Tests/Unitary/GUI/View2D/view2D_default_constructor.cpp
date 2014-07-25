@@ -28,7 +28,7 @@
 
 #include "GUI/View/View2D.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int view2D_default_constructor(int argc, char** argv)

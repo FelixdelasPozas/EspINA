@@ -27,7 +27,7 @@
 
 #include <ui_SchedulerProgress.h>
 
-namespace EspINA {
+namespace ESPINA {
 
   class SchedulerProgress 
   : public QWidget
@@ -67,6 +67,8 @@ namespace EspINA {
     std::shared_ptr<QWidget>       m_notification;
 
     int m_width;
+    unsigned int m_taskProgress;
+    unsigned int m_taskTotal;
   };
 
   using SchedulerProgressSPtr = std::shared_ptr<SchedulerProgress>;

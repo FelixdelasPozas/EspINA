@@ -29,7 +29,7 @@
 #include "Core/Analysis/Analysis.h"
 #include "Core/Analysis/Sample.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace std;
 
 int analysis_remove_sample(int argc, char** argv)

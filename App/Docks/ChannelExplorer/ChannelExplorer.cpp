@@ -21,7 +21,7 @@
 #include "ChannelExplorer.h"
 #include <ui_ChannelExplorer.h>
 
-// EspINA
+// ESPINA
 #include "EspinaConfig.h"
 #include "Dialogs/ChannelInspector/ChannelInspector.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -34,7 +34,7 @@
 #include <QMessageBox>
 #include <QUndoStack>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 //------------------------------------------------------------------------
 class ChannelExplorer::CentralWidget
@@ -144,7 +144,7 @@ void ChannelExplorer::channelSelected()
 // 
 //   QModelIndex index = m_sort->mapToSource(currentIndex);
 //   ModelItemPtr currentItem = indexPtr(index);
-//   if (EspINA::CHANNEL == currentItem->type())
+//   if (ESPINA::CHANNEL == currentItem->type())
 //   {
 //     ChannelPtr channel = channelPtr(currentItem);
 //     double pos[3];
@@ -171,7 +171,7 @@ void ChannelExplorer::alignLeft()
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
-//     if (EspINA::CHANNEL != item->type())
+//     if (ESPINA::CHANNEL != item->type())
 //       continue;
 // 
 //     ChannelPtr channel = channelPtr(item);
@@ -203,7 +203,7 @@ void ChannelExplorer::alignCenter()
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
-//     if (EspINA::CHANNEL != item->type())
+//     if (ESPINA::CHANNEL != item->type())
 //       continue;
 // 
 //     ChannelPtr channel = channelPtr(item);
@@ -239,7 +239,7 @@ void ChannelExplorer::alignRight()
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
-//     if (EspINA::CHANNEL != item->type())
+//     if (ESPINA::CHANNEL != item->type())
 //       continue;
 // 
 //     ChannelPtr channel = channelPtr(item);
@@ -275,7 +275,7 @@ void ChannelExplorer::moveLelft()
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItem *item = indexPtr(m_sort->mapToSource(index));
-//     if (EspINA::CHANNEL != item->type())
+//     if (ESPINA::CHANNEL != item->type())
 //       continue;
 // 
 //     Channel *channel = dynamic_cast<Channel *>(item);
@@ -310,7 +310,7 @@ void ChannelExplorer::moveRight()
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItem *item = indexPtr(m_sort->mapToSource(index));
-//     if (EspINA::CHANNEL != item->type())
+//     if (ESPINA::CHANNEL != item->type())
 //       continue;
 // 
 //     Channel *channel = dynamic_cast<Channel *>(item);
@@ -344,7 +344,7 @@ void ChannelExplorer::updateChannelPosition()
 // 
 //   QModelIndex index = m_sort->mapToSource(currentIndex);
 //   ModelItemPtr currentItem = indexPtr(index);
-//   if (EspINA::CHANNEL == currentItem->type())
+//   if (ESPINA::CHANNEL == currentItem->type())
 //   {
 //     ChannelPtr channel = channelPtr(currentItem);
 //     double pos[3] = {
@@ -394,11 +394,11 @@ void ChannelExplorer::unloadChannel()
 //     return;
 // 
 //   ModelItemPtr item = indexPtr(index);
-//   if (EspINA::CHANNEL != item->type())
+//   if (ESPINA::CHANNEL != item->type())
 //     return;
 // 
 //   ChannelPtr channel = channelPtr(item);
-//   ModelItemSList relItems = channel->relatedItems(EspINA::RELATION_OUT);
+//   ModelItemSList relItems = channel->relatedItems(ESPINA::RELATION_OUT);
 // 
 //   if (!relItems.empty())
 //   {
@@ -443,7 +443,7 @@ void ChannelExplorer::focusOnChannel()
 // 
 //   QModelIndex index = m_sort->mapToSource(currentIndex);
 //   ModelItemPtr currentItem = indexPtr(index);
-//   if (EspINA::CHANNEL == currentItem->type())
+//   if (ESPINA::CHANNEL == currentItem->type())
 //   {
 //     ChannelPtr channel = channelPtr(currentItem);
 //     Nm bounds[6];

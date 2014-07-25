@@ -34,7 +34,7 @@
 #include <qinputdialog.h>
 #include <QTextStream>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 class TagSelector::GUI
 : public  Ui::TagSelector

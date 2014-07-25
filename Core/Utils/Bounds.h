@@ -39,7 +39,7 @@
 #include <QList>
 #include <QString>
 
-namespace EspINA
+namespace ESPINA
 {
   struct Wrong_number_initial_values {};
   struct Invalid_bounds_token {};

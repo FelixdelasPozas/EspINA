@@ -37,8 +37,8 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,

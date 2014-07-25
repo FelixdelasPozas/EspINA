@@ -18,7 +18,7 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// EspINA
+// ESPINA
 #include "TabularReport.h"
 #include "TabularReportEntry.h"
 #include <GUI/Widgets/CheckableTableView.h>
@@ -34,7 +34,7 @@
 #include <QMessageBox>
 #include <QTableView>
 
-using namespace EspINA;
+using namespace ESPINA;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
@@ -71,13 +71,8 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
 , m_tabs(new QTabWidget())
 , m_multiSelection(false)
 {
-  QVBoxLayout *layout = new QVBoxLayout(this);
-  QPalette pal = this->palette();
-  pal.setColor(QPalette::Base, pal.color(QPalette::Background));
-  this->setPalette(pal);
-
-  layout->addWidget(m_tabs);
-  setLayout(layout);
+  QHBoxLayout *general = new QHBoxLayout();
+  general->setAlignment(Qt::AlignRight);
 
   m_exportButton = new QPushButton();
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
@@ -85,11 +80,24 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
   m_exportButton->setFlat(false);
   m_exportButton->setEnabled(false);
   m_exportButton->setToolTip("Save All Data");
-  m_exportButton->setMinimumSize(40,40);
-
+  m_exportButton->setFlat(true);
+  m_exportButton->setIconSize(QSize(22,22));
+  m_exportButton->setMinimumSize(32,32);
+  m_exportButton->setMaximumSize(32,32);
   connect(m_exportButton, SIGNAL(clicked(bool)),
           this, SLOT(exportInformation()));
-  m_tabs->setCornerWidget(m_exportButton);
+
+  general->addWidget(m_exportButton);
+
+  QVBoxLayout *layout = new QVBoxLayout();
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Background));
+  this->setPalette(pal);
+
+  layout->addWidget(m_tabs);
+  layout->addLayout(general);
+
+  setLayout(layout);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this, SLOT(updateSelection(SegmentationAdapterList)));
@@ -103,10 +111,10 @@ TabularReport::~TabularReport()
   for (int i = 0; i < m_tabs->count(); ++i)
     currentEntries << m_tabs->tabText(i).replace("/",">");
 
-  TemporalStorageSPtr storage = m_model->storage();
   // Remove old extras
   if (m_model)
   {
+    auto storage = m_model->storage();
     for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NoRecursive))
     {
       QFileInfo file(data.first);
@@ -405,7 +413,7 @@ void TabularReport::exportInformation()
   }
 
   if (!result)
-    QMessageBox::warning(this, "EspINA", tr("Unable to export %1").arg(fileName));
+    QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
 }
 
 //------------------------------------------------------------------------

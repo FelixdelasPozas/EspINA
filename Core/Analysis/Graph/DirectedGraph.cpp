@@ -29,7 +29,7 @@
 #include <QDebug>
 
 using namespace boost;
-using namespace EspINA;
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 DirectedGraph::DirectedGraph()
@@ -361,13 +361,13 @@ DirectedGraph::OutEdgeIterator DirectedGraph::findRelation(const VertexDescripto
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertices EspINA::rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph)
+DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph)
 {
   return rootAncestors(vertex.get(), graph);
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertices EspINA::rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph)
+DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph)
 {
   DirectedGraph::Vertices rootAncestors;
 

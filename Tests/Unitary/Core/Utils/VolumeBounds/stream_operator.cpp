@@ -31,7 +31,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace EspINA;
+using namespace ESPINA;
 
 int stream_operator( int argc, char** argv )
 {

@@ -25,7 +25,7 @@
 #include <QLabel>
 #include <QSlider>
 
-namespace EspINA
+namespace ESPINA
 {
   class SliderAction
   : public QWidgetAction
@@ -121,6 +121,6 @@ namespace EspINA
   };
 
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SLIDER_ACTION_WIDGET_H_

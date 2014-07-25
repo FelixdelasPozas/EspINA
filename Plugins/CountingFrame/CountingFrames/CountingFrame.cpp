@@ -28,8 +28,8 @@
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
-using namespace EspINA;
-using namespace EspINA::CF;
+using namespace ESPINA;
+using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(CountingFrameExtension *extension,

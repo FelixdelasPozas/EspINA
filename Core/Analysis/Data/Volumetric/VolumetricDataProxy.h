@@ -29,7 +29,7 @@
 #include <vtkImageData.h>
 
 class vtkImplicitFunction;
-namespace EspINA
+namespace ESPINA
 {
   template <class T> class VolumetricData; 
 
@@ -126,12 +126,6 @@ namespace EspINA
                       itkVolumeType::PixelType value = SEG_VOXEL_VALUE)
     { m_data->draw(index, value); }
 
-    /** \brief Resize the volume to the minimum bounds containing all non background values
-     *
-     */
-    virtual void fitToContent()
-    { m_data->fitToContent(); }
-
     /** \brief Resize the volume to the given bounds
      *
      *  New voxels will be set to background value
@@ -174,6 +168,6 @@ namespace EspINA
 
     friend class Output;
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_VOLUMETRIC_DATA_PROXY_H

@@ -21,7 +21,7 @@
 #ifndef ESPINA_SPARSE_BINARY_VOLUME_H_
 #define ESPINA_SPARSE_BINARY_VOLUME_H_
 
-// EspINA
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Data/VolumetricData.h>
 #include "BinaryMask.h"
@@ -31,7 +31,7 @@
 
 class vtkImageData;
 
-namespace EspINA
+namespace ESPINA
 {
 
   class SparseBinaryVolume;
@@ -535,6 +535,6 @@ namespace EspINA
 
 
   };
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_SPARSE_BINARY_VOLUME_H_

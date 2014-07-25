@@ -22,7 +22,7 @@
 
 #include <GUI/Model/CategoryAdapter.h>
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
@@ -44,12 +44,12 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
   if (seg && seg->category())
     lutName = seg->category()->classificationName();
 
-  LUTSPtr seg_lut;
+  LUTSPtr seg_lut = nullptr;
 
   if (!m_LUT.contains(lutName))
   {
-    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
-    QColor c = color(seg);
+    auto alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
+    auto c = color(seg);
 
     seg_lut = LUTSPtr::New();
     seg_lut->Allocate();
@@ -77,7 +77,7 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
     {
       double rgb[3];
       m_LUT[lutName]->GetColor(1, rgb);
-      QColor segColor = seg->category()->color();
+      auto segColor = seg->category()->color();
 
       if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
         m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
@@ -92,8 +92,8 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
 //-----------------------------------------------------------------------------
 void CategoryColorEngine::updateCategoryColor(CategoryAdapterSPtr category)
 {
-  QString lutName = category->classificationName();
-  QColor c = category->color();
+  auto lutName = category->classificationName();
+  auto c = category->color();
 
   if (!m_LUT.contains(lutName))
     return;

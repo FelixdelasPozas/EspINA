@@ -33,7 +33,7 @@
 
 #include <QMutex>
 
-namespace EspINA
+namespace ESPINA
 {
 
   class AdaptiveEdgesCreator;
@@ -147,6 +147,6 @@ namespace EspINA
   ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
   ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);
 
-}// namespace EspINA
+}// namespace ESPINA
 
 #endif // ESPINA_CHANNEL_EDGES_H

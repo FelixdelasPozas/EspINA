@@ -107,8 +107,8 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 void vtkCountingFrameSliceRepresentation::reset()
 {
 //   std::cout << "Shift's been reset" << std::endl;
-  memset(this->InclusionOffset, 0, 3*sizeof(EspINA::Nm));
-  memset(this->ExclusionOffset, 0, 3*sizeof(EspINA::Nm));
+  memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+  memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   CreateRegion();
 }
 
@@ -220,7 +220,7 @@ void vtkCountingFrameSliceRepresentation::CreateDefaultProperties()
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
-                                                       EspINA::Nm bounds[6]) const
+                                                       ESPINA::Nm bounds[6]) const
 {
   if (regionSlice < 0)
     vtkMath::UninitializeBounds(bounds);
@@ -239,7 +239,7 @@ void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
 }
 
 //----------------------------------------------------------------------------
-int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
+int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
@@ -275,7 +275,7 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(EspINA::Nm pos) const
 // }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSliceRepresentation::SetSlice(EspINA::Nm pos)
+void vtkCountingFrameSliceRepresentation::SetSlice(ESPINA::Nm pos)
 {
   Slice = pos;
 //   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
@@ -296,13 +296,13 @@ void vtkCountingFrameSliceRepresentation::SetSlice(EspINA::Nm pos)
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                             EspINA::Nm inclusionOffset[3],
-                                                             EspINA::Nm exclusionOffset[3],
-                                                             EspINA::NmVector3 slicingStep)
+                                                             ESPINA::Nm inclusionOffset[3],
+                                                             ESPINA::Nm exclusionOffset[3],
+                                                             ESPINA::NmVector3 slicingStep)
 {
   Region = region;
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(EspINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(EspINA::Nm));
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
   SlicingStep = slicingStep;
 
   // this->Region->Update(); NOTE: is still needed with vtk6?

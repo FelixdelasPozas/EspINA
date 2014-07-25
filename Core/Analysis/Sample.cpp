@@ -20,7 +20,7 @@
 
 #include "Core/Analysis/Sample.h"
 
-using namespace EspINA;
+using namespace ESPINA;
 
 const RelationName Sample::CONTAINS = "Contains";
 
@@ -196,7 +196,7 @@ NmVector3 Sample::position() const
 // {
 //   ChannelList channels;
 // 
-//   foreach(ModelItemSPtr item, relatedItems(EspINA::RELATION_OUT, Channel::STAIN_LINK))
+//   foreach(ModelItemSPtr item, relatedItems(ESPINA::RELATION_OUT, Channel::STAIN_LINK))
 //   {
 //     channels << channelPtr(item.get());
 //   }
@@ -209,22 +209,22 @@ NmVector3 Sample::position() const
 // {
 //   SegmentationList segmentations;
 // 
-//   ModelItemSList items = relatedItems(EspINA::RELATION_OUT, Relations::LOCATION);
+//   ModelItemSList items = relatedItems(ESPINA::RELATION_OUT, Relations::LOCATION);
 //   while (!items.isEmpty())
 //   {
 //     ModelItemSPtr item = items.takeFirst();
-//     if (EspINA::SEGMENTATION == item->type())
+//     if (ESPINA::SEGMENTATION == item->type())
 //     {
 //       segmentations << segmentationPtr(item.get());
 //     }
-//     items << item->relatedItems(EspINA::RELATION_OUT, Relations::LOCATION);
+//     items << item->relatedItems(ESPINA::RELATION_OUT, Relations::LOCATION);
 //   }
 // 
 //   return segmentations;
 // }
 // 
 // //------------------------------------------------------------------------
-// SamplePtr EspINA::samplePtr(ModelItemPtr item)
+// SamplePtr ESPINA::samplePtr(ModelItemPtr item)
 // {
 //   Q_ASSERT(SAMPLE == item->type());
 //   SamplePtr ptr = dynamic_cast<SamplePtr>(item);
@@ -234,7 +234,7 @@ NmVector3 Sample::position() const
 // }
 // 
 // //------------------------------------------------------------------------
-// SampleSPtr EspINA::samplePtr(ModelItemSPtr& item)
+// SampleSPtr ESPINA::samplePtr(ModelItemSPtr& item)
 // {
 //   Q_ASSERT(SAMPLE == item->type());
 //   SampleSPtr ptr = boost::dynamic_pointer_cast<Sample>(item);

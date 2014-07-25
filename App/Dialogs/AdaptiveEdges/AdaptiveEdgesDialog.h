@@ -21,13 +21,13 @@
 #ifndef ADAPTIVEEDGESDIALOG_H_
 #define ADAPTIVEEDGESDIALOG_H_
 
-// EspINA
+// ESPINA
 #include <ui_AdaptiveEdgesDialog.h>
 
 // Qt
 #include <QDialog>
 
-namespace EspINA
+namespace ESPINA
 {
   
   class AdaptiveEdgesDialog
@@ -57,5 +57,5 @@ namespace EspINA
       int m_threshold;
   };
 
-} /* namespace EspINA */
+} /* namespace ESPINA */
 #endif /* ADAPTIVEEDGESDIALOG_H_ */

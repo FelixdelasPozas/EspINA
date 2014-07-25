@@ -29,7 +29,7 @@
 #include <Core/EspinaTypes.h>
 #include <Support/DockWidget.h>
 
-// EspINA
+// ESPINA
 #include <GUI/Model/Proxies/ChannelProxy.h>
 
 //Qt
@@ -37,7 +37,7 @@
 
 class QObject;
 
-namespace EspINA
+namespace ESPINA
 {
   class ChannelInspector;
   class ViewManager;
@@ -92,6 +92,6 @@ namespace EspINA
     QMap<ChannelAdapterPtr, ChannelInspector *> m_informationDialogs;
   };
 
-} // namespace EspINA
+} // namespace ESPINA
 
 #endif // ESPINA_CHANNEL_EXPLORER_H
