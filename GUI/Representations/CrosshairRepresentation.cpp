@@ -74,6 +74,7 @@ CrosshairRepresentation::CrosshairRepresentation(VolumeSPtr data, RenderView *vi
 , m_sagittalScaler          {nullptr}
 , m_tiling                  {false}
 {
+  setType(TYPE);
 }
 
 //-----------------------------------------------------------------------------

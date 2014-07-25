@@ -99,6 +99,12 @@ DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
 //-----------------------------------------------------------------------------
 void DefaultViewSettingsPanel::acceptChanges()
 {
+  QStringList active3DRenderers, active2DRenderers;
+  for(auto renderer: m_view3D->renderers())
+    active3DRenderers << renderer->name();
+  for(auto renderer: m_viewXY->renderers())
+    active2DRenderers << renderer->name();
+
   m_panelXY->acceptChanges();
   m_panelXZ->acceptChanges();
   m_panelYZ->acceptChanges();
@@ -109,14 +115,18 @@ void DefaultViewSettingsPanel::acceptChanges()
   for(auto renderer: m_view3D->renderers())
   {
     m_menu->addRenderer(renderer);
-    m_view3D->deactivateRender(renderer->name());
+    if(!active3DRenderers.contains(renderer->name()))
+      m_view3D->deactivateRender(renderer->name());
   }
   for(auto renderer: m_viewXY->renderers())
   {
     m_menu->addRenderer(renderer);
-    m_viewXY->activateRender(renderer->name());
-    m_viewXZ->activateRender(renderer->name());
-    m_viewYZ->activateRender(renderer->name());
+    if(!active2DRenderers.contains(renderer->name()))
+    {
+      m_viewXY->activateRender(renderer->name());
+      m_viewXZ->activateRender(renderer->name());
+      m_viewYZ->activateRender(renderer->name());
+    }
   }
 }
 
