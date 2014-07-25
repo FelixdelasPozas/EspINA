@@ -218,34 +218,6 @@ void View2D::setInvertSliceOrder(bool value)
   m_invertSliceOrder = value;
 }
 
-
-//-----------------------------------------------------------------------------
-void View2D::setRenderers(RendererSList renderers)
-{
-  QStringList oldRenderersNames, newRenderersNames;
-
-  for (auto renderer: m_renderers)
-    oldRenderersNames << renderer->name();
-
-  for (auto renderer: renderers)
-    newRenderersNames << renderer->name();
-
-  // remove controls of unused renderers
-  for (auto renderer : m_renderers)
-    if (!newRenderersNames.contains(renderer->name()))
-      removeRendererControls(renderer->name());
-
-  // add controls for new renderers
-  for (auto renderer: renderers)
-  {
-    if (!canRender(renderer, RendererType::RENDERER_VIEW2D))
-      continue;
-
-    if (!oldRenderersNames.contains(renderer->name()))
-      addRendererControls(renderer->clone());
-  }
-}
-
 //-----------------------------------------------------------------------------
 void View2D::reset()
 {
@@ -1603,16 +1575,6 @@ void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
 }
 
 //-----------------------------------------------------------------------------
-RendererSList View2D::renderers() const
-{
-  RendererSList genericRenderers;
-  for (auto renderer: m_renderers)
-    genericRenderers << renderer;
-
-  return genericRenderers;
-}
-
-//-----------------------------------------------------------------------------
 void View2D::activateRender(const QString &rendererName)
 {
   for(auto action: m_renderConfig->menu()->actions())
@@ -1620,7 +1582,7 @@ void View2D::activateRender(const QString &rendererName)
       action->setChecked(true);
 
   for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName)
+    if (renderer->name() == rendererName && renderer->isHidden())
       renderer->setEnable(true);
 }
 
@@ -1632,7 +1594,7 @@ void View2D::deactivateRender(const QString &rendererName)
       action->setChecked(false);
 
   for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName)
+    if (renderer->name() == rendererName && !renderer->isHidden())
       renderer->setEnable(false);
 }
 
@@ -1757,4 +1719,31 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
 
   return finalSelection;
+}
+
+//-----------------------------------------------------------------------------
+void View2D::setRenderers(RendererSList renderers)
+{
+  QStringList oldRenderersNames, newRenderersNames;
+
+  for (auto renderer: m_renderers)
+    oldRenderersNames << renderer->name();
+
+  for (auto renderer: renderers)
+    newRenderersNames << renderer->name();
+
+  // remove controls of unused renderers
+  for (auto renderer : m_renderers)
+    if (!newRenderersNames.contains(renderer->name()))
+      removeRendererControls(renderer->name());
+
+  // add controls for new renderers
+  for (auto renderer: renderers)
+  {
+    if (!canRender(renderer, RendererType::RENDERER_VIEW2D))
+      continue;
+
+    if (!oldRenderersNames.contains(renderer->name()))
+      addRendererControls(renderer->clone());
+  }
 }

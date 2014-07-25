@@ -870,3 +870,24 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 
   return select(flags, displayCoords[0], displayCoords[1], multiselection);
 }
+
+//-----------------------------------------------------------------------------
+RendererSList RenderView::renderers() const
+{
+  return m_renderers;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::setRenderersState(QMap<QString, bool> state)
+{
+  for(auto renderer: m_renderers)
+  {
+    if(state.keys().contains(renderer->name()))
+    {
+      if(state[renderer->name()])
+        activateRender(renderer->name());
+       else
+         deactivateRender(renderer->name());
+    }
+  }
+}

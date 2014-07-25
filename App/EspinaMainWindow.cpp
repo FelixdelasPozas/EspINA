@@ -669,7 +669,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   enableWidgets(false);
 
-
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("ESPINA Interactive Neuron Analyzer"));
@@ -790,6 +789,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       m_viewManager->setActiveChannel(m_model->channels().first().get());
     }
   }
+
+  m_view->loadSessionSettings(m_analysis->storage());
 
   if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
   {
@@ -999,6 +1000,8 @@ void EspinaMainWindow::saveAnalysis()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_busy = true;
+
+  m_view->saveSessionSettings(m_analysis->storage());
 
   IO::SegFile::save(m_analysis.get(), analysisFile, m_errorHandler);
 

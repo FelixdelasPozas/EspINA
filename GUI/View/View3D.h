@@ -55,10 +55,6 @@ namespace ESPINA
                     QWidget* parent = 0);
     virtual ~View3D();
 
-    void setRenderers(RendererSList renderers);
-
-    RendererSList renderers() const;
-
     void setCameraFocus(const NmVector3& center);
 
     virtual void reset();
@@ -92,6 +88,7 @@ namespace ESPINA
 
     virtual RepresentationSPtr cloneRepresentation(ESPINA::ViewItemAdapterPtr item, ESPINA::Representation::Type representation);
 
+    void setRenderers(RendererSList renderers);
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 

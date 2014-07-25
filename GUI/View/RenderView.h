@@ -182,6 +182,11 @@ namespace ESPINA
     virtual void activateRender(const QString &rendererName) = 0;
     virtual void deactivateRender(const QString &rendererName) = 0;
 
+    virtual void setRenderers(RendererSList renderers) = 0;
+    RendererSList renderers() const;
+
+    void setRenderersState(QMap<QString, bool>);
+
     /* \brief Struct used to store/restore camera state. Used in
      * "view state" snapshots.
      *

@@ -69,6 +69,9 @@ namespace ESPINA
 
     SettingsPanelSPtr settingsPanel();
 
+    void loadSessionSettings(TemporalStorageSPtr storage);
+    void saveSessionSettings(TemporalStorageSPtr storage);
+
   protected:
     // AbstractItemView Interface
     virtual QRegion visualRegionForSelection(const QItemSelection& selection) const
@@ -141,8 +144,6 @@ namespace ESPINA
 
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
     View3D *m_view3D;
-
-    RendererSList m_renderers;
 
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;

@@ -89,10 +89,6 @@ namespace ESPINA
     bool invertSliceOrder() const
     { return m_invertSliceOrder; }
 
-    void setRenderers(RendererSList renderers);
-
-    RendererSList renderers() const;
-
     Plane plane() const
     { return m_plane; }
 
@@ -133,6 +129,7 @@ namespace ESPINA
 
     virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
 
+    void setRenderers(RendererSList renderers);
     void activateRender(const QString &rendererName);
     void deactivateRender(const QString &rendererName);
 

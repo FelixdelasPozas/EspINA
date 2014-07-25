@@ -81,33 +81,6 @@ View3D::~View3D()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::setRenderers(RendererSList renderers)
-{
-  QStringList oldRenderersNames, newRenderersNames;
-
-  for (auto renderer: m_renderers)
-    oldRenderersNames << renderer->name();
-
-  for (auto renderer: renderers)
-    newRenderersNames << renderer->name();
-
-  // remove controls of unused renderers
-  for (auto renderer : m_renderers)
-    if (!newRenderersNames.contains(renderer->name()))
-      removeRendererControls(renderer->name());
-
-  // add controls for new renderers
-  for (auto renderer: renderers)
-  {
-    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
-      continue;
-
-    if (!oldRenderersNames.contains(renderer->name()))
-      addRendererControls(renderer->clone());
-  }
-}
-
-//-----------------------------------------------------------------------------
 void View3D::reset()
 {
   for(auto widget: m_widgets)
@@ -127,7 +100,6 @@ void View3D::reset()
 
   updateRenderersControls();
 }
-
 
 //-----------------------------------------------------------------------------
 void View3D::addRendererControls(RendererSPtr renderer)
@@ -815,12 +787,6 @@ RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Represen
 }
 
 //-----------------------------------------------------------------------------
-RendererSList View3D::renderers() const
-{
-  return m_renderers;
-}
-
-//-----------------------------------------------------------------------------
 void View3D::activateRender(const QString &rendererName)
 {
   for(auto action: m_renderConfig->menu()->actions())
@@ -828,7 +794,7 @@ void View3D::activateRender(const QString &rendererName)
       action->setChecked(true);
 
   for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName)
+    if (renderer->name() == rendererName && renderer->isHidden())
     {
       renderer->setEnable(true);
 
@@ -853,7 +819,7 @@ void View3D::deactivateRender(const QString &rendererName)
       action->setChecked(false);
 
   for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName)
+    if (renderer->name() == rendererName && !renderer->isHidden())
     {
       renderer->setEnable(false);
 
@@ -964,3 +930,29 @@ Selector::Selection View3D::select(const Selector::SelectionFlags flags, const i
   return finalSelection;
 }
 
+//-----------------------------------------------------------------------------
+void View3D::setRenderers(RendererSList renderers)
+{
+  QStringList oldRenderersNames, newRenderersNames;
+
+  for (auto renderer: m_renderers)
+    oldRenderersNames << renderer->name();
+
+  for (auto renderer: renderers)
+    newRenderersNames << renderer->name();
+
+  // remove controls of unused renderers
+  for (auto renderer : m_renderers)
+    if (!newRenderersNames.contains(renderer->name()))
+      removeRendererControls(renderer->name());
+
+  // add controls for new renderers
+  for (auto renderer: renderers)
+  {
+    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
+      continue;
+
+    if (!oldRenderersNames.contains(renderer->name()))
+      addRendererControls(renderer->clone());
+  }
+}

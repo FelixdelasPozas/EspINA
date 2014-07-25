@@ -111,10 +111,10 @@ TabularReport::~TabularReport()
   for (int i = 0; i < m_tabs->count(); ++i)
     currentEntries << m_tabs->tabText(i).replace("/",">");
 
-  TemporalStorageSPtr storage = m_model->storage();
   // Remove old extras
   if (m_model)
   {
+    auto storage = m_model->storage();
     for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NoRecursive))
     {
       QFileInfo file(data.first);
