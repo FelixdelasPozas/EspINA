@@ -19,7 +19,6 @@ CountingFramePlugin::CountingFramePlugin()
 , m_renderer3d                  {nullptr}
 , m_renderer2d                  {nullptr}
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -127,6 +126,15 @@ QList<MenuEntry> CountingFramePlugin::menuEntries() const
 AnalysisReaderSList CountingFramePlugin::analysisReaders() const
 {
   return AnalysisReaderSList();
+}
+
+//------------------------------------------------------------------------
+void CountingFramePlugin::onAnalysisClosed()
+{
+  if(m_dockWidget != nullptr)
+  {
+    dynamic_cast<Panel *>(m_dockWidget)->deleteCountingFrames();
+  }
 }
 
 Q_EXPORT_PLUGIN2(CountingFramePlugin, ESPINA::CF::CountingFramePlugin)

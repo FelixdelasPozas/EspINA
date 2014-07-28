@@ -75,7 +75,7 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXY::CreateRegion()
 {
-  if (Region.GetPointer() == NULL)
+  if (Region.GetPointer() == nullptr)
     return;
 
   // Corners of the rectangular region

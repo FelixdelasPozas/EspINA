@@ -375,12 +375,18 @@ bool StereologicalInclusion::isOnEdge() const
   }
   else
   {
-    Nm   threshold = 1.0;
+    Nm threshold = 1.0;
 
-    auto channels = QueryContents::channels(m_extendedItem);
+    auto channels = QueryRelations::channels(m_extendedItem);
+
+    if(channels.empty())
+    {
+      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any channel, cannot get edges information.";
+    }
+
     if (channels.size() > 1)
     {
-      qWarning() << "Tailing not supported by Stereological Inclusion Extension";
+      qWarning() << "Tiling not supported by Stereological Inclusion Extension";
     }
     else if (channels.size() == 1)
     {
