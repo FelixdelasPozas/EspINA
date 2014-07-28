@@ -979,3 +979,10 @@ void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
     }
   }
 }
+
+//------------------------------------------------------------------------
+void Panel::deleteCountingFrames()
+{
+  for(auto cf: m_countingFrames)
+    deleteCountingFrame(cf);
+}

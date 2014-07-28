@@ -30,18 +30,18 @@
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
-: LastPicker(NULL)
-, InclusionEdgeProperty(NULL)
-, ExclusionEdgeProperty(NULL)
-, SelectedInclusionProperty(NULL)
-, SelectedExclusionProperty(NULL)
-, InvisibleProperty(NULL)
-, Region(NULL)
-, Slice(0)
-, Init(false)
-, NumPoints(0)
-, NumSlices(0)
-, NumVertex(0)
+: LastPicker               {nullptr}
+, InclusionEdgeProperty    {nullptr}
+, ExclusionEdgeProperty    {nullptr}
+, SelectedInclusionProperty{nullptr}
+, SelectedExclusionProperty{nullptr}
+, InvisibleProperty        {nullptr}
+, Region                   {nullptr}
+, Slice                    {0}
+, Init                     {false}
+, NumPoints                {0}
+, NumSlices                {0}
+, NumVertex                {0}
 {
   // The initial state
   this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
@@ -52,21 +52,22 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
   this->CreateDefaultProperties();
 
   //Manage the picking stuff
-  this->EdgePicker = vtkCellPicker::New();
+  this->EdgePicker = vtkSmartPointer<vtkCellPicker>::New();
   this->EdgePicker->SetTolerance(0.01);
   this->EdgePicker->PickFromListOn();
 
   // Build edges
-  this->Vertex = vtkPoints::New(VTK_DOUBLE);
+  this->Vertex = vtkSmartPointer<vtkPoints>::New();
+  this->Vertex->SetDataType(VTK_FLOAT);
   this->Vertex->SetNumberOfPoints(4);//line sides;
   for (EDGE i=LEFT; i<=BOTTOM; i = EDGE(i+1))
   {
-    this->EdgePolyData[i] = vtkPolyData::New();
-    this->EdgeMapper[i]   = vtkPolyDataMapper::New();
-    this->EdgeActor[i]    = vtkActor::New();
+    this->EdgePolyData[i] = vtkSmartPointer<vtkPolyData>::New();
+    this->EdgeMapper[i]   = vtkSmartPointer<vtkPolyDataMapper>::New();
+    this->EdgeActor[i]    = vtkSmartPointer<vtkActor>::New();
 
     this->EdgePolyData[i]->SetPoints(this->Vertex);
-    this->EdgePolyData[i]->SetLines(vtkCellArray::New());
+    this->EdgePolyData[i]->SetLines(vtkSmartPointer<vtkCellArray>::New());
     this->EdgeMapper[i]->SetInputData(this->EdgePolyData[i]);
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
     if (i < RIGHT)
@@ -81,7 +82,7 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
   double bounds[6] = {-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
   this->PlaceWidget(bounds);
 
-  this->CurrentEdge = NULL;
+  this->CurrentEdge = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -89,12 +90,13 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 {
   for(int i=0; i<4; i++)
   {
-    this->EdgeActor[i]->Delete();
-    this->EdgeMapper[i]->Delete();
-    this->EdgePolyData[i]->Delete();
+    this->EdgeActor[i] = nullptr;
+    this->EdgeMapper[i] = nullptr;
+    this->EdgePolyData[i] = nullptr;
   }
 
-  this->EdgePicker->Delete();
+  this->EdgePicker = nullptr;
+  this->Vertex = nullptr;
 
   this->InclusionEdgeProperty->Delete();
   this->ExclusionEdgeProperty->Delete();
@@ -382,17 +384,16 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
 
   vtkAssemblyPath *path;
   // Try and pick a handle first
-  this->LastPicker = NULL;
-  this->CurrentEdge = NULL;
+  this->LastPicker = nullptr;
+  this->CurrentEdge = nullptr;
   this->EdgePicker->Pick(X,Y,0.0,this->Renderer);
   path = this->EdgePicker->GetPath();
-  if ( path != NULL )
+  if ( path != nullptr )
   {
     this->LastPicker = this->EdgePicker;
     this->ValidPick = 1;
 
-    this->CurrentEdge =
-      reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
+    this->CurrentEdge = reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
     if (this->CurrentEdge == this->EdgeActor[LEFT])
     {
       this->InteractionState = vtkCountingFrameSliceRepresentation::MoveLeft;
@@ -441,7 +442,7 @@ void vtkCountingFrameSliceRepresentation::SetInteractionState(int state)
       this->HighlightEdge(this->CurrentEdge);
       break;
     default:
-      this->HighlightEdge(NULL);
+      this->HighlightEdge(nullptr);
       break;
     }
 }
@@ -511,11 +512,11 @@ int vtkCountingFrameSliceRepresentation::HasTranslucentPolygonalGeometry()
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSliceRepresentation::HighlightEdge(vtkActor* actor)
+void vtkCountingFrameSliceRepresentation::HighlightEdge(vtkSmartPointer<vtkActor> actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
-    vtkActor *edgeActor = this->EdgeActor[edge];
+    auto edgeActor = this->EdgeActor[edge];
 
     if (edgeActor == actor)
     {

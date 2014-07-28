@@ -397,6 +397,8 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       connect(this,        SIGNAL(analysisChanged()),
               validPlugin, SLOT(onAnalysisChanged()));
+      connect(this,        SIGNAL(analysisClosed()),
+              validPlugin, SLOT(onAnalysisClosed()));
 
       for (auto colorEngine : validPlugin->colorEngines())
       {

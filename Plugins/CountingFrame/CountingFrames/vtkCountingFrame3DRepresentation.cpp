@@ -54,6 +54,14 @@ vtkStandardNewMacro(vtkCountingFrame3DRepresentation);
 
 //----------------------------------------------------------------------------
 vtkCountingFrame3DRepresentation::vtkCountingFrame3DRepresentation()
+: VolumePoints           {nullptr}
+, CurrentHexFace         {-1}
+, LastPicker             {nullptr}
+, FaceProperty           {nullptr}
+, SelectedFaceProperty   {nullptr}
+, InclusionProperty      {nullptr}
+, InvisibleProperty      {nullptr}
+, SelectedOutlineProperty{nullptr}
 {
   // The initial state
   this->InteractionState = vtkCountingFrame3DRepresentation::Outside;

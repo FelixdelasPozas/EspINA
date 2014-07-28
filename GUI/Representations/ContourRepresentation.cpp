@@ -251,6 +251,12 @@ void ContourRepresentation::updateRepresentation()
     m_actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
     m_actor->GetProperty()->SetOpacity(rgba[3]);
     m_actor->GetProperty()->Modified();
+
+    double pos[3];
+    auto view2d = dynamic_cast<View2D*>(m_view);
+    m_actor->GetPosition(pos);
+    pos[normalCoordinateIndex(view2d->plane())] += view2d->segmentationDepth();
+    m_actor->SetPosition(pos);
     m_actor->Modified();
 
     m_lastUpdatedTime = m_data->lastModified();

@@ -63,6 +63,8 @@ namespace ESPINA
 
     void deleteCountingFrame(CountingFrame *cf);
 
+    void deleteCountingFrames();
+
   private slots:
     void applyCategoryConstraint();
 

@@ -100,6 +100,9 @@ namespace ESPINA
        */
       virtual AnalysisReaderSList analysisReaders() const;
 
+    public slots:
+      virtual void onAnalysisClosed();
+
     private:
       CountingFrameManager m_manager;
       ModelAdapterSPtr     m_model;

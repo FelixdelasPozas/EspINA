@@ -56,9 +56,9 @@ public:
 //   vtkSetMacro(Slice,int);
   virtual void SetSlice(ESPINA::Nm pos);
   virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                 ESPINA::Nm inclusionOffset[3],
-                                 ESPINA::Nm exclusionOffset[3],
-                                 ESPINA::NmVector3 slicingStep);
+                                ESPINA::Nm inclusionOffset[3],
+                                ESPINA::Nm exclusionOffset[3],
+                                ESPINA::NmVector3 slicingStep);
 
 
   virtual void SetHighlighted(bool highlight);
@@ -110,17 +110,17 @@ protected:
   double LastEventPosition[3];
 
   // Counting Region Edge
-  vtkActor 	    *EdgeActor[4];
-  vtkPolyDataMapper *EdgeMapper[4];
-  vtkPolyData 	    *EdgePolyData[4];
-  vtkPoints	    *Vertex;
+  vtkSmartPointer<vtkActor>          EdgeActor[4];
+  vtkSmartPointer<vtkPolyDataMapper> EdgeMapper[4];
+  vtkSmartPointer<vtkPolyData> 	     EdgePolyData[4];
+  vtkSmartPointer<vtkPoints>	       Vertex;
 
-  void HighlightEdge(vtkActor *actor);
+  void HighlightEdge(vtkSmartPointer<vtkActor> actor);
 
   // Do the picking
-  vtkCellPicker *EdgePicker;
-  vtkCellPicker *LastPicker;
-  vtkActor *CurrentEdge;
+  vtkSmartPointer<vtkCellPicker> EdgePicker;
+  vtkSmartPointer<vtkCellPicker> LastPicker;
+  vtkSmartPointer<vtkActor>      CurrentEdge;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.

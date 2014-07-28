@@ -112,6 +112,7 @@ namespace ESPINA
     virtual QList<MenuEntry> menuEntries() const = 0;
 
   public slots:
+    virtual void onAnalysisClosed()  {}
     virtual void onAnalysisChanged() {}
 //     /** \brief
 //      */

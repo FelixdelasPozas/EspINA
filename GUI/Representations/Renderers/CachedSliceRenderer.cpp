@@ -107,6 +107,9 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::setEnable(bool value)
   {
+    if(m_enable == value)
+      return;
+
     Renderer::setEnable(value);
 
     if(m_view != nullptr)
@@ -138,8 +141,6 @@ namespace ESPINA
     Q_ASSERT(view);
     m_planeIndex = normalCoordinateIndex(view->plane());
     m_windowSpacing = sceneResolution[m_planeIndex];
-    connect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(setPosition(Plane, Nm)), Qt::DirectConnection);
-    connect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()), Qt::DirectConnection);
 
     initCache();
 
@@ -926,19 +927,15 @@ namespace ESPINA
     if (m_actualPos->position == position || (m_representationsActors.keys().size() == 0))
       return;
 
+    auto jump = std::fabs(m_actualPos->position - position);
     // this is necessary as setPosition() is called during file loading with incorrect
     // values and that makes the cache positions invalid, if an invalid position is detected
     // the cache forces a refill.
-    if(std::fabs(m_actualPos->position - position) < m_windowSpacing)
-    {
-      fillCache(position);
-      m_actualPos = m_actualPos->next;
-      setPosition(plane, position);
-      return;
-    }
+    auto needReadjustment = (jump < static_cast<double>(m_windowSpacing*0.999)) && (jump > static_cast<double>(m_windowSpacing*0.001));
+    auto needRefill = jump > static_cast<double>(m_windowWidth*m_windowSpacing);
 
     // check if is a complete reposition of the cache
-    if (abs(m_actualPos->position - position) > static_cast<int>(m_windowWidth*m_windowSpacing))
+    if (needRefill || needReadjustment)
     {
       fillCache(position);
       return;
