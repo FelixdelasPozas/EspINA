@@ -55,7 +55,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   CachedSliceRenderer::CachedSliceRenderer(SchedulerSPtr scheduler, QObject *parent)
   : RepresentationRenderer{parent}
-  , m_windowWidth         {5}
+  , m_windowWidth         {10}
   , m_maxWindowWidth      {25}
   , m_actualPos           {nullptr}
   , m_edgePos             {nullptr}
