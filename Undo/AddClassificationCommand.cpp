@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "AddClassificationCommand.h"
 
 using namespace ESPINA;
@@ -27,11 +28,10 @@ using namespace ESPINA;
 AddClassificationCommand::AddClassificationCommand(ClassificationAdapterSPtr classification,
                                                    ModelAdapter *            model,
                                                    QUndoCommand *            parent)
-: QUndoCommand(parent)
-, m_model(model)
-, m_prevClassification(classification)
+: QUndoCommand        {parent}
+, m_model             {model}
+, m_prevClassification{classification}
 {
-
 }
 
 //------------------------------------------------------------------------

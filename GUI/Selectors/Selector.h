@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -25,7 +25,7 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/NeuroItemAdapter.h>
 #include <GUI/View/EventHandler.h>
 
@@ -62,24 +62,50 @@ namespace ESPINA
     using Selection      = QList<SelectionItem>;
 
   public:
+    /* \brief Selector class constructor.
+     *
+     */
     explicit Selector()
-    : m_enabled(true)
-    , m_multiSelection(false)
+    : m_enabled{true}
+    , m_multiSelection{false}
     {}
 
-    virtual ~Selector(){};
+    /* \brief Selector class virtual destructor.
+     *
+     */
+    virtual ~Selector()
+    {};
 
+    /* \brief Enables/Disables the specified selection tag.
+     * \param[in] tag, tag to modify.
+     * \param[in] selectable, true to select false otherwise.
+     *
+     */
     void setSelectionTag(const SelectionTag tag, bool selectable=true);
 
+    /* \brief Enables/Disables multiple item selection.
+     * \param[in] enabled, true to enable multiple selection false otherwise.
+     *
+     */
     void setMultiSelection(bool enabled)
     { m_multiSelection = enabled; }
 
+    /* \brief Returns true if the multi-selection flag is true, false otherwise.
+     *
+     */
     bool multiSelection()
     { return m_multiSelection; }
 
+    /* \brief Enables/Disables the selector.
+     * \param[in] value, true to enable, false otherwise.
+     *
+     */
     void setEnabled(bool value)
     { m_enabled = value; }
 
+    /* \brief Returns true if the selector is enabled, false otherwise.
+     *
+     */
     bool isEnabled() const
     {return m_enabled; }
 

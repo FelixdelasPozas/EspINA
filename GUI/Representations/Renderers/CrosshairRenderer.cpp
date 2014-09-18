@@ -1,5 +1,5 @@
 /*
-p    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -264,12 +264,12 @@ void CrosshairRenderer::setCrosshair(NmVector3 point)
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRenderer::setPlanePosition(Plane plane, Nm dist)
+void CrosshairRenderer::setPlanePosition(Plane plane, Nm pos)
 {
   for(auto item: m_representations.keys())
     for(auto rep: m_representations[item])
     {
       auto crossRep = std::dynamic_pointer_cast<CrosshairRepresentation>(rep);
-      crossRep->setPlanePosition(plane, dist);
+      crossRep->setPlanePosition(plane, pos);
     }
 }

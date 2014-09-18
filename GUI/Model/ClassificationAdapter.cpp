@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,35 +21,34 @@
 // ESPINA
 #include "ClassificationAdapter.h"
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(const QString& name)
-: ItemAdapter(PersistentSPtr())
-, m_classification{new Tree<Category>(name)}
-, m_classificationAdapter(name)
+: ItemAdapter            {PersistentSPtr()}
+, m_classification       {new Tree<Category>{name}}
+, m_classificationAdapter{name}
 {
   m_classificationAdapter.root()->m_category = m_classification->root();
 }
 
 //------------------------------------------------------------------------
 ClassificationAdapter::ClassificationAdapter(ClassificationSPtr classification)
-: ItemAdapter(PersistentSPtr())
-, m_classification(classification)
-, m_classificationAdapter(classification->name())
+: ItemAdapter            {PersistentSPtr()}
+, m_classification       {classification}
+, m_classificationAdapter{classification->name()}
 {
   m_classificationAdapter.root()->m_category = m_classification->root();
 
   adaptCategory(m_classificationAdapter.root());
 }
 
-
 //------------------------------------------------------------------------
 ClassificationAdapter::~ClassificationAdapter()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -100,9 +99,9 @@ CategoryAdapterSList ClassificationAdapter::categories()
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr ClassificationAdapter::category(const QString& classificationName)
+CategoryAdapterSPtr ClassificationAdapter::category(const QString& categoryName)
 {
-  return m_classificationAdapter.node(classificationName);
+  return m_classificationAdapter.node(categoryName);
 }
 
 //------------------------------------------------------------------------

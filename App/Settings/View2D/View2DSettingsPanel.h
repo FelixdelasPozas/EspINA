@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,14 +18,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_VIEW_2D_SETTINGS_PANEL_H
 #define ESPINA_VIEW_2D_SETTINGS_PANEL_H
 
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
-
-#include "ui_View2DSettingsPanel.h"
 #include <GUI/View/View2D.h>
+
+// Qt
+#include "ui_View2DSettingsPanel.h"
 
 namespace ESPINA
 {
@@ -35,22 +36,47 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /* \brief View2DSettingsPanel class constructor.
+     * \param[in] view, raw pointer to View2D object.
+     */
     explicit View2DSettingsPanel(View2D *view);
 
-    virtual const QString shortDescription();
+    /* \brief Overrides SettingsPanel::shortDescription().
+     *
+     */
+    virtual const QString shortDescription() override;
 
-    virtual const QString longDescription()
+    /* \brief Overrides SettingsPanel::longDescription().
+     *
+     */
+    virtual const QString longDescription() override
     {return tr("%1").arg(shortDescription());}
 
-    virtual const QIcon icon() {return QIcon();}
+    /* \brief Overrides SettingsPanel::icon().
+     *
+     */
+    virtual const QIcon icon() override
+    {return QIcon();}
 
-    virtual void acceptChanges();
+    /* \brief Overrides SettingsPanel::acceptChanges().
+     *
+     */
+    virtual void acceptChanges() override;
 
-    virtual void rejectChanges();
+    /* \brief Overrides SettingsPanel::rejectChanges().
+     *
+     */
+    virtual void rejectChanges() override;
 
-    virtual bool modified() const;
+    /* \brief Overrides SettingsPanel::modified().
+     *
+     */
+    virtual bool modified() const override;
 
-    virtual SettingsPanelPtr clone();
+    /* \brief Overrides SettingsPanel::clone().
+     *
+     */
+    virtual SettingsPanelPtr clone() override;
 
   private:
     View2D *m_view;

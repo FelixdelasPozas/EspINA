@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef QCOMBOTREEVIEW_H
 #define QCOMBOTREEVIEW_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <QComboBox>
 #include <QTreeView>
 
@@ -34,27 +34,55 @@ class EspinaGUI_EXPORT QComboTreeView
 {
   Q_OBJECT
 public:
-  explicit QComboTreeView(QWidget* parent = 0);
+  /* \brief QComboTreeView class constructor.
+   * \param[in] parent, raw pointer of the QWidget parent of this one.
+   *
+   */
+  explicit QComboTreeView(QWidget* parent = nullptr);
 
+  /* \brief Shadows QComboBox::setModel().
+   *
+   */
   void setModel(QAbstractItemModel *model);
 
+  /* \brief Shadows QComboBox::setModelIndex().
+   *
+   */
   void setRootModelIndex( const QModelIndex &index);
 
+  /* \brief Sets the current model index as the given one.
+   * \param[in] index, model index.
+   *
+   */
   void setCurrentModelIndex(const QModelIndex &index);
 
-  QModelIndex currentModelIndex() const {return m_currentModelIndex;}
+  /* \brief Returns the current model index.
+   *
+   */
+  QModelIndex currentModelIndex() const
+  {return m_currentModelIndex;}
 
-  virtual void mousePressEvent(QMouseEvent* e);
+  /* \brief Overrides QComboxBox::mousePressEvent().
+   *
+   */
+  virtual void mousePressEvent(QMouseEvent* e) override;
 
 protected:
-  virtual void showPopup();
-
-  //virtual void keyPressEvent(QKeyEvent* e){}
-  //virtual void keyReleaseEvent(QKeyEvent* e){}
-  //virtual void wheelEvent(QWheelEvent* e){}
+  /* \brief Overrides QComboBox::showPopup().
+   *
+   */
+  virtual void showPopup() override;
 
 private slots:
+	/* \brief Sets the current model index to the given one.
+	 * \param[in] index, model index.
+	 *
+	 */
   void indexEntered(const QModelIndex &index);
+
+  /* \brief Emits the activation signal for the current model index.
+   *
+   */
   void indexActivated();
 
 signals:

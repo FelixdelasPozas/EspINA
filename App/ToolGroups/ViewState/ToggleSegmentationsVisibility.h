@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,8 +22,11 @@
 #ifndef ESPINA_SHOW_SEGMENTATIONS_H
 #define ESPINA_SHOW_SEGMENTATIONS_H
 
-#include <Support/Tool.h>
+// ESPINA
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
+
+// Qt
 #include <QAction>
 
 namespace ESPINA {
@@ -32,26 +35,46 @@ namespace ESPINA {
   : public Tool
   {
     Q_OBJECT
-  public:
-    ToggleSegmentationsVisibility(ViewManagerSPtr viewManager);
+		public:
+			/* \brief ToggleSegmentationsVisibility class constructor.
+			 * \param[in] viewManager, view manager smart pointer.
+			 *
+			 */
+			ToggleSegmentationsVisibility(ViewManagerSPtr viewManager);
 
-    virtual QList< QAction* > actions() const;
+			/* \brief Implements Tool::actions().
+			 *
+			 */
+			virtual QList< QAction* > actions() const;
 
-    virtual bool enabled() const;
+			/* \brief Implements Tool::enabled().
+			 *
+			 */
+			virtual bool enabled() const;
 
-    virtual void setEnabled(bool value);
+			/* \brief Implements Tool::setEnabled().
+			 *
+			 */
+			virtual void setEnabled(bool value);
 
-  public slots:
-    void shortcut();
+		public slots:
+			/* \brief Toggles the visibility action.
+			 *
+			 */
+			void shortcut();
 
-  private slots:
-    void toggleVisibility(bool visible);
+		private slots:
+			/* \brief Modifies the GUI and shows/hides segmentations based on parameter value.
+			 * \param[in] visible, true to set all segmentations visible, false otherwise.
+			 *
+			 */
+			void toggleVisibility(bool visible);
 
-  private:
-    ViewManagerSPtr m_viewManager;
+		private:
+			ViewManagerSPtr m_viewManager;
 
-    QAction m_toggle;
-  };
+			QAction m_toggle;
+	};
 
   using ToggleSegmentationsVisibilitySPtr = std::shared_ptr<ToggleSegmentationsVisibility>;
 }

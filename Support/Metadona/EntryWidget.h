@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,6 +22,8 @@
 #ifndef ESPINA_METADONA_ENTRY_WIDGET_H
 #define ESPINA_METADONA_ENTRY_WIDGET_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <Entry.h>
 
 #include <QGroupBox>
@@ -31,7 +33,7 @@ class QBoxLayout;
 
 namespace ESPINA {
 
-  class EntryWidget
+  class EspinaSupport_EXPORT EntryWidget
   : public QGroupBox
   {
   public:

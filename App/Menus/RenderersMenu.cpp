@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -27,8 +27,8 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   RenderersMenu::RenderersMenu(ViewManagerSPtr vm,
                                QWidget* parent)
-  : QMenu(QString("Renderers"), parent)
-  , m_viewManager(vm)
+  : QMenu        {QString("Renderers"), parent}
+  , m_viewManager{vm}
   {
     m_menu2D = new QMenu("View 2D", this);
     m_menu3D = new QMenu("View 3D", this);
@@ -37,14 +37,14 @@ namespace ESPINA
     connect(m_menu2D, SIGNAL(triggered(QAction *)), this, SLOT(activate(QAction *)), Qt::QueuedConnection);
     connect(m_menu3D, SIGNAL(triggered(QAction *)), this, SLOT(activate(QAction *)), Qt::QueuedConnection);
   }
-  
+
   //-----------------------------------------------------------------------------
   RenderersMenu::~RenderersMenu()
   {
     delete m_menu2D;
     delete m_menu3D;
   }
-  
+
   //-----------------------------------------------------------------------------
   void RenderersMenu::addRenderer(RendererSPtr renderer)
   {
@@ -88,7 +88,7 @@ namespace ESPINA
     // already present or does not apply
     delete action;
   }
-  
+
   //-----------------------------------------------------------------------------
   void RenderersMenu::removeRenderer(RendererSPtr renderer)
   {
@@ -99,7 +99,7 @@ namespace ESPINA
           menu->removeAction(action);
         }
   }
-  
+
   //-----------------------------------------------------------------------------
   void RenderersMenu::clear()
   {

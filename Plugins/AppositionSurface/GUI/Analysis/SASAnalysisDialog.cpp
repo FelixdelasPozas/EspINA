@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -30,7 +30,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Widgets/InformationSelector.h>
-#include <App/Dialogs/TabularReport/TabularReport.h>
+#include <Support/Widgets/TabularReport.h>
 
 // Qt
 #include <QPushButton>

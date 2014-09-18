@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <GUI/Model/Utils/QueryAdapter.h>
-#include "View3D.h"
-
 // ESPINA
-#include "GUI/View/Widgets/EspinaWidget.h"
+#include "View3D.h"
 #include "ViewRendererMenu.h"
+#include "GUI/View/Widgets/EspinaWidget.h"
+#include <GUI/Model/Utils/QueryAdapter.h>
 
 // Qt
 #include <QApplication>
@@ -75,9 +74,21 @@ View3D::~View3D()
 //   qDebug() << "              Destroying Volume View";
 //   qDebug() << "********************************************************";
 
-  // Representation destructors may need to access slice view in their destructors
-  m_channelStates.clear();
+  for(auto segmentation: m_segmentationStates.keys())
+  	RenderView::remove(segmentation);
   m_segmentationStates.clear();
+
+	for(auto channel: m_channelStates.keys())
+	  RenderView::remove(channel);
+  m_channelStates.clear();
+
+	for(auto widget: m_widgets)
+		removeWidget(widget);
+	m_widgets.clear();
+
+	for(auto renderer: m_renderers)
+		removeRendererControls(renderer->name());
+  m_renderers.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -88,9 +99,8 @@ void View3D::reset()
   m_widgets.clear();
 
   for(auto segmentation: m_segmentationStates.keys())
-    remove(segmentation);
+    RenderView::remove(segmentation);
 
-  // After removing segmentations there should be only channels
   for(auto channel: m_channelStates.keys())
     remove(channel);
 
@@ -494,7 +504,7 @@ void View3D::selectPickedItems(int vx, int vy, bool append)
 //-----------------------------------------------------------------------------
 bool View3D::eventFilter(QObject* caller, QEvent* e)
 {
-  // there is not a "singleclick" event so we need to remember the position of the
+  // there is not a "single-click" event so we need to remember the position of the
   // press event and compare it with the position of the release event (for picking).
   static int x = -1;
   static int y = -1;
@@ -622,11 +632,11 @@ void View3D::exportScene()
 //-----------------------------------------------------------------------------
 void View3D::onTakeSnapshot()
 {
-  takeSnapshot(m_renderer);
+  takeSnapshot();
 }
 
 //-----------------------------------------------------------------------------
-void View3D::changePlanePosition(Plane plane, Nm dist)
+void View3D::changePlanePosition(Plane plane, Nm position)
 {
   bool needUpdate = false;
 
@@ -635,7 +645,7 @@ void View3D::changePlanePosition(Plane plane, Nm dist)
     auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
     if (channelRenderer)
     {
-      channelRenderer->setPlanePosition(plane, dist);
+      channelRenderer->setPlanePosition(plane, position);
       needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
     }
   }
@@ -693,10 +703,7 @@ void View3D::updateRenderersControls()
         updateScrollBarsLimits();
       }
     }
-
   }
-
-
 }
 
 //-----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -21,9 +21,11 @@
 #ifndef ESPINA_IMAGE_LOGIC_FILTER_H
 #define ESPINA_IMAGE_LOGIC_FILTER_H
 
+#include "Filters/EspinaFilters_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
@@ -39,6 +41,9 @@ namespace ESPINA
 
     public:
       /* \brief ImageLogicFilter class constructor.
+			 * \param[in] inputs, list of input smart pointers.
+			 * \param[in] type, ImageLogicFilter type.
+			 * \param[in] scheduler, scheduler smart pointer.
        *
        */
       explicit ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
@@ -60,6 +65,7 @@ namespace ESPINA
       virtual State state() const;
 
       /* \brief Sets the operation to be executed by the filter.
+       * \param[in] op, Operation type.
        *
        */
       void setOperation(Operation op);
@@ -106,7 +112,7 @@ namespace ESPINA
        */
       void addition();
 
-      /* \brief Performs the substraction off all the segmentations from the
+      /* \brief Performs the subtraction off all the segmentations from the
        * first one.
        *
        */

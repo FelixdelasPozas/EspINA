@@ -18,15 +18,21 @@
 #ifndef ESPINA_FETCH_RAW_DATA_H
 #define ESPINA_FETCH_RAW_DATA_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/FetchBehaviour.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA {
 
-  class FetchRawData
+  class EspinaCore_EXPORT FetchRawData
   : public FetchBehaviour
   {
   public:
+  	/* \brief Implements FetchBehaviour::fetchOutputData().
+  	 *
+  	 */
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
   };
 } // namespace ESPINA

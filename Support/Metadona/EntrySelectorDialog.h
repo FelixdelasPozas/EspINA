@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,13 +22,15 @@
 #ifndef ESPINA_ENTRY_SELECTOR_DIALOG_H
 #define ESPINA_ENTRY_SELECTOR_DIALOG_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <QDialog>
 #include <ui_EntrySelectorDialog.h>
 #include <Coordinator.h>
 
 namespace ESPINA
 {
-  class EntrySelectorDialog
+  class EspinaSupport_EXPORT EntrySelectorDialog
   : public QDialog
   , private Ui::EntrySelectorDialog
   {

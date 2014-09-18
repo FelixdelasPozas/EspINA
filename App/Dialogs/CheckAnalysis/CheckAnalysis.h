@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -39,6 +39,8 @@ namespace ESPINA
     Q_OBJECT
     public:
       /* \brief CheckAnalysis class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] mode, model adapter smart pointer.
        *
        */
       explicit CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model);
@@ -79,6 +81,9 @@ namespace ESPINA
     Q_OBJECT
     public:
       /* \brief CheckTask class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] item, neuro item adapter smart pointer that will be tested.
+       * \param[in] model, model adapter smart pointer containing the item.
        *
        */
       explicit CheckTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
@@ -106,7 +111,7 @@ namespace ESPINA
       /* \brief Implements Task::run().
        *
        */
-      virtual void run();
+      virtual void run() override;
 
     private:
       /* \brief Checks if a segmentation volume is empty, emits problem(struct Problem) if it is.

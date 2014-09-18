@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,14 +22,19 @@
 #ifndef ESPINA_SCHEDULER_PROGRESS_H
 #define ESPINA_SCHEDULER_PROGRESS_H
 
-#include <Core/EspinaTypes.h>
-#include "GUI/Widgets/TaskProgress.h"
+#include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
+#include "GUI/Widgets/TaskProgress.h"
+#include <Core/EspinaTypes.h>
+
+// Qt
+#include <QScrollArea>
 #include <ui_SchedulerProgress.h>
 
 namespace ESPINA {
 
-  class SchedulerProgress 
+  class EspinaGUI_EXPORT SchedulerProgress
   : public QWidget
   , private Ui::SchedulerProgress
   {
@@ -38,26 +43,53 @@ namespace ESPINA {
     struct Duplicated_Task_Exception{};
 
   public:
+    /* \brief SchedulerProgree class constructor.
+     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     */
     explicit SchedulerProgress(SchedulerSPtr   scheduler,
-                               QWidget        *parent = 0,
+                               QWidget        *parent = nullptr,
                                Qt::WindowFlags f = 0);
 
+    /* \brief SchedulerProgress class virtual destructor.
+     *
+     */
     virtual ~SchedulerProgress();
 
   private slots:
-    void onTaskAdded  (TaskSPtr task) throw (Duplicated_Task_Exception);
+  	/* \brief Modifies the internal data when a task is added to the scheduler.
+  	 *
+  	 */
+    void onTaskAdded(TaskSPtr task) throw (Duplicated_Task_Exception);
 
+    /* \brief Modifies the internal data when a task is removed from the scheduler.
+  	 *
+  	 */
     void onTaskRemoved(TaskSPtr task);
 
+  	/* \brief Shows/hides the individual task progress.
+  	 * \param[in] visible, true to show the progress, false otherwise.
+  	 *
+  	 */
     void showTaskProgress(bool visible);
 
+  	/* \brief Updates the progress bar.
+  	 *
+  	 */
     void updateProgress();
 
-    // Aborting a task will remove it from the scheduler progress
-    // but the task may remain executing until task abort is handled
+  	/* \brief Aborts a task.
+  	 *
+  	 * Aborting a task will remove it from the scheduler progress
+  	 * but the task may remain executing until task abort is handled.
+  	 *
+  	 */
     void onProgressAborted();
 
   private:
+  	/* \brief Updates the values of the task progress notification widget.
+  	 *
+  	 */
     void updateNotificationWidget();
 
   private:
@@ -65,8 +97,10 @@ namespace ESPINA {
 
     QMap<TaskSPtr, TaskProgressSPtr> m_tasks;
     std::shared_ptr<QWidget>       m_notification;
+    std::shared_ptr<QScrollArea>   m_notificationArea;
 
     int m_width;
+    int m_height;
     unsigned int m_taskProgress;
     unsigned int m_taskTotal;
   };

@@ -6,18 +6,6 @@
 // C++
 #include <iostream>
 
-//#include <assert.h>
-/*
-#define ASSERT(x) \
-  if (! (x)) \
-  { \
-    std::cout << "ERROR: Assert " << #x << " failed\n"; \
-    std::cout << " in " << __FILE__ << ":" << __LINE__  << "\n"; \
-  } \
-  assert(x)
-*/
-
-
 using namespace ESPINA;
 
 const QString Category::X_DIM = "Dim_X";

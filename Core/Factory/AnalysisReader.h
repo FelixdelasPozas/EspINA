@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,12 +18,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_ANALYSIS_READER_H
 #define ESPINA_ANALYSIS_READER_H
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Analysis.h>
 #include <Core/IO/ErrorHandler.h>
 
@@ -40,10 +40,20 @@ namespace ESPINA
       using ExtensionList = QMap<Description, Extensions>;
 
     public:
-      virtual ~AnalysisReader() {}
+      /* \brief AnalysisReader class destructor.
+       *
+       */
+      virtual ~AnalysisReader()
+      {}
 
+      /* \brief Returns the type of analysis reader.
+       *
+       */
       virtual QString type() const = 0;
 
+      /* \brief Returns a list of descriptions of the type of files the reader can process.
+       *
+       */
       ExtensionDescriptionList fileExtensionDescriptions() const
       {
         ExtensionDescriptionList list;
@@ -57,8 +67,17 @@ namespace ESPINA
         return list;
       }
 
+      /* \brief Returns a list of file extensions the reader can process.
+       *
+       */
       virtual ExtensionList supportedFileExtensions() const = 0;
 
+      /* \brief Reads an analysis data file.
+       * \param[in] file, analysis data file.
+       * \param[in] factory, core factory smart pointer.
+       * \param[in] hander, error handler smart pointer.
+       *
+       */
       virtual AnalysisSPtr read(const QFileInfo& file,
                                 CoreFactorySPtr  factory,
                                 ErrorHandlerSPtr handler = ErrorHandlerSPtr()) = 0;

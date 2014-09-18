@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,10 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef RECENTDOCUMENTS_H
 #define RECENTDOCUMENTS_H
 
+// Qt
 #include <QObject>
 #include <QStringList>
 
@@ -29,21 +29,49 @@ class QAction;
 class RecentDocuments
 : QObject
 {
-public:
-  explicit RecentDocuments();
-  virtual ~RecentDocuments();
+	public:
+		/* \brief RecentDocuments class constructor.
+		 *
+		 */
+		explicit RecentDocuments();
 
-  void addDocument(QString path);
-  void removeDocument(QString path);
-  void updateDocumentList(void);
-  QList<QAction *> list() const {return m_actionList;}
+		/* \brief RecentDocuments class virtual destructor.
+		 *
+		 */
+		virtual ~RecentDocuments();
 
-private:
-  void updateActions();
+		/* \brief Adds a document to the list.
+		 * \param[in] path, path of the document.
+		 *
+		 */
+		void addDocument(QString path);
 
-private:
-  QStringList m_recentDocuments;
-  QList<QAction *> m_actionList;
+		/* \brief Removes a document from the list.
+		 * \param[in] path, path of the document.
+		 *
+		 */
+		void removeDocument(QString path);
+
+		/* \brief Updates the document list with the contents of the settings.
+		 *
+		 */
+		void updateDocumentList(void);
+
+		/* \brief Returns the list of actions.
+		 *
+		 */
+		QList<QAction *> list() const
+	  { return m_actionList; }
+
+	private:
+		/* \brief Updates the actions with the names of the documents.
+		 *
+		 */
+		void updateActions();
+
+	private:
+		QStringList m_recentDocuments;
+		QList<QAction *> m_actionList;
 };
 
 #endif // RECENTDOCUMENTS_H

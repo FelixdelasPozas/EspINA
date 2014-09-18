@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -29,7 +29,7 @@
 
 // ESPINA
 #include <Support/ViewManager.h>
-#include <Support/ToolGroup.h>
+#include <Support/Widgets/ToolGroup.h>
 
 class QUndoStack;
 class QIcon;

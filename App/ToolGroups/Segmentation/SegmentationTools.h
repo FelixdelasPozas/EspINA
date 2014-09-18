@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -20,11 +20,12 @@
 #ifndef ESPINA_SEGMENTATION_TOOLS_H
 #define ESPINA_SEGMENTATION_TOOLS_H
 
-#include <Support/ToolGroup.h>
+// ESPINA
+#include <Support/Widgets/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
-
 #include "SeedGrowSegmentationTool.h"
 
+// Qt
 #include <QAction>
 
 class QUndoStack;
@@ -32,24 +33,45 @@ class QUndoStack;
 namespace ESPINA
 {
 
-class SeedGrowSegmentationSettings;
-  /// Seed Growing Segmentation Plugin
+	class SeedGrowSegmentationSettings;
+
   class SegmentationTools
   : public ToolGroup
   {
   public:
+		/* \brief SegmentationTools class constructor.
+		 * \param[in] settings, raw pointer to a SeedGrowSegmentationSettings object.
+		 * \param[in] model, model adapter smart pointer.
+		 * \param[in] factory, factory smart pointer.
+		 * \param[in] undoStack, QUndoStack raw pointer.
+		 * \param[in] parent, QWidget raw pointer of the parent of this object.
+		 *
+		 */
     SegmentationTools(SeedGrowSegmentationSettings* settings,
                       ModelAdapterSPtr model,
                       ModelFactorySPtr factory,
                       ViewManagerSPtr  viewManager,
                       QUndoStack      *undoStack,
                       QWidget         *parent = nullptr);
+
+    /* \brief SegmentationTools class virtual destructor.
+     *
+     */
     virtual ~SegmentationTools();
 
+    /* \brief Implements ToolGroup::setEnabled().
+     *
+     */
     virtual void setEnabled(bool value);
 
+    /* \brief Implements ToolGroup::enabled().
+     *
+     */
     virtual bool enabled() const;
 
+    /* \brief Implements ToolGroup::tools().
+     *
+     */
     virtual ToolSList tools();
 
   private:

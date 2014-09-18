@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -32,23 +32,41 @@ class QAction;
 
 namespace ESPINA
 {
-  
-  class ViewRendererMenu
+
+  class EspinaGUI_EXPORT ViewRendererMenu
   : public QMenu
   {
     Q_OBJECT
     public:
+			/* \brief ViewRendererMenu class constructor.
+			 *
+			 */
       explicit ViewRendererMenu(QWidget *parent = nullptr);
+
+      /* \brief ViewRendererMenu class destructor.
+       *
+       */
       virtual ~ViewRendererMenu();
 
+      /* \brief Adds a renderer to the menu.
+       * \param[in] renderer, smart pointer of the renderer to add.
+       *
+       */
       void add(RendererSPtr renderer);
+
+      /* \brief Removes a renderer to the menu.
+       * \param[in] renderer, smart pointer of the renderer to remove.
+       *
+       */
       void remove(RendererSPtr renderer);
 
     public slots:
-      void activate(QAction *);
+			/* \brief Activates/deactivates the renderer associated with the given action.
+			 * \param[in] action, QAction raw pointer.
+			 *
+			 */
+      void activate(QAction *action);
 
-    signals:
-    protected:
     private:
       QMap<QAction *, RendererSPtr> m_renderers;
   };

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -24,12 +24,15 @@
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Data.h>
 #include <Core/Utils/Bounds.h>
 
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
+// C++
 #include <memory>
 
 namespace ESPINA
@@ -41,22 +44,40 @@ namespace ESPINA
     static const Data::Type TYPE;
 
   public:
+    /* \brief MeshData class constructor.
+     *
+     */
     explicit MeshData();
 
+    /* \brief Implements Data::type() const.
+     *
+     */
     virtual Data::Type type() const
     { return TYPE; }
 
+    /* \brief Implements Data::createProxy() const.
+     *
+     */
     virtual DataProxySPtr createProxy() const;
 
+    /* \brief Implements Data::bounds() const.
+     *
+     */
     Bounds bounds() const;
 
+    /* \brief Returns the vtkPolyData smart pointer object.
+     *
+     */
     virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
 
   };
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
-  MeshDataSPtr meshData(OutputSPtr output);
+  /* \brief Obtains and returns the MeshData smart pointer of the spacified Output.
+   * \param[in] output, Output object smart pointer.
+   */
+  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output);
 
 } // namespace ESPINA
 

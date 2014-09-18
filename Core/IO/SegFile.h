@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,11 +22,14 @@
 #ifndef ESPINA_IO_SEGFILE_H
 #define ESPINA_IO_SEGFILE_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include "ErrorHandler.h"
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/AnalysisReader.h>
 
-namespace ESPINA 
+namespace ESPINA
 {
   namespace IO
   {
@@ -40,13 +43,25 @@ namespace ESPINA
 
       struct Parse_Exception{};
 
-      AnalysisSPtr load(const QFileInfo& file,
-                        CoreFactorySPtr  factory = CoreFactorySPtr(),
-                        ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+      /* \brief Loads an analysis from a file in disk.
+       * \param[in] file, QFileInfo object with the file info.
+       * \param[in] factory, factory smart pointer.
+       * \param[in] handler, error handler smart pointer.
+       *
+       */
+      AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo& file,
+                                          CoreFactorySPtr  factory = CoreFactorySPtr(),
+                                          ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-      void save(AnalysisPtr       analysis,
-                const QFileInfo&  file,
-                ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
+      /* \brief Saves an analysis to a file in disk.
+       * \param[in] analysis, analysis to save.
+       * \param[in] file, QFileInfo object with the file info.
+       * \param[in] handler, error handler smart pointer.
+       *
+       */
+      void EspinaCore_EXPORT save(AnalysisPtr       analysis,
+                                  const QFileInfo&  file,
+                                  ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -33,22 +33,50 @@ namespace ESPINA
   class ROISettings
   {
     public:
+  		/* \brief Class ROISettings class constructor.
+  		 *
+  		 */
       explicit ROISettings();
+
+      /* \brief Class ROISettings class virtual destructor.
+       *
+       */
       virtual ~ROISettings()
       {};
 
+      /* \brief Sets X size.
+       * \param[in] value, X size value.
+       *
+       */
       void setXSize(int value);
 
+      /* \brief Returns the value of the X size.
+       *
+       */
       int xSize() const
       {return m_xSize;}
 
+      /* \brief Sets Y size.
+       * \param[in] value, Y size value.
+       *
+       */
       void setYSize(int value);
 
+      /* \brief Returns the value of the Y size.
+       *
+       */
       int ySize() const
       {return m_ySize;}
 
+      /* \brief Sets Z size.
+       * \param[in] value, Z size value.
+       *
+       */
       void setZSize(int value);
 
+      /* \brief Returns the value of the Z size.
+       *
+       */
       int zSize() const
       {return m_zSize;}
 

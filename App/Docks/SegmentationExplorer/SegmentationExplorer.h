@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,21 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_SEGMENTATION_EXPLORER_H
 #define ESPINA_SEGMENTATION_EXPLORER_H
 
-//----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
-//----------------------------------------------------------------------------
-#include <Support/DockWidget.h>
+// ESPINA
+#include <Support/Widgets/DockWidget.h>
 
+// Qt
 #include <ui_SegmentationExplorer.h>
+#include <QStringListModel>
 
 class QUndoStack;
-
-#include <QStringListModel>
 
 namespace ESPINA
 {
@@ -48,54 +44,121 @@ namespace ESPINA
     class Layout;
 
   public:
+    /* \brief SegmentationExplorer class constructor.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] factory, factory smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] parent, parent widget raw pointer.
+     */
     explicit SegmentationExplorer(ModelAdapterSPtr model,
                                   ModelFactorySPtr factory,
                                   ViewManagerSPtr  viewManager,
                                   QUndoStack      *undoStack,
-                                  QWidget         *parent = 0);
+                                  QWidget         *parent = nullptr);
+
+    /* \brief SegmentationExplorer class virtual destructor.
+     *
+     */
     virtual ~SegmentationExplorer();
 
-    virtual void updateRepresentations(ChannelAdapterList list){}
+    /* \brief Overrides SelectableView::updateRepresentations(ChannelAdapterList).
+     *
+     */
+    virtual void updateRepresentations(ChannelAdapterList list) override
+    {}
 
-    virtual void updateRepresentations(SegmentationAdapterList list){}
+    /* \brief Overrides SelectableView::updateRepresentations(SegmentationAdapterList).
+     *
+     */
+    virtual void updateRepresentations(SegmentationAdapterList list) override
+    {}
 
-    virtual void updateRepresentations() {}
+    /* \brief Overrides SelectableView::updateRepresentations().
+     *
+     */
+    virtual void updateRepresentations() override
+    {}
 
-    virtual void reset(); // slot
+  public slots:
+    /* \brief Overrides DockWidget::reset().
+     *
+     */
+    virtual void reset() override;
 
   protected:
+		/* \brief Overrides SelectableView::onSelectionSet(SelectionSPtr).
+		 *
+		 */
     virtual void onSelectionSet(SelectionSPtr selection);
 
+    /* \brief Adds a layout to the view.
+     * \param[in] id, string that specifies the layout.
+     * \param[in] proxy, SegmentationExplorer::Layout raw pointer.
+     *
+     */
     void addLayout(const QString id, Layout *proxy);
 
+    /* \brief Overrides QObject::eventFilter(QObject*, QEvent*).
+     *
+     */
     virtual bool eventFilter(QObject *sender, QEvent* e);
 
-    // update segmentation explorer gui depending on selected indexes
+    /* \brief Updates segmentation explorer gui depending on selected indexes.
+     *
+     */
     void updateGUI(const QModelIndexList &selectedIndexes);
 
   protected slots:
+		/* \brief Changes the layout of the view.
+		 * \param[in] index, index of the new layout in the layout list.
+		 *
+		 */
     void changeLayout(int index);
 
+    /* \brief Deletes the selected items in the current layout.
+     *
+     */
     void deleteSelectedItems();
 
+    /* \brief Shows the information for the selected items in the current layout.
+     *
+     */
     void showSelectedItemsInformation();
 
+    /* \brief Centers the views on the selected segmentation.
+     * \param[in] index, const QModelIndex reference of the selected item.
+     *
+     */
     void focusOnSegmentation(const QModelIndex &index);
 
+    /* \brief Updates the GUI of the view and the other views based on the selected items.
+     * \param[in] selected, QItemSelection object with the selected items (unused).
+     * \param[in] deselectt, QItemSelection object with the deselected items (unused).
+     *
+     */
     void onModelSelectionChanged(QItemSelection selected, QItemSelection deselected);
 
+    /* \brief Updates the state of search button of GUI search filter and updates the filter.
+     *
+     */
     void updateSearchFilter();
 
+    /* \brief Updates the GUI state with the new selection.
+     *
+     */
     void onSelectionChanged();
 
+    /* \brief Updates the render views.
+     *
+     */
     void onItemModified();
 
   protected:
     ModelAdapterSPtr m_baseModel;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
-
-    GUI *m_gui;
+    GUI             *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;
     QList<Layout *>  m_layouts;

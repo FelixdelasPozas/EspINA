@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -24,6 +24,7 @@
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPINA
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"
 #include "Category.h"
@@ -40,75 +41,218 @@ namespace ESPINA
     struct Relation_Not_Found_Exception {};
 
   public:
+    /* \brief Analysis class constructor.
+     *
+     */
     explicit Analysis();
 
+    /* \brief Empties the analysis.
+     *
+     */
     void reset();
 
+    /* \brief Sets the storage for the analysis.
+     * \param[in] storage, temporal storage object smart pointer.
+     *
+     */
     void setStorage(TemporalStorageSPtr storage);
 
+    /* \brief Returns the temporal storage used by the analysis.
+     *
+     */
     TemporalStorageSPtr storage() const
     { return m_storage; }
 
+    /* \brief Sets the classification for the analysis.
+     * \param[in] classification, classification object smart pointer.
+     *
+     */
     void setClassification(ClassificationSPtr classification);
 
+    /* \brief Returns the classifiacation smart pointer.
+     *
+     */
     ClassificationSPtr classification() const
     {return m_classification;}
 
-    void add(SampleSPtr           sample);
-    void add(SampleSList          samples);
-    void add(ChannelSPtr          channel);
-    void add(ChannelSList         channels);
-    void add(SegmentationSPtr     segmentation);
-    void add(SegmentationSList    segmentations);
+    /* \brief Adds a sample to the analysis.
+     * \param[in] sample, sample smart pointer.
+     *
+     */
+    void add(SampleSPtr sample) throw (Existing_Item_Exception);
 
-    void remove(SampleSPtr        sample);
-    void remove(SampleSList       samples);
-    void remove(ChannelSPtr       channel);
-    void remove(ChannelSList      channels);
-    void remove(SegmentationSPtr  segmentation);
+    /* \brief Adds a list of samples to the analysis.
+     * \param[in] samples, list of sample smart pointers.
+     *
+     */
+    void add(SampleSList samples);
+
+    /* \brief Adds a channel to the analysis.
+     * \param[in] channel, channel smart pointer.
+     *
+     */
+    void add(ChannelSPtr channel) throw (Existing_Item_Exception);
+
+    /* \brief Adds a list of channels to the analysis.
+     * \param[in] channels, list of channel smart pointers.
+     *
+     */
+    void add(ChannelSList channels);
+
+    /* \brief Adds a segmentation to the analysis.
+     * \param[in] segmentation, segmentation smart pointer.
+     *
+     */
+    void add(SegmentationSPtr segmentation) throw (Existing_Item_Exception);
+
+    /* \brief Adds a list of segmentations to the analysis.
+     * \param[in] segmentations, list of segmentation smart pointers.
+     *
+     */
+    void add(SegmentationSList segmentations);
+
+    /* \brief Removes a sample from the analysis.
+     * \param[in] sample, sample smart pointer.
+     *
+     */
+    void remove(SampleSPtr sample) throw (Item_Not_Found_Exception);
+
+    /* \brief Removes a list of samples from the analysis.
+     * \param[in] samples, list of sample smart pointers.
+     *
+     */
+    void remove(SampleSList samples);
+
+    /* \brief Removes a channel from the analysis.
+     * \param[in] channel, channel smart pointer.
+     *
+     */
+    void remove(ChannelSPtr channel) throw (Item_Not_Found_Exception);
+
+    /* \brief Removes a list of channels from the analysis.
+     * \param[in] channels, list of channel smart pointers.
+     *
+     */
+    void remove(ChannelSList channels);
+
+    /* \brief Removes a segmentation from the analysis.
+     * \param[in] segmentation, segmentation smart pointer.
+     *
+     */
+    void remove(SegmentationSPtr segmentation) throw (Item_Not_Found_Exception);
+
+    /* \brief Removes a list of segmentations from the analysis.
+     * \param[in] segmentations, list of segmentation smart pointers.
+     *
+     */
     void remove(SegmentationSList segmentations);
 
+    /* \brief Returns the list of samples of the analysis.
+     *
+     */
     SampleSList samples() const
     { return m_samples; }
 
+    /* \brief Returns the list of channels of the analysis.
+     *
+     */
     ChannelSList channels() const
     { return m_channels; }
 
+    /* \brief Returns the list of segmentations of the analysis.
+     *
+     */
     SegmentationSList segmentations() const
     { return m_segmentations; }
 
+    /* \brief Adds a relation between to Persistent objects in the analysis.
+     * \param[in] ancestor, Persistent object smart pointer, origin of the relation.
+     * \param[in] successor, Persistent object smart pointer, destination of the relation.
+     * \param[in] relation, relation key.
+     *
+     */
     void addRelation(PersistentSPtr    ancestor,
                      PersistentSPtr    succesor,
-                     const RelationName& relation);
+                     const RelationName& relation) throw (Item_Not_Found_Exception, Existing_Relation_Exception);
 
+    /* \brief Removes a relation between to Persistent objects in the analysis.
+     * \param[in] ancestor, Persistent object smart pointer, origin of the relation.
+     * \param[in] successor, Persistent object smart pointer, destination of the relation.
+     * \param[in] relation, relation key.
+     *
+     */
     void deleteRelation(PersistentSPtr    ancestor,
                         PersistentSPtr    succesor,
-                        const RelationName& relation);
+                        const RelationName& relation) throw (Relation_Not_Found_Exception);
 
-//     virtual ModelItemSList relatedItems(ModelItemPtr   item,
-//                                         RelationType   relType,
-//                                      const QString &relName = "");
-//     virtual RelationList relations(ModelItemPtr   item,
-//                                    const QString &relName = "");
+    /* \brief Return the relations graph of the analysis.
+     * The relationship graph expresses the concept relations between persistent objects in the analysis.
+     *
+     */
     const DirectedGraphSPtr relationships()
     { return m_relations; }
 
+    /* \brief Returns the content graph of the analysis.
+     * The content graph expresses dependencies between persistent objects in the analysis.
+     *
+     */
     const DirectedGraphSPtr content()
     { return m_content; }
 
   private:
+    /* \brief Removes a item (node) of the graph if its isolated (has no relations).
+     * \param[in] graph, directed graph to check for node.
+     * \param[in] item, item to check.
+     *
+     */
     bool removeIfIsolated(DirectedGraphSPtr graph ,PersistentSPtr item);
 
+    /* \brief Adds a filter to the analysis only if it doesn't exist in the analysis.
+     * \param[in] filter, smart pointer of the filter to check.
+     *
+     */
     void addIfNotExists(FilterSPtr filter);
 
+    /* \brief Removes a filter of the analysis if its isolated.
+     * \param[in] filter, smart pointer of the filter to check.
+     *
+     */
     void removeIfIsolated(FilterSPtr filter);
 
+    /* \brief Adds a relation in the content graph from the filter to the item.
+     * \param[in] filter, filter smart pointer.
+     * \param[in] item, view item raw pointer.
+     *
+     */
     void addFilterContentRelation(FilterSPtr filter, ViewItem* item);
+
+    /* \brief Adds a relation in the content graph from the filter to the item.
+     * \param[in] filter, filter smart pointer.
+     * \param[in] item, view item smart pointer.
+     *
+     */
     void addFilterContentRelation(FilterSPtr filter, ViewItemSPtr item);
 
+    /* \brief Removes a relation in the content graph from the filter to the item.
+     * \param[in] filter, filter smart pointer.
+     * \param[in] item, view item raw pointer.
+     *
+     */
     void removeFilterContentRelation(FilterSPtr filter, ViewItem* item);
+
+    /* \brief Removes a relation in the content graph from the filter to the item.
+     * \param[in] filter, filter smart pointer.
+     * \param[in] item, view item smart pointer.
+     *
+     */
     void removeFilterContentRelation(FilterSPtr filter, ViewItemSPtr item);
 
+    /* \brief Returns true if the specified relation exists in the analysis.
+     * \param[in] ancestor, smart pointer of the persistent object origin of the relation.
+     * \param[in] successor, smart pointer of the persistent object destination of the relation.
+     * \param[in] relation, relation key.
+     *
+     */
     bool findRelation(PersistentSPtr      ancestor,
                       PersistentSPtr      succesor,
                       const RelationName& relation);

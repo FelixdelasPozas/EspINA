@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -27,7 +27,6 @@
 
 // Qt
 #include <QStack>
-#include <QDebug>
 
 namespace ESPINA
 {
@@ -68,9 +67,7 @@ namespace ESPINA
     QDir tmpDir;
 
     if (parent)
-    {
       tmpDir = *parent;
-    }
     else
     {
       tmpDir = QDir::tempPath();

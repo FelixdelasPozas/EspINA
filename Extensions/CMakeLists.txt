@@ -44,7 +44,6 @@ if(DEFINED MINGW OR DEFINED MSVC)
 
 endif(DEFINED MINGW OR DEFINED MSVC)
 
-
 add_library (EspinaExtensions SHARED ${EXTENSIONS_SOURCES})
 
 target_link_libraries (EspinaExtensions EspinaCore ${EXTENSIONS_EXTERNAL_LIBS})

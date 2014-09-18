@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,27 +22,50 @@
 #ifndef ESPINA_REPRESENTATION_FACTORY_GROUP_H
 #define ESPINA_REPRESENTATION_FACTORY_GROUP_H
 
+// ESPINA
 #include <GUI/Representations/RepresentationFactory.h>
+
+// Qt
 #include <QMap>
 
-namespace ESPINA {
-
-  class EspinaGUI_EXPORT RepresentationFactoryGroup 
+namespace ESPINA
+{
+  class EspinaGUI_EXPORT RepresentationFactoryGroup
   : public RepresentationFactory
   {
   public:
+    struct Representation_Already_Provided_Exception{};
+
+  	/* \brief RepresentationFactoryGroup class constructor.
+  	 * \param[in] scheduler, scheduler smart pointer.
+  	 *
+  	 */
     explicit RepresentationFactoryGroup(SchedulerSPtr scheduler)
-    : RepresentationFactory(scheduler)
+    : RepresentationFactory{scheduler}
     {};
 
-    virtual ~RepresentationFactoryGroup() {};
+  	/* \brief RepresentationFactoryGroup class virtual destructor.
+  	 *
+  	 */
+    virtual ~RepresentationFactoryGroup()
+    {};
 
-    struct Representation_Already_Provided_Exception{};
-  public:
+  	/* \brief Adds a factory to the factory group.
+  	 * \param[in] factory, RepresentationFactor smart pointer.
+  	 *
+  	 */
     void addRepresentationFactory(RepresentationFactorySPtr factory);
 
+  	/* \brief Returns the list of representations this factory can create.
+  	 *
+  	 */
     virtual RepresentationTypeList representations() const;
 
+  	/* \brief Creates and returns a representation of the given type for the given output.
+  	 * \param[in] output, output smart pointer.
+  	 * \param[in] type, representation type.
+  	 *
+  	 */
     virtual ESPINA::RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
 
   private:

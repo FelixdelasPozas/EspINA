@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,19 +18,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "FillHolesFilter.h"
 #include "Utils/ItkProgressReporter.h"
-#include <Core/Analysis/Data/VolumetricData.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 
+// ITK
 #include <itkBinaryFillholeImageFilter.h>
 
 using namespace ESPINA;
 
 using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
-
 
 //-----------------------------------------------------------------------------
 FillHolesFilter::FillHolesFilter(InputSList    inputs,
@@ -77,7 +77,6 @@ bool FillHolesFilter::needUpdate(Output::Id id) const
   return m_outputs.isEmpty() || !validOutput(id);
 }
 
-
 //-----------------------------------------------------------------------------
 void FillHolesFilter::execute(Output::Id id)
 {
@@ -122,5 +121,6 @@ void FillHolesFilter::execute(Output::Id id)
 //-----------------------------------------------------------------------------
 bool FillHolesFilter::invalidateEditedRegions()
 {
-
+	// TODO
+	return false;
 }

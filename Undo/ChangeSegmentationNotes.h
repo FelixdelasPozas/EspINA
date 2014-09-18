@@ -25,11 +25,12 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef ESPINA_CHANGE_SEGMENTATION_NOTES_H
 #define ESPINA_CHANGE_SEGMENTATION_NOTES_H
 
 #include "Undo/EspinaUndo_Export.h"
+
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
 // Qt
@@ -42,15 +43,30 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
+  	/* \brief ChangeSegmentationNotes class constructor.
+  	 * \param[in] segmentation, segmentation adapter raw pointer.
+  	 * \param[in] note, new note.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
                                      const QString&         note,
                                      QUndoCommand*          parent = nullptr);
 
-    virtual void redo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
 
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
+    /* \brief Helper method to swap new-old notes.
+     *
+     */
     void swapNotes();
 
   private:

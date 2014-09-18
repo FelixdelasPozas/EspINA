@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "SeedThreshold.h"
-
 #include <Support/Settings/EspinaSettings.h>
 
-#include <QDebug>
+// Qt
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpinBox>
@@ -40,12 +39,12 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SeedThreshold::SeedThreshold(QObject* parent)
-: QWidgetAction(parent)
-, m_lthLabel   (nullptr)
-, m_uthLabel   (nullptr)
-, m_lth        (nullptr)
-, m_uth        (nullptr)
-, m_symmetrical(true)
+: QWidgetAction{parent}
+, m_lthLabel   {nullptr}
+, m_uthLabel   {nullptr}
+, m_lth        {nullptr}
+, m_uth        {nullptr}
+, m_symmetrical{true}
 {
   ESPINA_SETTINGS(settings);
   m_threshold[0] = settings.value(LTHRESHOLD, DEFAULT_THRESHOLD).toInt();
@@ -79,7 +78,7 @@ QWidget* SeedThreshold::createWidget(QWidget* parent)
   m_uth->setMaximum(255);
   m_uth->setValue(m_threshold[1]);
   m_uth->setToolTip(tr("Determine the size of color value range for a given pixel"));
-  
+
   setSymmetricalThreshold(true);
 
   connect(m_uth,SIGNAL(valueChanged(int)),

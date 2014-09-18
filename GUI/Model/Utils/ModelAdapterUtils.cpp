@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014
     Jorge Pe�a Pastor<jpena@cesvima.upm.es>,
     Felix de las Pozas<fpozas@cesvima.upm.es>
@@ -20,13 +20,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ModelAdapterUtils.h"
-
-#include <QString>
-
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
+
+// Qt
+#include <QString>
 
 using namespace ESPINA;
 

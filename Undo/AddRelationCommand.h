@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -17,7 +17,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 
 #ifndef ESPINA_ADD_RELATION_COMMAND_H
 #define ESPINA_ADD_RELATION_COMMAND_H
@@ -38,14 +37,29 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
+  	/* \brief AddRelationCommand class constructor.
+  	 * \param[in] ancestor, smart pointer of the item adapter origin.
+  	 * \param[in] successor, smart pointer of the item adapter destination.
+  	 * \param[in] relationName, relation specifier.
+  	 * \param[in] model, smart pointer of the model adapter that contains both items.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit AddRelationCommand(ItemAdapterSPtr  ancestor,
                                 ItemAdapterSPtr  successor,
                                 const QString   &relationName,
                                 ModelAdapterSPtr model,
                                 QUndoCommand    *parent = 0);
 
-    virtual void redo();
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
+
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
     ItemAdapterSPtr  m_ancester;

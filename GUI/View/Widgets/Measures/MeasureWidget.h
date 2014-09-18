@@ -1,8 +1,21 @@
 /*
- * MeasureWidget.h
- *
- *  Created on: Dec 11, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_MEASURE_WIDGET_H_
@@ -66,23 +79,24 @@ namespace ESPINA
      */
     virtual void setEnabled(bool enable);
 
-    /* \brief Implements EventHandler::filterEvent.
+    /* \brief Overrides EventHandler::filterEvent.
      *
      */
-    bool filterEvent(QEvent *e, RenderView *view);
+    bool filterEvent(QEvent *e, RenderView *view) override;
 
-    /* \brief Implements EventHandler::setInUse()
+    /* \brief Overrides EventHandler::setInUse()
      *
      */
-    void setInUse(bool value);
+    void setInUse(bool value) override;
 
   private:
     friend class vtkDistanceCommand;
 
     /* \brief Computes optimal tick distance in the ruler given the length.
+     * \param[in] length, numerical value.
      *
      */
-    double ComputeRulerTickDistance(double);
+    double ComputeRulerTickDistance(double lenght);
 
     vtkSmartPointer<vtkDistanceCommand>          m_command;
     QMap<vtkDistanceWidget *, QList<vtkCamera*>> m_cameras;

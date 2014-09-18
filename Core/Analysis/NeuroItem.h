@@ -29,6 +29,9 @@
 #ifndef ESPINA_NEURO_ITEM_H
 #define ESPINA_NEURO_ITEM_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include "Core/Analysis/Persistent.h"
 
 namespace ESPINA {
@@ -36,17 +39,26 @@ namespace ESPINA {
   class Analysis;
   using AnalysisPtr = Analysis *;
 
-  class NeuroItem
+  class EspinaCore_EXPORT NeuroItem
   : public Persistent
   {
   public:
+ 		/* \brief NeuroItem class constructor.
+ 		 *
+ 		 */
     explicit NeuroItem()
-    : m_analysis(nullptr)
+    : m_analysis{nullptr}
     {}
 
+ 		/* \brief Sets the analysis that contains this object.
+ 		 *
+ 		 */
     void setAnalysis(AnalysisPtr analysis)
     { m_analysis = analysis; }
 
+ 		/* \brief Returns the analysis that contains this object.
+ 		 *
+ 		 */
     AnalysisPtr analysis() const
     { return m_analysis; }
 

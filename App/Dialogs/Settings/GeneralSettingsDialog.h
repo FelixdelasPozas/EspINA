@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,10 +22,11 @@
 #ifndef ESPINA_GENERAL_SETTINGS_DIALOG_H
 #define ESPINA_GENERAL_SETTINGS_DIALOG_H
 
+// Qt
 #include <QDialog>
-
 #include "ui_GeneralSettingsDialog.h"
 
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Support/Settings/SettingsPanel.h>
 
@@ -37,18 +38,42 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit GeneralSettingsDialog(QWidget *parent = 0,
+    /* \brief GeneralSettingsDialog class constructor.
+     * \param[in] parent, parent widget raw pointer.
+     * \param[in] flags, dialog flags.
+     *
+     */
+    explicit GeneralSettingsDialog(QWidget *parent = nullptr,
                                    Qt::WindowFlags flags  = 0);
 
-    virtual void accept();
-    virtual void reject();
+    /* \brief Overrides QDialog::accept()
+     *
+     */
+    virtual void accept() override;
 
+    /* \brief Overrides QDialog::reject()
+     *
+     */
+    virtual void reject() override;
+
+    /* \brief Adds a panel to the dialog.
+     * \param[in] panel, settings panel smart pointer.
+     *
+     */
     void registerPanel(SettingsPanelSPtr panel);
 
   private:
+    /* \brief Helper method to return a smart pointer of the
+     *        panel with the passed short description.
+     * \param[in] shortDesc, short description of the panel.
+     *
+     */
     SettingsPanelSPtr panel(const QString &shortDesc);
 
   public slots:
+		/* \brief Changes the panel in view.
+		 * \param[in] panel, panel index in the m_panels list.
+		 */
     void changePreferencePanel(int panel);
 
   private:

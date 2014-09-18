@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,15 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SegmentationAdapter.h"
-
 // // ESPINA
-#include <QPixmap>
-#include <QPainter>
+#include "SegmentationAdapter.h"
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 
+// Qt
+#include <QPixmap>
+#include <QPainter>
 
 using namespace ESPINA;
 

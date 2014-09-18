@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,14 +18,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "View2DState.h"
 
+// VTK
 #include <vtkCamera.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPolyData.h>
 #include <vtkProp.h>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;

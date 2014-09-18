@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -73,7 +73,10 @@ namespace ESPINA
       void clearPositions();
 
     private slots:
-      void activate(QAction *);
+      /* \brief Activates the action passed as parameter.
+       *
+       */
+      void activate(QAction *action);
 
     private:
       /* \brief Stores current VisualStates to a CameraPositionsList entry.

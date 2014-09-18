@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -25,9 +25,9 @@
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // ESPINA
-#include <App/Dialogs/TabularReport/TabularReport.h>
-#include <App/Dialogs/TabularReport/TabularReportEntry.h>
 #include <GUI/ModelFactory.h>
+#include <Support/Widgets/TabularReport.h>
+#include <Support/Widgets/TabularReportEntry.h>
 
 // Qt
 #include <QDebug>

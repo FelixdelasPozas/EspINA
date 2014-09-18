@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,9 +22,8 @@
 #include "BrushSelector.h"
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/Spatial.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
-#include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -752,7 +751,7 @@ void BrushSelector::updateSliceChange()
 }
 
 //-----------------------------------------------------------------------------
-bool BrushSelector::ShiftKeyIsDown()
+inline bool BrushSelector::ShiftKeyIsDown()
 {
   // true if Shift button is down.
   return QApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);

@@ -25,12 +25,12 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef NOTEEDITOR_H
 #define NOTEEDITOR_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <QDialog>
 
 namespace ESPINA
@@ -43,15 +43,31 @@ namespace ESPINA
     class GUI;
 
   public:
+    /* \brief NoteEditor class constructor.
+     * \param[in] title, dialog title.
+     * \param[in] text, notes text to show.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] flags, window flags.
+     */
     explicit NoteEditor(const QString &title,
                         const QString &text,
-                        QWidget *parent = 0,
-                        Qt::WindowFlags f = 0);
+                        QWidget *parent = nullptr,
+                        Qt::WindowFlags flags = 0);
+
+    /* \brief NoteEditor class virtual destructor.
+     *
+     */
     virtual ~NoteEditor();
 
+    /* \brief Returns the text of the widget.
+     *
+     */
     QString text();
 
   private slots:
+		/* \brief Saves the content of the widget to a text file in disk.
+		 *
+		 */
     void exportNote();
 
   private:

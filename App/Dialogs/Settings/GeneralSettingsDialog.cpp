@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,26 +18,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "GeneralSettingsDialog.h"
 
-
+// Qt
 #include <QDir>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
 #include <QTime>
 
-#include <QDebug>
 using namespace ESPINA;
-
-
-
 
 //------------------------------------------------------------------------
 GeneralSettingsDialog::GeneralSettingsDialog(QWidget *parent, Qt::WindowFlags flags)
-: QDialog(parent, flags)
-, m_activePanel(NULL)
+: QDialog      {parent, flags}
+, m_activePanel{nullptr}
 {
   setupUi(this);
 

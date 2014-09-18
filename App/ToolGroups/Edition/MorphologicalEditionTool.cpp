@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,6 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ESPINA
 #include "MorphologicalEditionTool.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/SpinBoxAction.h>
@@ -34,6 +35,7 @@
 #include <Undo/ReplaceOutputCommand.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 
+// Qt
 #include <QAction>
 #include <QSettings>
 #include <QUndoStack>
@@ -126,15 +128,15 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
                                                    ModelFactorySPtr factory,
                                                    ViewManagerSPtr  viewManager,
                                                    QUndoStack      *undoStack)
-: m_model(model)
-, m_factory(factory)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
+: m_model        {model}
+, m_factory      {factory}
+, m_viewManager  {viewManager}
+, m_undoStack    {undoStack}
 , m_filterFactory{new MorphologicalFilterFactory()}
-, m_close (":/espina/close.png" , tr("Close selected segmentations" ))
-, m_open  (":/espina/open.png"  , tr("Open selected segmentations"  ))
-, m_dilate(":/espina/dilate.png", tr("Dilate selected segmentations"))
-, m_erode (":/espina/erode.png" , tr("Erode selected segmentations" ))
+, m_close        {":/espina/close.png" , tr("Close selected segmentations" )}
+, m_open         {":/espina/open.png"  , tr("Open selected segmentations"  )}
+, m_dilate       {":/espina/dilate.png", tr("Dilate selected segmentations")}
+, m_erode        {":/espina/erode.png" , tr("Erode selected segmentations" )}
 , m_enabled(false)
 {
   m_factory->registerFilterFactory(m_filterFactory);

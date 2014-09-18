@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -17,7 +17,6 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifndef ESPINA_CHANGE_CATEGORY_COMMAND_H
 #define ESPINA_CHANGE_CATEGORY_COMMAND_H
@@ -43,15 +42,34 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
+  	/* \brief ChangeCategoryCommand class constructor.
+  	 * \param[in] segmentations, list of segmentation adapter raw pointers.
+  	 * \param[in] category, raw pointer of the new category adapter.
+  	 * \param[in] model, smart pointer of the model containig the segmentations the category.
+  	 * \param[in] viewManager, view manager smart pointer.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                    CategoryAdapterPtr      category,
                                    ModelAdapterSPtr        model,
                                    ViewManagerSPtr         viewManager,
                                    QUndoCommand*           parent = nullptr);
+
+    /* \brief ChangeCategoryCommand class virtual destructor.
+     *
+     */
     virtual ~ChangeCategoryCommand();
 
-    virtual void redo();
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
+
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
     ModelAdapterSPtr m_model;

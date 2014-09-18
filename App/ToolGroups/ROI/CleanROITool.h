@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <Support/ViewManager.h>
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
@@ -33,17 +33,16 @@ namespace ESPINA
 {
   class ROIToolsGroup;
 
-  /// Volume Of Interest Toolbar
   class CleanROITool
   : public Tool
   {
     Q_OBJECT
   public:
     /* \brief CleanROITool class constructor.
-     * \param[in] model       Analysis model adapter.
-     * \param[in] viewManager Application view manager.
-     * \param[in] undoStack   Application qt undo stack.
-     * \param[in] toolGroup   ROIToolsGroup pointer containing the ROI accumulator.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] undoStack, QUndoStack raw pointer.
+     * \param[in] toolGroup, ROIToolsGroup raw pointer containing the ROI accumulator.
      */
     explicit CleanROITool(ModelAdapterSPtr  model,
                           ViewManagerSPtr   viewManager,

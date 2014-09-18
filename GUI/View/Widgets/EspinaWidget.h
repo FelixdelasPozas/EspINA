@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -37,14 +37,43 @@ namespace ESPINA
   class EspinaGUI_EXPORT EspinaWidget
   {
   public:
-    explicit EspinaWidget(){}
-    virtual ~EspinaWidget(){}
+  	/* \brief EspinaWidget class constructor.
+  	 *
+  	 */
+    explicit EspinaWidget()
+    {}
 
+    /* \brief EspinaWidget class virtual destructor.
+     *
+     */
+    virtual ~EspinaWidget()
+    {}
+
+    /* \brief Registers the specified view.
+     * \brief view, raw pointer of the render view to register.
+     *
+     */
     virtual void registerView  (RenderView *view) = 0;
+
+    /* \brief Unregisters the specified view.
+     * \brief view, raw pointer of the render view to unregister.
+     *
+     */
     virtual void unregisterView(RenderView *view) = 0;
 
+    /* \brief Enables/disables the widget.
+     * \param[in] enable, true to enable, false otherwise.
+     *
+     */
     virtual void setEnabled(bool enable) = 0;
-    virtual bool manipulatesSegmentations() const { return false; };
+
+    /* \brief Returns true if the widget manipulates the segmentations in any way.
+     *
+     * Useful to disable the widget when the segmentation representations change.
+     *
+     */
+    virtual bool manipulatesSegmentations() const
+    { return false; };
   };
 
   using EspinaWidgetPtr  = EspinaWidget *;
@@ -65,6 +94,7 @@ class vtkEspinaCommand
     {}
 
     /* \brief Sets the widget this vtkCommand executes to.
+     * \param[in] widget EspinaWidget raw pointer.
      *
      */
     virtual void setWidget(ESPINA::EspinaWidgetPtr widget) = 0;

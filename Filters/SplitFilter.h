@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -21,9 +21,11 @@
 #ifndef ESPINA_SPLIT_FILTER_H
 #define ESPINA_SPLIT_FILTER_H
 
+#include "Filters/EspinaFilters_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -32,11 +34,14 @@ class vtkImageStencilData;
 
 namespace ESPINA
 {
-  class SplitFilter
+  class EspinaFilters_EXPORT SplitFilter
   : public Filter
   {
     public:
       /* \brief SplitFilter class constructor.
+			 * \param[in] inputs, list of input smart pointers.
+			 * \param[in] type, SplitFilter type.
+			 * \param[in] scheduler, scheduler smart pointer.
        *
        */
       explicit SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
@@ -110,11 +115,11 @@ namespace ESPINA
        */
       virtual bool invalidateEditedRegions();
 
+      /* \brief Helper method that returns the stencil file name.
+       *
+       */
       QString stencilFile() const
       { return prefix() + "stencil.vti"; }
-
-      virtual bool ignoreCurrentOutputs() const
-      { return m_ignoreCurrentOutputs; }
 
     private:
       bool m_ignoreCurrentOutputs;

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,32 +22,65 @@
 #ifndef ESPINA_REPARENT_CATEGORY_COMMAND_H
 #define ESPINA_REPARENT_CATEGORY_COMMAND_H
 
-#include <QUndoCommand>
+#include "Undo/EspinaUndo_Export.h"
+
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 
-namespace ESPINA {
+// Qt
+#include <QUndoCommand>
 
-  class ReparentCategoryCommand
+namespace ESPINA
+{
+
+  class EspinaUndo_EXPORT ReparentCategoryCommand
   : public QUndoCommand
   {
   public:
+  	/* \brief ReparentCategoryCommand class constructor.
+  	 * \param[in] category, raw pointer of the category adapter to reparent.
+  	 * \param[in] parentCategory, raw pointer of the category adapter that is the new parent.
+  	 * \param[in] model, model adapter smart pointer that contains both categories.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit ReparentCategoryCommand(CategoryAdapterPtr category,
                                      CategoryAdapterPtr parentCategory,
                                      ModelAdapterSPtr   model,
                                      QUndoCommand*      parent = nullptr);
 
+  	/* \brief ReparentCategoryCommand class constructor.
+  	 * \param[in] categories, list of raw pointers of the category adapters to reparent.
+  	 * \param[in] parentCategory, raw pointer of the category adapter that is the new parent.
+  	 * \param[in] model, model adapter smart pointer that contains both categories.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit ReparentCategoryCommand(CategoryAdapterList categories,
                                      CategoryAdapterPtr  parentCategory,
                                      ModelAdapterSPtr    model,
                                      QUndoCommand*       parent = nullptr);
 
+    /* \brief ReparentCategoryCommand class destructor.
+     *
+     */
     virtual ~ReparentCategoryCommand();
 
-    virtual void redo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
 
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
+    /* \brief Helper method to store the parent of the category for swapping later.
+     * \param[in] category, smart pointer of the category adapter whose parent will be stored.
+     *
+     */
     void storePreviousParent(CategoryAdapterPtr category);
 
   private:

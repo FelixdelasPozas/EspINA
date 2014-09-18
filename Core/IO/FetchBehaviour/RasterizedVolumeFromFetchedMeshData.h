@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -21,19 +21,27 @@
 #ifndef ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
 #define ESPINA_RASTERIZED_VOLUME_FROM_FETCHED_MESH_DATA_H_
 
+#include "Core/EspinaCore_Export.h"
+
 // ESPINA
 #include <Core/Analysis/FetchBehaviour.h>
 #include <Core/Analysis/Data/MeshData.h>
 
 namespace ESPINA
 {
-  class RasterizedVolumeFromFetchedMeshData
+  class EspinaCore_EXPORT RasterizedVolumeFromFetchedMeshData
   : public FetchBehaviour
   {
     public:
+  		/* \brief Implements FetchBehaviour::fetchOutputData().
+  		 *
+  		 */
       virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
 
     protected:
+      /* \brief Helper method to fetch a mesh from storate.
+       *
+       */
       virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
 

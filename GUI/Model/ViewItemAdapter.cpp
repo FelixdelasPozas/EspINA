@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,8 +19,8 @@
  *
  */
 
+// ESPINA
 #include "ViewItemAdapter.h"
-
 #include <Core/Analysis/NeuroItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
@@ -28,11 +28,11 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ViewItemAdapter::ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
-: NeuroItemAdapter(item)
-, m_filter{filter}
-, m_viewItem{item}
-, m_isSelected{false}
-, m_isVisible{true}
+: NeuroItemAdapter  {item}
+, m_filter          {filter}
+, m_viewItem        {item}
+, m_isSelected      {false}
+, m_isVisible       {true}
 , m_outputIsModified{false}
 {
 }

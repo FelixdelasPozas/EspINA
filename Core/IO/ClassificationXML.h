@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,9 +22,11 @@
 #ifndef ESPINA_IO_CLASSIFICATIONXML_H
 #define ESPINA_IO_CLASSIFICATIONXML_H
 
+// ESPINA
 #include "Core/IO/ErrorHandler.h"
 #include <Core/Analysis/Category.h>
 
+// Qt
 #include <QFileInfo>
 
 namespace ESPINA {
@@ -34,19 +36,40 @@ namespace ESPINA {
       struct IO_Exception{};
       struct Parse_Exception{};
 
-      ClassificationSPtr load(const QFileInfo& file,
-                              ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+      /* \brief Loads a classification from a file.
+       * \param[in] file, QFileInfo object with the file details.
+       * \param[in] handler, error handler smart pointer.
+       *
+       */
+      ClassificationSPtr EspinaCore_EXPORT load(const QFileInfo& file,
+                                                ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-      void save(ClassificationSPtr classification,
-                const QFileInfo&   file,
-                ErrorHandlerSPtr    handler = ErrorHandlerSPtr());
+      /* \brief Saves a classification to a file.
+       * \param[in] classification, classification to save.
+       * \param[in] file, QFileInfo object with the file details.
+       * \param[in] handler, error handler smart pointer.
+       *
+       */
+      void EspinaCore_EXPORT save(ClassificationSPtr classification,
+                                  const QFileInfo&   file,
+                                  ErrorHandlerSPtr    handler = ErrorHandlerSPtr());
 
 
-      QByteArray dump(const ClassificationSPtr classification,
-                      ErrorHandlerSPtr         handler = ErrorHandlerSPtr());
+      /* \brief Returns the classification as a byte stream.
+       * \param[in] classification, classification to dump.
+       * \param[in] handler, error handler smart pointer.
+       *
+       */
+      QByteArray EspinaCore_EXPORT dump(const ClassificationSPtr classification,
+                                        ErrorHandlerSPtr         handler = ErrorHandlerSPtr());
 
-      ClassificationSPtr parse(const QByteArray& serialization,
-                               ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
+      /* \brief Parses a byte array and builds and returns a classification.
+       * \param[in] serialization, byte array.
+       * \param[in] handler, error handler smart pointer.
+       *
+       */
+      ClassificationSPtr EspinaCore_EXPORT parse(const QByteArray& serialization,
+                                                 ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
     }
   }
 }

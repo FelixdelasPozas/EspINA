@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -17,9 +17,9 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "SegmentationTools.h"
 
 // Espina
+#include "SegmentationTools.h"
 
 using namespace ESPINA;
 
@@ -30,8 +30,8 @@ SegmentationTools::SegmentationTools(SeedGrowSegmentationSettings* settings,
                                      ViewManagerSPtr               viewManager,
                                      QUndoStack*                   undoStack,
                                      QWidget*                      parent)
-: ToolGroup(viewManager, QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools"), parent)
-, m_sgsTool(new SeedGrowSegmentationTool(settings, model, factory, viewManager, undoStack))
+: ToolGroup{viewManager, QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools"), parent}
+, m_sgsTool{new SeedGrowSegmentationTool(settings, model, factory, viewManager, undoStack)}
 {
 
 }

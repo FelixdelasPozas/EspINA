@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -71,11 +71,11 @@ EditionTools::EditionTools(ModelAdapterSPtr model,
                            ViewManagerSPtr  viewManager,
                            QUndoStack      *undoStack,
                            QWidget         *parent)
-: ToolGroup(viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent)
-, m_factory{factory}
-, m_undoStack{undoStack}
-, m_model{model}
-, m_filterFactory(new ManualFilterFactory())
+: ToolGroup      {viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent}
+, m_factory      {factory}
+, m_undoStack    {undoStack}
+, m_model        {model}
+, m_filterFactory{new ManualFilterFactory()}
 {
   m_factory->registerFilterFactory(m_filterFactory);
 
@@ -234,13 +234,16 @@ void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEnt
       do
       {
         m_undoStack->undo();
-      } while (volume->isEmpty());
+      }
+      while (volume->isEmpty());
       m_undoStack->blockSignals(false);
 
       m_undoStack->beginMacro("Remove Segmentation");
       m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
       m_undoStack->endMacro();
-    } else {
+    }
+    else
+    {
       fitToContents(volume, SEG_BG_VALUE);
     }
   }

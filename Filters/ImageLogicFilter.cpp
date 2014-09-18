@@ -20,11 +20,11 @@
 
 // ESPINA
 #include "ImageLogicFilter.h"
-#include <Core/Analysis/Data/VolumetricData.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/Bounds.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
-#include <Core/Utils/BinaryMask.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Utils/BinaryMask.hxx>
 
 // ITK
 #include <itkImageRegionConstIterator.h>

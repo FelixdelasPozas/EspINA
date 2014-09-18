@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -19,10 +19,9 @@
  */
 
 // ESPINA
+#include "vtkVoxelContour2D.h"
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
-
-#include "vtkVoxelContour2D.h"
 
 // VTK
 #include <vtkObjectFactory.h> //for new() macro
@@ -326,7 +325,6 @@ int vtkVoxelContour2D::RequestData(vtkInformation *request,
   return 1;
 }
 
-
 //----------------------------------------------------------------------------
 void vtkVoxelContour2D::PrintSelf(ostream& os, vtkIndent indent)
 {
@@ -490,4 +488,3 @@ double vtkVoxelContour2D::getMinimumSpacing() const
 {
   return m_minSpacing;
 }
-

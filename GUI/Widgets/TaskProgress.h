@@ -29,27 +29,47 @@
 #ifndef ESPINA_TASK_PROGRESS_H
 #define ESPINA_TASK_PROGRESS_H
 
+#include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include <Core/MultiTasking/Task.h>
-#include <QWidget>
+
+// Qt
 #include <ui_TaskProgress.h>
+#include <QWidget>
+
+// C++
 #include <memory>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   class Task;
 
-  class TaskProgress 
-  : public QWidget 
+  class EspinaGUI_EXPORT TaskProgress
+  : public QWidget
   , public Ui::TaskProgress
   {
     Q_OBJECT
   public:
+    /* \brief TaskProgress class constructor.
+     *
+     */
     explicit TaskProgress(TaskSPtr task);
+
+    /* \brief TaskProgress class virtual destructor.
+     *
+     */
     virtual ~TaskProgress();
 
+    /* \brief Returns the process of the task.
+     *
+     */
     int progress()
     { return m_progressBar->value(); }
 
+    /* \brief Returns the task smart pointer.
+     *
+     */
     TaskSPtr task() const
     { return m_task; }
 
@@ -57,7 +77,10 @@ namespace ESPINA {
     void aborted();
 
   protected:
-    virtual void showEvent(QShowEvent *event);
+    /* \brief Overrides QWidget::showEvent().
+     *
+     */
+    virtual void showEvent(QShowEvent *event) override;
 
   private slots:
     void updateProgress(int value);

@@ -25,12 +25,12 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef TAGSELECTOR_H
 #define TAGSELECTOR_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <QDialog>
 #include <QStandardItemModel>
 
@@ -44,13 +44,26 @@ namespace ESPINA
     class GUI;
 
   public:
+    /* \brief TagSelector class constructor.
+     * \param[in] title, title of the dialog.
+     * \param[in] tags, list of tags.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] flags, window flags.
+     */
     explicit TagSelector(const QString &title,
                          QStandardItemModel &tags,
-                         QWidget *parent = 0,
-                         Qt::WindowFlags f = 0);
+                         QWidget *parent = nullptr,
+                         Qt::WindowFlags flags = 0);
+
+    /* \brief TagSelector class virtual destructor.
+     *
+     */
     virtual ~TagSelector();
 
   private slots:
+		/* \brief Creates a new tag element from the user input.
+		 *
+		 */
     void createTag();
 
   private:

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -47,7 +47,7 @@ namespace ESPINA
     public:
       vtkTypeMacro(vtkRectangularRegionCommand, vtkEspinaCommand);
 
-      /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+      /* \brief Creates a new instance.
        *
        */
       static vtkRectangularRegionCommand *New()
@@ -87,34 +87,80 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /* \brief RectangularRegion class constructor.
+     * \param[in] bounds, bounds of the region.
+     *
+     */
     explicit RectangularRegion(Bounds bounds);
+
+    /* \brief RectangularRegion class destructor.
+     *
+     */
     virtual ~RectangularRegion();
 
+    /* \brief Implements EspinaWidget::registerView().
+     *
+     */
     virtual void registerView  (RenderView *view);
+
+    /* \brief Implements EspinaWidget::unregisterView().
+     *
+     */
     virtual void unregisterView(RenderView *view);
 
+    /* \brief Implements EspinaWidget::setEnabled().
+     *
+     */
     virtual void setEnabled(bool enable);
 
+    /* \brief Sets the bounds of the region.
+     * \param[in] bounds, bounds of the region.
+     *
+     */
     virtual void setBounds(Bounds bounds);
+
+    /* \brief Returns the bounds of the region.
+     *
+     */
     virtual Bounds bounds() const;
 
+    /* \brief Sets the spacing/resolution of the region.
+     *
+     */
     void setResolution(NmVector3 resolution);
+
+    /* \brief Returns the resolution of the region.
+     *
+     */
     NmVector3 resolution() const
     { return m_resolution; }
 
-    // modify representation methods
-    void setRepresentationColor(double *);
-    void setRepresentationPattern(int);
+    /* \brief Sets the color of the representation.
+     * \param[in] color, pointer to a vector of three double corresponding to the r,g,b values.
+     *
+     */
+    void setRepresentationColor(double *color);
+
+    /* \brief Sets the representation pattern.
+     * \param[in] pattern, pattern in hexadecimal.
+     */
+    void setRepresentationPattern(int pattern);
 
   signals:
     void modified(Bounds);
 
   private slots:
+		/* \brief Update the representation when the view changes the slice.
+		 *
+		 */
     void sliceChanged(Plane plane, Nm pos);
 
   private:
     friend class vtkRectangularRegionCommand;
 
+    /* \brief Emits the modification signal when the representation is modified.
+     *
+     */
     void emitModifiedSignal()
     { emit modified(m_bounds); }
 

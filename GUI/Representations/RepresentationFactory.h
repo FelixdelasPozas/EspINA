@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -24,6 +24,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
 #include "GUI/Representations/Representation.h"
 #include <Core/MultiTasking/Scheduler.h>
 
@@ -34,13 +35,29 @@ namespace ESPINA
   class EspinaGUI_EXPORT RepresentationFactory
   {
   public:
+  	/* \brief RepresentationFactory class constructor.
+  	 * \param[in] scheduler, scheduler smart pointer.
+  	 *
+  	 */
     explicit RepresentationFactory(SchedulerSPtr scheduler)
     { m_scheduler = scheduler; };
 
-    virtual ~RepresentationFactory() {};
+    /* \brief RepresentationFactory class virtual destructor.
+     *
+     */
+    virtual ~RepresentationFactory()
+    {};
 
+    /* \brief Returns the list of representation types this factory can create.
+     *
+     */
     virtual RepresentationTypeList representations() const = 0;
 
+    /* \brief Creates and returns a representation of the given type for the given output.
+     * \param[in] output, output smart pointer.
+     * \param[in] type, representation type.
+     *
+     */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type representation) = 0;
 
   protected:

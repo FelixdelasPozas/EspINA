@@ -25,13 +25,13 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "TagSelector.h"
 
+// Qt
 #include <ui_TagSelector.h>
-
 #include <QFileDialog>
-#include <qinputdialog.h>
+#include <QInputDialog>
 #include <QTextStream>
 
 using namespace ESPINA;

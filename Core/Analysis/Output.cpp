@@ -44,18 +44,14 @@ TimeStamp Output::s_tick = 0;
 Output::Output(FilterPtr filter, const Output::Id& id)
 : m_filter{filter}
 , m_id{id}
-//, m_spacing{1, 1, 1}
 , m_timeStamp{s_tick++}
-// , m_hasToBeSaved{false}
 {
-
 }
 
 //----------------------------------------------------------------------------
 Output::~Output()
 {
 }
-
 
 //----------------------------------------------------------------------------
 void Output::setSpacing(const NmVector3& spacing)
@@ -89,7 +85,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 {
   Snapshot snapshot;
 
-  for(auto dataProxy : m_data) 
+  for(auto dataProxy : m_data)
   {
     DataSPtr data = dataProxy->get();
 
@@ -166,7 +162,7 @@ bool Output::isValid() const
 
   if (m_id == INVALID_OUTPUT_ID) return false;
 
-  for(DataProxySPtr data : m_data) 
+  for(DataProxySPtr data : m_data)
   {
     if (!data->get()->isValid()) return false;
   }

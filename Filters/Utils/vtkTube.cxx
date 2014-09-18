@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,13 +18,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "vtkTube.h"
+
+// VTK
 #include <vtkObjectFactory.h>
 #include <vtkMath.h>
 
 vtkStandardNewMacro(vtkTube);
 
+//-----------------------------------------------------------------------------
 vtkTube::vtkTube()
 : BaseRadius(0.5)
 , TopRadius (0.5)
@@ -34,12 +37,13 @@ vtkTube::vtkTube()
   this->TopCenter[2] = 1.0;
 }
 
-
+//-----------------------------------------------------------------------------
 void vtkTube::EvaluateGradient(double xyz[3], double g[3])
 {
   memset(g, 0, 3*sizeof(double));
 }
 
+//-----------------------------------------------------------------------------
 double vtkTube::EvaluateFunction(double xyz[3])
 {
   double u[3], v[3];
@@ -54,9 +58,9 @@ double vtkTube::EvaluateFunction(double xyz[3])
   double dp = vtkMath::Dot(u, v) / dv; // u projection's length
   if (dp < 0 || dp > dv)
     return 1; // Outside
-  
+
   double a = dp / dv; //Alpha
-  
+
   double c[3]; // Sphere's centered on u's projection
   for(int i=0; i<3; i++)
     c[i] = v[i]*a + this->BaseCenter[i];
@@ -65,7 +69,7 @@ double vtkTube::EvaluateFunction(double xyz[3])
   double x = xyz[0] - c[0];
   double y = xyz[1] - c[1];
   double z = xyz[2] - c[2];
-  
+
   return (x*x + y*y + z*z - r*r);
 }
 

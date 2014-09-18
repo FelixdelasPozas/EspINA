@@ -1,16 +1,29 @@
 /*
- * ZoomTool.h
- *
- *  Created on: Nov 14, 2012
- *      Author: Felix de las Pozas Alvarez
- */
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <@>
+
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #ifndef ESPINA_ZOOM_AREA_H
 #define ESPINA_ZOOM_AREA_H
 
 // ESPINA
 #include <GUI/View/EventHandler.h>
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 
@@ -26,7 +39,7 @@ namespace ESPINA
     Q_OBJECT
     public:
       /* \brief ZoomArea class constructor.
-       * \param[in] viewManager Application view manager.
+       * \param[in] viewManager, view manager smart pointer.
        */
       explicit ZoomArea(ViewManagerSPtr viewManager);
 
@@ -35,17 +48,17 @@ namespace ESPINA
        */
       virtual ~ZoomArea();
 
-      /* \brief Returns if the tool is enabled.
+      /* \brief Implements Tool::enabled().
        *
        */
       virtual bool enabled() const;
 
-      /* \brief Enables/Disables the tool.
+      /* \brief Implements Tool::setEnabled().
        *
        */
       virtual void setEnabled(bool value);
 
-      /* \brief Returns the actions contained in this tool.
+      /* \brief Implements Tool::actions().
        *
        */
       virtual QList<QAction *> actions() const;

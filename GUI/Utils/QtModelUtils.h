@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,26 +18,41 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef QTMODELUTILS_H
 #define QTMODELUTILS_H
 
 #include "Core/EspinaCore_Export.h"
 
+// Qt
 #include <QModelIndex>
 
 namespace QtModelUtils
 {
-  /// Find the QModelIndex children of @parent whose @role is equal to @value
+	/* \brief Find the QModelIndex children of @parent whose @role is equal to @value.
+	 * \param[in] parent, model index parent of the one searching for.
+	 * \param[in] value.
+	 * \param[in] role.
+	 *
+	 */
   QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
 
-  /// Return a list of all QModelIndex between @topLeft index and @bottomRight index
+  /* \brief Return a list of all QModelIndex between @topLeft index and @bottomRight index.
+   * \param[in] topLeft, model index.
+   * \param[in] bottomRight, model index.
+   *
+   */
   QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
-  /// Return whether a node has leaf nodes
+  /* \brief Return whether a node has leaf nodes.
+   * \param[in] index, model index ot check.
+   *
+   */
   bool isInnerNode(const QModelIndex &index);
 
-  /// Return whether a node is leaf
+  /* \brief Return whether a node is leaf.
+   * \param[in] index, model index to check.
+   *
+   */
   bool isLeafNode(const QModelIndex &index);
 } // namespace QtModelUtils
 

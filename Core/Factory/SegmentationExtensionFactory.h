@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,11 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_SEGMENTATION_EXTENSION_FACTORY_H
 #define ESPINA_SEGMENTATION_EXTENSION_FACTORY_H
 
 #include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Extension.h>
 
 namespace ESPINA
@@ -33,12 +34,25 @@ namespace ESPINA
     struct Extension_Not_Provided_Exception {};
 
   public:
-    virtual ~SegmentationExtensionFactory() {}
+    /* \brief SegmentationExtensionFactory class constructor.
+     *
+     */
+    virtual ~SegmentationExtensionFactory()
+    {}
 
+    /* \brief Creates a segmentation extension of the given type with the given state and cache object.
+     * \param[in] type, segmentation extension type.
+     * \param[in] cache, information cache object.
+     * \param[in] state, state object.
+     *
+     */
     virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
                                                                   const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache() ,
                                                                   const State                            &state = State()) const = 0;
 
+    /* \brief Returns the list of types of segmentation extensions this filter can create.
+     *
+     */
     virtual SegmentationExtensionTypeList providedExtensions() const = 0 ;
   };
 

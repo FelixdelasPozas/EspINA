@@ -1,8 +1,21 @@
 /*
- * ZoomSelectionWidget.h
- *
- *  Created on: Nov 14, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_ZOOM_SELECTION_WIDGET_H_
@@ -48,30 +61,30 @@ namespace ESPINA
      */
     virtual ~ZoomSelectionWidget();
 
-    /* \brief Implements EspinaWidget::registerView()
+    /* \brief Implements EspinaWidget::registerView().
      *
      */
     virtual void registerView(RenderView *);
 
-    /* \brief Implements EspinaWidget::unregisterView()
+    /* \brief Implements EspinaWidget::unregisterView().
      *
      */
     virtual void unregisterView(RenderView *);
 
-    /* \brief Implements EspinaWidget::setEnabled
+    /* \brief Implements EspinaWidget::setEnabled()
      *
      */
     virtual void setEnabled(bool enable);
 
-    /* \brief Implements EventHandler::filterEvent
+    /* \brief Overrides EventHandler::filterEvent
      *
      */
-    bool filterEvent(QEvent *e, RenderView *view);
+    bool filterEvent(QEvent *e, RenderView *view) override;
 
-    /* \brief Implements EventHandler::setInUse
+    /* \brief Overrides EventHandler::setInUse().
      *
      */
-    void setInUse(bool value);
+    void setInUse(bool value) override;
 
   private:
     friend class vtkZoomCommand;

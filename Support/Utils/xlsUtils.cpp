@@ -1,10 +1,10 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -18,9 +18,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <Support/Utils/xlsUtils.h>
+// ESPINA
+#include "xlsUtils.h"
 
-xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value)
+xlslib_core::cell_t * createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value)
 {
   xlslib_core::cell_t *cell;
   if (value.type() == QVariant::Int)
@@ -32,3 +33,6 @@ xlslib_core::cell_t *createCell(xlslib_core::worksheet *sheet, int row, int colu
 
   return cell;
 }
+
+
+

@@ -1,8 +1,21 @@
 /*
- * HueSelector.cpp
- *
- *  Created on: August 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // ESPINA
@@ -15,17 +28,20 @@
 
 using namespace ESPINA;
 
+//------------------------------------------------------------------------
 int HueSelector::x2val(int x)
 {
   double value = (x * 360)/width();
   return static_cast<int>(value--);
 }
 
+//------------------------------------------------------------------------
 int HueSelector::val2x(int v)
 {
   return (v*width()) / 360;
 }
 
+//------------------------------------------------------------------------
 HueSelector::HueSelector(QWidget* parent)
     : QWidget(parent)
 {
@@ -35,21 +51,25 @@ HueSelector::HueSelector(QWidget* parent)
   pix = 0;
 }
 
+//------------------------------------------------------------------------
 HueSelector::~HueSelector()
 {
   delete pix;
 }
 
+//------------------------------------------------------------------------
 void HueSelector::mouseMoveEvent(QMouseEvent *m)
 {
   setVal(x2val(m->x()));
 }
 
+//------------------------------------------------------------------------
 void HueSelector::mousePressEvent(QMouseEvent *m)
 {
   setVal(x2val(m->x()));
 }
 
+//------------------------------------------------------------------------
 void HueSelector::setVal(int v)
 {
   if (this->hue == v)
@@ -62,6 +82,7 @@ void HueSelector::setVal(int v)
   emit newHsv(this->hue, this->sat, this->val);
 }
 
+//------------------------------------------------------------------------
 void HueSelector::paintEvent(QPaintEvent *)
 {
   QRect rect(0, 7, width(), height());
@@ -106,6 +127,7 @@ void HueSelector::paintEvent(QPaintEvent *)
   p.drawPolygon(arrow,3, Qt::WindingFill);
 }
 
+//------------------------------------------------------------------------
 void HueSelector::setHueValue(int h)
 {
   h = qMax(0, qMin(h, 360));;

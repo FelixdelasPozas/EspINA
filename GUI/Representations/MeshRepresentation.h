@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -38,26 +38,40 @@ namespace ESPINA
       static const Representation::Type TYPE;
 
     public:
+      /* \brief MeshRepresentation class constructor.
+			 * \param[in] mesh, MeshData smart pointer of the data to represent.
+			 * \param[in] view, render view pointer where the representation will be shown.
+       *
+       */
       explicit MeshRepresentation(MeshDataSPtr data,
                                   RenderView *view);
-      virtual ~MeshRepresentation() {};
 
+      /* \brief MeshRepresentation class virtual destructor.
+       *
+       */
+      virtual ~MeshRepresentation()
+      {};
+
+      /* \brief Implements Representation::settingsWidget().
+       *
+       */
       virtual RepresentationSettings *settingsWidget();
 
+      /* \brief Implements Representation::updateRepresentation().
+       *
+       */
       virtual void updateRepresentation();
 
-      void onCrosshairChanged(const NmVector3 &point) {};
-
-      virtual bool crosshairDependent() const
-      { return false; }
-
-      virtual bool needUpdate()
-      { return m_lastUpdatedTime != m_data->lastModified(); }
-
   protected:
+      /* \brief Implements Representation::cloneImplementation(View3D*).
+       *
+       */
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     private:
+      /* \brief Implements MeshRepresentation::initializePipeline().
+       *
+       */
       void initializePipeline();
   };
 

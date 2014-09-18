@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,11 +22,17 @@
 #ifndef ESPINA_FACTORY_UTILS_H
 #define ESPINA_FACTORY_UTILS_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <Core/EspinaTypes.h>
 
-namespace ESPINA {
-
-  CoreFactorySPtr espinaCoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
+namespace ESPINA
+{
+	/* \brief Creates an returns a new core factory.
+	 * \param[in] scheduler, scheduler smart pointer.
+	 *
+	 */
+  CoreFactorySPtr EspinaSupport_EXPORT espinaCoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
 
 } // namespace ESPINA
 

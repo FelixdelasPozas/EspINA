@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "BrushUndoCommand.h"
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
 #include <Core/Utils/ChangeSignalDelayer.h>
 
@@ -40,7 +40,7 @@ void DrawUndoCommand::redo()
   ChangeSignalDelayer inhibitor(volume);
 
   m_bounds = volume->bounds();
-  expandAndDraw(volume, m_mask->bounds().bounds(), m_mask); // CHECK
+  expandAndDraw(volume, m_mask);
 }
 
 //-----------------------------------------------------------------------------

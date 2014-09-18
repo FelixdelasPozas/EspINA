@@ -22,8 +22,8 @@
 #include "SegmhaReader.h"
 
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Channel.h>

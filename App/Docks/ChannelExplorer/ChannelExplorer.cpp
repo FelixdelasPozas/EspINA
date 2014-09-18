@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,21 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ChannelExplorer.h"
-#include <ui_ChannelExplorer.h>
-
 // ESPINA
+#include "ChannelExplorer.h"
 #include "EspinaConfig.h"
 #include "Dialogs/ChannelInspector/ChannelInspector.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Core/Analysis/Channel.h>
-// #include <Undo/UnloadChannelCommand.h>
-// #include <Undo/UnloadSampleCommand.h>
-
 
 // Qt
 #include <QMessageBox>
 #include <QUndoStack>
+#include <ui_ChannelExplorer.h>
 
 using namespace ESPINA;
 
@@ -58,14 +54,14 @@ ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
                                  SchedulerSPtr    scheduler,
                                  QUndoStack      *undoStack,
                                  QWidget         *parent)
-: DockWidget(parent)
-, m_model(model)
-, m_viewManager(viewManager)
-, m_scheduler(scheduler)
-, m_undoStack(undoStack)
-, m_channelProxy(new ChannelProxy(model))
-, m_sort(new QSortFilterProxyModel())
-, m_gui(new CentralWidget())
+: DockWidget    {parent}
+, m_model       {model}
+, m_viewManager {viewManager}
+, m_scheduler   {scheduler}
+, m_undoStack   {undoStack}
+, m_channelProxy{new ChannelProxy(model)}
+, m_sort        {new QSortFilterProxyModel()}
+, m_gui         {new CentralWidget()}
 {
   setObjectName("ChannelExplorer");
 
@@ -122,17 +118,8 @@ ChannelExplorer::~ChannelExplorer()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::initDockWidget(ModelAdapterSPtr model,
-                                     QUndoStack      *undoStack,
-                                     ViewManagerSPtr  viewManager)
-{
-
-}
-
-//------------------------------------------------------------------------
 void ChannelExplorer::reset()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -141,7 +128,7 @@ void ChannelExplorer::channelSelected()
 //   QModelIndex currentIndex = m_gui->view->currentIndex();
 //   if (!currentIndex.parent().isValid())
 //     return;
-// 
+//
 //   QModelIndex index = m_sort->mapToSource(currentIndex);
 //   ModelItemPtr currentItem = indexPtr(index);
 //   if (ESPINA::CHANNEL == currentItem->type())
@@ -152,11 +139,11 @@ void ChannelExplorer::channelSelected()
 //     m_gui->xPos->blockSignals(true);
 //     m_gui->yPos->blockSignals(true);
 //     m_gui->zPos->blockSignals(true);
-// 
+//
 //     m_gui->xPos->setValue(pos[0]);
 //     m_gui->yPos->setValue(pos[1]);
 //     m_gui->zPos->setValue(pos[2]);
-// 
+//
 //     m_gui->xPos->blockSignals(false);
 //     m_gui->yPos->blockSignals(false);
 //     m_gui->zPos->blockSignals(false);
@@ -173,7 +160,7 @@ void ChannelExplorer::alignLeft()
 //     ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
 //     if (ESPINA::CHANNEL != item->type())
 //       continue;
-// 
+//
 //     ChannelPtr channel = channelPtr(item);
 //     if (lastChannel)
 //     {
@@ -199,13 +186,13 @@ void ChannelExplorer::alignCenter()
 //   ChannelPtr lastChannel;
 //   double pos[3], bounds[6], centerMargin;
 //   int coord = m_gui->coordinateSelector->currentIndex();
-// 
+//
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
 //     if (ESPINA::CHANNEL != item->type())
 //       continue;
-// 
+//
 //     ChannelPtr channel = channelPtr(item);
 //     if (lastChannel)
 //     {
@@ -216,7 +203,7 @@ void ChannelExplorer::alignCenter()
 //       channel->setPosition(pos);
 //       channel->output()->update();
 //     }
-// 
+//
 //     if (!lastChannel)
 //     {
 //       lastChannel = channel;
@@ -235,13 +222,13 @@ void ChannelExplorer::alignRight()
 //   ChannelPtr lastChannel;
 //   double pos[3], bounds[6], rightMargin;
 //   int coord = m_gui->coordinateSelector->currentIndex();
-// 
+//
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItemPtr item = indexPtr(m_sort->mapToSource(index));
 //     if (ESPINA::CHANNEL != item->type())
 //       continue;
-// 
+//
 //     ChannelPtr channel = channelPtr(item);
 //     if (lastChannel)
 //     {
@@ -252,7 +239,7 @@ void ChannelExplorer::alignRight()
 //       channel->setPosition(pos);
 //       channel->output()->update();
 //     }
-// 
+//
 //     if (!lastChannel)
 //     {
 //       lastChannel = channel;
@@ -271,13 +258,13 @@ void ChannelExplorer::moveLelft()
 //   Channel *lastChannel = NULL;
 //   double pos[3], leftMargin;
 //   int coord = m_gui->coordinateSelector->currentIndex();
-// 
+//
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItem *item = indexPtr(m_sort->mapToSource(index));
 //     if (ESPINA::CHANNEL != item->type())
 //       continue;
-// 
+//
 //     Channel *channel = dynamic_cast<Channel *>(item);
 //     if (lastChannel)
 //     {
@@ -288,7 +275,7 @@ void ChannelExplorer::moveLelft()
 //       channel->setPosition(pos);
 //       channel->notifyModification();
 //     }
-// 
+//
 //     if (!lastChannel)
 //     {
 //       lastChannel = channel;
@@ -306,13 +293,13 @@ void ChannelExplorer::moveRight()
 //   Channel *lastChannel = NULL;
 //   double pos[3], bounds[6], rightMargin;
 //   int coord = m_gui->coordinateSelector->currentIndex();
-// 
+//
 //   foreach (QModelIndex index, selection->selectedIndexes())
 //   {
 //     ModelItem *item = indexPtr(m_sort->mapToSource(index));
 //     if (ESPINA::CHANNEL != item->type())
 //       continue;
-// 
+//
 //     Channel *channel = dynamic_cast<Channel *>(item);
 //     if (lastChannel)
 //     {
@@ -323,7 +310,7 @@ void ChannelExplorer::moveRight()
 //       channel->setPosition(pos);
 //       channel->notifyModification();
 //     }
-// 
+//
 //     if (!lastChannel)
 //     {
 //       lastChannel = channel;
@@ -341,7 +328,7 @@ void ChannelExplorer::updateChannelPosition()
 //   QModelIndex currentIndex = m_gui->view->currentIndex();
 //   if (!currentIndex.parent().isValid())
 //     return;
-// 
+//
 //   QModelIndex index = m_sort->mapToSource(currentIndex);
 //   ModelItemPtr currentItem = indexPtr(index);
 //   if (ESPINA::CHANNEL == currentItem->type())
@@ -352,7 +339,7 @@ void ChannelExplorer::updateChannelPosition()
 //       static_cast<double>(m_gui->yPos->value()),
 //       static_cast<double>(m_gui->zPos->value())
 //     };
-// 
+//
 //     channel->setPosition(pos);
 //     channel->output()->update();
 //   }
@@ -361,29 +348,29 @@ void ChannelExplorer::updateChannelPosition()
 //------------------------------------------------------------------------
 void ChannelExplorer::updateTooltips(int index)
 {
-  if (0 == index)
-  {
-    m_gui->alignLeft->setToolTip(tr("Align Left Margins"));
-    m_gui->alignCenter->setToolTip(tr("Center Margins in plane X"));
-    m_gui->alignRight->setToolTip(tr("Align Right Margins"));
-    m_gui->moveLeft->setToolTip(tr("Move next to Left Margin"));
-    m_gui->moveRight->setToolTip(tr("Move next to Right Margin"));
-  } else if (1 == index)
-  {
-    m_gui->alignLeft->setToolTip(tr("Align Top Margins"));
-    m_gui->alignCenter->setToolTip(tr("Center Margins in plane Y"));
-    m_gui->alignRight->setToolTip(tr("Align Bottom Margins"));
-    m_gui->moveLeft->setToolTip(tr("Move next to Top Margin"));
-    m_gui->moveRight->setToolTip(tr("Move next to Bottom Margin"));
-  } else if (2 == index)
-  {
-    m_gui->alignLeft->setToolTip(tr("Align Lower Margins"));
-    m_gui->alignCenter->setToolTip(tr("Center Margins in plane Z"));
-    m_gui->alignRight->setToolTip(tr("Align Upper Margins"));
-    m_gui->moveLeft->setToolTip(tr("Move next to Lower Margin"));
-    m_gui->moveRight->setToolTip(tr("Move next to Upper Margin"));
-  }else
-    Q_ASSERT(false);
+//  if (0 == index)
+//  {
+//    m_gui->alignLeft->setToolTip(tr("Align Left Margins"));
+//    m_gui->alignCenter->setToolTip(tr("Center Margins in plane X"));
+//    m_gui->alignRight->setToolTip(tr("Align Right Margins"));
+//    m_gui->moveLeft->setToolTip(tr("Move next to Left Margin"));
+//    m_gui->moveRight->setToolTip(tr("Move next to Right Margin"));
+//  } else if (1 == index)
+//  {
+//    m_gui->alignLeft->setToolTip(tr("Align Top Margins"));
+//    m_gui->alignCenter->setToolTip(tr("Center Margins in plane Y"));
+//    m_gui->alignRight->setToolTip(tr("Align Bottom Margins"));
+//    m_gui->moveLeft->setToolTip(tr("Move next to Top Margin"));
+//    m_gui->moveRight->setToolTip(tr("Move next to Bottom Margin"));
+//  } else if (2 == index)
+//  {
+//    m_gui->alignLeft->setToolTip(tr("Align Lower Margins"));
+//    m_gui->alignCenter->setToolTip(tr("Center Margins in plane Z"));
+//    m_gui->alignRight->setToolTip(tr("Align Upper Margins"));
+//    m_gui->moveLeft->setToolTip(tr("Move next to Lower Margin"));
+//    m_gui->moveRight->setToolTip(tr("Move next to Upper Margin"));
+//  }else
+//    Q_ASSERT(false);
 }
 
 //------------------------------------------------------------------------
@@ -392,14 +379,14 @@ void ChannelExplorer::unloadChannel()
 //   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
 //   if (!index.isValid())
 //     return;
-// 
+//
 //   ModelItemPtr item = indexPtr(index);
 //   if (ESPINA::CHANNEL != item->type())
 //     return;
-// 
+//
 //   ChannelPtr channel = channelPtr(item);
 //   ModelItemSList relItems = channel->relatedItems(ESPINA::RELATION_OUT);
-// 
+//
 //   if (!relItems.empty())
 //   {
 //     QString msgText;
@@ -409,7 +396,7 @@ void ChannelExplorer::unloadChannel()
 //       number.setNum(relItems.size());
 //       msgText = QString("That channel cannot be unloaded because there are ") + number + QString(" segmentations that depend on it.");
 //     }
-// 
+//
 //     else
 //       msgText = QString("That channel cannot be unloaded because there is a segmentation that depends on it.");
 //     QMessageBox msgBox;
@@ -440,7 +427,7 @@ void ChannelExplorer::focusOnChannel()
 //   QModelIndex currentIndex = m_gui->view->currentIndex();
 //   if (!currentIndex.parent().isValid())
 //     return;
-// 
+//
 //   QModelIndex index = m_sort->mapToSource(currentIndex);
 //   ModelItemPtr currentItem = indexPtr(index);
 //   if (ESPINA::CHANNEL == currentItem->type())
@@ -501,10 +488,12 @@ void ChannelExplorer::activateChannel()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::dialogClosed(QObject *dialog)
+void ChannelExplorer::dialogClosed(QObject *object)
 {
-  auto channel = m_informationDialogs.key(dialog);
+	auto dialog = qobject_cast<ChannelInspector *>(object);
+	Q_ASSERT(dialog);
 
+	auto channel = m_informationDialogs.key(dialog);
   channel->output()->update();
 
   ChannelAdapterList channels;
@@ -521,34 +510,6 @@ void ChannelExplorer::dialogClosed(QObject *dialog)
   m_viewManager->updateViews();
 
   m_informationDialogs.remove(channel);
-
-//   for(auto it = m_informationDialogs.begin(); it != m_informationDialogs.end(); ++it)
-//   {
-//     if (it.value() == dialog)
-//     {
-//       it.key()->output()->update();
-//
-//       ChannelAdapterList channelList;
-//       channelList.append(it.key());
-//
-//       SegmentationAdapterList segList;
-//       auto relatedItems = m_model->relatedItems(it.key(), RelationType::RELATION_OUT);
-//       for(auto item: relatedItems)
-//         if (item->type() == ItemAdapter::Type::SEGMENTATION)
-//         {
-//           auto segItem = std::dynamic_pointer_cast<SegmentationAdapter>(item);
-//           Q_ASSERT(segItem);
-//           segList << segItem.get();
-//         }
-//
-//         m_viewManager->updateChannelRepresentations(channelList);
-//       m_viewManager->updateSegmentationRepresentations(segList);
-//       m_viewManager->updateViews();
-//       m_informationDialogs.erase(it);
-//       return;
-//     }
-//     ++it;
-//   }
 }
 
 //------------------------------------------------------------------------

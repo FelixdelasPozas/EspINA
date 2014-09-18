@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,15 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_EDGES_ANALYZER_H
 #define ESPINA_EDGES_ANALYZER_H
 
+// ESPINA
 #include "Extensions/EspinaExtensions_Export.h"
-
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
@@ -36,14 +35,31 @@ namespace ESPINA
   : public Task
   {
   public:
+  	/* \brief EdgesAnalyzer class constructor.
+  	 * \param[in] extension, ChannelEdges raw pointer.
+  	 * \param[in] scheduler, scheduler smart pointer.
+  	 *
+  	 */
     explicit EdgesAnalyzer(ChannelEdges *extension,
                            SchedulerSPtr scheduler = SchedulerSPtr());
+
+  	/* \brief EdgesAnalyzer class destructor.
+  	 *
+  	 */
     virtual ~EdgesAnalyzer();
 
   protected:
+  	/* \brief Computes the edges of a channel.
+  	 *
+  	 */
     virtual void run();
 
   private:
+  	/* \brief Analizes the edge of a volume.
+  	 * \param[in] volume, volumetric volume smart pointer to analyze.
+  	 * \param[in] edgeBounds, bounds of the edge of the volume.
+  	 *
+  	 */
     void analyzeEdge(DefaultVolumetricDataSPtr volume, const Bounds &edgeBounds);
 
   private:

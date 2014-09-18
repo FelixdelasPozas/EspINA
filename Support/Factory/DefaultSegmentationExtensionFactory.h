@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,18 +22,27 @@
 #ifndef ESPINA_DEFAULT_SEGMENTATION_EXTENSION_FACTORY_H
 #define ESPINA_DEFAULT_SEGMENTATION_EXTENSION_FACTORY_H
 
+#include "Support/EspinaSupport_Export.h"
+
+// ESPINA
 #include <Core/Factory/SegmentationExtensionFactory.h>
 
 namespace ESPINA {
 
-  class DefaultSegmentationExtensionFactory
+  class EspinaSupport_EXPORT DefaultSegmentationExtensionFactory
   : public SegmentationExtensionFactory
   {
   public:
+  	/* \brief Implements SegmentationExtensionFactory::createSegmentationExtension().
+  	 *
+  	 */
     virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
                                                                   const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
                                                                   const State& state = State()) const;
 
+    /* \brief Implements SegmentationExtensionFactory::providedExtensions().
+     *
+     */
     virtual SegmentationExtensionTypeList providedExtensions() const;
   };
 } // namespace ESPINA

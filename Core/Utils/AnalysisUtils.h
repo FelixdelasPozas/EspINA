@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,23 +23,46 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #ifndef ESPINA_ANALYSIS_UTILS_H
 #define ESPINA_ANALYSIS_UTILS_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Analysis.h>
 
-namespace ESPINA {
+namespace ESPINA
+{
+	/* \brief Merges two analysis into one.
+	 * \param[in] lhs, analysis smart pointer.
+	 * \param[in] rhs, analysis smart pointer.
+	 *
+	 */
+  AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
 
-  AnalysisSPtr merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
+  /* \brief Returns the sample with the same name in a list of sample smart pointers.
+   * \param[in] sample, sample smart pointer.
+   * \param[in] samples, list of sample smart pointers.
+   *
+   */
+  SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, SampleSList samples);
 
-  SampleSPtr findSample(SampleSPtr sample, SampleSList samples);
+  /* \brief Returns the channel with the same name in a list of channel smart pointers.
+   * \param[in] channel, sample smart pointer.
+   * \param[in] channels, list of channel smart pointers.
+   *
+   */
+  ChannelSPtr EspinaCore_EXPORT findChannel(ChannelSPtr sample, ChannelSList channels);
 
-  ChannelSPtr findChannel(ChannelSPtr sample, ChannelSList channels);
-
-  template<typename T> 
+  /* \brief Returns the smart pointer that contains a specified raw pointer in a list of smart pointers.
+   * \param[in] item, T raw pointer.
+   * \param[in] list, list of T smart pointers.
+   *
+   */
+  template<typename T>
   std::shared_ptr<T> find(T *item, QList<std::shared_ptr<T>> list)
   {
     for(auto smartItem : list)
@@ -50,6 +73,11 @@ namespace ESPINA {
     return std::shared_ptr<T>();
   }
 
+  /* \brief Returns the suggested cardinality of an id into a list of elements.
+   * \param[in] id.
+   * \param[in] list, list of elements.
+   *
+   */
   template<typename T>
   QString SuggestId(const QString& id, const T& list)
   {
@@ -87,7 +115,11 @@ namespace ESPINA {
     return suggestedId;
   }
 
-  unsigned int firstUnusedSegmentationNumber(const AnalysisSPtr analysis);
+  /* \brief Returns the first unused unsigned integer number for a segmentation in an analysis.
+   * \para[in] analysis, analysis smart pointer.
+   *
+   */
+  unsigned int EspinaCore_EXPORT firstUnusedSegmentationNumber(const AnalysisSPtr analysis);
 }
 
 

@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -25,22 +25,25 @@
 #include <QDialog>
 #include "ui_ProblemListDialog.h"
 
+// C++
+#include <cstdint>
+
 namespace ESPINA
 {
   /* \brief Enumeration of problem severity.
    *
    */
-  enum class Severity : char { CRITICAL = 0, WARNING = 1, INFORMATION = 2 };
+  enum class Severity : std::int8_t { CRITICAL = 0, WARNING = 1, INFORMATION = 2 };
 
   /* \brief Struct that contains problem description
    *
    */
   struct Problem
   {
-      QString element;
-      Severity severity;
-      QString message;
-      QString suggestion;
+      QString element;     // Element that has the problem.
+      Severity severity;   // Severity of the problem.
+      QString message;     // Description of the problem.
+      QString suggestion;  // Suggestion of a solution to the problem.
 
       Problem(QString inputElement, Severity inputSeverity, QString inputMessage, QString inputSuggestion)
       : element(inputElement), severity(inputSeverity), message(inputMessage), suggestion(inputSuggestion) {};
@@ -49,9 +52,8 @@ namespace ESPINA
       Problem(): element(QString()), severity(Severity::CRITICAL), message(QString()), suggestion(QString()) {};
   };
 
-
   using ProblemList = QList<struct Problem>;
-  
+
   class ProblemListDialog
   : public QDialog
   , public Ui::ProblemListDialog
@@ -83,7 +85,10 @@ namespace ESPINA
       virtual ~ProblemTableWidgetItem()
       {};
 
-      virtual bool operator<(const QTableWidgetItem & other) const
+      /* \brief less-than operator for QTableWidgetItem sorting.
+       *
+       */
+      virtual bool operator<(const QTableWidgetItem & other) const override
       {
         auto ownData = this->data(Qt::DisplayRole).toString();
         auto otherData = other.data(Qt::DisplayRole).toString();

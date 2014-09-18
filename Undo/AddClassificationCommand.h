@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -23,25 +23,45 @@
 #define ESPINA_ADD_CLASSIFICATION_COMMAND_H
 
 #include "Undo/EspinaUndo_Export.h"
-#include <QUndoStack>
 
+// ESPINA
 #include <Core/Analysis/Category.h>
 #include <GUI/Model/ModelAdapter.h>
 
-namespace ESPINA {
+// Qt
+#include <QUndoStack>
 
-  class AddClassificationCommand
+namespace ESPINA
+{
+
+  class EspinaUndo_EXPORT AddClassificationCommand
   : public QUndoCommand
   {
   public:
+  	/* \brief AddClassificationCommand class constructor.
+  	 * \param[in] classification, smart pointer of the classification adapter to add.
+  	 * \param[in] model, raw pointer of the model adapter.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit AddClassificationCommand(ClassificationAdapterSPtr  classification,
                                       ModelAdapter              *model,
                                       QUndoCommand              *parent = nullptr);
-    virtual void redo();
 
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
+
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
+    /* \brief Helper method to swap new-old classifications.
+     *
+     */
     void swapClassification();
 
   private:

@@ -25,11 +25,12 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef ESPINA_CHANGE_SEGMENTATION_TAGS_H
 #define ESPINA_CHANGE_SEGMENTATION_TAGS_H
 
 #include "Undo/EspinaUndo_Export.h"
+
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
 // Qt
@@ -42,14 +43,30 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
+  	/* \brief ChangeSegmentationTags class constructor.
+  	 * \param[in] segmentation, raw pointer of the segmentation adapter.
+  	 * \param[in] tags, list of new tags.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
                                     const QStringList&  tags,
                                     QUndoCommand*       parent = nullptr);
-    virtual void redo();
 
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
+
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
+    /* \brief Helper method to swap new-old tags.
+     *
+     */
     void swapTags();
 
   private:

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -23,31 +23,59 @@
 #define ESPINA_ADD_CATEGORY_COMMAND_H
 
 #include "Undo/EspinaUndo_Export.h"
-#include <QUndoStack>
 
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 
-namespace ESPINA {
+// Qt
+#include <QUndoStack>
 
+namespace ESPINA
+{
   class EspinaUndo_EXPORT AddCategoryCommand
   : public QUndoCommand
   {
   public:
+  	/* \brief AddCategoryCommand class constructor.
+  	 * \param[in] parentCategory, smart pointer of the parent category adapter.
+  	 * \param[in] category, smart pointer of the category adapter to add.
+  	 * \param[in] model, model adapter smart pointer.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                 CategoryAdapterSPtr category,
                                 ModelAdapterSPtr    model,
                                 QUndoCommand*       parent = nullptr);
 
+  	/* \brief AddCategoryCommand class constructor.
+  	 * \param[in] parentCategory, smart pointer of the parent category adapter.
+  	 * \param[in] name, name of the new category.
+  	 * \param[in] model, model adapter smart pointer.
+  	 * \param[in] color, QColor of the new category.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                 const QString&      name,
                                 ModelAdapterSPtr    model,
                                 QColor              color,
                                 QUndoCommand*       parent = nullptr);
+
+    /* \brief AddCategoryCommand class virtual destructor.
+     *
+     */
     virtual ~AddCategoryCommand();
 
-    virtual void redo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
 
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
     ModelAdapterSPtr    m_model;

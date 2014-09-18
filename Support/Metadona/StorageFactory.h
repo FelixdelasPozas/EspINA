@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -23,8 +23,11 @@
 #define ESPINA_METADATA_STORAGE_FACTORY_H
 #include <Storage.h>
 
-namespace ESPINA {
-  class StorageFactory
+#include "Support/EspinaSupport_Export.h"
+
+namespace ESPINA
+{
+  class EspinaSupport_EXPORT StorageFactory
   {
   public:
     static Metadona::StorageSPtr newStorage();

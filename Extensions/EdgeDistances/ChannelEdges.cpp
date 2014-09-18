@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,23 +18,25 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ESPINA
 #include "ChannelEdges.h"
-
 #include "AdaptiveEdgesCreator.h"
 #include "EdgesAnalyzer.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
+// VTK
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
 #include <vtkContourFilter.h>
 #include <vtkDistancePolyDataFilter.h>
 #include <vtkLine.h>
+#include <vtkPoints.h>
 #include <vtkPointData.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkPolyDataWriter.h>
@@ -45,11 +47,11 @@
 #include <vtkGenericDataObjectWriter.h>
 #include <vtkGenericDataObjectReader.h>
 
+// Qt
 #include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
 #include <QThread>
-#include <boost/iterator/iterator_concepts.hpp>
 
 using namespace ESPINA;
 

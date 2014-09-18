@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,11 +19,12 @@
  *
  */
 
+// ESPINA
 #include "MeshData.h"
-
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
 
+// VTK
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyData.h>
 #include <vtkAlgorithm.h>

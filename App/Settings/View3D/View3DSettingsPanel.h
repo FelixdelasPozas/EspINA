@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -22,11 +22,13 @@
 #ifndef ESPINA_VIEW_3D_SETTINGS_PANEL_H
 #define ESPINA_VIEW_3D_SETTINGS_PANEL_H
 
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
 #include <GUI/Widgets/RenderersSelector.h>
-#include "ui_View3DSettingsPanel.h"
-
 #include <GUI/View/View3D.h>
+
+// Qt
+#include "ui_View3DSettingsPanel.h"
 
 namespace ESPINA
 {
@@ -38,24 +40,50 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /* \brief View3DSettingsPanel class constructor.
+     * \param[in] view, raw pointer to a View3D object.
+     * \param[in] renderers, list of renderers smart pointers.
+     *
+     */
     explicit View3DSettingsPanel(View3D *view, const RendererSList &renderers);
 
-    virtual const QString shortDescription()
+    /* \brief Overrides SettingsPanel::shortDescription().
+     *
+     */
+    virtual const QString shortDescription() override
     {return tr("3D View");}
 
-    virtual const QString longDescription()
+    /* \brief Overrides SettingsPanel::longDescription().
+     *
+     */
+    virtual const QString longDescription() override
     {return tr("%1").arg(shortDescription());}
 
-    virtual const QIcon icon()
+    /* \brief Overrides SettingsPanel::icon().
+     *
+     */
+    virtual const QIcon icon() override
     {return QIcon();}
 
-    virtual void acceptChanges();
+    /* \brief Overrides SettingsPanel::acceptChanges().
+     *
+     */
+    virtual void acceptChanges() override;
 
-    virtual void rejectChanges();
+    /* \brief Overrides SettingsPanel::rejectChanges().
+     *
+     */
+    virtual void rejectChanges() override;
 
-    virtual bool modified() const;
+    /* \brief Overrides SettingsPanel::modified().
+     *
+     */
+    virtual bool modified() const override;
 
-    virtual SettingsPanelPtr clone();
+    /* \brief Overrides SettingsPanel::clone().
+     *
+     */
+    virtual SettingsPanelPtr clone() override;
 
   private:
     View3D              *m_view;

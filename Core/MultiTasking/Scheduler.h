@@ -29,37 +29,75 @@
 #ifndef ESPINA_DISPATCHER_H
 #define ESPINA_DISPATCHER_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include "Task.h"
 
 namespace ESPINA {
 
-  class TaskQueue 
-  : public QList<TaskSPtr> {
-  public:
-    void orderedInsert(TaskSPtr worker);
+  class TaskQueue
+  : public QList<TaskSPtr>
+  {
+		public:
+			void orderedInsert(TaskSPtr worker);
   };
 
-  class Scheduler 
+  class EspinaCore_EXPORT Scheduler
   : public QObject
   {
     Q_OBJECT
   public:
+    /* \brief Scheduler class constructor.
+     * \param[in] period, interval for scheduling tasks.
+     * \param[in] parent, raw pointer of the parent of this object.
+     *
+     */
     explicit Scheduler(int period/*ns*/, QObject* parent = 0);
 
+    /* \brief Scheduler class destructor.
+     *
+     */
     virtual ~Scheduler();
 
+    /* \brief Adds a task to the task list.
+     * \param[in] task, task smart pointer.
+     *
+     */
     void addTask(TaskSPtr task);
 
+    /* \brief Removes a task from the task list.
+     * \param[in] task, task smart pointer.
+     *
+     */
     void removeTask(TaskSPtr task);
 
+    /* \brief Aborts all tasks currently in the task list.
+     *
+     */
     void abortExecutingTasks();
 
-    void changePriority(TaskPtr task, int prevPriority);
-    void changePriority(TaskSPtr task, int prevPriority);
+    /* \brief Changes a task priority.
+     * \param[in] task, task raw pointer.
+     *
+     */
+    void changePriority(TaskPtr task, Priority prevPriority);
 
+    /* \brief Changes a task priority.
+     * \param[in] task, task smart pointer.
+     *
+     */
+    void changePriority(TaskSPtr task, Priority prevPriority);
+
+    /* \brief Returns the number of task currently in the task list.
+     *
+     */
     unsigned int numberOfTasks() const;
 
   public slots:
+		/* \brief Starts the scheduler.
+		 *
+		 */
     void scheduleTasks();
 
   signals:
@@ -69,13 +107,13 @@ namespace ESPINA {
   private:
     int m_period;
 
-    TaskQueue m_runningTasks[5];
+    std::map<Priority, TaskQueue> m_runningTasks;
 
     Task::Id m_lastId;
 
-    int    m_maxNumRunningThreads;
+    int            m_maxNumRunningThreads;
     mutable QMutex m_mutex;
-    bool   m_abort;
+    bool           m_abort;
   };
 }
 

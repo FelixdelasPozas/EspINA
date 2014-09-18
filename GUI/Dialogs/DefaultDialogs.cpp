@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,7 +19,10 @@
  *
  */
 
+// ESPINA
 #include "DefaultDialogs.h"
+
+// Qt
 #include <QMessageBox>
 
 using namespace ESPINA;
@@ -95,8 +98,6 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
   fileDialog.selectFile(suggestion);
   fileDialog.setFilter(filters);
   fileDialog.setDirectory(path);
-  //fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
-  //fileDialog.setSidebarUrls(urls);
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.resize(800, 480);
   fileDialog.setConfirmOverwrite(true);

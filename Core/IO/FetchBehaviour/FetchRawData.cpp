@@ -17,7 +17,8 @@
 
 #include "FetchRawData.h"
 
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+// ESPINA
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 
 using namespace ESPINA;

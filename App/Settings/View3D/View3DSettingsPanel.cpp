@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -17,16 +17,19 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// ESPINA
 #include "View3DSettingsPanel.h"
 
+// Qt
 #include <QStandardItemModel>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& renderers)
-: m_view(view)
-, m_renderers(renderers)
+: m_view     {view}
+, m_renderers{renderers}
 {
   setupUi(this);
 
@@ -50,7 +53,6 @@ void View3DSettingsPanel::acceptChanges()
 //-----------------------------------------------------------------------------
 void View3DSettingsPanel::rejectChanges()
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -66,7 +68,6 @@ bool View3DSettingsPanel::modified() const
 
   return current != previous;
 }
-
 
 //-----------------------------------------------------------------------------
 SettingsPanelPtr View3DSettingsPanel::clone()

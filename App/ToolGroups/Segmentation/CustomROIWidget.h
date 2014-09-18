@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,11 +22,13 @@
 #ifndef ESPINA_CUSTOM_ROI_ACTION_H
 #define ESPINA_CUSTOM_ROI_ACTION_H
 
-#include <QWidgetAction>
+// ESPINA
+#include <Core/Utils/Spatial.h>
 
+// Qt
+#include <QWidgetAction>
 #include <QLabel>
 #include <QSpinBox>
-#include <Core/Utils/Spatial.h>
 
 namespace ESPINA
 {
@@ -37,24 +39,60 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    /* \brief CustomROIWidget class constructor.
+     * \param[in] parent, raw pointer to the parent of this object.
+     *
+     */
     explicit CustomROIWidget(QObject* parent=nullptr);
 
-    virtual QWidget* createWidget(QWidget* parent);
+    /* \brief Overrides QWidgetAction::createWidget().
+     *
+     */
+    virtual QWidget* createWidget(QWidget* parent) override;
 
-    virtual void deleteWidget(QWidget* widget);
+    /* \brief Overrides QWidgetAction::deleteWidget().
+     *
+     */
+    virtual void deleteWidget(QWidget* widget) override;
 
+    /* \brief Returns the value of the applyROI flag.
+     *
+     */
     bool applyROI()
     {return m_useROI;}
 
+    /* \brief Sets the value of the ROI for a specified axis.
+     * \param[in] axis, axis for the value.
+     * \param[in] value, size value.
+     */
     void setValue(Axis axis, unsigned int value);
 
+    /* \brief Returns the value of the ROI for a specified axis.
+     * \param[in] axis, axis for the value.
+     */
     unsigned int value(Axis axis) const
     { return m_values[idx(axis)]; }
 
   private slots:
+  	/* \brief Modifies the GUI if the ROI is to be used.
+  	 * \param[in] val, true if the ROI values are going to be used.
+  	 *
+  	 */
     void onApplyROIChanged(bool val);
+
+  	/* \brief Updates the value of the ROI on the X axis.
+  	 *
+  	 */
     void onXSizeChanged(int value);
+
+  	/* \brief Updates the value of the ROI on the Y axis.
+  	 *
+  	 */
     void onYSizeChanged(int value);
+
+  	/* \brief Updates the value of the ROI on the Z axis.
+  	 *
+  	 */
     void onZSizeChanged(int value);
 
   signals:

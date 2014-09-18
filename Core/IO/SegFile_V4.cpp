@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,8 +19,8 @@
  *
  */
 
+// ESPINA
 #include "SegFile_V4.h"
-
 #include "Core/Analysis/Channel.h"
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"
@@ -80,7 +80,8 @@ AnalysisSPtr SegFile_V4::Loader::load()
     auto currentFile    = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
     auto classification = ClassificationXML::parse(currentFile, m_handler);
     m_analysis->setClassification(classification);
-  } catch (ClassificationXML::Parse_Exception &e)
+  }
+  catch (ClassificationXML::Parse_Exception &e)
   {
     if (m_handler)
       m_handler->error(QObject::tr("Error while loading classification"));
@@ -174,7 +175,8 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
   try
   {
     filter = m_factory->createFilter(inputs, roVertex->name());
-  } catch (...)
+  }
+  catch (...)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
     filter->setFetchBehaviour(m_fetchBehaviour);
@@ -353,7 +355,8 @@ DirectedGraph::Vertex SegFile_V4::Loader::inflateVertexV4(DirectedGraph::Vertex 
         try
         {
           vertex = createSegmentation(roVertex);
-        } catch (...)
+        }
+        catch (...)
         {
           qDebug() << "Failed to create segmentation: " << roVertex->name() << roVertex->state();
         }
@@ -378,7 +381,7 @@ DirectedGraph::Vertex SegFile_V4::Loader::inflateVertexV4(DirectedGraph::Vertex 
 //-----------------------------------------------------------------------------
 void SegFile_V4::Loader::createSegmentations()
 {
-  for (auto roVertex : m_pendingSegmenationVertices)
+  for (auto roVertex : m_pendingSegmentationVertices)
   {
     auto vertex = createSegmentation(roVertex);
 
@@ -411,7 +414,8 @@ void SegFile_V4::Loader::restoreRelations()
           relation = Sample::CONTAINS.toStdString();
         }
         m_analysis->addRelation(source, target, relation.c_str());
-      } catch (...)
+      }
+      catch (...)
       {
         qWarning() << "Invalid Relationship: " << relation.c_str();
       }

@@ -24,6 +24,8 @@ qt4_wrap_cpp(GUI_MOC
   Selectors/Selector.h
   Selectors/PixelSelector.h
   Selectors/BrushSelector.h
+  Selectors/CircularBrushSelector.h
+  Selectors/SphericalBrushSelector.h
   View/EventHandler.h
   View/RenderView.h
   View/Selection.h
@@ -116,7 +118,8 @@ set (GUI_SOURCES
   Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
-  Utils/Conditions.cpp
+  Selectors/CircularBrushSelector.cpp
+  Selectors/SphericalBrushSelector.cpp
   Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
   View/EventHandler.cpp
@@ -162,6 +165,8 @@ set (GUI_SOURCES
 
 set(GUI_EXTERNAL_LIBS
   EspinaCore
+  EspinaExtensions
+  EspinaFilters
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}

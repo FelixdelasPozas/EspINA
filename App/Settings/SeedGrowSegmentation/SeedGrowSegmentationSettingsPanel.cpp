@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -39,9 +39,9 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 //------------------------------------------------------------------------
 SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings,
                                                                        ViewManagerSPtr               viewManager)
-: m_settings(settings)
-, m_viewManager(viewManager)
-, m_zValueChanged(false)
+: m_settings     {settings}
+, m_viewManager  {viewManager}
+, m_zValueChanged{false}
 {
   setupUi(this);
 

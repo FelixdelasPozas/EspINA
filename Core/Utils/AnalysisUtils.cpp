@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,11 +23,11 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
+// ESPINA
 #include "AnalysisUtils.h"
-
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Sample.h>
@@ -103,7 +103,7 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 
   QMap<PersistentSPtr, PersistentSPtr> mergedItems;
 
-  for(auto analysis : {lhs, rhs}) 
+  for(auto analysis : {lhs, rhs})
   {
     for(auto sample : analysis->samples())
     {
@@ -149,7 +149,7 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
                 Q_ASSERT(mergedFilter->validOutput(input->output()->id()));
                 updatedInputs << getInput(mergedFilter, input->output()->id());
               }
-              else 
+              else
                 updatedInputs << input;
             }
             succesor->setInputs(updatedInputs);

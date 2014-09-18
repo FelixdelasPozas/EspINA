@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -103,7 +103,7 @@ namespace ESPINA
       delete deleteNode;
     }
   }
-  
+
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::setEnable(bool value)
   {
@@ -199,7 +199,7 @@ namespace ESPINA
       node->mutex.lockForWrite();
       if(node->worker == nullptr)
       {
-        node->worker = createTask((node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW);
+        node->worker = createTask((node == m_actualPos) ? Priority::VERY_HIGH : Priority::LOW);
         node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
         node->worker->setInput(node, repList);
         node->worker->submit(node->worker);
@@ -216,7 +216,7 @@ namespace ESPINA
       node->mutex.unlock();
     }
   }
-  
+
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::removeRepresentation(RepresentationSPtr rep)
   {
@@ -262,7 +262,7 @@ namespace ESPINA
     if (m_representationsActors.keys().size() == 0)
       m_needCameraReset = true;
   }
-  
+
   //-----------------------------------------------------------------------------
   bool CachedSliceRenderer::hasRepresentation(RepresentationSPtr rep) const
   {
@@ -274,13 +274,13 @@ namespace ESPINA
 
     return false;
   }
-  
+
   //-----------------------------------------------------------------------------
   bool CachedSliceRenderer::managesRepresentation(const QString &repType) const
   {
     return ((repType == ChannelSliceCachedRepresentation::TYPE) || (repType == SegmentationSliceCachedRepresentation::TYPE));
   }
-  
+
   //-----------------------------------------------------------------------------
   unsigned int CachedSliceRenderer::numberOfvtkActors() const
   {
@@ -293,7 +293,7 @@ namespace ESPINA
 
     return numActors;
   }
-  
+
   //-----------------------------------------------------------------------------
   ViewItemAdapterList CachedSliceRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
@@ -359,7 +359,7 @@ namespace ESPINA
     m_picker->GetPickList()->RemoveAllItems();
     return selection;
   }
-  
+
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::resolutionChanged()
   {
@@ -383,7 +383,7 @@ namespace ESPINA
 
     emit renderRequested();
   }
-  
+
   //-----------------------------------------------------------------------------
   void CachedSliceRenderer::show()
   {
@@ -573,7 +573,7 @@ namespace ESPINA
         }
         else
         {
-          node->worker = createTask(node == m_actualPos ? Priority::VERY_HIGHT : Priority::LOW);
+          node->worker = createTask(node == m_actualPos ? Priority::VERY_HIGH : Priority::LOW);
           node->worker->setInput(node, segList);
           node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
           node->worker->submit(node->worker);
@@ -740,7 +740,7 @@ namespace ESPINA
     for(auto rep: m_actualPos->representations.keys())
       m_actualPos->representations[rep] = nullptr;
 
-    Priority priority = Priority::VERY_HIGHT;
+    Priority priority = Priority::VERY_HIGH;
     auto validReps = validRepresentationsForPosition(position);
     if(!validReps.empty())
     {
@@ -859,7 +859,7 @@ namespace ESPINA
       auto repList = validRepresentationsForPosition(node->position);
       if(!repList.empty())
       {
-        node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
+        node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGH : Priority::LOW );
         node->worker->setInput(node, repList);
         node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
         node->worker->submit(node->worker);
@@ -910,7 +910,7 @@ namespace ESPINA
 
       if (!node->repsToAdd.empty())
       {
-        node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGHT : Priority::LOW );
+        node->worker = createTask( (node == m_actualPos) ? Priority::VERY_HIGH : Priority::LOW );
         node->worker->setInput(node, node->repsToAdd);
         node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
         node->worker->submit(node->worker);
@@ -1057,7 +1057,7 @@ namespace ESPINA
 
     if(m_actualPos->worker != nullptr)
     {
-      m_actualPos->worker->setPriority(Priority::VERY_HIGHT);
+      m_actualPos->worker->setPriority(Priority::VERY_HIGH);
 
       // TODO: evitar el fallo de cache inicial
       setWindowWidth(m_windowWidth + WINDOW_INCREMENT);

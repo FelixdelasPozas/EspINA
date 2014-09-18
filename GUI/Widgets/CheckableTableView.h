@@ -25,12 +25,12 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef CHECKABLETABLEVIEW_H
 #define CHECKABLETABLEVIEW_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <QTableView>
 
 class EspinaGUI_EXPORT CheckableTableView
@@ -38,9 +38,16 @@ class EspinaGUI_EXPORT CheckableTableView
 {
   Q_OBJECT
 public:
+  /* \brief CheckableTableView class constructor.
+   * \param[in] parent, raw pointer of the QWidget parent of this one.
+   *
+   */
   explicit CheckableTableView(QWidget *parent = 0);
 
-  virtual void mouseReleaseEvent(QMouseEvent *event);
+  /* \brief Overrides QAbstractItemView::mouseReleaseEvent().
+   *
+   */
+  virtual void mouseReleaseEvent(QMouseEvent *event) override;
 
 signals:
   void itemStateChanged(const QModelIndex &);

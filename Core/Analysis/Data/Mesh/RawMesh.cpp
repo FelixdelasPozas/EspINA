@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -125,7 +125,6 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
   m_mesh = rhs->mesh();
   return true;
 }
-
 
 //----------------------------------------------------------------------------
 RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)

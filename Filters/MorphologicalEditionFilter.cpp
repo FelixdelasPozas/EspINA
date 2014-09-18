@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "MorphologicalEditionFilter.h"
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -35,10 +36,10 @@ const unsigned int LABEL_VALUE = 255;
 MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList    inputs,
                                                        Filter::Type  type,
                                                        SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
-, m_ignoreStorageContent(false)
-, m_radius(0)
-, m_isOutputEmpty(true)
+: Filter                {inputs, type, scheduler}
+, m_ignoreStorageContent{false}
+, m_radius              {0}
+, m_isOutputEmpty       {true}
 {
 }
 

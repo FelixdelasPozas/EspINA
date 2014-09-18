@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Pe�a Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -61,38 +61,40 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief enum type class
+    /* \brief enum type class to specifty if the renderer works with segmentation's representations or other.
      *
      */
-    enum class Type: std::int8_t { Base = 1, Representation = 2, Other = 3 };
+    enum class Type: std::int8_t { Representation = 1, Other = 2 };
 
-    virtual ~Renderer(){}
+    /* \brief Renderer class destructor.
+     *
+     */
+    virtual ~Renderer()
+    {}
 
     /* \brief Returns the name of the renderer.
      *
      */
-    virtual const QString name() const
-    { return QString(); }
+    virtual const QString name() const = 0;
 
     /* \brief Returns the tooltip associated to GUI elements representing this renderer.
      *
      */
-    virtual const QString tooltip() const
-    { return QString(); }
+    virtual const QString tooltip() const = 0;
 
     /* \brief Returns the icon associated to GUI elements representing this renderer.
      *
      */
-    virtual const QIcon icon() const
-    { return QIcon(); }
+    virtual const QIcon icon() const = 0;
 
-    /* \brief Initializes renderer.
+    /* \brief Initializes renderer and assigns the view.
+     * \param[in] view, RenderView raw pointer.
      *
      */
     virtual void setView(RenderView* view)
     { m_view = view; }
 
-    /* \brief Clones the class from a prototype.
+    /* \brief Returns a new instance of the class.
      *
      */
     virtual RendererSPtr clone() const = 0;
@@ -102,7 +104,7 @@ namespace ESPINA
      */
     virtual unsigned int numberOfvtkActors() const = 0;
 
-    /* \brief Returns true if the renderer is not enabled.
+    /* \brief Returns true if the renderer is not enabled, false otherwise.
      *
      */
     virtual bool isHidden() const
@@ -111,7 +113,7 @@ namespace ESPINA
     /* \brief Returns flags describing the view supported by this renderer, that is,
      * views that this renderer can work with.
      */
-    virtual RendererTypes renderType() const { return RendererTypes(RENDERER_UNDEFINED_VIEW); }
+    virtual RendererTypes renderType() const = 0;
 
     /* \brief Return the number of elements actually been managed by this renderer (abstract items).
      *
@@ -121,14 +123,17 @@ namespace ESPINA
     /* \brief Return the type of render class.
      *
      */
-    virtual Type type() const
-    { return Type::Base; }
+    virtual Type type() const = 0;
 
   protected:
-    /* \brief Convenience methods to hide or show all elements of a renderer. To be used only by setEnable().
+    /* \brief Convenience methods to hide all elements of a renderer. To be used only by setEnable().
      *
      */
     virtual void hide() = 0;
+
+    /* \brief Convenience methods to show all elements of a renderer. To be used only by setEnable().
+     *
+     */
     virtual void show() = 0;
 
   public slots:
@@ -149,13 +154,13 @@ namespace ESPINA
     }
 
   signals:
-    /* \brief Signal emitted when enabling/diabling the renderer to force an update in it's view.
-     *
-     */
     void renderRequested();
 
   protected:
-    explicit Renderer(QObject* parent = 0)
+    /* \brief Renderer class private constructor.
+     * \param[in] parent, raw pointer of the QObject parent of this one.
+     */
+    explicit Renderer(QObject* parent = nullptr)
     : m_enable{false}
     , m_view  {nullptr}
     {}
@@ -166,11 +171,15 @@ namespace ESPINA
   };
 
   /* \brief Returns true if the render can render in the view specified by RendererType.
+   * \param[in] renderer, renderer smart pointer.
+   * \param[in] type, renderer type to check.
    *
    */
   bool canRender(RendererSPtr renderer, RendererType type);
 
   /* \brief Returns true if the render can render in the views specified by RendererTypes.
+   * \param[in] renderer, renderer smart pointer.
+   * \param[in] types, renderer types to check.
    *
    */
   bool canRender(RendererSPtr renderer, RendererTypes types);

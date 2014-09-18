@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,19 +21,22 @@
 #ifndef ESPINA_MEASURES_TOOLS_H_
 #define ESPINA_MEASURES_TOOLS_H_
 
-#include <Support/ToolGroup.h>
+// ESPINA
+#include <Support/Widgets/ToolGroup.h>
 #include <Tools/Measure/MeasureTool.h>
 #include <Tools/Ruler/RulerTool.h>
 
 namespace ESPINA
 {
-  
+
   class MeasuresTools
   : public ToolGroup
   {
     Q_OBJECT
     public:
       /* \brief MeasuresTools class constructor.
+       * \param[in] viewManager, view manager smart pointer.
+       * \param[in] parent, QWidget raw pointer of the parent of this object.
        *
        */
       explicit MeasuresTools(ViewManagerSPtr viewManager, QWidget* parent = nullptr);

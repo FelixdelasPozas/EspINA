@@ -1,8 +1,21 @@
 /*
- * PlanarSplitWidget.h
- *
- *  Created on: Nov 5, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef PLANARSPLITWIDGET_H_
@@ -23,7 +36,6 @@
 
 // Qt
 #include <QMap>
-
 
 class vtkAbstractWidget;
 class vtkPoints;
@@ -63,13 +75,11 @@ namespace ESPINA
       {return new PlanarSplitWidget();};
 
       /* \brief Implements EspinaWidget::registerView().
-       * \param[in] view, RenderView that will show the widget.
        *
        */
       void registerView(RenderView *view);
 
       /* \brief Implements EspinaWidget::unregisterView().
-       * \param[in] view, RenderView that has the widget to be removed.
        *
        */
       void unregisterView(RenderView *view);
@@ -77,15 +87,17 @@ namespace ESPINA
       /* \brief Implements EspinaWidget::manipulatesSegmentations().
        *
        */
-      virtual bool manipulatesSegmentations() const { return true; };
+      virtual bool manipulatesSegmentations() const
+      { return true; };
 
       /* \brief Implmements EspinaWidget::setEnabled()
-       * \param[in] enable
+       *
        */
       virtual void setEnabled(bool enable);
 
       /* \brief Set plane points.
        * \param[in] points
+       *
        */
       virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points);
 
@@ -99,10 +111,8 @@ namespace ESPINA
        */
       virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 spacing) const;
 
-      //TODO: virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(SegmentationVolumeSPtr volume);
-
       /* \brief Sets the bounds of the segmentation to be splitted.
-       * \param[in] bounds
+       * \param[in] bounds, bounds of the segmentation.
        *
        */
       virtual void setSegmentationBounds(const Bounds bounds);
@@ -114,6 +124,7 @@ namespace ESPINA
 
       /* \brief Returns the ESPINA::Plane equivalent to the SplitWidgetType type specified as parameter.
        * \param[in] type, SplitWidgetType value.
+       *
        */
       static Plane toPlane(const SplitWidgetType type)
       {
@@ -134,6 +145,7 @@ namespace ESPINA
 
       /* \brief Returns the SplitWidgetType equivalent to the ESPINA::Plane type specified as parameter.
        * \param[in] plane, ESPINA::Plane value.
+       *
        */
       static SplitWidgetType toSplitType(const Plane plane)
       {
@@ -157,10 +169,17 @@ namespace ESPINA
       }
 
     public slots:
+			/* \brief Updates the widget when the slice of the view changes.
+			 *
+			 */
       void changeSlice(Plane plane, Nm slice);
 
     private:
+      /* \brief PlanarSplitWidget class private constructor.
+       *
+       */
       explicit PlanarSplitWidget();
+
       friend class vtkSplitCommand;
 
       QMap<RenderView *, vtkAbstractWidget *> m_widgets;
@@ -210,9 +229,7 @@ namespace ESPINA
       {};
 
       PlanarSplitWidgetPtr m_widget;
-
   };
-
 
 }// namespace ESPINA
 

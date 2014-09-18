@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -17,6 +17,8 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+// ESPINA
 #include "NumberColorEngine.h"
 
 using namespace ESPINA;
@@ -46,8 +48,6 @@ LUTSPtr NumberColorEngine::lut(SegmentationAdapterPtr segmentation)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   auto lutName = QString::number(segmentation->number());
-//   if (seg->isSelected())
-//     lutName.append("_selected");
 
   LUTSPtr seg_lut = nullptr;
 

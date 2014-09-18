@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -35,12 +35,12 @@ DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
                                                    View3D* view3D,
                                                    RendererSList renderers,
                                                    RenderersMenu *menu)
-: m_viewXY(viewXY)
-, m_viewXZ(viewXZ)
-, m_viewYZ(viewYZ)
-, m_view3D(view3D)
-, m_renderers(renderers)
-, m_menu(menu)
+: m_viewXY   {viewXY}
+, m_viewXZ   {viewXZ}
+, m_viewYZ   {viewYZ}
+, m_view3D   {view3D}
+, m_renderers{renderers}
+, m_menu     {menu}
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;
@@ -133,7 +133,6 @@ void DefaultViewSettingsPanel::acceptChanges()
 //-----------------------------------------------------------------------------
 void DefaultViewSettingsPanel::rejectChanges()
 {
-
 }
 
 //-----------------------------------------------------------------------------

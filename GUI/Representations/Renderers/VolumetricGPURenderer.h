@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,12 +21,10 @@
 #ifndef ESPINA_VOLUMETRIC_GPU_RENDERER_H
 #define ESPINA_VOLUMETRIC_GPU_RENDERER_H
 
-#include "GUI/EspinaGUI_Export.h"
-
 // ESPINA
 #include "VolumetricRenderer.h"
 #include "GUI/View/RenderView.h"
-#include <GUI/Representations/VolumetricGPURepresentation.h>
+#include <GUI/Representations/VolumetricGPURepresentation.hxx>
 
 // VTK
 #include <vtkVolume.h>
@@ -37,21 +35,57 @@
 namespace ESPINA
 {
   template<class T>
-  class EspinaGUI_EXPORT VolumetricGPURenderer
+  class VolumetricGPURenderer
   : public VolumetricRenderer<T>
   {
     public:
-      explicit VolumetricGPURenderer(QObject* parent = 0);
+  		/* \brief VolumetricGPURenderer class constructor.
+  		 * \param[in] parent, raw pointer of the QObject parent of this one.
+  		 *
+  		 */
+      explicit VolumetricGPURenderer(QObject* parent = nullptr);
+
+  		/* \brief VolumetricGPURenderer class virtual destructor.
+  		 *
+  		 */
       virtual ~VolumetricGPURenderer();
 
-      virtual const QIcon icon()      const {return QIcon(":/espina/voxelGPU.png");}
-      virtual const QString name()    const {return "Volumetric GPU";}
-      virtual const QString tooltip() const {return "Segmentation's GPU Rendered Volumes";}
+  		/* \brief Implments Renderer::icon() const.
+  		 *
+  		 */
+      virtual const QIcon icon() const
+      { return QIcon(":/espina/voxelGPU.png"); }
 
+  		/* \brief Implements Renderer::name() const.
+  		 *
+  		 */
+      virtual const QString name() const
+      { return "Volumetric GPU"; }
+
+  		/* \brief Implements Renderer::tooltip() const.
+  		 *
+  		 */
+      virtual const QString tooltip() const
+      { return "Segmentation's GPU Rendered Volumes"; }
+
+  		/* \brief Implements RepresentationRenderer::addRepresentation().
+  		 *
+  		 */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+
+  		/* \brief Implements RepresentationRenderer::removeRepresentation().
+  		 *
+  		 */
       virtual void removeRepresentation(RepresentationSPtr rep);
+
+  		/* \brief Implements RepresentationRenderer::managesRepresentation() const.
+  		 *
+  		 */
       virtual bool managesRepresentation(const QString &representationType) const;
 
+  		/* \brief Implements Renderer::clone().
+  		 *
+  		 */
       virtual RendererSPtr clone() const {return RendererSPtr(new VolumetricGPURenderer());}
   };
 

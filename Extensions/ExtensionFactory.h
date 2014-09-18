@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -30,10 +30,21 @@ namespace ESPINA
   class EspinaExtensions_EXPORT ExtensionFactory
   {
   public:
+  	/* \brief ExtensionFactory class constructor.
+  	 *
+  	 */
     virtual ~ExtensionFactory() {}
 
+    /* \brief Creates a channel extensions.
+     * \param[in] type, channel extension type.
+     *
+     */
     virtual ChannelExtensionSPtr createChannelExtension(ChannelExtension::Type type) = 0;
 
+    /* \brief Creates a segmentation extension.
+     * \param[in] type, segmentation extenion type.
+     *
+     */
     virtual SegmentationExtensionSPtr createSegmentationExtension(SegmentationExtension::Type type) = 0;
   };
 

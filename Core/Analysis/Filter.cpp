@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "Filter.h"
-#include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
 
 // ITK
@@ -138,10 +138,9 @@ bool Filter::update(Output::Id id)
        }
      }
    }
-   
+
    return true;
 }
-
 
 //----------------------------------------------------------------------------
 Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)

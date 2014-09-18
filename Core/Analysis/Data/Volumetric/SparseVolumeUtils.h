@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,14 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "SparseVolume.h"
+// ESPINA
+#include "SparseVolume.hxx"
 
 namespace ESPINA
 {
-  // TODO: @Jorge: Review API (change to volume, volume/mask, [bounds])
-  void expandAndDraw(SparseVolumeSPtr volume, const Bounds &bounds, const BinaryMaskSPtr<unsigned char> &mask)
+	//-----------------------------------------------------------------------------
+  void expandAndDraw(SparseVolumeSPtr volume, const BinaryMaskSPtr<unsigned char> &mask)
   {
-    volume->resize(boundingBox(bounds, volume->bounds()));
+    volume->resize(boundingBox(mask->bounds().bounds(), volume->bounds()));
     volume->draw(mask, mask->foregroundValue());
   }
 }

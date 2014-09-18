@@ -5,7 +5,7 @@ include_directories(
 
 include (GenerateExportHeader)
 
-set (UNDO_SOURCES
+set (Undo_SOURCES
   ${UNDO_MOC}
   ${UNDO_UI}
   AddCategoryCommand.cpp
@@ -21,23 +21,24 @@ set (UNDO_SOURCES
   ReplaceOutputCommand.cpp
   )
 
-set(UNDO_EXTERNAL_LIBS
+set(Undo_EXTERNAL_LIBS
   EspinaCore
+  EspinaSupport
   EspinaGUI
 )
 
 if(DEFINED MINGW OR DEFINED MSVC)
   if(DEFINED ESPINA_VERSION_MAJOR)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
-    SET(UNDO_SOURCES ${UNDO_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
+    SET(Undo_SOURCES ${Undo_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     ENABLE_LANGUAGE(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
 endif(DEFINED MINGW OR DEFINED MSVC)
 
-add_library (EspinaUndo SHARED ${UNDO_SOURCES})
+add_library (EspinaUndo SHARED ${Undo_SOURCES})
 
-target_link_libraries (EspinaUndo ${UNDO_EXTERNAL_LIBS})
+target_link_libraries (EspinaUndo ${Undo_EXTERNAL_LIBS})
 
 GENERATE_EXPORT_HEADER(
              EspinaUndo
@@ -46,7 +47,7 @@ GENERATE_EXPORT_HEADER(
              EXPORT_FILE_NAME EspinaUndo_Export.h
   )
 
-#set (UNDO_HEADERS 
+#set (Undo_HEADERS 
 #  #TODO: set all header files required to develop external apps
 #  "${CMAKE_CURRENT_BINARY_DIR}/EspinaUndo_Export.h"
 #  )

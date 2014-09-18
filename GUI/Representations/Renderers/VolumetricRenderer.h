@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,11 +21,9 @@
 #ifndef ESPINA_VOLUMETRIC_RENDERER_H
 #define ESPINA_VOLUMETRIC_RENDERER_H
 
-#include "GUI/EspinaGUI_Export.h"
-
 // ESPINA
 #include "RepresentationRenderer.h"
-#include <GUI/Representations/VolumetricRepresentation.h>
+#include <GUI/Representations/VolumetricRepresentation.hxx>
 #include <GUI/View/RenderView.h>
 #include <Core/EspinaTypes.h>
 
@@ -39,48 +37,117 @@
 namespace ESPINA
 {
   template<class T>
-  class EspinaGUI_EXPORT VolumetricRenderer
+  class VolumetricRenderer
   : public RepresentationRenderer
   {
   public:
-    explicit VolumetricRenderer(QObject* parent = 0);
+  	/* \brief VolumetricRenderer class constructor.
+  	 * \param[in] parent, raw pointer of the QObject parent of this one.
+  	 *
+  	 */
+    explicit VolumetricRenderer(QObject* parent = nullptr);
+
+    /* \brief VolumetricRenderer class destructor.
+     *
+     */
     virtual ~VolumetricRenderer();
 
-    const QIcon icon()      const {return QIcon(":/espina/voxel.png");}
-    const QString name()    const {return "Volumetric";}
-    const QString tooltip() const {return "Segmentation's Volumes";}
+    /* \brief Implements Renderer::icon() const.
+     *
+     */
+    const QIcon icon() const
+    {return QIcon(":/espina/voxel.png");}
 
+    /* \brief Implements Renderer::name() const.
+     *
+     */
+    const QString name() const
+    {return "Volumetric";}
+
+    /* \brief Implements Renderer::tooltip() const.
+     *
+     */
+    const QString tooltip() const
+    {return "Segmentation's Volumes";}
+
+    /* \brief Implements RepresentationRenderer::addRepresentation().
+     *
+     */
     virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+
+    /* \brief Implements RepresentationRenderer::removeRepresentation().
+     *
+     */
     virtual void removeRepresentation(RepresentationSPtr rep);
+
+    /* \brief Implements RepresentationRenderer::hasRepresentation().
+     *
+     */
     virtual bool hasRepresentation(RepresentationSPtr rep) const;
+
+    /* \brief Implements RepresentationRenderer::managesRepresentation().
+     *
+     */
     virtual bool managesRepresentation(const QString &representationType) const;
 
-    RendererSPtr clone() const {return RendererSPtr(new VolumetricRenderer());}
+    /* \brief Implements Renderer::clone() const.
+     *
+     */
+    RendererSPtr clone() const
+    {return RendererSPtr(new VolumetricRenderer());}
 
-    unsigned int numberOfvtkActors() const { return 0; }
+    /* \brief Implements Renderer::numberOfvtkActors() const.
+     *
+     */
+    unsigned int numberOfvtkActors() const
+    { return 0; }
 
-    RenderableItems renderableItems() const { return RenderableItems(ESPINA::SEGMENTATION); }
+    /* \brief Implements RepresentationRenderer::renderableItems().
+     *
+     */
+    RenderableItems renderableItems() const
+    { return RenderableItems(RenderableType::SEGMENTATION); }
 
-    RendererTypes renderType() const { return RendererTypes(RENDERER_VIEW3D); }
+    /* \brief Implements Renderer::renderType() const.
+     *
+     */
+    RendererTypes renderType() const
+    { return RendererTypes(RENDERER_VIEW3D); }
 
+    /* \brief Implements RepresentationRenderer::canRender() const.
+     *
+     */
     bool canRender(ItemAdapterPtr item) const
     { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
 
-    int numberOfRenderedItems() const { return m_representations.size(); }
+    /* \brief Implements Renderer::numberOfRenderedItems() const.
+     *
+     */
+    int numberOfRenderedItems() const
+    { return m_representations.size(); }
 
-    // to pick items been rendered
+    /* \brief Implements RepresentationRenderer::pick().
+     *
+     */
     ViewItemAdapterList pick(int x, int y, Nm z,
                              vtkSmartPointer<vtkRenderer> renderer,
                              RenderableItems itemType = RenderableItems(),
                              bool repeat = false);
 
-    /* \brief Implements Renderer::setView(RenderView *view);
+    /* \brief Overrides Renderer::setView().
      *
      */
-    virtual void setView(RenderView *view);
+    virtual void setView(RenderView *view) override;
 
   protected:
+    /* \brief Implements Renderer::hide().
+     *
+     */
     void hide();
+
+    /* \brief Implements Renderer::show().
+     *
+     */
     void show();
 
     vtkSmartPointer<vtkVolumePicker> m_picker;

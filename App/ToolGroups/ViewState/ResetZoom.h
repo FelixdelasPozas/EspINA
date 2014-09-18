@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -23,7 +23,7 @@
 #define ESPINA_RESET_ZOOM_TOOL_H
 
 // ESPINA
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 
 class QAction;
@@ -37,7 +37,7 @@ namespace ESPINA
     Q_OBJECT
     public:
       /* \brief ResetZoom class constructor.
-       * \param[in] vm Application view manager.
+       * \param[in] vm, view manager smart pointer.
        */
       explicit ResetZoom(ViewManagerSPtr vm);
 
@@ -46,17 +46,17 @@ namespace ESPINA
        */
       virtual ~ResetZoom();
 
-      /* \brief Implements Tool::actions.
+      /* \brief Implements Tool::actions().
        *
        */
       virtual QList<QAction *> actions() const;
 
-      /* \brief Implements Tool::enabled.
+      /* \brief Implements Tool::enabled().
        *
        */
       virtual bool enabled() const;
 
-      /* \brief Implements Tool::setEnabled.
+      /* \brief Implements Tool::setEnabled().
        *
        */
       virtual void setEnabled(bool value);

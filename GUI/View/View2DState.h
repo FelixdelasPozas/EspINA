@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,10 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_VIEW_2D_STATE_H
 #define ESPINA_VIEW_2D_STATE_H
 
+// ESPINA
 #include "GUI/View/View2D.h"
 
 class vtkCamera;
@@ -33,14 +33,29 @@ namespace ESPINA
   class View2D::State
   {
   public:
-    virtual ~State() {}
+  	/* \brief State class constructor.
+  	 *
+  	 */
+    virtual ~State()
+    {}
 
+    /* \brief Sets the crosshairs of the view.
+     * \param[out] hline, smart pointer of the vtkPolyData of the horizontal crosshair line.
+     * \param[out] vline, smart pointer of the vtkPolyData of the vertical crosshair line.
+     * \param[in] center, crosshair point.
+     * \param[in] bounds, bounds of the view.
+     * \param[in] slicingStep, spacing of the view's plane.
+     *
+     */
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep) = 0;
 
+    /* \brief Updates the camera of the view.
+     *
+     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center) = 0;
   };
@@ -49,14 +64,24 @@ namespace ESPINA
   : public View2D::State
   {
   public:
-    explicit AxialState(){}
+  	/* \brief AxialState class constructor.
+  	 *
+  	 */
+    explicit AxialState()
+    {}
 
+    /* \brief Implements State::setCrosshairs().
+     *
+     */
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep);
 
+    /* \brief Implements State::updateCamera().
+     *
+     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };
@@ -65,14 +90,24 @@ namespace ESPINA
   : public View2D::State
   {
   public:
-    explicit SagittalState(){}
+  	/* \brief SagittalState class constructor.
+  	 *
+  	 */
+    explicit SagittalState()
+    {}
 
+    /* \brief Implements State::setCrosshairs().
+     *
+     */
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep);
 
+    /* \brief Implements State::updateCamera().
+     *
+     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };
@@ -81,14 +116,24 @@ namespace ESPINA
   : public View2D::State
   {
   public:
-    explicit CoronalState(){}
+  	/* \brief CoronalState class constructor.
+  	 *
+  	 */
+    explicit CoronalState()
+    {}
 
+    /* \brief Implements State::setCrosshairs().
+     *
+     */
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep);
 
+    /* \brief Implements State::updateCamera().
+     *
+     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };

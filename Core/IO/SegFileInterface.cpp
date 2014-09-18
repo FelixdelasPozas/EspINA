@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,11 +19,16 @@
  *
  */
 
+// ESPINA
 #include "SegFileInterface.h"
 #include "SegFile.h"
 
+// QuaZip
 #include <quazip/quazipfile.h>
+
+// Qt
 #include <QUuid>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -38,8 +43,8 @@ void SegFileInterface::addFileToZip(const QString&    fileName,
 {
   QuaZipFile zFile(&zip);
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
-
   zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644
+
   if (!zFile.open(QIODevice::WriteOnly, zFileInfo))
   {
     if (handler)
@@ -49,6 +54,7 @@ void SegFileInterface::addFileToZip(const QString&    fileName,
     throw (SegFile::IO_Error_Exception());
   }
   zFile.write(content);
+
   if (zFile.getZipError() != UNZ_OK)
   {
     if (handler)

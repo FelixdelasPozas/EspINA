@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,9 +22,12 @@
 #ifndef GENERALSETTINGS_H
 #define GENERALSETTINGS_H
 
+// Qt
 #include <QObject>
 #include <QString>
 #include <QDir>
+
+// C++
 #include <memory>
 
 class QSettings;
@@ -37,23 +40,55 @@ namespace ESPINA
 
   class GeneralSettings
   {
-  public:
-    explicit GeneralSettings();
-    ~GeneralSettings();
+		public:
+			/* \brief GeneralSettings class constructor.
+			 *
+			 */
+			explicit GeneralSettings();
 
-    QString userName() const {return m_userName;}
-    void setUserName(QString name);
+			/* \brief GeneralSettings class destructor.
+			 *
+			 */
+			~GeneralSettings();
 
-    int autosaveInterval() const {return m_autosaveInterval;}
-    void setAutosaveInterval(int min);
+			/* \brief Returns user name.
+			 *
+			 */
+			QString userName() const
+			{return m_userName;}
 
-    QDir autosavePath() const {return m_autosavePath;}
-    void setAutosavePath(const QString path);
+			/* \brief Sets the user name.
+			 * \param[in] name, user name.
+			 *
+			 */
+			void setUserName(QString name);
 
-  private:
-    QString m_userName;
-    int     m_autosaveInterval;
-    QDir    m_autosavePath;
+			/* \brief Returns auto-save interval time in minutes.
+			 *
+			 */
+			int autosaveInterval() const
+			{return m_autosaveInterval;}
+
+			/* \brief Sets the auto-save interval.
+			 * \param[in] min, minutes value.
+			 *
+			 */
+			void setAutosaveInterval(int min);
+
+			/* \brief Returns the path of the auto-save file.
+			 *
+			 */
+			QDir autosavePath() const {return m_autosavePath;}
+
+			/* \brief Sets the auto-save path.
+			 *
+			 */
+			void setAutosavePath(const QString path);
+
+		private:
+			QString m_userName;
+			int     m_autosaveInterval;
+			QDir    m_autosavePath;
   };
 
   using GeneralSettingsSPtr = std::shared_ptr<GeneralSettings>;

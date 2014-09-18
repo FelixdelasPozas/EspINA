@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,7 +21,7 @@
 #define ESPINA_BRUSH_ROI_H
 
 // ESPINA
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <App/ToolGroups/Edition/ManualEditionTool.h>
@@ -34,17 +34,16 @@ namespace ESPINA
 {
   class ROIToolsGroup;
 
-  // Volume Of Interest Toolbar
   class ManualROITool
   : public ManualEditionTool
   {
     Q_OBJECT
   public:
     /* \brief ManualROITool class constructor.
-     * \param[in] model       Analysis model adapter.
-     * \param[in] viewManager Application view manager.
-     * \param[in] undoStack   Application qt undo stack pointer.
-     * \param[in] toolGroup   ROIToolsGroup pointer containing ROI accumulator.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] undoStack. QUndoStack object raw pointer.
+     * \param[in] toolGroup, ROIToolsGroup raw pointer containing ROI accumulator.
      */
     explicit ManualROITool(ModelAdapterSPtr model,
                            ViewManagerSPtr  viewManager,
@@ -57,30 +56,31 @@ namespace ESPINA
     virtual ~ManualROITool();
 
   protected slots:
-    /* \brief Implements ManualEditionTool::drawingModeChanged(bool) slot.
+    /* \brief Overrides ManualEditionTool::drawingModeChanged(bool) slot.
      *
      */
-    void drawingModeChanged(bool);
+    void drawingModeChanged(bool) override;
 
-    /* \brief Implements ManualEditionTool::changeSelector(QAction *) slot.
+    /* \brief Overrides ManualEditionTool::changeSelector(QAction *) slot.
      *
      */
-    void changeSelector(QAction *selectorAction);
+    void changeSelector(QAction *selectorAction) override;
 
-    /* \brief Implements ManualEditionTool::selectorInUse(bool) slot.
+    /* \brief Overrides ManualEditionTool::selectorInUse(bool) slot.
      *
      */
-    void selectorInUse(bool value);
+    void selectorInUse(bool value) override;
 
-    /* \brief Implements ManualEditionTool::drawStroke(Selector::Selection) slot.
+    /* \brief Overrides ManualEditionTool::drawStroke(Selector::Selection) slot.
      *
      */
-    void drawStroke(Selector::Selection);
+    void drawStroke(Selector::Selection) override;
 
     /* \brief Updates the selector parameters based on application selected items.
+     * \param[in] unused, unused value.
      *
      */
-    void updateReferenceItem(SelectionSPtr selection);
+    void updateReferenceItem(SelectionSPtr unused);
 
     /* \brief Aborts current tool operation.
      *
@@ -93,6 +93,9 @@ namespace ESPINA
     void ROIChanged();
 
   private:
+    /* \brief Shows/hides controls for this tool.
+     * \param[in] value, true to show controls, false otherwise.
+     */
     void setControlVisibility(bool value);
 
   private:

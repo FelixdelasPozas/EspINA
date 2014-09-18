@@ -1,6 +1,6 @@
 /*
-    
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -21,20 +21,24 @@
 #ifndef ROI_CONSTRAINED_H_
 #define ROI_CONSTRAINED_H_
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 
 namespace ESPINA
 {
-  class ROIConstrained
+  class EspinaCore_EXPORT ROIConstrained
   {
     public:
-      /* \brief ROIConstraied class virtual destructor.
+      /* \brief ROIConstrained class virtual destructor.
        *
        */
       virtual ~ROIConstrained()
       {}
 
       /* \brief Set region of interest of the element.
+       * \param[in] roi, ROI object smart pointer.
        *
        */
       virtual void setROI(ROISPtr roi) = 0;

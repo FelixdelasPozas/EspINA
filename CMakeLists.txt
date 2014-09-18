@@ -184,9 +184,9 @@ endif()
 
 
 add_subdirectory( Core       )
-add_subdirectory( GUI        )
 add_subdirectory( Extensions )
 add_subdirectory( Filters    )
+add_subdirectory( GUI        )
 add_subdirectory( Support    )
 add_subdirectory( Undo       )
 add_subdirectory( App        )
@@ -220,6 +220,7 @@ export(TARGETS
   EspinaGUI 
   EspinaExtensions 
   EspinaFilters
+  EspinaSupport
   EspinaUndo
   espina
   FILE "${PROJECT_BINARY_DIR}/ESPINATargets.cmake")

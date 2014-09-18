@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,20 +22,32 @@
 #ifndef ESPINA_REPRESENTATION_EMPTY_SETTINGS_H
 #define ESPINA_REPRESENTATION_EMPTY_SETTINGS_H
 
+// ESPINA
 #include "GUI/Representations/RepresentationSettings.h"
+
+// Qt
 #include "ui_RepresentationEmptySettings.h"
 
 namespace ESPINA
 {
-
-  class RepresentationEmptySettings 
+  class EspinaGUI_EXPORT RepresentationEmptySettings
   : public RepresentationSettings
   , private Ui::RepresentationEmptySettings
   {
   public:
+  	/* \brief RepresentationEmptySettings class constructor.
+  	 *
+  	 */
     explicit RepresentationEmptySettings();
 
+    /* \brief Implements RepresentationSettings::get().
+     *
+     */
     virtual void get(RepresentationSPtr representation);
+
+    /* \brief Implements RepresentationSettings::set().
+     *
+     */
     virtual void set(RepresentationSPtr representation);
   };
 

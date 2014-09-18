@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -17,11 +17,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+// ESPINA
 #include "SeedGrowSegmentationFilter.h"
 #include "Utils/ItkProgressReporter.h"
-#include <Core/Analysis/Data/VolumetricData.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+
+// C++
 #include <unistd.h>
 
 // ITK
@@ -45,19 +49,18 @@ using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeTyp
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
-
 //------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
-, m_lowerTh(0)
-, m_prevLowerTh(m_lowerTh)
-, m_upperTh(0)
-, m_prevUpperTh(m_upperTh)
-, m_seed({0,0,0})
-, m_prevSeed(m_seed)
-, m_radius(0)
-, m_prevRadius(m_radius)
-, m_usesROI(false)
+: Filter       {inputs, type, scheduler}
+, m_lowerTh    {0}
+, m_prevLowerTh{m_lowerTh}
+, m_upperTh    {0}
+, m_prevUpperTh{m_upperTh}
+, m_seed       {{0,0,0}}
+, m_prevSeed   {m_seed}
+, m_radius     {0}
+, m_prevRadius {m_radius}
+, m_usesROI    {false}
 {
 }
 
@@ -148,10 +151,9 @@ void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 }
 
 //------------------------------------------------------------------------
-template<typename T>
-ESPINA::BinaryMask<T> SeedGrowSegmentationFilter::roi() const
+ROISPtr SeedGrowSegmentationFilter::roi() const
 {
-
+	return m_roi;
 }
 
 //------------------------------------------------------------------------
@@ -161,7 +163,7 @@ void SeedGrowSegmentationFilter::setClosingRadius(int radius)
 }
 
 //------------------------------------------------------------------------
-int SeedGrowSegmentationFilter::closingRadius()
+int SeedGrowSegmentationFilter::closingRadius() const
 {
   return m_radius;
 }
@@ -270,32 +272,29 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   emit progress(75);
   if (!canExecute()) return;
 
-//   qDebug() << "Intensity at Seed:" << seedIntensity;
-//   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
-//   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255.0);
-//   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
+  itkVolumeType::Pointer output = connectedFilter->GetOutput();
 
-//   RawSegmentationVolumeSPtr volumeRepresentation(new RawSegmentationVolume(ctif->GetOutput()));
-//   volumeRepresentation->fitToContent();
-// 
-//   if (m_param.closeValue() > 0)
-//   {
-// //     qDebug() << "Closing Segmentation";
-//     StructuringElementType ball;
-//     ball.SetRadius(4);
-//     ball.CreateStructuringElement();
-// 
-//     bmcif = bmcifType::New();
-//     bmcif->SetInput(volumeRepresentation->toITK());
-//     bmcif->SetKernel(ball);
-//     bmcif->SetForegroundValue(LABEL_VALUE);
-//     bmcif->ReleaseDataFlagOn();
-//     bmcif->Update();
-// 
-//     volumeRepresentation->setVolume(bmcif->GetOutput());
-//   }
+  if(m_radius > 0)
+  {
+    auto closingFilter = ClosingFilterType::New();
 
-  emit progress(100);
+    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 75, 90);
+
+     //     qDebug() << "Closing Segmentation";
+    StructuringElementType ball;
+    ball.SetRadius(m_radius);
+    ball.CreateStructuringElement();
+
+    closingFilter->SetInput(output);
+    closingFilter->SetKernel(ball);
+    closingFilter->SetForegroundValue(SEG_VOXEL_VALUE);
+    closingFilter->ReleaseDataFlagOn();
+    closingFilter->Update();
+
+    output = closingFilter->GetOutput();
+  }
+
+  emit progress(90);
   if (!canExecute()) return;
 
   if (!m_outputs.contains(0))
@@ -303,9 +302,9 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
     m_outputs[0] = OutputSPtr(new Output(this, 0));
   }
 
-  itkVolumeType::Pointer output = connectedFilter->GetOutput();
-
   Bounds bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+
+  emit progress(100);
 
   NmVector3 spacing = m_inputs[0]->output()->spacing();
 
@@ -340,55 +339,27 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
   return false;
 }
 
-// //----------------------------------------------------------------------------
-// Bounds SeedGrowSegmentationFilter::minimalBounds(itkVolumeType::Pointer image) const
-// {
-//   Bounds bounds;
-//
-//   itk::ImageRegionConstIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
-//   auto spacing = image->GetSpacing();
-//
-//   it.GoToBegin();
-//   while (!it.IsAtEnd())
-//   {
-//     if (it.Get())
-//     {
-//       auto index   = it.GetIndex();
-//       Bounds voxelBounds;
-//       for (int i = 0; i < 3; ++i)
-//       {
-//         voxelBounds[2*i]   = (index[i] * spacing[i]) - spacing[i]/2;
-//         voxelBounds[2*i+1] = ((index[i]+1) * spacing[i]) - spacing[i]/2;
-//       }
-//
-//       if (!bounds.areValid())
-//         bounds = voxelBounds;
-//       else
-//         bounds = boundingBox(bounds, voxelBounds);
-//     }
-//     ++it;
-//   }
-//
-//   return bounds;
-// }
+//-----------------------------------------------------------------------------
+bool SeedGrowSegmentationFilter::isTouchingROI() const
+{
+	if (!m_usesROI || !hasFinished())
+		return false;
+
+	auto volume = volumetricData(m_outputs[0]);
+	auto spacing = volume->spacing();
+	auto boundsSeg = volume->bounds();
+	auto boundsROI = m_roi->bounds();
 
 
-// //-----------------------------------------------------------------------------
-// bool SeedGrowSegmentationFilter::isTouchingVOI() const
-// {
-//   int segExtent[6];
-//   SegmentationVolumeSPtr outputVolume =segmentationVolume(m_outputs[0]);
-//   outputVolume->extent(segExtent);
-// 
-//   int voiExtent[6];
-//   m_param.voi(voiExtent);
-// 
-//   bool incompleteSeg = false;
-//   for (int i=0, j=1; i<6; i+=2, j+=2)
-//   {
-//     if (segExtent[i] <= voiExtent[i] || voiExtent[j] <= segExtent[j])
-//       incompleteSeg = true;
-//   }
-// 
-//   return incompleteSeg;
-// }
+	bool incompleteSeg = false;
+	for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+	{
+		if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2]) || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
+		{
+			incompleteSeg = true;
+			break;
+		}
+	}
+
+	return incompleteSeg;
+}

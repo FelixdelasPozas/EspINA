@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,14 +18,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ // ESPINA
 #include "ManualEditionTool.h"
-
-#include <App/Tools/Brushes/CircularBrushSelector.h>
-#include <App/Tools/Brushes/SphericalBrushSelector.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Widgets/SliderAction.h>
 #include <Support/Settings/EspinaSettings.h>
 
+// Qt
 #include <QAction>
 #include <QSettings>
 
@@ -222,7 +221,7 @@ void ManualEditionTool::unsetSelector()
 }
 
 //-----------------------------------------------------------------------------
-void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
+void ManualEditionTool::categoryChanged(CategoryAdapterSPtr unused)
 {
   if (m_categorySelector)
   {
@@ -234,7 +233,6 @@ void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
     ChannelAdapterList channels;
     channels << m_viewManager->activeChannel();
     selection->set(channels);
-
   }
 
   updateReferenceItem();

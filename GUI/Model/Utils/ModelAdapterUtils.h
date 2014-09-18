@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014
     Jorge Pe�a Pastor<jpena@cesvima.upm.es>,
     Felix de las Pozas<fpozas@cesvima.upm.es>
@@ -25,19 +25,34 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
   namespace ModelAdapterUtils
   {
-    void setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory);
+  	/* \brief Resets the model and adapts the elements in the analysis.
+  	 * \param[out] model, model adapter smart pointer.
+  	 * \param[in] analysis, analysis smart pointer.
+  	 * \param[in] factory, model factory smart pointer.
+  	 *
+  	 */
+    void EspinaGUI_EXPORT setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory);
 
-    DefaultVolumetricDataSPtr volumetricData(OutputSPtr output);
+  	/* \brief Returns the volumetric data associated with an output.
+  	 * \param[in] output, smart pointer of the output with associated volumetric data.
+  	 *
+  	 */
+    DefaultVolumetricDataSPtr EspinaGUI_EXPORT volumetricData(OutputSPtr output);
 
-    unsigned int firstUnusedSegmentationNumber(const ModelAdapterSPtr model);
+  	/* \brief Returns the first number for a segmentation not used in an analysis.
+  	 * \param[in] model, model adapter smart pointer.
+  	 *
+  	 */
+    unsigned int EspinaGUI_EXPORT firstUnusedSegmentationNumber(const ModelAdapterSPtr model);
   }
 } // namespace ESPINA
 #endif // ESPINA_MODEL_ADAPTER_UTILS_H

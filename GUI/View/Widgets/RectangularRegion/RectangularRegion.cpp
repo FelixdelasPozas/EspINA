@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -190,9 +190,6 @@ void vtkRectangularRegionCommand::Execute(vtkObject* caller, long unsigned int e
   }
 
   m_widget->emitModifiedSignal();
-
-//   if (m_widget->m_viewManager)
-//     m_widget->m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------

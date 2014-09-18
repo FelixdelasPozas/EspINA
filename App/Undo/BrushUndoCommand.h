@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -23,7 +23,7 @@
 #define ESPINA_BRUSH_UNDOCOMMAND_H
 
 // ESPINA
-#include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/SegmentationAdapter.h>
 
 // Qt
@@ -37,14 +37,25 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /* \brief DrawUndoCommand class constructor.
+     * \param[in] seg, segmentation adapter pointer of the segmentation going to be modified.
+     * \param[in] mask, Mask to modify segmentation with.
+     */
     explicit DrawUndoCommand(SegmentationAdapterSPtr seg,
                              BinaryMaskSPtr<unsigned char> mask);
-    virtual void redo();
-    virtual void undo();
+
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
+
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   signals:
     void initBrushTool();
-
 
   private:
     SegmentationAdapterSPtr       m_segmentation;

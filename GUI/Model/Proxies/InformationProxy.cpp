@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,16 +18,16 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+// ESPINA
 #include "InformationProxy.h"
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy(SchedulerSPtr scheduler)
-: QAbstractProxyModel()
-, m_scheduler{scheduler}
-, m_filter   {nullptr}
+: QAbstractProxyModel{}
+, m_scheduler        {scheduler}
+, m_filter           {nullptr}
 {
 }
 
@@ -279,7 +279,6 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     return QAbstractProxyModel::data(proxyIndex, role);
 }
 
-
 //------------------------------------------------------------------------
 void InformationProxy::setCategory(const QString &classificationName)
 {
@@ -292,7 +291,7 @@ void InformationProxy::setCategory(const QString &classificationName)
 void InformationProxy::setFilter(const SegmentationAdapterList *filter)
 {
   beginResetModel();
-  m_filter = filter; 
+  m_filter = filter;
   endResetModel();
 }
 

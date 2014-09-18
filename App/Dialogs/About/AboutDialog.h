@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,21 +18,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
+// Qt
 #include <QDialog>
-
 #include "ui_AboutDialog.h"
 
-
-class AboutDialog 
+class AboutDialog
 : public QDialog
 , public Ui::AboutDialog
 {
-public:
-  explicit AboutDialog();
+	public:
+		/* \brief AboutDialog class constructor.
+		 *
+		 */
+		explicit AboutDialog();
 };
 
 #endif // ABOUTDIALOG_H

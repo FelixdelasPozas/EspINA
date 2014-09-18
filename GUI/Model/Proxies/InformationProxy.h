@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,9 +18,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_INFORMATION_PROXY_H
 #define ESPINA_INFORMATION_PROXY_H
+
+#include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
 #include <Core/MultiTasking/Task.h>
@@ -33,142 +34,264 @@
 namespace ESPINA
 {
 
-  class EspinaCore_EXPORT InformationProxy
+  class EspinaGUI_EXPORT InformationProxy
   : public QAbstractProxyModel
   {
     Q_OBJECT
 
   protected:
+    /* \brief Helper method to return the name tag.
+     *
+     */
     static SegmentationExtension::InfoTag NameTag()
     { return QObject::tr("Name"); }
+
+    /* \brief Helper method to return the category tag.
+     *
+     */
     static SegmentationExtension::InfoTag CategoryTag()
     { return QObject::tr("Category"); }
 
     class InformationFetcher
     : public Task
     {
-    public:
-      InformationFetcher(SegmentationAdapterPtr segmentation,
-                         const SegmentationExtension::InfoTagList &tags,
-                         SchedulerSPtr scheduler)
-      : Task(scheduler)
-      , Segmentation(segmentation)
-      , m_tags(tags)
-      , m_progress(0)
-      {
-        auto id = Segmentation->data(Qt::DisplayRole).toString();
-        setDescription(tr("%1 information").arg(id));
-        setHidden(true);
+			public:
+    		/* \brief InformationFetcher class constructor.
+    		 * \param[in] segmentation, adapter smart pointer of the segmentation to get information from.
+    		 * \param[in] tags, information tags to fetch.
+    		 * \param[in] scheduler, scheduler smart pointer.
+    		 *
+    		 */
+				InformationFetcher(SegmentationAdapterPtr segmentation,
+													 const SegmentationExtension::InfoTagList &tags,
+													 SchedulerSPtr scheduler)
+				: Task        {scheduler}
+				, Segmentation{segmentation}
+				, m_tags      {tags}
+				, m_progress  {0}
+				{
+					auto id = Segmentation->data(Qt::DisplayRole).toString();
+					setDescription(tr("%1 information").arg(id));
+					setHidden(true);
 
-        m_tags.removeOne(NameTag());
-        m_tags.removeOne(CategoryTag());
+					m_tags.removeOne(NameTag());
+					m_tags.removeOne(CategoryTag());
 
-        bool ready = true;
-        for (auto tag : m_tags)
-        {
-          ready &= Segmentation->isInformationReady(tag);
+					bool ready = true;
+					for (auto tag : m_tags)
+					{
+						ready &= Segmentation->isInformationReady(tag);
 
-          if (!ready) break;
-        }
+						if (!ready) break;
+					}
 
-        setFinished(ready);
-      }
+					setFinished(ready);
+				}
 
-    public:
-      int currentProgress() const
-      { return m_progress; }
+			public:
+				/* \brief Returns current progress.
+				 *
+				 */
+				int currentProgress() const
+				{ return m_progress; }
 
-    protected:
-      virtual void run()
-      {
-        for (int i = 0; i < m_tags.size(); ++i)
-        {
-          if (!canExecute()) break;
+			protected:
+				/* \brief Implements Task::run().
+				 *
+				 */
+				virtual void run()
+				{
+					for (int i = 0; i < m_tags.size(); ++i)
+					{
+						if (!canExecute()) break;
 
-          auto tag = m_tags[i];
-          if (tag != NameTag() && tag != CategoryTag())
-          {
-            if (!Segmentation->isInformationReady(tag))
-            {
-              setWaiting(true);
-              Segmentation->information(tag);
-              setWaiting(false);
-              if (!canExecute()) break;
-            }
-          }
+						auto tag = m_tags[i];
+						if (tag != NameTag() && tag != CategoryTag())
+						{
+							if (!Segmentation->isInformationReady(tag))
+							{
+								setWaiting(true);
+								Segmentation->information(tag);
+								setWaiting(false);
+								if (!canExecute()) break;
+							}
+						}
 
-          m_progress = (100.0*i)/m_tags.size();
-          emit progress(m_progress);
-        }
-      }
+						m_progress = (100.0*i)/m_tags.size();
+						emit progress(m_progress);
+					}
+				}
 
-    protected:
-      SegmentationAdapterPtr Segmentation;
-      SegmentationExtension::InfoTagList m_tags;
-      int   m_progress;
+			protected:
+				SegmentationAdapterPtr Segmentation;
+				SegmentationExtension::InfoTagList m_tags;
+				int   m_progress;
     };
 
     using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
 
   public:
+    /* \brief InformationProxy class constructor.
+     * \param[in] scheduler, scheduler smart pointer.
+     *
+     */
     explicit InformationProxy(SchedulerSPtr scheduler);
+
+    /* \brief InformationProxy class virtual destructor.
+     *
+     */
     virtual ~InformationProxy();
 
+    /* \brief Sets the model of the proxy.
+     * \param[in] sourceModel, model adapter smart pointer.
+     *
+     */
     virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
+    /* \brief Returns the item index of the proxy from the item index of the source.
+     * \param[in] sourceIndeox, QModelIndex object.
+     *
+     */
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
 
+    /* \brief Returns the item index of the model from the item index of the proxy.
+     * \param[in] proxyIndex, QModelIndex object.
+     *
+     */
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
+    /* \brief Returns the number of columns.
+     * \param[in] parent, QModelIndex object.
+     *
+     */
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
+    /* \brief Returns the number of rows.
+     * \param[in] parent, QModelIndex object.
+     *
+     */
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
+    /* \brief Returns the item index of the parent of the given index.
+     * \param[in] chind, QModelIndex object.
+     *
+     */
     virtual QModelIndex parent(const QModelIndex& child) const;
 
+    /* \brief Returns the index of an element given the row, column and parent.
+     * \param[in] row
+     * \param[in] column
+     * \param[in] parent, QModelIndex object.
+     *
+     */
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    /* \brief Overrides QAbstractProxyModel::headerData().
+     *
+     */
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
+    /* \brief Overrides QAbstractProxyModel::data()
+     *
+     */
+    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override;
 
+    /* \brief Sets the category.
+     * \param[in] classificationName, name of the category.
+     *
+     */
     void setCategory(const QString &classificationName);
 
+    /* \brief Returns the category.
+     *
+     */
     QString category() const
     { return m_category; }
 
+    /* \brief Sets the segmaentations to show.
+     * \param[in] filter, list of segmentation adapter raw pointers.
+     *
+     */
     void setFilter(const SegmentationAdapterList *filter);
 
+    /* \brief Sets the information tags for the columns.
+     * \param[in] tags, segmentation extension information tags.
+     *
+     */
     virtual void setInformationTags(const SegmentationExtension::InfoTagList tags);
 
+    /* \brief Returns the information tags.
+     *
+     */
     const QStringList informationTags() const
     { return m_tags; }
-    //const Segmentation::InfoTagList availableInformation() const;
 
+    /* \brief Returns the list of item adapters currently displayed.
+     *
+     */
     ItemAdapterList displayedItems() const
     { return m_elements; }
 
+    /* \brief Returns general progress count.
+     *
+     */
     int progress() const;
 
   signals:
     void informationProgress();
 
   protected slots:
+		/* \brief Perform operations before and after the insertion of rows in the model.
+		 * \param[in] sourceParent, index of the parent to add elements.
+		 * \param[in] start, start row.
+		 * \param[in] end, end row.
+		 *
+		 */
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 
+		/* \brief Perform operations before and after the deletion of rows in the model.
+		 * \param[in] sourceParent, index of the parent to add elements.
+		 * \param[in] start, start row.
+		 * \param[in] end, end row.
+		 *
+     */
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
 
+    /* \brief Perform operations before and after the modification of data in the model.
+     * \param[in] sourceTopLeft, top left index.
+     * \param[in] sourceBottomRight, bottom right index.
+     *
+     */
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
 
+    /* \brief Removes all the elements in the model.
+     *
+     */
     void sourceModelReset();
 
+    /* \brief Reports progress.
+     * TODO
+     *
+     */
     void onProgessReported(int progress);
 
+    /* \brief Reports progress.
+     * TODO
+     *
+     */
     void onTaskFininished();
 
   private:
+    /* \brief Returns true if the segmentation should be in the proxy model.
+     *
+     */
     bool acceptSegmentation(const SegmentationAdapterPtr segmentation) const;
 
+    /* \brief Returns the proxy model index of a given item adapter.
+     * \param[in] segmentation, item adapter raw pointer.
+     * \param[in] col, column.
+     *
+     */
     QModelIndex index(const ItemAdapterPtr segmentation, int col = 0);
 
   protected:

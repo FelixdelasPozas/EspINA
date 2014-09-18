@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,12 +18,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_MORPHOLOGICAL_INFORMATION_H
 #define ESPINA_MORPHOLOGICAL_INFORMATION_H
 
-#include "Core/EspinaCore_Export.h"
+#include "Extensions/EspinaExtensions_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Extension.h>
 
 // ITK
@@ -32,7 +32,7 @@
 
 namespace ESPINA
 {
-  class EspinaCore_EXPORT MorphologicalInformation
+  class EspinaExtensions_EXPORT MorphologicalInformation
   : public SegmentationExtension
   {
     using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
@@ -43,35 +43,72 @@ namespace ESPINA
     static const Type TYPE;
 
   public:
+    /* \brief MorphologicalInformation class constructor.
+     * \param[in] cache, cache object for the extension.
+     * \param[in] state, state object of the extension.
+     */
     explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
                                       const State     &state = State());
 
+    /* \brief MorphologicalInformation class virtual destructor.
+     *
+     */
     virtual ~MorphologicalInformation();
 
+    /* \brief Implements Extesion::type().
+     *
+     */
     virtual QString type() const
     { return TYPE; }
 
+    /* \brief Implements Extension::state().
+     *
+     */
     virtual State state() const;
 
+    /* \brief Implements Extension::snapshot().
+     *
+     */
     virtual Snapshot snapshot() const;
 
+    /* \brief Implements Extension::dependencies().
+     *
+     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
+    /* \brief Implements Extension::invalidateOnChange().
+     *
+     */
     virtual bool invalidateOnChange() const
     { return true; }
 
+    /* \brief Implements Extension::availableInformations().
+     *
+     */
     virtual InfoTagList availableInformations() const;
 
+    /* \brief Implements SegmentationExtension::validCategory().
+     *
+     */
     virtual bool validCategory(const QString& classificationName) const
     { return true;}
 
   protected:
+    /* \brief Implements Extension::cacheFail().
+     *
+     */
     virtual QVariant cacheFail(const QString& tag) const;
 
+    /* \brief Implements Extension::onExtendedItemSet().
+     *
+     */
     virtual void onExtendedItemSet(Segmentation* item);
 
   private:
+    /* \brief Computes information values.
+     *
+     */
     void updateInformation() const;
 
   private:
@@ -83,7 +120,6 @@ namespace ESPINA
     double Size;
     double PhysicalSize;
     double Centroid[3];
-    //int    Region[3];
     double BinaryPrincipalMoments[3];
     double BinaryPrincipalAxes[3][3];
     double FeretDiameter;

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,20 +22,32 @@
 #ifndef ESPINA_SLICEREPRESENTATIONSETTINGS_H
 #define ESPINA_SLICEREPRESENTATIONSETTINGS_H
 
+// ESPINA
 #include "GUI/Representations/RepresentationSettings.h"
+
+// Qt
 #include "ui_SliceRepresentationSettings.h"
 
 namespace ESPINA
 {
-
-  class SliceRepresentationSettings
+  class EspinaGUI_EXPORT SliceRepresentationSettings
   : public RepresentationSettings
   , private Ui::SliceRepresentationSettings
   {
   public:
+  	/* \brief SliceRepresentationSettings class constructor.
+  	 *
+  	 */
     explicit SliceRepresentationSettings();
 
+    /* \brief Implements RepresentationSettings::get().
+     *
+     */
     virtual void get(RepresentationSPtr representation);
+
+    /* \brief Implements RepresentationSettings::set().
+     *
+     */
     virtual void set(RepresentationSPtr representation);
 
   private:

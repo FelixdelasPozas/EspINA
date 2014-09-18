@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "RasterizedVolumeFromFetchedMeshData.h"
-#include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
+#include <Core/Analysis/Data/Volumetric/RasterizedVolume.hxx>
 
 namespace ESPINA
 {

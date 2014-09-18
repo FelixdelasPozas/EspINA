@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -25,7 +25,6 @@
 
 namespace ESPINA
 {
-  
   class SASFetchBehaviour
   : public RasterizedVolumeFromFetchedMeshData
   {
@@ -37,7 +36,10 @@ namespace ESPINA
       {};
 
     protected:
-      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
+      /* \brief Overrides RasterizedVolumeFromFetchedMeshData::fetchMeshData().
+       *
+       */
+      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix) override;
   };
 
 } // namespace ESPINA

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,6 +22,8 @@
 #define ESPINA_SETTINGS_H
 
 #include "Support/EspinaSupport_Export.h"
+
+// Qt
 #include <QString>
 #include <QSettings>
 
@@ -33,9 +35,13 @@ const QString USER_NAME("UserName");
 
 namespace ESPINA
 {
-  // TODO 2012-12-05 Remove this function and pass the general settings to
-  // all the tools that require it
-  QString userName();
+	/* \brief Returns the name of the user.
+	 *
+	 * TODO 2012-12-05 Remove this function and pass the general settings to
+	 * all the tools that require it
+	 *
+	 */
+  QString EspinaSupport_EXPORT userName();
 };
 
 #endif//ESPINA_SETTINGS_H

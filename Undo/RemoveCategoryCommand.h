@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,31 +18,50 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_REMOVE_CATEGORY_COMMAND_H
 #define ESPINA_REMOVE_CATEGORY_COMMAND_H
 
 #include "Undo/EspinaUndo_Export.h"
-#include <QUndoCommand>
 
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
+
+// Qt
+#include <QUndoCommand>
 
 namespace ESPINA
 {
-  // Remove Taxonomical Element from model
+	/** \class RemoveCategoryCommand.
+	 * \brief Remove Taxonomical Element from model
+	 *
+	 */
   class EspinaUndo_EXPORT RemoveCategoryCommand
   : public QUndoCommand
   {
   public:
+  	/* \brief RemoveCategoryCommand class constructor.
+  	 * \param[in] category, raw pointer of the category adapter to remove.
+  	 * \param[in] model, smart pointer of the model adapter containing the category.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 */
     explicit RemoveCategoryCommand(CategoryAdapterPtr category,
                                    ModelAdapterSPtr   model,
-                                   QUndoCommand*      parent=nullptr);
+                                   QUndoCommand*      parent = nullptr);
 
+    /* \brief RemoveCategoryCommand class destructor.
+     *
+     */
     virtual ~RemoveCategoryCommand();
 
-    virtual void redo();
+    /* \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
 
-    virtual void undo();
+    /* \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
     ModelAdapterSPtr m_model;

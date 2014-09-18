@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -25,7 +25,7 @@
 
 namespace ESPINA
 {
-  
+
   class ROISelectorBase
   : public BrushSelector
   {
@@ -45,7 +45,7 @@ namespace ESPINA
        */
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
 
-      /* \brief Method to set the bool to avoi erasing when there isnt a ROI
+      /* \brief Method to set the bool to avoid erasing when there isn't a ROI
        *
        */
       void setHasROI(bool value)

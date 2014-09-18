@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,6 +22,9 @@
 #ifndef ESPINA_IO_ZIP_UTILS_H
 #define ESPINA_IO_ZIP_UTILS_H
 
+#include "Core/EspinaCore_Export.h"
+
+// QuaZip
 #include <quazip/quazip.h>
 
 namespace ESPINA {
@@ -29,17 +32,31 @@ namespace ESPINA {
 
     struct IO_Zip_Exception{};
 
-    class ZipUtils
+    class EspinaCore_EXPORT ZipUtils
     {
     public:
+    	/* \brief Adds a file to a QuaZip file.
+    	 * \param[in] fileName, file name.
+    	 * \param[in] content, file content as a byte array.
+    	 * \param[in] zip, QuaZip handler.
+    	 *
+    	 */
       static void AddFileToZip(const QString&    fileName,
                                const QByteArray& content,
-                               QuaZip&           zip)
-      throw (IO_Zip_Exception);
+                               QuaZip&           zip) throw (IO_Zip_Exception);
 
+    	/* \brief Reads a file from a QuaZip file and returns its content as a byte array.
+    	 * \param[in] fileName, file name.
+    	 * \param[in] zip, QuaZip handler.
+    	 *
+    	 */
       static QByteArray readFileFromZip(const QString&  fileName,
                                         QuaZip&         zip);
 
+    	/* \brief Reads current file from a QuaZip file and returns its content as a byte array.
+    	 * \param[in] zip, QuaZip handler.
+    	 *
+    	 */
       static QByteArray readCurrentFileFromZip(QuaZip& zip);
     };
 

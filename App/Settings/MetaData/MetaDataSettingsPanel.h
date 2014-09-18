@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -26,7 +26,7 @@
 
 namespace ESPINA
 {
-  
+
   class MetaDataSettingsPanel
   : public SettingsPanel
   {
@@ -42,49 +42,49 @@ namespace ESPINA
       virtual ~MetaDataSettingsPanel()
       {};
 
-      /* \brief Implements SettingsPanel::shortDescription().
+      /* \brief Overrides SettingsPanel::shortDescription().
        *
        */
-      virtual const QString shortDescription()
+      virtual const QString shortDescription() override
       { return tr("Metadata Storage"); }
 
-      /* \brief Implements SettingsPanel::longDescription().
+      /* \brief Overrides SettingsPanel::longDescription().
        *
        */
-      virtual const QString longDescription()
+      virtual const QString longDescription() override
       { return tr("Metadata Storage"); }
 
-      /* \brief Implements SettingsPanel::icon():
+      /* \brief Overrides SettingsPanel::icon():
        *
        */
-      virtual const QIcon icon()
+      virtual const QIcon icon() override
       { return QIcon(":/espina/database.png"); }
 
-      /* \brief Implements SettingsPanel::addPanel(SettingsPanel *).
+      /* \brief Overrides SettingsPanel::addPanel(SettingsPanel *).
        *
        */
-      virtual void addPanel(SettingsPanel *panel)
+      virtual void addPanel(SettingsPanel *panel) override
       {}
 
-      /* \brief Implements SettingsPanel::acceptChanges().
+      /* \brief Overrides SettingsPanel::acceptChanges().
        *
        */
-      virtual void acceptChanges();
+      virtual void acceptChanges() override;
 
-      /* \brief Implements SettingsPanel::rejectChanges().
+      /* \brief Overrides SettingsPanel::rejectChanges().
        *
        */
-      virtual void rejectChanges();
+      virtual void rejectChanges() override;
 
-      /* \brief Implements SettingsPanel::modified().
+      /* \brief Overrides SettingsPanel::modified().
        *
        */
-      virtual bool modified() const;
+      virtual bool modified() const override;
 
-      /* \brief Implements SettingsPanel::clone().
+      /* \brief Overrides SettingsPanel::clone().
        *
        */
-      virtual SettingsPanelPtr clone();
+      virtual SettingsPanelPtr clone() override;
   };
 
 } // namespace ESPINA

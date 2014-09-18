@@ -20,7 +20,7 @@
  */
 
 // ESPINA
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include "BasicRepresentationFactory.h"
 #include "CrosshairRepresentation.h"
@@ -28,8 +28,8 @@
 #include "ContourRepresentation.h"
 #include "MeshRepresentation.h"
 #include "SmoothedMeshRepresentation.h"
-#include "VolumetricRepresentation.h"
-#include "VolumetricGPURepresentation.h"
+#include "VolumetricRepresentation.hxx"
+#include "VolumetricGPURepresentation.hxx"
 #include "SliceCachedRepresentation.h"
 
 using namespace ESPINA;

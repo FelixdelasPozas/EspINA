@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -35,8 +35,8 @@ namespace ESPINA
   {
     public:
       /* \brief ModifyROIUndoCommand class constructor.
-       * \param[in] toolgroup ROIToolsGroup containing ROI accumulator.
-       * \param[in] mask Mask to create/modify ROI.
+       * \param[in] toolgroup, raw pointer of the ROIToolsGroup that has the ROI accumulator.
+       * \param[in] mask, Mask to create/modify ROI.
        */
       explicit ModifyROIUndoCommand(ROIToolsGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
 
@@ -45,15 +45,15 @@ namespace ESPINA
        */
       virtual ~ModifyROIUndoCommand();
 
-      /* \brief Implements QUndoCommand::redo.
+      /* \brief Overrides QUndoCommand::redo().
        *
        */
-      virtual void redo();
+      virtual void redo() override;
 
-      /* \brief Implements QUndoCommand::undo.
+      /* \brief Overrides QUndoCommand::undo().
        *
        */
-      virtual void undo();
+      virtual void undo() override;
 
     private:
       ROISPtr                       m_newROI;
@@ -66,7 +66,7 @@ namespace ESPINA
   {
     public:
       /* \brief ClearROIUndoCommand class constructor.
-       * \param[in] toolgroup ToolGroup that owns the ROI accumulator.
+       * \param[in] toolgroup, raw pointer of the ROIToolGroup that has the ROI accumulator.
        *
        */
       explicit ClearROIUndoCommand(ROIToolsGroup *toolgroup);
@@ -76,15 +76,15 @@ namespace ESPINA
        */
       virtual ~ClearROIUndoCommand();
 
-      /* \brief Implements QUndoCommand::redo.
+      /* \brief Overrides QUndoCommand::redo().
        *
        */
-      virtual void redo();
+      virtual void redo() override;
 
-      /* \brief Implements QUndoCommand::undo.
+      /* \brief Overrides QUndoCommand::undo().
        *
        */
-      virtual void undo();
+      virtual void undo() override;
 
     private:
       ROIToolsGroup *m_toolGroup;

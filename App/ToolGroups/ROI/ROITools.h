@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
-#include <Support/ToolGroup.h>
+#include <Support/Widgets/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
@@ -45,11 +45,11 @@ namespace ESPINA
   Q_OBJECT
   public:
     /* \brief VolumeOfInterestTools class constructor.
-     * \param[in] model       analysis model.
-     * \param[in] factory     application factory.
-     * \param[in] viewManager application view manager.
-     * \param[in] undoStack   qt undo stack.
-     * \param[in] parent      parent widget.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] factory, factory smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] parent, QWidget raw pointer of the parent of this object.
      */
     ROIToolsGroup(ROISettings*     settings,
                   ModelAdapterSPtr model,
@@ -79,6 +79,7 @@ namespace ESPINA
     virtual ToolSList tools();
 
     /* \brief Sets the value of roi accumulator and passes it to ViewManager.
+     * \param[in] roi, roi object smart pointer.
      *
      */
     void setCurrentROI(ROISPtr roi);
@@ -88,8 +89,8 @@ namespace ESPINA
      */
     ROISPtr currentROI();
 
-    /** \brief
-     *  Whether or not there is any ROI active
+    /** \brief Returns true if there is a valid roi.
+     *
      */
     bool hasValidROI();
 
@@ -98,8 +99,8 @@ namespace ESPINA
 
   private slots:
     /* \brief Changes the roi and associated widget when the
-     * ROI is updated elsewhere (i.e. seedgrowsegmentation)
-     * and not using ROI tools.
+     *        ROI is updated elsewhere (i.e. seedgrowsegmentation)
+     *        and not using ROI tools.
      *
      */
     void updateROI();

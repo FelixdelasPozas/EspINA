@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "ChangeCategoryCommand.h"
-
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/ViewManager.h>
 
@@ -32,10 +31,10 @@ ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentatio
                                              ModelAdapterSPtr        model,
                                              ViewManagerSPtr         viewManager,
                                              QUndoCommand*           parent)
-: QUndoCommand(parent)
-, m_model(model)
-, m_viewManager(viewManager)
-, m_category(m_model->smartPointer(category))
+: QUndoCommand {parent}
+, m_model      {model}
+, m_viewManager{viewManager}
+, m_category   {m_model->smartPointer(category)}
 {
   for(auto segmentation: segmentations)
   {

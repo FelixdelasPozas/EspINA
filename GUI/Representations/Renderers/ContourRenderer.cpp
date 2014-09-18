@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -30,7 +30,7 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ContourRenderer::ContourRenderer(QObject *parent)
-  : MeshRenderer(parent)
+  : MeshRenderer{parent}
   {
   }
 

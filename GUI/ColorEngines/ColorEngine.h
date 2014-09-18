@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -22,9 +22,14 @@
 #define ESPINA_COLOR_ENGINE_H
 
 #include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
+// Qt
 #include <QColor>
+
+// VTK
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
@@ -49,9 +54,21 @@ namespace ESPINA
     using LUTMap = QMap<QString, LUTSPtr>;
 
   public:
+    /* \brief Returns the color associated with the given segmentation.
+     * \param[in] seg, segmentation adapter raw pointer.
+     *
+     */
     virtual QColor color(SegmentationAdapterPtr seg) = 0;
+
+    /* \brief Returns the lut associated with the given segmentation.
+     * \param[in] seg, segmentation adapter raw pointer.
+     *
+     */
     virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;
 
+    /* \brief Returns the flags of the composition methods supported by the color engine.
+     *
+     */
     virtual Composition supportedComposition() const = 0;
 
   signals:

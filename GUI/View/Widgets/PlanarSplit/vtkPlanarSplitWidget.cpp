@@ -1,8 +1,21 @@
 /*
- * vtkPlanarSplitWidget.cpp
- *
- *  Created on: Nov 5, 2012
- *      Author: F�lix de las Pozas �lvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // ESPINA
@@ -21,6 +34,7 @@
 #include <vtkRenderer.h>
 #include <vtkPoints.h>
 #include <vtkWidgetEventTranslator.h>
+
 // Qt
 #include <QDebug>
 
@@ -34,11 +48,19 @@ vtkStandardNewMacro(vtkPlanarSplitWidget);
 
 namespace ESPINA
 {
-  class vtkPlanarSplitWidgetCallback : public vtkCommand
+  class vtkPlanarSplitWidgetCallback
+  : public vtkCommand
   {
   public:
+  	/* \brief Creates a new instance.
+  	 *
+  	 */
     static vtkPlanarSplitWidgetCallback *New()
     { return new vtkPlanarSplitWidgetCallback; }
+
+    /* \brief Implements vtkCommand::execute().
+     *
+     */
     virtual void Execute(vtkObject*, unsigned long eventId, void*)
     {
       switch(eventId)
@@ -54,6 +76,7 @@ namespace ESPINA
           break;
       }
     }
+
     int m_handleNumber;
     vtkPlanarSplitWidget *m_widget;
   };

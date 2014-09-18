@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,15 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
+#include "EspinaMainWindow.h"
+
+// Qt
 #include <QApplication>
 #include <QPluginLoader>
 #include <QTranslator>
 #include <QDebug>
-
-#include "EspinaMainWindow.h"
-
-#include <Core/MultiTasking/Scheduler.h>
-#include <Core/Analysis/Analysis.h>
 
 using namespace ESPINA;
 
@@ -69,8 +68,8 @@ int main(int argc, char **argv)
     } else
     {
       // DO NOT DELETE, THIS IS TO DEBUG PLUGINS
-      qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
-      delete loader;
+//      qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
+//      delete loader;
     }
   }
 
@@ -82,9 +81,10 @@ int main(int argc, char **argv)
     res = app.exec();
   }
 
-//   qDebug() << "\nUnloading Plugins: \n";
+  qDebug() << "\nUnloading Plugins: \n";
   for(auto plugin: loaders)
   {
+  	qDebug() << "unloading" << plugin->fileName();
     plugin->unload();
     delete plugin;
   }

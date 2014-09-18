@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,8 +19,8 @@
  *
  */
 
+// ESPINA
 #include "QueryAdapter.h"
-
 #include <Core/Analysis/Query.h>
 #include <GUI/Model/ModelAdapter.h>
 
@@ -107,7 +107,6 @@ SegmentationAdapterSList QueryAdapter::segmentationsOnChannelSample(ChannelAdapt
 
   return smartPointer(model, QueryRelations::segmentationsOnChannelSample(adaptedChannel));
 }
-
 
 //------------------------------------------------------------------------
 SampleAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample)

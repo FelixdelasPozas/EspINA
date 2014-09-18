@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,13 +22,15 @@
 #ifndef ESPINA_LEVEL_SELECTOR_DIALOG_H
 #define ESPINA_LEVEL_SELECTOR_DIALOG_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <QDialog>
 #include <ui_LevelSelectorDialog.h>
 #include <Coordinator.h>
 
 namespace ESPINA
 {
-  class LevelSelectorDialog
+  class EspinaSupport_EXPORT LevelSelectorDialog
   : public QDialog
   , private Ui::LevelSelectorDialog
   {

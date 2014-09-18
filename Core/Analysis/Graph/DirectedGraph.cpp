@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) <year>  <name of author>
 
     This file is part of ESPINA.
@@ -19,13 +19,18 @@
 
     */
 
+// ESPINA
 #include "DirectedGraph.h"
 
+// C++
 #include <iostream>
+
+// Boost
 #undef foreach // Due to Qt-Boost incompatibility
 #include <boost/graph/graphviz.hpp>
 #include <boost/algorithm/string.hpp>
 
+// Qt
 #include <QDebug>
 
 using namespace boost;
@@ -57,30 +62,6 @@ void DirectedGraph::remove(Vertex vertex)
   clear_vertex (vd, m_graph);
   remove_vertex(vd, m_graph);
 }
-
-// //-----------------------------------------------------------------------------
-// DirectedGraph::Vertex DirectedGraph::vertex(Vertex item) const
-// {
-//   //   qDebug() << "Previous id" << item->m_vertex;
-//   Vertex v;
-// 
-//   VertexIterator vi, vi_end;
-//   boost::tie(vi, vi_end) = boost::vertices(m_graph);
-// //   while(!v.item && vi != vi_end)
-// //   {
-// //     VertexDescriptor vd = *vi;
-// // 
-// //     if(m_graph[vd].item.get() == item.get())
-// //     {
-// //       m_graph[vd].descriptor = vd;
-// //       v = m_graph[vd];
-// //     }
-// // 
-// //     ++vi;
-// //   }
-// 
-//   return v;
-// }
 
 //-----------------------------------------------------------------------------
 void DirectedGraph::addRelation(Vertex ancestor,
@@ -124,7 +105,7 @@ bool DirectedGraph::contains(Vertex vertex)
   VertexIterator vi, vi_end;
   for(tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; ++vi)
   {
-    if (m_graph[*vi] == vertex) return true; 
+    if (m_graph[*vi] == vertex) return true;
   }
 
   return false;
@@ -223,24 +204,24 @@ void DirectedGraph::removeEdges(Vertex vertex)
 {
   OutEdgeIterator oei, oei_end;
   VertexDescriptor vd = descriptor(vertex);
-  boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); 
+  boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph);
   while(oei != oei_end)
   {
     boost::remove_edge(oei, m_graph);
-    boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); 
+    boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph);
   }
 
   Vertices ancestorList = ancestors(vertex);
   for (int i = 0; i < ancestorList.size(); i++)
   {
     VertexDescriptor avd = descriptor(ancestorList[i]);
-    boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph); 
+    boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph);
     while(oei != oei_end)
     {
       if (target(*oei, m_graph) == vd)
       {
         boost::remove_edge(oei, m_graph);
-        boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph); 
+        boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph);
       } else
         oei++;
     }

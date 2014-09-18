@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,18 +18,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_CHANNEL_EXPLORER_H
 #define ESPINA_CHANNEL_EXPLORER_H
 
-//----------------------------------------------------------------------------
-// File:    ChannelExplorer.h
-// Purpose: Dock widget to manage channels in the model
-//----------------------------------------------------------------------------
-#include <Core/EspinaTypes.h>
-#include <Support/DockWidget.h>
-
 // ESPINA
+#include <Core/EspinaTypes.h>
+#include <Support/Widgets/DockWidget.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>
 
 //Qt
@@ -48,35 +42,71 @@ namespace ESPINA
     Q_OBJECT
     class CentralWidget;
   public:
+    /* \brief ChannelExplorer class constructor.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] undoStack, QUndoStack raw pointer.
+     * \param[in] parent, parent widget raw pointer.
+     *
+     */
     explicit ChannelExplorer(ModelAdapterSPtr model,
                              ViewManagerSPtr  viewManager,
                              SchedulerSPtr    scheduler,
                              QUndoStack      *undoStack,
-                             QWidget         *parent = 0);
+                             QWidget         *parent = nullptr);
+
+    /* \brief ChannelExplorer class virtual destructor.
+     *
+     */
     virtual ~ChannelExplorer();
 
-    virtual void initDockWidget(ModelAdapterSPtr model,
-                                QUndoStack      *undoStack,
-                                ViewManagerSPtr  viewManager);
-
-    virtual void reset(); // slot
+  public slots:
+    /* \brief Implements DockWidget::reset().
+     *
+     */
+    virtual void reset();
 
   protected slots:
+
+  	/******************************************************/
+  	/* TODO: TILING/UNLOAD CHANNEL PENDING IMPLEMENTATION */
     void channelSelected();
-    void showInformation();
-    void activateChannel();
-    void unloadChannel();
     void alignLeft();
     void alignCenter();
     void alignRight();
     void moveRight();
     void moveLelft();
     void updateChannelPosition();
-    void updateTooltips(int index);
+    void unloadChannel();
     void focusOnChannel();
+    void updateTooltips(int index);
+  	/******************************************************/
+
+    /* \brief Opens a channel inspector dialog.
+     *
+     */
+    void showInformation();
+
+    /* \brief Sets the selected channel as the active one.
+     *
+     */
+    void activateChannel();
+
+    /* \brief Deletes the closed dialog from the opened dialog lists and updates representations.
+     * \param[in] object, raw pointer of the closed dialog.
+     *
+     */
     void dialogClosed(QObject *);
+
+    /* \brief Resets the views.
+     *
+     */
     void inspectorChangedSpacing();
 
+    /* \brief Changes the sample association of a channel that has been dragged onto a sample.
+     *
+     */
     void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
 
   private:

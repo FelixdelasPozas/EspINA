@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,8 +22,8 @@
 #include "ManualROITool.h"
 #include "ROITools.h"
 #include <GUI/Widgets/SliderAction.h>
-#include <Tools/Brushes/CircularBrushSelector.h>
-#include <Tools/Brushes/SphericalBrushSelector.h>
+#include <GUI/Selectors/CircularBrushSelector.h>
+#include <GUI/Selectors/SphericalBrushSelector.h>
 #include <Tools/Brushes/CircularBrushROISelector.h>
 #include <Tools/Brushes/SphericalBrushROISelector.h>
 #include <Undo/ROIUndoCommand.h>
@@ -252,7 +252,6 @@ void ManualROITool::updateReferenceItem(SelectionSPtr selection)
   else
   {
     m_currentSelector->setBrushImage(QImage(":/espina/add.svg"));
-    m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
   }
 }
 

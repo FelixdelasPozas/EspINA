@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -47,23 +47,23 @@ namespace ESPINA
     layout()->setAlignment(Qt::AlignCenter);
     layout()->addWidget(label);
   }
-  
+
   //------------------------------------------------------------------------
   void MetaDataSettingsPanel::acceptChanges()
   {
   }
-  
+
   //------------------------------------------------------------------------
   void MetaDataSettingsPanel::rejectChanges()
   {
   }
-  
+
   //------------------------------------------------------------------------
   bool MetaDataSettingsPanel::modified() const
   {
     return false;
   }
-  
+
   //------------------------------------------------------------------------
   SettingsPanelPtr MetaDataSettingsPanel::clone()
   {

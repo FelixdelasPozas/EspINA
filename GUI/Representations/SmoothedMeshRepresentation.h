@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -38,25 +38,40 @@ namespace ESPINA
     static const Representation::Type TYPE;
 
   public:
+    /* \brief SmoothedMeshRepresentation class constructor.
+     * \param[in] mesh, MeshData smart pointer of the data to represent.
+     * \param[in] view, render view pointer where the representation will be shown.
+     *
+     */
     explicit SmoothedMeshRepresentation(MeshDataSPtr mesh,
                                         RenderView *view);
-    virtual ~SmoothedMeshRepresentation() {};
 
+    /* \brief SmoothedMeshRepresentation class virtual destructor.
+     *
+     */
+    virtual ~SmoothedMeshRepresentation()
+    {};
+
+    /* \brief Implements Representation::settingsWidget().
+     *
+     */
     virtual RepresentationSettings *settingsWidget();
 
+    /* \brief Implements Representation::updateRepresentation().
+     *
+     */
     virtual void updateRepresentation();
 
-    virtual bool crosshairDependent() const
-    { return false; }
-
-    virtual bool needUpdate()
-    { return m_lastUpdatedTime != m_data->lastModified(); }
-
   protected:
+    /* \brief Implements Representation::cloneImplementation(View3D*);
+     *
+     */
     virtual RepresentationSPtr cloneImplementation(View3D *view);
 
   private:
-    void setView(RenderView *view) { m_view = view; };
+    /* \brief Implements MeshRepresentation::initializePipeline().
+     *
+     */
     void initializePipeline();
 
   private:

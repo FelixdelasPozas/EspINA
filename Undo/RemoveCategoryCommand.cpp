@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "RemoveCategoryCommand.h"
 
 using namespace ESPINA;
@@ -27,10 +27,10 @@ using namespace ESPINA;
 RemoveCategoryCommand::RemoveCategoryCommand(CategoryAdapterPtr category,
                                              ModelAdapterSPtr   model,
                                              QUndoCommand*      parent)
-: QUndoCommand(parent)
-, m_model   {model}
-, m_category{m_model->smartPointer(category)}
-, m_parent  {m_model->smartPointer(category->parent())}
+: QUndoCommand{parent}
+, m_model     {model}
+, m_category  {m_model->smartPointer(category)}
+, m_parent    {m_model->smartPointer(category->parent())}
 {
 }
 

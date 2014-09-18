@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,18 +18,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ESPINA
 #include "DefaultView.h"
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
-
-// ESPINA
-//#include <Menus/SegmentationContextualMenu.h>
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/ContourRenderer.h>
-
-#include <QDebug>
 
 // Qt
 #include <QApplication>
@@ -61,7 +57,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 , m_viewManager(viewManager)
 , m_showProcessing(false)
 , m_showSegmentations(true)
-//, m_contextMenu(new DefaultContextualMenu(SegmentationList(), model, undoStack, viewManager))
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
@@ -72,7 +67,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
   settings.endGroup();
 
-  //   qDebug() << "New Default EspinaView";
   m_viewXY = new View2D(Plane::XY);
   m_viewXZ = new View2D(Plane::XZ);
   m_viewYZ = new View2D(Plane::YZ);
@@ -168,7 +162,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
-//   qDebug() << "Destroy Default ESPINA View";
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
   QStringList activeRenderersNames;
@@ -193,7 +186,6 @@ DefaultView::~DefaultView()
   settings.endGroup();
   settings.sync();
 
-
   delete m_renderersMenu;
   delete m_camerasMenu;
 }
@@ -203,17 +195,8 @@ void DefaultView::initView2D(View2D *view)
 {
   connect(view, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
-//   connect(view, SIGNAL(focusChanged(const Nm[3])),
-//           this, SLOT(setCameraFocus(const Nm[3])));
-//   connect(view, SIGNAL(selectedFromSlice(double, PlaneType)),
-//           this, SLOT(selectFromSlice(double, PlaneType)));
-//   connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
-//           this, SLOT(selectToSlice(double, PlaneType)));
   connect(view, SIGNAL(sliceChanged(Plane, Nm)),
           this, SLOT(changePlanePosition(Plane, Nm)));
-  view->setContextualMenu(m_contextMenu);
-//   view->setColorEngine(m_viewManager->colorEngine());
-//   view->setSelector(m_viewManager->selector());
 }
 
 //-----------------------------------------------------------------------------
@@ -274,14 +257,11 @@ void DefaultView::createViewMenu(QMenu* menu)
   m_camerasMenu = new CamerasMenu(m_viewManager, this);
   menu->addMenu(m_camerasMenu);
 
-
   QMenu *renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(dockYZ->toggleViewAction());
   renderMenu->addAction(dockXZ->toggleViewAction());
   renderMenu->addAction(dock3D->toggleViewAction());
-  //renderMenu->addSeparator();
   menu->addMenu(renderMenu);
-
 
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
@@ -386,7 +366,6 @@ void DefaultView::remove(SegmentationAdapterPtr seg)
   m_viewYZ->remove(seg);
   m_viewXZ->remove(seg);
   m_view3D->remove(seg);
-
 }
 
 //-----------------------------------------------------------------------------
@@ -439,7 +418,6 @@ void DefaultView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int
   if (!parent.isValid())
     return;
 
-  //   qDebug() << parent.data(Qt::DisplayRole).toString();
   for (int child = start; child <= end; child++)
   {
     QModelIndex index = parent.child(child, 0);
@@ -449,14 +427,12 @@ void DefaultView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int
       case ItemAdapter::Type::CHANNEL:
       {
         ChannelAdapterPtr channel = channelPtr(item);
-        //   qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
         remove(channel);
         break;
       }
       case ItemAdapter::Type::SEGMENTATION:
       {
         SegmentationAdapterPtr seg = segmentationPtr(item);
-        //   qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
         remove(seg);
         break;
       }
@@ -520,8 +496,8 @@ void DefaultView::showThumbnail(bool visible)
 //----------------------------------------------------------------------------
 void DefaultView::switchPreprocessing()
 {
-  //Current implementation changes channel visibility and then
-  //notifies it's been updated to other views
+  // Current implementation changes channel visibility and then
+  // notifies it's been updated to other views
   m_showProcessing = !m_showProcessing;
   m_viewXY->setShowPreprocessing(m_showProcessing);
   m_viewYZ->setShowPreprocessing(m_showProcessing);
@@ -540,7 +516,6 @@ void DefaultView::updateViews()
 //-----------------------------------------------------------------------------
 void DefaultView::setCrosshairPoint(const NmVector3& point, bool force)
 {
-  //qDebug() << "Espina View Updating centers";
   m_viewXY->centerViewOn(point, force);
   m_viewYZ->centerViewOn(point, force);
   m_viewXZ->centerViewOn(point, force);
@@ -571,20 +546,6 @@ void DefaultView::changePlanePosition(Plane plane, Nm dist)
   m_view3D->changePlanePosition(plane, dist);
 }
 
-// //-----------------------------------------------------------------------------
-// void DefaultEspinaView::setCameraFocus(const Nm focus[3])
-// {
-//   volView->setCameraFocus(focus);
-//   volView->forceRender();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void DefaultEspinaView::setSliceSelectors(SliceView::SliceSelectors selectors)
-// {
-//   xyView->setSliceSelectors(selectors);
-//   yzView->setSliceSelectors(selectors);
-//   xzView->setSliceSelectors(selectors);
-// }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setFitToSlices(bool unused)
@@ -595,18 +556,6 @@ void DefaultView::setFitToSlices(bool unused)
   m_viewYZ->setSlicingStep(step);
   m_viewXZ->setSlicingStep(step);
 }
-
-// //-----------------------------------------------------------------------------
-// void DefaultEspinaView::selectFromSlice(double slice, PlaneType plane)
-// {
-//   emit selectedFromSlice(slice, plane);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
-// {
-//   emit selectedToSlice(slice, plane);
-// }
 
 //-----------------------------------------------------------------------------
 void DefaultView::loadSessionSettings(TemporalStorageSPtr storage)
@@ -674,3 +623,22 @@ void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
 
   settings.sync();
 }
+
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::setSliceSelectors(SliceView::SliceSelectors selectors)
+// {
+//   xyView->setSliceSelectors(selectors);
+//   yzView->setSliceSelectors(selectors);
+//   xzView->setSliceSelectors(selectors);
+// }
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::selectFromSlice(double slice, PlaneType plane)
+// {
+//   emit selectedFromSlice(slice, plane);
+// }
+//
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
+// {
+//   emit selectedToSlice(slice, plane);
+// }

@@ -26,7 +26,7 @@
 
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <GUI/Model/ChannelAdapter.h>
 
 namespace ESPINA

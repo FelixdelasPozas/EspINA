@@ -1,8 +1,21 @@
 /*
- * ChannelInspector.h
- *
- *  Created on: Dec 16, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_CHANNEL_INSPECTOR_H_
@@ -32,49 +45,134 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /* \brief ChannelInspector class constructor.
+     * \param[in] channel, channel adapter raw pointer.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] parent, parent widget.
+     */
     explicit ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent = 0);
+
+    /* \brief Channel Inspector class destructor.
+     *
+     */
     virtual ~ChannelInspector();
 
-    // re-implemented from base class because we need to reset channel
-    // properties before the dialog gets destroyed.
-    void closeEvent(QCloseEvent *event);
+    /* \brief Manages dialog close event.
+     * Re-implemented from base class because we need to reset channel
+     * properties before the dialog gets destroyed.
+     *
+     */
+    void closeEvent(QCloseEvent *event) override;
 
   signals:
     void spacingUpdated();
 
   public slots:
-    void unitsChanged(int);
+  	/* \brief Manages the change of units from the UI.
+  	 * \param[in] unused, unused value to match parameters number from signal.
+  	 *
+  	 */
+    void unitsChanged(int unused = 0);
+
+    /* \brief Keeps track of the changes in spacing.
+  	 * \param[in] unused, unused value to match parameters number from signal.
+     */
     void spacingChanged(double unused = 0);
+
+    /* brief Changes the spacing of the channel and associated segmentations.
+     *
+     */
     void changeSpacing();
-    void opacityCheckChanged(int);
-    void opacityChanged(int);
-    void newHSV(int,int,int);
-    void newHSV(int);
-    void saturationChanged(int);
-    void contrastChanged(int);
-    void brightnessChanged(int);
+
+    /* \brief Manages the change of state of opacity checkbox.
+     * \param[in] value, state of the checkbox.
+     *
+     */
+    void opacityCheckChanged(int value);
+
+    /* \brief Manages the change of value of the opacity slider.
+     * \param[in] value, value of the slider.
+     *
+     */
+    void opacityChanged(int value);
+
+    /* \brief Changes the HUE value of the channel based on h,s,v values
+     *        returned by HueSelector.
+     * \param[in] h, hue value
+     * \param[in] s, saturation value (unused)
+     * \param[in] v, color value (unused)
+     *
+     */
+    void newHSV(int h,int s,int v);
+
+    /* \brief Changes the HUE value of the channel based on the
+     *        value of the spinbox of the UI.
+     * \param[in] value, hue value.
+     */
+    void newHSV(int value);
+
+    /* \brief Changes the saturation of the channel.
+     * \param[in] value, value of the saturation slider.
+     *
+     */
+    void saturationChanged(int value);
+
+    /* \brief Changes the contrast of the channel.
+     * \param[in] value, value of the contrast slider.
+     */
+    void contrastChanged(int value);
+
+    /* \brief Changes the brightness of the channel.
+     * \param[in] value, value of the brigthness slider.
+     */
+    void brightnessChanged(int value);
+
+    /* \brief Apply the changes of the UI to the channel.
+     *
+     */
     void acceptedChanges();
+
+    /* \brief Resets the channel to previous values.
+     *
+     */
     void rejectedChanges();
-    void radioEdgesChanged(bool);
+
+    /* \brief
+     * \param[in] value
+     */
+    void radioEdgesChanged(bool value);
+
+    /* \brief Applies edges changes to the channel.
+     *
+     */
     void applyEdgesChanges();
+
+    /* \brief Manages the changes in the background color value of the UI spinbox.
+     * \param[in] value, value of the color spinbox.
+     */
     void changeEdgeDetectorBgColor(int value);
+
+    /* \brief Manages the changes in the threshold value of the UI spinbox.
+     * \param[in] value, value of the threshold spinbox.
+     */
     void changeEdgeDetectorThreshold(int value);
 
   private:
-    // helpher methods
+    /* \brief Helper method to update views after changes to the channel.
+     *
+     */
     void applyModifications();
 
   private:
     bool   m_spacingModified;
     bool   m_edgesModified;
-//    double m_range[2];
 
     ChannelAdapterPtr m_channel;
-//    ViewManagerSPtr    m_viewManager;
-    ModelAdapterSPtr   m_model;
-    SchedulerSPtr      m_scheduler;
-    View2D            *m_view;
-    HueSelector       *m_hueSelector;
+    ModelAdapterSPtr  m_model;
+    SchedulerSPtr     m_scheduler;
+    View2D           *m_view;
+    HueSelector      *m_hueSelector;
 
     bool m_useDistanceToEdges;
     int  m_backgroundColor;

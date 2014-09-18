@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,8 +21,10 @@
 #ifndef ESPINA_NUMBER_COLOR_ENGINE_H
 #define ESPINA_NUMBER_COLOR_ENGINE_H
 
+// ESPINA
 #include "GUI/ColorEngines/ColorEngine.h"
 
+// Qt
 #include <QMap>
 
 namespace ESPINA
@@ -31,10 +33,19 @@ namespace ESPINA
   : public ColorEngine
   {
   public:
+  	/* \brief Implements ColorEngine::color().
+  	 *
+  	 */
     virtual QColor color(SegmentationAdapterPtr segmentation);
 
+    /* \brief Implments ColorEngine::lut().
+     *
+     */
     virtual LUTSPtr lut(SegmentationAdapterPtr segmentation);
 
+    /* \brief Implements ColorEngine::supportedComposition().
+     *
+     */
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Color; }
 

@@ -25,12 +25,12 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef ESPINA_SEGMENTATION_NOTES_H
 #define ESPINA_SEGMENTATION_NOTES_H
 
 #include "Extensions/EspinaExtensions_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Extension.h>
 
 namespace ESPINA
@@ -44,40 +44,84 @@ namespace ESPINA
     static const Type    TYPE;
 
   public:
+    /* \brief SegmentationNotes class constructor.
+     * \param[in] infoCache, cache object.
+     *
+     */
     explicit SegmentationNotes(const InfoCache& infoCache = InfoCache());
+
+    /* \brief SegmentationNotes class virtual destructor.
+     *
+     */
     virtual ~SegmentationNotes();
 
+    /* \brief Implements Extension::type().
+     *
+     */
     virtual Type type() const
     { return TYPE; }
 
+    /* \brief Implements Extension::invalidateOnChange().
+     *
+     */
     virtual bool invalidateOnChange() const
     { return false; }
 
+    /* \brief Implements Extension::state().
+     *
+     */
     virtual State state() const
     { return State(); }
 
+    /* \brief Implements Extension::snapshot().
+     *
+     */
     virtual Snapshot snapshot() const
     { return Snapshot(); }
 
+    /* \brief Implements Extension::dependencies().
+     *
+     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
+    /* \brief Implements SegmentationExtension::validCategory().
+     *
+     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
+    /* \brief Implements Extension::availableInformations().
+     *
+     */
     virtual InfoTagList availableInformations() const;
 
-    virtual QString toolTipText() const;
+    /* \brief Overrides Extension::tooltipText().
+     *
+     */
+    virtual QString toolTipText() const override;
 
+    /* \brief Sets the notes.
+     *
+     */
     void setNotes(const QString &note);
 
+    /* \brief Returns the notes.
+     *
+     */
     QString notes() const
     { return cachedInfo(NOTES).toString(); }
 
   protected:
+    /* \brief Implements Extension::onExtendedItemSet().
+     *
+     */
     virtual void onExtendedItemSet(Segmentation* item)
     {}
 
+    /* \brief Implements Extension::cacheFail().
+     *
+     */
     virtual QVariant cacheFail(const QString& tag) const;
   };
 

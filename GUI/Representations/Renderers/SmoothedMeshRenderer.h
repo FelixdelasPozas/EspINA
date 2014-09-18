@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -34,18 +34,56 @@ namespace ESPINA
   : public MeshRenderer
   {
     public:
-      explicit SmoothedMeshRenderer(QObject* parent = 0);
-      virtual ~SmoothedMeshRenderer() {}
+  		/* \brief SmoothedMeshRenderer class constructor.
+  		 * \param[in] parent, raw pointer of the QObject parent of this one.
+  		 *
+  		 */
+      explicit SmoothedMeshRenderer(QObject* parent = nullptr);
 
-      virtual const QIcon icon()      const { return QIcon(":/espina/smoothedmesh.png"); }
-      virtual const QString name()    const { return "Smoothed Mesh"; }
-      virtual const QString tooltip() const { return "Segmentation's Smoothed Meshes"; }
+      /* \brief SmoothedMeshRenderer class virtual destructor.
+       *
+       */
+      virtual ~SmoothedMeshRenderer()
+      {}
 
+      /* \brief Implements Renderer::icon() const.
+       *
+       */
+      virtual const QIcon icon() const
+      { return QIcon(":/espina/smoothedmesh.png"); }
+
+      /* \brief Implements Renderer::name() const.
+       *
+       */
+      virtual const QString name()
+      const { return "Smoothed Mesh"; }
+
+      /* \brief Implements Renderer::tooltip() const.
+       *
+       */
+      virtual const QString tooltip() const
+      { return "Segmentation's Smoothed Meshes"; }
+
+      /* \brief Implements RepresentationRenderer::addRepresentation().
+       *
+       */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+
+      /* \brief Implements RepresentationRenderer::removeRepresentation().
+       *
+       */
       virtual void removeRepresentation(RepresentationSPtr rep);
+
+      /* \brief Implements RepresentationRenderer::managesRepresentation() const.
+       *
+       */
       virtual bool managesRepresentation(const QString &repType) const;
 
-      virtual RendererSPtr clone() const    { return RendererSPtr(new SmoothedMeshRenderer()); }
+      /* \brief Implements Renderer::clone() const.
+       *
+       */
+      virtual RendererSPtr clone() const
+      { return RendererSPtr(new SmoothedMeshRenderer()); }
   };
 
 } /* namespace ESPINA */

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -38,16 +38,16 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   RulerTool::RulerTool(ViewManagerSPtr vm)
-  : m_enabled{false}
-  , m_action{ new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
-  , m_widget{nullptr}
+  : m_enabled    {false}
+  , m_action     {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
+  , m_widget     {nullptr}
   , m_viewManager{vm}
-  , m_selection{new Selection()}
+  , m_selection  {new Selection()}
   {
     m_action->setCheckable(true);
     connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
   }
-  
+
   //----------------------------------------------------------------------------
   RulerTool::~RulerTool()
   {
@@ -104,7 +104,7 @@ namespace ESPINA
         if (item->type() == ItemAdapter::Type::SEGMENTATION)
         {
           disconnect(item->output().get(), SIGNAL(modified()),
-                     this,                 SLOT(selectedElementChanged()));
+                     this,                 SLOT(selectionChanged()));
         }
       }
     }
@@ -134,7 +134,7 @@ namespace ESPINA
           case ItemAdapter::Type::SEGMENTATION:
           {
             connect(item->output().get(), SIGNAL(modified()),
-                    this,                 SLOT(selectedElementChanged()));
+                    this,                 SLOT(selectionChanged()));
             if (!segmentationBounds.areValid())
               segmentationBounds = segmentationPtr(item)->bounds();
             else
@@ -177,12 +177,6 @@ namespace ESPINA
 
     return actionList;
   }
-  
-  //----------------------------------------------------------------------------
-  void RulerTool::selectedElementChanged()
-  {
-    selectionChanged();
-  }
 
   //----------------------------------------------------------------------------
   bool RulerEventHandler::filterEvent(QEvent *e, RenderView *view)
@@ -200,6 +194,5 @@ namespace ESPINA
     m_inUse = value;
     emit eventHandlerInUse(value);
   }
-
 
 } /* namespace ESPINA */

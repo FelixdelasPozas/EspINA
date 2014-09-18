@@ -9,11 +9,17 @@ include_directories(
 )
 
 qt4_wrap_cpp(Support_MOC
-  DockWidget.h
   Plugin.h
-  ToolGroup.h
   ViewManager.h
+  Widgets/DockWidget.h
+  Widgets/ToolGroup.h  
+  Widgets/TabularReport.h
+  Widgets/TabularReportEntry.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+  )
+
+qt4_wrap_ui (Support_UI
+  Widgets/TabularReportEntry.ui
   )
 
 if (METADONA_FOUND)
@@ -47,19 +53,22 @@ set (Support_SOURCES
   ${METADONA_MOC}
   ${METADONA_UI}
   ${METADONA_SOURCES}
-  ActionGroupWidget.cpp
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp
-  ToolGroup.cpp
   Readers/ChannelReader.cpp
   Utils/FactoryUtils.cpp
   Utils/xlsUtils.cpp
+  Widgets/ToolGroup.cpp  
+  Widgets/ActionGroupWidget.cpp  
+  Widgets/TabularReport.cpp
+  Widgets/TabularReportEntry.cpp
   ViewManager.cpp
   )
 
 set(Support_EXTERNAL_LIBS
   EspinaCore
   EspinaGUI
+  EspinaFilters
   ${METADONA_LIBRARIES}
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}

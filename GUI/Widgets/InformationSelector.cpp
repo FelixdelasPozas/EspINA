@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,8 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "InformationSelector.h"
 
+// Qt
 #include <ui_InformationSelector.h>
 
 using namespace ESPINA;
@@ -34,9 +36,9 @@ InformationSelector::InformationSelector(const InformationSelector::GroupedInfo 
                                          InformationSelector::GroupedInfo       &selection,
                                          QWidget                                *parent,
                                          Qt::WindowFlags                         flags)
-: QDialog(parent, flags)
-, m_gui(new GUI())
-, m_selection(selection)
+: QDialog    {parent, flags}
+, m_gui      {new GUI()}
+, m_selection{selection}
 {
   m_gui->setupUi(this);
 
@@ -108,8 +110,6 @@ void InformationSelector::accept()
 
   QDialog::accept();
 }
-
-#include <QDebug>
 
 //----------------------------------------------------------------------------
 void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bool updateParent)

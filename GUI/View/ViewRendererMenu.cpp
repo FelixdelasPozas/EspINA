@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -26,11 +26,11 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ViewRendererMenu::ViewRendererMenu(QWidget* parent)
-  : QMenu(parent)
+  : QMenu{parent}
   {
     connect(this, SIGNAL(triggered(QAction *)), this, SLOT(activate(QAction *)), Qt::QueuedConnection);
   }
-  
+
   //-----------------------------------------------------------------------------
   ViewRendererMenu::~ViewRendererMenu()
   {
@@ -38,7 +38,7 @@ namespace ESPINA
     for (auto renderer: renderers)
       remove(renderer);
   }
-  
+
   //-----------------------------------------------------------------------------
   void ViewRendererMenu::add(RendererSPtr renderer)
   {
@@ -55,7 +55,7 @@ namespace ESPINA
     addAction(rendererAction);
     m_renderers.insert(rendererAction, renderer);
   }
-  
+
   //-----------------------------------------------------------------------------
   void ViewRendererMenu::remove(RendererSPtr renderer)
   {
@@ -67,7 +67,7 @@ namespace ESPINA
     m_renderers.remove(m_renderers.key(renderer));
     delete rendererAction;
   }
-  
+
   //-----------------------------------------------------------------------------
   void ViewRendererMenu::activate(QAction *action)
   {

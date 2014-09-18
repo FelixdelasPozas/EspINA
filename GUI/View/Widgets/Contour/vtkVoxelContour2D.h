@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -23,11 +23,15 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
+// VTK
 #include <vtkPolyDataAlgorithm.h>
 
-// WARNING: this filter only works for slices in the axial plane (extent[4] == extent[5]),
-// like those used by ESPINA, it's not a generic marching cubes for 2D or 3d volumes.
-
+/* \class vtkVoxelContour2D
+ * \brief Creates a 2D contour given a 3d volume and a slice between the bounds.
+ *
+ *  This filter only works for slices in the axial plane (extent[4] == extent[5]),
+ *  like those used by ESPINA, it's not a generic marching cubes for 2D or 3d volumes.
+ */
 class EspinaGUI_EXPORT vtkVoxelContour2D
 : public vtkPolyDataAlgorithm
 {
@@ -35,7 +39,11 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
     vtkTypeMacro(vtkVoxelContour2D,vtkPolyDataAlgorithm);
 
     static vtkVoxelContour2D *New();
-    void PrintSelf(ostream& os, vtkIndent indent);
+
+    /* \brief Overrides vtkPolyDataAlgorithm::PrintSelf().
+     *
+     */
+    void PrintSelf(ostream& os, vtkIndent indent) override;
 
     // Description:
     // Get the output data object for a port on this algorithm.
@@ -60,46 +68,60 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
     void AddInput(vtkDataObject*);
     void AddInput(int, vtkDataObject*);
 
-    // get the smallest of the spacing of the plane that contains the contour
-    // (used to compute contour width in ContourRepresentation)
+    /* \brief Get the smallest of the spacing of the plane that contains the contour
+     *        (used to compute contour width in ContourRepresentation).
+     */
     double getMinimumSpacing() const;
 
   protected:
+    /* \brief vtkVoxelContour2D class constructor.
+     *
+     */
     vtkVoxelContour2D();
+
+    /* \brief vtkVoxelContour2D class destructor.
+     *
+     */
     ~vtkVoxelContour2D();
 
-    // Description:
-    // This is called by the superclass.
-    // This is the method you should override.
-      virtual int RequestDataObject(
-                                    vtkInformation* request,
-                                    vtkInformationVector** inputVector,
-                                    vtkInformationVector* outputVector );
+    /* \brief Request data.
+     *
+     */
+    virtual int RequestDataObject(vtkInformation* request,
+                                  vtkInformationVector** inputVector,
+                                  vtkInformationVector* outputVector);
 
-    // convenience method
-      virtual int RequestInformation(
-                                     vtkInformation* request,
-                                     vtkInformationVector** inputVector,
-                                     vtkInformationVector* outputVector );
+    /* \brief Overrides vtkPolyDataAlgorithm::RequestInformation().
+     *
+     */
+    virtual int RequestInformation(vtkInformation* request,
+                                   vtkInformationVector** inputVector,
+                                   vtkInformationVector* outputVector) override;
 
-    // Description:
-    // This is called by the superclass.
-    // This is the method you should override.
-      virtual int RequestData(vtkInformation* request,
-                              vtkInformationVector** inputVector,
-                              vtkInformationVector* outputVector );
+    /* \brief Overrides vtkPolyDataAlgorithm::RequestData().
+     *
+     */
+    virtual int RequestData(vtkInformation* request,
+                            vtkInformationVector** inputVector,
+                            vtkInformationVector* outputVector) override;
 
-    // Description:
-    // This is called by the superclass.
-    // This is the method you should override.
-      virtual int RequestUpdateExtent(
-                                      vtkInformation*,
-                                      vtkInformationVector**,
-                                      vtkInformationVector* );
+    /* \brief Overrides vtkPolyDataAlgorithm::RequestUpdateExtent().
+     *
+     */
+    virtual int RequestUpdateExtent(vtkInformation*,
+                                    vtkInformationVector**,
+                                    vtkInformationVector*) override;
 
   private:
-    vtkVoxelContour2D(const vtkVoxelContour2D&);  // Not implemented.
-    void operator=(const vtkVoxelContour2D&);  // Not implemented.
+    /* \brief Copy constructo not implemented.
+     *
+     */
+    vtkVoxelContour2D(const vtkVoxelContour2D&);
+
+    /* \brief Assignment operator not implemented.
+     *
+     */
+    void operator=(const vtkVoxelContour2D&);
 
     double m_minSpacing;
 };

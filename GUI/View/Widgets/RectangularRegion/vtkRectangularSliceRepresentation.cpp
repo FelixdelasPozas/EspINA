@@ -1,5 +1,27 @@
+/*
+
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
+
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// ESPINA
 #include "vtkRectangularSliceRepresentation.h"
 
+// VTK
 #include <vtkActor.h>
 #include <vtkAssemblyPath.h>
 #include <vtkBox.h>
@@ -498,11 +520,11 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
     else if (this->CurrentEdge == this->EdgeActor[RIGHT])
     {
       this->InteractionState = vtkRectangularSliceRepresentation::MoveRight;
-    } 
+    }
     else if (this->CurrentEdge == this->EdgeActor[TOP])
     {
       this->InteractionState = vtkRectangularSliceRepresentation::MoveTop;
-    } 
+    }
     else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
     {
       this->InteractionState = vtkRectangularSliceRepresentation::MoveBottom;
@@ -640,7 +662,7 @@ void vtkRectangularSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
   double *bounds=this->InitialBounds;
   os << indent << "Initial Bounds: "
      << "(" << bounds[0] << "," << bounds[1] << ") "
-     << "(" << bounds[2] << "," << bounds[3] << ") " 
+     << "(" << bounds[2] << "," << bounds[3] << ") "
      << "(" << bounds[4] << "," << bounds[5] << ")\n";
 }
 

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -54,17 +54,17 @@ namespace ESPINA
        */
       virtual ~RulerWidget();
 
-      /* \brief Implements EspinaWidget::registerView()
+      /* \brief Implements EspinaWidget::registerView().
        *
        */
       virtual void registerView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::unregisterView()
+      /* \brief Implements EspinaWidget::unregisterView().
        *
        */
       virtual void unregisterView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::setEnabled.
+      /* \brief Implements EspinaWidget::setEnabled()
        *
        */
       virtual void setEnabled(bool enable);
@@ -76,7 +76,11 @@ namespace ESPINA
       void setBounds(Bounds bounds);
 
     private slots:
-      void sliceChanged(Plane, Nm);
+			/* \brief Updates the representation when the view changes the slice.
+			 * \param[in] plane, orientation plane.
+			 * \param[in] pos, new position of the plane.
+			 */
+      void sliceChanged(Plane plane, Nm pos);
 
     private:
       friend class vtkRulerCommand;

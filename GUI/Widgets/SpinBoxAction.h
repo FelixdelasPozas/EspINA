@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,31 +21,35 @@
 #ifndef ESPINA_SPINBOX_ACTION_WIDGET_H_
 #define ESPINA_SPINBOX_ACTION_WIDGET_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
+// Qt
 #include <QWidgetAction>
 #include <QLabel>
 #include <QSpinBox>
 
 namespace ESPINA
 {
-  class SpinBoxAction
+  class EspinaGUI_EXPORT SpinBoxAction
   : public QWidgetAction
   {
     Q_OBJECT
     public:
-      /** \brief Class constructor.
+      /** \brief SpinBoxAction class constructor.
+       * \param[in] parent, raw pointer of the QObject parent of this one.
        *
        */
       explicit SpinBoxAction(QObject *parent = nullptr);
 
-      /** \brief Class destructor.
+      /** \brief SpinBoxAction class virtual destructor.
        *
        */
       virtual ~SpinBoxAction();
 
-      /** \brief Superclass method to create widget.
+      /** \brief Overrides QWidgetAction::createWidget().
        *
        */
-      virtual QWidget* createWidget(QWidget* parent);
+      virtual QWidget* createWidget(QWidget* parent) override;
 
       /** \brief Returns widget's radius value.
        *
@@ -54,26 +58,30 @@ namespace ESPINA
       { return m_value; }
 
       /** \brief Set minimum value for widget's QSpinBox.
+       * \param[in] value, new value.
        *
        */
       void setSpinBoxMinimum(int value);
 
       /** \brief Set maximum value for widget's QSpinBox.
+       * \param[in] value, new value.
        *
        */
       void setSpinBoxMaximum(int value);
 
       /** \brief Set value for the widget's QLabel.
+       * \param[in] label, new label.
        *
        */
       void setLabelText(const QString &label);
 
       /** \brief Set suffix of the spin box.
+       * \param[in] suffix, new suffix.
        *
        */
       void setSuffix(const QString &suffix);
 
-      /** \brief Set widget enabled/disabled.
+      /* \brief Shadows QAction::setEnabled().
        *
        */
       void setEnabled(bool value)
@@ -87,7 +95,7 @@ namespace ESPINA
         }
       }
 
-      /** \brief Returns the enabled/disabled state of the widgets.
+      /* \brief Shadows QAction::isEnabled().
        *
        */
       bool isEnabled()
@@ -95,6 +103,7 @@ namespace ESPINA
 
     public slots:
       /** \brief Sets widget's radius value.
+       * \param[in] value, new value.
        *
        */
       void setValue(int value);
@@ -103,10 +112,7 @@ namespace ESPINA
        *         widgets so we can nullify the pointers when they are destroyed.
        */
       void destroySignalEmmited()
-      {
-        m_label = nullptr;
-        m_spinBox = nullptr;
-      }
+      { m_label = nullptr; m_spinBox = nullptr; }
 
     signals:
       /** \brief Signal to propagate changes int the widget's values.

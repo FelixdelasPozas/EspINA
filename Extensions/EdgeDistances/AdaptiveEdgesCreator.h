@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_ADAPTIVE_EDGE_CREATOR_H
 #define ESPINA_ADAPTIVE_EDGE_CREATOR_H
 
 #include "Extensions/EspinaExtensions_Export.h"
 
+// ESPINA
 #include <Core/MultiTasking/Task.h>
 
 namespace ESPINA
@@ -34,11 +34,22 @@ namespace ESPINA
   : public Task
   {
   public:
+  	/* \brief AdaptiveEdgesCreator class constructor.
+  	 * \param[in] extension, ChannelEdges raw pointer.
+  	 * \param[in] scheduler, scheduler smart pointer.
+  	 */
     explicit AdaptiveEdgesCreator(ChannelEdges *extension,
                                   SchedulerSPtr scheduler = SchedulerSPtr());
+
+    /* \brief AdaptiveEdgesCreator class destructor.
+     *
+     */
     virtual ~AdaptiveEdgesCreator();
 
   protected:
+    /* \brief Implements Task::run().
+     *
+     */
     virtual void run();
 
   private:

@@ -1,10 +1,10 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
-    ESPINA is free software: you can redistribute it and/or modify
+ ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -34,9 +34,15 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
+      /* \brief SphericalBrushROISelector class constructor.
+       *
+       */
       explicit SphericalBrushROISelector();
 
     protected slots:
+			/* \brief Implements BrushSelector::createBrushShape().
+			 *
+			 */
       virtual BrushSelector::BrushShape createBrushShape(ViewItemAdapterPtr item,
                                                          NmVector3 center,
                                                          Nm radius,

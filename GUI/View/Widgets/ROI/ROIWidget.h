@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -20,6 +20,8 @@
 
 #ifndef ESPINA_ROI_WIDGET_H_
 #define ESPINA_ROI_WIDGET_H_
+
+#include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
@@ -43,8 +45,8 @@ namespace ESPINA
   class ViewManager;
   class View2D;
   class RenderView;
-  
-  class ROIWidget
+
+  class EspinaGUI_EXPORT ROIWidget
   : public QObject
   , public EspinaWidget
   {
@@ -61,23 +63,31 @@ namespace ESPINA
        */
       virtual ~ROIWidget();
 
-      /* \brief Implements EspinaWidget::registerView(RenderView *view)
+      /* \brief Implements EspinaWidget::registerView().
        *
        */
       virtual void registerView  (RenderView *view);
 
-      /* \brief Implements EspinaWidget::unregisterView(RenderView *view)
+      /* \brief Implements EspinaWidget::unregisterView().
        *
        */
       virtual void unregisterView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::setEnabled(bool)
+      /* \brief Implements EspinaWidget::setEnabled().
        *
        */
       virtual void setEnabled(bool enable);
 
     private slots:
-      void sliceChanged(Plane, Nm);
+			/* \brief Update the representation when the view changes the slice.
+			 * \parma[in] plane, orientation plane.
+			 * \param[in] pos, new plane position.
+			 */
+      void sliceChanged(Plane plane, Nm pos);
+
+      /* \brief Updates the representations.
+       *
+       */
       void updateROIRepresentations();
 
     private:

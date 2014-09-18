@@ -25,12 +25,10 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "ChangeSegmentationTags.h"
-
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Tags/SegmentationTags.h>
-
 
 using namespace ESPINA;
 
@@ -38,9 +36,9 @@ using namespace ESPINA;
 ChangeSegmentationTags::ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
                                                const QStringList&     tags,
                                                QUndoCommand*          parent)
-: QUndoCommand(parent)
-, m_segmentation(segmentation)
-, m_formerTags(tags)
+: QUndoCommand  {parent}
+, m_segmentation{segmentation}
+, m_formerTags  {tags}
 {
 }
 

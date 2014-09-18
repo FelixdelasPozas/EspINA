@@ -26,16 +26,18 @@
  *
  */
 
+// ESPINA
 #include "Scheduler.h"
-
 #include "Task.h"
 
+// C++
 #include <iostream>
+#include <unistd.h>
 
+// Qt
 #include <QThread>
 #include <QThreadPool>
 #include <QApplication>
-#include <unistd.h>
 
 using namespace ESPINA;
 
@@ -55,11 +57,11 @@ void TaskQueue::orderedInsert(TaskSPtr worker)
 
 //-----------------------------------------------------------------------------
 Scheduler::Scheduler(int period, QObject* parent)
-: QObject(parent)
-, m_period{period}
-, m_lastId{0}
+: QObject               {parent}
+, m_period              {period}
+, m_lastId              {0}
 , m_maxNumRunningThreads{QThreadPool::globalInstance()->maxThreadCount() }
-, m_abort{false}
+, m_abort               {false}
 {
   QThread *thread = new QThread();
   moveToThread(thread);
@@ -113,9 +115,9 @@ void Scheduler::abortExecutingTasks()
 {
   m_abort = true;
   m_mutex.lock();
-  for (int priority = 4; priority >= 0; --priority)
+  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
   {
-    for (TaskSPtr task : m_runningTasks[priority])
+    for (auto task : m_runningTasks[priority])
     {
       if (!task->hasFinished())
       {
@@ -130,7 +132,7 @@ void Scheduler::abortExecutingTasks()
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::changePriority(TaskPtr task, int prevPriority)
+void Scheduler::changePriority(TaskPtr task, Priority prevPriority)
 {
   QMutexLocker lock(&m_mutex);
 
@@ -143,7 +145,7 @@ void Scheduler::changePriority(TaskPtr task, int prevPriority)
 }
 
 //-----------------------------------------------------------------------------
-void Scheduler::changePriority(TaskSPtr task, int prevPriority)
+void Scheduler::changePriority(TaskSPtr task, Priority prevPriority)
 {
   changePriority(task.get(), prevPriority);
 }
@@ -154,7 +156,7 @@ unsigned int Scheduler::numberOfTasks() const
   QMutexLocker lock(&m_mutex);
 
   unsigned int result = 0;
-  for(int priority = 4; priority >= 0; --priority)
+  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
     result += m_runningTasks[priority].size();
 
   return result;
@@ -163,7 +165,6 @@ unsigned int Scheduler::numberOfTasks() const
 //-----------------------------------------------------------------------------
 void Scheduler::scheduleTasks()
 {
-
   while (!m_abort)
   {
     QApplication::processEvents();
@@ -182,8 +183,7 @@ void Scheduler::scheduleTasks()
 
     int num_running_threads = 0;
 
-
-    for (int priority = 4; priority >= 0; --priority)
+    for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
     {
 //       std::cout << "Updating Priority " << priority << std::endl;
       QList<TaskSPtr> deferredDeletionTaskList;
@@ -275,12 +275,13 @@ void Scheduler::scheduleTasks()
 //           }
 //         }
       }
+
       for (auto task : deferredDeletionTaskList)
         m_runningTasks[priority].removeOne(task);
 
 //      for (auto task : m_runningTasks[priority])
 //      {
-//        std::cout << task->id() << " - ";
+//        std::cout << task->id() << " - " << task->description().toStdString() << " - ";
 //        std::cout << (task->isPaused() ? "paused " : "");
 //        std::cout << (task->isPendingPause() ? "paused " : "");
 //        std::cout << (task->isAborted() ? "aborted " : "");

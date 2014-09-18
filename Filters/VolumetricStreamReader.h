@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -24,15 +24,20 @@
 
 #include "Filters/EspinaFilters_Export.h"
 
+// ESPINA
+#include <Core/Analysis/Data/Volumetric/StreamedVolume.hxx>
 #include <Core/Analysis/Filter.h>
 
 namespace ESPINA
 {
-  /** \brief Read a volume on demand from disk
-   * 
+  template class StreamedVolume<itkVolumeType>;
+
+  /** \class VolumetricStreamReader
+   * \brief Read a volume on demand from disk.
+   *
    * If volume format is not MetaImage, then a MetaImage copy
    * will be stored in temporal storage and used to speed up
-   * access to data
+   * access to data.
    */
   class EspinaFilters_EXPORT VolumetricStreamReader
   : public Filter
@@ -41,29 +46,65 @@ namespace ESPINA
     struct File_Not_Found_Exception{};
 
   public:
+    /* \brief VolumetricStreamReader class constructor.
+		 * \param[in] inputs, list of input smart pointers.
+		 * \param[in] type, VolumetricStreamReader type.
+		 * \param[in] scheduler, scheduler smart pointer.
+		 *
+     */
     explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
+    /* \brief Implements Persistent::restoreState().
+     *
+     */
     virtual void restoreState(const State& state);
 
+    /* \brief Implements Persistent::state().
+     *
+     */
     virtual State state() const;
 
+    /* \brief Sets the name of the image on disk to stream.
+     * \param[in] filename, QFileInfo object.
+     */
     void setFileName(const QFileInfo& fileName);
 
   protected:
-    virtual Snapshot saveFilterSnapshot() const 
+    /* \brief Implements Filter::saveFilterSnapshot().
+     *
+     */
+    virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
+    /* \brief Implements Filter::needUpdate().
+     *
+     */
     virtual bool needUpdate() const;
 
+    /* \brief Implements Filter::needUpdate(id).
+     *
+     */
     virtual bool needUpdate(Output::Id id) const;
 
+    /* \brief Implements Filter::execute().
+     *
+     */
     virtual void execute();
 
+    /* \brief Implements Filter::execute(id).
+     *
+     */
     virtual void execute(Output::Id id);
 
+    /* \brief Implements Filter::ignoreStorageContent().
+     *
+     */
     virtual bool ignoreStorageContent() const
     {return false;}
 
+    /* \brief Implements Filter::invalidateEditedRegions().
+     *
+     */
     virtual bool invalidateEditedRegions()
     { return false; }
 

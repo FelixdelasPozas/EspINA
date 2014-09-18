@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,13 +23,15 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
+// ESPINA
 #include "VolumeBounds.h"
-
 #include <Core/EspinaTypes.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+
+// VTK
 #include <vtkMath.h>
 
 using namespace ESPINA;
@@ -193,7 +195,6 @@ bool ESPINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
   }
 
   return overlap;
-  //return intersect(lhs.bounds(), rhs.bounds());
 }
 
 //-----------------------------------------------------------------------------
@@ -211,7 +212,6 @@ throw (Incompatible_Volume_Bounds_Exception)
   }
 
   return VolumeBounds(bounds, lhs.spacing(), rhs.origin());
-  //return VolumeBounds(intersection(lhs.bounds(), rhs.bounds()), lhs.spacing(), rhs.origin());
 }
 
 //-----------------------------------------------------------------------------
@@ -267,16 +267,16 @@ QDebug ESPINA::operator<< (QDebug d, const VolumeBounds &bounds)
 bool ESPINA::operator==(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return isEquivalent(lhs, rhs) && lhs.origin() == rhs.origin();
-/*
-  if (lhs.origin() != rhs.origin()) return false;
 
-  if (lhs.spacing() != rhs.spacing()) return false;
-
-  for (int i = 0; i < 6; ++i) {
-    if (!areEqual(lhs[i], rhs[i])) return false;
-  }
-
-  return true; */
+//  if (lhs.origin() != rhs.origin()) return false;
+//
+//  if (lhs.spacing() != rhs.spacing()) return false;
+//
+//  for (int i = 0; i < 6; ++i) {
+//    if (!areEqual(lhs[i], rhs[i])) return false;
+//  }
+//
+//  return true;
 }
 
 //-----------------------------------------------------------------------------

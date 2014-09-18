@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -288,18 +288,11 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     m_executingTasks[adapter.get()] = adapter;
 
-    connect(adapter.get(), SIGNAL(progress(int)),
-            this,   SLOT(onTaskProgres(int)));
     connect(adapter.get(), SIGNAL(finished()),
             this,   SLOT(createSegmentation()));
 
     adapter->submit();
   }
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onTaskProgres(int progress)
-{
 }
 
 //-----------------------------------------------------------------------------
@@ -333,28 +326,13 @@ void SeedGrowSegmentationTool::createSegmentation()
   }
 
   m_executingTasks.remove(filter);
-
-//   m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
-//    m_undoStack->push(new SeedGrowSegmentationCommand(channel,
-//                                                      seed,
-//                                                      voiExtent,
-//                                                      m_threshold->lowerThreshold(),
-//                                                      m_threshold->upperThreshold(),
-//                                                      m_settings->closing(),
-//                                                      m_viewManager->activeTaxonomy(),
-//                                                      m_model,
-//                                                      m_viewManager,
-//                                                      createdSegmentations));
-//    m_model->emitSegmentationAdded(createdSegmentations);
-//    m_undoStack->endMacro();
-   //m_selectorSwitch->setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
-
-  if (m_settings->applyCategoryROI()) {
+  if (m_settings->applyCategoryROI())
+  {
     QVariant xSize = category->property(Category::DIM_X());
     QVariant ySize = category->property(Category::DIM_Y());
     QVariant zSize = category->property(Category::DIM_Z());

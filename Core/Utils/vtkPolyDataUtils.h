@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,6 +21,8 @@
 #ifndef ESPINA_VTKPOLYDATAUTILS_H_
 #define ESPINA_VTKPOLYDATAUTILS_H_
 
+#include "Core/EspinaCore_Export.h"
+
 // VTK
 #include <vtkSmartPointer.h>
 
@@ -34,10 +36,18 @@ namespace ESPINA
   {
     struct IO_Error_Exception{};
 
-    QByteArray savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polydata) throw (IO_Error_Exception);
+    /* \brief Converts the vtkPolyData object to a byte array and returns it.
+     * \param[in] polyData, smart pointer of the vtkPolyData object to convert.
+     *
+     */
+    QByteArray EspinaCore_EXPORT savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polydata) throw (IO_Error_Exception);
 
-    vtkSmartPointer<vtkPolyData> readPolyDataFromFile(QString fileName) throw (IO_Error_Exception);
+    /* \brief Converts a byte array to a vtkPolyData smart pointer and returns it.
+     * \param[in] filename, file name.
+     *
+     */
+    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT readPolyDataFromFile(QString fileName) throw (IO_Error_Exception);
   }
 }
 
-#endif /* ESPINA_VTKPOLYDATAUTILS_H_ */
+#endif // ESPINA_VTKPOLYDATAUTILS_H_

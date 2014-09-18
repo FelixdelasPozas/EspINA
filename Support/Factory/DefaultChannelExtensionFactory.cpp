@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,15 +19,15 @@
  *
  */
 
+// ESPINA
 #include "DefaultChannelExtensionFactory.h"
-
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 DefaultChannelExtensionFactory::DefaultChannelExtensionFactory(SchedulerSPtr scheduler)
-: m_scheduler(scheduler)
+: m_scheduler{scheduler}
 {
 }
 

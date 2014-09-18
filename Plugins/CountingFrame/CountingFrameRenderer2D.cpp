@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -30,7 +30,7 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 CountingFrameRenderer2D::CountingFrameRenderer2D(CountingFrameManager& cfManager)
-: m_cfManager(cfManager)
+: m_cfManager{cfManager}
 {
   connect(&m_cfManager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(onCountingFrameCreated(CountingFrame*)));

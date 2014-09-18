@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,7 +21,7 @@
 // ESPINA
 #include "SliceCachedRepresentation.h"
 #include "RepresentationEmptySettings.h"
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 // VTK
@@ -72,11 +72,11 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   ChannelSliceCachedRepresentation::ChannelSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
                                                                      View2D *view)
-  : CachedRepresentation(data, view)
+  : CachedRepresentation{data, view}
   {
     setType(TYPE);
   }
-  
+
   //-----------------------------------------------------------------------------
   RepresentationSPtr ChannelSliceCachedRepresentation::cloneImplementation(View2D* view)
   {
@@ -216,7 +216,7 @@ namespace ESPINA
       Representation::restoreSettings(values[0]);
     }
   }
-  
+
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::setColor(const QColor& color)
   {
@@ -227,7 +227,7 @@ namespace ESPINA
 
     emit changeColor();
   }
-  
+
   //-----------------------------------------------------------------------------
   QColor SegmentationSliceCachedRepresentation::color() const
   {
@@ -236,7 +236,7 @@ namespace ESPINA
     else
       return Representation::color();
   }
-  
+
   //-----------------------------------------------------------------------------
   void SegmentationSliceCachedRepresentation::setHighlighted(bool highlighted)
   {
@@ -247,7 +247,7 @@ namespace ESPINA
 
     emit changeColor();
   }
-  
+
   //-----------------------------------------------------------------------------
   bool SegmentationSliceCachedRepresentation::isInside(const NmVector3& point) const
   {
@@ -262,7 +262,7 @@ namespace ESPINA
 
     return RepresentationSPtr(representation);
   }
-  
+
   //-----------------------------------------------------------------------------
   vtkSmartPointer<vtkImageActor> SegmentationSliceCachedRepresentation::getActor(const Nm slicePos) const
   {
