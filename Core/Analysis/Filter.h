@@ -55,67 +55,67 @@ namespace ESPINA
     using OutputSMap = QMap<Output::Id, OutputSPtr>;
 
   public:
-    /* \brief Filter class destructor.
+    /** brief Filter class destructor.
      *
      */
     virtual ~Filter();
 
-    /* \brief Sets the analysis this filters belongs to.
+    /** brief Sets the analysis this filters belongs to.
      *
      */
     void setAnalysis(AnalysisPtr analysis)
     { m_analysis = analysis; }
 
-    /* \brief Returns the analysis that contains this filter.
+    /** brief Returns the analysis that contains this filter.
      *
      */
     AnalysisPtr analysis() const
     { return m_analysis; }
 
-    /* \brief Implements Persistent::snapshot() const.
+    /** brief Implements Persistent::snapshot() const.
      *
      */
     virtual Snapshot snapshot() const;
 
-    /* \brief Implements Persistent::unload().
+    /** brief Implements Persistent::unload().
      *
      */
     virtual void unload();
 
-    /* \brief Returns the type of the filter.
+    /** brief Returns the type of the filter.
      *
      */
     Type type()
     { return m_type; }
 
-    /* \brief Sets the inputs of the filter.
+    /** brief Sets the inputs of the filter.
      * \param[in] inputs, list of input smart pointers.
      *
      */
     void setInputs(InputSList inputs)
     { m_inputs = inputs;}
 
-    /* \brief Returns the inputs of the filter.
+    /** brief Returns the inputs of the filter.
      *
      */
     InputSList inputs() const
     { return m_inputs; }
 
-    /* \brief Sets the fetch data behaviour of the filter.
+    /** brief Sets the fetch data behaviour of the filter.
      * \param[in] behaviour, fetch behaviour object smart pointer.
      *
      */
     void setFetchBehaviour(FetchBehaviourSPtr behaviour)
     { m_fetchBehaviour = behaviour; }
 
-    /* \brief Sets the error handler of the filter.
+    /** brief Sets the error handler of the filter.
      * \param[in] handler, error handler smart pointer.
      *
      */
     void setErrorHandler(ErrorHandlerSPtr handler)
     { m_handler = handler; }
 
-    /* \brief Returns the error handler for this filter.
+    /** brief Returns the error handler for this filter.
      *
      */
     ErrorHandlerSPtr handler() const
@@ -127,17 +127,17 @@ namespace ESPINA
      */
     bool update();
 
-    /* \brief Update filter output with the specified id.
+    /** brief Update filter output with the specified id.
      *
      */
     bool update(Output::Id id);
 
-    /* \brief Return the number of outputs of the filter.
+    /** brief Return the number of outputs of the filter.
      *
      */
     unsigned int numberOfOutputs() const;
 
-    /* \brief Returns the list of outputs of the filter.
+    /** brief Returns the list of outputs of the filter.
      *
      */
     OutputSList outputs() const
@@ -158,7 +158,7 @@ namespace ESPINA
     OutputSPtr output(Output::Id id) const throw(Undefined_Output_Exception);
 
   protected:
-    /* \brief Filter class constructor.
+    /** brief Filter class constructor.
      * \param[in] inputs, list of input smart pointers.
      * \param[in] type, type of the filter.
      * \param[in] scheduler, smart pointer of the system scheduler.
@@ -166,7 +166,7 @@ namespace ESPINA
      */
     explicit Filter(InputSList inputs, Type  type, SchedulerSPtr scheduler);
 
-    /* \brief Returns the snapshot of the filter.
+    /** brief Returns the snapshot of the filter.
      *
      */
     virtual Snapshot saveFilterSnapshot() const = 0;
@@ -190,7 +190,7 @@ namespace ESPINA
      */
     bool fetchOutputData(Output::Id id);
 
-    /* \brief Executes the filter to generate/update all its outputs.
+    /** brief Executes the filter to generate/update all its outputs.
      *
      */
     virtual void run()
@@ -215,7 +215,7 @@ namespace ESPINA
      */
     virtual bool ignoreStorageContent() const = 0;
 
-    /* \brief Invalidated the edited regions.
+    /** brief Invalidated the edited regions.
      *
      */
     virtual bool invalidateEditedRegions() = 0;
@@ -231,31 +231,31 @@ namespace ESPINA
     void clearPreviousOutputs();
 
   private:
-    /* \brief Returns true if the data stored in the persistent storage is valid.
+    /** brief Returns true if the data stored in the persistent storage is valid.
      *
      */
     bool validStoredInformation() const;
 
-    /* \brief Check if output was created during this or previous executions.
+    /** brief Check if output was created during this or previous executions.
      * \param[in] id, Output::Id object.
      *
      */
     bool existOutput(Output::Id id) const;
 
-    /* \brief Creates the outputs of the filter using the stored information.
+    /** brief Creates the outputs of the filter using the stored information.
      *
      */
     bool createPreviousOutputs() const;
 
   private:
-    /* \brief Returns the output file name for the filter.
+    /** brief Returns the output file name for the filter.
      *
      */
     QString outputFile() const
     { return prefix() + "outputs.xml"; }
 
   protected:
-    /* \brief Returns the prefix for the data files of this filter.
+    /** brief Returns the prefix for the data files of this filter.
      *
      */
     QString prefix() const

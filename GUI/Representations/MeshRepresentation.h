@@ -38,7 +38,7 @@ namespace ESPINA
       static const Representation::Type TYPE;
 
     public:
-      /* \brief MeshRepresentation class constructor.
+      /** brief MeshRepresentation class constructor.
 			 * \param[in] mesh, MeshData smart pointer of the data to represent.
 			 * \param[in] view, render view pointer where the representation will be shown.
        *
@@ -46,30 +46,30 @@ namespace ESPINA
       explicit MeshRepresentation(MeshDataSPtr data,
                                   RenderView *view);
 
-      /* \brief MeshRepresentation class virtual destructor.
+      /** brief MeshRepresentation class virtual destructor.
        *
        */
       virtual ~MeshRepresentation()
       {};
 
-      /* \brief Implements Representation::settingsWidget().
+      /** brief Implements Representation::settingsWidget().
        *
        */
       virtual RepresentationSettings *settingsWidget();
 
-      /* \brief Implements Representation::updateRepresentation().
+      /** brief Implements Representation::updateRepresentation().
        *
        */
       virtual void updateRepresentation();
 
   protected:
-      /* \brief Implements Representation::cloneImplementation(View3D*).
+      /** brief Implements Representation::cloneImplementation(View3D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
     private:
-      /* \brief Implements MeshRepresentation::initializePipeline().
+      /** brief Implements MeshRepresentation::initializePipeline().
        *
        */
       void initializePipeline();

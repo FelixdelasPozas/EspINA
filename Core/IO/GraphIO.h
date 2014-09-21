@@ -52,7 +52,7 @@ namespace ESPINA
       : public Persistent
       {
       public:
-      	/* \brief ReadOnlyVertex class constructor.
+      	/** brief ReadOnlyVertex class constructor.
       	 * \param[in] type, VertexType type.
       	 * \param[in] vertexid, id of the vertex.
       	 *
@@ -60,37 +60,37 @@ namespace ESPINA
         explicit ReadOnlyVertex(VertexType type, int vertexId)
         : m_type{type}, m_vertexId(vertexId) {}
 
-        /* \brief Returns the type of the vertex.
+        /** brief Returns the type of the vertex.
          *
          */
         VertexType type() const
         { return m_type; }
 
-        /* \brief Returns the id of the vertex.
+        /** brief Returns the id of the vertex.
          *
          */
         int vertexId() const
         { return m_vertexId; }
 
-        /* \brief Implements Persistent::restoreState().
+        /** brief Implements Persistent::restoreState().
          *
          */
         virtual void restoreState(const State& state)
         { m_state = state; }
 
-        /* \brief Implements Persistent::state().
+        /** brief Implements Persistent::state().
          *
          */
         virtual State state() const
         { return m_state; }
 
-        /* \brief Implements Persistent::snapshot().
+        /** brief Implements Persistent::snapshot().
          *
          */
         virtual Snapshot snapshot() const
         { return Snapshot(); }
 
-        /* \brief Implements Persistent::unload().
+        /** brief Implements Persistent::unload().
          *
          */
         virtual void unload(){}
@@ -101,7 +101,7 @@ namespace ESPINA
         State      m_state;
       };
 
-      /* \brief Reads and builds the graph from a byte stream.
+      /** brief Reads and builds the graph from a byte stream.
        * \param[in] stream, graph to parse.
        * \param[out] graph, directed graph.
        * \param[in] format, print format specifier.
@@ -109,7 +109,7 @@ namespace ESPINA
        */
       void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
 
-      /* \brief Writes the graph to a byte stream.
+      /** brief Writes the graph to a byte stream.
        * \param[in] graph, directed graph.
        * \param[out] stream, graph to parse.
        * \param[in] format, print format specifier.
@@ -117,28 +117,28 @@ namespace ESPINA
        */
       void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
 
-      /* \brief Returns true if the vertex is the type SAMPLE.
+      /** brief Returns true if the vertex is the type SAMPLE.
        * \param[in] vertex.
        *
        */
       template<class T> bool isSample(const T &vertex)
       { return vertex->type() == VertexType::SAMPLE; }
 
-      /* \brief Returns true if the vertex is the type FILTER.
+      /** brief Returns true if the vertex is the type FILTER.
        * \param[in] vertex.
        *
        */
       template<class T> bool isFilter(const T &vertex)
       { return vertex->type() == VertexType::FILTER; }
 
-      /* \brief Returns true if the vertex is the type CHANNEL.
+      /** brief Returns true if the vertex is the type CHANNEL.
        * \param[in] vertex.
        *
        */
       template<class T> bool isChannel(const T &vertex)
       { return vertex->type() == VertexType::CHANNEL; }
 
-      /* \brief Returns true if the vertex is the type SEGMENTATION.
+      /** brief Returns true if the vertex is the type SEGMENTATION.
        * \param[in] vertex.
        *
        */

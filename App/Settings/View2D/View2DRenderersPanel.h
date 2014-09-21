@@ -34,7 +34,7 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief View2DRenderersPanel class constructor.
+      /** brief View2DRenderersPanel class constructor.
        * \param[in] renderers, list of renderers smart pointers.
        * \param[in] activeRenderers, list of names of active renderers to show in active panel
        * \param[in] filter, specifies the type of filters to show in the panels.
@@ -45,45 +45,45 @@ namespace ESPINA
                                     RendererTypes filter,
                                     QList<View2D *> viewList);
 
-      /* \brief View2DRenderersPanel class destructor.
+      /** brief View2DRenderersPanel class destructor.
        *
        */
       virtual ~View2DRenderersPanel();
 
-      /* \brief Overrides SettingsPanel::shortDescription().
+      /** brief Overrides SettingsPanel::shortDescription().
        *
        */
       virtual const QString shortDescription() override
       { return QString("View 2D"); };
 
-      /* \brief Overrides SettingsPanel::longDescription().
+      /** brief Overrides SettingsPanel::longDescription().
        *
        */
       virtual const QString longDescription() override
       { return QString("View 2D"); };
 
-      /* \brief Overrides SettingsPanel::icon().
+      /** brief Overrides SettingsPanel::icon().
        *
        */
       virtual const QIcon icon()
       { return QIcon(); }
 
-      /* \brief Overrides SettingsPanel::acceptChanges().
+      /** brief Overrides SettingsPanel::acceptChanges().
        *
        */
       virtual void acceptChanges();
 
-      /* \brief Overrides SettingsPanel::rejectChanges().
+      /** brief Overrides SettingsPanel::rejectChanges().
        *
        */
       virtual void rejectChanges();
 
-      /* \brief Overrides SettingsPanel::modified().
+      /** brief Overrides SettingsPanel::modified().
        *
        */
       virtual bool modified() const;
 
-      /* \brief Overrides SettingsPanel::clone().
+      /** brief Overrides SettingsPanel::clone().
        *
        */
       virtual SettingsPanelPtr clone();

@@ -33,43 +33,43 @@ namespace ESPINA {
     Q_OBJECT
 
   public:
-    /* \brief CODETool class constructor.
+    /** brief CODETool class constructor.
      * \param[in] icon, tool icon.
      * \param[in] tooltip, tooltip of the tool.
      *
      */
     CODETool(const QString&icon, const QString& tooltip);
 
-    /* \brief Implements Tool::actions().
+    /** brief Implements Tool::actions().
      *
      */
     QList<QAction *> actions() const;
 
-    /* \brief Implements Tool::setEnabled().
+    /** brief Implements Tool::setEnabled().
      *
      */
     void setEnabled(bool enabled);
 
-    /* \brief Implements Tool::enabled().
+    /** brief Implements Tool::enabled().
      *
      */
     bool enabled() const
     { return m_enabled; }
 
-    /* \brief Sets the radius value.
+    /** brief Sets the radius value.
      * \param[in] value, value of the radius.
      */
     void setRadius(int value)
     { m_radius->setValue(value); }
 
-    /* \brief Returns the value of the radius.
+    /** brief Returns the value of the radius.
      *
      */
     int radius() const
     { return m_radius->value(); }
 
   public slots:
-  	/* \brief Hide/show the tool widgets.
+  	/** brief Hide/show the tool widgets.
   	 * \param[in] visible. true to set visible, false otherwise.
   	 */
     void toggleToolWidgets(bool visible);

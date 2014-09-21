@@ -41,7 +41,7 @@ namespace ESPINA
   : public Renderer
   {
     public:
-  		/* \brief RepresentationRenderer class constructor.
+  		/** brief RepresentationRenderer class constructor.
   		 * \param[in] parent, raw pointer of the QObject parent of this one.
   		 *
   		 */
@@ -49,42 +49,42 @@ namespace ESPINA
       : Renderer{parent}
       {};
 
-      /* \brief RepresentationRenderer class virtual destructor.
+      /** brief RepresentationRenderer class virtual destructor.
        *
        */
       virtual ~RepresentationRenderer()
       {};
 
-      /* \brief Adds a representation to the renderer and assigns it to the specified ViewItemAdapter.
+      /** brief Adds a representation to the renderer and assigns it to the specified ViewItemAdapter.
        * \param[in] item, smart pointer of the view item adapter that the representation belongs to.
        * \param[in] rep, representation smart pointer.
        *
        */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) = 0;
 
-      /* \brief Removes a representation from the renderer.
+      /** brief Removes a representation from the renderer.
        * \param[in] rep, representation smart pointer.
        *
        */
       virtual void removeRepresentation(RepresentationSPtr rep) = 0;
 
-      /* \brief Returns true if the renderer manages the representation.
+      /** brief Returns true if the renderer manages the representation.
        *
        */
       virtual bool hasRepresentation(RepresentationSPtr rep) const = 0;
 
-      /* \brief Returns true if the renderer can manage the specified type of representations.
+      /** brief Returns true if the renderer can manage the specified type of representations.
        * \param[in] representationType, representation type.
        *
        */
       virtual bool managesRepresentation(const QString &representationType) const = 0;
 
-      /* \brief Returns the type of items the renderer can manage representations of.
+      /** brief Returns the type of items the renderer can manage representations of.
        *
        */
       virtual RenderableItems renderableItems() const = 0;
 
-      /* \brief Returns true if the renderer can manage a representation for the specified item.
+      /** brief Returns true if the renderer can manage a representation for the specified item.
        * \param[in] item, item adapter smart pointer.
        *
        * TODO: naive item filtering, to be modified/enhanced in the future.
@@ -92,7 +92,7 @@ namespace ESPINA
        */
       virtual bool canRender(ItemAdapterPtr item) const = 0;
 
-      /* \brief Returns the list of items picked by the specified coordinates, type and belonging to the renderer specified.
+      /** brief Returns the list of items picked by the specified coordinates, type and belonging to the renderer specified.
        * \param[in] x, x display coordinate.
        * \param[in] y, y display coordinate.
        * \param[in] z, z work coordinate (depth)
@@ -103,13 +103,13 @@ namespace ESPINA
        */
       virtual ViewItemAdapterList pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false) = 0;
 
-      /* \brief Returns the world coodinates of a successful pick.
+      /** brief Returns the world coodinates of a successful pick.
        *
        */
       virtual NmVector3 pickCoordinates()
       { return m_lastValidPickPosition; };
 
-      /* \brief Implements Renderer::type()
+      /** brief Implements Renderer::type()
        *
        */
       virtual Type type() const
@@ -125,7 +125,7 @@ namespace ESPINA
   : public RepresentationRenderer
   {
     public:
-      /* \brief ChannelRenderer class constructor.
+      /** brief ChannelRenderer class constructor.
   		 * \param[in] parent, raw pointer of the QObject parent of this one.
        *
        */
@@ -133,13 +133,13 @@ namespace ESPINA
       : RepresentationRenderer(parent)
       {}
 
-      /* \brief ChannelRenderer class destructor.
+      /** brief ChannelRenderer class destructor.
        *
        */
       virtual ~ChannelRenderer()
       {}
 
-      /* \brief Sets the colors of the crosshairs.
+      /** brief Sets the colors of the crosshairs.
        * \param[in] axialColor, vector of doubles with the r,g,b components of the color.
        * \param[in] coronalColor, vector of doubles with the r,g,b components of the color.
        * \param[in] sagittalColor, vector of doubles with the r,g,b components of the color.
@@ -147,20 +147,20 @@ namespace ESPINA
        */
       virtual void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]) = 0;
 
-      /* \brief Sets the crosshair position in the channel renderer.
+      /** brief Sets the crosshair position in the channel renderer.
        * \param[in] point, crosshair point.
        *
        */
       virtual void setCrosshair(NmVector3 point) = 0;
 
-      /* \brief Moves one of the planes of the crosshair to the specified position.
+      /** brief Moves one of the planes of the crosshair to the specified position.
        * \param[in] plane, plane to move.
        * \param[in] pos, new plane position.
        *
        */
       virtual void setPlanePosition(Plane plane, Nm pos) = 0;
 
-      /* \brief Implements RepresentationRenderer::renderableItems().
+      /** brief Implements RepresentationRenderer::renderableItems().
        *
        */
       virtual RenderableItems renderableItems() const
@@ -172,12 +172,12 @@ namespace ESPINA
   using RepresentationRendererList  = QList<RepresentationRendererPtr>;
   using RepresentationRendererSList = QList<RepresentationRendererSPtr>;
 
-  /* \brief Returns true if the renderer can render the specified type of items.
+  /** brief Returns true if the renderer can render the specified type of items.
    *
    */
   bool canRender(RepresentationRendererSPtr renderer, RenderableType type);
 
-  /* \brief Returns the representation renderer smart pointer of the specified renderer.
+  /** brief Returns the representation renderer smart pointer of the specified renderer.
    * \param[in] renderer, renderer smart pointer.
    *
    */

@@ -37,7 +37,7 @@ namespace ESPINA
   : public Filter
   {
   public:
-  	/* \brief SeedGrowSegmentationFilter class constructor.
+  	/** brief SeedGrowSegmentationFilter class constructor.
 		 * \param[in] inputs, list of input smart pointers.
 		 * \param[in] type, SeedGrowSegmentationFilter type.
 		 * \param[in] scheduler, scheduler smart pointer.
@@ -45,39 +45,39 @@ namespace ESPINA
   	 */
     explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
-    /* \brief Implements Persistent::restoreState().
+    /** brief Implements Persistent::restoreState().
      *
      */
     virtual void restoreState(const State& state);
 
-    /* \brief Implements Persistent::state().
+    /** brief Implements Persistent::state().
      *
      */
     virtual State state() const;
 
-    /* \brief Sets the lower value of the threshold.
+    /** brief Sets the lower value of the threshold.
      * \param[in] th, lower threshold value.
      *
      */
     void setLowerThreshold(int th);
 
-    /* \brief Returns the lower threshold value.
+    /** brief Returns the lower threshold value.
      *
      */
     int lowerThreshold() const;
 
-    /* \brief Sets the upper threshold value.
+    /** brief Sets the upper threshold value.
      * \param[in] th, upper threshold value.
      *
      */
     void setUpperThreshold(int th);
 
-    /* \brief Returns the upper threshold value.
+    /** brief Returns the upper threshold value.
      *
      */
     int upperThreshold() const;
 
-    /* \brief Convenience method to set symmetrical lower/upper thresholds.
+    /** brief Convenience method to set symmetrical lower/upper thresholds.
      * \param[in] th, threshold value.
      *
      */
@@ -87,76 +87,76 @@ namespace ESPINA
       setUpperThreshold(th);
     };
 
-    /* \brief Sets the seed point.
+    /** brief Sets the seed point.
      * \param[in] seed, seed point.
      *
      */
     void setSeed(const NmVector3& seed);
 
-    /* \brief Returns the seed point.
+    /** brief Returns the seed point.
      *
      */
     NmVector3 seed() const;
 
-    /* \brief Sets the region of interest to constrain the application of the filter.
+    /** brief Sets the region of interest to constrain the application of the filter.
      * \param[in] roi, ROI object smart pointer.
      *
      */
     void setROI(const ROISPtr roi);
 
-    /* \brief Returns the ROI of the filter.
+    /** brief Returns the ROI of the filter.
      *
      */
     ROISPtr roi() const;
 
-    /* \brief Sets the radious for the closing morphological operation.
+    /** brief Sets the radious for the closing morphological operation.
      * \param[in] radious, close filter radius.
      *
      */
     void setClosingRadius(int radius);
 
-    /* \brief Returns the closing filter radius.
+    /** brief Returns the closing filter radius.
      *
      */
     int closingRadius() const;
 
-    /* \brief Returns true if the resulting segmentation touches the used ROI.
+    /** brief Returns true if the resulting segmentation touches the used ROI.
      *
      */
     bool isTouchingROI() const;
 
   protected:
-    /* \brief Implements Filter::saveFilterSnapshot().
+    /** brief Implements Filter::saveFilterSnapshot().
      *
      */
     virtual Snapshot saveFilterSnapshot() const;
 
-    /* \brief Implements Filter::needUpdate().
+    /** brief Implements Filter::needUpdate().
      *
      */
     virtual bool needUpdate() const;
 
-    /* \brief Implements Filter::needUpdate(id)
+    /** brief Implements Filter::needUpdate(id)
      *
      */
     virtual bool needUpdate(Output::Id id) const;
 
-    /* \brief Implements Filter::execute().
+    /** brief Implements Filter::execute().
      *
      */
     virtual void execute();
 
-    /* \brief Implements Filter::execute(id).
+    /** brief Implements Filter::execute(id).
      *
      */
     virtual void execute(Output::Id id);
 
-    /* \brief Implements Filter::ignoreStorageContent().
+    /** brief Implements Filter::ignoreStorageContent().
      *
      */
     virtual bool ignoreStorageContent() const;
 
-    /* \brief Implements Filter::invalidateEditedRegions().
+    /** brief Implements Filter::invalidateEditedRegions().
      *
      */
     virtual bool invalidateEditedRegions();

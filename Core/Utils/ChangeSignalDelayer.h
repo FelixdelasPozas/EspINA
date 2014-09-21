@@ -31,7 +31,7 @@ namespace ESPINA
   class EspinaCore_EXPORT ChangeSignalDelayer
   {
     public:
-      /* \brief ChangeSignalDelayer class constructor.
+      /** brief ChangeSignalDelayer class constructor.
        * \param[in] data, Data smart pointer.
        *
        * Delays the emission of the dataChanged signal of the data.
@@ -42,7 +42,7 @@ namespace ESPINA
         m_data->blockSignals(true);
       }
 
-      /* \brief ChangeSignalDelayer class destructor.
+      /** brief ChangeSignalDelayer class destructor.
        *
        */
       ~ChangeSignalDelayer()

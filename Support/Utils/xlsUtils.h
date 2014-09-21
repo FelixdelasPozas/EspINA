@@ -31,7 +31,7 @@
 #include <common/xlconfig.h>
 #include <xlslib.h>
 
-/* \brief Creates a cell in the specified xls sheet, row and column with the specified content.
+/** brief Creates a cell in the specified xls sheet, row and column with the specified content.
  * \param[in] sheet, xls worksheet raw pointer.
  * \param[in] row, row of the cell.
  * \param[in] column, column of the cell.

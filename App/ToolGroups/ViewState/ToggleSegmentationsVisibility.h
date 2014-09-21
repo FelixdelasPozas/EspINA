@@ -36,35 +36,35 @@ namespace ESPINA {
   {
     Q_OBJECT
 		public:
-			/* \brief ToggleSegmentationsVisibility class constructor.
+			/** brief ToggleSegmentationsVisibility class constructor.
 			 * \param[in] viewManager, view manager smart pointer.
 			 *
 			 */
 			ToggleSegmentationsVisibility(ViewManagerSPtr viewManager);
 
-			/* \brief Implements Tool::actions().
+			/** brief Implements Tool::actions().
 			 *
 			 */
 			virtual QList< QAction* > actions() const;
 
-			/* \brief Implements Tool::enabled().
+			/** brief Implements Tool::enabled().
 			 *
 			 */
 			virtual bool enabled() const;
 
-			/* \brief Implements Tool::setEnabled().
+			/** brief Implements Tool::setEnabled().
 			 *
 			 */
 			virtual void setEnabled(bool value);
 
 		public slots:
-			/* \brief Toggles the visibility action.
+			/** brief Toggles the visibility action.
 			 *
 			 */
 			void shortcut();
 
 		private slots:
-			/* \brief Modifies the GUI and shows/hides segmentations based on parameter value.
+			/** brief Modifies the GUI and shows/hides segmentations based on parameter value.
 			 * \param[in] visible, true to set all segmentations visible, false otherwise.
 			 *
 			 */

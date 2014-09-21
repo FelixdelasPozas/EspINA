@@ -41,7 +41,7 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/* \brief DefaultContextualMenu class constructor.
+			/** brief DefaultContextualMenu class constructor.
 			 * \param[in] selection, list of segmentation adapters of the selected items.
 			 * \param[in] model, model adapter smart pointer.
 			 * \param[in] viewManager, view manager smart pointer.
@@ -55,43 +55,43 @@ namespace ESPINA
                                      QUndoStack             *undoStack,
                                      QWidget                *parent = nullptr);
 
-      /* \brief DefaultContextualMenu class destructor.
+      /** brief DefaultContextualMenu class destructor.
        *
        */
       ~DefaultContextualMenu();
 
-      /* \brief Overrides ContextualMenu::setSelection().
+      /** brief Overrides ContextualMenu::setSelection().
        *
        */
       virtual void setSelection(SelectionSPtr selection) override;
 
     private slots:
-			/* \brief Adds/Modifies notes to the selected segmentations.
+			/** brief Adds/Modifies notes to the selected segmentations.
 			 *
 			 */
       void addNote();
 
-      /* \brief Changes the category of the selected segmentation.
+      /** brief Changes the category of the selected segmentation.
        * \param[in] index, const QModelIndex referece of the item.
        */
       void changeSegmentationsCategory(const QModelIndex &index);
 
-      /* \brief Removes the selected segmentations.
+      /** brief Removes the selected segmentations.
        *
        */
       void deleteSelectedSementations();
 
-      /* \brief Adds/Modifies tags to the selected segmentations.
+      /** brief Adds/Modifies tags to the selected segmentations.
        *
        */
       void manageTags();
 
-      /* \brief Resets the root of the model.
+      /** brief Resets the root of the model.
        *
        */
       void resetRootItem();
 
-      /* \brief Renames selected segmentations.
+      /** brief Renames selected segmentations.
        *
        */
       void renameSegmentation();
@@ -101,32 +101,32 @@ namespace ESPINA
       void deleteSegmentations();
 
     private:
-      /* \brief Creates a "note" entry for the contextual menu.
+      /** brief Creates a "note" entry for the contextual menu.
        *
        */
       void createNoteEntry();
 
-      /* \brief Creates a "change category" entry for the contextual menu.
+      /** brief Creates a "change category" entry for the contextual menu.
        *
        */
       void createChangeCategoryMenu();
 
-      /* \brief Creates a "tags" entry for the contextual menu.
+      /** brief Creates a "tags" entry for the contextual menu.
        *
        */
       void createTagsEntry();
 
-      /* \brief Creates a "rename" entry for the contextual menu.
+      /** brief Creates a "rename" entry for the contextual menu.
        *
        */
       void createRenameEntry();
 
-      /* \brief Creates a "delete" entry for the contextual menu.
+      /** brief Creates a "delete" entry for the contextual menu.
        *
        */
       void createDeleteEntry();
 
-      /* \brief Helper method that generates a title for the current segmentation selection.
+      /** brief Helper method that generates a title for the current segmentation selection.
        *
        */
       QString dialogTitle() const;

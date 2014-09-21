@@ -44,7 +44,7 @@ namespace ESPINA
     class Layout;
 
   public:
-    /* \brief SegmentationExplorer class constructor.
+    /** brief SegmentationExplorer class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] factory, factory smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -57,99 +57,99 @@ namespace ESPINA
                                   QUndoStack      *undoStack,
                                   QWidget         *parent = nullptr);
 
-    /* \brief SegmentationExplorer class virtual destructor.
+    /** brief SegmentationExplorer class virtual destructor.
      *
      */
     virtual ~SegmentationExplorer();
 
-    /* \brief Overrides SelectableView::updateRepresentations(ChannelAdapterList).
+    /** brief Overrides SelectableView::updateRepresentations(ChannelAdapterList).
      *
      */
     virtual void updateRepresentations(ChannelAdapterList list) override
     {}
 
-    /* \brief Overrides SelectableView::updateRepresentations(SegmentationAdapterList).
+    /** brief Overrides SelectableView::updateRepresentations(SegmentationAdapterList).
      *
      */
     virtual void updateRepresentations(SegmentationAdapterList list) override
     {}
 
-    /* \brief Overrides SelectableView::updateRepresentations().
+    /** brief Overrides SelectableView::updateRepresentations().
      *
      */
     virtual void updateRepresentations() override
     {}
 
   public slots:
-    /* \brief Overrides DockWidget::reset().
+    /** brief Overrides DockWidget::reset().
      *
      */
     virtual void reset() override;
 
   protected:
-		/* \brief Overrides SelectableView::onSelectionSet(SelectionSPtr).
+		/** brief Overrides SelectableView::onSelectionSet(SelectionSPtr).
 		 *
 		 */
     virtual void onSelectionSet(SelectionSPtr selection);
 
-    /* \brief Adds a layout to the view.
+    /** brief Adds a layout to the view.
      * \param[in] id, string that specifies the layout.
      * \param[in] proxy, SegmentationExplorer::Layout raw pointer.
      *
      */
     void addLayout(const QString id, Layout *proxy);
 
-    /* \brief Overrides QObject::eventFilter(QObject*, QEvent*).
+    /** brief Overrides QObject::eventFilter(QObject*, QEvent*).
      *
      */
     virtual bool eventFilter(QObject *sender, QEvent* e);
 
-    /* \brief Updates segmentation explorer gui depending on selected indexes.
+    /** brief Updates segmentation explorer gui depending on selected indexes.
      *
      */
     void updateGUI(const QModelIndexList &selectedIndexes);
 
   protected slots:
-		/* \brief Changes the layout of the view.
+		/** brief Changes the layout of the view.
 		 * \param[in] index, index of the new layout in the layout list.
 		 *
 		 */
     void changeLayout(int index);
 
-    /* \brief Deletes the selected items in the current layout.
+    /** brief Deletes the selected items in the current layout.
      *
      */
     void deleteSelectedItems();
 
-    /* \brief Shows the information for the selected items in the current layout.
+    /** brief Shows the information for the selected items in the current layout.
      *
      */
     void showSelectedItemsInformation();
 
-    /* \brief Centers the views on the selected segmentation.
+    /** brief Centers the views on the selected segmentation.
      * \param[in] index, const QModelIndex reference of the selected item.
      *
      */
     void focusOnSegmentation(const QModelIndex &index);
 
-    /* \brief Updates the GUI of the view and the other views based on the selected items.
+    /** brief Updates the GUI of the view and the other views based on the selected items.
      * \param[in] selected, QItemSelection object with the selected items (unused).
      * \param[in] deselectt, QItemSelection object with the deselected items (unused).
      *
      */
     void onModelSelectionChanged(QItemSelection selected, QItemSelection deselected);
 
-    /* \brief Updates the state of search button of GUI search filter and updates the filter.
+    /** brief Updates the state of search button of GUI search filter and updates the filter.
      *
      */
     void updateSearchFilter();
 
-    /* \brief Updates the GUI state with the new selection.
+    /** brief Updates the GUI state with the new selection.
      *
      */
     void onSelectionChanged();
 
-    /* \brief Updates the render views.
+    /** brief Updates the render views.
      *
      */
     void onItemModified();

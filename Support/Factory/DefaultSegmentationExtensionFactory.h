@@ -33,14 +33,14 @@ namespace ESPINA {
   : public SegmentationExtensionFactory
   {
   public:
-  	/* \brief Implements SegmentationExtensionFactory::createSegmentationExtension().
+  	/** brief Implements SegmentationExtensionFactory::createSegmentationExtension().
   	 *
   	 */
     virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
                                                                   const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
                                                                   const State& state = State()) const;
 
-    /* \brief Implements SegmentationExtensionFactory::providedExtensions().
+    /** brief Implements SegmentationExtensionFactory::providedExtensions().
      *
      */
     virtual SegmentationExtensionTypeList providedExtensions() const;

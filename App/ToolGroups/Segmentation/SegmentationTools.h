@@ -39,7 +39,7 @@ namespace ESPINA
   : public ToolGroup
   {
   public:
-		/* \brief SegmentationTools class constructor.
+		/** brief SegmentationTools class constructor.
 		 * \param[in] settings, raw pointer to a SeedGrowSegmentationSettings object.
 		 * \param[in] model, model adapter smart pointer.
 		 * \param[in] factory, factory smart pointer.
@@ -54,22 +54,22 @@ namespace ESPINA
                       QUndoStack      *undoStack,
                       QWidget         *parent = nullptr);
 
-    /* \brief SegmentationTools class virtual destructor.
+    /** brief SegmentationTools class virtual destructor.
      *
      */
     virtual ~SegmentationTools();
 
-    /* \brief Implements ToolGroup::setEnabled().
+    /** brief Implements ToolGroup::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements ToolGroup::enabled().
+    /** brief Implements ToolGroup::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /* \brief Implements ToolGroup::tools().
+    /** brief Implements ToolGroup::tools().
      *
      */
     virtual ToolSList tools();

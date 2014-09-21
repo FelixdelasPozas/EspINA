@@ -32,24 +32,24 @@ class EspinaFilters_EXPORT vtkTube
 	public:
 		vtkTypeMacro(vtkTube, vtkImplicitFunction);
 
-		/* \brief Shadows vtkObject::New().
+		/** brief Shadows vtkObject::New().
 		 *
 		 * Construct truncated cone with both radius of 0.5.
 		 *
 		 */
 		static vtkTube *New();
 
-		/* \brief Implements vtkImplicitFunction::EvaluateGradient().
+		/** brief Implements vtkImplicitFunction::EvaluateGradient().
 		 *
 		 */
 		virtual void EvaluateGradient(double xyz[3], double g[3]);
 
-		/* \brief Implements vtkImplicitFunction::EvaluateFunction(xyz).
+		/** brief Implements vtkImplicitFunction::EvaluateFunction(xyz).
 		 *
 		 */
 		virtual double EvaluateFunction(double xyz[3]);
 
-		/* \brief Shadows vtkImplicitFunction::EvaluateFunction(x,y,z).
+		/** brief Shadows vtkImplicitFunction::EvaluateFunction(x,y,z).
 		 *
 		 */
 		double EvaluateFunction(double x, double y, double z)
@@ -68,12 +68,12 @@ class EspinaFilters_EXPORT vtkTube
 		vtkGetMacro(TopRadius, double);
 
 	protected:
-		/* \brief vtkTube class private constructor.
+		/** brief vtkTube class private constructor.
 		 *
 		 */
 		vtkTube();
 
-		/* \brief vtkTube class private destructor.
+		/** brief vtkTube class private destructor.
 		 *
 		 */
 		~vtkTube()

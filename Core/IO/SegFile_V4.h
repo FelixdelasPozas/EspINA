@@ -56,18 +56,18 @@ namespace ESPINA {
                  CoreFactorySPtr  factory = CoreFactorySPtr(),
                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-      		/* \brief Process the data and returns an analysis.
+      		/** brief Process the data and returns an analysis.
       		 *
       		 */
           AnalysisSPtr load();
 
       private:
-         /* \brief Finds and returns the already built vertex that has the given id.
+         /** brief Finds and returns the already built vertex that has the given id.
           * \param[in] id, id of the vertex.
           */
         DirectedGraph::Vertex findInflatedVertexByIdV4(int id) const;
 
-        /* \brief Returns the filter and output id that serves as input for the given vertex.
+        /** brief Returns the filter and output id that serves as input for the given vertex.
          * \param[in] roVertex, read only vertex.
          * \param[in] linkName, edge relation specifier.
          *
@@ -75,64 +75,64 @@ namespace ESPINA {
         QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex roVertex,
                                                  const QString        &linkName);
 
-    		/* \brief Creates and returns a sample smart pointer from the information in the given vertes.
+    		/** brief Creates and returns a sample smart pointer from the information in the given vertes.
     		 * \param[in] roVertex, read only vertex.
     		 *
     		 */
         SampleSPtr createSample(DirectedGraph::Vertex roVertex);
 
-    		/* \brief Creates and returns a filter smart pointer from the information in the given vertex.
+    		/** brief Creates and returns a filter smart pointer from the information in the given vertex.
     		 * \param[in] roVertex, read only vertex.
     		 *
     		 */
         FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
 
-    		/* \brief Creates and returns a channel smart pointer from the information in the given vertex.
+    		/** brief Creates and returns a channel smart pointer from the information in the given vertex.
     		 * \param[in] roVertex, read only vertex.
     		 *
     		 */
         ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
 
-    		/* \brief Returns the category name from a given state of a vertex.
+    		/** brief Returns the category name from a given state of a vertex.
     		 * \param[in] state, state of a vertex.
     		 *
     		 */
         QString parseCategoryName(const State& state);
 
-        /* \brief Returns the output id from a given state of a vertex.
+        /** brief Returns the output id from a given state of a vertex.
     		 * \param[in] state, state of a vertex.
          *
          */
         int parseOutputId(const State& state);
 
-    		/* \brief Creates and returns a segmentation smart pointer from the information in the given vertex.
+    		/** brief Creates and returns a segmentation smart pointer from the information in the given vertex.
     		 * \param[in] roVertex, read only vertex.
     		 *
     		 */
         SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
 
-        /* \brief Loads and creates the vertices of the v4 analysis graph.
+        /** brief Loads and creates the vertices of the v4 analysis graph.
          *
          */
         void loadTrace();
 
-    		/* \brief Creates the analysis object specified in the given vertex an resturns it.
+    		/** brief Creates the analysis object specified in the given vertex an resturns it.
     		 * \param[in] roVertex, read only vertex.
     		 *
     		 */
         DirectedGraph::Vertex inflateVertexV4(DirectedGraph::Vertex roVertex);
 
-        /* \brief Creates graph segmentations.
+        /** brief Creates graph segmentations.
          *
          */
         void createSegmentations();
 
-        /* \brief Restores graph relations.
+        /** brief Restores graph relations.
          *
          */
         void restoreRelations();
 
-        /* \brief Create v5 outputs files for the given filter.
+        /** brief Create v5 outputs files for the given filter.
          * \param[in] filter, filter smart pointer.
          * \param[in] filterVertex, filter vertex id.
          *
@@ -159,19 +159,19 @@ namespace ESPINA {
         static const QString FORMAT_INFO_FILE;
 
       public:
-        /* \brief SegFile_V4 class constructor.
+        /** brief SegFile_V4 class constructor.
          *
          */
         SegFile_V4();
 
-        /* \brief Implements SegFileInterface::load().
+        /** brief Implements SegFileInterface::load().
          *
          */
         virtual AnalysisSPtr load(QuaZip&          zip,
                                   CoreFactorySPtr  factory = CoreFactorySPtr(),
                                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-        /* \brief Implements SegFileInterface::save().
+        /** brief Implements SegFileInterface::save().
          *
          */
         virtual void save(AnalysisPtr      analysis,

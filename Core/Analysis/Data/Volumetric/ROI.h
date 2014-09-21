@@ -39,7 +39,7 @@ namespace ESPINA
   : public SparseVolume<itkVolumeType>
   {
     public:
-      /* \brief ROI class constructor.
+      /** brief ROI class constructor.
        * \param[in] bounds, initial bounds of the volume.
        * \param[in] spacing, spacing of the volume.
        * \param[in] origin, origin of the volume.
@@ -47,35 +47,35 @@ namespace ESPINA
        */
       ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
-      /* \brief ROI class constructor.
+      /** brief ROI class constructor.
        * \param[in] mask, mask used as a volume.
        *
        */
       ROI(const BinaryMaskSPtr<unsigned char> mask);
 
-      /* \brief ROI class virtual destructor.
+      /** brief ROI class virtual destructor.
        *
        */
       virtual ~ROI();
 
-      /* \brief Returns true if the ROI is a rectangular area.
+      /** brief Returns true if the ROI is a rectangular area.
        *
        */
       bool isRectangular() const;
 
-      /* \brief Returns a new ROI object that is a copy of this one.
+      /** brief Returns a new ROI object that is a copy of this one.
        *
        */
       ROISPtr clone() const;
 
-      /* \brief Applies the ROI to the volume passed as argument.
+      /** brief Applies the ROI to the volume passed as argument.
        * \param[in] volume, volumetricData to apply the ROI.
        * \param[in] outsideValue, value to be considered outside the ROI when applying it.
        *
        */
       template<class T> void applyROI(VolumetricDataSPtr<T> volume, const typename T::ValueType outsideValue) const;
 
-      /* \brief Applies the ROI to the volume passed as argument.
+      /** brief Applies the ROI to the volume passed as argument.
        * \param[in] volume, itk volume smart pointer to apply the ROI.
        * \param[in] outsideValue, value to be considered outside the ROI when applying it.
        *

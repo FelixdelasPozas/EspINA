@@ -38,7 +38,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief CleanROITool class constructor.
+    /** brief CleanROITool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
      * \param[in] undoStack, QUndoStack raw pointer.
@@ -49,17 +49,17 @@ namespace ESPINA
                           QUndoStack       *undoStack,
                           ROIToolsGroup    *toolGroup);
 
-    /* \brief CleanROITool class virtual destructor.
+    /** brief CleanROITool class virtual destructor.
      *
      */
     virtual ~CleanROITool();
 
-    /* \brief Implements Tool::setEnabled(bool).
+    /** brief Implements Tool::setEnabled(bool).
      *
      */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements Tool::enabled().
+    /** brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;

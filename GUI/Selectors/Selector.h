@@ -62,7 +62,7 @@ namespace ESPINA
     using Selection      = QList<SelectionItem>;
 
   public:
-    /* \brief Selector class constructor.
+    /** brief Selector class constructor.
      *
      */
     explicit Selector()
@@ -70,40 +70,40 @@ namespace ESPINA
     , m_multiSelection{false}
     {}
 
-    /* \brief Selector class virtual destructor.
+    /** brief Selector class virtual destructor.
      *
      */
     virtual ~Selector()
     {};
 
-    /* \brief Enables/Disables the specified selection tag.
+    /** brief Enables/Disables the specified selection tag.
      * \param[in] tag, tag to modify.
      * \param[in] selectable, true to select false otherwise.
      *
      */
     void setSelectionTag(const SelectionTag tag, bool selectable=true);
 
-    /* \brief Enables/Disables multiple item selection.
+    /** brief Enables/Disables multiple item selection.
      * \param[in] enabled, true to enable multiple selection false otherwise.
      *
      */
     void setMultiSelection(bool enabled)
     { m_multiSelection = enabled; }
 
-    /* \brief Returns true if the multi-selection flag is true, false otherwise.
+    /** brief Returns true if the multi-selection flag is true, false otherwise.
      *
      */
     bool multiSelection()
     { return m_multiSelection; }
 
-    /* \brief Enables/Disables the selector.
+    /** brief Enables/Disables the selector.
      * \param[in] value, true to enable, false otherwise.
      *
      */
     void setEnabled(bool value)
     { m_enabled = value; }
 
-    /* \brief Returns true if the selector is enabled, false otherwise.
+    /** brief Returns true if the selector is enabled, false otherwise.
      *
      */
     bool isEnabled() const

@@ -258,7 +258,7 @@ namespace ESPINA
   template<typename T>
   void fitToContents(VolumetricDataSPtr<T> volume, typename T::ValueType bgValue);
 
-  /* \brief Returns a new itk image smart pointer of the given spacing and origin.
+  /** brief Returns a new itk image smart pointer of the given spacing and origin.
    * \param[in] origin, origin of the resultant image.
    * \param[in] spacing, spacing of the resultant image.
    *
@@ -267,7 +267,7 @@ namespace ESPINA
   typename T::Pointer define_itkImage(const NmVector3              &origin  = {0, 0, 0},
                                       const NmVector3              &spacing = {1, 1, 1});
 
-  /* \brief Returns a new itk image smart pointer of the given spacing, origin and bounds, filled with @value.
+  /** brief Returns a new itk image smart pointer of the given spacing, origin and bounds, filled with @value.
    * \param[in] bounds, bounds of the resultant image.
    * \param[in] value, value to fill the image.
    * \param[in] spacing, spacing of the resultant image.
@@ -280,7 +280,7 @@ namespace ESPINA
                                       const NmVector3              &spacing = {1, 1, 1},
                                       const NmVector3              &origin  = {0, 0, 0});
 
-  /* \brief Returns the memory consumption in MB of a image given it's number of pixels.
+  /** brief Returns the memory consumption in MB of a image given it's number of pixels.
    * \param[in] number_of_pixels.
    */
   template<typename T>

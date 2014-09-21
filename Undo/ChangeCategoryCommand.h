@@ -42,7 +42,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/* \brief ChangeCategoryCommand class constructor.
+  	/** brief ChangeCategoryCommand class constructor.
   	 * \param[in] segmentations, list of segmentation adapter raw pointers.
   	 * \param[in] category, raw pointer of the new category adapter.
   	 * \param[in] model, smart pointer of the model containig the segmentations the category.
@@ -56,17 +56,17 @@ namespace ESPINA
                                    ViewManagerSPtr         viewManager,
                                    QUndoCommand*           parent = nullptr);
 
-    /* \brief ChangeCategoryCommand class virtual destructor.
+    /** brief ChangeCategoryCommand class virtual destructor.
      *
      */
     virtual ~ChangeCategoryCommand();
 
-    /* \brief Overrides QUndoCommand::redo().
+    /** brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /* \brief Overrides QUndoCommand::undo().
+    /** brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;

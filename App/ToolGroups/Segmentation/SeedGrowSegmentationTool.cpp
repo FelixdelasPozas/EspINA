@@ -259,7 +259,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     bounds = intersection(bounds, channel->bounds(), spacing);
 
     roi = ROISPtr{new ROI(bounds, spacing, origin)};
-  } else {
+  }
+  else
+  {
     roi = m_viewManager->currentROI();
   }
 

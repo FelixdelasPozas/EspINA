@@ -43,7 +43,7 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/* \brief MeshRepresentationBase class constructor.
+			/** brief MeshRepresentationBase class constructor.
 			 * \param[in] mesh, MeshData smart pointer of the data to represent.
 			 * \param[in] view, render view pointer where the representation will be shown.
 			 *
@@ -51,68 +51,68 @@ namespace ESPINA
       explicit MeshRepresentationBase(MeshDataSPtr data,
                                       RenderView *view);
 
-			/* \brief MeshRepresentationBase class virtual destructor.
+			/** brief MeshRepresentationBase class virtual destructor.
 			 *
 			 */
       virtual ~MeshRepresentationBase()
       {};
 
-			/* \brief Overrides Representation::setColor().
+			/** brief Overrides Representation::setColor().
 			 *
 			 */
       virtual void setColor(const QColor &color) override;
 
-			/* \brief Overrides Representation::setHighlighted().
+			/** brief Overrides Representation::setHighlighted().
 			 *
 			 */
       virtual void setHighlighted(bool highlighted) override;
 
-			/* \brief Implements Representation::isInside() const.
+			/** brief Implements Representation::isInside() const.
 			 *
 			 */
       virtual bool isInside(const NmVector3 &point) const;
 
-			/* \brief Implements Representation::canRenderOnView() const.
+			/** brief Implements Representation::canRenderOnView() const.
 			 *
 			 */
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
 
-			/* \brief Implements Representation::hasActor() const.
+			/** brief Implements Representation::hasActor() const.
 			 *
 			 */
       virtual bool hasActor(vtkProp *actor) const;
 
-			/* \brief Implements Representation::getActors().
+			/** brief Implements Representation::getActors().
 			 *
 			 */
       virtual QList<vtkProp *> getActors();
 
-      /* \brief Implements Representation::crosshairDependent().
+      /** brief Implements Representation::crosshairDependent().
        *
        */
       virtual bool crosshairDependent() const
       { return false; }
 
-      /* \brief Implements Representation::needUpdate().
+      /** brief Implements Representation::needUpdate().
        *
        */
       virtual bool needUpdate() const
       { return m_lastUpdatedTime != m_data->lastModified(); }
 
   protected:
-			/* \brief Implements Representation::cloneImplementation(View2D*).
+			/** brief Implements Representation::cloneImplementation(View2D*).
 			 *
 			 */
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
-			/* \brief Implements Representation::updateVisibility().
+			/** brief Implements Representation::updateVisibility().
 			 *
 			 */
       virtual void updateVisibility(bool visible);
 
-			/* \brief Sets the view of the representation.
+			/** brief Sets the view of the representation.
 			 * \param[in] view, renderview smart pointer.
 			 *
 			 */
@@ -120,7 +120,7 @@ namespace ESPINA
       { m_view = view; };
 
     private:
-			/* \brief Helper method to initialize the vtk pipeline.
+			/** brief Helper method to initialize the vtk pipeline.
 			 *
 			 */
       virtual void initializePipeline() = 0;

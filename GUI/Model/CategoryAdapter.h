@@ -50,22 +50,22 @@ namespace ESPINA
     struct AlreadyDefinedCategoryException {};
 
   public:
-    /* \brief CategoryAdapter class destructor.
+    /** brief CategoryAdapter class destructor.
      *
      */
     ~CategoryAdapter();
 
-    /* \brief Implements ItemAdapter::data() const.
+    /** brief Implements ItemAdapter::data() const.
      *
      */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /* \brief Implements ItemAdapter::setData().
+    /** brief Implements ItemAdapter::setData().
      *
      */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    /* \brief Implements ItemAdapter::type() const.
+    /** brief Implements ItemAdapter::type() const.
      *
      */
     virtual Type type() const
@@ -94,13 +94,13 @@ namespace ESPINA
      */
     QString classificationName() const;
 
-    /* \brief Sets the color of the category.
+    /** brief Sets the color of the category.
      * \param[in] color.
      *
      */
     void setColor(const QColor &color);
 
-    /* \brief Returns the color of the category.
+    /** brief Returns the color of the category.
      *
      */
     QColor color() const;
@@ -112,19 +112,19 @@ namespace ESPINA
      */
     void addProperty   (const QString &prop, const QVariant &value);
 
-    /* \brief Removes a property from the category.
+    /** brief Removes a property from the category.
      * \param[in] prop, property key.
      *
      */
     void deleteProperty(const QString &prop);
 
-    /* \brief Returns the value of the specified property.
+    /** brief Returns the value of the specified property.
      * \param[in] prop, property key.
      *
      */
     QVariant property(const QString &prop) const;
 
-    /* \brief Returns a list of the properties the category has.
+    /** brief Returns a list of the properties the category has.
      *
      */
     QStringList properties() const;

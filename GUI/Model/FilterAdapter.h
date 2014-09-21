@@ -49,36 +49,36 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief FilterAdapterInterface class virtual destructor.
+    /** brief FilterAdapterInterface class virtual destructor.
      *
      */
     virtual ~FilterAdapterInterface()
     {}
 
-    /* \brief Sets the filter inspector (history) for the filter.
+    /** brief Sets the filter inspector (history) for the filter.
      * \param[in] inspector, filter inspector smart pointer.
      *
      */
     void setFilterInspector(FilterInspectorSPtr inspector)
     { m_inspector = inspector; }
 
-    /* \brief Returns the filter's inspector smart pointer.
+    /** brief Returns the filter's inspector smart pointer.
      *
      */
     FilterInspectorSPtr filterInspector()
     { return m_inspector; }
 
-    /* \brief Returns true if the filter has been aborted.
+    /** brief Returns true if the filter has been aborted.
      *
      */
     virtual bool isAborted() const = 0;
 
-    /* \brief Returns true if the filter has finished its execution.
+    /** brief Returns true if the filter has finished its execution.
      *
      */
     virtual bool hasFinished() const = 0;
 
-    /* \brief Submits the filter for execution.
+    /** brief Submits the filter for execution.
      *
      * If the filter hasn't an assigned scheduler the execution will block the main thread.
      * Otherwise the filter will execute in it's own thread.
@@ -86,26 +86,26 @@ namespace ESPINA
      */
     virtual void submit() = 0;
 
-    /* \brief Updates the specified output.
+    /** brief Updates the specified output.
      * \param[in] id, output id.
      *
      */
     virtual void update(Output::Id id) = 0;
 
-    /* \brief Updates all the outputs of the filter.
+    /** brief Updates all the outputs of the filter.
      *
      * TODO Copy adapted filter interface
      *
      */
     virtual void update() = 0;
 
-    /* \brief Returns the specified output smart pointer.
+    /** brief Returns the specified output smart pointer.
      * \param[in] id, output id.
      *
      */
     virtual OutputSPtr output(Output::Id id) = 0;
 
-    /* \brief Returns the number of outputs of the filter.
+    /** brief Returns the number of outputs of the filter.
      *
      */
     virtual unsigned int numberOfOutputs() const = 0;
@@ -117,7 +117,7 @@ namespace ESPINA
     void finished();
 
   protected:
-    /* \brief Returns the adapted filter smart pointer.
+    /** brief Returns the adapted filter smart pointer.
      *
      */
     virtual FilterSPtr adaptedFilter() const = 0;
@@ -133,63 +133,63 @@ namespace ESPINA
   : public FilterAdapterInterface
   {
   public:
-  	/* \brief Returns the smart pointer of the filter.
+  	/** brief Returns the smart pointer of the filter.
   	 *
   	 */
     std::shared_ptr<T> get()
     { return m_filter; }
 
-  	/* \brief Implements FilterAdapterInterface::isAborted() const.
+  	/** brief Implements FilterAdapterInterface::isAborted() const.
   	 *
   	 */
     virtual bool isAborted() const
     { return m_filter->isAborted(); }
 
-  	/* \brief Implements FilterAdapterInterface::hasFinished() const.
+  	/** brief Implements FilterAdapterInterface::hasFinished() const.
   	 *
   	 */
     virtual bool hasFinished() const
     { return m_filter->hasFinished(); }
 
-  	/* \brief Implements FilterAdapterInterface::submit().
+  	/** brief Implements FilterAdapterInterface::submit().
   	 *
   	 */
     virtual void submit()
     { Task::submit(m_filter); }
 
-  	/* \brief Implements FilterAdapterInterface::update(id).
+  	/** brief Implements FilterAdapterInterface::update(id).
   	 *
   	 */
     virtual void update(Output::Id id)
     { m_filter->update(id); }
 
-  	/* \brief Implements FilterAdapterInterface::update().
+  	/** brief Implements FilterAdapterInterface::update().
   	 *
   	 */
     virtual void update()
     { m_filter->update(); }
 
-  	/* \brief Implements FilterAdapterInterface::output(id).
+  	/** brief Implements FilterAdapterInterface::output(id).
   	 *
   	 */
     virtual OutputSPtr output(Output::Id id)
     { return m_filter->output(id); }
 
-  	/* \brief Implements FilterAdapterInterface::numberOfOutputs().
+  	/** brief Implements FilterAdapterInterface::numberOfOutputs().
   	 *
   	 */
     virtual unsigned int numberOfOutputs() const
     { return m_filter->numberOfOutputs(); }
 
   protected:
-  	/* \brief Implements FilterAdapterInterface::adaptedFilter() const.
+  	/** brief Implements FilterAdapterInterface::adaptedFilter() const.
   	 *
   	 */
     virtual FilterSPtr adaptedFilter() const
     { return m_filter; }
 
   private:
-  	/* \brief FilterAdapter class private constructor.
+  	/** brief FilterAdapter class private constructor.
   	 *
   	 */
     FilterAdapter(std::shared_ptr<T> filter)

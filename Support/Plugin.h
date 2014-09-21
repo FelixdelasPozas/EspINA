@@ -48,13 +48,13 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief Plugin class virtual destructor.
+    /** brief Plugin class virtual destructor.
      *
      */
     virtual ~Plugin()
     {}
 
-    /* \brief Gives the plugin the neccesary objects to initilize itself.
+    /** brief Gives the plugin the neccesary objects to initilize itself.
      *        Must be called before any other plugin method.
      *
      * \param[in] model, model adapter smart pointer.
@@ -86,48 +86,48 @@ namespace ESPINA
      */
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
 
-    /* \brief Returns a list of filter factories provided by the plugin.
+    /** brief Returns a list of filter factories provided by the plugin.
      *
      */
     virtual FilterFactorySList filterFactories() const = 0;
 
-    /* \brief Returns a list of analysis readers provided by the plugin.
+    /** brief Returns a list of analysis readers provided by the plugin.
      *
      */
     virtual AnalysisReaderSList analysisReaders() const = 0;
 
-    /* \brief Returns a list of color engines provided by the plugin.
+    /** brief Returns a list of color engines provided by the plugin.
      *
      */
     virtual NamedColorEngineSList colorEngines() const = 0;
 
-    /* \brief Returns a list of ToolGroups provided by the plugin.
+    /** brief Returns a list of ToolGroups provided by the plugin.
      *
      */
     virtual QList<ToolGroup *> toolGroups() const = 0;
 
-    /* \brief Returns a list of Dock Widgets provided by the plugin.
+    /** brief Returns a list of Dock Widgets provided by the plugin.
      *
      */
     virtual QList<DockWidget *> dockWidgets() const = 0;
 
-    /* \brief Returns a list of Renderers provided by the plugin.
+    /** brief Returns a list of Renderers provided by the plugin.
      *
      */
     virtual RendererSList renderers() const = 0;
 
-    /* \brief Returns a list of settings panels provided by the plugin.
+    /** brief Returns a list of settings panels provided by the plugin.
      *
      */
     virtual SettingsPanelSList settingsPanels() const = 0;
 
-    /* \brief Returns a list of menu entries to add to the main application.
+    /** brief Returns a list of menu entries to add to the main application.
      *
      */
     virtual QList<MenuEntry> menuEntries() const = 0;
 
   public slots:
-		/* \brief Perform operations when an analysis is closed.
+		/** brief Perform operations when an analysis is closed.
 		 *
 		 * Use to free resources.
 		 *
@@ -135,7 +135,7 @@ namespace ESPINA
     virtual void onAnalysisClosed()
     {}
 
-		/* \brief Perform operations when an analysis changes.
+		/** brief Perform operations when an analysis changes.
 		 *
 		 * Use to free resources or reevaluate values.
 		 *

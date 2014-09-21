@@ -45,12 +45,12 @@ namespace ESPINA
     class SGSFilterFactory
     : public FilterFactory
     {
-    	/* \brief Implements FilterFactory::providedFilters().
+    	/** brief Implements FilterFactory::providedFilters().
     	 *
     	 */
       virtual FilterTypeList providedFilters() const;
 
-      /* \brief Implements FilterFactory::createFilter().
+      /** brief Implements FilterFactory::createFilter().
        *
        */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
@@ -60,7 +60,7 @@ namespace ESPINA
     };
 
   public:
-    /* \brief SeedGrowSegmentationTool class constructor.
+    /** brief SeedGrowSegmentationTool class constructor.
      * \param[in] settings, raw pointer to a SeedGrowSegmentationSettings object.
      * \param[in] model, model adapter smart pointer.
      * \param[in] factory, factory smart pointer.
@@ -73,28 +73,28 @@ namespace ESPINA
                                       ViewManagerSPtr               viewManager,
                                       QUndoStack*                   undoStack);
 
-    /* \brief SeedGrowSegmentation class virtual destructor.
+    /** brief SeedGrowSegmentation class virtual destructor.
      *
      */
     virtual ~SeedGrowSegmentationTool();
 
-    /* \brief Implements Tool::setEnabled().
+    /** brief Implements Tool::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements Tool::enabled().
+    /** brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /* \brief Implements Tool::actions().
+    /** brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
   private:
-    /* \brief Adds a selector to the list of selectors.
+    /** brief Adds a selector to the list of selectors.
      * \param[in] action, QAction object raw pointer to add as selector action.
      * \param[in] selector, selector smart pointer to add.
      *
@@ -102,40 +102,40 @@ namespace ESPINA
     void addVoxelSelector(QAction *action, SelectorSPtr selector);
 
   private slots:
-  /* \brief Changes the current selector.
+  /** brief Changes the current selector.
    * \param[in] action, action associated to the selector.
    *
    */
     void changeSelector(QAction *action);
 
-    /* \brief Unsets the selector.
+    /** brief Unsets the selector.
      *
      */
     void unsetSelector();
 
-    /* \brief Launches a seedgrow segmentation task based on the current selection.
+    /** brief Launches a seedgrow segmentation task based on the current selection.
      * \pararm[in] selectedItems, current selection.
      *
      */
     void launchTask(Selector::Selection selectedItems);
 
-    /* \brief After the filter has finished adds the segmentation to the model.
+    /** brief After the filter has finished adds the segmentation to the model.
      *
      */
     void createSegmentation();
 
-    /* \brief Updates the ROI values when the category changes.
+    /** brief Updates the ROI values when the category changes.
      * \param[in] category, current category.
      *
      */
     void onCategoryChanged(CategoryAdapterSPtr category);
 
-    /* \brief Updates the ROI values on category widget creation.
+    /** brief Updates the ROI values on category widget creation.
      *
      */
     void onCategorySelectorWidgetCreation();
 
-    /* \brief Updates ROI values.
+    /** brief Updates ROI values.
      * \param[in] update, true if category ROI values have to be applied.
      *
      */

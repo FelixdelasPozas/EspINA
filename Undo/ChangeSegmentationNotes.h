@@ -43,7 +43,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/* \brief ChangeSegmentationNotes class constructor.
+  	/** brief ChangeSegmentationNotes class constructor.
   	 * \param[in] segmentation, segmentation adapter raw pointer.
   	 * \param[in] note, new note.
   	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
@@ -53,18 +53,18 @@ namespace ESPINA
                                      const QString&         note,
                                      QUndoCommand*          parent = nullptr);
 
-    /* \brief Overrides QUndoCommand::redo().
+    /** brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /* \brief Overrides QUndoCommand::undo().
+    /** brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;
 
   private:
-    /* \brief Helper method to swap new-old notes.
+    /** brief Helper method to swap new-old notes.
      *
      */
     void swapNotes();

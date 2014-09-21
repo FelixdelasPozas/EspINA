@@ -36,7 +36,7 @@ namespace ESPINA
   {
     Q_OBJECT
     private:
-      /* \brief Struct to store all view's VisualState.
+      /** brief Struct to store all view's VisualState.
        *
        */
       struct CameraPositions
@@ -45,41 +45,41 @@ namespace ESPINA
           QList<struct RenderView::VisualState> states;
       };
 
-      /* \brief List of CameraPositions.
+      /** brief List of CameraPositions.
        *
        */
       using CameraPositionsList = QList<struct CameraPositions>;
 
     public:
-      /* \brief ViewCamerasPositionMenu class constructor.
+      /** brief ViewCamerasPositionMenu class constructor.
        *
        */
       explicit CamerasMenu(ViewManagerSPtr vm, QWidget *parent = nullptr);
 
-      /* \brief ViewCamerasPositionMenu class destructor.
+      /** brief ViewCamerasPositionMenu class destructor.
        *
        */
       virtual ~CamerasMenu();
 
-      /* \brief Loads Camera positions.
+      /** brief Loads Camera positions.
        *
        */
       void loadPositions(CameraPositionsList list);
 
     public slots:
-      /* \brief Deletes stored camera positions.
+      /** brief Deletes stored camera positions.
        *
        */
       void clearPositions();
 
     private slots:
-      /* \brief Activates the action passed as parameter.
+      /** brief Activates the action passed as parameter.
        *
        */
       void activate(QAction *action);
 
     private:
-      /* \brief Stores current VisualStates to a CameraPositionsList entry.
+      /** brief Stores current VisualStates to a CameraPositionsList entry.
        *
        */
       void save();

@@ -36,7 +36,7 @@ namespace ESPINA
   class EspinaGUI_EXPORT SelectableView
   {
   public:
-  	/* \brief SelectableView class constructor.
+  	/** brief SelectableView class constructor.
   	 *
   	 */
     SelectableView()
@@ -44,56 +44,56 @@ namespace ESPINA
     , m_selection{new Selection()}
     {}
 
-    /* \brief SelectableView class virtual destructor.
+    /** brief SelectableView class virtual destructor.
      *
      */
     virtual ~SelectableView()
     {}
 
-    /* \brief Enables/disables the possibility to select items in the view.
+    /** brief Enables/disables the possibility to select items in the view.
      * \param[in] value, true to enable selection false otherwise.
      *
      */
     void setSelectionEnabled(bool value)
     { m_selectionEnabled = value; }
 
-    /* \brief Returns true if the user can select items in the view.
+    /** brief Returns true if the user can select items in the view.
      *
      */
     bool selectionEnabled() const
     { return m_selectionEnabled; }
 
-    /* \brief Sets the selection of the view to the given one.
+    /** brief Sets the selection of the view to the given one.
      * \param[in] selection, selection smart pointer.
      */
     void setSharedSelection(SelectionSPtr selection)
     { m_selection = selection; onSelectionSet(selection); }
 
-    /* \brief Returns the view's current selection.
+    /** brief Returns the view's current selection.
      *
      */
     SelectionSPtr currentSelection() const
     { return m_selection; }
 
-    /* \brief Updates all the representations of the view.
+    /** brief Updates all the representations of the view.
      *
      */
     virtual void updateRepresentations() = 0;
 
-    /* \brief Updates the representations of the channels in the given list.
+    /** brief Updates the representations of the channels in the given list.
      * \param[in] list, list of channel adapter raw pointers.
      *
      */
     virtual void updateRepresentations(ChannelAdapterList list) = 0;
 
-    /* \brief Updates the representations of the segmentations in the given list.
+    /** brief Updates the representations of the segmentations in the given list.
      * \param[in] list, list of segmentation adapter raw pointers.
      *
      */
     virtual void updateRepresentations(SegmentationAdapterList list) = 0;
 
   protected:
-    /* \brief Updates the view when the selection changes.
+    /** brief Updates the view when the selection changes.
      * \param[in] selection, new selection.
      */
     virtual void onSelectionSet(SelectionSPtr selection) = 0;

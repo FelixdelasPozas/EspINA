@@ -44,7 +44,7 @@ namespace ESPINA
     class GUI;
 
   public:
-    /* \brief TagSelector class constructor.
+    /** brief TagSelector class constructor.
      * \param[in] title, title of the dialog.
      * \param[in] tags, list of tags.
      * \param[in] parent, raw pointer of the QWidget parent of this one.
@@ -55,13 +55,13 @@ namespace ESPINA
                          QWidget *parent = nullptr,
                          Qt::WindowFlags flags = 0);
 
-    /* \brief TagSelector class virtual destructor.
+    /** brief TagSelector class virtual destructor.
      *
      */
     virtual ~TagSelector();
 
   private slots:
-		/* \brief Creates a new tag element from the user input.
+		/** brief Creates a new tag element from the user input.
 		 *
 		 */
     void createTag();

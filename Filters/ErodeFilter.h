@@ -32,7 +32,7 @@ namespace ESPINA
   : public MorphologicalEditionFilter
   {
   public:
-  	/* \brief EroreFilter class constructor.
+  	/** brief EroreFilter class constructor.
 		 * \param[in] inputs, list of input smart pointers.
 		 * \param[in] type, ErodeFilter type.
 		 * \param[in] scheduler, scheduler smart pointer.
@@ -42,19 +42,19 @@ namespace ESPINA
                          Filter::Type  type,
                          SchedulerSPtr scheduler);
 
-    /* \brief ErodeFilter class virtual destructor.
+    /** brief ErodeFilter class virtual destructor.
      *
      */
     virtual ~ErodeFilter();
 
   protected:
-    /* \brief Implements Filter::execute().
+    /** brief Implements Filter::execute().
      *
      */
     virtual void execute()
     { execute(0); }
 
-    /* \brief Implements Filter::execute(id).
+    /** brief Implements Filter::execute(id).
      *
      */
     virtual void execute(Output::Id id);

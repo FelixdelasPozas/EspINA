@@ -44,28 +44,28 @@ namespace ESPINA
     static const Data::Type TYPE;
 
   public:
-    /* \brief MeshData class constructor.
+    /** brief MeshData class constructor.
      *
      */
     explicit MeshData();
 
-    /* \brief Implements Data::type() const.
+    /** brief Implements Data::type() const.
      *
      */
     virtual Data::Type type() const
     { return TYPE; }
 
-    /* \brief Implements Data::createProxy() const.
+    /** brief Implements Data::createProxy() const.
      *
      */
     virtual DataProxySPtr createProxy() const;
 
-    /* \brief Implements Data::bounds() const.
+    /** brief Implements Data::bounds() const.
      *
      */
     Bounds bounds() const;
 
-    /* \brief Returns the vtkPolyData smart pointer object.
+    /** brief Returns the vtkPolyData smart pointer object.
      *
      */
     virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
@@ -74,7 +74,7 @@ namespace ESPINA
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
-  /* \brief Obtains and returns the MeshData smart pointer of the spacified Output.
+  /** brief Obtains and returns the MeshData smart pointer of the spacified Output.
    * \param[in] output, Output object smart pointer.
    */
   MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output);

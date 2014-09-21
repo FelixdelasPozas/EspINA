@@ -34,22 +34,22 @@ namespace ESPINA
   : public QUndoCommand
   {
     public:
-  		/* \brief RenameSegmentationsCommand class constructor.
+  		/** brief RenameSegmentationsCommand class constructor.
   		 * \param[in] renames, map of segmentation names and new names.
   		 */
       explicit RenameSegmentationsCommand(QMap<SegmentationAdapterPtr, QString> renames);
 
-      /* \brief RenameSegmentationsCommand class virtual destructor.
+      /** brief RenameSegmentationsCommand class virtual destructor.
        *
        */
       virtual ~RenameSegmentationsCommand();
 
-      /* \brief Overrides QUndoCommand::redo().
+      /** brief Overrides QUndoCommand::redo().
        *
        */
       virtual void redo() override;
 
-      /* \brief Overrides QUndoCommand::undo().
+      /** brief Overrides QUndoCommand::undo().
        *
        */
       virtual void undo() override;

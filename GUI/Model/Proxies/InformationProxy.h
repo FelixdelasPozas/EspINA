@@ -40,13 +40,13 @@ namespace ESPINA
     Q_OBJECT
 
   protected:
-    /* \brief Helper method to return the name tag.
+    /** brief Helper method to return the name tag.
      *
      */
     static SegmentationExtension::InfoTag NameTag()
     { return QObject::tr("Name"); }
 
-    /* \brief Helper method to return the category tag.
+    /** brief Helper method to return the category tag.
      *
      */
     static SegmentationExtension::InfoTag CategoryTag()
@@ -56,7 +56,7 @@ namespace ESPINA
     : public Task
     {
 			public:
-    		/* \brief InformationFetcher class constructor.
+    		/** brief InformationFetcher class constructor.
     		 * \param[in] segmentation, adapter smart pointer of the segmentation to get information from.
     		 * \param[in] tags, information tags to fetch.
     		 * \param[in] scheduler, scheduler smart pointer.
@@ -89,14 +89,14 @@ namespace ESPINA
 				}
 
 			public:
-				/* \brief Returns current progress.
+				/** brief Returns current progress.
 				 *
 				 */
 				int currentProgress() const
 				{ return m_progress; }
 
 			protected:
-				/* \brief Implements Task::run().
+				/** brief Implements Task::run().
 				 *
 				 */
 				virtual void run()
@@ -131,54 +131,54 @@ namespace ESPINA
     using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
 
   public:
-    /* \brief InformationProxy class constructor.
+    /** brief InformationProxy class constructor.
      * \param[in] scheduler, scheduler smart pointer.
      *
      */
     explicit InformationProxy(SchedulerSPtr scheduler);
 
-    /* \brief InformationProxy class virtual destructor.
+    /** brief InformationProxy class virtual destructor.
      *
      */
     virtual ~InformationProxy();
 
-    /* \brief Sets the model of the proxy.
+    /** brief Sets the model of the proxy.
      * \param[in] sourceModel, model adapter smart pointer.
      *
      */
     virtual void setSourceModel(ModelAdapterSPtr sourceModel);
 
-    /* \brief Returns the item index of the proxy from the item index of the source.
+    /** brief Returns the item index of the proxy from the item index of the source.
      * \param[in] sourceIndeox, QModelIndex object.
      *
      */
     virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
 
-    /* \brief Returns the item index of the model from the item index of the proxy.
+    /** brief Returns the item index of the model from the item index of the proxy.
      * \param[in] proxyIndex, QModelIndex object.
      *
      */
     virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-    /* \brief Returns the number of columns.
+    /** brief Returns the number of columns.
      * \param[in] parent, QModelIndex object.
      *
      */
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
-    /* \brief Returns the number of rows.
+    /** brief Returns the number of rows.
      * \param[in] parent, QModelIndex object.
      *
      */
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
-    /* \brief Returns the item index of the parent of the given index.
+    /** brief Returns the item index of the parent of the given index.
      * \param[in] chind, QModelIndex object.
      *
      */
     virtual QModelIndex parent(const QModelIndex& child) const;
 
-    /* \brief Returns the index of an element given the row, column and parent.
+    /** brief Returns the index of an element given the row, column and parent.
      * \param[in] row
      * \param[in] column
      * \param[in] parent, QModelIndex object.
@@ -186,53 +186,53 @@ namespace ESPINA
      */
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
-    /* \brief Overrides QAbstractProxyModel::headerData().
+    /** brief Overrides QAbstractProxyModel::headerData().
      *
      */
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    /* \brief Overrides QAbstractProxyModel::data()
+    /** brief Overrides QAbstractProxyModel::data()
      *
      */
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override;
 
-    /* \brief Sets the category.
+    /** brief Sets the category.
      * \param[in] classificationName, name of the category.
      *
      */
     void setCategory(const QString &classificationName);
 
-    /* \brief Returns the category.
+    /** brief Returns the category.
      *
      */
     QString category() const
     { return m_category; }
 
-    /* \brief Sets the segmaentations to show.
+    /** brief Sets the segmaentations to show.
      * \param[in] filter, list of segmentation adapter raw pointers.
      *
      */
     void setFilter(const SegmentationAdapterList *filter);
 
-    /* \brief Sets the information tags for the columns.
+    /** brief Sets the information tags for the columns.
      * \param[in] tags, segmentation extension information tags.
      *
      */
     virtual void setInformationTags(const SegmentationExtension::InfoTagList tags);
 
-    /* \brief Returns the information tags.
+    /** brief Returns the information tags.
      *
      */
     const QStringList informationTags() const
     { return m_tags; }
 
-    /* \brief Returns the list of item adapters currently displayed.
+    /** brief Returns the list of item adapters currently displayed.
      *
      */
     ItemAdapterList displayedItems() const
     { return m_elements; }
 
-    /* \brief Returns general progress count.
+    /** brief Returns general progress count.
      *
      */
     int progress() const;
@@ -241,7 +241,7 @@ namespace ESPINA
     void informationProgress();
 
   protected slots:
-		/* \brief Perform operations before and after the insertion of rows in the model.
+		/** brief Perform operations before and after the insertion of rows in the model.
 		 * \param[in] sourceParent, index of the parent to add elements.
 		 * \param[in] start, start row.
 		 * \param[in] end, end row.
@@ -249,7 +249,7 @@ namespace ESPINA
 		 */
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 
-		/* \brief Perform operations before and after the deletion of rows in the model.
+		/** brief Perform operations before and after the deletion of rows in the model.
 		 * \param[in] sourceParent, index of the parent to add elements.
 		 * \param[in] start, start row.
 		 * \param[in] end, end row.
@@ -257,37 +257,37 @@ namespace ESPINA
      */
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
 
-    /* \brief Perform operations before and after the modification of data in the model.
+    /** brief Perform operations before and after the modification of data in the model.
      * \param[in] sourceTopLeft, top left index.
      * \param[in] sourceBottomRight, bottom right index.
      *
      */
     void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
 
-    /* \brief Removes all the elements in the model.
+    /** brief Removes all the elements in the model.
      *
      */
     void sourceModelReset();
 
-    /* \brief Reports progress.
+    /** brief Reports progress.
      * TODO
      *
      */
     void onProgessReported(int progress);
 
-    /* \brief Reports progress.
+    /** brief Reports progress.
      * TODO
      *
      */
     void onTaskFininished();
 
   private:
-    /* \brief Returns true if the segmentation should be in the proxy model.
+    /** brief Returns true if the segmentation should be in the proxy model.
      *
      */
     bool acceptSegmentation(const SegmentationAdapterPtr segmentation) const;
 
-    /* \brief Returns the proxy model index of a given item adapter.
+    /** brief Returns the proxy model index of a given item adapter.
      * \param[in] segmentation, item adapter raw pointer.
      * \param[in] col, column.
      *

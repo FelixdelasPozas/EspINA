@@ -27,7 +27,7 @@
 
 namespace ESPINA
 {
-	/* \brief Returns the tooltip text for the given icon and description.
+	/** brief Returns the tooltip text for the given icon and description.
 	 * \param[in] icon, QIcon object.
 	 * \param[in] description, text decription.
 	 *

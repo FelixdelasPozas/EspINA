@@ -33,29 +33,29 @@ namespace ESPINA
   : public ColorEngine
   {
   public:
-  	/* \brief UserColorEngine class constructor.
+  	/** brief UserColorEngine class constructor.
   	 *
   	 */
     explicit UserColorEngine();
 
-    /* \brief Implements ColorEngine::color().
+    /** brief Implements ColorEngine::color().
      *
      */
     virtual QColor color(SegmentationAdapterPtr seg);
 
-    /* \brief Implements ColorEngine::lut().
+    /** brief Implements ColorEngine::lut().
      *
      */
     virtual LUTSPtr lut (SegmentationAdapterPtr seg);
 
-    /* \brief Implements ColorEngine::supportedComposition().
+    /** brief Implements ColorEngine::supportedComposition().
      *
      */
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Color; }
 
   private:
-    /* \brief Returns the next unused color.
+    /** brief Returns the next unused color.
      *
      */
     QColor nextColor();

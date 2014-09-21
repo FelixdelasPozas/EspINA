@@ -40,7 +40,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief SeedGrowSegmentationSettingsPanel class constructor.
+    /** brief SeedGrowSegmentationSettingsPanel class constructor.
      * \param[in] settings, raw pointer to a SeedGrowSegmentationSettings object.
      * \param[in] viewManager, view manager smart pointer.
      *
@@ -48,64 +48,64 @@ namespace ESPINA
     explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings,
                                                 ViewManagerSPtr               viewManager);
 
-    /* \brief SeedGrowSegmentationSettingsPanel class virtual destructor.
+    /** brief SeedGrowSegmentationSettingsPanel class virtual destructor.
      *
      */
     virtual ~SeedGrowSegmentationsSettingsPanel()
     {}
 
-    /* \brief Overrides SerttingsPanel::shortDescription().
+    /** brief Overrides SerttingsPanel::shortDescription().
      *
      */
     virtual const QString shortDescription() override
     { return tr("Seed Grow Segmentation"); }
 
-    /* \brief Overrides SerttingsPanel::longDescription().
+    /** brief Overrides SerttingsPanel::longDescription().
      *
      */
     virtual const QString longDescription() override
     { return tr("Seed Grow Segmentation"); }
 
-    /* \brief Overrides SerttingsPanel::icon().
+    /** brief Overrides SerttingsPanel::icon().
      *
      */
     virtual const QIcon icon() override
     { return QIcon(":/espina/bestPixelSelector.svg"); }
 
-    /* \brief Overrides SerttingsPanel::acceptChanges().
+    /** brief Overrides SerttingsPanel::acceptChanges().
      *
      */
     virtual void acceptChanges() override;
 
-    /* \brief Overrides SerttingsPanel::rejectChanges().
+    /** brief Overrides SerttingsPanel::rejectChanges().
      *
      */
     virtual void rejectChanges() override;
 
-    /* \brief Overrides SerttingsPanel::modified().
+    /** brief Overrides SerttingsPanel::modified().
      *
      */
     virtual bool modified() const override;
 
-    /* \brief Overrides SerttingsPanel::clone().
+    /** brief Overrides SerttingsPanel::clone().
      *
      */
     virtual SettingsPanelPtr clone() override;
 
   public slots:
-		/* \brief Modifies the color of the pixel value.
+		/** brief Modifies the color of the pixel value.
 		 *
 		 */
     void displayColor(int value);
 
   protected slots:
-  	/* \brief Manages the change of state of the taxonomical checkbox.
+  	/** brief Manages the change of state of the taxonomical checkbox.
   	 * \param[in] state, checkbox state.
   	 *
   	 */
     void changeTaxonomicalCheck(int state);
 
-    /* \brief Stores the Z value.
+    /** brief Stores the Z value.
      * \param[in] value, unused value.
      *
      */

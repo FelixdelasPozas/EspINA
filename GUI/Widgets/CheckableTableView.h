@@ -38,13 +38,13 @@ class EspinaGUI_EXPORT CheckableTableView
 {
   Q_OBJECT
 public:
-  /* \brief CheckableTableView class constructor.
+  /** brief CheckableTableView class constructor.
    * \param[in] parent, raw pointer of the QWidget parent of this one.
    *
    */
   explicit CheckableTableView(QWidget *parent = 0);
 
-  /* \brief Overrides QAbstractItemView::mouseReleaseEvent().
+  /** brief Overrides QAbstractItemView::mouseReleaseEvent().
    *
    */
   virtual void mouseReleaseEvent(QMouseEvent *event) override;

@@ -35,7 +35,7 @@ namespace ESPINA {
     class EspinaCore_EXPORT ZipUtils
     {
     public:
-    	/* \brief Adds a file to a QuaZip file.
+    	/** brief Adds a file to a QuaZip file.
     	 * \param[in] fileName, file name.
     	 * \param[in] content, file content as a byte array.
     	 * \param[in] zip, QuaZip handler.
@@ -45,7 +45,7 @@ namespace ESPINA {
                                const QByteArray& content,
                                QuaZip&           zip) throw (IO_Zip_Exception);
 
-    	/* \brief Reads a file from a QuaZip file and returns its content as a byte array.
+    	/** brief Reads a file from a QuaZip file and returns its content as a byte array.
     	 * \param[in] fileName, file name.
     	 * \param[in] zip, QuaZip handler.
     	 *
@@ -53,7 +53,7 @@ namespace ESPINA {
       static QByteArray readFileFromZip(const QString&  fileName,
                                         QuaZip&         zip);
 
-    	/* \brief Reads current file from a QuaZip file and returns its content as a byte array.
+    	/** brief Reads current file from a QuaZip file and returns its content as a byte array.
     	 * \param[in] zip, QuaZip handler.
     	 *
     	 */

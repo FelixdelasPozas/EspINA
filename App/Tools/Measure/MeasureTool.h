@@ -37,34 +37,34 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief MeasureTool class constructor.
+    /** brief MeasureTool class constructor.
      * \param[in] viewManager, view manager smart pointer.
      *
      */
     explicit MeasureTool(ViewManagerSPtr viewManager);
 
-    /* \brief MeasureTool class destructor.
+    /** brief MeasureTool class destructor.
      *
      */
     virtual ~MeasureTool();
 
-    /* \brief Implements Tool::setEnabled().
+    /** brief Implements Tool::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements Tool::enabled().
+    /** brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /* \brief Implements Tool::actions().
+    /** brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
   public slots:
-  	/* \brief Initializes/De-initializes tool.
+  	/** brief Initializes/De-initializes tool.
   	 * \param[in] value, true to initialize tool, false to de-initialize.
   	 */
     void initTool(bool value);

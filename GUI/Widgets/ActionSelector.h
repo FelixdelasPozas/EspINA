@@ -38,82 +38,82 @@ class EspinaGUI_EXPORT ActionSelector
 {
   Q_OBJECT
 public:
-  /* \brief ActionSelector class constructor.
+  /** brief ActionSelector class constructor.
    * \param[in] parent, raw pointer of the QObject parent of this one.
    *
    */
   explicit ActionSelector(QObject *parent = nullptr);
 
-  /* \brief Overrides QWidgetAction::createWidget().
+  /** brief Overrides QWidgetAction::createWidget().
    *
    */
   virtual QWidget* createWidget(QWidget *parent);
 
-  /* \brief Adds an action to the widget.
+  /** brief Adds an action to the widget.
    *
    */
   void addAction(QAction *action);
 
-  /* \brief Sets the default action for the widget's button.
+  /** brief Sets the default action for the widget's button.
    * \param[in] action, QAction raw pointer.
    *
    */
   void setDefaultAction(QAction *action);
 
-  /* \brief Returns the current action of the button.
+  /** brief Returns the current action of the button.
    *
    */
   QAction* getCurrentAction();
 
-  /* \brief Returns the current action string.
+  /** brief Returns the current action string.
    *
    */
   QString getCurrentActionAsQString();
 
-  /* \brief Emits the cancellation signal.
+  /** brief Emits the cancellation signal.
    *
    */
   void cancel()
   {emit cancelAction();}
 
-  /* \brief Shadows QAction::checked().
+  /** brief Shadows QAction::checked().
    *
    */
   bool isChecked();
 
-  /* \brief Shadows QAction::setChecked().
+  /** brief Shadows QAction::setChecked().
    *
    */
   void setChecked(bool value);
 
-  /* \brief Shadows QAction::setIcon().
+  /** brief Shadows QAction::setIcon().
    *
    */
   void setIcon(const QIcon &);
 
-  /* \brief Shadows QAction::setEnabled().
+  /** brief Shadows QAction::setEnabled().
    *
    */
   void setEnabled(bool);
 
-  /* \brief Shadows QAction::isEnabled().
+  /** brief Shadows QAction::isEnabled().
    *
    */
   bool isEnabled() const;
 
 protected slots:
-	/* \brief Triggers the given action.
+	/** brief Triggers the given action.
 	 * \param[in] action, raw pointer of the QAction to trigger.
 	 *
 	 */
   void actionTriggered(QAction *action);
 
-  /* \brief Resets the UI when the action has been cancelled.
+  /** brief Resets the UI when the action has been cancelled.
    *
    */
   void onActionCanceled();
 
-  /* \brief Updates internal data when the destroy signal for the button has been emmited.
+  /** brief Updates internal data when the destroy signal for the button has been emmited.
    *
    */
   void destroySignalEmmited();

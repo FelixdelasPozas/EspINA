@@ -46,75 +46,75 @@ namespace ESPINA
     static const InfoTag BOTTOM_DISTANCE;
     static const InfoTag BACK_DISTANCE;
 
-    /* \brief EdgeDistance class constructor.
+    /** brief EdgeDistance class constructor.
      *
      */
     explicit EdgeDistance(const InfoCache &cache = InfoCache(),
                           const State     &state = State());
 
-    /* \brief EdgeDistance class destructor.
+    /** brief EdgeDistance class destructor.
      *
      */
     virtual ~EdgeDistance();
 
-    /* \brief Implements Extension::type().
+    /** brief Implements Extension::type().
      *
      */
     virtual Type type() const
     { return TYPE; }
 
-    /* \brief Implements Extension::state().
+    /** brief Implements Extension::state().
      *
      */
     virtual State state() const;
 
-    /* \brief Implements Extension::state().
+    /** brief Implements Extension::state().
      *
      */
     virtual Snapshot snapshot() const;
 
-    /* \brief Implements Extension::dependencies().
+    /** brief Implements Extension::dependencies().
      *
      */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /* \brief Implements Extension::invalidateOnChange().
+    /** brief Implements Extension::invalidateOnChange().
      *
      */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /* \brief Implements Extension::availableInformations().
+    /** brief Implements Extension::availableInformations().
      *
      */
     virtual InfoTagList availableInformations() const;
 
-    /* \brief Implements SegmentationExtension::validCategory().
+    /** brief Implements SegmentationExtension::validCategory().
      *
      */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    /* \brief Returns the distances as numerical values in the parameter.
+    /** brief Returns the distances as numerical values in the parameter.
      * \param[out] distances.
      *
      */
     void edgeDistance(Nm distances[6]) const;
 
   protected:
-    /* \brief Implements Extension::cacheFail().
+    /** brief Implements Extension::cacheFail().
      *
      */
     virtual QVariant cacheFail(const QString& tag) const;
 
-    /* \brief Implements Extension::onExtendedItemSet().
+    /** brief Implements Extension::onExtendedItemSet().
      *
      */
     virtual void onExtendedItemSet(Segmentation* segmentation);
 
   private:
-    /* \brief Updated the distances of the extended item to the edges of its channel.
+    /** brief Updated the distances of the extended item to the edges of its channel.
      *
      */
     void updateDistances() const;
@@ -128,7 +128,7 @@ namespace ESPINA
   using EdgeDistancePtr  = EdgeDistance *;
   using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
 
-  /* \brief Returns the extension as an EdgeDistance raw pointer.
+  /** brief Returns the extension as an EdgeDistance raw pointer.
    * \param[in] extension, segmentation extension raw pointer.
    *
    */

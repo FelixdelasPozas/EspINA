@@ -33,13 +33,13 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief SphericalBrushSelector class constructor.
+      /** brief SphericalBrushSelector class constructor.
        *
        */
       explicit SphericalBrushSelector();
 
     protected slots:
-      /* \brief Implements BrushSelector::createBrushShape().
+      /** brief Implements BrushSelector::createBrushShape().
        *
        */
       virtual BrushSelector::BrushShape createBrushShape(ViewItemAdapterPtr item,

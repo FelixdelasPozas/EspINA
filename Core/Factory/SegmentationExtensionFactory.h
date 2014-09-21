@@ -34,13 +34,13 @@ namespace ESPINA
     struct Extension_Not_Provided_Exception {};
 
   public:
-    /* \brief SegmentationExtensionFactory class constructor.
+    /** brief SegmentationExtensionFactory class constructor.
      *
      */
     virtual ~SegmentationExtensionFactory()
     {}
 
-    /* \brief Creates a segmentation extension of the given type with the given state and cache object.
+    /** brief Creates a segmentation extension of the given type with the given state and cache object.
      * \param[in] type, segmentation extension type.
      * \param[in] cache, information cache object.
      * \param[in] state, state object.
@@ -50,7 +50,7 @@ namespace ESPINA
                                                                   const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache() ,
                                                                   const State                            &state = State()) const = 0;
 
-    /* \brief Returns the list of types of segmentation extensions this filter can create.
+    /** brief Returns the list of types of segmentation extensions this filter can create.
      *
      */
     virtual SegmentationExtensionTypeList providedExtensions() const = 0 ;

@@ -197,7 +197,6 @@ void SeedGrowSegmentationFilter::execute()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute(Output::Id id)
 {
-  //qDebug() << "SGS Execute";
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
   auto input = volumetricData(m_inputs[0]->output());
@@ -263,11 +262,6 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   connectedFilter->SetNumberOfThreads(1);
   connectedFilter->ReleaseDataFlagOn();
   connectedFilter->Update();
-
-  if (outValue < 0)
-  {
-    m_roi->applyROI<itkVolumeType>(connectedFilter->GetOutput(), SEG_BG_VALUE);
-  }
 
   emit progress(75);
   if (!canExecute()) return;

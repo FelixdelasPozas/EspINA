@@ -48,76 +48,76 @@ namespace ESPINA
   : public MeshData
   {
   public:
-  	/* \brief MarchingCubesMesh class constructor.
+  	/** brief MarchingCubesMesh class constructor.
   	 * \param[in] volume, volume to use source for marching cubes algorithm.
   	 */
     explicit MarchingCubesMesh(VolumetricDataSPtr<T> volume);
 
-    /* \brief MarchingCubesMesh class virtual destructor.
+    /** brief MarchingCubesMesh class virtual destructor.
      *
      */
     virtual ~MarchingCubesMesh();
 
-    /* \brief Implements Data::fetchData().
+    /** brief Implements Data::fetchData().
      *
      */
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
 
-    /* \brief Implements Data::snapshot().
+    /** brief Implements Data::snapshot().
      *
      */
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
 
-    /* \brief Implements Data::editedRegionsSnapshot().
+    /** brief Implements Data::editedRegionsSnapshot().
      *
      */
     virtual Snapshot editedRegionsSnapshot() const;
 
-    /* \brief Implements Data::isValid().
+    /** brief Implements Data::isValid().
      *
      */
     virtual bool isValid() const
     { return m_volume->isValid(); }
 
-    /* \brief Implements Data::isEmpty().
+    /** brief Implements Data::isEmpty().
      *
      */
     virtual bool isEmpty() const
     { return m_volume->isEmpty(); }
 
-    /* \brief Overrides MeshData::bounds() const.
+    /** brief Overrides MeshData::bounds() const.
      *
      */
     virtual Bounds bounds() const override
     { return m_volume->bounds(); }
 
-    /* \brief Implements Data::setSpacing().
+    /** brief Implements Data::setSpacing().
      *
      */
     virtual void setSpacing(const NmVector3& spacing);
 
-    /* \brief Implements Data::spacing() const.
+    /** brief Implements Data::spacing() const.
      *
      */
     virtual NmVector3 spacing() const;
 
-    /* \brief Implements Data::undo().
+    /** brief Implements Data::undo().
      *
      */
     virtual void undo();
 
-    /* \brief Implements Data::memoryUsage() const.
+    /** brief Implements Data::memoryUsage() const.
      *
      */
     virtual size_t memoryUsage() const;
 
-    /* \brief Implements MeshData::mesh() const.
+    /** brief Implements MeshData::mesh() const.
      *
      */
     virtual vtkSmartPointer<vtkPolyData> mesh() const;
 
   private:
-    /* \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
+    /** brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
      *
      */
     void updateMesh();

@@ -36,7 +36,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief ColorEngineMenu class constructor.
+    /** brief ColorEngineMenu class constructor.
      * \param[in] vm, view manager smart pointer.
      * \param[in] title, title of the color engine.
      * \param[in] parent, QObject parent raw pointer.
@@ -44,31 +44,31 @@ namespace ESPINA
      */
     explicit ColorEngineMenu(ViewManagerSPtr vm, const QString &title, QWidget *parent = nullptr);
 
-    /* \brief ColorEngineMenu class virtual destructor.
+    /** brief ColorEngineMenu class virtual destructor.
      *
      */
     virtual ~ColorEngineMenu();
 
-    /* \brief Returns current color engine.
+    /** brief Returns current color engine.
      *
      */
     ColorEngineSPtr engine() const
     {return m_engine;}
 
-    /* \brief Adds a color engine to the menu.
+    /** brief Adds a color engine to the menu.
      * \param[in] title, name of the color engine.
      * \param[in] engine, color engine smart pointer of the engine.
      *
      */
     void addColorEngine(const QString &title, ColorEngineSPtr engine);
 
-    /* \brief Restores user settings for the menu.
+    /** brief Restores user settings for the menu.
      *
      */
     void restoreUserSettings();
 
   protected slots:
-  	/* \brief Activates/Deactivates the color engine of the QAction passed as parameter.
+  	/** brief Activates/Deactivates the color engine of the QAction passed as parameter.
   	 * \param[in] action, QAction raw pointer.
   	 *
   	 */

@@ -42,7 +42,7 @@ namespace ESPINA
     Q_OBJECT
     class CentralWidget;
   public:
-    /* \brief ChannelExplorer class constructor.
+    /** brief ChannelExplorer class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
      * \param[in] scheduler, scheduler smart pointer.
@@ -56,13 +56,13 @@ namespace ESPINA
                              QUndoStack      *undoStack,
                              QWidget         *parent = nullptr);
 
-    /* \brief ChannelExplorer class virtual destructor.
+    /** brief ChannelExplorer class virtual destructor.
      *
      */
     virtual ~ChannelExplorer();
 
   public slots:
-    /* \brief Implements DockWidget::reset().
+    /** brief Implements DockWidget::reset().
      *
      */
     virtual void reset();
@@ -83,28 +83,28 @@ namespace ESPINA
     void updateTooltips(int index);
   	/******************************************************/
 
-    /* \brief Opens a channel inspector dialog.
+    /** brief Opens a channel inspector dialog.
      *
      */
     void showInformation();
 
-    /* \brief Sets the selected channel as the active one.
+    /** brief Sets the selected channel as the active one.
      *
      */
     void activateChannel();
 
-    /* \brief Deletes the closed dialog from the opened dialog lists and updates representations.
+    /** brief Deletes the closed dialog from the opened dialog lists and updates representations.
      * \param[in] object, raw pointer of the closed dialog.
      *
      */
     void dialogClosed(QObject *);
 
-    /* \brief Resets the views.
+    /** brief Resets the views.
      *
      */
     void inspectorChangedSpacing();
 
-    /* \brief Changes the sample association of a channel that has been dragged onto a sample.
+    /** brief Changes the sample association of a channel that has been dragged onto a sample.
      *
      */
     void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);

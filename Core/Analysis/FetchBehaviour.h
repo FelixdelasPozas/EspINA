@@ -42,13 +42,13 @@ namespace ESPINA {
   class EspinaCore_EXPORT FetchBehaviour
   {
 		public:
-  		/* \brief Class FetchBehaviour class virtual destructor.
+  		/** brief Class FetchBehaviour class virtual destructor.
   		 *
   		 */
 			virtual ~FetchBehaviour()
 			{};
 
-  		/* \brief Loads the data from disk and set the data into the given output.
+  		/** brief Loads the data from disk and set the data into the given output.
   		 * \param[inout] output, output object smart pointer.
   		 * \param[in] storage, temporal storage where the files are.
   		 * \param[in] prefix, prefix of the data files.

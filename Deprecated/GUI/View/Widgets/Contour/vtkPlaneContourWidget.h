@@ -45,24 +45,24 @@ namespace ESPINA
   : public vtkAbstractWidget
   {
   public:
-    /* \brief Instantiate this class.
+    /** brief Instantiate this class.
      *
      */
     static vtkPlaneContourWidget * New();
 
-    /* \brief Standard methods for a VTK class.
+    /** brief Standard methods for a VTK class.
      *
      */
     vtkTypeMacro(vtkPlaneContourWidget,vtkAbstractWidget);
     void PrintSelf(ostream& os, vtkIndent indent) override;
 
-    /* \brief The method for activating and de-activating this widget. This method
+    /** brief The method for activating and de-activating this widget. This method
      *  must be overridden because it is a composite widget and does more than
      *  its superclasses' vtkAbstractWidget::SetEnabled() method.
      */
     virtual void SetEnabled(int enable) override;
 
-    /* \brief Specify an instance of vtkWidgetRepresentation used to represent this
+    /** brief Specify an instance of vtkWidgetRepresentation used to represent this
      * widget in the scene. The representation is a subclass of vtkProp so it can be
      * added to the renderer independent of the widget.
      *
@@ -70,40 +70,40 @@ namespace ESPINA
     void SetRepresentation(vtkSliceContourRepresentation *r)
     { this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r)); }
 
-    /* \brief Return the representation as a ContourRepresentation.
+    /** brief Return the representation as a ContourRepresentation.
      *
      */
     vtkSliceContourRepresentation *GetContourRepresentation()
     { return reinterpret_cast<vtkSliceContourRepresentation*>(this->WidgetRep); }
 
-    /* \brief Create the default widget representation if one is not set.
+    /** brief Create the default widget representation if one is not set.
      *
      */
     void CreateDefaultRepresentation();
 
-    /* \brief Convenience method to close the contour loop.
+    /** brief Convenience method to close the contour loop.
      *
      */
     void CloseLoop();
 
-    /* \brief Convenient method to change what state the widget is in.
+    /** brief Convenient method to change what state the widget is in.
      *
      */
     vtkSetMacro(WidgetState,int);
 
-    /* \brief Convenient method to determine the state of the method.
+    /** brief Convenient method to determine the state of the method.
      *
      */
     vtkGetMacro(WidgetState,int);
 
-    /* \brief Set / Get the AllowNodePicking value. This ivar indicates whether the nodes
+    /** brief Set / Get the AllowNodePicking value. This ivar indicates whether the nodes
      * and points between nodes can be picked/un-picked by Ctrl+Click on the node.
      *
      */
     void SetAllowNodePicking(int);vtkGetMacro( AllowNodePicking, int );
     vtkBooleanMacro( AllowNodePicking, int );
 
-    /* \brief Follow the cursor ? If this is ON, during definition, the last node of the
+    /** brief Follow the cursor ? If this is ON, during definition, the last node of the
      * contour will automatically follow the cursor, without waiting for the the
      * point to be dropped. This may be useful for some interpolators, such as the
      * live-wire interpolator to see the shape of the contour that will be placed
@@ -113,7 +113,7 @@ namespace ESPINA
     vtkGetMacro( FollowCursor, int );
     vtkBooleanMacro( FollowCursor, int );
 
-    /* \brief Define a contour by continuously drawing with the mouse cursor.
+    /** brief Define a contour by continuously drawing with the mouse cursor.
      * Press and hold the left mouse button down to continuously draw.
      * Releasing the left mouse button switches into a snap drawing mode.
      * Terminate the contour by pressing the right mouse button.  If you
@@ -130,7 +130,7 @@ namespace ESPINA
     vtkGetMacro(ContinuousDrawTolerance, double);
     vtkSetMacro(ContinuousDrawTolerance, double);
 
-    /* \brief Initialize the contour widget from a user supplied set of points. The
+    /** brief Initialize the contour widget from a user supplied set of points. The
      * state of the widget decides if you are still defining the widget, or
      * if you've finished defining (added the last point) are manipulating
      * it. If the polydata supplied is closed, the state will be set to manipulate.
@@ -141,28 +141,28 @@ namespace ESPINA
     virtual void Initialize()
     { this->Initialize(nullptr); }
 
-    /* \brief Sets the orientation of the contour.
+    /** brief Sets the orientation of the contour.
      * \param[in] plane, orientation plane.
      *
      */
     virtual void SetOrientation(Plane plane);
 
-    /* \brief Returns the orientation of the contour.
+    /** brief Returns the orientation of the contour.
      *
      */
     virtual Plane GetOrientation();
 
-    /* \brief Sets the contour polygon color.
+    /** brief Sets the contour polygon color.
      *
      */
     virtual void setPolygonColor(QColor);
 
-    /* \brief Returns the contour polygon color.
+    /** brief Returns the contour polygon color.
      *
      */
     virtual QColor getPolygonColor();
 
-    /* \brief Sets the parent ContourWidget for this vtk widget.
+    /** brief Sets the parent ContourWidget for this vtk widget.
      * \param[in] parent, ContourWidget raw pointer.
      *
      * Parent needed to signal start/end of a contour.
@@ -170,29 +170,29 @@ namespace ESPINA
      */
     void setContourWidget(ContourWidget *parent) { m_parent = parent; }
 
-    /* \brief Sets the contour mode.
+    /** brief Sets the contour mode.
      * \param[in] mode, brush erase/draw mode.
      *
      */
     void setContourMode(BrushSelector::BrushMode mode);
 
-    /* \brief Returns the contour mode.
+    /** brief Returns the contour mode.
      *
      */
     BrushSelector::BrushMode getContourMode();
 
-    /* \brief Used by the slice widget to set the mode of a previosly stored contour.
+    /** brief Used by the slice widget to set the mode of a previosly stored contour.
      *
      */
     void setActualContourMode(Brush::BrushMode mode);
 
   protected:
-    /* \brief vtkPlaneContourWidget class constructor.
+    /** brief vtkPlaneContourWidget class constructor.
      *
      */
     vtkPlaneContourWidget();
 
-    /* \brief vtkPlaneContourWidget class virtual destructor.
+    /** brief vtkPlaneContourWidget class virtual destructor.
      *
      */
     virtual ~vtkPlaneContourWidget();
@@ -212,7 +212,7 @@ namespace ESPINA
     ESPINA::PlaneType Orientation;
     double ContinuousDrawTolerance;
 
-    /* \brief Callback interface to capture events when placing the widget.
+    /** brief Callback interface to capture events when placing the widget.
      *
      */
     static void SelectAction(vtkAbstractWidget*);
@@ -225,35 +225,35 @@ namespace ESPINA
     static void ResetAction(vtkAbstractWidget*);
     static void KeyPressAction(vtkAbstractWidget *);
 
-    /* \brief Adds the current mouse position as a node.
+    /** brief Adds the current mouse position as a node.
      *
      */
     void AddNode();
 
-    /* \brief Overrides vtkAbstractWidget::cursor().
+    /** brief Overrides vtkAbstractWidget::cursor().
      *
      */
     virtual void SetCursor(int State) override;
 
-    /* \brief Helper method to avoid creating too many points in continuos drawing.
+    /** brief Helper method to avoid creating too many points in continuos drawing.
      * \param[in] x, x coordinante.
      * \param[in] y, y coordinate.
      *
      */
     virtual bool IsPointTooClose(int x,int y);
 
-    /* \brief Find closest node to the cursor node.
+    /** brief Find closest node to the cursor node.
      *
      */
     int FindClosestNode();
 
   private:
-    /* \brief vtkPlaneContourWidget copy constructor not implemented.
+    /** brief vtkPlaneContourWidget copy constructor not implemented.
      *
      */
     vtkPlaneContourWidget(const vtkPlaneContourWidget&);
 
-    /* \brief Assignment operator not implemented.
+    /** brief Assignment operator not implemented.
      *
      */
     void operator=(const vtkPlaneContourWidget&);

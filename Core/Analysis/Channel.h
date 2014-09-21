@@ -45,44 +45,44 @@ namespace ESPINA
     static const QString VOLUMETRIC;
 
   public:
-    /* \brief Channel class constructor.
+    /** brief Channel class constructor.
      * \param[in] input, input object smart pointer.
      *
      */
     explicit Channel(InputSPtr input);
 
-    /* \brief Channel class destructor.
+    /** brief Channel class destructor.
      *
      */
     virtual ~Channel();
 
-    /* \brief Implements Persistent::restoreState().
+    /** brief Implements Persistent::restoreState().
      *
      */
     virtual void restoreState(const State& state);
 
-    /* \brief Implements Persistent::state() const.
+    /** brief Implements Persistent::state() const.
      *
      */
     virtual State state() const;
 
-    /* \brief Implements Persistent::snapshot() const.
+    /** brief Implements Persistent::snapshot() const.
      *
      */
     virtual Snapshot snapshot() const;
 
-    /* \brief Implements Persistent::unload().
+    /** brief Implements Persistent::unload().
      *
      */
     virtual void unload();
 
-    /* \brief Sets the position of the channel.
+    /** brief Sets the position of the channel.
      * \param[in] point, origin point of the channel.
      *
      */
     void setPosition(const NmVector3& point);
 
-    /* \brief Returns the position (origin) of the channel.
+    /** brief Returns the position (origin) of the channel.
      *
      */
     NmVector3 position() const;
@@ -166,20 +166,20 @@ namespace ESPINA
      */
     QString metadata() const;
 
-    /* \brief Add the extension to the channel.
+    /** brief Add the extension to the channel.
      * \param[in] extension, channel extension smart pointer.
      *
      * Extesion won't be available until requirements are satisfied.
      */
     void addExtension(ChannelExtensionSPtr extension);
 
-    /* \brief Removes a extension from the channel.
+    /** brief Removes a extension from the channel.
      * \param[in] extension, channel extension smart pointer.
      *
      */
     void deleteExtension(ChannelExtensionSPtr extension);
 
-    /* \brief Removes a extension from the channel.
+    /** brief Removes a extension from the channel.
      * \param[in] type, type of the extension to remove.
      *
      */
@@ -203,7 +203,7 @@ namespace ESPINA
      */
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
-    /* \brief Return the list of extension types registered in the channel.
+    /** brief Return the list of extension types registered in the channel.
      *
      */
     ChannelExtensionSList extensions() const
@@ -212,26 +212,26 @@ namespace ESPINA
     static const int AUTOMATIC_OPACITY = -1;
 
   private:
-    /* \brief Returns the metadata file name for this channel.
+    /** brief Returns the metadata file name for this channel.
      *
      */
     QString metadataFile() const
     { return QString("Metadata/%1/metadata.xml").arg(uuid()); }
 
-    /* \brief Returns the path of the extensions for this channel.
+    /** brief Returns the path of the extensions for this channel.
      *
      */
     QString extensionsPath() const
     { return "Extensions/"; }
 
-    /* \brief Returns the path of the extension of specified type for this channel.
+    /** brief Returns the path of the extension of specified type for this channel.
      * \param[in] extension, channel extension smart pointer.
      *
      */
     QString extensionPath(const ChannelExtensionSPtr extension) const
     { return extensionsPath() + extension->type() + "/"; }
 
-    /* \brief Returns the path of the data files for a extension for this channel.
+    /** brief Returns the path of the data files for a extension for this channel.
      *
      */
     QString extensionDataPath(const ChannelExtensionSPtr extension, QString path) const

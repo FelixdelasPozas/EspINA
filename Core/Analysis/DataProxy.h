@@ -42,19 +42,19 @@ namespace ESPINA {
   class EspinaCore_EXPORT DataProxy
   {
   public:
-  	/* \brief DataProxy class virtual destructor.
+  	/** brief DataProxy class virtual destructor.
   	 *
   	 */
     virtual ~DataProxy()
     {}
 
-    /* \brief Sets the internal data of the proxy.
+    /** brief Sets the internal data of the proxy.
      * \param[in] data, data object smart pointer.
      *
      */
     virtual void set(DataSPtr data) = 0;
 
-    /* \brief Returns the data of the proxy.
+    /** brief Returns the data of the proxy.
      *
      */
     virtual DataSPtr get() const = 0;

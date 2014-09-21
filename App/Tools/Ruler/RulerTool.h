@@ -36,38 +36,38 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/* \brief RulerTool class constructor.
+			/** brief RulerTool class constructor.
 			 * \param[in] viewManager, view manager smart pointer.
 			 */
       explicit RulerTool(ViewManagerSPtr viewManager);
 
-      /* \brief RulerTool class destructor.
+      /** brief RulerTool class destructor.
        *
        */
       virtual ~RulerTool();
 
-      /* \brief Implements Tool::setEnabled().
+      /** brief Implements Tool::setEnabled().
        *
        */
       virtual void setEnabled(bool value);
 
-      /* \brief Implements Tool::enabled().
+      /** brief Implements Tool::enabled().
        *
        */
       virtual bool enabled() const;
 
-      /* \brief Implements Tool::actions().
+      /** brief Implements Tool::actions().
        *
        */
       virtual QList<QAction *> actions() const;
 
     public slots:
-			/* \brief Initializes/De-initializes tool.
+			/** brief Initializes/De-initializes tool.
 			 * \param[in] value, true to initialize tool, false to de-initialize.
 			 */
       void initTool(bool value);
 
-      /* \brief Updates the ruler widget.
+      /** brief Updates the ruler widget.
        *
        */
       void selectionChanged();
@@ -85,24 +85,24 @@ namespace ESPINA
   : public EventHandler
   {
     public:
-      /* \brief RulerEventHandler class constructor.
+      /** brief RulerEventHandler class constructor.
        *
        */
       RulerEventHandler()
       {}
 
-      /* \brief RulerEventHadler class destructor.
+      /** brief RulerEventHadler class destructor.
        *
        */
       ~RulerEventHandler()
       {}
 
-      /* \brief Overrides EventHandler::setInUse().
+      /** brief Overrides EventHandler::setInUse().
        *
        */
       virtual void setInUse(bool value) override;
 
-      /* \brief Overrides EventHandler::filterEvent().
+      /** brief Overrides EventHandler::filterEvent().
        *
        */
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;

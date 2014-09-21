@@ -57,7 +57,7 @@ namespace ESPINA
       static const Representation::Type TYPE;
 
     public:
-      /* \brief CrosshairRepresentation class constructor.
+      /** brief CrosshairRepresentation class constructor.
        * \param[in] data, volumetric data smart pointer of the data to represent.
        * \param[in] view, renderview raw pointer the representation will be shown.
        *
@@ -65,76 +65,76 @@ namespace ESPINA
       explicit CrosshairRepresentation(DefaultVolumetricDataSPtr data,
                                        RenderView *view);
 
-      /* \brief CrosshairRepresentation class virtual destructor.
+      /** brief CrosshairRepresentation class virtual destructor.
        *
        */
       virtual ~CrosshairRepresentation()
       {};
 
-      /* \brief Implements Representation::settingsWidget().
+      /** brief Implements Representation::settingsWidget().
        *
        */
       virtual RepresentationSettings *settingsWidget();
 
-      /* \brief Overrides Representation::setBrightness().
+      /** brief Overrides Representation::setBrightness().
        *
        */
       virtual void setBrightness(double value) override;
 
-      /* \brief Overrides Representation::setContrast().
+      /** brief Overrides Representation::setContrast().
        *
        */
       virtual void setContrast(double value) override;
 
-      /* \brief Overrides Representation::setColor()
+      /** brief Overrides Representation::setColor()
        *
        */
       virtual void setColor(const QColor &color) override;
 
-      /* \brief Overrides Representation::setOpacity().
+      /** brief Overrides Representation::setOpacity().
        *
        */
       virtual void setOpacity(double value) override;
 
-      /* \brief Implements Representation::isInside() const.
+      /** brief Implements Representation::isInside() const.
        *
        */
       virtual bool isInside(const NmVector3 &point) const;
 
-      /* \brief Implements Representation::canRenderOnView() const.
+      /** brief Implements Representation::canRenderOnView() const.
        *
        */
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
 
-      /* \brief Implements Representation::hasActor() const.
+      /** brief Implements Representation::hasActor() const.
        *
        */
       virtual bool hasActor(vtkProp *actor) const;
 
-      /* \brief Implements Representation::updateRepresentation().
+      /** brief Implements Representation::updateRepresentation().
        *
        */
       virtual void updateRepresentation();
 
-      /* \brief Implements Representation::getActors().
+      /** brief Implements Representation::getActors().
        *
        */
       virtual QList<vtkProp*> getActors();
 
-      /* \brief Implements Representation::crosshairDependent() const.
+      /** brief Implements Representation::crosshairDependent() const.
        *
        */
       virtual bool crosshairDependent() const
       { return true; }
 
-      /* \brief Implements Representation::needUpdate().
+      /** brief Implements Representation::needUpdate().
        *
        */
       virtual bool needUpdate() const
       { return m_lastUpdatedTime != m_data->lastModified(); }
 
-      /* \brief Set the colors of the representation crosshair.
+      /** brief Set the colors of the representation crosshair.
        * \param[in] axialColor, vector of doubles with the r,g,b components of the color.
        * \param[in] coronalColor, vector of doubles with the r,g,b components of the color.
        * \param[in] sagittalColor, vector of doubles with the r,g,b components of the color.
@@ -142,24 +142,24 @@ namespace ESPINA
        */
       void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
 
-      /* \brief Sets the crosshair position in the representation.
+      /** brief Sets the crosshair position in the representation.
        * \param[in] point, crosshair point.
        */
       void setCrosshair(NmVector3 point);
 
-      /* \brief Moves one of the planes of the crosshair to the specified position.
+      /** brief Moves one of the planes of the crosshair to the specified position.
        * \param[in] plane, plane to move.
        * \param[in] pos, new position.
        */
       void setPlanePosition(Plane plane, Nm pos);
 
-      /* \brief Returns true if the plane is a tile.
+      /** brief Returns true if the plane is a tile.
        *
        */
       bool tiling()
       { return m_tiling; }
 
-      /* \brief Sets the representation as part of the tiling procedure.
+      /** brief Sets the representation as part of the tiling procedure.
        * \param[in] value, true to set as a tile false otherwise.
        *
        */
@@ -167,31 +167,31 @@ namespace ESPINA
       { m_tiling = value; }
 
     protected:
-      /* \brief Implements Representation::cloneImplementation(View2D*).
+      /** brief Implements Representation::cloneImplementation(View2D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
-      /* \brief Implements Representation::cloneImplementation(View3D*).
+      /** brief Implements Representation::cloneImplementation(View3D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
-      /* \brief Implements Representation::updateVisibility().
+      /** brief Implements Representation::updateVisibility().
        *
        */
       virtual void updateVisibility(bool visible);
 
     private:
-      /* \brief Helper method to set the view of the representation.
+      /** brief Helper method to set the view of the representation.
        * \param[in] view, RenderView raw pointer.
        *
        */
       void setView(RenderView *view)
       { m_view = view; };
 
-      /* \brief Helper method to initilize the vtk pipeline.
+      /** brief Helper method to initilize the vtk pipeline.
        *
        */
       void initializePipeline();

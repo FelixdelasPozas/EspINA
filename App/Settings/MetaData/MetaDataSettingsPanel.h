@@ -31,57 +31,57 @@ namespace ESPINA
   : public SettingsPanel
   {
     public:
-      /* \brief MetaDataSettingsPanel class constructor.
+      /** brief MetaDataSettingsPanel class constructor.
        *
        */
       explicit MetaDataSettingsPanel();
 
-      /* \brief MetaDataSettingsPanel class virtual destructor.
+      /** brief MetaDataSettingsPanel class virtual destructor.
        *
        */
       virtual ~MetaDataSettingsPanel()
       {};
 
-      /* \brief Overrides SettingsPanel::shortDescription().
+      /** brief Overrides SettingsPanel::shortDescription().
        *
        */
       virtual const QString shortDescription() override
       { return tr("Metadata Storage"); }
 
-      /* \brief Overrides SettingsPanel::longDescription().
+      /** brief Overrides SettingsPanel::longDescription().
        *
        */
       virtual const QString longDescription() override
       { return tr("Metadata Storage"); }
 
-      /* \brief Overrides SettingsPanel::icon():
+      /** brief Overrides SettingsPanel::icon():
        *
        */
       virtual const QIcon icon() override
       { return QIcon(":/espina/database.png"); }
 
-      /* \brief Overrides SettingsPanel::addPanel(SettingsPanel *).
+      /** brief Overrides SettingsPanel::addPanel(SettingsPanel *).
        *
        */
       virtual void addPanel(SettingsPanel *panel) override
       {}
 
-      /* \brief Overrides SettingsPanel::acceptChanges().
+      /** brief Overrides SettingsPanel::acceptChanges().
        *
        */
       virtual void acceptChanges() override;
 
-      /* \brief Overrides SettingsPanel::rejectChanges().
+      /** brief Overrides SettingsPanel::rejectChanges().
        *
        */
       virtual void rejectChanges() override;
 
-      /* \brief Overrides SettingsPanel::modified().
+      /** brief Overrides SettingsPanel::modified().
        *
        */
       virtual bool modified() const override;
 
-      /* \brief Overrides SettingsPanel::clone().
+      /** brief Overrides SettingsPanel::clone().
        *
        */
       virtual SettingsPanelPtr clone() override;

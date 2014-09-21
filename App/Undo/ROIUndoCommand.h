@@ -34,23 +34,23 @@ namespace ESPINA
   : public QUndoCommand
   {
     public:
-      /* \brief ModifyROIUndoCommand class constructor.
+      /** brief ModifyROIUndoCommand class constructor.
        * \param[in] toolgroup, raw pointer of the ROIToolsGroup that has the ROI accumulator.
        * \param[in] mask, Mask to create/modify ROI.
        */
       explicit ModifyROIUndoCommand(ROIToolsGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
 
-      /* \brief ModifyROIUndoCommand class virtual destructor.
+      /** brief ModifyROIUndoCommand class virtual destructor.
        *
        */
       virtual ~ModifyROIUndoCommand();
 
-      /* \brief Overrides QUndoCommand::redo().
+      /** brief Overrides QUndoCommand::redo().
        *
        */
       virtual void redo() override;
 
-      /* \brief Overrides QUndoCommand::undo().
+      /** brief Overrides QUndoCommand::undo().
        *
        */
       virtual void undo() override;
@@ -65,23 +65,23 @@ namespace ESPINA
   : public QUndoCommand
   {
     public:
-      /* \brief ClearROIUndoCommand class constructor.
+      /** brief ClearROIUndoCommand class constructor.
        * \param[in] toolgroup, raw pointer of the ROIToolGroup that has the ROI accumulator.
        *
        */
       explicit ClearROIUndoCommand(ROIToolsGroup *toolgroup);
 
-      /* \brief ClearROIUndoCommand class virtual destructor.
+      /** brief ClearROIUndoCommand class virtual destructor.
        *
        */
       virtual ~ClearROIUndoCommand();
 
-      /* \brief Overrides QUndoCommand::redo().
+      /** brief Overrides QUndoCommand::redo().
        *
        */
       virtual void redo() override;
 
-      /* \brief Overrides QUndoCommand::undo().
+      /** brief Overrides QUndoCommand::undo().
        *
        */
       virtual void undo() override;

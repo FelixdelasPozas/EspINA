@@ -47,7 +47,7 @@ namespace ESPINA
     using GroupedInfo = QMap<QString, QStringList>;
 
   public:
-    /* \brief InformationSelector class constructor.
+    /** brief InformationSelector class constructor.
      * \param[in] availableGroups, map of available title-tags groups.
      * \param[in] selection, map of checked title-tags groups.
      * \param[in] parent, raw pointer of the QWidget parent of this one.
@@ -57,18 +57,18 @@ namespace ESPINA
                                  QWidget         *parent = nullptr,
                                  Qt::WindowFlags  flags = 0);
 
-    /* \brief InformationSelector class virtual destructor.
+    /** brief InformationSelector class virtual destructor.
      *
      */
     virtual ~InformationSelector();
 
   protected slots:
-    /* \brief Overrides QDialog::accept().
+    /** brief Overrides QDialog::accept().
      *
      */
     void accept();
 
-    /* \brief Updates the state of the tree widget.
+    /** brief Updates the state of the tree widget.
      * \param[in] item, tree item.
      * \param[in] column, column of the item.
      * \param[in] updateParent, true to update the parent state, false otherwise.

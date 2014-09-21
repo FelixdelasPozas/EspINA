@@ -40,18 +40,18 @@ namespace ESPINA
       using ExtensionList = QMap<Description, Extensions>;
 
     public:
-      /* \brief AnalysisReader class destructor.
+      /** brief AnalysisReader class destructor.
        *
        */
       virtual ~AnalysisReader()
       {}
 
-      /* \brief Returns the type of analysis reader.
+      /** brief Returns the type of analysis reader.
        *
        */
       virtual QString type() const = 0;
 
-      /* \brief Returns a list of descriptions of the type of files the reader can process.
+      /** brief Returns a list of descriptions of the type of files the reader can process.
        *
        */
       ExtensionDescriptionList fileExtensionDescriptions() const
@@ -67,12 +67,12 @@ namespace ESPINA
         return list;
       }
 
-      /* \brief Returns a list of file extensions the reader can process.
+      /** brief Returns a list of file extensions the reader can process.
        *
        */
       virtual ExtensionList supportedFileExtensions() const = 0;
 
-      /* \brief Reads an analysis data file.
+      /** brief Reads an analysis data file.
        * \param[in] file, analysis data file.
        * \param[in] factory, core factory smart pointer.
        * \param[in] hander, error handler smart pointer.

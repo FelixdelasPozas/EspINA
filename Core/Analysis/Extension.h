@@ -56,37 +56,37 @@ namespace ESPINA
     }
 
   public:
-    /* \brief Extension class destructor.
+    /** brief Extension class destructor.
      *
      */
     virtual ~Extension() {}
 
-    /* \brief Returns the type the extension.
+    /** brief Returns the type the extension.
      *
      */
     virtual Type type() const = 0;
 
-    /* \brief Returns true if the extension need to invalidate its data when the extended item changes.
+    /** brief Returns true if the extension need to invalidate its data when the extended item changes.
      *
      */
     virtual bool invalidateOnChange() const = 0;
 
-    /* \brief Returns a state object with the actual state of the extension.
+    /** brief Returns a state object with the actual state of the extension.
      *
      */
     virtual State state() const = 0;
 
-    /* \brief Returns a snapshot of the data of the extension.
+    /** brief Returns a snapshot of the data of the extension.
      *
      */
     virtual Snapshot snapshot() const = 0;
 
-    /* \brief Returns a list of extension types this extension depends on.
+    /** brief Returns a list of extension types this extension depends on.
      *
      */
     virtual TypeList dependencies() const = 0;
 
-    /* \brief Sets the item this extension extends.
+    /** brief Sets the item this extension extends.
      *
      */
     void setExtendedItem(T *item)
@@ -102,17 +102,17 @@ namespace ESPINA
       onExtendedItemSet(item);
     }
 
-    /* \brief Returns the extended item.
+    /** brief Returns the extended item.
      *
      */
     T *extendedItem() {return m_extendedItem;}
 
-    /* \brief Returns a list of tags this extension have information of.
+    /** brief Returns a list of tags this extension have information of.
      *
      */
     virtual InfoTagList availableInformations() const = 0;
 
-    /* \brief Returns true if the information has been computed or loaded.
+    /** brief Returns true if the information has been computed or loaded.
      *
      */
     InfoTagList readyInformation() const
@@ -122,7 +122,7 @@ namespace ESPINA
       return m_infoCache.keys();
     }
 
-    /* \brief Returns the value of the information tag provided.
+    /** brief Returns the value of the information tag provided.
      * \param[in] tag, requested information tag.
      *
      */
@@ -140,14 +140,14 @@ namespace ESPINA
       return info;
     }
 
-    /* \brief Returns the tooltip text of the extension.
+    /** brief Returns the tooltip text of the extension.
      *
      */
     virtual QString toolTipText() const
     { return QString(); }
 
   protected:
-    /* \brief Extension class constructor.
+    /** brief Extension class constructor.
      * \param[in] infoCache, extension cache object.
      *
      */
@@ -156,13 +156,13 @@ namespace ESPINA
     , m_infoCache   {infoCache}
     {}
 
-    /* \brief Returns the extension path for saving data.
+    /** brief Returns the extension path for saving data.
      *
      */
     static QString Path()
     { return "Extensions"; }
 
-    /* \brief Returns the snapshot file name.
+    /** brief Returns the snapshot file name.
      *
      */
     QString snapshotName(const QString &file) const
@@ -173,18 +173,18 @@ namespace ESPINA
                                    .arg(file);
     };
 
-    /* \brief Performs custom operations when the extended item is set in derived classes.
+    /** brief Performs custom operations when the extended item is set in derived classes.
      *
      */
     virtual void onExtendedItemSet(T *item) = 0;
 
-    /* \brief Recomputes or reloads the information when the cache fails.
+    /** brief Recomputes or reloads the information when the cache fails.
      * \param[in] tag, information key.
      *
      */
     virtual QVariant cacheFail(const InfoTag &tag) const = 0;
 
-    /* \brief Returns the information from the cache.
+    /** brief Returns the information from the cache.
      * \param[in] tag, information key.
      *
      */
@@ -195,7 +195,7 @@ namespace ESPINA
       return m_infoCache.value(tag, QVariant());
     }
 
-    /* \brief Updates the cache of the key with a value.
+    /** brief Updates the cache of the key with a value.
      * \param[in] tag, information key.
      * \param[value] value, information value.
      *
@@ -208,7 +208,7 @@ namespace ESPINA
     }
 
   protected:
-    /* \brief Invalidates the cache values.
+    /** brief Invalidates the cache values.
      *
      */
     virtual void invalidate()
@@ -232,7 +232,7 @@ namespace ESPINA
     Q_OBJECT
 
   public slots:
-		/* \brief Implements Extension::invalidate().
+		/** brief Implements Extension::invalidate().
 		 *
 		 */
     virtual void invalidate()
@@ -241,7 +241,7 @@ namespace ESPINA
     }
 
   protected:
-    /* \brief ChannelExtension class constructor.
+    /** brief ChannelExtension class constructor.
      * \param[in] infoCache, cache object.
      *
      */
@@ -262,14 +262,14 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief Returns true if the extension is applicable to given category.
+    /** brief Returns true if the extension is applicable to given category.
      * \param[in] classificationName, classification name.
      *
      */
     virtual bool validCategory(const QString &classificationName) const = 0;
 
   public slots:
-		/* \brief Implements Extension::invalidate().
+		/** brief Implements Extension::invalidate().
 		 *
 		 */
     virtual void invalidate()
@@ -278,7 +278,7 @@ namespace ESPINA
     }
 
   protected:
-  /* \brief SegmentationExtension class constructor.
+  /** brief SegmentationExtension class constructor.
    * \param[in] infoCache, cache object.
    *
    */

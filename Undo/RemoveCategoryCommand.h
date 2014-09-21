@@ -39,7 +39,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/* \brief RemoveCategoryCommand class constructor.
+  	/** brief RemoveCategoryCommand class constructor.
   	 * \param[in] category, raw pointer of the category adapter to remove.
   	 * \param[in] model, smart pointer of the model adapter containing the category.
   	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
@@ -48,17 +48,17 @@ namespace ESPINA
                                    ModelAdapterSPtr   model,
                                    QUndoCommand*      parent = nullptr);
 
-    /* \brief RemoveCategoryCommand class destructor.
+    /** brief RemoveCategoryCommand class destructor.
      *
      */
     virtual ~RemoveCategoryCommand();
 
-    /* \brief Overrides QUndoCommand::redo().
+    /** brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /* \brief Overrides QUndoCommand::undo().
+    /** brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;

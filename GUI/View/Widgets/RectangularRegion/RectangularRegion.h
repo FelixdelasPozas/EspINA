@@ -47,31 +47,31 @@ namespace ESPINA
     public:
       vtkTypeMacro(vtkRectangularRegionCommand, vtkEspinaCommand);
 
-      /* \brief Creates a new instance.
+      /** brief Creates a new instance.
        *
        */
       static vtkRectangularRegionCommand *New()
       { return new vtkRectangularRegionCommand(); }
 
-      /* \brief Implements vtkEspinaCommand::setWidget().
+      /** brief Implements vtkEspinaCommand::setWidget().
        *
        */
       void setWidget(EspinaWidgetPtr widget);
 
-      /* \brief Implements vtkEspinaCommand::Execute.
+      /** brief Implements vtkEspinaCommand::Execute.
        *
        */
       virtual void Execute(vtkObject *, unsigned long int, void*);
 
     private:
-      /* \brief RulerCommand class private constructor.
+      /** brief RulerCommand class private constructor.
        *
        */
       explicit vtkRectangularRegionCommand()
       : m_widget{nullptr}
       {}
 
-      /* \brief RulerCommand class private destructor.
+      /** brief RulerCommand class private destructor.
        *
        */
       virtual ~vtkRectangularRegionCommand()
@@ -87,61 +87,61 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief RectangularRegion class constructor.
+    /** brief RectangularRegion class constructor.
      * \param[in] bounds, bounds of the region.
      *
      */
     explicit RectangularRegion(Bounds bounds);
 
-    /* \brief RectangularRegion class destructor.
+    /** brief RectangularRegion class destructor.
      *
      */
     virtual ~RectangularRegion();
 
-    /* \brief Implements EspinaWidget::registerView().
+    /** brief Implements EspinaWidget::registerView().
      *
      */
     virtual void registerView  (RenderView *view);
 
-    /* \brief Implements EspinaWidget::unregisterView().
+    /** brief Implements EspinaWidget::unregisterView().
      *
      */
     virtual void unregisterView(RenderView *view);
 
-    /* \brief Implements EspinaWidget::setEnabled().
+    /** brief Implements EspinaWidget::setEnabled().
      *
      */
     virtual void setEnabled(bool enable);
 
-    /* \brief Sets the bounds of the region.
+    /** brief Sets the bounds of the region.
      * \param[in] bounds, bounds of the region.
      *
      */
     virtual void setBounds(Bounds bounds);
 
-    /* \brief Returns the bounds of the region.
+    /** brief Returns the bounds of the region.
      *
      */
     virtual Bounds bounds() const;
 
-    /* \brief Sets the spacing/resolution of the region.
+    /** brief Sets the spacing/resolution of the region.
      *
      */
     void setResolution(NmVector3 resolution);
 
-    /* \brief Returns the resolution of the region.
+    /** brief Returns the resolution of the region.
      *
      */
     NmVector3 resolution() const
     { return m_resolution; }
 
-    /* \brief Sets the color of the representation.
+    /** brief Sets the color of the representation.
      * \param[in] color, pointer to a vector of three double corresponding to the r,g,b values.
      *
      */
     void setRepresentationColor(double *color);
 
-    /* \brief Sets the representation pattern.
+    /** brief Sets the representation pattern.
      * \param[in] pattern, pattern in hexadecimal.
      */
     void setRepresentationPattern(int pattern);
@@ -150,7 +150,7 @@ namespace ESPINA
     void modified(Bounds);
 
   private slots:
-		/* \brief Update the representation when the view changes the slice.
+		/** brief Update the representation when the view changes the slice.
 		 *
 		 */
     void sliceChanged(Plane plane, Nm pos);
@@ -158,7 +158,7 @@ namespace ESPINA
   private:
     friend class vtkRectangularRegionCommand;
 
-    /* \brief Emits the modification signal when the representation is modified.
+    /** brief Emits the modification signal when the representation is modified.
      *
      */
     void emitModifiedSignal()

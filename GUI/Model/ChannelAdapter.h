@@ -38,44 +38,44 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
- 		/* \brief ChannelAdapter class destructor.
+ 		/** brief ChannelAdapter class destructor.
  		 *
  		 */
     virtual ~ChannelAdapter();
 
- 		/* \brief Implements ItemAdapter::data() const.
+ 		/** brief Implements ItemAdapter::data() const.
  		 *
  		 */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
- 		/* \brief Implements ItemAdapter::setData().
+ 		/** brief Implements ItemAdapter::setData().
  		 *
  		 */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
- 		/* \brief Implements ItemAdapter::type() const.
+ 		/** brief Implements ItemAdapter::type() const.
  		 *
  		 */
     virtual ItemAdapter::Type type() const
     { return Type::CHANNEL; }
 
- 		/* \brief Implements ViewItemAdapter::asInput().
+ 		/** brief Implements ViewItemAdapter::asInput().
  		 *
  		 */
     virtual InputSPtr asInput() const;
 
- 		/* \brief Implements ViewItemAdapter::changeOutput().
+ 		/** brief Implements ViewItemAdapter::changeOutput().
  		 *
  		 */
     virtual void changeOutput(InputSPtr input);
 
- 		/* \brief Sets the position of the channel (origin).
+ 		/** brief Sets the position of the channel (origin).
  		 * \param[in] point, origin point.
  		 *
  		 */
     void setPosition(const NmVector3& point);
 
- 		/* \brief Returns the position (origin) of the channel.
+ 		/** brief Returns the position (origin) of the channel.
  		 *
  		 */
     NmVector3 position() const;
@@ -160,12 +160,12 @@ namespace ESPINA
      */
     QString metadata() const;
 
- 		/* \brief Returns the minimal bounds that contains the channel.
+ 		/** brief Returns the minimal bounds that contains the channel.
  		 *
  		 */
     Bounds bounds() const;
 
- 		/* \brief Adds an extension to the channel.
+ 		/** brief Adds an extension to the channel.
  		 * \param[in] extension, smart pointer of the channel extension to add.
  		 *
  		 * Extension won't be available until requirements are satisfied.
@@ -173,7 +173,7 @@ namespace ESPINA
  		 */
     void addExtension(ChannelExtensionSPtr extension);
 
- 		/* \brief Removes an extension from the channel.
+ 		/** brief Removes an extension from the channel.
  		 * \param[in] extension, smart pointer of the channel extension to remove.
  		 *
  		 */
@@ -198,7 +198,7 @@ namespace ESPINA
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
   private:
- 		/* \brief ChannelAdapter class private constructor.
+ 		/** brief ChannelAdapter class private constructor.
  		 * \param[in] filter, filter adapter smart pointer.
  		 * \param[in] channel, smart pointer of the channel to adapt.
  		 *
@@ -216,28 +216,28 @@ namespace ESPINA
     friend bool operator==(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
   };
 
-	/* \brief Equality operator for a channel adapter smart pointer and a channel smart pointer.
+	/** brief Equality operator for a channel adapter smart pointer and a channel smart pointer.
 	 * \param[in] lhs, channel adapter smart pointer.
 	 * \param[in] rhs, channel smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator==(ChannelAdapterSPtr lhs, ChannelSPtr rhs);
 
-	/* \brief Equality operator for a channel smart pointer and a channel adapter smart pointer.
+	/** brief Equality operator for a channel smart pointer and a channel adapter smart pointer.
 	 * \param[in] lhs, channel smart pointer.
 	 * \param[in] rhs, channel adapter smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs);
 
-	/* \brief Inequality operator for a channel adapter smart pointer and a channel smart pointer.
+	/** brief Inequality operator for a channel adapter smart pointer and a channel smart pointer.
 	 * \param[in] lhs, channel adapter smart pointer.
 	 * \param[in] rhs, channel smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
 
-	/* \brief Inequality operator for a channel smart pointer and a channel adapter smart pointer.
+	/** brief Inequality operator for a channel smart pointer and a channel adapter smart pointer.
 	 * \param[in] lhs, channel smart pointer.
 	 * \param[in] rhs, channel adapter smart pointer.
 	 *

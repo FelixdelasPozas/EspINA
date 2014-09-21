@@ -30,7 +30,7 @@ namespace ESPINA {
   : public FetchBehaviour
   {
   public:
-  	/* \brief Implements FetchBehaviour::fetchOutputData().
+  	/** brief Implements FetchBehaviour::fetchOutputData().
   	 *
   	 */
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);

@@ -37,27 +37,27 @@ namespace ESPINA
   : public ItemAdapter
   {
   public:
-  	/* \brief NeuroItemAdapter class virtual destructor.
+  	/** brief NeuroItemAdapter class virtual destructor.
   	 *
   	 */
     virtual ~NeuroItemAdapter()
     {}
 
-    /* \brief Sets the model of the item.
+    /** brief Sets the model of the item.
      * \param[in] model, model adapter raw pointer.
      *
      */
     void setModel(ModelAdapterPtr model)
     { m_model = model; }
 
-    /* \brief Returns the model of the item.
+    /** brief Returns the model of the item.
      *
      */
     ModelAdapterPtr model() const
     { return m_model; }
 
   protected:
-    /* \brief NeuroItemAdapter class constructor.
+    /** brief NeuroItemAdapter class constructor.
      * \param[in] item, smart pointer of the NeuroItem to adapt.
      *
      */
@@ -71,7 +71,7 @@ namespace ESPINA
   using NeuroItemAdapterList = QList<NeuroItemAdapterPtr>;
   using NeuroItemAdapterSPtr = std::shared_ptr<NeuroItemAdapter>;
 
-  /* \brief Returns the NeuroItemAdapter raw pointer from the ItemAdapter raw pointer.
+  /** brief Returns the NeuroItemAdapter raw pointer from the ItemAdapter raw pointer.
    * \param[in] item, ItemAdapter raw pointer.
    *
    */

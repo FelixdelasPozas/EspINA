@@ -43,70 +43,70 @@ namespace ESPINA
     static const Type TYPE;
 
   public:
-    /* \brief MorphologicalInformation class constructor.
+    /** brief MorphologicalInformation class constructor.
      * \param[in] cache, cache object for the extension.
      * \param[in] state, state object of the extension.
      */
     explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
                                       const State     &state = State());
 
-    /* \brief MorphologicalInformation class virtual destructor.
+    /** brief MorphologicalInformation class virtual destructor.
      *
      */
     virtual ~MorphologicalInformation();
 
-    /* \brief Implements Extesion::type().
+    /** brief Implements Extesion::type().
      *
      */
     virtual QString type() const
     { return TYPE; }
 
-    /* \brief Implements Extension::state().
+    /** brief Implements Extension::state().
      *
      */
     virtual State state() const;
 
-    /* \brief Implements Extension::snapshot().
+    /** brief Implements Extension::snapshot().
      *
      */
     virtual Snapshot snapshot() const;
 
-    /* \brief Implements Extension::dependencies().
+    /** brief Implements Extension::dependencies().
      *
      */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /* \brief Implements Extension::invalidateOnChange().
+    /** brief Implements Extension::invalidateOnChange().
      *
      */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /* \brief Implements Extension::availableInformations().
+    /** brief Implements Extension::availableInformations().
      *
      */
     virtual InfoTagList availableInformations() const;
 
-    /* \brief Implements SegmentationExtension::validCategory().
+    /** brief Implements SegmentationExtension::validCategory().
      *
      */
     virtual bool validCategory(const QString& classificationName) const
     { return true;}
 
   protected:
-    /* \brief Implements Extension::cacheFail().
+    /** brief Implements Extension::cacheFail().
      *
      */
     virtual QVariant cacheFail(const QString& tag) const;
 
-    /* \brief Implements Extension::onExtendedItemSet().
+    /** brief Implements Extension::onExtendedItemSet().
      *
      */
     virtual void onExtendedItemSet(Segmentation* item);
 
   private:
-    /* \brief Computes information values.
+    /** brief Computes information values.
      *
      */
     void updateInformation() const;

@@ -40,20 +40,20 @@ namespace ESPINA
   : public vtkAbstractWidget
   {
     public:
-      /* \brief VTK-style New() class method.
+      /** brief VTK-style New() class method.
        *
        */
       static vtkRulerWidget *New();
 
       vtkTypeMacro(vtkRulerWidget,vtkAbstractWidget);
 
-      /* \brief Implements vtkAbstractWidget::CreateDefaultRepresentation.
+      /** brief Implements vtkAbstractWidget::CreateDefaultRepresentation.
        *
        * Create the default widget representation if one is not set.
        */
       void CreateDefaultRepresentation();
 
-      /* \brief Implements vtkAbstractWidget::SetEnabled.
+      /** brief Implements vtkAbstractWidget::SetEnabled.
        *
        * The method for activating and deactivating this widget. This method
        * must be overridden because it is a composite widget and does more than
@@ -61,41 +61,41 @@ namespace ESPINA
        */
       virtual void SetEnabled(int);
 
-      /* \brief Sets actors' bounds.
+      /** brief Sets actors' bounds.
        * \param[in] bounds Bounds to pass to actor.
        *
        */
       void setBounds(Bounds bounds);
 
-      /* \brief Returns current bounds.
+      /** brief Returns current bounds.
        *
        */
       Bounds bounds()
       { return m_bounds;}
 
-      /* \brief Sets the plane this widget operates on.
+      /** brief Sets the plane this widget operates on.
        * \param[in] plane
        */
       void setPlane(Plane plane)
       { m_plane = plane; }
 
-      /* \brief Recomputes the actors and updates the screen.
+      /** brief Recomputes the actors and updates the screen.
        *
        */
       void drawActors();
 
     protected:
-      /* \brief Transforms from world coordinates to normalized view coordinates.
+      /** brief Transforms from world coordinates to normalized view coordinates.
        *
        */
       void transformCoordsWorldToNormView(Nm *inout);
 
-      /* \brief vtkRulerWidget class constructor. Protected.
+      /** brief vtkRulerWidget class constructor. Protected.
        *
        */
       vtkRulerWidget();
 
-      /* \brief vtkRulerWidget class destructor. Protected.
+      /** brief vtkRulerWidget class destructor. Protected.
        *
        */
       ~vtkRulerWidget();

@@ -36,7 +36,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/* \brief AddCategoryCommand class constructor.
+  	/** brief AddCategoryCommand class constructor.
   	 * \param[in] parentCategory, smart pointer of the parent category adapter.
   	 * \param[in] category, smart pointer of the category adapter to add.
   	 * \param[in] model, model adapter smart pointer.
@@ -48,7 +48,7 @@ namespace ESPINA
                                 ModelAdapterSPtr    model,
                                 QUndoCommand*       parent = nullptr);
 
-  	/* \brief AddCategoryCommand class constructor.
+  	/** brief AddCategoryCommand class constructor.
   	 * \param[in] parentCategory, smart pointer of the parent category adapter.
   	 * \param[in] name, name of the new category.
   	 * \param[in] model, model adapter smart pointer.
@@ -62,17 +62,17 @@ namespace ESPINA
                                 QColor              color,
                                 QUndoCommand*       parent = nullptr);
 
-    /* \brief AddCategoryCommand class virtual destructor.
+    /** brief AddCategoryCommand class virtual destructor.
      *
      */
     virtual ~AddCategoryCommand();
 
-    /* \brief Overrides QUndoCommand::redo().
+    /** brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /* \brief Overrides QUndoCommand::undo().
+    /** brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;

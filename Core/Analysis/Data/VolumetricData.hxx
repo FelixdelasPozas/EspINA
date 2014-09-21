@@ -49,14 +49,14 @@ namespace ESPINA
     static const Data::Type TYPE;
 
   public:
-    /* \brief VolumetricData class constructor.
+    /** brief VolumetricData class constructor.
      *
      */
     explicit VolumetricData()
     : m_bgValue(0)
     {}
 
-    /* \brief VolumetricData class destructor.
+    /** brief VolumetricData class destructor.
      *
      */
     virtual ~VolumetricData()
@@ -67,25 +67,25 @@ namespace ESPINA
      */
     virtual Bounds bounds() const = 0;
 
-    /* \brief Implements Data::type() const.
+    /** brief Implements Data::type() const.
      *
      */
     virtual Data::Type type() const
     { return TYPE; }
 
-    /* \brief Implements Data::createProxy() const.
+    /** brief Implements Data::createProxy() const.
      *
      */
     virtual DataProxySPtr createProxy() const
     { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
 
-    /* \brief Set the origin of the image.
+    /** brief Set the origin of the image.
      * \param[in] origin, origin of this image.
      *
      */
     virtual void setOrigin(const NmVector3& origin) = 0;
 
-    /* \brief Returns the origin of the image.
+    /** brief Returns the origin of the image.
      *
      */
     virtual NmVector3 origin() const = 0;
@@ -146,7 +146,7 @@ namespace ESPINA
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds) = 0;
 
-    /* \brief Set voxel at index to value.
+    /** brief Set voxel at index to value.
      * \param[in] index, index to modify value.
      * \param[in] value, new value.
      *
@@ -175,7 +175,7 @@ namespace ESPINA
 
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
-  /* \brief Obtains and returns the VolumetricData smart pointer in the specified Output.
+  /** brief Obtains and returns the VolumetricData smart pointer in the specified Output.
    * \param[in] output, Output object smart pointer.
    *
    */

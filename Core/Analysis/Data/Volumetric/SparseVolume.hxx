@@ -72,7 +72,7 @@ namespace ESPINA
     const int SET   = 1;
 
   public:
-    /* \brief SparseVolume class constructor
+    /** brief SparseVolume class constructor
      * \param[in] bounds, bounds of the empty volume.
      * \param[in] spacing, spacing of the volume.
      * \param[in] origin, origin of the volume.
@@ -80,57 +80,57 @@ namespace ESPINA
      */
     explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
-    /* \brief SparseVolume class destructor.
+    /** brief SparseVolume class destructor.
      *
      */
     virtual ~SparseVolume()
     {}
 
-    /* \brief Implements Data::memoryUsage() const.
+    /** brief Implements Data::memoryUsage() const.
      *
      */
     virtual size_t memoryUsage() const;
 
-    /* \brief Implements Data::bounds() const.
+    /** brief Implements Data::bounds() const.
      *
      */
     virtual Bounds bounds() const
     { return m_bounds.bounds(); }
 
-    /* \brief Sets the origin of the volume.
+    /** brief Sets the origin of the volume.
      *
      */
     virtual void setOrigin(const NmVector3& origin);
 
-    /* \brief Returns the origin of the volume.
+    /** brief Returns the origin of the volume.
      *
      */
     virtual NmVector3 origin() const
     { return m_origin; }
 
-    /* \brief Implements Data::setSpacing().
+    /** brief Implements Data::setSpacing().
      *
      */
     virtual void setSpacing(const NmVector3& spacing);
 
-    /* \brief Implements Data::spacing().
+    /** brief Implements Data::spacing().
      *
      */
     virtual NmVector3 spacing() const
     { return m_spacing; }
 
-    /* \brief Returns the equivalent itk image of the volume.
+    /** brief Returns the equivalent itk image of the volume.
      *
      */
     virtual const typename T::Pointer itkImage() const;
 
-    /* \brief Returns the equivalent itk image of a region of the volume.
+    /** brief Returns the equivalent itk image of a region of the volume.
      * \param[in] bounds, equivalent bounds of the returning image.
      *
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
-    /* \brief Method to modify the volume using a implicit function.
+    /** brief Method to modify the volume using a implicit function.
      * \param[in] brush, vtkImplicitFuncion object raw pointer.
      * \param[in] bounds, bounds to be modified (must be contained in the image bounds).
      * \param[in] value, value of the voxel.
@@ -144,7 +144,7 @@ namespace ESPINA
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
-    /* \brief Method to modify the volume using a mask and a value.
+    /** brief Method to modify the volume using a mask and a value.
      * \param[in] mask, BinatyMask smart pointer.
      * \param[in] value, value of the voxels of the binary mask.
      *
@@ -153,14 +153,14 @@ namespace ESPINA
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
-    /* \brief Method to modify the volume using an itk image.
+    /** brief Method to modify the volume using an itk image.
      * \param[in] volume, itk image smart pointer to draw.
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const typename T::Pointer volume);
 
-    /* \brief Method to modify the volume using a region of an itk image.
+    /** brief Method to modify the volume using a region of an itk image.
      * \param[in] volume, itk image smart pointer to draw.
      * \param[in] bounds, bounds affected by the draw operation.
      *
@@ -169,7 +169,7 @@ namespace ESPINA
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds);
 
-    /* \brief Method to modify a voxel of the volume using an itk index.
+    /** brief Method to modify a voxel of the volume using an itk index.
      * \param[in] index, index of the voxel.
      * \param[in] value, value of the voxel.
      *
@@ -194,29 +194,29 @@ namespace ESPINA
      */
     virtual bool isValid() const;
 
-    /* \brief Implements Data::isEmpty() const.
+    /** brief Implements Data::isEmpty() const.
      *
      */
     virtual bool isEmpty() const;
 
-    /* \brief Implements Data::fetchData().
+    /** brief Implements Data::fetchData().
      *
      */
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
 
-    /* \brief Implements Data::snapshot() const.
+    /** brief Implements Data::snapshot() const.
      *
      */
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
 
-    /* \brief Implements Data::editedRegionsSnapshot() const.
+    /** brief Implements Data::editedRegionsSnapshot() const.
      *
      */
     virtual Snapshot editedRegionsSnapshot() const
     { return Snapshot(); }
 
   protected:
-    /* \brief Replace sparse volume voxels within data region with data voxels
+    /** brief Replace sparse volume voxels within data region with data voxels
      *
      *  Sparse Volume will take ownership of the block.
      *  The isLocked parameter signals if the block has been read from disk or is a
@@ -224,7 +224,7 @@ namespace ESPINA
      */
     void setBlock(typename T::Pointer image, bool isLocked = false);
 
-    /* \brief Set non background data voxels of sparse volume to data voxel values
+    /** brief Set non background data voxels of sparse volume to data voxel values
      *
      *  For every voxel in data, set the value of its equivalent sparse volume voxel to
      *  the value of the data voxel
@@ -232,7 +232,7 @@ namespace ESPINA
      */
     void addBlock(BlockMaskSPtr mask);
 
-    /* \brief Returns a list of contiguous VolumeBounds where the image is not empty.
+    /** brief Returns a list of contiguous VolumeBounds where the image is not empty.
      *
      */
     VolumeBoundsList compactedBlocks() const;
@@ -251,7 +251,7 @@ namespace ESPINA
         struct Invalid_Iteration_Bounds_Exception{};
 
       public:
-     		/* \brief Block class constructor.
+     		/** brief Block class constructor.
      		 * \param[in] locked, true if this image will not be affected by undo() operation.
      		 *
      		 */
@@ -259,28 +259,28 @@ namespace ESPINA
         : m_locked{locked}
         {}
 
-        /* \brief Block class destructor.
+        /** brief Block class destructor.
          *
          */
         virtual ~Block()
         {}
 
-        /* \brief Returns the VolumeBounds of the block.
+        /** brief Returns the VolumeBounds of the block.
          *
          */
         virtual VolumeBounds bounds() const = 0;
 
-        /* \brief Sets the spacing of the block.
+        /** brief Sets the spacing of the block.
          *
          */
         virtual void setSpacing(const NmVector3& spacing) = 0;
 
-        /* \brief Returns the memory consumption for the block in bytes.
+        /** brief Returns the memory consumption for the block in bytes.
          *
          */
         virtual size_t memoryUsage() const = 0;
 
-        /* \brief Updates the image passed as parameter with the values of the block.
+        /** brief Updates the image passed as parameter with the values of the block.
          * \param[in] iit, external image region iterator.
          * \param[in] mit, external mask region iterator.
          * \param[in] bounds, bounds of the modification.
@@ -292,7 +292,7 @@ namespace ESPINA
                                  const Bounds                              &bounds,
                                  long unsigned int                         &remainingVoxels) const = 0;
 
-        /* \brief Returns true if the block will be unaffected by a undo() operation.
+        /** brief Returns true if the block will be unaffected by a undo() operation.
          *
          */
         bool isLocked() const
@@ -308,7 +308,7 @@ namespace ESPINA
     : public Block
     {
     public:
-    	/* \brief MaskBlock class constructor.
+    	/** brief MaskBlock class constructor.
     	 * \param[in] mask, BinaryMask smart pointer.
     	 * \param[in] locked, true if this image will not be affected by undo() operation.
     	 *
@@ -318,25 +318,25 @@ namespace ESPINA
       , m_mask{mask}
       {}
 
-      /* \brief Implements Block::bounds() const.
+      /** brief Implements Block::bounds() const.
        *
        */
       virtual VolumeBounds bounds() const
       { return m_mask->bounds(); }
 
-      /* \brief Implements Block::setSpacing().
+      /** brief Implements Block::setSpacing().
        *
        */
       virtual void setSpacing(const NmVector3& spacing)
       { m_mask->setSpacing(spacing); }
 
-      /* \brief Implements Block::memoryUsage() const.
+      /** brief Implements Block::memoryUsage() const.
        *
        */
       virtual size_t memoryUsage() const
       { return m_mask->memoryUsage(); }
 
-      /* \brief Implements Block::updateImage() const.
+      /** brief Implements Block::updateImage() const.
        *
        */
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
@@ -368,7 +368,7 @@ namespace ESPINA
     : public Block
     {
     public:
-   		/* \brief ImageBlock class constructor.
+   		/** brief ImageBlock class constructor.
    		 * \param[in] image, itk image smart pointer.
    		 * \param[in] locked, true if this image will not be affected by undo() operation.
    		 *
@@ -378,7 +378,7 @@ namespace ESPINA
       , m_image{image}
       {}
 
-      /* \brief Implements Block::bounds() const.
+      /** brief Implements Block::bounds() const.
        *
        */
       virtual VolumeBounds bounds() const
@@ -386,19 +386,19 @@ namespace ESPINA
         return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
       }
 
-      /* \brief Implements Block::setSpacing().
+      /** brief Implements Block::setSpacing().
        *
        */
       virtual void setSpacing(const NmVector3& spacing)
       { m_image->SetSpacing(ItkSpacing<T>(spacing)); }
 
-      /* \brief Implements Block::memoryUsage().
+      /** brief Implements Block::memoryUsage().
        *
        */
       virtual size_t memoryUsage() const
       { return m_image->GetBufferedRegion().GetNumberOfPixels()*sizeof(typename T::ValueType); }
 
-      /* \brief Implements Block::updateImage() const.
+      /** brief Implements Block::updateImage() const.
        *
        */
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
@@ -427,25 +427,25 @@ namespace ESPINA
     };
 
   private:
-    /* \brief Partitions the bounds of the image in a list of VolumeBounds
+    /** brief Partitions the bounds of the image in a list of VolumeBounds
      * whose size is, at most, intevalSize*intervalSize*intervalSize.
      *
      */
     VolumeBoundsList boundsPartition(int intervalSize) const;
 
-    /* \brief Updates the bounds of the image with the bounds passed as parameter.
+    /** brief Updates the bounds of the image with the bounds passed as parameter.
      * \param[in] bounds, VolumeBounds object.
      *
      */
     void updateBlocksBoundingBox(const VolumeBounds& bounds);
 
-    /* \brief Helper method to assist fetching data from disk.
+    /** brief Helper method to assist fetching data from disk.
      *
      */
     QString singleBlockPath() const
     { return this->type() + QString("_%1.mhd").arg(this->m_output?this->m_output->id():0); }
 
-    /* \brief Helper method to assist fetching data from disk.
+    /** brief Helper method to assist fetching data from disk.
      *
      */
     QString multiBlockPath(int part) const

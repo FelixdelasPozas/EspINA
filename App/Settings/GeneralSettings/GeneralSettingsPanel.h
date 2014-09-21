@@ -37,51 +37,51 @@ namespace ESPINA
   , Ui::GeneralSettingsPanel
   {
   public:
-  	/* \brief GeneralSettinsPanel class constructor.
+  	/** brief GeneralSettinsPanel class constructor.
   	 * \param[in] settings, GeneralSettings object smart pointer.
   	 *
   	 */
     explicit GeneralSettingsPanel(GeneralSettingsSPtr settings);
 
-    /* \brief GeneralSettingsPanel class virtual destructor.
+    /** brief GeneralSettingsPanel class virtual destructor.
      *
      */
     virtual ~GeneralSettingsPanel();
 
-    /* \brief Overrides SettingsPanel::shortDescription().
+    /** brief Overrides SettingsPanel::shortDescription().
      *
      */
     virtual const QString shortDescription() override
     {return "Session";}
 
-    /* \brief Overrides SettingsPanel::longDescription().
+    /** brief Overrides SettingsPanel::longDescription().
      *
      */
     virtual const QString longDescription() override
     {return "Session";}
 
-    /* \brief Overrides SettingsPanel::icon().
+    /** brief Overrides SettingsPanel::icon().
      *
      */
     virtual const QIcon icon() override
     {return QIcon(":/espina/editor.ico");}
 
-    /* \brief Overrides SettingsPanel::acceptChanges().
+    /** brief Overrides SettingsPanel::acceptChanges().
      *
      */
     virtual void acceptChanges() override;
 
-    /* \brief Overrides SettingsPanel::rejectChanges().
+    /** brief Overrides SettingsPanel::rejectChanges().
      *
      */
     virtual void rejectChanges() override;
 
-    /* \brief Overrides SettingsPanel::modified().
+    /** brief Overrides SettingsPanel::modified().
      *
      */
     virtual bool modified() const override;
 
-    /* \brief Overrides SettingsPanel::clone().
+    /** brief Overrides SettingsPanel::clone().
      *
      */
     virtual SettingsPanelPtr clone() override;

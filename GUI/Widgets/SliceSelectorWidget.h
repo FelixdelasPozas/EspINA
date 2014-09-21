@@ -35,42 +35,42 @@ namespace ESPINA
   : public QObject
   {
   public:
-  	/* \brief SliceSelectorWidget class constructor.
+  	/** brief SliceSelectorWidget class constructor.
   	 *
   	 */
     virtual ~SliceSelectorWidget()
     {}
 
-    /* \brief Sets the plane of the widget.
+    /** brief Sets the plane of the widget.
      * \param[in] plane, orientation plane.
      */
     virtual void setPlane(const Plane plane)
     { m_plane = plane; }
 
-		/* \brief Sets the view of the widget.
+		/** brief Sets the view of the widget.
 		 * \param[in] view, View2D raw pointer.
 		 *
 		 */
     virtual void setView(View2D* view)
     { m_view = view; }
 
-    /* \brief Returns the left widget raw pointer.
+    /** brief Returns the left widget raw pointer.
      *
      */
     virtual QWidget *leftWidget () const = 0;
 
-    /* \brief Returns the right widget raw pointer.
+    /** brief Returns the right widget raw pointer.
      *
      */
     virtual QWidget *rightWidget() const = 0;
 
-    /* \brief Returns a raw pointer to a new instance of the class.
+    /** brief Returns a raw pointer to a new instance of the class.
      *
      */
     virtual SliceSelectorWidget *clone() = 0;
 
   protected:
-    /* \brief SliceSelectorWidget class constructor.
+    /** brief SliceSelectorWidget class constructor.
      *
      */
     explicit SliceSelectorWidget()

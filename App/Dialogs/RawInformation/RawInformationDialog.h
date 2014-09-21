@@ -37,7 +37,7 @@ namespace ESPINA
   : public QDialog
   {
   public:
-  	/* \brief RawInformationDialog class constructor.
+  	/** brief RawInformationDialog class constructor.
   	 * \param[in] model, model adapter smart pointer.
   	 * \param[in] factory, factory smart pointer.
   	 * \param[in] viewmanager, view manager smart pointer.
@@ -48,7 +48,7 @@ namespace ESPINA
                                   ViewManagerSPtr  viewManager,
                                   QWidget         *parent = nullptr);
 
-    /* \brief RawInformationDialog class destructor.
+    /** brief RawInformationDialog class destructor.
      *
      */
     virtual ~RawInformationDialog();

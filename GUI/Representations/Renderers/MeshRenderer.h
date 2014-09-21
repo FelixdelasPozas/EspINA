@@ -37,85 +37,85 @@ namespace ESPINA
   : public RepresentationRenderer
   {
     public:
-  		/* \brief MeshRenderer class constructor.
+  		/** brief MeshRenderer class constructor.
   		 * \param[in] parent, raw pointer of the QObject parent of this one.
   		 *
   		 */
       explicit MeshRenderer(QObject* parent = nullptr);
 
-  		/* \brief MeshRenderer class virtual destructor.
+  		/** brief MeshRenderer class virtual destructor.
   		 *
   		 */
       virtual ~MeshRenderer();
 
-  		/* \brief Implements Renderer::icon() const.
+  		/** brief Implements Renderer::icon() const.
   		 *
   		 */
       virtual const QIcon icon() const
       { return QIcon(":/espina/mesh.png"); }
 
-  		/* \brief Implements Renderer::name() const.
+  		/** brief Implements Renderer::name() const.
   		 *
   		 */
       virtual const QString name() const
       { return "Mesh"; }
 
-  		/* \brief Implements Renderer::tooltip() const.
+  		/** brief Implements Renderer::tooltip() const.
   		 *
   		 */
       virtual const QString tooltip() const
       { return "Segmentation's Meshes"; }
 
-  		/* \brief Implements RepresentationRenderer::addRepresentation().
+  		/** brief Implements RepresentationRenderer::addRepresentation().
   		 *
   		 */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-  		/* \brief Implements RepresentationRenderer::removeRepresentation().
+  		/** brief Implements RepresentationRenderer::removeRepresentation().
   		 *
   		 */
       virtual void removeRepresentation(RepresentationSPtr rep);
 
-  		/* \brief Implements RepresentationRenderer::hasRepresentation() const.
+  		/** brief Implements RepresentationRenderer::hasRepresentation() const.
   		 *
   		 */
       virtual bool hasRepresentation(RepresentationSPtr rep) const;
 
-  		/* \brief Implements RepresentationRenderer::managesRepresentation().
+  		/** brief Implements RepresentationRenderer::managesRepresentation().
   		 *
   		 */
       virtual bool managesRepresentation(const QString &representationType) const;
 
-  		/* \brief Implements Renderer::clone() const.
+  		/** brief Implements Renderer::clone() const.
   		 *
   		 */
       virtual RendererSPtr clone() const
       { return RendererSPtr(new MeshRenderer()); }
 
-  		/* \brief Implements Renderer::numberOfvtkActors() const.
+  		/** brief Implements Renderer::numberOfvtkActors() const.
   		 *
   		 */
       virtual unsigned int numberOfvtkActors() const;
 
-  		/* \brief Implements RepresentationRenderer::renderableItems() const.
+  		/** brief Implements RepresentationRenderer::renderableItems() const.
   		 *
   		 */
       virtual RenderableItems renderableItems() const
       { return RenderableItems(RenderableType::SEGMENTATION); }
 
-  		/* \brief Implements RepresentationRenderer::renderType() const.
+  		/** brief Implements RepresentationRenderer::renderType() const.
   		 *
   		 */
       virtual RendererTypes renderType() const
       { return RendererTypes(RENDERER_VIEW3D); }
 
-  		/* \brief Implements Renderer::numberOfRenderedItems() const.
+  		/** brief Implements Renderer::numberOfRenderedItems() const.
   		 *
   		 */
       virtual int numberOfRenderedItems() const
       { return m_representations.size(); }
 
-  		/* \brief Implements RepresentationRenderer::pick().
+  		/** brief Implements RepresentationRenderer::pick().
   		 *
   		 */
       virtual ViewItemAdapterList pick(int x, int y, Nm z,
@@ -123,24 +123,24 @@ namespace ESPINA
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);
 
-      /* \brief Overrides Renderer::setView(RenderView *view);
+      /** brief Overrides Renderer::setView(RenderView *view);
        *
        */
       virtual void setView(RenderView *view) override;
 
-      /* \brief Implements RepresentationRenderer::canRender() const.
+      /** brief Implements RepresentationRenderer::canRender() const.
        *
        */
       virtual bool canRender(ItemAdapterPtr item) const
       { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
 
     protected:
-  		/* \brief Implements Renderer::hide().
+  		/** brief Implements Renderer::hide().
   		 *
   		 */
       virtual void hide();
 
-  		/* \brief Implements Renderer::show().
+  		/** brief Implements Renderer::show().
   		 *
   		 */
       virtual void show();

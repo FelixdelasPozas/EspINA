@@ -30,39 +30,39 @@ namespace ESPINA
   : public BrushSelector
   {
     public:
-      /* \brief ROISelectorBase class constructor.
+      /** brief ROISelectorBase class constructor.
        *
        */
       explicit ROISelectorBase();
 
-      /* \brief ROISelectorBase class virtual destructor.
+      /** brief ROISelectorBase class virtual destructor.
        *
        */
       virtual ~ROISelectorBase();
 
-      /* \brief Implements BrushSelector::filterEvent().
+      /** brief Implements BrushSelector::filterEvent().
        *
        */
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr);
 
-      /* \brief Method to set the bool to avoid erasing when there isn't a ROI
+      /** brief Method to set the bool to avoid erasing when there isn't a ROI
        *
        */
       void setHasROI(bool value)
       { m_hasROI = value; }
 
     protected:
-      /* \brief Implements BrushSelector::startPreview().
+      /** brief Implements BrushSelector::startPreview().
        *
        */
       virtual void startPreview(RenderView *view);
 
-      /* \brief Implements BrushSelector::updatePreview().
+      /** brief Implements BrushSelector::updatePreview().
        *
        */
       virtual void updatePreview(BrushShape shape, RenderView *view);
 
-      /* \brief Implements BrushSelector::stopStroke().
+      /** brief Implements BrushSelector::stopStroke().
        *
        */
       virtual void stopStroke(RenderView* view);

@@ -46,91 +46,91 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief CachedSliceRenderer class constructor.
+      /** brief CachedSliceRenderer class constructor.
        * \param[in] parent, raw pointer of the QObject parent of this one.
        *
        */
       explicit CachedSliceRenderer(SchedulerSPtr scheduler, QObject *parent = nullptr);
 
-      /* \brief CachedSliceRenderer class destructor.
+      /** brief CachedSliceRenderer class destructor.
        *
        */
       virtual ~CachedSliceRenderer();
 
-      /* \brief Implements Renderer::icon() const.
+      /** brief Implements Renderer::icon() const.
        *
        */
       virtual const QIcon icon() const
       { return QIcon(":/espina/slice.png"); }
 
-      /* \brief Implements Renderer::name() const.
+      /** brief Implements Renderer::name() const.
        *
        */
       virtual const QString name() const
       { return "Slice (Cached)"; }
 
-      /* \brief Implements Renderer::tooltip() const.
+      /** brief Implements Renderer::tooltip() const.
        *
        */
       virtual const QString tooltip() const
       { return "Segmentation's Slices (Cached)"; }
 
-      /* \brief RepresentationRenderer::addRepresentation().
+      /** brief RepresentationRenderer::addRepresentation().
        *
        */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-      /* \brief RepresentationRenderer::removeRepresentation().
+      /** brief RepresentationRenderer::removeRepresentation().
        *
        */
       virtual void removeRepresentation(RepresentationSPtr rep);
 
-      /* \brief RepresentationRenderer::hasRepresentation() const.
+      /** brief RepresentationRenderer::hasRepresentation() const.
        *
        */
       virtual bool hasRepresentation(RepresentationSPtr rep) const;
 
-      /* \brief RepresentationRenderer::managesRepresentation() const.
+      /** brief RepresentationRenderer::managesRepresentation() const.
        *
        */
       virtual bool managesRepresentation(const QString &representationType) const;
 
-      /* \brief Implements Renderer::clone() const.
+      /** brief Implements Renderer::clone() const.
        *
        */
       virtual RendererSPtr clone() const
       { return RendererSPtr(new CachedSliceRenderer(m_scheduler)); }
 
-      /* \brief Implements Renderer::numberOfvtkActors() const.
+      /** brief Implements Renderer::numberOfvtkActors() const.
        *
        */
       virtual unsigned int numberOfvtkActors() const;
 
-      /* \brief Implements RepresentationRenderer::renderableItems() const.
+      /** brief Implements RepresentationRenderer::renderableItems() const.
        *
        */
       virtual RenderableItems renderableItems() const
       { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
 
-      /* \brief Implements RepresentationRenderer::canRender() const.
+      /** brief Implements RepresentationRenderer::canRender() const.
        *
        */
       virtual bool canRender(ItemAdapterPtr item) const
       { return (item->type() == ItemAdapter::Type::SEGMENTATION || item->type() == ItemAdapter::Type::CHANNEL); }
 
-      /* \brief Implements Renderer::renderType() const.
+      /** brief Implements Renderer::renderType() const.
        *
        */
       virtual RendererTypes renderType() const
       { return RendererTypes(RENDERER_VIEW2D); }
 
-      /* \brief Implements Renderer::numberOfRenderedItems() const.
+      /** brief Implements Renderer::numberOfRenderedItems() const.
        *
        */
       virtual int numberOfRenderedItems() const
       { return m_representations.size(); }
 
-      /* \brief RepresentationRenderer::pick().
+      /** brief RepresentationRenderer::pick().
        *
        */
       virtual ViewItemAdapterList pick(int x, int y, Nm z,
@@ -138,7 +138,7 @@ namespace ESPINA
                                        RenderableItems itemType = RenderableItems(),
                                        bool repeat = false);
 
-      /* \brief Modifies the cache window width.
+      /** brief Modifies the cache window width.
        * \param[in] width, new width.
        *
        * Range: 0, N. If the window is extended new nodes and tasks are created, if the window is
@@ -149,13 +149,13 @@ namespace ESPINA
        */
       virtual void setWindowWidth(unsigned int width);
 
-      /* \brief Returns the cache window width.
+      /** brief Returns the cache window width.
        *
        */
       unsigned int getWindowWidth()
       { return m_windowWidth; };
 
-      /* \brief Set the maximum window width for the cache.
+      /** brief Set the maximum window width for the cache.
        * \param[in] width, new maximum window width.
        *
        * Sets the maximum window width for the cache. If the value us less
@@ -163,34 +163,34 @@ namespace ESPINA
        */
       virtual void setWindowMaximumWidth(unsigned int width);
 
-      /* \brief Returns the maximum cache window width.
+      /** brief Returns the maximum cache window width.
        *
        */
       unsigned int getMaximumWindowWidth()
       { return m_maxWindowWidth; };
 
-      /* \brief Returns memory consumed by all the actors of the cache.
+      /** brief Returns memory consumed by all the actors of the cache.
        *
        */
       virtual unsigned long long getEstimatedMemoryUsed();
 
-      /* \brief Overrides Renderer::setView().
+      /** brief Overrides Renderer::setView().
        *
        */
       virtual void setView(RenderView* rView) override;
 
-      /* \brief Overrides Renderer::setEnable().
+      /** brief Overrides Renderer::setEnable().
        *
        */
       virtual void setEnable(bool value) override;
 
     protected:
-      /* \brief Implements Renderer:hide().
+      /** brief Implements Renderer:hide().
        *
        */
       virtual void hide();
 
-      /* \brief Implements Renderer::show().
+      /** brief Implements Renderer::show().
        *
        */
       virtual void show();
@@ -198,7 +198,7 @@ namespace ESPINA
     private:
       static const int WINDOW_INCREMENT;
 
-      /* \brief Circular buffer node.
+      /** brief Circular buffer node.
        *
        * Struct to use as circular buffer node. If worker and actor are both nullptr that means the node is unused.
        */
@@ -226,23 +226,23 @@ namespace ESPINA
       };
 
     public slots:
-    	/* \brief Updates the representation forcing a task execution.
+    	/** brief Updates the representation forcing a task execution.
     	 *
     	 */
       void updateRepresentation();
 
-    	/* \brief Updates the representation when it's visibility changes.
+    	/** brief Updates the representation when it's visibility changes.
     	 *
     	 */
       void updateRepresentationVisibility();
 
-    	/* \brief Updates the representation when it's color changes.
+    	/** brief Updates the representation when it's color changes.
     	 *
     	 */
       void updateRepresentationColor();
 
     protected slots:
-      /* \brief Set position of the cache.
+      /** brief Set position of the cache.
        * \param[in] plane, unused.
        * \param[in] pos, new position.
        *
@@ -252,19 +252,19 @@ namespace ESPINA
        */
       void setPosition(Plane plane, Nm pos);
 
-      /* \brief Modifies the cache when the spacing of the view changes.
+      /** brief Modifies the cache when the spacing of the view changes.
        *
        */
       void resolutionChanged();
 
-      /* \brief Manages representations after a task has finished execution.
+      /** brief Manages representations after a task has finished execution.
        * \param[in] node, node of the finished task.
        *
        */
       void renderFrame(CachedSliceRenderer::CacheNode *node);
 
     private:
-      /* \brief Create a task for the specified node.
+      /** brief Create a task for the specified node.
        * \param[in] priority, Initial priority of the task.
        *
        * Returns a task with the input set, ready to be executed. The parameters specify the
@@ -272,31 +272,31 @@ namespace ESPINA
        */
       virtual CachedSliceRendererTaskSPtr createTask(Priority priority = Priority::LOW);
 
-      /* \brief Prints the cache window info.
+      /** brief Prints the cache window info.
        *
        * Prints the occupation of the cache nodes along with the memory consumption and average task execution time.
        */
       void printBufferInfo();
 
-      /* \brief Initializes the cache.
+      /** brief Initializes the cache.
        *
        */
       void initCache();
 
-      /* \brief Populates all the cache.
+      /** brief Populates all the cache.
        * \param[in] position, center position to start.
        *
        * Deletes all previous existing actors and fills the cache nodes with tasks.
        */
       void fillCache(Nm position);
 
-      /* \brief Returns the memory used for the actors in this node.
+      /** brief Returns the memory used for the actors in this node.
        * \param[in] node, node pointer.
        *
        */
       unsigned long long getNodeExtimatedMemoryUsed(CacheNode *node);
 
-      /* \brief Returns the list of valid representations for a given position.
+      /** brief Returns the list of valid representations for a given position.
        *
        */
       CachedRepresentationSList validRepresentationsForPosition(const Nm pos) const;

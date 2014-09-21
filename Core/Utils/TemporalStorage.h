@@ -44,13 +44,13 @@ namespace ESPINA
     enum class Mode: std::int8_t { Recursive = 1, NoRecursive = 2 };
 
   public:
-    /* \brief TemporalStorage class constructor.
+    /** brief TemporalStorage class constructor.
      * \param[in] parent, parent dir of the storage.
      *
      */
     explicit TemporalStorage(const QDir* parent = nullptr);
 
-    /* \brief TemporalStorage class destructor.
+    /** brief TemporalStorage class destructor.
      *
      */
     ~TemporalStorage();
@@ -61,39 +61,39 @@ namespace ESPINA
      */
     void saveSnapshot(SnapshotData data);
 
-    /* \brief Returns file absolute path if found in any storage created in the session.
+    /** brief Returns file absolute path if found in any storage created in the session.
      * \param[in] fileName File name to search for.
      */
     QString findFile(const QString &fileName) const;
 
-    /* \brief Returns the contents of the specified file contained in the storage.
+    /** brief Returns the contents of the specified file contained in the storage.
      * \param[in] descriptor, file name.
      *
      */
     QByteArray snapshot(const QString& descriptor) const;
 
-    /* \brief Returns the content of a directory in the storage as a Snapshot object.
+    /** brief Returns the content of a directory in the storage as a Snapshot object.
      * \param[in] relativePath, path relative to storage parent directory.
      * \param[in] mode,
      *
      */
     Snapshot snapshots(const QString& relativePath, Mode mode) const;
 
-    /* \brief Makes a path in the storage parent directory.
+    /** brief Makes a path in the storage parent directory.
      * \param[in] path, path relative to storage parent directory.
      *
      */
     void makePath(const QString& path)
     { m_storageDir.mkpath(path); }
 
-    /* \brief Returns the absolute file path of the specified path in the storage.
+    /** brief Returns the absolute file path of the specified path in the storage.
      * \param[in] path, path relative to storage parent directory.
      *
      */
     QString absoluteFilePath(const QString &path) const
     { return m_storageDir.absoluteFilePath(path); }
 
-    /* \brief Returns true if final given as argument exists in this storage.
+    /** brief Returns true if final given as argument exists in this storage.
      *
      */
     bool exists(const QString &name);
@@ -106,7 +106,7 @@ namespace ESPINA
 
   using TemporalStorageSPtr = std::shared_ptr<TemporalStorage>;
 
-  /* \brief Removes all files inside the "espina" folder in the OS temporal directory.
+  /** brief Removes all files inside the "espina" folder in the OS temporal directory.
    *
    */
   bool EspinaCore_EXPORT removeTemporalDirectory();

@@ -48,54 +48,54 @@ namespace ESPINA {
   {
     Q_OBJECT
   public:
-    /* \brief Scheduler class constructor.
+    /** brief Scheduler class constructor.
      * \param[in] period, interval for scheduling tasks.
      * \param[in] parent, raw pointer of the parent of this object.
      *
      */
     explicit Scheduler(int period/*ns*/, QObject* parent = 0);
 
-    /* \brief Scheduler class destructor.
+    /** brief Scheduler class destructor.
      *
      */
     virtual ~Scheduler();
 
-    /* \brief Adds a task to the task list.
+    /** brief Adds a task to the task list.
      * \param[in] task, task smart pointer.
      *
      */
     void addTask(TaskSPtr task);
 
-    /* \brief Removes a task from the task list.
+    /** brief Removes a task from the task list.
      * \param[in] task, task smart pointer.
      *
      */
     void removeTask(TaskSPtr task);
 
-    /* \brief Aborts all tasks currently in the task list.
+    /** brief Aborts all tasks currently in the task list.
      *
      */
     void abortExecutingTasks();
 
-    /* \brief Changes a task priority.
+    /** brief Changes a task priority.
      * \param[in] task, task raw pointer.
      *
      */
     void changePriority(TaskPtr task, Priority prevPriority);
 
-    /* \brief Changes a task priority.
+    /** brief Changes a task priority.
      * \param[in] task, task smart pointer.
      *
      */
     void changePriority(TaskSPtr task, Priority prevPriority);
 
-    /* \brief Returns the number of task currently in the task list.
+    /** brief Returns the number of task currently in the task list.
      *
      */
     unsigned int numberOfTasks() const;
 
   public slots:
-		/* \brief Starts the scheduler.
+		/** brief Starts the scheduler.
 		 *
 		 */
     void scheduleTasks();

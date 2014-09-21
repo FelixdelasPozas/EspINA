@@ -43,7 +43,7 @@ class SegmentationExplorer::GUI
 , public Ui::SegmentationExplorer
 {
 public:
-	/* \brief GUI class constructor.
+	/** brief GUI class constructor.
 	 *
 	 */
   GUI()

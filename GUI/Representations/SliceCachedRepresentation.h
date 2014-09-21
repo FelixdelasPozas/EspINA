@@ -41,7 +41,7 @@ namespace ESPINA
   : public Representation
   {
     public:
-  		/* \brief CachedRepresentation class constructor.
+  		/** brief CachedRepresentation class constructor.
   		 * \param[in] data, VolumetricData smart pointer of the data to represent.
   		 * \param[in] view, View2D pointer of the view this representation will be shown.
   		 *
@@ -49,43 +49,43 @@ namespace ESPINA
       explicit CachedRepresentation(DefaultVolumetricDataSPtr data,
                                     View2D *view);
 
-      /* \brief CachedRepresentation class virtual destructor.
+      /** brief CachedRepresentation class virtual destructor.
        *
        */
       virtual ~CachedRepresentation()
       {};
 
-      /* \brief Implements Representation::crosshairDependent() const.
+      /** brief Implements Representation::crosshairDependent() const.
        *
        */
       virtual bool crosshairDependent() const
       { return false; }
 
-      /* \brief Returns the actor of the channel in the specified slice position.
+      /** brief Returns the actor of the channel in the specified slice position.
        * \param[in] pos, channel position.
        *
        */
       virtual vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const = 0;
 
-      /* \brief Implements Representation::settingsWidget.
+      /** brief Implements Representation::settingsWidget.
        *
        */
       virtual RepresentationSettings* settingsWidget()
       { return new RepresentationEmptySettings(); }
 
-      /* \brief Implements Representation::getActors.
+      /** brief Implements Representation::getActors.
        *
        */
       virtual QList<vtkProp*> getActors()
       { return QList<vtkProp *>(); }
 
-      /* \brief Implements Representation::hasActor.
+      /** brief Implements Representation::hasActor.
        *
        */
       virtual bool hasActor(vtkProp*) const
       { return false; }
 
-      /* \brief Returns the plane this representation is on.
+      /** brief Returns the plane this representation is on.
        *
        * Returns the plane this representation is on. To get the correct value the
        * method SetView() must have been called first.
@@ -93,32 +93,32 @@ namespace ESPINA
       Plane plane()
       { return toPlane(m_planeIndex); }
 
-      /* \brief Implements Representation::canRenderOnView() const.
+      /** brief Implements Representation::canRenderOnView() const.
        *
        */
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_SLICE; }
 
-      /* \brief Returns true if the representation can generate an actor in that position.
+      /** brief Returns true if the representation can generate an actor in that position.
        * \param[in] pos, actor position.
        *
        */
       bool existsIn(const Nm position) const;
 
-      /* \brief Returns the value of the last modification time of the m_data
+      /** brief Returns the value of the last modification time of the m_data
        * when the last actor was created.
        */
       TimeStamp getModificationTime()
       { return m_lastUpdatedTime; }
 
-      /* \brief Implements Representation::needUpdate();
+      /** brief Implements Representation::needUpdate();
        *
        */
       virtual bool needUpdate() const
       { return (m_data->lastModified() != m_lastUpdatedTime); }
 
     protected:
-      /* \brief Compute the values of m_min && m_max for the representation.
+      /** brief Compute the values of m_min && m_max for the representation.
        *
        */
       void computeLimits();
@@ -143,7 +143,7 @@ namespace ESPINA
       static const Representation::Type TYPE;
 
     public:
-      /* \brief ChannelSliceCachedRepresentation class constructor.
+      /** brief ChannelSliceCachedRepresentation class constructor.
   		 * \param[in] data, VolumetricData smart pointer of the data to represent.
   		 * \param[in] view, View2D pointer of the view this representation will be shown.
        *
@@ -151,32 +151,32 @@ namespace ESPINA
       ChannelSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
                                        View2D *view);
 
-      /* \brief ChannelSliceCachedRepresentation class virtual destructor.
+      /** brief ChannelSliceCachedRepresentation class virtual destructor.
        *
        */
       virtual ~ChannelSliceCachedRepresentation()
       {};
 
-      /* \brief Implements Representation::isInside().
+      /** brief Implements Representation::isInside().
        *
        * Returns true if the specified point is inside the channel. Right now only checks if it's
        * inside the bounds, there is no detection of non aligned border channels.
        */
       virtual bool isInside(const NmVector3 &point) const;
 
-      /* \brief Implements Representation::updateRepresentation().
+      /** brief Implements Representation::updateRepresentation().
        *
        * Empty as this is not needed for this representation.
        *
        */
       virtual void updateRepresentation();
 
-      /* \brief Implements CachedRepresentation::getActor().
+      /** brief Implements CachedRepresentation::getActor().
        *
        */
       vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const;
 
-      /* \brief Implements Representation::updateVisibility.
+      /** brief Implements Representation::updateVisibility.
        *
        */
       virtual void updateVisibility(bool unused);
@@ -186,18 +186,18 @@ namespace ESPINA
       void changeVisibility();
 
     protected:
-      /* \brief Implements Representation::cloneImplementation(View2D*).
+      /** brief Implements Representation::cloneImplementation(View2D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View2D *view);
 
-      /* \brief Implements Representation::cloneImplementation(View3D*).
+      /** brief Implements Representation::cloneImplementation(View3D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View3D *view)
       { return RepresentationSPtr(); }
 
-      /* \brief Sets the view this representation will be renderer on.
+      /** brief Sets the view this representation will be renderer on.
        *
        * Sets the view this representation will be renderer on. The temporary actor (or symbolic as it
        * extends the bounds of the data in that view) is computed here.
@@ -218,7 +218,7 @@ namespace ESPINA
       static TransparencySelectionHighlighter *s_highlighter;
 
     public:
-      /* \brief SegmentationSliceCachedRepresentation class constructor.
+      /** brief SegmentationSliceCachedRepresentation class constructor.
   		 * \param[in] data, VolumetricData smart pointer of the data to represent.
   		 * \param[in] view, View2D pointer of the view this representation will be shown.
        *
@@ -226,23 +226,23 @@ namespace ESPINA
       explicit SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data,
                                                      View2D *view);
 
-      /* \brief SegmentationSliceCachedRepresentation virtual destructor.
+      /** brief SegmentationSliceCachedRepresentation virtual destructor.
        *
        */
       virtual ~SegmentationSliceCachedRepresentation()
       {};
 
-      /* \brief Overrides Representation::serializeSettings().
+      /** brief Overrides Representation::serializeSettings().
        *
        */
       virtual QString serializeSettings() override;
 
-      /* \brief Overrides Representation::serializeSettings().
+      /** brief Overrides Representation::serializeSettings().
        *
        */
       virtual void restoreSettings(QString settings) override;
 
-      /* \brief Overrides Representation::setBrightness().
+      /** brief Overrides Representation::setBrightness().
        *
        * Emtpy, no use in segmentations.
        *
@@ -250,7 +250,7 @@ namespace ESPINA
       virtual void setBrightness(double value) override
       {};
 
-      /* \brief Overrides Representation::setContrast().
+      /** brief Overrides Representation::setContrast().
        *
        * Emtpy, no use in segmentations.
        *
@@ -258,47 +258,47 @@ namespace ESPINA
       virtual void setContrast(double value) override
       {};
 
-      /* \brief Overrides Representation::setColor().
+      /** brief Overrides Representation::setColor().
        *
        * Sets the color of the segmentation, specified as a QColor.
        */
       virtual void setColor(const QColor &color) override;
 
-      /* \brief Overrides Representation::color().
+      /** brief Overrides Representation::color().
        *
        */
       virtual QColor color() const override;
 
-      /* \brief Overrides Representation::setHighlighted().
+      /** brief Overrides Representation::setHighlighted().
        *
        */
       virtual void setHighlighted(bool highlighted) override;
 
-      /* \brief Implements Representation::isInside() const.
+      /** brief Implements Representation::isInside() const.
        *
        */
       virtual bool isInside(const NmVector3 &point) const;
 
-      /* \brief Overrides Representation::updateRepresentation().
+      /** brief Overrides Representation::updateRepresentation().
        *
        * Empty as this is not needed in this kind of representation.
        *
        */
       virtual void updateRepresentation();
 
-      /* \brief Implements Representation::updateVisibility().
+      /** brief Implements Representation::updateVisibility().
        *
        * \param[in] unused This value is ignored.
        *
        */
       virtual void updateVisibility(bool unused);
 
-      /* \brief Implements CachedRepresentation::getActor() const.
+      /** brief Implements CachedRepresentation::getActor() const.
        *
        */
       vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const;
 
-      /* \brief Sets the view this representation will be renderer on.
+      /** brief Sets the view this representation will be renderer on.
        * \param[in] view, View2D raw pointer.
        *
        */
@@ -310,18 +310,18 @@ namespace ESPINA
       void changeVisibility();
 
     protected slots:
-    	/* \brief Updates limits values when the data changes.
+    	/** brief Updates limits values when the data changes.
     	 *
     	 */
       void dataChanged();
 
     protected:
-			/* \brief Implements Representation::cloneImplementation(View2D*).
+			/** brief Implements Representation::cloneImplementation(View2D*).
 			 *
 			 */
       virtual RepresentationSPtr cloneImplementation(View2D *view);
 
-			/* \brief Implements Representation::cloneImplementation(View2D*).
+			/** brief Implements Representation::cloneImplementation(View2D*).
 			 *
 			 */
       virtual RepresentationSPtr cloneImplementation(View3D *view)

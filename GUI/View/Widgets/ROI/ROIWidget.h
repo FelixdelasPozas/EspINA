@@ -52,40 +52,40 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief ROIWidget class constructor.
+      /** brief ROIWidget class constructor.
        * \param[in] roi Region of interest object smart pointer.
        *
        */
       explicit ROIWidget(ROISPtr roi);
 
-      /* \brief ROIWidget class virtual destructor.
+      /** brief ROIWidget class virtual destructor.
        *
        */
       virtual ~ROIWidget();
 
-      /* \brief Implements EspinaWidget::registerView().
+      /** brief Implements EspinaWidget::registerView().
        *
        */
       virtual void registerView  (RenderView *view);
 
-      /* \brief Implements EspinaWidget::unregisterView().
+      /** brief Implements EspinaWidget::unregisterView().
        *
        */
       virtual void unregisterView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::setEnabled().
+      /** brief Implements EspinaWidget::setEnabled().
        *
        */
       virtual void setEnabled(bool enable);
 
     private slots:
-			/* \brief Update the representation when the view changes the slice.
+			/** brief Update the representation when the view changes the slice.
 			 * \parma[in] plane, orientation plane.
 			 * \param[in] pos, new plane position.
 			 */
       void sliceChanged(Plane plane, Nm pos);
 
-      /* \brief Updates the representations.
+      /** brief Updates the representations.
        *
        */
       void updateROIRepresentations();

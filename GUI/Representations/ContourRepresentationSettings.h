@@ -35,17 +35,17 @@ namespace ESPINA
   , private Ui::ContourRepresentationSettings
   {
   public:
-  	/* \brief ContourRepresentationSettings class constructor.
+  	/** brief ContourRepresentationSettings class constructor.
   	 *
   	 */
     explicit ContourRepresentationSettings();
 
-    /* \brief Implements RepresentationSettings::get().
+    /** brief Implements RepresentationSettings::get().
      *
      */
     virtual void get(RepresentationSPtr representation);
 
-    /* \brief Implements RepresentationSettings::set().
+    /** brief Implements RepresentationSettings::set().
      *
      */
     virtual void set(RepresentationSPtr representation);

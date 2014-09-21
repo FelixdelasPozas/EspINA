@@ -29,7 +29,7 @@
 
 namespace ESPINA
 {
-	/* \brief Model biological structures which have been extracted from one or
+	/** brief Model biological structures which have been extracted from one or
 	 * more channels.
 	 */
   class EspinaCore_EXPORT Segmentation
@@ -39,89 +39,89 @@ namespace ESPINA
     struct Existing_Extension{};
 
   public:
-    /* \brief Segmentation class constructor.
+    /** brief Segmentation class constructor.
      * \param[in] input, input object smart pointer.
      *
      */
     explicit Segmentation(InputSPtr input);
 
-    /* \brief Segmentation class destructor.
+    /** brief Segmentation class destructor.
      *
      */
     virtual ~Segmentation();
 
-    /* \brief Implements Persisten::restoreState().
+    /** brief Implements Persisten::restoreState().
      *
      */
     virtual void restoreState(const State& state);
 
-    /* \brief Implements Persistent::state() const.
+    /** brief Implements Persistent::state() const.
      *
      */
     virtual State state() const;
 
-    /* \brief Implements Persistent::snapshot() const.
+    /** brief Implements Persistent::snapshot() const.
      *
      */
     virtual Snapshot snapshot() const;
 
-    /* \brief Implements Persisten::unload().
+    /** brief Implements Persisten::unload().
      *
      */
     virtual void unload();
 
-    /* \brief Sets an alternate name for the segmentation.
+    /** brief Sets an alternate name for the segmentation.
      * \param[in] alias, alternate name.
      *
      */
     void setAlias(const QString& alias)
     { m_alias = alias; }
 
-    /* \brief Returns the alternate name for the segmentation.
+    /** brief Returns the alternate name for the segmentation.
      *
      */
     QString alias() const
     { return m_alias; }
 
-    /* \brief Sets the number of the segmentation.
+    /** brief Sets the number of the segmentation.
      * \param[in] number, numerical value.
      *
      */
     void setNumber(unsigned int number)
     { m_number = number; }
 
-    /* \brief Returns the number of the segmentation.
+    /** brief Returns the number of the segmentation.
      *
      */
     unsigned int number() const
     { return m_number; }
 
-    /* \brief Sets the category of the segmentation.
+    /** brief Sets the category of the segmentation.
      * \param[in] category, category object smart pointer.
      *
      */
     void setCategory(CategorySPtr category);
 
-    /* \brief Returns the category of the segmentation.
+    /** brief Returns the category of the segmentation.
      *
      */
     CategorySPtr category() const
     { return m_category; }
 
-    /* \brief Adds the user to the list of users that have modified this segmentation.
+    /** brief Adds the user to the list of users that have modified this segmentation.
      * \param[in] user, user name.
      *
      */
     void modifiedByUser(const QString& user)
     { m_users << user; }
 
-    /* \brief Returns the list of users that have modified this segmentation.
+    /** brief Returns the list of users that have modified this segmentation.
      *
      */
     QStringList users() const
     { return m_users.toList(); }
 
-    /* \brief Adds a extension to this segmentation.
+    /** brief Adds a extension to this segmentation.
      * \param[in] extension, segmentation extension object smart pointer.
      *
      * Extesion won't be available until requirements are satisfied
@@ -130,7 +130,7 @@ namespace ESPINA
     void addExtension(SegmentationExtensionSPtr extension)
       throw(SegmentationExtension::Existing_Extension);
 
-    /* \brief Removes an extension from the list of extenions.
+    /** brief Removes an extension from the list of extenions.
      * \param[in] extension, segmentation extension object smart pointer.
      *
      */
@@ -156,44 +156,44 @@ namespace ESPINA
     SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const
       throw(SegmentationExtension::Extension_Not_Found);
 
-    /* \brief Returns a list of segmentation extension smart pointers.
+    /** brief Returns a list of segmentation extension smart pointers.
      *
      */
     SegmentationExtensionSList extensions() const
     { return m_extensions.values(); }
 
-    /* \brief Returns the list of information tag this segmentation can provide.
+    /** brief Returns the list of information tag this segmentation can provide.
      *
      */
     virtual SegmentationExtension::InfoTagList informationTags() const;
 
-    /* \brief Returns the value of the specified information tag.
+    /** brief Returns the value of the specified information tag.
      * \param[in] tag, information key.
      *
      */
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
 
-    /* \brief Returns true if the information has been generated.
+    /** brief Returns true if the information has been generated.
      * \param[in] tag, information key.
      *
      */
     bool isInformationReady(const SegmentationExtension::InfoTag &tag) const;
 
   private:
-    /* \brief Returns the path to save/load extensions data files.
+    /** brief Returns the path to save/load extensions data files.
      *
      */
     QString extensionsPath() const
     { return "Extensions/"; }
 
-    /* \brief Returns the path to save/load data files of a given extension.
+    /** brief Returns the path to save/load data files of a given extension.
      * \param[in] extension, segmentation extension object smart pointer.
      *
      */
     QString extensionPath(const SegmentationExtensionSPtr extension) const
     { return extensionsPath() + extension->type() + "/"; }
 
-    /* \brief Returns the path to save/load data files of a given extension and path.
+    /** brief Returns the path to save/load data files of a given extension and path.
      * \param[in] extension, segmentation extension object smart pointer.
      * \param[in] path, file path.
      *

@@ -36,28 +36,28 @@ namespace ESPINA
   : public Filter
   {
     public:
-  		/* \brief MorphologicalEditionFilter class virtual destructor.
+  		/** brief MorphologicalEditionFilter class virtual destructor.
   		 *
   		 */
       virtual ~MorphologicalEditionFilter();
 
-      /* \brief Implements Persistent::restoreState().
+      /** brief Implements Persistent::restoreState().
        *
        */
       virtual void restoreState(const State& state);
 
-      /* \brief Implements Persistent::state().
+      /** brief Implements Persistent::state().
        *
        */
       virtual State state() const;
 
-      /* \brief Returns the radius of the morphological operation.
+      /** brief Returns the radius of the morphological operation.
        *
        */
       unsigned int radius() const
       { return m_radius; }
 
-      /* \brief Sets the radius and the flag to ignore the storage content.
+      /** brief Sets the radius and the flag to ignore the storage content.
        * \param[in] radius, radius of the morphological operation.
        * \param[in] ignoreUpdate, true to use the storage content false otherwise.
        *
@@ -68,7 +68,7 @@ namespace ESPINA
         m_ignoreStorageContent = !ignoreUpdate;
       }
 
-      /* \brief Returs true if the output is empty.
+      /** brief Returs true if the output is empty.
        *
        * Morphological operations like erode can destroy the segmentation.
        *
@@ -77,7 +77,7 @@ namespace ESPINA
       { return m_isOutputEmpty; }
 
     protected:
-      /* \brief MorphologicalEditionFilter class constructor.
+      /** brief MorphologicalEditionFilter class constructor.
 			 * \param[in] inputs, list of input smart pointers.
 			 * \param[in] type, type of the morphological operation.
 			 * \param[in] scheduler, scheduler smart pointer.
@@ -87,33 +87,33 @@ namespace ESPINA
                                           Filter::Type  type,
                                           SchedulerSPtr scheduler);
 
-      /* \brief Implements Filter::saveFilterSnapshot().
+      /** brief Implements Filter::saveFilterSnapshot().
        *
        */
       virtual Snapshot saveFilterSnapshot() const;
 
-      /* \brief Implements Filter::needUpdate().
+      /** brief Implements Filter::needUpdate().
        *
        */
       virtual bool needUpdate() const;
 
-      /* \brief Implements Filter::needUpdate(id).
+      /** brief Implements Filter::needUpdate(id).
        *
        */
       virtual bool needUpdate(Output::Id id) const;
 
-      /* \brief Implements Filter::ignoreStorageContent().
+      /** brief Implements Filter::ignoreStorageContent().
        *
        */
       virtual bool ignoreStorageContent() const
       { return m_ignoreStorageContent; }
 
-      /* \brief Implements Filter::invalidateEditedRegions().
+      /** brief Implements Filter::invalidateEditedRegions().
        *
        */
       virtual bool invalidateEditedRegions();
 
-      /* \brief Checks if the output is empty after execution
+      /** brief Checks if the output is empty after execution
        * and creates the output if it's not.
        *
        */

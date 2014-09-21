@@ -37,7 +37,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/* \brief AddRelationCommand class constructor.
+  	/** brief AddRelationCommand class constructor.
   	 * \param[in] ancestor, smart pointer of the item adapter origin.
   	 * \param[in] successor, smart pointer of the item adapter destination.
   	 * \param[in] relationName, relation specifier.
@@ -51,12 +51,12 @@ namespace ESPINA
                                 ModelAdapterSPtr model,
                                 QUndoCommand    *parent = 0);
 
-    /* \brief Overrides QUndoCommand::redo().
+    /** brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /* \brief Overrides QUndoCommand::undo().
+    /** brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;

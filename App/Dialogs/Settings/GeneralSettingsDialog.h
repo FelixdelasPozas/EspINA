@@ -38,7 +38,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief GeneralSettingsDialog class constructor.
+    /** brief GeneralSettingsDialog class constructor.
      * \param[in] parent, parent widget raw pointer.
      * \param[in] flags, dialog flags.
      *
@@ -46,24 +46,24 @@ namespace ESPINA
     explicit GeneralSettingsDialog(QWidget *parent = nullptr,
                                    Qt::WindowFlags flags  = 0);
 
-    /* \brief Overrides QDialog::accept()
+    /** brief Overrides QDialog::accept()
      *
      */
     virtual void accept() override;
 
-    /* \brief Overrides QDialog::reject()
+    /** brief Overrides QDialog::reject()
      *
      */
     virtual void reject() override;
 
-    /* \brief Adds a panel to the dialog.
+    /** brief Adds a panel to the dialog.
      * \param[in] panel, settings panel smart pointer.
      *
      */
     void registerPanel(SettingsPanelSPtr panel);
 
   private:
-    /* \brief Helper method to return a smart pointer of the
+    /** brief Helper method to return a smart pointer of the
      *        panel with the passed short description.
      * \param[in] shortDesc, short description of the panel.
      *
@@ -71,7 +71,7 @@ namespace ESPINA
     SettingsPanelSPtr panel(const QString &shortDesc);
 
   public slots:
-		/* \brief Changes the panel in view.
+		/** brief Changes the panel in view.
 		 * \param[in] panel, panel index in the m_panels list.
 		 */
     void changePreferencePanel(int panel);

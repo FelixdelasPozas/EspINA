@@ -50,38 +50,38 @@ namespace ESPINA
   , public EventHandler
   {
   public:
-    /* \brief VTK-style class New() method
+    /** brief VTK-style class New() method
      *
      */
     static ZoomSelectionWidget *New()
     { return new ZoomSelectionWidget(); }
 
-    /* \brief ZoomSelectionWidget class destructor.
+    /** brief ZoomSelectionWidget class destructor.
      *
      */
     virtual ~ZoomSelectionWidget();
 
-    /* \brief Implements EspinaWidget::registerView().
+    /** brief Implements EspinaWidget::registerView().
      *
      */
     virtual void registerView(RenderView *);
 
-    /* \brief Implements EspinaWidget::unregisterView().
+    /** brief Implements EspinaWidget::unregisterView().
      *
      */
     virtual void unregisterView(RenderView *);
 
-    /* \brief Implements EspinaWidget::setEnabled()
+    /** brief Implements EspinaWidget::setEnabled()
      *
      */
     virtual void setEnabled(bool enable);
 
-    /* \brief Overrides EventHandler::filterEvent
+    /** brief Overrides EventHandler::filterEvent
      *
      */
     bool filterEvent(QEvent *e, RenderView *view) override;
 
-    /* \brief Overrides EventHandler::setInUse().
+    /** brief Overrides EventHandler::setInUse().
      *
      */
     void setInUse(bool value) override;
@@ -89,7 +89,7 @@ namespace ESPINA
   private:
     friend class vtkZoomCommand;
 
-    /* \brief ZoomSelectionWidget class constructor.
+    /** brief ZoomSelectionWidget class constructor.
      *
      */
     explicit ZoomSelectionWidget();
@@ -105,32 +105,32 @@ namespace ESPINA
     public:
       vtkTypeMacro(vtkZoomCommand, vtkEspinaCommand);
 
-      /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+      /** brief VTK-style New() constructor, required for using vtkSmartPointer.
        *
        */
       static vtkZoomCommand *New()
       { return new vtkZoomCommand(); }
 
-      /* \brief Implements vtkEspinaCommand::Execute.
+      /** brief Implements vtkEspinaCommand::Execute.
        *
        */
       void Execute(vtkObject *, unsigned long int, void*);
 
-      /* \brief Implements vtkEspinaCommand::setWidget();
+      /** brief Implements vtkEspinaCommand::setWidget();
        *
        */
       void setWidget(EspinaWidgetPtr widget)
       { m_widget = dynamic_cast<ZoomSelectionWidget *>(widget); }
 
     private:
-      /* \brief vtkZoomCommand class private constructor.
+      /** brief vtkZoomCommand class private constructor.
        *
        */
       explicit vtkZoomCommand()
       : m_widget{nullptr}
       {}
 
-      /* \brief vtkZoomCommand class private destructor.
+      /** brief vtkZoomCommand class private destructor.
        *
        */
       virtual ~vtkZoomCommand()

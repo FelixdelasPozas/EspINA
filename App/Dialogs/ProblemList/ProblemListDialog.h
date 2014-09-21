@@ -30,12 +30,12 @@
 
 namespace ESPINA
 {
-  /* \brief Enumeration of problem severity.
+  /** brief Enumeration of problem severity.
    *
    */
   enum class Severity : std::int8_t { CRITICAL = 0, WARNING = 1, INFORMATION = 2 };
 
-  /* \brief Struct that contains problem description
+  /** brief Struct that contains problem description
    *
    */
   struct Problem
@@ -59,7 +59,7 @@ namespace ESPINA
   , public Ui::ProblemListDialog
   {
     public:
-      /* \brief ProblemListDialog class constructor.
+      /** brief ProblemListDialog class constructor.
        * \param[in] problems, list of problem descriptions as Problem structs.
        *
        */
@@ -71,7 +71,7 @@ namespace ESPINA
   : public QTableWidgetItem
   {
     public:
-      /* \brief ProblemTableWidgetItem class constructor.
+      /** brief ProblemTableWidgetItem class constructor.
        * \param[in] text, data of the item.
        *
        */
@@ -79,13 +79,13 @@ namespace ESPINA
       : QTableWidgetItem(text)
       {}
 
-      /* \brief ProblemTableWidget class virtual destructor.
+      /** brief ProblemTableWidget class virtual destructor.
        *
        */
       virtual ~ProblemTableWidgetItem()
       {};
 
-      /* \brief less-than operator for QTableWidgetItem sorting.
+      /** brief less-than operator for QTableWidgetItem sorting.
        *
        */
       virtual bool operator<(const QTableWidgetItem & other) const override

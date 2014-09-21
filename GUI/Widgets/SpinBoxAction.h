@@ -81,7 +81,7 @@ namespace ESPINA
        */
       void setSuffix(const QString &suffix);
 
-      /* \brief Shadows QAction::setEnabled().
+      /** brief Shadows QAction::setEnabled().
        *
        */
       void setEnabled(bool value)
@@ -95,7 +95,7 @@ namespace ESPINA
         }
       }
 
-      /* \brief Shadows QAction::isEnabled().
+      /** brief Shadows QAction::isEnabled().
        *
        */
       bool isEnabled()

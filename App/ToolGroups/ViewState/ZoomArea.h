@@ -38,38 +38,38 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief ZoomArea class constructor.
+      /** brief ZoomArea class constructor.
        * \param[in] viewManager, view manager smart pointer.
        */
       explicit ZoomArea(ViewManagerSPtr viewManager);
 
-      /* \brief ZoomArea class destructor.
+      /** brief ZoomArea class destructor.
        *
        */
       virtual ~ZoomArea();
 
-      /* \brief Implements Tool::enabled().
+      /** brief Implements Tool::enabled().
        *
        */
       virtual bool enabled() const;
 
-      /* \brief Implements Tool::setEnabled().
+      /** brief Implements Tool::setEnabled().
        *
        */
       virtual void setEnabled(bool value);
 
-      /* \brief Implements Tool::actions().
+      /** brief Implements Tool::actions().
        *
        */
       virtual QList<QAction *> actions() const;
 
-      /* \brief Cancels current operation.
+      /** brief Cancels current operation.
        *
        */
       void abortOperation();
 
     public slots:
-      /* \brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
+      /** brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
        *
        */
       void activateTool(bool value);

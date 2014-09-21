@@ -41,7 +41,7 @@ namespace ESPINA
   : public QUndoCommand
   {
     public:
-  		/* \brief RemoveSegmentations class constructor.
+  		/** brief RemoveSegmentations class constructor.
   		 * \param[in] segmentation, raw pointer of the segmentation adapter to remove.
   		 * \param[in] model, smart pointer of the model adapter containing the segmentation.
   		 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
@@ -51,7 +51,7 @@ namespace ESPINA
                                    ModelAdapterSPtr       model,
                                    QUndoCommand *         parent = nullptr);
 
-  		/* \brief RemoveSegmentations class constructor.
+  		/** brief RemoveSegmentations class constructor.
   		 * \param[in] segmentations, list of raw pointers of the segmentation adapters to remove.
   		 * \param[in] model, smart pointer of the model adapter containing the segmentation.
   		 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
@@ -61,18 +61,18 @@ namespace ESPINA
                                    ModelAdapterSPtr        model,
                                    QUndoCommand *          parent = nullptr);
 
-      /* \brief Overrides QUndoCommand::redo().
+      /** brief Overrides QUndoCommand::redo().
        *
        */
       virtual void redo() override;
 
-      /* \brief Overrides QUndoCommand::undo().
+      /** brief Overrides QUndoCommand::undo().
        *
        */
       virtual void undo() override;
 
     private:
-      /* \brief Helper method to analyze the relations of the segmentation to be
+      /** brief Helper method to analyze the relations of the segmentation to be
        * removed so any other segmentation depending on it can be removed too.
        *
        * TODO: work in progress

@@ -30,41 +30,41 @@ class RecentDocuments
 : QObject
 {
 	public:
-		/* \brief RecentDocuments class constructor.
+		/** brief RecentDocuments class constructor.
 		 *
 		 */
 		explicit RecentDocuments();
 
-		/* \brief RecentDocuments class virtual destructor.
+		/** brief RecentDocuments class virtual destructor.
 		 *
 		 */
 		virtual ~RecentDocuments();
 
-		/* \brief Adds a document to the list.
+		/** brief Adds a document to the list.
 		 * \param[in] path, path of the document.
 		 *
 		 */
 		void addDocument(QString path);
 
-		/* \brief Removes a document from the list.
+		/** brief Removes a document from the list.
 		 * \param[in] path, path of the document.
 		 *
 		 */
 		void removeDocument(QString path);
 
-		/* \brief Updates the document list with the contents of the settings.
+		/** brief Updates the document list with the contents of the settings.
 		 *
 		 */
 		void updateDocumentList(void);
 
-		/* \brief Returns the list of actions.
+		/** brief Returns the list of actions.
 		 *
 		 */
 		QList<QAction *> list() const
 	  { return m_actionList; }
 
 	private:
-		/* \brief Updates the actions with the names of the documents.
+		/** brief Updates the actions with the names of the documents.
 		 *
 		 */
 		void updateActions();

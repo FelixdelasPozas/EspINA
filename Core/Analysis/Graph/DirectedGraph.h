@@ -36,7 +36,7 @@
 
 namespace ESPINA
 {
-	/* \brief Graph like structure which contains all the relationships
+	/** brief Graph like structure which contains all the relationships
 	 *        between different elements of the model.
 	 */
   class EspinaCore_EXPORT DirectedGraph
@@ -95,36 +95,36 @@ namespace ESPINA
     using EdgeIteratorRange = std::pair<OutEdgeIterator, OutEdgeIterator>;
 
   public:
-    /* \brief DirectedGraph class constructor.
+    /** brief DirectedGraph class constructor.
      *
      */
     explicit DirectedGraph();
 
-    /* \brief DirectedGraph class destructor.
+    /** brief DirectedGraph class destructor.
      *
      */
     ~DirectedGraph()
     {}
 
-    /* \brief Remove all vertices and edges from the graph;
+    /** brief Remove all vertices and edges from the graph;
      *
      */
     void clear()
     { m_graph.clear(); }
 
-    /* \brief Add a vertex to the graph.
+    /** brief Add a vertex to the graph.
      * \param[in] vertex, vertex to add.
      *
      */
     void add(Vertex vertex);
 
-    /* \brief Remove a vertex from the graph.
+    /** brief Remove a vertex from the graph.
      * \param[in] vertex, vertex to remove.
      *
      */
     void remove(Vertex vertex);
 
-    /* \brief Add given relation if relation doesn't already exists.
+    /** brief Add given relation if relation doesn't already exists.
      * \param[in] ancestor, origin vertex.
      * \param[in] successor, destination vertex.
      * \param[in] description, description of the relation.
@@ -134,7 +134,7 @@ namespace ESPINA
                      Vertex successor,
                      const QString &description);
 
-    /* \brief Remove given relation if it exists.
+    /** brief Remove given relation if it exists.
      * \param[in] ancestor, origin vertex.
      * \param[in] successor, destination vertex.
      * \param[in] description, description of the relation.
@@ -144,26 +144,26 @@ namespace ESPINA
                         Vertex  successor,
                         const QString &description);
 
-    /* \brief Returns true if the graph contains the vertex.
+    /** brief Returns true if the graph contains the vertex.
      * \param[in] vertex, vertex to check.
      *
      */
     bool contains(Vertex vertex);
 
-    /* \brief Returns all graph's edges that match the filter.
+    /** brief Returns all graph's edges that match the filter.
      * \param[in] filter, discrimination filter.
      *
      */
     Edges edges(const QString &filter = "");
 
-    /* \brief Return a list of edges whose destination vertex is v.
+    /** brief Return a list of edges whose destination vertex is v.
      * \param[in] vertex, vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Edges inEdges(Vertex vertex, const QString &filter = "");
 
-    /* \brief Return a list of edges whose destination vertex is v.
+    /** brief Return a list of edges whose destination vertex is v.
      * \param[in] vertex, raw pointer to a vertex to check.
      * \param[in] filter, discrimination filter.
      *
@@ -171,60 +171,60 @@ namespace ESPINA
     Edges inEdges(VertexPtr vertex, const QString &filter = "");
 
     ///
-    /* \brief Return a list of edges whose source vertex is v.
+    /** brief Return a list of edges whose source vertex is v.
      * \param[in] vertex, vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Edges outEdges(Vertex vertex, const QString &filter = "");
 
-    /* \brief Return a list of edges whose source vertex is v.
+    /** brief Return a list of edges whose source vertex is v.
      * \param[in] vertex, raw pointer to a vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Edges outEdges(VertexPtr vertex, const QString &filter = "");
 
-    /* \brief Return a list of edges whose source or destination vertex is v.
+    /** brief Return a list of edges whose source or destination vertex is v.
      * \param[in] vertex, vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Edges edges   (Vertex vertex, const QString &filter = "");
 
-    /* \brief Remove all edges whose source or destination vertex is v.
+    /** brief Remove all edges whose source or destination vertex is v.
      * \param[in] vertex, vertex to check.
      *
      */
     void removeEdges(Vertex vertex);
 
-    /* \brief Return all graph's vertices.
+    /** brief Return all graph's vertices.
      *
      */
     Vertices vertices() const;
 
-    /* \brief Return all vertices whose outgoing edges end on v.
+    /** brief Return all vertices whose outgoing edges end on v.
      * \param[in] vertex, vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Vertices ancestors(Vertex vertex, const QString &filter = "") const;
 
-    /* \brief Return all vertices whose outgoing edges end on v.
+    /** brief Return all vertices whose outgoing edges end on v.
      * \param[in] vertex, raw pointer to a vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Vertices ancestors(VertexPtr vertex, const QString &filter = "") const;
 
-    /* \brief Return all vertices whose incoming edges start on v.
+    /** brief Return all vertices whose incoming edges start on v.
      * \param[in] vertex, vertex to check.
      * \param[in] filter, discrimination filter.
      *
      */
     Vertices successors(Vertex vertex, const QString &filter = "") const;
 
-    /* \brief Return all vertices whose incoming edges start on v.
+    /** brief Return all vertices whose incoming edges start on v.
      * \param[in] vertex, raw pointer to a vertex to check.
      * \param[in] filter, discrimination filter.
      *
@@ -232,25 +232,25 @@ namespace ESPINA
     Vertices successors(VertexPtr vertex, const QString &filter = "") const;
 
   private:
-    /* \brief Returns a vertex associated to a given descriptor.
+    /** brief Returns a vertex associated to a given descriptor.
      * \param[in] descriptor, vertex descriptor.
      *
      */
     DirectedGraph::Vertex vertex(VertexDescriptor descriptor) const;
 
-    /* \brief Returns a descriptor associated to a given vertex.
+    /** brief Returns a descriptor associated to a given vertex.
      * \param[in] vertex, vertex object.
      *
      */
     DirectedGraph::VertexDescriptor descriptor(Vertex vertex) const;
 
-    /* \brief Returns a descriptor associated to a given vertex.
+    /** brief Returns a descriptor associated to a given vertex.
      * \param[in] vertex, vertex raw pointer.
      *
      */
     DirectedGraph::VertexDescriptor descriptor(VertexPtr vertex) const;
 
-    /* \brief Returns an edge iterator if the given relation between vertices is found.
+    /** brief Returns an edge iterator if the given relation between vertices is found.
      * \param[in] source, source vertex descriptor.
      * \param[in] destination, destination vertex descriptor.
      * \param[in] relation, relation description.
@@ -269,14 +269,14 @@ namespace ESPINA
 
   using DirectedGraphSPtr = std::shared_ptr<DirectedGraph>;
 
-  /* \brief Returns the vertices that are the ancestors of a given vertex in a given graph.
+  /** brief Returns the vertices that are the ancestors of a given vertex in a given graph.
    * \param[in] vertex, vertex object to check.
    * \param[in] graph, directed graph smart pointer.
    *
    */
   DirectedGraph::Vertices rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph);
 
-  /* \brief Returns the vertices that are the ancestors of a given vertex in a given graph.
+  /** brief Returns the vertices that are the ancestors of a given vertex in a given graph.
    * \param[in] vertex, raw pointer of the vertex to check.
    * \param[in] graph, directed graph smart pointer.
    *

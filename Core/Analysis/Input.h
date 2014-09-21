@@ -38,20 +38,20 @@ namespace ESPINA {
   class EspinaCore_EXPORT Input
   {
   public:
- 		/* \brief Input class constructor.
+ 		/** brief Input class constructor.
  		 * \param[in] filter, filter object smart pointer.
  		 * \param[in] output, output obejct smart pointer.
  		 *
  		 */
     explicit Input(FilterSPtr filter, OutputSPtr output);
 
- 		/* \brief Returns the filter associated to this object.
+ 		/** brief Returns the filter associated to this object.
  		 *
  		 */
     FilterSPtr filter() const
     { return m_filter; }
 
- 		/* \brief Returns the filter associated to this object.
+ 		/** brief Returns the filter associated to this object.
  		 *
  		 */
     OutputSPtr output() const
@@ -65,14 +65,14 @@ namespace ESPINA {
   using InputSPtr  = std::shared_ptr<Input>;
   using InputSList = QList<InputSPtr>;
 
-	/* \brief Builds and returns the output of the specified filter and output id as an input.
+	/** brief Builds and returns the output of the specified filter and output id as an input.
 	 * \param[in] filter, filter object smart pointer.
 	 * \param[in] id, output object id.
 	 *
 	 */
   InputSPtr  EspinaCore_EXPORT  getInput(FilterSPtr filter, Output::Id id);
 
-	/* \brief Builds and returns the list of outputs of a filter as input objects.
+	/** brief Builds and returns the list of outputs of a filter as input objects.
 	 *
 	 */
   InputSList EspinaCore_EXPORT getInputs(FilterSPtr filter);

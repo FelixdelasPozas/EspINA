@@ -37,7 +37,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/* \brief ReparentCategoryCommand class constructor.
+  	/** brief ReparentCategoryCommand class constructor.
   	 * \param[in] category, raw pointer of the category adapter to reparent.
   	 * \param[in] parentCategory, raw pointer of the category adapter that is the new parent.
   	 * \param[in] model, model adapter smart pointer that contains both categories.
@@ -49,7 +49,7 @@ namespace ESPINA
                                      ModelAdapterSPtr   model,
                                      QUndoCommand*      parent = nullptr);
 
-  	/* \brief ReparentCategoryCommand class constructor.
+  	/** brief ReparentCategoryCommand class constructor.
   	 * \param[in] categories, list of raw pointers of the category adapters to reparent.
   	 * \param[in] parentCategory, raw pointer of the category adapter that is the new parent.
   	 * \param[in] model, model adapter smart pointer that contains both categories.
@@ -61,23 +61,23 @@ namespace ESPINA
                                      ModelAdapterSPtr    model,
                                      QUndoCommand*       parent = nullptr);
 
-    /* \brief ReparentCategoryCommand class destructor.
+    /** brief ReparentCategoryCommand class destructor.
      *
      */
     virtual ~ReparentCategoryCommand();
 
-    /* \brief Overrides QUndoCommand::redo().
+    /** brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /* \brief Overrides QUndoCommand::undo().
+    /** brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;
 
   private:
-    /* \brief Helper method to store the parent of the category for swapping later.
+    /** brief Helper method to store the parent of the category for swapping later.
      * \param[in] category, smart pointer of the category adapter whose parent will be stored.
      *
      */

@@ -45,7 +45,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief ChannelInspector class constructor.
+    /** brief ChannelInspector class constructor.
      * \param[in] channel, channel adapter raw pointer.
      * \param[in] model, model adapter smart pointer.
      * \param[in] scheduler, scheduler smart pointer.
@@ -53,12 +53,12 @@ namespace ESPINA
      */
     explicit ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent = 0);
 
-    /* \brief Channel Inspector class destructor.
+    /** brief Channel Inspector class destructor.
      *
      */
     virtual ~ChannelInspector();
 
-    /* \brief Manages dialog close event.
+    /** brief Manages dialog close event.
      * Re-implemented from base class because we need to reset channel
      * properties before the dialog gets destroyed.
      *
@@ -69,13 +69,13 @@ namespace ESPINA
     void spacingUpdated();
 
   public slots:
-  	/* \brief Manages the change of units from the UI.
+  	/** brief Manages the change of units from the UI.
   	 * \param[in] unused, unused value to match parameters number from signal.
   	 *
   	 */
     void unitsChanged(int unused = 0);
 
-    /* \brief Keeps track of the changes in spacing.
+    /** brief Keeps track of the changes in spacing.
   	 * \param[in] unused, unused value to match parameters number from signal.
      */
     void spacingChanged(double unused = 0);
@@ -85,19 +85,19 @@ namespace ESPINA
      */
     void changeSpacing();
 
-    /* \brief Manages the change of state of opacity checkbox.
+    /** brief Manages the change of state of opacity checkbox.
      * \param[in] value, state of the checkbox.
      *
      */
     void opacityCheckChanged(int value);
 
-    /* \brief Manages the change of value of the opacity slider.
+    /** brief Manages the change of value of the opacity slider.
      * \param[in] value, value of the slider.
      *
      */
     void opacityChanged(int value);
 
-    /* \brief Changes the HUE value of the channel based on h,s,v values
+    /** brief Changes the HUE value of the channel based on h,s,v values
      *        returned by HueSelector.
      * \param[in] h, hue value
      * \param[in] s, saturation value (unused)
@@ -106,60 +106,60 @@ namespace ESPINA
      */
     void newHSV(int h,int s,int v);
 
-    /* \brief Changes the HUE value of the channel based on the
+    /** brief Changes the HUE value of the channel based on the
      *        value of the spinbox of the UI.
      * \param[in] value, hue value.
      */
     void newHSV(int value);
 
-    /* \brief Changes the saturation of the channel.
+    /** brief Changes the saturation of the channel.
      * \param[in] value, value of the saturation slider.
      *
      */
     void saturationChanged(int value);
 
-    /* \brief Changes the contrast of the channel.
+    /** brief Changes the contrast of the channel.
      * \param[in] value, value of the contrast slider.
      */
     void contrastChanged(int value);
 
-    /* \brief Changes the brightness of the channel.
+    /** brief Changes the brightness of the channel.
      * \param[in] value, value of the brigthness slider.
      */
     void brightnessChanged(int value);
 
-    /* \brief Apply the changes of the UI to the channel.
+    /** brief Apply the changes of the UI to the channel.
      *
      */
     void acceptedChanges();
 
-    /* \brief Resets the channel to previous values.
+    /** brief Resets the channel to previous values.
      *
      */
     void rejectedChanges();
 
-    /* \brief
+    /** brief
      * \param[in] value
      */
     void radioEdgesChanged(bool value);
 
-    /* \brief Applies edges changes to the channel.
+    /** brief Applies edges changes to the channel.
      *
      */
     void applyEdgesChanges();
 
-    /* \brief Manages the changes in the background color value of the UI spinbox.
+    /** brief Manages the changes in the background color value of the UI spinbox.
      * \param[in] value, value of the color spinbox.
      */
     void changeEdgeDetectorBgColor(int value);
 
-    /* \brief Manages the changes in the threshold value of the UI spinbox.
+    /** brief Manages the changes in the threshold value of the UI spinbox.
      * \param[in] value, value of the threshold spinbox.
      */
     void changeEdgeDetectorThreshold(int value);
 
   private:
-    /* \brief Helper method to update views after changes to the channel.
+    /** brief Helper method to update views after changes to the channel.
      *
      */
     void applyModifications();

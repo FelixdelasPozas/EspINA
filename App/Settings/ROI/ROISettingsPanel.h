@@ -42,7 +42,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief ROISettingsPanel class constructor.
+    /** brief ROISettingsPanel class constructor.
      * \param[in] settings, ROISettings object raw pointer.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -52,62 +52,62 @@ namespace ESPINA
                               ModelAdapterSPtr model,
                               ViewManagerSPtr  viewManager);
 
-    /* \brief ROISettingsPanel class virtual destructor.
+    /** brief ROISettingsPanel class virtual destructor.
      *
      */
     virtual ~ROISettingsPanel();
 
-    /* \brief Overrides SettingsPanel::shortDescription().
+    /** brief Overrides SettingsPanel::shortDescription().
      *
      */
     virtual const QString shortDescription() override
     { return tr("Orthogonal ROI"); }
 
-    /* \brief Overrides SettingsPanel::longDescription().
+    /** brief Overrides SettingsPanel::longDescription().
      *
      */
     virtual const QString longDescription() override
     { return tr("Orthogonal Region Of Interest"); }
 
-    /* \brief Overrides SettingsPanel::icon().
+    /** brief Overrides SettingsPanel::icon().
      *
      */
     virtual const QIcon icon() override
     { return QIcon(":/espina/voi.svg"); }
 
-    /* \brief Overrides SettingsPanel::acceptChanges().
+    /** brief Overrides SettingsPanel::acceptChanges().
      *
      */
     virtual void acceptChanges() override;
 
-    /* \brief Overrides SettingsPanel::rejectChanges().
+    /** brief Overrides SettingsPanel::rejectChanges().
      *
      */
     virtual void rejectChanges() override;
 
-    /* \brief Overrides SettingsPanel::modified().
+    /** brief Overrides SettingsPanel::modified().
      *
      */
     virtual bool modified() const override;
 
-    /* \brief Overrides SettingsPanel::clone().
+    /** brief Overrides SettingsPanel::clone().
      *
      */
     virtual SettingsPanelPtr clone() override;
 
   private:
-    /* \brief Returns true if any of the values of ROI have changed.
+    /** brief Returns true if any of the values of ROI have changed.
      *
      */
     bool categoryROIModified() const;
 
-    /* \brief Apply the new ROI values to the category.
+    /** brief Apply the new ROI values to the category.
      *
      */
     void writeCategoryProperties();
 
   private slots:
-		/* \brief Updates category ROI values for the category.
+		/** brief Updates category ROI values for the category.
 		 *
 		 */
     void updateCategoryROI(const QModelIndex &index);

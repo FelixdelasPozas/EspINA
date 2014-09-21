@@ -42,31 +42,31 @@ namespace ESPINA
     struct Unknown_Type_Exception{};
 
   public:
-    /* \brief CoreFactory class constructor.
+    /** brief CoreFactory class constructor.
      * \param[in] scheduler, scheduler smart pointer.
      *
      */
     explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
 
-    /* \brief CoreFactory class destructor.
+    /** brief CoreFactory class destructor.
      *
      */
     ~CoreFactory();
 
-    /* \brief Registers a filter factory.
+    /** brief Registers a filter factory.
      * \param[in] factory, filter factory smart pointer.
      *
      */
     void registerFilterFactory(FilterFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
-    /* \brief Creates a filter given the inputs and the type.
+    /** brief Creates a filter given the inputs and the type.
      * \param[in] inputs, list of input smart pointers.
      * \param[in] type, filter type.
      *
      */
     FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
 
-    /* \brief Creates filter given the inputs and the type.
+    /** brief Creates filter given the inputs and the type.
      * \param[in] inputs, list of input smart pointers.
      * \param[in] type, filter type.
      *
@@ -79,13 +79,13 @@ namespace ESPINA
       return filter;
     }
 
-    /* \brief Creates a sample.
+    /** brief Creates a sample.
      * \param[in] name, sample name.
      *
      */
     SampleSPtr createSample(const QString& name = QString()) const;
 
-    /* \brief Creates a channel.
+    /** brief Creates a channel.
      * \param[in] filter, filter smart pointer.
      * \param[in] id, output id.
      *
@@ -117,7 +117,7 @@ namespace ESPINA
                                                 const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
                                                 const State &state = State());
 
-    /* \brief Creates a segmentation.
+    /** brief Creates a segmentation.
      * \param[in] filter, filter smart pointer.
      * \param[in] id, output id.
      *
@@ -132,7 +132,7 @@ namespace ESPINA
      */
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
-    /* \brief Returns a list of segmentation extension types that this factory can create.
+    /** brief Returns a list of segmentation extension types that this factory can create.
      *
      */
     SegmentationExtensionTypeList availableSegmentationExtensions() const;
@@ -145,7 +145,7 @@ namespace ESPINA
                                                           const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
                                                           const State &state = State());
 
-    /* \brief Sets temporal storage for the factory.
+    /** brief Sets temporal storage for the factory.
      * \param[in] storage, temporal storage smart pointer.
      *
      */

@@ -31,19 +31,19 @@ namespace ESPINA
   class EspinaCore_EXPORT ROIConstrained
   {
     public:
-      /* \brief ROIConstrained class virtual destructor.
+      /** brief ROIConstrained class virtual destructor.
        *
        */
       virtual ~ROIConstrained()
       {}
 
-      /* \brief Set region of interest of the element.
+      /** brief Set region of interest of the element.
        * \param[in] roi, ROI object smart pointer.
        *
        */
       virtual void setROI(ROISPtr roi) = 0;
 
-      /* \brief Get region of interest affecting the element.
+      /** brief Get region of interest affecting the element.
        *
        */
       virtual ROISPtr ROI() = 0;

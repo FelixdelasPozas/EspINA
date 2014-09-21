@@ -40,47 +40,47 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief View3DSettingsPanel class constructor.
+    /** brief View3DSettingsPanel class constructor.
      * \param[in] view, raw pointer to a View3D object.
      * \param[in] renderers, list of renderers smart pointers.
      *
      */
     explicit View3DSettingsPanel(View3D *view, const RendererSList &renderers);
 
-    /* \brief Overrides SettingsPanel::shortDescription().
+    /** brief Overrides SettingsPanel::shortDescription().
      *
      */
     virtual const QString shortDescription() override
     {return tr("3D View");}
 
-    /* \brief Overrides SettingsPanel::longDescription().
+    /** brief Overrides SettingsPanel::longDescription().
      *
      */
     virtual const QString longDescription() override
     {return tr("%1").arg(shortDescription());}
 
-    /* \brief Overrides SettingsPanel::icon().
+    /** brief Overrides SettingsPanel::icon().
      *
      */
     virtual const QIcon icon() override
     {return QIcon();}
 
-    /* \brief Overrides SettingsPanel::acceptChanges().
+    /** brief Overrides SettingsPanel::acceptChanges().
      *
      */
     virtual void acceptChanges() override;
 
-    /* \brief Overrides SettingsPanel::rejectChanges().
+    /** brief Overrides SettingsPanel::rejectChanges().
      *
      */
     virtual void rejectChanges() override;
 
-    /* \brief Overrides SettingsPanel::modified().
+    /** brief Overrides SettingsPanel::modified().
      *
      */
     virtual bool modified() const override;
 
-    /* \brief Overrides SettingsPanel::clone().
+    /** brief Overrides SettingsPanel::clone().
      *
      */
     virtual SettingsPanelPtr clone() override;

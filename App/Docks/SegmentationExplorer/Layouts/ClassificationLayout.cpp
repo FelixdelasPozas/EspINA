@@ -40,7 +40,7 @@ class RenameCategoryCommand
 : public QUndoCommand
 {
 public:
-	/* \brief RenameCategoryCommand class constructor.
+	/** brief RenameCategoryCommand class constructor.
 	 * \param[in] categoryItem, category adapter raw pointer of the element to rename.
 	 * \param[in] name, string reference to the new name.
 	 * \param[in] model, model adapter smart pointer of the model containing the category.
@@ -57,20 +57,20 @@ public:
   , m_name        {name}
   {}
 
-  /* \brief Overrides QUndoCommand::redo().
+  /** brief Overrides QUndoCommand::redo().
    *
    */
   virtual void redo() override
   { swapName(); }
 
-  /* \brief Overrides QUndoCommand::undo().
+  /** brief Overrides QUndoCommand::undo().
    *
    */
   virtual void undo() override
   { swapName(); }
 
 private:
-  /* \brief Helper method to swap the name of the category.
+  /** brief Helper method to swap the name of the category.
    *
    */
   void swapName()
@@ -95,7 +95,7 @@ class CategoryItemDelegate
 : public QItemDelegate
 {
 public:
-	/* \brief Class CategoryItemDelegate class constructor.
+	/** brief Class CategoryItemDelegate class constructor.
 	 * \param[in] model, model adapter smart pointer.
 	 * \param[in] undoStack, QUndoStack object raw pointer.
 	 * \param[in] parent, parent object raw pointer.
@@ -109,7 +109,7 @@ public:
   , m_undoStack  {undoStack}
   {}
 
-  /* \brief Overrides QItemDelegate::setModelData().
+  /** brief Overrides QItemDelegate::setModelData().
    *
    */
   virtual void setModelData(QWidget            *editor,

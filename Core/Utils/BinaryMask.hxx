@@ -96,19 +96,19 @@ namespace ESPINA
       VolumeBounds bounds() const
       { return m_bounds; }
 
-      /* \brief Sets the origin of the volume.
+      /** brief Sets the origin of the volume.
        * \param[in] origin, new origin.
        *
        */
       void setOrigin(const NmVector3& origin);
 
-      /* \brief Returns the origin of the volume.
+      /** brief Returns the origin of the volume.
        *
        */
       NmVector3 origin() const
       { return m_origin; }
 
-      /* \brief Sets the spacing of the volume.
+      /** brief Sets the spacing of the volume.
        * \param[in] spacing, new spacing.
        *
        */
@@ -241,7 +241,7 @@ namespace ESPINA
           , m_bitPos(bitPos)
           {}
 
-          /* \brief iterator class destructor.
+          /** brief iterator class destructor.
            *
            */
           virtual ~iterator()
@@ -327,7 +327,7 @@ namespace ESPINA
             return m_mask->m_backgroundValue;
           }
 
-          /* \brief Convenience method when one doesn't need to know the foreground/background
+          /** brief Convenience method when one doesn't need to know the foreground/background
            * values of the mask.
            *
            */
@@ -422,7 +422,7 @@ namespace ESPINA
           : iterator(mask)
           {};
 
-          /* \brief const_iterator class destructor.
+          /** brief const_iterator class destructor.
            *
            */
           virtual ~const_iterator()
@@ -494,7 +494,7 @@ namespace ESPINA
             m_index.z = index.z;
           }
 
-          /* \brief region_iterator class destructor.
+          /** brief region_iterator class destructor.
            *
            */
           virtual ~region_iterator()
@@ -508,7 +508,7 @@ namespace ESPINA
             return m_index;
           }
 
-          /* \brief Returns the position of the current index in world coordinates.
+          /** brief Returns the position of the current index in world coordinates.
            *
            */
           NmVector3 getCenter() const
@@ -620,7 +620,7 @@ namespace ESPINA
             return m_getReturnValue;
           }
 
-          /* \brief Convenience method when one doesn't need to know the foreground/background
+          /** brief Convenience method when one doesn't need to know the foreground/background
            * values of the mask.
            *
            */
@@ -763,7 +763,7 @@ namespace ESPINA
           : region_iterator(mask, bounds)
           {}
 
-          /* \brief const_region_iterator class destructor.
+          /** brief const_region_iterator class destructor.
            *
            */
           virtual ~const_region_iterator()

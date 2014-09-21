@@ -41,18 +41,18 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief CachedRepresentationTask class constructor.
+      /** brief CachedRepresentationTask class constructor.
        * \param[in] scheduler, scheduler smart pointer.
        *
        */
       explicit CachedSliceRendererTask(SchedulerSPtr scheduler);
 
-      /* \brief CachedRepresentationTask class virtual destructor.
+      /** brief CachedRepresentationTask class virtual destructor.
        *
        */
       virtual ~CachedSliceRendererTask();
 
-      /* \brief Sets task input values.
+      /** brief Sets task input values.
        * \param[in] node, pointer to the node where the actors will be placed.
        * \param[in] repList, list of representations.
        *
@@ -64,24 +64,24 @@ namespace ESPINA
       void ready(CachedSliceRenderer::CacheNode *);
 
     protected:
-      /* \brief Implements Task::run().
+      /** brief Implements Task::run().
        *
        */
       virtual void run();
 
     private:
-      /* \brief Compute the actor for that representation in the specified position.
+      /** brief Compute the actor for that representation in the specified position.
        * \param[in] rep, cached representation smart pointer.
        *
        */
       void computeData(CachedRepresentationSPtr rep);
 
-      /* \brief Deallocates all actors.
+      /** brief Deallocates all actors.
        *
        */
       void releaseActors();
 
-      /* \brief Checks the node flag and returns true if the task must restart its work.
+      /** brief Checks the node flag and returns true if the task must restart its work.
        *
        */
       bool needToRestart();

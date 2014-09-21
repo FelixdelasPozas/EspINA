@@ -38,7 +38,7 @@ namespace ESPINA
   : public SettingsPanel
   {
   public:
- 		/* \brief DefaultViewSettingsPanel class constructor.
+ 		/** brief DefaultViewSettingsPanel class constructor.
  		 * \param[in] viewXY, raw pointer of the XY view.
  		 * \param[in] viewXZ, raw pointer of the XZ view.
  		 * \param[in] viewYZ, raw pointer of the YZ view.
@@ -54,40 +54,40 @@ namespace ESPINA
                                       RendererSList renderers,
                                       RenderersMenu *menu);
 
-    /* \brief Overrides SettingsPanel::shortDescription().
+    /** brief Overrides SettingsPanel::shortDescription().
      *
      */
     virtual const QString shortDescription() override
     { return QObject::tr("View"); }
 
-    /* \brief Overrides SettingsPanel::longDescription().
+    /** brief Overrides SettingsPanel::longDescription().
      *
      */
     virtual const QString longDescription() override
     { return QObject::tr("%1").arg(shortDescription()); }
 
-    /* \brief Overrides SettingsPanel::icon().
+    /** brief Overrides SettingsPanel::icon().
      *
      */
     virtual const QIcon icon() override
     {return QIcon(":/espina/show_all.svg");}
 
-    /* \brief Overrides SettingsPanel::acceptChanges().
+    /** brief Overrides SettingsPanel::acceptChanges().
      *
      */
     virtual void acceptChanges() override;
 
-    /* \brief Overrides SettingsPanel::rejectChanges().
+    /** brief Overrides SettingsPanel::rejectChanges().
      *
      */
     virtual void rejectChanges() override;
 
-    /* \brief Overrides SettingsPanel::modified().
+    /** brief Overrides SettingsPanel::modified().
      *
      */
     virtual bool modified() const override;
 
-    /* \brief Overrides SettingsPanel::clone().
+    /** brief Overrides SettingsPanel::clone().
      *
      */
     virtual SettingsPanelPtr clone() override;

@@ -53,7 +53,7 @@ namespace ESPINA
   : public SparseVolume<T>
   {
   public:
-    /* \brief RasterizedVolume class constructor.
+    /** brief RasterizedVolume class constructor.
      * \param[in] mesh, MeshData smart pointer to be rasterized.
      * \param[in] bounds, bounds of the volume.
      * \param[in] spacing, spacing of the volume.
@@ -65,69 +65,69 @@ namespace ESPINA
                               const NmVector3 &spacing = NmVector3{1,1,1},
                               const NmVector3 &origin = NmVector3{0,0,0});
 
-    /* \brief RasterizedVolume class virtual destructor.
+    /** brief RasterizedVolume class virtual destructor.
      *
      */
     virtual ~RasterizedVolume() {};
 
-    /* \brief Implements SparseVolume<T>::memoryUsage().
+    /** brief Implements SparseVolume<T>::memoryUsage().
      *
      */
     virtual size_t memoryUsage() const;
 
-    /* \brief Implements SparseVolume<T>::itkImage().
+    /** brief Implements SparseVolume<T>::itkImage().
      *
      */
     virtual const typename T::Pointer itkImage() const;
 
-    /* \brief Overrides SparseVolume<T>::itkImage(Bounds).
+    /** brief Overrides SparseVolume<T>::itkImage(Bounds).
      *
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    /* \brief Overrides SparseVolume<T>::draw(vtkImplicitFunction, Bounds, T::ValueType).
+    /** brief Overrides SparseVolume<T>::draw(vtkImplicitFunction, Bounds, T::ValueType).
      *
      */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    /* \brief Overrides SparseVolume<T>::draw(BinrayMaskSPtr, T::ValueType).
+    /** brief Overrides SparseVolume<T>::draw(BinrayMaskSPtr, T::ValueType).
      *
      */
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    /* \brief Overrides SparseVolume<T>::draw(T::Pointer).
+    /** brief Overrides SparseVolume<T>::draw(T::Pointer).
      *
      */
     virtual void draw(const typename T::Pointer volume) override;
 
-    /* \brief Overrides SparseVolume<T>::draw(T::Pointer, Bounds).
+    /** brief Overrides SparseVolume<T>::draw(T::Pointer, Bounds).
      *
      */
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds) override;
 
-    /* \brief Overrides SparseVolume<T>::draw(T::IndexType, T::PixelType).
+    /** brief Overrides SparseVolume<T>::draw(T::IndexType, T::PixelType).
      *
      */
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE) override;
 
 
-    /* \brief Overrides SparseVolume<T>::resize().
+    /** brief Overrides SparseVolume<T>::resize().
      *
      */
     virtual void resize(const Bounds &bounds) override;
 
-    /* \brief Overrides SparseVolume<T>::isEmpty().
+    /** brief Overrides SparseVolume<T>::isEmpty().
      *
      */
     virtual bool isEmpty() const override;
 
   private:
-    /* \brief Private method to rasterize a mesh to create an T volume.
+    /** brief Private method to rasterize a mesh to create an T volume.
      *
      */
     void rasterize() const;

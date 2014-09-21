@@ -33,7 +33,7 @@ namespace ESPINA {
   : public ChannelExtension
   {
   public:
-  	/* \brief ReadOnlyChannelExtension class constructor.
+  	/** brief ReadOnlyChannelExtension class constructor.
   	 * \param[in] type, channel extension type.
   	 * \param[in] cache, cache object.
   	 * \param[in] state, state of the extension.
@@ -42,56 +42,56 @@ namespace ESPINA {
                                       const ChannelExtension::InfoCache &cache,
                                       const State &state);
 
-    /* \brief Implements Extension::type().
+    /** brief Implements Extension::type().
      *
      */
     virtual ChannelExtension::Type type() const
     { return m_type; }
 
-  	/* \brief Sets if the extension data is invalidated when the extended item changes.
+  	/** brief Sets if the extension data is invalidated when the extended item changes.
   	 * \param[in] value, true to invalidate on change, false otherwise.
   	 *
   	 */
     void setInvalidateOnChange(bool value)
     { m_invalidateOnChange = value; }
 
-    /* \brief Implements Extension::invalidateOnChange().
+    /** brief Implements Extension::invalidateOnChange().
      *
      */
     virtual bool invalidateOnChange() const
     { return m_invalidateOnChange; }
 
-    /* \brief Implements Extension::state().
+    /** brief Implements Extension::state().
      *
      */
     virtual State state() const
     { return m_state; }
 
-    /* \brief Implements Extension::snapshot().
+    /** brief Implements Extension::snapshot().
      *
      */
     virtual Snapshot snapshot() const
     { return Snapshot(); } // TODO
 
-    /* \brief Implements Extension::dependencies().
+    /** brief Implements Extension::dependencies().
      *
      */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /* \brief Implements Extension::availableInformations().
+    /** brief Implements Extension::availableInformations().
      *
      */
     virtual InfoTagList availableInformations() const
     { return InfoTagList(); } // TODO
 
   protected:
-    /* \brief Implements Extension::onExtendedItemSet().
+    /** brief Implements Extension::onExtendedItemSet().
      *
      */
     virtual void onExtendedItemSet(Channel* item);
 
-    /* \brief Implements Extension::cacheFail().
+    /** brief Implements Extension::cacheFail().
      *
      */
     virtual QVariant cacheFail(const InfoTag &tag) const

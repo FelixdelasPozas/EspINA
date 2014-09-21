@@ -40,30 +40,30 @@ namespace ESPINA
   : public IO::ErrorHandler
   {
   public:
-  	/* \brief EspinaErrorHandler class constructor.
+  	/** brief EspinaErrorHandler class constructor.
   	 * \param[in] parent, QWidget raw pointer of the parent of this object.
   	 */
     EspinaErrorHandler(QWidget *parent = nullptr)
     : m_parent(parent)
   	{};
 
-    /* \brief Sets the default directory.
+    /** brief Sets the default directory.
      * \param[in] dir, QDir const reference.
      */
     void setDefaultDir(const QDir &dir)
     { m_defaultDir = dir; }
 
-    /* \brief Implements IO::ErrorHandler::warning().
+    /** brief Implements IO::ErrorHandler::warning().
      *
      */
     void warning(const QString &msg);
 
-    /* \brief Implements IO::ErrorHandler::error().
+    /** brief Implements IO::ErrorHandler::error().
      *
      */
     void error(const QString &msg);
 
-    /* \brief Implements IO::ErrorHandler::fileNotFound().
+    /** brief Implements IO::ErrorHandler::fileNotFound().
      *
      */
     QFileInfo fileNotFound(const QFileInfo &file,
