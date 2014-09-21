@@ -39,58 +39,58 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    /** brief CustomROIWidget class constructor.
+    /** \brief CustomROIWidget class constructor.
      * \param[in] parent, raw pointer to the parent of this object.
      *
      */
     explicit CustomROIWidget(QObject* parent=nullptr);
 
-    /** brief Overrides QWidgetAction::createWidget().
+    /** \brief Overrides QWidgetAction::createWidget().
      *
      */
     virtual QWidget* createWidget(QWidget* parent) override;
 
-    /** brief Overrides QWidgetAction::deleteWidget().
+    /** \brief Overrides QWidgetAction::deleteWidget().
      *
      */
     virtual void deleteWidget(QWidget* widget) override;
 
-    /** brief Returns the value of the applyROI flag.
+    /** \brief Returns the value of the applyROI flag.
      *
      */
     bool applyROI()
     {return m_useROI;}
 
-    /** brief Sets the value of the ROI for a specified axis.
+    /** \brief Sets the value of the ROI for a specified axis.
      * \param[in] axis, axis for the value.
      * \param[in] value, size value.
      */
     void setValue(Axis axis, unsigned int value);
 
-    /** brief Returns the value of the ROI for a specified axis.
+    /** \brief Returns the value of the ROI for a specified axis.
      * \param[in] axis, axis for the value.
      */
     unsigned int value(Axis axis) const
     { return m_values[idx(axis)]; }
 
   private slots:
-  	/** brief Modifies the GUI if the ROI is to be used.
+  	/** \brief Modifies the GUI if the ROI is to be used.
   	 * \param[in] val, true if the ROI values are going to be used.
   	 *
   	 */
     void onApplyROIChanged(bool val);
 
-  	/** brief Updates the value of the ROI on the X axis.
+  	/** \brief Updates the value of the ROI on the X axis.
   	 *
   	 */
     void onXSizeChanged(int value);
 
-  	/** brief Updates the value of the ROI on the Y axis.
+  	/** \brief Updates the value of the ROI on the Y axis.
   	 *
   	 */
     void onYSizeChanged(int value);
 
-  	/** brief Updates the value of the ROI on the Z axis.
+  	/** \brief Updates the value of the ROI on the Z axis.
   	 *
   	 */
     void onZSizeChanged(int value);

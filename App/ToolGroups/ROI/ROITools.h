@@ -44,7 +44,7 @@ namespace ESPINA
   {
   Q_OBJECT
   public:
-    /** brief VolumeOfInterestTools class constructor.
+    /** \brief VolumeOfInterestTools class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] factory, factory smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -58,33 +58,33 @@ namespace ESPINA
                   QUndoStack      *undoStack,
                   QWidget         *parent = nullptr);
 
-    /** brief VolumeOfInteresetTools class virtual destructor.
+    /** \brief VolumeOfInteresetTools class virtual destructor.
      *
      */
     virtual ~ROIToolsGroup();
 
-    /** brief Implements ToolGroup::setEnabled(bool).
+    /** \brief Implements ToolGroup::setEnabled(bool).
      *
      */
     virtual void setEnabled(bool value);
 
-    /** brief Implements ToolGroup::enabled().
+    /** \brief Implements ToolGroup::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** brief Implements ToolGroup::tools().
+    /** \brief Implements ToolGroup::tools().
      *
      */
     virtual ToolSList tools();
 
-    /** brief Sets the value of roi accumulator and passes it to ViewManager.
+    /** \brief Sets the value of roi accumulator and passes it to ViewManager.
      * \param[in] roi, roi object smart pointer.
      *
      */
     void setCurrentROI(ROISPtr roi);
 
-    /** brief Gets the current accumulator value.
+    /** \brief Gets the current accumulator value.
      *
      */
     ROISPtr currentROI();
@@ -98,7 +98,7 @@ namespace ESPINA
     void roiChanged();
 
   private slots:
-    /** brief Changes the roi and associated widget when the
+    /** \brief Changes the roi and associated widget when the
      *        ROI is updated elsewhere (i.e. seedgrowsegmentation)
      *        and not using ROI tools.
      *

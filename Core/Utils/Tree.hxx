@@ -46,31 +46,31 @@ namespace ESPINA
       using NodeList = QList<Node>;
 
   public:
-    /** brief Tree class constructor.
+    /** \brief Tree class constructor.
      * \param[in] name, tree name.
      *
      */
     explicit Tree(const QString& name=QString());
 
-    /** brief Class tree destructor.
+    /** \brief Class tree destructor.
      *
      */
     ~Tree();
 
-    /** brief Sets the tree name.
+    /** \brief Sets the tree name.
      * \param[in] name, tree name.
      *
      */
     void setName(const QString& name)
     { m_name = name; }
 
-    /** brief Returns the name of the tree.
+    /** \brief Returns the name of the tree.
      *
      */
     QString name() const
     { return m_name; }
 
-    /** brief Creates a node in the tree.
+    /** \brief Creates a node in the tree.
      * \param[in] name, name of the node.
      * \param[in] parent, parent node object.
      *
@@ -78,24 +78,24 @@ namespace ESPINA
     Node createNode(const QString &relativeName,
                     Node parent = Node());
 
-    /** brief Removes a node from the tree.
+    /** \brief Removes a node from the tree.
      * \param[in] node, node object to remove.
      *
      */
     void removeNode(Node element);
 
-    /** brief Returns the root node.
+    /** \brief Returns the root node.
      *
      */
     Node  root() const {return m_root;}
 
-    /** brief Returns the node with the specified name.
+    /** \brief Returns the node with the specified name.
      * \param[in] name, node name.
      *
      */
     Node  node(const QString &name);
 
-    /** brief Returns the parent node of the specified one.
+    /** \brief Returns the parent node of the specified one.
      * \param[in] node, node to find the parent.
      *
      */
@@ -106,7 +106,7 @@ namespace ESPINA
     Node    m_root;
   };
 
-  /** brief Prints the tree as a QString.
+  /** \brief Prints the tree as a QString.
    * \param[in] tree, tree object.
    * \param[in] indent, indentation value.
    *

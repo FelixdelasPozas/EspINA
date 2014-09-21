@@ -34,25 +34,25 @@ namespace ESPINA
   : public Selector
   {
 	public:
-  	/** brief ContourSelector class constructor.
+  	/** \brief ContourSelector class constructor.
   	 *
   	 */
 	  explicit ContourSelector()
 	  : m_cursor(Qt::CrossCursor)
 	  {}
 
-  	/** brief ContourSelector class destructor.
+  	/** \brief ContourSelector class destructor.
   	 *
   	 */
 	  virtual ~ContourSelector()
 	  {}
 
-  	/** brief Overrides EventHandler::filterEvent().
+  	/** \brief Overrides EventHandler::filterEvent().
   	 *
   	 */
 	  virtual bool filterEvent(QEvent* e, RenderView *view = nullptr) override;
 
-	  /** brief Overrides EventHandler::cursor() const.
+	  /** \brief Overrides EventHandler::cursor() const.
 	   *
 	   */
 	  virtual QCursor cursor() const override;

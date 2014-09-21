@@ -37,28 +37,28 @@ namespace ESPINA
     Q_OBJECT
 
     public:
-			/** brief AdaptiveEdgesDialog class constructor.
+			/** \brief AdaptiveEdgesDialog class constructor.
 			 * \param[in] parent, Parent widget.
 			 */
       AdaptiveEdgesDialog(QWidget *parent);
 
-      /** brief AdaptiveEdgesDialog class destructor.
+      /** \brief AdaptiveEdgesDialog class destructor.
        *
        */
       virtual ~AdaptiveEdgesDialog()
       {};
 
-      /** brief Returns the threshold used to classify a voxel as background or not.
+      /** \brief Returns the threshold used to classify a voxel as background or not.
        *
        */
       int threshold()         { return m_threshold; }
 
-      /** brief Returns the value used as background color.
+      /** \brief Returns the value used as background color.
        *
        */
       int color()             { return m_backgroundColor; }
 
-      /** brief Returns true if adaptive edges is enabled.
+      /** \brief Returns true if adaptive edges is enabled.
        *
        */
       bool useAdaptiveEdges() { return m_adaptiveEdgesEnabled; }

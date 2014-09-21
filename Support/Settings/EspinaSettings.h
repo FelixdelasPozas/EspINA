@@ -35,7 +35,7 @@ const QString USER_NAME("UserName");
 
 namespace ESPINA
 {
-	/** brief Returns the name of the user.
+	/** \brief Returns the name of the user.
 	 *
 	 * TODO 2012-12-05 Remove this function and pass the general settings to
 	 * all the tools that require it

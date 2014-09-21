@@ -37,7 +37,7 @@ namespace ESPINA
   : public QMenu
   {
   public:
-  	/** brief ContextualMenu class constructor.
+  	/** \brief ContextualMenu class constructor.
   	 * \param[in] parent, raw pointer of the QWidget parent of this one.
   	 *
   	 */
@@ -45,7 +45,7 @@ namespace ESPINA
     : QMenu{parent}
 		{}
 
-		/** brief Sets the selection of the menu.
+		/** \brief Sets the selection of the menu.
 		 *
 		 */
     virtual void setSelection(SelectionSPtr selection) = 0;

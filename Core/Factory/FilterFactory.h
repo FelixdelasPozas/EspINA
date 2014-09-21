@@ -37,13 +37,13 @@ namespace ESPINA
     struct Filter_Not_Provided_Exception{};
 
   public:
-    /** brief FilterFactory class destructor.
+    /** \brief FilterFactory class destructor.
      *
      */
     virtual ~FilterFactory()
     {}
 
-    /** brief Creates a filter of the given type with the given inputs and scheduler.
+    /** \brief Creates a filter of the given type with the given inputs and scheduler.
      * \param[in] inputs, list of input object smart pointers.
      * \param[in] type, filter type.
      * \param[in] sheduler, scheduler object smart pointer.
@@ -53,7 +53,7 @@ namespace ESPINA
                                     const Filter::Type& filter,
                                     SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception) = 0;
 
-    /** brief Returns a list types of filter this factory can create.
+    /** \brief Returns a list types of filter this factory can create.
      *
      */
     virtual FilterTypeList providedFilters() const = 0;

@@ -41,92 +41,92 @@ namespace ESPINA
   : public RepresentationRenderer
   {
   public:
-  	/** brief VolumetricRenderer class constructor.
+  	/** \brief VolumetricRenderer class constructor.
   	 * \param[in] parent, raw pointer of the QObject parent of this one.
   	 *
   	 */
     explicit VolumetricRenderer(QObject* parent = nullptr);
 
-    /** brief VolumetricRenderer class destructor.
+    /** \brief VolumetricRenderer class destructor.
      *
      */
     virtual ~VolumetricRenderer();
 
-    /** brief Implements Renderer::icon() const.
+    /** \brief Implements Renderer::icon() const.
      *
      */
     const QIcon icon() const
     {return QIcon(":/espina/voxel.png");}
 
-    /** brief Implements Renderer::name() const.
+    /** \brief Implements Renderer::name() const.
      *
      */
     const QString name() const
     {return "Volumetric";}
 
-    /** brief Implements Renderer::tooltip() const.
+    /** \brief Implements Renderer::tooltip() const.
      *
      */
     const QString tooltip() const
     {return "Segmentation's Volumes";}
 
-    /** brief Implements RepresentationRenderer::addRepresentation().
+    /** \brief Implements RepresentationRenderer::addRepresentation().
      *
      */
     virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-    /** brief Implements RepresentationRenderer::removeRepresentation().
+    /** \brief Implements RepresentationRenderer::removeRepresentation().
      *
      */
     virtual void removeRepresentation(RepresentationSPtr rep);
 
-    /** brief Implements RepresentationRenderer::hasRepresentation().
+    /** \brief Implements RepresentationRenderer::hasRepresentation().
      *
      */
     virtual bool hasRepresentation(RepresentationSPtr rep) const;
 
-    /** brief Implements RepresentationRenderer::managesRepresentation().
+    /** \brief Implements RepresentationRenderer::managesRepresentation().
      *
      */
     virtual bool managesRepresentation(const QString &representationType) const;
 
-    /** brief Implements Renderer::clone() const.
+    /** \brief Implements Renderer::clone() const.
      *
      */
     RendererSPtr clone() const
     {return RendererSPtr(new VolumetricRenderer());}
 
-    /** brief Implements Renderer::numberOfvtkActors() const.
+    /** \brief Implements Renderer::numberOfvtkActors() const.
      *
      */
     unsigned int numberOfvtkActors() const
     { return 0; }
 
-    /** brief Implements RepresentationRenderer::renderableItems().
+    /** \brief Implements RepresentationRenderer::renderableItems().
      *
      */
     RenderableItems renderableItems() const
     { return RenderableItems(RenderableType::SEGMENTATION); }
 
-    /** brief Implements Renderer::renderType() const.
+    /** \brief Implements Renderer::renderType() const.
      *
      */
     RendererTypes renderType() const
     { return RendererTypes(RENDERER_VIEW3D); }
 
-    /** brief Implements RepresentationRenderer::canRender() const.
+    /** \brief Implements RepresentationRenderer::canRender() const.
      *
      */
     bool canRender(ItemAdapterPtr item) const
     { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
 
-    /** brief Implements Renderer::numberOfRenderedItems() const.
+    /** \brief Implements Renderer::numberOfRenderedItems() const.
      *
      */
     int numberOfRenderedItems() const
     { return m_representations.size(); }
 
-    /** brief Implements RepresentationRenderer::pick().
+    /** \brief Implements RepresentationRenderer::pick().
      *
      */
     ViewItemAdapterList pick(int x, int y, Nm z,
@@ -134,18 +134,18 @@ namespace ESPINA
                              RenderableItems itemType = RenderableItems(),
                              bool repeat = false);
 
-    /** brief Overrides Renderer::setView().
+    /** \brief Overrides Renderer::setView().
      *
      */
     virtual void setView(RenderView *view) override;
 
   protected:
-    /** brief Implements Renderer::hide().
+    /** \brief Implements Renderer::hide().
      *
      */
     void hide();
 
-    /** brief Implements Renderer::show().
+    /** \brief Implements Renderer::show().
      *
      */
     void show();

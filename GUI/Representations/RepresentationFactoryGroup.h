@@ -36,7 +36,7 @@ namespace ESPINA
   public:
     struct Representation_Already_Provided_Exception{};
 
-  	/** brief RepresentationFactoryGroup class constructor.
+  	/** \brief RepresentationFactoryGroup class constructor.
   	 * \param[in] scheduler, scheduler smart pointer.
   	 *
   	 */
@@ -44,24 +44,24 @@ namespace ESPINA
     : RepresentationFactory{scheduler}
     {};
 
-  	/** brief RepresentationFactoryGroup class virtual destructor.
+  	/** \brief RepresentationFactoryGroup class virtual destructor.
   	 *
   	 */
     virtual ~RepresentationFactoryGroup()
     {};
 
-  	/** brief Adds a factory to the factory group.
+  	/** \brief Adds a factory to the factory group.
   	 * \param[in] factory, RepresentationFactor smart pointer.
   	 *
   	 */
     void addRepresentationFactory(RepresentationFactorySPtr factory);
 
-  	/** brief Returns the list of representations this factory can create.
+  	/** \brief Returns the list of representations this factory can create.
   	 *
   	 */
     virtual RepresentationTypeList representations() const;
 
-  	/** brief Creates and returns a representation of the given type for the given output.
+  	/** \brief Creates and returns a representation of the given type for the given output.
   	 * \param[in] output, output smart pointer.
   	 * \param[in] type, representation type.
   	 *

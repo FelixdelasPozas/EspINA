@@ -39,34 +39,34 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    /** brief ViewTools class constructor.
+    /** \brief ViewTools class constructor.
      * \param[in] viewManager, view manager smart pointer.
      * \param[in] parent, raw pointer to the QWidget parent of this object.
      */
     explicit ViewTools(ViewManagerSPtr viewManager, QWidget *parent = 0);
 
-    /** brief ViewTools class virtual destructor.
+    /** \brief ViewTools class virtual destructor.
      *
      */
     virtual ~ViewTools();
 
-    /** brief Implements ToolGroup::setEnabled().
+    /** \brief Implements ToolGroup::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /** brief Implements ToolGroup::enabled().
+    /** \brief Implements ToolGroup::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** brief Implements ToolGroup::tools().
+    /** \brief Implements ToolGroup::tools().
      *
      */
     virtual ToolSList tools();
 
   public slots:
-  	/** brief Aborts current operation.
+  	/** \brief Aborts current operation.
   	 *
   	 */
     void abortOperation();

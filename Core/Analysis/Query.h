@@ -29,132 +29,132 @@
 
 namespace ESPINA
 {
-	/** brief Retrieve information contained in the content graph of the analysis.
+	/** \brief Retrieve information contained in the content graph of the analysis.
 	 *
 	 */
   namespace QueryContents
   {
-  	/** brief Returns the sample associated with the specified channel.
+  	/** \brief Returns the sample associated with the specified channel.
   	 * \param[in] channel, channel object smart pointer.
   	 *
   	 */
     SampleSPtr EspinaCore_EXPORT sample(ChannelSPtr channel);
 
-  	/** brief Returns the sample associated with the specified channel.
+  	/** \brief Returns the sample associated with the specified channel.
   	 * \param[in] channel, channel object raw pointer.
   	 *
   	 */
     SampleSPtr EspinaCore_EXPORT sample(ChannelPtr channel);
 
-  	/** brief Returns the list of samples associated with the specified segmentation.
+  	/** \brief Returns the list of samples associated with the specified segmentation.
   	 * \param[in] segmentation, segmentation object smart pointer.
   	 *
   	 */
     SampleSList EspinaCore_EXPORT samples(SegmentationSPtr segmentation);
 
-  	/** brief Returns the list of samples associated with the specified segmentation.
+  	/** \brief Returns the list of samples associated with the specified segmentation.
   	 * \param[in] segmentation, segmentation object raw pointer.
   	 *
   	 */
     SampleSList EspinaCore_EXPORT samples(SegmentationPtr segmentation);
 
-  	/** brief Returns the list of channels associated with a sample.
+  	/** \brief Returns the list of channels associated with a sample.
   	 * \param[in] sample, sample object smart pointer.
   	 *
   	 */
     ChannelSList EspinaCore_EXPORT channels(SampleSPtr sample);
 
-  	/** brief Returns the list of channels associated with a segmentation.
+  	/** \brief Returns the list of channels associated with a segmentation.
   	 * \param[in] segmentation, segmentation object smart pointer.
   	 *
   	 */
     ChannelSList EspinaCore_EXPORT channels(SegmentationSPtr segmentation);
 
-  	/** brief Returns the list of channels associated with a segmentation.
+  	/** \brief Returns the list of channels associated with a segmentation.
   	 * \param[in] segmentation, segmentation object raw pointer.
   	 *
   	 */
     ChannelSList EspinaCore_EXPORT channels(SegmentationPtr segmentation);
 
-  	/** brief Returns the list of segmentations associated with a sample.
+  	/** \brief Returns the list of segmentations associated with a sample.
   	 * \param[in] sample, sample object smart pointer.
   	 *
   	 */
     SegmentationSList EspinaCore_EXPORT segmentations(SampleSPtr sample);
 
-  	/** brief Returns the list of segmentations associated with a channel.
+  	/** \brief Returns the list of segmentations associated with a channel.
   	 * \param[in] channel, channel object smart pointer.
   	 *
   	 */
     SegmentationSList EspinaCore_EXPORT segmentationsOnChannelSample(ChannelSPtr channel);
 
-  	/** brief Returns the list of segmentations associated with a channel.
+  	/** \brief Returns the list of segmentations associated with a channel.
   	 * \param[in] channel, channel object raw pointer.
   	 *
   	 */
     SegmentationSList EspinaCore_EXPORT segmentationsOnChannelSample(ChannelPtr channel);
   } // namespace QueryContents
 
-	/** brief Retrieve information contained in the relations graph of the analysis.
+	/** \brief Retrieve information contained in the relations graph of the analysis.
 	 *
 	 */
   namespace QueryRelations
   {
-  	/** brief Returns the sample associated with a channel.
+  	/** \brief Returns the sample associated with a channel.
   	 * \param[in] channel, channel object smart pointer.
   	 *
   	 */
   	SampleSPtr EspinaCore_EXPORT sample(ChannelSPtr channel);
 
-  	/** brief Returns the sample associated with a channel.
+  	/** \brief Returns the sample associated with a channel.
   	 * \param[in] channel, channel object raw pointer.
   	 *
   	 */
     SampleSPtr EspinaCore_EXPORT sample(ChannelPtr channel);
 
-  	/** brief Returns the list of samples associated with a segmentation.
+  	/** \brief Returns the list of samples associated with a segmentation.
   	 * \param[in] segmentation, segmentation object smart pointer.
   	 *
   	 */
     SampleSList EspinaCore_EXPORT samples(SegmentationSPtr segmentation);
 
-  	/** brief Returns the list of samples associated with a segmentation.
+  	/** \brief Returns the list of samples associated with a segmentation.
   	 * \param[in] segmentation, segmentation object raw pointer.
   	 *
   	 */
     SampleSList EspinaCore_EXPORT samples(SegmentationPtr segmentation);
 
-  	/** brief Returns the list of channels associated with a sample.
+  	/** \brief Returns the list of channels associated with a sample.
   	 * \param[in] sample, sample object smart pointer.
   	 *
   	 */
     ChannelSList EspinaCore_EXPORT channels(SampleSPtr sample);
 
-  	/** brief Returns the list of channels associated with a segmentation.
+  	/** \brief Returns the list of channels associated with a segmentation.
   	 * \param[in] segmentation, segmentation object smart pointer.
   	 *
   	 */
     ChannelSList EspinaCore_EXPORT channels(SegmentationSPtr segmentation);
 
-  	/** brief Returns the list of channels associated with a segmentation.
+  	/** \brief Returns the list of channels associated with a segmentation.
   	 * \param[in] segmentation, segmentation object raw pointer.
   	 *
   	 */
     ChannelSList EspinaCore_EXPORT channels(SegmentationPtr segmentation);
 
-  	/** brief Returns the list of segmentations associated with a sample.
+  	/** \brief Returns the list of segmentations associated with a sample.
   	 * \param[in] sample, sample object smart pointer.
   	 *
   	 */
     SegmentationSList EspinaCore_EXPORT segmentations(SampleSPtr sample);
 
-  	/** brief Returns the list of segmentations associated with a channel.
+  	/** \brief Returns the list of segmentations associated with a channel.
   	 * \param[in] channel, channel object smart pointer.
   	 *
   	 */
     SegmentationSList EspinaCore_EXPORT segmentationsOnChannelSample(ChannelSPtr channel);
 
-  	/** brief Returns the list of segmentations associated with a channel.
+  	/** \brief Returns the list of segmentations associated with a channel.
   	 * \param[in] channel, channel object raw pointer.
   	 *
   	 */

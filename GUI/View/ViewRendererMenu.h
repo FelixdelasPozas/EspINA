@@ -38,30 +38,30 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/** brief ViewRendererMenu class constructor.
+			/** \brief ViewRendererMenu class constructor.
 			 *
 			 */
       explicit ViewRendererMenu(QWidget *parent = nullptr);
 
-      /** brief ViewRendererMenu class destructor.
+      /** \brief ViewRendererMenu class destructor.
        *
        */
       virtual ~ViewRendererMenu();
 
-      /** brief Adds a renderer to the menu.
+      /** \brief Adds a renderer to the menu.
        * \param[in] renderer, smart pointer of the renderer to add.
        *
        */
       void add(RendererSPtr renderer);
 
-      /** brief Removes a renderer to the menu.
+      /** \brief Removes a renderer to the menu.
        * \param[in] renderer, smart pointer of the renderer to remove.
        *
        */
       void remove(RendererSPtr renderer);
 
     public slots:
-			/** brief Activates/deactivates the renderer associated with the given action.
+			/** \brief Activates/deactivates the renderer associated with the given action.
 			 * \param[in] action, QAction raw pointer.
 			 *
 			 */

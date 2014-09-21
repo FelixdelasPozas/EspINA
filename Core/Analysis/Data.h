@@ -57,23 +57,23 @@ namespace ESPINA
     using Type = QString;
 
   public:
-    /** brief Data class constructor.
+    /** \brief Data class constructor.
      *
      */
     virtual ~Data()
     {}
 
-    /** brief Returns the type of data.
+    /** \brief Returns the type of data.
      *
      */
     virtual Data::Type type() const = 0;
 
-    /** brief Creates a proxy for the data type.
+    /** \brief Creates a proxy for the data type.
      *
      */
     virtual DataProxySPtr createProxy() const = 0;
 
-    /** brief Sets the data output.
+    /** \brief Sets the data output.
      * \param[in] output, Output object smart pointer.
      *
      */
@@ -86,13 +86,13 @@ namespace ESPINA
     virtual TimeStamp lastModified()
     { return m_timeStamp; }
 
-    /** brief Returns the list of bounds of the edited regions of the data.
+    /** \brief Returns the list of bounds of the edited regions of the data.
      *
      */
     virtual BoundsList editedRegions() const
     { return m_editedRegions; }
 
-    /** brief Clears the edited regions list.
+    /** \brief Clears the edited regions list.
      *
      */
     virtual void clearEditedRegions()
@@ -112,37 +112,37 @@ namespace ESPINA
      */
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const = 0;
 
-    /** brief Returns a snapshot object of the edited regions of the data.
+    /** \brief Returns a snapshot object of the edited regions of the data.
      *
      */
     virtual Snapshot editedRegionsSnapshot() const = 0;
 
-    /** brief Returns true if the object has been correctly initialized and contains data.
+    /** \brief Returns true if the object has been correctly initialized and contains data.
      *
      */
     virtual bool isValid() const = 0;
 
-    /** brief Returns true if the object is empty.
+    /** \brief Returns true if the object is empty.
      *
      */
     virtual bool isEmpty() const = 0;
 
-    /** brief Returns the bounds of the contained data.
+    /** \brief Returns the bounds of the contained data.
      *
      */
     virtual Bounds bounds() const = 0;
 
-    /** brief Sets the spacing of the data.
+    /** \brief Sets the spacing of the data.
      *
      */
     virtual void setSpacing(const NmVector3& spacing) = 0;
 
-    /** brief Returns the spacing of the data.
+    /** \brief Returns the spacing of the data.
      *
      */
     virtual NmVector3 spacing() const = 0;
 
-    /** brief Returns true if the object has been edited.
+    /** \brief Returns true if the object has been edited.
      *
      */
     bool isEdited() const
@@ -163,7 +163,7 @@ namespace ESPINA
     void dataChanged();//former representationChanged
 
   protected:
-    /** brief Data class constructor.
+    /** \brief Data class constructor.
      *
      */
     explicit Data()
@@ -171,7 +171,7 @@ namespace ESPINA
     , m_timeStamp{s_tick++}
     {}
 
-    /** brief Increments the modification time and signals the modification of the data.
+    /** \brief Increments the modification time and signals the modification of the data.
      *
      */
     void updateModificationTime()

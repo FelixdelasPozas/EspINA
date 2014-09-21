@@ -32,63 +32,63 @@ namespace ESPINA
   : public MeshRenderer
   {
     public:
-  		/** brief ContourRenderer class constructor.
+  		/** \brief ContourRenderer class constructor.
   		 * \param[in] parent, raw pointer of the QObject parent of this one.
   		 *
   		 */
       ContourRenderer(QObject* parent = nullptr);
 
-  		/** brief ContourRenderer class virtual destructor.
+  		/** \brief ContourRenderer class virtual destructor.
   		 *
   		 */
       virtual ~ContourRenderer();
 
-  		/** brief Overrides MeshRenderer::icon() const.
+  		/** \brief Overrides MeshRenderer::icon() const.
   		 *
   		 */
       virtual const QIcon icon() const override
       { return QIcon(":/espina/contour.png"); }
 
-      /** brief Overrides MeshRenderer::name() const.
+      /** \brief Overrides MeshRenderer::name() const.
   		 *
   		 */
       virtual const QString name() const override
       { return "Contour"; }
 
-      /** brief Overrides MeshRenderer::tooltip() const.
+      /** \brief Overrides MeshRenderer::tooltip() const.
   		 *
   		 */
       virtual const QString tooltip() const override
       { return "Segmentation's Contours"; }
 
-  		/** brief Overrides MeshRenderer::addRepresentation().
+  		/** \brief Overrides MeshRenderer::addRepresentation().
   		 *
   		 */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) override;
 
-  		/** brief Overrides MeshRenderer::removeRepresentation().
+  		/** \brief Overrides MeshRenderer::removeRepresentation().
   		 *
   		 */
       virtual void removeRepresentation(RepresentationSPtr rep) override;
 
-  		/** brief Overrides MeshRenderer::managesRepresentation() const.
+  		/** \brief Overrides MeshRenderer::managesRepresentation() const.
   		 *
   		 */
       virtual bool managesRepresentation(const QString &representationType) const override;
 
-  		/** brief Overrides MeshRenderer::clone() const.
+  		/** \brief Overrides MeshRenderer::clone() const.
   		 *
   		 */
       virtual RendererSPtr clone() const override
       { return RendererSPtr(new ContourRenderer()); }
 
-  		/** brief Overrride MeshRenderer::renderType() const.
+  		/** \brief Overrride MeshRenderer::renderType() const.
   		 *
   		 */
       virtual RendererTypes renderType() const override
       { return RendererTypes(RENDERER_VIEW2D); }
 
-  		/** brief Overrides MeshRenderer::pick()
+  		/** \brief Overrides MeshRenderer::pick()
   		 *
   		 */
       virtual ViewItemAdapterList pick(int x, int y, Nm z,

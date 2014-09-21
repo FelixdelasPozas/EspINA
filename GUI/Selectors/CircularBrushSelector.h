@@ -34,18 +34,18 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-    	/** brief CircularBrushSelector class constructor.
+    	/** \brief CircularBrushSelector class constructor.
     	 *
     	 */
       explicit CircularBrushSelector();
 
-    	/** brief CircularBrushSelector class destructor.
+    	/** \brief CircularBrushSelector class destructor.
     	 *
     	 */
       virtual ~CircularBrushSelector();
 
     protected slots:
-			/** brief Implements BrushSelector::createBrushShape().
+			/** \brief Implements BrushSelector::createBrushShape().
 			 *
 			 */
       virtual BrushSelector::BrushShape createBrushShape(ViewItemAdapterPtr item,

@@ -33,19 +33,19 @@ class EspinaGUI_EXPORT HueSelector
 {
 	Q_OBJECT
 	public:
-	  /** brief HueSelector class constructor.
+	  /** \brief HueSelector class constructor.
 	   * \param[in] parent, raw pointer of the QWidget parent of this one.
 	   *
 	   */
 		HueSelector(QWidget* parent = nullptr);
 
-		/** brief HueSelector class destructor.
+		/** \brief HueSelector class destructor.
 		 *
 		 */
 		~HueSelector();
 
 	public slots:
-	  /** brief Sets the hue to the given value and updates the UI.
+	  /** \brief Sets the hue to the given value and updates the UI.
 	   * \param[in] h, new hue value.
 	   *
 	   */
@@ -55,17 +55,17 @@ class EspinaGUI_EXPORT HueSelector
 		void newHsv(int h, int s, int v);
 
 	protected:
-		/** brief Overrides QWidget::paintEvent().
+		/** \brief Overrides QWidget::paintEvent().
 		 *
 		 */
 		void paintEvent(QPaintEvent*) override;
 
-		/** brief Overrides QWidget::mouseMoveEvent().
+		/** \brief Overrides QWidget::mouseMoveEvent().
 		 *
 		 */
 		void mouseMoveEvent(QMouseEvent *) override;
 
-		/** brief Overrides QWidget::mousePressEvent().
+		/** \brief Overrides QWidget::mousePressEvent().
 		 *
 		 */
 		void mousePressEvent(QMouseEvent *) override;
@@ -75,19 +75,19 @@ class EspinaGUI_EXPORT HueSelector
 		int hue;
 		int sat;
 
-		/** brief Computes the equivalent value from the x value of the slider of the widget.
+		/** \brief Computes the equivalent value from the x value of the slider of the widget.
 		 * \param[in] y, slider value.
 		 *
 		 */
 		int x2val(int y);
 
-		/** brief Computes the equivalent value from the hue value to the x coodinate of the slider.
+		/** \brief Computes the equivalent value from the hue value to the x coodinate of the slider.
 		 * \param[in] y, hue value.
 		 *
 		 */
 		int val2x(int val);
 
-		/** brief Sets the value of the slider of the widget.
+		/** \brief Sets the value of the slider of the widget.
 		 *
 		 */
 		void setVal(int v);

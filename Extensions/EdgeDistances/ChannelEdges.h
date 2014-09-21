@@ -52,7 +52,7 @@ namespace ESPINA
     static const Type TYPE;
 
   public:
-    /** brief ChannelEdges class constructor.
+    /** \brief ChannelEdges class constructor.
      * \param[in] scheduler, scheduler smart pointer.
      * \parma[in] cache, cache object.
      * \param[in] state, state object.
@@ -62,52 +62,52 @@ namespace ESPINA
                           const InfoCache &cache    = InfoCache(),
                           const State     &state    = State());
 
-    /** brief ChannelEdges class destructor.
+    /** \brief ChannelEdges class destructor.
      *
      */
     virtual ~ChannelEdges();
 
-    /** brief Implements Extension::type().
+    /** \brief Implements Extension::type().
      *
      */
     virtual Type type() const
     { return TYPE; }
 
-    /** brief Implements Extension::invalidateOnChange().
+    /** \brief Implements Extension::invalidateOnChange().
      *
      */
     virtual bool invalidateOnChange() const
     { return true; }
 
-    /** brief Implements Extension::state().
+    /** \brief Implements Extension::state().
      *
      */
     virtual State state() const;
 
-    /** brief Implements Extension::snapshot().
+    /** \brief Implements Extension::snapshot().
      *
      */
     virtual Snapshot snapshot() const;
 
-    /** brief Implements Extension::dependencies().
+    /** \brief Implements Extension::dependencies().
      *
      */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** brief Implements Extension::availableInformations().
+    /** \brief Implements Extension::availableInformations().
      *
      */
     virtual InfoTagList availableInformations() const
     { return InfoTagList(); }
 
-    /** brief Sets the "use distance to bounds" flag.
+    /** \brief Sets the "use distance to bounds" flag.
      * \param[in] value, true to use the distance to bounds, false otherwise.
      *
      */
     void setUseDistanceToBounds(bool value);
 
-    /** brief Returns the "use distance to bounds" flag.
+    /** \brief Returns the "use distance to bounds" flag.
      *
      */
     bool useDistanceToBounds() const;
@@ -117,90 +117,90 @@ namespace ESPINA
      */
     itkVolumeType::RegionType sliceRegion(unsigned int slice) const;
 
-    /** brief Returns the distances in Nm from the segmentations to the bounds of the channel.
+    /** \brief Returns the distances in Nm from the segmentations to the bounds of the channel.
      * \param[in] segmentation, segmentation raw pointer.
      * \param[out] distances, distances in each direction.
      *
      */
     void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
-    /** brief Returns the distances in Nm from the segmentations to the edges of the channel.
+    /** \brief Returns the distances in Nm from the segmentations to the edges of the channel.
      * \param[in] segmentation, segmentation raw pointer.
      * \param[out] distances, distances in each direction.
      *
      */
     void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
 
-    /** brief Returns the vtkPolyData that define the edges of the channel.
+    /** \brief Returns the vtkPolyData that define the edges of the channel.
      *
      */
     vtkSmartPointer<vtkPolyData> channelEdges();
 
-    /** brief Return the volume un Nm^3.
+    /** \brief Return the volume un Nm^3.
      *
      */
     Nm computedVolume();
 
-    /** brief Sets the channel background color.
+    /** \brief Sets the channel background color.
      *
      */
     void setBackgroundColor(int value);
 
-    /** brief Returns the channel background color.
+    /** \brief Returns the channel background color.
      *
      */
     int backgroundColor() const;
 
-    /** brief Sets the threshold value.
+    /** \brief Sets the threshold value.
      *
      */
     void setThreshold(int value);
 
-    /** brief Returns the threshold value.
+    /** \brief Returns the threshold value.
      *
      */
     int threshold() const;
 
   protected:
-    /** brief Implements Extension::onExtendedItemSet().
+    /** \brief Implements Extension::onExtendedItemSet().
      *
      */
     virtual void onExtendedItemSet(Channel* item);
 
-    /** brief Implements Extension::cacheFail().
+    /** \brief Implements Extension::cacheFail().
      *
      */
     virtual QVariant cacheFail(const QString& tag) const
     { return QVariant(); }
 
   private:
-    /** brief Loads the edges from the cache and computes the adaptive edges.
+    /** \brief Loads the edges from the cache and computes the adaptive edges.
      *
      */
     void initializeEdges();
 
-    /** brief Launches the edges analizer task.
+    /** \brief Launches the edges analizer task.
      *
      */
     void analyzeChannel();
 
-    /** brief Computes the channel's adaptive edges.
+    /** \brief Computes the channel's adaptive edges.
      *
      */
     void computeAdaptiveEdges();
 
-    /** brief Loads edge values from cache.
+    /** \brief Loads edge values from cache.
      *
      */
     void loadEdgesCache();
 
-    /** brief Loads face values from cache.
+    /** \brief Loads face values from cache.
      *
      */
     void loadFacesCache();
 
   private slots:
-  	/** brief Perform operations after finishing the edges computation.
+  	/** \brief Perform operations after finishing the edges computation.
   	 *
   	 */
     void onChannelAnalyzed();
@@ -223,7 +223,7 @@ namespace ESPINA
     vtkSmartPointer<vtkPolyData> m_edges;
     vtkSmartPointer<vtkPolyData> m_faces[6];
 
-    /** brief Build a surface for each face the first time they're needed.
+    /** \brief Build a surface for each face the first time they're needed.
      *
      */
     void computeSurfaces();
@@ -235,14 +235,14 @@ namespace ESPINA
   using ChannelEdgesPtr  = ChannelEdges *;
   using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
 
-  /** brief Casts a channel extension pointer to a ChannelEdges extension raw pointer.
+  /** \brief Casts a channel extension pointer to a ChannelEdges extension raw pointer.
    *
    * Returns nullptr if the extension it's not a ChannelEdges extension.
    *
    */
   ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
 
-  /** brief Returns a smart pointer of the channel's ChannelEdges extension.
+  /** \brief Returns a smart pointer of the channel's ChannelEdges extension.
    *
    */
   ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);

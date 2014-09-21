@@ -39,62 +39,62 @@ namespace ESPINA {
   : public NeuroItemAdapter
   {
   public:
- 		/** brief ViewItemAdapter class virtual destructor.
+ 		/** \brief ViewItemAdapter class virtual destructor.
  		 *
  		 */
     virtual ~ViewItemAdapter()
     {}
 
- 		/** brief Returns true if the item is selected.
+ 		/** \brief Returns true if the item is selected.
  		 *
  		 */
     bool isSelected() const
     { return m_isSelected; }
 
- 		/** brief Sets the selection of the item.
+ 		/** \brief Sets the selection of the item.
  		 * \param[in] value, true to select it false otherwise.
  		 *
  		 */
     void setSelected(bool value)
     { m_isSelected = value; }
 
- 		/** brief Sets the visibility of the item.
+ 		/** \brief Sets the visibility of the item.
  		 * \param[in] value, true to set visible false otherwise.
  		 *
  		 */
     void setVisible(bool value)
     { m_isVisible = value; }
 
- 		/** brief Returns true if the item is visible.
+ 		/** \brief Returns true if the item is visible.
  		 *
  		 */
     bool isVisible() const
     { return m_isVisible; }
 
- 		/** brief Returns the item as a input smart pointer.
+ 		/** \brief Returns the item as a input smart pointer.
  		 *
  		 */
     virtual InputSPtr asInput() const = 0;
 
- 		/** brief Changes the output of the item.
+ 		/** \brief Changes the output of the item.
  		 * \param[in] input, input smart pointer as new output.
  		 *
  		 */
     virtual void changeOutput(InputSPtr input) = 0;
 
- 		/** brief Returns the filter smart pointer of the item.
+ 		/** \brief Returns the filter smart pointer of the item.
  		 *
  		 */
     FilterAdapterSPtr filter()
     { return m_filter; }
 
- 		/** brief Returns the filter smart pointer of the item.
+ 		/** \brief Returns the filter smart pointer of the item.
  		 *
  		 */
     const FilterAdapterSPtr filter() const
     { return m_filter; }
 
- 		/** brief Returns the output smart pointer of the item.
+ 		/** \brief Returns the output smart pointer of the item.
  		 *
  		 * Convenience method.
  		 *
@@ -102,7 +102,7 @@ namespace ESPINA {
     OutputSPtr output()
     { return m_viewItem->output(); }
 
- 		/** brief Returns the output smart pointer of the item.
+ 		/** \brief Returns the output smart pointer of the item.
  		 *
  		 * Convenience method
  		 *
@@ -110,38 +110,38 @@ namespace ESPINA {
     const OutputSPtr output() const
     { return m_viewItem->output(); }
 
- 		/** brief Returns the data of the specified type of the item.
+ 		/** \brief Returns the data of the specified type of the item.
  		 * \param[in] type, data type.
  		 *
  		 */
     DataSPtr get(Data::Type type)
     { return m_viewItem->data(type); }
 
- 		/** brief Returns the data of the specified type of the item.
+ 		/** \brief Returns the data of the specified type of the item.
  		 * \param[in] type, data type.
  		 *
  		 */
     const DataSPtr get(Data::Type type) const
     { return m_viewItem->data(type); }
 
- 		/** brief Returns the representation smart pointer of the specified type of the item.
+ 		/** \brief Returns the representation smart pointer of the specified type of the item.
  		 * \param[in] type, representation type.
  		 *
  		 */
     RepresentationSPtr representation(Representation::Type type) const;
 
- 		/** brief Returns the list of representations of the item.
+ 		/** \brief Returns the list of representations of the item.
  		 *
  		 */
     RepresentationSList representations() const
     { return m_representations.values(); }
 
- 		/** brief Returns the list of types the item has.
+ 		/** \brief Returns the list of types the item has.
  		 *
  		 */
     RepresentationTypeList representationTypes() const;
 
- 		/** brief Sets the representation factory of the item.
+ 		/** \brief Sets the representation factory of the item.
  		 * \param[in] factory, representation factory smart pointer.
  		 *
  		 */
@@ -149,7 +149,7 @@ namespace ESPINA {
     { m_factory = factory; }
 
   protected:
- 		/** brief ViewItemAdapter class constructor.
+ 		/** \brief ViewItemAdapter class constructor.
  		 * \param[in] filter, filter adapter smart pointer.
  		 * \param[in] item, view item smart pointer to adapt.
  		 *

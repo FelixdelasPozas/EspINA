@@ -31,18 +31,18 @@ namespace ESPINA {
   : public IO::AnalysisReader
   {
   public:
-  	/** brief Overrides IO::AnalisysReader::type().
+  	/** \brief Overrides IO::AnalisysReader::type().
   	 *
   	 */
     virtual QString type() const override
     { return "SegFileReader"; }
 
-    /** brief Overrides IO::AnalisysReader::supportedFileExtensions().
+    /** \brief Overrides IO::AnalisysReader::supportedFileExtensions().
      *
      */
     virtual ExtensionList supportedFileExtensions() const override;
 
-    /** brief Overrides IO::AnalisysReader::read().
+    /** \brief Overrides IO::AnalisysReader::read().
      *
      */
     virtual AnalysisSPtr read(const QFileInfo& file,

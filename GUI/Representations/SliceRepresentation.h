@@ -58,119 +58,119 @@ namespace ESPINA
     static const Representation::Type TYPE;
 
   public:
-    /** brief ChannelSliceRepresentation class constructor.
+    /** \brief ChannelSliceRepresentation class constructor.
 		 * \param[in] data, VolumetricData smart pointer of the data to represent.
  		 * \param[in] view, View2D pointer of the view this representation will be shown.
      *
      */
     explicit ChannelSliceRepresentation(DefaultVolumetricDataSPtr data, View2D *view);
 
-    /** brief ChannelSliceRepresentation class virtual destructor.
+    /** \brief ChannelSliceRepresentation class virtual destructor.
      *
      */
     virtual ~ChannelSliceRepresentation();
 
-    /** brief Implements Representation::settingsWidget().
+    /** \brief Implements Representation::settingsWidget().
      *
      */
     virtual RepresentationSettings *settingsWidget();
 
-    /** brief Overrides Representation::setColor().
+    /** \brief Overrides Representation::setColor().
      *
      */
     virtual void setColor(const QColor &color) override;
 
-    /** brief Overrides Representation::setBrightness().
+    /** \brief Overrides Representation::setBrightness().
      *
      */
     virtual void setBrightness(double value) override;
 
-    /** brief Overrides Representation::setContrast().
+    /** \brief Overrides Representation::setContrast().
      *
      */
     virtual void setContrast(double value) override;
 
-    /** brief Overrides Representation::setOpacity().
+    /** \brief Overrides Representation::setOpacity().
      *
      */
     virtual void setOpacity(double value) override;
 
-    /** brief Implements Representation::isInside() const.
+    /** \brief Implements Representation::isInside() const.
      *
      */
     virtual bool isInside(const NmVector3 &point) const;
 
-    /** brief Implements Representation::canRenderOnView() const.
+    /** \brief Implements Representation::canRenderOnView() const.
      *
      */
     virtual RenderableView canRenderOnView() const
     { return Representation::RENDERABLEVIEW_SLICE; }
 
-    /** brief Implements Representation::hasActor() const.
+    /** \brief Implements Representation::hasActor() const.
      *
      */
     virtual bool hasActor(vtkProp *actor) const;
 
-    /** brief Implements Representation::updateRepresentation().
+    /** \brief Implements Representation::updateRepresentation().
      *
      */
     virtual void updateRepresentation();
 
-    /** brief Implements Representation::getActors().
+    /** \brief Implements Representation::getActors().
      *
      */
     virtual QList<vtkProp*> getActors();
 
-    /** brief Sets the plane of the slice representation.
+    /** \brief Sets the plane of the slice representation.
      * \param[in] plane, plane of the representation.
      *
      */
     void setPlane(Plane plane)
     { m_planeIndex = normalCoordinateIndex(plane); }
 
-    /** brief Returns the plane of the representation.
+    /** \brief Returns the plane of the representation.
      *
      */
     Plane plane()
     { return toPlane(m_planeIndex); }
 
-    /** brief Implements Representation::crosshairDependent() const.
+    /** \brief Implements Representation::crosshairDependent() const.
      *
      */
     virtual bool crosshairDependent() const
     { return true; }
 
-    /** brief Implements Representation::needUpdate() const.
+    /** \brief Implements Representation::needUpdate() const.
      *
      */
     virtual bool needUpdate() const
     { return m_lastUpdatedTime != m_data->lastModified(); }
 
   protected:
-    /** brief Implements Representation::cloneImplementation(View2D*).
+    /** \brief Implements Representation::cloneImplementation(View2D*).
      *
      */
     virtual RepresentationSPtr cloneImplementation(View2D *view);
 
-    /** brief Implements Representation::cloneImplementation(View3D*).
+    /** \brief Implements Representation::cloneImplementation(View3D*).
      *
      */
     virtual RepresentationSPtr cloneImplementation(View3D *view)
     { return RepresentationSPtr(); }
 
-    /** brief Implements Representation::updateVisibility().
+    /** \brief Implements Representation::updateVisibility().
      *
      */
     virtual void updateVisibility(bool visible);
 
   private:
-    /** brief Helper method to set the view of the representation.
+    /** \brief Helper method to set the view of the representation.
      * \param[in] view, View2D raw pointer.
      *
      */
     void setView(View2D *view) { m_view = view; };
 
-    /** brief Helper method to initialize the vtk pipeline.
+    /** \brief Helper method to initialize the vtk pipeline.
      *
      */
     void initializePipeline();
@@ -193,7 +193,7 @@ namespace ESPINA
     static const Representation::Type TYPE;
 
   public:
-    /** brief SegmentationSliceRepresentation class constructor.
+    /** \brief SegmentationSliceRepresentation class constructor.
 		 * \param[in] data, VolumetricData smart pointer of the data to represent.
  		 * \param[in] view, View2D pointer of the view this representation will be shown.
      *
@@ -201,117 +201,117 @@ namespace ESPINA
     explicit SegmentationSliceRepresentation(DefaultVolumetricDataSPtr data,
                                              View2D *view);
 
-    /** brief SegmentationSliceRepresentation class destructor.
+    /** \brief SegmentationSliceRepresentation class destructor.
      *
      */
     virtual ~SegmentationSliceRepresentation();
 
-    /** brief Implements Representation::
+    /** \brief Implements Representation::
      *
      */
     virtual RepresentationSettings *settingsWidget();
 
-    /** brief Overrides Representation::serializeSettings().
+    /** \brief Overrides Representation::serializeSettings().
      *
      */
     virtual QString serializeSettings() override;
 
-    /** brief Overrides Representation::restoreSettings().
+    /** \brief Overrides Representation::restoreSettings().
      *
      */
     virtual void restoreSettings(QString settings) override;
 
-    /** brief Overrides Representation::setColor().
+    /** \brief Overrides Representation::setColor().
      *
      */
     virtual void setColor(const QColor &color) override;
 
-    /** brief Overrides Representation::color().
+    /** \brief Overrides Representation::color().
      *
      */
     virtual QColor color() const override;
 
-    /** brief Overrides Representation::setHighlighted().
+    /** \brief Overrides Representation::setHighlighted().
      *
      */
     virtual void setHighlighted(bool highlighted) override;
 
-    /** brief Implements Representation::isInside() const.
+    /** \brief Implements Representation::isInside() const.
      *
      */
     virtual bool isInside(const NmVector3 &point) const;
 
-    /** brief Implements Representation::canRenderOnView().
+    /** \brief Implements Representation::canRenderOnView().
      *
      */
     virtual RenderableView canRenderOnView() const
     { return Representation::RENDERABLEVIEW_SLICE; }
 
-    /** brief Implements Representation::hasActor() const.
+    /** \brief Implements Representation::hasActor() const.
      *
      */
     virtual bool hasActor(vtkProp *actor) const;
 
-    /** brief Implements Representation::updateRepresentation().
+    /** \brief Implements Representation::updateRepresentation().
      *
      */
     virtual void updateRepresentation();
 
-    /** brief Implements Representation::getActors().
+    /** \brief Implements Representation::getActors().
      *
      */
     virtual QList<vtkProp*> getActors();
 
-    /** brief Sets the plane of the slice representation.
+    /** \brief Sets the plane of the slice representation.
      * \param[in] plane, plane of the representation.
      *
      */
     void setPlane(Plane plane)
     { m_planeIndex = normalCoordinateIndex(plane); }
 
-    /** brief Returns the plane of the representation().
+    /** \brief Returns the plane of the representation().
      *
      */
     Plane plane()
     { return toPlane(m_planeIndex); }
 
-    /** brief Implements Representation::crosshairDependent() const.
+    /** \brief Implements Representation::crosshairDependent() const.
      *
      */
     virtual bool crosshairDependent() const
     { return true; }
 
-    /** brief Implements Representation::needUpdate() const.
+    /** \brief Implements Representation::needUpdate() const.
      *
      */
     virtual bool needUpdate() const
     { return m_lastUpdatedTime != m_data->lastModified(); }
 
   protected:
-    /** brief Implements Representation::cloneImplementeation(View2D*).
+    /** \brief Implements Representation::cloneImplementeation(View2D*).
      *
      */
     virtual RepresentationSPtr cloneImplementation(View2D *view);
 
-    /** brief Implements Representation::cloneImplementeation(View3D*).
+    /** \brief Implements Representation::cloneImplementeation(View3D*).
      *
      */
     virtual RepresentationSPtr cloneImplementation(View3D *view)
     { return RepresentationSPtr(); }
 
-    /** brief Implements Representation::updateVisibility().
+    /** \brief Implements Representation::updateVisibility().
      *
      */
     virtual void updateVisibility(bool visible);
 
   private:
-    /** brief Helper method to set the view of the representation.
+    /** \brief Helper method to set the view of the representation.
      * \param[in] view, View2D raw pointer.
      *
      */
     void setView(View2D *view) { m_view = view; };
 
-    /** brief Helper method to initialize the vtk pipeline.
+    /** \brief Helper method to initialize the vtk pipeline.
      *
      */
     void initializePipeline();

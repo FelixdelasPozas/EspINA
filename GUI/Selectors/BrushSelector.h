@@ -64,102 +64,102 @@ namespace ESPINA
       using Spacing = itkVolumeType::SpacingType;
 
     public:
-      /** brief BrushSelector class constructor.
+      /** \brief BrushSelector class constructor.
        *
        */
       explicit BrushSelector();
 
-      /** brief BrushSelector class virtual destructor.
+      /** \brief BrushSelector class virtual destructor.
        *
        */
       virtual ~BrushSelector();
 
-      /** brief Overrides EventHandler::filterEvent().
+      /** \brief Overrides EventHandler::filterEvent().
        *
        */
       virtual bool filterEvent(QEvent* e, RenderView* view = nullptr) override;
 
-      /** brief Sets the mode of the brush to erase/draw depending on the parameter.
+      /** \brief Sets the mode of the brush to erase/draw depending on the parameter.
        * \param[in] value, true to set to erase, sets to draw otherwise.
        *
        */
       void setEraseMode(bool value);
 
-      /** brief Sets the radius of the brush in screen pixels.
+      /** \brief Sets the radius of the brush in screen pixels.
        * \param[in] radius, radius of the brush.
        */
       void setRadius(int radius);
 
-      /** brief Returns the radius of the brush.
+      /** \brief Returns the radius of the brush.
        *
        */
       int radius() const
       { return m_displayRadius; }
 
-      /** brief Overrides EventHandler::cursor() const.
+      /** \brief Overrides EventHandler::cursor() const.
        *
        */
       QCursor cursor() const override
       { return m_cursor; }
 
-      /** brief Sets the border of the cursor for the paint mode.
+      /** \brief Sets the border of the cursor for the paint mode.
        * \param[in] color, new color for the border.
        *
        */
       void setBorderPaintColor(QColor color);
 
-      /** brief Sets the border of the cursor for the erase mode.
+      /** \brief Sets the border of the cursor for the erase mode.
        * \param[in] color, new color for the border.
        *
        */
       void setBorderEraseColor(QColor color);
 
-      /** brief Sets the cursor color().
+      /** \brief Sets the cursor color().
        * \param[in] color, new color.
        *
        */
       void setBrushColor(QColor color);
 
-      /** brief Sets the cursor image().
+      /** \brief Sets the cursor image().
        * \param[in] image, QImage.
        *
        */
       void setBrushImage(const QImage& image);
 
-      /** brief Returns the brush color.
+      /** \brief Returns the brush color.
        *
        */
       QColor getBrushColor();
 
-      /** brief Sets the opacity of the brush.
+      /** \brief Sets the opacity of the brush.
        * \param[in] value, value [0-100]
        *
        */
       void setBrushOpacity(int value);
 
-      /** brief Sets the @item used to specify the spacing of the stroke.
+      /** \brief Sets the @item used to specify the spacing of the stroke.
        * \param[in] item, view item adapter raw pointer.
        *
        */
       void setReferenceItem(ViewItemAdapterPtr item);
 
-      /** brief Returns the reference item used to specify the spacing of the stroke.
+      /** \brief Returns the reference item used to specify the spacing of the stroke.
        *
        */
       ViewItemAdapterPtr referenceItem() const
       { return m_item; }
 
-      /** brief Returns the reference spacing.
+      /** \brief Returns the reference spacing.
        *
        */
       Spacing referenceSpacing() const;
 
-      /** brief Returns the mask of the pixels selected.
+      /** \brief Returns the mask of the pixels selected.
        *
        */
       BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
 
-      /** brief Aborts the current operation.
+      /** \brief Aborts the current operation.
        *
        */
       void abortOperation();
@@ -169,7 +169,7 @@ namespace ESPINA
       void drawingModeChanged(bool);
 
     protected slots:
-    	/** brief Returns the BrushShape created with the specified parameters.
+    	/** \brief Returns the BrushShape created with the specified parameters.
     	 * \param[in] item, view item adapter raw pointer.
     	 * \param[in] center, center of the brush.
     	 * \param[in] radius, radius of the brush.
@@ -181,81 +181,81 @@ namespace ESPINA
                                           Nm radius,
                                           Plane plane) = 0;
 
-    	/** brief Updates the selector when the view changes the current slice.
+    	/** \brief Updates the selector when the view changes the current slice.
     	 *
     	 */
     	virtual void updateSliceChange();
 
     protected:
-    	/** brief Helper method to build the brush cursor.
+    	/** \brief Helper method to build the brush cursor.
     	 *
     	 */
       void buildCursor();
 
-      /** brief Returns the bounds of the brush shape in the given center.
+      /** \brief Returns the bounds of the brush shape in the given center.
        * \param[in] center, center of the brush.
        */
       Bounds buildBrushBounds(NmVector3 center);
 
-      /** brief Returns the brush center given the position in the display.
+      /** \brief Returns the brush center given the position in the display.
        * \param[out] center, center of the brush.
        * \param[in] pos, display position of the cursor.
        *
        */
       void getBrushPosition(NmVector3 &center, QPoint const pos);
 
-      /** brief Returns true if the stroke is valid given the center of the brush.
+      /** \brief Returns true if the stroke is valid given the center of the brush.
        * \param[in] center, center of the brush.
        *
        */
       bool validStroke(NmVector3 &center);
 
-      /** brief Updates the view when the user starts a stroke.
+      /** \brief Updates the view when the user starts a stroke.
        * \param[in] pos, position of the brush.
        * \param[in] view, raw pointer of the view to update.
        *
        */
       virtual void startStroke(QPoint pos, RenderView *view);
 
-      /** brief Updates the view when the stroke has another point.
+      /** \brief Updates the view when the stroke has another point.
        * \param[in] pos, position of the brush.
        * \param[in] view, raw pointer of the view to update.
        *
        */
       virtual void updateStroke(QPoint pos, RenderView *view);
 
-      /** brief Updates the view when the stroke ends.
+      /** \brief Updates the view when the stroke ends.
        * \param[in] pos, position of the brush.
        * \param[in] view, raw pointer of the view to update.
        *
        */
       virtual void stopStroke(RenderView *view);
 
-      /** brief Starts a preview in the given view.
+      /** \brief Starts a preview in the given view.
        * \param[in] view, raw pointer of the view to update.
        *
        */
       virtual void startPreview(RenderView *view);
 
-      /** brief Updates the preview in the given view.
+      /** \brief Updates the preview in the given view.
        * \param[in] view, raw pointer of the view to update.
        *
        */
       virtual void updatePreview(BrushShape shape, RenderView *view);
 
-      /** brief Stops the preview in the given view.
+      /** \brief Stops the preview in the given view.
        * \param[in] view, raw pointer of the view to update.
        *
        */
       virtual void stopPreview(RenderView *view);
 
-      /** brief Convenience method that returns true when the shift key is down in the keyboard.
+      /** \brief Convenience method that returns true when the shift key is down in the keyboard.
        *
        */
       inline bool ShiftKeyIsDown();
 
   private:
-      /** brief Updates the cursor and the view when the drawing mode changes.
+      /** \brief Updates the cursor and the view when the drawing mode changes.
        * \param[in] view, raw pointer of the view.
        *
        */

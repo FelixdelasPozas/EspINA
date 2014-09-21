@@ -32,7 +32,7 @@ namespace ESPINA
 	: public Filter
 	{
 		public:
-			/** brief FillHolesFilter class constructor.
+			/** \brief FillHolesFilter class constructor.
 			 * \param[in] inputs, list of input smart pointers.
 			 * \param[in] type, FillHolesFilter type.
 			 * \param[in] scheduler, scheduler smart pointer.
@@ -40,55 +40,55 @@ namespace ESPINA
 			 */
 			explicit FillHolesFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
 
-			/** brief FillHolesFilter class virtual destructor.
+			/** \brief FillHolesFilter class virtual destructor.
 			 *
 			 */
 			virtual ~FillHolesFilter();
 
-			/** brief Implements Persistent::restoreState().
+			/** \brief Implements Persistent::restoreState().
 			 *
 			 */
 			virtual void restoreState(const State& state);
 
-			/** brief Implements Persistent::state().
+			/** \brief Implements Persistent::state().
 			 *
 			 */
 			virtual State state() const;
 
 		protected:
-			/** brief Implements Filter::saveFilterSnapshot().
+			/** \brief Implements Filter::saveFilterSnapshot().
 			 *
 			 */
 			virtual Snapshot saveFilterSnapshot() const;
 
-			/** brief Implements Filter::needUpdate().
+			/** \brief Implements Filter::needUpdate().
 			 *
 			 */
 			virtual bool needUpdate() const;
 
-			/** brief Implements Filter::needUpdate(id).
+			/** \brief Implements Filter::needUpdate(id).
 			 *
 			 */
 			virtual bool needUpdate(Output::Id id) const;
 
-			/** brief Implements Filter::execute().
+			/** \brief Implements Filter::execute().
 			 *
 			 */
 			virtual void execute()
 			{	execute(0);	}
 
-			/** brief Implements Filter::execute(id).
+			/** \brief Implements Filter::execute(id).
 			 *
 			 */
 			virtual void execute(Output::Id id);
 
-			/** brief
+			/** \brief
 			 *
 			 */
 			virtual bool ignoreStorageContent() const
 			{	return false;	}
 
-			/** brief Implements Filter::invalidateEditedRegions().
+			/** \brief Implements Filter::invalidateEditedRegions().
 			 *
 			 */
 			virtual bool invalidateEditedRegions();

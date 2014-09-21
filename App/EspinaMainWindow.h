@@ -74,150 +74,150 @@ namespace ESPINA
     enum class MenuState: std::int8_t { OPEN_STATE, ADD_STATE };
 
   public:
-    /** brief EspinaMainWindow class constructor.
+    /** \brief EspinaMainWindow class constructor.
      * \param[in] plugins, list of ESPINA plugins to load.
      *
      */
     explicit EspinaMainWindow(QList<QObject *> &plugins);
 
-    /** brief EspinaMainWindow class destructor.
+    /** \brief EspinaMainWindow class destructor.
      *
      */
     virtual ~EspinaMainWindow();
 
   public slots:
-		/** brief Close current analysis.
+		/** \brief Close current analysis.
 		 *
 		 */
     bool closeCurrentAnalysis();
 
-    /** brief Opens an analysis from the recent list.
+    /** \brief Opens an analysis from the recent list.
      *
      */
     void openRecentAnalysis();
 
-    /** brief Close current analysis and load a new one.
+    /** \brief Close current analysis and load a new one.
      *
      */
     void openAnalysis();
 
-    /** brief Opens a list of analyses.
+    /** \brief Opens a list of analyses.
      * \param[in] files, list of files to open.
      *
      */
     void openAnalysis(const QStringList files);
 
-    /** brief Add new data from file to current analysis.
+    /** \brief Add new data from file to current analysis.
      *
      */
     void addToAnalysis();
 
-    /** brief Adds data from a file from the recent list to current analysis.
+    /** \brief Adds data from a file from the recent list to current analysis.
      *
      */
     void addRecentToAnalysis();
 
-    /** brief Adds a list of analysis to the current analysis.
+    /** \brief Adds a list of analysis to the current analysis.
       \param[in] files, list of files to add.
      *
      */
     void addToAnalysis(const QStringList files);
 
-    /** brief Merges a list of analysis into a sigle analysis.
+    /** \brief Merges a list of analysis into a sigle analysis.
      * \param[in] files, list of files to merge.
      *
      */
     AnalysisSPtr loadedAnalysis(const QStringList files);
 
-    /** brief Save current analysis.
+    /** \brief Save current analysis.
      *
      */
     void saveAnalysis();
 
-    /** brief Saves the current analysis (auto-save).
+    /** \brief Saves the current analysis (auto-save).
      *
      */
     void saveSessionAnalysis();
 
   private slots:
-		/** brief Updates application status bar.
+		/** \brief Updates application status bar.
 		 * \param[in] msg, message to show.
 		 *
 		 */
     void updateStatus(QString msg);
 
-    /** brief Updates the tooltip of the menu.
+    /** \brief Updates the tooltip of the menu.
      * \param[in] action, action that contains the tooltip.
      *
      */
     void updateTooltip(QAction *action);
 
-    /** brief Shows the preferences dialog.
+    /** \brief Shows the preferences dialog.
      *
      */
     void showPreferencesDialog();
 
-    /** brief Shows the about dialog.
+    /** \brief Shows the about dialog.
      *
      */
     void showAboutDialog();
 
-    /** brief Shows the raw information dialog.
+    /** \brief Shows the raw information dialog.
      *
      */
     void showRawInformation();
 
-    /** brief Sets the menu state as "open".
+    /** \brief Sets the menu state as "open".
      *
      */
     void openState()
     { m_menuState = MenuState::OPEN_STATE; }
 
-    /** brief Sets the menu state as "add".
+    /** \brief Sets the menu state as "add".
      *
      */
     void addState()
     { m_menuState = MenuState::ADD_STATE; }
 
-    /** brief Saves the current analysis to disk.
+    /** \brief Saves the current analysis to disk.
      *
      */
     void autosave();
 
-    /** brief Cancels current operation.
+    /** \brief Cancels current operation.
      *
      */
     void cancelOperation()
     { emit analysisClosed(); }
 
-    /** brief Updates the undo action text in the menu.
+    /** \brief Updates the undo action text in the menu.
      * \param[in] text, text of the operation to update.
      *
      */
     void undoTextChanged(QString text);
 
-    /** brief Updates the redo action text in the menu.
+    /** \brief Updates the redo action text in the menu.
      * \param[in] text, text of the operation to update.*
      *
      */
     void redoTextChanged(QString text);
 
-    /** brief Enables/Disables the redo action in the menu.
+    /** \brief Enables/Disables the redo action in the menu.
      *
      */
     void canRedoChanged(bool);
 
-    /** brief Enables/Disables the redo action in the menu.
+    /** \brief Enables/Disables the redo action in the menu.
      *
      */
     void canUndoChanged(bool);
 
-    /** brief Executes undo action.
+    /** \brief Executes undo action.
      *
      */
     void undoAction(bool);
 
-    /** brief Executes redo action.
+    /** \brief Executes redo action.
      *
      */
     void redoAction(bool);
@@ -228,59 +228,59 @@ namespace ESPINA
     void abortOperation();
 
   protected:
-    /** brief Overrides QWidget::closeEvent.
+    /** \brief Overrides QWidget::closeEvent.
      * \param[in] event, close event to manage.
      *
      */
     virtual void closeEvent(QCloseEvent *event) override;
 
   private:
-    /** brief Runs a series of test on the analysis to check for errors.
+    /** \brief Runs a series of test on the analysis to check for errors.
      *
      */
     ProblemList checkAnalysisConsistency();
 
-    /** brief Creates activity menu.
+    /** \brief Creates activity menu.
      *
      */
     void createActivityMenu();
 
-    /** brief Creates dynamic menu.
+    /** \brief Creates dynamic menu.
      * \param[in] entry, pair of <QStringList, Action *> object to add.
      *
      */
     void createDynamicMenu(MenuEntry entry);
 
-    /** brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
+    /** \brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
      *
      */
     void checkAutosave();
 
-    /** brief Adds a dock widget to the application.
+    /** \brief Adds a dock widget to the application.
      * param[in] area, area of the widget.
      * param[in] dock, raw pointer of the dock widget to add.
      *
      */
     void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
 
-    /** brief Adds a tool group to the application.
+    /** \brief Adds a tool group to the application.
      * \param[in] tools, tool group raw pointer.
      *
      */
     void registerToolGroup(ToolGroupPtr tools);
 
-    /** brief Loads a list of plugins in the application.
+    /** \brief Loads a list of plugins in the application.
      * \param[in] plugins, list of plugins to load.
      *
      */
     void loadPlugins(QList<QObject *> &plugins);
 
-    /** brief Returns true if the analysis have been modified.
+    /** \brief Returns true if the analysis have been modified.
      *
      */
     bool isModelModified();
 
-    /** brief Enables/disables the application widgets.
+    /** \brief Enables/disables the application widgets.
      *
      */
     void enableWidgets(bool value);

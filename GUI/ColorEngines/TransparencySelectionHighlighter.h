@@ -33,21 +33,21 @@ namespace ESPINA
 	class EspinaGUI_EXPORT TransparencySelectionHighlighter
 	{
 		public:
-			/** brief Returns the given color modified if the highlight flag is true.
+			/** \brief Returns the given color modified if the highlight flag is true.
 			 * \param[in] original, original color.
 			 * \param[in] highlight, true to highlight color false otherwise.
 			 *
 			 */
 			QColor color(const QColor &original, bool highlight = false);
 
-			/** brief Returns a LUT associated with the given color with two values,
+			/** \brief Returns a LUT associated with the given color with two values,
 			 * the color and the transparent background.
 			 *
 			 */
 			LUTSPtr lut(const QColor &original, bool highlight = false);
 
 		private:
-			/** brief Generates and returns a unique key for the given color.
+			/** \brief Generates and returns a unique key for the given color.
 			 * \param[in] color, color to generate a key.
 			 *
 			 */

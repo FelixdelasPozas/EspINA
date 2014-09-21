@@ -39,7 +39,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief ManualROITool class constructor.
+    /** \brief ManualROITool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
      * \param[in] undoStack. QUndoStack object raw pointer.
@@ -50,50 +50,50 @@ namespace ESPINA
                            QUndoStack      *undoStack,
                            ROIToolsGroup   *toolGroup);
 
-    /** brief ManualROITool class virtual destructor.
+    /** \brief ManualROITool class virtual destructor.
      *
      */
     virtual ~ManualROITool();
 
   protected slots:
-    /** brief Overrides ManualEditionTool::drawingModeChanged(bool) slot.
+    /** \brief Overrides ManualEditionTool::drawingModeChanged(bool) slot.
      *
      */
     void drawingModeChanged(bool) override;
 
-    /** brief Overrides ManualEditionTool::changeSelector(QAction *) slot.
+    /** \brief Overrides ManualEditionTool::changeSelector(QAction *) slot.
      *
      */
     void changeSelector(QAction *selectorAction) override;
 
-    /** brief Overrides ManualEditionTool::selectorInUse(bool) slot.
+    /** \brief Overrides ManualEditionTool::selectorInUse(bool) slot.
      *
      */
     void selectorInUse(bool value) override;
 
-    /** brief Overrides ManualEditionTool::drawStroke(Selector::Selection) slot.
+    /** \brief Overrides ManualEditionTool::drawStroke(Selector::Selection) slot.
      *
      */
     void drawStroke(Selector::Selection) override;
 
-    /** brief Updates the selector parameters based on application selected items.
+    /** \brief Updates the selector parameters based on application selected items.
      * \param[in] unused, unused value.
      *
      */
     void updateReferenceItem(SelectionSPtr unused);
 
-    /** brief Aborts current tool operation.
+    /** \brief Aborts current tool operation.
      *
      */
     void cancelROI();
 
-    /** brief Updates the selectors parameters based on ROI existence or not.
+    /** \brief Updates the selectors parameters based on ROI existence or not.
      *
      */
     void ROIChanged();
 
   private:
-    /** brief Shows/hides controls for this tool.
+    /** \brief Shows/hides controls for this tool.
      * \param[in] value, true to show controls, false otherwise.
      */
     void setControlVisibility(bool value);

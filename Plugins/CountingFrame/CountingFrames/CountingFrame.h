@@ -246,32 +246,32 @@ namespace CF {
     public:
       vtkTypeMacro(vtkCountingFrameCommand, vtkEspinaCommand);
 
-      /** brief VTK-style New() constructor, required for using vtkSmartPointer.
+      /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
        *
        */
       static vtkCountingFrameCommand *New()
       { return new vtkCountingFrameCommand(); }
 
-      /** brief Implements vtkEspinaCommand::Execute.
+      /** \brief Implements vtkEspinaCommand::Execute.
        *
        */
       void Execute(vtkObject *, unsigned long int, void*);
 
-      /** brief Implements vtkEspinaCommand::setWidget();
+      /** \brief Implements vtkEspinaCommand::setWidget();
        *
        */
       void setWidget(EspinaWidgetPtr widget)
       { m_widget = dynamic_cast<CountingFrame *>(widget); }
 
     private:
-      /** brief vtkCountingFrameCommand class private constructor.
+      /** \brief vtkCountingFrameCommand class private constructor.
        *
        */
       explicit vtkCountingFrameCommand()
       : m_widget{nullptr}
       {}
 
-      /** brief vtkCountingFrameCommand class private destructor.
+      /** \brief vtkCountingFrameCommand class private destructor.
        *
        */
       virtual ~vtkCountingFrameCommand()

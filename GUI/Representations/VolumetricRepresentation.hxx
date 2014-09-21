@@ -58,7 +58,7 @@ namespace ESPINA
       static const Representation::Type TYPE;
 
     public:
-      /** brief VolumetricRepresentation class constructor.
+      /** \brief VolumetricRepresentation class constructor.
        * \param[in] data, volumetric data smart pointer of the data to represent.
        * \param[in] view, renderview raw pointer the representation will be shown.
        *
@@ -66,89 +66,89 @@ namespace ESPINA
       explicit VolumetricRepresentation(VolumetricDataSPtr<T> data,
                                         RenderView *view);
 
-      /** brief VolumetricRepresentation class virtual destructor.
+      /** \brief VolumetricRepresentation class virtual destructor.
        *
        */
       virtual ~VolumetricRepresentation();
 
-      /** brief Implements Representation::settingsWidget().
+      /** \brief Implements Representation::settingsWidget().
        *
        */
       virtual RepresentationSettings *settingsWidget();
 
-      /** brief Overrides Representation::setColor().
+      /** \brief Overrides Representation::setColor().
        *
        */
       virtual void setColor(const QColor &color) override;
 
-      /** brief Overrides Representation::setHighlighted().
+      /** \brief Overrides Representation::setHighlighted().
        *
        */
       virtual void setHighlighted(bool highlighted) override;
 
-      /** brief Implements Representation::isInside() const.
+      /** \brief Implements Representation::isInside() const.
        *
        */
       virtual bool isInside(const NmVector3 &point) const;
 
-      /** brief Implements Representation::canRenderOnView() const.
+      /** \brief Implements Representation::canRenderOnView() const.
        *
        */
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
 
-      /** brief Implements Representation::hasActor() const.
+      /** \brief Implements Representation::hasActor() const.
        *
        */
       virtual bool hasActor(vtkProp *actor) const;
 
-      /** brief Implements Representation::updateRepresentation().
+      /** \brief Implements Representation::updateRepresentation().
        *
        */
       virtual void updateRepresentation();
 
-      /** brief Implements Representation::getActors().
+      /** \brief Implements Representation::getActors().
        *
        */
       virtual QList<vtkProp*> getActors();
 
-      /** brief Implements Representation::crosshairDependent().
+      /** \brief Implements Representation::crosshairDependent().
        *
        */
       virtual bool crosshairDependent() const;
 
-      /** brief Implements Representation::needUpdate().
+      /** \brief Implements Representation::needUpdate().
        *
        */
       virtual bool needUpdate() const
       { return m_lastUpdatedTime != m_data->lastModified(); }
 
     protected:
-      /** brief Implements Representation::cloneImplementation(View2D*).
+      /** \brief Implements Representation::cloneImplementation(View2D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
-      /** brief Implements Representation::cloneImplementation(View3D*).
+      /** \brief Implements Representation::cloneImplementation(View3D*).
        *
        */
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
-      /** brief Implements Representation::updateVisibility().
+      /** \brief Implements Representation::updateVisibility().
        *
        */
       virtual void updateVisibility(bool visible);
 
     private:
-      /** brief Helper method to set the view.
+      /** \brief Helper method to set the view.
        * \param[in] view, View3D raw pointer.
        *
        */
       void setView(View3D *view)
       { m_view = view; }
 
-      /** brief Helper method to initialize the vtk pipeline.
+      /** \brief Helper method to initialize the vtk pipeline.
        *
        */
       void initializePipeline();

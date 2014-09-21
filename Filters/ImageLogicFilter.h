@@ -40,7 +40,7 @@ namespace ESPINA
       };
 
     public:
-      /** brief ImageLogicFilter class constructor.
+      /** \brief ImageLogicFilter class constructor.
 			 * \param[in] inputs, list of input smart pointers.
 			 * \param[in] type, ImageLogicFilter type.
 			 * \param[in] scheduler, scheduler smart pointer.
@@ -48,71 +48,71 @@ namespace ESPINA
        */
       explicit ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
-      /** brief ImageLogicFilter class virtual destructor.
+      /** \brief ImageLogicFilter class virtual destructor.
        *
        */
       virtual ~ImageLogicFilter();
 
-      /** brief Implements Persistent::restoreState().
+      /** \brief Implements Persistent::restoreState().
        *
        */
       virtual void restoreState(const State& state);
 
 
-      /** brief Implements Persistent::state().
+      /** \brief Implements Persistent::state().
        *
        */
       virtual State state() const;
 
-      /** brief Sets the operation to be executed by the filter.
+      /** \brief Sets the operation to be executed by the filter.
        * \param[in] op, Operation type.
        *
        */
       void setOperation(Operation op);
 
     protected:
-      /** brief Implements Filter::saveFilterSnapshot().
+      /** \brief Implements Filter::saveFilterSnapshot().
        *
        */
       virtual Snapshot saveFilterSnapshot() const;
 
-      /** brief Implements Filter::needUpdate().
+      /** \brief Implements Filter::needUpdate().
        *
        */
       virtual bool needUpdate() const;
 
-      /** brief Implements Filter::needUpdate(oid).
+      /** \brief Implements Filter::needUpdate(oid).
        *
        */
       virtual bool needUpdate(Output::Id id) const;
 
-      /** brief Implements Filter::execute().
+      /** \brief Implements Filter::execute().
        *
        */
       virtual void execute();
 
-      /** brief Implements Filter::execute(oid).
+      /** \brief Implements Filter::execute(oid).
        *
        */
       virtual void execute(Output::Id id);
 
-      /** brief Implements Filter::ignoreStorageContents().
+      /** \brief Implements Filter::ignoreStorageContents().
        *
        */
       virtual bool ignoreStorageContent() const;
 
-      /** brief Implements Filter::invalidateEditedRegions().
+      /** \brief Implements Filter::invalidateEditedRegions().
        *
        */
       virtual bool invalidateEditedRegions();
 
     protected:
-      /** brief Performs the logical addition of the input segmentations.
+      /** \brief Performs the logical addition of the input segmentations.
        *
        */
       void addition();
 
-      /** brief Performs the subtraction off all the segmentations from the
+      /** \brief Performs the subtraction off all the segmentations from the
        * first one.
        *
        */

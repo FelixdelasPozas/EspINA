@@ -42,7 +42,7 @@ namespace ESPINA
   : public T
   {
   public:
-  	/** brief Instanciates a new object.
+  	/** \brief Instanciates a new object.
   	 *
   	 */
     static EspinaInteractorAdapter* New()
@@ -52,7 +52,7 @@ namespace ESPINA
       return result;
     }
 
-    /** brief EspinaInteractorAdapter class virtual destructor.
+    /** \brief EspinaInteractorAdapter class virtual destructor.
      *
      */
     virtual ~EspinaInteractorAdapter()
@@ -60,7 +60,7 @@ namespace ESPINA
 
     vtkTypeMacro(EspinaInteractorAdapter, T);
 
-    /** brief Process the given event.
+    /** \brief Process the given event.
      * \param[in] event, vtk event to process.
      *
      */
@@ -74,7 +74,7 @@ namespace ESPINA
         return this->EventCallbackCommand->GetAbortFlag();
     }
 
-    /** brief Process Qt events.
+    /** \brief Process Qt events.
      * \param[in] event, raw pointer of the QEvent to process.
      *
      */
@@ -155,7 +155,7 @@ namespace ESPINA
     }
 
   private:
-    /** brief EspinaInteractorAdapter class private constructor.
+    /** \brief EspinaInteractorAdapter class private constructor.
      *
      */
     explicit EspinaInteractorAdapter()

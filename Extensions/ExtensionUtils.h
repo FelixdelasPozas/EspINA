@@ -27,7 +27,7 @@
 
 namespace ESPINA
 {
-	/** brief Templatized extension retrieval. The extended item must
+	/** \brief Templatized extension retrieval. The extended item must
 	 * be extended by the templated extension.
 	 * \param[in] item, extended item.
 	 *
@@ -45,7 +45,7 @@ namespace ESPINA
     return extension;
   };
 
-	/** brief Templatized extension retrieval. In the case the extended item
+	/** \brief Templatized extension retrieval. In the case the extended item
 	 * haven't got the extension, it's created and returned.
 	 * \param[in] item, extended item.
 	 *

@@ -38,7 +38,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/** brief AddClassificationCommand class constructor.
+  	/** \brief AddClassificationCommand class constructor.
   	 * \param[in] classification, smart pointer of the classification adapter to add.
   	 * \param[in] model, raw pointer of the model adapter.
   	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
@@ -48,18 +48,18 @@ namespace ESPINA
                                       ModelAdapter              *model,
                                       QUndoCommand              *parent = nullptr);
 
-    /** brief Overrides QUndoCommand::redo().
+    /** \brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /** brief Overrides QUndoCommand::undo().
+    /** \brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;
 
   private:
-    /** brief Helper method to swap new-old classifications.
+    /** \brief Helper method to swap new-old classifications.
      *
      */
     void swapClassification();

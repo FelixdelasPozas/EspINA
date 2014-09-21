@@ -41,43 +41,43 @@ namespace ESPINA
   : public NeuroItemAdapter
   {
   public:
-  	/** brief SampleAdater class virtual destructor.
+  	/** \brief SampleAdater class virtual destructor.
   	 *
   	 */
     virtual ~SampleAdapter();
 
-    /** brief Implements ItemAdapter::data().
+    /** \brief Implements ItemAdapter::data().
      *
      */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /** brief Implements ItemAdapter::setData().
+    /** \brief Implements ItemAdapter::setData().
      *
      */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    /** brief Implements ItemAdapter::type().
+    /** \brief Implements ItemAdapter::type().
      *
      */
     virtual ItemAdapter::Type type() const
     { return Type::SAMPLE; }
 
-    /** brief Sets the name of the sample.
+    /** \brief Sets the name of the sample.
      * \param[in] name, name of the sample.
      */
     void setName(const QString& name);
 
-    /** brief Returns the name of the sample.
+    /** \brief Returns the name of the sample.
      *
      */
     QString name() const;
 
-    /** brief Sets the position (origin) of the sample.
+    /** \brief Sets the position (origin) of the sample.
      *
      */
     void setPosition(const NmVector3& point);
 
-    /** brief Returns the position (origin) of the sample.
+    /** \brief Returns the position (origin) of the sample.
      *
      */
     NmVector3 position() const;
@@ -94,7 +94,7 @@ namespace ESPINA
     Bounds bounds() const;
 
   private:
-    /** brief SampleAdapter class constructor.
+    /** \brief SampleAdapter class constructor.
      * \param[in] sample, smart pointer of the sample to adapt.
      *
      */
@@ -111,35 +111,35 @@ namespace ESPINA
     friend bool operator==(SampleSPtr lhs, SampleAdapterSPtr rhs);
   };
 
-  /** brief Equality operation between a sample adapter smart pointer and a sample smart pointer.
+  /** \brief Equality operation between a sample adapter smart pointer and a sample smart pointer.
    * \param[in] lhs, sample adapter smart pointer.
    * \param[in] rhs, sample smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator==(SampleAdapterSPtr lhs, SampleSPtr rhs);
 
-  /** brief Equality operation between a sample smart pointer and a sample adapter smart pointer.
+  /** \brief Equality operation between a sample smart pointer and a sample adapter smart pointer.
    * \param[in] lhs, sample smart pointer.
    * \param[in] rhs, sample adapter smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator==(SampleSPtr lhs, SampleAdapterSPtr rhs);
 
-  /** brief Inequality operation between a sample adapter smart pointer and a sample smart pointer.
+  /** \brief Inequality operation between a sample adapter smart pointer and a sample smart pointer.
    * \param[in] lhs, sample adapter smart pointer.
    * \param[in] rhs, sample smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator!=(SampleAdapterSPtr lhs, SampleSPtr rhs);
 
-  /** brief Inequality operation between a sample smart pointer and a sample adapter smart pointer.
+  /** \brief Inequality operation between a sample smart pointer and a sample adapter smart pointer.
    * \param[in] lhs, sample smart pointer.
    * \param[in] rhs, sample adapter smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator!=(SampleSPtr lhs, SampleAdapterSPtr rhs);
 
-  /** brief Returns the sample adapter raw pointer given a item adapter raw pointer.
+  /** \brief Returns the sample adapter raw pointer given a item adapter raw pointer.
    * \param[in] item, item adapter raw pointer.
    *
    */

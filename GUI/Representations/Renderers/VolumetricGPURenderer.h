@@ -39,51 +39,51 @@ namespace ESPINA
   : public VolumetricRenderer<T>
   {
     public:
-  		/** brief VolumetricGPURenderer class constructor.
+  		/** \brief VolumetricGPURenderer class constructor.
   		 * \param[in] parent, raw pointer of the QObject parent of this one.
   		 *
   		 */
       explicit VolumetricGPURenderer(QObject* parent = nullptr);
 
-  		/** brief VolumetricGPURenderer class virtual destructor.
+  		/** \brief VolumetricGPURenderer class virtual destructor.
   		 *
   		 */
       virtual ~VolumetricGPURenderer();
 
-  		/** brief Implments Renderer::icon() const.
+  		/** \brief Implments Renderer::icon() const.
   		 *
   		 */
       virtual const QIcon icon() const
       { return QIcon(":/espina/voxelGPU.png"); }
 
-  		/** brief Implements Renderer::name() const.
+  		/** \brief Implements Renderer::name() const.
   		 *
   		 */
       virtual const QString name() const
       { return "Volumetric GPU"; }
 
-  		/** brief Implements Renderer::tooltip() const.
+  		/** \brief Implements Renderer::tooltip() const.
   		 *
   		 */
       virtual const QString tooltip() const
       { return "Segmentation's GPU Rendered Volumes"; }
 
-  		/** brief Implements RepresentationRenderer::addRepresentation().
+  		/** \brief Implements RepresentationRenderer::addRepresentation().
   		 *
   		 */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-  		/** brief Implements RepresentationRenderer::removeRepresentation().
+  		/** \brief Implements RepresentationRenderer::removeRepresentation().
   		 *
   		 */
       virtual void removeRepresentation(RepresentationSPtr rep);
 
-  		/** brief Implements RepresentationRenderer::managesRepresentation() const.
+  		/** \brief Implements RepresentationRenderer::managesRepresentation() const.
   		 *
   		 */
       virtual bool managesRepresentation(const QString &representationType) const;
 
-  		/** brief Implements Renderer::clone().
+  		/** \brief Implements Renderer::clone().
   		 *
   		 */
       virtual RendererSPtr clone() const {return RendererSPtr(new VolumetricGPURenderer());}

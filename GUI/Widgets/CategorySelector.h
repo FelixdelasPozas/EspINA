@@ -38,7 +38,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief CategorySelector class constructor.
+    /** \brief CategorySelector class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] parent, raw pointer of the QObject parent of this one.
      *
@@ -46,18 +46,18 @@ namespace ESPINA
     explicit CategorySelector(ModelAdapterSPtr model,
                               QObject         *parent = nullptr);
 
-    /** brief Overrides QWidgetAction::createWidget().
+    /** \brief Overrides QWidgetAction::createWidget().
      *
      */
     virtual QWidget* createWidget(QWidget* parent) override;
 
-    /** brief Selects the given category in the widget.
+    /** \brief Selects the given category in the widget.
      * \param[in] category, smart pointer of the category adapter to select.
      *
      */
     void selectCategory(CategoryAdapterSPtr category);
 
-    /** brief Returns the categoty selected in the widget.
+    /** \brief Returns the categoty selected in the widget.
      *
      */
     CategoryAdapterSPtr selectedCategory();
@@ -67,24 +67,24 @@ namespace ESPINA
     void widgetCreated();
 
   private slots:
-  	/** brief Signals the change of category in the widget.
+  	/** \brief Signals the change of category in the widget.
   	 * \param[in] index, model index of the new category.
   	 *
   	 */
     void categorySelected(const QModelIndex& index);
 
-    /** brief Helper method to release memory when a widget is destroyed.
+    /** \brief Helper method to release memory when a widget is destroyed.
      * \param[in] object, raw pointer of the destroyed object.
      *
      */
     void onWidgetDestroyed(QObject* object);
 
-    /** brief Invalidates the state of all the objects in the selector.
+    /** \brief Invalidates the state of all the objects in the selector.
      *
      */
     void invalidateState();
 
-    /** brief Resets the model of all the objects in the selector.
+    /** \brief Resets the model of all the objects in the selector.
      *
      */
     void resetRootItem();

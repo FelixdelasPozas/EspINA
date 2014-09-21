@@ -37,7 +37,7 @@ namespace ESPINA {
       : public Filter
       {
       public:
-      	/** brief ReadOnlyFilter class constructor.
+      	/** \brief ReadOnlyFilter class constructor.
       	 * \param[in] inputs, list of input smart pointers.
       	 * \param[in] type, filter type.
       	 *
@@ -46,56 +46,56 @@ namespace ESPINA {
         : Filter(inputs, type, SchedulerSPtr())
         {}
 
-      	/** brief Implements Persistent::restoreState().
+      	/** \brief Implements Persistent::restoreState().
       	 *
       	 */
         virtual void restoreState(const State& state)
         { m_state = state; }
 
-      	/** brief Implements Persistent::state().
+      	/** \brief Implements Persistent::state().
       	 *
       	 */
         virtual State state() const
         { return m_state; }
 
       protected:
-      	/** brief Implements Filter::saveFilterSnapshot().
+      	/** \brief Implements Filter::saveFilterSnapshot().
       	 *
       	 */
         virtual Snapshot saveFilterSnapshot() const
         {return Snapshot(); }
 
-      	/** brief
+      	/** \brief
       	 *
       	 */
         virtual bool needUpdate() const
         { return m_outputs.isEmpty();}
 
-      	/** brief Implements Filter::needUpdate().
+      	/** \brief Implements Filter::needUpdate().
       	 *
       	 */
         virtual bool needUpdate(Output::Id id) const
         { return !m_outputs.contains(id) || !m_outputs[id]->isValid(); }
 
-      	/** brief Implements Filter::execute().
+      	/** \brief Implements Filter::execute().
       	 *
       	 */
         virtual void execute()
         {}
 
-      	/** brief Implements Filter::execute(id).
+      	/** \brief Implements Filter::execute(id).
       	 *
       	 */
         virtual void execute(Output::Id id)
         {}
 
-      	/** brief Implements Filter::ignoreStorageContent().
+      	/** \brief Implements Filter::ignoreStorageContent().
       	 *
       	 */
         virtual bool ignoreStorageContent() const
         { return false; }
 
-      	/** brief Implements Filter::invalidateEditedRegions().
+      	/** \brief Implements Filter::invalidateEditedRegions().
       	 *
       	 */
         virtual bool invalidateEditedRegions()

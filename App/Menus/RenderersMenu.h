@@ -39,7 +39,7 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/** brief RenderersMenu class constructor.
+			/** \brief RenderersMenu class constructor.
 			 * \param[in] vm, view manager smart pointer.
 			 * \param[in] parent, QWidget raw pointer of the parent of the menu.
 			 *
@@ -47,30 +47,30 @@ namespace ESPINA
       explicit RenderersMenu(ViewManagerSPtr vm,
                              QWidget* parent);
 
-      /** brief RenderersMenu class virtual destructor.
+      /** \brief RenderersMenu class virtual destructor.
        *
        */
       virtual ~RenderersMenu();
 
-      /** brief Adds a renderer to the menu.
+      /** \brief Adds a renderer to the menu.
        * \param[in] renderer, renderer smart pointer to add to the menu.
        *
        */
       void addRenderer(RendererSPtr renderer);
 
-      /** brief Removes a renderer from the menu.
+      /** \brief Removes a renderer from the menu.
        * \param[in] renderer, renderer smart pointer to remove from the menu.
        *
        */
       void removeRenderer(RendererSPtr renderer);
 
-      /** brief Shadows QMenu::clear().
+      /** \brief Shadows QMenu::clear().
        *
        */
       void clear();
 
     protected slots:
-    	/** brief Manages activation of one of the menu entries.
+    	/** \brief Manages activation of one of the menu entries.
     	 *
     	 */
       void activate(QAction *);

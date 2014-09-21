@@ -30,7 +30,7 @@ class AboutDialog
 , public Ui::AboutDialog
 {
 	public:
-		/** brief AboutDialog class constructor.
+		/** \brief AboutDialog class constructor.
 		 *
 		 */
 		explicit AboutDialog();

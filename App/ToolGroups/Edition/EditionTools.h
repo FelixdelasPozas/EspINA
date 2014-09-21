@@ -41,12 +41,12 @@ namespace ESPINA
     class ManualFilterFactory
     : public FilterFactory
     {
-    	/** brief Implements FilterFactory::createFilter().
+    	/** \brief Implements FilterFactory::createFilter().
     	 *
     	 */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
-    	/** brief Implements FilterFactory::providedFilters().
+    	/** \brief Implements FilterFactory::providedFilters().
     	 *
     	 */
       virtual FilterTypeList providedFilters() const;
@@ -57,7 +57,7 @@ namespace ESPINA
 
     Q_OBJECT
   public:
-    /** brief EditionTools class constructor.
+    /** \brief EditionTools class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] dactory, factory smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -76,39 +76,39 @@ namespace ESPINA
      */
     virtual ~EditionTools();
 
-    /** brief Implements ToolGroup::setEnabled().
+    /** \brief Implements ToolGroup::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /** brief Implements ToolGroup::enabled().
+    /** \brief Implements ToolGroup::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** brief Implements ToolGroup::tools().
+    /** \brief Implements ToolGroup::tools().
      *
      */
     virtual ToolSList tools();
 
   public slots:
-		/** brief Updates the tools based on current selection.
+		/** \brief Updates the tools based on current selection.
 		 *
 		 */
     void selectionChanged();
 
-    /** brief Aborts current operation (if any).
+    /** \brief Aborts current operation (if any).
      *
      */
     void abortOperation();
 
-    /** brief Adds/Modifies a segmentation with the stroke.
+    /** \brief Adds/Modifies a segmentation with the stroke.
      *
      */
     void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
 
   private slots:
-  	/** brief Deletes a segmentation from the model if all its voxels have been erased.
+  	/** \brief Deletes a segmentation from the model if all its voxels have been erased.
   	 *
   	 */
     void onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEntered);

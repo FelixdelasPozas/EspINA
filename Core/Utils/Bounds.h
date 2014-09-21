@@ -81,7 +81,7 @@ namespace ESPINA
        */
       Bounds(std::initializer_list<double> bounds);
 
-      /** brief Bounds class constructor.
+      /** \brief Bounds class constructor.
        * \param[in] point.
        *
        * Constructs the bounds of a point.
@@ -97,13 +97,13 @@ namespace ESPINA
       bool areValid() const
       { return m_bounds[0] <= m_bounds[1] && m_bounds[2] <= m_bounds[3] &&m_bounds[4] <= m_bounds[5]; }
 
-      /** brief Bounds operator[int]
+      /** \brief Bounds operator[int]
        *
        */
       double& operator[](int idx)
       { return m_bounds[idx]; }
 
-      /** brief Bounds operator[int] const
+      /** \brief Bounds operator[int] const
        *
        */
       const double& operator[](int idx) const
@@ -159,7 +159,7 @@ namespace ESPINA
       double lenght(const Axis dir) const
       { return m_bounds[2*idx(dir)+1] - m_bounds[2*idx(dir)]; }
 
-      /** brief Dumps the contents of the bounds to a formatted QString.
+      /** \brief Dumps the contents of the bounds to a formatted QString.
        *
        */
       QString toString() const;
@@ -220,27 +220,27 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point, const NmVector3 &spacing=NmVector3{1,1,1});
 
-  /** brief Bounds operator<< for streams.
+  /** \brief Bounds operator<< for streams.
    *
    */
   std::ostream&  EspinaCore_EXPORT operator<<(std::ostream& os, const Bounds& bounds);
 
-  /** brief Bounds operator<< for QDebug.
+  /** \brief Bounds operator<< for QDebug.
    *
    */
   QDebug EspinaCore_EXPORT operator<< (QDebug d, const Bounds &bounds);
 
-  /** brief Bounds equality operator.
+  /** \brief Bounds equality operator.
    *
    */
   bool EspinaCore_EXPORT operator==(const Bounds& lhs, const Bounds& rhs);
 
-  /** brief Bounds inequality operator.
+  /** \brief Bounds inequality operator.
    *
    */
   bool EspinaCore_EXPORT operator!=(const Bounds& lhs, const Bounds& rhs);
 
-  /** brief Returns true if the blocks are adjacent and the bounding box is the union of both.
+  /** \brief Returns true if the blocks are adjacent and the bounding box is the union of both.
    * \param[in] lhs, bounds object.
    * \param[in] rhs, bounds object.
    *

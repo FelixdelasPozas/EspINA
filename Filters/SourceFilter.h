@@ -32,7 +32,7 @@ namespace ESPINA
   : public Filter
   {
   public:
-  	/** brief SourceFilter class constructor.
+  	/** \brief SourceFilter class constructor.
 		 * \param[in] inputs, list of input smart pointers.
 		 * \param[in] type, SourceFilter type.
 		 * \param[in] scheduler, scheduler smart pointer.
@@ -44,25 +44,25 @@ namespace ESPINA
     : Filter(inputs, type, scheduler)
     {};
 
-    /** brief SourceFilter class virtual destructor.
+    /** \brief SourceFilter class virtual destructor.
      *
      */
     virtual ~SourceFilter()
     {};
 
-    /** brief Implements Persistent::restoreState().
+    /** \brief Implements Persistent::restoreState().
      *
      */
     virtual void restoreState(const State &state)
     {};
 
-    /** brief Implements Persistent::state().
+    /** \brief Implements Persistent::state().
      *
      */
     virtual State state() const
     { return State(); }
 
-    /** brief Adds an output to the filter.
+    /** \brief Adds an output to the filter.
      * \param[in] id, id of the output.
      * \param[in] output, Output object smart pointer.
      *
@@ -70,41 +70,41 @@ namespace ESPINA
     void addOutput(Output::Id id, OutputSPtr output);
 
   protected:
-    /** brief Implements Filter::saveFilterSnapshot().
+    /** \brief Implements Filter::saveFilterSnapshot().
      *
      */
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
-    /** brief Implements Filter::needUpdate().
+    /** \brief Implements Filter::needUpdate().
      *
      */
     virtual bool needUpdate() const
     { return false; }
 
-    /** brief Implements Filter::needUpdate(oid).
+    /** \brief Implements Filter::needUpdate(oid).
      *
      */
     virtual bool needUpdate(Output::Id oId) const;
 
-    /** brief Implements Filter::execute().
+    /** \brief Implements Filter::execute().
      *
      */
     virtual void execute()
     { execute(0); }
 
-    /** brief Implements Filter::execute(id).
+    /** \brief Implements Filter::execute(id).
      *
      */
     virtual void execute(Output::Id oId);
 
-    /** brief Implements Filter::ignoreStorageContent().
+    /** \brief Implements Filter::ignoreStorageContent().
      *
      */
     virtual bool ignoreStorageContent() const
     { return false; }
 
-    /** brief Implements Filter::invalidateEditedRegions().
+    /** \brief Implements Filter::invalidateEditedRegions().
      *
      */
     virtual bool invalidateEditedRegions()

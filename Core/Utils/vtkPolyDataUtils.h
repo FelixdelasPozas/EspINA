@@ -36,13 +36,13 @@ namespace ESPINA
   {
     struct IO_Error_Exception{};
 
-    /** brief Converts the vtkPolyData object to a byte array and returns it.
+    /** \brief Converts the vtkPolyData object to a byte array and returns it.
      * \param[in] polyData, smart pointer of the vtkPolyData object to convert.
      *
      */
     QByteArray EspinaCore_EXPORT savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polydata) throw (IO_Error_Exception);
 
-    /** brief Converts a byte array to a vtkPolyData smart pointer and returns it.
+    /** \brief Converts a byte array to a vtkPolyData smart pointer and returns it.
      * \param[in] filename, file name.
      *
      */

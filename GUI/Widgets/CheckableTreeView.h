@@ -31,17 +31,17 @@ class EspinaGUI_EXPORT CheckableTreeView
 {
   Q_OBJECT
 public:
-  /** brief CheckableTreeView class constructor.
+  /** \brief CheckableTreeView class constructor.
    * \param[in] parent, raw pointer of the QWidget parent of this one.
    */
   explicit CheckableTreeView(QWidget* parent = nullptr);
 
-  /** brief CheckableTreeView class virtual destructor.
+  /** \brief CheckableTreeView class virtual destructor.
    *
    */
   virtual ~CheckableTreeView();
 
-  /** brief Overrides QTreeView::mouseReleaseEvent().
+  /** \brief Overrides QTreeView::mouseReleaseEvent().
    *
    */
   virtual void mouseReleaseEvent(QMouseEvent* event) override;

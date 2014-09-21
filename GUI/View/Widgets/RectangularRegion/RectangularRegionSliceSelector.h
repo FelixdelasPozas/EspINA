@@ -35,60 +35,60 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief RectangularRegionSliceSelector class constructor.
+    /** \brief RectangularRegionSliceSelector class constructor.
      *
      */
     explicit RectangularRegionSliceSelector(RectangularRegion *region);
 
-    /** brief RectangularRegionSliceSelector class destructor.
+    /** \brief RectangularRegionSliceSelector class destructor.
      *
      */
     virtual ~RectangularRegionSliceSelector();
 
-    /** brief Overrides SliceSelectorWidget::setPlane().
+    /** \brief Overrides SliceSelectorWidget::setPlane().
      *
      */
     virtual void setPlane(const Plane plane) override;
 
-    /** brief Implements SliceSelectorWidget::leftWidget().
+    /** \brief Implements SliceSelectorWidget::leftWidget().
      *
      */
     virtual QWidget *leftWidget () const;
 
-    /** brief Implements SliceSelectorWidget::rightWidget().
+    /** \brief Implements SliceSelectorWidget::rightWidget().
      *
      */
     virtual QWidget *rightWidget() const;
 
-    /** brief Sets the left widget label.
+    /** \brief Sets the left widget label.
      * \param[in] label.
      */
     void setLeftLabel (const QString &label)
     { m_leftLabel  = label; update();}
 
-		/** brief Sets the right widget label.
+		/** \brief Sets the right widget label.
 		 * \param[in] label.
 		 */
     void setRightLabel(const QString &label)
     {m_rightLabel = label; update();}
 
-    /** brief Implements SliceSelectorWidget::clone().
+    /** \brief Implements SliceSelectorWidget::clone().
      *
      */
     virtual SliceSelectorWidget *clone();
 
   protected slots:
-		/** brief Update the widgets.
+		/** \brief Update the widgets.
 		 *
 		 */
     void update();
 
-		/** brief Update the widgets when the left widgets has been clicked.
+		/** \brief Update the widgets when the left widgets has been clicked.
 		 *
 		 */
     void leftWidgetClicked();
 
-		/** brief Update the widgets when the right widgets has been clicked.
+		/** \brief Update the widgets when the right widgets has been clicked.
 		 *
 		 */
     void rightWidgetClicked();

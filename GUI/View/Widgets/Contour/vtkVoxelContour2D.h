@@ -40,7 +40,7 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
 
     static vtkVoxelContour2D *New();
 
-    /** brief Overrides vtkPolyDataAlgorithm::PrintSelf().
+    /** \brief Overrides vtkPolyDataAlgorithm::PrintSelf().
      *
      */
     void PrintSelf(ostream& os, vtkIndent indent) override;
@@ -68,44 +68,44 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
     void AddInput(vtkDataObject*);
     void AddInput(int, vtkDataObject*);
 
-    /** brief Get the smallest of the spacing of the plane that contains the contour
+    /** \brief Get the smallest of the spacing of the plane that contains the contour
      *        (used to compute contour width in ContourRepresentation).
      */
     double getMinimumSpacing() const;
 
   protected:
-    /** brief vtkVoxelContour2D class constructor.
+    /** \brief vtkVoxelContour2D class constructor.
      *
      */
     vtkVoxelContour2D();
 
-    /** brief vtkVoxelContour2D class destructor.
+    /** \brief vtkVoxelContour2D class destructor.
      *
      */
     ~vtkVoxelContour2D();
 
-    /** brief Request data.
+    /** \brief Request data.
      *
      */
     virtual int RequestDataObject(vtkInformation* request,
                                   vtkInformationVector** inputVector,
                                   vtkInformationVector* outputVector);
 
-    /** brief Overrides vtkPolyDataAlgorithm::RequestInformation().
+    /** \brief Overrides vtkPolyDataAlgorithm::RequestInformation().
      *
      */
     virtual int RequestInformation(vtkInformation* request,
                                    vtkInformationVector** inputVector,
                                    vtkInformationVector* outputVector) override;
 
-    /** brief Overrides vtkPolyDataAlgorithm::RequestData().
+    /** \brief Overrides vtkPolyDataAlgorithm::RequestData().
      *
      */
     virtual int RequestData(vtkInformation* request,
                             vtkInformationVector** inputVector,
                             vtkInformationVector* outputVector) override;
 
-    /** brief Overrides vtkPolyDataAlgorithm::RequestUpdateExtent().
+    /** \brief Overrides vtkPolyDataAlgorithm::RequestUpdateExtent().
      *
      */
     virtual int RequestUpdateExtent(vtkInformation*,
@@ -113,12 +113,12 @@ class EspinaGUI_EXPORT vtkVoxelContour2D
                                     vtkInformationVector*) override;
 
   private:
-    /** brief Copy constructo not implemented.
+    /** \brief Copy constructo not implemented.
      *
      */
     vtkVoxelContour2D(const vtkVoxelContour2D&);
 
-    /** brief Assignment operator not implemented.
+    /** \brief Assignment operator not implemented.
      *
      */
     void operator=(const vtkVoxelContour2D&);

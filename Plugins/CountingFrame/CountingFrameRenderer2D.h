@@ -41,86 +41,86 @@ namespace ESPINA
     {
       Q_OBJECT
       public:
-      	/** brief CountingFrameRenderer2D class constructor.
+      	/** \brief CountingFrameRenderer2D class constructor.
       	 * \param[in] cfManager, CountingFrameManager reference.
       	 *
       	 */
         explicit CountingFrameRenderer2D(CountingFrameManager &cfManager);
 
-        /** brief CountingFrameRenderer2D class virtual destructor.
+        /** \brief CountingFrameRenderer2D class virtual destructor.
          *
          */
         virtual ~CountingFrameRenderer2D();
 
-        /** brief Implements Renderer::icon() const.
+        /** \brief Implements Renderer::icon() const.
          *
          */
         virtual const QIcon icon() const
         { return QIcon(":/apply.svg");}
 
-        /** brief Implements Renderer::name() const.
+        /** \brief Implements Renderer::name() const.
          *
          */
         virtual const QString name() const
         { return tr("Counting Frame 2D");}
 
-        /** brief Implements Renderer::tooltip() const.
+        /** \brief Implements Renderer::tooltip() const.
          *
          */
         virtual const QString tooltip() const
         { return tr("Stereological Counting Frame");}
 
-        /** brief Implements Renderer::clone() const.
+        /** \brief Implements Renderer::clone() const.
          *
          */
         virtual RendererSPtr clone() const;
 
-        /** brief Implements Renderer::renderType() const.
+        /** \brief Implements Renderer::renderType() const.
          *
          */
         virtual RendererTypes renderType() const
         { return RendererType::RENDERER_VIEW2D;}
 
-        /** brief Implements Renderer::numberOfRenderedItems() const.
+        /** \brief Implements Renderer::numberOfRenderedItems() const.
          *
          */
         virtual int numberOfRenderedItems() const
         { return m_insertedCFs.size();}
 
-        /** brief Implements Renderer::numberOfvtkActors() const.
+        /** \brief Implements Renderer::numberOfvtkActors() const.
          *
          */
         virtual unsigned int numberOfvtkActors() const;
 
-        /** brief Overrides Renderer::setView().
+        /** \brief Overrides Renderer::setView().
          *
          */
         virtual void setView(RenderView *view) override;
 
-        /** brief Implements Renderer::type().
+        /** \brief Implements Renderer::type().
          *
          */
         virtual Type type() const
         { return Type::Other; }
 
       protected:
-        /** brief Implements Renderer::hode().
+        /** \brief Implements Renderer::hode().
          *
          */
         virtual void hide();
 
-        /** brief Implements Renderer::show().
+        /** \brief Implements Renderer::show().
          *
          */
         virtual void show();
 
       private slots:
-				/** brief Helper method to update internal data when a CF is created.
+				/** \brief Helper method to update internal data when a CF is created.
 				 *
 				 */
         void onCountingFrameCreated(CountingFrame *cf);
 
-  			/** brief Helper method to update internal data when a CF is removed.
+  			/** \brief Helper method to update internal data when a CF is removed.
   			 *
   			 */
         void onCountingFrameDeleted(CountingFrame *cf);

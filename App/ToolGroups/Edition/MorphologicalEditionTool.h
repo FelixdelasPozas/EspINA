@@ -45,12 +45,12 @@ namespace ESPINA
     class MorphologicalFilterFactory
     : public FilterFactory
     {
-   		/** brief Implements FilterFactory::providedFilters().
+   		/** \brief Implements FilterFactory::providedFilters().
    		 *
    		 */
       virtual FilterTypeList providedFilters() const;
 
-   		/** brief Implements FilterFactory::createFilter().
+   		/** \brief Implements FilterFactory::createFilter().
    		 *
    		 */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
@@ -61,7 +61,7 @@ namespace ESPINA
     };
 
   public:
-    /** brief MorphologicalEdtionTool class constructor.
+    /** \brief MorphologicalEdtionTool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] factory, factory smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -73,108 +73,108 @@ namespace ESPINA
                              ViewManagerSPtr  viewManager,
                              QUndoStack      *undoStack);
 
-    /** brief MorphologicalEditionTools class destructor.
+    /** \brief MorphologicalEditionTools class destructor.
      *
      */
     virtual ~MorphologicalEditionTool();
 
-    /** brief Implements Tool::setEnabled().
+    /** \brief Implements Tool::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /** brief Implements Tool::enabled().
+    /** \brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** brief Implements Tool::actions().
+    /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
   private slots:
-    /** brief Merge selected segmentations.
+    /** \brief Merge selected segmentations.
      *
      */
     void mergeSegmentations();
 
-    /** brief Substract one segmentation from the other.
+    /** \brief Substract one segmentation from the other.
      *
      */
     void subtractSegmentations();
 
-    /** brief Close the selected segmentation with the radius set on the associated QSpinBox.
+    /** \brief Close the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
     void closeSegmentations();
 
-    /** brief Open the selected segmentation with the radius set on the associated QSpinBox.
+    /** \brief Open the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
     void openSegmentations();
 
-    /** brief Dilate the selected segmentation with the radius set on the associated QSpinBox.
+    /** \brief Dilate the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
     void dilateSegmentations();
 
-    /** brief Erode the selected segmentation with the radius set on the associated QSpinBox.
+    /** \brief Erode the selected segmentation with the radius set on the associated QSpinBox.
      *
      */
     void erodeSegmentations();
 
-    /** brief Fills all internals holes in the selected segmentation.
+    /** \brief Fills all internals holes in the selected segmentation.
      *
      */
     void fillHoles();
 
-    /** brief Changes/Deletes the segmentation when the morphological after the filter has finished.
+    /** \brief Changes/Deletes the segmentation when the morphological after the filter has finished.
      *
      */
     void onMorphologicalFilterFinished();
 
-    /** brief Changes the segmentation when the morphological after the filter has finished.
+    /** \brief Changes the segmentation when the morphological after the filter has finished.
      *
      */
     void onFillHolesFinished();
 
-    /** brief Modifies the GUI when the close operation is toggled.
+    /** \brief Modifies the GUI when the close operation is toggled.
      * \param[in] toggled, true if toggled.
      *
      */
     void onCloseToggled(bool toggled);
 
-    /** brief Modifies the GUI when the open operation is toggled.
+    /** \brief Modifies the GUI when the open operation is toggled.
      * \param[in] toggled, true if toggled.
      *
      */
     void onOpenToggled(bool toggled);
 
-    /** brief Modifies the GUI when the dilate operation is toggled.
+    /** \brief Modifies the GUI when the dilate operation is toggled.
      * \param[in] toggled, true if toggled.
      *
      */
     void onDilateToggled(bool toggled);
 
-    /** brief Modifies the GUI when the erode operation is toggled.
+    /** \brief Modifies the GUI when the erode operation is toggled.
      * \param[in] toggled, true if toggled.
      *
      */
     void onErodeToggled(bool toggled);
 
-    /** brief Modifies the GUI based on the current selection.
+    /** \brief Modifies the GUI based on the current selection.
      *
      */
     void updateAvailableActionsForSelection();
 
-    /** brief Changes the segmentation(s) when the image logic filter has finished.
+    /** \brief Changes the segmentation(s) when the image logic filter has finished.
      *
      */
     void onImageLogicFilterFinished();
 
   private:
-    /** brief Launches the CODE filter (Morphological filter).
+    /** \brief Launches the CODE filter (Morphological filter).
      * \param[in] type, type of the morphological operation.
      * \param[in] name, name of the operation.
      * \param[in] radius, radius of the morphological operation.

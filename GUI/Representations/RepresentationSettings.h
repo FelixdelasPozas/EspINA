@@ -34,19 +34,19 @@ namespace ESPINA
   : public QWidget
   {
   public:
-  	/** brief RepresentationSettings class virtual destructor.
+  	/** \brief RepresentationSettings class virtual destructor.
   	 *
   	 */
     virtual ~RepresentationSettings()
     {}
 
-    /** brief Gets the parameters of the representation and configures the widget with them.
+    /** \brief Gets the parameters of the representation and configures the widget with them.
      * \param[in] rep, representation smart pointer.
      *
      */
     virtual void get(RepresentationSPtr representation) = 0;
 
-    /** brief Configures the representation with the values in the widget.
+    /** \brief Configures the representation with the values in the widget.
      * \param[in] rep, representation smart pointer.
      *
      */

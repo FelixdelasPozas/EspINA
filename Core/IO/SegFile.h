@@ -43,7 +43,7 @@ namespace ESPINA
 
       struct Parse_Exception{};
 
-      /** brief Loads an analysis from a file in disk.
+      /** \brief Loads an analysis from a file in disk.
        * \param[in] file, QFileInfo object with the file info.
        * \param[in] factory, factory smart pointer.
        * \param[in] handler, error handler smart pointer.
@@ -53,7 +53,7 @@ namespace ESPINA
                                           CoreFactorySPtr  factory = CoreFactorySPtr(),
                                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-      /** brief Saves an analysis to a file in disk.
+      /** \brief Saves an analysis to a file in disk.
        * \param[in] analysis, analysis to save.
        * \param[in] file, QFileInfo object with the file info.
        * \param[in] handler, error handler smart pointer.

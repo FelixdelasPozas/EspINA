@@ -41,18 +41,18 @@ namespace ESPINA
   : public QObject
   {
     public:
-  		/** brief Enables/Disables the tool.
+  		/** \brief Enables/Disables the tool.
   		 * \param[in] value, true to enable false otherwise.
   		 *
   		 */
       virtual void setEnabled(bool value) = 0;
 
-      /** brief Returns true if the tool is enabled, false otherwise.
+      /** \brief Returns true if the tool is enabled, false otherwise.
        *
        */
       virtual bool enabled() const = 0;
 
-      /** brief Returns a list of QActions provided by the tool.
+      /** \brief Returns a list of QActions provided by the tool.
        *
        */
       virtual QList<QAction *> actions() const = 0;

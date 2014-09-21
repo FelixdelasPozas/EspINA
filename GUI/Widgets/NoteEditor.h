@@ -43,7 +43,7 @@ namespace ESPINA
     class GUI;
 
   public:
-    /** brief NoteEditor class constructor.
+    /** \brief NoteEditor class constructor.
      * \param[in] title, dialog title.
      * \param[in] text, notes text to show.
      * \param[in] parent, raw pointer of the QWidget parent of this one.
@@ -54,18 +54,18 @@ namespace ESPINA
                         QWidget *parent = nullptr,
                         Qt::WindowFlags flags = 0);
 
-    /** brief NoteEditor class virtual destructor.
+    /** \brief NoteEditor class virtual destructor.
      *
      */
     virtual ~NoteEditor();
 
-    /** brief Returns the text of the widget.
+    /** \brief Returns the text of the widget.
      *
      */
     QString text();
 
   private slots:
-		/** brief Saves the content of the widget to a text file in disk.
+		/** \brief Saves the content of the widget to a text file in disk.
 		 *
 		 */
     void exportNote();

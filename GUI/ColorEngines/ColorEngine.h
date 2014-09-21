@@ -54,19 +54,19 @@ namespace ESPINA
     using LUTMap = QMap<QString, LUTSPtr>;
 
   public:
-    /** brief Returns the color associated with the given segmentation.
+    /** \brief Returns the color associated with the given segmentation.
      * \param[in] seg, segmentation adapter raw pointer.
      *
      */
     virtual QColor color(SegmentationAdapterPtr seg) = 0;
 
-    /** brief Returns the lut associated with the given segmentation.
+    /** \brief Returns the lut associated with the given segmentation.
      * \param[in] seg, segmentation adapter raw pointer.
      *
      */
     virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;
 
-    /** brief Returns the flags of the composition methods supported by the color engine.
+    /** \brief Returns the flags of the composition methods supported by the color engine.
      *
      */
     virtual Composition supportedComposition() const = 0;

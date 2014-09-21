@@ -45,7 +45,7 @@ namespace ESPINA
   using RendererList  = QList<RendererPtr>;
   using RendererSList = QList<RendererSPtr>;
 
-  /** brief Flags that define the views supported by this renderer.
+  /** \brief Flags that define the views supported by this renderer.
    *
    */
   enum RendererType
@@ -61,83 +61,83 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief enum type class to specifty if the renderer works with segmentation's representations or other.
+    /** \brief enum type class to specifty if the renderer works with segmentation's representations or other.
      *
      */
     enum class Type: std::int8_t { Representation = 1, Other = 2 };
 
-    /** brief Renderer class destructor.
+    /** \brief Renderer class destructor.
      *
      */
     virtual ~Renderer()
     {}
 
-    /** brief Returns the name of the renderer.
+    /** \brief Returns the name of the renderer.
      *
      */
     virtual const QString name() const = 0;
 
-    /** brief Returns the tooltip associated to GUI elements representing this renderer.
+    /** \brief Returns the tooltip associated to GUI elements representing this renderer.
      *
      */
     virtual const QString tooltip() const = 0;
 
-    /** brief Returns the icon associated to GUI elements representing this renderer.
+    /** \brief Returns the icon associated to GUI elements representing this renderer.
      *
      */
     virtual const QIcon icon() const = 0;
 
-    /** brief Initializes renderer and assigns the view.
+    /** \brief Initializes renderer and assigns the view.
      * \param[in] view, RenderView raw pointer.
      *
      */
     virtual void setView(RenderView* view)
     { m_view = view; }
 
-    /** brief Returns a new instance of the class.
+    /** \brief Returns a new instance of the class.
      *
      */
     virtual RendererSPtr clone() const = 0;
 
-    /** brief Returns the number of vtkActors added to the view's vtkRenderer from this Renderer
+    /** \brief Returns the number of vtkActors added to the view's vtkRenderer from this Renderer
      *
      */
     virtual unsigned int numberOfvtkActors() const = 0;
 
-    /** brief Returns true if the renderer is not enabled, false otherwise.
+    /** \brief Returns true if the renderer is not enabled, false otherwise.
      *
      */
     virtual bool isHidden() const
     { return !m_enable; }
 
-    /** brief Returns flags describing the view supported by this renderer, that is,
+    /** \brief Returns flags describing the view supported by this renderer, that is,
      * views that this renderer can work with.
      */
     virtual RendererTypes renderType() const = 0;
 
-    /** brief Return the number of elements actually been managed by this renderer (abstract items).
+    /** \brief Return the number of elements actually been managed by this renderer (abstract items).
      *
      */
     virtual int numberOfRenderedItems() const = 0;
 
-    /** brief Return the type of render class.
+    /** \brief Return the type of render class.
      *
      */
     virtual Type type() const = 0;
 
   protected:
-    /** brief Convenience methods to hide all elements of a renderer. To be used only by setEnable().
+    /** \brief Convenience methods to hide all elements of a renderer. To be used only by setEnable().
      *
      */
     virtual void hide() = 0;
 
-    /** brief Convenience methods to show all elements of a renderer. To be used only by setEnable().
+    /** \brief Convenience methods to show all elements of a renderer. To be used only by setEnable().
      *
      */
     virtual void show() = 0;
 
   public slots:
-    /** brief Enables or disables the render, efectively showing or hiding all managed elements.
+    /** \brief Enables or disables the render, efectively showing or hiding all managed elements.
      *
      */
     virtual void setEnable(bool value)
@@ -157,7 +157,7 @@ namespace ESPINA
     void renderRequested();
 
   protected:
-    /** brief Renderer class private constructor.
+    /** \brief Renderer class private constructor.
      * \param[in] parent, raw pointer of the QObject parent of this one.
      */
     explicit Renderer(QObject* parent = nullptr)
@@ -170,14 +170,14 @@ namespace ESPINA
     RenderView* m_view;
   };
 
-  /** brief Returns true if the render can render in the view specified by RendererType.
+  /** \brief Returns true if the render can render in the view specified by RendererType.
    * \param[in] renderer, renderer smart pointer.
    * \param[in] type, renderer type to check.
    *
    */
   bool canRender(RendererSPtr renderer, RendererType type);
 
-  /** brief Returns true if the render can render in the views specified by RendererTypes.
+  /** \brief Returns true if the render can render in the views specified by RendererTypes.
    * \param[in] renderer, renderer smart pointer.
    * \param[in] types, renderer types to check.
    *

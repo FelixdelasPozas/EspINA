@@ -35,17 +35,17 @@ namespace ESPINA
   , private Ui::SliceRepresentationSettings
   {
   public:
-  	/** brief SliceRepresentationSettings class constructor.
+  	/** \brief SliceRepresentationSettings class constructor.
   	 *
   	 */
     explicit SliceRepresentationSettings();
 
-    /** brief Implements RepresentationSettings::get().
+    /** \brief Implements RepresentationSettings::get().
      *
      */
     virtual void get(RepresentationSPtr representation);
 
-    /** brief Implements RepresentationSettings::set().
+    /** \brief Implements RepresentationSettings::set().
      *
      */
     virtual void set(RepresentationSPtr representation);

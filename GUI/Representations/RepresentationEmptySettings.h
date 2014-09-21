@@ -35,17 +35,17 @@ namespace ESPINA
   , private Ui::RepresentationEmptySettings
   {
   public:
-  	/** brief RepresentationEmptySettings class constructor.
+  	/** \brief RepresentationEmptySettings class constructor.
   	 *
   	 */
     explicit RepresentationEmptySettings();
 
-    /** brief Implements RepresentationSettings::get().
+    /** \brief Implements RepresentationSettings::get().
      *
      */
     virtual void get(RepresentationSPtr representation);
 
-    /** brief Implements RepresentationSettings::set().
+    /** \brief Implements RepresentationSettings::set().
      *
      */
     virtual void set(RepresentationSPtr representation);

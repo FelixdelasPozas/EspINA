@@ -36,7 +36,7 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /** brief RenderersSelector class constructor.
+      /** \brief RenderersSelector class constructor.
        * \param[in] renderers, List of Renderer smart pointers.
        * \param[in] activeRenderers, List of renderers' names to show as active.
        * \param[in] filter, Types of renderers to show in the widgets.
@@ -45,38 +45,38 @@ namespace ESPINA
                                  QStringList   activeRenderersList,
                                  RendererTypes filter);
 
-      /** brief RenderersSelector class destructor.
+      /** \brief RenderersSelector class destructor.
        *
        */
       virtual ~RenderersSelector();
 
-      /** brief Returns the renderers actually in the active list of the widgets.
+      /** \brief Returns the renderers actually in the active list of the widgets.
        *
        */
       RendererSList getActiveRenderers();
 
     private slots:
-			/** brief Update the internal data when a renderer is dropped on the active widget.
+			/** \brief Update the internal data when a renderer is dropped on the active widget.
 			 *
 			 */
       void onActivateRenderersDropped();
 
-			/** brief Update the internal data when a renderer is dropped on the inactive widget.
+			/** \brief Update the internal data when a renderer is dropped on the inactive widget.
 			 *
 			 */
       void onAvailableRenderersDropped();
 
-			/** brief Activates the renderes in the active list.
+			/** \brief Activates the renderes in the active list.
 			 *
 			 */
       void activateRenderers();
 
-			/** brief Deactivates the renderers on the inactive list.
+			/** \brief Deactivates the renderers on the inactive list.
 			 *
 			 */
       void deactivateRenderers();
 
-			/** brief Moves the elements of the source to the destination view.
+			/** \brief Moves the elements of the source to the destination view.
 			 * \param[in] source, source list view.
 			 * \param[in] destination, destination list view.
 			 *
@@ -84,7 +84,7 @@ namespace ESPINA
       void moveSelection(QListView *source, QListView *destination);
 
     protected:
-      /** brief Returns the smart pointer of the renderer with the given name.
+      /** \brief Returns the smart pointer of the renderer with the given name.
        * \param[in] name, renderer name.
        *
        */

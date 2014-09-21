@@ -28,7 +28,7 @@
 
 namespace QtModelUtils
 {
-	/** brief Find the QModelIndex children of @parent whose @role is equal to @value.
+	/** \brief Find the QModelIndex children of @parent whose @role is equal to @value.
 	 * \param[in] parent, model index parent of the one searching for.
 	 * \param[in] value.
 	 * \param[in] role.
@@ -36,20 +36,20 @@ namespace QtModelUtils
 	 */
   QModelIndex findChildIndex(QModelIndex parent, QVariant value, int role = Qt::DisplayRole);
 
-  /** brief Return a list of all QModelIndex between @topLeft index and @bottomRight index.
+  /** \brief Return a list of all QModelIndex between @topLeft index and @bottomRight index.
    * \param[in] topLeft, model index.
    * \param[in] bottomRight, model index.
    *
    */
   QModelIndexList indices(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 
-  /** brief Return whether a node has leaf nodes.
+  /** \brief Return whether a node has leaf nodes.
    * \param[in] index, model index ot check.
    *
    */
   bool isInnerNode(const QModelIndex &index);
 
-  /** brief Return whether a node is leaf.
+  /** \brief Return whether a node is leaf.
    * \param[in] index, model index to check.
    *
    */

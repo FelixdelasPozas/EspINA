@@ -34,7 +34,7 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
- 		/** brief BasicChannelRepresentationFactory class constructor.
+ 		/** \brief BasicChannelRepresentationFactory class constructor.
  		 * \param[in] scheduler, scheduler smart pointer.
  		 *
  		 */
@@ -42,18 +42,18 @@ namespace ESPINA
     : RepresentationFactory(scheduler)
     {};
 
- 		/** brief BasicChannelRepresentationFactory class virtual destructor.
+ 		/** \brief BasicChannelRepresentationFactory class virtual destructor.
  		 *
  		 */
     virtual ~BasicChannelRepresentationFactory()
     {};
 
- 		/** brief Implements RepresentationFactory::representations() const.
+ 		/** \brief Implements RepresentationFactory::representations() const.
  		 *
  		 */
     virtual RepresentationTypeList representations() const;
 
- 		/** brief Implements RepresentationFactory::createRepresentation().
+ 		/** \brief Implements RepresentationFactory::createRepresentation().
  		 *
  		 */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
@@ -63,7 +63,7 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
- 		/** brief BasicSegmentationRepresentationFactory class constructor.
+ 		/** \brief BasicSegmentationRepresentationFactory class constructor.
  		 * \param[in] scheduler, scheduler smart pointer.
  		 *
  		 */
@@ -71,18 +71,18 @@ namespace ESPINA
     : RepresentationFactory(scheduler)
     {};
 
- 		/** brief BasicSegmentationRepresentationFactory class virtual destructor.
+ 		/** \brief BasicSegmentationRepresentationFactory class virtual destructor.
  		 *
  		 */
     virtual ~BasicSegmentationRepresentationFactory()
     {}
 
- 		/** brief Implements RepresentationFactory::representations() const.
+ 		/** \brief Implements RepresentationFactory::representations() const.
  		 *
  		 */
     virtual RepresentationTypeList representations() const;
 
- 		/** brief Implements RepresentationFactory::createRepresentation().
+ 		/** \brief Implements RepresentationFactory::createRepresentation().
  		 *
  		 */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);

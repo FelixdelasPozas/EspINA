@@ -58,31 +58,31 @@ namespace ESPINA {
   public:
     typedef unsigned int Id;
   public:
-    /** brief Task class constructor.
+    /** \brief Task class constructor.
      * \param[in] scheduler, scheduler smart pointer.
      *
      */
     explicit Task(SchedulerSPtr scheduler);
 
-    /** brief Task class virtual destructor.
+    /** \brief Task class virtual destructor.
      *
      */
     virtual ~Task();
 
-    /** brief Sets task id.
+    /** \brief Sets task id.
      * \param[in] id.
      *
      */
     void setId(Id id)
     { m_id = id;}
 
-    /** brief Returns task id.
+    /** \brief Returns task id.
      *
      */
     Id id() const
     { return m_id;}
 
-    /** brief Sets task description.
+    /** \brief Sets task description.
      * \param[in] description.
      *
      */
@@ -92,7 +92,7 @@ namespace ESPINA {
       m_description = description;
     }
 
-    /** brief Returns task description.
+    /** \brief Returns task description.
      *
      */
     QString description() const
@@ -114,36 +114,36 @@ namespace ESPINA {
      */
     virtual void resume();
 
-    /** brief Returns true if the task is running but has been signaled to pause.
+    /** \brief Returns true if the task is running but has been signaled to pause.
      *
      */
     virtual bool isPendingPause() const;
 
-    /** brief Returns true if the task is running.
+    /** \brief Returns true if the task is running.
      *
      */
     bool isRunning() const
     {return m_isThreadAttached && !isPendingPause();}
 
-    /** brief Returns true if the task has been aborted.
+    /** \brief Returns true if the task has been aborted.
      *
      */
     bool isAborted() const
     { return m_isAborted; }
 
-    /** brief Returns true if the task has finished its execution.
+    /** \brief Returns true if the task has finished its execution.
      *
      */
     bool hasFinished() const
     { return m_hasFinished; }
 
-    /** brief Returns task priority.
+    /** \brief Returns task priority.
      *
      */
     Priority priority() const
     { return m_priority; }
 
-    /** brief Sets the task as hidden.
+    /** \brief Sets the task as hidden.
      * \param[in] hidden, true to set as hidden, false otherwise.
      *
      * Scheduler won't signal any action regarding hidden tasks.
@@ -152,13 +152,13 @@ namespace ESPINA {
     void setHidden(bool hidden)
     { m_hidden = hidden; }
 
-    /** brief Returns true if the task is a hidden task.
+    /** \brief Returns true if the task is a hidden task.
      *
      */
     bool isHidden() const
     { return m_hidden; }
 
-    /** brief Returns true if the task is paused.
+    /** \brief Returns true if the task is paused.
      *
      */
     bool isPaused() const
@@ -169,7 +169,7 @@ namespace ESPINA {
      */
     bool isWaiting() const {return m_isWaiting; }
 
-    /** brief Emits progress signal.
+    /** \brief Emits progress signal.
      *
      * NOTE: Need to be public so we can reuse itkProgressReporters.
      */
@@ -178,7 +178,7 @@ namespace ESPINA {
 
 
   public slots:
-		/** brief Sets task priority.
+		/** \brief Sets task priority.
 		 * \param[in] value, priority level.
 		 *
 		 */
@@ -197,12 +197,12 @@ namespace ESPINA {
     void abort();
 
   protected:
-    /** brief Returns true if the task has not been signaled to abort or pause.
+    /** \brief Returns true if the task has not been signaled to abort or pause.
      *
      */
     bool canExecute();
 
-    /** brief Executes the task.
+    /** \brief Executes the task.
      *
      */
     virtual void run() = 0;
@@ -215,7 +215,7 @@ namespace ESPINA {
     void setWaiting(bool value)
     { m_isWaiting = value; }
 
-    /** brief Sets the task as finished.
+    /** \brief Sets the task as finished.
      * \param[in] value, finished value.
      */
     void setFinished(bool value)
@@ -232,34 +232,34 @@ namespace ESPINA {
     {}
 
   protected slots:
-		/** brief Helper method to set some values after execution.
+		/** \brief Helper method to set some values after execution.
 		 *
 		 */
     void runWrapper();
 
   protected:
-    /** brief Pauses the task from the scheduler.
+    /** \brief Pauses the task from the scheduler.
      *
      */
     void dispatcherPause();
 
-    /** brief Resumes the task from the scheduler.
+    /** \brief Resumes the task from the scheduler.
      *
      */
     void dispatcherResume();
 
-    /** brief Returns true if the scheduler paused the task.
+    /** \brief Returns true if the scheduler paused the task.
      *
      */
     bool isDispatcherPaused();
 
-    /** brief Helper method to set some values before execution.
+    /** \brief Helper method to set some values before execution.
      *
      */
     void prepareToRun();
 
   private slots:
-		/** brief Starts the thread.
+		/** \brief Starts the thread.
 		 *
 		 */
     void start();

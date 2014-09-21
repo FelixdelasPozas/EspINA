@@ -61,7 +61,7 @@ namespace ESPINA
       CATEGORY = 5
     };
 
-    /** brief Returns the numerical value associated to the type.
+    /** \brief Returns the numerical value associated to the type.
      * \param[in] type.
      *
      */
@@ -82,7 +82,7 @@ namespace ESPINA
       return -1;
     }
 
-    /** brief Returns the type associated to the numerical value.
+    /** \brief Returns the type associated to the numerical value.
      * \param[in] id, numerical value.
      *
      */
@@ -106,7 +106,7 @@ namespace ESPINA
 
     Q_OBJECT
   public:
-    /** brief ItemAdapter class constructor.
+    /** \brief ItemAdapter class constructor.
      * \param[in] analysisItem, Persistent item smart pointer.
      *
      */
@@ -114,32 +114,32 @@ namespace ESPINA
     : m_analysisItem{analysisItem}
     {}
 
-    /** brief ItemAdapter class destructor.
+    /** \brief ItemAdapter class destructor.
      *
      */
     virtual ~ItemAdapter()
     {}
 
-    /** brief Returns the item data specified by the parameter.
+    /** \brief Returns the item data specified by the parameter.
      * \param[in] role, Qt::ItemDataRole type.
      *
      */
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
 
-    /** brief Sets the item data specified by the parameter.
+    /** \brief Sets the item data specified by the parameter.
      * \param[in] value, value of the data.
      * \param[in] role, Qt::ItemDataRole type.
      *
      */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
 
-    /** brief Returns the type of the item adapter.
+    /** \brief Returns the type of the item adapter.
      *
      */
     virtual ItemAdapter::Type type() const = 0;
 
   public slots:
-		/** brief Signals when the item has been modified.
+		/** \brief Signals when the item has been modified.
 		 *
 		 */
     virtual void notifyModification()

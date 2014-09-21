@@ -35,28 +35,28 @@ namespace ESPINA {
   , public IO::AnalysisReader
   {
   public:
-  	/** brief Implements IO::AnalysisReader::type().
+  	/** \brief Implements IO::AnalysisReader::type().
   	 *
   	 */
     virtual QString type() const
     { return "ChannelReader"; }
 
-    /** brief Shadows FilterFactory::providedFilters().
+    /** \brief Shadows FilterFactory::providedFilters().
      *
      */
     virtual FilterTypeList providedFilters() const;
 
-    /** brief Shadows FilterFactory::createFilter().
+    /** \brief Shadows FilterFactory::createFilter().
      *
      */
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
-  	/** brief Implements IO::AnalysisReader::supportedFileExtensions().
+  	/** \brief Implements IO::AnalysisReader::supportedFileExtensions().
   	 *
   	 */
     virtual ExtensionList supportedFileExtensions() const;
 
-  	/** brief Implements IO::AnalysisReader::read().
+  	/** \brief Implements IO::AnalysisReader::read().
   	 *
   	 */
     virtual AnalysisSPtr read(const QFileInfo& file,

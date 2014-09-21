@@ -40,52 +40,52 @@ namespace ESPINA
     static const Type TYPE;
 
   public:
-    /** brief VisualizationState class constructor.
+    /** \brief VisualizationState class constructor.
      *
      */
     explicit VisualizationState();
 
-    /** brief VisualizationState class virtual destructor.
+    /** \brief VisualizationState class virtual destructor.
      *
      */
     virtual ~VisualizationState();
 
-    /** brief Implements Extension::type().
+    /** \brief Implements Extension::type().
      *
      */
     virtual Type type() const
     { return TYPE; }
 
-    /** brief Implements Extension::dependencies().
+    /** \brief Implements Extension::dependencies().
      *
      */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    /** brief Implements SegmentationExtension::validCategory().
+    /** \brief Implements SegmentationExtension::validCategory().
      *
      */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
-    /** brief Implements Extension::availableInformations().
+    /** \brief Implements Extension::availableInformations().
      *
      */
     virtual InfoTagList availableInformations() const;
 
-    /** brief Shadows Extension::information(tag).
+    /** \brief Shadows Extension::information(tag).
      *
      */
     virtual QVariant information(const InfoTag &tag) const;
 
-    /** brief Sets the state of a representation.
+    /** \brief Sets the state of a representation.
      * \param[in] representation, representation name.
      * \param[in] state, string with the state of the representation.
      *
      */
     void setState(const QString& representation, const QString& state);
 
-    /** brief Returns the state of the representation as a string.
+    /** \brief Returns the state of the representation as a string.
      *
      */
     QString state(const QString& representation);

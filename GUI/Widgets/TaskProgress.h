@@ -51,23 +51,23 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief TaskProgress class constructor.
+    /** \brief TaskProgress class constructor.
      *
      */
     explicit TaskProgress(TaskSPtr task);
 
-    /** brief TaskProgress class virtual destructor.
+    /** \brief TaskProgress class virtual destructor.
      *
      */
     virtual ~TaskProgress();
 
-    /** brief Returns the process of the task.
+    /** \brief Returns the process of the task.
      *
      */
     int progress()
     { return m_progressBar->value(); }
 
-    /** brief Returns the task smart pointer.
+    /** \brief Returns the task smart pointer.
      *
      */
     TaskSPtr task() const
@@ -77,7 +77,7 @@ namespace ESPINA
     void aborted();
 
   protected:
-    /** brief Overrides QWidget::showEvent().
+    /** \brief Overrides QWidget::showEvent().
      *
      */
     virtual void showEvent(QShowEvent *event) override;

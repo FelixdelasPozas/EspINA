@@ -41,7 +41,7 @@ namespace ESPINA
       class Entry;
 
     public:
-      /** brief SASTabularReport class constructor.
+      /** \brief SASTabularReport class constructor.
        *
        */
       SASTabularReport(ModelAdapterSPtr model,
@@ -55,19 +55,19 @@ namespace ESPINA
       {};
 
       protected slots:
-      /** brief Implements TabularReport::exportInformation()
+      /** \brief Implements TabularReport::exportInformation()
        *
        */
       void exportInformation();
 
     private:
-      /** brief Implements TabularReport::createCategoryEntry(const QString);
+      /** \brief Implements TabularReport::createCategoryEntry(const QString);
        * \param[in] category, QString with category to be created.
        *
        */
       void createCategoryEntry(const QString &category);
 
-      /** brief Implements TabularReport::extraPath(const QString);
+      /** \brief Implements TabularReport::extraPath(const QString);
        *
        */
       static QString extraPath(const QString &file = QString())
@@ -81,7 +81,7 @@ namespace ESPINA
   : public TabularReport::Entry
   {
     public:
-      /** brief Entry class constructor.
+      /** \brief Entry class constructor.
        *
        */
       explicit Entry(const QString   &category,
@@ -90,18 +90,18 @@ namespace ESPINA
       : TabularReport::Entry{category, model, factory}
       {};
 
-      /** brief Implements TabularReport::Entry::avalableInformation().
+      /** \brief Implements TabularReport::Entry::avalableInformation().
        *
        */
       InformationSelector::GroupedInfo availableInformation();
 
-      /** brief Implements TabularReport::Entry::setInformation().
+      /** \brief Implements TabularReport::Entry::setInformation().
        *
        */
       void setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
 
     private slots:
-      /** brief Implements TabularReport::Entry::extractInformation().
+      /** \brief Implements TabularReport::Entry::extractInformation().
        *
        */
       void extractInformation();

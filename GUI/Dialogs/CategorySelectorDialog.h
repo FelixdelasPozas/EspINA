@@ -39,7 +39,7 @@ namespace ESPINA {
   , private Ui::CategorySelectorDialog
   {
 		public:
-			/** brief CategorySelectorDialog class constructor.
+			/** \brief CategorySelectorDialog class constructor.
 			 * \param[in] model, model adapter smart pointer.
 			 * \param[in] parent, raw pointer of the parent of this dialog.
 			 * \param[in] f, window flags.
@@ -48,7 +48,7 @@ namespace ESPINA {
 																			QWidget*         parent = nullptr,
 																			Qt::WindowFlags  f = 0);
 
-			/** brief Returns the list of category adapter smart pointers.
+			/** \brief Returns the list of category adapter smart pointers.
 			 *
 			 */
 			CategoryAdapterSList categories();

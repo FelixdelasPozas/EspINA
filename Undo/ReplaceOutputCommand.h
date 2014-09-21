@@ -36,7 +36,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/** brief ReplaceOutputCommand class constructor.
+  	/** \brief ReplaceOutputCommand class constructor.
   	 * \param[in] segmentation, raw pointer of the segmentation to change output.
   	 * \param[in] input, smart pointer of the new output.
   	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
@@ -46,18 +46,18 @@ namespace ESPINA
                                   InputSPtr              input,
                                   QUndoCommand*          parent = nullptr);
 
-    /** brief Overrides QUndoCommand::redo().
+    /** \brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /** brief Overrides QUndoCommand::undo().
+    /** \brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;
 
   private:
-    /** brief Helper method to swap new-old outputs.
+    /** \brief Helper method to swap new-old outputs.
      *
      */
     void swapInputs();

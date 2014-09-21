@@ -54,37 +54,37 @@ namespace ESPINA
   , public EventHandler
   {
   public:
-    /** brief Class MeasureWidget destructor.
+    /** \brief Class MeasureWidget destructor.
      *
      */
     explicit MeasureWidget();
 
-    /** brief MeasureWidget class destructor.
+    /** \brief MeasureWidget class destructor.
      *
      */
     virtual ~MeasureWidget();
 
-    /** brief Implements EspinaWidget::registerView()
+    /** \brief Implements EspinaWidget::registerView()
      *
      */
     virtual void registerView(RenderView *view);
 
-    /** brief Implements EspinaWidget::unregisterView()
+    /** \brief Implements EspinaWidget::unregisterView()
      *
      */
     virtual void unregisterView(RenderView *view);
 
-    /** brief Implements EspinaWidget::setEnabled.
+    /** \brief Implements EspinaWidget::setEnabled.
      *
      */
     virtual void setEnabled(bool enable);
 
-    /** brief Overrides EventHandler::filterEvent.
+    /** \brief Overrides EventHandler::filterEvent.
      *
      */
     bool filterEvent(QEvent *e, RenderView *view) override;
 
-    /** brief Overrides EventHandler::setInUse()
+    /** \brief Overrides EventHandler::setInUse()
      *
      */
     void setInUse(bool value) override;
@@ -92,7 +92,7 @@ namespace ESPINA
   private:
     friend class vtkDistanceCommand;
 
-    /** brief Computes optimal tick distance in the ruler given the length.
+    /** \brief Computes optimal tick distance in the ruler given the length.
      * \param[in] length, numerical value.
      *
      */
@@ -109,32 +109,32 @@ namespace ESPINA
   {
     vtkTypeMacro(vtkDistanceCommand, vtkCommand);
 
-    /** brief VTK-style New() constructor, required for using vtkSmartPointer.
+    /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
      *
      */
     static vtkDistanceCommand* New()
     { return new vtkDistanceCommand(); }
 
-    /** brief Implements vtkEspinaCommand::Execute
+    /** \brief Implements vtkEspinaCommand::Execute
      *
      */
     virtual void Execute(vtkObject *, unsigned long int, void*);
 
-    /** brief Implements vtkEspinaCommand::setWidget
+    /** \brief Implements vtkEspinaCommand::setWidget
      *
      */
     void setWidget(EspinaWidgetPtr widget)
     { m_widget = dynamic_cast<MeasureWidget *>(widget); }
 
     private:
-     /** brief Class vtkDistanceCommand class private constructor.
+     /** \brief Class vtkDistanceCommand class private constructor.
       *
       */
      explicit vtkDistanceCommand()
      : m_widget{nullptr}
      {}
 
-     /** brief Class vtkDistanceCommand class private destructor.
+     /** \brief Class vtkDistanceCommand class private destructor.
       *
       */
      virtual ~vtkDistanceCommand()

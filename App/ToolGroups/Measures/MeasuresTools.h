@@ -34,29 +34,29 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /** brief MeasuresTools class constructor.
+      /** \brief MeasuresTools class constructor.
        * \param[in] viewManager, view manager smart pointer.
        * \param[in] parent, QWidget raw pointer of the parent of this object.
        *
        */
       explicit MeasuresTools(ViewManagerSPtr viewManager, QWidget* parent = nullptr);
 
-      /** brief MeasuresTools class destructor.
+      /** \brief MeasuresTools class destructor.
        *
        */
       virtual ~MeasuresTools();
 
-      /** brief Implements ToolGroup::setEnabled.
+      /** \brief Implements ToolGroup::setEnabled.
        *
        */
       virtual void setEnabled(bool value);
 
-      /** brief Implements ToolGroup::enabled.
+      /** \brief Implements ToolGroup::enabled.
        *
        */
       virtual bool enabled() const;
 
-      /** brief Implements ToolGroup::tools.
+      /** \brief Implements ToolGroup::tools.
        *
        */
       virtual ToolSList tools();

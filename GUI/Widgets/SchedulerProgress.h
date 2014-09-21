@@ -43,7 +43,7 @@ namespace ESPINA {
     struct Duplicated_Task_Exception{};
 
   public:
-    /** brief SchedulerProgree class constructor.
+    /** \brief SchedulerProgree class constructor.
      * \param[in] scheduler, scheduler smart pointer.
      * \param[in] parent, raw pointer of the QWidget parent of this one.
      */
@@ -51,34 +51,34 @@ namespace ESPINA {
                                QWidget        *parent = nullptr,
                                Qt::WindowFlags f = 0);
 
-    /** brief SchedulerProgress class virtual destructor.
+    /** \brief SchedulerProgress class virtual destructor.
      *
      */
     virtual ~SchedulerProgress();
 
   private slots:
-  	/** brief Modifies the internal data when a task is added to the scheduler.
+  	/** \brief Modifies the internal data when a task is added to the scheduler.
   	 *
   	 */
     void onTaskAdded(TaskSPtr task) throw (Duplicated_Task_Exception);
 
-    /** brief Modifies the internal data when a task is removed from the scheduler.
+    /** \brief Modifies the internal data when a task is removed from the scheduler.
   	 *
   	 */
     void onTaskRemoved(TaskSPtr task);
 
-  	/** brief Shows/hides the individual task progress.
+  	/** \brief Shows/hides the individual task progress.
   	 * \param[in] visible, true to show the progress, false otherwise.
   	 *
   	 */
     void showTaskProgress(bool visible);
 
-  	/** brief Updates the progress bar.
+  	/** \brief Updates the progress bar.
   	 *
   	 */
     void updateProgress();
 
-  	/** brief Aborts a task.
+  	/** \brief Aborts a task.
   	 *
   	 * Aborting a task will remove it from the scheduler progress
   	 * but the task may remain executing until task abort is handled.
@@ -87,7 +87,7 @@ namespace ESPINA {
     void onProgressAborted();
 
   private:
-  	/** brief Updates the values of the task progress notification widget.
+  	/** \brief Updates the values of the task progress notification widget.
   	 *
   	 */
     void updateNotificationWidget();

@@ -42,7 +42,7 @@ namespace ESPINA
     : public SegmentationFilterProxyModel
     {
     protected:
-    	/** brief Overrides QSortFilterProxyModel::lessThan for sorting purposes.
+    	/** \brief Overrides QSortFilterProxyModel::lessThan for sorting purposes.
     	 * \param[in] left, QModelIndex const reference.
     	 * \param[in] right, QModelIndex const reference.
     	 *
@@ -51,7 +51,7 @@ namespace ESPINA
     };
 
   public:
-    /** brief ClassificationLayout class constructor.
+    /** \brief ClassificationLayout class constructor.
      * \param[in] view, QTreeView raw pointer.
      * \param[in] model, model adapter smart pointer.
      * \param[in] factory, factory smart pointer.
@@ -65,94 +65,94 @@ namespace ESPINA
                                   ViewManagerSPtr    viewManager,
                                   QUndoStack        *undoStack);
 
-    /** brief ClassificationLayour class virtual destructor.
+    /** \brief ClassificationLayour class virtual destructor.
      *
      */
     virtual ~ClassificationLayout();
 
-    /** brief Overrides SegmentationExplorer::Layout::createSpecificControls().
+    /** \brief Overrides SegmentationExplorer::Layout::createSpecificControls().
      *
      */
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout) override;
 
-    /** brief Overrides SegmentationExplorer::Layout:: model()
+    /** \brief Overrides SegmentationExplorer::Layout:: model()
      *
      */
     virtual QAbstractItemModel* model() override
     { return m_sort.get(); }
 
-    /** brief Overrides SegmentationExplorer::Layout::item().
+    /** \brief Overrides SegmentationExplorer::Layout::item().
      *
      */
     virtual ItemAdapterPtr item(const QModelIndex& index) const override
     { return itemAdapter(m_sort->mapToSource(index)); }
 
-    /** brief Overrides SegmentationExplorer::Layout::index().
+    /** \brief Overrides SegmentationExplorer::Layout::index().
      *
      */
     virtual QModelIndex index(ItemAdapterPtr item) const override
     { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
 
-    /** brief Overrides SegmentationExplorer::Layout::setFilterRegExp()
+    /** \brief Overrides SegmentationExplorer::Layout::setFilterRegExp()
      *
      */
     virtual void setFilterRegExp(const QString &regExp) override
     { m_sort->setFilterRegExp(regExp); }
 
-    /** brief Overrides SegmentationExplorer::Layout::contextMenu().
+    /** \brief Overrides SegmentationExplorer::Layout::contextMenu().
      *
      */
     virtual void contextMenu(const QPoint &pos) override;
 
-    /** brief Overrides SegmentationExplorer::Layout::deleteSelectedItems().
+    /** \brief Overrides SegmentationExplorer::Layout::deleteSelectedItems().
      *
      */
     virtual void deleteSelectedItems() override;
 
-    /** brief Overrides SegmentationExplorer::Layout::showSelectedItemsInformation().
+    /** \brief Overrides SegmentationExplorer::Layout::showSelectedItemsInformation().
      *
      */
     virtual void showSelectedItemsInformation() override;
 
-    /** brief Overrides SegmentationExplorer::Layout::hasInformationToShow().
+    /** \brief Overrides SegmentationExplorer::Layout::hasInformationToShow().
      *
      */
     virtual bool hasInformationToShow() override;
 
-    /** brief Overrides SegmentationExplorer::Layout::itemDelegate().
+    /** \brief Overrides SegmentationExplorer::Layout::itemDelegate().
      *
      */
     virtual QItemDelegate *itemDelegate() const override;
 
   private:
-    /** brief Returns selected categories and/or segmentations.
+    /** \brief Returns selected categories and/or segmentations.
      * \param[out] categories, list of selected category adapters.
      * \param[out] segmentations, set of selected segmentation adapters.
      */
     bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
 
   private slots:
-		/** brief Creates a category and adds it to the model.
+		/** \brief Creates a category and adds it to the model.
 		 *
 		 */
     void createCategory();
 
-    /** brief Creates a sub-category and adds it to the model.
+    /** \brief Creates a sub-category and adds it to the model.
      *
      */
     void createSubCategory();
 
-    /** brief Changes the color of the selected category.
+    /** \brief Changes the color of the selected category.
      *
      */
     void changeCategoryColor();
 
-    /** brief Selects all segmentations from a category.
+    /** \brief Selects all segmentations from a category.
      *
      */
     void selectCategoryAdapters();
 
-    /** brief Manages the segmentation drag-and-drop into a category.
+    /** \brief Manages the segmentation drag-and-drop into a category.
      * \param[in] segmentations, list of segmentation adapters raw pointers of the elements that have been dropped.
      * \param[in] category, category adatpter raw pointer.
      *
@@ -160,7 +160,7 @@ namespace ESPINA
     void segmentationsDropped(SegmentationAdapterList segmentations,
                               CategoryAdapterPtr      category);
 
-    /** brief Manages the cagories drag-and-drop into another category.
+    /** \brief Manages the cagories drag-and-drop into another category.
      * \param[in] subcategories, list of category adapters raw pointers of the elements that have been dropped.
      * \param[in] category, category adapter raw pointer.
      *
@@ -168,12 +168,12 @@ namespace ESPINA
     void categoriesDropped(CategoryAdapterList subCategories,
                            CategoryAdapterPtr  category);
 
-    /** brief Updated the controls of the UI based on the current selection.
+    /** \brief Updated the controls of the UI based on the current selection.
      *
      */
     void updateSelection();
 
-    /** brief Disconnects the selection model of the view.
+    /** \brief Disconnects the selection model of the view.
      *
      */
     void disconnectSelectionModel();

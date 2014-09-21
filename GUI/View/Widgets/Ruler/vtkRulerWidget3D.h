@@ -39,20 +39,20 @@ namespace ESPINA
   : public vtkAbstractWidget
   {
     public:
-      /** brief VTK-style New() class method.
+      /** \brief VTK-style New() class method.
        *
        */
       static vtkRulerWidget3D *New();
 
       vtkTypeMacro(vtkRulerWidget3D,vtkAbstractWidget);
 
-      /** brief Implements vtkAbstractWidget::CreateDefaultRepresentation.
+      /** \brief Implements vtkAbstractWidget::CreateDefaultRepresentation.
        *
        * Create the default widget representation if one is not set.
        */
       void CreateDefaultRepresentation();
 
-      /** brief Implements vtkAbstractWidget::SetEnabled.
+      /** \brief Implements vtkAbstractWidget::SetEnabled.
        *
        * The method for activating and deactivating this widget. This method
        * must be overridden because it is a composite widget and does more than
@@ -60,7 +60,7 @@ namespace ESPINA
        */
       virtual void SetEnabled(int);
 
-      /** brief Set vtkCubeAxesActor2D representation bounds.
+      /** \brief Set vtkCubeAxesActor2D representation bounds.
        *
        */
       void setBounds(Bounds bounds);

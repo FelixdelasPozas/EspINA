@@ -36,7 +36,7 @@ namespace ESPINA
   class EspinaFilters_EXPORT ITKProgressReporter
   {
   public:
-  	/** brief ITKProgressReporter class constructor.
+  	/** \brief ITKProgressReporter class constructor.
   	 * \param[in] reporter, raw pointer of the task that will report progress.
   	 * \param[in] filter, smart pointer of itk filter contained in task.
   	 * \param[in] fromValue, initial progress value.
@@ -56,7 +56,7 @@ namespace ESPINA
     }
 
   private:
-    /** brief Makes the task report the progress of the itk filter.
+    /** \brief Makes the task report the progress of the itk filter.
      *
      */
     void reportProgress()

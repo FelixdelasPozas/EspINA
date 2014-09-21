@@ -42,19 +42,19 @@ namespace ESPINA
   , public DataProxy
   {
     public:
-  		/** brief MeshProxy class constructor.
+  		/** \brief MeshProxy class constructor.
   		 *
   		 */
       explicit MeshProxy()
       {}
 
-  		/** brief MeshProxy class virtual destructor.
+  		/** \brief MeshProxy class virtual destructor.
   		 *
   		 */
       virtual ~MeshProxy()
       {}
 
-  		/** brief Implements DataProxy::set().
+  		/** \brief Implements DataProxy::set().
   		 *
   		 */
       virtual void set(DataSPtr data)
@@ -63,91 +63,91 @@ namespace ESPINA
         m_data->setOutput(this->m_output);
       }
 
-  		/** brief Implements DataProxy::get().
+  		/** \brief Implements DataProxy::get().
   		 *
   		 */
       virtual DataSPtr get() const
       { return m_data; }
 
-  		/** brief Overrides MeshData::bounds() const
+  		/** \brief Overrides MeshData::bounds() const
   		 *
   		 */
       virtual Bounds bounds() const override
       { return m_data->bounds(); }
 
-  		/** brief Implements Data::setSpacing().
+  		/** \brief Implements Data::setSpacing().
   		 *
   		 */
       virtual void setSpacing(const NmVector3& spacing)
       { m_data->setSpacing(spacing); }
 
-  		/** brief Implements Data::spacing().
+  		/** \brief Implements Data::spacing().
   		 *
   		 */
       virtual NmVector3 spacing() const
       { return m_data->spacing(); }
 
-  		/** brief Overrides Data::lastModified
+  		/** \brief Overrides Data::lastModified
   		 *
   		 */
       virtual TimeStamp lastModified() override
       { return m_data->lastModified(); }
 
-  		/** brief Overrides Data::editedRegions().
+  		/** \brief Overrides Data::editedRegions().
   		 *
   		 */
       virtual BoundsList editedRegions() const override
       { return m_data->editedRegions(); }
 
-  		/** brief Overrides Data::clearEditedRegions().
+  		/** \brief Overrides Data::clearEditedRegions().
   		 *
   		 */
       virtual void clearEditedRegions() override
       { m_data->clearEditedRegions(); }
 
-  		/** brief Implements Data::isValid().
+  		/** \brief Implements Data::isValid().
   		 *
   		 */
       virtual bool isValid() const
       { return m_data->isValid(); }
 
-  		/** brief Implements Data::isEmpty().
+  		/** \brief Implements Data::isEmpty().
   		 *
   		 */
       virtual bool isEmpty() const
       { return m_data->isEmpty(); }
 
-  		/** brief Implements Data::fetchData().
+  		/** \brief Implements Data::fetchData().
   		 *
   		 */
       virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix)
       { return m_data->fetchData(storage, prefix); }
 
-  		/** brief Implements Data::snapshot().
+  		/** \brief Implements Data::snapshot().
   		 *
   		 */
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
       { return m_data->snapshot(storage, prefix); }
 
-  		/** brief Implements Data::editedRegionsSnapshot().
+  		/** \brief Implements Data::editedRegionsSnapshot().
   		 *
   		 */
       virtual Snapshot editedRegionsSnapshot() const
       { return m_data->editedRegionsSnapshot(); }
 
-  		/** brief Implements Data::undo().
+  		/** \brief Implements Data::undo().
   		 *
   		 */
       virtual void undo()
       { m_data->undo(); }
 
-  		/** brief Implements Data::memoryUsage().
+  		/** \brief Implements Data::memoryUsage().
   		 *
   		 */
       virtual size_t memoryUsage() const
       { return m_data->memoryUsage(); }
 
-  		/** brief MeshData::mesh().
+  		/** \brief MeshData::mesh().
   		 *
   		 */
       virtual vtkSmartPointer< vtkPolyData > mesh() const

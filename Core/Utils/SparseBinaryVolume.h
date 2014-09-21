@@ -74,7 +74,7 @@ namespace ESPINA
     using BlockMaskUPtr = std::unique_ptr<BlockMask>;
 
   public:
-    /** brief SparseBinaryVolume class constructor to create a empty mask with the given bounds and spacing.
+    /** \brief SparseBinaryVolume class constructor to create a empty mask with the given bounds and spacing.
      * \param[in] bounds, bounds of the volume.
      * \param[in] spacing, spacing of the volume.
      *
@@ -82,7 +82,7 @@ namespace ESPINA
     explicit SparseBinaryVolume(const Bounds& bounds = Bounds(),
                                 const NmVector3 spacing = NmVector3{1,1,1}) throw(Invalid_Image_Bounds_Exception);
 
-    /** brief SparseBinaryVolume class constructor to create the equivalent mask from a vtkImageData.
+    /** \brief SparseBinaryVolume class constructor to create the equivalent mask from a vtkImageData.
      * \param[in] image, vtkImageData smart pointer.
      * \param[in] backgroundValue, background value of the mask.
      *
@@ -90,7 +90,7 @@ namespace ESPINA
     explicit SparseBinaryVolume(const vtkSmartPointer<vtkImageData> image,
                                 const unsigned char backgroundValue = 0) throw(Invalid_Image_Bounds_Exception);
 
-    /** brief SparseBinaryVolume class constructor to create the equivalent mask from a templated itk::Image.
+    /** \brief SparseBinaryVolume class constructor to create the equivalent mask from a templated itk::Image.
      * \param[in] image, itkImage smart pointer.
      * \param[in] backgroundValue, background value of the mask.
      *
@@ -98,34 +98,34 @@ namespace ESPINA
     template <class T> explicit SparseBinaryVolume(const typename T::Pointer image,
                                                    const unsigned char backgroundValue = 0);
 
-    /** brief SparseBinaryVolume class destructor.
+    /** \brief SparseBinaryVolume class destructor.
      *
      */
     ~SparseBinaryVolume() {};
 
-    /** brief Returns the memory used to store the image in megabytes.
+    /** \brief Returns the memory used to store the image in megabytes.
      *
      */
     double memoryUsage() const;
 
-    /** brief Returns the bounds of the mask.
+    /** \brief Returns the bounds of the mask.
      *
      */
     Bounds bounds() const;
 
-    /** brief Sets the origin of the mask.
+    /** \brief Sets the origin of the mask.
      * \param[in] origin.
      *
      */
     void setOrigin(const NmVector3 &origin);
 
-    /** brief Returns the origin of the mask.
+    /** \brief Returns the origin of the mask.
      *
      */
     NmVector3 origin() const
     { return m_origin; }
 
-    /** brief Returns the spacing of the mask.
+    /** \brief Returns the spacing of the mask.
      * \param[in] spacing.
      *
      */
@@ -134,29 +134,29 @@ namespace ESPINA
     NmVector3 spacing() const
     { return m_spacing; }
 
-    /** brief Return the mask image as a itkVolumeType ( = itk::Image<unsigned char, 3>).
+    /** \brief Return the mask image as a itkVolumeType ( = itk::Image<unsigned char, 3>).
      *
      */
     itkVolumeType::Pointer itkImage() const;
 
-    /** brief Return a region of the mask image as a itkVolumeType ( = itk::Image<unsigned char, 3>).
+    /** \brief Return a region of the mask image as a itkVolumeType ( = itk::Image<unsigned char, 3>).
      * \param[in] bounds, bounds of the volume region to return.
      *
      */
     itkVolumeType::Pointer itkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception);
 
-    /** brief Return the mask image as a vtkImageData of unsigned char scalars.
+    /** \brief Return the mask image as a vtkImageData of unsigned char scalars.
      *
      */
     vtkSmartPointer<vtkImageData> vtkImage() const;
 
-    /** brief Return a region of the mask image as a vtkImageData of unsigned char scalars.
+    /** \brief Return a region of the mask image as a vtkImageData of unsigned char scalars.
      * \param[in] bounds, bounds of the volume region to return.
      *
      */
     vtkSmartPointer<vtkImageData> vtkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception);
 
-    /** brief Draw method to modify mask using a implicit function.
+    /** \brief Draw method to modify mask using a implicit function.
      * \param[in] brush, vtkImplicitFunction raw pointer.
      * \param[in] bounds, bounds that will be modified.
      * \param[in] drawValue, value of the voxels that comply with the implicit function.
@@ -166,7 +166,7 @@ namespace ESPINA
               const Bounds&         bounds,
               const unsigned char   drawValue);
 
-    /** brief Draw method to modify mask using a templated itk::Image.
+    /** \brief Draw method to modify mask using a templated itk::Image.
      * \param[in] image, itkImage smart pointer.
      * \param[in] bounds, bounds to modify.
      * \param[in] backgroundValue, value of the modification.
@@ -175,62 +175,62 @@ namespace ESPINA
                                  const Bounds&               bounds = Bounds(),
                                  const typename T::PixelType backgroundValue = 0);
 
-    /** brief Draw method to modify a voxel of the mask.
+    /** \brief Draw method to modify a voxel of the mask.
      * \param[in] index, point to modify.
      * \param[in] value, true to turn on voxel, false otherwise.
      */
     void draw(const NmVector3 &index,
               const bool value = true);
 
-    /** brief Reduce the bounds to the smallest one that contains the mask (clipping empty borders).
+    /** \brief Reduce the bounds to the smallest one that contains the mask (clipping empty borders).
      *
      */
     void fitToContent();
 
-    /** brief Change the bounds of the image.
+    /** \brief Change the bounds of the image.
      * \param[in] bounds, new bounds.
      *
      */
     void resize(const Bounds &bounds);
 
-    /** brief Undo interface to revert the changes made by the draw methods to the mask.
+    /** \brief Undo interface to revert the changes made by the draw methods to the mask.
      *
      */
     void undo() throw(Cant_Undo_Exception);
 
-    /** brief Redo interface to revert the changes made by the undo method to the mask.
+    /** \brief Redo interface to revert the changes made by the undo method to the mask.
      *
      */
     void redo() throw(Cant_Redo_Exception);
 
-    /** brief Persistent Interface to save the mask state.
+    /** \brief Persistent Interface to save the mask state.
      *
      */
     Snapshot snapshot() const;
 
   protected:
-    /** brief Replace mask voxels within data region with new values.
+    /** \brief Replace mask voxels within data region with new values.
      * \param[in] image.
      *
      * Sparse Volume will take ownership of the block.
      */
     void setBlock(BlockMaskUPtr image);
 
-    /** brief Set mask voxels of the region to set value.
+    /** \brief Set mask voxels of the region to set value.
      * \param[in] image.
      *
      * Sparse Volume will take ownership of the block.
      */
     void addBlock(BlockMaskUPtr mask);
 
-    /** brief Set mask voxels of the region to unset value.
+    /** \brief Set mask voxels of the region to unset value.
      * \param[in] image.
      *
      * Sparse Volume will take ownership of the block.
      */
     void delBlock(BlockMaskUPtr mask);
 
-    /** brief Compute a mask from a given size.
+    /** \brief Compute a mask from a given size.
      * \param[in] bounds, bounds of the mask.
      *
      */
@@ -242,7 +242,7 @@ namespace ESPINA
     class Block
     {
     public:
-      /** brief Block class constructor.
+      /** \brief Block class constructor.
        * \param[in] mask, BinaryMask<unsigned char> unique pointer
        * \param[in] type, Set, Add, Del
        * \param[in] locked, Moveable to redo list.
@@ -253,43 +253,43 @@ namespace ESPINA
       , m_locked(locked)
       {}
 
-      /** brief Block class destructor.
+      /** \brief Block class destructor.
        *
        */
       virtual ~Block()
       {}
 
-      /** brief Returns if this block can be moved to redo block list.
+      /** \brief Returns if this block can be moved to redo block list.
        *
        */
       bool isLocked()
       { return m_locked; }
 
-      /** brief Returns type of the block.
+      /** \brief Returns type of the block.
        *
        */
       BlockType type()
       { return m_type; }
 
-      /** brief Returns the contents of the mask buffer as a QByteArray.
+      /** \brief Returns the contents of the mask buffer as a QByteArray.
        *
        */
       QByteArray byteArray()
       { return m_mask->buffer(); }
 
-      /** brief Returns the memory used for data storage in bytes.
+      /** \brief Returns the memory used for data storage in bytes.
        *
        */
       unsigned long memoryUsage()
       { return m_mask->bufferSize(); }
 
-      /** brief Returns the bounds of the block.
+      /** \brief Returns the bounds of the block.
        *
        */
       Bounds bounds() const
       { return m_mask->bounds().bounds(); } //TODO
 
-      /** brief Returns a const_iterator for the block for the specified bounds.
+      /** \brief Returns a const_iterator for the block for the specified bounds.
        * \param[in] bounds, bounds to iterate.
        *
        */
@@ -311,13 +311,13 @@ namespace ESPINA
     };
 
   private:
-    /** brief Class internal method to create an empty mask.
+    /** \brief Class internal method to create an empty mask.
      * \param[in] bounds, bounds of the mask.
      *
      */
     BlockMaskUPtr createMask(const Bounds& bounds) const;
 
-    /** brief Class internal method to compute bounding box
+    /** \brief Class internal method to compute bounding box
      * \param[in] bounds, bounds to add to compute the bounding box.
      */
     void updateBlocksBoundingBox(const Bounds& bounds) throw(Invalid_Internal_State_Exception);
@@ -363,7 +363,7 @@ namespace ESPINA
         {
         }
 
-        /** brief iterator class destructor.
+        /** \brief iterator class destructor.
          *
          */
         virtual ~iterator()
@@ -434,7 +434,7 @@ namespace ESPINA
           return false;
         }
 
-        /** brief Convenience method when one doesn't need to know the foreground/background
+        /** \brief Convenience method when one doesn't need to know the foreground/background
          * values of the mask.
          *
          */
@@ -494,7 +494,7 @@ namespace ESPINA
         { ++m_it; return *this; }
 
       protected:
-        /** brief Constructor for region_iterator version.
+        /** \brief Constructor for region_iterator version.
          * \param[in] mask, SparseBinary smart pointer.
          * \param[in] bounds, bounds to iterate.
          *
@@ -522,7 +522,7 @@ namespace ESPINA
         : iterator(mask)
         {};
 
-        /** brief const_iterator class virtual destructor.
+        /** \brief const_iterator class virtual destructor.
          *
          */
         virtual ~const_iterator() {};
@@ -559,7 +559,7 @@ namespace ESPINA
             throw Region_Not_Contained_In_Mask_Exception();
         }
 
-        /** brief region_iterator class virtual destructor.
+        /** \brief region_iterator class virtual destructor.
          *
          */
         virtual ~region_iterator()
@@ -583,7 +583,7 @@ namespace ESPINA
         : region_iterator(mask, bounds)
         {}
 
-        /** brief const_region_iterator class destructor.
+        /** \brief const_region_iterator class destructor.
          *
          */
         virtual ~const_region_iterator() {};
@@ -604,7 +604,7 @@ namespace ESPINA
     using SparseBinaryVolumePtr  = SparseBinaryVolume *;
     using SparseBinaryVolumeSPtr = std::shared_ptr<SparseBinaryVolume>;
 
-    /** brief Draw method to expand the image bounds (only if necessary) and modify
+    /** \brief Draw method to expand the image bounds (only if necessary) and modify
      * the mask using a implicit function.
      * \param[in] volume, SparseBinaryVolume smart pointer.
      * \param[in] brush, vtkImplicitFunction object raw pointer.
@@ -617,7 +617,7 @@ namespace ESPINA
                        const Bounds&         bounds,
                        const unsigned char   drawValue);
 
-    /** brief Draw method to expand the image bounds (only if necessary) and modify
+    /** \brief Draw method to expand the image bounds (only if necessary) and modify
      * the mask using a templated itk::Image.
      * \param[in] volume, SparseBinaryVolume smart pointer.
      * \param[in] image, itkImage smart pointer.
@@ -629,7 +629,7 @@ namespace ESPINA
                                           const Bounds&               bounds = Bounds(),
                                           const typename T::PixelType backgroundValue = 0);
 
-    /** brief Draw method to expand the image bounds (only if necessary) and modify
+    /** \brief Draw method to expand the image bounds (only if necessary) and modify
      *  a voxel of the mask.
      *  \param[in] volume, SparseBinaryVolume smart pointer.
      *  \param[in] index, point to modify.

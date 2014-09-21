@@ -29,14 +29,14 @@ namespace ESPINA
   : public RasterizedVolumeFromFetchedMeshData
   {
     public:
-      /** brief SASFetchBehaviour class virtual destructor.
+      /** \brief SASFetchBehaviour class virtual destructor.
        *
        */
       virtual ~SASFetchBehaviour()
       {};
 
     protected:
-      /** brief Overrides RasterizedVolumeFromFetchedMeshData::fetchMeshData().
+      /** \brief Overrides RasterizedVolumeFromFetchedMeshData::fetchMeshData().
        *
        */
       virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix) override;

@@ -39,7 +39,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief DockWidget class constructor.
+    /** \brief DockWidget class constructor.
      * \param[in] parent, raw pointer of the parent widget of this one.
      *
      */
@@ -47,14 +47,14 @@ namespace ESPINA
     : QDockWidget(parent)
     {}
 
-    /** brief DockWidget class virtual destructor.
+    /** \brief DockWidget class virtual destructor.
      *
      */
     virtual ~DockWidget()
     {}
 
   public slots:
-    /** brief Resets the dock to its initial state and frees resources.
+    /** \brief Resets the dock to its initial state and frees resources.
      *
      */
     virtual void reset() = 0;

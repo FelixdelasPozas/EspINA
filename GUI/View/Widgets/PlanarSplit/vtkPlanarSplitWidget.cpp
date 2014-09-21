@@ -52,13 +52,13 @@ namespace ESPINA
   : public vtkCommand
   {
   public:
-  	/** brief Creates a new instance.
+  	/** \brief Creates a new instance.
   	 *
   	 */
     static vtkPlanarSplitWidgetCallback *New()
     { return new vtkPlanarSplitWidgetCallback; }
 
-    /** brief Implements vtkCommand::execute().
+    /** \brief Implements vtkCommand::execute().
      *
      */
     virtual void Execute(vtkObject*, unsigned long eventId, void*)

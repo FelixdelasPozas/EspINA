@@ -35,12 +35,12 @@ namespace ESPINA
     struct Extension_Not_Provided_Exception {};
 
   public:
-    /** brief ChannelExtensionFactory class virtual destructor.
+    /** \brief ChannelExtensionFactory class virtual destructor.
      *
      */
     virtual ~ChannelExtensionFactory() {}
 
-    /** brief Creates a channel extension of the given type with the given state and cache object.
+    /** \brief Creates a channel extension of the given type with the given state and cache object.
      * \param[in] type, channel extension type.
      * \param[in] cache, information cache object.
      * \param[in] state, state object.
@@ -50,7 +50,7 @@ namespace ESPINA
                                                         const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache() ,
                                                         const State                       &state = State()) const = 0;
 
-    /** brief Returns the list of types of channel extensions this filter can create.
+    /** \brief Returns the list of types of channel extensions this filter can create.
      *
      */
     virtual ChannelExtensionTypeList providedExtensions() const = 0 ;

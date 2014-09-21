@@ -40,7 +40,7 @@ namespace ESPINA {
 
   enum class Axis: std::int8_t { X=0, Y=1, Z=2 };
 
-  /** brief Returns the numerical index equivalent of the specified axis.
+  /** \brief Returns the numerical index equivalent of the specified axis.
    * \param[in] axis.
    *
    */
@@ -49,7 +49,7 @@ namespace ESPINA {
     return axis == Axis::X? 0:(axis == Axis::Y?1:2);
   }
 
-  /** brief Converts the numerical value to its Axis equivalent.
+  /** \brief Converts the numerical value to its Axis equivalent.
    * \param[in] idx, value [0,2]
    *
    */
@@ -66,7 +66,7 @@ namespace ESPINA {
     UNDEFINED = 3
   };
 
-  /** brief Returns the numerical index equivalent of the specified plane.
+  /** \brief Returns the numerical index equivalent of the specified plane.
    * \param[in] plane.
    *
    */
@@ -75,14 +75,14 @@ namespace ESPINA {
     return plane == Plane::XY? 2:(plane == Plane::XZ?1:(plane == Plane::YZ?0:-1));
   }
 
-  /** brief Returns the numerical index equivalent of the specified plane.
+  /** \brief Returns the numerical index equivalent of the specified plane.
    * \param[in] plane.
    *
    */
   constexpr int normalCoordinateIndex(const Plane plane)
   { return idx(plane); }
 
-  /** brief Converts the numerical value to its Plane equivalent.
+  /** \brief Converts the numerical value to its Plane equivalent.
    * \param[in] idx.
    *
    */
@@ -93,7 +93,7 @@ namespace ESPINA {
 
   using Nm = double;
 
-  /** brief Returns true if both values are equal to some degree given by the delta and the spacing.
+  /** \brief Returns true if both values are equal to some degree given by the delta and the spacing.
    * \param[in] lhs.
    * \param[in] rhs.
    * \param[in] spacing.

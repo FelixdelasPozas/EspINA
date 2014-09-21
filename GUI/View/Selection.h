@@ -40,42 +40,42 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    /** brief Sets the given list of channels as selected.
+    /** \brief Sets the given list of channels as selected.
      * \param[in] selection, list of channel adapter raw pointers.
      *
      */
     void set(ChannelAdapterList selection);
 
-    /** brief Sets the given list of segmentations as selected.
+    /** \brief Sets the given list of segmentations as selected.
      * \param[in] selection, list of segmentation adapter raw pointers.
      *
      */
     void set(SegmentationAdapterList selection);
 
-    /** brief Sets the given list of view items as selected.
+    /** \brief Sets the given list of view items as selected.
      * \param[in] selection, list of view item adapter raw pointers.
      *
      */
     void set(ViewItemAdapterList selection);
 
-    /** brief Returns the list of selected channels.
+    /** \brief Returns the list of selected channels.
      *
      */
     ChannelAdapterList channels() const
     { return m_channels; }
 
-    /** brief Returns the list of selected segmentations.
+    /** \brief Returns the list of selected segmentations.
      *
      */
     SegmentationAdapterList segmentations() const
     { return m_segmentations; }
 
-    /** brief Returns the list of selected items.
+    /** \brief Returns the list of selected items.
      *
      */
     ViewItemAdapterList items() const;
 
-    /** brief Clears the selection.
+    /** \brief Clears the selection.
      *
      */
     void clear();
@@ -89,12 +89,12 @@ namespace ESPINA
     void selectionChanged();
 
   private:
-    /** brief Helper method to set the given list of channels as selected.
+    /** \brief Helper method to set the given list of channels as selected.
      * \param[in] list, list of channel adapter raw pointers.
      */
     ChannelAdapterList setChannels(ChannelAdapterList list);
 
-    /** brief Helper method to set the given list of segmentations as selected.
+    /** \brief Helper method to set the given list of segmentations as selected.
      * \param[in] list, list of segmentation adapter raw pointers.
      */
     SegmentationAdapterList setSegmentations(SegmentationAdapterList list);

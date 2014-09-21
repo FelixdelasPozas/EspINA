@@ -34,52 +34,52 @@ namespace ESPINA
   : public MeshRenderer
   {
     public:
-  		/** brief SmoothedMeshRenderer class constructor.
+  		/** \brief SmoothedMeshRenderer class constructor.
   		 * \param[in] parent, raw pointer of the QObject parent of this one.
   		 *
   		 */
       explicit SmoothedMeshRenderer(QObject* parent = nullptr);
 
-      /** brief SmoothedMeshRenderer class virtual destructor.
+      /** \brief SmoothedMeshRenderer class virtual destructor.
        *
        */
       virtual ~SmoothedMeshRenderer()
       {}
 
-      /** brief Implements Renderer::icon() const.
+      /** \brief Implements Renderer::icon() const.
        *
        */
       virtual const QIcon icon() const
       { return QIcon(":/espina/smoothedmesh.png"); }
 
-      /** brief Implements Renderer::name() const.
+      /** \brief Implements Renderer::name() const.
        *
        */
       virtual const QString name()
       const { return "Smoothed Mesh"; }
 
-      /** brief Implements Renderer::tooltip() const.
+      /** \brief Implements Renderer::tooltip() const.
        *
        */
       virtual const QString tooltip() const
       { return "Segmentation's Smoothed Meshes"; }
 
-      /** brief Implements RepresentationRenderer::addRepresentation().
+      /** \brief Implements RepresentationRenderer::addRepresentation().
        *
        */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-      /** brief Implements RepresentationRenderer::removeRepresentation().
+      /** \brief Implements RepresentationRenderer::removeRepresentation().
        *
        */
       virtual void removeRepresentation(RepresentationSPtr rep);
 
-      /** brief Implements RepresentationRenderer::managesRepresentation() const.
+      /** \brief Implements RepresentationRenderer::managesRepresentation() const.
        *
        */
       virtual bool managesRepresentation(const QString &repType) const;
 
-      /** brief Implements Renderer::clone() const.
+      /** \brief Implements Renderer::clone() const.
        *
        */
       virtual RendererSPtr clone() const

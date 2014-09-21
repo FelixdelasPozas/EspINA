@@ -43,7 +43,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief ManualEditionTool class constructor.
+    /** \brief ManualEditionTool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
      *
@@ -51,105 +51,105 @@ namespace ESPINA
     ManualEditionTool(ModelAdapterSPtr model,
                       ViewManagerSPtr  viewManager);
 
-    /** brief ManualEditionTool class virtual destructor.
+    /** \brief ManualEditionTool class virtual destructor.
      *
      */
     virtual ~ManualEditionTool();
 
-    /** brief Implements Tool::setEnabled().
+    /** \brief Implements Tool::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /** brief Implements Tool::enabled().
+    /** \brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** brief Implements Tool::actions().
+    /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
-    /** brief Aborts current operation.
+    /** \brief Aborts current operation.
      *
      */
     virtual void abortOperation();
 
-    /** brief Shows/hides category controls.
+    /** \brief Shows/hides category controls.
      * \param[in] value, true for show.
      *
      */
     void showCategoryControls(bool value)
     { m_showCategoryControls = value; }
 
-    /** brief Shows/hides radius controls.
+    /** \brief Shows/hides radius controls.
      * \param[in] value, true for show.
      *
      */
     void showRadiusControls(bool value)
     { m_showRadiusControls = value; }
 
-    /** brief Shows/hides opacity controls.
+    /** \brief Shows/hides opacity controls.
      * \param[in] value, true for show.
      *
      */
     void showOpacityControls(bool value)
     { m_showOpacityControls = value; }
 
-    /** brief Shows/hides eraser controls.
+    /** \brief Shows/hides eraser controls.
      * \param[in] value, true for show.
      *
      */
     void showEraserControls(bool value)
     { m_showEraserControls = value; }
 
-    /** brief Returns true if the category controls are visible, false otherwise.
+    /** \brief Returns true if the category controls are visible, false otherwise.
      *
      */
     bool categoryControlsVisibility()
     { return m_showCategoryControls; }
 
-    /** brief Returns true if the radius controls are visible, false otherwise.
+    /** \brief Returns true if the radius controls are visible, false otherwise.
      *
      */
     bool radiusControlsVisibility()
     { return m_showRadiusControls; }
 
-    /** brief Returns true if the opacity controls are visible, false otherwise.
+    /** \brief Returns true if the opacity controls are visible, false otherwise.
      *
      */
     bool opacityControlsVisibility()
     { return m_showOpacityControls; }
 
-    /** brief Returns true if the eraser controls are visible, false otherwise.
+    /** \brief Returns true if the eraser controls are visible, false otherwise.
      *
      */
     bool eraserControlsVisibility()
     { return m_showEraserControls; }
 
-    /** brief Sets pencil 2d icon.
+    /** \brief Sets pencil 2d icon.
      * \param[in] icon, QIcon object.
      *
      */
     void setPencil2DIcon(QIcon icon)
     { m_discTool->setIcon(icon); }
 
-    /** brief Sets pencil 3d icon.
+    /** \brief Sets pencil 3d icon.
      * \param[in] icon, QIcon object.
      *
      */
     void setPencil3DIcon(QIcon icon)
     { m_sphereTool->setIcon(icon); }
 
-    /** brief Sets pencil 2d text,
+    /** \brief Sets pencil 2d text,
      * \param[in] text, text for the control.
      *
      */
     void setPencil2DText(QString text)
     { m_discTool->setText(text); }
 
-    /** brief Sets pencil 3d text.
+    /** \brief Sets pencil 3d text.
      * \param[in] text, text for the control.
      *
      */
@@ -162,72 +162,72 @@ namespace ESPINA
     void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
 
   public slots:
-  	/** brief Emits a stroke signal with the mask and the selected category.
+  	/** \brief Emits a stroke signal with the mask and the selected category.
   	 * \param[in] selection, list of SelectionItem <mask, neuroitemadapter> pairs.
   	 *
   	 */
     virtual void drawStroke(Selector::Selection selection);
 
-  	/** brief Modifies the GUI when the radius changes.
+  	/** \brief Modifies the GUI when the radius changes.
   	 *
   	 */
     virtual void radiusChanged(int);
 
-    /** brief Modifies the GUI when the drawing mode changes.
+    /** \brief Modifies the GUI when the drawing mode changes.
      * \param[in] value, true if drawing.
      */
     virtual void drawingModeChanged(bool value);
 
-    /** brief Updates the reference item for the tool.
+    /** \brief Updates the reference item for the tool.
      *
      */
     virtual void updateReferenceItem();
 
   protected slots:
-		/** brief Changes the selector for the operation.
+		/** \brief Changes the selector for the operation.
 		 *
 		 */
     virtual void changeSelector(QAction *);
 
-  	/** brief Changes the radius for the operation.
+  	/** \brief Changes the radius for the operation.
   	 * \param[in] value, radius value.
   	 *
   	 */
     virtual void changeRadius(int value);
 
-  	/** brief Changes the opacity for the operation.
+  	/** \brief Changes the opacity for the operation.
   	 * \param[in] value, opacity slider value.
   	 */
     virtual void changeOpacity(int value);
 
-    /** brief Updates the reference item if the selector is in use. Disables the selector otherwise.
+    /** \brief Updates the reference item if the selector is in use. Disables the selector otherwise.
      * \param[in] inUse, true if selector is in use.
      */
     virtual void selectorInUse(bool inUse);
 
-    /** brief Unsets the selector and disables the tool.
+    /** \brief Unsets the selector and disables the tool.
      *
      */
     virtual void unsetSelector();
 
-    /** brief Updates the tool when the category selector changes.
+    /** \brief Updates the tool when the category selector changes.
      * \param[in] unused, unused value.
      */
     virtual void categoryChanged(CategoryAdapterSPtr unused);
 
   private:
-    /** brief Helper method to hide/show the controls of the tool.
+    /** \brief Helper method to hide/show the controls of the tool.
      *
      */
     void setControlVisibility(bool visible);
 
-    /** brief Returns the category of the current item.
+    /** \brief Returns the category of the current item.
      *
      */
     CategoryAdapterSPtr currentReferenceCategory();
 
   private slots:
-		/** brief Modifies the GUI when the eraser mode changes.
+		/** \brief Modifies the GUI when the eraser mode changes.
 		 *
 		 */
     void setEraserMode(bool value);

@@ -36,61 +36,61 @@ class EspinaGUI_EXPORT vtkInteractorStyleEspinaSlice
 		static vtkInteractorStyleEspinaSlice *New();
 		vtkTypeMacro(vtkInteractorStyleEspinaSlice, vtkInteractorStyleImage);
 
-		/** brief Disable mouse wheel.
+		/** \brief Disable mouse wheel.
 		 *
 		 */
 		virtual void OnMouseWheelForward() override
 		{}
 
-		/** brief Disable mouse wheel.
+		/** \brief Disable mouse wheel.
 		 *
 		 */
 		virtual void OnMouseWheelBackward() override
 		{}
 
-		/** brief Disable keyboard.
+		/** \brief Disable keyboard.
 		 *
 		 */
 		virtual void OnKeyPress() override
 		{}
 
-		/** brief Disable keyboard.
+		/** \brief Disable keyboard.
 		 *
 		 */
 		virtual void OnKeyRelease() override
 		{}
 
-		/** brief Disable keyboard.
+		/** \brief Disable keyboard.
 		 *
 		 */
 		virtual void OnKeyUp() override
 		{}
 
-		/** brief Disable keyboard.
+		/** \brief Disable keyboard.
 		 *
 		 */
 		virtual void OnKeyDown() override
 		{}
 
-		/** brief Disable mdifications of brightness and saturation.
+		/** \brief Disable mdifications of brightness and saturation.
 		 *
 		 */
 		virtual void OnLeftButtonDown() override
 		{}
 
-		/** brief Disable mdifications of brightness and saturation.
+		/** \brief Disable mdifications of brightness and saturation.
 		 *
 		 */
 		virtual void OnLeftButtonUp() override
 		{}
 
-		/** brief Disable zoom if ctrl is pressed.
+		/** \brief Disable zoom if ctrl is pressed.
 		 *
 		 */
 		virtual void OnRightButtonDown();
 
 	protected:
-		/** brief vtkInteractorStyleEspinaSlice class constructor.
+		/** \brief vtkInteractorStyleEspinaSlice class constructor.
 		 *
 		 */
 		explicit vtkInteractorStyleEspinaSlice()
@@ -99,7 +99,7 @@ class EspinaGUI_EXPORT vtkInteractorStyleEspinaSlice
 			KeyPressActivationOff();
 		}
 
-		/** brief vtkInteractorStyleEspinaSlice class destructor.
+		/** \brief vtkInteractorStyleEspinaSlice class destructor.
 		 *
 		 */
 		virtual ~vtkInteractorStyleEspinaSlice()

@@ -33,20 +33,20 @@ namespace ESPINA {
   : public ChannelExtensionFactory
   {
   public:
-  	/** brief DefaultChannelExtensionFactor class constructor.
+  	/** \brief DefaultChannelExtensionFactor class constructor.
   	 * \param[in] scheduler, scheduler smart pointer.
   	 *
   	 */
     explicit DefaultChannelExtensionFactory(SchedulerSPtr scheduler);
 
-    /** brief Implements ChannelExtensionFactory::createChannelExtension().
+    /** \brief Implements ChannelExtensionFactory::createChannelExtension().
      *
      */
     virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
                                                         const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
                                                         const State& state = State()) const;
 
-    /** brief Implements ChannelExtensionFactory::providedExtensions().
+    /** \brief Implements ChannelExtensionFactory::providedExtensions().
      *
      */
     virtual ChannelExtensionTypeList providedExtensions() const;

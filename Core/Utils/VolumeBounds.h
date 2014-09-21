@@ -47,7 +47,7 @@ namespace ESPINA
   class EspinaCore_EXPORT VolumeBounds
   {
     public:
-  		/** brief VolumeBounds class constructor.
+  		/** \brief VolumeBounds class constructor.
   		 * \param[in] bounds, bounds of the volume.
   		 * \param[in] spacing, spacing of the volume.
   		 * \param[in] origin, origin of the volume.
@@ -63,7 +63,7 @@ namespace ESPINA
       bool areValid() const
       { return m_spacing[0] > 0 && m_spacing[1] > 0 && m_spacing[2] > 0 && m_bounds.areValid(); }
 
-      /** brief VolumeBounds operator[]
+      /** \brief VolumeBounds operator[]
        * \param[in] idx, value in (0,5)
        *
        */
@@ -77,27 +77,27 @@ namespace ESPINA
       double lenght(const Axis dir) const
       { return m_bounds.lenght(dir); }
 
-      /** brief Sets volume origin.
+      /** \brief Sets volume origin.
        * \param[in] origin.
        *
        */
       void setOrigin(const NmVector3& origin)
       { m_origin = origin; }
 
-      /** brief Returns volume origin.
+      /** \brief Returns volume origin.
        *
        */
       NmVector3 origin() const
       { return m_origin; }
 
-      /** brief Sets volume spacing.
+      /** \brief Sets volume spacing.
        * \param[in] spacing.
        *
        */
       void setSpacing(const NmVector3& spacing)
       { m_spacing = spacing; }
 
-      /** brief Returns the spacing of the volume.
+      /** \brief Returns the spacing of the volume.
        *
        */
       NmVector3 spacing() const
@@ -113,13 +113,13 @@ namespace ESPINA
        */
       void include(int idx, Nm value);
 
-      /** brief Returns the volume bounds as a bounds object.
+      /** \brief Returns the volume bounds as a bounds object.
        *
        */
       Bounds bounds() const
       { return m_bounds; }
 
-      /** brief Dumps the volume bounds to a string for printing.
+      /** \brief Dumps the volume bounds to a string for printing.
        *
        */
       QString toString() const;
@@ -134,12 +134,12 @@ namespace ESPINA
 
   struct Incompatible_Volume_Bounds_Exception {};
 
-  /** brief Returns true if the point = n * spacing.
+  /** \brief Returns true if the point = n * spacing.
    *
    */
   bool EspinaCore_EXPORT isMultiple(Nm point, Nm spacing);
 
-  /** brief Returns true if the point is aligned with the grid that the spacing defines.
+  /** \brief Returns true if the point is aligned with the grid that the spacing defines.
    *
    */
   bool EspinaCore_EXPORT isAligned(Nm point, Nm origin, Nm spacing);
@@ -180,17 +180,17 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT contains(const VolumeBounds& b1, const VolumeBounds& b2);
 
-  /** brief Returns true if the point is inside the volume defined.
+  /** \brief Returns true if the point is inside the volume defined.
    *
    */
   bool EspinaCore_EXPORT contains(const VolumeBounds& bounds, const NmVector3& point);
 
-  /** brief VolumeBounds operator<< for streams.
+  /** \brief VolumeBounds operator<< for streams.
    *
    */
   std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const VolumeBounds& bounds);
 
-  /** brief VolumeBounds operator<< for QDebug
+  /** \brief VolumeBounds operator<< for QDebug
    *
    */
   QDebug EspinaCore_EXPORT operator<< (QDebug d, const VolumeBounds &bounds);
@@ -206,7 +206,7 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT operator!=(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
-  /** brief Returns true if the blocks are adjacent and the bounding box is the union of both.
+  /** \brief Returns true if the blocks are adjacent and the bounding box is the union of both.
    * For that to happen the blocks must have equal sizes on two sides and be adjacent on the
    * third side.
    */

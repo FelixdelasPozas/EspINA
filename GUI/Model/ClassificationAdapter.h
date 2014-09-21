@@ -50,51 +50,51 @@ namespace ESPINA
     static const QString ROOT;
 
   public:
-    /** brief ClassificationAdapter class constructor.
+    /** \brief ClassificationAdapter class constructor.
      * \param[in] name, name of the classification.
      *
      */
     explicit ClassificationAdapter(const QString& name = QString());
 
-    /** brief ClassificationAdapter class constructor.
+    /** \brief ClassificationAdapter class constructor.
      * \param[in] classification, smart pointer of the classification to adapt.
      *
      */
     explicit ClassificationAdapter(ClassificationSPtr classification);
 
-    /** brief ClassificationAdapter class destructor.
+    /** \brief ClassificationAdapter class destructor.
      *
      */
     ~ClassificationAdapter();
 
-    /** brief Implements ItemAdapter::setData().
+    /** \brief Implements ItemAdapter::setData().
      *
      */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    /** brief Implements ItemAdapter::data().
+    /** \brief Implements ItemAdapter::data().
      *
      */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /** brief Implements ItemAdapter::type().
+    /** \brief Implements ItemAdapter::type().
      *
      */
     virtual ItemAdapter::Type type() const
     { return Type::CLASSIFICATION; }
 
-    /** brief Sets the name of the classification.
+    /** \brief Sets the name of the classification.
      * \param[in] name, name of the classification.
      *
      */
     void setName(const QString& name);
 
-    /** brief Returns the name of the classification.
+    /** \brief Returns the name of the classification.
      *
      */
     QString name() const;
 
-    /** brief Creates a category inside the classification.
+    /** \brief Creates a category inside the classification.
      * \param[in] relativeName, name of the category.
      * \param[in] parent, smart pointer of the parent category of the one created.
      *
@@ -102,36 +102,36 @@ namespace ESPINA
     CategoryAdapterSPtr createCategory(const QString &relativeName,
                                        CategoryAdapterSPtr parent = CategoryAdapterSPtr());
 
-    /** brief Removes a category from the classification.
+    /** \brief Removes a category from the classification.
      * \param[in] element, smart pointer of the category adapter to remove.
      *
      */
     void removeCategory(CategoryAdapterSPtr element);
 
-    /** brief Returns the smart pointer of the root node of the classification.
+    /** \brief Returns the smart pointer of the root node of the classification.
      *
      */
     CategoryAdapterSPtr root();
 
-    /** brief Returns the smart pointer of the category with the specified name.
+    /** \brief Returns the smart pointer of the category with the specified name.
      * \param[in] categoryName, name of the category to return.
      *
      */
     CategoryAdapterSPtr category(const QString &categoryName);
 
-    /** brief Returns the list of smart pointer of all the categories in the classification.
+    /** \brief Returns the list of smart pointer of all the categories in the classification.
      *
      */
     CategoryAdapterSList categories();
 
-    /** brief Returns the smart pointer of the parent of the specified category.
+    /** \brief Returns the smart pointer of the parent of the specified category.
      * \param[in] category, category adapter smart pointer.
      *
      */
     CategoryAdapterSPtr parent(const CategoryAdapterSPtr category) const;
 
   private:
-    /** brief Adds the category and all its sub-categories in the classification.
+    /** \brief Adds the category and all its sub-categories in the classification.
      * \param[in] category, category adapter smart pointer.
      *
      */
@@ -146,7 +146,7 @@ namespace ESPINA
 
   using ClassificationAdapterSPtr = std::shared_ptr<ClassificationAdapter>;
 
-  /** brief Prints the classification with the specified indentation.
+  /** \brief Prints the classification with the specified indentation.
    * \param[in] classification, smart pointer of the classification to print.
    * \param[in] indent, indentation value.
    *

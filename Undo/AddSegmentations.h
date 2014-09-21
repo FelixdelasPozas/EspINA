@@ -35,7 +35,7 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/** brief AddSegmentations class constructor.
+  	/** \brief AddSegmentations class constructor.
   	 * \param[in] segmentation, smart pointer of the segmentation adapter to add.
   	 * \param[in] samples, list of sample adapter smart pointer related to the segmentation.
   	 * \param[in] model, model adapter smart pointer.
@@ -47,7 +47,7 @@ namespace ESPINA
                               ModelAdapterSPtr        model,
                               QUndoCommand           *parent = nullptr);
 
-  	/** brief AddSegmentations class constructor.
+  	/** \brief AddSegmentations class constructor.
   	 * \param[in] segmentations, list of smart pointers of the segmentation adapters to add.
   	 * \param[in] samples, list of sample adapter smart pointer related to the segmentations.
   	 * \param[in] model, model adapter smart pointer.
@@ -59,12 +59,12 @@ namespace ESPINA
                               ModelAdapterSPtr         model,
                               QUndoCommand            *parent = nullptr);
 
-    /** brief Overrides QUndoCommand::redo().
+    /** \brief Overrides QUndoCommand::redo().
      *
      */
     virtual void redo() override;
 
-    /** brief Overrides QUndoCommand::undo().
+    /** \brief Overrides QUndoCommand::undo().
      *
      */
     virtual void undo() override;

@@ -45,19 +45,19 @@ namespace ESPINA
   : public vtkAbstractWidget
   {
   public:
-  	/** brief Creates a new instance.
+  	/** \brief Creates a new instance.
   	 *
   	 */
     static vtkPlanarSplitWidget *New();
 
     vtkTypeMacro(vtkPlanarSplitWidget,vtkAbstractWidget);
 
-    /** brief Overrides vtkAbstractWidget::SetEnabled().
+    /** \brief Overrides vtkAbstractWidget::SetEnabled().
      *
      */
     virtual void SetEnabled(int) override;
 
-  	/** brief Specify an instance of vtkWidgetRepresentation used to represent this
+  	/** \brief Specify an instance of vtkWidgetRepresentation used to represent this
   	 * widget in the scene. Note that the representation is a subclass of vtkProp
   	 * so it can be added to the renderer independent of the widget.
   	 *
@@ -65,17 +65,17 @@ namespace ESPINA
     void SetRepresentation(vtkPlanarSplitRepresentation2D *r)
     {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
 
-    /** brief Overrides vtkAbstractWidget::SetProcessEvents().
+    /** \brief Overrides vtkAbstractWidget::SetProcessEvents().
      *
      */
     virtual void SetProcessEvents(int) override;
 
-  	/** brief Implements vtkAbstractWidget::CreateDefaultRepresentation().
+  	/** \brief Implements vtkAbstractWidget::CreateDefaultRepresentation().
   	 *
   	 */
     void CreateDefaultRepresentation();
 
-  	/** brief Enum defining the state of the widget. By default the widget is in Start mode,
+  	/** \brief Enum defining the state of the widget. By default the widget is in Start mode,
   	 * and expects to be interactively placed. While placing the points the widget
   	 * transitions to Define state. Once placed, the widget enters the Manipulate state.
   	 *
@@ -84,7 +84,7 @@ namespace ESPINA
     enum {Start=0,Define,Manipulate};
     //ETX
 
-  	/** brief Set the state of the widget. If the state is set to "Manipulate" then it
+  	/** \brief Set the state of the widget. If the state is set to "Manipulate" then it
   	 * is assumed that the widget and its representation will be initialized
   	 * programmatically and is not interactively placed. Initially the widget
   	 * state is set to "Start" which means nothing will appear and the user
@@ -97,65 +97,65 @@ namespace ESPINA
     virtual void SetWidgetStateToStart();
     virtual void SetWidgetStateToManipulate();
 
-  	/** brief Return the current widget state.
+  	/** \brief Return the current widget state.
   	 *
   	 */
     virtual int GetWidgetState()
     {return this->WidgetState;}
 
-  	/** brief Set the widget segment points.
+  	/** \brief Set the widget segment points.
   	 * \param[in] points.
   	 *
   	 */
     //
     virtual void setPoints(vtkSmartPointer<vtkPoints> points);
 
-    /** brief Returns the points of the segment.
+    /** \brief Returns the points of the segment.
      *
      */
     vtkSmartPointer<vtkPoints> getPoints();
 
-  	/** brief Sets widget orientation.
+  	/** \brief Sets widget orientation.
   	 * \param[in] orientantion, orientation plane.
   	 *
   	 */
     virtual void setOrientation(Plane orientation);
 
-    /** brief Returns the widget orientation.
+    /** \brief Returns the widget orientation.
      *
      */
     virtual Plane getOrientation() const
     { return m_plane; }
 
-  	/** brief Overrides vtkAbstractWidget::PrintSelf().
+  	/** \brief Overrides vtkAbstractWidget::PrintSelf().
   	 *
   	 */
     virtual void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  	/** brief Disables the widget.
+  	/** \brief Disables the widget.
   	 *
   	 */
     virtual void disableWidget();
 
-  	/** brief Sets the segmentations bounds to draw the widget.
+  	/** \brief Sets the segmentations bounds to draw the widget.
   	 * \param[in] bounds, pointer to a vector of six double values.
   	 *
   	 */
     virtual void setSegmentationBounds(double *bounds);
 
-  	/** brief Sets the slice of the widget.
+  	/** \brief Sets the slice of the widget.
   	 * \param[in] slice, slice of the view of the widget.
   	 *
   	 */
     virtual void setSlice(double slice);
 
   protected:
-  	/** brief vtkPlanarSplitWidget class constructor.
+  	/** \brief vtkPlanarSplitWidget class constructor.
   	 *
   	 */
     vtkPlanarSplitWidget();
 
-  	/** brief vtkPlanarSplitWidget class destructor.
+  	/** \brief vtkPlanarSplitWidget class destructor.
   	 *
   	 */
     virtual ~vtkPlanarSplitWidget();
@@ -167,7 +167,7 @@ namespace ESPINA
     double m_segmentationBounds[6];
     double m_slice;
 
-    /** brief Callback interface to capture events when
+    /** \brief Callback interface to capture events when
      * placing the widget.
      *
      */
@@ -181,7 +181,7 @@ namespace ESPINA
     vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback1;
     vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback2;
 
-  	/** brief Method invoked when the handles at the
+  	/** \brief Method invoked when the handles at the
   	 * end points of the widget are manipulated
   	 *
   	 */

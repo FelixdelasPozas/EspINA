@@ -43,7 +43,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** brief OrthogonalROITool class constructor.
+    /** \brief OrthogonalROITool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
      * \param[in] undoStack, QUndoStack object raw pointer.
@@ -55,32 +55,32 @@ namespace ESPINA
                                QUndoStack      *undoStack,
                                ROIToolsGroup   *toolgroup);
 
-    /** brief OrthogonalROITool class virtual destructor.
+    /** \brief OrthogonalROITool class virtual destructor.
      *
      */
     virtual ~OrthogonalROITool();
 
-    /** brief Implements Tool::setEnabled(bool).
+    /** \brief Implements Tool::setEnabled(bool).
      *
      */
     virtual void setEnabled(bool value);
 
-    /** brief Implements Tool::enabled().
+    /** \brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** brief Implements Tool::actions().
+    /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
-    /** brief Returns true if the Orthogonal widget has been placed
+    /** \brief Returns true if the Orthogonal widget has been placed
      *
      */
     bool isDefined() const;
 
-    /** brief Removes the current widget.
+    /** \brief Removes the current widget.
      *
      */
     void cancelWidget();
@@ -89,23 +89,23 @@ namespace ESPINA
     void roiDefined();
 
   protected slots:
-  	/** brief Modifies the tool and activates/deactivates the event handler for this tool.
+  	/** \brief Modifies the tool and activates/deactivates the event handler for this tool.
   	 * \param[in] value, true to activate tool and eventhandler, false to deactivate event handler.
   	 */
     void activateEventHandler(bool value);
 
-    /** brief Activates/Deactivates the tool and commits the current ROI if deactivated.
+    /** \brief Activates/Deactivates the tool and commits the current ROI if deactivated.
      * \param[in] value, true to activate the tool.
      */
     void activateTool(bool value);
 
-    /** brief Defines a new ROI based on the selection.
+    /** \brief Defines a new ROI based on the selection.
      * \param[in] selection, selection containing the active channel and selected voxel.
      *
      */
     void defineROI(Selector::Selection selection);
 
-    /** brief Modifies the application ROI with the current ROI of the tool.
+    /** \brief Modifies the application ROI with the current ROI of the tool.
      *
      */
     void commitROI();

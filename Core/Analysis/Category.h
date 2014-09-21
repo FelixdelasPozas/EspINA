@@ -67,7 +67,7 @@ namespace ESPINA
     struct AlreadyDefinedCategoryException {};
 
   public:
-    /** brief Category class destructor.
+    /** \brief Category class destructor.
      *
      */
     ~Category();
@@ -95,37 +95,37 @@ namespace ESPINA
      */
     QString classificationName() const;
 
-    /** brief Sets the color of the category.
+    /** \brief Sets the color of the category.
      * \param[in] color, new color of the category.
      *
      */
     void setColor(const QColor &color);
 
-    /** brief Returns the color of the category.
+    /** \brief Returns the color of the category.
      *
      */
     QColor color() const {return m_color;}
 
-    /** brief Adds a property to the category.
+    /** \brief Adds a property to the category.
      * \param[in] prop, key of the property.
      * \param[in] value, value of the property.
      *
      */
     void addProperty(const QString &prop, const QVariant &value);
 
-    /** brief Deletes a property of the category.
+    /** \brief Deletes a property of the category.
      * \param[in] prop, key of the property.
      *
      */
     void deleteProperty(const QString &prop);
 
-    /** brief Returns the value of a property of the category.
+    /** \brief Returns the value of a property of the category.
      * \param[in] prop, key of the property.
      *
      */
     QVariant property(const QString &prop) const;
 
-    /** brief Returns the keys of the properties of the category.
+    /** \brief Returns the keys of the properties of the category.
      *
      */
     QStringList properties() const
@@ -187,7 +187,7 @@ namespace ESPINA
     CategoryPtr parent()
     {return m_parent;}
   private:
-    /** brief Category class constructor.
+    /** \brief Category class constructor.
      * \param[in] parent, parent category raw pointer.
      * \param[in] name, name of the category.
      * \param[in] color, color of the category.
@@ -208,7 +208,7 @@ namespace ESPINA
     template<typename T> friend class Tree;
   };
 
-  /** brief Prints the category and it's properties indented.
+  /** \brief Prints the category and it's properties indented.
    * \param[in] category, category whose information want printed.
    * \param[in] level, indentation level.
    *

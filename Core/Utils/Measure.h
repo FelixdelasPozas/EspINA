@@ -35,7 +35,7 @@ namespace ESPINA
   class EspinaCore_EXPORT Measure
   {
     public:
-  		/** brief Measure class constructor.
+  		/** \brief Measure class constructor.
   		 *
   		 */
       Measure()
@@ -46,7 +46,7 @@ namespace ESPINA
       	m_unitsStrings << "Mm" << "Um" << "Nm" << "mm" << "um" << "nm";
       };
 
-  		/** brief Measure class constructor.
+  		/** \brief Measure class constructor.
   		 * \param[in] measure, numerical value.
   		 * \param[in] units, string of measure units.
   		 *
@@ -60,54 +60,54 @@ namespace ESPINA
       	adjust();
       };
 
-  		/** brief Measure class destructor.
+  		/** \brief Measure class destructor.
   		 *
   		 */
       virtual ~Measure() {};
 
-  		/** brief Sets the adjust flag.
+  		/** \brief Sets the adjust flag.
   		 *
   		 */
       void SetAdjust(bool enable)
       { m_adjust = enable; adjust(); };
 
-  		/** brief Returns the adjust flag.
+  		/** \brief Returns the adjust flag.
   		 *
   		 */
       bool GetAdjust()
       { return m_adjust; };
 
-  		/** brief Returns the measure units.
+  		/** \brief Returns the measure units.
   		 *
   		 */
       QString getUnits()
       { return m_units; };
 
-  		/** brief Returns the measure.
+  		/** \brief Returns the measure.
   		 *
   		 */
       double getMeasure()
       { return m_measure; };
 
-  		/** brief Sets the units of the measure.
+  		/** \brief Sets the units of the measure.
   		 *
   		 */
       void setUnits(QString units)
       { if (m_unitsStrings.contains(units)) m_units = units.toLower(); };
 
-  		/** brief Sets a new value.
+  		/** \brief Sets a new value.
   		 *
   		 */
       void setMeasure(double measure)
       { m_measure = measure; adjust(); };
 
-  		/** brief Force units conversion.
+  		/** \brief Force units conversion.
   		 *
   		 */
       void toUnits(QString units);
 
     private:
-  		/** brief Helper method for units conversion.
+  		/** \brief Helper method for units conversion.
   		 *
   		 */
       void adjust();

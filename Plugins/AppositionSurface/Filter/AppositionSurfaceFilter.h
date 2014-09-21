@@ -101,35 +101,35 @@ namespace ESPINA
 
   protected:
 
-    /** brief Implements Persistent::restoreState().
+    /** \brief Implements Persistent::restoreState().
      *
      */
     virtual void restoreState(const State& state)
     {};
 
-    /** brief Implements Persistent::state().
+    /** \brief Implements Persistent::state().
      *
      */
     virtual State state() const
     { return State(); }
 
-    /** brief Implements Filter::safeFilterSnapshot().
+    /** \brief Implements Filter::safeFilterSnapshot().
      *
      */
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
-    /** brief Implements Filter::needUpdate().
+    /** \brief Implements Filter::needUpdate().
      *
      */
     virtual bool needUpdate() const;
 
-    /** brief Implements Filter::needUpdate(oid).
+    /** \brief Implements Filter::needUpdate(oid).
      *
      */
     virtual bool needUpdate(Output::Id oid) const;
 
-    /** brief Implements Filter::execute().
+    /** \brief Implements Filter::execute().
      *
      */
     virtual void execute();
@@ -139,13 +139,13 @@ namespace ESPINA
      */
     virtual void execute(Output::Id id);
 
-    /** brief Implements Filter::ignoreStorageContent()
+    /** \brief Implements Filter::ignoreStorageContent()
      *
      */
     virtual bool ignoreStorageContent() const
     { return this->m_alreadyFetchedData; }
 
-    /** brief Implements Filter::invalidateEditedRegions().
+    /** \brief Implements Filter::invalidateEditedRegions().
      *
      */
     virtual bool invalidateEditedRegions()
@@ -155,7 +155,7 @@ namespace ESPINA
     virtual void inputModified();
 
   private:
-    /** brief Returns a cloud of points representing the segmentation.
+    /** \brief Returns a cloud of points representing the segmentation.
      * Segmentations are represented by labelmap-like vtkDataImages
      * with background pixels being 0 and foreground ones being 255.
      * Nevertheless, non-0 pixels are also considered foreground.
@@ -164,7 +164,7 @@ namespace ESPINA
      */
     Points segmentationPoints(const itkVolumeType::Pointer &seg) const;
 
-    /** brief Returns the 8 corners of an OBB.
+    /** \brief Returns the 8 corners of an OBB.
      * \param[in] corner
      * \param[in] max
      * \param[in] mid
@@ -172,7 +172,7 @@ namespace ESPINA
      */
     Points corners(const double corner[3], const double max[3], const double mid[3], const double min[3]) const;
 
-    /** brief Returns a distance map of the volume passed as parameter.
+    /** \brief Returns a distance map of the volume passed as parameter.
      * \param[in] volume, itk::Image<unsigned char, 3>::Pointer.
      * \param[in] sigma
      */
@@ -182,7 +182,7 @@ namespace ESPINA
     void computeResolution(const double *max, const double *mid, const double *spacing, int & xResolution, int & yResolution) const;
     void computeIterationLimits(const double *min, const double *spacing, int & iterations, double & thresholdError) const;
 
-    /** brief Find the projection of A on B.
+    /** \brief Find the projection of A on B.
      *
      */
     void project(const double *A, const double *B, double *Projection) const;

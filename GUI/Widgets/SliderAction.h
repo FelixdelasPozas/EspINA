@@ -74,7 +74,7 @@ namespace ESPINA
        */
       void setLabelText(const QString &label);
 
-      /** brief Shadows QAction::setEnabled().
+      /** \brief Shadows QAction::setEnabled().
        *
        */
       void setEnabled(bool value)
@@ -88,7 +88,7 @@ namespace ESPINA
         }
       }
 
-      /** brief Shadows QAction::isEnabled().
+      /** \brief Shadows QAction::isEnabled().
        *
        */
       bool isEnabled()

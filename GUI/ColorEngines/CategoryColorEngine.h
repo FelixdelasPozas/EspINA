@@ -34,30 +34,30 @@ namespace ESPINA
 	{
 		Q_OBJECT
 		public:
-			/** brief CategoryColorEngine class constructor.
+			/** \brief CategoryColorEngine class constructor.
 			 *
 			 */
 			explicit CategoryColorEngine()
 			{}
 
-			/** brief Implements ColorEngine::color().
+			/** \brief Implements ColorEngine::color().
 			 *
 			 */
 			virtual QColor color(SegmentationAdapterPtr seg);
 
-			/** brief Implements ColorEngine::lut().
+			/** \brief Implements ColorEngine::lut().
 			 *
 			 */
 			virtual LUTSPtr lut(SegmentationAdapterPtr seg);
 
-			/** brief Implements ColorEngine::supportedComposition().
+			/** \brief Implements ColorEngine::supportedComposition().
 			 *
 			 */
 			virtual ColorEngine::Composition supportedComposition() const
 			{	return ColorEngine::Color; }
 
 		protected slots:
-			/** brief Updates the internal color tables when a category color changes.
+			/** \brief Updates the internal color tables when a category color changes.
 			 * \param[in] category, catgegory adapter smart pointer.
 			 *
 			 */

@@ -36,7 +36,7 @@ namespace ESPINA {
       struct IO_Exception{};
       struct Parse_Exception{};
 
-      /** brief Loads a classification from a file.
+      /** \brief Loads a classification from a file.
        * \param[in] file, QFileInfo object with the file details.
        * \param[in] handler, error handler smart pointer.
        *
@@ -44,7 +44,7 @@ namespace ESPINA {
       ClassificationSPtr EspinaCore_EXPORT load(const QFileInfo& file,
                                                 ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
-      /** brief Saves a classification to a file.
+      /** \brief Saves a classification to a file.
        * \param[in] classification, classification to save.
        * \param[in] file, QFileInfo object with the file details.
        * \param[in] handler, error handler smart pointer.
@@ -55,7 +55,7 @@ namespace ESPINA {
                                   ErrorHandlerSPtr    handler = ErrorHandlerSPtr());
 
 
-      /** brief Returns the classification as a byte stream.
+      /** \brief Returns the classification as a byte stream.
        * \param[in] classification, classification to dump.
        * \param[in] handler, error handler smart pointer.
        *
@@ -63,7 +63,7 @@ namespace ESPINA {
       QByteArray EspinaCore_EXPORT dump(const ClassificationSPtr classification,
                                         ErrorHandlerSPtr         handler = ErrorHandlerSPtr());
 
-      /** brief Parses a byte array and builds and returns a classification.
+      /** \brief Parses a byte array and builds and returns a classification.
        * \param[in] serialization, byte array.
        * \param[in] handler, error handler smart pointer.
        *

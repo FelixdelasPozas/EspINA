@@ -35,25 +35,25 @@ namespace ESPINA
   class EspinaGUI_EXPORT RepresentationFactory
   {
   public:
-  	/** brief RepresentationFactory class constructor.
+  	/** \brief RepresentationFactory class constructor.
   	 * \param[in] scheduler, scheduler smart pointer.
   	 *
   	 */
     explicit RepresentationFactory(SchedulerSPtr scheduler)
     { m_scheduler = scheduler; };
 
-    /** brief RepresentationFactory class virtual destructor.
+    /** \brief RepresentationFactory class virtual destructor.
      *
      */
     virtual ~RepresentationFactory()
     {};
 
-    /** brief Returns the list of representation types this factory can create.
+    /** \brief Returns the list of representation types this factory can create.
      *
      */
     virtual RepresentationTypeList representations() const = 0;
 
-    /** brief Creates and returns a representation of the given type for the given output.
+    /** \brief Creates and returns a representation of the given type for the given output.
      * \param[in] output, output smart pointer.
      * \param[in] type, representation type.
      *
