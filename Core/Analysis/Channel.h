@@ -245,8 +245,6 @@ namespace ESPINA
     double  m_saturation;
     QString m_metadata;
 
-    FilterSPtr           m_filter;
-    Output::Id           m_outputId;
     ChannelExtensionSMap m_extensions;
   };
 

@@ -176,14 +176,39 @@ namespace ESPINA
        */
       vtkSmartPointer<vtkImageActor> getActor(const Nm pos) const;
 
-      /** \brief Implements Representation::updateVisibility.
+      /** \brief Implements Representation::updateVisibility().
        *
        */
       virtual void updateVisibility(bool unused);
 
+      /** \brief Overrides Representation::setContrast().
+       *
+       */
+      virtual void setContrast(double contrast) override;
+
+      /** \brief Overrides Representation::setBrightness().
+       *
+       */
+      virtual void setBrightness(double brightness) override;
+
+
+      /** \brief Overrides Representation::setOpacity().
+       *
+       */
+      virtual void setOpacity(double opacity) override;
+
+      /** \brief Overrides Representation::setColor().
+       *
+       */
+      virtual void setColor(const QColor &color) override;
+
     signals:
       void update();
       void changeVisibility();
+      void changeOpacity();
+      void changeContrastAndBrightness();
+      void changeColor();
+      void changeSaturation();
 
     protected:
       /** \brief Implements Representation::cloneImplementation(View2D*).
@@ -260,7 +285,6 @@ namespace ESPINA
 
       /** \brief Overrides Representation::setColor().
        *
-       * Sets the color of the segmentation, specified as a QColor.
        */
       virtual void setColor(const QColor &color) override;
 

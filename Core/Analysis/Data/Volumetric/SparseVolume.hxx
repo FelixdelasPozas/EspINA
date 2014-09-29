@@ -1019,7 +1019,7 @@ namespace ESPINA
     // For two blocks to be joinable two out of three coordinates must be the same, and the
     // other one must be adjacent on either side of the direction.
     bool joinable = true;
-    int initialSize = blockBounds.size();
+//    int initialSize = blockBounds.size();
 
     int pass = 0;
     while(joinable)
@@ -1063,7 +1063,7 @@ namespace ESPINA
       ++pass;
     }
 
-    int finalSize = blockBounds.size();
+//    int finalSize = blockBounds.size();
 //    std::cout << initialSize << " initial blocks reduced to " << finalSize << " blocks -> " << 100 - (finalSize *100 / initialSize) << "% reduction." << std::endl;
     for (int i = 0; i < blockBounds.size(); ++i)
     {

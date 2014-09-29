@@ -73,7 +73,7 @@ namespace ESPINA
         break;
     }
 
-    return BrushSelector::filterEvent(e, view);;
+    return BrushSelector::filterEvent(e, view);
   }
 
   //----------------------------------------------------------------------------

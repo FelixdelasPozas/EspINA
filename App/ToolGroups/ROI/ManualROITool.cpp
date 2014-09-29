@@ -177,7 +177,7 @@ void ManualROITool::changeSelector(QAction* action)
 //-----------------------------------------------------------------------------
 void ManualROITool::selectorInUse(bool value)
 {
-  if (!value)
+  if (!value && (m_currentSelector != nullptr))
   {
     emit stopDrawing(m_currentSelector->referenceItem(), m_hasEnteredEraserMode);
 

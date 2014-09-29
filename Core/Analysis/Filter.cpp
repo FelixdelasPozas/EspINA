@@ -101,7 +101,7 @@ bool Filter::update()
   {
     for(auto input : m_inputs)
     {
-      input->output()->update(); //TODO: Move toinput api?
+      input->output()->update(); //TODO: Move to input api?
     }
     execute();
   }

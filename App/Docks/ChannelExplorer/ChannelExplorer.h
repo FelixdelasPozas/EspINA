@@ -81,17 +81,13 @@ namespace ESPINA
     void unloadChannel();
     void focusOnChannel();
     void updateTooltips(int index);
+    void activateChannel();
   	/******************************************************/
 
     /** \brief Opens a channel inspector dialog.
      *
      */
     void showInformation();
-
-    /** \brief Sets the selected channel as the active one.
-     *
-     */
-    void activateChannel();
 
     /** \brief Deletes the closed dialog from the opened dialog lists and updates representations.
      * \param[in] object, raw pointer of the closed dialog.
@@ -108,6 +104,11 @@ namespace ESPINA
      *
      */
     void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
+
+    /** \brief Overrides QWidget::contextMenuEvent();
+     *
+     */
+    virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
     ModelAdapterSPtr m_model;

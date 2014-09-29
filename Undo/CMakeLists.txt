@@ -27,14 +27,14 @@ set(Undo_EXTERNAL_LIBS
   EspinaGUI
 )
 
-if(DEFINED MINGW OR DEFINED MSVC)
+if(DEFINED MINGW)
   if(DEFINED ESPINA_VERSION_MAJOR)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/windllprops.rc.in" "${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc")
     SET(Undo_SOURCES ${Undo_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/windllprops.rc)
     SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     ENABLE_LANGUAGE(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-endif(DEFINED MINGW OR DEFINED MSVC)
+endif(DEFINED MINGW)
 
 add_library (EspinaUndo SHARED ${Undo_SOURCES})
 
@@ -46,14 +46,6 @@ GENERATE_EXPORT_HEADER(
              EXPORT_MACRO_NAME EspinaUndo_EXPORT
              EXPORT_FILE_NAME EspinaUndo_Export.h
   )
-
-#set (Undo_HEADERS 
-#  #TODO: set all header files required to develop external apps
-#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaUndo_Export.h"
-#  )
-#
-#set_target_properties(EspinaUndo PROPERTIES
-#  PUBLIC_HEADER "${UNDO_HEADERS}")
  
 install(TARGETS EspinaUndo
   # IMPORTANT: Add the EspinaUndo library to the "export-set"
@@ -62,3 +54,10 @@ install(TARGETS EspinaUndo
   LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
   PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
   )
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
+

@@ -25,7 +25,6 @@
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
@@ -35,6 +34,7 @@
 #include <QAction>
 #include <QUndoStack>
 #include <QSettings>
+#include <QMessageBox>
 
 using namespace ESPINA;
 
@@ -230,6 +230,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   if (!channel)
     return;
 
+  // FIXME: merged analysis channel's don't have outputs????
+  Q_ASSERT(channel->output());
+
   auto volume = volumetricData(channel->output());
 
   NmVector3 seed;
@@ -265,8 +268,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     roi = m_viewManager->currentROI();
   }
 
-  bool validSeed = (roi && isSegmentationVoxel<itkVolumeType>(roi, seed)) ||
-                   contains(volume->bounds(), seed);
+  bool validSeed = (isSegmentationVoxel<itkVolumeType>(roi, seed)) && contains(volume->bounds(), seed);
 
   if (validSeed)
   {
@@ -289,18 +291,28 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     }
 
     m_executingTasks[adapter.get()] = adapter;
+    m_executingFilters[adapter.get()] = filter;
 
     connect(adapter.get(), SIGNAL(finished()),
             this,   SLOT(createSegmentation()));
 
     adapter->submit();
   }
+  else
+  {
+    QMessageBox box;
+    box.setWindowTitle(tr("Seed Grow Segmentation"));
+    box.setText(tr("The seed is not inside the channel or the region of interest."));
+    box.setStandardButtons(QMessageBox::Ok);
+    box.setIcon(QMessageBox::Information);
+    box.exec();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::createSegmentation()
 {
-  auto filter = dynamic_cast<FilterAdapterPtr>(sender());
+  auto filter = qobject_cast<FilterAdapterPtr>(sender());
 
   if (!filter->isAborted())
   {
@@ -325,8 +337,20 @@ void SeedGrowSegmentationTool::createSegmentation()
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();
+
+    auto sgsFilter = m_executingFilters[filter];
+    if(sgsFilter->isTouchingROI())
+    {
+      QMessageBox box;
+      box.setWindowTitle(tr("Seed Grow Segmentation"));
+      box.setText(tr("The segmentation \"%1\" is touching the ROI.").arg(segmentation->data().toString()));
+      box.setStandardButtons(QMessageBox::Ok);
+      box.setIcon(QMessageBox::Information);
+      box.exec();
+    }
   }
 
+  m_executingFilters.remove(filter);
   m_executingTasks.remove(filter);
 }
 

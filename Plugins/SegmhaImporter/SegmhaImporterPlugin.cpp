@@ -28,8 +28,6 @@
 
 using namespace ESPINA;
 
-//const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
-
 static const QString SEGMHA = "segmha";
 
 static const Filter::Type SEGMHA_FILTER_V4 = "Segmha Importer";

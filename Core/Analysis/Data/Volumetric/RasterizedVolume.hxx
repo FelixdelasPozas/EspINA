@@ -43,8 +43,6 @@
 
 // Qt
 #include <QMutex>
-#include <QFuture>
-#include <QtConcurrentRun>
 
 namespace ESPINA
 {
@@ -164,10 +162,7 @@ namespace ESPINA
   const typename T::Pointer RasterizedVolume<T>::itkImage() const
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     return SparseVolume<T>::itkImage();
   }
@@ -177,10 +172,7 @@ namespace ESPINA
   const typename T::Pointer RasterizedVolume<T>::itkImage(const Bounds& bounds) const
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     return SparseVolume<T>::itkImage(bounds);
   }
@@ -192,10 +184,7 @@ namespace ESPINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     SparseVolume<T>::draw(brush, bounds, value);
   }
@@ -206,10 +195,7 @@ namespace ESPINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     SparseVolume<T>::draw(mask, value);
   }
@@ -220,10 +206,7 @@ namespace ESPINA
   void RasterizedVolume<T>::draw(const typename T::Pointer volume)
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     SparseVolume<T>::draw(volume);
   }
@@ -234,10 +217,7 @@ namespace ESPINA
                                  const Bounds&             bounds)
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     SparseVolume<T>::draw(volume, bounds);
   }
@@ -248,10 +228,7 @@ namespace ESPINA
                                  const typename T::PixelType value)
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     SparseVolume<T>::draw(index, value);
   }
@@ -261,10 +238,7 @@ namespace ESPINA
   void RasterizedVolume<T>::resize(const Bounds &bounds)
   {
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     SparseVolume<T>::resize(bounds);
   }
@@ -277,10 +251,7 @@ namespace ESPINA
       return true;
 
     if(this->m_blocks.empty())
-    {
-    	QFuture<void> future = QtConcurrent::run(this, &rasterize);
-    	future.waitForFinished();
-    }
+      rasterize();
 
     return SparseVolume<T>::isEmpty();
   }
@@ -334,7 +305,6 @@ namespace ESPINA
     m_rasterizationTime = m_mesh->GetMTime();
 
     this->setBlock(image, false);
-    this->updateModificationTime();
 
     this->m_mutex.unlock();
   }

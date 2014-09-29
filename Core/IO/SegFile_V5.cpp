@@ -68,7 +68,7 @@ QByteArray formatInfo()
 
 //-----------------------------------------------------------------------------
 SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
-: m_zip           {zip}
+: m_zip           (zip)
 , m_factory       {factory}
 , m_handler       {handler}
 , m_analysis      {new Analysis()}

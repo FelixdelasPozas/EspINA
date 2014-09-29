@@ -38,6 +38,7 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 #include <itkExtractImageFilter.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 using namespace ESPINA;
 
@@ -60,7 +61,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter
 , m_prevSeed   {m_seed}
 , m_radius     {0}
 , m_prevRadius {m_radius}
-, m_usesROI    {false}
+, m_touchesROI {false}
 {
 }
 
@@ -89,9 +90,6 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
     } else if ("ClosingRadius" == tokens[0] || "Close" == tokens[0])
     {
       m_prevRadius  = m_radius  = tokens[1].toInt();
-    } else if ("ROI" == tokens[0])
-    {
-      m_usesROI = tokens[1].toInt();
     }
   }
 }
@@ -99,12 +97,11 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
 //------------------------------------------------------------------------
 State SeedGrowSegmentationFilter::state() const
 {
-  State state = QString("Seed=%1;LowerThreshold=%2;UpperThreshold=%3;ClosingRadius=%4;ROI=%5")
+  State state = QString("Seed=%1;LowerThreshold=%2;UpperThreshold=%3;ClosingRadius=%4")
                 .arg(QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]))
                 .arg(m_lowerTh)
                 .arg(m_upperTh)
-                .arg(m_radius)
-                .arg(m_usesROI);
+                .arg(m_radius);
   return state;
 }
 
@@ -147,13 +144,14 @@ NmVector3 SeedGrowSegmentationFilter::seed() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 {
-  m_roi = roi;
+  m_ROI = roi;
+  m_touchesROI = false;
 }
 
 //------------------------------------------------------------------------
 ROISPtr SeedGrowSegmentationFilter::roi() const
 {
-	return m_roi;
+	return m_ROI;
 }
 
 //------------------------------------------------------------------------
@@ -218,10 +216,10 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   int  outValue      = 0;
   auto extractFilter = ExtractFilterType::New();
 
-  if(m_roi != nullptr)
+  if(m_ROI != nullptr)
   {
     auto image = input->itkImage();
-    auto intersectionBounds = intersection(input->bounds(), m_roi->bounds());
+    auto intersectionBounds = intersection(input->bounds(), m_ROI->bounds());
     auto extractRegion      = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
 
     extractFilter->SetNumberOfThreads(1);
@@ -239,7 +237,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
     if (outValue >= 0)
     {
-      m_roi->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
+      m_ROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
     }
   }
 
@@ -250,7 +248,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 75);
 
-  if(m_roi != nullptr)
+  if(m_ROI != nullptr)
     connectedFilter->SetInput(extractFilter->GetOutput());
   else
     connectedFilter->SetInput(input->itkImage());
@@ -316,6 +314,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevUpperTh = m_upperTh;
   m_prevSeed    = m_seed;
   m_prevRadius  = m_radius;
+
+  m_touchesROI = computeTouchesROIValue();
 }
 
 //----------------------------------------------------------------------------
@@ -334,26 +334,180 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::isTouchingROI() const
+bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {
-	if (!m_usesROI || !hasFinished())
-		return false;
+  auto volume = volumetricData(m_outputs[0]);
+  auto spacing = volume->spacing();
+  auto boundsSeg = volume->bounds();
 
-	auto volume = volumetricData(m_outputs[0]);
-	auto spacing = volume->spacing();
-	auto boundsSeg = volume->bounds();
-	auto boundsROI = m_roi->bounds();
-
-
-	bool incompleteSeg = false;
-	for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+	if(m_ROI->isRectangular())
 	{
-		if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2]) || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
-		{
-			incompleteSeg = true;
-			break;
-		}
+    auto boundsROI = m_ROI->bounds();
+    for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+    {
+      if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2]) || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
+      {
+        return true;
+        break;
+      }
+    }
+	}
+	else
+	{
+	  Bounds extendedBounds{boundsSeg[0]-spacing[0], boundsSeg[1]+spacing[0],
+	                        boundsSeg[2]-spacing[1], boundsSeg[3]+spacing[1],
+	                        boundsSeg[4]-spacing[2], boundsSeg[5]+spacing[2]};
+
+	  auto intersectionBounds = intersection(extendedBounds, m_ROI->bounds(), spacing);
+	  auto roiImage = m_ROI->itkImage(intersectionBounds);
+
+	  auto region = roiImage->GetLargestPossibleRegion();
+	  auto regionIndex = region.GetIndex();
+	  auto regionLimit = regionIndex;
+
+	  auto roiMask = m_ROI->itkImage(intersectionBounds);
+	  auto pointer = roiMask->GetBufferPointer();
+	  memset(pointer, 0, region.GetSize(0)*region.GetSize(1)*region.GetSize(2));
+
+	  regionLimit.SetElement(0, regionIndex.GetElement(0) + region.GetSize(0) - 1);
+	  regionLimit.SetElement(1, regionIndex.GetElement(1) + region.GetSize(1) - 1);
+	  regionLimit.SetElement(2, regionIndex.GetElement(2) + region.GetSize(2) - 1);
+
+	  // creates an image of the roi only with the frontier values.
+	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> roiIt(roiImage, region);
+	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> maskIt(roiMask, region);
+
+	  // process Z direction
+	  unsigned char valueBefore = SEG_BG_VALUE;
+    for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
+      for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
+        for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
+        {
+          itkVolumeType::IndexType index{x,y,z};
+          roiIt.SetIndex(index);
+          maskIt.SetIndex(index);
+          auto value = roiIt.Value();
+
+          if(index.GetElement(2) == regionIndex.GetElement(2))
+          {
+            maskIt.Set(value);
+          }
+          else
+          {
+            if(value != valueBefore)
+            {
+              if(value == SEG_BG_VALUE)
+              {
+                index.SetElement(2,z-1);
+                maskIt.SetIndex(index);
+                maskIt.Set(SEG_VOXEL_VALUE);
+                index.SetElement(2,z);
+                maskIt.SetIndex(index);
+              }
+              else
+                maskIt.Set(SEG_VOXEL_VALUE);
+            }
+
+            if(index.GetElement(2) == regionLimit.GetElement(2))
+              maskIt.Set(value);
+          }
+
+          valueBefore = value;
+        }
+
+    // process Y axis
+    valueBefore = SEG_BG_VALUE;
+    for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
+      for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
+        for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
+        {
+          itkVolumeType::IndexType index{x,y,z};
+          roiIt.SetIndex(index);
+          maskIt.SetIndex(index);
+          auto value = roiIt.Value();
+
+          if(index.GetElement(1) == regionIndex.GetElement(1))
+          {
+            maskIt.Set(value);
+          }
+          else
+          {
+            if(value != valueBefore)
+            {
+              if(value == SEG_BG_VALUE)
+              {
+                index.SetElement(1,y-1);
+                maskIt.SetIndex(index);
+                maskIt.Set(SEG_VOXEL_VALUE);
+                index.SetElement(1,y);
+                maskIt.SetIndex(index);
+              }
+              else
+                maskIt.Set(SEG_VOXEL_VALUE);
+            }
+
+            if(index.GetElement(1) == regionLimit.GetElement(1))
+              maskIt.Set(value);
+          }
+
+          valueBefore = value;
+        }
+
+    // process X axis
+    valueBefore = SEG_BG_VALUE;
+    for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
+      for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
+        for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
+        {
+          itkVolumeType::IndexType index{x,y,z};
+          roiIt.SetIndex(index);
+          maskIt.SetIndex(index);
+          auto value = roiIt.Value();
+
+          if(index.GetElement(0) == regionIndex.GetElement(0))
+          {
+            maskIt.Set(value);
+          }
+          else
+          {
+            if(value != valueBefore)
+            {
+              if(value == SEG_BG_VALUE)
+              {
+                index.SetElement(0,x-1);
+                maskIt.SetIndex(index);
+                maskIt.Set(SEG_VOXEL_VALUE);
+                index.SetElement(0,x);
+                maskIt.SetIndex(index);
+              }
+              else
+                maskIt.Set(SEG_VOXEL_VALUE);
+            }
+
+            if(index.GetElement(0) == regionLimit.GetElement(0))
+              maskIt.Set(value);
+          }
+
+          valueBefore = value;
+        }
+
+	  roiMask->Update();
+	  auto segImage = volume->itkImage();
+	  auto segRegion = segImage->GetLargestPossibleRegion();
+
+	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> imageIt(segImage, segRegion);
+	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> roiCheckIt(roiMask, segRegion);
+	  imageIt.GoToBegin();
+	  roiCheckIt.GoToBegin();
+	  while(!imageIt.IsAtEnd())
+	  {
+	    if((roiCheckIt.Value() == SEG_VOXEL_VALUE) && (imageIt.Value() == SEG_VOXEL_VALUE))
+	      return true;
+
+	    ++roiCheckIt;
+	    ++imageIt;
+	  }
 	}
 
-	return incompleteSeg;
+	return false;
 }

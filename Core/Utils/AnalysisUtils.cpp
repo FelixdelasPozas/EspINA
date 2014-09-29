@@ -39,6 +39,7 @@ using namespace ESPINA;
 ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 {
   AnalysisSPtr mergedAnalysis{new Analysis()};
+  mergedAnalysis->setStorage(TemporalStorageSPtr{new TemporalStorage()});
 
   QMap<CategorySPtr, CategorySPtr> mergedCategory;
 
@@ -192,7 +193,6 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       }
     }
   }
-
 
   lhs.reset();
   rhs.reset();

@@ -43,15 +43,14 @@ namespace ESPINA
   , m_planeIndex  {-1}
   , m_min         {-1}
   , m_max         {-1}
-  {}
+  {
+    m_lastUpdatedTime = data->lastModified();
+  }
 
   //-----------------------------------------------------------------------------
   bool CachedRepresentation::existsIn(const Nm position) const
   {
-    if (m_planeIndex == -1)
-      return false;
-
-    return (m_min <= position) && (position < m_max);
+    return (m_planeIndex == -1) ? false : ((m_min <= position) && (position < m_max));
   }
 
   //-----------------------------------------------------------------------------
@@ -99,6 +98,34 @@ namespace ESPINA
     m_planeIndex = normalCoordinateIndex(view->plane());
 
     computeLimits();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ChannelSliceCachedRepresentation::setContrast(double contrast)
+  {
+    Representation::setContrast(contrast);
+    emit changeContrastAndBrightness();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ChannelSliceCachedRepresentation::setBrightness(double brightness)
+  {
+    Representation::setBrightness(brightness);
+    emit changeContrastAndBrightness();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ChannelSliceCachedRepresentation::setOpacity(double opacity)
+  {
+    Representation::setOpacity(opacity);
+    emit changeOpacity();
+  }
+
+  //-----------------------------------------------------------------------------
+  void ChannelSliceCachedRepresentation::setColor(const QColor& color)
+  {
+    Representation::setColor(color);
+    emit changeColor();
   }
 
   //-----------------------------------------------------------------------------
@@ -166,10 +193,6 @@ namespace ESPINA
       computeLimits();
       emit update();
     }
-    else
-    {
-      emit changeVisibility();
-    }
   }
 
   //-----------------------------------------------------------------------------
@@ -189,6 +212,7 @@ namespace ESPINA
   {
     setType(TYPE);
     connect(data.get(), SIGNAL(dataChanged()), this, SLOT(dataChanged()), Qt::QueuedConnection);
+    m_lastUpdatedTime = data->lastModified();
   }
 
   //-----------------------------------------------------------------------------
@@ -326,11 +350,6 @@ namespace ESPINA
     {
       computeLimits();
       emit update();
-    }
-    else
-    {
-      emit changeVisibility();
-      emit changeColor();
     }
   }
 

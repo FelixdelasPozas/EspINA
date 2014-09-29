@@ -21,14 +21,17 @@
 #ifndef ESPINA_ITK_PROGRESS_REPORTER_H
 #define ESPINA_ITK_PROGRESS_REPORTER_H
 
-#include "EspinaFilters_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
+// ESPINA
 #include "Core/Analysis/Filter.h"
+
+// ITK
 #include <itkCommand.h>
 
 namespace ESPINA
 {
-	/** ass ITKProgressReporter
+	/** \class ITKProgressReporter
 	 * \brief Encapsulates ITK filters progress report so it will be reported by the task class.
 	 *
 	 */

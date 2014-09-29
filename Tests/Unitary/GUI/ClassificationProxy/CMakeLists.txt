@@ -86,7 +86,6 @@ add_executable(ClassificationProxy_Tests
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
-  ${GUI_DIR}/Utils/Conditions.cpp
   ModelTest.cpp
   )
 target_link_libraries(ClassificationProxy_Tests ${LIB_DEPENDECIES} )

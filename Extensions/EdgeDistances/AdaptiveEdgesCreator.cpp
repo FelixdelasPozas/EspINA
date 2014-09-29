@@ -152,7 +152,7 @@ void AdaptiveEdgesCreator::run()
     {
       bool nonBlackPixelDetected = false;
       double p1[3], p2[3];
-      bool singlePixel = true;;
+      bool singlePixel = true;
       for (unsigned long x = 0; x < xMax; x++)
       {
         bool nonBlackPixel = false;

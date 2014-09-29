@@ -420,6 +420,13 @@ namespace ESPINA
      */
     void addRelation(const Relation& relation);
 
+    /** \brief Adds a list of relations to the model.
+     * \param[in] relationList, list of Relation objects.
+     *
+     */
+    void addRelations(const RelationList &relations);
+
+
     /** \brief Removes a relation between two item adapters from the model.
      * \param[in] ancestor, item adapter smart pointer origin of the relation.
      * \param[in] succesor, item adapter smart pointer destination of the relation.
@@ -435,6 +442,12 @@ namespace ESPINA
      *
      */
     void deleteRelation(const Relation& relation);
+
+    /** \brief Deletes a list of relations to the model.
+     * \param[in] relationList, list of Relation objects.
+     *
+     */
+    void deleteRelations(const RelationList &relations);
 
     /** \brief Returns the list of item adapters related to the specified one.
      * \param[in] item, item adapter raw pointer.

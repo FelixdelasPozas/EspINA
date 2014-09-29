@@ -29,7 +29,7 @@
 #define CLASSIFICATION_TESTING_SUPPORT_H
 
 #include <Core/EspinaTypes.h>
-#include "Core/Utils/Tree.h"
+#include "Core/Utils/Tree.hxx"
 
 namespace ESPINA {
 

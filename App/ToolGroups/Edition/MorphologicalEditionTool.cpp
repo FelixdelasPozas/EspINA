@@ -310,7 +310,7 @@ void MorphologicalEditionTool::dilateSegmentations()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::erodeSegmentations()
 {
-  launchCODE<DilateFilter>(ERODE_FILTER, "Erode", m_erode.radius());
+  launchCODE<ErodeFilter>(ERODE_FILTER, "Erode", m_erode.radius());
 }
 
 //------------------------------------------------------------------------

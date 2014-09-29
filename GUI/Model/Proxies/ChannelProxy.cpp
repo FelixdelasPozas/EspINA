@@ -597,7 +597,7 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
   QModelIndexList sources;
   indices(sourceTopLeft, sourceBottomRight, sources);
 
-  foreach(QModelIndex source, sources)
+  for(auto source: sources)
   {
     QModelIndex proxyIndex = mapFromSource(source);
     if (proxyIndex.isValid())

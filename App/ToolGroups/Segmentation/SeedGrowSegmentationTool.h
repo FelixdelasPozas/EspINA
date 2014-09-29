@@ -27,6 +27,7 @@
 #include "CustomROIWidget.h"
 #include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
+#include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/Widgets/ActionSelector.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Selectors/Selector.h>
@@ -161,6 +162,7 @@ namespace ESPINA
 
     FilterFactorySPtr  m_filterFactory;
     QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
+    QMap<FilterAdapterPtr, std::shared_ptr<SeedGrowSegmentationFilter> > m_executingFilters;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

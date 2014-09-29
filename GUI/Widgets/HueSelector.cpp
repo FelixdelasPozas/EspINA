@@ -130,7 +130,7 @@ void HueSelector::paintEvent(QPaintEvent *)
 //------------------------------------------------------------------------
 void HueSelector::setHueValue(int h)
 {
-  h = qMax(0, qMin(h, 360));;
+  h = qMax(0, qMin(h, 360));
 
   this->hue = h;
   delete pix;

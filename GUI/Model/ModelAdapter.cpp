@@ -26,8 +26,6 @@
 #include <Core/Analysis/Segmentation.h>
 #include "GUI/Model/SegmentationAdapter.h"
 
-// ESPINA
-
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
@@ -48,7 +46,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   //                 @Jorge: It is needed in order to keep the views coherent
   reset();
 
-  QMap<FilterSPtr, FilterAdapterSPtr>       filters;
+  QMap<FilterSPtr, FilterAdapterSPtr>  filters;
 
   m_analysis = analysis;
 
@@ -246,22 +244,58 @@ void ModelAdapter::addRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr success
   try
   {
     m_analysis->addRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
-  } catch (const Analysis::Existing_Relation_Exception &e)
+  }
+  catch (const Analysis::Existing_Relation_Exception &e)
   {
     throw Existing_Relation_Exception();
   }
 
-  QModelIndex ancestorIndex  = index(ancestor);
-  QModelIndex successorIndex = index(successor);
-
-  emit dataChanged(ancestorIndex,  ancestorIndex);
-  emit dataChanged(successorIndex, successorIndex);
+// FIXME: @Felix: look at fixme in line 270...
+//  QModelIndex ancestorIndex  = index(ancestor);
+//  QModelIndex successorIndex = index(successor);
+//
+//  emit dataChanged(ancestorIndex,  ancestorIndex);
+//  emit dataChanged(successorIndex, successorIndex);
 }
 
 //------------------------------------------------------------------------
 void ModelAdapter::addRelation(const Relation& relation)
 {
   addRelation(relation.ancestor, relation.succesor, relation.relation);
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::addRelations(const RelationList &relations)
+{
+  // FIXME: @Felix: adding relations to the model doesn't affect the Qt model, so we don't need the
+  // dataChanged(index,index) signal. right? Adds loads of time to a call.
+  // If we do uncomment everything in here and AddRelation() in line 242.
+
+  // QList<QModelIndex> modelIndexes;
+
+  for(auto relation: relations)
+  {
+    try
+    {
+      m_analysis->addRelation(relation.ancestor->m_analysisItem, relation.succesor->m_analysisItem, relation.relation);
+    }
+    catch (const Analysis::Existing_Relation_Exception &e)
+    {
+      throw Existing_Relation_Exception();
+    }
+
+//    QModelIndex ancestorIndex  = index(relation.ancestor);
+//    QModelIndex successorIndex = index(relation.succesor);
+//
+//    if(!modelIndexes.contains(ancestorIndex))
+//      modelIndexes << ancestorIndex;
+//
+//    if(!modelIndexes.contains(successorIndex))
+//      modelIndexes << successorIndex;
+  }
+
+//  for(auto index: modelIndexes)
+//    emit dataChanged(index, index);
 }
 
 //------------------------------------------------------------------------
@@ -435,6 +469,21 @@ void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr succ
 void ModelAdapter::deleteRelation(const Relation& relation)
 {
   deleteRelation(relation.ancestor, relation.succesor, relation.relation);
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::deleteRelations(const RelationList& relations)
+{
+  for(auto relation: relations)
+  {
+    try
+    {
+      m_analysis->deleteRelation(relation.ancestor->m_analysisItem, relation.succesor->m_analysisItem, relation.relation);
+    } catch (const Analysis::Relation_Not_Found_Exception &e)
+    {
+      throw Relation_Not_Found_Exception();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1025,7 +1074,7 @@ QModelIndex ModelAdapter::segmentationIndex(SegmentationAdapterPtr segmentation)
       ItemAdapterPtr internalPtr = segmentation;
       index = createIndex(row, 0, internalPtr);
     }
-    row++;
+    ++row;
   }
 
   return index;

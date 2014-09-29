@@ -83,7 +83,7 @@ View3D::~View3D()
   m_channelStates.clear();
 
 	for(auto widget: m_widgets)
-		removeWidget(widget);
+	  RenderView::removeWidget(widget); // faster than calling this->removeWidget(widget);
 	m_widgets.clear();
 
 	for(auto renderer: m_renderers)
@@ -711,7 +711,9 @@ void View3D::scrollBarMoved(int value)
 {
   NmVector3 point;
 
-  Q_ASSERT(!m_channelStates.isEmpty());
+  if(m_channelStates.isEmpty())
+    return;
+
   NmVector3 minSpacing = m_channelStates.keys().first()->output()->spacing();
 
   for(auto channel: m_channelStates.keys())

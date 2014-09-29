@@ -143,12 +143,6 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-	for(auto segmentation: m_segmentations)
-		removeSegmentation(segmentation);
-
-	for(auto channel: m_channels)
-		removeChannel(channel);
-
 	m_viewManager->unregisterView(m_view);
   delete m_view;
   delete m_tabularReport;

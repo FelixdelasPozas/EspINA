@@ -59,11 +59,11 @@ const QString Channel::STAIN_LINK  = "Stain";
 
 //------------------------------------------------------------------------
 Channel::Channel(InputSPtr input)
-: ViewItem(input)
+: ViewItem    {input}
 , m_brightness{0.0}
-, m_contrast{1.0}
-, m_hue{NO_HUE}
-, m_opacity{AUTO_OPACITY}
+, m_contrast  {1.0}
+, m_hue       {NO_HUE}
+, m_opacity   {AUTO_OPACITY}
 , m_saturation{0.0}
 {
 }
@@ -174,7 +174,7 @@ ChannelExtensionSPtr Channel::extension(const ChannelExtension::Type& type)
 //------------------------------------------------------------------------
 bool Channel::hasExtension(const ChannelExtension::Type& type) const
 {
-  foreach(ChannelExtensionSPtr extension, m_extensions)
+  for(auto extension: m_extensions)
   {
     if (extension->type() == type) return true;
   }

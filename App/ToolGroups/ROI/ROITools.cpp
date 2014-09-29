@@ -50,6 +50,7 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 //-----------------------------------------------------------------------------
 ROIToolsGroup::~ROIToolsGroup()
 {
+  setCurrentROI(nullptr);
 }
 
 //-----------------------------------------------------------------------------

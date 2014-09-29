@@ -88,7 +88,6 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
   }
 }
 
-
 //------------------------------------------------------------------------
 void RemoveSegmentations::redo()
 {

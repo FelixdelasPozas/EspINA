@@ -123,7 +123,8 @@ namespace ESPINA
     /** \brief Returns true if the resulting segmentation touches the used ROI.
      *
      */
-    bool isTouchingROI() const;
+    bool isTouchingROI() const
+    { return m_touchesROI; };
 
   protected:
     /** \brief Implements Filter::saveFilterSnapshot().
@@ -162,14 +163,18 @@ namespace ESPINA
     virtual bool invalidateEditedRegions();
 
   private:
+    /** \brief Helper method that returns true if the segmentation touches the ROI.
+     *
+     */
+    virtual bool computeTouchesROIValue() const;
+
     int       m_lowerTh, m_prevLowerTh;
     int       m_upperTh, m_prevUpperTh;
     NmVector3 m_seed,    m_prevSeed;
     int       m_radius,  m_prevRadius;
-    bool      m_usesROI;
-    ROISPtr   m_roi;
+    ROISPtr   m_ROI;
+    bool      m_touchesROI;
   };
-
 } // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_FILTER_H

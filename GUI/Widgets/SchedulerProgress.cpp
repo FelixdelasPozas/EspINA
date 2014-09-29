@@ -29,7 +29,7 @@
 #include <QLayout>
 #include <QProgressBar>
 #include <QLabel>
-#include <QDebug>
+#include <QScrollBar>
 
 using namespace ESPINA;
 
@@ -50,14 +50,14 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 
   setVisible(false);
 
-  m_notification->setLayout(new QVBoxLayout(m_notification.get()));
+  m_notification->setLayout(new QVBoxLayout(m_notification));
   m_notification->setMinimumWidth(m_width);
   m_notification->setMaximumWidth(m_width);
 
   m_notificationArea->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
-  m_notificationArea->setWidget(m_notification.get());
-  m_notificationArea->setMaximumWidth(m_width+20);
-  m_notificationArea->setMinimumWidth(m_width+20);
+  m_notificationArea->setWidget(m_notification);
+  m_notificationArea->setMaximumWidth(m_width+15);
+  m_notificationArea->setMinimumWidth(m_width+15);
   m_notificationArea->setMaximumHeight(m_height);
   m_notificationArea->setMinimumHeight(m_height);
   m_notificationArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -184,18 +184,23 @@ void SchedulerProgress::onProgressAborted()
 void SchedulerProgress::updateNotificationWidget()
 {
   m_notification->adjustSize();
-  if (m_notification->height() < m_notificationArea->height())
+  auto wHeight = m_notification->height();
+
+  if (wHeight < m_notificationArea->height())
   {
-    m_notificationArea->setMaximumHeight(m_notification->height());
-    m_notificationArea->setMinimumHeight(m_notification->height());
+    m_notificationArea->setMaximumHeight(wHeight);
+    m_notificationArea->setMinimumHeight(wHeight);
+    m_notificationArea->verticalScrollBar()->hide();
   }
   else
   {
     m_notificationArea->setMaximumHeight(m_height);
     m_notificationArea->setMinimumHeight(m_height);
+    m_notificationArea->verticalScrollBar()->show();
   }
+  m_notificationArea->adjustSize();
 
-  int xShift = m_showTasks->width() - m_width;
+  int xShift = m_showTasks->width() - m_width-15;
   int yShift = -m_notificationArea->height();
 
   m_notificationArea->move(mapToGlobal(m_showTasks->pos()+QPoint(xShift, yShift)));

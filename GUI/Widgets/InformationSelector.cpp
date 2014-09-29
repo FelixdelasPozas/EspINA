@@ -38,7 +38,7 @@ InformationSelector::InformationSelector(const InformationSelector::GroupedInfo 
                                          Qt::WindowFlags                         flags)
 : QDialog    {parent, flags}
 , m_gui      {new GUI()}
-, m_selection{selection}
+, m_selection(selection)
 {
   m_gui->setupUi(this);
 

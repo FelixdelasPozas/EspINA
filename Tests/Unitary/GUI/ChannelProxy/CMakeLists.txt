@@ -95,7 +95,6 @@ add_executable(ChannelProxy_Tests
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
-  ${GUI_DIR}/Utils/Conditions.cpp
   ModelTest.cpp
   )
 target_link_libraries(ChannelProxy_Tests ${LIB_DEPENDECIES} )

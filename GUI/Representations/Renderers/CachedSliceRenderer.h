@@ -241,6 +241,16 @@ namespace ESPINA
     	 */
       void updateRepresentationColor();
 
+      /** \brief Updates the contrast and brightness of a channel when those values change.
+       *
+       */
+      void changeContrastAndBrightness();
+
+      /** \brief Updates the channel representation when it's opacity changes.
+       *
+       */
+      void changeOpacity();
+
     protected slots:
       /** \brief Set position of the cache.
        * \param[in] plane, unused.

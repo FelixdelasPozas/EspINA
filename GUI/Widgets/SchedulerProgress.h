@@ -96,7 +96,7 @@ namespace ESPINA {
     SchedulerSPtr m_scheduler;
 
     QMap<TaskSPtr, TaskProgressSPtr> m_tasks;
-    std::shared_ptr<QWidget>       m_notification;
+    QWidget                       *m_notification;
     std::shared_ptr<QScrollArea>   m_notificationArea;
 
     int m_width;

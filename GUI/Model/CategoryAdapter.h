@@ -199,7 +199,7 @@ namespace ESPINA
      * \param[in] name, name of the category to create.
      *
      */
-    explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name );
+    explicit CategoryAdapter(CategoryAdapterPtr parent, const QString& name);
 
   private:
     CategorySPtr         m_category;

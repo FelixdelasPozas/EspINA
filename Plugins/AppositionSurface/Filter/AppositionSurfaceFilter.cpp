@@ -106,10 +106,6 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
     {
       update = (m_lastModifiedMesh < inputVolume->lastModified());
     }
-    else
-    {
-      qWarning() << "SAS input volume es NULL";
-    }
   }
 
   return update;

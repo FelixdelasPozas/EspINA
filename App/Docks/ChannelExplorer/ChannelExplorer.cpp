@@ -21,6 +21,7 @@
 // ESPINA
 #include "ChannelExplorer.h"
 #include "EspinaConfig.h"
+#include <Menus/DefaultContextualMenu.h>
 #include "Dialogs/ChannelInspector/ChannelInspector.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Core/Analysis/Channel.h>
@@ -28,6 +29,7 @@
 // Qt
 #include <QMessageBox>
 #include <QUndoStack>
+#include <QContextMenuEvent>
 #include <ui_ChannelExplorer.h>
 
 using namespace ESPINA;
@@ -43,8 +45,7 @@ public:
     setupUi(this);
     groupBox->setVisible(false);
 
-    showInformation->setIcon(
-      qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
+    showInformation->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   }
 };
 
@@ -490,10 +491,9 @@ void ChannelExplorer::activateChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::dialogClosed(QObject *object)
 {
-	auto dialog = qobject_cast<ChannelInspector *>(object);
-	Q_ASSERT(dialog);
-
+  auto dialog = static_cast<ChannelInspector *>(object);
 	auto channel = m_informationDialogs.key(dialog);
+	Q_ASSERT(channel);
   channel->output()->update();
 
   ChannelAdapterList channels;
@@ -530,4 +530,44 @@ void ChannelExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapter
     m_model->deleteRelation(prevSample, smartChannel, Channel::STAIN_LINK);
     m_model->addRelation   (smartSample, smartChannel, Channel::STAIN_LINK);
   }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
+{
+  ChannelAdapterList channels;
+
+  for(auto index : m_gui->view->selectionModel()->selectedIndexes())
+  {
+    auto item = itemAdapter(m_sort->mapToSource(index));
+    switch (item->type())
+    {
+      case ItemAdapter::Type::CHANNEL:
+        channels << channelPtr(item);
+        break;
+      case ItemAdapter::Type::SAMPLE:
+      default:
+        return;
+        break;
+    }
+  }
+
+  if(channels.empty() || channels.size() != 1)
+    return;
+
+  QMenu contextMenu;
+
+  QAction *setActive = contextMenu.addAction(tr("Set as the active channel"));
+  setActive->setCheckable(true);
+  setActive->setChecked(channels.first() == m_viewManager->activeChannel());
+  connect(setActive, SIGNAL(triggered(bool)),
+          this,      SLOT(activateChannel()));
+
+  contextMenu.addSeparator();
+
+  QAction *properties = contextMenu.addAction(tr("Channel properties..."));
+  connect(properties, SIGNAL(triggered(bool)),
+          this,       SLOT(showInformation()));
+
+  contextMenu.exec(e->globalPos());
 }

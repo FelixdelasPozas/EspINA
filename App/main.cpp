@@ -62,14 +62,15 @@ int main(int argc, char **argv)
     QObject *plugin = loader->instance();
     if (plugin)
     {
-      qDebug() << "Found plugin " << fileName;;
+      qDebug() << "Found plugin " << fileName;
       plugins << plugin;
       loaders << loader;
-    } else
+    }
+    else
     {
       // DO NOT DELETE, THIS IS TO DEBUG PLUGINS
 //      qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
-//      delete loader;
+      delete loader;
     }
   }
 
@@ -81,10 +82,8 @@ int main(int argc, char **argv)
     res = app.exec();
   }
 
-  qDebug() << "\nUnloading Plugins: \n";
   for(auto plugin: loaders)
   {
-  	qDebug() << "unloading" << plugin->fileName();
     plugin->unload();
     delete plugin;
   }

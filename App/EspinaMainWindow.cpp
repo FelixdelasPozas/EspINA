@@ -345,16 +345,14 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
 
-  setWindowTitle(QString("ESPina Interactive Neuron Analyzer"));
-
-  checkAutosave();
-
   closeCurrentAnalysis();
 
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
 
   // Add the break after restoring the previous state
   insertToolBarBreak(m_contextualBar);
+
+  checkAutosave();
 }
 
 //------------------------------------------------------------------------
@@ -367,8 +365,6 @@ EspinaMainWindow::~EspinaMainWindow()
   delete m_colorEngines;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
-
-  removeTemporalDirectory();
 }
 
 //------------------------------------------------------------------------
@@ -552,7 +548,8 @@ void EspinaMainWindow::checkAutosave()
       QStringList files;
       files << autosavePath.absoluteFilePath(AUTOSAVE_FILE);
       openAnalysis(files);
-    } else
+    }
+    else
     {
       autosavePath.remove(AUTOSAVE_FILE);
     }
@@ -572,10 +569,6 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* d
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerToolGroup(ToolGroupPtr tools)
 {
-//   connect(this,  SIGNAL(analysisClosed()),
-//           tools, SLOT(resetToolbar()));
-//   connect(this,  SIGNAL(abortOperation()),
-//           tools, SLOT(abortOperation()));
   m_mainBar->addAction(tools);
 }
 
@@ -598,7 +591,7 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
   {
     ESPINA_SETTINGS(settings);
 
-    // Instead of ussing save/restoreGeometry resice+move
+    // Instead of using save/restoreGeometry resize+move
     // Works better in Ubuntu Unity when espina is closed while is maximized
     settings.beginGroup("MainWindow");
     settings.setValue("size", size());
@@ -612,6 +605,8 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
     QDir autosavePath = m_settings->autosavePath();
     autosavePath.remove(AUTOSAVE_FILE);
   }
+
+  removeTemporalDirectory();
 }
 
 //------------------------------------------------------------------------
@@ -864,6 +859,8 @@ void EspinaMainWindow::addToAnalysis(const QStringList files)
   m_model->setAnalysis(mergedAnalysis, m_factory);
   m_analysis = mergedAnalysis;
 
+  m_viewManager->setActiveChannel(m_model->channels().first().get());
+
   int secs = timer.elapsed()/1000.0;
   int mins = 0;
   if (secs > 60)
@@ -907,7 +904,8 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
       //TODO: choose reader
     }
 
-    try {
+    try
+    {
       analyses << m_factory->read(reader, file, m_errorHandler);
 
       if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
@@ -915,20 +913,32 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
         m_recentDocuments1.addDocument(file);
         m_recentDocuments2.updateDocumentList();
       }
-    } catch (...)
+    }
+    catch (...)
     {
       QApplication::restoreOverrideCursor();
-      QMessageBox box(QMessageBox::Warning,
-                      tr("ESPINA"),
-                      tr("File \"%1\" could not be loaded.\n"
-                      "Do you want to remove it from recent documents list?")
-                      .arg(file),
-                      QMessageBox::Yes|QMessageBox::No);
 
-      if (box.exec() == QMessageBox::Yes)
+      if(file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
       {
-        m_recentDocuments1.removeDocument(file);
-        m_recentDocuments2.updateDocumentList();
+        QMessageBox box(QMessageBox::Warning,
+                        tr("ESPINA"),
+                        tr("File \"%1\" could not be loaded.\n"
+                        "Do you want to remove it from recent documents list?")
+                        .arg(file),
+                        QMessageBox::Yes|QMessageBox::No);
+
+        if (box.exec() == QMessageBox::Yes)
+        {
+          m_recentDocuments1.removeDocument(file);
+          m_recentDocuments2.updateDocumentList();
+        }
+      }
+      else
+      {
+        QMessageBox box(QMessageBox::Information,
+                        tr("ESPINA"),
+                        tr("The autosave file could not be loaded.\n"),
+                        QMessageBox::Ok);
       }
       QApplication::setOverrideCursor(Qt::WaitCursor);
     }
