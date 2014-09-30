@@ -81,7 +81,7 @@ Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}"; Components: dep
 
 Source: "@QUAZIP_LIBRARY_DIR@\libquazip.dll"; DestDir: "{app}"; Components: dependencies\Quazip
 
-Soruce: "@BOOST_LIBRARY_DIR@\libboost_*-mt-1_56.dll"; DestDir: "{app}"; Components: dependencies\Boost
+Source: "@BOOST_LIBRARY_DIR@\libboost_*-mt-1_56.dll"; DestDir: "{app}"; Components: dependencies\Boost
 
 [Icons]
 Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"

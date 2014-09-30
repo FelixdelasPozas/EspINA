@@ -315,7 +315,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevSeed    = m_seed;
   m_prevRadius  = m_radius;
 
-  m_touchesROI = computeTouchesROIValue();
+  if(m_ROI != nullptr)
+  	m_touchesROI = computeTouchesROIValue();
 
   emit progress(100);
 }
