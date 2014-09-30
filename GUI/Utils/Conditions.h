@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -27,7 +27,20 @@
 
 namespace ESPINA
 {
-  QString condition(const QString &icon, const QString &description);
+	/** \brief Returns the tooltip text for the given icon and description.
+	 * \param[in] icon, QIcon object.
+	 * \param[in] description, text decription.
+	 *
+	 */
+  inline QString condition(const QString &icon, const QString &description)
+  {
+    return QString("<table style=\"margin: 0px\">"
+                 " <tr>"
+                 " <td valign=\"top\"><img src='%1' width=16 height=16></td> <td valign=\"center\">: %2</td>"
+                 " </tr>"
+                 "</table>"
+                ).arg(icon).arg(description);
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_CONDITIONS_H

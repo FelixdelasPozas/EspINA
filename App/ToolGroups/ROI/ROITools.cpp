@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -34,7 +34,7 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
                              ViewManagerSPtr  viewManager,
                              QUndoStack      *undoStack,
                              QWidget         *parent)
-: ToolGroup(viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent)
+: ToolGroup          {viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent}
 , m_viewManager      {viewManager}
 , m_enabled          {true}
 , m_accumulator      {nullptr}
@@ -50,6 +50,7 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 //-----------------------------------------------------------------------------
 ROIToolsGroup::~ROIToolsGroup()
 {
+  setCurrentROI(nullptr);
 }
 
 //-----------------------------------------------------------------------------
@@ -86,7 +87,6 @@ ToolSList ROIToolsGroup::tools()
 //-----------------------------------------------------------------------------
 void ROIToolsGroup::setCurrentROI(ROISPtr roi)
 {
-  // TODO: Manage ROI activation/deactivation inside ViewManager
   if(m_accumulator != nullptr)
     m_viewManager->removeWidget(m_accumulatorWidget);
 

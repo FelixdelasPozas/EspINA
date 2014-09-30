@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,10 +22,16 @@
 #ifndef ESPINA_EXTENSION_UTILS_H
 #define ESPINA_EXTENSION_UTILS_H
 
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+	/** \brief Templatized extension retrieval. The extended item must
+	 * be extended by the templated extension.
+	 * \param[in] item, extended item.
+	 *
+	 */
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveExtension(Extendible item)
   {
@@ -39,6 +45,11 @@ namespace ESPINA {
     return extension;
   };
 
+	/** \brief Templatized extension retrieval. In the case the extended item
+	 * haven't got the extension, it's created and returned.
+	 * \param[in] item, extended item.
+	 *
+	 */
   template<typename Extension, typename Extendible>
   std::shared_ptr<Extension> retrieveOrCreateExtension(Extendible item)
   {

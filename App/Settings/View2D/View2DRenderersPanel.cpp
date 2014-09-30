@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -30,16 +30,16 @@ namespace ESPINA
                                              RendererTypes filter,
                                              QList<View2D *> viewList)
   : SettingsPanel()
-  , m_renderers(renderers)
-  , m_activeRenderers(activeRenderers)
-  , m_filter(filter)
-  , m_views(viewList)
+  , m_renderers      {renderers}
+  , m_activeRenderers{activeRenderers}
+  , m_filter         {filter}
+  , m_views          {viewList}
   {
     m_selector = new RenderersSelector(renderers, activeRenderers, filter);
     setLayout(new QVBoxLayout());
     layout()->addWidget(m_selector);
   }
-  
+
   //-----------------------------------------------------------------------------
   View2DRenderersPanel::~View2DRenderersPanel()
   {

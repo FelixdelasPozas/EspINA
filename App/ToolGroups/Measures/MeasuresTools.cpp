@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -23,13 +23,13 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   MeasuresTools::MeasuresTools(ViewManagerSPtr viewManager, QWidget* parent)
-  : ToolGroup(viewManager, QIcon(":/espina/measure3D.png"), tr("Measure Tools"), parent)
-  , m_measure{ new MeasureTool(viewManager) }
-  , m_ruler{ new RulerTool(viewManager) }
+  : ToolGroup{viewManager, QIcon(":/espina/measure3D.png"), tr("Measure Tools"), parent}
+  , m_measure{new MeasureTool(viewManager) }
+  , m_ruler  {new RulerTool(viewManager) }
   , m_enabled{false}
   {
   }
-  
+
   //----------------------------------------------------------------------------
   MeasuresTools::~MeasuresTools()
   {
@@ -43,13 +43,13 @@ namespace ESPINA
     m_measure->setEnabled(value);
     m_ruler->setEnabled(value);
   }
-  
+
   //----------------------------------------------------------------------------
   bool MeasuresTools::enabled() const
   {
     return m_enabled;
   }
-  
+
   //----------------------------------------------------------------------------
   ToolSList MeasuresTools::tools()
   {

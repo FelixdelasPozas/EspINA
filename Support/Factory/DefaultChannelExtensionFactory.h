@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,20 +22,33 @@
 #ifndef ESPINA_DEFAULT_CHANNEL_EXTENSION_FACTORY_H
 #define ESPINA_DEFAULT_CHANNEL_EXTENSION_FACTORY_H
 
+#include "Support/EspinaSupport_Export.h"
+
+// ESPINA
 #include <Core/Factory/ChannelExtensionFactory.h>
 
 namespace ESPINA {
 
-  class DefaultChannelExtensionFactory
+  class EspinaSupport_EXPORT DefaultChannelExtensionFactory
   : public ChannelExtensionFactory
   {
   public:
+  	/** \brief DefaultChannelExtensionFactor class constructor.
+  	 * \param[in] scheduler, scheduler smart pointer.
+  	 *
+  	 */
     explicit DefaultChannelExtensionFactory(SchedulerSPtr scheduler);
 
+    /** \brief Implements ChannelExtensionFactory::createChannelExtension().
+     *
+     */
     virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
                                                         const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
                                                         const State& state = State()) const;
 
+    /** \brief Implements ChannelExtensionFactory::providedExtensions().
+     *
+     */
     virtual ChannelExtensionTypeList providedExtensions() const;
 
   private:

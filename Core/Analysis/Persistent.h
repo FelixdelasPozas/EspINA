@@ -29,6 +29,8 @@
 #ifndef ESPINA_PERSISTENT_H
 #define ESPINA_PERSISTENT_H
 
+#include "Core/EspinaCore_Export.h"
+
 #include <memory>
 #include <QString>
 #include <QDebug>
@@ -38,44 +40,82 @@ namespace ESPINA {
 
   using State = QString;
 
-  class Persistent
+  class EspinaCore_EXPORT Persistent
   {
   public:
     using Uuid = QUuid;
 
   public:
-    explicit Persistent() 
+ 		/** \brief Persistent class constructor.
+ 		 *
+ 		 */
+    explicit Persistent()
     : m_quuid{QUuid::createUuid()}
     {}
-    virtual ~Persistent() {}
 
+ 		/** \brief Persistent class destructor.
+ 		 *
+ 		 */
+    virtual ~Persistent()
+    {}
+
+ 		/** \brief Returns the unique id for this object.
+ 		 *
+ 		 */
     Uuid uuid() const
     { return m_quuid; }
 
+ 		/** \brief Sets the unique id for this object.
+ 		 * \param[in] id, unique id.
+ 		 *
+ 		 */
     void setUuid(Uuid id)
     { m_quuid = id; }
 
+ 		/** \brief Sets temporal storage for the object.
+ 		 * \param[in] storage, temporal storage object smart pointer.
+ 		 *
+ 		 */
     void setStorage(TemporalStorageSPtr storage)
     { m_storage = storage; }
 
+ 		/** \brief Returns the temporal storage object.
+ 		 *
+ 		 */
     TemporalStorageSPtr storage() const
     { return m_storage; }
 
+ 		/** \brief Sets the name of the object.
+ 		 * \param[in] name, object's name.
+ 		 *
+ 		 */
     void setName(const QString& name)
     { m_name = name; }
 
+ 		/** \brief Returns the name of the object.
+ 		 *
+ 		 */
     QString name() const
     { return m_name; }
 
-
+ 		/** \brief Restores the internal state of this object.
+ 		 * \param[in] state, state data object.
+ 		 *
+ 		 */
     virtual void restoreState(const State& state) = 0;
 
-    //NOTE: If we want to allow ReadOnly objects to keep state we need to avoid new lines
+ 		/** \brief Returns the state data of the object.
+ 		 *
+ 		 * NOTE: If we want to allow ReadOnly objects to keep state we need to avoid new lines.
+ 		 */
     virtual State state() const = 0;
 
+ 		/** \brief Returns the snapshot data of this object.
+ 		 *
+ 		 */
     virtual Snapshot snapshot() const = 0;
 
-    /** \brief Release all resources loaded in memory
+    /** \brief Releases all resources loaded in memory.
      *
      */
     virtual void unload() = 0;

@@ -25,15 +25,16 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "CheckableTableView.h"
+
+// Qt
 #include <QMouseEvent>
 
 //------------------------------------------------------------------------
 CheckableTableView::CheckableTableView(QWidget *parent)
-: QTableView(parent)
+: QTableView{parent}
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -53,4 +54,3 @@ void CheckableTableView::mouseReleaseEvent(QMouseEvent *event)
     }
   }
 }
-

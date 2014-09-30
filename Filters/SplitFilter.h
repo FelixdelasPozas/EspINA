@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -21,9 +21,11 @@
 #ifndef ESPINA_SPLIT_FILTER_H
 #define ESPINA_SPLIT_FILTER_H
 
+#include "Filters/EspinaFilters_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -32,33 +34,36 @@ class vtkImageStencilData;
 
 namespace ESPINA
 {
-  class SplitFilter
+  class EspinaFilters_EXPORT SplitFilter
   : public Filter
   {
     public:
-      /* \brief SplitFilter class constructor.
+      /** \brief SplitFilter class constructor.
+			 * \param[in] inputs, list of input smart pointers.
+			 * \param[in] type, SplitFilter type.
+			 * \param[in] scheduler, scheduler smart pointer.
        *
        */
       explicit SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
 
-      /* \brief SplitFilter class virtual destructor.
+      /** \brief SplitFilter class virtual destructor.
        *
        */
       virtual ~SplitFilter();
 
-      /* \brief Implements Persistent::restoreState().
+      /** \brief Implements Persistent::restoreState().
        *
        */
       virtual void restoreState(const State& state)
       {}
 
-      /* \brief Implements Persistent::state().
+      /** \brief Implements Persistent::state().
        *
        */
       virtual State state() const
       { return State(); }
 
-      /* \brief Sets the stencil used to split the input.
+      /** \brief Sets the stencil used to split the input.
        * \param[in] stencil, a vtkSmartPointer<vtkImageStencilData> object.
        *
        */
@@ -68,53 +73,53 @@ namespace ESPINA
         m_ignoreCurrentOutputs = true;
       }
 
-      /* \brief Try to locate an snapshot of the filter in temporalStorage, returns true
+      /** \brief Try to locate an snapshot of the filter in temporalStorage, returns true
        * if all volume snapshot can be recovered and false otherwise.
        *
        */
       virtual bool fetchCacheStencil() const;
 
     protected:
-      /* \brief Implements Filter::saveFilterSnapshot().
+      /** \brief Implements Filter::saveFilterSnapshot().
        *
        */
       virtual Snapshot saveFilterSnapshot() const;
 
-      /* \brief Implements Filter::needUpdate().
+      /** \brief Implements Filter::needUpdate().
        *
        */
       virtual bool needUpdate() const;
 
-      /* \brief Implements Filter::needUpdate(oid).
+      /** \brief Implements Filter::needUpdate(oid).
        *
        */
       virtual bool needUpdate(Output::Id id) const;
 
-      /* \brief Implements Filter::execute().
+      /** \brief Implements Filter::execute().
        *
        */
       virtual void execute();
 
-      /* \brief Implements Filter::execute(oid).
+      /** \brief Implements Filter::execute(oid).
        *
        */
       virtual void execute(Output::Id id);
 
-      /* \brief Implements Filter::ignoreStorageContents().
+      /** \brief Implements Filter::ignoreStorageContents().
        *
        */
       virtual bool ignoreStorageContent() const;
 
-      /* \brief Implements Filter::invalidateEditedRegions().
+      /** \brief Implements Filter::invalidateEditedRegions().
        *
        */
       virtual bool invalidateEditedRegions();
 
+      /** \brief Helper method that returns the stencil file name.
+       *
+       */
       QString stencilFile() const
       { return prefix() + "stencil.vti"; }
-
-      virtual bool ignoreCurrentOutputs() const
-      { return m_ignoreCurrentOutputs; }
 
     private:
       bool m_ignoreCurrentOutputs;

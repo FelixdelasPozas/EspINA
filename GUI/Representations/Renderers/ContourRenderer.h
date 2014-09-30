@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -32,24 +32,69 @@ namespace ESPINA
   : public MeshRenderer
   {
     public:
-      ContourRenderer(QObject* parent = 0);
+  		/** \brief ContourRenderer class constructor.
+  		 * \param[in] parent, raw pointer of the QObject parent of this one.
+  		 *
+  		 */
+      ContourRenderer(QObject* parent = nullptr);
+
+  		/** \brief ContourRenderer class virtual destructor.
+  		 *
+  		 */
       virtual ~ContourRenderer();
 
-      virtual const QIcon icon()      const   { return QIcon(":/espina/contour.png"); }
-      virtual const QString name()    const   { return "Contour"; }
-      virtual const QString tooltip() const   { return "Segmentation's Contours"; }
+  		/** \brief Overrides MeshRenderer::icon() const.
+  		 *
+  		 */
+      virtual const QIcon icon() const override
+      { return QIcon(":/espina/contour.png"); }
 
-      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
-      virtual void removeRepresentation(RepresentationSPtr rep);
-      virtual bool managesRepresentation(const QString &representationType) const;
+      /** \brief Overrides MeshRenderer::name() const.
+  		 *
+  		 */
+      virtual const QString name() const override
+      { return "Contour"; }
 
-      virtual RendererSPtr clone() const           { return RendererSPtr(new ContourRenderer()); }
-      virtual RendererTypes renderType() const     { return RendererTypes(RENDERER_VIEW2D); }
+      /** \brief Overrides MeshRenderer::tooltip() const.
+  		 *
+  		 */
+      virtual const QString tooltip() const override
+      { return "Segmentation's Contours"; }
 
+  		/** \brief Overrides MeshRenderer::addRepresentation().
+  		 *
+  		 */
+      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep) override;
+
+  		/** \brief Overrides MeshRenderer::removeRepresentation().
+  		 *
+  		 */
+      virtual void removeRepresentation(RepresentationSPtr rep) override;
+
+  		/** \brief Overrides MeshRenderer::managesRepresentation() const.
+  		 *
+  		 */
+      virtual bool managesRepresentation(const QString &representationType) const override;
+
+  		/** \brief Overrides MeshRenderer::clone() const.
+  		 *
+  		 */
+      virtual RendererSPtr clone() const override
+      { return RendererSPtr(new ContourRenderer()); }
+
+  		/** \brief Overrride MeshRenderer::renderType() const.
+  		 *
+  		 */
+      virtual RendererTypes renderType() const override
+      { return RendererTypes(RENDERER_VIEW2D); }
+
+  		/** \brief Overrides MeshRenderer::pick()
+  		 *
+  		 */
       virtual ViewItemAdapterList pick(int x, int y, Nm z,
                                        vtkSmartPointer<vtkRenderer> renderer,
                                        RenderableItems itemType = RenderableItems(),
-                                       bool repeat = false);
+                                       bool repeat = false) override;
   };
 
 } // namespace ESPINA

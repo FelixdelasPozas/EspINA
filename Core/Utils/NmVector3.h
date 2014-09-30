@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,15 +23,21 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
 #ifndef ESPINA_NM_VECTOR_3_H
 #define ESPINA_NM_VECTOR_3_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include "Core/Utils/Spatial.h"
 
+// C++
 #include <iostream>
+
+// Qt
 #include <QDebug>
 #include <QList>
 #include <QString>
@@ -41,44 +47,85 @@ namespace ESPINA {
   using Nm = double;
 
   /** \brief Set of values defining a point in the 3D space
-   * 
+   *
    */
-  class NmVector3 {
-  public:
-    struct Wrong_format_exception {};
-    struct Wrong_number_initial_values {};
+  class EspinaCore_EXPORT NmVector3
+  {
+		public:
+			struct Wrong_format_exception {};
+			struct Wrong_number_initial_values {};
 
-  public:
-    NmVector3();
+		public:
+			/** \brief NmVector3 class constructor.
+			 *
+			 */
+			NmVector3();
 
-    /** \brief Create a vector from an initial list of values
-     *
-     */
-    NmVector3(std::initializer_list<Nm> values);
+			/** \brief NmVector3 class constructor.
+			 * \param[in] value, initial list of values.
+			 *
+			 */
+			NmVector3(std::initializer_list<Nm> values);
 
-    NmVector3(const QString& string);
+			/** \brief NmVector3 class constructor.
+			 * \param[in] string, string in the format {%1,%2,%3}.
+			 *
+			 */
+			NmVector3(const QString& string);
 
+			/** \brief NmVector3 operator[int]
+			 *
+			 */
+			Nm& operator[](int idx)
+			{ return m_values[idx]; }
 
-    Nm& operator[](int idx) { return m_values[idx]; }
-    const Nm& operator[](int idx) const { return m_values[idx]; }
+			/** \brief NmVector3 operator[int] const
+			 *
+			 */
+			const Nm& operator[](int idx) const
+			{ return m_values[idx]; }
 
-    Nm& operator[](const Axis dir) { return m_values[idx(dir)]; }
-    const Nm& operator[](const Axis dir) const { return m_values[idx(dir)]; }
+			/** \brief NmVector3 operator[axis]
+			 *
+			 */
+			Nm& operator[](const Axis dir)
+			{ return m_values[idx(dir)]; }
 
-    QString toString() const;
+			/** \brief NmVector3 operator[axis] const
+			 *
+			 */
+			const Nm& operator[](const Axis dir) const
+			{ return m_values[idx(dir)]; }
 
-  private:
-    Nm m_values[3];
-  };
+			/** \brief Dumps the contents of the vector formatted to a string.
+			 *
+			 */
+			QString toString() const;
 
-  QDebug operator<< (QDebug d, const NmVector3 &vector);
+		private:
+			Nm m_values[3];
+		};
 
-  std::ostream& operator<<(std::ostream& os, const NmVector3& vector);
+		/** \brief NmVector3 operator<< for QDebug.
+		 *
+		 */
+		QDebug EspinaCore_EXPORT operator<< (QDebug d, const NmVector3 &vector);
 
-  bool operator==(const NmVector3& lhs, const NmVector3& rhs);
+		/** \brief NmVector3 operator<< for streams.
+		 *
+		 */
+		std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const NmVector3& vector);
 
-  bool operator!=(const NmVector3& lhs, const NmVector3& rhs);
-}
+		/** \brief NmVector3 equality operator.
+		 *
+		 */
+		bool EspinaCore_EXPORT operator==(const NmVector3& lhs, const NmVector3& rhs);
+
+		/** \brief NmVector3 inequality operator.
+		 *
+		 */
+		bool EspinaCore_EXPORT operator!=(const NmVector3& lhs, const NmVector3& rhs);
+	}
 
 
 #endif // ESPINA_NM_VECTOR_3_H

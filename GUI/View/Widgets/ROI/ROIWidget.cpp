@@ -20,7 +20,7 @@
 
 // ESPINA
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 #include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>

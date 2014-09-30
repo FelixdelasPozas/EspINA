@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -27,8 +27,6 @@
 #include <Filters/SourceFilter.h>
 
 using namespace ESPINA;
-
-//const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
 
 static const QString SEGMHA = "segmha";
 

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "DefaultContextualMenu.h"
-
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <Extensions/Tags/SegmentationTags.h>
@@ -32,6 +31,7 @@
 #include <Undo/RenameSegmentationsCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
+// Qt
 #include <QWidgetAction>
 #include <QTreeView>
 #include <QHeaderView>
@@ -50,7 +50,7 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
                                              ViewManagerSPtr         viewManager,
                                              QUndoStack             *undoStack,
                                              QWidget                *parent)
-: ContextualMenu(parent)
+: ContextualMenu  {parent}
 , m_model         {model}
 , m_viewManager   {viewManager}
 , m_undoStack     {undoStack}
@@ -219,86 +219,6 @@ void DefaultContextualMenu::renameSegmentation()
 }
 
 //------------------------------------------------------------------------
-// QStandardItem *findRepresentationItem(QList<QStandardItem *> items, RepresentationSPtr representation)
-// {
-//   QStandardItem *representationItem = NULL;
-//
-//   int i = 0;
-//   while (!representationItem && i < items.size())
-//   {
-//     QStandardItem *item = items[i];
-//     if (item->data(Qt::DisplayRole).toString() == representation->label())
-//     {
-//       representationItem = item;
-//     }
-//     ++i;
-//   }
-//
-//   return representationItem;
-// }
-
-//------------------------------------------------------------------------
-void DefaultContextualMenu::displayVisualizationSettings()
-{
-//   if (!m_segmentations.isEmpty())
-//   {
-//     SegmentationVisualizationSettingsDialog::Settings representations;
-//
-//     foreach (SegmentationPtr segmentation, m_segmentations)
-//     {
-//       foreach (GraphicalRepresentationSPtr representation, segmentation->output()->graphicalRepresentations())
-//       {
-//         QStandardItem *representationItem = findRepresentationItem(representations.keys(), representation);
-//
-//         if (!representationItem)
-//         {
-//           representationItem = new QStandardItem(representation->label());
-//           representationItem->setCheckState(representation->isActive()?Qt::Checked:Qt::Unchecked);
-//           representationItem->setCheckable(true);
-//
-//           representations[representationItem] = representation->settingsWidget();
-//         }
-//         else
-//         {
-//           Qt::CheckState checkState = representation->isActive()?Qt::Checked:Qt::Unchecked;
-//           if (representationItem->checkState() != checkState)
-//             representationItem->setCheckState(Qt::PartiallyChecked);
-//         }
-//         representations[representationItem]->Get(representation);
-//       }
-//     }
-//
-//     SegmentationVisualizationSettingsDialog visualizationSettings(dialogTitle(), representations);
-//     if (visualizationSettings.exec())
-//     {
-//       foreach (SegmentationPtr segmentation, m_segmentations)
-//       {
-//         VisualizationState *extension = dynamic_cast<VisualizationState *>(segmentation->informationExtension(VisualizationStateID));
-//         if (!extension)
-//         {
-//           extension = new VisualizationState();
-//           segmentation->addExtension(extension);
-//         }
-//
-//         foreach (GraphicalRepresentationSPtr representation, segmentation->output()->graphicalRepresentations())
-//         {
-//           QStandardItem *key = findRepresentationItem(representations.keys(), representation);
-//           if (key->checkState() == Qt::Unchecked)
-//             representation->setActive(false);
-//           else if (key->checkState() == Qt::Checked)
-//           {
-//             representation->setActive(true);
-//             representations[key]->Set(representation);
-//           }
-//           extension->setSettings(representation->label(), representation->serializeSettings());
-//         }
-//       }
-//     }
-//
-//   }
-}
-
-//------------------------------------------------------------------------
 void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
@@ -313,7 +233,6 @@ void DefaultContextualMenu::deleteSelectedSementations()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::setSelection(SelectionSPtr selection)
 {
-  //this->m_segmentations = list;
 }
 
 //------------------------------------------------------------------------
@@ -357,75 +276,11 @@ void DefaultContextualMenu::createTagsEntry()
 }
 
 //------------------------------------------------------------------------
-void DefaultContextualMenu::createSetLevelOfDetailEntry()
-{
-//   m_changeFinalNode = this->addAction(tr("Modify level of detail"));
-//   m_changeFinalNode->setCheckable(true);
-//   connect(m_changeFinalNode, SIGNAL(triggered()),
-//           this, SLOT(changeFinalFlag()));
-//
-//   QAction *deleteSegs = this->addAction(tr("Delete"));
-//   deleteSegs->setIcon(QIcon(":espina/trash-full.svg"));
-//   connect (deleteSegs, SIGNAL(triggered(bool)),
-//            this, SLOT(deleteSelectedSementations()));
-//
-//   bool enabled = false;
-//   SegmentationList ancestors, successors;
-//   foreach (SegmentationPtr seg, m_segmentations)
-//   {
-//     enabled |= seg->IsFinalNode();
-//     foreach(SegmentationSPtr ancestor, seg->componentOf())
-//       ancestors <<  ancestor.get();
-//     foreach(SegmentationSPtr successor, seg->components())
-//       successors << successor.get();
-//   }
-//
-//   foreach(SegmentationPtr seg, ancestors)
-//   {
-//     if (m_segmentations.contains(seg))
-//     {
-//       ancestors.removeAll(seg);
-//       break;
-//     }
-//     m_segmentations.append(seg);
-//     foreach(SegmentationSPtr ancestor, seg->componentOf())
-//       ancestors <<  ancestor.get();
-//
-//     enabled |= seg->IsFinalNode();
-//   }
-//
-//   foreach(SegmentationPtr seg, successors)
-//   {
-//     if (m_segmentations.contains(seg))
-//     {
-//       successors.removeAll(seg);
-//       break;
-//     }
-//     m_segmentations.append(seg);
-//     foreach(SegmentationSPtr successor, seg->components())
-//       successors << successor.get();
-//
-//     enabled |= seg->IsFinalNode();
-//   }
-//
-//   m_changeFinalNode->setChecked(enabled);
-}
-
-//------------------------------------------------------------------------
 void DefaultContextualMenu::createRenameEntry()
 {
   QAction *action = addAction(tr("&Rename"));
   connect(action, SIGNAL(triggered(bool)),
           this, SLOT(renameSegmentation()));
-}
-
-//------------------------------------------------------------------------
-void DefaultContextualMenu::createVisualizationEntry()
-{
-  QAction *action = addAction(tr("&Visualization"));
-
-  connect(action, SIGNAL(triggered(bool)),
-          this, SLOT(displayVisualizationSettings()));
 }
 
 //------------------------------------------------------------------------

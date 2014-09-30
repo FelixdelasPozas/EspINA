@@ -29,7 +29,7 @@ set(EXTENSIONS_EXTERNAL_LIBS
   ${ITK_LIBRARIES}
 )
 
-if(DEFINED MINGW OR DEFINED MSVC)
+if(DEFINED MINGW)
 
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     SET (EXTENSIONS_EXTERNAL_LIBS ${EXTENSIONS_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
@@ -42,8 +42,7 @@ if(DEFINED MINGW OR DEFINED MSVC)
     enable_language(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
 
-endif(DEFINED MINGW OR DEFINED MSVC)
-
+endif(DEFINED MINGW)
 
 add_library (EspinaExtensions SHARED ${EXTENSIONS_SOURCES})
 
@@ -56,14 +55,6 @@ GENERATE_EXPORT_HEADER(
   EXPORT_FILE_NAME EspinaExtensions_Export.h
   )
 
-#set (EXTENSIONS_HEADERS 
-#  #TODO: set all header files required to develop external apps
-#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaExtensions_Export.h"
-#  )
-#
-#set_target_properties(EspinaExtensions PROPERTIES
-#  PUBLIC_HEADER "${EXTENSIONS_HEADERS}")
- 
 install(TARGETS EspinaExtensions
   # IMPORTANT: Add the EspinaExtensions library to the "export-set"
   EXPORT        ESPINATargets
@@ -71,3 +62,9 @@ install(TARGETS EspinaExtensions
   LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
   PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
   )
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")

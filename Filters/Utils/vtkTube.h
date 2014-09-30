@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,53 +18,75 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef VTKTUBE_H
 #define VTKTUBE_H
 
-#include "Core/EspinaCore_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
+// ESPINA
 #include <vtkImplicitFunction.h>
 
-class EspinaCore_EXPORT vtkTube
+class EspinaFilters_EXPORT vtkTube
 : public vtkImplicitFunction
 {
-public:
-  vtkTypeMacro(vtkTube, vtkImplicitFunction);
+	public:
+		vtkTypeMacro(vtkTube, vtkImplicitFunction);
 
-  // Description
-  // Construct truncated cone with both radius of 0.5.
-  static vtkTube *New();
+		/** \brief Shadows vtkObject::New().
+		 *
+		 * Construct truncated cone with both radius of 0.5.
+		 *
+		 */
+		static vtkTube *New();
 
-  virtual void EvaluateGradient(double xyz[3], double g[3]);
-  virtual double EvaluateFunction(double xyz[3]);
-  double EvaluateFunction(double x, double y, double z)
-  {return this->vtkImplicitFunction::EvaluateFunction(x, y, z);}
+		/** \brief Implements vtkImplicitFunction::EvaluateGradient().
+		 *
+		 */
+		virtual void EvaluateGradient(double xyz[3], double g[3]);
 
-  vtkSetVector3Macro(BaseCenter,double);
-  vtkGetVectorMacro(BaseCenter,double,3);
+		/** \brief Implements vtkImplicitFunction::EvaluateFunction(xyz).
+		 *
+		 */
+		virtual double EvaluateFunction(double xyz[3]);
 
-  vtkSetMacro(BaseRadius, double);
-  vtkGetMacro(BaseRadius, double);
+		/** \brief Shadows vtkImplicitFunction::EvaluateFunction(x,y,z).
+		 *
+		 */
+		double EvaluateFunction(double x, double y, double z)
+		{return this->vtkImplicitFunction::EvaluateFunction(x, y, z);}
 
-  vtkSetVector3Macro(TopCenter,double);
-  vtkGetVectorMacro(TopCenter,double,3);
+		vtkSetVector3Macro(BaseCenter,double);
+		vtkGetVectorMacro(BaseCenter,double,3);
 
-  vtkSetMacro(TopRadius, double);
-  vtkGetMacro(TopRadius, double);
+		vtkSetMacro(BaseRadius, double);
+		vtkGetMacro(BaseRadius, double);
 
-protected:
-  vtkTube();
-  ~vtkTube(){}
+		vtkSetVector3Macro(TopCenter,double);
+		vtkGetVectorMacro(TopCenter,double,3);
 
-  double BaseCenter[3];
-  double BaseRadius;
-  double TopCenter[3];
-  double TopRadius;
+		vtkSetMacro(TopRadius, double);
+		vtkGetMacro(TopRadius, double);
 
-private:
-  vtkTube(const vtkTube&);
-  void operator=(const vtkTube&);
+	protected:
+		/** \brief vtkTube class private constructor.
+		 *
+		 */
+		vtkTube();
+
+		/** \brief vtkTube class private destructor.
+		 *
+		 */
+		~vtkTube()
+		{}
+
+		double BaseCenter[3];
+		double BaseRadius;
+		double TopCenter[3];
+		double TopRadius;
+
+	private:
+		vtkTube(const vtkTube&);
+		void operator=(const vtkTube&);
 };
 
 #endif // vtkTube_H

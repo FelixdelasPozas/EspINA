@@ -27,7 +27,7 @@
 #include <itkImageRegionIterator.h>
 
 #include "Core/Utils/Bounds.h"
-#include "Core/Analysis/Data/VolumetricDataUtils.h"
+#include "Core/Analysis/Data/VolumetricDataUtils.hxx"
 
 namespace ESPINA
 {

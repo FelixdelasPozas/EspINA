@@ -25,11 +25,11 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "NoteEditor.h"
 
+// Qt
 #include <ui_NoteEditor.h>
-
 #include <QFileDialog>
 #include <QTextStream>
 
@@ -45,8 +45,8 @@ NoteEditor::NoteEditor(const QString &title,
                        const QString &text,
                        QWidget *parent,
                        Qt::WindowFlags f)
-: QDialog(parent, f)
-, m_gui(new GUI())
+: QDialog{parent, f}
+, m_gui  {new GUI()}
 {
   m_gui->setupUi(this);
 

@@ -43,7 +43,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  ${ESPINA_INCLUDE}/App/Dialogs/TabularReport/TabularReportEntry.ui
+  ${ESPINA_INCLUDE}/Support/Widgets/TabularReportEntry.ui
   GUI/Settings/AppositionSurfaceSettings.ui
 #  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
@@ -108,5 +108,5 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 install(
   TARGETS AppositionSurfacePlugin
-  LIBRARY DESTINATION ${INSTALL_BIN_DIR}/plugins
+  DESTINATION "${INSTALL_BIN_DIR}/plugins"
   )

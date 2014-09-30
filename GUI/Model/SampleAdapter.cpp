@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,25 +18,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "GUI/Model/SampleAdapter.h"
-
 #include <Core/Analysis/Sample.h>
 
 using namespace ESPINA;
 
-
 //------------------------------------------------------------------------
 SampleAdapter::SampleAdapter(SampleSPtr sample)
-: NeuroItemAdapter(sample)
-, m_sample(sample)
+: NeuroItemAdapter{sample}
+, m_sample        {sample}
 {
-
 }
 
 //------------------------------------------------------------------------
 SampleAdapter::~SampleAdapter()
 {
-
 }
 
 //------------------------------------------------------------------------

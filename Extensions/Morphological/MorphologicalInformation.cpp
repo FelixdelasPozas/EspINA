@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "MorphologicalInformation.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Segmentation.h>
 
 // ITK
@@ -32,7 +32,7 @@
 
 using namespace ESPINA;
 
-const SegmentationExtension::Type MorphologicalInformation::TYPE = "MorphologicalInformation";
+const SegmentationExtension::Type EspinaExtensions_EXPORT MorphologicalInformation::TYPE = "MorphologicalInformation";
 
 // NOTE: Should it be public?
 const SegmentationExtension::InfoTag MORPHOLOGICAL_SIZE  = "Size";
@@ -65,12 +65,12 @@ const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::InfoCache &cache,
                                                    const State &state)
-: SegmentationExtension(cache)
-, m_statistic(nullptr)
-, m_validFeret(false)
-, Size(-1)
-, PhysicalSize(-1)
-, FeretDiameter(-1)
+: SegmentationExtension{cache}
+, m_statistic          {nullptr}
+, m_validFeret         {false}
+, Size                 {-1}
+, PhysicalSize         {-1}
+, FeretDiameter        {-1}
 {
   m_labelMap = Image2LabelFilterType::New();
   m_labelMap->SetComputeFeretDiameter(false);
@@ -90,11 +90,6 @@ MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::
 //------------------------------------------------------------------------
 MorphologicalInformation::~MorphologicalInformation()
 {
-//   if (m_segmentation)
-//   {
-//     //qDebug() << m_seg->data().toString() << ": Deleting" << MorphologicalInformationID;
-//     invalidate(m_segmentation);
-//   }
 }
 
 //------------------------------------------------------------------------
@@ -117,7 +112,6 @@ SegmentationExtension::InfoTagList MorphologicalInformation::availableInformatio
   tags << MORPHOLOGICAL_SIZE;
   tags << MORPHOLOGICAL_PS;
   tags << MORPHOLOGICAL_Cx << MORPHOLOGICAL_Cy << MORPHOLOGICAL_Cz;
-//   tags << MORPHOLOGICAL_Rx << MORPHOLOGICAL_Ry << MORPHOLOGICAL_Rz;
   tags << MORPHOLOGICAL_BPMx << MORPHOLOGICAL_BPMy << MORPHOLOGICAL_BPMz;
   tags << MORPHOLOGICAL_BPA00 << MORPHOLOGICAL_BPA01 << MORPHOLOGICAL_BPA02;
   tags << MORPHOLOGICAL_BPA10 << MORPHOLOGICAL_BPA11 << MORPHOLOGICAL_BPA12;
@@ -131,7 +125,6 @@ SegmentationExtension::InfoTagList MorphologicalInformation::availableInformatio
 //------------------------------------------------------------------------
 void MorphologicalInformation::onExtendedItemSet(Segmentation* item)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -150,170 +143,6 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
     return QVariant();
 }
 
-// //------------------------------------------------------------------------
-// void MorphologicalInformation::loadCache(QuaZipFile  &file,
-//                                          const QDir  &tmpDir,
-//                                          IEspinaModel *model)
-// {
-//   QString header(file.readLine());
-//   if (header.toStdString() == FILE_VERSION)
-//   {
-//     char buffer[1024];
-//     while (file.readLine(buffer, sizeof(buffer)) > 0)
-//     {
-//       QString line(buffer);
-//       QStringList fields = line.split(SEP);
-//
-//       SegmentationPtr extensionSegmentation = nullptr;
-//       int i = 0;
-//       while (!extensionSegmentation && i < model->segmentations().size())
-//       {
-//         SegmentationSPtr segmentation = model->segmentations()[i];
-//         if ( segmentation->filter()->id()       == fields[0]
-//           && segmentation->outputId()           == fields[1].toInt()
-//           && segmentation->filter()->cacheDir() == tmpDir)
-//         {
-//           extensionSegmentation = segmentation.get();
-//         }
-//         i++;
-//       }
-//       if (extensionSegmentation)
-//       {
-//         ExtensionData &data = s_cache[extensionSegmentation].Data;
-//
-//         data.Size = fields[2].toDouble();
-//         data.PhysicalSize = fields[3].toDouble();
-//
-//         data.Centroid[0] = fields[4].toDouble();
-//         data.Centroid[1] = fields[5].toDouble();
-//         data.Centroid[2] = fields[6].toDouble();
-//
-//         data.BinaryPrincipalMoments[0] = fields[7].toDouble();
-//         data.BinaryPrincipalMoments[1] = fields[8].toDouble();
-//         data.BinaryPrincipalMoments[2] = fields[9].toDouble();
-//
-//         data.BinaryPrincipalAxes[0][0] = fields[10].toDouble();
-//         data.BinaryPrincipalAxes[0][1] = fields[11].toDouble();
-//         data.BinaryPrincipalAxes[0][2] = fields[12].toDouble();
-//         data.BinaryPrincipalAxes[1][0] = fields[13].toDouble();
-//         data.BinaryPrincipalAxes[1][1] = fields[14].toDouble();
-//         data.BinaryPrincipalAxes[1][2] = fields[15].toDouble();
-//         data.BinaryPrincipalAxes[2][0] = fields[16].toDouble();
-//         data.BinaryPrincipalAxes[2][1] = fields[17].toDouble();
-//         data.BinaryPrincipalAxes[2][2] = fields[18].toDouble();
-//
-//         data.FeretDiameter = fields[19].toDouble();
-//
-//         data.EquivalentEllipsoidSize[0] = fields[20].toDouble();
-//         data.EquivalentEllipsoidSize[1] = fields[21].toDouble();
-//         data.EquivalentEllipsoidSize[2] = fields[22].toDouble();
-//       } else
-//       {
-//         qWarning() << MorphologicalInformationID << "Invalid Cache Entry:" << line;
-//       }
-//     };
-//   }
-// }
-//
-// //------------------------------------------------------------------------
-// // It's declared static to avoid collisions with other functions with same
-// // signature in different compilation units
-// static bool invalidData(SegmentationPtr seg)
-// {
-//   bool invalid = false;
-//   if (seg->hasInformationExtension(MorphologicalInformationID))
-//   {
-//     invalid = !seg->informationExtension(MorphologicalInformationID)->isEnabled();
-//   } else
-//   {
-//     invalid = seg->outputIsModified();
-//   }
-//   return invalid;
-// }
-//
-// //------------------------------------------------------------------------
-// bool MorphologicalInformation::saveCache(Snapshot &snapshot)
-// {
-//   s_cache.purge(invalidData);
-//
-//   if (s_cache.isEmpty())
-//     return false;
-//
-//   std::ostringstream cache;
-//   cache << FILE_VERSION;
-//
-//   foreach(SegmentationPtr segmentation, s_cache.keys())
-//   {
-//     ExtensionData &data = s_cache[segmentation].Data;
-//
-//     cache << segmentation->filter()->id().toStdString();
-//     cache << SEP << segmentation->outputId();
-//
-//     cache << SEP << data.Size;
-//
-//     cache << SEP << data.PhysicalSize;
-//
-//     cache << SEP << data.Centroid[0];
-//     cache << SEP << data.Centroid[1];
-//     cache << SEP << data.Centroid[2];
-//
-//     //cache << SEP << s_cache[segmentation].Region[0];
-//     //cache << SEP << s_cache[segmentation].Region[1];
-//     //cache << SEP << s_cache[segmentation].Region[2];
-//
-//     cache << SEP << data.BinaryPrincipalMoments[0];
-//     cache << SEP << data.BinaryPrincipalMoments[1];
-//     cache << SEP << data.BinaryPrincipalMoments[2];
-//
-//     cache << SEP << data.BinaryPrincipalAxes[0][0];
-//     cache << SEP << data.BinaryPrincipalAxes[0][1];
-//     cache << SEP << data.BinaryPrincipalAxes[0][2];
-//     cache << SEP << data.BinaryPrincipalAxes[1][0];
-//     cache << SEP << data.BinaryPrincipalAxes[1][1];
-//     cache << SEP << data.BinaryPrincipalAxes[1][2];
-//     cache << SEP << data.BinaryPrincipalAxes[2][0];
-//     cache << SEP << data.BinaryPrincipalAxes[2][1];
-//     cache << SEP << data.BinaryPrincipalAxes[2][2];
-//
-//     cache << SEP << data.FeretDiameter;
-//
-//     cache << SEP << data.EquivalentEllipsoidSize[0];
-//     cache << SEP << data.EquivalentEllipsoidSize[1];
-//     cache << SEP << data.EquivalentEllipsoidSize[2];
-//
-//     cache << std::endl;
-//   }
-//
-//   snapshot << SnapshotEntry(EXTENSION_FILE, cache.str().c_str());
-//
-//   return true;
-// }
-//
-// //------------------------------------------------------------------------
-// Segmentation::InformationExtension MorphologicalInformation::clone()
-// {
-//   return new MorphologicalInformation();
-// }
-//
-// //------------------------------------------------------------------------
-// void MorphologicalInformation::initialize()
-// {
-//   s_cache.markAsClean(m_segmentation);
-// }
-//
-// //------------------------------------------------------------------------
-// void MorphologicalInformation::invalidate(SegmentationPtr segmentation)
-// {
-//   if (!segmentation)
-//     segmentation = m_segmentation;
-//
-//   if (segmentation)
-//   {
-//     //qDebug() << "Invalidate" << m_seg->data().toString() << MorphologicalInformationID;
-//     s_cache.markAsDirty(segmentation);
-//   }
-// }
-//
 //------------------------------------------------------------------------
 void MorphologicalInformation::updateInformation() const
 {

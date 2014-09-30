@@ -74,7 +74,7 @@ int scheduler_change_task_priority( int argc, char** argv )
     std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
   
-  tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGHT);
+  tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGH);
   
   usleep(schedulerPeriod);
 

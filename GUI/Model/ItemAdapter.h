@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,19 +18,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_ITEM_ADAPTER_H
 #define ESPINA_ITEM_ADAPTER_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
+#include "Core/EspinaTypes.h"
+
+// Qt
 #include <QModelIndex>
 
-#include "Core/EspinaTypes.h"
+// C++
+#include <cstdint>
 
 namespace ESPINA
 {
-
   const int RawPointerRole = Qt::UserRole+1;
   const int TypeRole       = Qt::UserRole+2;
 
@@ -42,19 +45,26 @@ namespace ESPINA
   using ItemAdapterSPtr  = std::shared_ptr<ItemAdapter>;
   using ItemAdapterSList = QList<ItemAdapterSPtr>;
 
-  /// Base class for every item in EspinaModel
+  /** \class ItemAdapter
+   * \brief Base class for every item in ESPINA Model.
+   *
+   */
   class EspinaGUI_EXPORT ItemAdapter
   : public QObject
   {
   public:
-    enum class Type {
-      SAMPLE,
-      CHANNEL,
-      SEGMENTATION,
-      CLASSIFICATION,
-      CATEGORY
+    enum class Type: std::int8_t  {
+      SAMPLE = 0,
+      CHANNEL = 1,
+      SEGMENTATION = 2,
+      CLASSIFICATION = 4,
+      CATEGORY = 5
     };
 
+    /** \brief Returns the numerical value associated to the type.
+     * \param[in] type.
+     *
+     */
     static int typeId(Type type)
     {
       switch (type) {
@@ -72,6 +82,10 @@ namespace ESPINA
       return -1;
     }
 
+    /** \brief Returns the type associated to the numerical value.
+     * \param[in] id, numerical value.
+     *
+     */
     static Type type(int id)
     {
       switch (id) {
@@ -92,18 +106,42 @@ namespace ESPINA
 
     Q_OBJECT
   public:
+    /** \brief ItemAdapter class constructor.
+     * \param[in] analysisItem, Persistent item smart pointer.
+     *
+     */
     explicit ItemAdapter(PersistentSPtr analysisItem)
-    : m_analysisItem(analysisItem) {}
+    : m_analysisItem{analysisItem}
+    {}
 
-    virtual ~ItemAdapter(){}
+    /** \brief ItemAdapter class destructor.
+     *
+     */
+    virtual ~ItemAdapter()
+    {}
 
+    /** \brief Returns the item data specified by the parameter.
+     * \param[in] role, Qt::ItemDataRole type.
+     *
+     */
     virtual QVariant data(int role=Qt::DisplayRole) const = 0;
 
+    /** \brief Sets the item data specified by the parameter.
+     * \param[in] value, value of the data.
+     * \param[in] role, Qt::ItemDataRole type.
+     *
+     */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
 
+    /** \brief Returns the type of the item adapter.
+     *
+     */
     virtual ItemAdapter::Type type() const = 0;
 
   public slots:
+		/** \brief Signals when the item has been modified.
+		 *
+		 */
     virtual void notifyModification()
     { emit modified(this); }
 
@@ -115,17 +153,8 @@ namespace ESPINA
     PersistentSPtr m_analysisItem;
 
     friend class ModelAdapter;
-//     friend bool operator==(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
-//     friend bool operator==(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
   };
 
-//   bool operator==(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
-//   bool operator==(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
-// 
-//   bool operator!=(ItemAdapterSPtr lhs, PersistentSPtr  rhs);
-//   bool operator!=(PersistentSPtr  lhs, ItemAdapterSPtr rhs);
 } // ESPINA
-
-
 
 #endif // ESPINA_ITEM_ADAPTER_H

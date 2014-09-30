@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -21,10 +21,13 @@
 #ifndef DEFAULTCONTEXTUALMENU_H
 #define DEFAULTCONTEXTUALMENU_H
 
-#include <QModelIndex>
+// ESPINA
 #include <GUI/Widgets/ContextualMenu.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/ViewManager.h>
+
+// Qt
+#include <QModelIndex>
 
 class QTreeView;
 class QUndoStack;
@@ -38,37 +41,94 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
+			/** \brief DefaultContextualMenu class constructor.
+			 * \param[in] selection, list of segmentation adapters of the selected items.
+			 * \param[in] model, model adapter smart pointer.
+			 * \param[in] viewManager, view manager smart pointer.
+			 * \param[in] undoStack, QUndoStack object raw pointer.
+			 * \param[in] parent, parent QWidget raw pointer.
+			 *
+			 */
       explicit DefaultContextualMenu(SegmentationAdapterList selection,
                                      ModelAdapterSPtr        model,
                                      ViewManagerSPtr         viewManager,
                                      QUndoStack             *undoStack,
-                                     QWidget                *parent = 0);
+                                     QWidget                *parent = nullptr);
+
+      /** \brief DefaultContextualMenu class destructor.
+       *
+       */
       ~DefaultContextualMenu();
 
-      virtual void setSelection(SelectionSPtr selection);
+      /** \brief Overrides ContextualMenu::setSelection().
+       *
+       */
+      virtual void setSelection(SelectionSPtr selection) override;
 
     private slots:
+			/** \brief Adds/Modifies notes to the selected segmentations.
+			 *
+			 */
       void addNote();
+
+      /** \brief Changes the category of the selected segmentation.
+       * \param[in] index, const QModelIndex referece of the item.
+       */
       void changeSegmentationsCategory(const QModelIndex &index);
+
+      /** \brief Removes the selected segmentations.
+       *
+       */
       void deleteSelectedSementations();
+
+      /** \brief Adds/Modifies tags to the selected segmentations.
+       *
+       */
       void manageTags();
+
+      /** \brief Resets the root of the model.
+       *
+       */
       void resetRootItem();
+
+      /** \brief Renames selected segmentations.
+       *
+       */
       void renameSegmentation();
-      void displayVisualizationSettings();
 
     signals:
       void changeCategory(CategoryAdapterPtr);
       void deleteSegmentations();
 
     private:
+      /** \brief Creates a "note" entry for the contextual menu.
+       *
+       */
       void createNoteEntry();
+
+      /** \brief Creates a "change category" entry for the contextual menu.
+       *
+       */
       void createChangeCategoryMenu();
+
+      /** \brief Creates a "tags" entry for the contextual menu.
+       *
+       */
       void createTagsEntry();
-      void createSetLevelOfDetailEntry();
+
+      /** \brief Creates a "rename" entry for the contextual menu.
+       *
+       */
       void createRenameEntry();
-      void createVisualizationEntry();
+
+      /** \brief Creates a "delete" entry for the contextual menu.
+       *
+       */
       void createDeleteEntry();
 
+      /** \brief Helper method that generates a title for the current segmentation selection.
+       *
+       */
       QString dialogTitle() const;
 
     private:

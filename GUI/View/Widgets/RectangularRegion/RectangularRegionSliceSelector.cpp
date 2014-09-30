@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -30,9 +30,9 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RectangularRegionSliceSelector::RectangularRegionSliceSelector(RectangularRegion* region)
-: m_region(region)
-, m_leftWidget  (new QPushButton())
-, m_rightWidget    (new QPushButton())
+: m_region     {region}
+, m_leftWidget {new QPushButton()}
+, m_rightWidget{new QPushButton()}
 {
   m_leftWidget->setMaximumHeight(20);
   m_rightWidget->setMaximumHeight(20);

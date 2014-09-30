@@ -26,7 +26,7 @@
  * 
  */
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
 #include "Tests/Unitary/Testing_Support.h"
 
 #include <vtkSmartPointer.h>

@@ -25,18 +25,20 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "SliceRepresentation.h"
 #include "RepresentationSettings.h"
 #include "SliceRepresentationSettings.h"
 #include "RepresentationEmptySettings.h"
 #include <Core/Utils/Bounds.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <GUI/View/View2D.h>
 
+// ITK
 #include <itkImage.h>
 
+// VTK
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageShiftScale.h>
@@ -44,6 +46,7 @@
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
 
+// Qt
 #include <QList>
 
 using namespace ESPINA;
@@ -53,14 +56,14 @@ const Representation::Type ChannelSliceRepresentation::TYPE = "Slice";
 //-----------------------------------------------------------------------------
 ChannelSliceRepresentation::ChannelSliceRepresentation(DefaultVolumetricDataSPtr data,
                                                        View2D *view)
-: Representation(view)
-, m_data(data)
-, m_planeIndex(-1)
-, m_reslicePoint(-1)
-, m_mapToColors(nullptr)
-, m_shiftScaleFilter(nullptr)
-, m_actor(nullptr)
-, m_lut(nullptr)
+: Representation    {view}
+, m_data            {data}
+, m_planeIndex      {-1}
+, m_reslicePoint    {-1}
+, m_mapToColors     {nullptr}
+, m_shiftScaleFilter{nullptr}
+, m_actor           {nullptr}
+, m_lut             {nullptr}
 {
   setType(TYPE);
 }

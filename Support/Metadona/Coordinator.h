@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,11 +22,13 @@
 #ifndef ESPINA_METADONA_PROVIDER_H
 #define ESPINA_METADONA_PROVIDER_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <Coordinator.h>
 
 namespace ESPINA {
 
-  class Coordinator
+  class EspinaSupport_EXPORT Coordinator
   : public Metadona::Coordinator
   {
     virtual Metadona::Id selectEntry(const Metadona::Level& level, std::vector<Metadona::Id> entries) const;

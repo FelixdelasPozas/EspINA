@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "CategorySelectorDialog.h"
 
 using namespace ESPINA;
@@ -27,8 +28,8 @@ using namespace ESPINA;
 CategorySelectorDialog::CategorySelectorDialog(ModelAdapterSPtr model,
                                                QWidget*         parent,
                                                Qt::WindowFlags  f)
-: QDialog(parent, f)
-, m_model(model)
+: QDialog{parent, f}
+, m_model{model}
 {
   setupUi(this);
 

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "ClassificationProxy.h"
 
+// Qt
 #include <QMimeData>
 #include <QPixmap>
 #include <QPainter>
@@ -41,8 +42,8 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(DragSource)
 
 //------------------------------------------------------------------------
 ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model, QObject* parent)
-: QAbstractProxyModel(parent)
-, m_classification(new ClassificationAdapter())
+: QAbstractProxyModel{parent}
+, m_classification   {new ClassificationAdapter()}
 {
   setSourceModel(model);
 }
@@ -280,7 +281,7 @@ QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
     case ItemAdapter::Type::CATEGORY:
     {
       auto childCategory        = categoryPtr(childItem);
-      auto sourceParentCategory       = childCategory->parent();
+      auto sourceParentCategory = childCategory->parent();
       auto proxyParentCategory  = toProxyPtr(sourceParentCategory);
 
       parent = categoryIndex(proxyParentCategory);
@@ -815,7 +816,6 @@ void ClassificationProxy::sourceRowsMoved(const QModelIndex &sourceParent, int s
   endMoveRows();
 }
 
-
 //------------------------------------------------------------------------
 bool ClassificationProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result)
 {
@@ -853,7 +853,6 @@ SegmentationAdapterPtr ClassificationProxy::findSegmentation(QString tooltip)
 
   return nullptr;
 }
-
 
 //------------------------------------------------------------------------
 void ClassificationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
@@ -1019,7 +1018,6 @@ CategoryAdapterPtr ClassificationProxy::toProxyPtr(CategoryAdapterPtr sourceCate
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ClassificationProxy::toProxySPtr(CategoryAdapterPtr sourceCategory) const
 {
-  //return sourceCategory?m_classification->category(sourceCategory->classificationName()):CategoryAdapterSPtr();
   CategoryAdapterSPtr proxyCategory;
 
   if (sourceCategory)
@@ -1029,7 +1027,8 @@ CategoryAdapterSPtr ClassificationProxy::toProxySPtr(CategoryAdapterPtr sourceCa
       auto proxyCategoryPtr = m_sourceCategory.key(sourceCategory);
 
       proxyCategory = proxyCategoryPtr->parent()->subCategory(proxyCategoryPtr->name());
-    } else
+    }
+    else
     {
       proxyCategory = m_classification->root();
     }
@@ -1052,7 +1051,6 @@ CategoryAdapterSPtr ClassificationProxy::toSourceSPtr(CategoryAdapterPtr proxyCa
   auto sourceCategory = m_sourceCategory[proxyCategory];
 
   return m_model->classification()->category(sourceCategory->classificationName());
-  //return m_model->classification()->category(proxyCategory->classificationName());
 }
 
 //------------------------------------------------------------------------
@@ -1061,7 +1059,7 @@ int ClassificationProxy::numSegmentations(CategoryAdapterPtr category, bool recu
   int total = m_categorySegmentations[category].size();
 
   if (recursive)
-    foreach(CategoryAdapterSPtr subtax, category->subCategories())
+    for(auto subtax: category->subCategories())
     {
       total += numSegmentations(subtax.get(), recursive);
     }

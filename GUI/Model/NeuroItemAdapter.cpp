@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,8 +19,8 @@
  *
  */
 
+// ESPINA
 #include "NeuroItemAdapter.h"
-
 #include <Core/Analysis/NeuroItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
@@ -28,7 +28,8 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 NeuroItemAdapter::NeuroItemAdapter(NeuroItemSPtr item)
-: ItemAdapter(item)
+: ItemAdapter{item}
+, m_model    {nullptr}
 {
 }
 

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_SLICE_SELECTOR_WIDGET_H
 #define ESPINA_SLICE_SELECTOR_WIDGET_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <Core/Utils/Spatial.h>
 #include <QObject>
 
@@ -35,20 +35,44 @@ namespace ESPINA
   : public QObject
   {
   public:
-    virtual ~SliceSelectorWidget() {}
+  	/** \brief SliceSelectorWidget class constructor.
+  	 *
+  	 */
+    virtual ~SliceSelectorWidget()
+    {}
 
+    /** \brief Sets the plane of the widget.
+     * \param[in] plane, orientation plane.
+     */
     virtual void setPlane(const Plane plane)
     { m_plane = plane; }
 
+		/** \brief Sets the view of the widget.
+		 * \param[in] view, View2D raw pointer.
+		 *
+		 */
     virtual void setView(View2D* view)
     { m_view = view; }
 
-    virtual QWidget* leftWidget()  const = 0;
-    virtual QWidget* rightWidget() const = 0;
+    /** \brief Returns the left widget raw pointer.
+     *
+     */
+    virtual QWidget *leftWidget () const = 0;
 
+    /** \brief Returns the right widget raw pointer.
+     *
+     */
+    virtual QWidget *rightWidget() const = 0;
+
+    /** \brief Returns a raw pointer to a new instance of the class.
+     *
+     */
     virtual SliceSelectorWidget *clone() = 0;
 
   protected:
+    /** \brief SliceSelectorWidget class constructor.
+     *
+     */
     explicit SliceSelectorWidget()
     : m_plane{Plane::XY}
     , m_view {nullptr}

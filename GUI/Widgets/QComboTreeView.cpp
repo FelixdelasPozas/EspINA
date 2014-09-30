@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,10 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "QComboTreeView.h"
-
 #include <GUI/Utils/QtModelUtils.h>
+
+// Qt
 #include <QLineEdit>
 
 //----------------------------------------------------------------------------
@@ -62,7 +63,6 @@ void QComboTreeView::setModel(QAbstractItemModel* model)
   }
 }
 
-
 //----------------------------------------------------------------------------
 void QComboTreeView::setRootModelIndex(const QModelIndex& index)
 {
@@ -91,6 +91,7 @@ void QComboTreeView::setCurrentModelIndex(const QModelIndex& index)
 void QComboTreeView::showPopup()
 {
   m_treeView.expandAll();
+  adjustSize();
   QComboBox::showPopup();
 }
 

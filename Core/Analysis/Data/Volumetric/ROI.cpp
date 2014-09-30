@@ -1,6 +1,6 @@
 /*
-    
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -32,11 +32,11 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  ROI::ROI(const BinaryMaskSPtr<unsigned char> mask, unsigned char value)
+  ROI::ROI(const BinaryMaskSPtr<unsigned char> mask)
   : SparseVolume<itkVolumeType>{mask->bounds().bounds(), mask->spacing(), mask->origin()}
   , m_isRectangular{false}
   {
-    this->draw(mask, value);
+    this->draw(mask, mask->foregroundValue());
   }
 
   //-----------------------------------------------------------------------------
@@ -51,14 +51,14 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const unsigned char value)
+  void ROI::draw(const vtkImplicitFunction* brush, const Bounds& bounds, const itkVolumeType::ValueType value)
   {
     m_isRectangular = false;
     SparseVolume<itkVolumeType>::draw(brush, bounds, value);
   }
 
   //-----------------------------------------------------------------------------
-  void ROI::draw(const BinaryMaskSPtr<unsigned char> mask, const unsigned char value)
+  void ROI::draw(const BinaryMaskSPtr<unsigned char> mask, const itkVolumeType::ValueType value)
   {
     m_isRectangular = false;
     SparseVolume<itkVolumeType>::draw(mask, value);
@@ -79,7 +79,7 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void ROI::draw(const typename itkVolumeType::IndexType index, const itkVolumeType::PixelType value)
+  void ROI::draw(const typename itkVolumeType::IndexType index, const itkVolumeType::ValueType value)
   {
     m_isRectangular = false;
     SparseVolume::draw(index, value);

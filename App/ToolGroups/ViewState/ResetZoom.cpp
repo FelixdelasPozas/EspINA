@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -30,8 +30,8 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   ResetZoom::ResetZoom(ViewManagerSPtr vm)
   : m_viewManager{vm}
-  , m_action{new QAction(QIcon(":/espina/zoom_reset.png"),tr("Reset Zoom"),this)}
-  , m_enabled{true}
+  , m_action     {new QAction(QIcon(":/espina/zoom_reset.png"),tr("Reset Zoom"),this)}
+  , m_enabled    {true}
   {
     connect(m_action, SIGNAL(triggered(bool)), this, SLOT(resetViews()), Qt::QueuedConnection);
   }

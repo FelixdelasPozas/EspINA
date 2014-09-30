@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ModelFactory.h"
-
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SampleAdapter.h"
 #include <Core/Analysis/Channel.h>
@@ -47,7 +47,6 @@ ModelFactory::ModelFactory(CoreFactorySPtr factory,
 //------------------------------------------------------------------------
 ModelFactory::~ModelFactory()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -94,7 +93,6 @@ void ModelFactory::registerSegmentationRepresentationFactory(RepresentationFacto
   m_segmentationRepresentationFactory->addRepresentationFactory(factory);
 }
 
-
 //------------------------------------------------------------------------
 ChannelExtensionTypeList ModelFactory::availableChannelExtensions() const
 {
@@ -132,7 +130,6 @@ AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
 {
   return m_readerExtensions[file.suffix()];
 }
-
 
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
@@ -181,7 +178,6 @@ FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter) const
 {
   return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
 }
-
 
 //------------------------------------------------------------------------
 ChannelAdapterSPtr ModelFactory::adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const

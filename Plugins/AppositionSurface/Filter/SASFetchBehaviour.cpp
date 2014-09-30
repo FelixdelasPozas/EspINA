@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -22,8 +22,8 @@
 #include "AppositionSurfaceFilter.h"
 
 // ESPINA
-#include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/RasterizedVolume.hxx>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/EspinaTypes.h>
 
 namespace ESPINA

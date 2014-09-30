@@ -18,18 +18,27 @@
 #ifndef ESPINA_MARCHING_CUBES_FROM_FETCHED_VOLUMETRIC_DATA_H
 #define ESPINA_MARCHING_CUBES_FROM_FETCHED_VOLUMETRIC_DATA_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/FetchBehaviour.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
-  class MarchingCubesFromFetchedVolumetricData
+  class EspinaCore_EXPORT MarchingCubesFromFetchedVolumetricData
   : public FetchBehaviour
   {
   public:
+  	/** \brief Implements FetchBehaviour::fetchOutputData().
+  	 *
+  	 */
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
 
   protected:
+    /** \brief Helper method to fetch a volume from storage.
+     *
+     */
     virtual DefaultVolumetricDataSPtr fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
   };
 } // namespace ESPINA

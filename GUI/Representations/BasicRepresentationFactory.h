@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -23,9 +23,10 @@
 #define ESPINA_BASIC_REPRESENTATION_FACTORY_H
 
 #include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
 #include "GUI/Representations/RepresentationFactory.h"
 #include <GUI/Model/FilterAdapter.h>
-
 
 namespace ESPINA
 {
@@ -33,30 +34,57 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
+ 		/** \brief BasicChannelRepresentationFactory class constructor.
+ 		 * \param[in] scheduler, scheduler smart pointer.
+ 		 *
+ 		 */
     explicit BasicChannelRepresentationFactory(SchedulerSPtr scheduler)
     : RepresentationFactory(scheduler)
     {};
 
-    virtual ~BasicChannelRepresentationFactory() {};
+ 		/** \brief BasicChannelRepresentationFactory class virtual destructor.
+ 		 *
+ 		 */
+    virtual ~BasicChannelRepresentationFactory()
+    {};
 
+ 		/** \brief Implements RepresentationFactory::representations() const.
+ 		 *
+ 		 */
     virtual RepresentationTypeList representations() const;
 
+ 		/** \brief Implements RepresentationFactory::createRepresentation().
+ 		 *
+ 		 */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
-
   };
 
   class EspinaGUI_EXPORT BasicSegmentationRepresentationFactory
   : public RepresentationFactory
   {
   public:
+ 		/** \brief BasicSegmentationRepresentationFactory class constructor.
+ 		 * \param[in] scheduler, scheduler smart pointer.
+ 		 *
+ 		 */
     explicit BasicSegmentationRepresentationFactory(SchedulerSPtr scheduler)
     : RepresentationFactory(scheduler)
     {};
 
-    virtual ~BasicSegmentationRepresentationFactory(){}
+ 		/** \brief BasicSegmentationRepresentationFactory class virtual destructor.
+ 		 *
+ 		 */
+    virtual ~BasicSegmentationRepresentationFactory()
+    {}
 
+ 		/** \brief Implements RepresentationFactory::representations() const.
+ 		 *
+ 		 */
     virtual RepresentationTypeList representations() const;
 
+ 		/** \brief Implements RepresentationFactory::createRepresentation().
+ 		 *
+ 		 */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
   };
 }

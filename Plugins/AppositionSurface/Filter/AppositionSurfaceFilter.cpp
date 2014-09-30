@@ -1,9 +1,22 @@
 /*
- * AppositionSurfaceFilter.cpp
- *
- *  Created on: Jan 18, 2013
- *      Author: Felix de las Pozas Alvarez
- */
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 // Plugin
 #include "AppositionSurfaceFilter.h"
@@ -12,7 +25,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
-#include <Core/Analysis/Data/Volumetric/RasterizedVolume.h>
+#include <Core/Analysis/Data/Volumetric/RasterizedVolume.hxx>
 #include <GUI/Representations/SliceRepresentation.h>
 #include <GUI/Representations/MeshRepresentation.h>
 
@@ -50,7 +63,7 @@ const char * AppositionSurfaceFilter::MESH_ORIGIN = "Origin";
 
 //----------------------------------------------------------------------------
 AppositionSurfaceFilter::AppositionSurfaceFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
+: Filter              {inputs, type, scheduler}
 , m_resolution        {50}
 , m_iterations        {10}
 , m_converge          {true}
@@ -92,10 +105,6 @@ bool AppositionSurfaceFilter::needUpdate(Output::Id oId) const
     if(inputVolume != nullptr)
     {
       update = (m_lastModifiedMesh < inputVolume->lastModified());
-    }
-    else
-    {
-      qWarning() << "SAS input volume es NULL";
     }
   }
 
@@ -312,7 +321,6 @@ void AppositionSurfaceFilter::execute()
   m_outputs[0]->setSpacing(NmVector3{inputSpacing[0], inputSpacing[1], inputSpacing[2]});
 
   emit progress(100);
-  if (!canExecute()) return;
 }
 
 //----------------------------------------------------------------------------
@@ -351,7 +359,7 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(const double co
   points->SetDataTypeToDouble();
 
   double x[3];
-  
+
   // {0,0,0}  <- in a cube
   x[0] = corner[0];
   x[1] = corner[1];
@@ -392,7 +400,7 @@ AppositionSurfaceFilter::Points AppositionSurfaceFilter::corners(const double co
   x[1] = corner[1] + max[1] + mid[1] + min[1];
   x[2] = corner[2] + max[2] + mid[2] + min[2];
   points->InsertNextPoint(x);
-  
+
   points->Squeeze();
   points->Modified();
 
@@ -408,15 +416,15 @@ AppositionSurfaceFilter::DistanceMapType::Pointer AppositionSurfaceFilter::compu
   smdm_filter->SquaredDistanceOff();
   smdm_filter->SetInput(volume);
   smdm_filter->Update();
-  
+
   double avgMaxDistPoint[3];
   double max_distance;
   maxDistancePoint(smdm_filter->GetOutput(), avgMaxDistPoint, max_distance);
-  
+
   SmoothingFilterType::Pointer smoothingRecursiveGaussianImageFilter = SmoothingFilterType::New();
   smoothingRecursiveGaussianImageFilter->SetSigma(sigma * max_distance);
   smoothingRecursiveGaussianImageFilter->SetInput(smdm_filter->GetOutput());
-  
+
   SmoothingFilterType::OutputImageRegionType::SizeType regionSize = smdm_filter->GetOutput()->GetLargestPossibleRegion().GetSize();
   if (((sigma * max_distance) > 0) && (regionSize[0] >= 4) && (regionSize[1] >= 4) && (regionSize[2] >= 4))
   {
@@ -438,14 +446,14 @@ void AppositionSurfaceFilter::maxDistancePoint(const DistanceMapType::Pointer &m
   DistanceMapType::PointType origin = map->GetOrigin();
   DistanceMapType::SpacingType spacing = map->GetSpacing();
   Points points = Points::New();
-  
+
   DistanceIterator it(map, map->GetLargestPossibleRegion());
-  
+
   // #ifdef DEBUG_AP_FILES
   //     ofstream distanceFile;
   //     distanceFile.open("decDistFile");
   // #endif
-  
+
   while (!it.IsAtEnd())
   {
     DistanceType dist = it.Get();
@@ -458,7 +466,7 @@ void AppositionSurfaceFilter::maxDistancePoint(const DistanceMapType::Pointer &m
       maxDist = dist;
       for (unsigned int i = 0; i < 3; i++)
         avgMaxDistPoint[i] = origin[i] + index[i]*spacing[i];
-      
+
       points->Initialize();
       points->InsertNextPoint(avgMaxDistPoint);
     }
@@ -467,7 +475,7 @@ void AppositionSurfaceFilter::maxDistancePoint(const DistanceMapType::Pointer &m
       DistanceMapType::IndexType index = it.GetIndex();
       for (unsigned int i = 0; i < 3; i++)
         avgMaxDistPoint[i] += origin[i] + index[i]*spacing[i];
-      
+
       points->InsertNextPoint(origin[0] + index[0]*spacing[0],
                               origin[1] + index[1]*spacing[1],
                               origin[2] + index[2]*spacing[2]);
@@ -477,7 +485,7 @@ void AppositionSurfaceFilter::maxDistancePoint(const DistanceMapType::Pointer &m
   //   #ifdef DEBUG_AP_FILES
   //   distanceFile.close();
   //   #endif
-  
+
   for (unsigned int i = 0; i < 3; i++)
     avgMaxDistPoint[i] /= points->GetNumberOfPoints();
 }
@@ -515,25 +523,25 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageTy
   CovariantVectorImageType::SpacingType spacing = vectorImage->GetSpacing();
   CovariantVectorImageType::SizeType imageSize = region.GetSize();
   CovariantVectorImageType::IndexType originIndex = region.GetIndex();
-  
+
   image->SetOrigin(origin[0], origin[1], origin[2]);
   image->SetExtent(originIndex[0], originIndex[0] + imageSize[0] - 1,
                    originIndex[1], originIndex[1] + imageSize[1] - 1,
                    originIndex[2], originIndex[2] + imageSize[2] - 1);
   image->SetSpacing(spacing[0], spacing[1], spacing[2]);
   // image->SetSpacing(vectorImage->GetSpacing()[0], vectorImage->GetSpacing()[1], vectorImage->GetSpacing()[2]);
-  
+
   // image->Print(std::cout);
   vtkSmartPointer<vtkFloatArray> vectors = vtkSmartPointer<vtkFloatArray>::New();
   vectors->SetNumberOfComponents(3);
   vectors->SetNumberOfTuples(imageSize[0] * imageSize[1] * imageSize[2]);
   vectors->SetName("GradientVectors");
-  
+
   // #ifdef DEBUG_AP_FILES
   //   std::ofstream covarianceFile;
   //   covarianceFile.open("decCovarianceFile");
   // #endif
-  
+
   int counter = 0;
   for (unsigned int k = originIndex[2]; k < originIndex[2] + imageSize[2]; k++)
     for (unsigned int j = originIndex[1]; j < originIndex[1] + imageSize[1]; j++)
@@ -543,24 +551,24 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageTy
         index[0] = i;
         index[1] = j;
         index[2] = k;
-        
+
         CovariantVectorType pixel = vectorImage->GetPixel(index);
         float val[3];
         val[0] = pixel[0];
         val[1] = pixel[1];
         val[2] = pixel[2];
-        
+
         // #ifdef DEBUG_AP_FILES
         //  covarianceFile << val[0] << " " << val[1] << " " << val[2] << std::endl;
         // #endif
         vectors->InsertTupleValue(counter, val);
         counter++;
       }
-      
+
       // #ifdef DEBUG_AP_FILES
       //   covarianceFile.close();
       // #endif
-      
+
       image->GetPointData()->SetVectors(vectors);
       image->GetPointData()->SetScalars(vectors);
 }
@@ -570,25 +578,25 @@ void AppositionSurfaceFilter::projectVectors(vtkImageData* vectors_image, double
 {
   vtkSmartPointer<vtkDataArray> vectors = vectors_image->GetPointData()->GetVectors();
   int numTuples = vectors->GetNumberOfTuples();
-  
+
   // #ifdef DEBUG_AP_FILES
   //   std::ofstream gradientFile;
   //   gradientFile.open("decGradientFile");
   //   gradientFile << "Unitary: " << unitary[0] << " " << unitary[1] << " " << unitary[2] << std::endl;
   // #endif
-  
+
   double projv[3];
   for (int i = 0; i < numTuples; i++)
   {
     double *v = vectors->GetTuple(i);
     project(v, unitary, projv);
     vectors->SetTuple(i, projv);
-    
+
     // #ifdef DEBUG_AP_FILES
     //     gradientFile << projv[0] << " " << projv[1] << " " << projv[2] << std::endl;
     // #endif
   }
-  
+
   // #ifdef DEBUG_AP_FILES
   //   gradientFile.close();
   // #endif
@@ -599,17 +607,17 @@ void AppositionSurfaceFilter::computeIterationLimits(const double *min, const do
 {
   double min_in_pixels[3] = { 0, 0, 0 };
   double step[3] = { 0, 0, 0 };
-  
+
   for (unsigned int i = 0; i < 3; i++)
     step[i] = min[i];
-  
+
   vtkMath::Normalize(step);
   for (unsigned int i = 0; i < 3; i++)
   {
     min_in_pixels[i] = min[i] / spacing[i];
     step[i] = step[i] * spacing[i];
   }
-  
+
   iterations = MAXITERATIONSFACTOR * std::max(1, int(floor(vtkMath::Norm(min_in_pixels))));
   thresholdError = THRESHOLDFACTOR * vtkMath::Norm(step);
 }
@@ -618,7 +626,7 @@ void AppositionSurfaceFilter::computeIterationLimits(const double *min, const do
 bool AppositionSurfaceFilter::hasConverged(vtkPoints * lastPlanePoints, PointsListType & pointsList, double threshold) const
 {
   double error = 0;
-  
+
   for (PointsListType::iterator it = pointsList.begin();
        it != pointsList.end(); ++it) {
     computeMeanEuclideanError(lastPlanePoints, *it, error);
@@ -633,19 +641,19 @@ int AppositionSurfaceFilter::computeMeanEuclideanError(vtkPoints * pointsA, vtkP
   double pointA[3], pointB[3];
   euclideanError = 0;
   int pointsCount = 0;
-  
+
   if (pointsA->GetNumberOfPoints() != pointsB->GetNumberOfPoints())
     return -1;
-  
+
   pointsCount = pointsA->GetNumberOfPoints();
-  
+
   for (int i = 0; i < pointsCount; i++)
   {
     pointsA->GetPoint(i, pointA);
     pointsB->GetPoint(i, pointB);
     euclideanError += sqrt(vtkMath::Distance2BetweenPoints(pointA, pointB));
   }
-  
+
   euclideanError /= pointsCount;
   return 0;
 }
@@ -656,21 +664,21 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(vtkPolyData
   vtkSmartPointer<vtkImplicitVolume> implicitVolFilter = vtkSmartPointer<vtkImplicitVolume>::New();
   implicitVolFilter->SetVolume(image);
   implicitVolFilter->SetOutValue(0);
-  
+
   double inValue = 255.0;
   inValue = image->GetScalarRange()[1];
-  
+
   vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
   clipper->SetClipFunction(implicitVolFilter);
   clipper->SetInputData(plane);
   clipper->SetValue(inValue*CLIPPINGTHRESHOLD);
   clipper->Update();
-  
+
   PolyData clippedPlane; // = PolyData::New();
-  
+
   // qDebug() << "Correct Plane's visualization and cell area's computation";
   clippedPlane = triangulate(clipper->GetOutput());
-  
+
   return clippedPlane;
 }
 
@@ -680,15 +688,15 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData 
   vtkSmartPointer<vtkTriangleFilter> triangle_filter = vtkSmartPointer<vtkTriangleFilter>::New();
   triangle_filter->SetInputData(plane);
   triangle_filter->Update();
-  
+
   vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
   normals->SetInputData(triangle_filter->GetOutput());
   normals->SplittingOff();
   normals->Update();
-  
+
   PolyData resultPlane = PolyData::New();
   resultPlane->DeepCopy(normals->GetOutput());
-  
+
   return resultPlane;
 }
 

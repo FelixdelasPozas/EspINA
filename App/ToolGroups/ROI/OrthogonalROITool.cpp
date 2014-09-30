@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -29,7 +29,7 @@
 
 // Qt
 #include <QAction>
-#include <QDebug>
+#include <QMessageBox>
 
 using namespace ESPINA;
 
@@ -228,6 +228,17 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
 
   if(!valid)
     return;
+
+  if(m_settings->xSize() == 0 || m_settings->ySize() == 0 || m_settings->zSize() == 0)
+  {
+  	QMessageBox msgBox;
+  	msgBox.setText("Invalid ROI size values.");
+  	msgBox.setInformativeText("At least one of the sizes for the ROI is 0, please\nmodify the ROI size values to a valid quantity.");
+  	msgBox.setStandardButtons(QMessageBox::Ok);
+  	msgBox.setDefaultButton(QMessageBox::Ok);
+
+  	return;
+  }
 
   Q_ASSERT(selectedChannel.first->numberOfVoxels() == 1); //Only one pixel's selected
   auto pointBounds = selectedChannel.first->bounds();

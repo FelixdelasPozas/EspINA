@@ -41,7 +41,7 @@ namespace ESPINA
       explicit CountingFramePlugin();
       virtual ~CountingFramePlugin();
 
-      /* \brief Implements Plugin::init().
+      /** \brief Implements Plugin::init().
        *
        */
       virtual void init(ModelAdapterSPtr model,
@@ -50,52 +50,52 @@ namespace ESPINA
                         SchedulerSPtr    scheduler,
                         QUndoStack      *undoStack);
 
-      /* \brief Implements Plugin::colorEngines().
+      /** \brief Implements Plugin::colorEngines().
        *
        */
       virtual NamedColorEngineSList colorEngines() const;
 
-      /* \brief Implements Plugin::toolGroups().
+      /** \brief Implements Plugin::toolGroups().
        *
        */
       virtual QList< ToolGroup* > toolGroups() const;
 
-      /* \brief Implements Plugin::dockWidgets().
+      /** \brief Implements Plugin::dockWidgets().
        *
        */
       virtual QList<DockWidget *> dockWidgets() const;
 
-      /* \brief Implements Plugin::channelExtensionFactories().
+      /** \brief Implements Plugin::channelExtensionFactories().
        *
        */
       virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
-      /* \brief Implements Plugin::segmentationExtensionFactories().
+      /** \brief Implements Plugin::segmentationExtensionFactories().
        *
        */
       virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-      /* \brief Implements Plugin::filterFactories().
+      /** \brief Implements Plugin::filterFactories().
        *
        */
       virtual FilterFactorySList filterFactories() const;
 
-      /* \brief Implements Plugin::renderers().
+      /** \brief Implements Plugin::renderers().
        *
        */
       virtual RendererSList renderers() const;
 
-      /* \brief Implements Plugin::settingsPanels().
+      /** \brief Implements Plugin::settingsPanels().
        *
        */
       virtual SettingsPanelSList settingsPanels() const;
 
-      /* \brief Implements Plugin::menuEntries().
+      /** \brief Implements Plugin::menuEntries().
        *
        */
       virtual QList<MenuEntry> menuEntries() const;
 
-      /* \brief Implements Plugin::analysisReaders().
+      /** \brief Implements Plugin::analysisReaders().
        *
        */
       virtual AnalysisReaderSList analysisReaders() const;

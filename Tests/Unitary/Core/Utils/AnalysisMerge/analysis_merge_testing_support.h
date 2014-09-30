@@ -23,7 +23,7 @@
 #define TESTING_DUMMYFILTER_H
 
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/MultiTasking/Scheduler.h>
 
 namespace ESPINA {

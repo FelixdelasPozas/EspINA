@@ -116,5 +116,5 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 install(
   TARGETS CountingFramePlugin
-  LIBRARY DESTINATION ${INSTALL_BIN_DIR}/plugins
+  DESTINATION ${INSTALL_BIN_DIR}/plugins
   )

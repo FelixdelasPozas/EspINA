@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -30,13 +30,26 @@
 
 namespace ESPINA
 {
-  class RepresentationSettings 
+  class EspinaGUI_EXPORT RepresentationSettings
   : public QWidget
   {
   public:
-    virtual ~RepresentationSettings(){}
+  	/** \brief RepresentationSettings class virtual destructor.
+  	 *
+  	 */
+    virtual ~RepresentationSettings()
+    {}
 
+    /** \brief Gets the parameters of the representation and configures the widget with them.
+     * \param[in] rep, representation smart pointer.
+     *
+     */
     virtual void get(RepresentationSPtr representation) = 0;
+
+    /** \brief Configures the representation with the values in the widget.
+     * \param[in] rep, representation smart pointer.
+     *
+     */
     virtual void set(RepresentationSPtr representation) = 0;
   };
 

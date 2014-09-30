@@ -23,7 +23,7 @@
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>

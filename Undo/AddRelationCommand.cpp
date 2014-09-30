@@ -48,3 +48,26 @@ void AddRelationCommand::undo()
 {
   m_model->deleteRelation(m_ancester, m_succesor, m_relation);
 }
+
+//------------------------------------------------------------------------
+AddRelationsCommand::AddRelationsCommand(RelationList     relations,
+                                         ModelAdapterSPtr model,
+                                         QUndoCommand    *parent)
+: QUndoCommand{parent}
+, m_relations {relations}
+, m_model     {model}
+{
+}
+
+//------------------------------------------------------------------------
+void AddRelationsCommand::redo()
+{
+  m_model->addRelations(m_relations);
+}
+
+//------------------------------------------------------------------------
+void AddRelationsCommand::undo()
+{
+  m_model->deleteRelations(m_relations);
+}
+

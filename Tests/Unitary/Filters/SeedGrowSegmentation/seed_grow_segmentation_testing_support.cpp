@@ -21,7 +21,7 @@
 #include "seed_grow_segmentation_testing_support.h"
 
 #include <Core/Analysis/Filter.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 using namespace ESPINA;
 using namespace ESPINA::Testing;

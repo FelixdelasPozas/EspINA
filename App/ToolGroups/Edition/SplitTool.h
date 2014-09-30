@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -26,7 +26,7 @@
 #include <GUI/ModelFactory.h>
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 
 // Qt
@@ -38,7 +38,7 @@ namespace ESPINA
 {
   class SplitToolEventHandler;
   using SplitToolEventHandlerSPtr = std::shared_ptr<SplitToolEventHandler>;
-  
+
   class SplitTool
   : public Tool
   {
@@ -47,7 +47,14 @@ namespace ESPINA
     class SplitFilterFactory
     : public FilterFactory
     {
+    		/** \brief Implements FilterFactory::providedFilters().
+    		 *
+    		 */
         virtual FilterTypeList providedFilters() const;
+
+        /** \brief Implements FilterFactory::createFilter(...).
+         *
+         */
         virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
       private:
@@ -56,18 +63,41 @@ namespace ESPINA
 
 
     public:
+    	/** \brief SplitTool class constructor.
+    	 * \param[in] model, model adapter smart pointer.
+    	 * \param[in] factory, factory smart pointer.
+    	 * \param[in] viewManager, view manager smart pointer.
+    	 * \param[in] undoStack, QUndoStack object raw pointer.
+    	 *
+    	 */
       SplitTool(ModelAdapterSPtr model,
                 ModelFactorySPtr factory,
                 ViewManagerSPtr  viewManager,
                 QUndoStack      *undoStack);
+
+      /** \brief SplitTool class virtual destructor.
+       *
+       */
       virtual ~SplitTool();
 
+      /** \brief Implements Tool::setEnabled().
+       *
+       */
       virtual void setEnabled(bool value);
 
+      /** \brief Implements Tool::enabled().
+       *
+       */
       virtual bool enabled() const;
 
+      /** \brief Implements Tool::actions().
+       *
+       */
       virtual QList<QAction *> actions() const;
 
+      /** \brief Aborts current operation.
+       *
+       */
       virtual void abortOperation()
       { initTool(false); }
 
@@ -75,10 +105,24 @@ namespace ESPINA
       void splittingStopped();
 
     public slots:
-      void initTool(bool);
+      /** \brief Initializes/De-initializes the tool.
+       * \param[in] enable, boolean value indicating the activation of the tool.
+       */
+      void initTool(bool enable);
+
+      /** \brief Splits the segmentation using the current state of the tool.
+       *
+       */
       void applyCurrentState();
+
+      /** \brief Creates the segmentations and adds them to the model.
+       *
+       */
       void createSegmentations();
 
+      /** \brief Stops current operation.
+       *
+       */
       void stopSplitting()
       { initTool(false); }
 
@@ -91,8 +135,6 @@ namespace ESPINA
         Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
         Data(): adapter{nullptr}, segmentation{nullptr} {};
       };
-
-      void splitSegmentation();
 
       QAction *m_planarSplitAction;
       QAction *m_applyButton;
@@ -115,29 +157,29 @@ namespace ESPINA
   : public EventHandler
   {
     public:
-      /* \brief SplitToolEventHandler class constructor.
+      /** \brief SplitToolEventHandler class constructor.
        *
        */
       SplitToolEventHandler()
       {}
 
-      /* \brief SplitToolEventHandler class destructor.
+      /** \brief SplitToolEventHandler class destructor.
        *
        */
       ~SplitToolEventHandler()
       {}
 
-      /* \brief Implements EventHandler::cursor().
+      /** \brief Overrides EventHandler::cursor().
        *
        */
-      QCursor cursor() const
+      QCursor cursor() const override
       { return QCursor(Qt::CrossCursor); }
 
 
-      /* \brief Implements EventHandler::filterEvent.
+      /** \brief Overrides EventHandler::filterEvent.
        *
        */
-      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
+      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
   };
 
 } // namespace ESPINA

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,31 +21,34 @@
 #ifndef ESPINA_SLIDER_ACTION_WIDGET_H_
 #define ESPINA_SLIDER_ACTION_WIDGET_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
+// Qt
 #include <QWidgetAction>
 #include <QLabel>
 #include <QSlider>
 
 namespace ESPINA
 {
-  class SliderAction
+  class EspinaGUI_EXPORT SliderAction
   : public QWidgetAction
   {
     Q_OBJECT
     public:
-      /** \brief Class constructor.
+      /** \brief SliderAction class constructor.
        *
        */
       explicit SliderAction(QObject *parent = nullptr);
 
-      /** \brief Class destructor.
+      /** \brief SliderAction class virtual destructor.
        *
        */
       virtual ~SliderAction();
 
-      /** \brief Superclass method to create widget.
+      /** \brief Override QWidgetAction::createWidget()
        *
        */
-      virtual QWidget* createWidget(QWidget* parent);
+      virtual QWidget* createWidget(QWidget* parent) override;
 
       /** \brief Returns widget's radius value.
        *
@@ -54,21 +57,24 @@ namespace ESPINA
       { return m_value; }
 
       /** \brief Set minimum value for widget's QSpinBox.
+       * \param[in] value, new value.
        *
        */
       void setSliderMinimum(int value);
 
       /** \brief Set maximum value for widget's QSpinBox.
+       * \param[in] value, new value.
        *
        */
       void setSliderMaximum(int value);
 
       /** \brief Set value for the widget's QLabel.
+       * \param[in] label, new label.
        *
        */
       void setLabelText(const QString &label);
 
-      /** \brief Set widget enabled/disabled.
+      /** \brief Shadows QAction::setEnabled().
        *
        */
       void setEnabled(bool value)
@@ -82,7 +88,7 @@ namespace ESPINA
         }
       }
 
-      /** \brief Returns the enabled/disabled state of the widgets.
+      /** \brief Shadows QAction::isEnabled().
        *
        */
       bool isEnabled()
@@ -90,6 +96,7 @@ namespace ESPINA
 
     public slots:
       /** \brief Sets widget's radius value.
+       * \param[in] value, new value.
        *
        */
       void setValue(int value);
@@ -98,10 +105,7 @@ namespace ESPINA
        *         widgets so we can nullify the pointers when they are destroyed.
        */
       void destroySignalEmmited()
-      {
-        m_label = nullptr;
-        m_slider = nullptr;
-      }
+      { m_label = nullptr; m_slider = nullptr; }
 
     signals:
       /** \brief Signal to propagate changes int the widget's values.

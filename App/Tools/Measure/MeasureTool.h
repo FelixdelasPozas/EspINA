@@ -1,8 +1,21 @@
 /*
- * MeasureTool.h
- *
- *  Created on: Dec 11, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_MEASURE_TOOL_H_
@@ -11,7 +24,7 @@
 // ESPINA
 #include <GUI/View/Widgets/Measures/MeasureWidget.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 
 class QAction;
@@ -24,26 +37,37 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit MeasureTool(ViewManagerSPtr);
+    /** \brief MeasureTool class constructor.
+     * \param[in] viewManager, view manager smart pointer.
+     *
+     */
+    explicit MeasureTool(ViewManagerSPtr viewManager);
+
+    /** \brief MeasureTool class destructor.
+     *
+     */
     virtual ~MeasureTool();
 
-    /* \brief Implements Tool::setEnabled.
+    /** \brief Implements Tool::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements Tool::enabled.
+    /** \brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /* \brief Implements Tool::actions.
+    /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
   public slots:
-    void initTool(bool);
+  	/** \brief Initializes/De-initializes tool.
+  	 * \param[in] value, true to initialize tool, false to de-initialize.
+  	 */
+    void initTool(bool value);
 
   signals:
     void stopMeasuring();

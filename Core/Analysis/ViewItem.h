@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,53 +22,110 @@
 #ifndef ESPINA_VIEWITEM_H
 #define ESPINA_VIEWITEM_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include "Core/Analysis/NeuroItem.h"
 #include "Input.h"
 
 namespace ESPINA {
 
-  class ViewItem
+  class EspinaCore_EXPORT ViewItem
   : public QObject
   , public NeuroItem
   {
     Q_OBJECT
   public:
+    /** \brief ViewItem class constructor.
+     * \param[in] input, input object smart pointer.
+     *
+     */
     explicit ViewItem(InputSPtr input);
+
+    /** \brief ViewItem class destructor.
+     *
+     */
     virtual ~ViewItem();
 
+    /** \brief Returns the ViewItem as an input object to use as input of other objects.
+     *
+     */
     InputSPtr asInput() const
     { return m_input; }
 
+    /** \brief Returns the filter associated to this.
+     *
+     */
     FilterSPtr filter()
     { return m_input->filter(); }
 
+    /** \brief Returns the filter associated to this.
+     *
+     */
     const FilterSPtr filter() const
     { return m_input->filter(); }
 
+    /** \brief Returns the output associated to this.
+     *
+     */
     OutputSPtr output(); //rename to input?
+
+    /** \brief Returns the output associated to this.
+     *
+     */
     const OutputSPtr output() const;
 
+    /** \brief Returns the output id.
+     *
+     */
     Output::Id outputId() const
     { return m_input->output()->id(); }
 
+    /** \brief Returns the data object of the type specified that represents this item.
+     * \param[in] type, data type.
+     *
+     */
     DataSPtr data(Data::Type type);
+
+    /** \brief Returns the data object of the type specified that represents this item.
+     * \param[in] type, data type.
+     *
+     */
     const DataSPtr data(Data::Type type) const;
 
+    /** \brief Changes the output.
+     * \param[in] input, input object smart pointer.
+     *
+     */
     void changeOutput(InputSPtr input);
 
+    /** \brief Changes the output.
+     * \param[in] filter, filter object smart pointer.
+     * \param[in] outputId, output id the the filter.
+     *
+     */
     void changeOutput(FilterSPtr filter, Output::Id outputId);
 
+    /** \brief Returns true if the output has been modified.
+     *
+     */
     bool isOutputModified() const
     { return m_isOutputModified; }
 
+    /** \brief Returns the bounds of this object.
+     *
+     */
     Bounds bounds() const
     { return output()->bounds(); }
 
   protected slots:
-    void onOutputModified() 
+		/** \brief Emit the modification signal for this object and updates modification flag.
+		 *
+		 */
+    void onOutputModified()
     {
       m_isOutputModified = true;
-      emit outputModified(); 
+      emit outputModified();
     }
 
   signals:

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -44,39 +44,43 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief RulerWidget class constructor.
+      /** \brief RulerWidget class constructor.
        *
        */
       explicit RulerWidget();
 
-      /* \brief RulerWidget class destructor.
+      /** \brief RulerWidget class destructor.
        *
        */
       virtual ~RulerWidget();
 
-      /* \brief Implements EspinaWidget::registerView()
+      /** \brief Implements EspinaWidget::registerView().
        *
        */
       virtual void registerView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::unregisterView()
+      /** \brief Implements EspinaWidget::unregisterView().
        *
        */
       virtual void unregisterView(RenderView *view);
 
-      /* \brief Implements EspinaWidget::setEnabled.
+      /** \brief Implements EspinaWidget::setEnabled()
        *
        */
       virtual void setEnabled(bool enable);
 
-      /* \brief Sets widgets' bounds.
+      /** \brief Sets widgets' bounds.
        * \param[in] bounds Bounds of the selection.
        *
        */
       void setBounds(Bounds bounds);
 
     private slots:
-      void sliceChanged(Plane, Nm);
+			/** \brief Updates the representation when the view changes the slice.
+			 * \param[in] plane, orientation plane.
+			 * \param[in] pos, new position of the plane.
+			 */
+      void sliceChanged(Plane plane, Nm pos);
 
     private:
       friend class vtkRulerCommand;
@@ -91,32 +95,32 @@ namespace ESPINA
     public:
       vtkTypeMacro(vtkRulerCommand, vtkEspinaCommand);
 
-      /* \brief VTK-style New() constructor, required for using vtkSmartPointer.
+      /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
        *
        */
       static vtkRulerCommand *New()
       { return new vtkRulerCommand(); }
 
-      /* \brief Implements vtkEspinaCommand::Execute.
+      /** \brief Implements vtkEspinaCommand::Execute.
        *
        */
       void Execute(vtkObject *, unsigned long int, void*);
 
-      /* \brief Implements vtkEspinaCommand::setWidget();
+      /** \brief Implements vtkEspinaCommand::setWidget();
        *
        */
       void setWidget(EspinaWidgetPtr widget)
       { m_widget = dynamic_cast<RulerWidget *>(widget); }
 
     private:
-      /* \brief RulerCommand class private constructor.
+      /** \brief RulerCommand class private constructor.
        *
        */
       explicit vtkRulerCommand()
       : m_widget{nullptr}
       {}
 
-      /* \brief RulerCommand class private destructor.
+      /** \brief RulerCommand class private destructor.
        *
        */
       virtual ~vtkRulerCommand()

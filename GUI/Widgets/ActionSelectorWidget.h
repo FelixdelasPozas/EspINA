@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_ACTION_SELECTOR_WIDGET_H
 #define ESPINA_ACTION_SELECTOR_WIDGET_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <QToolButton>
 
 class EspinaGUI_EXPORT ActionSelectorWidget
@@ -31,17 +31,46 @@ class EspinaGUI_EXPORT ActionSelectorWidget
 {
   Q_OBJECT
 public:
-  explicit ActionSelectorWidget(QWidget* parent = 0);
+  /** \brief ActionSelectorWidget class constructor.
+   * \param[in] parent, raw pointer of the QWidget parent of this one.
+   *
+   */
+  explicit ActionSelectorWidget(QWidget* parent = nullptr);
 
+  /** \brief Shadows QWidget::addAction().
+   *
+   */
   void addAction(QAction *action);
+
+  /** \brief Sets the button action to the specified action.
+   * \param[in] action, QAction raw pointer.
+   *
+   */
   void setButtonAction(QAction *action);
+
+  /** \brief Returns the current action of the button.
+   *
+   */
   QAction* getButtonAction();
 
 public slots:
+	/** \brief Unchecks the button.
+	 *
+	 */
   void cancelAction();
 
 protected slots:
+	/** \brief Emits the trigger signal or cancels the action depending on the parameter value.
+	 * \paran[in] trigger, true to trigger the current action, false to cancel the action.
+	 *
+	 * If the current action is not checkable the action is always triggered.
+	 *
+	 */
   void triggerAction(bool trigger);
+
+  /** \brief Changes the current action with the specified one.
+   * \param[in] action, raw pointer of the new QAction.
+   */
   void changeAction(QAction *action);
 
 signals:

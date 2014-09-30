@@ -53,7 +53,6 @@ add_executable(SampleAdapter_Tests
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
-  ${GUI_DIR}/Utils/Conditions.cpp
 )
 
 target_link_libraries(SampleAdapter_Tests ${LIB_DEPENDECIES} )

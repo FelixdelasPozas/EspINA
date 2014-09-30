@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -45,7 +45,8 @@ namespace ESPINA
     m_position = node->position;
 
     for(auto rep: representations)
-      m_representations[rep] = nullptr;
+      if(rep->existsIn(m_position))
+        m_representations.insert(rep, nullptr);
   }
 
   //-----------------------------------------------------------------------------
@@ -122,7 +123,8 @@ namespace ESPINA
           break;
         }
 
-        computeData(rep);
+        if(rep->existsIn(m_position))
+          computeData(rep);
 
         ++count;
         emit progress((count * 100) / m_representations.size());

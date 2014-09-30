@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "SegmentationInspector.h"
-#include <Dialogs/TabularReport/TabularReport.h>
+#include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
@@ -33,6 +33,7 @@
 #include <QDragEnterEvent>
 #include <QStack>
 #include <QHBoxLayout>
+#include <QDebug>
 
 const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector Window Geometry");
 const QString SegmentationInspectorSplitterKey = QString("Segmentation Inspector Splitter State");
@@ -48,13 +49,13 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
                                              QUndoStack*             undoStack,
                                              QWidget*                parent,
                                              Qt::WindowFlags         flags)
-: QWidget(parent, flags|Qt::WindowStaysOnTopHint)
-, m_model(model)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
-, m_view(new View3D(true))
-, m_filterArea(new QScrollArea(this))
-, m_tabularReport(new TabularReport(factory, viewManager))
+: QWidget        {parent, flags|Qt::WindowStaysOnTopHint}
+, m_model        {model}
+, m_viewManager  {viewManager}
+, m_undoStack    {undoStack}
+, m_view         {new View3D(true)}
+, m_filterArea   {new QScrollArea(this)}
+, m_tabularReport{new TabularReport(factory, viewManager)}
 {
   setupUi(this);
 
@@ -79,7 +80,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   }
 
   defaultRenderers = settings.value(RENDERERS).toStringList();
-
   RendererSList renderers;
   for(auto name: defaultRenderers)
     if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
@@ -93,11 +93,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
 
   SegmentationExtension::InfoTagList tags;
   tags << tr("Name") << tr("Category");
-//   foreach(Segmentation::InformationExtension extension, m_model->factory()->segmentationExtensions())
-//   {
-//     if (extension->validTaxonomy(""))
-//       tags << extension->availableInformations();
-//   }
 
   m_filterArea->setWidget(new QWidget());
   m_filterArea->widget()->setMinimumWidth(250);
@@ -110,7 +105,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   m_tabularReport->setModel(m_model);
   m_tabularReport->setFilter(m_segmentations);
   m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_tabularReport->setVisible(true);
   m_tabularReport->setMinimumHeight(0);
 
   QHBoxLayout *lowerLayout = new QHBoxLayout();
@@ -119,9 +113,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   m_upperWidget->setLayout(upperLayout);
   m_lowerWidget->setLayout(lowerLayout);
   m_splitter->setChildrenCollapsible(true);
-
-//   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
-//           this, SLOT(updateSelection(ViewManager::Selection)));
 
   QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
   if (!geometry.isEmpty())
@@ -134,7 +125,6 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   m_viewManager->registerView(m_view);
 
   generateWindowTitle();
-  updateSelection(m_viewManager->selection());
 }
 
 //------------------------------------------------------------------------
@@ -145,15 +135,15 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
   settings.setValue(SegmentationInspectorSplitterKey, m_splitter->saveState());
   settings.sync();
 
-  QWidget::closeEvent(e);
   emit inspectorClosed(this);
+
+  QWidget::closeEvent(e);
 }
 
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-  m_viewManager->unregisterView(m_view);
-
+	m_viewManager->unregisterView(m_view);
   delete m_view;
   delete m_tabularReport;
 }
@@ -165,58 +155,6 @@ void SegmentationInspector::updateScene(ItemAdapterPtr item)
   m_view->updateRepresentation(segmentation);
   m_view->updateView();
 }
-
-//------------------------------------------------------------------------
-void SegmentationInspector::updateSelection(SelectionSPtr selection)
-{
-//   QWidget *prevWidget = m_filterArea->widget();
-//   if (prevWidget)
-//     delete prevWidget;
-//
-//   QWidget *noWidgetInspector = new QWidget();
-//   noWidgetInspector->setLayout(new QVBoxLayout());
-//   noWidgetInspector->layout()->setSpacing(10);
-//   noWidgetInspector->setMaximumWidth(250);
-//
-//   QLabel *infoLabel = new QLabel(noWidgetInspector);
-//
-//   // channels could be part of the selection, we're only interested in selected segmentations
-//   ViewManager::Selection clearedSelection;
-//   foreach (PickableItemPtr item, selection)
-//   if (item->type() == ESPINA::SEGMENTATION)
-//     clearedSelection << item;
-//
-//   if ((clearedSelection.size() == 1) && (ESPINA::SEGMENTATION == clearedSelection.first()->type()) && m_segmentations.contains(segmentationPtr(clearedSelection.first())))
-//   {
-//     Filter::FilterInspectorPtr inspector = segmentationPtr(clearedSelection.first())->filter()->filterInspector();
-//     if (inspector)
-//     {
-//       delete noWidgetInspector;
-//       QWidget *inspectorwidget = inspector->createWidget(m_undoStack, m_viewManager);
-//       inspectorwidget->setMaximumWidth(250);
-//       m_filterArea->setWidget(inspectorwidget);
-//       return;
-//     }
-//     else
-//     {
-//       infoLabel->setText(QLabel::tr("Segmentation cannot be modified."));
-//     }
-//   }
-//   else
-//   {
-//     infoLabel->setText(QLabel::tr("No segmentation selected."));
-//   }
-//
-//   infoLabel->setWordWrap(true);
-//   infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-//   noWidgetInspector->layout()->addWidget(infoLabel);
-//
-//   QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
-//   noWidgetInspector->layout()->addItem(spacer);
-//
-//   m_filterArea->setWidget(noWidgetInspector);
-}
-
 
 //------------------------------------------------------------------------
 void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
@@ -231,13 +169,13 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 
   if(channels.isEmpty())
   {
-    qDebug() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
+  	qWarning() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
     return;
   }
 
   if (channels.size() > 1)
   {
-    qWarning() << "Tilinig is not supported yet";
+    qWarning() << "Channel tiling is not supported.";
   }
   else
   {
@@ -268,7 +206,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
 
   if (channels.size() > 1)
   {
-    qWarning() << "Tilinig is not supported yet";
+    qWarning() << "Channel tiling is not supported.";
   }
   else
   {
@@ -358,7 +296,6 @@ void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
 
-  updateSelection(m_viewManager->selection());
   m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
 }
 
@@ -449,8 +386,6 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   }
 
   m_tabularReport->setFilter(m_segmentations);
-
-  updateSelection(m_viewManager->selection());
   m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
 
   m_view->updateView();

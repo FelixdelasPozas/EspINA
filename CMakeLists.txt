@@ -165,17 +165,13 @@ configure_file(
 #      ITK_REQUIRED_CXX_FLAG: -ftemplate-depth-50
 #      so we override CXX_FLAGS to unset previous flag
 #set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
-if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
+if (NOT DEFINED MINGW)
   set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
-else(NOT DEFINED MINGW AND NOT DEFINED MSVC)
+else(NOT DEFINED MINGW)
   if (DEFINED MINGW)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-Mingw64.iss")
   endif (DEFINED MINGW)
-  if (DEFINED MSVC)
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-MSVC.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-MSVC.iss")
-  endif(DEFINED MSVC)
-endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
-
+endif (NOT DEFINED MINGW)
 
 if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X, it has only been tested in Unix
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
@@ -184,9 +180,9 @@ endif()
 
 
 add_subdirectory( Core       )
-add_subdirectory( GUI        )
 add_subdirectory( Extensions )
 add_subdirectory( Filters    )
+add_subdirectory( GUI        )
 add_subdirectory( Support    )
 add_subdirectory( Undo       )
 add_subdirectory( App        )
@@ -220,6 +216,7 @@ export(TARGETS
   EspinaGUI 
   EspinaExtensions 
   EspinaFilters
+  EspinaSupport
   EspinaUndo
   espina
   FILE "${PROJECT_BINARY_DIR}/ESPINATargets.cmake")

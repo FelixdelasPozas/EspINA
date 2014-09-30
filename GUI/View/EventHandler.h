@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -17,11 +17,17 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #ifndef ESPINA_EVENT_HANDLER_H_
 #define ESPINA_EVENT_HANDLER_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
+// Qt
 #include <QObject>
 #include <QCursor>
+
+// C++
 #include <memory>
 
 class QEvent;
@@ -30,21 +36,43 @@ namespace ESPINA
 {
   class RenderView;
 
-  class EventHandler
+  class EspinaGUI_EXPORT EventHandler
   : public QObject
   {
     Q_OBJECT
     public:
+			/** \brief EventHandler class constructor.
+			 *
+			 */
       explicit EventHandler();
-      virtual ~EventHandler() {};
 
+      /** \brief EventHandler class virtual destructor.
+       *
+       */
+      virtual ~EventHandler()
+      {};
+
+      /** \brief Activates/deactvates the event handler.
+       * \param[in] value, true to enable false otherwise.
+       */
       virtual void setInUse(bool value);
 
-      virtual bool filterEvent(QEvent *e, RenderView *view=nullptr);
+      /** \brief Perform the operations needed to events in the given view.
+       * \param[in] e, raw pointer of the event received.
+       * \param[in] view, raw pointer of the view of the event.
+       *
+       */
+      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
 
+      /** \brief Returns the cursor of the event handler.
+       *
+       */
       virtual QCursor cursor() const
       { return m_cursor; }
 
+      /** \brief Sets the cursor of the event handler.
+       *
+       */
       virtual void setCursor(const QCursor& cursor)
       { m_cursor = cursor; }
 

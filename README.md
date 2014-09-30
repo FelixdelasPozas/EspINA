@@ -30,8 +30,8 @@ zlib1g-dev
 First download Quazip from its SourceForge page and untar it
 
 ```sh
-tar xvzf quazip-0.6.2.tar.gz
-cd quazip-0.6.2
+tar xvzf quazip-0.7.tar.gz
+cd quazip-0.7
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_QT4=ON ..
@@ -44,6 +44,7 @@ libxt-dev
 libqtwebkit-dev
 libqt4-opengl-dev
 libboost-graph-dev
+libboost-regex-dev
 
 ```sh
 tar xzvf VTK-6.1.0

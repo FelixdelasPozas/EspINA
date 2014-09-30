@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -28,43 +28,64 @@
 
 namespace ESPINA
 {
-  
+
   class View2DRenderersPanel
   : public SettingsPanel
   {
     Q_OBJECT
     public:
-      /* \brief View2DRenderersPanel class constructor.
-       * \param[in] renderers List of renderers
-       * \param[in] activeRenderers Names of active renderers to show in active panel
-       * \param[in] filter Specifies the type of filters to show in the panels.
-       * \param[in] viewList List of View2D views, its here only to apply changes and clone.
+      /** \brief View2DRenderersPanel class constructor.
+       * \param[in] renderers, list of renderers smart pointers.
+       * \param[in] activeRenderers, list of names of active renderers to show in active panel
+       * \param[in] filter, specifies the type of filters to show in the panels.
+       * \param[in] viewList, list of View2D views, its here only to apply changes and clone.
        */
       explicit View2DRenderersPanel(RendererSList renderers,
                                     QStringList activeRenderers,
                                     RendererTypes filter,
                                     QList<View2D *> viewList);
 
-      /* \brief View2DRenderersPanel class destructor.
+      /** \brief View2DRenderersPanel class destructor.
        *
        */
       virtual ~View2DRenderersPanel();
 
-      virtual const QString shortDescription()
+      /** \brief Overrides SettingsPanel::shortDescription().
+       *
+       */
+      virtual const QString shortDescription() override
       { return QString("View 2D"); };
 
-      virtual const QString longDescription()
+      /** \brief Overrides SettingsPanel::longDescription().
+       *
+       */
+      virtual const QString longDescription() override
       { return QString("View 2D"); };
 
+      /** \brief Overrides SettingsPanel::icon().
+       *
+       */
       virtual const QIcon icon()
       { return QIcon(); }
 
+      /** \brief Overrides SettingsPanel::acceptChanges().
+       *
+       */
       virtual void acceptChanges();
 
+      /** \brief Overrides SettingsPanel::rejectChanges().
+       *
+       */
       virtual void rejectChanges();
 
+      /** \brief Overrides SettingsPanel::modified().
+       *
+       */
       virtual bool modified() const;
 
+      /** \brief Overrides SettingsPanel::clone().
+       *
+       */
       virtual SettingsPanelPtr clone();
 
     private:

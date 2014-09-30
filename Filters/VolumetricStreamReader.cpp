@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,15 +18,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "VolumetricStreamReader.h"
+#include <Core/IO/ErrorHandler.h>
 
-#include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
-
+// Qt
 #include <QFileDialog>
+
+// ITK
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-#include <Core/IO/ErrorHandler.h>
 
 using namespace ESPINA;
 

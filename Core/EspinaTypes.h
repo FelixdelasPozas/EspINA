@@ -2,12 +2,13 @@
 #define ESPINATYPES_H
 
 #include "Core/EspinaCore_Export.h"
+
+// ITK
 #include <itkImage.h>
 
+// Qt
 #include <QList>
-//#define QT_SHAREDPOINTER_TRACK_POINTERS
 #include <QSet>
-#include <QVector3D>
 
 namespace ESPINA
 {
@@ -68,8 +69,8 @@ namespace ESPINA
     RELATION_OUT,
     RELATION_INOUT
   };
-  using RelationName = QString;
 
+  using RelationName = QString;
 
   using TimeStamp = unsigned long long;
 } // namespace ESPINA

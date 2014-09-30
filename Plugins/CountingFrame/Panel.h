@@ -23,7 +23,7 @@
 
 #include "CountingFramePlugin_Export.h"
 
-#include <Support/DockWidget.h>
+#include <Support/Widgets/DockWidget.h>
 
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"

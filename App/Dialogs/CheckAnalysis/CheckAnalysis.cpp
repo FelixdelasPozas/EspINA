@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "CheckAnalysis.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
@@ -65,7 +65,7 @@ namespace ESPINA
       task->submit(task);
     }
   }
-  
+
   //------------------------------------------------------------------------
   void CheckAnalysis::finishedTask()
   {

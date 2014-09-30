@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "SegFileReader.h"
 #include <Core/IO/SegFile.h>
 

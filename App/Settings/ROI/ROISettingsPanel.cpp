@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -32,7 +32,6 @@
 // Qt
 #include <QMessageBox>
 #include <QSettings>
-#include <QDebug>
 
 using namespace ESPINA;
 
@@ -42,10 +41,10 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
                                    ModelAdapterSPtr model,
                                    ViewManagerSPtr  viewManager)
-: m_model           {model}
-, m_settings        {settings}
-, m_activeCategory  {nullptr}
-, m_viewManager     {viewManager}
+: m_model         {model}
+, m_settings      {settings}
+, m_activeCategory{nullptr}
+, m_viewManager   {viewManager}
 {
   setupUi(this);
 
@@ -83,7 +82,6 @@ ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
 //------------------------------------------------------------------------
 ROISettingsPanel::~ROISettingsPanel()
 {
-//   qDebug() << "Destroy Settings Panel";
 }
 
 //------------------------------------------------------------------------
@@ -172,7 +170,7 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
 
   m_activeCategory = m_model->smartPointer(category);
 
-  // 2013-03-19 Fix missing category properties in some cases. By default revert to "default ROI" values.
+  // Fix missing category properties in some cases. By default revert to "default ROI" values.
   if (!m_activeCategory->properties().contains(Category::DIM_X()) ||
       !m_activeCategory->properties().contains(Category::DIM_Y()) ||
       !m_activeCategory->properties().contains(Category::DIM_Z()))

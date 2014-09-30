@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -29,7 +29,7 @@
 
 namespace ESPINA
 {
-  
+
   class AdaptiveEdgesDialog
   : public QDialog
   , private Ui::AdaptiveEdgesDialog
@@ -37,11 +37,30 @@ namespace ESPINA
     Q_OBJECT
 
     public:
+			/** \brief AdaptiveEdgesDialog class constructor.
+			 * \param[in] parent, Parent widget.
+			 */
       AdaptiveEdgesDialog(QWidget *parent);
-      virtual ~AdaptiveEdgesDialog() {};
 
+      /** \brief AdaptiveEdgesDialog class destructor.
+       *
+       */
+      virtual ~AdaptiveEdgesDialog()
+      {};
+
+      /** \brief Returns the threshold used to classify a voxel as background or not.
+       *
+       */
       int threshold()         { return m_threshold; }
+
+      /** \brief Returns the value used as background color.
+       *
+       */
       int color()             { return m_backgroundColor; }
+
+      /** \brief Returns true if adaptive edges is enabled.
+       *
+       */
       bool useAdaptiveEdges() { return m_adaptiveEdgesEnabled; }
 
     private slots:

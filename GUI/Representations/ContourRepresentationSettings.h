@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,20 +22,32 @@
 #ifndef ESPINA_CONTOUR_REPRESENTATION_SETTINGS_H
 #define ESPINA_CONTOUR_REPRESENTATION_SETTINGS_H
 
+// ESPINA
 #include "GUI/Representations/RepresentationSettings.h"
+
+// Qt
 #include "ui_ContourRepresentationSettings.h"
 
 namespace ESPINA
 {
-
-  class ContourRepresentationSettings 
+  class EspinaGUI_EXPORT ContourRepresentationSettings
   : public RepresentationSettings
   , private Ui::ContourRepresentationSettings
   {
   public:
+  	/** \brief ContourRepresentationSettings class constructor.
+  	 *
+  	 */
     explicit ContourRepresentationSettings();
 
+    /** \brief Implements RepresentationSettings::get().
+     *
+     */
     virtual void get(RepresentationSPtr representation);
+
+    /** \brief Implements RepresentationSettings::set().
+     *
+     */
     virtual void set(RepresentationSPtr representation);
 
   private:

@@ -1,6 +1,6 @@
 /*
-    
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -25,12 +25,12 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ModifyROIUndoCommand::ModifyROIUndoCommand(ROIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
-  : m_newROI    {nullptr}
-  , m_toolGroup {toolsGroup}
-  , m_mask      {mask}
+  : m_newROI   {nullptr}
+  , m_toolGroup{toolsGroup}
+  , m_mask     {mask}
   {
     if(m_toolGroup->currentROI() == nullptr)
-      m_newROI = ROISPtr{new ROI{mask, mask->foregroundValue()}};
+      m_newROI = ROISPtr{new ROI{mask}};
   }
 
   //-----------------------------------------------------------------------------

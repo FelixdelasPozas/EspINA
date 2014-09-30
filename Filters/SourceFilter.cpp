@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "SourceFilter.h"
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 using namespace ESPINA;
 

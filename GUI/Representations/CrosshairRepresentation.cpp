@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -50,7 +50,7 @@ using namespace ESPINA;
 const Representation::Type CrosshairRepresentation::TYPE = "Crosshair";
 
 //------------------------------------------------------------------------
-CrosshairRepresentation::CrosshairRepresentation(VolumeSPtr data, RenderView *view)
+CrosshairRepresentation::CrosshairRepresentation(DefaultVolumetricDataSPtr data, RenderView *view)
 : Representation{view}
 , m_data                    {data}
 , m_axialExporter           {nullptr}
@@ -749,13 +749,13 @@ void CrosshairRepresentation::setCrosshair(NmVector3 point)
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairRepresentation::setPlanePosition(Plane plane, Nm dist)
+void CrosshairRepresentation::setPlanePosition(Plane plane, Nm pos)
 {
-  if (m_point[normalCoordinateIndex(plane)] == dist)
+  if (m_point[normalCoordinateIndex(plane)] == pos)
     return;
 
   NmVector3 point = m_point;
-  point[normalCoordinateIndex(plane)] = dist;
+  point[normalCoordinateIndex(plane)] = pos;
   setCrosshair(point);
 }
 

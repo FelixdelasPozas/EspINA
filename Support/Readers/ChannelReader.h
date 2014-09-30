@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -21,25 +21,44 @@
 
 #ifndef ESPINA_CHANNEL_READER_H
 #define ESPINA_CHANNEL_READER_H
+
+#include "Support/EspinaSupport_Export.h"
+
+// ESPINA
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 
 namespace ESPINA {
 
-  class ChannelReader
+  class EspinaSupport_EXPORT ChannelReader
   : public FilterFactory
   , public IO::AnalysisReader
   {
   public:
+  	/** \brief Implements IO::AnalysisReader::type().
+  	 *
+  	 */
     virtual QString type() const
     { return "ChannelReader"; }
 
+    /** \brief Shadows FilterFactory::providedFilters().
+     *
+     */
     virtual FilterTypeList providedFilters() const;
 
+    /** \brief Shadows FilterFactory::createFilter().
+     *
+     */
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
+  	/** \brief Implements IO::AnalysisReader::supportedFileExtensions().
+  	 *
+  	 */
     virtual ExtensionList supportedFileExtensions() const;
 
+  	/** \brief Implements IO::AnalysisReader::read().
+  	 *
+  	 */
     virtual AnalysisSPtr read(const QFileInfo& file,
                               CoreFactorySPtr  factory,
                               ErrorHandlerSPtr handler = ErrorHandlerSPtr());

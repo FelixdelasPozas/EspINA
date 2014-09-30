@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -20,14 +20,13 @@
 
 // ESPINA
 #include "EdgesAnalyzer.h"
-
 #include "ChannelEdges.h"
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Data/VolumetricData.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <itkImageRegionIterator.h>
 
-
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;

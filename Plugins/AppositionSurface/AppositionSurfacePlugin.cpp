@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -394,7 +394,15 @@ void AppositionSurfacePlugin::finishedTask()
   }
 
   CategoryAdapterSPtr category = classification->category(SAS);
-  SegmentationAdapterList createdSegmentations;
+
+  // we don't have an operator< for SampleAdapterSList so can't use a QMap and must use two lists to avoid
+  // adding the segmentations one by one. Each segmentation can have a different sample list.
+  QVector<SampleAdapterSList> usedSamples;
+  QVector<SegmentationAdapterSList> createdSegmentations;
+  int index = 0;
+
+  RelationList createdRelations;
+  SegmentationAdapterList segmentationsToUpdate;
 
   for(auto filter: m_finishedTasks.keys())
   {
@@ -409,14 +417,42 @@ void AppositionSurfacePlugin::finishedTask()
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
     Q_ASSERT(!samples.empty());
 
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-    m_undoStack->push(new AddRelationCommand(m_finishedTasks[filter].segmentation, segmentation, SAS, m_model));
+    for(index = 0; index < usedSamples.size(); ++index)
+      if(samples == usedSamples[index])
+        break;
 
-    createdSegmentations << segmentation.get();
+    if(index == usedSamples.size())
+    {
+      usedSamples.push_back(samples);
+      SegmentationAdapterSList list;
+      list << segmentation;
+      createdSegmentations.push_back(list);
+    }
+    else
+      createdSegmentations[index] << segmentation;
+
+    Relation relation;
+    relation.ancestor = m_finishedTasks[filter].segmentation;
+    relation.succesor = segmentation;
+    relation.relation = SAS;
+
+    createdRelations << relation;
+
+    segmentationsToUpdate << segmentation.get();
   }
+
+  // add segmentations by their related sample list
+  for(index = 0; index < usedSamples.size(); ++index)
+  {
+    m_undoStack->push(new AddSegmentations(createdSegmentations[index], usedSamples[index], m_model));
+  }
+
+  // add relations
+  m_undoStack->push(new AddRelationsCommand(createdRelations, m_model));
+
   m_undoStack->endMacro();
 
-  m_viewManager->updateSegmentationRepresentations(createdSegmentations);
+  m_viewManager->updateSegmentationRepresentations(segmentationsToUpdate);
   m_viewManager->updateViews();
 
   m_finishedTasks.clear();

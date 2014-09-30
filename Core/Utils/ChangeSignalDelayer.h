@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,17 +21,20 @@
 #ifndef ESPINA_CHANGE_SIGNAL_DELAYER_H_
 #define ESPINA_CHANGE_SIGNAL_DELAYER_H_
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Data.h>
 
 namespace ESPINA
 {
-  class ChangeSignalDelayer
+  class EspinaCore_EXPORT ChangeSignalDelayer
   {
     public:
-      /* \brief ChangeSignalDelayer class constructor.
-       * \param[in] data Shared pointer to the data.
+      /** \brief ChangeSignalDelayer class constructor.
+       * \param[in] data, Data smart pointer.
        *
-       * ChangeSignalDelayer class constructor. Delays the emission of the dataChanged signal of the data.
+       * Delays the emission of the dataChanged signal of the data.
        */
       explicit ChangeSignalDelayer(DataSPtr data)
       : m_data(data)
@@ -39,7 +42,7 @@ namespace ESPINA
         m_data->blockSignals(true);
       }
 
-      /* \brief ChangeSignalDelayer class destructor.
+      /** \brief ChangeSignalDelayer class destructor.
        *
        */
       ~ChangeSignalDelayer()

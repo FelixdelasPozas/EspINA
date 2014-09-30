@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,16 +18,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
+
+// ESPINA
 #include "Channel.h"
 
+// ITK
 #include <itkImageFileReader.h>
 #include <itkMetaImageIO.h>
 #include <itkTIFFImageIO.h>
 
+// VTK
 #include <vtkImageAlgorithm.h>
 #include <vtkDataObject.h>
 #include <vtkImageData.h>
 
+// Qt
 #include <QDebug>
 #include <QFileDialog>
 
@@ -54,11 +59,11 @@ const QString Channel::STAIN_LINK  = "Stain";
 
 //------------------------------------------------------------------------
 Channel::Channel(InputSPtr input)
-: ViewItem(input)
+: ViewItem    {input}
 , m_brightness{0.0}
-, m_contrast{1.0}
-, m_hue{NO_HUE}
-, m_opacity{AUTO_OPACITY}
+, m_contrast  {1.0}
+, m_hue       {NO_HUE}
+, m_opacity   {AUTO_OPACITY}
 , m_saturation{0.0}
 {
 }
@@ -169,7 +174,7 @@ ChannelExtensionSPtr Channel::extension(const ChannelExtension::Type& type)
 //------------------------------------------------------------------------
 bool Channel::hasExtension(const ChannelExtension::Type& type) const
 {
-  foreach(ChannelExtensionSPtr extension, m_extensions) 
+  for(auto extension: m_extensions)
   {
     if (extension->type() == type) return true;
   }
@@ -238,9 +243,7 @@ Snapshot Channel::snapshot() const
 //------------------------------------------------------------------------
 void Channel::unload()
 {
-
 }
-
 
 //------------------------------------------------------------------------
 NmVector3 Channel::position() const
@@ -251,7 +254,6 @@ NmVector3 Channel::position() const
 //------------------------------------------------------------------------
 void Channel::setPosition(const NmVector3& point)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -260,10 +262,10 @@ void Channel::setHue(double hue)
   if (hue < MIN_HUE && hue != NO_HUE)
   {
     m_hue = MIN_HUE;
-  } else if (hue > MAX_HUE) 
+  } else if (hue > MAX_HUE)
   {
     m_hue = MAX_HUE;
-  } else 
+  } else
   {
     m_hue = hue;
   }
@@ -275,12 +277,12 @@ void Channel::setOpacity(double opacity)
   if (opacity < MIN_OPACITY && opacity != AUTO_OPACITY)
   {
     m_opacity = MIN_OPACITY;
-  } else if (opacity > MAX_OPACITY) 
+  } else if (opacity > MAX_OPACITY)
   {
     m_opacity = MAX_OPACITY;
-  } else 
+  } else
   {
-    m_opacity = opacity;    
+    m_opacity = opacity;
   }
 }
 
@@ -290,12 +292,12 @@ void Channel::setSaturation(double saturation)
   if (saturation < MIN_SATURATION)
   {
     m_saturation = MIN_SATURATION;
-  } else if (saturation > MAX_SATURATION) 
+  } else if (saturation > MAX_SATURATION)
   {
     m_saturation = MAX_SATURATION;
-  } else 
+  } else
   {
-    m_saturation = saturation;    
+    m_saturation = saturation;
   }
 }
 
@@ -305,12 +307,12 @@ void Channel::setContrast(double contrast)
   if (contrast < MIN_CONTRAST)
   {
     m_contrast = MIN_CONTRAST;
-  } else if (contrast > MAX_CONTRAST) 
+  } else if (contrast > MAX_CONTRAST)
   {
     m_contrast = MAX_CONTRAST;
-  } else 
+  } else
   {
-    m_contrast = contrast;    
+    m_contrast = contrast;
   }
 }
 
@@ -320,12 +322,12 @@ void Channel::setBrightness(double brightness)
   if (brightness < MIN_BRIGHTNESS)
   {
     m_brightness = MIN_BRIGHTNESS;
-  } else if (brightness > MAX_BRIGHTNESS) 
+  } else if (brightness > MAX_BRIGHTNESS)
   {
     m_brightness = MAX_BRIGHTNESS;
-  } else 
+  } else
   {
-    m_brightness = brightness;    
+    m_brightness = brightness;
   }
 }
 

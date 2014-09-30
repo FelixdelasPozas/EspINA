@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -25,7 +25,6 @@
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
@@ -35,6 +34,7 @@
 #include <QAction>
 #include <QUndoStack>
 #include <QSettings>
+#include <QMessageBox>
 
 using namespace ESPINA;
 
@@ -230,6 +230,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   if (!channel)
     return;
 
+  // FIXME: merged analysis channel's don't have outputs????
+  Q_ASSERT(channel->output());
+
   auto volume = volumetricData(channel->output());
 
   NmVector3 seed;
@@ -259,12 +262,25 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     bounds = intersection(bounds, channel->bounds(), spacing);
 
     roi = ROISPtr{new ROI(bounds, spacing, origin)};
-  } else {
+  }
+  else
+  {
     roi = m_viewManager->currentROI();
   }
 
-  bool validSeed = (roi && isSegmentationVoxel<itkVolumeType>(roi, seed)) ||
-                   contains(volume->bounds(), seed);
+  auto validSeed = true;
+  if(roi != nullptr)
+  {
+    validSeed = contains(roi->bounds(), seedBounds, volume->spacing());
+
+    if(validSeed && !roi->isRectangular())
+    {
+      auto roiPixel = roi->itkImage(seedBounds);
+      validSeed = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(roiPixel->GetBufferPointer())));
+    }
+  }
+
+  validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());
 
   if (validSeed)
   {
@@ -287,25 +303,28 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     }
 
     m_executingTasks[adapter.get()] = adapter;
+    m_executingFilters[adapter.get()] = filter;
 
-    connect(adapter.get(), SIGNAL(progress(int)),
-            this,   SLOT(onTaskProgres(int)));
     connect(adapter.get(), SIGNAL(finished()),
             this,   SLOT(createSegmentation()));
 
     adapter->submit();
   }
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::onTaskProgres(int progress)
-{
+  else
+  {
+    QMessageBox box;
+    box.setWindowTitle(tr("Seed Grow Segmentation"));
+    box.setText(tr("The seed is not inside the channel or the region of interest."));
+    box.setStandardButtons(QMessageBox::Ok);
+    box.setIcon(QMessageBox::Information);
+    box.exec();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::createSegmentation()
 {
-  auto filter = dynamic_cast<FilterAdapterPtr>(sender());
+  auto filter = qobject_cast<FilterAdapterPtr>(sender());
 
   if (!filter->isAborted())
   {
@@ -330,31 +349,28 @@ void SeedGrowSegmentationTool::createSegmentation()
 
     m_viewManager->updateSegmentationRepresentations(segmentation.get());
     m_viewManager->updateViews();
+
+    auto sgsFilter = m_executingFilters[filter];
+    if(sgsFilter->isTouchingROI())
+    {
+      QMessageBox box;
+      box.setWindowTitle(tr("Seed Grow Segmentation"));
+      box.setText(tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString()));
+      box.setStandardButtons(QMessageBox::Ok);
+      box.setIcon(QMessageBox::Information);
+      box.exec();
+    }
   }
 
+  m_executingFilters.remove(filter);
   m_executingTasks.remove(filter);
-
-//   m_undoStack->beginMacro(tr("Seed Grow Segmentation"));
-//    m_undoStack->push(new SeedGrowSegmentationCommand(channel,
-//                                                      seed,
-//                                                      voiExtent,
-//                                                      m_threshold->lowerThreshold(),
-//                                                      m_threshold->upperThreshold(),
-//                                                      m_settings->closing(),
-//                                                      m_viewManager->activeTaxonomy(),
-//                                                      m_model,
-//                                                      m_viewManager,
-//                                                      createdSegmentations));
-//    m_model->emitSegmentationAdded(createdSegmentations);
-//    m_undoStack->endMacro();
-   //m_selectorSwitch->setEnabled(true);
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::onCategoryChanged(CategoryAdapterSPtr category)
 {
-
-  if (m_settings->applyCategoryROI()) {
+  if (m_settings->applyCategoryROI())
+  {
     QVariant xSize = category->property(Category::DIM_X());
     QVariant ySize = category->property(Category::DIM_Y());
     QVariant zSize = category->property(Category::DIM_Z());

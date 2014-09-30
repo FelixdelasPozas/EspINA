@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -22,9 +22,12 @@
 #ifndef ESPINA_COLOR_ENGINE_MENU_H
 #define ESPINA_COLOR_ENGINE_MENU_H
 
-#include <QMenu>
+// ESPINA
 #include <Support/ViewManager.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
+
+// Qt
+#include <QMenu>
 
 namespace ESPINA
 {
@@ -33,17 +36,42 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit ColorEngineMenu(ViewManagerSPtr vm, const QString &title, QWidget *parent = 0);
+    /** \brief ColorEngineMenu class constructor.
+     * \param[in] vm, view manager smart pointer.
+     * \param[in] title, title of the color engine.
+     * \param[in] parent, QObject parent raw pointer.
+     *
+     */
+    explicit ColorEngineMenu(ViewManagerSPtr vm, const QString &title, QWidget *parent = nullptr);
+
+    /** \brief ColorEngineMenu class virtual destructor.
+     *
+     */
     virtual ~ColorEngineMenu();
 
-    ColorEngineSPtr engine() const 
+    /** \brief Returns current color engine.
+     *
+     */
+    ColorEngineSPtr engine() const
     {return m_engine;}
 
+    /** \brief Adds a color engine to the menu.
+     * \param[in] title, name of the color engine.
+     * \param[in] engine, color engine smart pointer of the engine.
+     *
+     */
     void addColorEngine(const QString &title, ColorEngineSPtr engine);
 
+    /** \brief Restores user settings for the menu.
+     *
+     */
     void restoreUserSettings();
 
   protected slots:
+  	/** \brief Activates/Deactivates the color engine of the QAction passed as parameter.
+  	 * \param[in] action, QAction raw pointer.
+  	 *
+  	 */
     void setColorEngine(QAction *action);
 
   signals:

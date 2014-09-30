@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,8 +19,8 @@
  *
  */
 
+// ESPINA
 #include "ChannelReader.h"
-
 #include <EspinaConfig.h>
 #include <Filters/VolumetricStreamReader.h>
 #include <Core/Factory/CoreFactory.h>
@@ -40,7 +40,6 @@
 using namespace ESPINA;
 using namespace ESPINA::IO;
 
-
 const Filter::Type VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStreamReader";
 const Filter::Type ESPINA_1_3_2_CHANNEL_READER = "Channel Reader";
 
@@ -57,7 +56,7 @@ FilterTypeList ChannelReader::providedFilters() const
 //------------------------------------------------------------------------
 FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
 {
-  if (filter != VOLUMETRIC_STREAM_READER 
+  if (filter != VOLUMETRIC_STREAM_READER
    && filter != ESPINA_1_3_2_CHANNEL_READER) throw Unknown_Filter_Exception();
 
   return FilterSPtr{new VolumetricStreamReader(inputs, filter, scheduler)};
@@ -121,19 +120,20 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
   analysis->add(sample);
 
   auto filter = factory->createFilter<VolumetricStreamReader>(InputSList(), VOLUMETRIC_STREAM_READER);
+
 //   if (file.fileName().contains(".tif"))
 //   {
 //     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 //     using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
-// 
+//
 //     VolumeReader::Pointer reader = VolumeReader::New();
 //     reader->SetFileName(file.absoluteFilePath().toUtf8().data());
 //     reader->Update();
-// 
+//
 //     TemporalStorageSPtr storage = filter->storage();
-// 
+//
 //     file = QFileInfo(storage->absoluteFilePath(file.baseName() + ".mhd"));
-// 
+//
 //     VolumeWriter::Pointer writer = VolumeWriter::New();
 //     writer->SetFileName(file.absoluteFilePath().toUtf8().data());
 //     writer->SetInput(reader->GetOutput());

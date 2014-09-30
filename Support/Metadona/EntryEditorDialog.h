@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,6 +22,8 @@
 #ifndef ESPINA_ENTRY_EDITOR_DIALOG_H
 #define ESPINA_ENTRY_EDITOR_DIALOG_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <QDialog>
 
 #include <Support/ui_EntryEditorDialog.h>
@@ -31,7 +33,7 @@
 
 namespace ESPINA
 {
-  class EntryEditorDialog
+  class EspinaSupport_EXPORT EntryEditorDialog
   : public QDialog
   , private Ui::EntryEditorDialog
   {

@@ -29,18 +29,33 @@
 #ifndef ESPINA_FETCH_BEHAVIOUR_H
 #define ESPINA_FETCH_BEHAVIOUR_H
 
+#include "Core/EspinaCore_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Output.h>
 
+// Qt
 #include <QXmlStreamReader>
 
 namespace ESPINA {
 
-  class FetchBehaviour
+  class EspinaCore_EXPORT FetchBehaviour
   {
-  public:
-    virtual ~FetchBehaviour() {};
+		public:
+  		/** \brief Class FetchBehaviour class virtual destructor.
+  		 *
+  		 */
+			virtual ~FetchBehaviour()
+			{};
 
-    virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info) = 0;
+  		/** \brief Loads the data from disk and set the data into the given output.
+  		 * \param[inout] output, output object smart pointer.
+  		 * \param[in] storage, temporal storage where the files are.
+  		 * \param[in] prefix, prefix of the data files.
+  		 * \param[in] info, xml data that specifies the type of data to fetch.
+  		 *
+  		 */
+			virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info) = 0;
   };
 
   using FetchBehaviourSPtr = std::shared_ptr<FetchBehaviour>;

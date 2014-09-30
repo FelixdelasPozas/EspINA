@@ -1,18 +1,30 @@
 /*
- * ZoomTool.cpp
- *
- *  Created on: Nov 14, 2012
- *      Author: Felix de las Pozas Alvarez
- */
 
-#include "ZoomArea.h"
+    Copyright (C) 2014 Felix de las Pozas Alvarez <@>
+
+    This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 // ESPINA
+#include "ZoomArea.h"
+#include <GUI/View/Widgets/Zoom/ZoomSelectionWidget.h>
 
 // Qt
 #include <QPixmap>
 #include <QAction>
-#include <GUI/View/Widgets/Zoom/ZoomSelectionWidget.h>
 
 using namespace ESPINA;
 
@@ -27,7 +39,7 @@ ZoomArea::ZoomArea(ViewManagerSPtr viewManager)
   m_zoomArea->setCheckable(true);
 
   connect(m_zoomArea, SIGNAL(triggered(bool)),
-          this,       SLOT(activateTool(bool)));//, Qt::QueuedConnection); Jorge: @Felix Need to be connected?
+          this,       SLOT(activateTool(bool)));
 
   connect(m_zoomHandler.get(), SIGNAL(eventHandlerInUse(bool)),
           this,                SLOT(activateTool(bool)));

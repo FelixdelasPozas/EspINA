@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,7 +21,7 @@
 #define ESPINA_ORTHOGONAL_ROI_H
 
 // ESPINA
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
@@ -38,17 +38,16 @@ namespace ESPINA
   class ROISettings;
   class ROIToolsGroup;
 
-  /// Volume Of Interest Toolbar
   class OrthogonalROITool
   : public Tool
   {
     Q_OBJECT
   public:
-    /* \brief OrthogonalROITool class constructor.
-     * \param[in] model       Analysis model adapter
-     * \param[in] viewManager Application view manager.
-     * \param[in] undoStack   Application qt undo stack.
-     * \param[in] toolGroup   ROIToolsGroup pointer that contains ROI accumulator.
+    /** \brief OrthogonalROITool class constructor.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] toolGroup, ROIToolsGroup raw pointer that contains ROI accumulator.
      */
     explicit OrthogonalROITool(ROISettings     *settings,
                                ModelAdapterSPtr model,
@@ -56,43 +55,59 @@ namespace ESPINA
                                QUndoStack      *undoStack,
                                ROIToolsGroup   *toolgroup);
 
-    /* \brief OrthogonalROITool class virtual destructor.
+    /** \brief OrthogonalROITool class virtual destructor.
      *
      */
     virtual ~OrthogonalROITool();
 
-    /* \brief Implements Tool::setEnabled(bool).
+    /** \brief Implements Tool::setEnabled(bool).
      *
      */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements Tool::enabled().
+    /** \brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /* \brief Implements Tool::actions().
+    /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
-    /** \brief
-     *  Returns true if the Orthogonal widget has been placed
+    /** \brief Returns true if the Orthogonal widget has been placed
+     *
      */
     bool isDefined() const;
 
+    /** \brief Removes the current widget.
+     *
+     */
     void cancelWidget();
 
   signals:
     void roiDefined();
 
   protected slots:
+  	/** \brief Modifies the tool and activates/deactivates the event handler for this tool.
+  	 * \param[in] value, true to activate tool and eventhandler, false to deactivate event handler.
+  	 */
     void activateEventHandler(bool value);
 
+    /** \brief Activates/Deactivates the tool and commits the current ROI if deactivated.
+     * \param[in] value, true to activate the tool.
+     */
     void activateTool(bool value);
 
-    void defineROI(Selector::Selection);
+    /** \brief Defines a new ROI based on the selection.
+     * \param[in] selection, selection containing the active channel and selected voxel.
+     *
+     */
+    void defineROI(Selector::Selection selection);
 
+    /** \brief Modifies the application ROI with the current ROI of the tool.
+     *
+     */
     void commitROI();
 
   private:

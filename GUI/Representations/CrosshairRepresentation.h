@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -25,7 +25,7 @@
 
 // ESPINA
 #include "Representation.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/Spatial.h>
 #include <GUI/View/RenderView.h>
 
@@ -50,8 +50,6 @@ namespace ESPINA
   class RenderView;
   class CrosshairRenderer;
 
-  using VolumeSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
-
   class EspinaGUI_EXPORT CrosshairRepresentation
   :public Representation
   {
@@ -59,56 +57,146 @@ namespace ESPINA
       static const Representation::Type TYPE;
 
     public:
-      explicit CrosshairRepresentation(VolumeSPtr data,
+      /** \brief CrosshairRepresentation class constructor.
+       * \param[in] data, volumetric data smart pointer of the data to represent.
+       * \param[in] view, renderview raw pointer the representation will be shown.
+       *
+       */
+      explicit CrosshairRepresentation(DefaultVolumetricDataSPtr data,
                                        RenderView *view);
-      virtual ~CrosshairRepresentation() {};
 
-      virtual void setBrightness(double value);
+      /** \brief CrosshairRepresentation class virtual destructor.
+       *
+       */
+      virtual ~CrosshairRepresentation()
+      {};
 
-      virtual void setContrast(double value);
-
+      /** \brief Implements Representation::settingsWidget().
+       *
+       */
       virtual RepresentationSettings *settingsWidget();
 
-      virtual void setColor(const QColor &color);
+      /** \brief Overrides Representation::setBrightness().
+       *
+       */
+      virtual void setBrightness(double value) override;
 
-      virtual void setOpacity(double value);
+      /** \brief Overrides Representation::setContrast().
+       *
+       */
+      virtual void setContrast(double value) override;
 
+      /** \brief Overrides Representation::setColor()
+       *
+       */
+      virtual void setColor(const QColor &color) override;
+
+      /** \brief Overrides Representation::setOpacity().
+       *
+       */
+      virtual void setOpacity(double value) override;
+
+      /** \brief Implements Representation::isInside() const.
+       *
+       */
       virtual bool isInside(const NmVector3 &point) const;
 
+      /** \brief Implements Representation::canRenderOnView() const.
+       *
+       */
       virtual RenderableView canRenderOnView() const
       { return Representation::RENDERABLEVIEW_VOLUME; }
 
+      /** \brief Implements Representation::hasActor() const.
+       *
+       */
       virtual bool hasActor(vtkProp *actor) const;
 
+      /** \brief Implements Representation::updateRepresentation().
+       *
+       */
       virtual void updateRepresentation();
 
+      /** \brief Implements Representation::getActors().
+       *
+       */
       virtual QList<vtkProp*> getActors();
 
+      /** \brief Implements Representation::crosshairDependent() const.
+       *
+       */
       virtual bool crosshairDependent() const
       { return true; }
 
-      void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
-      void setCrosshair(NmVector3 point);
-      void setPlanePosition(Plane plane, Nm dist);
+      /** \brief Implements Representation::needUpdate().
+       *
+       */
+      virtual bool needUpdate() const
+      { return m_lastUpdatedTime != m_data->lastModified(); }
 
-      bool tiling()              { return m_tiling; }
-      void setTiling(bool value) { m_tiling = value; }
+      /** \brief Set the colors of the representation crosshair.
+       * \param[in] axialColor, vector of doubles with the r,g,b components of the color.
+       * \param[in] coronalColor, vector of doubles with the r,g,b components of the color.
+       * \param[in] sagittalColor, vector of doubles with the r,g,b components of the color.
+       *
+       */
+      void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
+
+      /** \brief Sets the crosshair position in the representation.
+       * \param[in] point, crosshair point.
+       */
+      void setCrosshair(NmVector3 point);
+
+      /** \brief Moves one of the planes of the crosshair to the specified position.
+       * \param[in] plane, plane to move.
+       * \param[in] pos, new position.
+       */
+      void setPlanePosition(Plane plane, Nm pos);
+
+      /** \brief Returns true if the plane is a tile.
+       *
+       */
+      bool tiling()
+      { return m_tiling; }
+
+      /** \brief Sets the representation as part of the tiling procedure.
+       * \param[in] value, true to set as a tile false otherwise.
+       *
+       */
+      void setTiling(bool value)
+      { m_tiling = value; }
 
     protected:
+      /** \brief Implements Representation::cloneImplementation(View2D*).
+       *
+       */
       virtual RepresentationSPtr cloneImplementation(View2D *view)
       { return RepresentationSPtr(); }
 
+      /** \brief Implements Representation::cloneImplementation(View3D*).
+       *
+       */
       virtual RepresentationSPtr cloneImplementation(View3D *view);
 
-    virtual void updateVisibility(bool visible);
+      /** \brief Implements Representation::updateVisibility().
+       *
+       */
+      virtual void updateVisibility(bool visible);
 
     private:
+      /** \brief Helper method to set the view of the representation.
+       * \param[in] view, RenderView raw pointer.
+       *
+       */
+      void setView(RenderView *view)
+      { m_view = view; };
+
+      /** \brief Helper method to initilize the vtk pipeline.
+       *
+       */
       void initializePipeline();
 
-    private:
-      void setView(RenderView *view) { m_view = view; };
-
-      VolumeSPtr m_data;
+      DefaultVolumetricDataSPtr m_data;
 
       using ExporterType = itk::ImageToVTKImageFilter<itkVolumeType>;
 

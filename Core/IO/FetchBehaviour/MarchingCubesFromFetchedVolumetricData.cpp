@@ -17,7 +17,7 @@
 
 // ESPINA
 #include "MarchingCubesFromFetchedVolumetricData.h"
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -30,7 +30,7 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CamerasMenu::CamerasMenu(ViewManagerSPtr vm, QWidget *parent)
-  : QMenu(parent)
+  : QMenu{parent}
   , m_viewManager(vm)
   {
     m_save = new QAction(QString("Save..."), this);
@@ -47,7 +47,7 @@ namespace ESPINA
     setTitle("Camera positions");
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(activate(QAction *)), Qt::QueuedConnection);
   }
-  
+
   //-----------------------------------------------------------------------------
   CamerasMenu::~CamerasMenu()
   {
@@ -55,7 +55,7 @@ namespace ESPINA
     delete m_save;
     delete m_load;
   }
-  
+
   //-----------------------------------------------------------------------------
   void CamerasMenu::loadPositions(CameraPositionsList list)
   {
@@ -115,7 +115,7 @@ namespace ESPINA
 
     m_load->addAction(action);
   }
-  
+
   //-----------------------------------------------------------------------------
   void CamerasMenu::activate(QAction *action)
   {

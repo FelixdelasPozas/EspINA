@@ -26,7 +26,7 @@
  * 
  */
 #include <Core/EspinaTypes.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
 
 using namespace std;

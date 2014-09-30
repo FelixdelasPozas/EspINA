@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ActionSelectorWidget.h"
+
+// Qt
 #include <QMenu>
 
+//------------------------------------------------------------------------
 ActionSelectorWidget::ActionSelectorWidget(QWidget* parent)
-: QToolButton(parent)
-, m_actions(new QMenu())
+: QToolButton{parent}
+, m_actions  {new QMenu()}
 {
   m_selectedAction = nullptr;
   setCheckable(true);

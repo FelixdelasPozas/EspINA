@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -31,13 +31,22 @@
 #include <Settings/View2D/View2DSettingsPanel.h>
 #include <Settings/View3D/View3DSettingsPanel.h>
 
-
-namespace ESPINA {
+namespace ESPINA
+{
 
   class DefaultViewSettingsPanel
   : public SettingsPanel
   {
   public:
+ 		/** \brief DefaultViewSettingsPanel class constructor.
+ 		 * \param[in] viewXY, raw pointer of the XY view.
+ 		 * \param[in] viewXZ, raw pointer of the XZ view.
+ 		 * \param[in] viewYZ, raw pointer of the YZ view.
+ 		 * \param[in] view3D, raw pointer of the 3D view.
+ 		 * \param[in] renderers, list of renderer smart pointers.
+ 		 * \param[in] menu, raw pointer of the renderers menu.
+		 *
+ 		 */
     explicit DefaultViewSettingsPanel(View2D *viewXY,
                                       View2D* viewXZ,
                                       View2D* viewYZ,
@@ -45,22 +54,43 @@ namespace ESPINA {
                                       RendererSList renderers,
                                       RenderersMenu *menu);
 
-    virtual const QString shortDescription()
+    /** \brief Overrides SettingsPanel::shortDescription().
+     *
+     */
+    virtual const QString shortDescription() override
     { return QObject::tr("View"); }
 
-    virtual const QString longDescription()
+    /** \brief Overrides SettingsPanel::longDescription().
+     *
+     */
+    virtual const QString longDescription() override
     { return QObject::tr("%1").arg(shortDescription()); }
 
-    virtual const QIcon icon()
+    /** \brief Overrides SettingsPanel::icon().
+     *
+     */
+    virtual const QIcon icon() override
     {return QIcon(":/espina/show_all.svg");}
 
-    virtual void acceptChanges();
+    /** \brief Overrides SettingsPanel::acceptChanges().
+     *
+     */
+    virtual void acceptChanges() override;
 
-    virtual void rejectChanges();
+    /** \brief Overrides SettingsPanel::rejectChanges().
+     *
+     */
+    virtual void rejectChanges() override;
 
-    virtual bool modified() const;
+    /** \brief Overrides SettingsPanel::modified().
+     *
+     */
+    virtual bool modified() const override;
 
-    virtual SettingsPanelPtr clone();
+    /** \brief Overrides SettingsPanel::clone().
+     *
+     */
+    virtual SettingsPanelPtr clone() override;
 
   private:
     View2D *m_viewXY;

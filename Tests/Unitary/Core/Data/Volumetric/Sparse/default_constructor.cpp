@@ -26,7 +26,7 @@
  * 
  */
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
 #include <Core/Utils/Spatial.h>
 
 using namespace ESPINA;

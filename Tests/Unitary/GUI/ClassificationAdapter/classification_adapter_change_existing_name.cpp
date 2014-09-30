@@ -45,12 +45,13 @@ int classification_adapter_change_existing_name( int argc, char** argv )
   CategoryAdapterSPtr level1 = classification.createCategory(name1);
   CategoryAdapterSPtr level2 = classification.createCategory(name2);
 
-  try {
+  try
+  {
     level2->setName(name1);
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
     error = true;
-  } catch (Category::AlreadyDefinedCategoryException e) {
-
+  } catch (Category::AlreadyDefinedCategoryException &e)
+  {
   }
 
   return error;

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,10 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ViewManager.h"
-#include "ToolGroup.h"
-
 // ESPINA
+#include "ViewManager.h"
+#include "Widgets/ToolGroup.h"
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
@@ -437,14 +436,14 @@ void ViewManager::setCrosshairVisibility(bool value)
 //   foreach(View2D *view, m_sliceViews)
 //     view->addSliceSelectors(widget, selectors);
 // }
-// 
+//
 // //----------------------------------------------------------------------------
 // void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
 // {
 //   foreach(View2D *view, m_sliceViews)
 //     view->removeSliceSelectors(widget);
 // }
-// 
+//
 
 //----------------------------------------------------------------------------
 void ViewManager::setColorEngine(ColorEngineSPtr engine)

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,7 +18,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPIN_ADD_SEGMENTATION_H
 #define ESPIN_ADD_SEGMENTATION_H
 
@@ -36,20 +35,39 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
+  	/** \brief AddSegmentations class constructor.
+  	 * \param[in] segmentation, smart pointer of the segmentation adapter to add.
+  	 * \param[in] samples, list of sample adapter smart pointer related to the segmentation.
+  	 * \param[in] model, model adapter smart pointer.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit AddSegmentations(SegmentationAdapterSPtr segmentation,
                               SampleAdapterSList      samples,
                               ModelAdapterSPtr        model,
                               QUndoCommand           *parent = nullptr);
 
+  	/** \brief AddSegmentations class constructor.
+  	 * \param[in] segmentations, list of smart pointers of the segmentation adapters to add.
+  	 * \param[in] samples, list of sample adapter smart pointer related to the segmentations.
+  	 * \param[in] model, model adapter smart pointer.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit AddSegmentations(SegmentationAdapterSList segmentations,
                               SampleAdapterSList       samples,
                               ModelAdapterSPtr         model,
                               QUndoCommand            *parent = nullptr);
-    virtual void redo();
-    virtual void undo();
 
-  private:
-    SampleAdapterSList findSamplesUsingInputChannels(SegmentationAdapterSPtr segmentation);
+    /** \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
+
+    /** \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
     SampleAdapterSList m_samples;

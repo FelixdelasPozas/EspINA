@@ -32,13 +32,13 @@
 
 using namespace ESPINA;
 
-
 const QString                        SegmentationTags::TYPE = "SegmentationTags";
 const SegmentationExtension::InfoTag SegmentationTags::TAGS = "Tags";
+QStringList SegmentationTags::s_availableTags;
 
 //------------------------------------------------------------------------
 SegmentationTags::SegmentationTags(const InfoCache &infoCache)
-: SegmentationExtension(infoCache)
+: SegmentationExtension{infoCache}
 {
 }
 
@@ -50,7 +50,6 @@ SegmentationTags::~SegmentationTags()
 //------------------------------------------------------------------------
 void SegmentationTags::onExtendedItemSet(Segmentation* item)
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -110,7 +109,7 @@ void SegmentationTags::removeTag(const QString &tag)
 //------------------------------------------------------------------------
 void SegmentationTags::setTags(const QStringList &tags)
 {
-  m_tags.clear(); 
+  m_tags.clear();
 
   addTags(tags);
 }
@@ -133,27 +132,16 @@ void SegmentationTags::addTagImplementation(const QString &tag)
 //------------------------------------------------------------------------
 void SegmentationTags::updateAvailableTags()
 {
+  QStringList tags;
 
+  for(auto entry: m_infoCache.values())
+  {
+  	if(!entry.isValid())
+  		continue;
+
+  	tags << entry.toStringList();
+	}
+
+  tags.removeDuplicates();
+ 	s_availableTags = tags;
 }
-
-// //------------------------------------------------------------------------
-// void SegmentationTags::updateAvailableTags()
-// {
-//   QStringList tags;
-// 
-//   foreach(CacheEntry<ExtensionData> entry, s_cache)
-//   {
-//     if (!entry.Dirty)
-//     {
-//       tags << entry.Data.Tags;
-//     }
-//   }
-// 
-//   tags.removeDuplicates();
-// 
-//   if (tags.toSet() != s_availableTags.toSet())
-//   {
-//     s_availableTags = tags;
-//     TagModel.setStringList(s_availableTags);
-//   }
-// }

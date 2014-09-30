@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,27 +22,39 @@
 #ifndef ESPINA_CATEGORY_SELECTOR_DIALOG_H
 #define ESPINA_CATEGORY_SELECTOR_DIALOG_H
 
-#include <QDialog>
+#include "GUI/EspinaGUI_Export.h"
 
-#include "GUI/ui_CategorySelectorDialog.h"
+// ESPINA
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
+#include "GUI/ui_CategorySelectorDialog.h"
+
+// Qt
+#include <QDialog>
 
 namespace ESPINA {
 
-  class CategorySelectorDialog
+  class EspinaGUI_EXPORT CategorySelectorDialog
   : public QDialog
   , private Ui::CategorySelectorDialog
   {
-  public:
-    explicit CategorySelectorDialog(ModelAdapterSPtr model,
-                                    QWidget*         parent = 0,
-                                    Qt::WindowFlags  f = 0);
+		public:
+			/** \brief CategorySelectorDialog class constructor.
+			 * \param[in] model, model adapter smart pointer.
+			 * \param[in] parent, raw pointer of the parent of this dialog.
+			 * \param[in] f, window flags.
+			 */
+			explicit CategorySelectorDialog(ModelAdapterSPtr model,
+																			QWidget*         parent = nullptr,
+																			Qt::WindowFlags  f = 0);
 
-    CategoryAdapterSList categories();
+			/** \brief Returns the list of category adapter smart pointers.
+			 *
+			 */
+			CategoryAdapterSList categories();
 
-  private:
-    ModelAdapterSPtr m_model;
+		private:
+			ModelAdapterSPtr m_model;
   };
 }
 

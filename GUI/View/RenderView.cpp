@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,8 +21,8 @@
 // ESPINA
 #include "RenderView.h"
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
@@ -61,9 +61,8 @@ RenderView::RenderView(QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
-  m_widgets.clear();
-  m_renderers.clear();
-
+	// subclasses of this one should take care of removing elements
+	// (channels, segmentations, widgets and renderers).
   delete m_view;
 }
 
@@ -106,7 +105,7 @@ void RenderView::showEvent(QShowEvent *event)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::takeSnapshot(vtkSmartPointer<vtkRenderer> renderer)
+void RenderView::takeSnapshot()
 {
   QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
   fileDialog.setObjectName("SaveSnapshotFileDialog");
@@ -181,7 +180,7 @@ double RenderView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
 
-  foreach(ChannelAdapterPtr  channel, m_channelStates.keys())
+  for(auto channel: m_channelStates.keys())
     if (channel->isVisible())
       numVisibleRep++;
 
@@ -198,7 +197,6 @@ void RenderView::resetSceneBounds()
   m_sceneBounds[0] = m_sceneBounds[2] = m_sceneBounds[4] = 0;
   m_sceneBounds[1] = m_sceneBounds[3] = m_sceneBounds[5] = 0;
 }
-
 
 //-----------------------------------------------------------------------------
 void RenderView::setSegmentationsVisibility(bool visible)
@@ -321,7 +319,7 @@ void RenderView::remove(ChannelAdapterPtr channel)
   m_channelStates.remove(channel);
 
   updateSceneBounds();
-  updateChannelsOpactity();
+  updateChannelsOpacity();
 }
 
 //-----------------------------------------------------------------------------
@@ -352,7 +350,7 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
   bool outputChanged     = false;
 
   if (visibilityChanged)
-    updateChannelsOpactity();
+    updateChannelsOpacity();
 
   double hue = -1.0 == channel->hue() ? 0 : channel->hue();
   double sat = -1.0 == channel->hue() ? 0 : channel->saturation();

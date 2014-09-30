@@ -32,7 +32,7 @@ namespace ESPINA
       class SASInformationFetcher;
 
     public:
-      /* \brief SASInformationProxy class constructor.
+      /** \brief SASInformationProxy class constructor.
        *
        */
       explicit SASInformationProxy(ModelAdapterSPtr model, SegmentationExtension::InfoTagList sasTags, SchedulerSPtr scheduler)
@@ -41,13 +41,13 @@ namespace ESPINA
       , m_sasTags       {sasTags}
       {};
 
-      /* \brief SASInformationProxy class virtual destructor.
+      /** \brief SASInformationProxy class virtual destructor.
        *
        */
       virtual ~SASInformationProxy()
       {};
 
-      /* \brief Implements QAbstractProxyModel::data()
+      /** \brief Implements QAbstractProxyModel::data()
        *
        */
       virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;

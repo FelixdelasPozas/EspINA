@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,10 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_SOURCE_FILTER_H
 #define ESPINA_SOURCE_FILTER_H
 
+#include "Filters/EspinaFilters_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Filter.h>
 
 namespace ESPINA
@@ -30,40 +32,81 @@ namespace ESPINA
   : public Filter
   {
   public:
+  	/** \brief SourceFilter class constructor.
+		 * \param[in] inputs, list of input smart pointers.
+		 * \param[in] type, SourceFilter type.
+		 * \param[in] scheduler, scheduler smart pointer.
+		 *
+  	 */
     explicit SourceFilter(InputSList    inputs,
                           Filter::Type  type,
                           SchedulerSPtr scheduler)
     : Filter(inputs, type, scheduler)
     {};
 
+    /** \brief SourceFilter class virtual destructor.
+     *
+     */
     virtual ~SourceFilter()
     {};
 
+    /** \brief Implements Persistent::restoreState().
+     *
+     */
     virtual void restoreState(const State &state)
     {};
 
+    /** \brief Implements Persistent::state().
+     *
+     */
     virtual State state() const
     { return State(); }
 
+    /** \brief Adds an output to the filter.
+     * \param[in] id, id of the output.
+     * \param[in] output, Output object smart pointer.
+     *
+     */
     void addOutput(Output::Id id, OutputSPtr output);
 
   protected:
+    /** \brief Implements Filter::saveFilterSnapshot().
+     *
+     */
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
+    /** \brief Implements Filter::needUpdate().
+     *
+     */
     virtual bool needUpdate() const
     { return false; }
 
+    /** \brief Implements Filter::needUpdate(oid).
+     *
+     */
     virtual bool needUpdate(Output::Id oId) const;
 
+    /** \brief Implements Filter::execute().
+     *
+     */
     virtual void execute()
     { execute(0); }
 
+    /** \brief Implements Filter::execute(id).
+     *
+     */
     virtual void execute(Output::Id oId);
 
+    /** \brief Implements Filter::ignoreStorageContent().
+     *
+     */
     virtual bool ignoreStorageContent() const
     { return false; }
 
+    /** \brief Implements Filter::invalidateEditedRegions().
+     *
+     */
     virtual bool invalidateEditedRegions()
     { return false; }
   };
@@ -72,4 +115,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // FREEFORMSOURCE_H
+#endif // ESPINA_SOURCE_FILTER_H

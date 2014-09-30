@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -38,30 +38,32 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief CheckAnalysis class constructor.
+      /** \brief CheckAnalysis class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] mode, model adapter smart pointer.
        *
        */
       explicit CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model);
 
-      /* \brief CheckAnalysis virtual destructor.
+      /** \brief CheckAnalysis virtual destructor.
        *
        */
       virtual ~CheckAnalysis()
       {};
 
-      /* \brief Returns the problem list. To be called after the dialog has executed.
+      /** \brief Returns the problem list. To be called after the dialog has executed.
        *
        */
       ProblemList getProblems()
       { return m_problems; }
 
     protected slots:
-      /* \brief Remove task from the list add increase progress bar.
+      /** \brief Remove task from the list add increase progress bar.
        *
        */
       void finishedTask();
 
-      /* \brief Adds a problem to the problem list.
+      /** \brief Adds a problem to the problem list.
        *
        */
       void addProblem(struct Problem problem);
@@ -78,7 +80,10 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief CheckTask class constructor.
+      /** \brief CheckTask class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] item, neuro item adapter smart pointer that will be tested.
+       * \param[in] model, model adapter smart pointer containing the item.
        *
        */
       explicit CheckTask(SchedulerSPtr scheduler, NeuroItemAdapterSPtr item, ModelAdapterSPtr model)
@@ -90,51 +95,51 @@ namespace ESPINA
         setDescription("Checking " + item->data().toString()); // for debugging, the user will never see this
       }
 
-      /* \brief CheckTask class virtual destructor.
+      /** \brief CheckTask class virtual destructor.
        *
        */
       virtual ~CheckTask()
       {}
 
     signals:
-      /* \brief Signal emitted when a problem has been found with the item being checked.
+      /** \brief Signal emitted when a problem has been found with the item being checked.
        * \param[out] struct Problem, problem description.
        */
       void problem(struct Problem) const;
 
     protected:
-      /* \brief Implements Task::run().
+      /** \brief Implements Task::run().
        *
        */
-      virtual void run();
+      virtual void run() override;
 
     private:
-      /* \brief Checks if a segmentation volume is empty, emits problem(struct Problem) if it is.
+      /** \brief Checks if a segmentation volume is empty, emits problem(struct Problem) if it is.
        *
        */
       void checkVolumeIsEmpty() const;
 
-      /* \brief Checks if a segmentation mesh is empty, emits problem(struct Problem) if it is.
+      /** \brief Checks if a segmentation mesh is empty, emits problem(struct Problem) if it is.
        *
        */
       void checkMeshIsEmpty() const;
 
-      /* \brief Checks if the segmentation has a channel assigned as a location, emits problem(struct Problem) if not.
+      /** \brief Checks if the segmentation has a channel assigned as a location, emits problem(struct Problem) if not.
        *
        */
       void checkSegmentationHasChannel() const;
 
-      /* \brief Checks segmentation relations and emits problem(struct Problem) for each problem found.
+      /** \brief Checks segmentation relations and emits problem(struct Problem) for each problem found.
        *
        */
       void checkSegmentationRelations() const;
 
-      /* \brief Checks channel relations and emits problem(struct Problem) for each problem found.
+      /** \brief Checks channel relations and emits problem(struct Problem) for each problem found.
        *
        */
       void checkChannelRelations() const;
 
-      /* \brief Checks ViewItem output for existence and emits problem(struct Problem) for each problem found.
+      /** \brief Checks ViewItem output for existence and emits problem(struct Problem) for each problem found.
        * Returns true if no problem are found, and false otherwise.
        *
        */

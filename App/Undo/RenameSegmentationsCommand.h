@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -34,11 +34,25 @@ namespace ESPINA
   : public QUndoCommand
   {
     public:
+  		/** \brief RenameSegmentationsCommand class constructor.
+  		 * \param[in] renames, map of segmentation names and new names.
+  		 */
       explicit RenameSegmentationsCommand(QMap<SegmentationAdapterPtr, QString> renames);
+
+      /** \brief RenameSegmentationsCommand class virtual destructor.
+       *
+       */
       virtual ~RenameSegmentationsCommand();
 
-      virtual void redo();
-      virtual void undo();
+      /** \brief Overrides QUndoCommand::redo().
+       *
+       */
+      virtual void redo() override;
+
+      /** \brief Overrides QUndoCommand::undo().
+       *
+       */
+      virtual void undo() override;
 
     private:
       QMap<SegmentationAdapterPtr, QString> m_renames;
