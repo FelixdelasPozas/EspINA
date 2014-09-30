@@ -202,6 +202,9 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   Q_ASSERT(contains(input->bounds(), m_seed));
 
+  emit progress(0);
+  if (!canExecute()) return;
+
   Bounds seedBounds;
   for (int i = 0; i < 3; ++i)
   {
@@ -246,7 +249,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 
   auto connectedFilter = ConnectedFilterType::New();
 
-  ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 75);
+  ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
 
   if(m_ROI != nullptr)
     connectedFilter->SetInput(extractFilter->GetOutput());
@@ -261,7 +264,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   connectedFilter->ReleaseDataFlagOn();
   connectedFilter->Update();
 
-  emit progress(75);
+  emit progress(50);
   if (!canExecute()) return;
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();
@@ -270,7 +273,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   {
     auto closingFilter = ClosingFilterType::New();
 
-    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 75, 90);
+    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 50, 75);
 
      //     qDebug() << "Closing Segmentation";
     StructuringElementType ball;
@@ -286,7 +289,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
     output = closingFilter->GetOutput();
   }
 
-  emit progress(90);
+  emit progress(75);
   if (!canExecute()) return;
 
   if (!m_outputs.contains(0))
@@ -295,9 +298,6 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   }
 
   Bounds bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
-
-  emit progress(100);
-
   NmVector3 spacing = m_inputs[0]->output()->spacing();
 
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
@@ -316,6 +316,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevRadius  = m_radius;
 
   m_touchesROI = computeTouchesROIValue();
+
+  emit progress(100);
 }
 
 //----------------------------------------------------------------------------
@@ -354,11 +356,17 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 	}
 	else
 	{
+	  // the mask algorithm requires at least a voxel more to function correctly.
 	  Bounds extendedBounds{boundsSeg[0]-spacing[0], boundsSeg[1]+spacing[0],
 	                        boundsSeg[2]-spacing[1], boundsSeg[3]+spacing[1],
 	                        boundsSeg[4]-spacing[2], boundsSeg[5]+spacing[2]};
 
-	  auto intersectionBounds = intersection(extendedBounds, m_ROI->bounds(), spacing);
+	  // later the bounds are constrained to the channel bounds.
+	  auto input = volumetricData(m_inputs[0]->output());
+	  auto validBounds = intersection(extendedBounds, input->bounds(), spacing);
+
+	  // correct intersection bounds.
+	  auto intersectionBounds = intersection(validBounds, m_ROI->bounds(), spacing);
 	  auto roiImage = m_ROI->itkImage(intersectionBounds);
 
 	  auto region = roiImage->GetLargestPossibleRegion();

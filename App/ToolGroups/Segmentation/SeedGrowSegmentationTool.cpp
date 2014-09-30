@@ -268,7 +268,19 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     roi = m_viewManager->currentROI();
   }
 
-  bool validSeed = (isSegmentationVoxel<itkVolumeType>(roi, seed)) && contains(volume->bounds(), seed);
+  auto validSeed = true;
+  if(roi != nullptr)
+  {
+    validSeed = contains(roi->bounds(), seedBounds, volume->spacing());
+
+    if(validSeed && !roi->isRectangular())
+    {
+      auto roiPixel = roi->itkImage(seedBounds);
+      validSeed = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(roiPixel->GetBufferPointer())));
+    }
+  }
+
+  validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());
 
   if (validSeed)
   {
@@ -343,7 +355,7 @@ void SeedGrowSegmentationTool::createSegmentation()
     {
       QMessageBox box;
       box.setWindowTitle(tr("Seed Grow Segmentation"));
-      box.setText(tr("The segmentation \"%1\" is touching the ROI.").arg(segmentation->data().toString()));
+      box.setText(tr("The segmentation \"%1\" is incomplete because\nis touching the ROI or an edge of the channel.").arg(segmentation->data().toString()));
       box.setStandardButtons(QMessageBox::Ok);
       box.setIcon(QMessageBox::Information);
       box.exec();
