@@ -1,10 +1,9 @@
 /*
- *    
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -19,48 +18,42 @@
  */
 
 
-#ifndef MODIFYFILTERPANEL_H
-#define MODIFYFILTERPANEL_H
+#ifndef ESPINA_HISTORY_DOCK_H
+#define ESPINA_HISTORY_DOCK_H
 
-#include <Core/Interfaces/IDockWidget.h>
-
-#include <Core/Model/EspinaModel.h>
+#include <Support/Widgets/DockWidget.h>
 
 class QUndoStack;
 
 namespace ESPINA
 {
-  class ViewManager;
-
   class HistoryDock
-  : public IDockWidget
+  : public DockWidget
   {
     Q_OBJECT
   public:
-    explicit HistoryDock(QUndoStack *undoStack,
-                             ViewManager *vm,
-                             QWidget* parent = 0);
+    explicit HistoryDock(ModelAdapterSPtr model,
+                         ViewManagerSPtr  viewManager,
+                         QUndoStack      *undoStack,
+                         QWidget         *parent = 0);
     virtual ~HistoryDock();
-
-    virtual void initDockWidget(EspinaModel *model,
-                                QUndoStack  *undoStack,
-                                ViewManager *viewManager);
 
     virtual void showEvent(QShowEvent* e);
 
     virtual void reset(); // slot
 
   protected slots:
-    void updatePannel();
+    void updateDock();
 
   private:
-    QUndoStack   *m_undoStack;
-    ViewManager  *m_viewManager;
+    ModelAdapterSPtr m_baseModel;
+    ViewManagerSPtr  m_viewManager;
+    QUndoStack      *m_undoStack;
 
-    FilterSPtr      m_filter;
-    SegmentationPtr m_seg;
+    FilterAdapterSPtr      m_filter;
+    SegmentationAdapterPtr m_segmentation;
   };
 
 } // namespace ESPINA
 
-#endif // MODIFYFILTERPANEL_H
+#endif // ESPINA_HISTORY_DOCK_H

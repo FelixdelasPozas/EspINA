@@ -20,11 +20,14 @@
 
 // ESPINA
 #include "SegmentationInspector.h"
+#include <Docks/SegmentationHistory/EmptyHistory.h>
+#include <Docks/SegmentationHistory/DefaultHistory.h>
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/FilterHistory.h>
 
 // Qt
 #include <QSettings>
@@ -54,7 +57,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
 , m_viewManager  {viewManager}
 , m_undoStack    {undoStack}
 , m_view         {new View3D(true)}
-, m_filterArea   {new QScrollArea(this)}
+, m_historyScrollArea   {new QScrollArea(this)}
 , m_tabularReport{new TabularReport(factory, viewManager)}
 {
   setupUi(this);
@@ -81,38 +84,44 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
 
   defaultRenderers = settings.value(RENDERERS).toStringList();
   RendererSList renderers;
+
   for(auto name: defaultRenderers)
+  {
     if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
+    {
       renderers << m_viewManager->cloneRenderer(name);
+    }
+  }
 
   m_view->setRenderers(renderers);
   m_view->setColorEngine(m_viewManager->colorEngine());
-  m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  m_view->setMinimumWidth(250);
   m_view->resetCamera();
   m_view->updateView();
 
-  SegmentationExtension::InfoTagList tags;
-  tags << tr("Name") << tr("Category");
+  QVBoxLayout *viewportLayout = new QVBoxLayout();
+  viewportLayout->addWidget(m_view);
+  viewportLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
-  m_filterArea->setWidget(new QWidget());
-  m_filterArea->widget()->setMinimumWidth(250);
-  m_filterArea->setMinimumWidth(250);
+  m_historyScrollArea->setWidget(new EmptyHistory());
+  m_historyScrollArea->widget()->setMinimumWidth(250);
+  m_historyScrollArea->setMinimumWidth(150);
 
-  QHBoxLayout *upperLayout = new QHBoxLayout();
-  upperLayout->addWidget(m_view, 1,0);
-  upperLayout->addWidget(m_filterArea, 0,0);
+  QVBoxLayout *historyLayout = new QVBoxLayout();
+  historyLayout->addWidget(m_historyScrollArea);
 
   m_tabularReport->setModel(m_model);
   m_tabularReport->setFilter(m_segmentations);
   m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport->setMinimumHeight(0);
 
-  QHBoxLayout *lowerLayout = new QHBoxLayout();
-  lowerLayout->insertWidget(0, m_tabularReport);
+  QHBoxLayout *informationLayout = new QHBoxLayout();
+  informationLayout->addWidget(m_tabularReport);
 
-  m_upperWidget->setLayout(upperLayout);
-  m_lowerWidget->setLayout(lowerLayout);
-  m_splitter->setChildrenCollapsible(true);
+  m_viewport   ->setLayout(viewportLayout);
+  m_history    ->setLayout(historyLayout);
+  m_information->setLayout(informationLayout);
 
   QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
   if (!geometry.isEmpty())
@@ -122,9 +131,17 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentatio
   if (!state.isEmpty())
     m_splitter->restoreState(state);
 
+  SegmentationExtension::InfoTagList tags;
+  tags << tr("Name") << tr("Category");
+
   m_viewManager->registerView(m_view);
 
+  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+          this,                             SLOT(updateSelection()));
+
   generateWindowTitle();
+
+  updateSelection();
 }
 
 //------------------------------------------------------------------------
@@ -169,7 +186,7 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 
   if(channels.isEmpty())
   {
-  	qWarning() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
+    qWarning() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
     return;
   }
 
@@ -392,4 +409,39 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   m_view->resetCamera();
 
   event->acceptProposedAction();
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::updateSelection()
+{
+  auto activeHistory = m_historyScrollArea->widget();
+
+  if (activeHistory)
+  {
+    delete activeHistory;
+  }
+
+  auto selection = m_viewManager->selection()->segmentations();
+
+  if (selection.size() == 1)
+  {
+    auto segmentation = selection.first();
+    auto delegate     = segmentation->filter()->filterDelegate();
+    auto history      = std::dynamic_pointer_cast<FilterHistory>(delegate);
+
+    if (history)
+    {
+      activeHistory = history->createWidget(m_viewManager, m_undoStack);
+    }
+    else
+    {
+      activeHistory = new DefaultHistory(segmentation);
+    }
+  }
+  else
+  {
+    activeHistory = new EmptyHistory();
+  }
+
+  m_historyScrollArea->setWidget(activeHistory);
 }

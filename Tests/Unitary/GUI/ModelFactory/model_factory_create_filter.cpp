@@ -49,7 +49,7 @@ int model_factory_create_filter(int argc, char** argv)
   auto filter = factory.createFilter<DummyFilter>(InputSList(), type);
 
   filter->get()->dummyMethod();
-  filter->setFilterInspector(FilterInspectorSPtr());
+  filter->setFilterDelegate(FilterDelegateSPtr());
   filter->output(0);
 
   return error;

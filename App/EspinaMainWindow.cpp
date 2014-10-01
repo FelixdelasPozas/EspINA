@@ -25,6 +25,7 @@
 #include "Dialogs/RawInformation/RawInformationDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
+#include "Docks/SegmentationHistory/HistoryDock.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
@@ -306,6 +307,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_viewManager, m_undoStack, this);
   m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
+
+  auto segmentationHistory = new HistoryDock(m_model, m_viewManager, m_undoStack, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 
   defaultActiveTool->showTools(true);
 

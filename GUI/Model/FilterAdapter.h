@@ -28,11 +28,9 @@
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Output.h>
 #include <Core/MultiTasking/Task.h>
+#include <GUI/Model/FilterDelegate.h>
 
-namespace ESPINA
-{
-  class FilterInspector;
-  using FilterInspectorSPtr = std::shared_ptr<FilterInspector>;
+namespace ESPINA {
 
   class Representation;
   using RepresentationSPtr = std::shared_ptr<Representation>;
@@ -55,18 +53,21 @@ namespace ESPINA
     virtual ~FilterAdapterInterface()
     {}
 
-    /** \brief Sets the filter inspector (history) for the filter.
-     * \param[in] inspector, filter inspector smart pointer.
+    /** \brief Sets the filter delegate for the filter.
+     *
+     * Filter delegates can be used to update filter parameters or to
+     * display filter information
+     * \param[in] delegate filter inspector smart pointer.
      *
      */
-    void setFilterInspector(FilterInspectorSPtr inspector)
-    { m_inspector = inspector; }
+    void setFilterDelegate(FilterDelegateSPtr delegate)
+    { m_delegate = delegate; }
 
-    /** \brief Returns the filter's inspector smart pointer.
+    /** \brief Returns the filter delegate smart pointer.
      *
      */
-    FilterInspectorSPtr filterInspector()
-    { return m_inspector; }
+    FilterDelegateSPtr filterDelegate()
+    { return m_delegate; }
 
     /** \brief Returns true if the filter has been aborted.
      *
@@ -87,7 +88,7 @@ namespace ESPINA
     virtual void submit() = 0;
 
     /** \brief Updates the specified output.
-     * \param[in] id, output id.
+     * \param[in] id output id.
      *
      */
     virtual void update(Output::Id id) = 0;
@@ -100,7 +101,7 @@ namespace ESPINA
     virtual void update() = 0;
 
     /** \brief Returns the specified output smart pointer.
-     * \param[in] id, output id.
+     * \param[in] id output id.
      *
      */
     virtual OutputSPtr output(Output::Id id) = 0;
@@ -123,7 +124,7 @@ namespace ESPINA
     virtual FilterSPtr adaptedFilter() const = 0;
 
   private:
-    FilterInspectorSPtr m_inspector;
+    FilterDelegateSPtr m_delegate;
 
     friend class ModelFactory;
   };
