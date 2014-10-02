@@ -36,6 +36,7 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/RectangularRegion/RectangularRegion.h
   View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
+  View/Widgets/Skeleton/SkeletonWidget.h
   View/Widgets/Ruler/RulerWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
@@ -145,6 +146,8 @@ set (GUI_SOURCES
   View/Widgets/Ruler/RulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget3D.cpp
+  View/Widgets/Skeleton/SkeletonWidget.cpp
+  View/Widgets/Skeleton/vtkSkeletonWidget.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
   Widgets/ActionSelector.cpp
   Widgets/ActionSelectorWidget.cpp

@@ -36,12 +36,12 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
                              QWidget         *parent)
 : ToolGroup          {viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent}
 , m_viewManager      {viewManager}
-, m_enabled          {true}
-, m_accumulator      {nullptr}
-, m_accumulatorWidget{nullptr}
 , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
 , m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
 , m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
+, m_enabled          {true}
+, m_accumulator      {nullptr}
+, m_accumulatorWidget{nullptr}
 {
   connect(m_ortogonalROITool.get(), SIGNAL(roiDefined()),
           this,                     SIGNAL(roiChanged()));

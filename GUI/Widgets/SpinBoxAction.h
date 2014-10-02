@@ -63,11 +63,23 @@ namespace ESPINA
        */
       void setSpinBoxMinimum(int value);
 
+      /** \brief Returns the minimum value for the widget's QSpinBox.
+       *
+       */
+      int getSpinBoxMinimumValue()
+      { return m_minimumValue; }
+
       /** \brief Set maximum value for widget's QSpinBox.
        * \param[in] value, new value.
        *
        */
       void setSpinBoxMaximum(int value);
+
+      /** \brief Returns the maximum value for the widget's QSpinBox.
+       *
+       */
+      int getSpinBoxMaximumValue()
+      { return m_maximumValue; }
 
       /** \brief Set value for the widget's QLabel.
        * \param[in] label, new label.

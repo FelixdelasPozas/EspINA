@@ -110,10 +110,10 @@ namespace ESPINA
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
     using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;
 
+    ViewManagerSPtr       m_viewManager;
     ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;
-    ViewManagerSPtr       m_viewManager;
 
     bool m_enabled;
 

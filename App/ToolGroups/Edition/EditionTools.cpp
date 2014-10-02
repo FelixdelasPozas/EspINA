@@ -85,7 +85,6 @@ EditionTools::EditionTools(ModelAdapterSPtr model,
   connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
           this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
 
-
   m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
   m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
 

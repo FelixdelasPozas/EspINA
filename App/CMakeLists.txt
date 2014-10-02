@@ -48,6 +48,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segmentation/SeedThreshold.h
+  ToolGroups/Skeleton/SkeletonToolGroup.h
+  ToolGroups/Skeleton/SkeletonTool.h
   ToolGroups/ViewState/ResetZoom.h
   ToolGroups/ViewState/ToggleCrosshairVisibility.h
   ToolGroups/ViewState/ToggleSegmentationsVisibility.h
@@ -136,6 +138,8 @@ set (ESPINA_SOURCES
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp
   ToolGroups/Segmentation/SegmentationTools.cpp
+  ToolGroups/Skeleton/SkeletonToolGroup.cpp
+  ToolGroups/Skeleton/SkeletonTool.cpp
   ToolGroups/ViewState/ResetZoom.cpp
   ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
   ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp

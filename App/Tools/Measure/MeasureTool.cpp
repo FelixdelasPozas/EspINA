@@ -68,12 +68,6 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  bool MeasureTool::enabled() const
-  {
-    return m_enabled;
-  }
-
-  //----------------------------------------------------------------------------
   void MeasureTool::initTool(bool value)
   {
     if (value)

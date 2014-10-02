@@ -160,7 +160,7 @@ namespace ESPINA
     virtual size_t memoryUsage() const = 0;
 
   signals:
-    void dataChanged();//former representationChanged
+    void dataChanged(); //former representationChanged
 
   protected:
     /** \brief Data class constructor.

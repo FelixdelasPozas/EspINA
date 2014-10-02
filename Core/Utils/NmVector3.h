@@ -114,7 +114,7 @@ namespace ESPINA {
 		/** \brief NmVector3 operator<< for streams.
 		 *
 		 */
-		std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const NmVector3& vector);
+		std::ostream& operator<<(std::ostream& os, const NmVector3& vector);
 
 		/** \brief NmVector3 equality operator.
 		 *

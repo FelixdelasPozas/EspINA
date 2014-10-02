@@ -105,7 +105,7 @@ namespace ESPINA
   };
 
   class vtkDistanceCommand
-  : public vtkCommand
+  : public vtkEspinaCommand
   {
     vtkTypeMacro(vtkDistanceCommand, vtkCommand);
 

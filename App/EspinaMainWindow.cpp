@@ -32,6 +32,7 @@
 #include "ToolGroups/ROI/ROITools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
+#include "ToolGroups/Skeleton/SkeletonToolGroup.h"
 #include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
@@ -298,6 +299,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(editionTools);
+
+  auto skeletonTools = new SkeletonToolGroup(m_model, m_factory, m_viewManager, m_undoStack, this);
+  registerToolGroup(skeletonTools);
 
   /*** DOCKS ***/
   auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_scheduler, m_undoStack, this);
