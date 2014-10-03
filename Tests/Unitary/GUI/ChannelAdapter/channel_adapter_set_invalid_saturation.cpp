@@ -43,7 +43,7 @@ int channel_adapter_set_invalid_saturation(int argc, char** argv )
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
 
-  FilterAdapterSPtr filter   = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
+  FilterAdapterBaseSPtr filter   = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
   ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
 
   channel->setSaturation(-0.5);

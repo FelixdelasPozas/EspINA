@@ -11,6 +11,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/FilterAdapter.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
+  Model/ViewItemAdapter.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h

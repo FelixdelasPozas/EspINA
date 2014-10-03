@@ -77,11 +77,6 @@ namespace ESPINA
      */
     virtual InputSPtr asInput() const;
 
-    /** \brief Implements ViewItemAdapter::changeOutput().
-     *
-     */
-    virtual void changeOutput(InputSPtr input);
-
     /** \brief Sets the number of the segmentation.
      * \param[in] number.
      *
@@ -175,13 +170,19 @@ namespace ESPINA
      */
     Bounds bounds() const;
 
+  protected:
+    /** \brief Implements ViewItemAdapter::changeOutput().
+     *
+     */
+    virtual void changeOutputImplementation(InputSPtr input);
+
   private:
     /** \brief SegmentationAdapter class constructor.
      * \param[in] filter, filter adapter smart pointer.
      * \param[in] segmentation, smart pointer of the segmentation to adapt.
      *
      */
-    explicit SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation);
+    explicit SegmentationAdapter(FilterAdapterBaseSPtr filter, SegmentationSPtr segmentation);
 
   private:
     SegmentationSPtr    m_segmentation;

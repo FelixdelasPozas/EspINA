@@ -60,7 +60,7 @@ int model_adapter_remove_segmentations( int argc, char** argv )
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr filter = factory->createFilter<DummyFilter>(inputs, type);
+  FilterAdapterBaseSPtr filter = factory->createFilter<DummyFilter>(inputs, type);
 
   SegmentationAdapterSList segmentations;
   segmentations << factory->createSegmentation(filter, 0)

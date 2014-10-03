@@ -233,7 +233,7 @@ namespace ESPINA
     };
     struct ImageLogicContext
     {
-      FilterAdapterSPtr           Task;
+      FilterAdapterBaseSPtr       Task;
       ImageLogicFilter::Operation Operation;
       SegmentationAdapterList     Segmentations;
     };

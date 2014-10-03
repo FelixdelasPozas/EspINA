@@ -458,7 +458,10 @@ void SegmentationSliceRepresentation::updateRepresentation()
     m_actor->SetPosition(pos);
   }
 
-  m_actor->SetVisibility(valid && isVisible());
+  if (m_actor != nullptr)
+  {
+    m_actor->SetVisibility(valid && isVisible());
+  }
 }
 
 //-----------------------------------------------------------------------------

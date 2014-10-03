@@ -81,7 +81,7 @@ int classification_proxy_add_segmentation_to_subcategory( int argc, char** argv 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr       filter          = factory.createFilter<DummyFilter>(inputs, type);
+  FilterAdapterBaseSPtr       filter          = factory.createFilter<DummyFilter>(inputs, type);
   SegmentationAdapterSPtr segmentation1   = factory.createSegmentation(filter, 0);
 
   segmentation1->setCategory(category1);

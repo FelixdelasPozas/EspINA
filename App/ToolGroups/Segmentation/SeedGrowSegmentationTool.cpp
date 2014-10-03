@@ -22,10 +22,12 @@
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
+#include "SeedGrowSegmentationHistoryWidget.h"
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/FilterHistory.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
@@ -41,8 +43,23 @@ using namespace ESPINA;
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
+class SeedGrowSegmentationHistory
+: public FilterHistory
+{
+public:
+  SeedGrowSegmentationHistory(std::shared_ptr<SeedGrowSegmentationFilter> filter)
+  : m_filter(filter) {}
+
+  virtual QWidget* createWidget(ViewManagerSPtr viewManager, QUndoStack* undoStack)
+  { return new SeedGrowSegmentationHistoryWidget(m_filter, viewManager, undoStack); }
+
+private:
+  std::shared_ptr<SeedGrowSegmentationFilter> m_filter;
+};
+
+
 //-----------------------------------------------------------------------------
-FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() const
+FilterTypeList SeedGrowSegmentationTool::SGSFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -53,9 +70,9 @@ FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() con
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList          inputs,
-                                                                    const Filter::Type& filter,
-                                                                    SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList          inputs,
+                                                              const Filter::Type& filter,
+                                                              SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
   if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
 
@@ -68,6 +85,27 @@ FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList  
   sgsFilter->setFetchBehaviour(m_fetchBehaviour);
 
   return sgsFilter;
+}
+
+//-----------------------------------------------------------------------------
+QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegates() const
+{
+  QList<Filter::Type> types;
+
+  types << SGS_FILTER << SGS_FILTER_V4;
+
+  return types;
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::SGSFactory::setDelegate(FilterAdapterBaseSPtr filter)
+throw (Unknown_Filter_Type_Exception)
+{
+  if (!(filter->type() == SGS_FILTER || filter->type() == SGS_FILTER_V4)) throw Unknown_Filter_Type_Exception();
+
+  auto sgsFilter  = adaptedFilter<SeedGrowSegmentationFilter>(filter);
+
+  filter->setFilterDelegate(FilterDelegateSPtr(new SeedGrowSegmentationHistory(sgsFilter)));
 }
 
 //-----------------------------------------------------------------------------
@@ -86,9 +124,10 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
 , m_settings        {settings}
-, m_filterFactory   {new SGSFilterFactory()}
+, m_sgsFactory      {new SGSFactory()}
 {
-  m_factory->registerFilterFactory(m_filterFactory);
+  m_factory->registerFilterFactory(m_sgsFactory);
+  m_factory->registerFilterDelegateFactory(m_sgsFactory);
 
   { // Pixel Selector
     QAction *action = new QAction(QIcon(":/espina/pixelSelector.svg"),
@@ -324,7 +363,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::createSegmentation()
 {
-  auto filter = qobject_cast<FilterAdapterPtr>(sender());
+  auto filter = qobject_cast<FilterAdapterBasePtr>(sender());
 
   if (!filter->isAborted())
   {

@@ -149,7 +149,7 @@ bool Output::isEdited() const
 {
   for(auto data: m_data)
   {
-    if (!data->get()->isEdited()) return true;
+    if (data->get()->isEdited()) return true;
   }
 
   return false;
@@ -194,6 +194,9 @@ void Output::setData(Output::DataSPtr data)
 
   m_data[type]->set(data);
   data->setOutput(this);
+
+  updateModificationTime();
+  emit modified();
 
   connect(data.get(), SIGNAL(dataChanged()),
           this, SLOT(onDataChanged()));

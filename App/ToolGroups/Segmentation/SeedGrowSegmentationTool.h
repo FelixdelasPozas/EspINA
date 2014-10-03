@@ -32,6 +32,7 @@
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/FilterDelegateFactory.h>
 
 class QUndoStack;
 namespace ESPINA
@@ -43,18 +44,26 @@ namespace ESPINA
   {
     Q_OBJECT
 
-    class SGSFilterFactory
+    class SGSFactory
     : public FilterFactory
+    , public FilterDelegateFactory
     {
-    	/** \brief Implements FilterFactory::providedFilters().
-    	 *
-    	 */
+      /** \brief Implements FilterFactory::providedFilters().
+       *
+       */
       virtual FilterTypeList providedFilters() const;
 
       /** \brief Implements FilterFactory::createFilter().
        *
        */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      /** \brief Implements FilterDelegateFactory::availableFilterDelegates().
+       *
+       */
+      virtual QList<Filter::Type> availableFilterDelegates() const;
+
+      virtual void setDelegate(FilterAdapterBaseSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
       mutable FetchBehaviourSPtr m_fetchBehaviour;
@@ -160,9 +169,10 @@ namespace ESPINA
     QMap<QAction *, SelectorSPtr> m_voxelSelectors;
     SelectorSPtr                  m_currentSelector;
 
-    FilterFactorySPtr  m_filterFactory;
-    QMap<FilterAdapterPtr, FilterAdapterSPtr> m_executingTasks;
-    QMap<FilterAdapterPtr, std::shared_ptr<SeedGrowSegmentationFilter> > m_executingFilters;
+    std::shared_ptr<SGSFactory>  m_sgsFactory;
+
+    QMap<FilterAdapterBasePtr, FilterAdapterBaseSPtr> m_executingTasks;
+    QMap<FilterAdapterBasePtr, std::shared_ptr<SeedGrowSegmentationFilter> > m_executingFilters;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

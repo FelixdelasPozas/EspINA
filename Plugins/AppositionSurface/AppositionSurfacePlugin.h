@@ -117,10 +117,10 @@ namespace ESPINA
   private:
     struct Data
     {
-      FilterAdapterSPtr adapter;
+      FilterAdapterBaseSPtr   adapter;
       SegmentationAdapterSPtr segmentation;
 
-      Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
+      Data(FilterAdapterBaseSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
       Data(): adapter{nullptr}, segmentation{nullptr} {};
     };
 
@@ -140,8 +140,8 @@ namespace ESPINA
     bool                             m_delayedAnalysis;
     SegmentationAdapterList          m_analysisSynapses;
 
-    QMap<FilterAdapterPtr, struct Data> m_executingTasks;
-    QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
+    QMap<FilterAdapterBasePtr, struct Data> m_executingTasks;
+    QMap<FilterAdapterBasePtr, struct Data> m_finishedTasks;
 
     friend class AppositionSurfaceToolGroup;
   };

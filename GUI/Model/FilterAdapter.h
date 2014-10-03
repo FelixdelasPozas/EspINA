@@ -26,6 +26,8 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
+
+#include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Output.h>
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Model/FilterDelegate.h>
@@ -42,7 +44,7 @@ namespace ESPINA {
   class RepresentationFactory;
   using RepresentationFactorySPtr = std::shared_ptr<RepresentationFactory>;
 
-  class EspinaGUI_EXPORT FilterAdapterInterface
+  class EspinaGUI_EXPORT FilterAdapterBase
   : public QObject
   {
     Q_OBJECT
@@ -50,8 +52,18 @@ namespace ESPINA {
     /** \brief FilterAdapterInterface class virtual destructor.
      *
      */
-    virtual ~FilterAdapterInterface()
+    virtual ~FilterAdapterBase()
     {}
+
+    /** \brief Returns a smart pointer to the adapted filter
+     *
+     */
+    virtual FilterSPtr genericFilter() const = 0;
+
+    /** \brief Returns the type of the adapted filter base class
+     *
+     */
+    virtual Filter::Type type() const = 0;
 
     /** \brief Sets the filter delegate for the filter.
      *
@@ -131,68 +143,78 @@ namespace ESPINA {
 
   template<class T>
   class FilterAdapter
-  : public FilterAdapterInterface
+  : public FilterAdapterBase
   {
   public:
-  	/** \brief Returns the smart pointer of the filter.
-  	 *
-  	 */
+    /** \brief Returns the smart pointer of the filter.
+     *
+     * NOTE: Change method name to filter?
+     */
     std::shared_ptr<T> get()
     { return m_filter; }
 
-  	/** \brief Implements FilterAdapterInterface::isAborted() const.
-  	 *
-  	 */
+    virtual FilterSPtr genericFilter() const
+    { return m_filter; }
+
+    /** \brief Returns the type of the filter
+     *
+     */
+    virtual Filter::Type type() const
+    { return m_filter->type(); }
+
+    /** \brief Implements FilterAdapterInterface::isAborted() const.
+     *
+     */
     virtual bool isAborted() const
     { return m_filter->isAborted(); }
 
-  	/** \brief Implements FilterAdapterInterface::hasFinished() const.
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::hasFinished() const.
+     *
+     */
     virtual bool hasFinished() const
     { return m_filter->hasFinished(); }
 
-  	/** \brief Implements FilterAdapterInterface::submit().
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::submit().
+     *
+     */
     virtual void submit()
     { Task::submit(m_filter); }
 
-  	/** \brief Implements FilterAdapterInterface::update(id).
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::update(id).
+     *
+     */
     virtual void update(Output::Id id)
     { m_filter->update(id); }
 
-  	/** \brief Implements FilterAdapterInterface::update().
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::update().
+     *
+     */
     virtual void update()
     { m_filter->update(); }
 
-  	/** \brief Implements FilterAdapterInterface::output(id).
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::output(id).
+     *
+     */
     virtual OutputSPtr output(Output::Id id)
     { return m_filter->output(id); }
 
-  	/** \brief Implements FilterAdapterInterface::numberOfOutputs().
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::numberOfOutputs().
+     *
+     */
     virtual unsigned int numberOfOutputs() const
     { return m_filter->numberOfOutputs(); }
 
   protected:
-  	/** \brief Implements FilterAdapterInterface::adaptedFilter() const.
-  	 *
-  	 */
+    /** \brief Implements FilterAdapterInterface::adaptedFilter() const.
+     *
+     */
     virtual FilterSPtr adaptedFilter() const
     { return m_filter; }
 
   private:
-  	/** \brief FilterAdapter class private constructor.
-  	 *
-  	 */
+    /** \brief FilterAdapter class private constructor.
+     *
+     */
     FilterAdapter(std::shared_ptr<T> filter)
     : m_filter{filter}
     {
@@ -212,9 +234,15 @@ namespace ESPINA {
     friend class ModelAdapter;
   };
 
-  using FilterAdapterPtr   = FilterAdapterInterface *;
-  using FilterAdapterSPtr  = std::shared_ptr<FilterAdapterInterface>;
-  using FilterAdapterSList = QList<FilterAdapterSPtr>;
+  using FilterAdapterBasePtr   = FilterAdapterBase *;
+  using FilterAdapterBaseSPtr  = std::shared_ptr<FilterAdapterBase>;
+  using FilterAdapterBaseSList = QList<FilterAdapterBaseSPtr>;
+
+  template<class T>
+  std::shared_ptr<T> adaptedFilter(FilterAdapterBaseSPtr filter)
+  {
+    return std::dynamic_pointer_cast<T>(filter->genericFilter());
+  }
 }
 
 #endif // ESPINA_FILTERADAPTER_H

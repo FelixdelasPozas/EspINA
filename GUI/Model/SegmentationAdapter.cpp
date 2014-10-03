@@ -31,7 +31,7 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-SegmentationAdapter::SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation)
+SegmentationAdapter::SegmentationAdapter(FilterAdapterBaseSPtr filter, SegmentationSPtr segmentation)
 : ViewItemAdapter(filter, segmentation)
 , m_segmentation{segmentation}
 {
@@ -49,10 +49,9 @@ InputSPtr SegmentationAdapter::asInput() const
 }
 
 //------------------------------------------------------------------------
-void SegmentationAdapter::changeOutput(InputSPtr input)
+void SegmentationAdapter::changeOutputImplementation(InputSPtr input)
 {
   m_segmentation->changeOutput(input);
-  m_representations.clear();
 }
 
 //------------------------------------------------------------------------

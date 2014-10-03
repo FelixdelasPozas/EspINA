@@ -243,7 +243,7 @@ namespace ESPINA
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    auto filter = qobject_cast<FilterAdapterPtr>(sender());
+    auto filter = qobject_cast<FilterAdapterBasePtr>(sender());
     Q_ASSERT(m_executingTasks.keys().contains(filter));
 
     if(!filter->isAborted())

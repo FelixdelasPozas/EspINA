@@ -150,7 +150,6 @@ namespace ESPINA
     ChannelAdapterList      m_channels;
 
     View3D*        m_view;
-    QScrollArea*   m_historyScrollArea;
     TabularReport* m_tabularReport;
   };
 

@@ -50,7 +50,7 @@ namespace ESPINA
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
 
-    FilterAdapterSPtr      m_filter;
+    FilterAdapterBaseSPtr      m_filter;
     SegmentationAdapterPtr m_segmentation;
   };
 

@@ -48,6 +48,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ROI/OrthogonalROITool.h
   ToolGroups/ROI/ROITools.h
   ToolGroups/Segmentation/CustomROIWidget.h
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segmentation/SeedThreshold.h
@@ -83,6 +84,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -140,6 +142,7 @@ set (ESPINA_SOURCES
   ToolGroups/ROI/OrthogonalROITool.cpp
   ToolGroups/ROI/ROITools.cpp
   ToolGroups/Segmentation/CustomROIWidget.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp

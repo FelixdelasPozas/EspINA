@@ -175,6 +175,8 @@ namespace ESPINA
     ROISPtr   m_ROI;
     bool      m_touchesROI;
   };
+
+  using SeedGrowSegmentationFilterSPtr = std::shared_ptr<SeedGrowSegmentationFilter>;
 } // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_FILTER_H

@@ -46,7 +46,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   //                 @Jorge: It is needed in order to keep the views coherent
   reset();
 
-  QMap<FilterSPtr, FilterAdapterSPtr>  filters;
+  QMap<FilterSPtr, FilterAdapterBaseSPtr>  filters;
 
   m_analysis = analysis;
 
@@ -73,7 +73,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
   for(auto channel : analysis->channels())
   {
-    FilterAdapterSPtr filter = filters.value(channel->filter(), FilterAdapterSPtr());
+    auto filter = filters.value(channel->filter(), FilterAdapterBaseSPtr());
     if (!filter)
     {
       filter = factory->adaptFilter(channel->filter());
@@ -89,7 +89,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(segmentationRoot(), 0, analysis->segmentations().size() - 1);
   for(auto segmentation : analysis->segmentations())
   {
-    FilterAdapterSPtr filter = filters.value(segmentation->filter(), FilterAdapterSPtr());
+    auto filter = filters.value(segmentation->filter(), FilterAdapterBaseSPtr());
     if (!filter)
     {
       filter = factory->adaptFilter(segmentation->filter());
@@ -201,8 +201,7 @@ void ModelAdapter::add(ChannelAdapterSList channels)
 //------------------------------------------------------------------------
 void ModelAdapter::addImplementation(SegmentationAdapterSPtr segmentation) throw(Existing_Item_Exception)
 {
-  if (m_segmentations.contains(segmentation))
-  	throw Existing_Item_Exception();
+  if (m_segmentations.contains(segmentation)) throw Existing_Item_Exception();
 
   m_analysis->add(segmentation->m_segmentation);
   m_segmentations << segmentation;

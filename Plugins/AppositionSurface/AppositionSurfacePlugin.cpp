@@ -366,7 +366,7 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::finishedTask()
 {
-  auto filter = qobject_cast<FilterAdapterPtr>(sender());
+  auto filter = qobject_cast<FilterAdapterBasePtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
 
   if(!filter->isAborted())

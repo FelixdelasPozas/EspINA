@@ -38,7 +38,7 @@ void ESPINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr
   {
     model->reset();
 
-    QMap<FilterSPtr,       FilterAdapterSPtr>       filters;
+    QMap<FilterSPtr,       FilterAdapterBaseSPtr>       filters;
     QMap<SegmentationSPtr, SegmentationAdapterSPtr> segmentations;
 
     QMap<PersistentSPtr, ItemAdapterSPtr> items;
@@ -57,7 +57,7 @@ void ESPINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr
     // Adapt channels --> adapt non adapted filters
     for(auto channel : analysis->channels())
     {
-      FilterAdapterSPtr filter = filters.value(channel->filter(), FilterAdapterSPtr());
+      auto filter = filters.value(channel->filter(), FilterAdapterBaseSPtr());
       if (!filter)
       {
         filter = factory->adaptFilter(channel->filter());
@@ -70,7 +70,7 @@ void ESPINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr
     // Adapt segmentation --> adapt non adapted filters
     for(auto segmentation : analysis->segmentations())
     {
-      FilterAdapterSPtr filter = filters.value(segmentation->filter(), FilterAdapterSPtr());
+      auto filter = filters.value(segmentation->filter(), FilterAdapterBaseSPtr());
       if (!filter)
       {
         filter = factory->adaptFilter(segmentation->filter());
