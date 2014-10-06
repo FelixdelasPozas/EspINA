@@ -19,3 +19,24 @@
 #include "FilterDelegateFactory.h"
 
 using namespace ESPINA;
+
+//------------------------------------------------------------------------
+void FilterDelegateFactory::registerFilterDelegateFactory(SpecificFilterDelegateFactorySPtr factory)
+{
+  for (auto filterType : factory->availableFilterDelegates())
+  {
+    m_factories[filterType] = factory;
+  }
+}
+
+//------------------------------------------------------------------------
+FilterDelegateSPtr FilterDelegateFactory::createDelegate(SegmentationAdapterPtr segmentation)
+throw (Unknown_Filter_Type_Exception)
+{
+  auto filter = segmentation->filter();
+  auto type   = filter->type();
+
+  if (!m_factories.contains(type)) throw Unknown_Filter_Type_Exception();
+
+  return m_factories[type]->createDelegate(filter);
+}

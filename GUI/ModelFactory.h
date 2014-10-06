@@ -24,10 +24,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include "GUI/Model/FilterAdapter.h"
 #include "Model/SegmentationAdapter.h"
 #include "Representations/RepresentationFactoryGroup.h"
-#include "FilterDelegateFactory.h"
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
@@ -77,10 +75,6 @@ namespace ESPINA
      */
     void registerFilterFactory (FilterFactorySPtr  factory);
 
-    /** \brief Register a filter delegate factory
-     * \param[in] factory filter delegate factory
-     */
-    void registerFilterDelegateFactory(FilterDelegateFactorySPtr factory);
 
     /** \brief Registers a channel extension factory in the factory.
      * \param[in] factory channel extension factory smart pointer.
@@ -148,17 +142,9 @@ namespace ESPINA
      *
      */
     template<typename T>
-    std::shared_ptr<FilterAdapter<T>> createFilter(InputSList inputs, Filter::Type type) const
+    std::shared_ptr<T> createFilter(InputSList inputs, Filter::Type type) const
     {
-      std::shared_ptr<T> filter{m_factory->createFilter<T>(inputs, type)};
-      std::shared_ptr<FilterAdapter<T>> adapted(new FilterAdapter<T>(filter));
-
-      if (m_filterDelegateFactories.contains(type))
-      {
-        m_filterDelegateFactories[type]->setDelegate(adapted);
-      }
-
-      return adapted;
+      return m_factory->createFilter<T>(inputs, type);
     }
 
     /** \brief Creates and returns a channel adapter given the filter and the output id.
@@ -166,7 +152,7 @@ namespace ESPINA
      * \param[in] output id of the output of the given filter.
      *
      */
-    ChannelAdapterSPtr createChannel(FilterAdapterBaseSPtr filter, Output::Id output) const;
+    ChannelAdapterSPtr createChannel(FilterSPtr filter, Output::Id output) const;
 
     /** \brief Creates and returns a channel extension of the given type.
      * \param[in] type channel extension type.
@@ -179,7 +165,7 @@ namespace ESPINA
      * \param[in] output id of the output of the given filter.
      *
      */
-    SegmentationAdapterSPtr createSegmentation(FilterAdapterBaseSPtr filter, Output::Id output) const;
+    SegmentationAdapterSPtr createSegmentation(FilterSPtr filter, Output::Id output) const;
 
     /** \brief Creates and returns a segmentation extension of the given type.
      * \param[in] type segmentation extension type.
@@ -193,25 +179,19 @@ namespace ESPINA
      */
     SampleAdapterSPtr adaptSample(SampleSPtr sample) const;
 
-    /** \brief Returns the adapter for the given filter.
-     * \param[in] filter filter smart pointer to adapt.
-     *
-     */
-    FilterAdapterBaseSPtr  adaptFilter(FilterSPtr filter) const;
-
     /** \brief Returns the adapter for the given channel and filter adapter.
      * \param[in] filter filter adapter smart pointer.
      * \param[in] channel channel smart pointer to adapt.
      *
      */
-    ChannelAdapterSPtr adaptChannel(FilterAdapterBaseSPtr filter, ChannelSPtr channel) const;
+    ChannelAdapterSPtr adaptChannel(ChannelSPtr channel) const;
 
     /** \brief Returns the adapter for the given segmentation and filter adapter.
      * \param[in] filter filter adapter smart pointer.
      * \param[in] segmentation segmentation smart pointer to adapt.
      *
      */
-    SegmentationAdapterSPtr adaptSegmentation(FilterAdapterBaseSPtr filter, SegmentationSPtr segmentation) const;
+    SegmentationAdapterSPtr adaptSegmentation(SegmentationSPtr segmentation) const;
 
     /** \brief Returns the channel representation factory smart pointer.
      *
@@ -237,7 +217,6 @@ namespace ESPINA
     RepresentationFactoryGroupSPtr m_channelRepresentationFactory;
     RepresentationFactoryGroupSPtr m_segmentationRepresentationFactory;
 
-    QMap<Filter::Type, FilterDelegateFactorySPtr> m_filterDelegateFactories;
     QMap<QString, AnalysisReaderList> m_readerExtensions;
     AnalysisReaderList m_readers;
   };

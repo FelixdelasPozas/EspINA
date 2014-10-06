@@ -28,7 +28,6 @@
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/ClassificationAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
-#include "GUI/Model/FilterAdapter.h"
 #include <GUI/ModelFactory.h>
 
 // Qt

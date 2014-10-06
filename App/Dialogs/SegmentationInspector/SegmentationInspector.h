@@ -24,6 +24,7 @@
 // ESPINA
 #include "ui_SegmentationInspector.h"
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
 // Qt
 #include <QWidget>
@@ -52,13 +53,14 @@ namespace ESPINA
      * \param[in] parent parent widget pointer.
      * \param[in] flags flags of the dialog.
      */
-    SegmentationInspector(SegmentationAdapterList  segmentations,
-                          ModelAdapterSPtr         model,
-                          ModelFactorySPtr         factory,
-                          ViewManagerSPtr          viewManager,
-                          QUndoStack*              undoStack,
-                          QWidget*                 parent = nullptr,
-                          Qt::WindowFlags          flags  = 0);
+    SegmentationInspector(SegmentationAdapterList   segmentations,
+                          ModelAdapterSPtr          model,
+                          ModelFactorySPtr          factory,
+                          FilterDelegateFactorySPtr delegateFactory,
+                          ViewManagerSPtr           viewManager,
+                          QUndoStack*               undoStack,
+                          QWidget*                  parent = nullptr,
+                          Qt::WindowFlags           flags  = 0);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -142,12 +144,15 @@ namespace ESPINA
 
   private:
 
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack*      m_undoStack;
+    ModelAdapterSPtr          m_model;
+    FilterDelegateFactorySPtr m_delegateFactory;
+    ViewManagerSPtr           m_viewManager;
+    QUndoStack*               m_undoStack;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;
+
+    SegmentationAdapterPtr  m_selectedSegmentation;
 
     View3D*        m_view;
     TabularReport* m_tabularReport;

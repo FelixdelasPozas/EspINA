@@ -55,6 +55,7 @@ set (Support_SOURCES
   ${METADONA_SOURCES}
   Factory/DefaultChannelExtensionFactory.cpp
   Factory/DefaultSegmentationExtensionFactory.cpp
+  Factory/FilterDelegateFactory.cpp
   Readers/ChannelReader.cpp
   Utils/FactoryUtils.cpp
   Utils/xlsUtils.cpp

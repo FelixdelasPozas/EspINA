@@ -24,6 +24,7 @@
 // ESPINA
 #include "SegmentationExplorer.h"
 #include <GUI/Widgets/CheckableTreeView.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
 // Qt
 #include <QItemDelegate>
@@ -69,11 +70,12 @@ namespace ESPINA
      * \param[in] undoStack, QUndoStack object raw pointer.
      *
      */
-    explicit Layout(CheckableTreeView *view,
-                    ModelAdapterSPtr  model,
-                    ModelFactorySPtr  factory,
-                    ViewManagerSPtr   viewManager,
-                    QUndoStack        *undoStack);
+    explicit Layout(CheckableTreeView        *view,
+                    ModelAdapterSPtr          model,
+                    ModelFactorySPtr          factory,
+                    FilterDelegateFactorySPtr delegateFactory,
+                    ViewManagerSPtr           viewManager,
+                    QUndoStack               *undoStack);
 
     /** \brief Layout class virtual destructor.
      *
@@ -167,16 +169,16 @@ namespace ESPINA
     void showSegmentationInformation(SegmentationAdapterList segmentations);
 
     /** \brief Returns the list of QModelIndex that are childs of the specified QModelIndex.
-     * \param[in] index, const QModelIndex reference of the parent.
-     * \param[in] recursive, true if the return value includes the childs of the childs.
+     * \param[in] index const QModelIndex reference of the parent.
+     * \param[in] recursive true if the return value includes the childs of the childs.
      *
      */
     QModelIndexList indices(const QModelIndex &index, bool recursive=false);
 
   protected slots:
-		/** \brief Deletes the pointer of the segmentation inspector from the pointers dialog QMap.
-		 *
-		 */
+    /** \brief Deletes the pointer of the segmentation inspector from the pointers dialog QMap.
+     *
+     */
     void releaseInspectorResources(SegmentationInspector *inspector);
 
     /** \brief Closes the inspector dialogs of the segmentation and/or removes the segmentation from the opened inspectors.
@@ -185,10 +187,11 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    ModelAdapterSPtr          m_model;
+    ModelFactorySPtr          m_factory;
+    FilterDelegateFactorySPtr m_delegateFactory;
+    ViewManagerSPtr           m_viewManager;
+    QUndoStack               *m_undoStack;
 
     CheckableTreeView *m_view;
 

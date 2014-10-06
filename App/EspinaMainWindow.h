@@ -41,6 +41,7 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
 // Qt
 #include <QMainWindow>
@@ -58,12 +59,12 @@ class QShortcut;
 
 namespace ESPINA
 {
-	class SeedGrowSegmentationSettings;
-	class ROISettings;
-	class MainToolBar;
-	class ColorEngineMenu;
-	template class VolumetricRenderer<itkVolumeType>;
-	template class VolumetricGPURenderer<itkVolumeType>;
+  class SeedGrowSegmentationSettings;
+  class ROISettings;
+  class MainToolBar;
+  class ColorEngineMenu;
+  template class VolumetricRenderer<itkVolumeType>;
+  template class VolumetricGPURenderer<itkVolumeType>;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -75,7 +76,7 @@ namespace ESPINA
 
   public:
     /** \brief EspinaMainWindow class constructor.
-     * \param[in] plugins, list of ESPINA plugins to load.
+     * \param[in] plugins list of ESPINA plugins to load.
      *
      */
     explicit EspinaMainWindow(QList<QObject *> &plugins);
@@ -86,9 +87,9 @@ namespace ESPINA
     virtual ~EspinaMainWindow();
 
   public slots:
-		/** \brief Close current analysis.
-		 *
-		 */
+    /** \brief Close current analysis.
+     *
+     */
     bool closeCurrentAnalysis();
 
     /** \brief Opens an analysis from the recent list.
@@ -102,7 +103,7 @@ namespace ESPINA
     void openAnalysis();
 
     /** \brief Opens a list of analyses.
-     * \param[in] files, list of files to open.
+     * \param[in] files list of files to open.
      *
      */
     void openAnalysis(const QStringList files);
@@ -118,13 +119,13 @@ namespace ESPINA
     void addRecentToAnalysis();
 
     /** \brief Adds a list of analysis to the current analysis.
-      \param[in] files, list of files to add.
+     *      \param[in] files list of files to add.
      *
      */
     void addToAnalysis(const QStringList files);
 
     /** \brief Merges a list of analysis into a sigle analysis.
-     * \param[in] files, list of files to merge.
+     * \param[in] files list of files to merge.
      *
      */
     AnalysisSPtr loadedAnalysis(const QStringList files);
@@ -140,14 +141,14 @@ namespace ESPINA
     void saveSessionAnalysis();
 
   private slots:
-		/** \brief Updates application status bar.
-		 * \param[in] msg, message to show.
-		 *
-		 */
+    /** \brief Updates application status bar.
+     * \param[in] msg message to show.
+     *
+     */
     void updateStatus(QString msg);
 
     /** \brief Updates the tooltip of the menu.
-     * \param[in] action, action that contains the tooltip.
+     * \param[in] action action that contains the tooltip.
      *
      */
     void updateTooltip(QAction *action);
@@ -191,13 +192,13 @@ namespace ESPINA
     { emit analysisClosed(); }
 
     /** \brief Updates the undo action text in the menu.
-     * \param[in] text, text of the operation to update.
+     * \param[in] text text of the operation to update.
      *
      */
     void undoTextChanged(QString text);
 
     /** \brief Updates the redo action text in the menu.
-     * \param[in] text, text of the operation to update.*
+     * \param[in] text text of the operation to update.*
      *
      */
     void redoTextChanged(QString text);
@@ -229,7 +230,7 @@ namespace ESPINA
 
   protected:
     /** \brief Overrides QWidget::closeEvent.
-     * \param[in] event, close event to manage.
+     * \param[in] event close event to manage.
      *
      */
     virtual void closeEvent(QCloseEvent *event) override;
@@ -246,7 +247,7 @@ namespace ESPINA
     void createActivityMenu();
 
     /** \brief Creates dynamic menu.
-     * \param[in] entry, pair of <QStringList, Action *> object to add.
+     * \param[in] entry pair of <QStringList, Action *> object to add.
      *
      */
     void createDynamicMenu(MenuEntry entry);
@@ -264,13 +265,13 @@ namespace ESPINA
     void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
 
     /** \brief Adds a tool group to the application.
-     * \param[in] tools, tool group raw pointer.
+     * \param[in] tools tool group raw pointer.
      *
      */
     void registerToolGroup(ToolGroupPtr tools);
 
     /** \brief Loads a list of plugins in the application.
-     * \param[in] plugins, list of plugins to load.
+     * \param[in] plugins list of plugins to load.
      *
      */
     void loadPlugins(QList<QObject *> &plugins);
@@ -287,12 +288,13 @@ namespace ESPINA
 
   private:
     // ESPINA
-    SchedulerSPtr    m_scheduler;
-    ModelFactorySPtr m_factory;
-    AnalysisSPtr     m_analysis;
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    SchedulerSPtr             m_scheduler;
+    ModelFactorySPtr          m_factory;
+    FilterDelegateFactorySPtr m_filterDelegateFactory;
+    AnalysisSPtr              m_analysis;
+    ModelAdapterSPtr          m_model;
+    ViewManagerSPtr           m_viewManager;
+    QUndoStack               *m_undoStack;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;
@@ -329,7 +331,7 @@ namespace ESPINA
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
-    QList<QPluginLoader *> m_plugins;
+    QList<QPluginLoader *>    m_plugins;
 
     MenuState m_menuState;
 

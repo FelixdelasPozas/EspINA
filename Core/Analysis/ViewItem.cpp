@@ -85,6 +85,8 @@ void ViewItem::changeOutput(InputSPtr input)
     analysis()->addIfNotExists(m_input->filter());
     analysis()->addFilterContentRelation(m_input->filter(), this);
   }
+
+  onOutputModified();
 }
 
 //------------------------------------------------------------------------

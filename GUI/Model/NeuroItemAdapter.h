@@ -23,7 +23,6 @@
 #define ESPINA_NEURO_ITEM_ADAPTER_H
 
 // ESPINA
-#include "FilterAdapter.h"
 #include <GUI/Representations/Representation.h>
 #include "GUI/Model/ItemAdapter.h"
 #include <Core/Analysis/NeuroItem.h>

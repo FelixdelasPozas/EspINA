@@ -46,8 +46,6 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   //                 @Jorge: It is needed in order to keep the views coherent
   reset();
 
-  QMap<FilterSPtr, FilterAdapterBaseSPtr>  filters;
-
   m_analysis = analysis;
 
   // Adapt classification
@@ -73,13 +71,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
   for(auto channel : analysis->channels())
   {
-    auto filter = filters.value(channel->filter(), FilterAdapterBaseSPtr());
-    if (!filter)
-    {
-      filter = factory->adaptFilter(channel->filter());
-    }
-
-    auto adapted = factory->adaptChannel(filter, channel);
+    auto adapted = factory->adaptChannel(channel);
     m_channels << adapted;
     adapted->setModel(this);
   }
@@ -89,13 +81,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(segmentationRoot(), 0, analysis->segmentations().size() - 1);
   for(auto segmentation : analysis->segmentations())
   {
-    auto filter = filters.value(segmentation->filter(), FilterAdapterBaseSPtr());
-    if (!filter)
-    {
-      filter = factory->adaptFilter(segmentation->filter());
-    }
-
-    auto adapted = factory->adaptSegmentation(filter, segmentation);
+    auto adapted = factory->adaptSegmentation(segmentation);
 
     auto categoy = segmentation->category();
 

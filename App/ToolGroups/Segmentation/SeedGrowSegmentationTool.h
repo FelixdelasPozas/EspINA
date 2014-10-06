@@ -25,14 +25,14 @@
 // ESPINA
 #include "SeedThreshold.h"
 #include "CustomROIWidget.h"
-#include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
+#include <GUI/ModelFactory.h>
+#include <GUI/Selectors/Selector.h>
 #include <GUI/Widgets/ActionSelector.h>
 #include <GUI/Widgets/CategorySelector.h>
-#include <GUI/Selectors/Selector.h>
-#include <GUI/ModelFactory.h>
-#include <GUI/FilterDelegateFactory.h>
+#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/ViewManager.h>
+#include <Support/Widgets/Tool.h>
 
 class QUndoStack;
 namespace ESPINA
@@ -46,24 +46,18 @@ namespace ESPINA
 
     class SGSFactory
     : public FilterFactory
-    , public FilterDelegateFactory
+    , public SpecificFilterDelegateFactory
     {
       /** \brief Implements FilterFactory::providedFilters().
        *
        */
       virtual FilterTypeList providedFilters() const;
 
-      /** \brief Implements FilterFactory::createFilter().
-       *
-       */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
-      /** \brief Implements FilterDelegateFactory::availableFilterDelegates().
-       *
-       */
       virtual QList<Filter::Type> availableFilterDelegates() const;
 
-      virtual void setDelegate(FilterAdapterBaseSPtr filter) throw (Unknown_Filter_Type_Exception);
+      virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
       mutable FetchBehaviourSPtr m_fetchBehaviour;
@@ -80,6 +74,7 @@ namespace ESPINA
     explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                       ModelAdapterSPtr              model,
                                       ModelFactorySPtr              factory,
+                                      FilterDelegateFactorySPtr     filterDelegateFactory,
                                       ViewManagerSPtr               viewManager,
                                       QUndoStack*                   undoStack);
 
@@ -171,8 +166,8 @@ namespace ESPINA
 
     std::shared_ptr<SGSFactory>  m_sgsFactory;
 
-    QMap<FilterAdapterBasePtr, FilterAdapterBaseSPtr> m_executingTasks;
-    QMap<FilterAdapterBasePtr, std::shared_ptr<SeedGrowSegmentationFilter> > m_executingFilters;
+    QMap<FilterPtr, FilterSPtr> m_executingTasks;
+    QMap<FilterPtr, SeedGrowSegmentationFilterSPtr> m_executingFilters;
   };
 
   using SeedGrowSegmentationToolSPtr = std::shared_ptr<SeedGrowSegmentationTool>;

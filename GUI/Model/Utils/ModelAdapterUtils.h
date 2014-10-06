@@ -34,13 +34,13 @@ namespace ESPINA
 {
   namespace ModelAdapterUtils
   {
-  	/** \brief Resets the model and adapts the elements in the analysis.
-  	 * \param[out] model, model adapter smart pointer.
-  	 * \param[in] analysis, analysis smart pointer.
-  	 * \param[in] factory, model factory smart pointer.
-  	 *
-  	 */
-    void EspinaGUI_EXPORT setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory);
+//   	/** \brief Resets the model and adapts the elements in the analysis.
+//   	 * \param[out] model, model adapter smart pointer.
+//   	 * \param[in] analysis, analysis smart pointer.
+//   	 * \param[in] factory, model factory smart pointer.
+//   	 *
+//   	 */
+//     void EspinaGUI_EXPORT setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory);
 
   	/** \brief Returns the volumetric data associated with an output.
   	 * \param[in] output, smart pointer of the output with associated volumetric data.

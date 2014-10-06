@@ -47,14 +47,14 @@ class SeedGrowSegmentationHistory
 : public FilterHistory
 {
 public:
-  SeedGrowSegmentationHistory(std::shared_ptr<SeedGrowSegmentationFilter> filter)
+  SeedGrowSegmentationHistory(SeedGrowSegmentationFilterSPtr filter)
   : m_filter(filter) {}
 
   virtual QWidget* createWidget(ViewManagerSPtr viewManager, QUndoStack* undoStack)
   { return new SeedGrowSegmentationHistoryWidget(m_filter, viewManager, undoStack); }
 
 private:
-  std::shared_ptr<SeedGrowSegmentationFilter> m_filter;
+  SeedGrowSegmentationFilterSPtr m_filter;
 };
 
 
@@ -98,20 +98,21 @@ QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegat
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::SGSFactory::setDelegate(FilterAdapterBaseSPtr filter)
+FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(FilterSPtr filter)
 throw (Unknown_Filter_Type_Exception)
 {
   if (!(filter->type() == SGS_FILTER || filter->type() == SGS_FILTER_V4)) throw Unknown_Filter_Type_Exception();
 
-  auto sgsFilter  = adaptedFilter<SeedGrowSegmentationFilter>(filter);
+  auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
 
-  filter->setFilterDelegate(FilterDelegateSPtr(new SeedGrowSegmentationHistory(sgsFilter)));
+  return FilterDelegateSPtr(new SeedGrowSegmentationHistory(sgsFilter));
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    ModelAdapterSPtr              model,
                                                    ModelFactorySPtr              factory,
+                                                   FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    ViewManagerSPtr               viewManager,
                                                    QUndoStack*                   undoStack)
 : m_model           {model}
@@ -127,7 +128,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_sgsFactory      {new SGSFactory()}
 {
   m_factory->registerFilterFactory(m_sgsFactory);
-  m_factory->registerFilterDelegateFactory(m_sgsFactory);
+  filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
 
   { // Pixel Selector
     QAction *action = new QAction(QIcon(":/espina/pixelSelector.svg"),
@@ -329,8 +330,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     inputs << channel->asInput();
 
-    auto adapter = m_factory->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
-    auto filter  = adapter->get();
+    auto filter = m_factory->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
 
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
@@ -341,13 +341,13 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
       filter->setROI(roi->clone());
     }
 
-    m_executingTasks[adapter.get()] = adapter;
-    m_executingFilters[adapter.get()] = filter;
+    m_executingTasks[filter.get()] = filter;
+    m_executingFilters[filter.get()] = filter;
 
-    connect(adapter.get(), SIGNAL(finished()),
-            this,   SLOT(createSegmentation()));
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(createSegmentation()));
 
-    adapter->submit();
+    Task::submit(filter);
   }
   else
   {
@@ -363,7 +363,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::createSegmentation()
 {
-  auto filter = qobject_cast<FilterAdapterBasePtr>(sender());
+  auto filter = dynamic_cast<FilterPtr>(sender());
 
   if (!filter->isAborted())
   {

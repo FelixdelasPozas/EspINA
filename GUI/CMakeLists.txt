@@ -8,13 +8,13 @@ include_directories(
 qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
-  Model/FilterAdapter.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
   Model/ViewItemAdapter.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
+  Model/ViewItemAdapter.h
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
   Representations/Renderers/Renderer.h

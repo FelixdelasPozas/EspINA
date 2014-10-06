@@ -189,12 +189,13 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 }
 
 //------------------------------------------------------------------------
-ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
-                                           ModelAdapterSPtr   model,
-                                           ModelFactorySPtr   factory,
-                                           ViewManagerSPtr    viewManager,
-                                           QUndoStack        *undoStack)
-: Layout               {view, model, factory, viewManager, undoStack}
+ClassificationLayout::ClassificationLayout(CheckableTreeView        *view,
+                                           ModelAdapterSPtr          model,
+                                           ModelFactorySPtr          factory,
+                                           FilterDelegateFactorySPtr delegateFactory,
+                                           ViewManagerSPtr           viewManager,
+                                           QUndoStack                *undoStack)
+: Layout               {view, model, factory, delegateFactory, viewManager, undoStack}
 , m_proxy              {new ClassificationProxy(model)}
 , m_sort               {new SortFilter()}
 , m_delegate           {new CategoryItemDelegate(model, undoStack, this)}

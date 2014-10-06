@@ -98,6 +98,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
 , m_scheduler(new Scheduler(PERIOD_NS))
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
+, m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
 , m_model(new ModelAdapter())
 , m_viewManager(new ViewManager())
@@ -294,7 +295,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(roiTools);
 
-  auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
 
   auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
@@ -304,11 +305,11 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_scheduler, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
-  auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
 
-  auto segmentationHistory = new HistoryDock(m_model, m_viewManager, m_undoStack, this);
+  auto segmentationHistory = new HistoryDock(m_model, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 
   defaultActiveTool->showTools(true);

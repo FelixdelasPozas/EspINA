@@ -31,15 +31,19 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-SegmentationAdapter::SegmentationAdapter(FilterAdapterBaseSPtr filter, SegmentationSPtr segmentation)
-: ViewItemAdapter(filter, segmentation)
+SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
+: ViewItemAdapter(segmentation)
 , m_segmentation{segmentation}
 {
+  connect(m_segmentation.get(), SIGNAL(outputModified()),
+          this,                 SIGNAL(outputModified()));
 }
 
 //------------------------------------------------------------------------
 SegmentationAdapter::~SegmentationAdapter()
 {
+  connect(m_segmentation.get(), SIGNAL(outputModified()),
+          this,                 SIGNAL(outputModified()));
 }
 
 //------------------------------------------------------------------------
@@ -156,7 +160,8 @@ QVariant SegmentationAdapter::data(int role) const
       const QString TAB = WS+WS+WS;
       QString boundsInfo;
       QString filterInfo;
-      if (m_filter && output()->isValid()) //FIXME: Utilizar el region del output
+      //if (m_filter && output()->isValid())
+      if (output()->isValid()) // It shouldn't exist a segmentation without filter as it was checked before, but maybe there is some weird condition in which we should check it
       {
         Bounds bounds = output()->bounds();
         boundsInfo = tr("<b>Bounds:</b><br>");

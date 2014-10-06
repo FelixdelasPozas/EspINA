@@ -20,8 +20,6 @@
 #ifndef ESPINA_FILTER_HISTORY_H
 #define ESPINA_FILTER_HISTORY_H
 
-#include <GUI/Model/FilterDelegate.h>
-
 #include <Support/ViewManager.h>
 
 class QUndoStack;
@@ -30,9 +28,10 @@ class QWidget;
 namespace ESPINA {
 
   class FilterHistory
-  : public FilterDelegate
   {
   public:
+    virtual ~FilterHistory() {}
+
     /** \brief Return a widget to display or modify filter parameters
      *
      */
@@ -40,7 +39,7 @@ namespace ESPINA {
                                   QUndoStack      *undoStack) = 0;
   };
 
-  using FilterHistorySPtr = std::shared_ptr<FilterHistory>;
+  using FilterDelegateSPtr = std::shared_ptr<FilterHistory>;
 
 } // namespace ESPINA
 

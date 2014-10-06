@@ -26,8 +26,8 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-ChannelAdapter::ChannelAdapter(FilterAdapterBaseSPtr filter, ChannelSPtr channel)
-: ViewItemAdapter{filter, channel}
+ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
+: ViewItemAdapter{channel}
 , m_channel      {channel}
 {
 }

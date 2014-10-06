@@ -28,9 +28,8 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-ViewItemAdapter::ViewItemAdapter(FilterAdapterBaseSPtr filter, ViewItemSPtr item)
+ViewItemAdapter::ViewItemAdapter(ViewItemSPtr item)
 : NeuroItemAdapter  {item}
-, m_filter          {filter}
 , m_viewItem        {item}
 , m_isSelected      {false}
 , m_isVisible       {true}

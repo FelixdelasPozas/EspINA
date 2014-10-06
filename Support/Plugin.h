@@ -57,11 +57,11 @@ namespace ESPINA
     /** \brief Gives the plugin the neccesary objects to initilize itself.
      *        Must be called before any other plugin method.
      *
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] factory, model factory smart pointer.
-     * \param[in] scheduler, scheduler smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] factory model factory smart pointer.
+     * \param[in] scheduler scheduler smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
      *
      */
     virtual void init(ModelAdapterSPtr model,
@@ -127,19 +127,19 @@ namespace ESPINA
     virtual QList<MenuEntry> menuEntries() const = 0;
 
   public slots:
-		/** \brief Perform operations when an analysis is closed.
-		 *
-		 * Use to free resources.
-		 *
-		 */
+    /** \brief Perform operations when an analysis is closed.
+     *
+     * Use to free resources.
+     *
+     */
     virtual void onAnalysisClosed()
     {}
 
-		/** \brief Perform operations when an analysis changes.
-		 *
-		 * Use to free resources or reevaluate values.
-		 *
-		 */
+    /** \brief Perform operations when an analysis changes.
+     *
+     * Use to free resources or reevaluate values.
+     *
+     */
     virtual void onAnalysisChanged()
     {}
   };

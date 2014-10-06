@@ -195,8 +195,7 @@ namespace ESPINA
 
           inputs << segmentation->asInput();
 
-          auto adapter = m_factory->createFilter<T>(inputs, type);
-          auto filter  = adapter->get();
+          auto filter = m_factory->createFilter<T>(inputs, type);
 
           filter->setRadius(radius);
           filter->setDescription(tr("%1 %2").arg(name)
@@ -213,7 +212,7 @@ namespace ESPINA
           connect(filter.get(), SIGNAL(finished()),
                   this,         SLOT(onMorphologicalFilterFinished()));
 
-          adapter->submit();
+          Task::submit(filter);
         }
       }
     }
@@ -233,7 +232,7 @@ namespace ESPINA
     };
     struct ImageLogicContext
     {
-      FilterAdapterBaseSPtr       Task;
+      FilterSPtr                  Task;
       ImageLogicFilter::Operation Operation;
       SegmentationAdapterList     Segmentations;
     };

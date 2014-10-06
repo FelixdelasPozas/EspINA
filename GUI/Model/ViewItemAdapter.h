@@ -23,17 +23,14 @@
 #define ESPINA_VIEW_ITEM_ADAPTER_H
 
 // ESPINA
-#include "FilterAdapter.h"
 #include "GUI/Model/NeuroItemAdapter.h"
 #include <GUI/Representations/Representation.h>
+#include <GUI/Representations/RepresentationFactory.h>
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/ViewItem.h>
 
 namespace ESPINA {
-
-  class FilterAdapterBase;
-  using FilterAdapterBaseSPtr = std::shared_ptr<FilterAdapterBase>;
 
   class EspinaGUI_EXPORT ViewItemAdapter
   : public NeuroItemAdapter
@@ -86,14 +83,14 @@ namespace ESPINA {
     /** \brief Returns the filter smart pointer of the item.
      *
      */
-    FilterAdapterBaseSPtr filter()
-    { return m_filter; }
+    FilterSPtr filter()
+    { return m_viewItem->filter(); }
 
     /** \brief Returns the filter smart pointer of the item.
      *
      */
-    const FilterAdapterBaseSPtr filter() const
-    { return m_filter; }
+    const FilterSPtr filter() const
+    { return m_viewItem->filter(); }
 
     /** \brief Returns the output smart pointer of the item.
      *
@@ -149,13 +146,16 @@ namespace ESPINA {
     void setRepresentationFactory(RepresentationFactorySPtr factory)
     { m_factory = factory; }
 
+  signals:
+    void outputModified();
+
   protected:
     /** \brief ViewItemAdapter class constructor.
      * \param[in] filter filter adapter smart pointer.
      * \param[in] item view item smart pointer to adapt.
      *
      */
-    explicit ViewItemAdapter(FilterAdapterBaseSPtr filter, ViewItemSPtr item);
+    explicit ViewItemAdapter(ViewItemSPtr item);
 
     /** \brief Changes the output of the item
      * \param[in] input input smart pointer as new output.
@@ -167,7 +167,6 @@ namespace ESPINA {
     void onOutputModified();
 
   protected:
-    FilterAdapterBaseSPtr m_filter;
     ViewItemSPtr      m_viewItem;
 
     RepresentationFactorySPtr m_factory;

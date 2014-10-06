@@ -204,7 +204,7 @@ namespace ESPINA
      * \param[in] channel smart pointer of the channel to adapt.
      *
      */
-    explicit ChannelAdapter(FilterAdapterBaseSPtr filter, ChannelSPtr channel);
+    explicit ChannelAdapter(ChannelSPtr channel);
 
   private:
     ChannelSPtr m_channel;

@@ -28,12 +28,14 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-HistoryDock::HistoryDock(ModelAdapterSPtr model,
-                         ViewManagerSPtr  viewManager,
-                         QUndoStack      *undoStack,
-                         QWidget         *parent)
+HistoryDock::HistoryDock(ModelAdapterSPtr          model,
+                         FilterDelegateFactorySPtr factory,
+                         ViewManagerSPtr           viewManager,
+                         QUndoStack               *undoStack,
+                         QWidget                  *parent)
 : DockWidget(parent)
 , m_baseModel(model)
+, m_factory(factory)
 , m_viewManager(viewManager)
 , m_undoStack(undoStack)
 , m_segmentation(nullptr)
@@ -89,16 +91,16 @@ void HistoryDock::updateDock()
   {
     if (m_segmentation)
     {
-      disconnect(m_segmentation->output().get(), SIGNAL(modified()),
-                 this,                           SLOT(updateDock()));
+      disconnect(m_segmentation, SIGNAL(outputModified()),
+                 this,           SLOT(updateDock()));
     }
 
     m_segmentation = segmentation;
 
     if (m_segmentation)
     {
-      connect(m_segmentation->output().get(), SIGNAL(modified()),
-                 this,                           SLOT(updateDock()));
+      connect(m_segmentation, SIGNAL(outputModified()),
+                 this,        SLOT(updateDock()));
     }
 
     changeWidget = true;
@@ -122,14 +124,12 @@ void HistoryDock::updateDock()
     {
       m_filter = segmentation->filter();
 
-      auto delegate = m_filter->filterDelegate();
-
-      if (delegate)
+      try
       {
-        auto history = std::dynamic_pointer_cast<FilterHistory>(delegate);
-        setWidget(history->createWidget(m_viewManager, m_undoStack));
+        auto delegate = m_factory->createDelegate(m_segmentation);
+        setWidget(delegate->createWidget(m_viewManager, m_undoStack));
       }
-      else
+      catch (...)
       {
         setWidget(new DefaultHistory(m_segmentation));
       }
@@ -140,21 +140,6 @@ void HistoryDock::updateDock()
       m_segmentation = nullptr;
 
       setWidget(new EmptyHistory());
-/*
-      QWidget *noWidgetInspector = new QWidget();
-      noWidgetInspector->setLayout(new QVBoxLayout());
-      noWidgetInspector->layout()->setSpacing(10);
-
-      QLabel *infoLabel = new QLabel(noWidgetInspector);
-      infoLabel->setText(QLabel::tr("No segmentation selected."));
-      infoLabel->setWordWrap(true);
-      infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-      noWidgetInspector->layout()->addWidget(infoLabel);
-
-      QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
-      noWidgetInspector->layout()->addItem(spacer);
-
-      setWidget(noWidgetInspector); */
     }
   }
 }

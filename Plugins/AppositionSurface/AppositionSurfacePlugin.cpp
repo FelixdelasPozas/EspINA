@@ -273,13 +273,15 @@ void AppositionSurfacePlugin::createSASAnalysis()
         InputSList inputs;
         inputs << segmentation->asInput();
 
-        auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+        auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-        struct Data data(adapter, m_model->smartPointer(segmentation));
-        m_executingTasks.insert(adapter.get(), data);
+        struct Data data(filter, m_model->smartPointer(segmentation));
+        m_executingTasks.insert(filter.get(), data);
 
-        connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-        adapter->submit();
+        connect(filter.get(), SIGNAL(finished()),
+                this,         SLOT(finishedTask()));
+
+        Task::submit(filter);
       }
       else
       {
@@ -353,20 +355,22 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
     InputSList inputs;
     inputs << seg->asInput();
 
-    auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+    auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-    struct Data data(adapter, m_model->smartPointer(seg));
-    m_executingTasks.insert(adapter.get(), data);
+    struct Data data(filter, m_model->smartPointer(seg));
+    m_executingTasks.insert(filter.get(), data);
 
-    connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(finishedTask()));
+
+    Task::submit(filter);
   }
 }
 
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::finishedTask()
 {
-  auto filter = qobject_cast<FilterAdapterBasePtr>(sender());
+  auto filter = dynamic_cast<FilterPtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
 
   if(!filter->isAborted())

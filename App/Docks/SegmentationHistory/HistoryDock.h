@@ -22,6 +22,7 @@
 #define ESPINA_HISTORY_DOCK_H
 
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
 class QUndoStack;
 
@@ -32,10 +33,11 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit HistoryDock(ModelAdapterSPtr model,
-                         ViewManagerSPtr  viewManager,
-                         QUndoStack      *undoStack,
-                         QWidget         *parent = 0);
+    explicit HistoryDock(ModelAdapterSPtr          model,
+                         FilterDelegateFactorySPtr factory,
+                         ViewManagerSPtr           viewManager,
+                         QUndoStack               *undoStack,
+                         QWidget                  *parent = 0);
     virtual ~HistoryDock();
 
     virtual void showEvent(QShowEvent* e);
@@ -46,11 +48,12 @@ namespace ESPINA
     void updateDock();
 
   private:
-    ModelAdapterSPtr m_baseModel;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    ModelAdapterSPtr          m_baseModel;
+    FilterDelegateFactorySPtr m_factory;
+    ViewManagerSPtr           m_viewManager;
+    QUndoStack               *m_undoStack;
 
-    FilterAdapterBaseSPtr      m_filter;
+    FilterSPtr             m_filter;
     SegmentationAdapterPtr m_segmentation;
   };
 

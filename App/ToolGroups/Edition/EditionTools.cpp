@@ -182,11 +182,11 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
   {
     InputSList inputs;
     inputs << m_viewManager->activeChannel()->asInput();
-    auto adapter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
-    auto filter = adapter->get();
+
+    auto filter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
     filter->setMask(mask);
 
-    segmentation = m_factory->createSegmentation(adapter, 0);
+    segmentation = m_factory->createSegmentation(filter, 0);
     segmentation->setCategory(category);
 
     auto item = selection->channels().first();

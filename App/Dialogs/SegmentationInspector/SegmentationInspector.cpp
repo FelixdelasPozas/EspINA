@@ -45,19 +45,22 @@ const QString RENDERERS                        = QString("DefaultView::renderers
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(SegmentationAdapterList segmentations,
-                                             ModelAdapterSPtr        model,
-                                             ModelFactorySPtr        factory,
-                                             ViewManagerSPtr         viewManager,
-                                             QUndoStack*             undoStack,
-                                             QWidget*                parent,
-                                             Qt::WindowFlags         flags)
-: QWidget        {parent, flags|Qt::WindowStaysOnTopHint}
-, m_model        {model}
-, m_viewManager  {viewManager}
-, m_undoStack    {undoStack}
-, m_view         {new View3D(true)}
-, m_tabularReport{new TabularReport(factory, viewManager)}
+SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
+                                             ModelAdapterSPtr          model,
+                                             ModelFactorySPtr          factory,
+                                             FilterDelegateFactorySPtr delegateFactory,
+                                             ViewManagerSPtr           viewManager,
+                                             QUndoStack*               undoStack,
+                                             QWidget*                  parent,
+                                             Qt::WindowFlags           flags)
+: QWidget          {parent, flags|Qt::WindowStaysOnTopHint}
+, m_model          {model}
+, m_delegateFactory{delegateFactory}
+, m_viewManager    {viewManager}
+, m_undoStack      {undoStack}
+, m_view           {new View3D(true)}
+, m_tabularReport  {new TabularReport(factory, viewManager)}
+, m_selectedSegmentation{nullptr}
 {
   setupUi(this);
 
@@ -417,6 +420,8 @@ void SegmentationInspector::updateSelection()
   if (activeHistory)
   {
     delete activeHistory;
+
+    activeHistory = nullptr;
   }
 
   auto selection = m_viewManager->selection()->segmentations();
@@ -424,19 +429,33 @@ void SegmentationInspector::updateSelection()
   if (selection.size() == 1)
   {
     auto segmentation = selection.first();
-    auto delegate     = segmentation->filter()->filterDelegate();
-    auto history      = std::dynamic_pointer_cast<FilterHistory>(delegate);
 
-    if (history)
+    if (m_segmentations.contains(segmentation))
     {
-      activeHistory = history->createWidget(m_viewManager, m_undoStack);
-    }
-    else
-    {
-      activeHistory = new DefaultHistory(segmentation);
+      if (m_selectedSegmentation != segmentation)
+      {
+        disconnect(m_selectedSegmentation, SIGNAL(outputModified()),
+                   this, SLOT(updateSelection()));
+
+        m_selectedSegmentation = segmentation;
+
+        connect(m_selectedSegmentation, SIGNAL(outputModified()),
+                this, SLOT(updateSelection()));
+      }
+
+      try
+      {
+        auto delegate = m_delegateFactory->createDelegate(segmentation);
+        activeHistory = delegate->createWidget(m_viewManager, m_undoStack);
+      }
+      catch (...)
+      {
+        activeHistory = new DefaultHistory(segmentation);
+      }
     }
   }
-  else
+
+  if (nullptr == activeHistory)
   {
     activeHistory = new EmptyHistory();
   }

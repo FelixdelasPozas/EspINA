@@ -58,61 +58,59 @@ public:
   virtual void redo()
   {
     auto output = m_filter->output(0);
-
     auto volume = volumetricData(output);
-
-//     if (!m_oldVolume && (output->isEdited() || volume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE))
+//     int volumeSize = 1;
+//     for (auto dir : {Axis::X, Axis::Y, Axis::Z})
 //     {
-//       m_oldVolume     = volume->cloneVolume();
-//       m_editedRegions = output->editedRegions();
+//       volumeSize *= volume->bounds().lenght(dir);
 //     }
 
-    bool ignoreUpdate = m_newVolume.IsNotNull();
+    // if (!m_oldVolume && (output->isEdited() || volumeSize < MAX_UNDO_SIZE))
+    if (!m_oldVolume && output->isEdited())
+    {
+      m_oldBounds = volume->bounds();
+      m_oldVolume = volume->itkImage();
+//       m_editedRegions = output->editedRegions();
+    }
 
-//     m_filter->setLowerThreshold(m_threshold, ignoreUpdate);
-//     m_filter->setUpperThreshold(m_threshold, ignoreUpdate);
-//     m_filter->setROI(m_ROI, ignoreUpdate);
-//     m_filter->setCloseValue(m_closingRadius, ignoreUpdate);
+    //bool ignoreUpdate = m_newVolume.IsNotNull();
 
     m_filter->setLowerThreshold(m_threshold);
     m_filter->setUpperThreshold(m_threshold);
     m_filter->setROI(m_ROI);
     m_filter->setClosingRadius(m_closingRadius);
 
-    if (m_newVolume.IsNull())
-    {
-      update();
-
+    update();
+//     if (m_newVolume.IsNull())V
+//     {
+//       update();
+//
 //       SegmentationVolumeSPtr newVolume = volume;
 //       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
 //         m_newVolume = volume->cloneVolume();
-    }
-    else
-    {
-//       volume->setVolume(m_newVolume);
-    }
+//     }
+//     else
+//     {
+// //       volume->setVolume(m_newVolume);
+//     }
 
     output->clearEditedRegions();
   }
 
   virtual void undo()
   {
-//     m_filter->setLowerThreshold(m_oldThreshold, true);
-//     m_filter->setUpperThreshold(m_oldThreshold, true);
-//     m_filter->setROI(m_oldROI, true);
-//     m_filter->setCloseValue(m_oldClosingRadius, true);
-
     m_filter->setLowerThreshold(m_oldThreshold);
     m_filter->setUpperThreshold(m_oldThreshold);
     m_filter->setROI(m_oldROI);
     m_filter->setClosingRadius(m_oldClosingRadius);
 
-//     SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
-//     SegmentationVolumeSPtr volume = segmentationVolume(output);
+    auto output = m_filter->output(0);
+    auto volume = volumetricData(output);
 
     if (m_oldVolume.IsNotNull())
     {
-//       volume->setVolume(m_oldVolume);
+      volume->resize(m_oldBounds);
+      volume->draw(m_oldVolume);
 //       output->setEditedRegions(m_editedRegions);
     } else
     {
@@ -135,8 +133,9 @@ private:
   int     m_threshold,     m_oldThreshold;
   int     m_closingRadius, m_oldClosingRadius;
 
+  Bounds m_oldBounds;
   itkVolumeType::Pointer m_oldVolume;
-  itkVolumeType::Pointer m_newVolume;
+  //itkVolumeType::Pointer m_newVolume;
 
   //FilterOutput::EditedRegionSList m_editedRegions;
 };
@@ -155,72 +154,14 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(std::shared
 {
   m_gui->setupUi(this);
 
-//   connect(filter, SIGNAL(modified(ModelItemPtr)),
-//           this, SLOT(updateWidget()));
-
-  //SegmentationVolumeSPtr volume = segmentationVolume(filter->output(0));
-
   auto seed = m_filter->seed();
-  m_gui->m_xSeed->setText(QString("%1").arg(seed[0]));
-  m_gui->m_ySeed->setText(QString("%1").arg(seed[1]));
-  m_gui->m_zSeed->setText(QString("%1").arg(seed[2]));
-  m_gui->m_threshold->setMaximum(255);
-  m_gui->m_threshold->setValue(m_filter->lowerThreshold());
+  m_gui->xSeed->setText(QString("%1").arg(seed[0]));
+  m_gui->ySeed->setText(QString("%1").arg(seed[1]));
+  m_gui->zSeed->setText(QString("%1").arg(seed[2]));
+  m_gui->threshold->setMaximum(255);
+  m_gui->threshold->setValue(m_filter->lowerThreshold());
+  m_gui->closingRadius->setValue(m_filter->closingRadius());
 
-  m_gui->roiGroup->setVisible(false);
-//   int voiExtent[6];
-//   m_filter->voi(voiExtent);
-//   itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
-//   for (int i=0; i<6; i++)
-//     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
-//
-//   m_leftMargin->setValue(m_voiBounds[0]);
-//   m_leftMargin->setSuffix(" nm");
-//   m_leftMargin->installEventFilter(this);
-//   connect(m_leftMargin, SIGNAL(valueChanged(int)),
-//           this, SLOT(updateRegionBounds()));
-//
-//   m_rightMargin->setValue(m_voiBounds[1]);
-//   m_rightMargin->setSuffix(" nm");
-//   m_rightMargin->installEventFilter(this);
-//   connect(m_rightMargin, SIGNAL(valueChanged(int)),
-//           this, SLOT(updateRegionBounds()));
-//
-//   m_topMargin->setValue(m_voiBounds[2]);
-//   m_topMargin->setSuffix(" nm");
-//   m_topMargin->installEventFilter(this);
-//   connect(m_topMargin, SIGNAL(valueChanged(int)),
-//           this, SLOT(updateRegionBounds()));
-//
-//   m_bottomMargin->setValue(m_voiBounds[3]);
-//   m_bottomMargin->setSuffix(" nm");
-//   m_bottomMargin->installEventFilter(this);
-//   connect(m_bottomMargin, SIGNAL(valueChanged(int)),
-//           this, SLOT(updateRegionBounds( )));
-//
-//   m_upperMargin->setValue(m_voiBounds[4]);
-//   m_upperMargin->setSuffix(" nm");
-//   m_upperMargin->installEventFilter(this);
-//   connect(m_upperMargin, SIGNAL(valueChanged(int)),
-//           this, SLOT(updateRegionBounds()));
-//
-//   m_lowerMargin->setValue(m_voiBounds[5]);
-//   m_lowerMargin->setSuffix(" nm");
-//   m_lowerMargin->installEventFilter(this);
-//   connect(m_lowerMargin, SIGNAL(valueChanged(int)),
-//           this, SLOT(updateRegionBounds()));
-//
-//   bool enabled = m_filter->closeValue() > 0;
-//   m_closeCheckbox->setChecked(enabled);
-//   connect(m_closeCheckbox, SIGNAL(stateChanged(int)),
-//           this, SLOT(modifyCloseCheckbox(int)));
-//
-//   m_closeRadius->setEnabled(enabled);
-//   m_closeRadius->setValue(m_filter->closeValue());
-//   connect(m_closeRadius, SIGNAL(valueChanged(int)),
-//           this, SLOT(modifyCloseValue(int)));
-//
-//
   connect(m_gui->m_modify, SIGNAL(clicked(bool)),
           this,            SLOT(modifyFilter()));
 }
@@ -246,14 +187,6 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   auto spacing = volume->spacing();
 
-//   double voiBounds[6];
-//   voiBounds[0] = m_leftMargin->value();
-//   voiBounds[1] = m_rightMargin->value();
-//   voiBounds[2] = m_topMargin->value();
-//   voiBounds[3] = m_bottomMargin->value();
-//   voiBounds[4] = m_upperMargin->value();
-//   voiBounds[5] = m_lowerMargin->value();
-//
 //   int ROI[6];
 //   for(int i=0; i < 6; i++)
 //     ROI[i] = voiBounds[i]/spacing[i/2];
@@ -274,7 +207,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   m_undoStack->beginMacro("Modify Seed GrowSegmentation Filter");
   {
-    m_undoStack->push(new SGSFilterModification(m_filter, m_filter->roi(), m_gui->m_threshold->value(), m_gui->m_closeRadius->value()));
+    m_undoStack->push(new SGSFilterModification(m_filter, m_filter->roi(), m_gui->threshold->value(), m_gui->closingRadius->value()));
   }
   m_undoStack->endMacro();
 
