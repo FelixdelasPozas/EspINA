@@ -309,7 +309,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
 
-  auto segmentationHistory = new HistoryDock(m_model, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
+  auto segmentationHistory = new HistoryDock(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 
   defaultActiveTool->showTools(true);
@@ -348,7 +348,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   connect(&m_autosave, SIGNAL(timeout()),
           this, SLOT(autosave()));
 
-  cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
+  new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
 
   closeCurrentAnalysis();
 
@@ -1117,6 +1117,13 @@ void EspinaMainWindow::showRawInformation()
   {
     QMessageBox::warning(this, "ESPINA", tr("Current analysis does not contain any segmentations"));
   }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::cancelOperation()
+{
+  m_viewManager->unsetActiveEventHandler();
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------

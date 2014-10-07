@@ -16,16 +16,21 @@
  *
  */
 
-#ifndef ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
-#define ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
+#ifndef ESPINA_SEED_GROW_SEGMENTATION_HISTORY_WIDGET_H
+#define ESPINA_SEED_GROW_SEGMENTATION_HISTORY_WIDGET_H
 
 #include <qt4/QtGui/QWidget>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Support/ViewManager.h>
+#include <GUI/Model/ModelAdapter.h>
 
 class QUndoStack;
 
 namespace ESPINA {
+
+  class ROIToolsGroup;
+
+  class ROISettings;
 
   namespace Ui
   {
@@ -37,21 +42,38 @@ namespace ESPINA {
   {
     Q_OBJECT
   public:
-    explicit SeedGrowSegmentationHistoryWidget(std::shared_ptr<SeedGrowSegmentationFilter> filter,
-                                               ViewManagerSPtr             viewManager,
-                                               QUndoStack                 *undoStack,
-                                               QWidget                    *parent = 0,
-                                               Qt::WindowFlags             f = 0);
+    explicit SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
+                                               ROIToolsGroup                 *roiTools,
+                                               ViewManagerSPtr                viewManager,
+                                               QUndoStack                    *undoStack,
+                                               QWidget                       *parent = 0,
+                                               Qt::WindowFlags                flags = 0);
+    virtual ~SeedGrowSegmentationHistoryWidget();
+
+  public slots:
+    void setThreshold(int value);
+    void setApplyClosing(bool value);
+    void setClosingRadius(int value);
+
+  signals:
+    void thresholdChanged(int);
+    void applyClosingChanged(bool);
+    void closingRadiusChanged(int);
+
   private slots:
+    void resetROI();
     void modifyFilter();
 
   private:
-    Ui::SeedGrowSegmentationHistoryWidget      *m_gui;
-    std::shared_ptr<SeedGrowSegmentationFilter> m_filter;
+    Ui::SeedGrowSegmentationHistoryWidget *m_gui;
+    SeedGrowSegmentationFilterSPtr         m_filter;
+
     ViewManagerSPtr m_viewManager;
     QUndoStack     *m_undoStack;
+
+    ROIToolsGroup *m_roiTools;
   };
 
 } // namespace ESPINA
 
-#endif // ESPINA_SEED_GROW_SEGMENTATION_HISTORY_H
+#endif // ESPINA_SEED_GROW_SEGMENTATION_HISTORY_WIDGET_H

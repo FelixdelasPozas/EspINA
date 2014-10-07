@@ -188,8 +188,7 @@ namespace ESPINA
     /** \brief Cancels current operation.
      *
      */
-    void cancelOperation()
-    { emit analysisClosed(); }
+    void cancelOperation();
 
     /** \brief Updates the undo action text in the menu.
      * \param[in] text text of the operation to update.
@@ -336,7 +335,6 @@ namespace ESPINA
     MenuState m_menuState;
 
     bool m_busy;
-    QShortcut *cancel;
 
     struct DynamicMenuNode
     {

@@ -21,6 +21,7 @@
 #define ESPINA_FILTER_HISTORY_H
 
 #include <Support/ViewManager.h>
+#include <GUI/Model/ModelAdapter.h>
 
 class QUndoStack;
 class QWidget;
@@ -28,6 +29,7 @@ class QWidget;
 namespace ESPINA {
 
   class FilterHistory
+  : public QObject
   {
   public:
     virtual ~FilterHistory() {}
@@ -35,8 +37,10 @@ namespace ESPINA {
     /** \brief Return a widget to display or modify filter parameters
      *
      */
-    virtual QWidget *createWidget(ViewManagerSPtr viewManager,
-                                  QUndoStack      *undoStack) = 0;
+    virtual QWidget* createWidget(ModelAdapterSPtr model,
+                                  ModelFactorySPtr factory,
+                                  ViewManagerSPtr  viewManager,
+                                  QUndoStack       *undoStack) = 0;
   };
 
   using FilterDelegateSPtr = std::shared_ptr<FilterHistory>;

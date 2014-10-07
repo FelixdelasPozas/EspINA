@@ -43,6 +43,9 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    enum Mode { EDITION, COMMITED };
+
+  public:
     /** \brief OrthogonalROITool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -85,22 +88,31 @@ namespace ESPINA
      */
     void cancelWidget();
 
+    /** \brief Set the active ROI to the given values
+     *
+     *   \param[in] bounds of the recttangular region
+     *   \param[in] spacing of the voxels where it was defined
+     *   \param[in] origin of the reference frame to be adjusted
+     *   \param[in] mode select how the ROI contour are drawn, continous for COMMITED and discontinous for EDITION
+     */
+    void setROI(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin, const Mode& mode = EDITION);
+
   signals:
     void roiDefined();
 
   protected slots:
-  	/** \brief Modifies the tool and activates/deactivates the event handler for this tool.
-  	 * \param[in] value, true to activate tool and eventhandler, false to deactivate event handler.
-  	 */
+    /** \brief Modifies the tool and activates/deactivates the event handler for this tool.
+     * \param[in] value true to activate tool and eventhandler, false to deactivate event handler.
+     */
     void activateEventHandler(bool value);
 
     /** \brief Activates/Deactivates the tool and commits the current ROI if deactivated.
-     * \param[in] value, true to activate the tool.
+     * \param[in] value true to activate the tool.
      */
     void activateTool(bool value);
 
     /** \brief Defines a new ROI based on the selection.
-     * \param[in] selection, selection containing the active channel and selected voxel.
+     * \param[in] selection selection containing the active channel and selected voxel.
      *
      */
     void defineROI(Selector::Selection selection);

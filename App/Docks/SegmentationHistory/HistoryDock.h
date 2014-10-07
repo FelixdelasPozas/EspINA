@@ -34,7 +34,8 @@ namespace ESPINA
     Q_OBJECT
   public:
     explicit HistoryDock(ModelAdapterSPtr          model,
-                         FilterDelegateFactorySPtr factory,
+                         ModelFactorySPtr          factory,
+                         FilterDelegateFactorySPtr delegatFactory,
                          ViewManagerSPtr           viewManager,
                          QUndoStack               *undoStack,
                          QWidget                  *parent = 0);
@@ -48,8 +49,9 @@ namespace ESPINA
     void updateDock();
 
   private:
-    ModelAdapterSPtr          m_baseModel;
-    FilterDelegateFactorySPtr m_factory;
+    ModelAdapterSPtr          m_model;
+    ModelFactorySPtr          m_factory;
+    FilterDelegateFactorySPtr m_delegateFactory;
     ViewManagerSPtr           m_viewManager;
     QUndoStack               *m_undoStack;
 

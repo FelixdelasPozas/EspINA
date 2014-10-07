@@ -100,5 +100,20 @@ namespace ESPINA
     return newROI;
   }
 
+  //-----------------------------------------------------------------------------
+  bool contains(ROISPtr roi, NmVector3 point, NmVector3 spacing)
+  {
+    bool result = contains(roi->bounds(), point, spacing);
+
+    if(result && !roi->isRectangular())
+    {
+      auto roiPixel = roi->itkImage(Bounds(point));
+      result = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(roiPixel->GetBufferPointer())));
+    }
+
+    return result;
+  }
+
+
 }
 

@@ -33,10 +33,15 @@ void FilterDelegateFactory::registerFilterDelegateFactory(SpecificFilterDelegate
 FilterDelegateSPtr FilterDelegateFactory::createDelegate(SegmentationAdapterPtr segmentation)
 throw (Unknown_Filter_Type_Exception)
 {
-  auto filter = segmentation->filter();
-  auto type   = filter->type();
+  if (!m_instances.contains(segmentation))
+  {
+    auto filter = segmentation->filter();
+    auto type   = filter->type();
 
-  if (!m_factories.contains(type)) throw Unknown_Filter_Type_Exception();
+    if (!m_factories.contains(type)) throw Unknown_Filter_Type_Exception();
 
-  return m_factories[type]->createDelegate(filter);
+    m_instances.insert(segmentation, m_factories[type]->createDelegate(filter));
+  }
+
+  return m_instances[segmentation];
 }

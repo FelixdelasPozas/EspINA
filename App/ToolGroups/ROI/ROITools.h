@@ -45,11 +45,11 @@ namespace ESPINA
   Q_OBJECT
   public:
     /** \brief VolumeOfInterestTools class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
-     * \param[in] parent, QWidget raw pointer of the parent of this object.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] factory factory smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] parent QWidget raw pointer of the parent of this object.
      */
     ROIToolsGroup(ROISettings*     settings,
                   ModelAdapterSPtr model,
@@ -78,9 +78,10 @@ namespace ESPINA
      */
     virtual ToolSList tools();
 
-    /** \brief Sets the value of roi accumulator and passes it to ViewManager.
-     * \param[in] roi, roi object smart pointer.
+    /** \brief Sets the value of roi accumulator
+     * \param[in] roi roi object smart pointer.
      *
+     *  If this tool is set as global ROI it will update ViewManager's ROI as well
      */
     void setCurrentROI(ROISPtr roi);
 
@@ -92,23 +93,36 @@ namespace ESPINA
     /** \brief Returns true if there is a valid roi.
      *
      */
-    bool hasValidROI();
+    bool hasValidROI() const;
+
+    /** \brief Returns whether or not ROIs created with this tool are accesible via
+     *         ViewManager's ROI to other tools
+     *
+     *  By default all tools are global
+     */
+    bool isGlobalROI() const
+    { return m_globalROI; }
+
+    /** \brief Set whether or not ROIs created with this tool are accesible via
+     *         ViewManager's ROI to other tools
+     *
+     *  \param[in] value sets tool behaviour to value
+     */
+    void setGlobalROI(bool value)
+    { m_globalROI = value; }
+
+    void setVisible(bool visible);
+
+    bool isVisible() const
+    { return m_visible; }
 
   signals:
     void roiChanged();
 
-  private slots:
-    /** \brief Changes the roi and associated widget when the
-     *        ROI is updated elsewhere (i.e. seedgrowsegmentation)
-     *        and not using ROI tools.
-     *
-     */
-    void updateROI();
-
   private:
-    using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;
+    using ManualROIToolSPtr     = std::shared_ptr<ManualROITool>;
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
-    using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;
+    using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
 
     ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;
@@ -116,6 +130,8 @@ namespace ESPINA
     ViewManagerSPtr       m_viewManager;
 
     bool m_enabled;
+    bool m_globalROI;
+    bool m_visible;
 
     ROISPtr m_accumulator;
     EspinaWidgetSPtr m_accumulatorWidget;

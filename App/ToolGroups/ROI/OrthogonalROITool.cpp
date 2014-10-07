@@ -231,13 +231,13 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
 
   if(m_settings->xSize() == 0 || m_settings->ySize() == 0 || m_settings->zSize() == 0)
   {
-  	QMessageBox msgBox;
-  	msgBox.setText("Invalid ROI size values.");
-  	msgBox.setInformativeText("At least one of the sizes for the ROI is 0, please\nmodify the ROI size values to a valid quantity.");
-  	msgBox.setStandardButtons(QMessageBox::Ok);
-  	msgBox.setDefaultButton(QMessageBox::Ok);
+    QMessageBox msgBox;
+    msgBox.setText("Invalid ROI size values.");
+    msgBox.setInformativeText("At least one of the sizes for the ROI is 0, please\nmodify the ROI size values to a valid quantity.");
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
 
-  	return;
+    return;
   }
 
   Q_ASSERT(selectedChannel.first->numberOfVoxels() == 1); //Only one pixel's selected
@@ -245,20 +245,43 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
   NmVector3 pos{ (pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
 
   auto pItem = selectedChannel.second;
-  if (ItemAdapter::Type::CHANNEL != pItem->type())
-    return;
 
-  auto pickedChannel = channelPtr(pItem);
-  m_spacing = pickedChannel->output()->spacing();
-  m_origin = pickedChannel->position();
+  if (isChannel(pItem))
+  {
+    auto pickedChannel = channelPtr(pItem);
 
-  Bounds bounds{ pos[0] - m_settings->xSize()/2.0, pos[0] + m_settings->xSize()/2.0,
-                 pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
-                 pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
+    Bounds bounds{ pos[0] - m_settings->xSize()/2.0, pos[0] + m_settings->xSize()/2.0,
+      pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
+      pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
+
+
+    setROI(bounds, pickedChannel->output()->spacing(), pickedChannel->position(), EDITION);
+
+    emit roiDefined();
+
+    //  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
+    //  m_sliceSelector->setLeftLabel ("From");
+    //  m_sliceSelector->setRightLabel("To");
+    //  m_viewManager->addSliceSelectors(m_sliceSelector, ViewManager::From|ViewManager::To);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::setROI(const Bounds    &bounds,
+                               const NmVector3 &spacing,
+                               const NmVector3 &origin,
+                               const Mode      &mode)
+{
+  m_origin  = origin;
+  m_spacing = spacing;
 
   auto rrWidget = new RectangularRegion(bounds);
   rrWidget->setResolution(m_spacing);
-  rrWidget->setRepresentationPattern(0xFFF0);
+
+  if (EDITION == mode)
+  {
+    rrWidget->setRepresentationPattern(0xFFF0);
+  }
 
   m_widget = EspinaWidgetSPtr(rrWidget);
   Q_ASSERT(m_widget);
@@ -268,11 +291,4 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
   rrWidget->setEnabled(true);
 
   enableSelector(false);
-
-  emit roiDefined();
-
-//  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
-//  m_sliceSelector->setLeftLabel ("From");
-//  m_sliceSelector->setRightLabel("To");
-//  m_viewManager->addSliceSelectors(m_sliceSelector, ViewManager::From|ViewManager::To);
 }

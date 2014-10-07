@@ -37,6 +37,8 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 : ToolGroup          {viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent}
 , m_viewManager      {viewManager}
 , m_enabled          {true}
+, m_globalROI        {true}
+, m_visible          {true}
 , m_accumulator      {nullptr}
 , m_accumulatorWidget{nullptr}
 , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
@@ -88,12 +90,25 @@ ToolSList ROIToolsGroup::tools()
 void ROIToolsGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator != nullptr)
-    m_viewManager->removeWidget(m_accumulatorWidget);
+  {
+    if (m_accumulator->isRectangular())
+    {
+      m_ortogonalROITool->cancelWidget();
+    }
+    else
+    {
+      m_viewManager->removeWidget(m_accumulatorWidget);
+    }
+  }
 
   if(roi != nullptr)
   {
-    m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
-    m_viewManager->addWidget(m_accumulatorWidget);
+    if (roi->isRectangular()) {
+      m_ortogonalROITool->setROI(roi->bounds(), roi->spacing(), roi->origin(), OrthogonalROITool::COMMITED);
+    } else {
+      m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
+      m_viewManager->addWidget(m_accumulatorWidget);
+    }
   }
   else
   {
@@ -101,7 +116,11 @@ void ROIToolsGroup::setCurrentROI(ROISPtr roi)
   }
 
   m_accumulator = roi;
-  m_viewManager->setCurrentROI(m_accumulator);
+
+  if (m_globalROI)
+  {
+    m_viewManager->setCurrentROI(m_accumulator);
+  }
 
   emit roiChanged();
 }
@@ -113,24 +132,41 @@ ROISPtr ROIToolsGroup::currentROI()
 }
 
 //-----------------------------------------------------------------------------
-bool ROIToolsGroup::hasValidROI()
+bool ROIToolsGroup::hasValidROI() const
 {
   return m_accumulator || m_ortogonalROITool->isDefined();
 }
 
 //-----------------------------------------------------------------------------
-void ROIToolsGroup::updateROI()
+void ROIToolsGroup::setVisible(bool visible)
 {
-  auto roi = m_viewManager->currentROI();
+  if (m_visible == visible) return;
 
-  if(m_accumulator != nullptr)
-    m_viewManager->removeWidget(m_accumulatorWidget);
-
-  if(roi != nullptr)
-  {
-    m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
-    m_viewManager->addWidget(m_accumulatorWidget);
+  if (m_accumulator) {
+    if (visible)
+    {
+      if (m_accumulator->isRectangular())
+      {
+        m_ortogonalROITool->setROI(m_accumulator->bounds(), m_accumulator->spacing(), m_accumulator->origin(), OrthogonalROITool::COMMITED);
+      }
+      else
+      {
+        m_viewManager->addWidget(m_accumulatorWidget);
+      }
+    }
+    else
+    {
+      if (m_accumulator->isRectangular())
+      {
+        m_ortogonalROITool->cancelWidget();
+      }
+      else
+      {
+        m_viewManager->removeWidget(m_accumulatorWidget);
+      }
+    }
   }
 
-  m_accumulator = roi;
+  m_visible = visible;
+  m_viewManager->updateViews();
 }

@@ -37,12 +37,12 @@ namespace ESPINA
   : public Filter
   {
   public:
-  	/** \brief SeedGrowSegmentationFilter class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, SeedGrowSegmentationFilter type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
-  	 */
+    /** \brief SeedGrowSegmentationFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type SeedGrowSegmentationFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
     /** \brief Implements Persistent::restoreState().
@@ -56,7 +56,7 @@ namespace ESPINA
     virtual State state() const;
 
     /** \brief Sets the lower value of the threshold.
-     * \param[in] th, lower threshold value.
+     * \param[in] th lower threshold value.
      *
      */
     void setLowerThreshold(int th);
@@ -67,7 +67,7 @@ namespace ESPINA
     int lowerThreshold() const;
 
     /** \brief Sets the upper threshold value.
-     * \param[in] th, upper threshold value.
+     * \param[in] th upper threshold value.
      *
      */
     void setUpperThreshold(int th);
@@ -78,7 +78,7 @@ namespace ESPINA
     int upperThreshold() const;
 
     /** \brief Convenience method to set symmetrical lower/upper thresholds.
-     * \param[in] th, threshold value.
+     * \param[in] th threshold value.
      *
      */
     void setThreshold(int th)
@@ -88,7 +88,7 @@ namespace ESPINA
     };
 
     /** \brief Sets the seed point.
-     * \param[in] seed, seed point.
+     * \param[in] seed seed point.
      *
      */
     void setSeed(const NmVector3& seed);
@@ -99,7 +99,7 @@ namespace ESPINA
     NmVector3 seed() const;
 
     /** \brief Sets the region of interest to constrain the application of the filter.
-     * \param[in] roi, ROI object smart pointer.
+     * \param[in] roi ROI object smart pointer.
      *
      */
     void setROI(const ROISPtr roi);
@@ -110,7 +110,7 @@ namespace ESPINA
     ROISPtr roi() const;
 
     /** \brief Sets the radious for the closing morphological operation.
-     * \param[in] radious, close filter radius.
+     * \param[in] radious close filter radius.
      *
      */
     void setClosingRadius(int radius);

@@ -19,8 +19,12 @@
 #include "SeedGrowSegmentationHistoryWidget.h"
 #include "ui_SeedGrowSegmentationHistoryWidget.h"
 
+#include <ToolGroups/ROI/ROITools.h>
+#include <Settings/ROI/ROISettings.h>
+
 #include <QMessageBox>
 #include <QUndoStack>
+#include <QToolBar>
 
 using namespace ESPINA;
 
@@ -141,29 +145,63 @@ private:
 };
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(std::shared_ptr<SeedGrowSegmentationFilter> filter,
-                                                                     ViewManagerSPtr             viewManager,
-                                                                     QUndoStack                 *undoStack,
-                                                                     QWidget                                    *parent,
-                                                                     Qt::WindowFlags                             f)
-: QWidget(parent, f)
+SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
+                                                                     ROIToolsGroup                 *roiTools,
+                                                                     ViewManagerSPtr                viewManager,
+                                                                     QUndoStack                    *undoStack,
+                                                                     QWidget                       *parent,
+                                                                     Qt::WindowFlags                flags)
+: QWidget(parent, flags)
 , m_gui(new Ui::SeedGrowSegmentationHistoryWidget())
 , m_filter(filter)
 , m_viewManager(viewManager)
 , m_undoStack(undoStack)
+, m_roiTools(roiTools)
 {
   m_gui->setupUi(this);
 
+  auto toolbar = new QToolBar();
+
+  for (auto tool : m_roiTools->tools())
+  {
+    for (auto action : tool->actions())
+    {
+      toolbar->addAction(action);
+    }
+  }
+
+  m_gui->roiFrame->layout()->addWidget(toolbar);
+
   auto seed = m_filter->seed();
-  m_gui->xSeed->setText(QString("%1").arg(seed[0]));
-  m_gui->ySeed->setText(QString("%1").arg(seed[1]));
-  m_gui->zSeed->setText(QString("%1").arg(seed[2]));
+  m_gui->seed->setText(QString("(%1, %2, %3)").arg(seed[0]).arg(seed[1]).arg(seed[2]));
   m_gui->threshold->setMaximum(255);
   m_gui->threshold->setValue(m_filter->lowerThreshold());
   m_gui->closingRadius->setValue(m_filter->closingRadius());
 
-  connect(m_gui->m_modify, SIGNAL(clicked(bool)),
-          this,            SLOT(modifyFilter()));
+  connect(m_gui->threshold,    SIGNAL(valueChanged(int)),
+          this,                SIGNAL(thresholdChanged(int)));
+  connect(m_gui->applyClosing, SIGNAL(toggled(bool)),
+          this,                SIGNAL(applyClosingChanged(bool)));
+  connect(m_gui->closingRadius,SIGNAL(valueChanged(int)),
+          this,                SIGNAL(closingRadiusChanged(int)));
+  connect(m_gui->resetROI,     SIGNAL(clicked(bool)),
+          this,                SLOT(resetROI()));
+  connect(m_gui->m_modify,     SIGNAL(clicked(bool)),
+          this,                SLOT(modifyFilter()));
+
+  m_viewManager->updateViews();
+}
+
+//----------------------------------------------------------------------------
+SeedGrowSegmentationHistoryWidget::~SeedGrowSegmentationHistoryWidget()
+{
+  m_viewManager->updateViews();
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::resetROI()
+{
+  m_roiTools->setCurrentROI(m_filter->roi()->clone());
 }
 
 //----------------------------------------------------------------------------
@@ -186,28 +224,19 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
   auto volume = volumetricData(output);
 
   auto spacing = volume->spacing();
+  auto roi     = m_roiTools->currentROI();
 
-//   int ROI[6];
-//   for(int i=0; i < 6; i++)
-//     ROI[i] = voiBounds[i]/spacing[i/2];
-//
-//   int x = m_xSeed->text().toInt();
-//   int y = m_ySeed->text().toInt();
-//   int z = m_zSeed->text().toInt();
-//
-//   if ( ROI[0] > x || ROI[1] < x
-//     || ROI[2] > y || ROI[3] < y
-//     || ROI[4] > z || ROI[5] < z )
-//   {
-//     QMessageBox::warning(this,
-//                          tr("Seed Grow Segmentation"),
-//                          tr("Segmentation couldn't be modified. Seed is outside ROI"));
-//                          return;
-//   }
+  if (roi && !contains(roi, m_filter->seed(), spacing))
+  {
+    QMessageBox::warning(this,
+                         tr("Seed Grow Segmentation"),
+                         tr("Segmentation couldn't be modified. Seed is outside ROI"));
+                         return;
+  }
 
   m_undoStack->beginMacro("Modify Seed GrowSegmentation Filter");
   {
-    m_undoStack->push(new SGSFilterModification(m_filter, m_filter->roi(), m_gui->threshold->value(), m_gui->closingRadius->value()));
+    m_undoStack->push(new SGSFilterModification(m_filter, roi, m_gui->threshold->value(), m_gui->closingRadius->value()));
   }
   m_undoStack->endMacro();
 
@@ -220,5 +249,29 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
     warning.exec();
   }
 
+  if (m_filter->roi())
+  {
+    resetROI();
+  }
+
   m_viewManager->updateSegmentationRepresentations();
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::setThreshold(int value)
+{
+  m_gui->threshold->setValue(value);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::setApplyClosing(bool value)
+{
+  m_gui->applyClosing->setChecked(value);
+  m_gui->closingRadius->setEnabled(value);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::setClosingRadius(int value)
+{
+  m_gui->closingRadius->setValue(value);
 }

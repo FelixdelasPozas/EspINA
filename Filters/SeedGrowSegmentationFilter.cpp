@@ -151,7 +151,7 @@ void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 //------------------------------------------------------------------------
 ROISPtr SeedGrowSegmentationFilter::roi() const
 {
-	return m_ROI;
+  return m_ROI;
 }
 
 //------------------------------------------------------------------------
@@ -339,6 +339,8 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {
+  if (!m_ROI) return false;
+
   auto volume = volumetricData(m_outputs[0]);
   auto spacing = volume->spacing();
   auto boundsSeg = volume->bounds();

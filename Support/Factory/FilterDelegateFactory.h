@@ -65,6 +65,7 @@ namespace ESPINA {
 
   private:
     QMap<Filter::Type, SpecificFilterDelegateFactorySPtr> m_factories;
+    QMap<SegmentationAdapterPtr, FilterDelegateSPtr> m_instances;
   };
 
   using FilterDelegateFactorySPtr = std::shared_ptr<FilterDelegateFactory>;

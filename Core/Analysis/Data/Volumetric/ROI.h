@@ -272,6 +272,14 @@ namespace ESPINA
     }
   }
 
+
+  /** \brief Returns whether or not point is inside the roi
+   *
+   *  \param[in] roi region of interest
+   *  \param[in] point point to be checked for inclussion inside the roi
+   *  \param[in] spacing to determine whether two distances belong to the same voxel
+   */
+  bool contains(ROISPtr roi, NmVector3 point, NmVector3 spacing = NmVector3{1, 1, 1});
 } // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

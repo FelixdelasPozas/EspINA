@@ -31,7 +31,7 @@ if (UNIX)
     )
 endif (UNIX)
 qt4_add_resources(SUBJECT_RCC
-  ${CORE_DIR}/Analysis/rsc/core.qrc
+  ${CORE_DIR}/rsc/core.qrc
   )
 
 qt4_wrap_cpp(SUBJECT_MOCS

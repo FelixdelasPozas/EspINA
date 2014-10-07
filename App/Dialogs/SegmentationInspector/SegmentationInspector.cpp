@@ -55,6 +55,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
                                              Qt::WindowFlags           flags)
 : QWidget          {parent, flags|Qt::WindowStaysOnTopHint}
 , m_model          {model}
+, m_factory        {factory}
 , m_delegateFactory{delegateFactory}
 , m_viewManager    {viewManager}
 , m_undoStack      {undoStack}
@@ -446,7 +447,7 @@ void SegmentationInspector::updateSelection()
       try
       {
         auto delegate = m_delegateFactory->createDelegate(segmentation);
-        activeHistory = delegate->createWidget(m_viewManager, m_undoStack);
+        activeHistory = delegate->createWidget(m_model, m_factory, m_viewManager, m_undoStack);
       }
       catch (...)
       {

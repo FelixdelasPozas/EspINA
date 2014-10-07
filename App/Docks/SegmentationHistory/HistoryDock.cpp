@@ -29,13 +29,15 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 HistoryDock::HistoryDock(ModelAdapterSPtr          model,
-                         FilterDelegateFactorySPtr factory,
+                         ModelFactorySPtr          factory,
+                         FilterDelegateFactorySPtr delegatFactory,
                          ViewManagerSPtr           viewManager,
                          QUndoStack               *undoStack,
                          QWidget                  *parent)
 : DockWidget(parent)
-, m_baseModel(model)
+, m_model(model)
 , m_factory(factory)
+, m_delegateFactory(delegatFactory)
 , m_viewManager(viewManager)
 , m_undoStack(undoStack)
 , m_segmentation(nullptr)
@@ -126,8 +128,8 @@ void HistoryDock::updateDock()
 
       try
       {
-        auto delegate = m_factory->createDelegate(m_segmentation);
-        setWidget(delegate->createWidget(m_viewManager, m_undoStack));
+        auto delegate = m_delegateFactory->createDelegate(m_segmentation);
+        setWidget(delegate->createWidget(m_model, m_factory, m_viewManager, m_undoStack));
       }
       catch (...)
       {

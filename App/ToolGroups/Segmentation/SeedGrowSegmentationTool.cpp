@@ -23,6 +23,8 @@
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
 #include "SeedGrowSegmentationHistoryWidget.h"
+#include "SeedGrowSegmentationHistory.h"
+#include <ToolGroups/ROI/ROITools.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -42,21 +44,6 @@ using namespace ESPINA;
 
 const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
-
-class SeedGrowSegmentationHistory
-: public FilterHistory
-{
-public:
-  SeedGrowSegmentationHistory(SeedGrowSegmentationFilterSPtr filter)
-  : m_filter(filter) {}
-
-  virtual QWidget* createWidget(ViewManagerSPtr viewManager, QUndoStack* undoStack)
-  { return new SeedGrowSegmentationHistoryWidget(m_filter, viewManager, undoStack); }
-
-private:
-  SeedGrowSegmentationFilterSPtr m_filter;
-};
-
 
 //-----------------------------------------------------------------------------
 FilterTypeList SeedGrowSegmentationTool::SGSFactory::providedFilters() const
@@ -302,6 +289,8 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     bounds = intersection(bounds, channel->bounds(), spacing);
 
     roi = ROISPtr{new ROI(bounds, spacing, origin)};
+
+    //m_viewManager-> TODO: Unset current ROI
   }
   else
   {
@@ -309,15 +298,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
 
   auto validSeed = true;
+
   if(roi != nullptr)
   {
-    validSeed = contains(roi->bounds(), seedBounds, volume->spacing());
-
-    if(validSeed && !roi->isRectangular())
-    {
-      auto roiPixel = roi->itkImage(seedBounds);
-      validSeed = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(roiPixel->GetBufferPointer())));
-    }
+    validSeed = contains(roi, seed, volume->spacing());
   }
 
   validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());
