@@ -95,12 +95,12 @@ class CategoryItemDelegate
 : public QItemDelegate
 {
 public:
-	/** \brief Class CategoryItemDelegate class constructor.
-	 * \param[in] model, model adapter smart pointer.
-	 * \param[in] undoStack, QUndoStack object raw pointer.
-	 * \param[in] parent, parent object raw pointer.
-	 *
-	 */
+  /** \brief Class CategoryItemDelegate class constructor.
+   * \param[in] model model adapter smart pointer.
+   * \param[in] undoStack QUndoStack object raw pointer.
+   * \param[in] parent parent object raw pointer.
+   *
+   */
   explicit CategoryItemDelegate(ModelAdapterSPtr model,
                                 QUndoStack      *undoStack,
                                 QObject         *parent = nullptr)

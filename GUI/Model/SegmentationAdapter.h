@@ -48,9 +48,9 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
-  	/** \brief SegmentationAdapter class virtual destructor.
-  	 *
-  	 */
+    /** \brief SegmentationAdapter class virtual destructor.
+     *
+     */
     virtual ~SegmentationAdapter();
 
     /** \brief Implements ItemAdapter::data().
