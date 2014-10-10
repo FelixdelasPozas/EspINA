@@ -62,6 +62,7 @@ namespace ESPINA {
 
   private slots:
     void resetROI();
+    void roiChanged();
     void modifyFilter();
 
   private:

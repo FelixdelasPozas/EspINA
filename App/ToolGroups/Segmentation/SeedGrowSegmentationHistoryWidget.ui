@@ -167,7 +167,7 @@
         </property>
         <property name="icon">
          <iconset resource="../../rsc/espina.qrc">
-          <normaloff>:/espina/reset_voi.svg</normaloff>:/espina/reset_voi.svg</iconset>
+          <normaloff>:/espina/reset_roi.svg</normaloff>:/espina/reset_roi.svg</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -321,7 +321,6 @@
    </item>
   </layout>
   <zorder>verticalSpacer_2</zorder>
-  <zorder>verticalLayoutWidget</zorder>
   <zorder>frame</zorder>
   <zorder>frame_2</zorder>
   <zorder>roiFrame</zorder>

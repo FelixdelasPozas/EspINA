@@ -272,7 +272,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  if (!m_viewManager->currentROI() && m_roi->applyROI())
+  auto currentROI = m_viewManager->currentROI();
+
+  if (!currentROI && m_roi->applyROI())
   {
     // Create default ROI
     auto xSize = std::max(m_roi->value(Axis::X), (unsigned int) 2);
@@ -289,12 +291,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
     bounds = intersection(bounds, channel->bounds(), spacing);
 
     roi = ROISPtr{new ROI(bounds, spacing, origin)};
-
-    //m_viewManager-> TODO: Unset current ROI
   }
   else
   {
-    roi = m_viewManager->currentROI();
+    roi = currentROI;
   }
 
   auto validSeed = true;
@@ -332,6 +332,11 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
             this,         SLOT(createSegmentation()));
 
     Task::submit(filter);
+
+    if (currentROI)
+    {
+      m_viewManager->consumeROI();
+    }
   }
   else
   {

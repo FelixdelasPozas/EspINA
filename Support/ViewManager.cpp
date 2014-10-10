@@ -42,7 +42,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
 : m_selection        {new Selection()}
-, m_roi              {nullptr}
+, m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
 , m_eventHandler     {nullptr}

@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Support/Widgets/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/ROIProvider.h>
 
 // Qt
 #include <QAction>
@@ -41,6 +42,7 @@ namespace ESPINA
   /// Seed Growing Segmentation Plugin
   class ROIToolsGroup
   : public ToolGroup
+  , public ROIProvider
   {
   Q_OBJECT
   public:
@@ -63,77 +65,96 @@ namespace ESPINA
      */
     virtual ~ROIToolsGroup();
 
-    /** \brief Implements ToolGroup::setEnabled(bool).
-     *
-     */
-    virtual void setEnabled(bool value);
+    virtual void setEnabled(bool value) override;
 
-    /** \brief Implements ToolGroup::enabled().
-     *
-     */
-    virtual bool enabled() const;
+    virtual bool enabled() const override;
 
-    /** \brief Implements ToolGroup::tools().
-     *
-     */
-    virtual ToolSList tools();
+    virtual ToolSList tools() override;
 
-    /** \brief Sets the value of roi accumulator
-     * \param[in] roi roi object smart pointer.
+    /** \brief Set roi to be managed by this tool
+     * \param[in] roi region of interest
      *
-     *  If this tool is set as global ROI it will update ViewManager's ROI as well
      */
     void setCurrentROI(ROISPtr roi);
 
-    /** \brief Gets the current accumulator value.
-     *
-     */
-    ROISPtr currentROI();
+    virtual ROISPtr currentROI() override;
+
+    virtual void consumeROI() override;
+
+    ROISPtr accumulator()
+    { return m_accumulator; }
 
     /** \brief Returns true if there is a valid roi.
      *
      */
     bool hasValidROI() const;
 
-    /** \brief Returns whether or not ROIs created with this tool are accesible via
-     *         ViewManager's ROI to other tools
-     *
-     *  By default all tools are global
-     */
-    bool isGlobalROI() const
-    { return m_globalROI; }
+//     /** \brief Returns whether or not ROIs created with this tool are accesible via
+//      *         ViewManager's ROI to other tools
+//      *
+//      *  By default all tools are global
+//      */
+//     bool isGlobalROI() const
+//     { return m_globalROI; }
 
-    /** \brief Set whether or not ROIs created with this tool are accesible via
-     *         ViewManager's ROI to other tools
-     *
-     *  \param[in] value sets tool behaviour to value
-     */
-    void setGlobalROI(bool value)
-    { m_globalROI = value; }
+//     /** \brief Set whether or not ROIs created with this tool are accesible via
+//      *         ViewManager's ROI to other tools
+//      *
+//      *  \param[in] value sets tool behaviour to value
+//      */
+//     void setGlobalROI(bool value)
+//     { m_globalROI = value; }
 
+    /** \brief Set wheter or not the accumulated ROI is visible
+     *  \param[in] visible ROI visibility state
+     */
     void setVisible(bool visible);
 
+    /** \brief Returns wheter or not the accumulated ROI is visible
+     */
     bool isVisible() const
     { return m_visible; }
 
   signals:
-    void roiChanged();
+    void roiChanged(ROISPtr);
+
+  private slots:
+    /** \brief Updates ROI accumulator when a new ROI is defined
+     *
+     */
+    void onManualROIDefined(Selector::Selection strokes);
+
+    void onOrthogonalROIDefined(ROISPtr roi);
+
+  private:
+    /** \brief Add orthogonal ROI to accumulator if any is already defined
+     *
+     *  \param[in] roi next ROI to be managed by the Orthogonal ROI tool
+     */
+    void commitPendingOrthogonalROI(ROISPtr roi);
+
+    void addMask(const BinaryMaskSPtr<unsigned char> mask);
+
+  private:
+    class DefineOrthogonalROICommand;
+    class DefineManualROICommand;
 
   private:
     using ManualROIToolSPtr     = std::shared_ptr<ManualROITool>;
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
     using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
 
+    ViewManagerSPtr       m_viewManager;
+    QUndoStack           *m_undoStack;
+
     ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;
-    ViewManagerSPtr       m_viewManager;
 
     bool m_enabled;
-    bool m_globalROI;
     bool m_visible;
 
-    ROISPtr m_accumulator;
+    ROISPtr          m_accumulator;
     EspinaWidgetSPtr m_accumulatorWidget;
   };
 

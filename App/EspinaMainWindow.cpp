@@ -294,6 +294,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(roiTools);
+  m_viewManager->setROIProvider(roiTools);
 
   auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);

@@ -126,6 +126,12 @@ namespace ESPINA
     bool isTouchingROI() const
     { return m_touchesROI; };
 
+    /** \brief Forces filter execution even if its parameters haven't changed
+     *
+     */
+    void forceUpdate()
+    { m_forceUpdate = true; }
+
   protected:
     /** \brief Implements Filter::saveFilterSnapshot().
      *
@@ -174,6 +180,7 @@ namespace ESPINA
     int       m_radius,  m_prevRadius;
     ROISPtr   m_ROI;
     bool      m_touchesROI;
+    bool      m_forceUpdate;
   };
 
   using SeedGrowSegmentationFilterSPtr = std::shared_ptr<SeedGrowSegmentationFilter>;

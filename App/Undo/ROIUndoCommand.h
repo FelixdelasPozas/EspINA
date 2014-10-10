@@ -30,29 +30,23 @@
 
 namespace ESPINA
 {
-  class ModifyROIUndoCommand
+  class AddROIUndoCommand
   : public QUndoCommand
   {
     public:
-      /** \brief ModifyROIUndoCommand class constructor.
+      /** \brief AddROIUndoCommand class constructor.
        * \param[in] toolgroup, raw pointer of the ROIToolsGroup that has the ROI accumulator.
        * \param[in] mask, Mask to create/modify ROI.
        */
-      explicit ModifyROIUndoCommand(ROIToolsGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
+      explicit AddROIUndoCommand(ROIToolsGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
 
-      /** \brief ModifyROIUndoCommand class virtual destructor.
+      /** \brief AddROIUndoCommand class virtual destructor.
        *
        */
-      virtual ~ModifyROIUndoCommand();
+      virtual ~AddROIUndoCommand();
 
-      /** \brief Overrides QUndoCommand::redo().
-       *
-       */
       virtual void redo() override;
 
-      /** \brief Overrides QUndoCommand::undo().
-       *
-       */
       virtual void undo() override;
 
     private:

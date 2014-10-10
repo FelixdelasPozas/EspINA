@@ -1,7 +1,9 @@
 <RCC>
   <qresource prefix="/espina">
-    <file>reset_voi.svg</file>
+    <file>roi_orthogonal.svg</file>
+    <file>resize_roi.svg</file>
     <file>refresh.png</file>
+    <file>reset_roi.svg</file>
     <file>up.png</file>
     <file>down.png</file>
     <file>new-lasso.png</file>
@@ -98,7 +100,6 @@
     <file>measure3D.png</file>
     <file>voi_brush.svg</file>
     <file>voi_clean.svg</file>
-    <file>voi_ortogonal.svg</file>
     <file>database.png</file>
   </qresource>
 </RCC>

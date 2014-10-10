@@ -114,6 +114,19 @@ namespace ESPINA
     return result;
   }
 
+//   //-----------------------------------------------------------------------------
+//   void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned int> mask)
+//   {
+//     if(contains(roi->bounds(), mask->bounds().bounds(), roi->spacing()))
+//     {
+//       roi->draw(mask, mask->foregroundValue());
+//     }
+//     else
+//     {
+//       roi->resize(boundingBox(roi->bounds(), mask->bounds().bounds()));
+//       roi->draw(mask, mask->foregroundValue());
+//     }
+//   }
 
 }
 

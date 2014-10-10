@@ -62,6 +62,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter
 , m_radius     {0}
 , m_prevRadius {m_radius}
 , m_touchesROI {false}
+, m_forceUpdate{false}
 {
 }
 
@@ -290,6 +291,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   }
 
   emit progress(75);
+
   if (!canExecute()) return;
 
   if (!m_outputs.contains(0))
@@ -316,7 +318,11 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevRadius  = m_radius;
 
   if(m_ROI != nullptr)
-  	m_touchesROI = computeTouchesROIValue();
+  {
+    m_touchesROI = computeTouchesROIValue();
+  }
+
+  m_forceUpdate = false;
 
   emit progress(100);
 }
@@ -324,7 +330,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::ignoreStorageContent() const
 {
-  return m_lowerTh != m_prevLowerTh
+  return m_forceUpdate
+      || m_lowerTh != m_prevLowerTh
       || m_upperTh != m_prevUpperTh
       || m_seed    != m_prevSeed
       || m_radius  != m_prevRadius;

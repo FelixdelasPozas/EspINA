@@ -73,7 +73,7 @@ namespace ESPINA
     ~Category();
 
     /** \brief Sets the name of the category
-     * \param[in] name, new name of the category.
+     * \param[in] name new name of the category.
      *
      */
     void setName(const QString &name);
@@ -96,7 +96,7 @@ namespace ESPINA
     QString classificationName() const;
 
     /** \brief Sets the color of the category.
-     * \param[in] color, new color of the category.
+     * \param[in] color new color of the category.
      *
      */
     void setColor(const QColor &color);
@@ -107,20 +107,20 @@ namespace ESPINA
     QColor color() const {return m_color;}
 
     /** \brief Adds a property to the category.
-     * \param[in] prop, key of the property.
-     * \param[in] value, value of the property.
+     * \param[in] prop key of the property.
+     * \param[in] value value of the property.
      *
      */
     void addProperty(const QString &prop, const QVariant &value);
 
     /** \brief Deletes a property of the category.
-     * \param[in] prop, key of the property.
+     * \param[in] prop key of the property.
      *
      */
     void deleteProperty(const QString &prop);
 
     /** \brief Returns the value of a property of the category.
-     * \param[in] prop, key of the property.
+     * \param[in] prop key of the property.
      *
      */
     QVariant property(const QString &prop) const;
@@ -132,13 +132,13 @@ namespace ESPINA
     {return m_properties.keys();}
 
     /** \brief Create a new sub-category with the given name.
-     * \param[in] name, name of the sub-category to create.
+     * \param[in] name name of the sub-category to create.
      *
      */
     CategorySPtr createSubCategory(const QString &name);
 
     /** \brief Make sub-category a sub category of this category.
-     * \param[in] subCategory, category to make this one it's parent.
+     * \param[in] subCategory category to make this one it's parent.
      *
      *  If the sub-category belonged to another category, it won't belong
      *  anymore
@@ -146,7 +146,7 @@ namespace ESPINA
     void addSubCategory(CategorySPtr subCategory);
 
     /** \brief Remove sub-category from this category.
-     * \param[in] subCategory, category to remove.
+     * \param[in] subCategory category to remove.
      *
      *  If the sub-category doesn't belong to this category
      *  nothing will happen
@@ -154,7 +154,7 @@ namespace ESPINA
     void removeSubCategory(CategoryPtr  subCategory);
 
     /** \brief Remove sub-category from this category.
-     * \param[in] subCategory, smart pointer of the category to remove.
+     * \param[in] subCategory smart pointer of the category to remove.
      *
      *  If the sub-category doesn't belong to this category
      *  nothing will happen
@@ -163,7 +163,7 @@ namespace ESPINA
     { removeSubCategory(subCategory.get()); }
 
     /** \brief Return the sub-category with the given name.
-     * \param[in] name, name of the category to return.
+     * \param[in] name name of the category to return.
      *
      *  If no sub-category has the requested name, nullptr will be returned
      */
@@ -188,9 +188,9 @@ namespace ESPINA
     {return m_parent;}
   private:
     /** \brief Category class constructor.
-     * \param[in] parent, parent category raw pointer.
-     * \param[in] name, name of the category.
-     * \param[in] color, color of the category.
+     * \param[in] parent parent category raw pointer.
+     * \param[in] name name of the category.
+     * \param[in] color color of the category.
      *
      */
     explicit Category(CategoryPtr parent,
@@ -209,8 +209,8 @@ namespace ESPINA
   };
 
   /** \brief Prints the category and it's properties indented.
-   * \param[in] category, category whose information want printed.
-   * \param[in] level, indentation level.
+   * \param[in] category category whose information want printed.
+   * \param[in] level indentation level.
    *
    */
   QString EspinaCore_EXPORT print(CategorySPtr category, int level=0);

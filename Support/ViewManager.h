@@ -33,6 +33,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
+#include "ROIProvider.h"
 
 // Qt
 #include <QList>
@@ -218,25 +219,31 @@ namespace ESPINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    /** \brief Sets the current region of interest.
-     * \param[in] roi ROI smart pointer.
+    /** \brief Sets the current region of interest provider
+     * \param[in] provider ROI Provider smart pointer.
      *
      */
-    void setCurrentROI(ROISPtr roi)
-    { m_roi = roi; emit ROIChanged(); }
+    void setROIProvider(ROIProviderPtr provider)
+    { m_roiProvider = provider;}
 
-    /** \brief Returns the current region of interest smart pointer.
+    /** \brief Returns the current region of interest provider.
      *
      */
+    ROIProviderPtr roiProvider() const
+    { return m_roiProvider; }
+
     ROISPtr currentROI() const
-    { return m_roi; }
+    { return m_roiProvider?m_roiProvider->currentROI():ROISPtr();}
+
+    void consumeROI()
+    { if (m_roiProvider) m_roiProvider->consumeROI();}
 
   signals:
-    void ROIChanged();
+    void roiRoviderChanged();
     void eventHandlerChanged();
 
   private:
-    ROISPtr          m_roi;
+    ROIProviderPtr   m_roiProvider;
     QToolBar        *m_contextualToolBar;
     ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;

@@ -126,6 +126,7 @@ private:
   void update()
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+    // m_filter->forceUpdate();
     m_filter->update(0);
     QApplication::restoreOverrideCursor();
   }
@@ -188,6 +189,8 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSeg
           this,                SLOT(resetROI()));
   connect(m_gui->m_modify,     SIGNAL(clicked(bool)),
           this,                SLOT(modifyFilter()));
+  connect(m_roiTools,          SIGNAL(roiChanged(ROISPtr)),
+          this,                SLOT(roiChanged()));
 
   m_viewManager->updateViews();
 }
@@ -201,7 +204,14 @@ SeedGrowSegmentationHistoryWidget::~SeedGrowSegmentationHistoryWidget()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationHistoryWidget::resetROI()
 {
+  // TODO-BUG: Must be undo-able
   m_roiTools->setCurrentROI(m_filter->roi()->clone());
+  m_viewManager->updateViews();
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::roiChanged()
+{
 }
 
 //----------------------------------------------------------------------------

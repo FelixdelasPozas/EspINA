@@ -24,9 +24,103 @@
 #include "CleanROITool.h"
 #include "ManualROITool.h"
 #include "OrthogonalROITool.h"
+#include <Undo/ROIUndoCommand.h>
 
 using namespace ESPINA;
 
+class ROIToolsGroup::DefineOrthogonalROICommand
+: public QUndoCommand
+{
+public:
+  explicit DefineOrthogonalROICommand(ROISPtr roi, ROIToolsGroup *tool);
+
+  virtual void redo() override;
+
+  virtual void undo() override;
+
+private:
+  ROISPtr        m_ROI;
+  ROISPtr        m_prevROI;
+  ROIToolsGroup *m_tool;
+};
+
+//-----------------------------------------------------------------------------
+ROIToolsGroup::DefineOrthogonalROICommand::DefineOrthogonalROICommand(ROISPtr roi, ROIToolsGroup* tool)
+: m_ROI(roi)
+, m_tool(tool)
+, m_prevROI{tool->m_ortogonalROITool->currentROI()}
+{
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::DefineOrthogonalROICommand::redo()
+{
+  m_tool->commitPendingOrthogonalROI(m_ROI);
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::DefineOrthogonalROICommand::undo()
+{
+  m_tool->m_ortogonalROITool->setROI(m_prevROI);
+}
+
+
+//-----------------------------------------------------------------------------
+class ROIToolsGroup::DefineManualROICommand
+: public QUndoCommand
+{
+public:
+  explicit DefineManualROICommand(const BinaryMaskSPtr<unsigned char> mask, ROIToolsGroup *tool);
+
+  virtual void redo() override;
+
+  virtual void undo() override;
+
+private:
+  const BinaryMaskSPtr<unsigned char> m_mask;
+  ROIToolsGroup *m_tool;
+  ROISPtr        m_oROI;
+  bool           m_firstROI;
+};
+
+//-----------------------------------------------------------------------------
+ROIToolsGroup::DefineManualROICommand::DefineManualROICommand(const BinaryMaskSPtr<unsigned char> mask, ROIToolsGroup* tool)
+: m_mask{mask}
+, m_tool{tool}
+, m_oROI{tool->m_ortogonalROITool->currentROI()}
+, m_firstROI{tool->m_accumulator == nullptr}
+{
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::DefineManualROICommand::redo()
+{
+  m_tool->commitPendingOrthogonalROI(nullptr);
+  m_tool->addMask(m_mask);
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::DefineManualROICommand::undo()
+{
+  if (m_firstROI)
+  {
+    m_tool->setCurrentROI(m_oROI);
+  }
+  else
+  {
+    m_tool->m_accumulator->undo();
+
+    if (m_oROI)
+    {
+      m_tool->m_accumulator->undo();
+      m_tool->m_ortogonalROITool->setROI(m_oROI);
+    }
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
                              ModelAdapterSPtr model,
@@ -36,8 +130,8 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
                              QWidget         *parent)
 : ToolGroup          {viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent}
 , m_viewManager      {viewManager}
+, m_undoStack        {undoStack}
 , m_enabled          {true}
-, m_globalROI        {true}
 , m_visible          {true}
 , m_accumulator      {nullptr}
 , m_accumulatorWidget{nullptr}
@@ -45,8 +139,10 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 , m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
 , m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
 {
-  connect(m_ortogonalROITool.get(), SIGNAL(roiDefined()),
-          this,                     SIGNAL(roiChanged()));
+  connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
+          this,                     SLOT(onManualROIDefined(Selector::Selection)));
+  connect(m_ortogonalROITool.get(), SIGNAL(roiDefined(ROISPtr)),
+          this,                     SLOT(onOrthogonalROIDefined(ROISPtr)));
 }
 
 //-----------------------------------------------------------------------------
@@ -89,52 +185,61 @@ ToolSList ROIToolsGroup::tools()
 //-----------------------------------------------------------------------------
 void ROIToolsGroup::setCurrentROI(ROISPtr roi)
 {
-  if(m_accumulator != nullptr)
+  if(m_accumulator)
   {
-    if (m_accumulator->isRectangular())
-    {
-      m_ortogonalROITool->cancelWidget();
-    }
-    else
-    {
-      m_viewManager->removeWidget(m_accumulatorWidget);
-    }
+    m_viewManager->removeWidget(m_accumulatorWidget);
+
+    m_accumulator      .reset();
+    m_accumulatorWidget.reset();
   }
 
-  if(roi != nullptr)
+  if (roi && roi->isRectangular())
   {
-    if (roi->isRectangular()) {
-      m_ortogonalROITool->setROI(roi->bounds(), roi->spacing(), roi->origin(), OrthogonalROITool::COMMITED);
-    } else {
-      m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
-      m_viewManager->addWidget(m_accumulatorWidget);
-    }
+    m_ortogonalROITool->setROI(roi);
   }
   else
   {
-    m_ortogonalROITool->cancelWidget();
+    m_ortogonalROITool->setROI(nullptr);
   }
 
-  m_accumulator = roi;
-
-  if (m_globalROI)
+  if (roi && !roi->isRectangular())
   {
-    m_viewManager->setCurrentROI(m_accumulator);
+    m_accumulator       = roi;
+    m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
+    m_viewManager->addWidget(m_accumulatorWidget);
   }
 
-  emit roiChanged();
+  emit roiChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
 ROISPtr ROIToolsGroup::currentROI()
 {
-  return m_accumulator;
+  auto roi = m_ortogonalROITool->currentROI();
+
+  if (m_accumulator)
+  {
+    if (roi)
+    {
+      commitPendingOrthogonalROI(nullptr);
+    }
+    roi = m_accumulator;
+  }
+
+  return roi;
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::consumeROI()
+{
+  // TODO: Must be undoable
+  setCurrentROI(nullptr);
 }
 
 //-----------------------------------------------------------------------------
 bool ROIToolsGroup::hasValidROI() const
 {
-  return m_accumulator || m_ortogonalROITool->isDefined();
+  return m_accumulator || m_ortogonalROITool->currentROI();
 }
 
 //-----------------------------------------------------------------------------
@@ -142,31 +247,99 @@ void ROIToolsGroup::setVisible(bool visible)
 {
   if (m_visible == visible) return;
 
-  if (m_accumulator) {
+  if (m_accumulator)
+  {
     if (visible)
     {
-      if (m_accumulator->isRectangular())
-      {
-        m_ortogonalROITool->setROI(m_accumulator->bounds(), m_accumulator->spacing(), m_accumulator->origin(), OrthogonalROITool::COMMITED);
-      }
-      else
-      {
-        m_viewManager->addWidget(m_accumulatorWidget);
-      }
+      m_viewManager->addWidget(m_accumulatorWidget);
     }
     else
     {
-      if (m_accumulator->isRectangular())
-      {
-        m_ortogonalROITool->cancelWidget();
-      }
-      else
-      {
-        m_viewManager->removeWidget(m_accumulatorWidget);
-      }
+      m_viewManager->removeWidget(m_accumulatorWidget);
     }
+  }
+
+  if (m_ortogonalROITool->currentROI())
+  {
+    m_ortogonalROITool->setVisible(visible);
   }
 
   m_visible = visible;
   m_viewManager->updateViews();
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::onManualROIDefined(Selector::Selection strokes)
+{
+  commitPendingOrthogonalROI(nullptr);
+
+  if(hasValidROI())
+  {
+    m_undoStack->beginMacro("Modify Region Of Interest");
+  }
+  else
+  {
+    m_undoStack->beginMacro("Create Region Of Interest");
+  }
+  m_undoStack->push(new DefineManualROICommand{strokes.first().first, this});
+  m_undoStack->endMacro();
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::onOrthogonalROIDefined(ROISPtr roi)
+{
+  if(hasValidROI())
+  {
+    m_undoStack->beginMacro("Modify Region Of Interest");
+  }
+  else
+  {
+    m_undoStack->beginMacro("Create Region Of Interest");
+  }
+  m_undoStack->push(new DefineOrthogonalROICommand{roi, this});
+  m_undoStack->endMacro();
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::commitPendingOrthogonalROI(ROISPtr roi)
+{
+  // añadir previa OROI al acumulador
+  auto prevROI = m_ortogonalROITool->currentROI();
+  if (prevROI)
+  {
+    auto mask = BinaryMaskSPtr<unsigned char>{new BinaryMask<unsigned char>{prevROI->bounds(), prevROI->spacing(), prevROI->origin()}};
+    BinaryMask<unsigned char>::iterator it{mask.get()};
+    it.goToBegin();
+    while(!it.isAtEnd())
+    {
+      it.Set();
+      ++it;
+    }
+
+    addMask(mask);
+  }
+
+  m_ortogonalROITool->setROI(roi); // this roi can now be edited
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::addMask(const BinaryMaskSPtr<unsigned char> mask)
+{
+  if (m_accumulator)
+  {
+    //expandAndDraw(ROI, m_mask);
+    if(contains(m_accumulator->bounds(), mask->bounds().bounds(), m_accumulator->spacing()))
+    {
+      m_accumulator->draw(mask, mask->foregroundValue());
+    }
+    else
+    {
+      m_accumulator->resize(boundingBox(m_accumulator->bounds(), mask->bounds().bounds()));
+      m_accumulator->draw(mask, mask->foregroundValue());
+    }
+  }
+  else
+  {
+    setCurrentROI(ROISPtr{new ROI(mask)});
+  }
 }

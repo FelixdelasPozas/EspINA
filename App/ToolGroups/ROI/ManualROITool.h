@@ -40,10 +40,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ManualROITool class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack. QUndoStack object raw pointer.
-     * \param[in] toolGroup, ROIToolsGroup raw pointer containing ROI accumulator.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] toolGroup ROIToolsGroup raw pointer containing ROI accumulator.
      */
     explicit ManualROITool(ModelAdapterSPtr model,
                            ViewManagerSPtr  viewManager,
@@ -54,6 +54,9 @@ namespace ESPINA
      *
      */
     virtual ~ManualROITool();
+
+  signals:
+    void roiDefined(Selector::Selection);
 
   protected slots:
     /** \brief Overrides ManualEditionTool::drawingModeChanged(bool) slot.

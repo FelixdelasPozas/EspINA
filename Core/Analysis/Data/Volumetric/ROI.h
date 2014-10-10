@@ -40,15 +40,15 @@ namespace ESPINA
   {
     public:
       /** \brief ROI class constructor.
-       * \param[in] bounds, initial bounds of the volume.
-       * \param[in] spacing, spacing of the volume.
-       * \param[in] origin, origin of the volume.
+       * \param[in] bounds initial bounds of the volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
        *
        */
       ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
       /** \brief ROI class constructor.
-       * \param[in] mask, mask used as a volume.
+       * \param[in] mask mask used as a volume.
        *
        */
       ROI(const BinaryMaskSPtr<unsigned char> mask);
@@ -69,15 +69,15 @@ namespace ESPINA
       ROISPtr clone() const;
 
       /** \brief Applies the ROI to the volume passed as argument.
-       * \param[in] volume, volumetricData to apply the ROI.
-       * \param[in] outsideValue, value to be considered outside the ROI when applying it.
+       * \param[in] volume volumetricData to apply the ROI.
+       * \param[in] outsideValue value to be considered outside the ROI when applying it.
        *
        */
       template<class T> void applyROI(VolumetricDataSPtr<T> volume, const typename T::ValueType outsideValue) const;
 
       /** \brief Applies the ROI to the volume passed as argument.
-       * \param[in] volume, itk volume smart pointer to apply the ROI.
-       * \param[in] outsideValue, value to be considered outside the ROI when applying it.
+       * \param[in] volume itk volume smart pointer to apply the ROI.
+       * \param[in] outsideValue value to be considered outside the ROI when applying it.
        *
        */
       template<class T> void applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const;
@@ -280,6 +280,13 @@ namespace ESPINA
    *  \param[in] spacing to determine whether two distances belong to the same voxel
    */
   bool contains(ROISPtr roi, NmVector3 point, NmVector3 spacing = NmVector3{1, 1, 1});
+
+//   /** \brief Draw mask values into ROI, if the mask is bigger than the ROI, its bounds will be expanded
+//    *
+//    *  \param[in] roi where the mask will be drawn on
+//    *  \param[in] mask to be drawn
+//    */
+//   void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask);
 } // namespace ESPINA
 #endif // ESPINA_ROI_H_
 
