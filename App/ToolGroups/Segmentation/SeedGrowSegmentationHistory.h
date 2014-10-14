@@ -37,7 +37,7 @@ namespace ESPINA {
     : m_filter(filter)
     , m_widgetCount(0)
     , m_roiSettings(nullptr)
-    , m_roi(nullptr)
+    , m_roiTools(nullptr)
     {}
 
     virtual ~SeedGrowSegmentationHistory();
@@ -64,7 +64,7 @@ namespace ESPINA {
     int m_widgetCount;
 
     ROISettings   *m_roiSettings;
-    ROIToolsGroup *m_roi;
+    ROIToolsGroup *m_roiTools;
 
     int  m_threshold;
     bool m_applyClosing;

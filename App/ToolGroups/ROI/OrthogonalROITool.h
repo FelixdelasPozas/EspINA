@@ -124,8 +124,6 @@ namespace ESPINA
     void updateRectangularRegion();
 
   private:
-    void enableSelector(bool value);
-
     /** \brief Creates the rectangular region widget for the current roi
      *
      */

@@ -58,7 +58,7 @@ namespace ESPINA {
     explicit StreamedVolume();
 
     /** \brief StreamedVolume class constructor.
-     * \param[in] fileName, name of the image file used for streaming.
+     * \param[in] fileName name of the image file used for streaming.
      *
      */
     explicit StreamedVolume(const QFileInfo& fileName);
@@ -80,117 +80,60 @@ namespace ESPINA {
     QFileInfo fileName() const
     { return m_fileName; }
 
-    /** \brief Implements Data::memoryUsage().
-     *
-     */
     virtual size_t memoryUsage() const
     { return 0; }
 
-    /** \brief Overrides Data::bounds() const.
-     *
-     */
     virtual Bounds bounds() const;
 
-    /** \brief Implements VolumetricData<T>::setOrigin().
-     *
-     */
     virtual void setOrigin(const NmVector3& origin)
     { m_origin = origin; }
 
-    /** \brief Implements VolumetricData<T>::origin().
-     *
-     */
     virtual NmVector3 origin() const
     { return m_origin; }
 
-    /** \brief Implements Data::setSpacing().
-     *
-     */
     virtual void setSpacing(const NmVector3& spacing)
     { m_spacing = spacing; }
 
-    /** \brief Implements Data::spacing() const.
-     *
-     */
     virtual NmVector3 spacing() const;
 
-    /** \brief Implements VolumetricData<T>::itkImage() const.
-     *
-     */
     virtual const typename T::Pointer itkImage() const;
 
-    /** \brief Implements VolumetricData<T>::itkImage(Bounds) const.
-     *
-     */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
-    /** \brief Implements VolumetricData<T>::draw(vtkImplicitFunction, Bounds, T::ValueType).
-     *
-     */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value)
     {}
 
-    /** \brief Implements VolumetricData<T>::draw(T::Pointer).
-     *
-     */
     virtual void draw(const typename T::Pointer volume)
     {}
 
-    /** \brief Implements VolumetricData<T>::draw(T::Pointer, Bounds)
-     *
-     */
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds)
     {}
 
-    /** \brief Implements VolumetricData<T>::draw(T::IndexType, T::ValueType)
-     *
-     */
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE)
     {}
 
-    /** \brief Implements VolumetricData<T>::resize().
-     *
-     */
     virtual void resize(const Bounds &bounds)
     {}
 
-    /** \brief Implements Data::undo().
-     *
-     */
     virtual void undo()
     {}
 
-    /** \brief Implements Data::isValid().
-     *
-     */
     virtual bool isValid() const
     { return QFileInfo(m_fileName).exists(); }
 
-    /** \brief Implements Data::isEmpty().
-     *
-     */
     virtual bool isEmpty() const
     { return !isValid(); }
 
-    /** \brief Implements Data::fetchData().
-     *
-     */
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString& prefix)
+    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id)
     { return false; }
 
-    /** \brief Implements Data::snapshot().
-     *
-     */
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
     { return Snapshot(); }
 
-    /** \brief Implements Data::editedRegionsSnapshot().
-     *
-     */
     virtual Snapshot editedRegionsSnapshot() const
     { return Snapshot(); }
 

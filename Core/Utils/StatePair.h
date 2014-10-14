@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
+ * Copyright (c) 2014, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,39 +26,23 @@
  *
  */
 
-#ifndef ESPINA_FETCH_BEHAVIOUR_H
-#define ESPINA_FETCH_BEHAVIOUR_H
+#ifndef ESPINA_STATE_PAIR_H
+#define ESPINA_STATE_PAIR_H
 
-#include "Core/EspinaCore_Export.h"
+#include <QString>
+#include "NmVector3.h"
 
-// ESPINA
-#include <Core/Analysis/Output.h>
+namespace ESPINA
+{
 
-// Qt
-#include <QXmlStreamReader>
+  template<class T>
+  QString StatePair(const QString &id, const T &value)
+  { return QString("%1=%2;").arg(id).arg(value); }
 
-namespace ESPINA {
+  QString StatePair(const QString &id, const NmVector3 &value)
+  { return QString("%1=%2,%3,%4;").arg(id).arg(value[0]).arg(value[1]).arg(value[2]); }
 
-  class EspinaCore_EXPORT FetchBehaviour
-  {
-  public:
-    /** \brief Class FetchBehaviour class virtual destructor.
-     *
-     */
-    virtual ~FetchBehaviour()
-    {};
-
-    /** \brief Loads the data from disk and set the data into the given output.
-     * \param[inout] output output object smart pointer.
-     * \param[in]    storage temporal storage where data snapshots are stored
-     * \param[in]    path    temporal storage relative path where data snapshots are stored
-     * \param[in]    info    xml data that specifies the type of data to fetch.
-     *
-     */
-    virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
-  };
-
-  using FetchBehaviourSPtr = std::shared_ptr<FetchBehaviour>;
 }
 
-#endif // ESPINA_NEURO_ITEM_H
+
+#endif // ESPINA_STATE_PAIR_H

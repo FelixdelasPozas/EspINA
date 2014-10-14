@@ -74,7 +74,7 @@ namespace ESPINA
     virtual DataProxySPtr createProxy() const = 0;
 
     /** \brief Sets the data output.
-     * \param[in] output, Output object smart pointer.
+     * \param[in] output Output object smart pointer.
      *
      */
     void setOutput(OutputPtr output)
@@ -98,19 +98,22 @@ namespace ESPINA
     virtual void clearEditedRegions()
     { m_editedRegions.clear(); }
 
-    /** \brief Recover output data from Persistent Storage.
-     * \param[in] storage, smart pointer of the temporal storage where to retrieve the data.
-     * \param[in] prefix, prefix of the filenames.
+    /** \brief Recover data from Persistent Storage.
+     * \param[in] storage temporal storage where data snasphots can be loaded from.
+     * \param[in] path storage path where data snapshosts will be loaded from
+     * \param[in] id identifier of stored data snapshosts
      *
      */
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &prefix) = 0;
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
 
     /** \brief Return the byte arrays needed to save this object between sessions.
-     * \param[in] storage, smart pointer of the temporal storage where to save the data.
-     * \param[in] prefix, prefix of the filenames.
+     * \param[in] storage temporal storage where data snasphots can be loaded from
+     * \param[in] path storage path where data snapshosts will be saved to
+     * \param[in] id identifier to store data snapshosts
      *
+     *  Temporal storage may be also used to store temporal files where snapshot generation
      */
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const = 0;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
     /** \brief Returns a snapshot object of the edited regions of the data.
      *

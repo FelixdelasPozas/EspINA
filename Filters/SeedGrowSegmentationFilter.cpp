@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Utils/StatePair.h>
 
 // C++
 #include <unistd.h>
@@ -50,6 +51,12 @@ using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeTyp
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
+const QString SEED           = "Seed";
+const QString LOWER_TH       = "LowerThreshold";
+const QString UPPER_TH       = "UpperThreshold";
+const QString CLOSING_RADIUS = "ClosingRadius";
+const QString ROI_DEFINED    = "ROI";
+
 //------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter       {inputs, type, scheduler}
@@ -61,6 +68,8 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter
 , m_prevSeed   {m_seed}
 , m_radius     {0}
 , m_prevRadius {m_radius}
+, m_hasROI     {true}
+, m_prevROI    {nullptr}
 , m_touchesROI {false}
 , m_forceUpdate{false}
 {
@@ -75,22 +84,29 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
     if (tokens.size() != 2)
       continue;
 
-    if ("Seed" == tokens[0])
+    if (SEED == tokens[0])
     {
       QStringList seed = tokens[1].split(",");
       for(int i = 0; i < 3; ++i)
       {
         m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
       }
-    } else if ("LowerThreshold" == tokens[0])
+    }
+    else if (LOWER_TH == tokens[0])
     {
       m_prevLowerTh = m_lowerTh = tokens[1].toInt();
-    } else if ("UpperThreshold" == tokens[0])
+    }
+    else if (UPPER_TH == tokens[0])
     {
       m_prevUpperTh = m_upperTh = tokens[1].toInt();
-    } else if ("ClosingRadius" == tokens[0] || "Close" == tokens[0])
+    }
+    else if (CLOSING_RADIUS == tokens[0] || "Close" == tokens[0])
     {
       m_prevRadius  = m_radius  = tokens[1].toInt();
+    }
+    else if (ROI_DEFINED == tokens[0])
+    {
+      m_hasROI = tokens[1].toInt();
     }
   }
 }
@@ -98,11 +114,14 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
 //------------------------------------------------------------------------
 State SeedGrowSegmentationFilter::state() const
 {
-  State state = QString("Seed=%1;LowerThreshold=%2;UpperThreshold=%3;ClosingRadius=%4")
-                .arg(QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]))
-                .arg(m_lowerTh)
-                .arg(m_upperTh)
-                .arg(m_radius);
+  State state;
+
+  state += StatePair(SEED,           m_seed);
+  state += StatePair(LOWER_TH,       m_lowerTh);
+  state += StatePair(UPPER_TH,       m_upperTh);
+  state += StatePair(CLOSING_RADIUS, m_radius);
+  state += StatePair(ROI_DEFINED,    m_hasROI||m_ROI);
+
   return state;
 }
 
@@ -152,6 +171,15 @@ void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 //------------------------------------------------------------------------
 ROISPtr SeedGrowSegmentationFilter::roi() const
 {
+  if (!m_ROI && m_hasROI)
+  {
+    m_ROI = ROISPtr{new ROI(Bounds(),NmVector3(), NmVector3())};
+
+    m_ROI->fetchData(storage(), prefix(), "0");
+
+    m_prevROI = m_ROI.get();
+  }
+  
   return m_ROI;
 }
 
@@ -170,7 +198,14 @@ int SeedGrowSegmentationFilter::closingRadius() const
 //------------------------------------------------------------------------
 Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 {
-  return Snapshot();
+  Snapshot snapshot;
+
+  if (roi())
+  {
+    snapshot << m_ROI->snapshot(storage(), prefix(), "0");
+  }
+
+  return snapshot;
 }
 
 //----------------------------------------------------------------------------
@@ -316,6 +351,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevUpperTh = m_upperTh;
   m_prevSeed    = m_seed;
   m_prevRadius  = m_radius;
+  m_prevROI     = m_ROI.get();
 
   if(m_ROI != nullptr)
   {
@@ -331,10 +367,11 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 bool SeedGrowSegmentationFilter::ignoreStorageContent() const
 {
   return m_forceUpdate
-      || m_lowerTh != m_prevLowerTh
-      || m_upperTh != m_prevUpperTh
-      || m_seed    != m_prevSeed
-      || m_radius  != m_prevRadius;
+      || m_lowerTh   != m_prevLowerTh
+      || m_upperTh   != m_prevUpperTh
+      || m_seed      != m_prevSeed
+      || m_radius    != m_prevRadius
+      || m_ROI.get() != m_prevROI;
 }
 
 //----------------------------------------------------------------------------
@@ -352,7 +389,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
   auto spacing = volume->spacing();
   auto boundsSeg = volume->bounds();
 
-  if(m_ROI->isRectangular())
+  if(m_ROI->isOrthogonal())
   {
     auto boundsROI = m_ROI->bounds();
     for (int i = 0, j = 1; i < 6; i += 2, j += 2)

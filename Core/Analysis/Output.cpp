@@ -81,7 +81,7 @@ NmVector3 Output::spacing() const
 //----------------------------------------------------------------------------
 Snapshot Output::snapshot(TemporalStorageSPtr storage,
                           QXmlStreamWriter   &xml,
-                          const QString      &prefix) const
+                          const QString      &path) const
 {
   Snapshot snapshot;
 
@@ -105,7 +105,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
     if (hasToBeSaved())
     {
-      snapshot << data->snapshot(storage, prefix);
+      snapshot << data->snapshot(storage, path, QString::number(id()));
     }
     else
     {

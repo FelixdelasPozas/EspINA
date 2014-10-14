@@ -47,12 +47,12 @@ namespace ESPINA
   class EspinaCore_EXPORT VolumeBounds
   {
     public:
-  		/** \brief VolumeBounds class constructor.
-  		 * \param[in] bounds, bounds of the volume.
-  		 * \param[in] spacing, spacing of the volume.
-  		 * \param[in] origin, origin of the volume.
-  		 *
-  		 */
+      /** \brief VolumeBounds class constructor.
+       * \param[in] bounds, bounds of the volume.
+       * \param[in] spacing, spacing of the volume.
+       * \param[in] origin, origin of the volume.
+       *
+       */
       explicit VolumeBounds(const Bounds &bounds = Bounds(), const NmVector3 &spacing = NmVector3{1,1,1}, const NmVector3 &origin = NmVector3());
 
       /** \brief Return whether or not Bounds define a valid region of the 3D space
@@ -211,6 +211,13 @@ namespace ESPINA
    * third side.
    */
   bool EspinaCore_EXPORT areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs);
+
+  /** \brief Returns a binary serialization of the volume bounds
+   *
+   */
+  QByteArray EspinaCore_EXPORT serializeVolumeBounds(const VolumeBounds &bounds);
+
+  VolumeBounds EspinaCore_EXPORT deserializeVolumeBounds(const QByteArray &serialization);
 }
 
 

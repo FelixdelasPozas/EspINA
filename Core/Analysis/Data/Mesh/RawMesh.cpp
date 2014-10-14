@@ -33,7 +33,7 @@
 
 using namespace ESPINA;
 
-static QString MESHDATA_FILE = QString("MeshData_%1.vtp");
+static QString MESHDATA_FILE = QString("%1_MeshData.vtp");
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(OutputSPtr output)
@@ -50,11 +50,14 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 }
 
 //----------------------------------------------------------------------------
-bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
+bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
 {
   bool dataFetched = false;
 
-  QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
+  // TODO: Fetch old file names
+  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
+
+  QString fileName = storage->absoluteFilePath(path + QString(MESHDATA_FILE).arg(id));
 
   QFileInfo meshFile(fileName);
 
@@ -68,12 +71,12 @@ bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString& prefix
 }
 
 //----------------------------------------------------------------------------
-Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &prefix) const
+Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
 {
-  QString fileName = prefix + QString(MESHDATA_FILE).arg(m_output->id());
+  QString fileName = path + QString(MESHDATA_FILE).arg(id);
   Snapshot snapshot;
 
-  storage->makePath(prefix);
+  storage->makePath(path);
 
   if (m_mesh)
   {

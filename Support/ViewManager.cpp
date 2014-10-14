@@ -179,7 +179,9 @@ RendererSPtr ViewManager::cloneRenderer(const QString &name) const
 void ViewManager::setSelectionEnabled(bool enable)
 {
   for(auto view: m_renderViews)
+  {
     view->setSelectionEnabled(enable);
+  }
 }
 
 //----------------------------------------------------------------------------

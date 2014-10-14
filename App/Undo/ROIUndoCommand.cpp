@@ -49,16 +49,7 @@ namespace ESPINA
     }
     else
     {
-      //expandAndDraw(ROI, m_mask);
-      if(contains(ROI->bounds(), m_mask->bounds().bounds(), ROI->spacing()))
-      {
-        ROI->draw(m_mask, m_mask->foregroundValue());
-      }
-      else
-      {
-        ROI->resize(boundingBox(ROI->bounds(), m_mask->bounds().bounds()));
-        ROI->draw(m_mask, m_mask->foregroundValue());
-      }
+      expandAndDraw(ROI, m_mask);
     }
   }
 

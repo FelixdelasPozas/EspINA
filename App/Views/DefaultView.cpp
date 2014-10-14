@@ -181,10 +181,22 @@ DefaultView::~DefaultView()
 
   settings.setValue(RENDERERS, activeRenderersNames);
   for(auto name: activeRenderersNames)
+  {
     settings.setValue(name, viewState[name]);
+  }
 
   settings.endGroup();
   settings.sync();
+
+  m_viewManager->unregisterView(m_viewXY);
+  m_viewManager->unregisterView(m_viewXZ);
+  m_viewManager->unregisterView(m_viewYZ);
+  m_viewManager->unregisterView(m_view3D);
+
+  delete m_viewXY;
+  delete m_viewXZ;
+  delete m_viewYZ;
+  delete m_view3D;
 
   delete m_renderersMenu;
   delete m_camerasMenu;

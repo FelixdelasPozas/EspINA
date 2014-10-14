@@ -439,7 +439,7 @@ void vtkRectangularSliceRepresentation::SetSlice(double pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetCuboidBounds(double bounds[6])
+void vtkRectangularSliceRepresentation::SetOrthogonalBounds(double bounds[6])
 {
   memcpy(m_bounds, bounds, 6*sizeof(double));
 
@@ -458,7 +458,7 @@ void vtkRectangularSliceRepresentation::SetCuboidBounds(double bounds[6])
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::GetCuboidBounds(double bounds[6])
+void vtkRectangularSliceRepresentation::GetOrthogonalBounds(double bounds[6])
 {
   memcpy(bounds, m_bounds, 6*sizeof(double));
 }

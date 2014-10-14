@@ -61,8 +61,8 @@ RenderView::RenderView(QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
-	// subclasses of this one should take care of removing elements
-	// (channels, segmentations, widgets and renderers).
+  // subclasses of this one should take care of removing elements
+  // (channels, segmentations, widgets and renderers).
   delete m_view;
 }
 

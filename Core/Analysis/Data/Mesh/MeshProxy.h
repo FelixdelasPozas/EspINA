@@ -120,14 +120,14 @@ namespace ESPINA
     /** \brief Implements Data::fetchData().
      *
      */
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix)
-    { return m_data->fetchData(storage, prefix); }
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
+    { return m_data->fetchData(storage, path, id); }
 
     /** \brief Implements Data::snapshot().
      *
      */
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
-    { return m_data->snapshot(storage, prefix); }
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+    { return m_data->snapshot(storage, path, id); }
 
     /** \brief Implements Data::editedRegionsSnapshot().
      *

@@ -58,10 +58,10 @@ namespace ESPINA
        */
       virtual ~ROI();
 
-      /** \brief Returns true if the ROI is a rectangular area.
+      /** \brief Returns true if the ROI is an orthogonal region.
        *
        */
-      bool isRectangular() const;
+      bool isOrthogonal() const;
 
       /** \brief Returns a new ROI object that is a copy of this one.
        *
@@ -112,8 +112,20 @@ namespace ESPINA
       void draw(const typename itkVolumeType::IndexType index,
                 const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 
-    private:
-      bool m_isRectangular;
+
+      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+
+  private:
+    QString temporalStorageId(const QString &id) const
+    { return QString("%1_roi").arg(id); }
+
+    QString temporalStorageBoundsId(const QString &path, const QString &id) const
+    { return QString("%1/%2.bin").arg(path).arg(temporalStorageId(id)); }
+
+  private:
+    bool m_isRectangular;
   };
 
   //-----------------------------------------------------------------------------
@@ -221,7 +233,7 @@ namespace ESPINA
     }
 
     // if it's rectangular we're done now.
-    if(!this->isRectangular())
+    if(!this->isOrthogonal())
     {
       auto image = this->itkImage(intersectionBounds);
       itk::ImageRegionIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
@@ -286,7 +298,7 @@ namespace ESPINA
 //    *  \param[in] roi where the mask will be drawn on
 //    *  \param[in] mask to be drawn
 //    */
-//   void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask);
+  void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask);
 } // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

@@ -94,8 +94,8 @@ public:
 //   vtkSetMacro(Slice,int);
   virtual void SetPlane(Plane plane);
   virtual void SetSlice(Nm pos);
-  virtual void SetCuboidBounds(double bounds[6]);
-  virtual void GetCuboidBounds(double bounds[6]);
+  virtual void SetOrthogonalBounds(double bounds[6]);
+  virtual void GetOrthogonalBounds(double bounds[6]);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.

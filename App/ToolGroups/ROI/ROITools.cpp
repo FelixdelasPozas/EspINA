@@ -193,7 +193,7 @@ void ROIToolsGroup::setCurrentROI(ROISPtr roi)
     m_accumulatorWidget.reset();
   }
 
-  if (roi && roi->isRectangular())
+  if (roi && roi->isOrthogonal())
   {
     m_ortogonalROITool->setROI(roi);
   }
@@ -202,7 +202,7 @@ void ROIToolsGroup::setCurrentROI(ROISPtr roi)
     m_ortogonalROITool->setROI(nullptr);
   }
 
-  if (roi && !roi->isRectangular())
+  if (roi && !roi->isOrthogonal())
   {
     m_accumulator       = roi;
     m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
@@ -298,6 +298,8 @@ void ROIToolsGroup::onOrthogonalROIDefined(ROISPtr roi)
   }
   m_undoStack->push(new DefineOrthogonalROICommand{roi, this});
   m_undoStack->endMacro();
+
+  emit roiChanged(roi);
 }
 
 //-----------------------------------------------------------------------------
@@ -327,16 +329,7 @@ void ROIToolsGroup::addMask(const BinaryMaskSPtr<unsigned char> mask)
 {
   if (m_accumulator)
   {
-    //expandAndDraw(ROI, m_mask);
-    if(contains(m_accumulator->bounds(), mask->bounds().bounds(), m_accumulator->spacing()))
-    {
-      m_accumulator->draw(mask, mask->foregroundValue());
-    }
-    else
-    {
-      m_accumulator->resize(boundingBox(m_accumulator->bounds(), mask->bounds().bounds()));
-      m_accumulator->draw(mask, mask->foregroundValue());
-    }
+    expandAndDraw(m_accumulator, mask);
   }
   else
   {

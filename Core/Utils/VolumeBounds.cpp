@@ -290,3 +290,54 @@ bool ESPINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return areAdjacent(lhs.bounds(), rhs.bounds());
 }
+
+//-----------------------------------------------------------------------------
+QByteArray ESPINA::serializeVolumeBounds(const VolumeBounds& bounds)
+{
+  QByteArray serialization;
+
+  QDataStream out(&serialization, QIODevice::WriteOnly);
+
+  for (int i = 0; i < 6; ++i)
+  {
+    out << bounds[i];
+  }
+
+  for (int i = 0; i < 3; ++i)
+  {
+    out << bounds.origin()[i];
+  }
+
+  for (int i = 0; i < 3; ++i)
+  {
+    out << bounds.spacing()[i];
+  }
+
+  return serialization;
+}
+
+//-----------------------------------------------------------------------------
+VolumeBounds ESPINA::deserializeVolumeBounds(const QByteArray& serialization)
+{
+  QDataStream in(serialization);
+
+  Bounds bounds;
+  for (int i = 0; i < 6; ++i)
+  {
+    in >> bounds[i];
+  }
+
+  NmVector3 origin;
+  for (int i = 0; i < 3; ++i)
+  {
+    in >> origin[i];
+  }
+
+  NmVector3 spacing;
+  for (int i = 0; i < 3; ++i)
+  {
+    in >> spacing[i];
+  }
+
+  return VolumeBounds(bounds, spacing, origin);
+}

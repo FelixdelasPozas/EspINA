@@ -99,12 +99,12 @@ namespace ESPINA
     /** \brief Returns a snapshot data for this output.
      * \param[in]  storage temporal storage object where data files will be saved.
      * \param[out] xml     information of the output data in xml format.
-     * \param[in]  prefix  prefix for the data files.
+     * \param[in]  path    data snapshots path
      *
      */
     Snapshot snapshot(TemporalStorageSPtr storage,
                       QXmlStreamWriter       &xml,
-                      const QString          &prefix) const;
+                      const QString          &path) const;
 
     /** \brief Returns true if this output is valid.
     *

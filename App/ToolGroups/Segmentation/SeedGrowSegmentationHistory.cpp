@@ -27,26 +27,26 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationHistory::~SeedGrowSegmentationHistory()
 {
-  delete m_roi;
+  delete m_roiTools;
   delete m_roiSettings;
 }
 
 //-----------------------------------------------------------------------------
 QWidget* SeedGrowSegmentationHistory::createWidget(ModelAdapterSPtr model, ModelFactorySPtr factory, ViewManagerSPtr viewManager, QUndoStack* undoStack)
 {
-  if (!m_roi)
+  if (!m_roiTools)
   {
     m_roiSettings = new ROISettings();
-    m_roi         = new ROIToolsGroup(m_roiSettings, model, factory, viewManager, undoStack);
+    m_roiTools         = new ROIToolsGroup(m_roiSettings, model, factory, viewManager, undoStack);
 
     //m_roi->setGlobalROI(false);
-    m_roi->setCurrentROI(m_filter->roi()->clone());
+    m_roiTools->setCurrentROI(m_filter->roi()->clone());
   }
 
   m_widgetCount++;
-  m_roi->setVisible(true);
+  m_roiTools->setVisible(true);
 
-  auto widget = new SeedGrowSegmentationHistoryWidget(m_filter, m_roi, viewManager, undoStack);
+  auto widget = new SeedGrowSegmentationHistoryWidget(m_filter, m_roiTools, viewManager, undoStack);
 
   connect(widget, SIGNAL(destroyed(QObject*)),
           this,   SLOT(onWidgetDestroyed()));
@@ -76,7 +76,7 @@ void SeedGrowSegmentationHistory::onWidgetDestroyed()
 
   if (0 == m_widgetCount)
   {
-    m_roi->setVisible(false);
+    m_roiTools->setVisible(false);
 
   }
 }

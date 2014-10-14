@@ -288,7 +288,7 @@ void vtkRectangularSliceWidget::SetBounds(Bounds bounds)
 
   double dBounds[6]{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
   vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
-  rep->SetCuboidBounds(dBounds);
+  rep->SetOrthogonalBounds(dBounds);
   m_bounds = bounds;
   this->Render();
 }
@@ -301,7 +301,7 @@ Bounds vtkRectangularSliceWidget::GetBounds()
 
   vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
   double dBounds[6];
-  rep->GetCuboidBounds(dBounds);
+  rep->GetOrthogonalBounds(dBounds);
   m_bounds[0] = dBounds[0];
   m_bounds[1] = dBounds[1];
   m_bounds[2] = dBounds[2];

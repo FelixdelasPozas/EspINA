@@ -73,9 +73,9 @@ namespace ESPINA
 
   public:
     /** \brief SparseVolume class constructor
-     * \param[in] bounds, bounds of the empty volume.
-     * \param[in] spacing, spacing of the volume.
-     * \param[in] origin, origin of the volume.
+     * \param[in] bounds bounds of the empty volume.
+     * \param[in] spacing spacing of the volume.
+     * \param[in] origin origin of the volume.
      *
      */
     explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
@@ -86,14 +86,8 @@ namespace ESPINA
     virtual ~SparseVolume()
     {}
 
-    /** \brief Implements Data::memoryUsage() const.
-     *
-     */
     virtual size_t memoryUsage() const;
 
-    /** \brief Implements Data::bounds() const.
-     *
-     */
     virtual Bounds bounds() const
     { return m_bounds.bounds(); }
 
@@ -108,14 +102,8 @@ namespace ESPINA
     virtual NmVector3 origin() const
     { return m_origin; }
 
-    /** \brief Implements Data::setSpacing().
-     *
-     */
     virtual void setSpacing(const NmVector3& spacing);
 
-    /** \brief Implements Data::spacing().
-     *
-     */
     virtual NmVector3 spacing() const
     { return m_spacing; }
 
@@ -125,15 +113,15 @@ namespace ESPINA
     virtual const typename T::Pointer itkImage() const;
 
     /** \brief Returns the equivalent itk image of a region of the volume.
-     * \param[in] bounds, equivalent bounds of the returning image.
+     * \param[in] bounds equivalent bounds of the returning image.
      *
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
     /** \brief Method to modify the volume using a implicit function.
-     * \param[in] brush, vtkImplicitFuncion object raw pointer.
-     * \param[in] bounds, bounds to be modified (must be contained in the image bounds).
-     * \param[in] value, value of the voxel.
+     * \param[in] brush vtkImplicitFuncion object raw pointer.
+     * \param[in] bounds bounds to be modified (must be contained in the image bounds).
+     * \param[in] value value of the voxel.
      *
      *  Change every voxel value which satisfies the implicit function to
      *  the value given as parameter.
@@ -145,8 +133,8 @@ namespace ESPINA
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
     /** \brief Method to modify the volume using a mask and a value.
-     * \param[in] mask, BinatyMask smart pointer.
-     * \param[in] value, value of the voxels of the binary mask.
+     * \param[in] mask BinatyMask smart pointer.
+     * \param[in] value value of the voxels of the binary mask.
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
@@ -154,15 +142,15 @@ namespace ESPINA
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
     /** \brief Method to modify the volume using an itk image.
-     * \param[in] volume, itk image smart pointer to draw.
+     * \param[in] volume itk image smart pointer to draw.
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const typename T::Pointer volume);
 
     /** \brief Method to modify the volume using a region of an itk image.
-     * \param[in] volume, itk image smart pointer to draw.
-     * \param[in] bounds, bounds affected by the draw operation.
+     * \param[in] volume itk image smart pointer to draw.
+     * \param[in] bounds bounds affected by the draw operation.
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
@@ -170,8 +158,8 @@ namespace ESPINA
                       const Bounds&             bounds);
 
     /** \brief Method to modify a voxel of the volume using an itk index.
-     * \param[in] index, index of the voxel.
-     * \param[in] value, value of the voxel.
+     * \param[in] index index of the voxel.
+     * \param[in] value value of the voxel.
      *
      *  Draw methods are constrained to volume bounds.
      */
@@ -179,7 +167,7 @@ namespace ESPINA
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
     /** \brief Resize the volume bounds. The given bounds must containt the original.
-     * \param[in] bounds, bounds object.
+     * \param[in] bounds bounds object.
      *
      */
     virtual void resize(const Bounds &bounds);
@@ -189,29 +177,14 @@ namespace ESPINA
      */
     virtual void undo();
 
-    /** \brief Implements Data::isValid() const.
-     *
-     */
     virtual bool isValid() const;
 
-    /** \brief Implements Data::isEmpty() const.
-     *
-     */
     virtual bool isEmpty() const;
 
-    /** \brief Implements Data::fetchData().
-     *
-     */
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-    /** \brief Implements Data::snapshot() const.
-     *
-     */
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
-    /** \brief Implements Data::editedRegionsSnapshot() const.
-     *
-     */
     virtual Snapshot editedRegionsSnapshot() const
     { return Snapshot(); }
 
@@ -442,14 +415,14 @@ namespace ESPINA
     /** \brief Helper method to assist fetching data from disk.
      *
      */
-    QString singleBlockPath() const
-    { return this->type() + QString("_%1.mhd").arg(this->m_output?this->m_output->id():0); }
+    QString singleBlockPath(const QString &id) const
+    { return QString("%1_%2.mhd").arg(id).arg(this->type()); }
 
     /** \brief Helper method to assist fetching data from disk.
      *
      */
-    QString multiBlockPath(int part) const
-    { return this->type() + QString("_%1_%2.mhd").arg(this->m_output?this->m_output->id():0).arg(part); }
+    QString multiBlockPath(const QString &id, int part) const
+    { return QString("%1_%2_%3.mhd").arg(id).arg(this->type()).arg(part); }
 
   protected:
     mutable BlockList m_blocks;
@@ -509,12 +482,12 @@ namespace ESPINA
         block->setSpacing(spacing);
       }
 
-      auto region = equivalentRegion<T>(m_origin, m_spacing, m_bounds.bounds());
-
       m_spacing = spacing;
 
+      auto region = equivalentRegion<T>(m_origin, spacing, m_bounds.bounds());
+
       // TODO: use m_bounds.setSpacing()
-      m_bounds = volumeBounds<T>(m_origin, m_spacing, region);
+      m_bounds = volumeBounds<T>(m_origin, spacing, region);
     }
   }
 
@@ -703,20 +676,20 @@ namespace ESPINA
   void SparseVolume<T>::draw(const typename T::IndexType index,
                              const typename T::ValueType value)
   {
-		Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
-    	              index[1] * m_spacing[1], index[1] * m_spacing[1],
-    	              index[2] * m_spacing[2], index[2]	* m_spacing[2] };
+    Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
+                    index[1] * m_spacing[1], index[1] * m_spacing[1],
+                    index[2] * m_spacing[2], index[2]	* m_spacing[2] };
 
-		if (!intersect(m_bounds.bounds(), bounds))
-			return;
+    if (!intersect(m_bounds.bounds(), bounds))
+      return;
 
-		BlockMaskSPtr mask { new BinaryMask<unsigned char>(bounds, m_spacing) };
-		mask->setForegroundValue(value);
-		BinaryMask<unsigned char>::region_iterator it(mask.get(), mask->bounds().bounds());
-		it.goToBegin();
-		it.Set();
+    BlockMaskSPtr mask { new BinaryMask<unsigned char>(bounds, m_spacing) };
+    mask->setForegroundValue(value);
+    BinaryMask<unsigned char>::region_iterator it(mask.get(), mask->bounds().bounds());
+    it.goToBegin();
+    it.Set();
 
-		addBlock(mask);
+    addBlock(mask);
     this->updateModificationTime();
   }
 
@@ -742,18 +715,19 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::fetchData(TemporalStorageSPtr storage, const QString& prefix)
+  bool SparseVolume<T>::fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
+    // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 
     bool dataFetched = false;
     bool error       = false;
 
     int i = 0;
-    QFileInfo blockFile(storage->absoluteFilePath(prefix + multiBlockPath(i)));
+    QFileInfo blockFile(storage->absoluteFilePath(path + multiBlockPath(id, i)));
     if (!blockFile.exists())
     {
-      blockFile = QFileInfo(storage->absoluteFilePath(prefix + singleBlockPath()));
+      blockFile = QFileInfo(storage->absoluteFilePath(path + singleBlockPath(id)));
     }
 
     if (this->m_output)
@@ -791,7 +765,7 @@ namespace ESPINA
       setBlock(image, true);
 
       ++i;
-      blockFile = storage->absoluteFilePath(prefix + multiBlockPath(i));
+      blockFile = storage->absoluteFilePath(path + multiBlockPath(id, i));
       dataFetched = true;
     }
 
@@ -802,7 +776,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString& prefix) const
+  Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
     using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
     Snapshot snapshot;
@@ -813,15 +787,21 @@ namespace ESPINA
     {
       VolumeWriter::Pointer writer = VolumeWriter::New();
 
-      storage->makePath(prefix);
+      storage->makePath(path);
 
-      // TODO: how to avoid output reference?
-      int id = this->m_output?this->m_output->id():0;
-      QString name = prefix;
-      name += QString("%1_%2_%3").arg(this->type()).arg(id).arg(i);
+      QString mhd = path;
 
-      QString mhd = name + ".mhd";
-      QString raw = name + ".raw";
+      if (compactedBounds.size() == 1)
+      {
+        mhd += singleBlockPath(id);
+      }
+      else
+      {
+        mhd += multiBlockPath(id, i);
+      }
+
+      QString raw = mhd;
+      raw.replace("mhd", "raw");
 
       auto volume = itkImage(compactedBounds[i].bounds());
       bool releaseFlag = volume->GetReleaseDataFlag();
@@ -833,6 +813,8 @@ namespace ESPINA
 
       snapshot << SnapshotData(mhd, storage->snapshot(mhd));
       snapshot << SnapshotData(raw, storage->snapshot(raw));
+
+      // TODO: Remove temporal files from storage (mhd, raw)?
     }
 
     return snapshot;
