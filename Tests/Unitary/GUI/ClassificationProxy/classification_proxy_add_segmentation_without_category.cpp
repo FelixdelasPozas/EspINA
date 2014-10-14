@@ -76,7 +76,7 @@ int classification_proxy_add_segmentation_without_category( int argc, char** arg
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterBaseSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
   SegmentationAdapterSPtr segmentation = factory.createSegmentation(filter, 0);
 
   modelAdapter->add(segmentation);

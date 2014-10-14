@@ -60,8 +60,8 @@ int model_adapter_remove_non_existing_segmentation( int argc, char** argv )
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterBaseSPtr       filter       = factory->createFilter<DummyFilter>(inputs, type);
-  SegmentationAdapterSPtr segmentation = factory->createSegmentation(filter, 0);
+  auto filter       = factory->createFilter<DummyFilter>(inputs, type);
+  auto segmentation = factory->createSegmentation(filter, 0);
 
   try {
     modelAdapter.remove(segmentation);

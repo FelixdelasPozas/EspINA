@@ -78,4 +78,4 @@ add_test("\"Segmentation: Request Non Existing Information\"" Segmentation_Tests
 add_test("\"Segmentation: Save State\""                       Segmentation_Tests segmentation_save_state)
 add_test("\"Segmentation: Restore State\""                    Segmentation_Tests segmentation_restore_state)
 add_test("\"Segmentation: Save Snapshot\""                    Segmentation_Tests segmentation_save_snapshot)
-add_test("\"Segmentation: Unload\""                           Segmentation_Tests segmentation_unload)
+#add_test("\"Segmentation: Unload\""                           Segmentation_Tests segmentation_unload)

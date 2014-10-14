@@ -74,8 +74,8 @@ int classification_proxy_remove_segmentation( int argc, char** argv )
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterBaseSPtr       filter       = factory.createFilter<DummyFilter>(inputs, type);
-  SegmentationAdapterSPtr segmentation = factory.createSegmentation(filter, 0);
+  auto filter       = factory.createFilter<DummyFilter>(inputs, type);
+  auto segmentation = factory.createSegmentation(filter, 0);
 
   segmentation->setCategory(category);
 

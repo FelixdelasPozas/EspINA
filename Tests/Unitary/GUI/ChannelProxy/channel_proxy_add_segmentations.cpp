@@ -62,7 +62,7 @@ int channel_proxy_add_segmentations( int argc, char** argv )
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterBaseSPtr filter = factory->createFilter<DummyFilter>(inputs, type);
+  auto filter = factory->createFilter<DummyFilter>(inputs, type);
 
   SegmentationAdapterSList segmentations;
   segmentations << factory->createSegmentation(filter, 0)

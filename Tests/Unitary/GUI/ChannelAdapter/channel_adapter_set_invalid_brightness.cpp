@@ -43,8 +43,8 @@ int channel_adapter_set_invalid_brightness(int argc, char** argv )
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
 
-  FilterAdapterBaseSPtr  filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
-  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
+  auto filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
+  auto channel = factory.createChannel(filter, 0);
 
   channel->setBrightness(-1.5);
   if (channel->brightness() != -1.0) {

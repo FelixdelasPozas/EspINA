@@ -42,7 +42,6 @@ int segmentation_change_output(int argc, char** argv)
 
   segmentation->changeOutput(newFilter, 0);
 
-  // TODO: real change output
   bool error = false;
   if (newFilter->output(0) != segmentation->output())
   {
