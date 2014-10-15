@@ -64,8 +64,10 @@ namespace ESPINA {
     virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation) throw (Unknown_Filter_Type_Exception);
 
   private:
+    using Factory = QPair<FilterDelegateSPtr, Filter::Type>;
+
     QMap<Filter::Type, SpecificFilterDelegateFactorySPtr> m_factories;
-    QMap<SegmentationAdapterPtr, FilterDelegateSPtr> m_instances;
+    QMap<SegmentationAdapterPtr, Factory>                 m_instances;
   };
 
   using FilterDelegateFactorySPtr = std::shared_ptr<FilterDelegateFactory>;
