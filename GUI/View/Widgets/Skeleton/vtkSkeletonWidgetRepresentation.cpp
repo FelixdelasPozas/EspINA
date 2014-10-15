@@ -388,7 +388,6 @@ namespace ESPINA
     auto planeIndex = normalCoordinateIndex(m_orientation);
 
     QMap<SkeletonNode *, vtkIdType> visiblePoints;
-    unsigned int numLines = 0;
     double worldPos[3];
     for(auto node: s_skeleton)
     {
@@ -411,7 +410,6 @@ namespace ESPINA
           line->GetPointIds()->SetId(0, visiblePoints[node]);
           line->GetPointIds()->SetId(1, visiblePoints[connectedNode]);
           cells->InsertNextCell(line);
-          ++numLines;
         }
       }
     }
@@ -529,8 +527,39 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationPolyData() const
   {
+    QMap<SkeletonNode *, vtkIdType> locator;
+    QMap<vtkIdType, QList<vtkIdType>> relationsLocator;
+
+    auto points = vtkSmartPointer<vtkPoints>::New();
+    points->SetNumberOfPoints(s_skeleton.size());
+    auto lines = vtkSmartPointer<vtkCellArray>::New();
+
+    for(auto node: s_skeleton)
+      locator.insert(node, points->InsertNextPoint(node->worldPosition));
+
+    for(auto node: s_skeleton)
+    {
+      relationsLocator.insert(locator[node], QList<vtkIdType>());
+
+      for(auto connectedNode: node->connections)
+        relationsLocator[locator[node]] << locator[connectedNode];
+    }
+
+    for(auto nodeId: relationsLocator.keys())
+      for(auto connectionId: relationsLocator[nodeId])
+      {
+        auto line = vtkSmartPointer<vtkLine>::New();
+        line->GetPointIds()->SetId(0, nodeId);
+        line->GetPointIds()->SetId(1, connectionId);
+        lines->InsertNextCell(line);
+
+        // remove duplicated lines
+        relationsLocator[connectionId].removeAll(nodeId);
+      }
+
     auto polyData = vtkSmartPointer<vtkPolyData>::New();
-    polyData->DeepCopy(this->m_lines);
+    polyData->SetPoints(points);
+    polyData->SetLines(lines);
 
     return polyData;
   }
@@ -728,7 +757,7 @@ namespace ESPINA
     double displayWorldPos[3];
     this->GetWorldPositionFromDisplayPosition(displayPos, displayWorldPos);
 
-    return ((m_tolerance * m_tolerance) > vtkMath::Distance2BetweenPoints(worldPos, displayWorldPos));
+    return (m_tolerance * m_tolerance > vtkMath::Distance2BetweenPoints(worldPos, displayWorldPos));
   }
 
   //-----------------------------------------------------------------------------

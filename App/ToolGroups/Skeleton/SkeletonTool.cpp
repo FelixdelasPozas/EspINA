@@ -145,6 +145,7 @@ namespace ESPINA
       auto minimumValue = std::ceil(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
       if(m_toleranceBox->getSpinBoxMinimumValue() < minimumValue)
         m_toleranceBox->setSpinBoxMinimum(minimumValue);
+      m_toleranceBox->setSpinBoxMaximum(100*minimumValue);
 
       QColor color;
       auto selection = m_vm->selection()->segmentations();
@@ -179,7 +180,10 @@ namespace ESPINA
       m_vm->setSelectionEnabled(true);
       m_widget = nullptr;
 
-      emit stoppedOperation();
+      if(m_skeleton->GetNumberOfPoints() != 0)
+        emit stoppedOperation();
+      else
+        m_skeleton = nullptr;
     }
 
     setControlsVisibility(value);
