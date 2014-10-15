@@ -148,6 +148,7 @@ set (GUI_SOURCES
   View/Widgets/Ruler/vtkRulerWidget3D.cpp
   View/Widgets/Skeleton/SkeletonWidget.cpp
   View/Widgets/Skeleton/vtkSkeletonWidget.cpp
+  View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
   Widgets/ActionSelector.cpp
   Widgets/ActionSelectorWidget.cpp

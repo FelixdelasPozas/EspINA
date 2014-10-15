@@ -358,8 +358,12 @@ void vtkPlanarSplitRepresentation2D::InstantiateHandleRepresentation()
 void vtkPlanarSplitRepresentation2D::setOrientation(Plane plane)
 {
   m_plane = plane;
-  m_epsilon = ((Plane::XY == m_plane) ? -5 : 5);
-  // TODO: m_epsilon should be dynamic (based on image spacing)
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitRepresentation2D::setShift(const Nm shift)
+{
+  m_epsilon = shift;
 }
 
 //----------------------------------------------------------------------

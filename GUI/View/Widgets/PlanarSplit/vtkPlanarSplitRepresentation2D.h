@@ -162,6 +162,12 @@ namespace ESPINA
      */
     virtual void setOrientation(Plane orientation);
 
+    /** \brief Sets the distance value over the rest of the view's representations.
+     * \param[in] shift view's widgets shift value.
+     *
+     */
+    virtual void setShift(const Nm shift);
+
     /** \brief Sets the segmentation bounds to draw the actor.
      * \param[in] bounds, raw pointer to a vector of six double values.
      *
@@ -197,8 +203,8 @@ namespace ESPINA
 
     int    m_tolerance; // Selection tolerance for the handles
     Plane  m_plane;
-    double m_epsilon;
-    double m_slice;
+    Nm     m_epsilon;
+    Nm     m_slice;
   private:
     /** \brief vtkPlanarSplitRepresentation2D copy constructor not implemented.
      *

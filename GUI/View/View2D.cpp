@@ -82,9 +82,6 @@
 
 using namespace ESPINA;
 
-const double View2D::SEGMENTATION_SHIFT = 0.05;
-const double View2D::WIDGET_SHIFT = 0.15;
-
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
@@ -146,6 +143,7 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
   m_renderer->SetLayer(0);
+
   m_thumbnail = vtkSmartPointer<vtkRenderer>::New();
   m_thumbnail->SetViewport(0.75, 0.0, 1.0, 0.25);
   m_thumbnail->BackingStoreOff();
@@ -1750,4 +1748,20 @@ void View2D::setRenderers(RendererSList renderers)
     if (!oldRenderersNames.contains(renderer->name()))
       addRendererControls(renderer->clone());
   }
+}
+
+//-----------------------------------------------------------------------------
+double View2D::segmentationDepth() const
+{
+  auto segmentationShift = 0.05;
+  return Plane::XY == m_plane ? -segmentationShift : segmentationShift;
+}
+
+//-----------------------------------------------------------------------------
+double View2D::widgetDepth() const
+{
+  auto depthSpacing = this->sceneResolution()[normalCoordinateIndex(m_plane)];
+  auto widgetShift = 0.15 + depthSpacing;
+
+  return Plane::XY == m_plane ? -widgetShift : widgetShift;
 }

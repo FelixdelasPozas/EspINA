@@ -601,8 +601,11 @@ namespace ESPINA
 
     if (m_representationsActors[rep] != nullptr)
     {
-      m_representationsActors[rep]->SetVisibility(rep->isVisible());
-      m_representationsActors[rep]->Update();
+      if(m_representationsActors[rep]->GetVisibility() != static_cast<int>(rep->isVisible()))
+      {
+        m_representationsActors[rep]->SetVisibility(rep->isVisible());
+        m_representationsActors[rep]->Update();
+      }
     }
 
     auto node = m_actualPos;
@@ -611,8 +614,11 @@ namespace ESPINA
       node->mutex.lockForWrite();
       if (node->representations[rep] != nullptr)
       {
-        node->representations[rep]->SetVisibility(rep->isVisible());
-        node->representations[rep]->Update();
+        if(node->representations[rep]->GetVisibility() != static_cast<int>(rep->isVisible()))
+        {
+          node->representations[rep]->SetVisibility(rep->isVisible());
+          node->representations[rep]->Update();
+        }
       }
       node->mutex.unlock();
     }
@@ -659,7 +665,7 @@ namespace ESPINA
       lut->Build();
     }
 
-      if (m_representationsActors[rep] != nullptr)
+    if (m_representationsActors[rep] != nullptr)
     {
       auto imageMapToColors = vtkImageMapToColors::SafeDownCast(m_representationsActors[rep]->GetMapper()->GetInputAlgorithm(0, 0));
       imageMapToColors->SetLookupTable(lut);
@@ -1126,8 +1132,11 @@ namespace ESPINA
     {
       if (m_actualPos->representations[rep] != nullptr)
       {
-        m_actualPos->representations[rep]->SetVisibility(rep->isVisible());
-        m_actualPos->representations[rep]->Update();
+        if(m_actualPos->representations[rep]->GetVisibility() != static_cast<int>(rep->isVisible()))
+        {
+          m_actualPos->representations[rep]->SetVisibility(rep->isVisible());
+          m_actualPos->representations[rep]->Update();
+        }
         m_view->addActor(m_actualPos->representations[rep]);
         ++numActors;
       }

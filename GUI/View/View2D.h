@@ -60,9 +60,6 @@ namespace ESPINA
     class CoronalState;
 
   public:
-    static const double SEGMENTATION_SHIFT;
-    static const double WIDGET_SHIFT;
-
     enum SliceSelector
     {
       None=0x0, From = 0x1, To = 0x2
@@ -136,11 +133,15 @@ namespace ESPINA
      */
     virtual void resetCamera();
 
-    /** \brief Helper method that returns the depth value required in the view to put representations above the channels representation.
+    /** \brief Helper method that returns the depth value required in the view to put representations above the channels' representations.
      *
      */
-    double segmentationDepth() const
-    { return Plane::XY == m_plane ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT; }
+    double segmentationDepth() const;
+
+    /** \brief Helper method that returns the depth value required in the view to put widgets above the channels and segmentation's representations.
+     *
+     */
+    double widgetDepth() const;
 
     /** \brief Set the distance between two consecutive slices when displacement is set to SLICES.
      * \param[in] steps.

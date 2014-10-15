@@ -21,6 +21,8 @@
 #ifndef ESPINA_SKELETON_TOOLGROUP_H_
 #define ESPINA_SKELETON_TOOLGROUP_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
@@ -33,7 +35,7 @@
 
 namespace ESPINA
 {
-  class SkeletonToolGroup
+  class EspinaGUI_EXPORT SkeletonToolGroup
   : public ToolGroup
   {
     Q_OBJECT
@@ -43,7 +45,8 @@ namespace ESPINA
        * \param[in] model model adapter smart pointer.
        * \param[in] factory model factory smart pointer.
        * \param[in] viewManager view manager smart pointer.
-       * \parma[in] parent raw pointer of the QObject parent of this one.
+       * \param[in] parent raw pointer of the QObject parent of this one.
+       *
        */
       SkeletonToolGroup(ModelAdapterSPtr model,
                         ModelFactorySPtr factory,
@@ -56,20 +59,11 @@ namespace ESPINA
        */
       virtual ~SkeletonToolGroup();
 
-      /** \brief Implements ToolGroup::setEnabled().
-       *
-       */
       virtual void setEnabled(bool value);
 
-      /** \brief Implements ToolGroup::enabled().
-       *
-       */
       virtual bool enabled() const
       { return m_enabled; }
 
-      /** \brief Implements ToolGroup::tools().
-       *
-       */
       virtual ToolSList tools();
 
     public slots:

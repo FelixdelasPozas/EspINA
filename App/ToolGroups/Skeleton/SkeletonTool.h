@@ -21,6 +21,8 @@
 #ifndef ESPINA_SKELETON_TOOL_H_
 #define ESPINA_SKELETON_TOOL_H_
 
+#include "GUI/EspinaGUI_Export.h"
+
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/EventHandler.h>
@@ -38,7 +40,7 @@ namespace ESPINA
   class CategorySelector;
   class SpinBoxAction;
 
-  class SkeletonTool
+  class EspinaGUI_EXPORT SkeletonTool
   : public Tool
   {
     Q_OBJECT
@@ -55,20 +57,11 @@ namespace ESPINA
        */
       virtual ~SkeletonTool();
 
-      /** \brief Implements Tool::setEnabled().
-       *
-       */
       virtual void setEnabled(bool value);
 
-      /** \brief Implements Tool::enabled().
-       *
-       */
       virtual bool enabled() const
       { return m_enabled; }
 
-      /** \brief Implements Tool::actions().
-       *
-       */
       virtual QList<QAction *> actions() const;
 
       /** \brief Returns the Skeleton created by the user.
@@ -115,6 +108,12 @@ namespace ESPINA
        *
        */
       void toleranceChanged(int value);
+
+      /** \brief Updates the widget with the new category properties.
+       * \param[in] category CategoryAdapter smart pointer.
+       *
+       */
+      void categoryChanged(CategoryAdapterSPtr category);
 
     private:
       /** \brief Helper method to manage the visibility of widgets.

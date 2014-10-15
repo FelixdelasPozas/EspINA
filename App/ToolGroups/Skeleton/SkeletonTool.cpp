@@ -50,6 +50,9 @@ namespace ESPINA
     connect(m_toleranceBox, SIGNAL(valueChanged(int)),
             this,           SLOT(toleranceChanged(int)), Qt::QueuedConnection);
 
+    connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+            this,               SLOT(categoryChanged(CategoryAdapterSPtr)), Qt::QueuedConnection);
+
     setControlsVisibility(false);
   }
   
@@ -70,6 +73,9 @@ namespace ESPINA
 
     disconnect(m_toleranceBox, SIGNAL(valueChanged(int)),
                this,           SLOT(toleranceChanged(int)));
+
+    disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+               this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
   }
   
   //-----------------------------------------------------------------------------
@@ -134,15 +140,24 @@ namespace ESPINA
     {
       if(nullptr == m_vm->activeChannel())
         return;
+
       auto spacing = volumetricData(m_vm->activeChannel()->output())->spacing();
-      auto minimumValue = std::ceil(std::min(spacing[0], std::min(spacing[1], spacing[2]))) + 1;
+      auto minimumValue = std::ceil(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
       if(m_toleranceBox->getSpinBoxMinimumValue() < minimumValue)
         m_toleranceBox->setSpinBoxMinimum(minimumValue);
 
+      QColor color;
+      auto selection = m_vm->selection()->segmentations();
+      if(selection.size() != 1)
+        color = m_categorySelector->selectedCategory()->color();
+      else
+        color = m_vm->colorEngine()->color(selection.first());
+
       auto widget = new SkeletonWidget();
       widget->setTolerance(m_toleranceBox->value());
-      m_widget = EspinaWidgetSPtr{widget};
+      widget->setRepresentationColor(color);
 
+      m_widget = EspinaWidgetSPtr{widget};
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
       m_vm->setEventHandler(m_handler);
       m_vm->addWidget(m_widget);
@@ -155,7 +170,7 @@ namespace ESPINA
       m_action->setChecked(false);
       m_action->blockSignals(false);
 
-      // TODO: m_skeleton = widget->skeleton();
+      m_skeleton = dynamic_cast<SkeletonWidget *>(m_widget.get())->getSkeleton();
 
       m_widget->setEnabled(false);
       m_vm->removeWidget(m_widget);
@@ -185,6 +200,13 @@ namespace ESPINA
 
     auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
     widget->setTolerance(value);
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::categoryChanged(CategoryAdapterSPtr category)
+  {
+    if(m_widget != nullptr)
+      dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
   }
 } // namespace EspINA
 

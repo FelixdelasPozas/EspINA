@@ -86,6 +86,7 @@ namespace ESPINA
 vtkPlanarSplitWidget::vtkPlanarSplitWidget()
 {
   this->m_slice = 0;
+  this->m_shift = 0;
   this->ManagesCursor = 0;
 
   this->WidgetState = vtkPlanarSplitWidget::Start;
@@ -172,6 +173,7 @@ void vtkPlanarSplitWidget::CreateDefaultRepresentation()
   reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setSlice(m_slice);
 }
 
+//----------------------------------------------------------------------
 void vtkPlanarSplitWidget::SetEnabled(int enabling)
 {
   if(m_permanentlyDisabled)
@@ -218,7 +220,7 @@ void vtkPlanarSplitWidget::SetEnabled(int enabling)
     if (!this->CurrentRenderer)
     {
       this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(X, Y));
-      if (this->CurrentRenderer == NULL)
+      if (this->CurrentRenderer == nullptr)
         return;
     }
 
@@ -228,13 +230,11 @@ void vtkPlanarSplitWidget::SetEnabled(int enabling)
     this->WidgetRep->SetRenderer(this->CurrentRenderer);
 
     // Set the renderer, interactor and representation on the two handle widgets.
-    this->m_point1Widget->SetRepresentation(
-        reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->GetPoint1Representation());
+    this->m_point1Widget->SetRepresentation(reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->GetPoint1Representation());
     this->m_point1Widget->SetInteractor(this->Interactor);
     this->m_point1Widget->GetRepresentation()->SetRenderer(this->CurrentRenderer);
 
-    this->m_point2Widget->SetRepresentation(
-        reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->GetPoint2Representation());
+    this->m_point2Widget->SetRepresentation(reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->GetPoint2Representation());
     this->m_point2Widget->SetInteractor(this->Interactor);
     this->m_point2Widget->GetRepresentation()->SetRenderer(this->CurrentRenderer);
 
@@ -261,7 +261,7 @@ void vtkPlanarSplitWidget::SetEnabled(int enabling)
       this->m_point2Widget->SetEnabled(1);
     }
 
-    this->InvokeEvent(vtkCommand::EnableEvent, NULL);
+    this->InvokeEvent(vtkCommand::EnableEvent, nullptr);
   }
   else //disabling-------------------------------------------------------------
   {
@@ -283,8 +283,8 @@ void vtkPlanarSplitWidget::SetEnabled(int enabling)
     this->m_point1Widget->SetEnabled(0);
     this->m_point2Widget->SetEnabled(0);
 
-    this->InvokeEvent(vtkCommand::DisableEvent, NULL);
-    this->SetCurrentRenderer(NULL);
+    this->InvokeEvent(vtkCommand::DisableEvent, nullptr);
+    this->SetCurrentRenderer(nullptr);
   }
 
   // Should only render if there is no parent
@@ -308,7 +308,7 @@ void vtkPlanarSplitWidget::AddPointAction(vtkAbstractWidget *w)
   {
     self->GrabFocus(self->EventCallbackCommand);
     self->WidgetState = vtkPlanarSplitWidget::Define;
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+    self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
     reinterpret_cast<vtkPlanarSplitRepresentation2D*>(self->WidgetRep)->VisibilityOn();
     double e[2];
     e[0] = static_cast<double>(X);
@@ -329,7 +329,7 @@ void vtkPlanarSplitWidget::AddPointAction(vtkAbstractWidget *w)
       self->m_point2Widget->SetEnabled(1);
       self->CurrentHandle = -1;
       self->ReleaseFocus();
-      self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+      self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
     }
 
     // Maybe we are trying to manipulate the widget handles
@@ -349,7 +349,7 @@ void vtkPlanarSplitWidget::AddPointAction(vtkAbstractWidget *w)
         if (state == vtkPlanarSplitRepresentation2D::NearP2)
           self->CurrentHandle = 1;
 
-      self->InvokeEvent(vtkCommand::LeftButtonPressEvent, NULL);
+      self->InvokeEvent(vtkCommand::LeftButtonPressEvent, nullptr);
     }
 
   // Clean up
@@ -377,12 +377,12 @@ void vtkPlanarSplitWidget::MoveAction(vtkAbstractWidget *w)
     e[0] = static_cast<double>(X);
     e[1] = static_cast<double>(Y);
     reinterpret_cast<vtkPlanarSplitRepresentation2D*>(self->WidgetRep)->WidgetInteraction(e);
-    self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+    self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
     self->EventCallbackCommand->SetAbortFlag(1);
   }
   else
     //must be moving a handle, invoke a event for the handle widgets
-    self->InvokeEvent(vtkCommand::MouseMoveEvent, NULL);
+    self->InvokeEvent(vtkCommand::MouseMoveEvent, nullptr);
 
   self->WidgetRep->BuildRepresentation();
   self->Render();
@@ -404,7 +404,7 @@ void vtkPlanarSplitWidget::EndSelectAction(vtkAbstractWidget *w)
     }
 
   self->ReleaseFocus();
-  self->InvokeEvent(vtkCommand::LeftButtonReleaseEvent,NULL);
+  self->InvokeEvent(vtkCommand::LeftButtonReleaseEvent,nullptr);
   self->CurrentHandle = -1;
   self->WidgetRep->BuildRepresentation();
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -515,6 +515,14 @@ void vtkPlanarSplitWidget::setOrientation(Plane plane)
   m_plane = plane;
   if (this->WidgetRep)
     reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setOrientation(m_plane);
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitWidget::setShift(const Nm shift)
+{
+  m_shift = shift;
+  if (this->WidgetRep)
+    reinterpret_cast<vtkPlanarSplitRepresentation2D*>(this->WidgetRep)->setShift(shift);
 }
 
 //----------------------------------------------------------------------

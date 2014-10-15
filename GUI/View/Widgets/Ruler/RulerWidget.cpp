@@ -71,7 +71,7 @@ namespace ESPINA
     if(isView3D(view))
     {
       auto widget = vtkRulerWidget3D::New();
-      widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
+      widget->SetCurrentRenderer(view->mainRenderer());
       widget->SetInteractor(view->renderWindow()->GetInteractor());
       widget->SetEnabled(true);
 
@@ -85,7 +85,7 @@ namespace ESPINA
       if(view2d)
       {
         auto widget = vtkRulerWidget::New();
-        widget->SetCurrentRenderer(view->renderWindow()->GetRenderers()->GetFirstRenderer());
+        widget->SetCurrentRenderer(view->mainRenderer());
         widget->SetInteractor(view->renderWindow()->GetInteractor());
         widget->setPlane(view2d->plane());
         widget->SetEnabled(false);

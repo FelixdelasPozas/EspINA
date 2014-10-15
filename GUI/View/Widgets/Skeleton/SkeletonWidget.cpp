@@ -19,18 +19,26 @@
  */
 
 // ESPINA
-#include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
-#include <GUI/View/View2D.h>
+#include "SkeletonWidget.h"
 #include "vtkSkeletonWidget.h"
+#include <GUI/View/View2D.h>
+
+// VTK
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
 // Qt
+#include <QKeyEvent>
 #include <QEvent>
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QMouseEvent>
 
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   SkeletonWidget::SkeletonWidget()
-  : m_command  {vtkSkeletonWidgetCommand::New()}
+  : m_command  {vtkSmartPointer<vtkSkeletonWidgetCommand>::New()}
   , m_tolerance{1}
   {
     m_command->setWidget(this);
@@ -43,7 +51,6 @@ namespace ESPINA
       unregisterView(view);
 
     m_widgets.clear();
-    m_command = nullptr;
   }
 
   //-----------------------------------------------------------------------------
@@ -54,8 +61,18 @@ namespace ESPINA
     if (!view2d || m_widgets.keys().contains(view))
       return;
 
-    // TODO: create vtk widget and add widget command as observer.
-    // m_widgets.insert(view2d, widget);
+    auto plane = view2d->plane();
+    auto slice = view2d->crosshairPoint()[normalCoordinateIndex(plane)];
+
+    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)), Qt::QueuedConnection);
+    m_widgets[view] = vtkSkeletonWidget::New();
+    m_widgets[view]->setParentWidget(this);
+    m_widgets[view]->SetOrientation(plane);
+    m_widgets[view]->changeSlice(plane, slice);
+    m_widgets[view]->SetShift(view2d->widgetDepth());
+    m_widgets[view]->SetCurrentRenderer(view->mainRenderer());
+    m_widgets[view]->SetInteractor(view->renderWindow()->GetInteractor());
+    m_widgets[view]->AddObserver(vtkCommand::EndInteractionEvent, m_command);
   }
 
   //-----------------------------------------------------------------------------
@@ -64,28 +81,128 @@ namespace ESPINA
     if (!m_widgets.keys().contains(view))
       return;
 
-    auto widget = m_widgets[view];
+    auto view2d = dynamic_cast<View2D *>(view);
+    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
 
-    // TODO: un-initialize & remove widget from view.
-
+    m_widgets[view]->EnabledOff();
+    m_widgets[view]->RemoveObserver(m_command);
+    m_widgets[view]->SetInteractor(nullptr);
+    m_widgets[view]->SetCurrentRenderer(nullptr);
+    m_widgets[view]->Delete();
     m_widgets.remove(view);
   }
 
   //-----------------------------------------------------------------------------
   void SkeletonWidget::setEnabled(bool enable)
   {
-    for(auto widget: m_widgets.values())
-      widget->SetEnabled(enable);
+    for(auto vtkWidget: m_widgets)
+      vtkWidget->SetEnabled(enable);
   }
 
   //-----------------------------------------------------------------------------
   bool SkeletonWidget::filterEvent(QEvent* e, RenderView* view)
   {
-    if (e->type() == QEvent::KeyPress)
+    switch(e->type())
     {
-      QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
+      case QEvent::MouseButtonPress:
+      {
+        QMouseEvent *me = reinterpret_cast<QMouseEvent*>(e);
+        if(me->button() == Qt::RightButton)
+        {
+          for(auto view: m_widgets.keys())
+          {
+            if(view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible())
+            {
+              int eventPos[2];
+              view->renderWindow()->GetInteractor()->GetEventPosition(eventPos);
+              m_widgets[view]->GetInteractor()->SetEventInformation(eventPos[0],
+                                                                    eventPos[1],
+                                                                    Qt::ControlModifier == QApplication::keyboardModifiers(),
+                                                                    Qt::ShiftModifier == QApplication::keyboardModifiers());
 
-      // TODO: manage tool keypresses.
+              m_widgets[view]->GetInteractor()->RightButtonPressEvent();
+              return true;
+            }
+          }
+        }
+      }
+        break;
+      case QEvent::MouseMove:
+      {
+        QMouseEvent *me = static_cast<QMouseEvent *>(e);
+        for(auto view: m_widgets.keys())
+        {
+          if(view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible())
+          {
+            int eventPos[2];
+            view->renderWindow()->GetInteractor()->GetEventPosition(eventPos);
+            m_widgets[view]->GetInteractor()->SetEventInformationFlipY(me->x(),
+                                                                       me->y(),
+                                                                       Qt::ControlModifier == QApplication::keyboardModifiers(),
+                                                                       Qt::ShiftModifier == QApplication::keyboardModifiers());
+
+            m_widgets[view]->GetInteractor()->MouseMoveEvent();
+            return true;
+          }
+        }
+      }
+        break;
+      case QEvent::KeyPress:
+      case QEvent::KeyRelease:
+      {
+        QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
+
+        if(ke->key() == Qt::Key_Control || ke->key() == Qt::Key_Shift || ke->key() == Qt::Key_Backspace || ke->key() == Qt::Key_Delete)
+        {
+          const char *keyString;
+          switch(ke->key())
+          {
+            case Qt::Key_Control:
+              keyString = "Control_L";
+              break;
+            case Qt::Key_Shift:
+              keyString = "Shift_L";
+              break;
+            case Qt::Key_Delete:
+              keyString = "Delete";
+              break;
+            case Qt::Key_Backspace:
+              keyString = "BackSpace";
+              break;
+            default:
+              break;
+          }
+
+          for(auto view: m_widgets.keys())
+          {
+            if(view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible())
+            {
+              int eventPos[2];
+              view->renderWindow()->GetInteractor()->GetEventPosition(eventPos);
+              m_widgets[view]->GetInteractor()->SetEventInformation(eventPos[0],
+                                                                    eventPos[1],
+                                                                    ke->key()==Qt::Key_Control,
+                                                                    ke->key()==Qt::Key_Shift,
+                                                                    ke->nativeScanCode(),
+                                                                    1,
+                                                                    keyString);
+
+              if(e->type() == QEvent::KeyPress)
+              {
+                m_widgets[view]->GetInteractor()->KeyPressEvent();
+              }
+              else
+              {
+                m_widgets[view]->GetInteractor()->KeyReleaseEvent();
+              }
+              return true;
+            }
+          }
+        }
+      }
+        break;
+      default:
+        break;
     }
 
     return false;
@@ -103,20 +220,53 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void SkeletonWidget::setTolerance(int value)
+  void SkeletonWidget::setTolerance(const double value)
   {
-    m_tolerance = value;
+    if(this->m_tolerance == value)
+      return;
+
+    this->m_tolerance = value;
+
+    for(auto vtkWidget: this->m_widgets)
+      vtkWidget->SetTolerance(m_tolerance);
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonWidget::changeSlice(Plane plane, Nm slice)
+  {
+    for(auto vtkWidget: this->m_widgets)
+      vtkWidget->changeSlice(plane, slice);
   }
 
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidgetCommand::Execute(vtkObject* caller, unsigned long int eventId, void *callData)
   {
-    SkeletonWidget *eWidget = dynamic_cast<SkeletonWidget *>(m_widget);
-
-    if (strcmp("vtkSkeletonWidget", caller->GetClassName()) == 0)
+    if((strcmp("vtkSkeletonWidget", caller->GetClassName()) == 0) && (eventId == vtkCommand::EndInteractionEvent))
     {
-      // TODO
+      auto callerWidget = dynamic_cast<vtkSkeletonWidget *>(caller);
+      for(auto vtkWidget: m_widget->m_widgets)
+      {
+        if(vtkWidget == callerWidget)
+          continue;
+
+        vtkWidget->UpdateRepresentation();
+      }
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  vtkSmartPointer<vtkPolyData> SkeletonWidget::getSkeleton()
+  {
+    // all the vtkSkeletonWidgets should have the same data so anyone can suffice.
+    Q_ASSERT(!m_widgets.isEmpty());
+    return m_widgets.values().first()->getSkeleton();
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonWidget::setRepresentationColor(const QColor &color)
+  {
+    for(auto vtkWidget: this->m_widgets)
+      vtkWidget->setRepresentationColor(color);
   }
 
 } // namespace ESPINA

@@ -21,7 +21,6 @@
 // ESPINA
 #include "PlanarSplitWidget.h"
 #include "vtkPlanarSplitWidget.h"
-#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
@@ -33,6 +32,7 @@
 #include <vtkImplicitPlaneWidget2.h>
 #include <vtkAbstractWidget.h>
 #include <vtkImplicitPlaneRepresentation.h>
+#include <vtkRenderWindow.h>
 
 using namespace ESPINA;
 
@@ -70,6 +70,7 @@ void PlanarSplitWidget::registerView(RenderView *view)
     widget->SetInteractor(view->renderWindow()->GetInteractor());
     widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
     widget->setOrientation(plane);
+    widget->setShift(view2d->widgetDepth());
     widget->setSlice(slice);
     widget->CreateDefaultRepresentation();
     widget->SetEnabled(true);

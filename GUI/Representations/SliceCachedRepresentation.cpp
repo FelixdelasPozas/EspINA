@@ -208,7 +208,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   SegmentationSliceCachedRepresentation::SegmentationSliceCachedRepresentation(DefaultVolumetricDataSPtr data, View2D *view)
   : CachedRepresentation{data, view}
-  , m_depth             {NmVector3()}
+  , m_shift             {0}
   {
     setType(TYPE);
     connect(data.get(), SIGNAL(dataChanged()), this, SLOT(dataChanged()), Qt::QueuedConnection);
@@ -320,7 +320,7 @@ namespace ESPINA
     // need to reposition the actor so it will always be over the channels actors'
     double pos[3];
     actor->GetPosition(pos);
-    pos[m_planeIndex] += m_depth[m_planeIndex];
+    pos[m_planeIndex] += m_shift;
     actor->SetPosition(pos);
 
     actor->SetOpacity(m_opacity);
@@ -335,7 +335,7 @@ namespace ESPINA
   {
     m_view = view;
     m_planeIndex = normalCoordinateIndex(view->plane());
-    m_depth[m_planeIndex] = view->segmentationDepth();
+    m_shift = view->segmentationDepth();
 
     computeLimits();
   }

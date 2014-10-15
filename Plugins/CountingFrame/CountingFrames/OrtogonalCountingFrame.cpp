@@ -71,7 +71,7 @@ void OrtogonalCountingFrame::registerView(RenderView *view)
 
     auto wa = CountingFrame3DWidgetAdapter::New();
     wa->SetCountingFrame(m_countingFrame, m_inclusion, m_exclusion);
-    wa->SetCurrentRenderer(view3d->mainRenderer());
+    wa->SetCurrentRenderer(view->mainRenderer());
     wa->SetInteractor(view3d->renderWindow()->GetInteractor());
     wa->SetEnabled(true);
 
@@ -91,7 +91,7 @@ void OrtogonalCountingFrame::registerView(RenderView *view)
       wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
       wa->SetCountingFrame(m_channelEdges, m_inclusion, m_exclusion);
       wa->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
-      wa->SetCurrentRenderer(view2d->mainRenderer());
+      wa->SetCurrentRenderer(view->mainRenderer());
       wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
       wa->SetEnabled(true);
 

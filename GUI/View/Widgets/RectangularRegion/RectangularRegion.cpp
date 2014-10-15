@@ -75,7 +75,7 @@ void RectangularRegion::registerView(RenderView *view)
     wi->setRepresentationColor(m_color);
     wi->setRepresentationPattern(m_pattern);
     wi->SetInteractor(view2d->renderWindow()->GetInteractor());
-    wi->SetCurrentRenderer(view2d->mainRenderer());
+    wi->SetCurrentRenderer(view->mainRenderer());
     wi->SetEnabled(true);
 
     m_widgets[view] = wi;

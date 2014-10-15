@@ -129,7 +129,7 @@ AnalysisSPtr SegFile_V5::Loader::load()
 }
 
 //-----------------------------------------------------------------------------
-static DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
+DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
 {
 	for (auto vertex : vertices)
 	{
@@ -233,7 +233,7 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 }
 
 //-----------------------------------------------------------------------------
-static QString SegFile_V5::Loader::parseCategoryName(const State& state)
+QString SegFile_V5::Loader::parseCategoryName(const State& state)
 {
 	QStringList params = state.split(";");
 

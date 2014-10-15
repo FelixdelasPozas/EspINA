@@ -120,6 +120,12 @@ namespace ESPINA
   	 */
     virtual void setOrientation(Plane orientation);
 
+    /** \brief Sets the distance of the widget over the rest of the view's representations.
+     * \param[in] shift view's wigets' shift value.
+     *
+     */
+    virtual void setShift(const Nm shift);
+
     /** \brief Returns the widget orientation.
      *
      */
@@ -164,7 +170,8 @@ namespace ESPINA
     int CurrentHandle;
     Plane  m_plane;
     double m_segmentationBounds[6];
-    double m_slice;
+    Nm m_slice;
+    Nm m_shift;
 
     /** \brief Callback interface to capture events when
      * placing the widget.

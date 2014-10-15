@@ -24,6 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include "Core/Utils/Spatial.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
 
@@ -33,15 +34,18 @@
 // Qt
 #include <QMap>
 
+class vtkPolyData;
+
 namespace ESPINA
 {
   class vtkSkeletonWidget;
   class vtkSkeletonWidgetCommand;
 
   class EspinaGUI_EXPORT SkeletonWidget
-  : public EspinaWidget
-  , public EventHandler
+  : public EventHandler
+  , public EspinaWidget
   {
+    Q_OBJECT
     public:
       /** \brief SkeletonWidget class constructor.
        *
@@ -53,81 +57,72 @@ namespace ESPINA
        */
       virtual ~SkeletonWidget();
 
-      /** \brief Implements EspinaWidget::registerView()
-       *
-       */
       virtual void registerView(RenderView *view);
 
-      /** \brief Implements EspinaWidget::unregisterView()
-       *
-       */
       virtual void unregisterView(RenderView *view);
 
-      /** \brief Implements EspinaWidget::setEnabled.
-       *
-       */
       virtual void setEnabled(bool enable);
 
-      /** \brief Overrides EventHandler::filterEvent.
-       *
-       */
       bool filterEvent(QEvent *e, RenderView *view) override;
 
-      /** \brief Overrides EventHandler::setInUse()
-       *
-       */
       void setInUse(bool value) override;
 
       /** \brief Sets the minimum distance between points.
        * \param[in] value minimum distance between points.
        */
-      void setTolerance(int value);
+      void setTolerance(const double value);
+
+      /** \brief Returns the skeleton when the operation has finished.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> getSkeleton();
+
+      /** \brief Sets the color of the representation.
+       * \param[in] color Qcolor object.
+       *
+       */
+      void setRepresentationColor(const QColor &color);
+
+    public slots:
+      void changeSlice(Plane, Nm);
 
     private:
       friend class vtkSkeletonWidgetCommand;
 
       vtkSmartPointer<vtkSkeletonWidgetCommand> m_command;
-      QMap<RenderView *, vtkSkeletonWidget *>   m_widgets;
-      int                                       m_tolerance;
+      QMap<RenderView *, vtkSkeletonWidget*>    m_widgets;
+      double                                    m_tolerance;
   };
 
   class vtkSkeletonWidgetCommand
   : public vtkEspinaCommand
   {
-    vtkTypeMacro(vtkSkeletonWidgetCommand, vtkCommand);
+    public:
+      vtkTypeMacro(vtkSkeletonWidgetCommand, vtkEspinaCommand);
 
-    /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
-     *
-     */
-    static vtkSkeletonWidgetCommand* New()
-    { return new vtkSkeletonWidgetCommand(); }
+      static vtkSkeletonWidgetCommand *New()
+      { return new vtkSkeletonWidgetCommand(); }
 
-    /** \brief Implements vtkEspinaCommand::Execute
-     *
-     */
-    virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
+      void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
 
-    /** \brief Implements vtkEspinaCommand::setWidget
-     *
-     */
-    void setWidget(EspinaWidgetPtr widget)
-    { m_widget = dynamic_cast<SkeletonWidget *>(widget); }
+      void setWidget(EspinaWidgetPtr widget)
+      { m_widget = dynamic_cast<SkeletonWidget *>(widget); }
 
     private:
-     /** \brief Class vtkDistanceCommand class private constructor.
-      *
-      */
-     explicit vtkSkeletonWidgetCommand()
-     : m_widget{nullptr}
-     {}
+      /** \brief SkeletonWidgetCommand class private constructor.
+       *
+       */
+      explicit vtkSkeletonWidgetCommand()
+      : m_widget{nullptr}
+      {}
 
-     /** \brief Class vtkDistanceCommand class private destructor.
-      *
-      */
-     virtual ~vtkSkeletonWidgetCommand()
-     {}
+      /** \brief SkeletonWidgetCommand class private destructor.
+       *
+       */
+      virtual ~vtkSkeletonWidgetCommand()
+      {};
 
-     SkeletonWidget *m_widget;
+      SkeletonWidget *m_widget;
   };
 
 } // namespace ESPINA

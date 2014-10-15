@@ -23,13 +23,24 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
+#include "Core/Utils/Spatial.h"
+
 // VTK
 #include <vtkAbstractWidget.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+
+// Qt
+#include <QCursor>
+#include <QColor>
 
 using namespace std;
 
 namespace ESPINA
 {
+  class SkeletonWidget;
+
   class EspinaGUI_EXPORT vtkSkeletonWidget
   : public vtkAbstractWidget
   {
@@ -46,11 +57,6 @@ namespace ESPINA
        */
       virtual void SetEnabled(int) override;
 
-      /** \brief Overrides vtkAbstractWidget::SetProcessEvents().
-       *
-       */
-      virtual void SetProcessEvents(int) override;
-
       /** \brief Implements vtkAbstractWidget::CreateDefaultRepresentation().
        *
        */
@@ -60,6 +66,112 @@ namespace ESPINA
        *
        */
       virtual void PrintSelf(ostream &os, vtkIndent indent) override;
+
+      /** \brief Convenient method to change what state the widget is in.
+       * \param[in] state enumerated state of the widget.
+       *
+       */
+      void SetWidgetState(int state);
+
+      /** \brief Convenient method to determine the state of the method.
+       *
+       */
+      int GetWidgetState()
+      { return m_widgetState; }
+
+      /** \brief Initialize the skeleton widget from a user supplied vtkPolyData.
+       * \param[in] pd vtkPolyData raw pointer.
+       *
+       */
+      virtual void Initialize(vtkSmartPointer<vtkPolyData> pd);
+
+      /** \brief Initialize the skeleton with empty data.
+       *
+       */
+      virtual void Initialize()
+      { this->Initialize(nullptr); }
+
+      /** \brief Sets the orientation of the widget.
+       * \param[in] plane orientation plane.
+       *
+       */
+      virtual void SetOrientation(Plane plane);
+
+      /** \brief Returns the orientation of the widget.
+       *
+       */
+      virtual Plane GetOrientation();
+
+      /** \brief Sets the parent SkeletonWidget for this vtk widget.
+       * \param[in] parent SkeletonWidget raw pointer.
+       *
+       * Parent needed to signal start/end of a contour.
+       *
+       */
+      void setParentWidget(SkeletonWidget *parent)
+      { m_parent = parent; }
+
+      /** \brief Sets the slice for the representation of the widget if it's from the same orientation.
+       * \param[in] plane orientation plane.
+       * \param[in] value slice value.
+       *
+       */
+      void changeSlice(Plane plane, Nm value);
+
+      /** \brief Returns the skeleton.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> getSkeleton();
+
+      /** \brief Sets the tolerance value of the widget.
+       * \param[in] tolerance tolerance value.
+       *
+       */
+      void SetTolerance(const double tolerance);
+
+      /** \brief Sets the spacing of the view in the Z coordinate to draw the representation correctly.
+       *
+       */
+      void SetShift(const Nm spacing);
+
+      /** \brief Sets the color of the representation.
+       * \param[in] color QColor object.
+       *
+       */
+      void setRepresentationColor(const QColor &color);
+
+      /** \brief Updates the representation.
+       *
+       */
+      void UpdateRepresentation();
+
+    protected:
+      int    m_widgetState;
+      int    m_currentHandle;
+      Plane  m_orientation;
+      double m_drawTolerance;
+      Nm     m_slice;
+      Nm     m_shift;
+      QColor m_color;
+
+      /** \brief Callback interface to capture events when placing the widget.
+       *
+       */
+      static void StopAction(vtkAbstractWidget*);
+      static void MoveAction(vtkAbstractWidget*);
+      static void ResetAction(vtkAbstractWidget*);
+      static void KeyPressAction(vtkAbstractWidget *);
+      static void ReleaseKeyPressAction(vtkAbstractWidget *);
+
+      /** \brief Overrides vtkAbstractWidget::cursor().
+       *
+       */
+      virtual void SetCursor(int State) override;
+
+      enum
+      {
+        Start, Define, Manipulate
+      };
 
     protected:
       /** \brief vtkSkeletonWidget class constructor.
@@ -71,6 +183,17 @@ namespace ESPINA
        *
        */
       virtual ~vtkSkeletonWidget();
+
+    private:
+      vtkSkeletonWidget(const vtkSkeletonWidget&);
+
+      /** \brief Assignment operator not implemented.
+       *
+       */
+      void operator=(const vtkSkeletonWidget&);
+
+      QCursor         m_crossMinusCursor, m_crossPlusCursor, m_crossCheckCursor;
+      SkeletonWidget *m_parent;
   };
 
 } // namespace ESPINA
