@@ -492,7 +492,15 @@ namespace ESPINA
       }
     }
 
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSlice(value);
+    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep);
+    rep->SetSlice(value);
+
+    int X = this->Interactor->GetEventPosition()[0];
+    int Y = this->Interactor->GetEventPosition()[1];
+
+    rep->ComputeInteractionState(X, Y);
+    auto state = rep->GetInteractionState();
+    this->SetCursor(state);
 
     if (this->WidgetRep->GetNeedToRender())
     {
