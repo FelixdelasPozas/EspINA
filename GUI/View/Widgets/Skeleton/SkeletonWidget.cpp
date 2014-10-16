@@ -73,6 +73,7 @@ namespace ESPINA
     m_widgets[view]->SetCurrentRenderer(view->mainRenderer());
     m_widgets[view]->SetInteractor(view->renderWindow()->GetInteractor());
     m_widgets[view]->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+    m_widgets[view]->AddObserver(vtkCommand::ModifiedEvent, m_command);
   }
 
   //-----------------------------------------------------------------------------
@@ -241,15 +242,19 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidgetCommand::Execute(vtkObject* caller, unsigned long int eventId, void *callData)
   {
-    if((strcmp("vtkSkeletonWidget", caller->GetClassName()) == 0) && (eventId == vtkCommand::EndInteractionEvent))
+    if(strcmp("vtkSkeletonWidget", caller->GetClassName()) == 0)
     {
-      auto callerWidget = dynamic_cast<vtkSkeletonWidget *>(caller);
-      for(auto vtkWidget: m_widget->m_widgets)
+      if((eventId == vtkCommand::EndInteractionEvent) || (eventId == vtkCommand::ModifiedEvent))
       {
-        if(vtkWidget == callerWidget)
-          continue;
+        auto callerWidget = dynamic_cast<vtkSkeletonWidget *>(caller);
+        for(auto vtkWidget: m_widget->m_widgets)
+        {
+          if(vtkWidget == callerWidget)
+            continue;
 
-        vtkWidget->UpdateRepresentation();
+          vtkWidget->UpdateRepresentation();
+        }
+
       }
     }
   }
@@ -258,7 +263,9 @@ namespace ESPINA
   vtkSmartPointer<vtkPolyData> SkeletonWidget::getSkeleton()
   {
     // all the vtkSkeletonWidgets should have the same data so anyone can suffice.
-    Q_ASSERT(!m_widgets.isEmpty());
+    if(m_widgets.isEmpty())
+      return nullptr;
+
     return m_widgets.values().first()->getSkeleton();
   }
 

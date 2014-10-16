@@ -232,38 +232,48 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToDisplayPosition(int displayPos[2])
+  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToDisplayPosition(int displayPos[2], bool updateRepresentation)
   {
     double worldPos[3];
     this->GetWorldPositionFromDisplayPosition(displayPos, worldPos);
-    return this->SetActiveNodeToWorldPosition(worldPos);
+    return this->SetActiveNodeToWorldPosition(worldPos, updateRepresentation);
   }
 
   //-----------------------------------------------------------------------------
-  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToDisplayPosition(int X, int Y)
+  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToDisplayPosition(int X, int Y, bool updateRepresentation)
   {
     int displayPos[2]{X,Y};
-    return this->SetActiveNodeToDisplayPosition(displayPos);
+    return this->SetActiveNodeToDisplayPosition(displayPos, updateRepresentation);
   }
 
   //-----------------------------------------------------------------------------
-  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double x, double y, double z)
+  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double x, double y, double z, bool updateRepresentation)
   {
     double worldPos[3]{x,y,z};
-    return this->SetActiveNodeToWorldPosition(worldPos);
+    return this->SetActiveNodeToWorldPosition(worldPos, updateRepresentation);
   }
 
   //-----------------------------------------------------------------------------
-  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double worldPos[3])
+  bool vtkSkeletonWidgetRepresentation::SetActiveNodeToWorldPosition(double worldPos[3], bool updateRepresentation)
   {
     if (this->s_currentVertex == nullptr)
       return false;
 
     std::memcpy(this->s_currentVertex->worldPosition, worldPos, 3*sizeof(double));
-    this->s_currentVertex->worldPosition[normalCoordinateIndex(m_orientation)] = m_slice;
 
-    this->BuildRepresentation();
+    if(updateRepresentation)
+      this->BuildRepresentation();
 
+    return true;
+  }
+
+  //-----------------------------------------------------------------------------
+  bool vtkSkeletonWidgetRepresentation::GetActiveNodeWorldPosition(double worldPos[3])
+  {
+    if (this->s_currentVertex == nullptr)
+      return false;
+
+    std::memcpy(worldPos, this->s_currentVertex->worldPosition, 3*sizeof(double));
     return true;
   }
 
@@ -353,7 +363,13 @@ namespace ESPINA
   void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   {
     if(this->s_skeleton.size() == 0)
+    {
+      VisibilityOff();
       return;
+    }
+
+    if(s_currentVertex != nullptr)
+    qDebug() << "current slice" << m_slice << "current node pos" << s_currentVertex->worldPosition[0] << s_currentVertex->worldPosition[1] << s_currentVertex->worldPosition[2];
 
     double p1[4], p2[4];
     this->Renderer->GetActiveCamera()->GetFocalPoint(p1);
@@ -408,7 +424,7 @@ namespace ESPINA
     for(auto node: s_skeleton)
     {
       // we only want "some" points in the screen representation and want all the representation to be visible.
-      if(areEqual(node->worldPosition[planeIndex], m_slice,0.1))
+      if(areEqual(node->worldPosition[planeIndex], m_slice))
       {
         if(!m_visiblePoints.contains(node))
         {
@@ -463,6 +479,7 @@ namespace ESPINA
           }
       }
     }
+    qDebug() << "incluido" << m_visiblePoints.contains(s_currentVertex) << "slice" << m_slice;
 
     if(m_visiblePoints.empty())
     {
@@ -826,10 +843,6 @@ namespace ESPINA
   void vtkSkeletonWidgetRepresentation::SetSlice(const Nm slice)
   {
     this->m_slice = slice;
-
-    if(s_currentVertex != nullptr)
-      s_currentVertex->worldPosition[normalCoordinateIndex(m_orientation)] = m_slice;
-
     this->BuildRepresentation();
   }
 
@@ -837,9 +850,11 @@ namespace ESPINA
   bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
   {
     double worldPos[3];
-    int unused = 0;
+    int nodeIndex = VTK_INT_MAX;
+    this->FindClosestNode(x,y, worldPos, nodeIndex);
 
-    this->FindClosestNode(x,y, worldPos, unused);
+    if((nodeIndex == VTK_INT_MAX) || !m_visiblePoints.contains(s_skeleton[nodeIndex]))
+      return false;
 
     int displayPos[2]{x,y};
     double displayWorldPos[3];

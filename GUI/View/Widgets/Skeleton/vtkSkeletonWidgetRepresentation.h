@@ -163,7 +163,7 @@ namespace ESPINA
        * \param[in] displayPos display coordinate vector.
        *
        */
-      bool SetActiveNodeToDisplayPosition(int displayPos[2]);
+      bool SetActiveNodeToDisplayPosition(int displayPos[2], bool updateRepresentation = true);
 
       /** \brief Move the active node to a specified display position.
        * Returns false if there is no active node of the node
@@ -172,7 +172,7 @@ namespace ESPINA
        * \param[in] y y display coordinate.
        *
        */
-      bool SetActiveNodeToDisplayPosition(int X, int Y);
+      bool SetActiveNodeToDisplayPosition(int X, int Y, bool updateRepresentation = true);
 
       /** \brief Move the active node to a specified world position.
        * Returns false if there is no active node or the node
@@ -182,15 +182,23 @@ namespace ESPINA
        * \param[in] z z world coordinate.
        *
        */
-      bool SetActiveNodeToWorldPosition(double x, double y, double z);
+      bool SetActiveNodeToWorldPosition(double x, double y, double z, bool updateRepresentation = true);
 
       /** \brief Move the active node to a specified world position.
        * Returns false if there is no active node or the node
        * couldn't be moved to the position. Returns true otherwise.
        * \param[in] worldPos world coordinate vector.
+       * \param[in] updateRepresentation true to re-build the representation and false otherwise.
        *
        */
-      bool SetActiveNodeToWorldPosition(double worldPos[3]);
+      bool SetActiveNodeToWorldPosition(double worldPos[3], bool updateRepresentation = true);
+
+      /** \brief Returns true if there is a current node, and its position it's returned
+       * in the parameter.
+       * \param[out] doublePos world coordinates vector.
+       *
+       */
+      bool GetActiveNodeWorldPosition(double worldPos[3]);
 
       /** \brief Deletes the current node. Returns true on success or
        *  false if the active node did not indicate a valid node.

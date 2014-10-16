@@ -243,7 +243,7 @@ namespace ESPINA
       m_vm->setSelectionEnabled(true);
       m_widget = nullptr;
 
-      if(m_skeleton->GetNumberOfPoints() != 0)
+      if(m_skeleton != nullptr && m_skeleton->GetNumberOfPoints() > 0)
         emit stoppedOperation();
       else
         m_skeleton = nullptr;

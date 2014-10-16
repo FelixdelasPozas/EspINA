@@ -302,14 +302,14 @@ namespace ESPINA
       self->m_widgetState = vtkSkeletonWidget::Start;
       self->EnabledOff();
       self->ResetAction(w);
-      self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
-      self->SetCursor(vtkSkeletonWidgetRepresentation::Outside);
+      self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
       self->EnabledOn();
     }
 
     if(("Delete" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
     {
       rep->DeleteCurrentNode();
+      self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
     }
 
     self->WidgetRep->ComputeInteractionState(X, Y);
@@ -480,6 +480,18 @@ namespace ESPINA
       return;
 
     m_slice = value;
+
+    if(this->m_widgetState == vtkSkeletonWidget::Define)
+    {
+      double pos[3]{0,0,0};
+      auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep);
+      if(rep->GetActiveNodeWorldPosition(pos))
+      {
+        pos[normalCoordinateIndex(this->m_orientation)] = value;
+        rep->SetActiveNodeToWorldPosition(pos, false);
+      }
+    }
+
     reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSlice(value);
 
     if (this->WidgetRep->GetNeedToRender())
@@ -559,13 +571,10 @@ namespace ESPINA
     if(!this->WidgetRep)
       return;
 
-    this->WidgetRep->BuildRepresentation();
-
-    if (this->WidgetRep->GetNeedToRender())
-    {
-      this->Render();
-      this->WidgetRep->NeedToRenderOff();
-    }
+    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep);
+    rep->BuildRepresentation();
+    rep->NeedToRenderOff();
+    this->Render();
   }
 
 } // namespace ESPINA
