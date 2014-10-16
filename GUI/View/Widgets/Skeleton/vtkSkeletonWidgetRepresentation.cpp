@@ -43,8 +43,6 @@
 #include <vtkRenderWindow.h>
 
 // Qt
-#include <QStack>
-#include <QMap>
 #include <QDebug>
 
 namespace ESPINA
@@ -63,6 +61,7 @@ namespace ESPINA
   , m_shift           {-1}
   , m_color           {QColor{254,254,254}}
   {
+
     this->m_points = vtkSmartPointer<vtkPoints>::New();
     this->m_points->SetNumberOfPoints(1);
     this->m_points->SetPoint(0, 0.0, 0.0, 0.0);
@@ -81,10 +80,32 @@ namespace ESPINA
     sphere->SetRadius(0.5);
     this->m_glypher->SetSourceConnection(sphere->GetOutputPort());
 
+    auto sphere2 = vtkSmartPointer<vtkSphereSource>::New();
+    sphere2->SetRadius(0.75);
+
+    auto polyData = vtkSmartPointer<vtkPolyData>::New();
+    auto points = vtkSmartPointer<vtkPoints>::New();
+    points->SetNumberOfPoints(1);
+    points->InsertNextPoint(0,0,0);
+    polyData->SetPoints(points);
+
+    m_pointer = vtkSmartPointer<vtkGlyph3D>::New();
+    m_pointer->SetSourceConnection(sphere2->GetOutputPort());
+    m_pointer->SetInputData(polyData);
+    m_pointer->ScalingOn();
+    m_pointer->SetScaleModeToDataScalingOff();
+    m_pointer->SetScaleFactor(1.0);
+
+    auto pointerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    pointerMapper->SetInputData(m_pointer->GetOutput());
+    pointerMapper->SetResolveCoincidentTopologyToPolygonOffset();
+
+    m_pointerActor = vtkSmartPointer<vtkActor>::New();
+    m_pointerActor->SetMapper(pointerMapper);
+    m_pointerActor->GetProperty()->SetColor(1,1,1);
+
     this->m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     this->m_mapper->SetInputData(m_glypher->GetOutput());
-    this->m_mapper->SetResolveCoincidentTopologyToPolygonOffset();
-    this->m_mapper->ImmediateModeRenderingOn();
 
     this->m_actor = vtkSmartPointer<vtkActor>::New();
     this->m_actor->SetMapper(this->m_mapper);
@@ -95,8 +116,6 @@ namespace ESPINA
     this->m_lines = vtkSmartPointer<vtkPolyData>::New();
     this->m_linesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     this->m_linesMapper->SetInputData(this->m_lines);
-    this->m_linesMapper->SetResolveCoincidentTopologyToPolygonOffset();
-    this->m_linesMapper->ImmediateModeRenderingOn();
 
     this->m_linesActor = vtkSmartPointer<vtkActor>::New();
     this->m_linesActor->SetMapper(this->m_linesMapper);
@@ -165,12 +184,8 @@ namespace ESPINA
     this->GetWorldPositionFromDisplayPosition(displayPos, worldPos);
 
     double distance2 = VTK_DOUBLE_MAX; // we'll use distance^2 to avoid doing square root operation.
-    for(auto node: s_skeleton)
+    for(auto node: m_visiblePoints.keys())
     {
-      // only activate nodes in the slice.
-      if(!areEqual(node->worldPosition[normalCoordinateIndex(this->m_orientation)], m_slice, 0.1))
-        continue;
-
       auto nodeDistance =  vtkMath::Distance2BetweenPoints(worldPos, node->worldPosition);
 
       if(nodeDistance < distance2)
@@ -180,13 +195,17 @@ namespace ESPINA
       }
     }
 
-    if(closestNode == nullptr)
-      return false;
+    if((closestNode == nullptr) || ((m_tolerance * m_tolerance) < vtkMath::Distance2BetweenPoints(worldPos, closestNode->worldPosition)))
+    {
+      this->s_currentVertex = nullptr;
+    }
+    else
+    {
+      this->s_currentVertex = closestNode;
+    }
+    this->UpdatePointer();
 
-    this->s_currentVertex = closestNode;
-    this->BuildRepresentation();
-
-    return true;
+    return (s_currentVertex != nullptr);
   }
 
   //-----------------------------------------------------------------------------
@@ -200,9 +219,16 @@ namespace ESPINA
   bool vtkSkeletonWidgetRepresentation::ActivateNode(SkeletonNode *node)
   {
     s_currentVertex = node;
-    this->BuildRepresentation();
+    this->UpdatePointer();
 
     return true;
+  }
+
+  //-----------------------------------------------------------------------------
+  void vtkSkeletonWidgetRepresentation::DeactivateNode()
+  {
+    s_currentVertex = nullptr;
+    this->UpdatePointer();
   }
 
   //-----------------------------------------------------------------------------
@@ -238,16 +264,6 @@ namespace ESPINA
 
     this->BuildRepresentation();
 
-    return true;
-  }
-
-  //-----------------------------------------------------------------------------
-  bool vtkSkeletonWidgetRepresentation::GetActiveNodeWorldPosition(double worldPos[3]) const
-  {
-    if(this->s_currentVertex == nullptr)
-      return false;
-
-    std::memcpy(worldPos, this->s_currentVertex->worldPosition, 3*sizeof(double));
     return true;
   }
 
@@ -387,34 +403,68 @@ namespace ESPINA
 
     auto planeIndex = normalCoordinateIndex(m_orientation);
 
-    QMap<SkeletonNode *, vtkIdType> visiblePoints;
+    m_visiblePoints.clear();
     double worldPos[3];
     for(auto node: s_skeleton)
     {
       // we only want "some" points in the screen representation and want all the representation to be visible.
-      if((node->worldPosition[planeIndex] > (m_slice - s_sliceWindow)) && (node->worldPosition[planeIndex] < (m_slice + s_sliceWindow)))
+      if(areEqual(node->worldPosition[planeIndex], m_slice,0.1))
       {
-        std::memcpy(worldPos, node->worldPosition, 3 * sizeof(double));
-        worldPos[planeIndex] = m_slice + m_shift;
+        if(!m_visiblePoints.contains(node))
+        {
+          std::memcpy(worldPos, node->worldPosition, 3 * sizeof(double));
+          worldPos[planeIndex] = m_slice + m_shift;
 
-        visiblePoints.insert(node, m_points->InsertNextPoint(worldPos));
+          m_visiblePoints.insert(node, m_points->InsertNextPoint(worldPos));
+        }
 
         for(auto connectedNode: node->connections)
         {
-          std::memcpy(worldPos, connectedNode->worldPosition, 3 * sizeof(double));
-          worldPos[planeIndex] = m_slice + m_shift;
+          if(!m_visiblePoints.contains(connectedNode))
+          {
+            std::memcpy(worldPos, connectedNode->worldPosition, 3 * sizeof(double));
+            worldPos[planeIndex] = m_slice + m_shift;
 
-          visiblePoints.insert(connectedNode, m_points->InsertNextPoint(worldPos));
+            m_visiblePoints.insert(connectedNode, m_points->InsertNextPoint(worldPos));
+          }
 
           auto line = vtkSmartPointer<vtkLine>::New();
-          line->GetPointIds()->SetId(0, visiblePoints[node]);
-          line->GetPointIds()->SetId(1, visiblePoints[connectedNode]);
+          line->GetPointIds()->SetId(0, m_visiblePoints[node]);
+          line->GetPointIds()->SetId(1, m_visiblePoints[connectedNode]);
           cells->InsertNextCell(line);
         }
       }
+      else
+      {
+        for(auto connectedNode: node->connections)
+          if((node->worldPosition[planeIndex] < m_slice && connectedNode->worldPosition[planeIndex] >= m_slice) ||
+             (node->worldPosition[planeIndex] > m_slice && connectedNode->worldPosition[planeIndex] <= m_slice))
+          {
+            if(!m_visiblePoints.contains(node))
+            {
+              std::memcpy(worldPos, node->worldPosition, 3 * sizeof(double));
+              worldPos[planeIndex] = m_slice + m_shift;
+
+              m_visiblePoints.insert(node, m_points->InsertNextPoint(worldPos));
+            }
+
+            if(!m_visiblePoints.contains(connectedNode))
+            {
+              std::memcpy(worldPos, connectedNode->worldPosition, 3 * sizeof(double));
+              worldPos[planeIndex] = m_slice + m_shift;
+
+              m_visiblePoints.insert(connectedNode, m_points->InsertNextPoint(worldPos));
+            }
+
+            auto line = vtkSmartPointer<vtkLine>::New();
+            line->GetPointIds()->SetId(0, m_visiblePoints[node]);
+            line->GetPointIds()->SetId(1, m_visiblePoints[connectedNode]);
+            cells->InsertNextCell(line);
+          }
+      }
     }
 
-    if(visiblePoints.empty())
+    if(m_visiblePoints.empty())
     {
       VisibilityOff();
       NeedToRenderOn();
@@ -435,14 +485,45 @@ namespace ESPINA
     m_linesMapper->Update();
     m_linesActor->Modified();
 
+    m_pointer->SetScaleFactor(distance * this->HandleSize);
+    this->UpdatePointer();
+
     this->VisibilityOn();
+    this->NeedToRenderOn();
+  }
+
+  //-----------------------------------------------------------------------------
+  void vtkSkeletonWidgetRepresentation::UpdatePointer()
+  {
+    if(s_currentVertex != nullptr)
+    {
+      double pos[3];
+      std::memcpy(pos, s_currentVertex->worldPosition, 3*sizeof(double));
+      pos[normalCoordinateIndex(m_orientation)] = m_slice;
+
+      auto polyData = vtkPolyData::SafeDownCast(m_pointer->GetInput());
+      polyData->GetPoints()->Reset();
+      polyData->GetPoints()->SetNumberOfPoints(1);
+      polyData->GetPoints()->SetPoint(0,s_currentVertex->worldPosition);
+      polyData->GetPoints()->Modified();
+      polyData->Modified();
+      m_pointer->Update();
+      m_pointerActor->GetMapper()->Update();
+      double color[3];
+      m_linesActor->GetProperty()->GetColor(color);
+      m_pointerActor->GetProperty()->SetColor(1-color[0], 1-color[1], 1-color[2]);
+      m_pointerActor->VisibilityOn();
+    }
+    else
+      m_pointerActor->VisibilityOff();
+
+    m_pointerActor->Modified();
     this->NeedToRenderOn();
   }
 
   //-----------------------------------------------------------------------------
   int vtkSkeletonWidgetRepresentation::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
   {
-    static int i = 0;
     if (IsNearNode(X,Y))
     {
       this->InteractionState = vtkSkeletonWidgetRepresentation::NearPoint;
@@ -469,6 +550,7 @@ namespace ESPINA
   void vtkSkeletonWidgetRepresentation::ReleaseGraphicsResources(vtkWindow* win)
   {
     this->m_actor->ReleaseGraphicsResources(win);
+    this->m_pointerActor->ReleaseGraphicsResources(win);
     this->m_linesActor->ReleaseGraphicsResources(win);
   }
 
@@ -476,6 +558,8 @@ namespace ESPINA
   int vtkSkeletonWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
   {
     int count = 0;
+    if (this->m_pointerActor->GetVisibility())
+      count += this->m_pointerActor->RenderOverlay(viewport);
     if (this->m_linesActor->GetVisibility())
       count += this->m_linesActor->RenderOverlay(viewport);
     if (this->m_actor->GetVisibility())
@@ -490,6 +574,8 @@ namespace ESPINA
     this->BuildRepresentation();
 
     int count = 0;
+    if (this->m_pointerActor->GetVisibility())
+      count += this->m_pointerActor->RenderOpaqueGeometry(viewport);
     if (this->m_linesActor->GetVisibility())
       count += this->m_linesActor->RenderOpaqueGeometry(viewport);
     if (this->m_actor->GetVisibility())
@@ -503,6 +589,8 @@ namespace ESPINA
   {
     int count = 0;
 
+    if (this->m_pointerActor->GetVisibility())
+      count += this->m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
     if (this->m_linesActor->GetVisibility())
       count += this->m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
     if (this->m_actor->GetVisibility())
@@ -516,6 +604,8 @@ namespace ESPINA
   {
     int result = 0;
 
+    if (this->m_pointerActor->GetVisibility())
+      result += this->m_pointerActor->HasTranslucentPolygonalGeometry();
     if (this->m_linesActor->GetVisibility())
       result |= this->m_linesActor->HasTranslucentPolygonalGeometry();
     if (this->m_actor->GetVisibility())
@@ -584,7 +674,7 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void vtkSkeletonWidgetRepresentation::FindClosestNode(int X, int Y, double worldPos[3], SkeletonNode* closestNode) const
+  void vtkSkeletonWidgetRepresentation::FindClosestNode(int X, int Y, double worldPos[3], int &closestNode) const
   {
     double distance = VTK_DOUBLE_MAX;
 
@@ -593,21 +683,17 @@ namespace ESPINA
     this->GetWorldPositionFromDisplayPosition(displayPos, pos);
     pos[3] = 0;
 
-    for(auto node: s_skeleton)
+    for(auto i = 0; i < s_skeleton.size(); ++i)
     {
-      auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, node->worldPosition);
+      auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton[i]->worldPosition);
       if(distance > nodeDistance)
       {
         distance = nodeDistance;
-        closestNode = node;
+        closestNode = i;
+        worldPos[0] = s_skeleton[i]->worldPosition[0];
+        worldPos[1] = s_skeleton[i]->worldPosition[1];
+        worldPos[2] = s_skeleton[i]->worldPosition[2];
       }
-    }
-
-    if(closestNode != nullptr)
-    {
-      worldPos[0] = closestNode->worldPosition[0];
-      worldPos[1] = closestNode->worldPosition[1];
-      worldPos[2] = closestNode->worldPosition[2];
     }
   }
 
@@ -664,7 +750,6 @@ namespace ESPINA
     double result = VTK_DOUBLE_MAX;
     unsigned int segmentNode1Index = VTK_INT_MAX;
     unsigned int segmentNode2Index = VTK_INT_MAX;
-    double r, buenr;
 
     double point_pos[3];
     int displayPos[2]{X,Y};
@@ -700,7 +785,7 @@ namespace ESPINA
           dotvv += v[ii]*v[ii];
         }
 
-        r = dotwv / dotvv;
+        double r = dotwv / dotvv;
 
         if(r <= 0)
         {
@@ -729,7 +814,6 @@ namespace ESPINA
           node_i = segmentNode1Index;
           node_j = segmentNode2Index;
           std::memcpy(worldPos, projection, 3*sizeof(double));
-          buenr = r;
           result = pointDistance;
         }
       }
@@ -742,6 +826,10 @@ namespace ESPINA
   void vtkSkeletonWidgetRepresentation::SetSlice(const Nm slice)
   {
     this->m_slice = slice;
+
+    if(s_currentVertex != nullptr)
+      s_currentVertex->worldPosition[normalCoordinateIndex(m_orientation)] = m_slice;
+
     this->BuildRepresentation();
   }
 
@@ -749,9 +837,9 @@ namespace ESPINA
   bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
   {
     double worldPos[3];
-    SkeletonNode *closestNode = nullptr;
+    int unused = 0;
 
-    this->FindClosestNode(x,y, worldPos, closestNode);
+    this->FindClosestNode(x,y, worldPos, unused);
 
     int displayPos[2]{x,y};
     double displayWorldPos[3];
@@ -785,6 +873,41 @@ namespace ESPINA
     this->m_linesActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
     this->m_linesActor->Modified();
     this->NeedToRenderOn();
+  }
+
+  //-----------------------------------------------------------------------------
+  bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
+  {
+    if(s_skeleton.size() < 3)
+      return false;
+
+    double worldPos[3];
+    int nodeIndex = VTK_INT_MAX;
+    s_skeleton.removeAll(s_currentVertex);
+    this->FindClosestNode(X,Y, worldPos, nodeIndex);
+    s_skeleton << s_currentVertex;
+    auto closestNode = s_skeleton[nodeIndex];
+
+    // remove current vertex if the distance is too close
+
+    auto isClose = ((m_tolerance * m_tolerance) > vtkMath::Distance2BetweenPoints(s_currentVertex->worldPosition, closestNode->worldPosition));
+    if(!s_currentVertex->connections.contains(closestNode) && isClose)
+    {
+      for(auto connectionNode: s_currentVertex->connections)
+      {
+        connectionNode->connections.removeAll(s_currentVertex);
+        connectionNode->connections << closestNode;
+        closestNode->connections << connectionNode;
+      }
+      s_currentVertex->connections.clear();
+      s_skeleton.removeAll(s_currentVertex);
+      delete s_currentVertex;
+
+      s_currentVertex = closestNode;
+      return true;
+    }
+
+    return false;
   }
 
 } // namespace EspINA

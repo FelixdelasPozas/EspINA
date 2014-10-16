@@ -93,6 +93,7 @@ namespace ESPINA
     }
 
     this->Superclass::SetEnabled(enabling);
+    this->Render();
   }
 
   //-----------------------------------------------------------------------------
@@ -186,11 +187,11 @@ namespace ESPINA
     switch(self->m_widgetState)
     {
       case vtkSkeletonWidget::Define:
-        if ((rep->GetNumberOfNodes() > 1) && rep->IsPointTooClose(X,Y))
-          return;
-
-        rep->AddNodeAtDisplayPosition(X,Y);
-        self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
+        if (!rep->IsPointTooClose(X,Y))
+        {
+          rep->AddNodeAtDisplayPosition(X,Y);
+          self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
+        }
         break;
       case vtkSkeletonWidget::Manipulate:
         rep->SetActiveNodeToDisplayPosition(X,Y);
@@ -245,6 +246,12 @@ namespace ESPINA
       default:
         break;
     }
+
+    if (self->WidgetRep->GetNeedToRender())
+    {
+      self->Render();
+      self->WidgetRep->NeedToRenderOff();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -252,6 +259,9 @@ namespace ESPINA
   {
     auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
     self->Initialize(nullptr);
+
+    self->Render();
+    self->WidgetRep->NeedToRenderOff();
   }
 
   //-----------------------------------------------------------------------------
@@ -287,7 +297,7 @@ namespace ESPINA
       }
     }
 
-    if (("Delete" == key) || ("BackSpace" == key))
+    if("BackSpace" == key)
     {
       self->m_widgetState = vtkSkeletonWidget::Start;
       self->EnabledOff();
@@ -295,7 +305,11 @@ namespace ESPINA
       self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
       self->SetCursor(vtkSkeletonWidgetRepresentation::Outside);
       self->EnabledOn();
-      return;
+    }
+
+    if(("Delete" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
+    {
+      rep->DeleteCurrentNode();
     }
 
     self->WidgetRep->ComputeInteractionState(X, Y);
@@ -332,6 +346,7 @@ namespace ESPINA
         {
           self->m_widgetState = vtkSkeletonWidget::Start;
           vtkSkeletonWidgetRepresentation::SkeletonNode *nullnode = nullptr;
+          rep->TryToJoin(X,Y);
           rep->ActivateNode(nullnode);
 
           self->Superclass::EndInteraction();

@@ -115,6 +115,12 @@ namespace ESPINA
        */
       void categoryChanged(CategoryAdapterSPtr category);
 
+      /** \brief Removes the widget when the event handler is turned off
+       * by another event handler.
+       *
+       */
+      void eventHandlerToogled(bool value);
+
     private:
       /** \brief Helper method to manage the visibility of widgets.
        * \param[in] value true to set visible false otherwise.

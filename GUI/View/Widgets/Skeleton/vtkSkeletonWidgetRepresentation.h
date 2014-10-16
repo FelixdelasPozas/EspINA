@@ -32,6 +32,7 @@
 
 // Qt
 #include <QList>
+#include <QMap>
 #include <QColor>
 
 class vtkActor;
@@ -39,6 +40,7 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkGlyph3D;
 class vtkPoints;
+class vtkSphereSource;
 
 namespace ESPINA
 {
@@ -146,8 +148,14 @@ namespace ESPINA
       /** \brief Sets the current node as none.
        *
        */
-      void DeactivateNode()
-      { s_currentVertex = nullptr; }
+      void DeactivateNode();
+
+      /** \brief Checks for the proximity of another node not directly
+       * connected to the current vertex (to join at the end of the
+       * operation).
+       *
+       */
+      bool TryToJoin(int X, int Y);
 
       /** \brief Move the active node to a specified display position.
        * Returns false if there is no active node of the node
@@ -183,13 +191,6 @@ namespace ESPINA
        *
        */
       bool SetActiveNodeToWorldPosition(double worldPos[3]);
-
-      /** \brief Returns in the parameter the world position of the active node.
-       *  Returns true on success, false otherwise.
-       *  \param[out] worldPos world coordinate vector.
-       *
-       */
-      bool GetActiveNodeWorldPosition(double worldPos[3]) const;
 
       /** \brief Deletes the current node. Returns true on success or
        *  false if the active node did not indicate a valid node.
@@ -258,6 +259,11 @@ namespace ESPINA
        *
        */
       void BuildRepresentation();
+
+      /** \brief Updates the pointer position and visibility.
+       *
+       */
+      void UpdatePointer();
 
       /* \brief Implements vtkAbstractWidgetRepresentation::ComputeInteractionState().
        *
@@ -351,10 +357,10 @@ namespace ESPINA
        * \param[in] X x display coordinate.
        * \param[in] Y y display coordinate.
        * \param[out] worldPos world coordinate vector of the closest node.
-       * \param[out] node raw RepresentationNode pointer of the closest node.
+       * \param[out] nodeIndex position index of the closest node in s_skeleton
        *
        */
-      void FindClosestNode(int X, int Y, double worldPos[3], SkeletonNode *node) const;
+      void FindClosestNode(int X, int Y, double worldPos[3], int &nodeIndex) const;
 
       /** \brief Build a skeleton representation from externally supplied PolyData.
        * \param[in] data vtkPolyData smart pointer.
@@ -388,12 +394,16 @@ namespace ESPINA
       static QList<SkeletonNode *> s_skeleton;
       static SkeletonNode         *s_currentVertex;
 
+      QMap<SkeletonNode *, vtkIdType> m_visiblePoints;
+
       // Support picking
       double m_lastPickPosition[2];
       double m_lastEventPosition[2];
       double m_interactionOffset[2]; // distance between the mouse event and where the widget is focused (distance to maintain between interaction).
 
       // VTK data;
+      vtkSmartPointer<vtkGlyph3D>           m_pointer;
+      vtkSmartPointer<vtkActor>             m_pointerActor;
       vtkSmartPointer<vtkPoints>            m_points;
       vtkSmartPointer<vtkPolyData>          m_pointsData;
       vtkSmartPointer<vtkGlyph3D>           m_glypher;

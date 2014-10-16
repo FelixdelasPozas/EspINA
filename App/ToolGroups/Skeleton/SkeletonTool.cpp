@@ -160,6 +160,9 @@ namespace ESPINA
 
       m_widget = EspinaWidgetSPtr{widget};
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
+      connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+              this,            SLOT(eventHandlerToogled(bool)), Qt::QueuedConnection);
+
       m_vm->setEventHandler(m_handler);
       m_vm->addWidget(m_widget);
       m_vm->setSelectionEnabled(false);
@@ -173,8 +176,12 @@ namespace ESPINA
 
       m_skeleton = dynamic_cast<SkeletonWidget *>(m_widget.get())->getSkeleton();
 
+      disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+                 this,            SLOT(eventHandlerToogled(bool)));
+
       m_widget->setEnabled(false);
       m_vm->removeWidget(m_widget);
+
       m_vm->unsetEventHandler(m_handler);
       m_handler = nullptr;
       m_vm->setSelectionEnabled(true);
@@ -211,6 +218,38 @@ namespace ESPINA
   {
     if(m_widget != nullptr)
       dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::eventHandlerToogled(bool value)
+  {
+    if(value)
+      return;
+
+    if(m_widget != nullptr)
+    {
+      m_action->blockSignals(true);
+      m_action->setChecked(false);
+      m_action->blockSignals(false);
+
+      m_skeleton = dynamic_cast<SkeletonWidget *>(m_widget.get())->getSkeleton();
+
+      disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+                 this,            SLOT(eventHandlerToogled(bool)));
+
+      m_widget->setEnabled(false);
+      m_vm->removeWidget(m_widget);
+      m_handler = nullptr;
+      m_vm->setSelectionEnabled(true);
+      m_widget = nullptr;
+
+      if(m_skeleton->GetNumberOfPoints() != 0)
+        emit stoppedOperation();
+      else
+        m_skeleton = nullptr;
+
+      setControlsVisibility(value);
+    }
   }
 } // namespace EspINA
 

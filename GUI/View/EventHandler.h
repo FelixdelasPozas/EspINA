@@ -52,7 +52,7 @@ namespace ESPINA
       virtual ~EventHandler()
       {};
 
-      /** \brief Activates/deactvates the event handler.
+      /** \brief Activates/deactivates the event handler.
        * \param[in] value, true to enable false otherwise.
        */
       virtual void setInUse(bool value);
