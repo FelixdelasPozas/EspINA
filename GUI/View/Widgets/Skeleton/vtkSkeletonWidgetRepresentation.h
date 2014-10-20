@@ -41,6 +41,7 @@ class vtkPolyDataMapper;
 class vtkGlyph3D;
 class vtkPoints;
 class vtkSphereSource;
+class vtkUnsignedCharArray;
 
 namespace ESPINA
 {
@@ -410,6 +411,7 @@ namespace ESPINA
       double m_interactionOffset[2]; // distance between the mouse event and where the widget is focused (distance to maintain between interaction).
 
       // VTK data;
+      vtkSmartPointer<vtkUnsignedCharArray> m_colors;
       vtkSmartPointer<vtkGlyph3D>           m_pointer;
       vtkSmartPointer<vtkActor>             m_pointerActor;
       vtkSmartPointer<vtkPoints>            m_points;

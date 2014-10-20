@@ -162,6 +162,7 @@ namespace ESPINA
       static void ResetAction(vtkAbstractWidget*);
       static void KeyPressAction(vtkAbstractWidget *);
       static void ReleaseKeyPressAction(vtkAbstractWidget *);
+      static void TranslateAction(vtkAbstractWidget *);
 
       /** \brief Overrides vtkAbstractWidget::cursor().
        *

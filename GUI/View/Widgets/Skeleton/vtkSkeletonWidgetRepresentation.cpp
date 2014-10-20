@@ -39,11 +39,9 @@
 #include <vtkIdList.h>
 #include <vtkLine.h>
 #include <vtkCellData.h>
+#include <vtkLookupTable.h>
 #include <vtkSphereSource.h>
 #include <vtkRenderWindow.h>
-
-// Qt
-#include <QDebug>
 
 namespace ESPINA
 {
@@ -61,6 +59,9 @@ namespace ESPINA
   , m_shift           {-1}
   , m_color           {QColor{254,254,254}}
   {
+    this->m_colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+    this->m_colors->SetName("Colors");
+    this->m_colors->SetNumberOfComponents(3);
 
     this->m_points = vtkSmartPointer<vtkPoints>::New();
     this->m_points->SetNumberOfPoints(1);
@@ -68,9 +69,12 @@ namespace ESPINA
 
     this->m_pointsData = vtkSmartPointer<vtkPolyData>::New();
     this->m_pointsData->SetPoints(this->m_points);
+    this->m_pointsData->GetPointData()->SetScalars(m_colors);
 
     this->m_glypher = vtkSmartPointer<vtkGlyph3D>::New();
     this->m_glypher->SetInputData(m_pointsData);
+    this->m_glypher->SetColorModeToColorByScalar();
+
     this->m_glypher->ScalingOn();
     this->m_glypher->SetScaleModeToDataScalingOff();
     this->m_glypher->SetScaleFactor(1.0);
@@ -368,9 +372,6 @@ namespace ESPINA
       return;
     }
 
-    if(s_currentVertex != nullptr)
-    qDebug() << "current slice" << m_slice << "current node pos" << s_currentVertex->worldPosition[0] << s_currentVertex->worldPosition[1] << s_currentVertex->worldPosition[2];
-
     double p1[4], p2[4];
     this->Renderer->GetActiveCamera()->GetFocalPoint(p1);
     p1[3] = 1.0;
@@ -419,6 +420,11 @@ namespace ESPINA
 
     auto planeIndex = normalCoordinateIndex(m_orientation);
 
+    unsigned char red[3]   = {255, 0, 0};
+    unsigned char green[3] = {0, 255, 0};
+    unsigned char blue[3]  = {0, 0, 255};
+    m_colors->Reset();
+
     m_visiblePoints.clear();
     double worldPos[3];
     for(auto node: s_skeleton)
@@ -432,6 +438,7 @@ namespace ESPINA
           worldPos[planeIndex] = m_slice + m_shift;
 
           m_visiblePoints.insert(node, m_points->InsertNextPoint(worldPos));
+          m_colors->InsertNextTupleValue(green);
         }
 
         for(auto connectedNode: node->connections)
@@ -439,6 +446,14 @@ namespace ESPINA
           if(!m_visiblePoints.contains(connectedNode))
           {
             std::memcpy(worldPos, connectedNode->worldPosition, 3 * sizeof(double));
+            if(areEqual(worldPos[planeIndex], m_slice))
+                m_colors->InsertNextTupleValue(green);
+            else
+              if(worldPos[planeIndex] > m_slice)
+                m_colors->InsertNextTupleValue(blue);
+              else
+                m_colors->InsertNextTupleValue(red);
+
             worldPos[planeIndex] = m_slice + m_shift;
 
             m_visiblePoints.insert(connectedNode, m_points->InsertNextPoint(worldPos));
@@ -459,6 +474,11 @@ namespace ESPINA
             if(!m_visiblePoints.contains(node))
             {
               std::memcpy(worldPos, node->worldPosition, 3 * sizeof(double));
+              if(worldPos[planeIndex] > m_slice)
+                m_colors->InsertNextTupleValue(blue);
+              else
+                m_colors->InsertNextTupleValue(red);
+
               worldPos[planeIndex] = m_slice + m_shift;
 
               m_visiblePoints.insert(node, m_points->InsertNextPoint(worldPos));
@@ -467,6 +487,14 @@ namespace ESPINA
             if(!m_visiblePoints.contains(connectedNode))
             {
               std::memcpy(worldPos, connectedNode->worldPosition, 3 * sizeof(double));
+              if(areEqual(worldPos[planeIndex], m_slice))
+                  m_colors->InsertNextTupleValue(green);
+              else
+                if(worldPos[planeIndex] > m_slice)
+                  m_colors->InsertNextTupleValue(blue);
+                else
+                  m_colors->InsertNextTupleValue(red);
+
               worldPos[planeIndex] = m_slice + m_shift;
 
               m_visiblePoints.insert(connectedNode, m_points->InsertNextPoint(worldPos));
@@ -479,7 +507,6 @@ namespace ESPINA
           }
       }
     }
-    qDebug() << "incluido" << m_visiblePoints.contains(s_currentVertex) << "slice" << m_slice;
 
     if(m_visiblePoints.empty())
     {
@@ -490,6 +517,7 @@ namespace ESPINA
 
     m_points->Modified();
     m_pointsData->Modified();
+    m_pointsData->GetPointData()->Modified();
     m_glypher->SetInputData(m_pointsData);
     m_glypher->SetScaleFactor(distance * this->HandleSize);
     m_glypher->Update();
@@ -700,8 +728,12 @@ namespace ESPINA
     this->GetWorldPositionFromDisplayPosition(displayPos, pos);
     pos[3] = 0;
 
+    auto planeIndex = normalCoordinateIndex(m_orientation);
     for(auto i = 0; i < s_skeleton.size(); ++i)
     {
+      if(!areEqual(this->s_skeleton[i]->worldPosition[planeIndex], m_slice))
+        continue;
+
       auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton[i]->worldPosition);
       if(distance > nodeDistance)
       {
@@ -740,8 +772,10 @@ namespace ESPINA
       double data[2];
       linesData->GetTuple(i, data);
 
-      s_skeleton[data[0]]->connections << s_skeleton[data[1]];
-      s_skeleton[data[1]]->connections << s_skeleton[data[0]];
+      if(!s_skeleton[data[0]]->connections.contains(s_skeleton[data[1]]))
+        s_skeleton[data[0]]->connections << s_skeleton[data[1]];
+      if(!s_skeleton[data[1]]->connections.contains(s_skeleton[data[0]]))
+        s_skeleton[data[1]]->connections << s_skeleton[data[0]];
     }
 
     this->BuildRepresentation();
@@ -883,8 +917,6 @@ namespace ESPINA
       return;
 
     m_color = color;
-    this->m_actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-    this->m_actor->Modified();
     this->m_linesActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
     this->m_linesActor->Modified();
     this->NeedToRenderOn();
@@ -901,6 +933,10 @@ namespace ESPINA
     s_skeleton.removeAll(s_currentVertex);
     this->FindClosestNode(X,Y, worldPos, nodeIndex);
     s_skeleton << s_currentVertex;
+
+    if(nodeIndex == VTK_INT_MAX)
+      return false;
+
     auto closestNode = s_skeleton[nodeIndex];
 
     // remove current vertex if the distance is too close

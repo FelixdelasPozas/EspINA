@@ -105,23 +105,35 @@ namespace ESPINA
   {
     switch(e->type())
     {
+      case QEvent::MouseButtonRelease:
       case QEvent::MouseButtonPress:
       {
         QMouseEvent *me = reinterpret_cast<QMouseEvent*>(e);
-        if(me->button() == Qt::RightButton)
+        if(me->button() == Qt::RightButton || me->button() == Qt::LeftButton)
         {
           for(auto view: m_widgets.keys())
           {
             if(view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible())
             {
-              int eventPos[2];
-              view->renderWindow()->GetInteractor()->GetEventPosition(eventPos);
-              m_widgets[view]->GetInteractor()->SetEventInformation(eventPos[0],
-                                                                    eventPos[1],
-                                                                    Qt::ControlModifier == QApplication::keyboardModifiers(),
-                                                                    Qt::ShiftModifier == QApplication::keyboardModifiers());
+              m_widgets[view]->GetInteractor()->SetEventInformationFlipY(me->x(),
+                                                                         me->y(),
+                                                                         Qt::ControlModifier == QApplication::keyboardModifiers(),
+                                                                         Qt::ShiftModifier == QApplication::keyboardModifiers());
 
-              m_widgets[view]->GetInteractor()->RightButtonPressEvent();
+              if(e->type() == QEvent::MouseButtonPress)
+              {
+                if(me->button() == Qt::RightButton)
+                  m_widgets[view]->GetInteractor()->RightButtonPressEvent();
+                else
+                  m_widgets[view]->GetInteractor()->LeftButtonPressEvent();
+              }
+              else
+              {
+                if(me->button() == Qt::RightButton)
+                  m_widgets[view]->GetInteractor()->RightButtonReleaseEvent();
+                else
+                  m_widgets[view]->GetInteractor()->LeftButtonReleaseEvent();
+              }
               return true;
             }
           }
@@ -135,8 +147,6 @@ namespace ESPINA
         {
           if(view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible())
           {
-            int eventPos[2];
-            view->renderWindow()->GetInteractor()->GetEventPosition(eventPos);
             m_widgets[view]->GetInteractor()->SetEventInformationFlipY(me->x(),
                                                                        me->y(),
                                                                        Qt::ControlModifier == QApplication::keyboardModifiers(),
@@ -153,16 +163,13 @@ namespace ESPINA
       {
         QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
 
-        if(ke->key() == Qt::Key_Control || ke->key() == Qt::Key_Shift || ke->key() == Qt::Key_Backspace || ke->key() == Qt::Key_Delete)
+        if(ke->key() == Qt::Key_Control || ke->key() == Qt::Key_Backspace || ke->key() == Qt::Key_Delete)
         {
           const char *keyString;
           switch(ke->key())
           {
             case Qt::Key_Control:
               keyString = "Control_L";
-              break;
-            case Qt::Key_Shift:
-              keyString = "Shift_L";
               break;
             case Qt::Key_Delete:
               keyString = "Delete";

@@ -33,7 +33,6 @@
 // Qt
 #include <QApplication>
 #include <QPixmap>
-#include <QDebug>
 
 namespace ESPINA
 {
@@ -54,6 +53,8 @@ namespace ESPINA
     this->CreateDefaultRepresentation();
 
     // These are the event callbacks supported by this widget
+    this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent, vtkWidgetEvent::Translate, this, vtkSkeletonWidget::TranslateAction);
+    this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent, vtkWidgetEvent::Translate, this, vtkSkeletonWidget::TranslateAction);
     this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent, vtkWidgetEvent::ModifyEvent, this, vtkSkeletonWidget::StopAction);
     this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent, vtkWidgetEvent::Move, this, vtkSkeletonWidget::MoveAction);
     this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent, vtkWidgetEvent::Select, this, vtkSkeletonWidget::KeyPressAction);
@@ -219,6 +220,42 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  void vtkSkeletonWidget::TranslateAction(vtkAbstractWidget *w)
+  {
+    auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
+    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(self->WidgetRep);
+
+    auto X = self->Interactor->GetEventPosition()[0];
+    auto Y = self->Interactor->GetEventPosition()[1];
+
+    switch(self->m_widgetState)
+    {
+      case vtkSkeletonWidget::Start:
+        if(rep->IsNearNode(X,Y))
+        {
+          rep->ActivateNode(X,Y);
+
+          self->m_widgetState = vtkSkeletonWidget::Manipulate;
+          self->Superclass::StartInteraction();
+          self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
+          self->StartInteraction();
+        }
+        break;
+      case vtkSkeletonWidget::Manipulate:
+        rep->SetActiveNodeToDisplayPosition(X,Y);
+
+        self->m_widgetState = vtkSkeletonWidget::Start;
+        self->Superclass::EndInteraction();
+        self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
+        self->EndInteraction();
+        break;
+      case vtkSkeletonWidget::Define:
+      default:
+        break;
+    }
+
+  }
+  //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::StopAction(vtkAbstractWidget *w)
   {
     auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
@@ -274,28 +311,6 @@ namespace ESPINA
 
     int X = self->Interactor->GetEventPosition()[0];
     int Y = self->Interactor->GetEventPosition()[1];
-
-    if("Shift_L" == key)
-    {
-      switch(self->m_widgetState)
-      {
-        case vtkSkeletonWidget::Start:
-          if(rep->IsNearNode(X,Y))
-          {
-            rep->ActivateNode(X,Y);
-
-            self->m_widgetState = vtkSkeletonWidget::Manipulate;
-            self->Superclass::StartInteraction();
-            self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
-            self->StartInteraction();
-          }
-          break;
-        case vtkSkeletonWidget::Manipulate:
-        case vtkSkeletonWidget::Define:
-        default:
-          break;
-      }
-    }
 
     if("BackSpace" == key)
     {
@@ -382,25 +397,6 @@ namespace ESPINA
           self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
           break;
         case vtkSkeletonWidget::Manipulate:
-        default:
-          break;
-      }
-    }
-
-    if("Shift_L" == key)
-    {
-      switch(self->m_widgetState)
-      {
-        case vtkSkeletonWidget::Manipulate:
-          rep->SetActiveNodeToDisplayPosition(X,Y);
-
-          self->m_widgetState = vtkSkeletonWidget::Start;
-          self->Superclass::EndInteraction();
-          self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
-          self->EndInteraction();
-          break;
-        case vtkSkeletonWidget::Start:
-        case vtkSkeletonWidget::Define:
         default:
           break;
       }
@@ -495,12 +491,23 @@ namespace ESPINA
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep);
     rep->SetSlice(value);
 
-    int X = this->Interactor->GetEventPosition()[0];
-    int Y = this->Interactor->GetEventPosition()[1];
+    if(this->Interactor != nullptr)
+    {
+      int X = this->Interactor->GetEventPosition()[0];
+      int Y = this->Interactor->GetEventPosition()[1];
 
-    rep->ComputeInteractionState(X, Y);
-    auto state = rep->GetInteractionState();
-    this->SetCursor(state);
+      rep->ComputeInteractionState(X, Y);
+      auto state = rep->GetInteractionState();
+      this->SetCursor(state);
+
+      if(this->m_widgetState == vtkSkeletonWidget::Start)
+      {
+        if(rep->IsNearNode(X,Y))
+          rep->ActivateNode(X,Y);
+        else
+          rep->DeactivateNode();
+      }
+    }
 
     if (this->WidgetRep->GetNeedToRender())
     {
@@ -553,24 +560,16 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::setRepresentationColor(const QColor &color)
   {
-    if(this->m_color == color)
-      return;
-
     this->m_color = color;
 
     if(this->WidgetRep == nullptr)
     {
       this->CreateDefaultRepresentation();
-      return;
     }
 
     reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetColor(color);
-
-    if (this->WidgetRep->GetNeedToRender())
-    {
-      this->Render();
-      this->WidgetRep->NeedToRenderOff();
-    }
+    this->Render();
+    this->WidgetRep->NeedToRenderOff();
   }
 
   //-----------------------------------------------------------------------------
