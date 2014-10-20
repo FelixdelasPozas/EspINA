@@ -28,6 +28,35 @@
 
 using namespace ESPINA;
 
+class DiscardROIModificationsCommand
+: public QUndoCommand
+{
+public:
+  explicit DiscardROIModificationsCommand(ROIToolsGroup *roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent = 0)
+  : m_roiTools{roiTools}
+  , m_ROI{filter->roi()->clone()}
+  {}
+
+  virtual void redo()
+  { swapCurrentROI(); }
+
+  virtual void undo()
+  { swapCurrentROI(); }
+
+private:
+  void swapCurrentROI()
+  {
+    auto currentROI = m_roiTools->currentROI();
+
+    m_roiTools->setCurrentROI(m_ROI);
+
+    m_ROI = currentROI;
+  }
+
+private:
+  ROIToolsGroup *m_roiTools;
+  ROISPtr        m_ROI;
+};
 
 class SGSFilterModification
 : public QUndoCommand
@@ -180,17 +209,17 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSeg
   m_gui->closingRadius->setValue(m_filter->closingRadius());
 
   connect(m_gui->threshold,    SIGNAL(valueChanged(int)),
-          this,                SIGNAL(thresholdChanged(int)));
+          this,                SLOT(onThresholdChanged(int)));
   connect(m_gui->applyClosing, SIGNAL(toggled(bool)),
-          this,                SIGNAL(applyClosingChanged(bool)));
+          this,                SLOT(onApplyClosingChanged(bool)));
   connect(m_gui->closingRadius,SIGNAL(valueChanged(int)),
-          this,                SIGNAL(closingRadiusChanged(int)));
+          this,                SLOT(onClosingRadiusChanged(int)));
   connect(m_gui->resetROI,     SIGNAL(clicked(bool)),
           this,                SLOT(resetROI()));
-  connect(m_gui->m_modify,     SIGNAL(clicked(bool)),
+  connect(m_gui->apply,        SIGNAL(clicked(bool)),
           this,                SLOT(modifyFilter()));
   connect(m_roiTools,          SIGNAL(roiChanged(ROISPtr)),
-          this,                SLOT(roiChanged()));
+          this,                SLOT(onROIChanged()));
 
   m_viewManager->updateViews();
 }
@@ -202,16 +231,44 @@ SeedGrowSegmentationHistoryWidget::~SeedGrowSegmentationHistoryWidget()
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::resetROI()
+void SeedGrowSegmentationHistoryWidget::onThresholdChanged(int value)
 {
-  // TODO-BUG: Must be undo-able
-  m_roiTools->setCurrentROI(m_filter->roi()->clone());
-  m_viewManager->updateViews();
+  m_gui->apply->setEnabled(true);
+
+  emit thresholdChanged(value);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::roiChanged()
+void SeedGrowSegmentationHistoryWidget::onApplyClosingChanged(bool value)
 {
+  m_gui->apply->setEnabled(true);
+
+  m_gui->closingRadius->setEnabled(value);
+  m_gui->closingRadiusLabel->setEnabled(value);
+
+  emit applyClosingChanged(value);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::onClosingRadiusChanged(int value)
+{
+  emit closingRadiusChanged(value);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::onROIChanged()
+{
+  m_roiTools->setEnabled(true);
+}
+
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationHistoryWidget::resetROI()
+{
+  m_undoStack->beginMacro(tr("Discard ROI modifications"));
+  m_undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
+  m_undoStack->endMacro();
+  m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------

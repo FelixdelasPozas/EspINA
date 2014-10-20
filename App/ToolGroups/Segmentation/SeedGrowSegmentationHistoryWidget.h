@@ -61,8 +61,11 @@ namespace ESPINA {
     void closingRadiusChanged(int);
 
   private slots:
+    void onThresholdChanged(int value);
+    void onApplyClosingChanged(bool value);
+    void onClosingRadiusChanged(int value);
+    void onROIChanged();
     void resetROI();
-    void roiChanged();
     void modifyFilter();
 
   private:

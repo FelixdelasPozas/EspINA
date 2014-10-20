@@ -160,7 +160,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>Show Information</string>
+         <string>Discard ROI modifications</string>
         </property>
         <property name="text">
          <string/>
@@ -208,7 +208,10 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="closingRadiusLabel">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Radius</string>
           </property>
@@ -216,6 +219,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="closingRadius">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="maximum">
            <number>20</number>
           </property>
@@ -268,7 +274,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="m_modify">
+      <widget class="QPushButton" name="apply">
        <property name="enabled">
         <bool>true</bool>
        </property>
