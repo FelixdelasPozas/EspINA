@@ -23,9 +23,11 @@
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/VolumeBounds.h>
+#include <Core/Utils/TemporalStorage.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
+#include <itkImageFileWriter.h>
 
 namespace ESPINA {
 
@@ -467,6 +469,35 @@ namespace ESPINA {
     image->FillBuffer(value);
 
     return image;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot createSnapshot(typename T::Pointer   volume,
+                          TemporalStorageSPtr   storage,
+                          const QString        &path,
+                          const QString        &id)
+  {
+    Snapshot snapshot;
+
+    storage->makePath(path);
+
+    QString mhd = QString("%1/%2.mhd").arg(path).arg(id);
+    QString raw = QString("%1/%2.raw").arg(path).arg(id);
+
+    bool releaseFlag = volume->GetReleaseDataFlag();
+    volume->ReleaseDataFlagOff();
+
+    auto writer = itk::ImageFileWriter<itkVolumeType>::New();
+    writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+    writer->SetInput(volume);
+    writer->Write();
+    volume->SetReleaseDataFlag(releaseFlag);
+
+    snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+    snapshot << SnapshotData(raw, storage->snapshot(raw));
+
+    return snapshot;
   }
 
 } // namespace ESPINA

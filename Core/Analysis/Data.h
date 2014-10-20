@@ -118,7 +118,7 @@ namespace ESPINA
     /** \brief Returns a snapshot object of the edited regions of the data.
      *
      */
-    virtual Snapshot editedRegionsSnapshot() const = 0;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
     /** \brief Returns true if the object has been correctly initialized and contains data.
      *
@@ -183,12 +183,15 @@ namespace ESPINA
       emit dataChanged();
     }
 
+    void addEditedRegion(const Bounds &bounds)
+    { m_editedRegions << bounds; }
+
   protected:
     OutputPtr  m_output;
-    BoundsList m_editedRegions;
 
   private:
     TimeStamp m_timeStamp;
+    BoundsList m_editedRegions;
 
     friend class Output;
     friend class ChangeSignalDelayer;

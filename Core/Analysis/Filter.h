@@ -215,10 +215,10 @@ namespace ESPINA
      */
     virtual bool ignoreStorageContent() const = 0;
 
-    /** \brief Invalidated the edited regions.
+    /** \brief Returns whether or not edited regions have been invalidated.
      *
      */
-    virtual bool invalidateEditedRegions() = 0;
+    virtual bool areEditedRegionsInvalidated() = 0;
 
     /** \brief Destroy previous outputs and remove their snapshots if any.
      *

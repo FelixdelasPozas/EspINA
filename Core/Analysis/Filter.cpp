@@ -112,13 +112,13 @@ bool Filter::update()
 //----------------------------------------------------------------------------
 bool Filter::update(Output::Id id)
 {
-  bool invalidateRegions = invalidateEditedRegions();
+  bool invalidateRegions = areEditedRegionsInvalidated();
   bool outputNeedsUpdate = needUpdate(id);
 
    if (invalidateRegions || outputNeedsUpdate)
    {
      // Invalidate previous edited regions
-     if (invalidateRegions && id < m_outputs.size())
+     if (invalidateRegions && validOutput(id))
      {
        m_outputs[id]->clearEditedRegions();
      }
@@ -132,7 +132,7 @@ bool Filter::update(Output::Id id)
 
        execute(id);
 
-       if (id < m_outputs.size())
+       if (validOutput(id))
        {
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }

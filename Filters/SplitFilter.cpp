@@ -167,7 +167,7 @@ bool SplitFilter::ignoreStorageContent() const
 }
 
 //----------------------------------------------------------------------------
-bool SplitFilter::invalidateEditedRegions()
+bool SplitFilter::areEditedRegionsInvalidated()
 {
   return false;
 }

@@ -37,68 +37,41 @@ namespace ESPINA {
       : public Filter
       {
       public:
-      	/** \brief ReadOnlyFilter class constructor.
-      	 * \param[in] inputs, list of input smart pointers.
-      	 * \param[in] type, filter type.
-      	 *
-      	 */
+        /** \brief ReadOnlyFilter class constructor.
+         * \param[in] inputs list of input smart pointers.
+         * \param[in] type filter type.
+         *
+         */
         explicit ReadOnlyFilter(InputSList inputs, Type type)
         : Filter(inputs, type, SchedulerSPtr())
         {}
 
-      	/** \brief Implements Persistent::restoreState().
-      	 *
-      	 */
         virtual void restoreState(const State& state)
         { m_state = state; }
 
-      	/** \brief Implements Persistent::state().
-      	 *
-      	 */
         virtual State state() const
         { return m_state; }
 
       protected:
-      	/** \brief Implements Filter::saveFilterSnapshot().
-      	 *
-      	 */
         virtual Snapshot saveFilterSnapshot() const
         {return Snapshot(); }
 
-      	/** \brief
-      	 *
-      	 */
         virtual bool needUpdate() const
         { return m_outputs.isEmpty();}
 
-      	/** \brief Implements Filter::needUpdate().
-      	 *
-      	 */
         virtual bool needUpdate(Output::Id id) const
         { return !m_outputs.contains(id) || !m_outputs[id]->isValid(); }
 
-      	/** \brief Implements Filter::execute().
-      	 *
-      	 */
         virtual void execute()
         {}
 
-      	/** \brief Implements Filter::execute(id).
-      	 *
-      	 */
         virtual void execute(Output::Id id)
         {}
 
-      	/** \brief Implements Filter::ignoreStorageContent().
-      	 *
-      	 */
         virtual bool ignoreStorageContent() const
         { return false; }
 
-      	/** \brief Implements Filter::invalidateEditedRegions().
-      	 *
-      	 */
-        virtual bool invalidateEditedRegions()
+        virtual bool areEditedRegionsInvalidated()
         {return false;}
 
       private:

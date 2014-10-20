@@ -335,11 +335,10 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
     m_outputs[0] = OutputSPtr(new Output(this, 0));
   }
 
-  Bounds bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
-  NmVector3 spacing = m_inputs[0]->output()->spacing();
+  auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  auto spacing = m_inputs[0]->output()->spacing();
 
-  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
-  volume->draw(output, bounds);
+  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(output, bounds, spacing)};
 
   MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
 
@@ -376,7 +375,7 @@ bool SeedGrowSegmentationFilter::ignoreStorageContent() const
 }
 
 //----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::invalidateEditedRegions()
+bool SeedGrowSegmentationFilter::areEditedRegionsInvalidated()
 {
   return false;
 }

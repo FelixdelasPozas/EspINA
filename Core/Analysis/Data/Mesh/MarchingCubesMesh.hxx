@@ -62,7 +62,7 @@ namespace ESPINA
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
-    virtual Snapshot editedRegionsSnapshot() const;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
     virtual bool isValid() const
     { return m_volume->isValid(); }
@@ -126,7 +126,7 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template <typename T>
-  Snapshot MarchingCubesMesh<T>::editedRegionsSnapshot() const
+  Snapshot MarchingCubesMesh<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
     return Snapshot();
   }

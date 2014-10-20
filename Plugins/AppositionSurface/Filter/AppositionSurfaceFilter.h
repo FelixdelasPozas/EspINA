@@ -100,55 +100,27 @@ namespace ESPINA
     virtual ~AppositionSurfaceFilter();
 
   protected:
-
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
     virtual void restoreState(const State& state)
     {};
 
-    /** \brief Implements Persistent::state().
-     *
-     */
     virtual State state() const
     { return State(); }
 
-    /** \brief Implements Filter::safeFilterSnapshot().
-     *
-     */
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
-    /** \brief Implements Filter::needUpdate().
-     *
-     */
     virtual bool needUpdate() const;
 
-    /** \brief Implements Filter::needUpdate(oid).
-     *
-     */
     virtual bool needUpdate(Output::Id oid) const;
 
-    /** \brief Implements Filter::execute().
-     *
-     */
     virtual void execute();
 
-    /** \brief Imlements Filter::execute(oid).
-     *
-     */
     virtual void execute(Output::Id id);
 
-    /** \brief Implements Filter::ignoreStorageContent()
-     *
-     */
     virtual bool ignoreStorageContent() const
     { return this->m_alreadyFetchedData; }
 
-    /** \brief Implements Filter::invalidateEditedRegions().
-     *
-     */
-    virtual bool invalidateEditedRegions()
+    virtual bool areEditedRegionsInvalidated()
     { return false; }
 
   protected slots:

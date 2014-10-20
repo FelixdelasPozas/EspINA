@@ -124,7 +124,7 @@ bool MorphologicalEditionFilter::ignoreStorageContent() const
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::invalidateEditedRegions()
+bool MorphologicalEditionFilter::areEditedRegionsInvalidated()
 {
   return false;
 }

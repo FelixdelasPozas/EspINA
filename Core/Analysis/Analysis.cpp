@@ -125,11 +125,11 @@ void Analysis::add(ChannelSList channels)
 void Analysis::add(SegmentationSPtr segmentation) throw (Existing_Item_Exception)
 {
   if (m_segmentations.contains(segmentation))
-  	throw (Existing_Item_Exception());
+    throw (Existing_Item_Exception());
 
   m_segmentations << segmentation;
 
-  FilterSPtr filter = segmentation->filter(); // TODO: What happens when a segmentation change its output?!
+  FilterSPtr filter = segmentation->filter();
 
   addIfNotExists(filter);
 
@@ -202,7 +202,7 @@ void Analysis::remove(ChannelSList channels)
 void Analysis::remove(SegmentationSPtr segmentation) throw (Item_Not_Found_Exception)
 {
   if (!m_segmentations.contains(segmentation))
-  	throw (Item_Not_Found_Exception());
+    throw (Item_Not_Found_Exception());
 
   segmentation->setAnalysis(nullptr);
   m_segmentations.removeOne(segmentation);
@@ -228,13 +228,13 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
                            const RelationName& relation)  throw (Item_Not_Found_Exception,Existing_Relation_Exception)
 {
   if (!m_relations->contains(ancestor))
-  	throw (Item_Not_Found_Exception());
+    throw (Item_Not_Found_Exception());
 
   if (!m_relations->contains(succesor))
-  	throw (Item_Not_Found_Exception());
+    throw (Item_Not_Found_Exception());
 
   if (findRelation(ancestor, succesor, relation))
-  	throw (Existing_Relation_Exception());
+    throw (Existing_Relation_Exception());
 
   m_relations->addRelation(ancestor, succesor, relation);
 }
@@ -245,7 +245,7 @@ void Analysis::deleteRelation(PersistentSPtr    ancestor,
                               const RelationName& relation) throw (Relation_Not_Found_Exception)
 {
   if (!findRelation(ancestor, succesor, relation))
-  	throw (Relation_Not_Found_Exception());
+    throw (Relation_Not_Found_Exception());
 
   m_relations->removeRelation(ancestor, succesor, relation);
 }

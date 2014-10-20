@@ -119,8 +119,8 @@ void FillHolesFilter::execute(Output::Id id)
 }
 
 //-----------------------------------------------------------------------------
-bool FillHolesFilter::invalidateEditedRegions()
+bool FillHolesFilter::areEditedRegionsInvalidated()
 {
-	// TODO
-	return false;
+  // TODO
+  return false;
 }

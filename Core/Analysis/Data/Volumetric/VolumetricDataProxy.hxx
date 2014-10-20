@@ -138,8 +138,8 @@ namespace ESPINA
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
     { return m_data->snapshot(storage, path, id); }
 
-    virtual Snapshot editedRegionsSnapshot() const
-    { return m_data->editedRegionsSnapshot(); }
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+    { return m_data->editedRegionsSnapshot(storage, path, id); }
 
   private:
     std::shared_ptr<VolumetricData<T>> m_data;

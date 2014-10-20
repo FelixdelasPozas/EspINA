@@ -106,7 +106,7 @@ namespace ESPINA
     /** \brief Implements Filter::invalidateEditedRegions().
      *
      */
-    virtual bool invalidateEditedRegions();
+    virtual bool areEditedRegionsInvalidated();
 
     /** \brief Checks if the output is empty after execution
      * and creates the output if it's not.

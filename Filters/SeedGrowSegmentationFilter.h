@@ -160,7 +160,7 @@ namespace ESPINA
     /** \brief Implements Filter::invalidateEditedRegions().
      *
      */
-    virtual bool invalidateEditedRegions();
+    virtual bool areEditedRegionsInvalidated();
 
   private:
     /** \brief Helper method that returns true if the segmentation touches the ROI.

@@ -79,12 +79,9 @@ namespace ESPINA
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
-    virtual Snapshot editedRegionsSnapshot() const
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
     { return Snapshot(); }
 
-    /** \brief Shadows Data::isEdited().
-     *
-     */
     bool isEdited() const
     { return false; }
 

@@ -30,6 +30,7 @@
 #include "Filter.h"
 #include "DataProxy.h"
 #include "Analysis.h"
+#include "Segmentation.h"
 
 // VTK
 #include <vtkMath.h>
@@ -85,6 +86,8 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 {
   Snapshot snapshot;
 
+  bool saveOutput = hasToBeSaved();
+
   for(auto dataProxy : m_data)
   {
     DataSPtr data = dataProxy->get();
@@ -103,13 +106,14 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     }
     xml.writeEndElement();
 
-    if (hasToBeSaved())
+    auto snapshotId = QString::number(id());
+    if (saveOutput)
     {
-      snapshot << data->snapshot(storage, path, QString::number(id()));
+      snapshot << data->snapshot(storage, path, snapshotId);
     }
     else
     {
-      snapshot << data->editedRegionsSnapshot();
+      snapshot << data->editedRegionsSnapshot(storage, path, snapshotId);
     }
   }
 
@@ -237,14 +241,20 @@ void Output::update()
 //----------------------------------------------------------------------------
 bool Output::hasToBeSaved() const
 {
-  bool res = false;
-
   auto analysis = m_filter->analysis();
   if (analysis)
   {
     auto content  = analysis->content();
-    res = !content->outEdges(m_filter, QString::number(m_id)).isEmpty();
+    auto outEdges = content->outEdges(m_filter, QString::number(m_id));
+
+    for (auto edge : outEdges)
+    {
+      if (std::dynamic_pointer_cast<Segmentation>(edge.target))
+      {
+        return true;
+      }
+    }
   }
 
-  return res;
+  return false;
 }
