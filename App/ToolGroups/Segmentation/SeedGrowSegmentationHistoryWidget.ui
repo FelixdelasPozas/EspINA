@@ -131,7 +131,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
-       <widget class="QPushButton" name="resetROI">
+       <widget class="QPushButton" name="discardROIModifications">
         <property name="enabled">
          <bool>true</bool>
         </property>
