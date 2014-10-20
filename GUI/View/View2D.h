@@ -142,6 +142,12 @@ namespace ESPINA
     double segmentationDepth() const
     { return Plane::XY == m_plane ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT; }
 
+    /** \brief Helper method that returns the depth value required in the view to put widgets above the rest of the representations.
+     *
+     */
+    double widgetDepth() const
+    { return Plane::XY == m_plane ? -View2D::WIDGET_SHIFT : View2D::WIDGET_SHIFT; }
+
     /** \brief Set the distance between two consecutive slices when displacement is set to SLICES.
      * \param[in] steps.
      *

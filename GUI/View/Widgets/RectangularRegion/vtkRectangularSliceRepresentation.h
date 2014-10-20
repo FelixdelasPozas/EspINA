@@ -49,6 +49,7 @@ class vtkMatrix4x4;
 
 namespace ESPINA
 {
+  class View2D;
 
 class EspinaGUI_EXPORT vtkRectangularSliceRepresentation
 : public vtkWidgetRepresentation
@@ -90,8 +91,7 @@ public:
   // Description:
   // Get the view type properties. In which plane it is been shown
   // and which slice (in case of planar views) is selected
-//   vtkSetMacro(ViewType,int);
-//   vtkSetMacro(Slice,int);
+  virtual void SetView(View2D *view);
   virtual void SetPlane(Plane plane);
   virtual void SetSlice(Nm pos);
   virtual void SetOrthogonalBounds(double bounds[6]);
@@ -204,6 +204,7 @@ private:
 
   double m_color[3];
   int m_pattern;
+  View2D *m_view;
 };
 
 } // namespace ESPINA

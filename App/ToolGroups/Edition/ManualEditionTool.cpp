@@ -146,7 +146,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
   connect(m_eraserWidget, SIGNAL(toggled(bool)),
           this, SLOT(setEraserMode(bool)));
 
-
   setControlVisibility(false);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
@@ -227,12 +226,18 @@ void ManualEditionTool::categoryChanged(CategoryAdapterSPtr unused)
   {
     m_eraserWidget->setChecked(false);
 
-    auto selection = m_viewManager->selection();
-    selection->clear();
+    if(m_viewManager->activeChannel() == nullptr)
+      return;
 
     ChannelAdapterList channels;
     channels << m_viewManager->activeChannel();
-    selection->set(channels);
+
+    if(!channels.empty())
+    {
+      auto selection = m_viewManager->selection();
+      selection->clear();
+      selection->set(channels);
+    }
   }
 
   updateReferenceItem();

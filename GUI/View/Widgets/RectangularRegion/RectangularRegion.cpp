@@ -70,6 +70,7 @@ void RectangularRegion::registerView(RenderView *view)
     SliceWidgetAdapter *wi = SliceWidgetAdapter::New();
     Q_ASSERT(wi);
     wi->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+    wi->SetView(view2d);
     wi->SetPlane(view2d->plane());
     wi->SetBounds(m_bounds);
     wi->setRepresentationColor(m_color);

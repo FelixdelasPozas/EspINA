@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "vtkRectangularSliceRepresentation.h"
+#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkActor.h>
@@ -74,6 +75,7 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
 , RightEdge           {1}
 , BottomEdge          {1}
 , m_pattern           {0xFFFF}
+, m_view              {nullptr}
 {
   // The initial state
   this->InteractionState = vtkRectangularSliceRepresentation::Outside;
@@ -266,7 +268,6 @@ void vtkRectangularSliceRepresentation::Translate(double* p1, double* p2)
   UpdateRegion();
 }
 
-
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::CreateDefaultProperties()
 {
@@ -334,10 +335,11 @@ void vtkRectangularSliceRepresentation::UpdateRegion()
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateXYFace()
 {
-  double LB[3] = {LeftEdge,  BottomEdge, -0.1};
-  double LT[3] = {LeftEdge,  TopEdge,    -0.1};
-  double RT[3] = {RightEdge, TopEdge,    -0.1};
-  double RB[3] = {RightEdge, BottomEdge, -0.1};
+  auto depth = m_view->widgetDepth();
+  double LB[3] = {LeftEdge,  BottomEdge, Slice+depth};
+  double LT[3] = {LeftEdge,  TopEdge,    Slice+depth};
+  double RT[3] = {RightEdge, TopEdge,    Slice+depth};
+  double RB[3] = {RightEdge, BottomEdge, Slice+depth};
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -359,10 +361,11 @@ void vtkRectangularSliceRepresentation::UpdateXYFace()
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateYZFace()
 {
-  double LB[3] = {0.1, BottomEdge, LeftEdge };
-  double LT[3] = {0.1, TopEdge,    LeftEdge };
-  double RT[3] = {0.1, TopEdge,    RightEdge};
-  double RB[3] = {0.1, BottomEdge, RightEdge};
+  auto depth = m_view->widgetDepth();
+  double LB[3] = {Slice+depth, BottomEdge, LeftEdge };
+  double LT[3] = {Slice+depth, TopEdge,    LeftEdge };
+  double RT[3] = {Slice+depth, TopEdge,    RightEdge};
+  double RB[3] = {Slice+depth, BottomEdge, RightEdge};
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -383,10 +386,11 @@ void vtkRectangularSliceRepresentation::UpdateYZFace()
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateXZFace()
 {
-  double LB[3] = {LeftEdge, 0.1, BottomEdge};
-  double LT[3] = {LeftEdge, 0.1, TopEdge};
-  double RT[3] = {RightEdge, 0.1, TopEdge};
-  double RB[3] = {RightEdge, 0.1, BottomEdge};
+  auto depth = m_view->widgetDepth();
+  double LB[3] = {LeftEdge,  Slice+depth, BottomEdge};
+  double LT[3] = {LeftEdge,  Slice+depth, TopEdge};
+  double RT[3] = {RightEdge, Slice+depth, TopEdge};
+  double RB[3] = {RightEdge, Slice+depth, BottomEdge};
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -409,6 +413,14 @@ void vtkRectangularSliceRepresentation::UpdateXZFace()
 }
 
 //----------------------------------------------------------------------------
+void vtkRectangularSliceRepresentation::SetView(View2D *view)
+{
+  if(m_view != nullptr)
+    return;
+
+  m_view = view;
+}
+//----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::SetPlane(Plane plane)
 {
   if (plane == m_plane && plane != Plane::UNDEFINED)
@@ -430,7 +442,8 @@ void vtkRectangularSliceRepresentation::SetSlice(double pos)
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
     return;
-  } else
+  }
+  else
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
       this->EdgeActor[i]->SetProperty(EdgeProperty);
@@ -588,6 +601,7 @@ void vtkRectangularSliceRepresentation::BuildRepresentation()
         this->Renderer->GetActiveCamera()->GetMTime() > this->BuildTime)) )
   {
     this->BuildTime.Modified();
+    UpdateRegion();
   }
 }
 

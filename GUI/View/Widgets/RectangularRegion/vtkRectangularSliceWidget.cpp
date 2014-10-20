@@ -176,6 +176,16 @@ void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
+void vtkRectangularSliceWidget::SetView(View2D *view)
+{
+  if(!this->WidgetRep)
+    this->CreateDefaultRepresentation();
+
+  auto rep = reinterpret_cast<vtkRectangularSliceRepresentation *>(this->WidgetRep);
+  rep->SetView(view);
+}
+
+//----------------------------------------------------------------------
 void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
   vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
