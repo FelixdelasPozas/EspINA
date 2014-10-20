@@ -303,8 +303,7 @@ void vtkRectangularSliceRepresentation::CreateRegion()
   for(EDGE i=LEFT; i <= BOTTOM; i=EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Reset();
-    this->EdgePolyData[i]->GetLines()->Allocate(
-      this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
+    this->EdgePolyData[i]->GetLines()->Allocate(this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
     this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
     this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
     this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);

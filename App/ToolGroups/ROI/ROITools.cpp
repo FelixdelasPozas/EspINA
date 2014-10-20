@@ -40,8 +40,8 @@ public:
 
 private:
   ROISPtr        m_ROI;
-  ROISPtr        m_prevROI;
   ROIToolsGroup *m_tool;
+  ROISPtr        m_prevROI;
 };
 
 //-----------------------------------------------------------------------------
@@ -131,13 +131,13 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 : ToolGroup          {viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent}
 , m_viewManager      {viewManager}
 , m_undoStack        {undoStack}
+, m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
+, m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
+, m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
 , m_enabled          {true}
 , m_visible          {true}
 , m_accumulator      {nullptr}
 , m_accumulatorWidget{nullptr}
-, m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
-, m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
-, m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
 {
   connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
           this,                     SLOT(onManualROIDefined(Selector::Selection)));
@@ -208,6 +208,7 @@ void ROIToolsGroup::setCurrentROI(ROISPtr roi)
     m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
     m_viewManager->addWidget(m_accumulatorWidget);
   }
+  m_viewManager->updateViews();
 
   emit roiChanged(roi);
 }
