@@ -289,9 +289,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   registerToolGroup(defaultActiveTool);
 
   /*** TOOLS ***/
-  auto measuresTools = new MeasuresTools(m_viewManager, this);
-  registerToolGroup(measuresTools);
-
   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(roiTools);
   m_viewManager->setROIProvider(roiTools);
@@ -301,6 +298,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(editionTools);
+
+  auto measuresTools = new MeasuresTools(m_viewManager, this);
+  registerToolGroup(measuresTools);
 
   /*** DOCKS ***/
   auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_scheduler, m_undoStack, this);

@@ -208,18 +208,18 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSeg
   m_gui->threshold->setValue(m_filter->lowerThreshold());
   m_gui->closingRadius->setValue(m_filter->closingRadius());
 
-  connect(m_gui->threshold,    SIGNAL(valueChanged(int)),
-          this,                SLOT(onThresholdChanged(int)));
-  connect(m_gui->applyClosing, SIGNAL(toggled(bool)),
-          this,                SLOT(onApplyClosingChanged(bool)));
-  connect(m_gui->closingRadius,SIGNAL(valueChanged(int)),
-          this,                SLOT(onClosingRadiusChanged(int)));
-  connect(m_gui->resetROI,     SIGNAL(clicked(bool)),
-          this,                SLOT(resetROI()));
-  connect(m_gui->apply,        SIGNAL(clicked(bool)),
-          this,                SLOT(modifyFilter()));
-  connect(m_roiTools,          SIGNAL(roiChanged(ROISPtr)),
-          this,                SLOT(onROIChanged()));
+  connect(m_gui->threshold,               SIGNAL(valueChanged(int)),
+          this,                           SLOT(onThresholdChanged(int)));
+  connect(m_gui->applyClosing,            SIGNAL(toggled(bool)),
+          this,                           SLOT(onApplyClosingChanged(bool)));
+  connect(m_gui->closingRadius,           SIGNAL(valueChanged(int)),
+          this,                           SLOT(onClosingRadiusChanged(int)));
+  connect(m_gui->discardROIModifications, SIGNAL(clicked(bool)),
+          this,                           SLOT(onDiscardROIModifications()));
+  connect(m_gui->apply,                   SIGNAL(clicked(bool)),
+          this,                           SLOT(modifyFilter()));
+  connect(m_roiTools,                     SIGNAL(roiChanged(ROISPtr)),
+          this,                           SLOT(onROIChanged()));
 
   m_viewManager->updateViews();
 }
@@ -263,7 +263,7 @@ void SeedGrowSegmentationHistoryWidget::onROIChanged()
 
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationHistoryWidget::resetROI()
+void SeedGrowSegmentationHistoryWidget::onDiscardROIModifications()
 {
   m_undoStack->beginMacro(tr("Discard ROI modifications"));
   m_undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
@@ -301,7 +301,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
                          return;
   }
 
-  m_undoStack->beginMacro("Modify Seed GrowSegmentation Filter");
+  m_undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
   {
     m_undoStack->push(new SGSFilterModification(m_filter, roi, m_gui->threshold->value(), m_gui->closingRadius->value()));
   }
@@ -318,7 +318,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   if (m_filter->roi())
   {
-    resetROI();
+    m_roiTools->setCurrentROI(m_filter->roi()->clone());
   }
 
   m_viewManager->updateSegmentationRepresentations();

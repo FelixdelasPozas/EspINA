@@ -189,10 +189,8 @@ void OrthogonalROITool::setROI(ROISPtr roi)
     m_roi = nullptr;
   }
 
-  if (!validRectangularROI)
-  {
-    setResizable(false);
-  }
+  setResizable(validRectangularROI);
+
   m_resizeROI->setEnabled(validRectangularROI);
 
   m_viewManager->updateViews();

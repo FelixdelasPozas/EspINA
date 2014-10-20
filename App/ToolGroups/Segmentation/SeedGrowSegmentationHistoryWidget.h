@@ -65,7 +65,7 @@ namespace ESPINA {
     void onApplyClosingChanged(bool value);
     void onClosingRadiusChanged(int value);
     void onROIChanged();
-    void resetROI();
+    void onDiscardROIModifications();
     void modifyFilter();
 
   private:

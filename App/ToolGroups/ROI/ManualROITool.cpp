@@ -151,7 +151,7 @@ ManualROITool::~ManualROITool()
 //-----------------------------------------------------------------------------
 void ManualROITool::ROIChanged()
 {
-  bool hasROI = (m_toolGroup->currentROI() != nullptr);
+  bool hasROI = m_toolGroup->hasValidROI();
 
   auto disc = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
   disc->setHasROI(hasROI);
