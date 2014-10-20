@@ -164,7 +164,8 @@ NmVector3 SeedGrowSegmentationFilter::seed() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 {
-  m_ROI = roi;
+  m_ROI        = roi;
+  m_hasROI     = m_ROI != nullptr;
   m_touchesROI = false;
 }
 
