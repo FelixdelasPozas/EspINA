@@ -74,10 +74,10 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
 , m_activeTool   {new QAction(QIcon(":/espina/roi_orthogonal.svg"), tr("Orthogonal Region of Interest"), this)}
 , m_resizeROI    {new QAction(QIcon(":/espina/resize_roi.svg"), tr("Resize Orthogonal Region of Interest"), this)}
 , m_applyROI     {new QAction(QIcon(":/espina/roi_go.svg"), tr("Define Orthogonal Region of Interest"), this)}
-, m_mode         {Mode::FIXED}
 , m_enabled      {true}
-, m_selector     {new PixelSelector()}
+, m_mode         {Mode::FIXED}
 , m_widget       {nullptr}
+, m_selector     {new PixelSelector()}
 , m_sliceSelector{nullptr}
 , m_settings     {settings}
 {
@@ -189,10 +189,7 @@ void OrthogonalROITool::setROI(ROISPtr roi)
     m_roi = nullptr;
   }
 
-  setResizable(validRectangularROI);
-
   m_resizeROI->setEnabled(validRectangularROI);
-
   m_viewManager->updateViews();
 }
 

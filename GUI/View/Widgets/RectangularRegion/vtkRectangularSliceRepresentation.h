@@ -28,24 +28,15 @@
 #include <Core/Utils/Spatial.h>
 
 // VTK
+#include <vtkSmartPointer.h>
 #include "vtkWidgetRepresentation.h"
 
-class vtkLookupTable;
-class vtkPolyDataAlgorithm;
 class vtkActor;
 class vtkPolyDataMapper;
-class vtkLineSource;
 class vtkCellPicker;
 class vtkProperty;
 class vtkPolyData;
 class vtkPoints;
-class vtkPolyDataAlgorithm;
-class vtkPointHandleRepresentation3D;
-class vtkTransform;
-class vtkPlanes;
-class vtkBox;
-class vtkDoubleArray;
-class vtkMatrix4x4;
 
 namespace ESPINA
 {
@@ -68,25 +59,7 @@ public:
   vtkTypeMacro(vtkRectangularSliceRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Grab the polydata (including points) that define the box widget. The
-  // polydata consists of 6 quadrilateral faces and 15 points. The first
-  // eight points define the eight corner vertices; the next six define the
-  // -x,+x, -y,+y, -z,+z face points; and the final point (the 15th out of 15
-  // points) defines the center of the box. These point values are guaranteed
-  // to be up-to-date when either the widget's corresponding InteractionEvent
-  // or EndInteractionEvent events are invoked. The user provides the
-  // vtkPolyData and the points and cells are added to it.
-  void GetPolyData(vtkPolyData *pd);
-
   void reset();
-
-  // Description:
-  // Get the outline properties (the outline of the box). The
-  // properties of the outline when selected and normal can be
-  // set.
-//   vtkGetObjectMacro(OutlineProperty,vtkProperty);
-  vtkGetObjectMacro(SelectedEdgeProperty,vtkProperty);
 
   // Description:
   // Get the view type properties. In which plane it is been shown
@@ -144,24 +117,24 @@ protected:
   double LastEventPosition[3];
 
   // Counting Region Edge
-  vtkActor 	    *EdgeActor[4];
-  vtkPolyDataMapper *EdgeMapper[4];
-  vtkPolyData 	    *EdgePolyData[4];
-  vtkPoints	    *Vertex;
+  vtkSmartPointer<vtkActor>          EdgeActor[4];
+  vtkSmartPointer<vtkPolyDataMapper> EdgeMapper[4];
+  vtkSmartPointer<vtkPolyData>       EdgePolyData[4];
+  vtkSmartPointer<vtkPoints>         Vertex;
 
-  void HighlightEdge(vtkActor *actor);
+  void HighlightEdge(vtkSmartPointer<vtkActor> actor);
   void Highlight();
 
   // Do the picking
-  vtkCellPicker *EdgePicker;
-  vtkCellPicker *LastPicker;
-  vtkActor *CurrentEdge;
+  vtkSmartPointer<vtkCellPicker> EdgePicker;
+  vtkSmartPointer<vtkCellPicker> LastPicker;
+  vtkSmartPointer<vtkActor>      CurrentEdge;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
-  vtkProperty *EdgeProperty;
-  vtkProperty *SelectedEdgeProperty;
-  vtkProperty *InvisibleProperty;
+  vtkSmartPointer<vtkProperty> EdgeProperty;
+  vtkSmartPointer<vtkProperty> SelectedEdgeProperty;
+  vtkSmartPointer<vtkProperty> InvisibleProperty;
 
   virtual void CreateDefaultProperties();
 
