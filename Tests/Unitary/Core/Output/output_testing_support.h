@@ -60,8 +60,8 @@ namespace ESPINA {
     virtual Bounds bounds() const {}
     virtual void setSpacing(const NmVector3& spacing){}
     virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) { return false;}
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id) { return false; }
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
     virtual Snapshot editedRegionsSnapshot() const { return Snapshot();}
     virtual DataProxySPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}

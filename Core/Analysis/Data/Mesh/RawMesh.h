@@ -37,97 +37,70 @@ namespace ESPINA
   : public MeshData
   {
   public:
-  	/** \brief RawMesh class constructor.
-  	 * \param[in] output, smart pointer of associated output.
-  	 *
-  	 */
+    /** \brief RawMesh class constructor.
+     * \param[in] output, smart pointer of associated output.
+     *
+     */
     explicit RawMesh(OutputSPtr output = nullptr);
 
-  	/** \brief RawMesh class constructor.
-  	 * \param[in] mesh, vtkPolyData smart pointer.
-  	 * \param[in] spacing, spacing of origin volume.
-  	 * \param[in] output, smart pointer of associated output.
-  	 *
-  	 */
+    /** \brief RawMesh class constructor.
+     * \param[in] mesh, vtkPolyData smart pointer.
+     * \param[in] spacing, spacing of origin volume.
+     * \param[in] output, smart pointer of associated output.
+     *
+     */
     explicit RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                      itkVolumeType::SpacingType spacing,
                      OutputSPtr output = nullptr);
 
-  	/** \brief RawMesh class virtual destructor.
-  	 *
-  	 */
+    /** \brief RawMesh class virtual destructor.
+     *
+     */
     virtual ~RawMesh()
     {};
 
-  	/** \brief Implements Data::isValid().
-  	 *
-  	 */
+    /** \brief Implements Data::isValid().
+     *
+     */
     virtual bool isValid() const;
 
     /** \brief Implements Data::isEmpty().
-  	 *
-  	 */
+     *
+     */
     virtual bool isEmpty() const;
 
-  	/** \brief Sets the data using a MeshData smart pointer.
-  	 * \param[in] mesh, MeshData smart pointer.
-  	 *
-  	 */
+    /** \brief Sets the data using a MeshData smart pointer.
+     * \param[in] mesh, MeshData smart pointer.
+     *
+     */
     virtual bool setInternalData(MeshDataSPtr mesh);
 
-  	/** \brief Implements Data::snapshot().
-  	 *
-  	 */
-    Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const;
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-    /** \brief Implements Data::editedRegionsSnapshot().
-  	 *
-  	 */
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+
     virtual Snapshot editedRegionsSnapshot() const
     { return Snapshot(); }
 
-  	/** \brief Shadows Data::isEdited().
-  	 *
-  	 */
+    /** \brief Shadows Data::isEdited().
+     *
+     */
     bool isEdited() const
     { return false; }
 
-  	/** \brief Overrides Data::clearEditedRegions().
-  	 *
-  	 */
     void clearEditedRegions() override
     { /* TODO: not allowed */ };
 
-  	/** \brief Implements MeshData::mesh().
-  	 *
-  	 */
     virtual vtkSmartPointer<vtkPolyData> mesh() const;
 
-  	/** \brief Implements Data::fetchData().
-  	 *
-  	 */
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
-
-  	/** \brief Implements Data::setSpacing().
-  	 *
-  	 */
     void setSpacing(const NmVector3&)
     { /* TODO: not allowed */ };
 
-  	/** \brief Implements Data::spacing().
-  	 *
-  	 */
     NmVector3 spacing() const;
 
-  	/** \brief Implements Data::undo().
-  	 *
-  	 */
     void undo()
     { /* TODO: not allowed */ };
 
-  	/** \brief Implements Data::memoryUsage().
-  	 *
-  	 */
     size_t memoryUsage() const;
 
   private:

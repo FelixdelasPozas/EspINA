@@ -88,16 +88,18 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 }
 
 //------------------------------------------------------------------------
-SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
-                                     ModelAdapterSPtr   model,
-                                     ModelFactorySPtr  factory,
-                                     ViewManagerSPtr    viewManager,
-                                     QUndoStack        *undoStack)
-: m_model      {model}
-, m_factory    {factory}
-, m_viewManager{viewManager}
-, m_undoStack  {undoStack}
-, m_view       {view}
+SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
+                                     ModelAdapterSPtr          model,
+                                     ModelFactorySPtr          factory,
+                                     FilterDelegateFactorySPtr delegateFactory,
+                                     ViewManagerSPtr           viewManager,
+                                     QUndoStack                *undoStack)
+: m_model          {model}
+, m_factory        {factory}
+, m_delegateFactory{delegateFactory}
+, m_viewManager    {viewManager}
+, m_undoStack      {undoStack}
+, m_view           {view}
 {
   connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
@@ -123,7 +125,7 @@ void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapt
   auto inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_model, m_factory , m_viewManager, m_undoStack);
+    inspector = new SegmentationInspector(segmentations, m_model, m_factory, m_delegateFactory, m_viewManager, m_undoStack);
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
     		    this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
     m_inspectors.insert(toKey(segmentations), inspector);

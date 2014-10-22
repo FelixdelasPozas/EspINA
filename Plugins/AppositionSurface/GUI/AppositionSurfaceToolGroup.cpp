@@ -150,13 +150,15 @@ void AppositionSurfaceToolGroup::createSAS()
     InputSList inputs;
     inputs << seg->asInput();
 
-    auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+    auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-    struct AppositionSurfacePlugin::Data data(adapter, m_model->smartPointer(seg));
-    m_plugin->m_executingTasks.insert(adapter.get(), data);
+    struct AppositionSurfacePlugin::Data data(filter, m_model->smartPointer(seg));
+    m_plugin->m_executingTasks.insert(filter.get(), data);
 
-    connect(adapter.get(), SIGNAL(finished()), m_plugin, SLOT(finishedTask()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            m_plugin, SLOT(finishedTask()));
+
+    Task::submit(filter);
   }
 }
 

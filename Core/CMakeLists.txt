@@ -7,7 +7,7 @@ include (GenerateExportHeader)
 
 # Add Qt Resource files
 qt4_add_resources(CORE_RCC
-  Analysis/rsc/core.qrc
+  rsc/core.qrc
   )
 
 qt4_wrap_cpp(CORE_MOC

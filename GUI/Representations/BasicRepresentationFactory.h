@@ -26,7 +26,6 @@
 
 // ESPINA
 #include "GUI/Representations/RepresentationFactory.h"
-#include <GUI/Model/FilterAdapter.h>
 
 namespace ESPINA
 {
@@ -34,28 +33,28 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
- 		/** \brief BasicChannelRepresentationFactory class constructor.
- 		 * \param[in] scheduler, scheduler smart pointer.
- 		 *
- 		 */
+    /** \brief BasicChannelRepresentationFactory class constructor.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit BasicChannelRepresentationFactory(SchedulerSPtr scheduler)
     : RepresentationFactory(scheduler)
     {};
 
- 		/** \brief BasicChannelRepresentationFactory class virtual destructor.
- 		 *
- 		 */
+    /** \brief BasicChannelRepresentationFactory class virtual destructor.
+     *
+     */
     virtual ~BasicChannelRepresentationFactory()
     {};
 
- 		/** \brief Implements RepresentationFactory::representations() const.
- 		 *
- 		 */
+    /** \brief Implements RepresentationFactory::representations() const.
+     *
+     */
     virtual RepresentationTypeList representations() const;
 
- 		/** \brief Implements RepresentationFactory::createRepresentation().
- 		 *
- 		 */
+    /** \brief Implements RepresentationFactory::createRepresentation().
+     *
+     */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
   };
 
@@ -63,28 +62,28 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
- 		/** \brief BasicSegmentationRepresentationFactory class constructor.
- 		 * \param[in] scheduler, scheduler smart pointer.
- 		 *
- 		 */
+    /** \brief BasicSegmentationRepresentationFactory class constructor.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit BasicSegmentationRepresentationFactory(SchedulerSPtr scheduler)
     : RepresentationFactory(scheduler)
     {};
 
- 		/** \brief BasicSegmentationRepresentationFactory class virtual destructor.
- 		 *
- 		 */
+    /** \brief BasicSegmentationRepresentationFactory class virtual destructor.
+     *
+     */
     virtual ~BasicSegmentationRepresentationFactory()
     {}
 
- 		/** \brief Implements RepresentationFactory::representations() const.
- 		 *
- 		 */
+    /** \brief Implements RepresentationFactory::representations() const.
+     *
+     */
     virtual RepresentationTypeList representations() const;
 
- 		/** \brief Implements RepresentationFactory::createRepresentation().
- 		 *
- 		 */
+    /** \brief Implements RepresentationFactory::createRepresentation().
+     *
+     */
     virtual RepresentationSPtr createRepresentation(OutputSPtr output, Representation::Type type);
   };
 }

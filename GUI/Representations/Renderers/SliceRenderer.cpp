@@ -75,8 +75,8 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SliceRenderer::addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep)
   {
-    SegmentationSliceRepresentationSPtr segSlice = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
-    ChannelSliceRepresentationSPtr channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
+    auto segSlice     = std::dynamic_pointer_cast<SegmentationSliceRepresentation>(rep);
+    auto channelSlice = std::dynamic_pointer_cast<ChannelSliceRepresentation>(rep);
 
     if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
@@ -90,11 +90,13 @@ namespace ESPINA
       }
 
       if (m_enable)
+      {
         for (auto prop: rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
         }
+      }
     }
   }
 

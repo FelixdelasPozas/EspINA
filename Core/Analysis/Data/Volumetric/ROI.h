@@ -40,15 +40,15 @@ namespace ESPINA
   {
     public:
       /** \brief ROI class constructor.
-       * \param[in] bounds, initial bounds of the volume.
-       * \param[in] spacing, spacing of the volume.
-       * \param[in] origin, origin of the volume.
+       * \param[in] bounds initial bounds of the volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
        *
        */
       ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
       /** \brief ROI class constructor.
-       * \param[in] mask, mask used as a volume.
+       * \param[in] mask mask used as a volume.
        *
        */
       ROI(const BinaryMaskSPtr<unsigned char> mask);
@@ -58,10 +58,10 @@ namespace ESPINA
        */
       virtual ~ROI();
 
-      /** \brief Returns true if the ROI is a rectangular area.
+      /** \brief Returns true if the ROI is an orthogonal region.
        *
        */
-      bool isRectangular() const;
+      bool isOrthogonal() const;
 
       /** \brief Returns a new ROI object that is a copy of this one.
        *
@@ -69,15 +69,15 @@ namespace ESPINA
       ROISPtr clone() const;
 
       /** \brief Applies the ROI to the volume passed as argument.
-       * \param[in] volume, volumetricData to apply the ROI.
-       * \param[in] outsideValue, value to be considered outside the ROI when applying it.
+       * \param[in] volume volumetricData to apply the ROI.
+       * \param[in] outsideValue value to be considered outside the ROI when applying it.
        *
        */
       template<class T> void applyROI(VolumetricDataSPtr<T> volume, const typename T::ValueType outsideValue) const;
 
       /** \brief Applies the ROI to the volume passed as argument.
-       * \param[in] volume, itk volume smart pointer to apply the ROI.
-       * \param[in] outsideValue, value to be considered outside the ROI when applying it.
+       * \param[in] volume itk volume smart pointer to apply the ROI.
+       * \param[in] outsideValue value to be considered outside the ROI when applying it.
        *
        */
       template<class T> void applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const;
@@ -112,8 +112,20 @@ namespace ESPINA
       void draw(const typename itkVolumeType::IndexType index,
                 const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 
-    private:
-      bool m_isRectangular;
+
+      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+
+  private:
+    QString temporalStorageId(const QString &id) const
+    { return QString("%1_roi").arg(id); }
+
+    QString temporalStorageBoundsId(const QString &path, const QString &id) const
+    { return QString("%1/%2.bin").arg(path).arg(temporalStorageId(id)); }
+
+  private:
+    bool m_isRectangular;
   };
 
   //-----------------------------------------------------------------------------
@@ -221,7 +233,7 @@ namespace ESPINA
     }
 
     // if it's rectangular we're done now.
-    if(!this->isRectangular())
+    if(!this->isOrthogonal())
     {
       auto image = this->itkImage(intersectionBounds);
       itk::ImageRegionIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
@@ -272,6 +284,21 @@ namespace ESPINA
     }
   }
 
+
+  /** \brief Returns whether or not point is inside the roi
+   *
+   *  \param[in] roi region of interest
+   *  \param[in] point point to be checked for inclussion inside the roi
+   *  \param[in] spacing to determine whether two distances belong to the same voxel
+   */
+  bool contains(ROISPtr roi, NmVector3 point, NmVector3 spacing = NmVector3{1, 1, 1});
+
+//   /** \brief Draw mask values into ROI, if the mask is bigger than the ROI, its bounds will be expanded
+//    *
+//    *  \param[in] roi where the mask will be drawn on
+//    *  \param[in] mask to be drawn
+//    */
+  void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask);
 } // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

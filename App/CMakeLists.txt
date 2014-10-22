@@ -22,6 +22,9 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
+  Docks/SegmentationHistory/DefaultHistory.h
+  Docks/SegmentationHistory/EmptyHistory.h
+  Docks/SegmentationHistory/HistoryDock.h
   EspinaMainWindow.h
   Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
@@ -45,6 +48,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ROI/OrthogonalROITool.h
   ToolGroups/ROI/ROITools.h
   ToolGroups/Segmentation/CustomROIWidget.h
+  ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segmentation/SeedThreshold.h
@@ -73,11 +78,14 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/Settings/GeneralSettingsDialog.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
+  Docks/SegmentationHistory/DefaultHistory.ui
+  Docks/SegmentationHistory/EmptyHistory.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -104,6 +112,9 @@ set (ESPINA_SOURCES
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
+  Docks/SegmentationHistory/DefaultHistory.cpp
+  Docks/SegmentationHistory/EmptyHistory.cpp
+  Docks/SegmentationHistory/HistoryDock.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -132,6 +143,8 @@ set (ESPINA_SOURCES
   ToolGroups/ROI/OrthogonalROITool.cpp
   ToolGroups/ROI/ROITools.cpp
   ToolGroups/Segmentation/CustomROIWidget.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationHistory.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp

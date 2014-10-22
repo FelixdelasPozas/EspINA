@@ -57,11 +57,12 @@ public:
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
-                                           ModelFactorySPtr factory,
-                                           ViewManagerSPtr  viewManager,
-                                           QUndoStack      *undoStack,
-                                           QWidget         *parent)
+SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr          model,
+                                           ModelFactorySPtr          factory,
+                                           FilterDelegateFactorySPtr delegateFactory,
+                                           ViewManagerSPtr           viewManager,
+                                           QUndoStack               *undoStack,
+                                           QWidget                  *parent)
 : DockWidget   {parent}
 , m_baseModel  {model}
 , m_viewManager{viewManager}
@@ -74,7 +75,7 @@ SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, m_viewManager, m_undoStack));
+  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, delegateFactory, m_viewManager, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);

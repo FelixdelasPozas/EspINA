@@ -61,8 +61,8 @@ RenderView::RenderView(QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
-	// subclasses of this one should take care of removing elements
-	// (channels, segmentations, widgets and renderers).
+  // subclasses of this one should take care of removing elements
+  // (channels, segmentations, widgets and renderers).
   delete m_view;
 }
 
@@ -291,13 +291,19 @@ void RenderView::remove(SegmentationAdapterPtr seg)
   Q_ASSERT(m_segmentationStates.contains(seg));
 
   for(auto rep: m_segmentationStates[seg].representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if (renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         if (repRenderer->hasRepresentation(rep))
+        {
           repRenderer->removeRepresentation(rep);
+        }
       }
+    }
+  }
 
   m_segmentationStates.remove(seg);
 }
@@ -576,12 +582,16 @@ void RenderView::updateRepresentations(SegmentationAdapterList list)
     SegmentationAdapterList updateSegmentations;
 
     if (list.empty())
+    {
       updateSegmentations = m_segmentationStates.keys();
+    }
     else
+    {
       updateSegmentations = list;
+    }
 
     bool updated = false;
-    for(SegmentationAdapterPtr seg : updateSegmentations)
+    for(auto seg : updateSegmentations)
     {
       updated |= updateRepresentation(seg, false);
     }
@@ -692,12 +702,16 @@ void RenderView::removeRepresentations(ChannelState &state)
 void RenderView::removeRepresentations(SegmentationState &state)
 {
   for(auto rep: state.representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if(renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         repRenderer->removeRepresentation(rep);
       }
+    }
+  }
 
   state.representations.clear();
 }

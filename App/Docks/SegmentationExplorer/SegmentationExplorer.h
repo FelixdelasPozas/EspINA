@@ -1,5 +1,4 @@
 /*
-
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -23,6 +22,7 @@
 
 // ESPINA
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
 // Qt
 #include <ui_SegmentationExplorer.h>
@@ -45,17 +45,18 @@ namespace ESPINA
 
   public:
     /** \brief SegmentationExplorer class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
-     * \param[in] parent, parent widget raw pointer.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] factory factory smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] parent parent widget raw pointer.
      */
-    explicit SegmentationExplorer(ModelAdapterSPtr model,
-                                  ModelFactorySPtr factory,
-                                  ViewManagerSPtr  viewManager,
-                                  QUndoStack      *undoStack,
-                                  QWidget         *parent = nullptr);
+    explicit SegmentationExplorer(ModelAdapterSPtr          model,
+                                  ModelFactorySPtr          factory,
+                                  FilterDelegateFactorySPtr delegateFactory,
+                                  ViewManagerSPtr           viewManager,
+                                  QUndoStack               *undoStack,
+                                  QWidget                  *parent = nullptr);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *
@@ -87,14 +88,14 @@ namespace ESPINA
     virtual void reset() override;
 
   protected:
-		/** \brief Overrides SelectableView::onSelectionSet(SelectionSPtr).
-		 *
-		 */
+    /** \brief Overrides SelectableView::onSelectionSet(SelectionSPtr).
+     *
+     */
     virtual void onSelectionSet(SelectionSPtr selection);
 
     /** \brief Adds a layout to the view.
-     * \param[in] id, string that specifies the layout.
-     * \param[in] proxy, SegmentationExplorer::Layout raw pointer.
+     * \param[in] id string that specifies the layout.
+     * \param[in] proxy SegmentationExplorer::Layout raw pointer.
      *
      */
     void addLayout(const QString id, Layout *proxy);
@@ -110,10 +111,10 @@ namespace ESPINA
     void updateGUI(const QModelIndexList &selectedIndexes);
 
   protected slots:
-		/** \brief Changes the layout of the view.
-		 * \param[in] index, index of the new layout in the layout list.
-		 *
-		 */
+    /** \brief Changes the layout of the view.
+     * \param[in] index index of the new layout in the layout list.
+     *
+     */
     void changeLayout(int index);
 
     /** \brief Deletes the selected items in the current layout.
@@ -127,14 +128,14 @@ namespace ESPINA
     void showSelectedItemsInformation();
 
     /** \brief Centers the views on the selected segmentation.
-     * \param[in] index, const QModelIndex reference of the selected item.
+     * \param[in] index const QModelIndex reference of the selected item.
      *
      */
     void focusOnSegmentation(const QModelIndex &index);
 
     /** \brief Updates the GUI of the view and the other views based on the selected items.
-     * \param[in] selected, QItemSelection object with the selected items (unused).
-     * \param[in] deselectt, QItemSelection object with the deselected items (unused).
+     * \param[in] selected QItemSelection object with the selected items (unused).
+     * \param[in] deselectt QItemSelection object with the deselected items (unused).
      *
      */
     void onModelSelectionChanged(QItemSelection selected, QItemSelection deselected);

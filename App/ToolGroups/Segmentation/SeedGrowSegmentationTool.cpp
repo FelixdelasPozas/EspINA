@@ -22,10 +22,14 @@
 // ESPINA
 #include "SeedGrowSegmentationTool.h"
 #include "SeedGrowSegmentationSettings.h"
+#include "SeedGrowSegmentationHistoryWidget.h"
+#include "SeedGrowSegmentationHistory.h"
+#include <ToolGroups/ROI/ROITools.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Support/FilterHistory.h>
 #include <App/Settings/ROI/ROISettings.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
@@ -42,7 +46,7 @@ const Filter::Type SGS_FILTER    = "SeedGrowSegmentation";
 const Filter::Type SGS_FILTER_V4 = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() const
+FilterTypeList SeedGrowSegmentationTool::SGSFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -53,9 +57,9 @@ FilterTypeList SeedGrowSegmentationTool::SGSFilterFactory::providedFilters() con
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList          inputs,
-                                                                    const Filter::Type& filter,
-                                                                    SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList          inputs,
+                                                              const Filter::Type& filter,
+                                                              SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
 {
   if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
 
@@ -71,9 +75,31 @@ FilterSPtr SeedGrowSegmentationTool::SGSFilterFactory::createFilter(InputSList  
 }
 
 //-----------------------------------------------------------------------------
+QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegates() const
+{
+  QList<Filter::Type> types;
+
+  types << SGS_FILTER << SGS_FILTER_V4;
+
+  return types;
+}
+
+//-----------------------------------------------------------------------------
+FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(FilterSPtr filter)
+throw (Unknown_Filter_Type_Exception)
+{
+  if (!(filter->type() == SGS_FILTER || filter->type() == SGS_FILTER_V4)) throw Unknown_Filter_Type_Exception();
+
+  auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
+
+  return FilterDelegateSPtr(new SeedGrowSegmentationHistory(sgsFilter));
+}
+
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    ModelAdapterSPtr              model,
                                                    ModelFactorySPtr              factory,
+                                                   FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    ViewManagerSPtr               viewManager,
                                                    QUndoStack*                   undoStack)
 : m_model           {model}
@@ -86,9 +112,10 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
 , m_settings        {settings}
-, m_filterFactory   {new SGSFilterFactory()}
+, m_sgsFactory      {new SGSFactory()}
 {
-  m_factory->registerFilterFactory(m_filterFactory);
+  m_factory->registerFilterFactory(m_sgsFactory);
+  filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
 
   { // Pixel Selector
     QAction *action = new QAction(QIcon(":/espina/pixelSelector.svg"),
@@ -245,7 +272,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  if (!m_viewManager->currentROI() && m_roi->applyROI())
+  auto currentROI = m_viewManager->currentROI();
+
+  if (!currentROI && m_roi->applyROI())
   {
     // Create default ROI
     auto xSize = std::max(m_roi->value(Axis::X), (unsigned int) 2);
@@ -265,19 +294,14 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   else
   {
-    roi = m_viewManager->currentROI();
+    roi = currentROI;
   }
 
   auto validSeed = true;
+
   if(roi != nullptr)
   {
-    validSeed = contains(roi->bounds(), seedBounds, volume->spacing());
-
-    if(validSeed && !roi->isRectangular())
-    {
-      auto roiPixel = roi->itkImage(seedBounds);
-      validSeed = (SEG_VOXEL_VALUE == *(static_cast<unsigned char*>(roiPixel->GetBufferPointer())));
-    }
+    validSeed = contains(roi, seed, volume->spacing());
   }
 
   validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());
@@ -290,8 +314,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     inputs << channel->asInput();
 
-    auto adapter = m_factory->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
-    auto filter  = adapter->get();
+    auto filter = m_factory->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
 
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
@@ -302,13 +325,18 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
       filter->setROI(roi->clone());
     }
 
-    m_executingTasks[adapter.get()] = adapter;
-    m_executingFilters[adapter.get()] = filter;
+    m_executingTasks[filter.get()] = filter;
+    m_executingFilters[filter.get()] = filter;
 
-    connect(adapter.get(), SIGNAL(finished()),
-            this,   SLOT(createSegmentation()));
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(createSegmentation()));
 
-    adapter->submit();
+    Task::submit(filter);
+
+    if (currentROI)
+    {
+      m_viewManager->consumeROI();
+    }
   }
   else
   {
@@ -324,7 +352,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::createSegmentation()
 {
-  auto filter = qobject_cast<FilterAdapterPtr>(sender());
+  auto filter = dynamic_cast<FilterPtr>(sender());
 
   if (!filter->isAborted())
   {

@@ -238,8 +238,7 @@ void MorphologicalEditionTool::mergeSegmentations()
     for(auto segmentation: segmentations)
       inputs << segmentation->asInput();
 
-    auto adapter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
-    auto filter = adapter->get();
+    auto filter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::ADDITION);
     filter->setDescription("Segmentations Addition");
 
@@ -247,12 +246,14 @@ void MorphologicalEditionTool::mergeSegmentations()
 
     context.Operation = ImageLogicFilter::Operation::ADDITION;
     context.Segmentations = segmentations;
-    context.Task = adapter;
+    context.Task = filter;
 
     m_executingImageLogicTasks.insert(filter.get(), context);
 
-    connect(filter.get(), SIGNAL(finished()), this, SLOT(onImageLogicFilterFinished()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(onImageLogicFilterFinished()));
+
+    Task::submit(filter);
   }
 }
 
@@ -271,8 +272,7 @@ void MorphologicalEditionTool::subtractSegmentations()
     for(auto segmentation: segmentations)
       inputs << segmentation->asInput();
 
-    auto adapter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
-    auto filter = adapter->get();
+    auto filter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
     filter->setDescription("Segmentations Subtraction");
 
@@ -280,12 +280,14 @@ void MorphologicalEditionTool::subtractSegmentations()
 
     context.Operation = ImageLogicFilter::Operation::SUBTRACTION;
     context.Segmentations = segmentations;
-    context.Task = adapter;
+    context.Task = filter;
 
     m_executingImageLogicTasks.insert(filter.get(), context);
 
-    connect(filter.get(), SIGNAL(finished()), this, SLOT(onImageLogicFilterFinished()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(onImageLogicFilterFinished()));
+
+    Task::submit(filter);
   }
 }
 
@@ -328,8 +330,7 @@ void MorphologicalEditionTool::fillHoles()
 
       inputs << segmentation->asInput();
 
-      auto adapter = m_factory->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
-      auto filter  = adapter->get();
+      auto filter = m_factory->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
 
       filter->setDescription(tr("Fill %1 Holes").arg(segmentation->data(Qt::DisplayRole).toString()));
 
@@ -344,7 +345,7 @@ void MorphologicalEditionTool::fillHoles()
       connect(filter.get(), SIGNAL(finished()),
               this,         SLOT(onFillHolesFinished()));
 
-      adapter->submit();
+      Task::submit(filter);
     }
   }
 }

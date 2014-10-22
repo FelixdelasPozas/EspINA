@@ -39,7 +39,7 @@ namespace ESPINA
       /** \brief Overrides RasterizedVolumeFromFetchedMeshData::fetchMeshData().
        *
        */
-      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix) override;
+      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path) override;
   };
 
 } // namespace ESPINA

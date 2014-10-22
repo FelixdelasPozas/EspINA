@@ -43,7 +43,7 @@ namespace ESPINA
 
   public:
     /** \brief CoreFactory class constructor.
-     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] scheduler scheduler smart pointer.
      *
      */
     explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
@@ -54,21 +54,21 @@ namespace ESPINA
     ~CoreFactory();
 
     /** \brief Registers a filter factory.
-     * \param[in] factory, filter factory smart pointer.
+     * \param[in] factory filter factory smart pointer.
      *
      */
     void registerFilterFactory(FilterFactorySPtr factory) throw (Factory_Already_Registered_Exception);
 
     /** \brief Creates a filter given the inputs and the type.
-     * \param[in] inputs, list of input smart pointers.
-     * \param[in] type, filter type.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type filter type.
      *
      */
     FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const throw (Unknown_Type_Exception);
 
     /** \brief Creates filter given the inputs and the type.
-     * \param[in] inputs, list of input smart pointers.
-     * \param[in] type, filter type.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type filter type.
      *
      */
     template<typename T>
@@ -80,20 +80,20 @@ namespace ESPINA
     }
 
     /** \brief Creates a sample.
-     * \param[in] name, sample name.
+     * \param[in] name sample name.
      *
      */
     SampleSPtr createSample(const QString& name = QString()) const;
 
     /** \brief Creates a channel.
-     * \param[in] filter, filter smart pointer.
-     * \param[in] id, output id.
+     * \param[in] filter filter smart pointer.
+     * \param[in] id output id.
      *
      */
     ChannelSPtr createChannel(FilterSPtr filter, Output::Id id) const;
 
     /** \brief Registers channel extension factory
-     * \param[in] factory, channel extension factory smart pointer.
+     * \param[in] factory channel extension factory smart pointer.
      *
      *  From now on, CoreFactory can create all the channel extensions provided by
      *  the registered factory
@@ -107,9 +107,9 @@ namespace ESPINA
     ChannelExtensionTypeList availableChannelExtensions() const;
 
     /** \brief Create a channel extension.
-     * \param[in] type, channel extension type.
-     * \param[in] cache, cache object.
-     * \param[in] state, state object.
+     * \param[in] type channel extension type.
+     * \param[in] cache cache object.
+     * \param[in] state state object.
      *
      *  Extension state is restored using cache and state data.
      */
@@ -118,14 +118,14 @@ namespace ESPINA
                                                 const State &state = State());
 
     /** \brief Creates a segmentation.
-     * \param[in] filter, filter smart pointer.
-     * \param[in] id, output id.
+     * \param[in] filte, filter smart pointer.
+     * \param[in] id output id.
      *
      */
     SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id id) const;
 
     /** \brief Registers segmentation extension factory.
-     * \param[in] factor, segmentation extension factory smart pointer.
+     * \param[in] factor segmentation extension factory smart pointer.
      *
      *  From now on, CoreFactory can create all the segmentation extensions provided by
      *  the registered factory.
@@ -146,7 +146,7 @@ namespace ESPINA
                                                           const State &state = State());
 
     /** \brief Sets temporal storage for the factory.
-     * \param[in] storage, temporal storage smart pointer.
+     * \param[in] storage temporal storage smart pointer.
      *
      */
     void setPersistentStorage(TemporalStorageSPtr storage)

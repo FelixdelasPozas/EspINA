@@ -30,16 +30,13 @@ namespace ESPINA
   : public FetchBehaviour
   {
   public:
-  	/** \brief Implements FetchBehaviour::fetchOutputData().
-  	 *
-  	 */
-    virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
+    virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info);
 
   protected:
     /** \brief Helper method to fetch a volume from storage.
      *
      */
-    virtual DefaultVolumetricDataSPtr fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix);
+    virtual DefaultVolumetricDataSPtr fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path);
   };
 } // namespace ESPINA
 

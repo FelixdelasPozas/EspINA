@@ -81,7 +81,7 @@ NmVector3 Output::spacing() const
 //----------------------------------------------------------------------------
 Snapshot Output::snapshot(TemporalStorageSPtr storage,
                           QXmlStreamWriter   &xml,
-                          const QString      &prefix) const
+                          const QString      &path) const
 {
   Snapshot snapshot;
 
@@ -105,7 +105,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
     if (hasToBeSaved())
     {
-      snapshot << data->snapshot(storage, prefix);
+      snapshot << data->snapshot(storage, path, QString::number(id()));
     }
     else
     {
@@ -149,7 +149,7 @@ bool Output::isEdited() const
 {
   for(auto data: m_data)
   {
-    if (!data->get()->isEdited()) return true;
+    if (data->get()->isEdited()) return true;
   }
 
   return false;
@@ -194,6 +194,9 @@ void Output::setData(Output::DataSPtr data)
 
   m_data[type]->set(data);
   data->setOutput(this);
+
+  updateModificationTime();
+  emit modified();
 
   connect(data.get(), SIGNAL(dataChanged()),
           this, SLOT(onDataChanged()));

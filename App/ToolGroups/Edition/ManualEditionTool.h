@@ -1,21 +1,21 @@
 /*
-
- Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
-
- This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ *
+ * This file is part of ESPINA.
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef ESPINA_MANUAL_EDITION_TOOL_H_
@@ -44,8 +44,8 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ManualEditionTool class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] viewManager view manager smart pointer.
      *
      */
     ManualEditionTool(ModelAdapterSPtr model,
@@ -77,28 +77,28 @@ namespace ESPINA
     virtual void abortOperation();
 
     /** \brief Shows/hides category controls.
-     * \param[in] value, true for show.
+     * \param[in] value true for show.
      *
      */
     void showCategoryControls(bool value)
     { m_showCategoryControls = value; }
 
     /** \brief Shows/hides radius controls.
-     * \param[in] value, true for show.
+     * \param[in] value true for show.
      *
      */
     void showRadiusControls(bool value)
     { m_showRadiusControls = value; }
 
     /** \brief Shows/hides opacity controls.
-     * \param[in] value, true for show.
+     * \param[in] value true for show.
      *
      */
     void showOpacityControls(bool value)
     { m_showOpacityControls = value; }
 
     /** \brief Shows/hides eraser controls.
-     * \param[in] value, true for show.
+     * \param[in] value true for show.
      *
      */
     void showEraserControls(bool value)
@@ -129,28 +129,28 @@ namespace ESPINA
     { return m_showEraserControls; }
 
     /** \brief Sets pencil 2d icon.
-     * \param[in] icon, QIcon object.
+     * \param[in] icon QIcon object.
      *
      */
     void setPencil2DIcon(QIcon icon)
     { m_discTool->setIcon(icon); }
 
     /** \brief Sets pencil 3d icon.
-     * \param[in] icon, QIcon object.
+     * \param[in] icon QIcon object.
      *
      */
     void setPencil3DIcon(QIcon icon)
     { m_sphereTool->setIcon(icon); }
 
     /** \brief Sets pencil 2d text,
-     * \param[in] text, text for the control.
+     * \param[in] text text for the control.
      *
      */
     void setPencil2DText(QString text)
     { m_discTool->setText(text); }
 
     /** \brief Sets pencil 3d text.
-     * \param[in] text, text for the control.
+     * \param[in] text text for the control.
      *
      */
     void setPencil3DText(QString text)
@@ -162,19 +162,19 @@ namespace ESPINA
     void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
 
   public slots:
-  	/** \brief Emits a stroke signal with the mask and the selected category.
-  	 * \param[in] selection, list of SelectionItem <mask, neuroitemadapter> pairs.
-  	 *
-  	 */
+    /** \brief Emits a stroke signal with the mask and the selected category.
+     * \param[in] selection list of SelectionItem <mask, neuroitemadapter> pairs.
+     *
+     */
     virtual void drawStroke(Selector::Selection selection);
 
-  	/** \brief Modifies the GUI when the radius changes.
-  	 *
-  	 */
+    /** \brief Modifies the GUI when the radius changes.
+     *
+     */
     virtual void radiusChanged(int);
 
     /** \brief Modifies the GUI when the drawing mode changes.
-     * \param[in] value, true if drawing.
+     * \param[in] value true if drawing.
      */
     virtual void drawingModeChanged(bool value);
 
@@ -184,24 +184,24 @@ namespace ESPINA
     virtual void updateReferenceItem();
 
   protected slots:
-		/** \brief Changes the selector for the operation.
-		 *
-		 */
+    /** \brief Changes the selector for the operation.
+     *
+     */
     virtual void changeSelector(QAction *);
 
-  	/** \brief Changes the radius for the operation.
-  	 * \param[in] value, radius value.
-  	 *
-  	 */
+    /** \brief Changes the radius for the operation.
+     * \param[in] value radius value.
+     *
+     */
     virtual void changeRadius(int value);
 
-  	/** \brief Changes the opacity for the operation.
-  	 * \param[in] value, opacity slider value.
-  	 */
+    /** \brief Changes the opacity for the operation.
+     * \param[in] value opacity slider value.
+     */
     virtual void changeOpacity(int value);
 
     /** \brief Updates the reference item if the selector is in use. Disables the selector otherwise.
-     * \param[in] inUse, true if selector is in use.
+     * \param[in] inUse true if selector is in use.
      */
     virtual void selectorInUse(bool inUse);
 
@@ -211,7 +211,7 @@ namespace ESPINA
     virtual void unsetSelector();
 
     /** \brief Updates the tool when the category selector changes.
-     * \param[in] unused, unused value.
+     * \param[in] unused unused value.
      */
     virtual void categoryChanged(CategoryAdapterSPtr unused);
 
@@ -227,9 +227,9 @@ namespace ESPINA
     CategoryAdapterSPtr currentReferenceCategory();
 
   private slots:
-		/** \brief Modifies the GUI when the eraser mode changes.
-		 *
-		 */
+    /** \brief Modifies the GUI when the eraser mode changes.
+     *
+     */
     void setEraserMode(bool value);
 
   protected:

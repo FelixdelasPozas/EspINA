@@ -157,6 +157,8 @@ Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 //----------------------------------------------------------------------------
 bool Filter::fetchOutputData(Output::Id id)
 {
+  bool outputDataFetched = false;
+
   if (validStoredInformation() && m_fetchBehaviour)
   {
     QByteArray buffer = storage()->snapshot(outputFile());
@@ -198,9 +200,10 @@ bool Filter::fetchOutputData(Output::Id id)
         }
       }
     }
+    outputDataFetched = m_outputs.contains(id) && m_outputs[id]->isValid();
   }
 
-  return m_outputs.contains(id) && m_outputs[id]->isValid();
+  return outputDataFetched;
 }
 
 //----------------------------------------------------------------------------

@@ -43,22 +43,22 @@ namespace ESPINA {
   : public Persistent
   {
   public:
- 		/** \brief NeuroItem class constructor.
- 		 *
- 		 */
+    /** \brief NeuroItem class constructor.
+     *
+     */
     explicit NeuroItem()
     : m_analysis{nullptr}
     {}
 
- 		/** \brief Sets the analysis that contains this object.
- 		 *
- 		 */
+    /** \brief Sets the analysis that contains this object.
+     *
+     */
     void setAnalysis(AnalysisPtr analysis)
     { m_analysis = analysis; }
 
- 		/** \brief Returns the analysis that contains this object.
- 		 *
- 		 */
+    /** \brief Returns the analysis that contains this object.
+     *
+     */
     AnalysisPtr analysis() const
     { return m_analysis; }
 

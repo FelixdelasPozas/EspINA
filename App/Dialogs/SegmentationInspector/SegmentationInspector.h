@@ -24,6 +24,7 @@
 // ESPINA
 #include "ui_SegmentationInspector.h"
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
 // Qt
 #include <QWidget>
@@ -44,21 +45,22 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief SegmentationInspector class constructor.
-     * \param[in] segmentations, list of segmentation adapters of the segmentations to be inspected.
-     * \param[in] model, model smart pointer containing the segmentations.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
-     * \param[in] parent, parent widget pointer.
-     * \param[in] flags, flags of the dialog.
+     * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
+     * \param[in] model model smart pointer containing the segmentations.
+     * \param[in] factory factory smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] parent parent widget pointer.
+     * \param[in] flags flags of the dialog.
      */
-    SegmentationInspector(SegmentationAdapterList  segmentations,
-                          ModelAdapterSPtr         model,
-                          ModelFactorySPtr         factory,
-                          ViewManagerSPtr          viewManager,
-                          QUndoStack*              undoStack,
-                          QWidget*                 parent = nullptr,
-                          Qt::WindowFlags          flags  = 0);
+    SegmentationInspector(SegmentationAdapterList   segmentations,
+                          ModelAdapterSPtr          model,
+                          ModelFactorySPtr          factory,
+                          FilterDelegateFactorySPtr delegateFactory,
+                          ViewManagerSPtr           viewManager,
+                          QUndoStack*               undoStack,
+                          QWidget*                  parent = nullptr,
+                          Qt::WindowFlags           flags  = 0);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -66,52 +68,52 @@ namespace ESPINA
     virtual ~SegmentationInspector();
 
     /** \brief Adds a segmentation to the dialog and connects signals.
-     * \param[in] segmentation, segmentation adapter raw pointer.
+     * \param[in] segmentation segmentation adapter raw pointer.
      *
      */
     virtual void addSegmentation(SegmentationAdapterPtr segmentation);
 
     /** \brief Removes a segmentation from the dialog and disconnects signals.
-     * \param[in] segmentation, segmentation adapter raw pointer.
+     * \param[in] segmentation segmentation adapter raw pointer.
      *
      */
     virtual void removeSegmentation(SegmentationAdapterPtr segmentation);
 
     /** \brief Adds a channel to the dialog.
-     * \param[in] channel, channel adapter raw pointer.
+     * \param[in] channel channel adapter raw pointer.
      *
      */
     virtual void addChannel(ChannelAdapterPtr channel);
 
     /** \brief Removes a channel from the dialog.
-     * \param[in] channel, channel adapter raw pointer.
+     * \param[in] channel channel adapter raw pointer.
      *
      */
     virtual void removeChannel(ChannelAdapterPtr channel);
 
     /** \brief Implments drag enter events in the dialog.
-     * \param[in] event, drag enter event raw pointer.
+     * \param[in] event drag enter event raw pointer.
      *
      */
     virtual void dragEnterEvent(QDragEnterEvent *event) override;
 
     /** \brief Implements drop events in the dialog.
-     * \param[in] event, drop event raw pointer.
+     * \param[in] event drop event raw pointer.
      *
      */
     virtual void dropEvent(QDropEvent *event) override;
 
     /** \brief Implements drag move events in the dialog.
-     * \param[in] event, drag move event raw pointer.
+     * \param[in] event drag move event raw pointer.
      *
      */
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
   public slots:
-  	/** \brief Updates the representations of the item in the view of the dialog.
-  	 * \param[in] item, item adapter raw pointer of the item to update.
-  	 *
-  	 */
+    /** \brief Updates the representations of the item in the view of the dialog.
+     * \param[in] item item adapter raw pointer of the item to update.
+     *
+     */
     void updateScene(ItemAdapterPtr item);
 
   signals:
@@ -134,15 +136,26 @@ namespace ESPINA
      */
     void generateWindowTitle();
 
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack*      m_undoStack;
+  private slots:
+    /** \brief Updates which information is displayed according to current selection
+     *
+     */
+    void updateSelection();
+
+  private:
+
+    ModelAdapterSPtr          m_model;
+    ModelFactorySPtr          m_factory;
+    FilterDelegateFactorySPtr m_delegateFactory;
+    ViewManagerSPtr           m_viewManager;
+    QUndoStack*               m_undoStack;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;
 
+    SegmentationAdapterPtr  m_selectedSegmentation;
+
     View3D*        m_view;
-    QScrollArea*   m_filterArea;
     TabularReport* m_tabularReport;
   };
 

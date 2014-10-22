@@ -38,50 +38,45 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
- 		/** \brief ChannelAdapter class destructor.
- 		 *
- 		 */
+    /** \brief ChannelAdapter class destructor.
+     *
+     */
     virtual ~ChannelAdapter();
 
- 		/** \brief Implements ItemAdapter::data() const.
- 		 *
- 		 */
+    /** \brief Implements ItemAdapter::data() const.
+     *
+     */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
- 		/** \brief Implements ItemAdapter::setData().
- 		 *
- 		 */
+    /** \brief Implements ItemAdapter::setData().
+     *
+     */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
- 		/** \brief Implements ItemAdapter::type() const.
- 		 *
- 		 */
+    /** \brief Implements ItemAdapter::type() const.
+     *
+     */
     virtual ItemAdapter::Type type() const
     { return Type::CHANNEL; }
 
- 		/** \brief Implements ViewItemAdapter::asInput().
- 		 *
- 		 */
+    /** \brief Implements ViewItemAdapter::asInput().
+     *
+     */
     virtual InputSPtr asInput() const;
 
- 		/** \brief Implements ViewItemAdapter::changeOutput().
- 		 *
- 		 */
-    virtual void changeOutput(InputSPtr input);
-
- 		/** \brief Sets the position of the channel (origin).
- 		 * \param[in] point, origin point.
- 		 *
- 		 */
+    /** \brief Sets the position of the channel (origin).
+     * \param[in] point origin point.
+     *
+     */
     void setPosition(const NmVector3& point);
 
- 		/** \brief Returns the position (origin) of the channel.
- 		 *
- 		 */
+    /** \brief Returns the position (origin) of the channel.
+     *
+     */
     NmVector3 position() const;
 
     /** \brief Set channel's hue value.
-     * \param[in] hue, hue value.
+     * \param[in] hue hue value.
      *
      *  Hue value belongs to [0,1] U -1.\n
      *  Not stained channels hue value is -1
@@ -96,7 +91,7 @@ namespace ESPINA
     double hue() const;
 
     /** \brief Set channel's opacity.
-     * \param[in] opacity, opacity value.
+     * \param[in] opacity opacity value.
      *
      * Opacity value belong to [0,1] U -1 \n
      * -1 value means opacity is automatically managed
@@ -111,7 +106,7 @@ namespace ESPINA
     double opacity() const;
 
     /** \brief Set channel's saturation.
-     * \param[in] saturation, saturation value.
+     * \param[in] saturation saturation value.
      *
      *  Saturation value belongs to [0,1].
      */
@@ -124,7 +119,7 @@ namespace ESPINA
     double saturation() const;
 
     /** \brief Set channel's contrast.
-     * \param[in] contrast, contrast value.
+     * \param[in] contrast contrast value.
      *
      *  Contrast value belongs to [0,2]
      */
@@ -137,7 +132,7 @@ namespace ESPINA
     double contrast() const;
 
     /** \brief Set channel's brightness.
-     * \param[in] brightness, brightness value.
+     * \param[in] brightness brightness value.
      *
      *  Brightness value belongs to [-1,1]
      */
@@ -150,7 +145,7 @@ namespace ESPINA
     double brightness() const;
 
     /** \brief Set channel's metadata.
-     * \param[in] metadata, channel's metadata as string.
+     * \param[in] metadata channel's metadata as string.
      *
      */
     void setMetadata(const QString& metadata);
@@ -160,33 +155,33 @@ namespace ESPINA
      */
     QString metadata() const;
 
- 		/** \brief Returns the minimal bounds that contains the channel.
- 		 *
- 		 */
+    /** \brief Returns the minimal bounds that contains the channel.
+     *
+     */
     Bounds bounds() const;
 
- 		/** \brief Adds an extension to the channel.
- 		 * \param[in] extension, smart pointer of the channel extension to add.
- 		 *
- 		 * Extension won't be available until requirements are satisfied.
- 		 *
- 		 */
+    /** \brief Adds an extension to the channel.
+     * \param[in] extension smart pointer of the channel extension to add.
+     *
+     * Extension won't be available until requirements are satisfied.
+     *
+     */
     void addExtension(ChannelExtensionSPtr extension);
 
- 		/** \brief Removes an extension from the channel.
- 		 * \param[in] extension, smart pointer of the channel extension to remove.
- 		 *
- 		 */
+    /** \brief Removes an extension from the channel.
+     * \param[in] extension smart pointer of the channel extension to remove.
+     *
+     */
     void deleteExtension(ChannelExtensionSPtr extension);
 
     /** \brief Returns true if the channel has an extension of the specified type.
-     * \param[in] type, channel extension type.
+     * \param[in] type channel extension type.
      *
      */
     bool hasExtension(const ChannelExtension::Type& type) const;
 
     /** \brief Return the extension with the especified type.
-     * \param[in] type, channel extension type.
+     * \param[in] type channel extension type.
      *
      *  Important: It the channel doesn't contain any extension with
      *  the requested name, but there exist an extension prototype registered
@@ -197,13 +192,19 @@ namespace ESPINA
      */
     ChannelExtensionSPtr extension(const ChannelExtension::Type& type);
 
+  protected:
+    /** \brief Implements ViewItemAdapter::changeOutputImplementation().
+     *
+     */
+    virtual void changeOutputImplementation(InputSPtr input);
+
   private:
- 		/** \brief ChannelAdapter class private constructor.
- 		 * \param[in] filter, filter adapter smart pointer.
- 		 * \param[in] channel, smart pointer of the channel to adapt.
- 		 *
- 		 */
-    explicit ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel);
+    /** \brief ChannelAdapter class private constructor.
+     * \param[in] filter filter adapter smart pointer.
+     * \param[in] channel smart pointer of the channel to adapt.
+     *
+     */
+    explicit ChannelAdapter(ChannelSPtr channel);
 
   private:
     ChannelSPtr m_channel;
@@ -217,29 +218,29 @@ namespace ESPINA
   };
 
 	/** \brief Equality operator for a channel adapter smart pointer and a channel smart pointer.
-	 * \param[in] lhs, channel adapter smart pointer.
-	 * \param[in] rhs, channel smart pointer.
+	 * \param[in] lhs channel adapter smart pointer.
+	 * \param[in] rhs channel smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator==(ChannelAdapterSPtr lhs, ChannelSPtr rhs);
 
 	/** \brief Equality operator for a channel smart pointer and a channel adapter smart pointer.
-	 * \param[in] lhs, channel smart pointer.
-	 * \param[in] rhs, channel adapter smart pointer.
+	 * \param[in] lhs channel smart pointer.
+	 * \param[in] rhs channel adapter smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs);
 
 	/** \brief Inequality operator for a channel adapter smart pointer and a channel smart pointer.
-	 * \param[in] lhs, channel adapter smart pointer.
-	 * \param[in] rhs, channel smart pointer.
+	 * \param[in] lhs channel adapter smart pointer.
+	 * \param[in] rhs channel smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
 
 	/** \brief Inequality operator for a channel smart pointer and a channel adapter smart pointer.
-	 * \param[in] lhs, channel smart pointer.
-	 * \param[in] rhs, channel adapter smart pointer.
+	 * \param[in] lhs channel smart pointer.
+	 * \param[in] rhs channel adapter smart pointer.
 	 *
 	 */
   bool EspinaGUI_EXPORT operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);

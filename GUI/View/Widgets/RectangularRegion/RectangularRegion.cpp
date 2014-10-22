@@ -70,7 +70,9 @@ void RectangularRegion::registerView(RenderView *view)
     SliceWidgetAdapter *wi = SliceWidgetAdapter::New();
     Q_ASSERT(wi);
     wi->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+    wi->SetView(view2d);
     wi->SetPlane(view2d->plane());
+    wi->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
     wi->SetBounds(m_bounds);
     wi->setRepresentationColor(m_color);
     wi->setRepresentationPattern(m_pattern);
@@ -116,7 +118,9 @@ void RectangularRegion::setEnabled(bool enable)
 void RectangularRegion::setBounds(Bounds bounds)
 {
   for(auto widget: m_widgets.values())
+  {
     widget->SetBounds(bounds);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -132,11 +136,16 @@ Bounds RectangularRegion::bounds() const
 void RectangularRegion::setResolution(NmVector3 resolution)
 {
   m_resolution = resolution;
-  for(int i = 0; i < 6; i++)
-    m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
+
+//   for(int i = 0; i < 6; i++)
+//   {
+//     m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
+//   }
 
   for(auto w: m_widgets.values())
+  {
     w->SetBounds(m_bounds);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -180,13 +189,11 @@ void vtkRectangularRegionCommand::Execute(vtkObject* caller, long unsigned int e
   if (widget)
   {
     m_widget->m_bounds = widget->GetBounds();
-    for(int i = 0; i < 6; i++)
-    {
-      m_widget->m_bounds[i] = int(m_widget->m_bounds[i]/m_widget->m_resolution[i/2])*m_widget->m_resolution[i/2];
-    }
 
     for(auto w: m_widget->m_widgets.values())
+    {
       w->SetBounds(m_widget->m_bounds);
+    }
   }
 
   m_widget->emitModifiedSignal();

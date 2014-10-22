@@ -24,7 +24,7 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info)
+void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
 {
   if ("VolumetricData" == info.value("type"))
   {
@@ -32,7 +32,7 @@ void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storag
     {
       auto data = DataSPtr { new SparseVolume<itkVolumeType>() };
       data->setOutput(output.get());
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }
@@ -44,7 +44,7 @@ void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storag
     {
       auto data = DataSPtr { new RawMesh() };
       data->setOutput(output.get());
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }

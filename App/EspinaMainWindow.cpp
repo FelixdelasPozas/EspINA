@@ -25,6 +25,7 @@
 #include "Dialogs/RawInformation/RawInformationDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
+#include "Docks/SegmentationHistory/HistoryDock.h"
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
@@ -97,6 +98,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
 , m_scheduler(new Scheduler(PERIOD_NS))
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
+, m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
 , m_model(new ModelAdapter())
 , m_viewManager(new ViewManager())
@@ -287,25 +289,29 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   registerToolGroup(defaultActiveTool);
 
   /*** TOOLS ***/
-  auto measuresTools = new MeasuresTools(m_viewManager, this);
-  registerToolGroup(measuresTools);
-
   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(roiTools);
+  m_viewManager->setROIProvider(roiTools);
 
-  auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
 
   auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(editionTools);
 
+  auto measuresTools = new MeasuresTools(m_viewManager, this);
+  registerToolGroup(measuresTools);
+
   /*** DOCKS ***/
   auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_scheduler, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
-  auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
+
+  auto segmentationHistory = new HistoryDock(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
+  registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 
   defaultActiveTool->showTools(true);
 
@@ -343,7 +349,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   connect(&m_autosave, SIGNAL(timeout()),
           this, SLOT(autosave()));
 
-  cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
+  new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
 
   closeCurrentAnalysis();
 
@@ -1112,6 +1118,13 @@ void EspinaMainWindow::showRawInformation()
   {
     QMessageBox::warning(this, "ESPINA", tr("Current analysis does not contain any segmentations"));
   }
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::cancelOperation()
+{
+  m_viewManager->unsetActiveEventHandler();
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------

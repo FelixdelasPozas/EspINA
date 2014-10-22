@@ -65,12 +65,12 @@ int channel_proxy_reset( int argc, char** argv )
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr  filter  = factory->createFilter<DummyFilter>(inputs, type);
+  auto filter  = factory->createFilter<DummyFilter>(inputs, type);
 
-  ChannelAdapterSPtr channel = factory->createChannel(filter, 0);
+  auto channel = factory->createChannel(filter, 0);
   modelAdapter->add(channel);
 
-  SegmentationAdapterSPtr segmentation = factory->createSegmentation(filter, 0);
+  auto segmentation = factory->createSegmentation(filter, 0);
   modelAdapter->add(segmentation);
 
   modelAdapter->reset();
