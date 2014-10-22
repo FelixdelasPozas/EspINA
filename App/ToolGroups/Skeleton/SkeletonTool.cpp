@@ -95,7 +95,7 @@ namespace ESPINA
   void SkeletonTool::updateState()
   {
     auto selectedSegs = m_vm->selection()->segmentations();
-    auto value = (selectedSegs.size() <= 1);
+    auto value = (selectedSegs.size() == 1);
 
     m_action->setEnabled(value);
     m_categorySelector->setEnabled(value);
@@ -103,23 +103,18 @@ namespace ESPINA
 
     if(value)
     {
-      if(selectedSegs.empty())
-      {
-        m_item = nullptr;
-        m_itemCategory = m_categorySelector->selectedCategory();
-      }
-      else
-      {
-        m_item = selectedSegs.first();
-        m_itemCategory = m_item->category();
-      }
-      m_categorySelector->selectCategory(m_itemCategory);
+      m_item = selectedSegs.first();
+      m_itemCategory = m_item->category();
     }
     else
     {
+      m_item = nullptr;
+      m_itemCategory = m_categorySelector->selectedCategory();
+
       if(m_widget != nullptr)
         initTool(false);
     }
+    m_categorySelector->selectCategory(m_itemCategory);
   }
 
   //-----------------------------------------------------------------------------
@@ -134,6 +129,23 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  void SkeletonTool::updateReferenceItem()
+  {
+    auto selectedSegs = m_vm->selection()->segmentations();
+
+    if (selectedSegs.size() != 1)
+    {
+      m_item = nullptr;
+      m_itemCategory = m_categorySelector->selectedCategory();
+    }
+    else
+    {
+      m_item = selectedSegs.first();
+      m_itemCategory = m_item->category();
+    }
+  }
+
+  //-----------------------------------------------------------------------------
   void SkeletonTool::initTool(bool value)
   {
     if (value)
@@ -141,7 +153,13 @@ namespace ESPINA
       if(nullptr == m_vm->activeChannel())
         return;
 
-      auto spacing = volumetricData(m_vm->activeChannel()->output())->spacing();
+      updateReferenceItem();
+      NmVector3 spacing;
+      if(m_item == nullptr)
+        spacing = m_vm->activeChannel()->output()->spacing();
+      else
+        spacing = m_item->output()->spacing();
+
       auto minimumValue = std::ceil(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
       if(m_toleranceBox->getSpinBoxMinimumValue() < minimumValue)
         m_toleranceBox->setSpinBoxMinimum(minimumValue);
@@ -157,6 +175,7 @@ namespace ESPINA
       auto widget = new SkeletonWidget();
       widget->setTolerance(m_toleranceBox->value());
       widget->setRepresentationColor(color);
+      widget->setSpacing(spacing);
 
       m_widget = EspinaWidgetSPtr{widget};
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);

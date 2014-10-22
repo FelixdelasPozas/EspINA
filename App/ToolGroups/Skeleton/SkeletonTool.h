@@ -128,6 +128,11 @@ namespace ESPINA
        */
       void setControlsVisibility(bool value);
 
+      /** \brief Updates the ViewItem selected to use the spacing and set the tolerance.
+       *
+       */
+      void updateReferenceItem();
+
       ViewManagerSPtr   m_vm;
       bool              m_enabled;
       CategorySelector *m_categorySelector;

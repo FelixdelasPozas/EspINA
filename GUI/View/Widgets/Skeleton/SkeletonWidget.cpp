@@ -68,6 +68,7 @@ namespace ESPINA
     m_widgets[view] = vtkSkeletonWidget::New();
     m_widgets[view]->setParentWidget(this);
     m_widgets[view]->SetOrientation(plane);
+    m_widgets[view]->SetSpacing(m_spacing);
     m_widgets[view]->changeSlice(plane, slice);
     m_widgets[view]->SetShift(view2d->widgetDepth());
     m_widgets[view]->SetCurrentRenderer(view->mainRenderer());
@@ -281,6 +282,15 @@ namespace ESPINA
   {
     for(auto vtkWidget: this->m_widgets)
       vtkWidget->setRepresentationColor(color);
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonWidget::setSpacing(const NmVector3 &spacing)
+  {
+    m_spacing = spacing;
+
+    for(auto vtkWidget: this->m_widgets)
+      vtkWidget->SetSpacing(spacing);
   }
 
 } // namespace ESPINA

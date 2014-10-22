@@ -584,4 +584,17 @@ namespace ESPINA
     this->Render();
   }
 
+  //-----------------------------------------------------------------------------
+  void vtkSkeletonWidget::SetSpacing(const NmVector3 &spacing)
+  {
+    this->m_spacing = spacing;
+
+    if(this->WidgetRep == nullptr)
+    {
+      this->CreateDefaultRepresentation();
+    }
+
+    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSpacing(spacing);
+  }
+
 } // namespace ESPINA

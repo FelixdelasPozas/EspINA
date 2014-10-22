@@ -142,6 +142,9 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
   {
+    for(auto i: {0,1,2})
+      worldPos[i] = std::round(worldPos[i]/m_spacing[i])*m_spacing[i];
+
     worldPos[normalCoordinateIndex(this->m_orientation)] = this->m_slice;
     auto node = new SkeletonNode{worldPos};
 

@@ -24,7 +24,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include "Core/Utils/Spatial.h"
+#include <Core/Utils/Spatial.h>
+#include <Core/Utils/NmVector3.h>
 
 // VTK
 #include <vtkWidgetRepresentation.h>
@@ -322,6 +323,14 @@ namespace ESPINA
       void SetShift(const Nm shift)
       { m_shift = shift; }
 
+      /** \brief Sets the spacing of the representation to make the position of all nodes of the
+       * representation centered on voxel center.
+       * \param[in] spacing Spacing vector.
+       *
+       */
+      void SetSpacing(const NmVector3 &spacing)
+      { m_spacing = spacing; }
+
       /** \brief Returns the slice of the representation.
        *
        */
@@ -394,11 +403,12 @@ namespace ESPINA
     protected:
       static const double s_sliceWindow;
 
-      Plane  m_orientation;
-      double m_tolerance;
-      Nm     m_slice;
-      Nm     m_shift;
-      QColor m_color;
+      Plane     m_orientation;
+      double    m_tolerance;
+      Nm        m_slice;
+      Nm        m_shift;
+      QColor    m_color;
+      NmVector3 m_spacing;
 
       static QList<SkeletonNode *> s_skeleton;
       static SkeletonNode         *s_currentVertex;

@@ -27,6 +27,8 @@
 #include "Core/Utils/Spatial.h"
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
+#include <Core/Utils/NmVector3.h>
+
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -72,6 +74,11 @@ namespace ESPINA
        */
       void setTolerance(const double value);
 
+      /** \brief Sets the spacing of the skeleton to make all the nodes centered in the voxels.
+       *
+       */
+      void setSpacing(const NmVector3 &spacing);
+
       /** \brief Returns the skeleton when the operation has finished.
        *
        */
@@ -92,6 +99,7 @@ namespace ESPINA
       vtkSmartPointer<vtkSkeletonWidgetCommand> m_command;
       QMap<RenderView *, vtkSkeletonWidget*>    m_widgets;
       double                                    m_tolerance;
+      NmVector3                                 m_spacing;
   };
 
   class vtkSkeletonWidgetCommand

@@ -24,7 +24,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include "Core/Utils/Spatial.h"
+#include <Core/Utils/Spatial.h>
+#include <Core/Utils/NmVector3.h>
 
 // VTK
 #include <vtkAbstractWidget.h>
@@ -134,6 +135,13 @@ namespace ESPINA
        */
       void SetShift(const Nm spacing);
 
+      /** \brief Sets the spacing of the representation to make the position of all nodes of the
+       * representation centered on voxel center.
+       * \param[in] spacing Spacing vector.
+       *
+       */
+      void SetSpacing(const NmVector3 &spacing);
+
       /** \brief Sets the color of the representation.
        * \param[in] color QColor object.
        *
@@ -146,13 +154,14 @@ namespace ESPINA
       void UpdateRepresentation();
 
     protected:
-      int    m_widgetState;
-      int    m_currentHandle;
-      Plane  m_orientation;
-      double m_drawTolerance;
-      Nm     m_slice;
-      Nm     m_shift;
-      QColor m_color;
+      int       m_widgetState;
+      int       m_currentHandle;
+      Plane     m_orientation;
+      double    m_drawTolerance;
+      Nm        m_slice;
+      Nm        m_shift;
+      QColor    m_color;
+      NmVector3 m_spacing;
 
       /** \brief Callback interface to capture events when placing the widget.
        *
