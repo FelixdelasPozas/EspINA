@@ -24,6 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
+#include "Renderer.h"
 #include "RepresentationRenderer.h"
 
 class vtkPropPicker;
@@ -57,7 +58,7 @@ namespace ESPINA
       { return QIcon(":/espina/tubular.svg"); }
 
       virtual RendererSPtr clone() const
-      { return new SkeletonRenderer{parent}; }
+      { return RendererSPtr{new SkeletonRenderer(this->parent())}; }
 
       virtual RendererTypes renderType() const
       { return RendererTypes(RenderableType::SEGMENTATION); }

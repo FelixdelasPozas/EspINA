@@ -100,6 +100,7 @@ set (GUI_SOURCES
   Representations/MeshRepresentation.cpp 
   Representations/MeshRepresentationBase.cpp
   Representations/CrosshairRepresentation.cpp
+  Representations/SkeletonRepresentation.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp
   Representations/Renderers/SmoothedMeshRenderer.cpp
@@ -109,6 +110,7 @@ set (GUI_SOURCES
   Representations/Renderers/CrosshairRenderer.cpp
   Representations/Renderers/CachedSliceRenderer.cpp
   Representations/Renderers/CachedSliceRendererTask.cpp
+  Representations/Renderers/SkeletonRenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 

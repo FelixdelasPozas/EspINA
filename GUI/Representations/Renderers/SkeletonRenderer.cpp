@@ -21,9 +21,13 @@
 // ESPINA
 #include "SkeletonRenderer.h"
 #include <GUI/Representations/SkeletonRepresentation.h>
+#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkPropPicker.h>
+
+// Qt
+#include <QApplication>
 
 namespace ESPINA
 {
@@ -179,7 +183,7 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  ViewItemAdapterList SkeletonRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType = RenderableItems(), bool repeat = false)
+  ViewItemAdapterList SkeletonRenderer::pick(int x, int y, Nm z, vtkSmartPointer<vtkRenderer> renderer, RenderableItems itemType, bool repeat)
   {
     ViewItemAdapterList selection;
     QList<vtkProp *> removedProps;
