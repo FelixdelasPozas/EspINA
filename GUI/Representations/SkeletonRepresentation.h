@@ -25,6 +25,9 @@
 #include "Representation.h"
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/View/RenderView.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -35,7 +38,6 @@ class vtkActor;
 
 namespace ESPINA
 {
-  
   class SkeletonRepresentation
   : public Representation
   {
@@ -64,7 +66,7 @@ namespace ESPINA
       virtual RepresentationSettings *settingsWidget();
 
       virtual RenderableView canRenderOnView() const
-      { return Representation::RENDERABLEVIEW_SLICE; }
+      { return RenderableView(Representation::RENDERABLEVIEW_SLICE|Representation::RENDERABLEVIEW_VOLUME); }
 
       virtual bool hasActor(vtkProp *actor) const;
 
@@ -80,8 +82,10 @@ namespace ESPINA
 
   protected:
       virtual RepresentationSPtr cloneImplementation(View3D *view)
-      { return RepresentationSPtr(); }
+      { return RepresentationSPtr{new SkeletonRepresentation{this->m_data, view}}; }
 
+      virtual RepresentationSPtr cloneImplementation(View2D *view)
+      { return RepresentationSPtr{new SkeletonRepresentation{this->m_data, view}}; }
 
       virtual void updateVisibility(bool visible);
 

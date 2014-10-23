@@ -1366,7 +1366,7 @@ RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Represen
 //-----------------------------------------------------------------------------
 void View2D::addRendererControls(RendererSPtr renderer)
 {
-  if(m_renderers.contains(renderer) || (renderer->renderType() != RendererTypes(RENDERER_VIEW2D)))
+  if(m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW2D))
     return;
 
   m_renderers << renderer;

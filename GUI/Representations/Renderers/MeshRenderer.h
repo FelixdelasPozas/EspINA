@@ -107,7 +107,7 @@ namespace ESPINA
   		 *
   		 */
       virtual RendererTypes renderType() const
-      { return RendererTypes(RENDERER_VIEW3D); }
+      { return RendererTypes(RendererType::RENDERER_VIEW3D); }
 
   		/** \brief Implements Renderer::numberOfRenderedItems() const.
   		 *

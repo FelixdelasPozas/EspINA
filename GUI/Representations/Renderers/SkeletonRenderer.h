@@ -39,7 +39,7 @@ namespace ESPINA
        * \param[in] parent raw pointer of the QObject parent of this one.
        *
        */
-      explicit SkeletonRenderer(QObject *parent);
+      explicit SkeletonRenderer(QObject *parent = nullptr);
 
       /** \brief SkeletonRenderer class virtual destructor.
        *
@@ -61,7 +61,7 @@ namespace ESPINA
       { return RendererSPtr{new SkeletonRenderer(this->parent())}; }
 
       virtual RendererTypes renderType() const
-      { return RendererTypes(RenderableType::SEGMENTATION); }
+      { return RendererTypes(RendererType::RENDERER_VIEW2D); }
 
       virtual int numberOfRenderedItems() const
       { return m_representations.size(); }
@@ -88,6 +88,24 @@ namespace ESPINA
       virtual void hide();
 
       vtkSmartPointer<vtkPropPicker> m_picker;
+  };
+
+  class SkeletonRenderer3D
+  : public SkeletonRenderer
+  {
+    public:
+      explicit SkeletonRenderer3D(QObject *parent = nullptr)
+      : SkeletonRenderer{parent}
+      {}
+
+      virtual const QString name() const
+      { return QString("Skeleton 3D"); }
+
+      virtual RendererSPtr clone() const
+      { return RendererSPtr{new SkeletonRenderer3D(this->parent())}; }
+
+      virtual RendererTypes renderType() const
+      { return RendererTypes(RendererType::RENDERER_VIEW3D); }
   };
 
 } // namespace ESPINA

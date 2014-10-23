@@ -129,7 +129,7 @@ namespace ESPINA
   {
     auto view2d = dynamic_cast<View2D*>(m_view);
 
-    if(view2d)
+    if(view2d != nullptr)
     {
       auto newPoints = vtkSmartPointer<vtkPoints>::New();
       auto newLines = vtkSmartPointer<vtkCellArray>::New();
@@ -186,8 +186,20 @@ namespace ESPINA
 
       m_polyData->SetPoints(newPoints);
       m_polyData->SetLines(newLines);
-      m_mapper->Update();
+    }
+    else
+    {
+      auto view3d = dynamic_cast<View3D*>(m_view);
+      if(view3d != nullptr)
+      {
+        auto skeleton = m_data->skeleton();
+        m_mapper->SetInputData(skeleton);
+      }
+    }
 
+    if(m_actor != nullptr)
+    {
+      m_mapper->Update();
       auto color = s_highlighter->color(m_color, m_highlight);
       m_actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
       m_actor->GetProperty()->SetOpacity(color.alphaF());

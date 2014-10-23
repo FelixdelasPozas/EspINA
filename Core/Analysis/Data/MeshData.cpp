@@ -24,11 +24,6 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
 
-// VTK
-#include <vtkAlgorithmOutput.h>
-#include <vtkPolyData.h>
-#include <vtkAlgorithm.h>
-
 using namespace ESPINA;
 
 const Data::Type MeshData::TYPE = "MeshData";

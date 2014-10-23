@@ -53,6 +53,7 @@
 #include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
+#include <GUI/Representations/Renderers/SkeletonRenderer.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Utils/DefaultIcons.h>
@@ -134,6 +135,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerRenderer(RendererSPtr{new VolumetricGPURenderer<itkVolumeType>()});
   m_viewManager->registerRenderer(RendererSPtr{new ContourRenderer()});
   m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
+  m_viewManager->registerRenderer(RendererSPtr{new SkeletonRenderer()});
+  m_viewManager->registerRenderer(RendererSPtr{new SkeletonRenderer3D()});
 
   m_availableSettingsPanels << SettingsPanelSPtr(new SeedGrowSegmentationsSettingsPanel(m_sgsSettings, m_viewManager));
   m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_roiSettings, m_model, m_viewManager));
