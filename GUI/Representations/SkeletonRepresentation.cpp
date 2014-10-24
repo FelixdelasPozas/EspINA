@@ -45,6 +45,7 @@ namespace ESPINA
   , m_slice       {VTK_INT_MAX}
   {
     setType(TYPE);
+    initializePipeline();
   }
   
   //-----------------------------------------------------------------------------
@@ -57,7 +58,7 @@ namespace ESPINA
 
     auto segColor = s_highlighter->color(m_color, m_highlight);
     m_actor->GetProperty()->SetColor(segColor.redF(), segColor.greenF(), segColor.blueF());
-    m_actor->GetProperty()->SetOpacity(segColor.alphaF());
+    m_actor->GetProperty()->SetLineWidth((isHighlighted() ? 4 : 2));
     m_actor->Modified();
   }
   
@@ -71,7 +72,7 @@ namespace ESPINA
 
     auto segColor = s_highlighter->color(m_color, m_highlight);
     m_actor->GetProperty()->SetColor(segColor.redF(), segColor.greenF(), segColor.blueF());
-    m_actor->GetProperty()->SetOpacity(segColor.alphaF());
+    m_actor->GetProperty()->SetLineWidth((isHighlighted() ? 4 : 2));
     m_actor->Modified();
   }
   
@@ -127,6 +128,9 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonRepresentation::updateRepresentation()
   {
+    if(m_data->skeleton() == nullptr || m_data->skeleton()->GetNumberOfPoints() == 0)
+      return;
+
     auto view2d = dynamic_cast<View2D*>(m_view);
 
     if(view2d != nullptr)
@@ -136,11 +140,13 @@ namespace ESPINA
 
       auto planeIndex = normalCoordinateIndex(view2d->plane());
       auto slice = view2d->crosshairPoint()[planeIndex];
-      if(slice == m_slice)
-        return;
-      m_slice = slice;
       auto data = m_data->skeleton();
       auto planeSpacing = m_data->spacing()[planeIndex];
+
+      if(slice == m_slice && m_lastUpdatedTime == data->GetMTime())
+        return;
+
+      m_slice = slice;
       QMap<vtkIdType, NmVector3> pointIds;
       QMap<vtkIdType, vtkIdType> newPointIds;
       auto points = data->GetPoints();
@@ -148,17 +154,16 @@ namespace ESPINA
       double pointACoords[3]{0,0,0};
       double pointBCoords[3]{0,0,0};
 
-      for(vtkIdType i = 0; i < data->GetLines()->GetNumberOfCells(); ++i)
+      lines->InitTraversal();
+      vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+      auto sliceDepth = m_slice + view2d->segmentationDepth();
+      while(lines->GetNextCell(idList))
       {
-        vtkIdList *list = nullptr;
-        lines->GetCell(i, list);
-
-        if(list == nullptr)
+        if(idList->GetNumberOfIds() != 2)
           continue;
 
-        vtkIdType pointAId = list->GetId(0);
-        vtkIdType pointBId = list->GetId(1);
-
+        vtkIdType pointAId = idList->GetId(0);
+        vtkIdType pointBId = idList->GetId(1);
         points->GetPoint(pointAId, pointACoords);
         points->GetPoint(pointBId, pointBCoords);
 
@@ -169,11 +174,13 @@ namespace ESPINA
         {
           if(!newPointIds.contains(pointAId))
           {
+            pointACoords[planeIndex] = sliceDepth;
             newPointIds.insert(pointAId, newPoints->InsertNextPoint(pointACoords));
           }
 
           if(!newPointIds.contains(pointBId))
           {
+            pointBCoords[planeIndex] = sliceDepth;
             newPointIds.insert(pointBId, newPoints->InsertNextPoint(pointBCoords));
           }
 
@@ -186,26 +193,27 @@ namespace ESPINA
 
       m_polyData->SetPoints(newPoints);
       m_polyData->SetLines(newLines);
+
+      m_lastUpdatedTime = data->GetMTime();
     }
     else
     {
       auto view3d = dynamic_cast<View3D*>(m_view);
-      if(view3d != nullptr)
+      auto data = m_data->skeleton();
+
+      if(view3d != nullptr && m_lastUpdatedTime != data->GetMTime())
       {
         auto skeleton = m_data->skeleton();
         m_mapper->SetInputData(skeleton);
+        m_lastUpdatedTime = data->GetMTime();
       }
     }
 
-    if(m_actor != nullptr)
-    {
-      m_mapper->Update();
-      auto color = s_highlighter->color(m_color, m_highlight);
-      m_actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-      m_actor->GetProperty()->SetOpacity(color.alphaF());
-      m_actor->GetProperty()->SetLineWidth((isHighlighted() ? 4 : 1));
-      m_actor->Modified();
-    }
+    m_mapper->Update();
+    auto color = s_highlighter->color(m_color, m_highlight);
+    m_actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+    m_actor->GetProperty()->SetLineWidth((isHighlighted() ? 4 : 2));
+    m_actor->Modified();
   }
 
 } // namespace EspINA

@@ -24,6 +24,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
+#include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 
 namespace ESPINA
@@ -79,10 +80,11 @@ namespace ESPINA
 
       virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
 
-      void setSpacing(const NmVector3&)
-      { /* TODO */ };
+      void setSpacing(const NmVector3 &spacing)
+      { m_output->setSpacing(spacing); };
 
-      NmVector3 spacing() const;
+      NmVector3 spacing() const
+      { return m_output->spacing(); }
 
       void undo()
       { /* TODO */ };

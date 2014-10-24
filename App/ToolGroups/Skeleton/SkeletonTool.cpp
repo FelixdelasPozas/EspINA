@@ -19,21 +19,76 @@
  */
 
 // ESPINA
-#include <ToolGroups/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Skeleton/SkeletonTool.h>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
+#include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Output.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/ModelFactory.h>
+#include <GUI/Representations/SkeletonRepresentation.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/SpinBoxAction.h>
+#include <Filters/SourceFilter.h>
+#include <Undo/AddSegmentations.h>
+
+// VTK
+#include <vtkIdList.h>
+#include <vtkCellArray.h>
+#include <vtkPoints.h>
+#include <vtkLine.h>
+
+// Qt
+#include <QUndoStack>
 
 namespace ESPINA
 {
+  const Filter::Type SOURCE_FILTER = "SourceFilter";
+
   //-----------------------------------------------------------------------------
-  SkeletonTool::SkeletonTool(ModelAdapterSPtr model, ViewManagerSPtr viewManager)
+  FilterTypeList SourceFilterFactory::providedFilters() const
+  {
+    FilterTypeList filters;
+
+    filters << SOURCE_FILTER;
+
+    return filters;
+  }
+
+  //-----------------------------------------------------------------------------
+  FilterSPtr SourceFilterFactory::createFilter(InputSList         inputs,
+                                               const Filter::Type& filter,
+                                               SchedulerSPtr       scheduler) const throw(Unknown_Filter_Exception)
+  {
+    if (SOURCE_FILTER != filter)
+    {
+      throw Unknown_Filter_Exception();
+    }
+
+    auto sFilter = FilterSPtr{new SourceFilter(inputs, SOURCE_FILTER, scheduler)};
+    if (!m_fetchBehaviour)
+    {
+      m_fetchBehaviour = FetchBehaviourSPtr{new FetchRawData()};
+    }
+    sFilter->setFetchBehaviour(m_fetchBehaviour);
+
+    return sFilter;
+  }
+
+  //-----------------------------------------------------------------------------
+  SkeletonTool::SkeletonTool(ModelAdapterSPtr model, ModelFactorySPtr factory, ViewManagerSPtr viewManager, QUndoStack *undoStack)
   : m_vm              {viewManager}
+  , m_model           {model}
+  , m_factory         {factory}
+  , m_undoStack       {undoStack}
   , m_enabled         {false}
   , m_categorySelector{new CategorySelector(model)}
   , m_toleranceBox    {new SpinBoxAction()}
   , m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
   {
+    m_factory->registerFilterFactory(FilterFactorySPtr{new SourceFilterFactory()});
+
     m_action->setCheckable(true);
 
     m_toleranceBox->setLabelText("Tolerance");
@@ -95,13 +150,13 @@ namespace ESPINA
   void SkeletonTool::updateState()
   {
     auto selectedSegs = m_vm->selection()->segmentations();
-    auto value = (selectedSegs.size() == 1);
+    auto value = (selectedSegs.size() <= 1);
 
     m_action->setEnabled(value);
     m_categorySelector->setEnabled(value);
     m_toleranceBox->setEnabled(value);
 
-    if(value)
+    if(value && !selectedSegs.empty())
     {
       m_item = selectedSegs.first();
       m_itemCategory = m_item->category();
@@ -156,9 +211,13 @@ namespace ESPINA
       updateReferenceItem();
       NmVector3 spacing;
       if(m_item == nullptr)
+      {
         spacing = m_vm->activeChannel()->output()->spacing();
+      }
       else
+      {
         spacing = m_item->output()->spacing();
+      }
 
       auto minimumValue = std::ceil(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
       if(m_toleranceBox->getSpinBoxMinimumValue() < minimumValue)
@@ -171,11 +230,9 @@ namespace ESPINA
         color = m_categorySelector->selectedCategory()->color();
       else
         color = m_vm->colorEngine()->color(selection.first());
-
+      qDebug() << "color" << color;
       auto widget = new SkeletonWidget();
       widget->setTolerance(m_toleranceBox->value());
-      widget->setRepresentationColor(color);
-      widget->setSpacing(spacing);
 
       m_widget = EspinaWidgetSPtr{widget};
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
@@ -185,6 +242,16 @@ namespace ESPINA
       m_vm->setEventHandler(m_handler);
       m_vm->addWidget(m_widget);
       m_vm->setSelectionEnabled(false);
+      widget->setSpacing(spacing);
+      widget->setRepresentationColor(color);
+      if(m_item != nullptr)
+      {
+        auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+        rep->setVisible(false);
+        auto skeleton = skeletonData(m_item->output());
+        if(skeleton != nullptr)
+          widget->initialize(skeleton->skeleton());
+      }
       m_widget->setEnabled(true);
     }
     else
@@ -207,7 +274,7 @@ namespace ESPINA
       m_widget = nullptr;
 
       if(m_skeleton->GetNumberOfPoints() != 0)
-        emit stoppedOperation();
+        createSegmentation();
       else
         m_skeleton = nullptr;
     }
@@ -236,7 +303,9 @@ namespace ESPINA
   void SkeletonTool::categoryChanged(CategoryAdapterSPtr category)
   {
     if(m_widget != nullptr)
+    {
       dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -263,12 +332,64 @@ namespace ESPINA
       m_widget = nullptr;
 
       if(m_skeleton != nullptr && m_skeleton->GetNumberOfPoints() > 0)
-        emit stoppedOperation();
+        createSegmentation();
       else
         m_skeleton = nullptr;
 
       setControlsVisibility(value);
     }
+  }
+
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::createSegmentation()
+  {
+    if(m_item != nullptr)
+    {
+      auto oldSkeleton = skeletonData(m_item->output());
+      if(oldSkeleton != nullptr)
+      {
+        auto polyData = oldSkeleton->skeleton();
+        polyData->SetPoints(m_skeleton->GetPoints());
+        polyData->SetLines(m_skeleton->GetLines());
+        polyData->Modified();
+      }
+      else
+      {
+        auto spacing = m_item->output()->spacing();
+        auto data = SkeletonDataSPtr{new RawSkeleton{m_skeleton, spacing, m_item->output()}};
+        m_item->output()->setData(data);
+      }
+      m_vm->updateSegmentationRepresentations(m_item);
+      m_item->representation(SkeletonRepresentation::TYPE)->setVisible(true);
+    }
+    else
+    {
+      auto spacing = m_vm->activeChannel()->output()->spacing();
+      auto adapter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+      auto filter  = adapter->get();
+      auto output = OutputSPtr(new Output(filter.get(), 0));
+      output->setData(SkeletonDataSPtr{ new RawSkeleton{m_skeleton, spacing, output}});
+
+      filter->addOutput(0, output);
+      auto segmentation = m_factory->createSegmentation(adapter, 0);
+      auto category = m_categorySelector->selectedCategory();
+      Q_ASSERT(category);
+
+      segmentation->setCategory(category);
+
+      SampleAdapterSList samples;
+      samples << QueryAdapter::sample(m_vm->activeChannel());
+      Q_ASSERT(samples.size() == 1);
+
+      m_undoStack->beginMacro(tr("Add Segmentation"));
+      m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+      m_undoStack->endMacro();
+
+      m_vm->updateSegmentationRepresentations(segmentation.get());
+    }
+
+    m_vm->updateViews();
   }
 } // namespace EspINA
 

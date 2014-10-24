@@ -369,7 +369,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   {
-    if(this->s_skeleton.size() == 0)
+    if(this->s_skeleton.size() == 0 || !this->Renderer || !this->Renderer->GetActiveCamera())
     {
       VisibilityOff();
       return;
@@ -753,7 +753,7 @@ namespace ESPINA
   void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd)
   {
     auto points = pd->GetPoints();
-    auto linesData = pd->GetLines()->GetData();
+    auto lines = pd->GetLines();
 
     vtkIdType nPoints = points->GetNumberOfPoints();
     if (nPoints <= 0) // Yeah right.. build from nothing!
@@ -761,27 +761,55 @@ namespace ESPINA
 
     // Clear all existing nodes.
     this->ClearAllNodes();
-    for(vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i)
+
+    // Points in our skeleton will be added while traversing lines.
+    lines->InitTraversal();
+    vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+    while(lines->GetNextCell(idList))
     {
-      double worldPos[3];
-      points->GetPoint(i, worldPos);
+      if(idList->GetNumberOfIds() != 2)
+        continue;
 
-      auto node = new SkeletonNode{worldPos};
-      s_skeleton << node;
-    }
+      SkeletonNode *pointA = nullptr;
+      SkeletonNode *pointB = nullptr;
+      vtkIdType data[2];
+      data[0] = idList->GetId(0);
+      data[1] = idList->GetId(1);
+      double dataCoords[2][3];
+      points->GetPoint(data[0], dataCoords[0]);
+      points->GetPoint(data[1], dataCoords[1]);
 
-    for(vtkIdType i = 0; i < linesData->GetNumberOfTuples(); ++i)
-    {
-      double data[2];
-      linesData->GetTuple(i, data);
+      // Find the points if our skeleton already have them.
+      for(auto i = 0; i < s_skeleton.size(); ++i)
+      {
+        if(memcmp(s_skeleton[i]->worldPosition, dataCoords[0], 3*sizeof(double)) == 0)
+          pointA = s_skeleton[i];
 
-      if(!s_skeleton[data[0]]->connections.contains(s_skeleton[data[1]]))
-        s_skeleton[data[0]]->connections << s_skeleton[data[1]];
-      if(!s_skeleton[data[1]]->connections.contains(s_skeleton[data[0]]))
-        s_skeleton[data[1]]->connections << s_skeleton[data[0]];
+        if(memcmp(s_skeleton[i]->worldPosition, dataCoords[1], 3*sizeof(double)) == 0)
+          pointB = s_skeleton[i];
+      }
+
+      // Add points our skeleton don't have.
+      if(pointA == nullptr)
+      {
+        pointA = new SkeletonNode{dataCoords[0]};
+        s_skeleton << pointA;
+      }
+
+      if(pointB == nullptr)
+      {
+        pointB = new SkeletonNode{dataCoords[1]};
+        s_skeleton << pointB;
+      }
+
+      if(!pointA->connections.contains(pointB))
+        pointA->connections << pointB;
+      if(!pointB->connections.contains(pointA))
+        pointB->connections << pointA;
     }
 
     this->BuildRepresentation();
+    qDebug() << "init" << normalCoordinateIndex(m_orientation) << "skeleton size" << s_skeleton.size();
   }
 
   //-----------------------------------------------------------------------------
@@ -796,6 +824,9 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(int X, int Y, double worldPos[3], int &node_i, int &node_j) const
   {
+    if(!this->Renderer)
+      return VTK_DOUBLE_MAX;
+
     std::memset(worldPos, 0, 3*sizeof(double));
     node_i = node_j = VTK_INT_MAX;
 
@@ -886,6 +917,9 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
   {
+    if(!this->Renderer)
+      return false;
+
     double worldPos[3];
     int nodeIndex = VTK_INT_MAX;
     this->FindClosestNode(x,y, worldPos, nodeIndex);
@@ -916,6 +950,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidgetRepresentation::SetColor(const QColor &color)
   {
+    qDebug() << "recibido color" << color;
     if(color == m_color)
       return;
 

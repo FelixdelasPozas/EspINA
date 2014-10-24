@@ -262,9 +262,15 @@ namespace ESPINA
 
           vtkWidget->UpdateRepresentation();
         }
-
       }
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonWidget::initialize(vtkSmartPointer<vtkPolyData> pd)
+  {
+    for(auto vtkWidget: this->m_widgets)
+      vtkWidget->Initialize(pd);
   }
 
   //-----------------------------------------------------------------------------

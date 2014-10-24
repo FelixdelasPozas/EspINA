@@ -35,6 +35,7 @@
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkActor;
+class vtkImageCanvasSource2D;
 
 namespace ESPINA
 {
@@ -90,13 +91,23 @@ namespace ESPINA
       virtual void updateVisibility(bool visible);
 
     private:
+      /** \brief Initializes the vtk pipeline with all the needed connections.
+       *
+       */
       virtual void initializePipeline();
+
+      /** \brief Updates the actor texture with the current color and opacity.
+       *
+       */
+      void updateTexture();
 
     protected:
       SkeletonDataSPtr                   m_data;
       Nm                                 m_slice;
       vtkSmartPointer<vtkPolyData>       m_polyData;
       vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+      vtkSmartPointer<vtkImageCanvasSource2D> m_textureIcon;
+      vtkSmartPointer<vtkTexture>             m_texture;
       vtkSmartPointer<vtkActor>          m_actor;
 
       static TransparencySelectionHighlighter *s_highlighter;

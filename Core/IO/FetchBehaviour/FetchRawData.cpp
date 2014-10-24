@@ -15,11 +15,11 @@
  *
  */
 
-#include "FetchRawData.h"
-
 // ESPINA
+#include "FetchRawData.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 
 using namespace ESPINA;
 
@@ -44,6 +44,17 @@ void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storag
     {
       auto data = DataSPtr { new RawMesh() };
       data->setOutput(output.get());
+      if (data->fetchData(storage, prefix))
+      {
+        output->setData(data);
+      }
+    }
+  }
+  else if ("SkeletonData" == info.value("type"))
+  {
+    if (!output->hasData(SkeletonData::TYPE))
+    {
+      auto data = DataSPtr {new RawSkeleton(output)};
       if (data->fetchData(storage, prefix))
       {
         output->setData(data);

@@ -90,6 +90,12 @@ namespace ESPINA
        */
       void setRepresentationColor(const QColor &color);
 
+      /** \brief Initialize the vtkWidgets with a polydata.
+       * \param[in] pd VtkPolyData smartPointer.
+       *
+       */
+      void initialize(vtkSmartPointer<vtkPolyData> pd);
+
     public slots:
       void changeSlice(Plane, Nm);
 

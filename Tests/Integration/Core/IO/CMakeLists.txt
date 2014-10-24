@@ -38,6 +38,8 @@ add_executable(IO_Tests
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp  
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp

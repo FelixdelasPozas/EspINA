@@ -129,7 +129,10 @@ namespace ESPINA
   void vtkSkeletonWidget::Initialize(vtkSmartPointer<vtkPolyData> pd)
   {
     if (!this->WidgetRep)
+    {
       this->CreateDefaultRepresentation();
+      this->WidgetRep->SetRenderer(this->GetCurrentRenderer());
+    }
 
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep);
 
@@ -146,6 +149,9 @@ namespace ESPINA
     }
 
     this->m_widgetState = vtkSkeletonWidget::Start;
+
+    if(this->GetCurrentRenderer() == nullptr)
+      return;
 
     int X = this->Interactor->GetEventPosition()[0];
     int Y = this->Interactor->GetEventPosition()[1];
@@ -560,6 +566,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::setRepresentationColor(const QColor &color)
   {
+    qDebug() << "vtkwidget" << color;
     this->m_color = color;
 
     if(this->WidgetRep == nullptr)

@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "RawSkeleton.h"
-#include <Core/Analysis/Output.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
@@ -39,14 +38,19 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   RawSkeleton::RawSkeleton(OutputSPtr output)
   : m_skeleton{nullptr}
-  {}
+  {
+    this->setOutput(output.get());
+  }
 
   //----------------------------------------------------------------------------
   RawSkeleton::RawSkeleton(vtkSmartPointer<vtkPolyData> skeleton,
                            const NmVector3 &spacing,
                            OutputSPtr output)
   : m_skeleton{skeleton}
-  {}
+  {
+    this->setOutput(output.get());
+    m_output->setSpacing(spacing);
+  }
 
   //----------------------------------------------------------------------------
   bool RawSkeleton::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
@@ -86,12 +90,6 @@ namespace ESPINA
   vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
   {
     return m_skeleton;
-  }
-
-  //----------------------------------------------------------------------------
-  NmVector3 RawSkeleton::spacing() const
-  {
-    return m_output->spacing();
   }
 
   //----------------------------------------------------------------------------

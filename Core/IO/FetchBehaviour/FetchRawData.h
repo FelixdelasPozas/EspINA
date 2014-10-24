@@ -21,8 +21,8 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
+#include <Core/EspinaTypes.h>
 #include <Core/Analysis/FetchBehaviour.h>
-#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA {
 
@@ -30,9 +30,6 @@ namespace ESPINA {
   : public FetchBehaviour
   {
   public:
-  	/** \brief Implements FetchBehaviour::fetchOutputData().
-  	 *
-  	 */
     virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
   };
 } // namespace ESPINA

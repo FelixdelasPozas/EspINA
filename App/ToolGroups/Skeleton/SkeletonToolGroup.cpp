@@ -33,25 +33,15 @@ namespace ESPINA
   , m_model    {model}
   , m_factory  {factory}
   , m_undoStack{undoStack}
-  , m_tool     {new SkeletonTool{model, viewManager}}
+  , m_tool     {new SkeletonTool{model, factory, viewManager, undoStack}}
   , m_enabled  {true}
   {
-    connect(m_tool.get(), SIGNAL(stoppedOperation()),
-            this,         SLOT(createSegmentation()), Qt::QueuedConnection);
   }
   
-  //-----------------------------------------------------------------------------
-  SkeletonToolGroup::~SkeletonToolGroup()
-  {
-    disconnect(m_tool.get(), SIGNAL(stoppedOperation()),
-               this,         SLOT(createSegmentation()));
-  }
-
   //-----------------------------------------------------------------------------
   void SkeletonToolGroup::setEnabled(bool value)
   {
     m_enabled = value;
-
     m_tool->setEnabled(value);
   }
 
@@ -60,26 +50,7 @@ namespace ESPINA
   {
     ToolSList list;
     list << m_tool;
-
     return list;
   }
 
-  //-----------------------------------------------------------------------------
-  void SkeletonToolGroup::createSegmentation()
-  {
-    auto skeleton = m_tool->getSkeleton();
-    auto item = m_tool->getSelectedItem();
-
-    if(item)
-    {
-      // TODO: add the skeleton to the item (undecided if add or replace if another exists).
-    }
-    else
-    {
-      auto category = m_tool->getSelectedCategory();
-
-      // TODO: create segmentation, assign outputs.
-    }
-
-  }
 } // namespace EspINA

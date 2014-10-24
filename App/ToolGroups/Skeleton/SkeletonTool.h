@@ -34,11 +34,22 @@
 
 // Qt
 #include <QAction>
+class QUndoStack;
 
 namespace ESPINA
 {
   class CategorySelector;
   class SpinBoxAction;
+
+  class SourceFilterFactory
+  : public FilterFactory
+  {
+    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+    virtual FilterTypeList providedFilters() const;
+
+  private:
+    mutable FetchBehaviourSPtr m_fetchBehaviour;
+  };
 
   class EspinaGUI_EXPORT SkeletonTool
   : public Tool
@@ -47,10 +58,12 @@ namespace ESPINA
     public:
       /** \brief SkeletonTool class constructor.
        * \param[in] model model adapter smart pointer.
+       * \param[in] factory model factory smart pointer.
        * \param[in] viewManager view manager smart pointer.
+       * \param[in] undoStack QUndoStack object raw pointer.
        *
        */
-      SkeletonTool(ModelAdapterSPtr model, ViewManagerSPtr viewManager);
+      SkeletonTool(ModelAdapterSPtr model, ModelFactorySPtr factory, ViewManagerSPtr viewManager, QUndoStack *undoStack);
 
       /** \brief SkeletonTool class virtual destructor.
        *
@@ -88,8 +101,11 @@ namespace ESPINA
       void abortOperation()
       { initTool(false); };
 
-    signals:
-      void stoppedOperation();
+    public slots:
+      /** \brief Helper method to create a segmentation and assigns a skeleton output to it.
+       *
+       */
+      void createSegmentation();
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.
@@ -134,6 +150,9 @@ namespace ESPINA
       void updateReferenceItem();
 
       ViewManagerSPtr   m_vm;
+      ModelAdapterSPtr  m_model;
+      ModelFactorySPtr  m_factory;
+      QUndoStack       *m_undoStack;
       bool              m_enabled;
       CategorySelector *m_categorySelector;
       SpinBoxAction    *m_toleranceBox;

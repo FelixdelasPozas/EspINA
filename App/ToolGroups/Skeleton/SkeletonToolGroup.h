@@ -57,7 +57,8 @@ namespace ESPINA
       /** \brief SkeletonToolGroup class virtual destructor.
        *
        */
-      virtual ~SkeletonToolGroup();
+      virtual ~SkeletonToolGroup()
+      {}
 
       virtual void setEnabled(bool value);
 
@@ -65,12 +66,6 @@ namespace ESPINA
       { return m_enabled; }
 
       virtual ToolSList tools();
-
-    public slots:
-      /** \brief Helper method to create a segmentation and assigns a skeleton output to it.
-       *
-       */
-      void createSegmentation();
 
     private:
       ModelAdapterSPtr m_model;

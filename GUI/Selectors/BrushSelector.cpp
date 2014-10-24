@@ -256,7 +256,7 @@ void BrushSelector::setBrushOpacity(int value)
 //-----------------------------------------------------------------------------
 void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
 {
-  if (!item)
+  if (!item || nullptr == volumetricData(item->output()))
   {
     m_item = nullptr;
     m_origin = NmVector3();
@@ -268,12 +268,21 @@ void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
   NmVector3 spacing;
 
   auto volume = volumetricData(item->output());
-  Q_ASSERT(volume);
-  spacing = volume->spacing();
+
+  if(volume != nullptr)
+  {
+    spacing = volume->spacing();
+    m_origin = volume->origin();
+  }
+  else
+  {
+    spacing = m_item->output()->spacing();
+    m_origin = NmVector3{0,0,0};
+  }
+
   m_spacing[0] = spacing[0];
   m_spacing[1] = spacing[1];
   m_spacing[2] = spacing[2];
-  m_origin = volume->origin();
 }
 
 //-----------------------------------------------------------------------------
