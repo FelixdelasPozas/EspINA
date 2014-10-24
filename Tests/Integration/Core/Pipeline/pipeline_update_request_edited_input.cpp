@@ -36,13 +36,15 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
+#include <Filters/DilateFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Testing;
 using namespace ESPINA::IO;
 
-int pipeline_update_input( int argc, char** argv )
+int pipeline_update_request_edited_input( int argc, char** argv )
 {
   class TestFilterFactory
   : public FilterFactory
@@ -50,17 +52,34 @@ int pipeline_update_input( int argc, char** argv )
     virtual FilterTypeList providedFilters() const
     {
       FilterTypeList list;
-      list << "SGS" << "DILATE";
+      list << "DummyChannelReader" << "SGS" << "Dilate";
       return list;
     }
 
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
-      if (type == "SGS") {
-        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
-        return filter;
+      FilterSPtr filter;
+
+      if (type == "DummyChannelReader") {
+        filter = FilterSPtr{new DummyChannelReader()};
       }
+      else
+      {
+        if (type == "SGS")
+        {
+          filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+        }
+        else if (type == "Dilate")
+        {
+          filter = FilterSPtr{new DilateFilter(inputs, type, scheduler)};
+        } else
+        {
+          Q_ASSERT(false);
+        }
+        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
+      }
+
+      return filter;
     }
   };
 
@@ -78,7 +97,7 @@ int pipeline_update_input( int argc, char** argv )
   SampleSPtr sample{new Sample("C3P0")};
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(Testing::channelInput()));
+  ChannelSPtr channel(new Channel(channelInput()));
   channel->setName("channel");
 
   analysis.add(channel);
@@ -88,10 +107,20 @@ int pipeline_update_input( int argc, char** argv )
   InputSList inputs;
   inputs << channel->asInput();
 
-  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
-  segFilter->update();
+  SchedulerSPtr scheduler;
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  FilterSPtr sgs{new SeedGrowSegmentationFilter(inputs, "SGS", scheduler)};
+  sgs->update();
+
+  auto sgsVolume = volumetricData(sgs->output(0));
+  itkVolumeType::IndexType index;
+  index.Fill(0);
+  sgsVolume->draw(index);
+
+  FilterSPtr dilate{new DilateFilter(getInputs(sgs), "Dilate", scheduler)};
+  dilate->update();
+
+  SegmentationSPtr segmentation(new Segmentation(getInput(dilate, 0)));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
@@ -116,32 +145,55 @@ int pipeline_update_input( int argc, char** argv )
   }
 
   auto loadedSegmentation = analysis2->segmentations().first();
-  auto loadedOuptut       = loadedSegmentation->output();
-  auto volume             = volumetricData(loadedOuptut);
+  auto loadedDilateOuptut = loadedSegmentation->output();
+  auto loadedDilateVolume = volumetricData(loadedDilateOuptut);
 
-  if (volume->editedRegions().size() != 0)
+  if (loadedDilateVolume->editedRegions().size() != 0)
   {
-    cerr << "Unexpeceted number of edited regions" << endl;
+    cerr << "Unexpeceted number of Dilate edited regions" << endl;
     error = true;
   }
 
   TemporalStorageSPtr tmpStorage(new TemporalStorage());
-  for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
+  for (auto snapshot : loadedDilateVolume->snapshot(tmpStorage, "segmentation", "1"))
   {
     if (snapshot.first.contains("EditedRegion"))
     {
-      cerr << "Unexpected edited region found" << snapshot.first << endl;
+      cerr << "Unexpected Dilate edited region found" << snapshot.first << endl;
       error = true;
     }
   }
 
-  auto loadedFilter = dynamic_cast<SeedGrowSegmentationFilter*>(loadedOuptut->filter());
-  if (!loadedFilter)
+  auto loadedDilateFilter = dynamic_cast<DilateFilter*>(loadedDilateOuptut->filter());
+  if (!loadedDilateFilter)
   {
-    cerr << "Couldn't recover SGS filter" << endl;
+    cerr << "Couldn't recover Dilate filter" << endl;
+    error = true;
+  }
+
+  auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
+  auto loadedSGSVolume = volumetricData(loadedSGSOutput);
+
+  if (loadedSGSVolume->editedRegions().size() != 1)
+  {
+    cerr << "Unexpeceted number of SGS edited regions" << endl;
     error = true;
   }
   
+  bool editedRegionSnapshotFound = false;
+  for (auto snapshot : loadedSGSVolume->snapshot(tmpStorage, "segmentation", "1"))
+  {
+    if (snapshot.first.contains("EditedRegion"))
+    {
+      editedRegionSnapshotFound = true;
+    }
+  }
+  if (!editedRegionSnapshotFound)
+  {
+    cerr << "SGS edited region not found" << endl;
+    error = true;
+  }
+
   file.absoluteDir().remove(file.fileName());
 
   return error;

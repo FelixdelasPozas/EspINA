@@ -23,9 +23,27 @@
 #define ESPINA_TESTING_SUPPORT_CHANNEL_INPUT_H
 
 #include <Core/Analysis/Input.h>
+#include <Core/Analysis/Filter.h>
 
 namespace ESPINA {
   namespace Testing {
+    class DummyChannelReader
+    : public Filter
+    {
+    public:
+      explicit DummyChannelReader();
+
+      virtual void restoreState(const State& state) override {}
+      virtual State state() const                   override {return State();}
+    protected:
+      virtual Snapshot saveFilterSnapshot() const   override {return Snapshot();}
+      virtual bool needUpdate() const               override {return false;}
+      virtual bool needUpdate(Output::Id id) const  override {return false;}
+      virtual void execute()                        override {}
+      virtual void execute(Output::Id id)           override {}
+      virtual bool ignoreStorageContent() const     override {return false;}
+    };
+
     InputSPtr channelInput();
   }
 }
