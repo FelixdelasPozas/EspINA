@@ -66,8 +66,7 @@ namespace ESPINA
       virtual int numberOfRenderedItems() const
       { return m_representations.size(); }
 
-      virtual bool canRender(ItemAdapterPtr item) const
-      { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
+      virtual bool canRender(ItemAdapterPtr item) const;
 
       virtual RenderableItems renderableItems() const
       { return RenderableItems(RenderableType::SEGMENTATION); }

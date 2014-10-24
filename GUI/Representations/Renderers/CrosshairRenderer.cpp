@@ -127,6 +127,21 @@ bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep) const
 }
 
 //-----------------------------------------------------------------------------
+bool CrosshairRenderer::canRender(ItemAdapterPtr item) const
+{
+  if(item->type() == ItemAdapter::Type::CHANNEL)
+  {
+    auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+    if(viewItem != nullptr)
+    {
+      auto volume = volumetricData(viewItem->output());
+      return (volume != nullptr);
+    }
+  }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 bool CrosshairRenderer::managesRepresentation(const QString &repType) const
 {
   return (repType == CrosshairRepresentation::TYPE);

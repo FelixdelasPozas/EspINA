@@ -177,6 +177,21 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  bool SkeletonRenderer::canRender(ItemAdapterPtr item) const
+  {
+    if(item->type() == ItemAdapter::Type::SEGMENTATION)
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if(viewItem != nullptr)
+      {
+        auto skeleton = skeletonData(viewItem->output());
+        return (skeleton != nullptr);
+      }
+    }
+    return false;
+  }
+
+  //-----------------------------------------------------------------------------
   bool SkeletonRenderer::managesRepresentation(const QString &representationType) const
   {
     return (representationType == SkeletonRepresentation::TYPE);

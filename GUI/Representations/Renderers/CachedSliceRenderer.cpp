@@ -953,6 +953,22 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  bool CachedSliceRenderer::canRender(ItemAdapterPtr item) const
+  {
+    if (item->type() == ItemAdapter::Type::SEGMENTATION || item->type() == ItemAdapter::Type::CHANNEL)
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if(viewItem != nullptr)
+      {
+        auto volume = volumetricData(viewItem->output());
+        return (volume != nullptr);
+      }
+    }
+
+    return false;
+  }
+
+  //-----------------------------------------------------------------------------
   void CachedSliceRenderer::renderFrame(CachedSliceRenderer::CacheNode *node)
   {
     auto task = qobject_cast<CachedSliceRendererTask *>(sender());

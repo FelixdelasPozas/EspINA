@@ -22,6 +22,7 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include "BasicRepresentationFactory.h"
 #include "CrosshairRepresentation.h"
 #include "SliceRepresentation.h"
@@ -31,6 +32,7 @@
 #include "VolumetricRepresentation.hxx"
 #include "VolumetricGPURepresentation.hxx"
 #include "SliceCachedRepresentation.h"
+#include "SkeletonRepresentation.h"
 
 using namespace ESPINA;
 
@@ -55,19 +57,19 @@ RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(Outpu
   if (type == ChannelSliceRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr{new ChannelSliceRepresentation(volume, nullptr)};
+    representation = RepresentationSPtr{ new ChannelSliceRepresentation{volume, nullptr}};
   }
 
   if (type == CrosshairRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr { new CrosshairRepresentation(volume, nullptr) };
+    representation = RepresentationSPtr { new CrosshairRepresentation{volume, nullptr} };
   }
 
   if (type == ChannelSliceCachedRepresentation::TYPE)
   {
     DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr { new ChannelSliceCachedRepresentation(volume, nullptr) };
+    representation = RepresentationSPtr { new ChannelSliceCachedRepresentation{volume, nullptr} };
   }
 
   return representation;
@@ -85,6 +87,7 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
   representations << SmoothedMeshRepresentation::TYPE;
   representations << VolumetricRepresentation<itkVolumeType>::TYPE;
   representations << VolumetricGPURepresentation<itkVolumeType>::TYPE;
+  representations << SkeletonRepresentation::TYPE;
 
   return representations;
 }
@@ -100,7 +103,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (volume)
     {
-      representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+      representation = RepresentationSPtr{ new SegmentationSliceRepresentation{volume, nullptr} };
     }
   }
 
@@ -110,7 +113,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (volume)
     {
-      representation = RepresentationSPtr{new ContourRepresentation(volume, nullptr)};
+      representation = RepresentationSPtr{ new ContourRepresentation{volume, nullptr} };
     }
   }
 
@@ -120,7 +123,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (mesh)
     {
-      representation = RepresentationSPtr{new MeshRepresentation(mesh, nullptr)};
+      representation = RepresentationSPtr{ new MeshRepresentation{mesh, nullptr} };
     }
   }
 
@@ -130,7 +133,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (mesh)
     {
-      representation = RepresentationSPtr{new SmoothedMeshRepresentation(mesh, nullptr)};
+      representation = RepresentationSPtr{ new SmoothedMeshRepresentation{mesh, nullptr} };
     }
   }
 
@@ -140,7 +143,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (volume)
     {
-      representation = RepresentationSPtr{ new VolumetricRepresentation<itkVolumeType>(volume, nullptr)};
+      representation = RepresentationSPtr{ new VolumetricRepresentation<itkVolumeType>{volume, nullptr} };
     }
   }
 
@@ -150,7 +153,7 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (volume)
     {
-      representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>(volume, nullptr)};
+      representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>{volume, nullptr} };
     }
   }
 
@@ -160,7 +163,17 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 
     if (volume)
     {
-      representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr) };
+      representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation{volume, nullptr} };
+    }
+  }
+
+  if(type == SkeletonRepresentation::TYPE)
+  {
+    SkeletonDataSPtr skeleton = skeletonData(output);
+
+    if(skeleton != nullptr)
+    {
+      representation = RepresentationSPtr { new SkeletonRepresentation{skeleton, nullptr} };
     }
   }
 

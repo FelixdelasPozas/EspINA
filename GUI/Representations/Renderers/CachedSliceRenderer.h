@@ -57,82 +57,39 @@ namespace ESPINA
        */
       virtual ~CachedSliceRenderer();
 
-      /** \brief Implements Renderer::icon() const.
-       *
-       */
       virtual const QIcon icon() const
       { return QIcon(":/espina/slice.png"); }
 
-      /** \brief Implements Renderer::name() const.
-       *
-       */
       virtual const QString name() const
       { return "Slice (Cached)"; }
 
-      /** \brief Implements Renderer::tooltip() const.
-       *
-       */
       virtual const QString tooltip() const
       { return "Segmentation's Slices (Cached)"; }
 
-      /** \brief RepresentationRenderer::addRepresentation().
-       *
-       */
       virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-      /** \brief RepresentationRenderer::removeRepresentation().
-       *
-       */
       virtual void removeRepresentation(RepresentationSPtr rep);
 
-      /** \brief RepresentationRenderer::hasRepresentation() const.
-       *
-       */
       virtual bool hasRepresentation(RepresentationSPtr rep) const;
 
-      /** \brief RepresentationRenderer::managesRepresentation() const.
-       *
-       */
       virtual bool managesRepresentation(const QString &representationType) const;
 
-      /** \brief Implements Renderer::clone() const.
-       *
-       */
       virtual RendererSPtr clone() const
       { return RendererSPtr(new CachedSliceRenderer(m_scheduler)); }
 
-      /** \brief Implements Renderer::numberOfvtkActors() const.
-       *
-       */
       virtual unsigned int numberOfvtkActors() const;
 
-      /** \brief Implements RepresentationRenderer::renderableItems() const.
-       *
-       */
       virtual RenderableItems renderableItems() const
       { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
 
-      /** \brief Implements RepresentationRenderer::canRender() const.
-       *
-       */
-      virtual bool canRender(ItemAdapterPtr item) const
-      { return (item->type() == ItemAdapter::Type::SEGMENTATION || item->type() == ItemAdapter::Type::CHANNEL); }
+      virtual bool canRender(ItemAdapterPtr item) const;
 
-      /** \brief Implements Renderer::renderType() const.
-       *
-       */
       virtual RendererTypes renderType() const
       { return RendererTypes(RENDERER_VIEW2D); }
 
-      /** \brief Implements Renderer::numberOfRenderedItems() const.
-       *
-       */
       virtual int numberOfRenderedItems() const
       { return m_representations.size(); }
 
-      /** \brief RepresentationRenderer::pick().
-       *
-       */
       virtual ViewItemAdapterList pick(int x, int y, Nm z,
                                        vtkSmartPointer<vtkRenderer> renderer,
                                        RenderableItems itemType = RenderableItems(),
@@ -174,25 +131,13 @@ namespace ESPINA
        */
       virtual unsigned long long getEstimatedMemoryUsed();
 
-      /** \brief Overrides Renderer::setView().
-       *
-       */
       virtual void setView(RenderView* rView) override;
 
-      /** \brief Overrides Renderer::setEnable().
-       *
-       */
       virtual void setEnable(bool value) override;
 
     protected:
-      /** \brief Implements Renderer:hide().
-       *
-       */
       virtual void hide();
 
-      /** \brief Implements Renderer::show().
-       *
-       */
       virtual void show();
 
     private:

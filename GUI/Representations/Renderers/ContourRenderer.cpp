@@ -89,6 +89,21 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  bool ContourRenderer::canRender(ItemAdapterPtr item) const
+  {
+    if(item->type() == ItemAdapter::Type::SEGMENTATION)
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if (viewItem != nullptr)
+      {
+        auto volume = volumetricData(viewItem->output());
+        return (volume != nullptr);
+      }
+    }
+
+    return false;
+  }
+  //-----------------------------------------------------------------------------
   bool ContourRenderer::managesRepresentation(const QString &repType) const
   {
     return (repType == ContourRepresentation::TYPE);
