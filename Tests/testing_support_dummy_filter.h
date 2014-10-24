@@ -19,8 +19,8 @@
  *
  */
 
-#ifndef TESTING_DUMMYFILTER_H
-#define TESTING_DUMMYFILTER_H
+#ifndef TESTING_SUPPORT_DUMMY_FILTER_H
+#define TESTING_SUPPORT_DUMMY_FILTER_H
 
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/DataProxy.h>
@@ -32,21 +32,18 @@ namespace ESPINA {
     : public Filter
     {
     public:
-      explicit DummyFilter()
-      : Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000))){}
-      virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
-      virtual void restoreState(const State& state){}
-      virtual State state() const{return State();}
+      explicit DummyFilter();
+
+      virtual void restoreState(const State& state) override {}
+      virtual State state() const                   override {return State();}
 
     protected:
-    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const{}
-      virtual bool needUpdate(Output::Id id) const{}
-      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-      virtual void execute(){}
-      virtual void execute(Output::Id id){}
-      virtual bool ignoreStorageContent() const {return false;}
-      virtual bool invalidateEditedRegions() {return false;}
+    virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
+      virtual bool needUpdate() const               override {return true;}
+      virtual bool needUpdate(Output::Id id) const  override {return true;}
+      virtual void execute()                        override {}
+      virtual void execute(Output::Id id)           override {}
+      virtual bool ignoreStorageContent() const     override {return false;}
     };
   }
 
@@ -62,7 +59,7 @@ namespace ESPINA {
     virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id) { return false; }
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
-    virtual Snapshot editedRegionsSnapshot() const { return Snapshot();}
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
     virtual DataProxySPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
     virtual void undo() {};
@@ -84,4 +81,4 @@ namespace ESPINA {
   };
 }
 
-#endif // TESTING_DUMMYFILTER_H
+#endif // TESTING_SUPPORT_DUMMY_FILTER_H

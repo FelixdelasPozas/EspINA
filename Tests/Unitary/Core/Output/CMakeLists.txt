@@ -12,6 +12,7 @@ set(LIB_DEPENDECIES
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${LIB_DEPENDECIES}
+  ${TESTING_DEPENDECIES}
 )
 
 qt4_wrap_cpp(SUBJECT_MOCS
@@ -44,7 +45,6 @@ add_executable(Output_Tests
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
-  output_testing_support.cpp
   )
 
 target_link_libraries(Output_Tests ${LIB_DEPENDECIES} )

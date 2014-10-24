@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,63 +23,50 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
-#include "Filters/SeedGrowSegmentationFilter.h"
-
-#include "testing_support_channel_input.h"
+#include <Core/IO/ClassificationXML.h>
 
 using namespace std;
 using namespace ESPINA;
-using namespace ESPINA::Testing;
+using namespace ESPINA::IO;
 
-int seed_grow_segmentation_save_restore_state(int argc, char** argv)
+int io_classification_xml_io(int argc, char** argv)
 {
   bool error = false;
 
-  InputSList   inputs;
-  inputs << channelInput();
+  ClassificationSPtr classification{new Classification("test")};
 
-  Filter::Type  type{"SGS"};
+  classification->createNode("1");
+  classification->createNode("1/1");
+  classification->createNode("1/2");
+  classification->createNode("2");
+  classification->createNode("3");
+  classification->createNode("3/1/1");
 
-  SchedulerSPtr scheduler;
-
-  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
-
-  NmVector3 seed{1, 2, 3};
-  int lth = 10;
-  int uth = 20;
-  int cr  = 5;
-
-  sgsf.setSeed(seed);
-  sgsf.setLowerThreshold(lth);
-  sgsf.setUpperThreshold(uth);
-  sgsf.setClosingRadius(cr);
-
-  State state{sgsf.state()};
-
-  SeedGrowSegmentationFilter restoredSgsf(inputs, type, scheduler);
-
-  restoredSgsf.restoreState(state);
-
-  if (restoredSgsf.seed() != seed){
-    cerr << "Wrong seed value " << endl;
+  QFileInfo file("classification.xml");
+  try
+  {
+    ClassificationXML::save(classification, file);
+  } catch (...) {
+    cerr << "Couldn't save classification" << endl;
     error = true;
   }
 
-  if (restoredSgsf.lowerThreshold() != lth){
-    cerr << "Wrong lower threshold value " << endl;
+  ClassificationSPtr loadedClassification;
+  try
+  {
+    loadedClassification = ClassificationXML::load(file);
+  } catch (...) {
+    cerr << "Couldn't load classification" << endl;
     error = true;
   }
 
-  if (restoredSgsf.upperThreshold() != uth){
-    cerr << "Wrong upper threshold value " << endl;
-    error = true;
-  }
-
-  if (restoredSgsf.closingRadius() != cr){
-    cerr << "Wrong closing radius value " << endl;
+  if (print(classification) != print(loadedClassification)) {
+    cerr << "Unexpected Loaded Classification" << endl;
+    cerr << print(classification).toStdString();
+    cerr << print(loadedClassification).toStdString();
     error = true;
   }
 

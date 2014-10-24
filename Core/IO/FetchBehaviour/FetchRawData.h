@@ -26,6 +26,7 @@
 
 namespace ESPINA {
 
+  /// This Fetch FetchBehaviour only fetch existing data from temporal storage
   class EspinaCore_EXPORT FetchRawData
   : public FetchBehaviour
   {

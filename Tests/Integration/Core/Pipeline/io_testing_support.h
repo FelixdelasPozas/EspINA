@@ -23,31 +23,37 @@
 #define TESTING_DUMMYFILTER_H
 
 #include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/MultiTasking/Scheduler.h>
 
 namespace ESPINA {
-  namespace Testing {
+  namespace IO_Testing {
     class DummyFilter
     : public Filter
     {
     public:
-      explicit DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr scheduler)
-      : Filter(input, type, scheduler)
-      { m_outputs[0] = OutputSPtr{new Output(this, 0)};}
+      explicit DummyFilter()
+      : Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
+      { setName("DummyFilter");
+        m_outputs[0] = OutputSPtr{new Output(this, 0)};
+        m_outputs[0]->setData(DataSPtr{new SparseVolume<itkVolumeType>({0,10,0,10,0,10})});
+      }
       virtual void restoreState(const State& state) {}
       virtual State state() const {return State();}
 
     protected:
-    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const{}
-      virtual bool needUpdate(Output::Id id) const{}
-      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
+      virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
+      virtual bool needUpdate() const {return false;}
+      virtual bool needUpdate(Output::Id id) const {return false;}
       virtual void execute(){}
       virtual void execute(Output::Id id){}
       virtual bool ignoreStorageContent() const {return false;}
-      virtual bool areEditedRegionsInvalidated(){return false;}
+      virtual bool areEditedRegionsInvalidated() {return false;}
     };
   }
 }
+
+bool operator!=(ESPINA::Analysis &lhs, ESPINA::Analysis &rhs);
 
 #endif // TESTING_DUMMYFILTER_H

@@ -245,7 +245,7 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
 {
   auto roOutput = findOutput(roVertex);
 
-  auto filter = roOutput.first;
+  auto filter   = roOutput.first;
   auto outputId = roOutput.second;
 
   if (!filter)
@@ -253,7 +253,7 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
     throw Invalid_Input_Exception();
   }
 
-  filter->update(outputId); // Existing outputs weren't stored in previous versions
+  filter->update(outputId); // Existing outputs were stored in previous versions
 
   auto segmentation = m_factory->createSegmentation(filter, outputId);
 

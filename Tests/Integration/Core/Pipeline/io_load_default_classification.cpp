@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,63 +23,57 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
-#include "Filters/SeedGrowSegmentationFilter.h"
-
-#include "testing_support_channel_input.h"
+#include <Core/IO/ClassificationXML.h>
 
 using namespace std;
 using namespace ESPINA;
-using namespace ESPINA::Testing;
+using namespace ESPINA::IO;
 
-int seed_grow_segmentation_save_restore_state(int argc, char** argv)
+int io_load_default_classification(int argc, char** argv)
 {
   bool error = false;
 
-  InputSList   inputs;
-  inputs << channelInput();
+  QFileInfo input(":/espina/defaultClassification.xml");
 
-  Filter::Type  type{"SGS"};
+  try
+  {
+    auto defaultClassification = ClassificationXML::load(input);
 
-  SchedulerSPtr scheduler;
+    auto synapse = defaultClassification->node("Synapse");
+    if (!synapse)
+    {
+      error = true;
+      cerr << "Category synapse not found" << endl;
+    }
 
-  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
+    if (!synapse->properties().contains("Dim_X"))
+    {
+      error = true;
+      cerr << "Synapse: Property Dim X not found" << endl;
+    } else if (synapse->property("Dim_X").toUInt() != 500) {
+      error = true;
+      cerr << "Synapse: Unexpected value at property Dim X" << endl;
+    }
 
-  NmVector3 seed{1, 2, 3};
-  int lth = 10;
-  int uth = 20;
-  int cr  = 5;
-
-  sgsf.setSeed(seed);
-  sgsf.setLowerThreshold(lth);
-  sgsf.setUpperThreshold(uth);
-  sgsf.setClosingRadius(cr);
-
-  State state{sgsf.state()};
-
-  SeedGrowSegmentationFilter restoredSgsf(inputs, type, scheduler);
-
-  restoredSgsf.restoreState(state);
-
-  if (restoredSgsf.seed() != seed){
-    cerr << "Wrong seed value " << endl;
-    error = true;
-  }
-
-  if (restoredSgsf.lowerThreshold() != lth){
-    cerr << "Wrong lower threshold value " << endl;
-    error = true;
-  }
-
-  if (restoredSgsf.upperThreshold() != uth){
-    cerr << "Wrong upper threshold value " << endl;
-    error = true;
-  }
-
-  if (restoredSgsf.closingRadius() != cr){
-    cerr << "Wrong closing radius value " << endl;
+    auto vesicle = defaultClassification->node("Vesicle");
+    if (!vesicle)
+    {
+      error = true;
+      cerr << "Category vesicle not found" << endl;
+    }
+    if (!vesicle->properties().contains("Dim_X"))
+    {
+      error = true;
+      cerr << "Vesicle: Property Dim X not found" << endl;
+    } else if (vesicle->property("Dim_X").toUInt() != 100) {
+      error = true;
+      cerr << "Vesicle: Unexpected value at property Dim X" << endl;
+    }
+  } catch (...) {
+    cerr << "Couldn't load default classification" << endl;
     error = true;
   }
 

@@ -22,8 +22,6 @@
 #ifndef TESTING_DUMMYFILTER_H
 #define TESTING_DUMMYFILTER_H
 
-#include <Core/Analysis/Filter.h>
-#include <Core/MultiTasking/Scheduler.h>
 
 namespace ESPINA {
   namespace Testing {
@@ -31,23 +29,39 @@ namespace ESPINA {
     : public Filter
     {
     public:
-      explicit DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr scheduler)
-      : Filter(input, type, scheduler)
-      { m_outputs[0] = OutputSPtr{new Output(this, 0)};}
+      explicit DummyFilter()
+      : Filter(InputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
+      {}
       virtual void restoreState(const State& state) {}
-      virtual State state() const {return State();}
+      virtual State state() const{ return State();}
 
     protected:
-    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const{}
-      virtual bool needUpdate(Output::Id id) const{}
-      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-      virtual void execute(){}
-      virtual void execute(Output::Id id){}
-      virtual bool ignoreStorageContent() const {return false;}
+      virtual Snapshot saveFilterSnapshot() const {}
+      virtual bool needUpdate() const {return true;}
+      virtual bool needUpdate(Output::Id id) const {return true;}
+      virtual void execute(){ execute(0); }
+      virtual void execute(Output::Id id)
+      {
+        if (!m_outputs.contains(0)) {
+          m_outputs[0] = OutputSPtr(new Output(this, 0));
+        }
+
+        Bounds bounds{0,5,0,5,0,5};
+        DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds)};
+
+        // Modify output data during filter execution
+        // it should be cleared by filter update after execution
+        itkVolumeType::IndexType index;
+        index.Fill(0);
+        volume->draw(index);
+
+        m_outputs[0]->setData(volume);
+      }
+      virtual bool ignoreStorageContent() const {return true;}
       virtual bool areEditedRegionsInvalidated(){return false;}
     };
   }
 }
+
 
 #endif // TESTING_DUMMYFILTER_H

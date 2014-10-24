@@ -27,6 +27,7 @@
 
 // Qt
 #include <QStack>
+#include <QDebug>
 
 namespace ESPINA
 {
@@ -67,7 +68,9 @@ namespace ESPINA
     QDir tmpDir;
 
     if (parent)
+    {
       tmpDir = *parent;
+    }
     else
     {
       tmpDir = QDir::tempPath();
@@ -140,7 +143,10 @@ namespace ESPINA
     QString fileName = m_storageDir.absoluteFilePath(descriptor);
 
     QFile file(fileName);
-    file.open(QIODevice::ReadOnly);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+      qWarning() << "Snapshot Not Found:" << fileName;
+    }
     QByteArray data = file.readAll();
     file.close();
 

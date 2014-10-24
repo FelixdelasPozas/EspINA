@@ -101,9 +101,9 @@ public:
     // if (!m_oldVolume && (output->isEdited() || volumeSize < MAX_UNDO_SIZE))
     if (!m_oldVolume && output->isEdited())
     {
-      m_oldBounds = volume->bounds();
-      m_oldVolume = volume->itkImage();
-//       m_editedRegions = output->editedRegions();
+      m_oldBounds     = volume->bounds();
+      m_oldVolume     = volume->itkImage();
+      m_editedRegions = volume->editedRegions();
     }
 
     //bool ignoreUpdate = m_newVolume.IsNotNull();
@@ -114,20 +114,6 @@ public:
     m_filter->setClosingRadius(m_closingRadius);
 
     update();
-//     if (m_newVolume.IsNull())V
-//     {
-//       update();
-//
-//       SegmentationVolumeSPtr newVolume = volume;
-//       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-//         m_newVolume = volume->cloneVolume();
-//     }
-//     else
-//     {
-// //       volume->setVolume(m_newVolume);
-//     }
-
-    output->clearEditedRegions();
   }
 
   virtual void undo()
@@ -144,7 +130,7 @@ public:
     {
       volume->resize(m_oldBounds);
       volume->draw(m_oldVolume);
-//       output->setEditedRegions(m_editedRegions);
+      volume->setEditedRegions(m_editedRegions);
     } else
     {
       update();
@@ -155,7 +141,6 @@ private:
   void update()
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    // m_filter->forceUpdate();
     m_filter->update(0);
     QApplication::restoreOverrideCursor();
   }
@@ -169,9 +154,8 @@ private:
 
   Bounds m_oldBounds;
   itkVolumeType::Pointer m_oldVolume;
+  BoundsList             m_editedRegions;
   //itkVolumeType::Pointer m_newVolume;
-
-  //FilterOutput::EditedRegionSList m_editedRegions;
 };
 
 //----------------------------------------------------------------------------

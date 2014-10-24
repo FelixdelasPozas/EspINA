@@ -366,6 +366,8 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::ignoreStorageContent() const
 {
+  // TODO: Check if prevROI keeps true after two consecutive executions
+  // recovering from storage
   return m_forceUpdate
       || m_lowerTh   != m_prevLowerTh
       || m_upperTh   != m_prevUpperTh

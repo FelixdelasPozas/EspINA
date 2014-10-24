@@ -92,6 +92,13 @@ namespace ESPINA
     virtual BoundsList editedRegions() const
     { return m_editedRegions; }
 
+    /** \brief Set current data edited regions
+     *
+     */
+    virtual void setEditedRegions(const BoundsList &regions)
+    { m_editedRegions = regions; }
+
+
     /** \brief Clears the edited regions list.
      *
      */

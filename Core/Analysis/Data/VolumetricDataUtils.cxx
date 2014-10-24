@@ -482,8 +482,9 @@ namespace ESPINA {
 
     storage->makePath(path);
 
-    QString mhd = QString("%1/%2.mhd").arg(path).arg(id);
-    QString raw = QString("%1/%2.raw").arg(path).arg(id);
+    QString mhd = QString("%1/%2").arg(path).arg(id);
+    QString raw = mhd;
+    raw.replace(".mhd",".raw");
 
     bool releaseFlag = volume->GetReleaseDataFlag();
     volume->ReleaseDataFlagOff();

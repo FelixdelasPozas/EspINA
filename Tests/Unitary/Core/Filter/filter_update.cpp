@@ -25,63 +25,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-
-#include "Filters/SeedGrowSegmentationFilter.h"
-
-#include "testing_support_channel_input.h"
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/MultiTasking/Scheduler.h>
+#include "filter_testing_support.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-int seed_grow_segmentation_save_restore_state(int argc, char** argv)
+
+int filter_update( int argc, char** argv )
 {
   bool error = false;
 
-  InputSList   inputs;
-  inputs << channelInput();
+  DummyFilter *filter{new DummyFilter()};
 
-  Filter::Type  type{"SGS"};
+  filter->update();
 
-  SchedulerSPtr scheduler;
+  auto output = filter->output(0);
 
-  SeedGrowSegmentationFilter sgsf(inputs, type, scheduler);
-
-  NmVector3 seed{1, 2, 3};
-  int lth = 10;
-  int uth = 20;
-  int cr  = 5;
-
-  sgsf.setSeed(seed);
-  sgsf.setLowerThreshold(lth);
-  sgsf.setUpperThreshold(uth);
-  sgsf.setClosingRadius(cr);
-
-  State state{sgsf.state()};
-
-  SeedGrowSegmentationFilter restoredSgsf(inputs, type, scheduler);
-
-  restoredSgsf.restoreState(state);
-
-  if (restoredSgsf.seed() != seed){
-    cerr << "Wrong seed value " << endl;
+  if (output->isEdited()) {
+    cerr << "Unexpected filter output modifications" <<  endl;
     error = true;
   }
 
-  if (restoredSgsf.lowerThreshold() != lth){
-    cerr << "Wrong lower threshold value " << endl;
+  auto volume = volumetricData(output);
+  itkVolumeType::IndexType index;
+  index.Fill(0);
+  volume->draw(index);
+
+  if (!output->isEdited()) {
+    cerr << "Exepected filter output modifications" <<  endl;
     error = true;
   }
 
-  if (restoredSgsf.upperThreshold() != uth){
-    cerr << "Wrong upper threshold value " << endl;
+  filter->update();
+
+  if (output->isEdited()) {
+    cerr << "Unexpected filter output modifications after re-execution" <<  endl;
     error = true;
   }
-
-  if (restoredSgsf.closingRadius() != cr){
-    cerr << "Wrong closing radius value " << endl;
-    error = true;
-  }
-
   return error;
 }

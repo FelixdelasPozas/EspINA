@@ -15,6 +15,7 @@ endif()
 
 include_directories(
   ${CMAKE_BINARY_DIR}
+  .
   )
 
 set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
@@ -23,6 +24,16 @@ set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
+set (TEST_SOURCES
+  testing_support_channel_input.cpp
+  testing_support_dummy_filter.cpp
+)
+
+add_library(EspinaTesting SHARED ${TEST_SOURCES})
+
+set(TESTING_DEPENDECIES
+  EspinaTesting
+  )
 
 if (BUILD_UNIT_TESTS)
 

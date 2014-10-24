@@ -149,11 +149,6 @@ namespace ESPINA
      */
     void update();
 
-    /** \brief Returns true if the output need to save data to disk.
-     *
-     */
-    bool hasToBeSaved() const;
-
     /** \brief Returns the bounds of the output.
      *
      * TODO: Representation may have different bounds, in which case,
@@ -179,6 +174,12 @@ namespace ESPINA
      *
      */
     void onDataChanged();
+
+    /** \brief Returns true if the output need to save data to disk.
+     *
+     */
+    bool isSegmentationOutput() const;
+
 
   signals:
     void modified();

@@ -48,7 +48,7 @@ namespace ESPINA {
       virtual void execute(){}
       virtual void execute(Output::Id id){}
       virtual bool ignoreStorageContent() const {return false;}
-      virtual bool invalidateEditedRegions() {return false;}
+      virtual bool areEditedRegionsInvalidated(){return false;}
     };
   }
 }

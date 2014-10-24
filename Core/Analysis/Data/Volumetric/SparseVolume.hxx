@@ -422,13 +422,13 @@ namespace ESPINA
      *
      */
     QString singleBlockPath(const QString &id) const
-    { return QString("%1_%2").arg(id).arg(this->type()); }
+    { return QString("%1_%2.mhd").arg(id).arg(this->type()); }
 
     /** \brief Helper method to assist fetching data from disk.
      *
      */
     QString multiBlockPath(const QString &id, int part) const
-    { return QString("%1_%2_%3").arg(id).arg(this->type()).arg(part); }
+    { return QString("%1_%2_%3.mhd").arg(id).arg(this->type()).arg(part); }
 
   protected:
     mutable
@@ -834,7 +834,7 @@ namespace ESPINA
     int regionId = 0;
     for(auto region : regions)
     {
-      auto snapshotId = QString("%1_%2_EditedRegion_%3").arg(id).arg(this->type()).arg(regionId);
+      auto snapshotId = QString("%1_%2_EditedRegion_%3.mhd").arg(id).arg(this->type()).arg(regionId);
       regionsSnapshot << createSnapshot<T>(itkImage(region), storage, path, snapshotId);
       ++regionId;
     }

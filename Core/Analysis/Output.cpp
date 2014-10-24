@@ -86,7 +86,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 {
   Snapshot snapshot;
 
-  bool saveOutput = hasToBeSaved();
+  auto saveOutput = isSegmentationOutput();
 
   for(auto dataProxy : m_data)
   {
@@ -199,6 +199,12 @@ void Output::setData(Output::DataSPtr data)
   m_data[type]->set(data);
   data->setOutput(this);
 
+  // Alternatively we could keep the previous edited clearEditedRegions
+  // but at the moment I can't find any scenario where it could be useful
+  BoundsList regions;
+  regions << data->bounds();
+  data->setEditedRegions(regions);
+
   updateModificationTime();
   emit modified();
 
@@ -239,7 +245,7 @@ void Output::update()
 }
 
 //----------------------------------------------------------------------------
-bool Output::hasToBeSaved() const
+bool Output::isSegmentationOutput() const
 {
   auto analysis = m_filter->analysis();
   if (analysis)

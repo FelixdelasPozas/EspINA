@@ -90,20 +90,28 @@ bool Filter::update()
 {
   bool updated = true;
 
-  if (numberOfOutputs() != 0 || createPreviousOutputs())
+  if (numberOfOutputs() != 0 || restorePreviousOutputs())
   {
     for(auto id : m_outputs.keys())
     {
       updated &= update(id);
     }
   }
-  else
+  else if (needUpdate())
   {
     for(auto input : m_inputs)
     {
-      input->output()->update(); //TODO: Move to input api?
+      input->update();
     }
+
     execute();
+
+    // If no previous output is restored then there is no edited
+    // regions to be restored either
+    for (auto output : m_outputs)
+    {
+      output->clearEditedRegions();
+    }
   }
 
   return updated;
@@ -112,13 +120,17 @@ bool Filter::update()
 //----------------------------------------------------------------------------
 bool Filter::update(Output::Id id)
 {
-  bool invalidateRegions = areEditedRegionsInvalidated();
-  bool outputNeedsUpdate = needUpdate(id);
-
-   if (invalidateRegions || outputNeedsUpdate)
+   if (needUpdate(id))
    {
+     OutputPtr prevOutput = nullptr;
+     if (validOutput(id))
+     {
+       prevOutput = m_outputs[id].get();
+     }
+
      // Invalidate previous edited regions
-     if (invalidateRegions && validOutput(id))
+     bool invalidatePreviousEditedRegions = ignoreStorageContent();
+     if (validOutput(id) && invalidatePreviousEditedRegions)
      {
        m_outputs[id]->clearEditedRegions();
      }
@@ -132,7 +144,15 @@ bool Filter::update(Output::Id id)
 
        execute(id);
 
-       if (validOutput(id))
+       Q_ASSERT(existOutput(id));
+       // Existing output objects must remain between filter executions
+       Q_ASSERT(!prevOutput || prevOutput == m_outputs[id].get());
+
+       if (invalidatePreviousEditedRegions)
+       {
+         m_outputs[id]->clearEditedRegions();
+       }
+       else
        {
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }
@@ -148,7 +168,7 @@ Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 , m_analysis                 {nullptr}
 , m_type                     {type}
 , m_inputs                   {inputs}
-, m_invalidateSortoredOutputs{false}
+//, m_invalidateSortoredOutputs{false}
 , m_fetchBehaviour           {nullptr}
 {
   setName(m_type);
@@ -206,17 +226,17 @@ bool Filter::fetchOutputData(Output::Id id)
   return outputDataFetched;
 }
 
-//----------------------------------------------------------------------------
-void Filter::clearPreviousOutputs()
-{
-  m_outputs.clear();
-  m_invalidateSortoredOutputs = true;
-}
+// //----------------------------------------------------------------------------
+// void Filter::clearPreviousOutputs()
+// {
+//   m_outputs.clear();
+//   m_invalidateSortoredOutputs = true;
+// }
 
 //----------------------------------------------------------------------------
 bool Filter::validStoredInformation() const
 {
-  return !m_invalidateSortoredOutputs && storage() && !ignoreStorageContent();
+  return /*!m_invalidateSortoredOutputs &&*/ storage() && !ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------
@@ -224,14 +244,14 @@ bool Filter::existOutput(Output::Id id) const
 {
   if (m_outputs.isEmpty())
   {
-    createPreviousOutputs();
+    restorePreviousOutputs();
   }
 
   return m_outputs.contains(id);
 }
 
 //----------------------------------------------------------------------------
-bool Filter::createPreviousOutputs() const
+bool Filter::restorePreviousOutputs() const
 {
   if (validStoredInformation())
   {
