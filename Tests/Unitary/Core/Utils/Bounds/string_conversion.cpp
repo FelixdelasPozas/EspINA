@@ -28,45 +28,30 @@
 
 #include "Bounds.h"
 
+#include <sstream>
+
 using namespace ESPINA;
 using namespace std;
 
-int invalid_list_constructor( int argc, char** argv )
+int string_conversion( int argc, char** argv )
 {
+
   int error = 0;
-  try {
-    Bounds bounds{0,1,2,3};
+
+  Bounds expectedBounds{1,2,3,4,5,6};
+
+  QString boundsString   = expectedBounds.toString();
+  QString expectedString = "{[1,2),[3,4),[5,6)}";
+
+  if (boundsString != expectedString) {
+    cerr << boundsString.toStdString() << " is not equal to " << expectedString.toStdString() << endl;
     error = EXIT_FAILURE;
-    cerr << bounds << endl;
-  } catch (Wrong_Number_Initial_Values& e) {
   }
 
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8};
+  Bounds bounds(expectedString);
+  if (bounds != expectedBounds) {
+    cerr << bounds << " is not equal to " << expectedBounds << endl;
     error = EXIT_FAILURE;
-    cerr << bounds << endl;
-  } catch (Wrong_Number_Initial_Values& e) {
-  }
-
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_Bounds_Token& e) {
-  }
-
-  try {
-    Bounds bounds{0,1,2,3,4,5,6,7,8,9,10,11};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_Bounds_Token& e) {
-  }
-
-  try {
-    Bounds bounds{'(',1,2,3,4,5,6,7,8,9,10,11};
-    error = EXIT_FAILURE;
-    cerr << "Invalid Token" << bounds << endl;
-  } catch (Invalid_Bounds_Token& e) {
   }
 
   return error;

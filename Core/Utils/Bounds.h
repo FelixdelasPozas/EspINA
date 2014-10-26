@@ -45,8 +45,8 @@
 
 namespace ESPINA
 {
-  struct Wrong_number_initial_values {};
-  struct Invalid_bounds_token {};
+  struct Wrong_Number_Initial_Values {};
+  struct Invalid_Bounds_Token {};
   struct Invalid_Bounds_Exception{};
 
   /** \class Bounds
@@ -64,7 +64,7 @@ namespace ESPINA
       explicit Bounds();
 
       /** \brief Bounds class constructor.
-       * \param[in] bounds, initial list of values.
+       * \param[in] bounds initial list of values.
        *
        * Create Bounds from an initial list of values
        *
@@ -87,7 +87,16 @@ namespace ESPINA
        * Constructs the bounds of a point.
        *
        */
-      explicit Bounds(const NmVector3& point);
+      explicit Bounds(const NmVector3 &point);
+
+
+      /** \brief Bounds class constructor.
+       * \param[in] strimg bounds serialization
+       *
+       * Constructs the bounds from its serialization
+       *
+       */
+      explicit Bounds(const QString &string);
 
       /** \brief Return whether or not Bounds define a valid region of the 3D space
        *
@@ -110,50 +119,50 @@ namespace ESPINA
       { return m_bounds[idx]; }
 
       /** \brief Set wheter or not lower bounds in the given direction should be included in the region defined by the bounds
-       * \param[in] dir, axis direction.
-       * \param[in] value, true to include lower value, false otherwise.
+       * \param[in] dir axis direction.
+       * \param[in] value true to include lower value, false otherwise.
        *
        */
       void setLowerInclusion(const Axis dir, const bool value)
       { m_lowerInclusion[idx(dir)] = value; }
 
       /** \brief Set wheter or not lower bounds should be included in the region defined by the bounds.
-       * \param[in] value, true to include all lower values, false otherwise.
+       * \param[in] value true to include all lower values, false otherwise.
        *
        */
       void setLowerInclusion(const bool value)
       { m_lowerInclusion[idx(Axis::X)] = m_lowerInclusion[idx(Axis::Y)] = m_lowerInclusion[idx(Axis::Z)] = value; }
 
       /** \brief Return wheter or not lower bounds in the given direction should be included in the region defined by the bounds
-       * \param[in] dir, axis direction.
+       * \param[in] dir axis direction.
        *
        */
       bool areLowerIncluded(const Axis dir) const
       { return m_lowerInclusion[idx(dir)]; }
 
       /** \brief Set wheter or not upper bounds in the given direction should be included in the region defined by the bounds
-       * \param[in] dir, axis direction.
-       * \param[in] value, true to include lower value, false otherwise.
+       * \param[in] dir axis direction.
+       * \param[in] value true to include lower value, false otherwise.
        *
        */
       void setUpperInclusion(const Axis dir, const bool value)
       { m_upperInclusion[idx(dir)] = value; }
 
       /** \brief Set wheter or not upper bounds should be included in the region defined by the bounds
-       * \param[in] value, true to include all upper values, false otherwise.
+       * \param[in] value true to include all upper values, false otherwise.
        *
        */
       void setUpperInclusion(const bool value)
       { m_upperInclusion[idx(Axis::X)] = m_upperInclusion[idx(Axis::Y)] = m_upperInclusion[idx(Axis::Z)] = value; }
 
       /** \brief Return wheter or not upper bounds in the given direction should be included in the region defined by the bounds
-       * \param[in] dir, axis direction.
+       * \param[in] dir axis direction.
        */
       bool areUpperIncluded(const Axis dir) const
       { return m_upperInclusion[idx(dir)]; }
 
       /** \brief Return the distance between both sides of the bounds in a given direction
-       * \param[in] dir, axis direction.
+       * \param[in] dir axis direction.
        *
        */
       double lenght(const Axis dir) const
@@ -173,8 +182,8 @@ namespace ESPINA
   using BoundsList = QList<Bounds>;
 
   /** \brief Return wether b1 intersects b2 or not.
-   * \param[in] b1, bounds object.
-   * \param[in] b2, bounds object.
+   * \param[in] b1 bounds object.
+   * \param[in] b2 bounds object.
    * \param[in] spacing.
    *
    *  In case just the bounds have one value in common, both
@@ -183,8 +192,8 @@ namespace ESPINA
   bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return the bounds which belong both to b1 and b2.
-   * \param[in] b1, bounds object.
-   * \param[in] b2, bounds object.
+   * \param[in] b1 bounds object.
+   * \param[in] b2 bounds object.
    * \param[in] spacing.
    *
    *  In case just the bounds have one value in common, both
@@ -193,17 +202,17 @@ namespace ESPINA
   Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return the minimum bouds containing b1 and b2
-   * \param[in] b1, bounds object.
-   * \param[in] b2, bounds object.
+   * \param[in] b1 bounds object.
+   * \param[in] b2 bounds object.
    * \param[in] spacing.
    *
    */
   Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
   /** \brief Return whether a bound is contained inside another
-   * \param[in] container, bounds object.
-   * \param[in] contained, bounds object.
-   * \param[in] spacing.
+   * \param[in] container bounds object.
+   * \param[in] contained bounds object.
+   * \param[in] spacing
    *
    *  Boundaires are inside if and only if both boundaries
    *  are equally included
@@ -211,8 +220,8 @@ namespace ESPINA
   bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained, const NmVector3 &spacing=NmVector3{1,1,1});
 
   /** \brief Return whether a bound contains a point or not.
-   * \param[in] bounds, bounds object.
-   * \param[in] point, point object.
+   * \param[in] bounds bounds object.
+   * \param[in] point point object.
    * \param[in] spacing.
    *
    *  Boundaires are inside if and only if both boundaries
@@ -241,8 +250,8 @@ namespace ESPINA
   bool EspinaCore_EXPORT operator!=(const Bounds& lhs, const Bounds& rhs);
 
   /** \brief Returns true if the blocks are adjacent and the bounding box is the union of both.
-   * \param[in] lhs, bounds object.
-   * \param[in] rhs, bounds object.
+   * \param[in] lhs bounds object.
+   * \param[in] rhs bounds object.
    *
    * To be adjacent the blocks must have equal sizes on two sides and be adjacent on the
    * third side.

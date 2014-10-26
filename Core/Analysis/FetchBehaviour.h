@@ -53,9 +53,10 @@ namespace ESPINA {
      * \param[in]    storage temporal storage where data snapshots are stored
      * \param[in]    path    temporal storage relative path where data snapshots are stored
      * \param[in]    info    xml data that specifies the type of data to fetch.
+     * \return       smart pointer to the fetched data
      *
      */
-    virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
+    virtual DataSPtr fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
   };
 
   using FetchBehaviourSPtr = std::shared_ptr<FetchBehaviour>;

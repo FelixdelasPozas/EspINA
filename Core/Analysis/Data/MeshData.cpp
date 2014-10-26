@@ -56,7 +56,9 @@ DataProxySPtr MeshData::createProxy() const
 //----------------------------------------------------------------------------
 ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output)
 {
-  MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshData>(output->data(MeshData::TYPE));
+  output->update();
 
-  return meshData;
+  auto data = output->data(MeshData::TYPE);
+
+  return std::dynamic_pointer_cast<MeshData>(data);
 }

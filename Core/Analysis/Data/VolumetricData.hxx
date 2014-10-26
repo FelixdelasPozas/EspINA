@@ -176,8 +176,9 @@ namespace ESPINA
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
   /** \brief Obtains and returns the VolumetricData smart pointer in the specified Output.
-   * \param[in] output, Output object smart pointer.
+   * \param[in] output Output object smart pointer.
    *
+   *  This function ensures the output is up to date by callig ouput::update() first
    */
   DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
 

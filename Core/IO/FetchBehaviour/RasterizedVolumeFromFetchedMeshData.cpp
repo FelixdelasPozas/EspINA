@@ -25,18 +25,20 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  void RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
+  DataSPtr RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
                                                             TemporalStorageSPtr storage,
                                                             const QString &path,
                                                             QXmlStreamAttributes info)
   {
+    DataSPtr data;
+
     if ("MeshData" == info.value("type"))
     {
-      fetchMeshData(output, storage, path);
+      data = fetchMeshData(output, storage, path);
     }
     else if ("VolumetricData" == info.value("type"))
     {
-      auto data = DataSPtr {new SparseVolume<itkVolumeType>()};
+      data = DataSPtr {new SparseVolume<itkVolumeType>()};
       data->setOutput(output.get());
       if (data->fetchData(storage, path, QString::number(output->id())))
       {
@@ -55,6 +57,8 @@ namespace ESPINA
         }
       }
     }
+
+    return data;
   }
 
   //----------------------------------------------------------------------------

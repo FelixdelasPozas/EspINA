@@ -8,6 +8,7 @@ create_test_sourcelist(Bounds_Tests Bounds_Tests.cpp # this file is created by t
   length.cpp
   limit_inclusion_intersection.cpp
   list_constructor.cpp
+  string_conversion.cpp
   stream_operator.cpp
   valid_bounding_box.cpp
   valid_intersection.cpp
@@ -41,4 +42,5 @@ add_test("\"Bounds: Valid Intersection\""           Bounds_Tests valid_intersect
 add_test("\"Bounds: Invalid Intersection\""         Bounds_Tests invalid_intersection)
 add_test("\"Bounds: Limit Inclusion Intersection\"" Bounds_Tests limit_inclusion_intersection)
 add_test("\"Bounds: Inclusion\""                    Bounds_Tests inclusion)
+add_test("\"Bounds: String Conversion\""            Bounds_Tests string_conversion)
 add_test("\"Bounds: Stream Operator\""              Bounds_Tests stream_operator)

@@ -24,15 +24,17 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
+DataSPtr MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
 {
+  DataSPtr data;
+
   if ("VolumetricData" == info.value("type"))
   {
-    fetchVolumetricData(output, storage, path);
+    data = fetchVolumetricData(output, storage, path);
   }
   else if ("MeshData" == info.value("type"))
   {
-    auto data = DataSPtr { new RawMesh() };
+    data = DataSPtr{ new RawMesh()};
     data->setOutput(output.get());
     if (data->fetchData(storage, path, QString::number(output->id())))
     {
@@ -48,6 +50,8 @@ void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, 
       }
     }
   }
+
+  return data;
 }
 
 //----------------------------------------------------------------------------

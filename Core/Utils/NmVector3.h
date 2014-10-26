@@ -52,7 +52,7 @@ namespace ESPINA {
   class EspinaCore_EXPORT NmVector3
   {
   public:
-    struct Wrong_format_exception {};
+    struct Wrong_Format_Exception {};
     struct Wrong_number_initial_values {};
 
   public:
@@ -71,7 +71,7 @@ namespace ESPINA {
      * \param[in] string string in the format {%1,%2,%3}.
      *
      */
-    NmVector3(const QString& string);
+    explicit NmVector3(const QString& string);
 
     /** \brief NmVector3 operator[int]
      *

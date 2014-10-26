@@ -159,7 +159,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
   {
     if (snapshot.first.contains("EditedRegion"))
     {
-      cerr << "Unexpected Dilate edited region found" << snapshot.first << endl;
+      cerr << "Unexpected Dilate edited region found" << snapshot.first.toStdString() << endl;
       error = true;
     }
   }
@@ -179,9 +179,11 @@ int pipeline_update_request_edited_input( int argc, char** argv )
     cerr << "Unexpeceted number of SGS edited regions" << endl;
     error = true;
   }
-  
+
+  error = true; // Check the actual modifications are restores
+
   bool editedRegionSnapshotFound = false;
-  for (auto snapshot : loadedSGSVolume->snapshot(tmpStorage, "segmentation", "1"))
+  for (auto snapshot : loadedSGSVolume->editedRegionsSnapshot(tmpStorage, "segmentation", "1"))
   {
     if (snapshot.first.contains("EditedRegion"))
     {

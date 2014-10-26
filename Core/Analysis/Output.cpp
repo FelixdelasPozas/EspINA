@@ -99,7 +99,7 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
       auto region = data->editedRegions()[i];
-      xml.writeStartElement("Edited Region");
+      xml.writeStartElement("EditedRegion");
       xml.writeAttribute("id",     QString::number(i));
       xml.writeAttribute("bounds", region.toString());
       xml.writeEndElement();
@@ -221,8 +221,6 @@ void Output::removeData(const Data::Type& type)
 //----------------------------------------------------------------------------
 Output::DataSPtr Output::data(const Data::Type& type) const
 {
-  m_filter->update(m_id);
-
   DataSPtr result;
 
   if (m_data.contains(type))

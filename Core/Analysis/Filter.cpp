@@ -154,6 +154,7 @@ bool Filter::update(Output::Id id)
        }
        else
        {
+         restoreEditedRegions(id);
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }
      }
@@ -189,6 +190,7 @@ bool Filter::fetchOutputData(Output::Id id)
 
       OutputSPtr output;
       DataSPtr   data;
+      BoundsList editedRegions;
 
       while (!xml.atEnd())
       {
@@ -215,7 +217,14 @@ bool Filter::fetchOutputData(Output::Id id)
           }
           else if ("Data" == xml.name() && output)
           {
-            m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
+             data = m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
+             data->clearEditedRegions();
+             editedRegions.clear();
+          }
+          else if ("EditedRegion" == xml.name() && output)
+          {
+            editedRegions <<  Bounds(xml.attributes().value("bounds").toString());
+            data->setEditedRegions(editedRegions);
           }
         }
       }
@@ -224,6 +233,63 @@ bool Filter::fetchOutputData(Output::Id id)
   }
 
   return outputDataFetched;
+}
+
+//----------------------------------------------------------------------------
+void Filter::restoreEditedRegions(Output::Id id)
+{
+  if (validStoredInformation())
+  {
+    QByteArray buffer = storage()->snapshot(outputFile());
+
+    //qDebug() << buffer;
+
+    if (!buffer.isEmpty())
+    {
+      QXmlStreamReader xml(buffer);
+
+      OutputSPtr output;
+      DataSPtr   data;
+      BoundsList editedRegions;
+
+      while (!xml.atEnd())
+      {
+        xml.readNextStartElement();
+        if (xml.isStartElement())
+        {
+          if ("Output" == xml.name())
+          {
+            if (id == xml.attributes().value("id").toString().toInt())
+            {
+              // Outputs can be already created while checking if an output exists
+              Q_ASSERT(m_outputs.contains(id));
+              output = m_outputs.value(id, OutputSPtr{});
+              output->clearEditedRegions();
+            } else
+            {
+              output.reset();
+            }
+          }
+          else if ("Data" == xml.name() && output)
+          {
+            data = output->data(xml.attributes().value("type").toString());
+            if (data)
+            {
+              data->clearEditedRegions();
+            }
+          }
+          else if ("EditedRegion" == xml.name() && output)
+          {
+            if (data)
+            {
+              editedRegions <<  Bounds(xml.attributes().value("bounds").toString());
+              data->setEditedRegions(editedRegions);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 // //----------------------------------------------------------------------------

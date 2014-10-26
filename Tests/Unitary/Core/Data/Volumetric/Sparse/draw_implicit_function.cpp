@@ -76,7 +76,7 @@ int draw_implicit_function( int argc, char** argv )
     auto lowerRegion = canvas.editedRegions().first();
 
     if (lowerRegion != lowerHalfVolume) {
-      cerr << "Unexpected edited regions" << lowerRegion.toString() << lowerHalfVolume.toString() <<  endl;
+      cerr << "Unexpected edited regions" << lowerRegion << lowerHalfVolume <<  endl;
       pass = false;
     }
   }
@@ -102,7 +102,7 @@ int draw_implicit_function( int argc, char** argv )
     auto lowerRegion = canvas.editedRegions().at(1);
 
     if (lowerRegion != lowerHalfVolume) {
-      cerr << "Unexpected edited regions" << lowerRegion.toString() << lowerHalfVolume.toString() <<  endl;
+      cerr << "Unexpected edited regions" << lowerRegion << lowerHalfVolume <<  endl;
       pass = false;
     }
   }

@@ -130,7 +130,7 @@ int pipeline_update_input( int argc, char** argv )
   {
     if (snapshot.first.contains("EditedRegion"))
     {
-      cerr << "Unexpected edited region found" << snapshot.first << endl;
+      cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
       error = true;
     }
   }
