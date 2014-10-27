@@ -99,7 +99,7 @@ void AppositionSurfaceToolGroup::selectionChanged()
 
   for(auto segmentation: m_viewManager->selection()->segmentations())
   {
-    if (m_plugin->isSynapse(segmentation))
+    if (m_plugin->isValidSynapse(segmentation))
     {
       enabled = true;
       break;
@@ -120,7 +120,7 @@ void AppositionSurfaceToolGroup::createSAS()
   SegmentationAdapterList validSegmentations;
   for(auto seg: segmentations)
   {
-    if (m_plugin->isSynapse(seg))
+    if (m_plugin->isValidSynapse(seg))
     {
       bool valid = true;
       for (auto item : m_model->relatedItems(seg, RELATION_OUT))

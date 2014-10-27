@@ -227,7 +227,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
   {
     for(auto segmentation: m_model->segmentations())
     {
-      if (isSynapse(segmentation.get()))
+      if (isValidSynapse(segmentation.get()))
       {
         synapsis << segmentation.get();
       }
@@ -237,7 +237,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
   {
     for(auto segmentation: selection)
     {
-      if (isSynapse(segmentation))
+      if (isValidSynapse(segmentation))
       {
         synapsis << segmentation;
       }
@@ -311,9 +311,11 @@ void AppositionSurfacePlugin::createSASAnalysis()
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfacePlugin::isSynapse(SegmentationAdapterPtr segmentation)
+bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation)
 {
-  return segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool hasRequiredData = segmentation->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return (isValidCategory && hasRequiredData);
 }
 
 //-----------------------------------------------------------------------------
@@ -328,7 +330,7 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
   for(auto segmentation: segmentations)
   {
     bool valid = true;
-    if(isSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
+    if(isValidSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
     {
       // must check if the segmentation already has a SAS, as this call
       // could be the result of a redo() in a UndoCommand
