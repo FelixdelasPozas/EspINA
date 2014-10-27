@@ -230,7 +230,7 @@ namespace ESPINA
         color = m_categorySelector->selectedCategory()->color();
       else
         color = m_vm->colorEngine()->color(selection.first());
-      qDebug() << "color" << color;
+
       auto widget = new SkeletonWidget();
       widget->setTolerance(m_toleranceBox->value());
 
@@ -340,7 +340,6 @@ namespace ESPINA
     }
   }
 
-
   //-----------------------------------------------------------------------------
   void SkeletonTool::createSegmentation()
   {
@@ -387,6 +386,9 @@ namespace ESPINA
       m_undoStack->endMacro();
 
       m_vm->updateSegmentationRepresentations(segmentation.get());
+      SegmentationAdapterList selection;
+      selection << segmentation.get();
+      m_vm->selection()->set(selection);
     }
 
     m_vm->updateViews();

@@ -453,9 +453,9 @@ namespace ESPINA
                 m_colors->InsertNextTupleValue(green);
             else
               if(worldPos[planeIndex] > m_slice)
-                m_colors->InsertNextTupleValue(blue);
-              else
                 m_colors->InsertNextTupleValue(red);
+              else
+                m_colors->InsertNextTupleValue(blue);
 
             worldPos[planeIndex] = m_slice + m_shift;
 
@@ -478,9 +478,9 @@ namespace ESPINA
             {
               std::memcpy(worldPos, node->worldPosition, 3 * sizeof(double));
               if(worldPos[planeIndex] > m_slice)
-                m_colors->InsertNextTupleValue(blue);
-              else
                 m_colors->InsertNextTupleValue(red);
+              else
+                m_colors->InsertNextTupleValue(blue);
 
               worldPos[planeIndex] = m_slice + m_shift;
 
@@ -494,9 +494,9 @@ namespace ESPINA
                   m_colors->InsertNextTupleValue(green);
               else
                 if(worldPos[planeIndex] > m_slice)
-                  m_colors->InsertNextTupleValue(blue);
-                else
                   m_colors->InsertNextTupleValue(red);
+                else
+                  m_colors->InsertNextTupleValue(blue);
 
               worldPos[planeIndex] = m_slice + m_shift;
 
@@ -809,7 +809,6 @@ namespace ESPINA
     }
 
     this->BuildRepresentation();
-    qDebug() << "init" << normalCoordinateIndex(m_orientation) << "skeleton size" << s_skeleton.size();
   }
 
   //-----------------------------------------------------------------------------
@@ -950,7 +949,6 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidgetRepresentation::SetColor(const QColor &color)
   {
-    qDebug() << "recibido color" << color;
     if(color == m_color)
       return;
 

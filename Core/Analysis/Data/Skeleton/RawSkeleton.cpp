@@ -33,7 +33,7 @@
 
 namespace ESPINA
 {
-  static QString RAWSKELETON_DATAFILE = QString("SkeletonData_%1.vtp");
+  static QString RAWSKELETON_DATAFILE = QString("%1_SkeletonData.vtp");
 
   //----------------------------------------------------------------------------
   RawSkeleton::RawSkeleton(OutputSPtr output)

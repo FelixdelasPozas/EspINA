@@ -566,7 +566,6 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::setRepresentationColor(const QColor &color)
   {
-    qDebug() << "vtkwidget" << color;
     this->m_color = color;
 
     if(this->WidgetRep == nullptr)

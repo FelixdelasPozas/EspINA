@@ -35,7 +35,6 @@
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkActor;
-class vtkImageCanvasSource2D;
 
 namespace ESPINA
 {
@@ -106,8 +105,6 @@ namespace ESPINA
       Nm                                 m_slice;
       vtkSmartPointer<vtkPolyData>       m_polyData;
       vtkSmartPointer<vtkPolyDataMapper> m_mapper;
-      vtkSmartPointer<vtkImageCanvasSource2D> m_textureIcon;
-      vtkSmartPointer<vtkTexture>             m_texture;
       vtkSmartPointer<vtkActor>          m_actor;
 
       static TransparencySelectionHighlighter *s_highlighter;
