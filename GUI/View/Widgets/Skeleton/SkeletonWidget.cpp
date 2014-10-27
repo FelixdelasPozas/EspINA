@@ -169,11 +169,11 @@ namespace ESPINA
           const char *keyString;
           switch(ke->key())
           {
+            case Qt::Key_Alt:
+              keyString = "Alt_L";
+              break;
             case Qt::Key_Control:
               keyString = "Control_L";
-              break;
-            case Qt::Key_Delete:
-              keyString = "Delete";
               break;
             case Qt::Key_Backspace:
               keyString = "BackSpace";
@@ -204,9 +204,9 @@ namespace ESPINA
               {
                 m_widgets[view]->GetInteractor()->KeyReleaseEvent();
               }
-              return true;
             }
           }
+          return true;
         }
       }
         break;

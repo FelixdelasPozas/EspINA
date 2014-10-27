@@ -84,26 +84,17 @@ namespace ESPINA
   , m_undoStack       {undoStack}
   , m_enabled         {false}
   , m_categorySelector{new CategorySelector(model)}
-  , m_toleranceBox    {new SpinBoxAction()}
   , m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
   {
     m_factory->registerFilterFactory(FilterFactorySPtr{new SourceFilterFactory()});
 
     m_action->setCheckable(true);
 
-    m_toleranceBox->setLabelText("Tolerance");
-    m_toleranceBox->setSuffix(" nm");
-    m_toleranceBox->setToolTip("Minimum distance between points.");
-    m_toleranceBox->setSpinBoxMinimum(1);
-
     connect(m_action, SIGNAL(triggered(bool)),
             this,     SLOT(initTool(bool)), Qt::QueuedConnection);
 
     connect(m_vm->selection().get(), SIGNAL(selectionChanged()),
             this,                    SLOT(updateState()), Qt::QueuedConnection);
-
-    connect(m_toleranceBox, SIGNAL(valueChanged(int)),
-            this,           SLOT(toleranceChanged(int)), Qt::QueuedConnection);
 
     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
             this,               SLOT(categoryChanged(CategoryAdapterSPtr)), Qt::QueuedConnection);
@@ -126,9 +117,6 @@ namespace ESPINA
     disconnect(m_vm->selection().get(), SIGNAL(selectionChanged()),
                this,                    SLOT(updateState()));
 
-    disconnect(m_toleranceBox, SIGNAL(valueChanged(int)),
-               this,           SLOT(toleranceChanged(int)));
-
     disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
                this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
   }
@@ -138,25 +126,23 @@ namespace ESPINA
   {
     m_enabled = value;
 
-    if (m_widget)
+    if (m_widget != nullptr)
       m_widget->setEnabled(value);
 
     m_action->setEnabled(value);
     m_categorySelector->setEnabled(value);
-    m_toleranceBox->setEnabled(value);
   }
   
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateState()
   {
     auto selectedSegs = m_vm->selection()->segmentations();
-    auto value = (selectedSegs.size() <= 1);
+    auto enabled = (selectedSegs.size() <= 1);
 
-    m_action->setEnabled(value);
-    m_categorySelector->setEnabled(value);
-    m_toleranceBox->setEnabled(value);
+    m_action->setEnabled(enabled);
+    m_categorySelector->setEnabled(enabled);
 
-    if(value && !selectedSegs.empty())
+    if(enabled && !selectedSegs.empty())
     {
       m_item = selectedSegs.first();
       m_itemCategory = m_item->category();
@@ -178,7 +164,6 @@ namespace ESPINA
     QList<QAction *> actions;
     actions << m_action;
     actions << m_categorySelector;
-    actions << m_toleranceBox;
 
     return actions;
   }
@@ -219,10 +204,7 @@ namespace ESPINA
         spacing = m_item->output()->spacing();
       }
 
-      auto minimumValue = std::ceil(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
-      if(m_toleranceBox->getSpinBoxMinimumValue() < minimumValue)
-        m_toleranceBox->setSpinBoxMinimum(minimumValue);
-      m_toleranceBox->setSpinBoxMaximum(100*minimumValue);
+      auto toleranceValue = std::floor(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
 
       QColor color;
       auto selection = m_vm->selection()->segmentations();
@@ -232,7 +214,7 @@ namespace ESPINA
         color = m_vm->colorEngine()->color(selection.first());
 
       auto widget = new SkeletonWidget();
-      widget->setTolerance(m_toleranceBox->value());
+      widget->setTolerance(toleranceValue);
 
       m_widget = EspinaWidgetSPtr{widget};
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
@@ -247,7 +229,8 @@ namespace ESPINA
       if(m_item != nullptr)
       {
         auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-        rep->setVisible(false);
+        if(rep != RepresentationSPtr())
+          rep->setVisible(false);
         auto skeleton = skeletonData(m_item->output());
         if(skeleton != nullptr)
           widget->initialize(skeleton->skeleton());
@@ -273,10 +256,18 @@ namespace ESPINA
       m_vm->setSelectionEnabled(true);
       m_widget = nullptr;
 
+      if(m_item != nullptr)
+      {
+        auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+        if(rep != RepresentationSPtr())
+          rep->setVisible(true);
+      }
+
       if(m_skeleton->GetNumberOfPoints() != 0)
         createSegmentation();
       else
         m_skeleton = nullptr;
+
     }
 
     setControlsVisibility(value);
@@ -286,17 +277,6 @@ namespace ESPINA
   void SkeletonTool::setControlsVisibility(bool value)
   {
     m_categorySelector->setVisible(value);
-    m_toleranceBox->setVisible(value);
-  }
-
-  //-----------------------------------------------------------------------------
-  void SkeletonTool::toleranceChanged(int value)
-  {
-    if(nullptr == m_widget)
-      return;
-
-    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-    widget->setTolerance(value);
   }
 
   //-----------------------------------------------------------------------------
@@ -311,33 +291,10 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::eventHandlerToogled(bool value)
   {
-    if(value)
+    if(value || m_widget == nullptr)
       return;
 
-    if(m_widget != nullptr)
-    {
-      m_action->blockSignals(true);
-      m_action->setChecked(false);
-      m_action->blockSignals(false);
-
-      m_skeleton = dynamic_cast<SkeletonWidget *>(m_widget.get())->getSkeleton();
-
-      disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-                 this,            SLOT(eventHandlerToogled(bool)));
-
-      m_widget->setEnabled(false);
-      m_vm->removeWidget(m_widget);
-      m_handler = nullptr;
-      m_vm->setSelectionEnabled(true);
-      m_widget = nullptr;
-
-      if(m_skeleton != nullptr && m_skeleton->GetNumberOfPoints() > 0)
-        createSegmentation();
-      else
-        m_skeleton = nullptr;
-
-      setControlsVisibility(value);
-    }
+    initTool(false);
   }
 
   //-----------------------------------------------------------------------------
@@ -359,8 +316,6 @@ namespace ESPINA
         auto data = SkeletonDataSPtr{new RawSkeleton{m_skeleton, spacing, m_item->output()}};
         m_item->output()->setData(data);
       }
-      m_vm->updateSegmentationRepresentations(m_item);
-      m_item->representation(SkeletonRepresentation::TYPE)->setVisible(true);
     }
     else
     {
@@ -385,11 +340,15 @@ namespace ESPINA
       m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
       m_undoStack->endMacro();
 
-      m_vm->updateSegmentationRepresentations(segmentation.get());
-      SegmentationAdapterList selection;
-      selection << segmentation.get();
-      m_vm->selection()->set(selection);
+      m_item = segmentation.get();
     }
+
+    m_skeleton = nullptr;
+
+    m_vm->updateSegmentationRepresentations(m_item);
+    SegmentationAdapterList selection;
+    selection << m_item;
+    m_vm->selection()->set(selection);
 
     m_vm->updateViews();
   }

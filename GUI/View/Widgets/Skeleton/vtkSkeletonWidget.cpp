@@ -327,7 +327,7 @@ namespace ESPINA
       self->EnabledOn();
     }
 
-    if(("Delete" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
+    if(("Alt_L" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
     {
       rep->DeleteCurrentNode();
       self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);

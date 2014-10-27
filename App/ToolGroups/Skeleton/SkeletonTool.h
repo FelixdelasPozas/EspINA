@@ -29,11 +29,15 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/ViewManager.h>
 #include <Support/Widgets/Tool.h>
+
+// VTK
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 
 // Qt
 #include <QAction>
+
+class vtkPolyData;
 class QUndoStack;
 
 namespace ESPINA
@@ -119,12 +123,6 @@ namespace ESPINA
        */
       void updateState();
 
-      /** \brief Updates the internal tolerance value.
-       * \param[in] value new tolerance value.
-       *
-       */
-      void toleranceChanged(int value);
-
       /** \brief Updates the widget with the new category properties.
        * \param[in] category CategoryAdapter smart pointer.
        *
@@ -155,7 +153,6 @@ namespace ESPINA
       QUndoStack       *m_undoStack;
       bool              m_enabled;
       CategorySelector *m_categorySelector;
-      SpinBoxAction    *m_toleranceBox;
       EventHandlerSPtr  m_handler;
       QAction          *m_action;
       EspinaWidgetSPtr  m_widget;
