@@ -227,6 +227,18 @@ bool Output::hasData(const Data::Type& type) const
   return m_data.contains(type);
 }
 
+//----------------------------------------------------------------------------
+unsigned int Output::numberOfDatas() const
+{
+  unsigned int result = 0;
+  for(DataProxySPtr data : m_data)
+  {
+    if (data->get()->isValid())
+      ++result;
+  }
+
+  return result;
+}
 
 //----------------------------------------------------------------------------
 void Output::update()

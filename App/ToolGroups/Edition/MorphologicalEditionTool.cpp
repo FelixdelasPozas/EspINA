@@ -405,18 +405,22 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  int listSize = m_viewManager->selection()->segmentations().size();
+  auto selection = m_viewManager->selection()->segmentations();
+  int listSize = selection.size();
 
   bool atLeastOneSegmentation = listSize > 0;
   bool atLeasttwoSegmentations = listSize >= 2;
+  bool hasRequiredData = true;
+  for(auto seg: selection)
+    hasRequiredData &= seg->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
 
-  m_addition->setEnabled(m_enabled && atLeasttwoSegmentations);
-  m_subtract->setEnabled(m_enabled && atLeasttwoSegmentations);
-  m_close .setEnabled(m_enabled && atLeastOneSegmentation);
-  m_open  .setEnabled(m_enabled && atLeastOneSegmentation);
-  m_dilate.setEnabled(m_enabled && atLeastOneSegmentation);
-  m_erode .setEnabled(m_enabled && atLeastOneSegmentation);
-  m_fill ->setEnabled(m_enabled && atLeastOneSegmentation);
+  m_addition->setEnabled(m_enabled && atLeasttwoSegmentations && hasRequiredData);
+  m_subtract->setEnabled(m_enabled && atLeasttwoSegmentations && hasRequiredData);
+  m_close .setEnabled(m_enabled && atLeastOneSegmentation && hasRequiredData);
+  m_open  .setEnabled(m_enabled && atLeastOneSegmentation && hasRequiredData);
+  m_dilate.setEnabled(m_enabled && atLeastOneSegmentation && hasRequiredData);
+  m_erode .setEnabled(m_enabled && atLeastOneSegmentation && hasRequiredData);
+  m_fill ->setEnabled(m_enabled && atLeastOneSegmentation && hasRequiredData);
 }
 
 //------------------------------------------------------------------------

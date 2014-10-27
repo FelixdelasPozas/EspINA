@@ -144,6 +144,11 @@ namespace ESPINA
      */
     bool hasData(const Data::Type& type) const;
 
+    /** \brief Returns the number of valid Data in the output object.
+     *
+     */
+    unsigned int numberOfDatas() const;
+
     /** \brief Request necessary pipeline execution to update this output.
      *
      */

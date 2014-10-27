@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "BrushUndoCommand.h"
+#include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
 #include <Core/Utils/ChangeSignalDelayer.h>
@@ -31,12 +32,23 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<uns
 : m_segmentation(seg)
 , m_mask(mask)
 {
+  m_hasVolumetricData = seg->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
 }
 
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::redo()
 {
-  auto volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
+  SparseVolumeSPtr volume = nullptr;
+
+  if(m_hasVolumetricData)
+  {
+    volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
+  }
+  else
+  {
+    volume = SparseVolumeSPtr{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
+    m_segmentation->output()->setData(volume);
+  }
   ChangeSignalDelayer inhibitor(volume);
 
   m_bounds = volume->bounds();
@@ -46,9 +58,15 @@ void DrawUndoCommand::redo()
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::undo()
 {
-  auto volume = volumetricData(m_segmentation->output());
-  ChangeSignalDelayer inhibitor(volume);
-
-  volume->undo();
-  volume->resize(m_bounds);
+  if(m_hasVolumetricData)
+  {
+    auto volume = volumetricData(m_segmentation->output());
+    ChangeSignalDelayer inhibitor(volume);
+    volume->undo();
+    volume->resize(m_bounds);
+  }
+  else
+  {
+    m_segmentation->output()->removeData(VolumetricData<itkVolumeType>::TYPE);
+  }
 }

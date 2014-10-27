@@ -379,13 +379,8 @@ void ManualEditionTool::updateReferenceItem()
   auto selection     = m_viewManager->selection();
   auto segmentations = selection->segmentations();
 
-  if (segmentations.size() == 1)
+  if (segmentations.empty() || !segmentations.first()->output()->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
-    item = segmentations.first();
-  }
-  else
-  {
-    item = m_viewManager->activeChannel();
     image = QImage(":/espina/brush_new.svg");
     enableEraser = false;
 
@@ -407,7 +402,7 @@ void ManualEditionTool::updateReferenceItem()
     }
     else
     {
-      auto segmentation = selection->segmentations().first();
+      auto segmentation = segmentations.first();
       auto category     = segmentation->category();
 
       m_categorySelector->blockSignals(true);
