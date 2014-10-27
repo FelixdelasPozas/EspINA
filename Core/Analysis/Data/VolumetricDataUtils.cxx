@@ -27,6 +27,7 @@
 
 // ITK
 #include <itkImageRegionConstIterator.h>
+#include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
 namespace ESPINA {
@@ -499,6 +500,21 @@ namespace ESPINA {
     snapshot << SnapshotData(raw, storage->snapshot(raw));
 
     return snapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename T::Pointer readVolume(const QString &filename)
+  {
+    using VolumeReader = itk::ImageFileReader<T>;
+
+    typename VolumeReader::Pointer reader = VolumeReader::New();
+    reader->SetFileName(filename.toUtf8().data());
+    reader->Update();
+
+    auto image = reader->GetOutput();
+
+    return image;
   }
 
 } // namespace ESPINA

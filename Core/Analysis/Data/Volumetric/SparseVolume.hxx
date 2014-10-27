@@ -125,19 +125,20 @@ namespace ESPINA
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
-    /** \brief Method to modify the volume using a implicit function.
-     * \param[in] brush vtkImplicitFuncion object raw pointer.
-     * \param[in] bounds bounds to be modified (must be contained in the image bounds).
-     * \param[in] value value of the voxel.
-     *
-     *  Change every voxel value which satisfies the implicit function to
-     *  the value given as parameter.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE);
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+
+    virtual void draw(const typename T::Pointer volume)                    override;
+
+    virtual void draw(const typename T::Pointer volume,
+                      const Bounds&             bounds)                    override;
+
+    virtual void draw(const typename T::IndexType index,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+
+    virtual void draw(const Bounds               &bounds,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
     /** \brief Method to modify the volume using a mask and a value.
      * \param[in] mask BinatyMask smart pointer.
@@ -148,30 +149,7 @@ namespace ESPINA
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE);
 
-    /** \brief Method to modify the volume using an itk image.
-     * \param[in] volume itk image smart pointer to draw.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
-    virtual void draw(const typename T::Pointer volume);
 
-    /** \brief Method to modify the volume using a region of an itk image.
-     * \param[in] volume itk image smart pointer to draw.
-     * \param[in] bounds bounds affected by the draw operation.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
-    virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds);
-
-    /** \brief Method to modify a voxel of the volume using an itk index.
-     * \param[in] index index of the voxel.
-     * \param[in] value value of the voxel.
-     *
-     *  Draw methods are constrained to volume bounds.
-     */
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE);
 
     /** \brief Resize the volume bounds. The given bounds must containt the original.
      * \param[in] bounds bounds object.
@@ -697,14 +675,25 @@ namespace ESPINA
                     index[1] * m_spacing[1], index[1] * m_spacing[1],
                     index[2] * m_spacing[2], index[2]	* m_spacing[2] };
 
+    draw(bounds, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void SparseVolume<T>::draw(const Bounds               &bounds,
+                             const typename T::ValueType value)
+  {
     if (!intersect(m_bounds.bounds(), bounds))
       return;
 
     BlockMaskSPtr mask { new BinaryMask<unsigned char>(bounds, m_spacing) };
     mask->setForegroundValue(value);
     BinaryMask<unsigned char>::region_iterator it(mask.get(), mask->bounds().bounds());
-    it.goToBegin();
-    it.Set();
+
+    for (it.goToBegin(); !it.isAtEnd(); ++it)
+    {
+      it.Set();
+    }
 
     addBlock(mask);
     this->updateModificationTime();

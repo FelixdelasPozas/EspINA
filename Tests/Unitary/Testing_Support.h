@@ -61,7 +61,7 @@ namespace ESPINA
                                                  const typename T::ValueType   value);
 
     static bool Test_Pixel_Values(const typename T::Pointer   image,
-                                  const typename T::ValueType value,
+                                  const typename T::PixelType value,
                                   const Bounds& bounds = Bounds());
   };
 

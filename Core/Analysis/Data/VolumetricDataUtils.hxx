@@ -292,6 +292,9 @@ namespace ESPINA
                           const QString        &path,
                           const QString        &id);
 
+  template<typename T>
+  typename T::Pointer readVolume(const QString &filename);
+
   /** \brief Returns the memory consumption in MB of a image given it's number of pixels.
    * \param[in] number_of_pixels.
    */

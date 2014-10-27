@@ -102,18 +102,22 @@ namespace ESPINA {
 
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
-                      const typename T::ValueType value)
+                      const typename T::ValueType value)                   override
     {}
 
-    virtual void draw(const typename T::Pointer volume)
+    virtual void draw(const typename T::Pointer volume)                    override
     {}
 
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds)
+                      const Bounds&             bounds)                    override
     {}
 
     virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE)
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    {}
+
+    virtual void draw(const Bounds               &bounds,
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
     {}
 
     virtual void resize(const Bounds &bounds)

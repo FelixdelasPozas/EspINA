@@ -63,8 +63,8 @@ namespace ESPINA {
   
   
   template<typename T>
-  bool Testing_Support<T>::Test_Pixel_Values(const typename T::Pointer image,
-                                             const typename T::ValueType value,
+  bool Testing_Support<T>::Test_Pixel_Values(const typename T::Pointer   image,
+                                             const typename T::PixelType value,
                                              const Bounds &bounds) {
     bool pass = true;
     

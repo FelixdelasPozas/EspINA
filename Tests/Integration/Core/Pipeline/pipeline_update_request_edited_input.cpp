@@ -39,10 +39,32 @@
 #include <Filters/DilateFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
+#include <itkImageConstIterator.h>
+
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 using namespace ESPINA::IO;
+
+using ConstIterator = itk::ImageRegionConstIterator<itkVolumeType>;
+
+bool testVoxelValues(itkVolumeType::Pointer image, itkVolumeType::PixelType value)
+{
+   ConstIterator it(image, image->GetRequestedRegion());
+
+   bool unexpectedVoxel = false;
+
+   it.GoToBegin();
+   while (!unexpectedVoxel && !it.IsAtEnd())
+   {
+     if (it.Get() != value) {
+       unexpectedVoxel = true;
+     }
+     ++it;
+   }
+
+   return !unexpectedVoxel;
+}
 
 int pipeline_update_request_edited_input( int argc, char** argv )
 {
@@ -113,9 +135,22 @@ int pipeline_update_request_edited_input( int argc, char** argv )
   sgs->update();
 
   auto sgsVolume = volumetricData(sgs->output(0));
-  itkVolumeType::IndexType index;
-  index.Fill(0);
-  sgsVolume->draw(index);
+
+  Bounds modificationBounds{0,1,0,2,0,3};
+
+  if (!testVoxelValues(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
+  {
+    cerr << "Unexpeceted non seg voxel value found" << endl;
+    error = true;
+  }
+
+  sgsVolume->draw(modificationBounds, SEG_BG_VALUE);
+
+  if (!testVoxelValues(sgsVolume->itkImage(modificationBounds), SEG_BG_VALUE))
+  {
+    cerr << "Unexpeceted non bg voxel value found" << endl;
+    error = true;
+  }
 
   FilterSPtr dilate{new DilateFilter(getInputs(sgs), "Dilate", scheduler)};
   dilate->update();
@@ -173,6 +208,12 @@ int pipeline_update_request_edited_input( int argc, char** argv )
 
   auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
   auto loadedSGSVolume = volumetricData(loadedSGSOutput);
+
+  if (!testVoxelValues(loadedSGSVolume->itkImage(modificationBounds), SEG_BG_VALUE))
+  {
+    cerr << "Unexpeceted non bg voxel value found" << endl;
+    error = true;
+  }
 
   if (loadedSGSVolume->editedRegions().size() != 1)
   {

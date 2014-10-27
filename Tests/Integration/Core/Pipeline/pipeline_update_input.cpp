@@ -141,7 +141,7 @@ int pipeline_update_input( int argc, char** argv )
     cerr << "Couldn't recover SGS filter" << endl;
     error = true;
   }
-  
+
   file.absoluteDir().remove(file.fileName());
 
   return error;
