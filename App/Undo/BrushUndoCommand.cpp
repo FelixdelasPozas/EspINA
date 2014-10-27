@@ -32,7 +32,6 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<uns
 : m_segmentation(seg)
 , m_mask(mask)
 {
-  m_hasVolumetricData = seg->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -40,17 +39,8 @@ void DrawUndoCommand::redo()
 {
   SparseVolumeSPtr volume = nullptr;
 
-  if(m_hasVolumetricData)
-  {
-    volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
-  }
-  else
-  {
-    volume = SparseVolumeSPtr{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
-    m_segmentation->output()->setData(volume);
-  }
+  volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
   ChangeSignalDelayer inhibitor(volume);
-
   m_bounds = volume->bounds();
   expandAndDraw(volume, m_mask);
 }
@@ -58,15 +48,8 @@ void DrawUndoCommand::redo()
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::undo()
 {
-  if(m_hasVolumetricData)
-  {
-    auto volume = volumetricData(m_segmentation->output());
-    ChangeSignalDelayer inhibitor(volume);
-    volume->undo();
-    volume->resize(m_bounds);
-  }
-  else
-  {
-    m_segmentation->output()->removeData(VolumetricData<itkVolumeType>::TYPE);
-  }
+  auto volume = volumetricData(m_segmentation->output());
+  ChangeSignalDelayer inhibitor(volume);
+  volume->undo();
+  volume->resize(m_bounds);
 }

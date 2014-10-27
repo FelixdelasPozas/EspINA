@@ -58,7 +58,6 @@ namespace ESPINA
     SegmentationAdapterSPtr       m_segmentation;
     BinaryMaskSPtr<unsigned char> m_mask;
     Bounds                        m_bounds;
-    bool                          m_hasVolumetricData;
   };
 
 } // namespace ESPINA
