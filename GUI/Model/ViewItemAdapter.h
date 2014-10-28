@@ -32,6 +32,11 @@
 
 namespace ESPINA {
 
+  class ViewItemAdapter;
+  using ViewItemAdapterPtr  = ViewItemAdapter *;
+  using ViewItemAdapterList = QList<ViewItemAdapterPtr>;
+  using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
+
   class EspinaGUI_EXPORT ViewItemAdapter
   : public NeuroItemAdapter
   {
@@ -148,6 +153,7 @@ namespace ESPINA {
 
   signals:
     void outputModified();
+    void outputChanged(ViewItemAdapterPtr);
 
   protected:
     /** \brief ViewItemAdapter class constructor.
@@ -175,10 +181,6 @@ namespace ESPINA {
     bool m_isSelected;
     bool m_isVisible;
   };
-
-  using ViewItemAdapterPtr  = ViewItemAdapter *;
-  using ViewItemAdapterList = QList<ViewItemAdapterPtr>;
-  using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
 
   ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);
 

@@ -379,6 +379,11 @@ namespace ESPINA
     void sceneResolutionChanged();
 
   public slots:
+    /** \brief Recreates the representations after the given view item has changed its output.
+     * \param[in] item ViewItemAdapter raw pointer.
+     */
+    virtual void changedOutput(ViewItemAdapterPtr item);
+
 		/** \brief Updates the view.
 		 *
 		 */
@@ -439,6 +444,18 @@ namespace ESPINA
      *
      */
     void resetSceneBounds();
+
+    /** \brief Creates all the representations for the given item that can be renderer on the view.
+     * \param[in] channel channel raw pointer.
+     *
+     */
+    void createRepresentations(ChannelAdapterPtr channel);
+
+    /** \brief Creates all the representations for the given item that can be renderer on the view.
+     * \param[in] segmentation segmentation raw pointer.
+     *
+     */
+    void createRepresentations(SegmentationAdapterPtr segmentation);
 
     /** \brief Removes the channels representations from the view.
      * \param[in] state, map of the items and their representations in the view.
