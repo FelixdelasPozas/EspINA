@@ -88,6 +88,8 @@ namespace ESPINA
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const;
 
+    virtual TimeStamp lastModified() override;
+
   private:
     /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
      *
@@ -96,6 +98,7 @@ namespace ESPINA
 
     VolumetricDataSPtr<T> m_volume;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
+    TimeStamp m_lastVolumeModification;
   };
 
   //----------------------------------------------------------------------------
@@ -103,6 +106,7 @@ namespace ESPINA
   MarchingCubesMesh<T>::MarchingCubesMesh(VolumetricDataSPtr<T> volume)
   : m_volume{volume}
   , m_mesh  {nullptr}
+  , m_lastVolumeModification{VTK_UNSIGNED_LONG_LONG_MAX}
   {
   }
 
@@ -170,7 +174,6 @@ namespace ESPINA
   {
     if (!m_mesh)
     {
-      m_mesh = vtkSmartPointer<vtkPolyData>::New();
       const_cast<MarchingCubesMesh<T> *>(this)->updateMesh();
     }
 
@@ -178,20 +181,31 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
+  template<typename T>
+  TimeStamp MarchingCubesMesh<T>::lastModified()
+  {
+    updateMesh(); // updates the mesh only if necessary.
+    return Data::lastModified();
+  }
+
+  //----------------------------------------------------------------------------
   template <typename T>
   void MarchingCubesMesh<T>::updateMesh()
   {
+    if(m_lastVolumeModification == m_volume->lastModified())
+      return;
+
     vtkSmartPointer<vtkImageData> image = vtkImage(m_volume, m_volume->bounds());
 
     int extent[6];
     image->GetExtent(extent);
 
-    extent[0]--;
-    extent[1]++;
-    extent[2]--;
-    extent[3]++;
-    extent[4]--;
-    extent[5]++;
+    --extent[0];
+    ++extent[1];
+    --extent[2];
+    ++extent[3];
+    --extent[4];
+    ++extent[5];
 
     // segmentation image need to be padded to avoid segmentation voxels from touching
     // the edges of the image (and create morphologically correct actors)
@@ -212,7 +226,13 @@ namespace ESPINA
     marchingCubes->SetInputData(padding->GetOutput());
     marchingCubes->Update();
 
+    if(!m_mesh)
+      m_mesh = vtkSmartPointer<vtkPolyData>::New();
+
     m_mesh->DeepCopy(marchingCubes->GetOutput());
+
+    m_lastVolumeModification = m_volume->lastModified();
+    updateModificationTime();
   }
 
 } // namespace ESPINA

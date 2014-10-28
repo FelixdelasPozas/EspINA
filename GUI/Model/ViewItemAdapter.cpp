@@ -72,8 +72,7 @@ RepresentationTypeList ViewItemAdapter::representationTypes() const
 //------------------------------------------------------------------------
 void ViewItemAdapter::onOutputModified()
 {
-  // TODO: keep representation prototype settings
-  m_representations.clear();
+  emit outputChanged(this);
 }
 
 //------------------------------------------------------------------------
