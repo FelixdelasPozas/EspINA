@@ -143,14 +143,16 @@ ToolSList EditionTools::tools()
 void EditionTools::selectionChanged()
 {
   auto selection = m_viewManager->selection()->segmentations();
-  auto listSize = selection.size();
+  auto selectionSize = selection.size();
 
   SegmentationAdapterSPtr selectedSeg;
-  auto noSegmentation      = (listSize == 0);
-  auto onlyOneSegmentation = (listSize == 1);
+  auto noSegmentation      = (selectionSize == 0);
+  auto onlyOneSegmentation = (selectionSize == 1);
   auto hasRequiredData     = false;
   if(onlyOneSegmentation)
-    hasRequiredData = selection.first()->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
+  {
+    hasRequiredData = hasVolumetricData<itkVolumeType>(selection.first()->output());
+  }
 
   m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
   m_split        ->setEnabled(onlyOneSegmentation && hasRequiredData);
@@ -255,7 +257,7 @@ void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEnt
       else
       {
         auto output = segmentation->output();
-        m_undoStack->beginMacro("Remove Segmentation's Volumetric Data");
+        m_undoStack->beginMacro("Remove Segmentation's volume");
         m_undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
       }
       m_undoStack->endMacro();

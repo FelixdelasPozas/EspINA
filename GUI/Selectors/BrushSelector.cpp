@@ -265,14 +265,9 @@ void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
   }
 
   m_item = item;
-  NmVector3 spacing;
+  m_spacing = ItkSpacing<itkVolumeType>(m_item->output()->spacing());
 
-  spacing = m_item->output()->spacing();
-  m_spacing[0] = spacing[0];
-  m_spacing[1] = spacing[1];
-  m_spacing[2] = spacing[2];
-
-  if(m_item->output()->hasData(VolumetricData<itkVolumeType>::TYPE))
+  if(hasVolumetricData<itkVolumeType>(m_item->output()))
   {
     m_origin = volumetricData(item->output())->origin();
   }
@@ -352,11 +347,13 @@ bool BrushSelector::validStroke(NmVector3 &center)
   if (!brushBounds.areValid())
     return false;
 
-  if(m_item->output()->hasData(VolumetricData<itkVolumeType>::TYPE))
+  if(hasVolumetricData<itkVolumeType>(m_item->output()))
   {
     auto volume = volumetricData(m_item->output());
     if(!m_drawing && !intersect(m_pBounds, volume->bounds()))
+    {
       return false;
+    }
   }
 
   return intersect(m_pBounds, brushBounds);
@@ -713,14 +710,18 @@ void BrushSelector::updateSliceChange()
   Q_ASSERT(!m_drawing);
 
   if(m_actor != nullptr)
+  {
     m_previewView->removeActor(m_actor);
+  }
 
   m_actor = nullptr;
   m_mapToColors = nullptr;
   m_preview = nullptr;
 
-  if(!m_item->output()->hasData(VolumetricData<itkVolumeType>::TYPE))
+  if(!hasVolumetricData<itkVolumeType>(m_item->output()))
+  {
     return;
+  }
 
   NmVector3 nmSpacing { m_spacing[0], m_spacing[1], m_spacing[2] };
   auto volume = volumetricData(m_item->output());

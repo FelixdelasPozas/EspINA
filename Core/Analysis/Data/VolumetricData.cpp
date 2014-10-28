@@ -31,3 +31,12 @@ ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output)
 
   return volume;
 }
+
+//----------------------------------------------------------------------------
+template<typename T>
+bool ESPINA::hasVolumetricData(OutputSPtr output)
+{
+  return output->hasData(VolumetricData<T>::TYPE);
+}
+
+template bool ESPINA::hasVolumetricData<itkVolumeType>(OutputSPtr output);

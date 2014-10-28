@@ -55,7 +55,9 @@ namespace ESPINA
   void AddDataCommand::redo()
   {
     if(m_output->hasData(m_data->type()))
+    {
       m_oldData = m_output->data(m_data->type());
+    }
 
     m_output->setData(m_data);
   }
@@ -64,9 +66,13 @@ namespace ESPINA
   void AddDataCommand::undo()
   {
     if(m_oldData != nullptr)
+    {
       m_output->setData(m_oldData);
+    }
     else
+    {
       m_output->removeData(m_data->type());
+    }
   }
 
 } // namespace EspINA

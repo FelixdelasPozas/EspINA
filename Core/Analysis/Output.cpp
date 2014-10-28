@@ -234,7 +234,9 @@ unsigned int Output::numberOfDatas() const
   for(DataProxySPtr data : m_data)
   {
     if (data->get()->isValid())
+    {
       ++result;
+    }
   }
 
   return result;

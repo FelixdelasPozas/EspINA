@@ -181,6 +181,13 @@ namespace ESPINA
    */
   DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
 
+  /** \brief Returns true if the output has a volumetric data and false otherwise.
+   * \param[in] output, Output object smart pointer.
+   *
+   */
+  template<typename T>
+  bool EspinaCore_EXPORT hasVolumetricData(OutputSPtr output);
+
 } // namespace ESPINA
 
 #endif // ESPINA_VOLUMETRIC_DATA_H

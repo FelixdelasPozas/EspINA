@@ -20,6 +20,7 @@
 
  // ESPINA
 #include "ManualEditionTool.h"
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Widgets/SliderAction.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -379,7 +380,7 @@ void ManualEditionTool::updateReferenceItem()
   auto selection     = m_viewManager->selection();
   auto segmentations = selection->segmentations();
 
-  if (segmentations.empty() || !segmentations.first()->output()->hasData(VolumetricData<itkVolumeType>::TYPE))
+  if (segmentations.empty() || !hasVolumetricData<itkVolumeType>(segmentations.first()->output()))
   {
     image = QImage(":/espina/brush_new.svg");
     enableEraser = false;
