@@ -424,6 +424,18 @@ namespace ESPINA
     QString multiBlockPath(const QString &id, int part) const
     { return QString("%1_%2_%3.mhd").arg(id).arg(this->type()).arg(part); }
 
+    /** \brief Helper method to assist fetching data from disk.
+     *
+     */
+    QString oldSingleBlockPath(const QString &id) const
+    { return QString("%1_%2.mhd").arg(this->type()).arg(id); }
+
+    /** \brief Helper method to assist fetching data from disk.
+     *
+     */
+    QString oldMultiBlockPath(const QString &id, int part) const
+    { return QString("%1_%2_%3.mhd").arg(this->type()).arg(id).arg(part); }
+
   protected:
     mutable BlockList m_blocks;
     NmVector3 m_origin;
@@ -725,9 +737,14 @@ namespace ESPINA
 
     int i = 0;
     QFileInfo blockFile(storage->absoluteFilePath(path + multiBlockPath(id, i)));
-    if (!blockFile.exists())
+
+    for (auto filename : {multiBlockPath(id, i),
+                          singleBlockPath(id),
+                          oldMultiBlockPath(id, i),
+                          oldSingleBlockPath(id)})
     {
-      blockFile = QFileInfo(storage->absoluteFilePath(path + singleBlockPath(id)));
+      blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
+      if (blockFile.exists()) break;
     }
 
     if (this->m_output)
