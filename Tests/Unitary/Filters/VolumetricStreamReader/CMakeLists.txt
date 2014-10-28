@@ -32,15 +32,13 @@ add_executable(VolumetricStreamReader_Tests
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${FILTERS_DIR}/VolumetricStreamReader.cpp
-   ../../Testing_Support.cpp
   )
 
 set(LIB_DEPENDECIES
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
-#   ${Boost_LIBRARIES}
-#   ${LIB_DEPENDECIES}
+  EspinaTesting
 )
 
 

@@ -75,12 +75,15 @@ namespace ESPINA
      */
     virtual bool setInternalData(MeshDataSPtr mesh);
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)                 override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
-    { return Snapshot(); }
+    { return Snapshot(); /*TODO*/ }
+
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
+    { /*TODO*/}
 
     bool isEdited() const
     { return false; }

@@ -60,6 +60,7 @@ namespace ESPINA {
     virtual bool fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id) { return false; }
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
     virtual DataProxySPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
     virtual void undo() {};

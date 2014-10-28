@@ -142,13 +142,14 @@ namespace ESPINA
   {
     QString fileName = m_storageDir.absoluteFilePath(descriptor);
 
+    QByteArray data;
+
     QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly))
+    if (file.open(QIODevice::ReadOnly))
     {
-      qWarning() << "Snapshot Not Found:" << fileName;
+      data = file.readAll();
+      file.close();
     }
-    QByteArray data = file.readAll();
-    file.close();
 
     return data;
   }

@@ -35,10 +35,10 @@
 #include <Core/IO/FetchBehaviour/FetchRawData.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
-#include <testing_support_channel_input.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
+#include "Tests/testing_support_channel_input.h"
 #include "Tests/Testing_Support.h"
 
 #include <itkImageConstIterator.h>
@@ -50,7 +50,7 @@ using namespace ESPINA::IO;
 
 using ConstIterator = itk::ImageRegionConstIterator<itkVolumeType>;
 
-int pipeline_update_request_edited_input( int argc, char** argv )
+int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** argv )
 {
   class TestFilterFactory
   : public FilterFactory

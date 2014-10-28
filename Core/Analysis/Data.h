@@ -123,9 +123,21 @@ namespace ESPINA
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
     /** \brief Returns a snapshot object of the edited regions of the data.
+     * \param[in] storage temporal storage where edited regions snasphots can be loaded from
+     * \param[in] path storage path where edited regions snapshosts will be saved to
+     * \param[in] id identifier to store edited regions snapshosts
      *
      */
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
+
+    /** \brief Restore data edited regions from its snapshots.
+     * \param[in] storage temporal storage where edited regions snasphots can be loaded from
+     * \param[in] path storage path where edited regions snapshosts will be loaded from
+     * \param[in] id identifier to store edited regions snapshosts
+     *
+     * PRE: Previously edited regions bounds have been restored
+     */
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
 
     /** \brief Returns true if the object has been correctly initialized and contains data.
      *

@@ -27,7 +27,7 @@
  */
 
 #include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
-#include "Tests/Unitary/Testing_Support.h"
+#include "Tests/Testing_Support.h"
 
 using namespace std;
 using namespace ESPINA;

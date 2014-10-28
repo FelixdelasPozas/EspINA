@@ -129,6 +129,7 @@ namespace ESPINA {
   private:
     Uuid                m_quuid;
     QString             m_name;
+    mutable
     TemporalStorageSPtr m_storage;
   };
 

@@ -272,6 +272,10 @@ void Filter::restoreEditedRegions(Output::Id id)
           }
           else if ("Data" == xml.name() && output)
           {
+            if (data)
+            {
+              data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
+            }
             data = output->data(xml.attributes().value("type").toString());
             if (data)
             {
@@ -287,6 +291,10 @@ void Filter::restoreEditedRegions(Output::Id id)
             }
           }
         }
+      }
+      if (data)
+      {
+        data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
       }
     }
   }

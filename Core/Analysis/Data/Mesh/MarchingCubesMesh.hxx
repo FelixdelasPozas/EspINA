@@ -64,6 +64,8 @@ namespace ESPINA
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
+
     virtual bool isValid() const
     { return m_volume->isValid(); }
 

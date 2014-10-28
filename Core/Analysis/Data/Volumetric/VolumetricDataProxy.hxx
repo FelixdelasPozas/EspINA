@@ -136,14 +136,25 @@ namespace ESPINA
     virtual bool isEmpty() const
     { return m_data->isEmpty(); }
 
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    virtual bool fetchData(TemporalStorageSPtr storage,
+                           const QString      &path,
+                           const QString      &id)                       override
     { return m_data->fetchData(storage, path, id); }
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+    virtual Snapshot snapshot(TemporalStorageSPtr storage,
+                              const QString      &path,
+                              const QString      &id) const              override
     { return m_data->snapshot(storage, path, id); }
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage,
+                                           const QString      &path,
+                                           const QString      &id) const override
     { return m_data->editedRegionsSnapshot(storage, path, id); }
+
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage,
+                                      const QString      &path,
+                                      const QString      &id)            override
+    { return m_data->restoreEditedRegions(storage, path, id); }
 
   private:
     std::shared_ptr<VolumetricData<T>> m_data;

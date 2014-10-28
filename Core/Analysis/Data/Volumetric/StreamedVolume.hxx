@@ -141,6 +141,10 @@ namespace ESPINA {
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
     { return Snapshot(); }
 
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+    {}
+
+
   protected:
     typedef itk::ImageRegionIterator<T> ImageIterator;
 

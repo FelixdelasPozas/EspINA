@@ -7,6 +7,7 @@ create_test_sourcelist(SparseVolume_Tests SparseVolume_Tests.cpp # this file is 
   sparse_volume_resize_expand_volume.cpp
   sparse_volume_resize_reduce_volume.cpp
   sparse_volume_save_edited_regions.cpp
+  sparse_volume_load_edited_regions.cpp
 )
 
 qt4_wrap_cpp(SUBJECT_MOCS
@@ -36,13 +37,13 @@ add_executable(SparseVolume_Tests
   ${CORE_DIR}/Utils/NmVector3.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
-  ../../../../Testing_Support.cpp
   )
 
   set(LIB_DEPENDECIES
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  EspinaTesting
 )
 
 
@@ -56,3 +57,4 @@ add_test("\"Sparse Volume: Draw Implicit Function With Bigger Bounds\"" SparseVo
 add_test("\"Sparse Volume: Resize Expand Volume\""                      SparseVolume_Tests sparse_volume_resize_expand_volume)
 add_test("\"Sparse Volume: Resize Reduce Volume\""                      SparseVolume_Tests sparse_volume_resize_reduce_volume)
 add_test("\"Sparse Volume: Save Edited Regions\""                       SparseVolume_Tests sparse_volume_save_edited_regions)
+add_test("\"Sparse Volume: Load Edited Regions\""                       SparseVolume_Tests sparse_volume_load_edited_regions)

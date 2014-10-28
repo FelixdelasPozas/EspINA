@@ -24,12 +24,13 @@ set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
-set (TEST_SOURCES
+set (TESTING_SOURCES
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
+  Testing_Support.cpp
 )
 
-add_library(EspinaTesting SHARED ${TEST_SOURCES})
+add_library(EspinaTesting SHARED ${TESTING_SOURCES})
 
 set(TESTING_DEPENDECIES
   EspinaTesting

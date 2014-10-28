@@ -46,6 +46,7 @@ public:
   virtual bool isValid() const {return false;}
   virtual bool fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id) {return false;}
   virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
+  virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {}
   virtual Type type() const { return "InvalidData";}
   virtual size_t memoryUsage() const { return 0; }
   virtual bool isEmpty() const { return true; }

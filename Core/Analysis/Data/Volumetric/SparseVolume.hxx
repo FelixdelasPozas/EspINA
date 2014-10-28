@@ -166,11 +166,13 @@ namespace ESPINA
 
     virtual bool isEmpty() const;
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)                 override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
+
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels
@@ -195,6 +197,9 @@ namespace ESPINA
     VolumeBoundsList compactedBlocks() const;
 
   private:
+    QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
+    { return QString("%1_%2_EditedRegion_%3.mhd").arg(outputId).arg(this->type()).arg(regionId);}
+
     enum class BlockType
     { Set = 0, Add = 1 };
 
@@ -275,27 +280,15 @@ namespace ESPINA
       , m_mask{mask}
       {}
 
-      /** \brief Implements Block::bounds() const.
-       *
-       */
       virtual VolumeBounds bounds() const
       { return m_mask->bounds(); }
 
-      /** \brief Implements Block::setSpacing().
-       *
-       */
       virtual void setSpacing(const NmVector3& spacing)
       { m_mask->setSpacing(spacing); }
 
-      /** \brief Implements Block::memoryUsage() const.
-       *
-       */
       virtual size_t memoryUsage() const
       { return m_mask->memoryUsage(); }
 
-      /** \brief Implements Block::updateImage() const.
-       *
-       */
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
                                BinaryMask<unsigned char>::region_iterator &mit,
                                const Bounds                              &bounds,
@@ -335,29 +328,15 @@ namespace ESPINA
       , m_image{image}
       {}
 
-      /** \brief Implements Block::bounds() const.
-       *
-       */
       virtual VolumeBounds bounds() const
-      {
-        return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
-      }
+      { return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion()); }
 
-      /** \brief Implements Block::setSpacing().
-       *
-       */
       virtual void setSpacing(const NmVector3& spacing)
       { m_image->SetSpacing(ItkSpacing<T>(spacing)); }
 
-      /** \brief Implements Block::memoryUsage().
-       *
-       */
       virtual size_t memoryUsage() const
       { return m_image->GetBufferedRegion().GetNumberOfPixels()*sizeof(typename T::ValueType); }
 
-      /** \brief Implements Block::updateImage() const.
-       *
-       */
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
                                BinaryMask<unsigned char>::region_iterator &mit,
                                const Bounds                              &bounds,
@@ -391,7 +370,7 @@ namespace ESPINA
     VolumeBoundsList boundsPartition(int intervalSize) const;
 
     /** \brief Updates the bounds of the image with the bounds passed as parameter.
-     * \param[in] bounds, VolumeBounds object.
+     * \param[in] bounds VolumeBounds object.
      *
      */
     void updateBlocksBoundingBox(const VolumeBounds& bounds);
@@ -823,12 +802,29 @@ namespace ESPINA
     int regionId = 0;
     for(auto region : regions)
     {
-      auto snapshotId = QString("%1_%2_EditedRegion_%3.mhd").arg(id).arg(this->type()).arg(regionId);
+      auto snapshotId = editedRegionSnapshotId(id, regionId);
       regionsSnapshot << createSnapshot<T>(itkImage(region), storage, path, snapshotId);
       ++regionId;
     }
 
     return regionsSnapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+  {
+    auto restoredEditedRegions = this->editedRegions();
+
+    for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
+    {
+      auto filename     = storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId));
+      auto editedRegion = readVolume<itkVolumeType>(filename);
+
+      expandAndDraw<T>(this, editedRegion);
+    }
+
+    this->setEditedRegions(restoredEditedRegions);
   }
 
   //-----------------------------------------------------------------------------

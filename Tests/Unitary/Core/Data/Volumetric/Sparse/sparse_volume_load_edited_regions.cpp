@@ -35,7 +35,7 @@ using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-int sparse_volume_save_edited_regions( int argc, char** argv )
+int sparse_volume_load_edited_regions( int argc, char** argv )
 {
   bool error = false;
 
@@ -67,8 +67,11 @@ int sparse_volume_save_edited_regions( int argc, char** argv )
   }
   else
   {
-    for (int i = 0; i < canvas.editedRegions().size(); ++i) {
-      auto editedRegion = canvas.editedRegions().at(i);
+    auto editedRegions = canvas.editedRegions();
+
+    for (int i = 0; i < editedRegions.size(); ++i)
+    {
+      auto editedRegion = editedRegions[i];
 
       if (editedRegion != regions[i])
       {
@@ -106,6 +109,37 @@ int sparse_volume_save_edited_regions( int argc, char** argv )
         cerr << "Unexepected loaded voxel values" << endl;
         error = true;
       }
+    }
+
+    canvas.draw(canvas.bounds(), SEG_BG_VALUE); // clear modifications
+    canvas.setEditedRegions(editedRegions);     // restore expected edited regions
+
+    if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(canvas.itkImage(), SEG_BG_VALUE)) {
+      cerr << "Unexepected voxel values" << endl;
+      error = true;
+    }
+
+    canvas.restoreEditedRegions(storage, "sparse", "0");
+
+    if (editedRegions != canvas.editedRegions()) {
+      cerr << "Edited regions shouldn't be modified after restoration" << endl;
+      error = true;
+    }
+
+    for (int i = 0; i < 2; ++i)
+    {
+      auto restoedRegion = canvas.itkImage(regions[i]);
+      if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(restoedRegion, fg)) {
+        cerr << "Unexepected non fg voxel values on restored edited regions" << endl;
+        error = true;
+      }
+    }
+
+    Bounds unredtoredBounds{-0.5, 3.5, -0.5, 3.5, 0.5, 2.5};
+    auto unrestoredRegion = canvas.itkImage(unredtoredBounds);
+    if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(unrestoredRegion, SEG_BG_VALUE)) {
+      cerr << "Unexepected non bg voxel values on non restored edited regions" << endl;
+      error = true;
     }
   }
 

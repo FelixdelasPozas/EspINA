@@ -249,6 +249,15 @@ namespace ESPINA
   template<typename T>
   void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds());
 
+  /** \brief Draw @drawnVolume into @volume, resizing @volume bounds to fit @drawnVolume if necessary.
+   * \param[in] volume VolumetricData pointer to expand and draw.
+   * \param[in] drawnVolume itk image pointer to draw into @volume.
+   * \param[in] bounds bounds object to add if necessary.
+   *
+   */
+  template<typename T>
+  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds());
+
   /** \brief Resizes the image to the minimum bounds that can contain the volume.
    * \param[in] volume volume to transform.
    * \param[in] bgValue background value of the image.

@@ -417,6 +417,13 @@ namespace ESPINA {
   template<typename T>
   void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
   {
+    expandAndDraw<T>(volume.get(), drawnVolume, bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  {
     if (!bounds.areValid())
     {
       bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
