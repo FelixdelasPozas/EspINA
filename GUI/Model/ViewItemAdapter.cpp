@@ -49,6 +49,7 @@ void ViewItemAdapter::changeOutput(InputSPtr input)
   connect(output().get(), SIGNAL(modified()),
           this,           SLOT(onOutputModified()));
 
+  m_representations.clear();
   onOutputModified();
 }
 

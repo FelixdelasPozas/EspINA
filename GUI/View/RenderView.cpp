@@ -263,7 +263,7 @@ void RenderView::add(ChannelAdapterPtr channel)
   m_channelStates.insert(channel, state);
 
   connect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
-          this,    SLOT(changedOutput(ViewItemAdapterPtr)), Qt::QueuedConnection);
+          this,    SLOT(changedOutput(ViewItemAdapterPtr)));
 
   // need to manage other channels' opacity too.
   updateSceneBounds();
@@ -284,7 +284,7 @@ void RenderView::add(SegmentationAdapterPtr seg)
   state.visible   = false;
 
   connect(seg,  SIGNAL(outputChanged(ViewItemAdapterPtr)),
-          this, SLOT(changedOutput(ViewItemAdapterPtr)), Qt::QueuedConnection);
+          this, SLOT(changedOutput(ViewItemAdapterPtr)));
 
   m_segmentationStates.insert(seg, state);
 
