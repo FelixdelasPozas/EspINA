@@ -10,44 +10,9 @@ create_test_sourcelist(SparseVolume_Tests SparseVolume_Tests.cpp # this file is 
   sparse_volume_load_edited_regions.cpp
 )
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ${CORE_DIR}/Analysis/Data.h
-  ${CORE_DIR}/Analysis/ViewItem.h
-  ${CORE_DIR}/Analysis/Output.h
-  ${CORE_DIR}/MultiTasking/Scheduler.h
-  ${CORE_DIR}/MultiTasking/Task.h
-)
+add_executable(SparseVolume_Tests "" ${SparseVolume_Tests})  #"" is a hack to display target on kdevelop
 
-add_executable(SparseVolume_Tests
-  ${SparseVolume_Tests}
-  ${SUBJECT_MOCS}
-  ${CORE_DIR}/Analysis/Analysis.cpp
-  ${CORE_DIR}/Analysis/Category.cpp
-  ${CORE_DIR}/Analysis/Channel.cpp
-  ${CORE_DIR}/Analysis/Data.cpp
-  ${CORE_DIR}/Analysis/Filter.cpp
-  ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
-  ${CORE_DIR}/Analysis/Input.cpp
-  ${CORE_DIR}/Analysis/Output.cpp
-  ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/ViewItem.cpp
-  ${CORE_DIR}/MultiTasking/Scheduler.cpp
-  ${CORE_DIR}/MultiTasking/Task.cpp
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/TemporalStorage.cpp
-  ${CORE_DIR}/Utils/VolumeBounds.cpp
-  )
-
-  set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  EspinaTesting
-)
-
-
-target_link_libraries(SparseVolume_Tests ${LIB_DEPENDECIES})
+target_link_libraries(SparseVolume_Tests ${CORE_DEPENDECIES})
 
 add_test("\"Sparse Volume: Default Constructor\""                       SparseVolume_Tests default_constructor)
 add_test("\"Sparse Volume: Bounds Constructor\""                        SparseVolume_Tests bounds_constructor)

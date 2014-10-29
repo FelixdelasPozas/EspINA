@@ -14,27 +14,12 @@ include_directories(
   ${SUBJECT_DIR}
   )
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ${SUBJECT_DIR}/Category.h
-)
-
-set(SUBJECT_SOURCES
-  ${SUBJECT_DIR}/Category.cpp
-)
-
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
 add_executable(Classification_Tests
   ${TEST_SOURCES}
-  ${SUBJECT_MOCS}
-  ${SUBJECT_SOURCES}
   classification_testing_support.cpp
   )
 
-target_link_libraries(Classification_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(Classification_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Classification: Create Category\""               Classification_Tests classification_create_category)
 add_test("\"Classification: Create Existing Category\""      Classification_Tests classification_create_existing_category)

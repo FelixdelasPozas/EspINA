@@ -16,21 +16,12 @@ create_test_sourcelist(Bounds_Tests Bounds_Tests.cpp # this file is created by t
 
 set(SUBJECT_DIR ${CORE_DIR}/Utils)
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
 include_directories(
   ${SUBJECT_DIR}
   )
 
-add_executable(Bounds_Tests
-  ${Bounds_Tests}
-  ${SUBJECT_DIR}/Bounds.cpp
-  ${SUBJECT_DIR}/NmVector3.cpp
-  )
-target_link_libraries(Bounds_Tests ${LIB_DEPENDECIES} )
+add_executable(Bounds_Tests "" ${Bounds_Tests} )
+target_link_libraries(Bounds_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Bounds: Default Constructor\""          Bounds_Tests default_constructor)
 add_test("\"Bounds: List Constructor\""             Bounds_Tests list_constructor)

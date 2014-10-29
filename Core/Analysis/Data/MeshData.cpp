@@ -41,10 +41,20 @@ MeshData::MeshData()
 //----------------------------------------------------------------------------
 Bounds MeshData::bounds() const
 {
-  Nm bounds[6];
-  mesh()->GetBounds(bounds);
+  Bounds result;
 
-  return Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+  auto meshPolyData = mesh();
+
+  if (meshPolyData)
+  {
+    Nm bounds[6];
+
+    meshPolyData->GetBounds(bounds);
+
+    result = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+  }
+
+  return result;
 }
 
 //----------------------------------------------------------------------------

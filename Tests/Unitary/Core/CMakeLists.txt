@@ -1,3 +1,12 @@
+set(CORE_DEPENDECIES
+  ${QT_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${QUAZIP_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${TESTING_DEPENDECIES}
+)
+
 add_subdirectory( Analysis )
 add_subdirectory( Data )
 add_subdirectory( Channel )
