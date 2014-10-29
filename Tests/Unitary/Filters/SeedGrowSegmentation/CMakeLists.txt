@@ -6,54 +6,10 @@ create_test_sourcelist(TEST_SOURCES SGSF_Tests.cpp # this file is created by thi
   seed_grow_segmentation_simple_execution.cpp
 )
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ${CORE_DIR}/Analysis/Data.h
-  ${CORE_DIR}/Analysis/Output.h
-  ${CORE_DIR}/Analysis/ViewItem.h
-  ${CORE_DIR}/MultiTasking/Scheduler.h
-  ${CORE_DIR}/MultiTasking/Task.h
-)
-
-add_executable(SGSF_Tests 
-  ${TEST_SOURCES}
-  ${SUBJECT_MOCS}
-  ${CORE_DIR}/Analysis/Analysis.cpp
-  ${CORE_DIR}/Analysis/Category.cpp
-  ${CORE_DIR}/Analysis/Channel.cpp
-  ${CORE_DIR}/Analysis/Data.cpp
-  ${CORE_DIR}/Analysis/Data/MeshData.cpp
-  ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
-  ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
-  ${CORE_DIR}/Analysis/Filter.cpp
-  ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/ViewItem.cpp
-  ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
-  ${CORE_DIR}/Analysis/Input.cpp
-  ${CORE_DIR}/Analysis/Output.cpp
-  ${CORE_DIR}/MultiTasking/Scheduler.cpp
-  ${CORE_DIR}/MultiTasking/Task.cpp
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/TemporalStorage.cpp
-  ${CORE_DIR}/Utils/VolumeBounds.cpp
-  ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
-#   ${CORE_DIR}/Analysis/Channel.cpp
-#   ${CORE_DIR}/Analysis/ViewItem.cpp
-#   ${GUI_DIR}/ModelFactory.cpp
-#   ${GUI_DIR}/Model/ChannelAdapter.cpp
-  )
-
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  EspinaTesting
-#   ${Boost_LIBRARIES}
-#   ${LIB_DEPENDECIES}
-)
+add_executable(SGSF_Tests "" ${TEST_SOURCES} )
 
 
-target_link_libraries(SGSF_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(SGSF_Tests ${FILTERS_DEPENDECIES} )
 
 add_test("\"Seed Grow Segmentation Filter: Default Parameters\"" SGSF_Tests seed_grow_segmentation_default_parameters)
 add_test("\"Seed Grow Segmentation Filter: Change Parameters\""  SGSF_Tests seed_grow_segmentation_change_parameters)

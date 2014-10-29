@@ -24,10 +24,11 @@ set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
+
+# Core
 qt4_add_resources(CORE_RCCS
   ${CORE_DIR}/rsc/core.qrc
   )
-
 qt4_wrap_cpp(CORE_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
@@ -76,18 +77,70 @@ set (CORE_SOURCES
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
 )
+add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
 
+
+# Filters
+set (FILTERS_SOURCES
+  ${FILTERS_DIR}/DilateFilter.cpp
+  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
+  ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
+  ${FILTERS_DIR}/VolumetricStreamReader.cpp
+)
+add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})
+
+
+# Extensions
+set (EXTENSIONS_SOURCES
+  ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
+)
+add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
+
+
+# GUI
+qt4_wrap_cpp(GUI_MOCS
+  ${GUI_DIR}/Model/ItemAdapter.h
+  ${GUI_DIR}/Model/ModelAdapter.h
+  ${GUI_DIR}/Model/Proxies/ChannelProxy.h
+  ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
+  ${GUI_DIR}/Model/ViewItemAdapter.h
+)
+
+set (GUI_SOURCES
+  ${GUI_MOCS}
+  ${GUI_DIR}/Model/CategoryAdapter.cpp
+  ${GUI_DIR}/Model/CategoryAdapter.cpp
+  ${GUI_DIR}/Model/ChannelAdapter.cpp
+  ${GUI_DIR}/Model/ClassificationAdapter.cpp
+  ${GUI_DIR}/Model/ModelAdapter.cpp
+  ${GUI_DIR}/Model/NeuroItemAdapter.cpp
+  ${GUI_DIR}/Model/Proxies/ChannelProxy.cpp
+  ${GUI_DIR}/Model/Proxies/ClassificationProxy.cpp
+  ${GUI_DIR}/Model/SampleAdapter.cpp
+  ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Model/ViewItemAdapter.cpp
+  ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
+)
+
+add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
+
+
+# Testing
 set (TESTING_SOURCES
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
   Testing_Support.cpp
 )
 
-add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
-add_library(EspinaTesting     SHARED ${TESTING_SOURCES})
+add_library(EspinaTesting SHARED ${TESTING_SOURCES})
+
 
 set(TESTING_DEPENDECIES
   EspinaCoreTesting
+  EspinaExtensionsTesting
+  EspinaFiltersTesting
+  EspinaGUITesting
   EspinaTesting
   )
 

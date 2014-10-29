@@ -6,12 +6,7 @@ create_test_sourcelist(Pipeline_Tests Pipeline_Tests.cpp # this file is created 
   pipeline_update_request_edited_input_with_fetch_behaviour.cpp
 )
 
-add_executable(Pipeline_Tests
-  ${Pipeline_Tests}
-  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
-  ${FILTERS_DIR}/DilateFilter.cpp
-  ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
-  )
+add_executable(Pipeline_Tests "" ${Pipeline_Tests} )
 
 target_link_libraries(Pipeline_Tests ${TESTING_DEPENDECIES})
 
