@@ -34,10 +34,8 @@ DataSPtr FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr st
     {
       data = DataSPtr{new SparseVolume<itkVolumeType>()};
       data->setOutput(output.get());
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
-      }
+      data->fetchData(storage, path, QString::number(output->id()));
+      output->setData(data);
     }
   }
   else if ("MeshData" == info.value("type"))
@@ -46,10 +44,8 @@ DataSPtr FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr st
     {
       data = DataSPtr{new RawMesh()};
       data->setOutput(output.get());
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
-      }
+      data->fetchData(storage, path, QString::number(output->id()));
+      output->setData(data);
     }
   }
 

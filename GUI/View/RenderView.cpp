@@ -209,7 +209,7 @@ void RenderView::setSegmentationsVisibility(bool visible)
 //-----------------------------------------------------------------------------
 DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
 {
-  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->get(VolumetricData<itkVolumeType>::TYPE));
+  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->outputData(VolumetricData<itkVolumeType>::TYPE));
 }
 
 //-----------------------------------------------------------------------------

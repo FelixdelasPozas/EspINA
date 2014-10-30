@@ -86,7 +86,9 @@ namespace ESPINA
 
     virtual size_t memoryUsage() const;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const;
+    virtual vtkSmartPointer<vtkPolyData> mesh() const override;
+
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh);
 
     virtual TimeStamp lastModified() override;
 
@@ -178,6 +180,20 @@ namespace ESPINA
     }
 
     return m_mesh;
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  void MarchingCubesMesh<T>::setMesh(vtkSmartPointer< vtkPolyData > mesh)
+  {
+    m_mesh = mesh;
+
+    BoundsList editedRegions;
+    if (m_mesh)
+    {
+      editedRegions << bounds();
+    }
+    setEditedRegions(editedRegions);
   }
 
   //----------------------------------------------------------------------------

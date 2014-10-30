@@ -117,14 +117,14 @@ namespace ESPINA {
      * \param[in] type data type.
      *
      */
-    DataSPtr get(Data::Type type)
+    DataSPtr outputData(Data::Type type)
     { return m_viewItem->data(type); }
 
     /** \brief Returns the data of the specified type of the item.
      * \param[in] type data type.
      *
      */
-    const DataSPtr get(Data::Type type) const
+    const DataSPtr outputData(Data::Type type) const
     { return m_viewItem->data(type); }
 
     /** \brief Returns the representation smart pointer of the specified type of the item.

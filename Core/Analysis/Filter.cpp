@@ -188,6 +188,8 @@ bool Filter::fetchOutputData(Output::Id id)
     {
       QXmlStreamReader xml(buffer);
 
+      qDebug() << buffer;
+
       OutputSPtr output;
       DataSPtr   data;
       BoundsList editedRegions;

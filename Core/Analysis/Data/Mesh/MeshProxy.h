@@ -109,8 +109,11 @@ namespace ESPINA
     virtual size_t memoryUsage() const
     { return m_data->memoryUsage(); }
 
-    virtual vtkSmartPointer< vtkPolyData > mesh() const
+    virtual vtkSmartPointer<vtkPolyData> mesh() const       override
     { return m_data->mesh(); }
+
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
+    { m_data->setMesh(mesh); }
 
   private:
     MeshDataSPtr m_data;

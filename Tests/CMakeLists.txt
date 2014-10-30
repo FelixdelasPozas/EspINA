@@ -130,6 +130,7 @@ add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 set (TESTING_SOURCES
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
+  MeshTestingUtils.cpp
   Testing_Support.cpp
 )
 

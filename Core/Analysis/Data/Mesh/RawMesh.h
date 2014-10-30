@@ -79,8 +79,11 @@ namespace ESPINA
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
-    { return Snapshot(); /*TODO*/ }
+    // Because meshes store the whole mesh polydata when their edited regions
+    // are requested, we can use the same name which will casue fetch method to
+    // succeed when restoring from edited regions (this will also will avoid
+    // executing the filter itself if no other data is required)
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
     { /*TODO*/}
@@ -88,10 +91,9 @@ namespace ESPINA
     bool isEdited() const
     { return false; }
 
-    void clearEditedRegions() override
-    { /* TODO: not allowed */ };
+    virtual vtkSmartPointer<vtkPolyData> mesh() const       override;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const;
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
     void setSpacing(const NmVector3&)
     { /* TODO: not allowed */ };
@@ -102,6 +104,16 @@ namespace ESPINA
     { /* TODO: not allowed */ };
 
     size_t memoryUsage() const;
+
+  private:
+    QString snapshotFilename(const QString &path, const QString &id) const
+    { return QString("%1/%2_%3.vtp").arg(path).arg(id).arg(type()); }
+
+    QString oldSnapshotFilename(const QString &path, const QString &id) const
+    { return QString("%1/%2_%3.vtp").arg(path).arg(type()).arg(id); }
+
+    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
+    { return snapshotFilename(path, id); }
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
