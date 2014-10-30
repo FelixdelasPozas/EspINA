@@ -36,10 +36,10 @@ const unsigned int LABEL_VALUE = 255;
 MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList    inputs,
                                                        Filter::Type  type,
                                                        SchedulerSPtr scheduler)
-: Filter                {inputs, type, scheduler}
-, m_ignoreStorageContent{false}
-, m_radius              {0}
-, m_isOutputEmpty       {true}
+: Filter         {inputs, type, scheduler}
+, m_radius       {0}
+, m_prevRadius   {m_radius}
+, m_isOutputEmpty{true}
 {
 }
 
@@ -86,7 +86,7 @@ Snapshot MorphologicalEditionFilter::saveFilterSnapshot() const
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return needUpdate(0);
 }
 
 
@@ -118,7 +118,13 @@ bool MorphologicalEditionFilter::needUpdate(Output::Id id) const
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::invalidateEditedRegions()
+bool MorphologicalEditionFilter::ignoreStorageContent() const
+{
+  return m_prevRadius != m_radius;
+}
+
+//-----------------------------------------------------------------------------
+bool MorphologicalEditionFilter::areEditedRegionsInvalidated()
 {
   return false;
 }
@@ -149,6 +155,8 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
     m_outputs[0]->setData(mesh);
 
     m_outputs[0]->setSpacing(spacing);
+
+    m_prevRadius = m_radius;
   }
   else
   {

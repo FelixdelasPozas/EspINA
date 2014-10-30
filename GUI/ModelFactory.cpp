@@ -140,11 +140,11 @@ SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output::Id output) const
+ChannelAdapterSPtr ModelFactory::createChannel(FilterSPtr filter, Output::Id output) const
 {
-  ChannelSPtr channel{m_factory->createChannel(filter->adaptedFilter(), output)};
+  auto channel = m_factory->createChannel(filter, output);
 
-  return adaptChannel(filter, channel);
+  return adaptChannel(channel);
 }
 
 //------------------------------------------------------------------------
@@ -154,11 +154,11 @@ ChannelExtensionSPtr ModelFactory::createChannelExtension(const ChannelExtension
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filter, Output::Id output) const
+SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
 {
-  SegmentationSPtr segmentation{m_factory->createSegmentation(filter->adaptedFilter(), output)};
+  auto segmentation = m_factory->createSegmentation(filter, output);
 
-  return adaptSegmentation(filter, segmentation);
+  return adaptSegmentation(segmentation);
 }
 
 //------------------------------------------------------------------------
@@ -174,26 +174,21 @@ SampleAdapterSPtr ModelFactory::adaptSample(SampleSPtr sample) const
 }
 
 //------------------------------------------------------------------------
-FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter) const
+ChannelAdapterSPtr ModelFactory::adaptChannel(ChannelSPtr channel) const
 {
-  return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
-}
+  ChannelAdapterSPtr adapter{new ChannelAdapter(channel)};
 
-//------------------------------------------------------------------------
-ChannelAdapterSPtr ModelFactory::adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const
-{
-  ChannelAdapterSPtr adapter{new ChannelAdapter(filter, channel)};
   adapter->setRepresentationFactory(m_channelRepresentationFactory);
 
   return adapter;
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterSPtr ModelFactory::adaptSegmentation(FilterAdapterSPtr filter, SegmentationSPtr segmentation) const
+SegmentationAdapterSPtr ModelFactory::adaptSegmentation(SegmentationSPtr segmentation) const
 {
-  SegmentationAdapterSPtr adapter{new SegmentationAdapter(filter, segmentation)};
+  SegmentationAdapterSPtr adapter{new SegmentationAdapter(segmentation)};
+
   adapter->setRepresentationFactory(m_segmentationRepresentationFactory);
 
   return adapter;
 }
-

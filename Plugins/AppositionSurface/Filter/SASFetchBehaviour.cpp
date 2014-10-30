@@ -31,7 +31,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   MeshDataSPtr SASFetchBehaviour::fetchMeshData(OutputSPtr output,
                                                 TemporalStorageSPtr storage,
-                                                QString prefix)
+                                                const QString &path)
   {
     MeshDataSPtr mesh = nullptr;
 
@@ -40,7 +40,7 @@ namespace ESPINA
       auto data = DataSPtr{new RawMesh()};
       data->setOutput(output.get());
 
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
 

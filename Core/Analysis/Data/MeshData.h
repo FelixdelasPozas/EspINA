@@ -75,7 +75,9 @@ namespace ESPINA
   using MeshDataSPtr = std::shared_ptr<MeshData>;
 
   /** \brief Obtains and returns the MeshData smart pointer of the spacified Output.
-   * \param[in] output, Output object smart pointer.
+   * \param[in] output Output object smart pointer.
+   * 
+   *  This function ensures the output is up to date by callig ouput::update() first
    */
   MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output);
 

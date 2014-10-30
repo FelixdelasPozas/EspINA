@@ -28,7 +28,7 @@
 
 #include "Filters/SeedGrowSegmentationFilter.h"
 
-#include "seed_grow_segmentation_testing_support.h"
+#include "testing_support_channel_input.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Testing;
@@ -39,7 +39,7 @@ int seed_grow_segmentation_simple_execution(int argc, char** argv)
   bool error = false;
 
   InputSList   inputs;
-  inputs << inputChannel();
+  inputs << channelInput();
 
   Filter::Type  type{"SGS"};
 
@@ -52,16 +52,22 @@ int seed_grow_segmentation_simple_execution(int argc, char** argv)
   sgsf.update();
 
   if (sgsf.numberOfOutputs() != 1) {
-    cerr << "Unexpected number of outputs were created by the filter: " << sgsf.numberOfOutputs() << endl;  
+    cerr << "Unexpected number of outputs were created by the filter: " << sgsf.numberOfOutputs() << endl;
     error = true;
   }
+  else {
+    if (sgsf.output(0)->isEdited()) {
+      cerr << "Recently updated output shouldn't be marked as modified" << endl;
+      error = true;
+    }
 
-  Bounds inputBounds  = inputs[0]->output()->bounds();
-  Bounds outputBounds = sgsf.output(0)->bounds();
+    Bounds inputBounds  = inputs[0]->output()->bounds();
+    Bounds outputBounds = sgsf.output(0)->bounds();
 
-  if (inputBounds != outputBounds) {
-    cerr << inputBounds << " != " << outputBounds << endl;
-    error = true;
+    if (inputBounds != outputBounds) {
+      cerr << inputBounds << " != " << outputBounds << endl;
+      error = true;
+    }
   }
 
   return error;

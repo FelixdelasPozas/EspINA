@@ -21,17 +21,22 @@
 #ifndef ESPINA_VTK_RECTANGULAR_SLICE_WIDGET_H
 #define ESPINA_VTK_RECTANGULAR_SLICE_WIDGET_H
 
-#include "vtkAbstractWidget.h"
+#include "EspinaGUI_Export.h"
 
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/Bounds.h>
 #include "GUI/View/Widgets/RectangularRegion/RectangularRegion.h"
+
+// VTK
+#include "vtkAbstractWidget.h"
 
 class vtkPolyData;
 class vtkRectangularSliceRepresentation;
 
 namespace ESPINA
 {
+  class View2D;
 
   class EspinaGUI_EXPORT vtkRectangularSliceWidget
   : public vtkAbstractWidget
@@ -46,6 +51,7 @@ namespace ESPINA
     vtkTypeMacro(vtkRectangularSliceWidget, vtkAbstractWidget);
     void PrintSelf(ostream& os, vtkIndent indent);
 
+    virtual void SetView(View2D *view);
     virtual void SetPlane(Plane plane);
     virtual void SetSlice(Nm pos);
     virtual void SetBounds(Bounds bounds);

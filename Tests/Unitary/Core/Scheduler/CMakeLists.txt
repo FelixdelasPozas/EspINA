@@ -11,15 +11,8 @@ create_test_sourcelist(TEST_SOURCES Scheduler_Tests.cpp # this file is created b
 include_directories(
   ${CORE_DIR}/MultiTasking
 )
-  
-qt4_wrap_cpp(SUBJECT_MOCS
-  ${CORE_DIR}/MultiTasking/Scheduler.h
-  ${CORE_DIR}/MultiTasking/Task.h
-)
 
 set(SUBJECT_SOURCES
-  ${CORE_DIR}/MultiTasking/Scheduler.cpp
-  ${CORE_DIR}/MultiTasking/Task.cpp
   SleepyTask.cpp
 )
 
@@ -28,13 +21,9 @@ set(LIB_DEPENDECIES
   ${LIB_DEPENDECIES}
 )
 
-add_executable(Scheduler_Tests
-  ${TEST_SOURCES}
-  ${SUBJECT_MOCS}
-  ${SUBJECT_SOURCES}
-  )
-  
-target_link_libraries(Scheduler_Tests ${LIB_DEPENDECIES} )
+add_executable(Scheduler_Tests "" ${TEST_SOURCES} ${SUBJECT_SOURCES} )
+
+target_link_libraries(Scheduler_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Scheduler: Simple Task Execution\""  Scheduler_Tests scheduler_simple_task_execution)
 add_test("\"Scheduler: Simple Task Abort\""      Scheduler_Tests scheduler_simple_task_abort)

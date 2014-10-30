@@ -90,20 +90,28 @@ bool Filter::update()
 {
   bool updated = true;
 
-  if (numberOfOutputs() != 0 || createPreviousOutputs())
+  if (numberOfOutputs() != 0 || restorePreviousOutputs())
   {
     for(auto id : m_outputs.keys())
     {
       updated &= update(id);
     }
   }
-  else
+  else if (needUpdate())
   {
     for(auto input : m_inputs)
     {
-      input->output()->update(); //TODO: Move to input api?
+      input->update();
     }
+
     execute();
+
+    // If no previous output is restored then there is no edited
+    // regions to be restored either
+    for (auto output : m_outputs)
+    {
+      output->clearEditedRegions();
+    }
   }
 
   return updated;
@@ -112,13 +120,17 @@ bool Filter::update()
 //----------------------------------------------------------------------------
 bool Filter::update(Output::Id id)
 {
-  bool invalidateRegions = invalidateEditedRegions();
-  bool outputNeedsUpdate = needUpdate(id);
-
-   if (invalidateRegions || outputNeedsUpdate)
+   if (needUpdate(id))
    {
+     OutputPtr prevOutput = nullptr;
+     if (validOutput(id))
+     {
+       prevOutput = m_outputs[id].get();
+     }
+
      // Invalidate previous edited regions
-     if (invalidateRegions && id < m_outputs.size())
+     bool invalidatePreviousEditedRegions = ignoreStorageContent();
+     if (validOutput(id) && invalidatePreviousEditedRegions)
      {
        m_outputs[id]->clearEditedRegions();
      }
@@ -132,8 +144,17 @@ bool Filter::update(Output::Id id)
 
        execute(id);
 
-       if (id < m_outputs.size())
+       Q_ASSERT(existOutput(id));
+       // Existing output objects must remain between filter executions
+       Q_ASSERT(!prevOutput || prevOutput == m_outputs[id].get());
+
+       if (invalidatePreviousEditedRegions)
        {
+         m_outputs[id]->clearEditedRegions();
+       }
+       else
+       {
+         restoreEditedRegions(id);
          //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
        }
      }
@@ -148,7 +169,7 @@ Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 , m_analysis                 {nullptr}
 , m_type                     {type}
 , m_inputs                   {inputs}
-, m_invalidateSortoredOutputs{false}
+//, m_invalidateSortoredOutputs{false}
 , m_fetchBehaviour           {nullptr}
 {
   setName(m_type);
@@ -157,6 +178,8 @@ Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 //----------------------------------------------------------------------------
 bool Filter::fetchOutputData(Output::Id id)
 {
+  bool outputDataFetched = false;
+
   if (validStoredInformation() && m_fetchBehaviour)
   {
     QByteArray buffer = storage()->snapshot(outputFile());
@@ -167,6 +190,7 @@ bool Filter::fetchOutputData(Output::Id id)
 
       OutputSPtr output;
       DataSPtr   data;
+      BoundsList editedRegions;
 
       while (!xml.atEnd())
       {
@@ -193,27 +217,100 @@ bool Filter::fetchOutputData(Output::Id id)
           }
           else if ("Data" == xml.name() && output)
           {
-            m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
+             data = m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
+             data->clearEditedRegions();
+             editedRegions.clear();
+          }
+          else if ("EditedRegion" == xml.name() && output)
+          {
+            editedRegions <<  Bounds(xml.attributes().value("bounds").toString());
+            data->setEditedRegions(editedRegions);
           }
         }
       }
     }
+    outputDataFetched = m_outputs.contains(id) && m_outputs[id]->isValid();
   }
 
-  return m_outputs.contains(id) && m_outputs[id]->isValid();
+  return outputDataFetched;
 }
 
 //----------------------------------------------------------------------------
-void Filter::clearPreviousOutputs()
+void Filter::restoreEditedRegions(Output::Id id)
 {
-  m_outputs.clear();
-  m_invalidateSortoredOutputs = true;
+  if (validStoredInformation())
+  {
+    QByteArray buffer = storage()->snapshot(outputFile());
+
+    //qDebug() << buffer;
+
+    if (!buffer.isEmpty())
+    {
+      QXmlStreamReader xml(buffer);
+
+      OutputSPtr output;
+      DataSPtr   data;
+      BoundsList editedRegions;
+
+      while (!xml.atEnd())
+      {
+        xml.readNextStartElement();
+        if (xml.isStartElement())
+        {
+          if ("Output" == xml.name())
+          {
+            if (id == xml.attributes().value("id").toString().toInt())
+            {
+              // Outputs can be already created while checking if an output exists
+              Q_ASSERT(m_outputs.contains(id));
+              output = m_outputs.value(id, OutputSPtr{});
+              output->clearEditedRegions();
+            } else
+            {
+              output.reset();
+            }
+          }
+          else if ("Data" == xml.name() && output)
+          {
+            if (data)
+            {
+              data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
+            }
+            data = output->data(xml.attributes().value("type").toString());
+            if (data)
+            {
+              data->clearEditedRegions();
+            }
+          }
+          else if ("EditedRegion" == xml.name() && output)
+          {
+            if (data)
+            {
+              editedRegions <<  Bounds(xml.attributes().value("bounds").toString());
+              data->setEditedRegions(editedRegions);
+            }
+          }
+        }
+      }
+      if (data)
+      {
+        data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
+      }
+    }
+  }
 }
+
+// //----------------------------------------------------------------------------
+// void Filter::clearPreviousOutputs()
+// {
+//   m_outputs.clear();
+//   m_invalidateSortoredOutputs = true;
+// }
 
 //----------------------------------------------------------------------------
 bool Filter::validStoredInformation() const
 {
-  return !m_invalidateSortoredOutputs && storage() && !ignoreStorageContent();
+  return /*!m_invalidateSortoredOutputs &&*/ storage() && !ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------
@@ -221,14 +318,14 @@ bool Filter::existOutput(Output::Id id) const
 {
   if (m_outputs.isEmpty())
   {
-    createPreviousOutputs();
+    restorePreviousOutputs();
   }
 
   return m_outputs.contains(id);
 }
 
 //----------------------------------------------------------------------------
-bool Filter::createPreviousOutputs() const
+bool Filter::restorePreviousOutputs() const
 {
   if (validStoredInformation())
   {

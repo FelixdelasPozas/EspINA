@@ -41,21 +41,22 @@ namespace ESPINA {
 
   class EspinaCore_EXPORT FetchBehaviour
   {
-		public:
-  		/** \brief Class FetchBehaviour class virtual destructor.
-  		 *
-  		 */
-			virtual ~FetchBehaviour()
-			{};
+  public:
+    /** \brief Class FetchBehaviour class virtual destructor.
+     *
+     */
+    virtual ~FetchBehaviour()
+    {};
 
-  		/** \brief Loads the data from disk and set the data into the given output.
-  		 * \param[inout] output, output object smart pointer.
-  		 * \param[in] storage, temporal storage where the files are.
-  		 * \param[in] prefix, prefix of the data files.
-  		 * \param[in] info, xml data that specifies the type of data to fetch.
-  		 *
-  		 */
-			virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info) = 0;
+    /** \brief Loads the data from disk and set the data into the given output.
+     * \param[inout] output output object smart pointer.
+     * \param[in]    storage temporal storage where data snapshots are stored
+     * \param[in]    path    temporal storage relative path where data snapshots are stored
+     * \param[in]    info    xml data that specifies the type of data to fetch.
+     * \return       smart pointer to the fetched data
+     *
+     */
+    virtual DataSPtr fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
   };
 
   using FetchBehaviourSPtr = std::shared_ptr<FetchBehaviour>;

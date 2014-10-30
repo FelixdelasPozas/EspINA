@@ -79,10 +79,10 @@ namespace ESPINA
       virtual void setEnabled(bool enable);
 
     private slots:
-			/** \brief Update the representation when the view changes the slice.
-			 * \parma[in] plane, orientation plane.
-			 * \param[in] pos, new plane position.
-			 */
+      /** \brief Update the representation when the view changes the slice.
+       * \parma[in] plane, orientation plane.
+       * \param[in] pos new plane position.
+       */
       void sliceChanged(Plane plane, Nm pos);
 
       /** \brief Updates the representations.

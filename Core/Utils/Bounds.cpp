@@ -31,6 +31,7 @@
 
 // C++
 #include <tgmath.h>
+#include <QStringList>
 
 using namespace ESPINA;
 
@@ -49,7 +50,7 @@ bool lowerBoundsInclusion(double value) {
   if (value == '[') return true;
   if (value == '(') return false;
 
-  throw Invalid_bounds_token();
+  throw Invalid_Bounds_Token();
 }
 
 //-----------------------------------------------------------------------------
@@ -57,7 +58,7 @@ bool upperBoundsInclusion(double value) {
   if (value == ']') return true;
   if (value == ')') return false;
 
-  throw Invalid_bounds_token();
+  throw Invalid_Bounds_Token();
 }
 
 //-----------------------------------------------------------------------------
@@ -109,7 +110,7 @@ Bounds::Bounds(std::initializer_list<double> bounds)
       break;
     }
     default:
-      throw Wrong_number_initial_values{};
+      throw Wrong_Number_Initial_Values{};
   }
 
 }
@@ -125,6 +126,31 @@ Bounds::Bounds(const NmVector3& point)
     m_lowerInclusion[idx(dir)] = true;
     m_upperInclusion[idx(dir)] = true;
   }
+}
+
+//-----------------------------------------------------------------------------
+Bounds::Bounds(const QString& string)
+{
+  if (string.left(1)  != "{") throw Invalid_Bounds_Token();
+  if (string.right(1) != "}") throw Invalid_Bounds_Token();
+
+  QStringList ranges = string.split(",");
+
+  if (ranges.size() != 6) throw Invalid_Bounds_Token();
+
+  m_lowerInclusion[0] = ranges[0].startsWith("{[");
+  m_lowerInclusion[1] = ranges[2].startsWith("[");
+  m_lowerInclusion[2] = ranges[4].startsWith("[");
+  m_upperInclusion[0] = ranges[1].endsWith("]");
+  m_upperInclusion[1] = ranges[3].endsWith("]");
+  m_upperInclusion[2] = ranges[5].endsWith("]}");
+
+  m_bounds[0] = ranges[0].mid(2).toDouble();
+  m_bounds[1] = ranges[1].mid(0, ranges[1].length()-1).toDouble();
+  m_bounds[2] = ranges[2].mid(1).toDouble();
+  m_bounds[3] = ranges[3].mid(0, ranges[3].length()-1).toDouble();
+  m_bounds[4] = ranges[4].mid(1).toDouble();
+  m_bounds[5] = ranges[5].mid(0, ranges[5].length()-2).toDouble();
 }
 
 //-----------------------------------------------------------------------------

@@ -59,11 +59,12 @@ namespace ESPINA
      * \param[in] undoStack, QUndoStack object raw pointer.
      *
      */
-    explicit ClassificationLayout(CheckableTreeView *view,
-                                  ModelAdapterSPtr   model,
-                                  ModelFactorySPtr   factory,
-                                  ViewManagerSPtr    viewManager,
-                                  QUndoStack        *undoStack);
+    explicit ClassificationLayout(CheckableTreeView        *view,
+                                  ModelAdapterSPtr          model,
+                                  ModelFactorySPtr          factory,
+                                  FilterDelegateFactorySPtr delegateFactory,
+                                  ViewManagerSPtr           viewManager,
+                                  QUndoStack               *undoStack);
 
     /** \brief ClassificationLayour class virtual destructor.
      *

@@ -33,7 +33,7 @@ class QUndoStack;
 namespace ESPINA
 {
 
-	class SeedGrowSegmentationSettings;
+  class SeedGrowSegmentationSettings;
 
   class SegmentationTools
   : public ToolGroup
@@ -48,11 +48,12 @@ namespace ESPINA
 		 *
 		 */
     SegmentationTools(SeedGrowSegmentationSettings* settings,
-                      ModelAdapterSPtr model,
-                      ModelFactorySPtr factory,
-                      ViewManagerSPtr  viewManager,
-                      QUndoStack      *undoStack,
-                      QWidget         *parent = nullptr);
+                      ModelAdapterSPtr              model,
+                      ModelFactorySPtr              factory,
+                      FilterDelegateFactorySPtr     filterDelegateFactory,
+                      ViewManagerSPtr               viewManager,
+                      QUndoStack                   *undoStack,
+                      QWidget                      *parent = nullptr);
 
     /** \brief SegmentationTools class virtual destructor.
      *

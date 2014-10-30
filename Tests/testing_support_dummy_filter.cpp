@@ -19,15 +19,21 @@
  *
  */
 
-#ifndef ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
-#define ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
+#include "testing_support_dummy_filter.h"
 
-#include <Core/Analysis/Input.h>
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
-namespace ESPINA {
-  namespace Testing {
-    InputSPtr inputChannel();
-  }
+//------------------------------------------------------------------------
+DummyFilter::DummyFilter()
+: Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
+{
+  m_outputs[0] = OutputSPtr(new Output(this, 0));
 }
 
-#endif // ESPINA_SEEDGROWSEGMENTATION_TESTINGSUPPORT_H
+
+//------------------------------------------------------------------------
+DataProxySPtr DummyData::createProxy() const
+{
+  return DataProxySPtr{new DummyDataProxy()};
+}

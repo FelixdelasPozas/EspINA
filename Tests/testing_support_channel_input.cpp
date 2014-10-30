@@ -18,9 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "seed_grow_segmentation_testing_support.h"
+#include "testing_support_channel_input.h"
 
-#include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 using namespace ESPINA;
@@ -28,37 +27,26 @@ using namespace ESPINA::Testing;
 
 using ChannelVolume = SparseVolume<itkVolumeType>;
 
-InputSPtr ESPINA::Testing::inputChannel()
+DummyChannelReader::DummyChannelReader()
+
+: Filter(InputSList(), "DummyChannelReader", SchedulerSPtr())
 {
-  class DummyFilter
-  : public Filter
-  {
-  public:
-    explicit DummyFilter()
-    : Filter(InputSList(), "Dummy", SchedulerSPtr()){}
-    virtual void restoreState(const State& state){}
-    virtual State state() const{return State();}
-  protected:
-    virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-    virtual bool needUpdate() const{ return false;}
-    virtual bool needUpdate(Output::Id id) const{ return false;}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){}
-    virtual bool ignoreStorageContent() const {return false;}
-    virtual bool invalidateEditedRegions() {return false;}
-  };
-
-  std::shared_ptr<DummyFilter> filter{new DummyFilter()};
-
-  OutputSPtr output{new Output(filter.get(),0)};
-  output->setSpacing({1,1,1});
+  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  m_outputs[0]->setSpacing({1,1,1});
 
   Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
 
   DefaultVolumetricDataSPtr data{new ChannelVolume(bounds)};
   data->setBackgroundValue(50);
 
-  output->setData(data);
+  m_outputs[0]->setData(data);
+  m_outputs[0]->clearEditedRegions();
+}
 
-  return InputSPtr{new Input(filter, output)};
+InputSPtr ESPINA::Testing::channelInput()
+{
+
+  std::shared_ptr<DummyChannelReader> filter{new DummyChannelReader()};
+
+  return getInput(filter, 0);
 }

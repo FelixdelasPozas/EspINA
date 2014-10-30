@@ -47,11 +47,11 @@ namespace ESPINA
 
       struct IndexType
       {
-      		IndexType(): x(0), y(0), z(0) {};
-      		IndexType(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
-      		IndexType(const IndexType &i): x(i.x), y(i.y), z(i.z) {};
+        IndexType(): x(0), y(0), z(0) {};
+        IndexType(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
+        IndexType(const IndexType &i): x(i.x), y(i.y), z(i.z) {};
 
-      		int x; int y; int z;
+        int x; int y; int z;
       };
 
       using PixelType        = T;

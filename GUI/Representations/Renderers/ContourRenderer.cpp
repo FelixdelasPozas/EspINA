@@ -55,12 +55,14 @@ namespace ESPINA
       }
 
       if (m_enable)
+      {
         for (auto prop: rep->getActors())
         {
           prop->SetPickable(true);
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
         }
+      }
     }
   }
 

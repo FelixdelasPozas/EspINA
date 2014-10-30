@@ -95,12 +95,12 @@ class CategoryItemDelegate
 : public QItemDelegate
 {
 public:
-	/** \brief Class CategoryItemDelegate class constructor.
-	 * \param[in] model, model adapter smart pointer.
-	 * \param[in] undoStack, QUndoStack object raw pointer.
-	 * \param[in] parent, parent object raw pointer.
-	 *
-	 */
+  /** \brief Class CategoryItemDelegate class constructor.
+   * \param[in] model model adapter smart pointer.
+   * \param[in] undoStack QUndoStack object raw pointer.
+   * \param[in] parent parent object raw pointer.
+   *
+   */
   explicit CategoryItemDelegate(ModelAdapterSPtr model,
                                 QUndoStack      *undoStack,
                                 QObject         *parent = nullptr)
@@ -189,12 +189,13 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 }
 
 //------------------------------------------------------------------------
-ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
-                                           ModelAdapterSPtr   model,
-                                           ModelFactorySPtr   factory,
-                                           ViewManagerSPtr    viewManager,
-                                           QUndoStack        *undoStack)
-: Layout               {view, model, factory, viewManager, undoStack}
+ClassificationLayout::ClassificationLayout(CheckableTreeView        *view,
+                                           ModelAdapterSPtr          model,
+                                           ModelFactorySPtr          factory,
+                                           FilterDelegateFactorySPtr delegateFactory,
+                                           ViewManagerSPtr           viewManager,
+                                           QUndoStack                *undoStack)
+: Layout               {view, model, factory, delegateFactory, viewManager, undoStack}
 , m_proxy              {new ClassificationProxy(model)}
 , m_sort               {new SortFilter()}
 , m_delegate           {new CategoryItemDelegate(model, undoStack, this)}

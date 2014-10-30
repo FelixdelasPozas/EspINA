@@ -72,14 +72,8 @@ namespace ESPINA
     AnalysisPtr analysis() const
     { return m_analysis; }
 
-    /** \brief Implements Persistent::snapshot() const.
-     *
-     */
-    virtual Snapshot snapshot() const;
+    virtual Snapshot snapshot() const final;
 
-    /** \brief Implements Persistent::unload().
-     *
-     */
     virtual void unload();
 
     /** \brief Returns the type of the filter.
@@ -89,7 +83,7 @@ namespace ESPINA
     { return m_type; }
 
     /** \brief Sets the inputs of the filter.
-     * \param[in] inputs, list of input smart pointers.
+     * \param[in] inputs list of input smart pointers.
      *
      */
     void setInputs(InputSList inputs)
@@ -102,14 +96,14 @@ namespace ESPINA
     { return m_inputs; }
 
     /** \brief Sets the fetch data behaviour of the filter.
-     * \param[in] behaviour, fetch behaviour object smart pointer.
+     * \param[in] behaviour fetch behaviour object smart pointer.
      *
      */
     void setFetchBehaviour(FetchBehaviourSPtr behaviour)
     { m_fetchBehaviour = behaviour; }
 
     /** \brief Sets the error handler of the filter.
-     * \param[in] handler, error handler smart pointer.
+     * \param[in] handler error handler smart pointer.
      *
      */
     void setErrorHandler(ErrorHandlerSPtr handler)
@@ -144,13 +138,13 @@ namespace ESPINA
     {return m_outputs.values();}
 
     /** \brief Return whether or not id is a valid output for the filter
-     * \param[in] id, Output::Id object.
+     * \param[in] id Output::Id object.
      *
      */
     bool validOutput(Output::Id id) const throw(Undefined_Output_Exception);
 
     /** \brief Return filter's output with the given id.
-     * \param[in] id, Output::Id object.
+     * \param[in] id Output::Id object.
      *
      *   If there is no output with given oId, nullptr will be returned
      *
@@ -159,9 +153,9 @@ namespace ESPINA
 
   protected:
     /** \brief Filter class constructor.
-     * \param[in] inputs, list of input smart pointers.
-     * \param[in] type, type of the filter.
-     * \param[in] scheduler, smart pointer of the system scheduler.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type type of the filter.
+     * \param[in] scheduler smart pointer of the system scheduler.
      *
      */
     explicit Filter(InputSList inputs, Type  type, SchedulerSPtr scheduler);
@@ -177,18 +171,24 @@ namespace ESPINA
     virtual bool needUpdate() const = 0;
 
     /** \brief Return true if a filter must be executed to update the specified output.
-     * \param[in] id, Output::Id object.
+     * \param[in] id output id
      *
      */
     virtual bool needUpdate(Output::Id id) const = 0;
 
     /** \brief Try to load from cache dir all the output data.
-     * \param[in] id, Output::Id object.
+     * \param[in] id output id
      *
      *  Returns true if all data snapshot can be recovered
      *  and false otherwise
      */
     bool fetchOutputData(Output::Id id);
+
+    /** \brief Restore edited regions for available outputs
+     * \param[in] id output id
+     *
+     */
+    void restoreEditedRegions(Output::Id id);
 
     /** \brief Executes the filter to generate/update all its outputs.
      *
@@ -202,7 +202,7 @@ namespace ESPINA
     virtual void execute() = 0;
 
     /** \brief Method which actually executes the filter to generate output oId.
-     * \param[in] id, Output::Id object.
+     * \param[in] id Output::Id object.
      *
      */
     virtual void execute(Output::Id id) = 0;
@@ -215,21 +215,6 @@ namespace ESPINA
      */
     virtual bool ignoreStorageContent() const = 0;
 
-    /** \brief Invalidated the edited regions.
-     *
-     */
-    virtual bool invalidateEditedRegions() = 0;
-
-    /** \brief Destroy previous outputs and remove their snapshots if any.
-     *
-     *  If existing segmentations used this filter data it won't get update
-     *  even if you create a new output with the same id after calling this
-     *  method.
-     *  NOTE: Maybe we should change the behaviour and assume each execution
-     *  invalidate previous ones.
-     */
-    void clearPreviousOutputs();
-
   private:
     /** \brief Returns true if the data stored in the persistent storage is valid.
      *
@@ -237,7 +222,7 @@ namespace ESPINA
     bool validStoredInformation() const;
 
     /** \brief Check if output was created during this or previous executions.
-     * \param[in] id, Output::Id object.
+     * \param[in] id Output::Id object.
      *
      */
     bool existOutput(Output::Id id) const;
@@ -245,7 +230,7 @@ namespace ESPINA
     /** \brief Creates the outputs of the filter using the stored information.
      *
      */
-    bool createPreviousOutputs() const;
+    bool restorePreviousOutputs() const;
 
   private:
     /** \brief Returns the output file name for the filter.
@@ -267,7 +252,7 @@ namespace ESPINA
 
     mutable OutputSMap m_outputs;
 
-    bool m_invalidateSortoredOutputs;
+    //    bool m_invalidateSortoredOutputs;
 
     FetchBehaviourSPtr m_fetchBehaviour;
     ErrorHandlerSPtr   m_handler;

@@ -26,8 +26,8 @@
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-ChannelAdapter::ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel)
-: ViewItemAdapter{filter, channel}
+ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
+: ViewItemAdapter{channel}
 , m_channel      {channel}
 {
 }
@@ -73,10 +73,9 @@ InputSPtr ChannelAdapter::asInput() const
 }
 
 //------------------------------------------------------------------------
-void ChannelAdapter::changeOutput(InputSPtr input)
+void ChannelAdapter::changeOutputImplementation(InputSPtr input)
 {
   m_channel->changeOutput(input);
-  m_representations.clear();
 }
 
 //------------------------------------------------------------------------

@@ -24,23 +24,25 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info)
+DataSPtr MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
 {
+  DataSPtr data;
+
   if ("VolumetricData" == info.value("type"))
   {
-    fetchVolumetricData(output, storage, prefix);
+    data = fetchVolumetricData(output, storage, path);
   }
   else if ("MeshData" == info.value("type"))
   {
-    auto data = DataSPtr { new RawMesh() };
+    data = DataSPtr{ new RawMesh()};
     data->setOutput(output.get());
-    if (data->fetchData(storage, prefix))
+    if (data->fetchData(storage, path, QString::number(output->id())))
     {
       output->setData(data);
     }
     else
     {
-      auto volume = fetchVolumetricData(output, storage, prefix);
+      auto volume = fetchVolumetricData(output, storage, path);
       if (volume)
       {
         data = DataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
@@ -48,10 +50,12 @@ void MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, 
       }
     }
   }
+
+  return data;
 }
 
 //----------------------------------------------------------------------------
-ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix)
+ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path)
 {
   DefaultVolumetricDataSPtr volume = nullptr;
 
@@ -59,7 +63,7 @@ ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchV
   {
     auto data = DataSPtr { new SparseVolume<itkVolumeType>() };
     data->setOutput(output.get());
-    if (data->fetchData(storage, prefix))
+    if (data->fetchData(storage, path, QString::number(output->id())))
     {
       output->setData(data);
     }

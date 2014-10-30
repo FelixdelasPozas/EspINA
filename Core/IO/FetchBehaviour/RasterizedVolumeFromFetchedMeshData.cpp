@@ -25,26 +25,28 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  void RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
+  DataSPtr RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
                                                             TemporalStorageSPtr storage,
-                                                            QString prefix,
+                                                            const QString &path,
                                                             QXmlStreamAttributes info)
   {
+    DataSPtr data;
+
     if ("MeshData" == info.value("type"))
     {
-      fetchMeshData(output, storage, prefix);
+      data = fetchMeshData(output, storage, path);
     }
     else if ("VolumetricData" == info.value("type"))
     {
-      auto data = DataSPtr {new SparseVolume<itkVolumeType>()};
+      data = DataSPtr {new SparseVolume<itkVolumeType>()};
       data->setOutput(output.get());
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }
       else
       {
-        auto mesh = fetchMeshData(output, storage, prefix);
+        auto mesh = fetchMeshData(output, storage, path);
         auto spacing = mesh->spacing();
         auto bounds = mesh->bounds();
 
@@ -55,12 +57,14 @@ namespace ESPINA
         }
       }
     }
+
+    return data;
   }
 
   //----------------------------------------------------------------------------
   MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr output,
                                                                           TemporalStorageSPtr storage,
-                                                                          QString prefix)
+                                                                          const QString &path)
   {
     MeshDataSPtr mesh = nullptr;
 
@@ -69,7 +73,7 @@ namespace ESPINA
       auto data = DataSPtr{new RawMesh()};
       data->setOutput(output.get());
 
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }

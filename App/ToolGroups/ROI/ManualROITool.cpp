@@ -139,8 +139,8 @@ ManualROITool::ManualROITool(ModelAdapterSPtr model,
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
 
-  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
-          this,                SLOT(ROIChanged()));
+  connect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
+          this,        SLOT(ROIChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ ManualROITool::~ManualROITool()
 //-----------------------------------------------------------------------------
 void ManualROITool::ROIChanged()
 {
-  bool hasROI = (m_toolGroup->currentROI() != nullptr);
+  bool hasROI = m_toolGroup->hasValidROI();
 
   auto disc = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
   disc->setHasROI(hasROI);
@@ -218,13 +218,7 @@ void ManualROITool::drawingModeChanged(bool isDrawing)
 //------------------------------------------------------------------------
 void ManualROITool::drawStroke(Selector::Selection selection)
 {
-  if(m_toolGroup->currentROI() == nullptr)
-    m_undoStack->beginMacro("Create Region Of Interest");
-  else
-    m_undoStack->beginMacro("Modify Region Of Interest");
-
-  m_undoStack->push(new ModifyROIUndoCommand{m_toolGroup, selection.first().first});
-  m_undoStack->endMacro();
+  emit roiDefined(selection);
 
   updateReferenceItem(m_viewManager->selection());
 }

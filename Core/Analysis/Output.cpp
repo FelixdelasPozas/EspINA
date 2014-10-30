@@ -30,6 +30,7 @@
 #include "Filter.h"
 #include "DataProxy.h"
 #include "Analysis.h"
+#include "Segmentation.h"
 
 // VTK
 #include <vtkMath.h>
@@ -81,9 +82,11 @@ NmVector3 Output::spacing() const
 //----------------------------------------------------------------------------
 Snapshot Output::snapshot(TemporalStorageSPtr storage,
                           QXmlStreamWriter   &xml,
-                          const QString      &prefix) const
+                          const QString      &path) const
 {
   Snapshot snapshot;
+
+  auto saveOutput = isSegmentationOutput();
 
   for(auto dataProxy : m_data)
   {
@@ -96,20 +99,21 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
       auto region = data->editedRegions()[i];
-      xml.writeStartElement("Edited Region");
+      xml.writeStartElement("EditedRegion");
       xml.writeAttribute("id",     QString::number(i));
       xml.writeAttribute("bounds", region.toString());
       xml.writeEndElement();
     }
     xml.writeEndElement();
 
-    if (hasToBeSaved())
+    auto snapshotId = QString::number(id());
+    if (saveOutput)
     {
-      snapshot << data->snapshot(storage, prefix);
+      snapshot << data->snapshot(storage, path, snapshotId);
     }
     else
     {
-      snapshot << data->editedRegionsSnapshot();
+      snapshot << data->editedRegionsSnapshot(storage, path, snapshotId);
     }
   }
 
@@ -149,7 +153,7 @@ bool Output::isEdited() const
 {
   for(auto data: m_data)
   {
-    if (!data->get()->isEdited()) return true;
+    if (data->get()->isEdited()) return true;
   }
 
   return false;
@@ -195,6 +199,15 @@ void Output::setData(Output::DataSPtr data)
   m_data[type]->set(data);
   data->setOutput(this);
 
+  // Alternatively we could keep the previous edited clearEditedRegions
+  // but at the moment I can't find any scenario where it could be useful
+  BoundsList regions;
+  regions << data->bounds();
+  data->setEditedRegions(regions);
+
+  updateModificationTime();
+  emit modified();
+
   connect(data.get(), SIGNAL(dataChanged()),
           this, SLOT(onDataChanged()));
 }
@@ -208,8 +221,6 @@ void Output::removeData(const Data::Type& type)
 //----------------------------------------------------------------------------
 Output::DataSPtr Output::data(const Data::Type& type) const
 {
-  m_filter->update(m_id);
-
   DataSPtr result;
 
   if (m_data.contains(type))
@@ -232,16 +243,22 @@ void Output::update()
 }
 
 //----------------------------------------------------------------------------
-bool Output::hasToBeSaved() const
+bool Output::isSegmentationOutput() const
 {
-  bool res = false;
-
   auto analysis = m_filter->analysis();
   if (analysis)
   {
     auto content  = analysis->content();
-    res = !content->outEdges(m_filter, QString::number(m_id)).isEmpty();
+    auto outEdges = content->outEdges(m_filter, QString::number(m_id));
+
+    for (auto edge : outEdges)
+    {
+      if (std::dynamic_pointer_cast<Segmentation>(edge.target))
+      {
+        return true;
+      }
+    }
   }
 
-  return res;
+  return false;
 }

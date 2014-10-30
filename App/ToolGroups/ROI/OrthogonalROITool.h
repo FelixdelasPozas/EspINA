@@ -43,6 +43,9 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    enum class Mode { FIXED, RESIZABLE };
+
+  public:
     /** \brief OrthogonalROITool class constructor.
      * \param[in] model, model adapter smart pointer.
      * \param[in] viewManager, view manager smart pointer.
@@ -60,72 +63,108 @@ namespace ESPINA
      */
     virtual ~OrthogonalROITool();
 
-    /** \brief Implements Tool::setEnabled(bool).
-     *
-     */
     virtual void setEnabled(bool value);
 
-    /** \brief Implements Tool::enabled().
-     *
-     */
     virtual bool enabled() const;
 
-    /** \brief Implements Tool::actions().
-     *
-     */
     virtual QList<QAction *> actions() const;
 
-    /** \brief Returns true if the Orthogonal widget has been placed
+    /** \brief Sets ROI to be resized by this tool
      *
+     *  If ROI is null then resize action is disabled
      */
-    bool isDefined() const;
+    void setROI(ROISPtr roi);
 
-    /** \brief Removes the current widget.
-     *
-     */
-    void cancelWidget();
+    ROISPtr currentROI() const
+    { return m_roi; }
+
+    void setVisible(bool visible);
 
   signals:
-    void roiDefined();
+    void roiDefined(ROISPtr);
 
-  protected slots:
-  	/** \brief Modifies the tool and activates/deactivates the event handler for this tool.
-  	 * \param[in] value, true to activate tool and eventhandler, false to deactivate event handler.
-  	 */
+  private slots:
+    /** \brief Activates/Deactivates the tool
+     *  \param[in] value true to activate the tool
+     *
+     *  When the tool is active, it will display the two actions available.
+     *  When the tool is deactivated, Orthogonal ROI widget interaction will be disabled.
+     */
+    void setActive(bool value);
+
+
+    /** \brief Modifies the tool and activates/deactivates the event handler for this tool.
+     * \param[in] value true to activate tool and eventhandler, false to deactivate event handler.
+     */
     void activateEventHandler(bool value);
 
-    /** \brief Activates/Deactivates the tool and commits the current ROI if deactivated.
-     * \param[in] value, true to activate the tool.
+    /** \brief Update GUI status to be in accordance with the event handler state
+     * \param[in] active event handler status
      */
-    void activateTool(bool value);
+    void onEventHandlerChanged();
+
+
+
+    /** \brief Sets the operation mode of the Orthogonal ROI
+     *
+     *   \param[in] resizable true value allows ROI modification using a widget,
+     *                        false value only diplays the ROI on the views
+     */
+    void setResizable(bool resizable);
 
     /** \brief Defines a new ROI based on the selection.
-     * \param[in] selection, selection containing the active channel and selected voxel.
+     * \param[in] selection selection containing the active channel and selected voxel.
      *
      */
     void defineROI(Selector::Selection selection);
 
-    /** \brief Modifies the application ROI with the current ROI of the tool.
-     *
-     */
-    void commitROI();
+
+    void updateBounds(Bounds bounds);
+
+    void updateRectangularRegion();
 
   private:
-    void enableSelector(bool value);
+    /** \brief Creates the rectangular region widget for the current roi
+     *
+     */
+    void createOrthogonalWidget();
+
+    /** \brief Removes the current widget.
+     *
+     */
+    void destroyOrthogonalWidget();
+
+    /** \brief Changes Orthogonal ROI action buttons visibility
+     *
+     *  \param[in] visibliy when visibility is true, action buttons are displayed
+     */
+    void setActionVisibility(bool visiblity);
+
+    bool isResizable() const
+    { return Mode::RESIZABLE == m_mode; }
+
+    void setResizeMode(const Mode mode)
+    { return setResizable(Mode::RESIZABLE == mode); }
 
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
-    ROIToolsGroup   *m_toolGroup;
 
+    QAction         *m_activeTool;
+    QAction         *m_resizeROI;
     QAction         *m_applyROI;
+
     bool             m_enabled;
 
-    PixelSelectorSPtr m_selector;
-    EspinaWidgetSPtr  m_widget;
-    NmVector3         m_spacing;
-    NmVector3         m_origin;
+    ROISPtr          m_roi;
+    Mode             m_mode;
+
+    EspinaWidgetSPtr   m_widget;
+    RectangularRegion *m_rrWidget;
+
+    PixelSelectorSPtr  m_selector;
+
     RectangularRegionSliceSelector *m_sliceSelector;
     ROISettings                    *m_settings;
   };

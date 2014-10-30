@@ -65,10 +65,13 @@ namespace ESPINA
        */
       virtual bool setInternalData(SkeletonDataSPtr skeleton);
 
-      Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const;
+      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id);
 
-      virtual Snapshot editedRegionsSnapshot() const
-      { return Snapshot(); }
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id);
 
       bool isEdited() const
       { return false; }
@@ -77,8 +80,6 @@ namespace ESPINA
       { /* TODO */ };
 
       virtual vtkSmartPointer<vtkPolyData> skeleton() const;
-
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
 
       void setSpacing(const NmVector3 &spacing)
       { m_output->setSpacing(spacing); };
@@ -92,6 +93,7 @@ namespace ESPINA
       size_t memoryUsage() const;
     private:
       vtkSmartPointer<vtkPolyData> m_skeleton;
+      vtkSmartPointer<vtkPolyData> m_editedRegionsSkeleton;
   };
 
   using RawSkeletonPtr  = RawSkeleton *;

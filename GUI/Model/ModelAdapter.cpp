@@ -46,8 +46,6 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   //                 @Jorge: It is needed in order to keep the views coherent
   reset();
 
-  QMap<FilterSPtr, FilterAdapterSPtr>  filters;
-
   m_analysis = analysis;
 
   // Adapt classification
@@ -73,13 +71,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
   for(auto channel : analysis->channels())
   {
-    FilterAdapterSPtr filter = filters.value(channel->filter(), FilterAdapterSPtr());
-    if (!filter)
-    {
-      filter = factory->adaptFilter(channel->filter());
-    }
-
-    auto adapted = factory->adaptChannel(filter, channel);
+    auto adapted = factory->adaptChannel(channel);
     m_channels << adapted;
     adapted->setModel(this);
   }
@@ -89,13 +81,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
   beginInsertRows(segmentationRoot(), 0, analysis->segmentations().size() - 1);
   for(auto segmentation : analysis->segmentations())
   {
-    FilterAdapterSPtr filter = filters.value(segmentation->filter(), FilterAdapterSPtr());
-    if (!filter)
-    {
-      filter = factory->adaptFilter(segmentation->filter());
-    }
-
-    auto adapted = factory->adaptSegmentation(filter, segmentation);
+    auto adapted = factory->adaptSegmentation(segmentation);
 
     auto categoy = segmentation->category();
 
@@ -201,8 +187,7 @@ void ModelAdapter::add(ChannelAdapterSList channels)
 //------------------------------------------------------------------------
 void ModelAdapter::addImplementation(SegmentationAdapterSPtr segmentation) throw(Existing_Item_Exception)
 {
-  if (m_segmentations.contains(segmentation))
-  	throw Existing_Item_Exception();
+  if (m_segmentations.contains(segmentation)) throw Existing_Item_Exception();
 
   m_analysis->add(segmentation->m_segmentation);
   m_segmentations << segmentation;

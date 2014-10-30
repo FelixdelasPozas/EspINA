@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
+#include "testing_support_dummy_filter.h"
 
 using namespace std;
 using namespace ESPINA;

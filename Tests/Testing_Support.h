@@ -42,6 +42,7 @@ namespace ESPINA
     static vtkNaiveFunction *New();
 
     double EvaluateFunction(double x, double y, double z)   { return 0; }
+
     double EvaluateFunction(double xyz[3]) { return 0; }
 
     void EvaluateGradient(double x[3], double g[3]) { memcpy(g, x, 3*sizeof(double));}
@@ -61,7 +62,7 @@ namespace ESPINA
                                                  const typename T::ValueType   value);
 
     static bool Test_Pixel_Values(const typename T::Pointer   image,
-                                  const typename T::ValueType value,
+                                  const typename T::PixelType value,
                                   const Bounds& bounds = Bounds());
   };
 

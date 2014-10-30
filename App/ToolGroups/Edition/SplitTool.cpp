@@ -22,7 +22,6 @@
 #include "SplitTool.h"
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
-#include <GUI/Model/FilterAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
@@ -195,8 +194,7 @@ namespace ESPINA
       InputSList inputs;
       inputs << selectedSeg->asInput();
 
-      auto adapter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
-      auto filter = adapter.get();
+      auto filter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
 
       auto spacing = selectedSeg->output()->spacing();
       auto bounds = selectedSeg->bounds();
@@ -217,13 +215,15 @@ namespace ESPINA
       vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
       stencil = plane2stencil->GetOutput();
 
-      filter->get()->setStencil(stencil);
+      filter->setStencil(stencil);
 
-      struct Data data(adapter, m_model->smartPointer(selectedSeg));
-      m_executingTasks.insert(adapter.get(), data);
+      struct Data data(filter, m_model->smartPointer(selectedSeg));
+      m_executingTasks.insert(filter.get(), data);
 
-      connect(adapter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
-      adapter->submit();
+      connect(filter.get(), SIGNAL(finished()),
+              this,         SLOT(createSegmentations()));
+
+      Task::submit(filter);
     }
     else
     {
@@ -243,7 +243,7 @@ namespace ESPINA
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    auto filter = qobject_cast<FilterAdapterPtr>(sender());
+    auto filter = dynamic_cast<FilterPtr>(sender());
     Q_ASSERT(m_executingTasks.keys().contains(filter));
 
     if(!filter->isAborted())

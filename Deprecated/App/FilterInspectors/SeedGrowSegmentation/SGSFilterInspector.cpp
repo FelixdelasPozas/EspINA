@@ -46,13 +46,13 @@ public:
   : QUndoCommand(parent)
   , m_filter(filter)
   , m_threshold(threshold)
-  , m_closeRadius(closeRadius)
+  , m_closingRadius(closeRadius)
   {
     memcpy(m_ROI, voi, 6*sizeof(int));
 
     m_oldThreshold = m_filter->lowerThreshold();
     m_filter->voi(m_oldROI);
-    m_oldCloseRadius = m_filter->closeValue();
+    m_oldClosingRadius = m_filter->closeValue();
   }
 
   virtual void redo()
@@ -72,7 +72,7 @@ public:
     m_filter->setLowerThreshold(m_threshold, ignoreUpdate);
     m_filter->setUpperThreshold(m_threshold, ignoreUpdate);
     m_filter->setROI(m_ROI, ignoreUpdate);
-    m_filter->setCloseValue(m_closeRadius, ignoreUpdate);
+    m_filter->setCloseValue(m_closingRadius, ignoreUpdate);
 
     if (m_newVolume.IsNull())
     {
@@ -95,7 +95,7 @@ public:
     m_filter->setLowerThreshold(m_oldThreshold, true);
     m_filter->setUpperThreshold(m_oldThreshold, true);
     m_filter->setROI(m_oldROI, true);
-    m_filter->setCloseValue(m_oldCloseRadius, true);
+    m_filter->setCloseValue(m_oldClosingRadius, true);
 
     SegmentationOutputSPtr output = boost::dynamic_pointer_cast<SegmentationOutput>(m_filter->output(0));
     SegmentationVolumeSPtr volume = segmentationVolume(output);
@@ -123,7 +123,7 @@ private:
 
   int m_ROI[6], m_oldROI[6];
   int m_threshold, m_oldThreshold;
-  int m_closeRadius, m_oldCloseRadius;
+  int m_closingRadius, m_oldClosingRadius;
 
   itkVolumeType::Pointer m_oldVolume;
   itkVolumeType::Pointer m_newVolume;

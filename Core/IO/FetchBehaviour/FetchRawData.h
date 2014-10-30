@@ -26,11 +26,12 @@
 
 namespace ESPINA {
 
+  /// This Fetch FetchBehaviour only fetch existing data from temporal storage
   class EspinaCore_EXPORT FetchRawData
   : public FetchBehaviour
   {
   public:
-    virtual void fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info);
+    virtual DataSPtr fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
   };
 } // namespace ESPINA
 

@@ -48,9 +48,9 @@ namespace ESPINA
   : public ViewItemAdapter
   {
   public:
-  	/** \brief SegmentationAdapter class virtual destructor.
-  	 *
-  	 */
+    /** \brief SegmentationAdapter class virtual destructor.
+     *
+     */
     virtual ~SegmentationAdapter();
 
     /** \brief Implements ItemAdapter::data().
@@ -77,13 +77,8 @@ namespace ESPINA
      */
     virtual InputSPtr asInput() const;
 
-    /** \brief Implements ViewItemAdapter::changeOutput().
-     *
-     */
-    virtual void changeOutput(InputSPtr input);
-
     /** \brief Sets the number of the segmentation.
-     * \param[in] number.
+     * \param[in] number
      *
      */
     void setNumber(unsigned int number);
@@ -94,7 +89,7 @@ namespace ESPINA
     unsigned int number() const;
 
     /** \brief Sets the category of the segmentation.
-     * \param[in] category, category adapter smart pointer.
+     * \param[in] category category adapter smart pointer.
      *
      */
     void setCategory(CategoryAdapterSPtr category);
@@ -105,7 +100,7 @@ namespace ESPINA
     CategoryAdapterSPtr category() const;
 
     /** \brief Adds the user to the list of users that have modified this segmentation.
-     * \param[in] user, user name.
+     * \param[in] user user name.
      *
      */
     void modifiedByUser(const QString& user);
@@ -116,7 +111,7 @@ namespace ESPINA
     QStringList users() const;
 
     /** \brief Adds a extension to the segmentation.
-     * \param[in] extension, smart pointer of the segmentation extension to add.
+     * \param[in] extension smart pointer of the segmentation extension to add.
      *
      * Extesion won't be available until requirements are satisfied
      *
@@ -124,19 +119,19 @@ namespace ESPINA
     void addExtension(SegmentationExtensionSPtr extension);
 
     /** \brief Removes an extension from the segmentation.
-     * \param[in] extension, smart pointer of the segmentation extension to remove.
+     * \param[in] extension smart pointer of the segmentation extension to remove.
      *
      */
     void deleteExtension(SegmentationExtensionSPtr extension);
 
     /** \brief Check whether or not there is an extension with the given name.
-     * \param[in] type, segmentation extension type.
+     * \param[in] type segmentation extension type.
      *
      */
     bool hasExtension(const SegmentationExtension::Type& type) const;
 
     /** \brief Return the extension with the especified name.
-     * \param[in] type, segmentation extension type.
+     * \param[in] type segmentation extension type.
      *
      *  Important: It the segmentation doesn't contain any extension with
      *  the requested name, but there exist an extension prototype registered
@@ -158,7 +153,7 @@ namespace ESPINA
     virtual SegmentationExtension::InfoTagList informationTags() const;
 
     /** \brief Returns the information specified by the tag.
-     * \param[in] tag, segmentation extension information tag.
+     * \param[in] tag segmentation extension information tag.
      *
      */
     virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
@@ -175,13 +170,19 @@ namespace ESPINA
      */
     Bounds bounds() const;
 
+  protected:
+    /** \brief Implements ViewItemAdapter::changeOutput().
+     *
+     */
+    virtual void changeOutputImplementation(InputSPtr input);
+
   private:
     /** \brief SegmentationAdapter class constructor.
      * \param[in] filter, filter adapter smart pointer.
      * \param[in] segmentation, smart pointer of the segmentation to adapt.
      *
      */
-    explicit SegmentationAdapter(FilterAdapterSPtr filter, SegmentationSPtr segmentation);
+    explicit SegmentationAdapter(SegmentationSPtr segmentation);
 
   private:
     SegmentationSPtr    m_segmentation;

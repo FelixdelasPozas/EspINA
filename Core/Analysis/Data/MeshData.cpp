@@ -36,10 +36,20 @@ MeshData::MeshData()
 //----------------------------------------------------------------------------
 Bounds MeshData::bounds() const
 {
-  Nm bounds[6];
-  mesh()->GetBounds(bounds);
+  Bounds result;
 
-  return Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+  auto meshPolyData = mesh();
+
+  if (meshPolyData)
+  {
+    Nm bounds[6];
+
+    meshPolyData->GetBounds(bounds);
+
+    result = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+  }
+
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -51,7 +61,9 @@ DataProxySPtr MeshData::createProxy() const
 //----------------------------------------------------------------------------
 ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output)
 {
-  MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshData>(output->data(MeshData::TYPE));
+  output->update();
 
-  return meshData;
+  auto data = output->data(MeshData::TYPE);
+
+  return std::dynamic_pointer_cast<MeshData>(data);
 }

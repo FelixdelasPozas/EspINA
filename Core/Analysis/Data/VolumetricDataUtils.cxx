@@ -23,9 +23,12 @@
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/VolumeBounds.h>
+#include <Core/Utils/TemporalStorage.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
 
 namespace ESPINA {
 
@@ -414,6 +417,13 @@ namespace ESPINA {
   template<typename T>
   void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
   {
+    expandAndDraw<T>(volume.get(), drawnVolume, bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  {
     if (!bounds.areValid())
     {
       bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
@@ -465,6 +475,51 @@ namespace ESPINA {
     image->SetRegions(equivalentRegion<T>(image, bounds));
     image->Allocate();
     image->FillBuffer(value);
+
+    return image;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot createSnapshot(typename T::Pointer   volume,
+                          TemporalStorageSPtr   storage,
+                          const QString        &path,
+                          const QString        &id)
+  {
+    Snapshot snapshot;
+
+    storage->makePath(path);
+
+    QString mhd = QString("%1/%2").arg(path).arg(id);
+    QString raw = mhd;
+    raw.replace(".mhd",".raw");
+
+    bool releaseFlag = volume->GetReleaseDataFlag();
+    volume->ReleaseDataFlagOff();
+
+    auto writer = itk::ImageFileWriter<itkVolumeType>::New();
+    writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+    writer->SetInput(volume);
+    writer->Write();
+    volume->SetReleaseDataFlag(releaseFlag);
+
+    snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+    snapshot << SnapshotData(raw, storage->snapshot(raw));
+
+    return snapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename T::Pointer readVolume(const QString &filename)
+  {
+    using VolumeReader = itk::ImageFileReader<T>;
+
+    typename VolumeReader::Pointer reader = VolumeReader::New();
+    reader->SetFileName(filename.toUtf8().data());
+    reader->Update();
+
+    auto image = reader->GetOutput();
 
     return image;
   }

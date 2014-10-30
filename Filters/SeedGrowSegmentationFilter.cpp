@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Utils/StatePair.h>
 
 // C++
 #include <unistd.h>
@@ -50,6 +51,12 @@ using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeTyp
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
+const QString SEED           = "Seed";
+const QString LOWER_TH       = "LowerThreshold";
+const QString UPPER_TH       = "UpperThreshold";
+const QString CLOSING_RADIUS = "ClosingRadius";
+const QString ROI_DEFINED    = "ROI";
+
 //------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 : Filter       {inputs, type, scheduler}
@@ -61,7 +68,10 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter
 , m_prevSeed   {m_seed}
 , m_radius     {0}
 , m_prevRadius {m_radius}
+, m_hasROI     {true}
+, m_prevROI    {nullptr}
 , m_touchesROI {false}
+, m_forceUpdate{false}
 {
 }
 
@@ -74,22 +84,29 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
     if (tokens.size() != 2)
       continue;
 
-    if ("Seed" == tokens[0])
+    if (SEED == tokens[0])
     {
       QStringList seed = tokens[1].split(",");
       for(int i = 0; i < 3; ++i)
       {
         m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
       }
-    } else if ("LowerThreshold" == tokens[0])
+    }
+    else if (LOWER_TH == tokens[0])
     {
       m_prevLowerTh = m_lowerTh = tokens[1].toInt();
-    } else if ("UpperThreshold" == tokens[0])
+    }
+    else if (UPPER_TH == tokens[0])
     {
       m_prevUpperTh = m_upperTh = tokens[1].toInt();
-    } else if ("ClosingRadius" == tokens[0] || "Close" == tokens[0])
+    }
+    else if (CLOSING_RADIUS == tokens[0] || "Close" == tokens[0])
     {
       m_prevRadius  = m_radius  = tokens[1].toInt();
+    }
+    else if (ROI_DEFINED == tokens[0])
+    {
+      m_hasROI = tokens[1].toInt();
     }
   }
 }
@@ -97,11 +114,14 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
 //------------------------------------------------------------------------
 State SeedGrowSegmentationFilter::state() const
 {
-  State state = QString("Seed=%1;LowerThreshold=%2;UpperThreshold=%3;ClosingRadius=%4")
-                .arg(QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]))
-                .arg(m_lowerTh)
-                .arg(m_upperTh)
-                .arg(m_radius);
+  State state;
+
+  state += StatePair(SEED,           m_seed);
+  state += StatePair(LOWER_TH,       m_lowerTh);
+  state += StatePair(UPPER_TH,       m_upperTh);
+  state += StatePair(CLOSING_RADIUS, m_radius);
+  state += StatePair(ROI_DEFINED,    m_hasROI||m_ROI);
+
   return state;
 }
 
@@ -144,14 +164,24 @@ NmVector3 SeedGrowSegmentationFilter::seed() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 {
-  m_ROI = roi;
+  m_ROI        = roi;
+  m_hasROI     = m_ROI != nullptr;
   m_touchesROI = false;
 }
 
 //------------------------------------------------------------------------
 ROISPtr SeedGrowSegmentationFilter::roi() const
 {
-	return m_ROI;
+  if (!m_ROI && m_hasROI)
+  {
+    m_ROI = ROISPtr{new ROI(Bounds(),NmVector3(), NmVector3())};
+
+    m_ROI->fetchData(storage(), prefix(), "0");
+
+    m_prevROI = m_ROI.get();
+  }
+  
+  return m_ROI;
 }
 
 //------------------------------------------------------------------------
@@ -169,13 +199,20 @@ int SeedGrowSegmentationFilter::closingRadius() const
 //------------------------------------------------------------------------
 Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 {
-  return Snapshot();
+  Snapshot snapshot;
+
+  if (roi())
+  {
+    snapshot << m_ROI->snapshot(storage(), prefix(), "0");
+  }
+
+  return snapshot;
 }
 
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return needUpdate(0);
 }
 
 //----------------------------------------------------------------------------
@@ -290,6 +327,7 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   }
 
   emit progress(75);
+
   if (!canExecute()) return;
 
   if (!m_outputs.contains(0))
@@ -297,11 +335,10 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
     m_outputs[0] = OutputSPtr(new Output(this, 0));
   }
 
-  Bounds bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
-  NmVector3 spacing = m_inputs[0]->output()->spacing();
+  auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  auto spacing = m_inputs[0]->output()->spacing();
 
-  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
-  volume->draw(output, bounds);
+  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(output, bounds, spacing)};
 
   MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
 
@@ -314,8 +351,14 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
   m_prevUpperTh = m_upperTh;
   m_prevSeed    = m_seed;
   m_prevRadius  = m_radius;
+  m_prevROI     = m_ROI.get();
 
-  m_touchesROI = computeTouchesROIValue();
+  if(m_ROI != nullptr)
+  {
+    m_touchesROI = computeTouchesROIValue();
+  }
+
+  m_forceUpdate = false;
 
   emit progress(100);
 }
@@ -323,14 +366,18 @@ void SeedGrowSegmentationFilter::execute(Output::Id id)
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::ignoreStorageContent() const
 {
-  return m_lowerTh != m_prevLowerTh
-      || m_upperTh != m_prevUpperTh
-      || m_seed    != m_prevSeed
-      || m_radius  != m_prevRadius;
+  // TODO: Check if prevROI keeps true after two consecutive executions
+  // recovering from storage
+  return m_forceUpdate
+      || m_lowerTh   != m_prevLowerTh
+      || m_upperTh   != m_prevUpperTh
+      || m_seed      != m_prevSeed
+      || m_radius    != m_prevRadius
+      || m_ROI.get() != m_prevROI;
 }
 
 //----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::invalidateEditedRegions()
+bool SeedGrowSegmentationFilter::areEditedRegionsInvalidated()
 {
   return false;
 }
@@ -338,12 +385,14 @@ bool SeedGrowSegmentationFilter::invalidateEditedRegions()
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {
+  if (!m_ROI) return false;
+
   auto volume = volumetricData(m_outputs[0]);
   auto spacing = volume->spacing();
   auto boundsSeg = volume->bounds();
 
-	if(m_ROI->isRectangular())
-	{
+  if(m_ROI->isOrthogonal())
+  {
     auto boundsROI = m_ROI->bounds();
     for (int i = 0, j = 1; i < 6; i += 2, j += 2)
     {
@@ -353,42 +402,44 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
         break;
       }
     }
-	}
-	else
-	{
-	  // the mask algorithm requires at least a voxel more to function correctly.
-	  Bounds extendedBounds{boundsSeg[0]-spacing[0], boundsSeg[1]+spacing[0],
-	                        boundsSeg[2]-spacing[1], boundsSeg[3]+spacing[1],
-	                        boundsSeg[4]-spacing[2], boundsSeg[5]+spacing[2]};
+  }
+  else
+  {
+    // the mask algorithm requires at least a voxel more to function correctly.
+    Bounds extendedBounds{boundsSeg[0]-spacing[0], boundsSeg[1]+spacing[0],
+                          boundsSeg[2]-spacing[1], boundsSeg[3]+spacing[1],
+                          boundsSeg[4]-spacing[2], boundsSeg[5]+spacing[2]};
 
-	  // later the bounds are constrained to the channel bounds.
-	  auto input = volumetricData(m_inputs[0]->output());
-	  auto validBounds = intersection(extendedBounds, input->bounds(), spacing);
+    // later the bounds are constrained to the channel bounds.
+    auto input = volumetricData(m_inputs[0]->output());
+    auto validBounds = intersection(extendedBounds, input->bounds(), spacing);
 
-	  // correct intersection bounds.
-	  auto intersectionBounds = intersection(validBounds, m_ROI->bounds(), spacing);
-	  auto roiImage = m_ROI->itkImage(intersectionBounds);
+    // correct intersection bounds.
+    auto intersectionBounds = intersection(validBounds, m_ROI->bounds(), spacing);
+    auto roiImage = m_ROI->itkImage(intersectionBounds);
 
-	  auto region = roiImage->GetLargestPossibleRegion();
-	  auto regionIndex = region.GetIndex();
-	  auto regionLimit = regionIndex;
+    auto region = roiImage->GetLargestPossibleRegion();
+    auto regionIndex = region.GetIndex();
+    auto regionLimit = regionIndex;
 
-	  auto roiMask = m_ROI->itkImage(intersectionBounds);
-	  auto pointer = roiMask->GetBufferPointer();
-	  memset(pointer, 0, region.GetSize(0)*region.GetSize(1)*region.GetSize(2));
+    auto roiMask = m_ROI->itkImage(intersectionBounds);
+    auto pointer = roiMask->GetBufferPointer();
+    memset(pointer, 0, region.GetSize(0)*region.GetSize(1)*region.GetSize(2));
 
-	  regionLimit.SetElement(0, regionIndex.GetElement(0) + region.GetSize(0) - 1);
-	  regionLimit.SetElement(1, regionIndex.GetElement(1) + region.GetSize(1) - 1);
-	  regionLimit.SetElement(2, regionIndex.GetElement(2) + region.GetSize(2) - 1);
+    regionLimit.SetElement(0, regionIndex.GetElement(0) + region.GetSize(0) - 1);
+    regionLimit.SetElement(1, regionIndex.GetElement(1) + region.GetSize(1) - 1);
+    regionLimit.SetElement(2, regionIndex.GetElement(2) + region.GetSize(2) - 1);
 
-	  // creates an image of the roi only with the frontier values.
-	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> roiIt(roiImage, region);
-	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> maskIt(roiMask, region);
+    // creates an image of the roi only with the frontier values.
+    itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> roiIt(roiImage, region);
+    itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> maskIt(roiMask, region);
 
-	  // process Z direction
-	  unsigned char valueBefore = SEG_BG_VALUE;
+    // process Z direction
+    unsigned char valueBefore = SEG_BG_VALUE;
     for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
+    {
       for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
+      {
         for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
         {
           itkVolumeType::IndexType index{x,y,z};
@@ -422,11 +473,15 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 
           valueBefore = value;
         }
+      }
+    }
 
     // process Y axis
     valueBefore = SEG_BG_VALUE;
     for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
+    {
       for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
+      {
         for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
         {
           itkVolumeType::IndexType index{x,y,z};
@@ -460,11 +515,15 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 
           valueBefore = value;
         }
+      }
+    }
 
     // process X axis
     valueBefore = SEG_BG_VALUE;
     for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
+    {
       for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
+      {
         for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
         {
           itkVolumeType::IndexType index{x,y,z};
@@ -498,24 +557,26 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 
           valueBefore = value;
         }
+      }
+    }
 
-	  roiMask->Update();
-	  auto segImage = volume->itkImage();
-	  auto segRegion = segImage->GetLargestPossibleRegion();
+    roiMask->Update();
+    auto segImage = volume->itkImage();
+    auto segRegion = segImage->GetLargestPossibleRegion();
 
-	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> imageIt(segImage, segRegion);
-	  itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> roiCheckIt(roiMask, segRegion);
-	  imageIt.GoToBegin();
-	  roiCheckIt.GoToBegin();
-	  while(!imageIt.IsAtEnd())
-	  {
-	    if((roiCheckIt.Value() == SEG_VOXEL_VALUE) && (imageIt.Value() == SEG_VOXEL_VALUE))
-	      return true;
+    itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> imageIt(segImage, segRegion);
+    itk::ImageRegionIteratorWithIndex<itk::Image<unsigned char, 3>> roiCheckIt(roiMask, segRegion);
+    imageIt.GoToBegin();
+    roiCheckIt.GoToBegin();
+    while(!imageIt.IsAtEnd())
+    {
+      if((roiCheckIt.Value() == SEG_VOXEL_VALUE) && (imageIt.Value() == SEG_VOXEL_VALUE))
+        return true;
 
-	    ++roiCheckIt;
-	    ++imageIt;
-	  }
-	}
+      ++roiCheckIt;
+      ++imageIt;
+    }
+  }
 
-	return false;
+  return false;
 }

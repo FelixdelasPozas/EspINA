@@ -39,9 +39,9 @@ namespace ESPINA
   {
     public:
       /** \brief SplitFilter class constructor.
-			 * \param[in] inputs, list of input smart pointers.
-			 * \param[in] type, SplitFilter type.
-			 * \param[in] scheduler, scheduler smart pointer.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type SplitFilter type.
+       * \param[in] scheduler scheduler smart pointer.
        *
        */
       explicit SplitFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler);
@@ -51,20 +51,14 @@ namespace ESPINA
        */
       virtual ~SplitFilter();
 
-      /** \brief Implements Persistent::restoreState().
-       *
-       */
       virtual void restoreState(const State& state)
       {}
 
-      /** \brief Implements Persistent::state().
-       *
-       */
       virtual State state() const
       { return State(); }
 
       /** \brief Sets the stencil used to split the input.
-       * \param[in] stencil, a vtkSmartPointer<vtkImageStencilData> object.
+       * \param[in] stencil a vtkSmartPointer<vtkImageStencilData> object.
        *
        */
       void setStencil(vtkSmartPointer<vtkImageStencilData> stencil)
@@ -80,40 +74,19 @@ namespace ESPINA
       virtual bool fetchCacheStencil() const;
 
     protected:
-      /** \brief Implements Filter::saveFilterSnapshot().
-       *
-       */
       virtual Snapshot saveFilterSnapshot() const;
 
-      /** \brief Implements Filter::needUpdate().
-       *
-       */
       virtual bool needUpdate() const;
 
-      /** \brief Implements Filter::needUpdate(oid).
-       *
-       */
       virtual bool needUpdate(Output::Id id) const;
 
-      /** \brief Implements Filter::execute().
-       *
-       */
       virtual void execute();
 
-      /** \brief Implements Filter::execute(oid).
-       *
-       */
       virtual void execute(Output::Id id);
 
-      /** \brief Implements Filter::ignoreStorageContents().
-       *
-       */
       virtual bool ignoreStorageContent() const;
 
-      /** \brief Implements Filter::invalidateEditedRegions().
-       *
-       */
-      virtual bool invalidateEditedRegions();
+      virtual bool areEditedRegionsInvalidated();
 
       /** \brief Helper method that returns the stencil file name.
        *

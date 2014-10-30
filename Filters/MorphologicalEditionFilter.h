@@ -35,95 +35,88 @@ namespace ESPINA
   class EspinaFilters_EXPORT MorphologicalEditionFilter
   : public Filter
   {
-    public:
-  		/** \brief MorphologicalEditionFilter class virtual destructor.
-  		 *
-  		 */
-      virtual ~MorphologicalEditionFilter();
+  public:
+    /** \brief MorphologicalEditionFilter class virtual destructor.
+     *
+     */
+    virtual ~MorphologicalEditionFilter();
 
-      /** \brief Implements Persistent::restoreState().
-       *
-       */
-      virtual void restoreState(const State& state);
+    /** \brief Implements Persistent::restoreState().
+     *
+     */
+    virtual void restoreState(const State& state);
 
-      /** \brief Implements Persistent::state().
-       *
-       */
-      virtual State state() const;
+    /** \brief Implements Persistent::state().
+     *
+     */
+    virtual State state() const;
 
-      /** \brief Returns the radius of the morphological operation.
-       *
-       */
-      unsigned int radius() const
-      { return m_radius; }
+    /** \brief Returns the radius of the morphological operation.
+     *
+     */
+    unsigned int radius() const
+    { return m_radius; }
 
-      /** \brief Sets the radius and the flag to ignore the storage content.
-       * \param[in] radius, radius of the morphological operation.
-       * \param[in] ignoreUpdate, true to use the storage content false otherwise.
-       *
-       */
-      void setRadius(int radius, bool ignoreUpdate = false)
-      {
-        m_radius = radius;
-        m_ignoreStorageContent = !ignoreUpdate;
-      }
+    /** \brief Sets the radius of the morphological operation
+     * \param[in] radius radius of the morphological operation.
+     *
+     */
+    void setRadius(int radius)
+    { m_radius = radius; }
 
-      /** \brief Returs true if the output is empty.
-       *
-       * Morphological operations like erode can destroy the segmentation.
-       *
-       */
-      bool isOutputEmpty()
-      { return m_isOutputEmpty; }
+    /** \brief Returs true if the output is empty.
+     *
+     * Morphological operations like erode can destroy the segmentation.
+     *
+     */
+    bool isOutputEmpty()
+    { return m_isOutputEmpty; }
 
-    protected:
-      /** \brief MorphologicalEditionFilter class constructor.
-			 * \param[in] inputs, list of input smart pointers.
-			 * \param[in] type, type of the morphological operation.
-			 * \param[in] scheduler, scheduler smart pointer.
-			 *
-       */
-      explicit MorphologicalEditionFilter(InputSList    inputs,
-                                          Filter::Type  type,
-                                          SchedulerSPtr scheduler);
+  protected:
+    /** \brief MorphologicalEditionFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type type of the morphological operation.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
+    explicit MorphologicalEditionFilter(InputSList    inputs,
+                                        Filter::Type  type,
+                                        SchedulerSPtr scheduler);
 
-      /** \brief Implements Filter::saveFilterSnapshot().
-       *
-       */
-      virtual Snapshot saveFilterSnapshot() const;
+    /** \brief Implements Filter::saveFilterSnapshot().
+     *
+     */
+    virtual Snapshot saveFilterSnapshot() const;
 
-      /** \brief Implements Filter::needUpdate().
-       *
-       */
-      virtual bool needUpdate() const;
+    /** \brief Implements Filter::needUpdate().
+     *
+     */
+    virtual bool needUpdate() const;
 
-      /** \brief Implements Filter::needUpdate(id).
-       *
-       */
-      virtual bool needUpdate(Output::Id id) const;
+    /** \brief Implements Filter::needUpdate(id).
+     *
+     */
+    virtual bool needUpdate(Output::Id id) const;
 
-      /** \brief Implements Filter::ignoreStorageContent().
-       *
-       */
-      virtual bool ignoreStorageContent() const
-      { return m_ignoreStorageContent; }
+    /** \brief Implements Filter::ignoreStorageContent().
+     *
+     */
+    virtual bool ignoreStorageContent() const;
 
-      /** \brief Implements Filter::invalidateEditedRegions().
-       *
-       */
-      virtual bool invalidateEditedRegions();
+    /** \brief Implements Filter::invalidateEditedRegions().
+     *
+     */
+    virtual bool areEditedRegionsInvalidated();
 
-      /** \brief Checks if the output is empty after execution
-       * and creates the output if it's not.
-       *
-       */
-      void finishExecution(itkVolumeType::Pointer output);
+    /** \brief Checks if the output is empty after execution
+     * and creates the output if it's not.
+     *
+     */
+    void finishExecution(itkVolumeType::Pointer output);
 
-    protected:
-      bool m_ignoreStorageContent;
-
-      int  m_radius;
-      bool m_isOutputEmpty;
+  protected:
+    int  m_radius, m_prevRadius;
+    bool m_isOutputEmpty;
   };
 
   using MorphologicalEditionFilterPtr  = MorphologicalEditionFilter *;

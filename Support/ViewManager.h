@@ -33,6 +33,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
+#include "ROIProvider.h"
 
 // Qt
 #include <QList>
@@ -79,25 +80,25 @@ namespace ESPINA
     ~ViewManager();
 
     /** \brief Registers a view to be managed by this view manager.
-     * \param[in] view, SelectableView raw pointer of the view to register.
+     * \param[in] view SelectableView raw pointer of the view to register.
      *
      */
     void registerView(SelectableView* view);
 
     /** \brief Registers a view to be managed by this view manager.
-     * \param[in] view, RenderView raw pointer of the view to register.
+     * \param[in] view RenderView raw pointer of the view to register.
      *
      */
     void registerView(RenderView*     view);
 
     /** \brief Unregisters a view from the view manager so it wont receive updates.
-     * \param[in] view, Selectable raw pointer of the view to unregister.
+     * \param[in] view Selectable raw pointer of the view to unregister.
      *
      */
     void unregisterView(SelectableView* view);
 
     /** \brief Unregisters a view from the view manager so it wont receive updates.
-     * \param[in] view, RenderView raw pointer of the view to unregister.
+     * \param[in] view RenderView raw pointer of the view to unregister.
      *
      */
     void unregisterView(RenderView* view);
@@ -120,22 +121,22 @@ namespace ESPINA
     QList<View2D *> sliceViews();
 
     /** \brief Register a renderer.
-     * \param[in] renderer, renderer prototype.
+     * \param[in] renderer renderer prototype.
      */
     void registerRenderer(RendererSPtr renderer);
 
     /** \brief Unregister a renderer and remove it from the list of renderers.
-     * \param[in] name, name of the renderer to unregister.
+     * \param[in] name name of the renderer to unregister.
      */
     void unregisterRenderer(const QString &name);
 
     /** \brief Returns a list of renderers for the specified view type.
-     * \param[in] type, view type.
+     * \param[in] type view type.
      */
     QStringList renderers(const RendererType type) const;
 
     /** \brief Returns an instance of the specified renderer.
-     * \param[in] name, name of the renderer to clone.
+     * \param[in] name name of the renderer to clone.
      */
     RendererSPtr cloneRenderer(const QString &name) const;
 
@@ -149,13 +150,13 @@ namespace ESPINA
     //---------------------------------------------------------------------------
   public:
     /** \brief Enable item selection in views controlled by the ViewManager.
-     * \param[in] enable, true to enable the user to select objects in the view, false otherwise.
+     * \param[in] enable true to enable the user to select objects in the view, false otherwise.
      *
      */
     void setSelectionEnabled(bool enable);
 
     /** \brief Request all controlled views to update their selection.
-     * \param[in] selection, current selection.
+     * \param[in] selection current selection.
      *
      */
     void setSelection(ViewItemAdapterList selection);
@@ -177,26 +178,26 @@ namespace ESPINA
     //---------------------------------------------------------------------------
   public:
     /** \brief Sets the contextual tool bar.
-     * \param[in] toolbar, QToolBar raw pointer.
+     * \param[in] toolbar QToolBar raw pointer.
      *
      */
     void setContextualBar(QToolBar *toolbar)
     { m_contextualToolBar = toolbar; }
 
     /** \brief Shows the tools of the specified tool group.
-     * \param[in] group, ToolGroup smart pointer.
+     * \param[in] group ToolGroup smart pointer.
      *
      */
     void displayTools(ToolGroupPtr group);
 
     /** \brief Hides the tools of the specified tool group.
-     * \param[in] group, ToolGroup smart pointer.
+     * \param[in] group ToolGroup smart pointer.
      *
      */
     void hideTools(ToolGroupPtr group);
 
     /** \brief Sets the event handler as the active one.
-     * \param[in] eventHandler, event handler smart pointer.
+     * \param[in] eventHandler event handler smart pointer.
      *
      */
     void setEventHandler(EventHandlerSPtr eventHandler);
@@ -207,7 +208,7 @@ namespace ESPINA
     void unsetActiveEventHandler();
 
     /** \brief Unsets the specified eventhandler if it was enabled.
-     * \param[in] eventHandler, event handler smart pointer.
+     * \param[in] eventHandler event handler smart pointer.
      *
      */
     void unsetEventHandler(EventHandlerSPtr eventHandler);
@@ -218,25 +219,31 @@ namespace ESPINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    /** \brief Sets the current region of interest.
-     * \param[in] roi, ROI smart pointer.
+    /** \brief Sets the current region of interest provider
+     * \param[in] provider ROI Provider smart pointer.
      *
      */
-    void setCurrentROI(ROISPtr roi)
-    { m_roi = roi; emit ROIChanged(); }
+    void setROIProvider(ROIProviderPtr provider)
+    { m_roiProvider = provider;}
 
-    /** \brief Returns the current region of interest smart pointer.
+    /** \brief Returns the current region of interest provider.
      *
      */
+    ROIProviderPtr roiProvider() const
+    { return m_roiProvider; }
+
     ROISPtr currentROI() const
-    { return m_roi; }
+    { return m_roiProvider?m_roiProvider->currentROI():ROISPtr();}
+
+    void consumeROI()
+    { if (m_roiProvider) m_roiProvider->consumeROI();}
 
   signals:
-    void ROIChanged();
+    void roiRoviderChanged();
     void eventHandlerChanged();
 
   private:
-    ROISPtr          m_roi;
+    ROIProviderPtr   m_roiProvider;
     QToolBar        *m_contextualToolBar;
     ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;
@@ -246,13 +253,13 @@ namespace ESPINA
     //---------------------------------------------------------------------------
   public:
     /** \brief Adds a widget to the registered views.
-     * \param[in] widget, smart pointer of the widget to add.
+     * \param[in] widget smart pointer of the widget to add.
      *
      */
     void addWidget(EspinaWidgetSPtr widget);
 
     /** \brief Removes a widget from the registered views.
-     * \param[in] widget, smart pointer of the widget to remove.
+     * \param[in] widget smart pointer of the widget to remove.
      *
      */
     void removeWidget(EspinaWidgetSPtr widget);
@@ -270,19 +277,19 @@ namespace ESPINA
     void resetViewCameras();
 
     /** \brief Centers the views on the specified point.
-     * \param[in] point, point to center the views on.
+     * \param[in] point point to center the views on.
      *
      */
     void focusViewsOn(const NmVector3& point);
 
     /** \brief Toggles segmentations visibility.
-     * \param[in] visible, true to make segmentation representations visible, false otherwise.
+     * \param[in] visible true to make segmentation representations visible, false otherwise.
      *
      */
     void setSegmentationVisibility(bool visible);
 
     /** \brief Toggles crosshair visibility.
-     * \param[in] visible, true to make the crosshair visible false otherwise.
+     * \param[in] visible true to make the crosshair visible false otherwise.
      *
      */
     void setCrosshairVisibility(bool visible);
@@ -305,26 +312,26 @@ namespace ESPINA
     NmVector3 viewResolution();
 
     /** \brief Returns a measure object of the provided measure in Nm.
-     * \param[in] distance, measure in Nm units.
+     * \param[in] distance measure in Nm units.
      *
      */
     MeasureSPtr measure(Nm distance);
 
   public slots:
-		/** \brief Updates the representations of a segmentation.
-		 * \param[in] segmentation, raw pointer of the segmentation adapter to update.
-		 *
-		 */
+    /** \brief Updates the representations of a segmentation.
+     * \param[in] segmentation raw pointer of the segmentation adapter to update.
+     *
+     */
     void updateSegmentationRepresentations(SegmentationAdapterPtr segmentation);
 
     /** \brief Update segmentation representations.
-     * \param[in] list, list of segmentation raw pointers to update.
+     * \param[in] list list of segmentation raw pointers to update.
      *
      */
     void updateSegmentationRepresentations(SegmentationAdapterList list = SegmentationAdapterList());
 
     /** \brief Update channel representations.
-     * \param[in] list, list of channel adapter raw pointer to update.
+     * \param[in] list list of channel adapter raw pointer to update.
      *
      */
     void updateChannelRepresentations(ChannelAdapterList list = ChannelAdapterList());
@@ -335,7 +342,7 @@ namespace ESPINA
     void updateViews();
 
     /** \brief Change "fit to slice" flag.
-     * \param[in] enabled, true to enable "fit to slices" false otherwise.
+     * \param[in] enabled true to enable "fit to slices" false otherwise.
      *
      */
     void setFitToSlices(bool enabled);

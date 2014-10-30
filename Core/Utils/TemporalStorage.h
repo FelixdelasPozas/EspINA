@@ -82,6 +82,7 @@ namespace ESPINA
     /** \brief Makes a path in the storage parent directory.
      * \param[in] path, path relative to storage parent directory.
      *
+     *  It is safe to call this method even if the path already exits
      */
     void makePath(const QString& path)
     { m_storageDir.mkpath(path); }

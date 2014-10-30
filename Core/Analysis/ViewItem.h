@@ -37,7 +37,7 @@ namespace ESPINA {
     Q_OBJECT
   public:
     /** \brief ViewItem class constructor.
-     * \param[in] input, input object smart pointer.
+     * \param[in] input input object smart pointer.
      *
      */
     explicit ViewItem(InputSPtr input);
@@ -82,31 +82,31 @@ namespace ESPINA {
     { return m_input->output()->id(); }
 
     /** \brief Returns the data object of the type specified that represents this item.
-     * \param[in] type, data type.
+     * \param[in] type data type.
      *
      */
     DataSPtr data(Data::Type type);
 
     /** \brief Returns the data object of the type specified that represents this item.
-     * \param[in] type, data type.
+     * \param[in] type data type.
      *
      */
     const DataSPtr data(Data::Type type) const;
 
     /** \brief Changes the output.
-     * \param[in] input, input object smart pointer.
+     * \param[in] input input object smart pointer.
      *
      */
     void changeOutput(InputSPtr input);
 
     /** \brief Changes the output.
-     * \param[in] filter, filter object smart pointer.
-     * \param[in] outputId, output id the the filter.
+     * \param[in] filter filter object smart pointer.
+     * \param[in] outputId output id the the filter.
      *
      */
     void changeOutput(FilterSPtr filter, Output::Id outputId);
 
-    /** \brief Returns true if the output has been modified.
+    /** \brief Returns true if the output has been modified its creation
      *
      */
     bool isOutputModified() const
@@ -119,9 +119,9 @@ namespace ESPINA {
     { return output()->bounds(); }
 
   protected slots:
-		/** \brief Emit the modification signal for this object and updates modification flag.
-		 *
-		 */
+    /** \brief Emit the modification signal for this object and updates modification flag.
+     *
+     */
     void onOutputModified()
     {
       m_isOutputModified = true;

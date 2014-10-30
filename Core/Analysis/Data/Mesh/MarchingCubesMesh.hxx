@@ -48,9 +48,9 @@ namespace ESPINA
   : public MeshData
   {
   public:
-  	/** \brief MarchingCubesMesh class constructor.
-  	 * \param[in] volume, volume to use source for marching cubes algorithm.
-  	 */
+    /** \brief MarchingCubesMesh class constructor.
+     * \param[in] volume volume to use source for marching cubes algorithm.
+     */
     explicit MarchingCubesMesh(VolumetricDataSPtr<T> volume);
 
     /** \brief MarchingCubesMesh class virtual destructor.
@@ -58,30 +58,17 @@ namespace ESPINA
      */
     virtual ~MarchingCubesMesh();
 
-    /** \brief Implements Data::fetchData().
-     *
-     */
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
+    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-    /** \brief Implements Data::snapshot().
-     *
-     */
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
-    /** \brief Implements Data::editedRegionsSnapshot().
-     *
-     */
-    virtual Snapshot editedRegionsSnapshot() const;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    /** \brief Implements Data::isValid().
-     *
-     */
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
+
     virtual bool isValid() const
     { return m_volume->isValid(); }
 
-    /** \brief Implements Data::isEmpty().
-     *
-     */
     virtual bool isEmpty() const
     { return m_volume->isEmpty(); }
 
@@ -91,30 +78,17 @@ namespace ESPINA
     virtual Bounds bounds() const override
     { return m_volume->bounds(); }
 
-    /** \brief Implements Data::setSpacing().
-     *
-     */
     virtual void setSpacing(const NmVector3& spacing);
 
-    /** \brief Implements Data::spacing() const.
-     *
-     */
     virtual NmVector3 spacing() const;
 
-    /** \brief Implements Data::undo().
-     *
-     */
     virtual void undo();
 
-    /** \brief Implements Data::memoryUsage() const.
-     *
-     */
     virtual size_t memoryUsage() const;
 
-    /** \brief Implements MeshData::mesh() const.
-     *
-     */
     virtual vtkSmartPointer<vtkPolyData> mesh() const;
+
+    virtual TimeStamp lastModified() override;
 
   private:
     /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
@@ -124,6 +98,7 @@ namespace ESPINA
 
     VolumetricDataSPtr<T> m_volume;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
+    TimeStamp m_lastVolumeModification;
   };
 
   //----------------------------------------------------------------------------
@@ -131,6 +106,7 @@ namespace ESPINA
   MarchingCubesMesh<T>::MarchingCubesMesh(VolumetricDataSPtr<T> volume)
   : m_volume{volume}
   , m_mesh  {nullptr}
+  , m_lastVolumeModification{VTK_UNSIGNED_LONG_LONG_MAX}
   {
   }
 
@@ -142,21 +118,21 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template <typename T>
-  bool MarchingCubesMesh<T>::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
+  bool MarchingCubesMesh<T>::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
     return false;
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
-  Snapshot MarchingCubesMesh<T>::snapshot(TemporalStorageSPtr storage, const QString& prefix) const
+  Snapshot MarchingCubesMesh<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
     return Snapshot();
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
-  Snapshot MarchingCubesMesh<T>::editedRegionsSnapshot() const
+  Snapshot MarchingCubesMesh<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
     return Snapshot();
   }
@@ -198,7 +174,6 @@ namespace ESPINA
   {
     if (!m_mesh)
     {
-      m_mesh = vtkSmartPointer<vtkPolyData>::New();
       const_cast<MarchingCubesMesh<T> *>(this)->updateMesh();
     }
 
@@ -206,20 +181,31 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
+  template<typename T>
+  TimeStamp MarchingCubesMesh<T>::lastModified()
+  {
+    updateMesh(); // updates the mesh only if necessary.
+    return Data::lastModified();
+  }
+
+  //----------------------------------------------------------------------------
   template <typename T>
   void MarchingCubesMesh<T>::updateMesh()
   {
+    if(m_lastVolumeModification == m_volume->lastModified())
+      return;
+
     vtkSmartPointer<vtkImageData> image = vtkImage(m_volume, m_volume->bounds());
 
     int extent[6];
     image->GetExtent(extent);
 
-    extent[0]--;
-    extent[1]++;
-    extent[2]--;
-    extent[3]++;
-    extent[4]--;
-    extent[5]++;
+    --extent[0];
+    ++extent[1];
+    --extent[2];
+    ++extent[3];
+    --extent[4];
+    ++extent[5];
 
     // segmentation image need to be padded to avoid segmentation voxels from touching
     // the edges of the image (and create morphologically correct actors)
@@ -240,7 +226,13 @@ namespace ESPINA
     marchingCubes->SetInputData(padding->GetOutput());
     marchingCubes->Update();
 
+    if(!m_mesh)
+      m_mesh = vtkSmartPointer<vtkPolyData>::New();
+
     m_mesh->DeepCopy(marchingCubes->GetOutput());
+
+    m_lastVolumeModification = m_volume->lastModified();
+    updateModificationTime();
   }
 
 } // namespace ESPINA

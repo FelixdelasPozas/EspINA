@@ -36,52 +36,56 @@ using namespace std;
 int output_update_filter( int argc, char** argv )
 {
   class DummyFilter
-  : public Filter 
+  : public Filter
   {
   public:
     explicit DummyFilter()
     : Filter(InputSList(), "Dummy", SchedulerSPtr(new Scheduler(10000000)))
-    , UpdatedOutput{-1}{}
-    virtual void restoreState(const State& state) {}
-    virtual State state() const{ return State();}
-    
+    , UpdatedOutput{-1}
+    {}
+
     int UpdatedOutput;
-    
+
+    virtual void restoreState(const State& state) override {}
+    virtual State state() const                   override { return State();}
+
   protected:
-    virtual Snapshot saveFilterSnapshot() const {}
-    virtual bool needUpdate() const {return true;}
-    virtual bool needUpdate(Output::Id id) const {return true;}
-    virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
-    virtual void execute(){}
-    virtual void execute(Output::Id id){UpdatedOutput = id;}
-    virtual bool ignoreStorageContent() const {return false;}
-    virtual bool invalidateEditedRegions() {return false;}
+    virtual Snapshot saveFilterSnapshot() const  override {return Snapshot();}
+    virtual bool needUpdate() const              override {return true;}
+    virtual bool needUpdate(Output::Id id) const override {return true;}
+    virtual void execute()                       override {}
+    virtual void execute(Output::Id id)          override
+    {
+      UpdatedOutput = id;
+      m_outputs[id] = OutputSPtr{new Output(this, id)};
+    }
+    virtual bool ignoreStorageContent() const    override {return true;}
   };
-  
+
   bool error = false;
 
   DummyFilter *filter{new DummyFilter()};
 
   Output::Id id = 0;
-  
+
   Output output(filter, id);
-  
+
   output.update();
-  
+
   if (filter->UpdatedOutput != id) {
     cerr << "Unexpected filter update for output " << id << endl;
     error = true;
   }
-  
+
   id = 5;
   Output output2(filter, id);
-  
+
   output2.update();
-  
+
   if (filter->UpdatedOutput != id) {
     cerr << "Unexpected filter update for output " << id << endl;
     error = true;
   }
-  
+
   return error;
 }

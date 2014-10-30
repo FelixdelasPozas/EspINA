@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <Support/Widgets/ToolGroup.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/ROIProvider.h>
 
 // Qt
 #include <QAction>
@@ -41,15 +42,16 @@ namespace ESPINA
   /// Seed Growing Segmentation Plugin
   class ROIToolsGroup
   : public ToolGroup
+  , public ROIProvider
   {
   Q_OBJECT
   public:
     /** \brief VolumeOfInterestTools class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
-     * \param[in] parent, QWidget raw pointer of the parent of this object.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] factory factory smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] parent QWidget raw pointer of the parent of this object.
      */
     ROIToolsGroup(ROISettings*     settings,
                   ModelAdapterSPtr model,
@@ -63,52 +65,87 @@ namespace ESPINA
      */
     virtual ~ROIToolsGroup();
 
-    /** \brief Implements ToolGroup::setEnabled(bool).
-     *
-     */
-    virtual void setEnabled(bool value);
+    virtual void setEnabled(bool value) override;
 
-    /** \brief Implements ToolGroup::enabled().
-     *
-     */
-    virtual bool enabled() const;
+    virtual bool enabled() const override;
 
-    /** \brief Implements ToolGroup::tools().
-     *
-     */
-    virtual ToolSList tools();
+    virtual ToolSList tools() override;
 
-    /** \brief Sets the value of roi accumulator and passes it to ViewManager.
-     * \param[in] roi, roi object smart pointer.
+    /** \brief Set roi to be managed by this tool
+     * \param[in] roi region of interest
      *
      */
     void setCurrentROI(ROISPtr roi);
 
-    /** \brief Gets the current accumulator value.
-     *
-     */
-    ROISPtr currentROI();
+    virtual ROISPtr currentROI() override;
+
+    virtual void consumeROI() override;
+
+    ROISPtr accumulator()
+    { return m_accumulator; }
 
     /** \brief Returns true if there is a valid roi.
      *
      */
-    bool hasValidROI();
+    bool hasValidROI() const;
+
+//     /** \brief Returns whether or not ROIs created with this tool are accesible via
+//      *         ViewManager's ROI to other tools
+//      *
+//      *  By default all tools are global
+//      */
+//     bool isGlobalROI() const
+//     { return m_globalROI; }
+
+//     /** \brief Set whether or not ROIs created with this tool are accesible via
+//      *         ViewManager's ROI to other tools
+//      *
+//      *  \param[in] value sets tool behaviour to value
+//      */
+//     void setGlobalROI(bool value)
+//     { m_globalROI = value; }
+
+    /** \brief Set wheter or not the accumulated ROI is visible
+     *  \param[in] visible ROI visibility state
+     */
+    void setVisible(bool visible);
+
+    /** \brief Returns wheter or not the accumulated ROI is visible
+     */
+    bool isVisible() const
+    { return m_visible; }
 
   signals:
-    void roiChanged();
+    void roiChanged(ROISPtr);
 
   private slots:
-    /** \brief Changes the roi and associated widget when the
-     *        ROI is updated elsewhere (i.e. seedgrowsegmentation)
-     *        and not using ROI tools.
+    /** \brief Updates ROI accumulator when a new ROI is defined
      *
      */
-    void updateROI();
+    void onManualROIDefined(Selector::Selection strokes);
+
+    void onOrthogonalROIDefined(ROISPtr roi);
 
   private:
-    using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;
+    /** \brief Add orthogonal ROI to accumulator if any is already defined
+     *
+     *  \param[in] roi next ROI to be managed by the Orthogonal ROI tool
+     */
+    void commitPendingOrthogonalROI(ROISPtr roi);
+
+    void addMask(const BinaryMaskSPtr<unsigned char> mask);
+
+  private:
+    class DefineOrthogonalROICommand;
+    class DefineManualROICommand;
+
+  private:
+    using ManualROIToolSPtr     = std::shared_ptr<ManualROITool>;
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
-    using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;
+    using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
+
+    ViewManagerSPtr       m_viewManager;
+    QUndoStack           *m_undoStack;
 
     ViewManagerSPtr       m_viewManager;
     ManualROIToolSPtr     m_manualROITool;
@@ -116,8 +153,9 @@ namespace ESPINA
     CleanROIToolSPtr      m_cleanROITool;
 
     bool m_enabled;
+    bool m_visible;
 
-    ROISPtr m_accumulator;
+    ROISPtr          m_accumulator;
     EspinaWidgetSPtr m_accumulatorWidget;
   };
 

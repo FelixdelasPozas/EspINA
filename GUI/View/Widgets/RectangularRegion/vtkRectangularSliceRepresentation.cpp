@@ -20,34 +20,25 @@
 
 // ESPINA
 #include "vtkRectangularSliceRepresentation.h"
+#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkActor.h>
-#include <vtkAssemblyPath.h>
-#include <vtkBox.h>
-#include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCellPicker.h>
 #include <vtkDoubleArray.h>
-#include <vtkInteractorObserver.h>
-#include <vtkMath.h>
 #include <vtkObjectFactory.h>
 #include <vtkPlanes.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
-#include <vtkSphereSource.h>
-#include <vtkTransform.h>
+#include <vtkInteractorObserver.h>
+#include <vtkAssemblyPath.h>
 #include <vtkWindow.h>
 #include <vtkCellData.h>
-#include <vtkLine.h>
-#include <vtkLookupTable.h>
 #include <vtkPoints.h>
-#include <vtkPolyDataAlgorithm.h>
-#include <vtkSmartPointer.h>
 
 const double MIN_SLICE_SPACING = 2;
 
@@ -74,6 +65,7 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
 , RightEdge           {1}
 , BottomEdge          {1}
 , m_pattern           {0xFFFF}
+, m_view              {nullptr}
 {
   // The initial state
   this->InteractionState = vtkRectangularSliceRepresentation::Outside;
@@ -88,21 +80,22 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
   this->CreateDefaultProperties();
 
   //Manage the picking stuff
-  this->EdgePicker = vtkCellPicker::New();
+  this->EdgePicker = vtkSmartPointer<vtkCellPicker>::New();
   this->EdgePicker->SetTolerance(0.01);
   this->EdgePicker->PickFromListOn();
 
   // Build edges
-  this->Vertex = vtkPoints::New(VTK_DOUBLE);
+  this->Vertex = vtkSmartPointer<vtkPoints>::New();
+  this->Vertex->SetDataTypeToDouble();
   this->Vertex->SetNumberOfPoints(4);//line sides;
   for (EDGE i=LEFT; i<=BOTTOM; i = EDGE(i+1))
   {
-    this->EdgePolyData[i] = vtkPolyData::New();
-    this->EdgeMapper[i]   = vtkPolyDataMapper::New();
-    this->EdgeActor[i]    = vtkActor::New();
+    this->EdgePolyData[i] = vtkSmartPointer<vtkPolyData>::New();
+    this->EdgeMapper[i]   = vtkSmartPointer<vtkPolyDataMapper>::New();
+    this->EdgeActor[i]    = vtkSmartPointer<vtkActor>::New();
 
     this->EdgePolyData[i]->SetPoints(this->Vertex);
-    this->EdgePolyData[i]->SetLines(vtkCellArray::New());
+    this->EdgePolyData[i]->SetLines(vtkSmartPointer<vtkCellArray>::New());
     this->EdgeMapper[i]->SetInputData(this->EdgePolyData[i]);
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
     this->EdgeActor[i]->SetProperty(this->EdgeProperty);
@@ -122,32 +115,22 @@ vtkRectangularSliceRepresentation::~vtkRectangularSliceRepresentation()
 {
   for(int i=0; i<4; i++)
   {
-    this->EdgeActor[i]->Delete();
-    this->EdgeMapper[i]->Delete();
-    this->EdgePolyData[i]->Delete();
+    this->EdgeActor[i] = nullptr;
+    this->EdgeMapper[i] = nullptr;
+    this->EdgePolyData[i] = nullptr;
   }
 
-  this->EdgePicker->Delete();
-
-  this->EdgeProperty->Delete();
-  this->SelectedEdgeProperty->Delete();
-  this->InvisibleProperty->Delete();
-}
-
-//----------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::GetPolyData(vtkPolyData *pd)
-{
-//   pd->SetPoints(this->RegionPolyData->GetPoints());
-//   pd->SetPolys(this->RegionPolyData->GetPolys());
+  this->EdgePicker = nullptr;
+  this->EdgeProperty = nullptr;
+  this->SelectedEdgeProperty = nullptr;
+  this->InvisibleProperty = nullptr;
 }
 
 //----------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::reset()
 {
-//   std::cout << "Shift's been reset" << std::endl;
   CreateRegion();
 }
-
 
 //----------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::StartWidgetInteraction(double e[2])
@@ -266,12 +249,11 @@ void vtkRectangularSliceRepresentation::Translate(double* p1, double* p2)
   UpdateRegion();
 }
 
-
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::CreateDefaultProperties()
 {
   // Edge properties
-  this->EdgeProperty = vtkProperty::New();
+  this->EdgeProperty = vtkSmartPointer<vtkProperty>::New();
   this->EdgeProperty->SetRepresentationToSurface();
   this->EdgeProperty->SetOpacity(1.0);
   this->EdgeProperty->SetColor(m_color);
@@ -279,14 +261,14 @@ void vtkRectangularSliceRepresentation::CreateDefaultProperties()
   this->EdgeProperty->SetLineStipplePattern(m_pattern);
 
   // Selected Edge properties
-  this->SelectedEdgeProperty = vtkProperty::New();
+  this->SelectedEdgeProperty = vtkSmartPointer<vtkProperty>::New();
   this->SelectedEdgeProperty->SetRepresentationToSurface();
   this->SelectedEdgeProperty->SetOpacity(1.0);
   this->SelectedEdgeProperty->SetColor(m_color);
   this->SelectedEdgeProperty->SetLineWidth(2.0);
   this->SelectedEdgeProperty->SetLineStipplePattern(m_pattern);
 
-  this->InvisibleProperty = vtkProperty::New();
+  this->InvisibleProperty = vtkSmartPointer<vtkProperty>::New();
   this->InvisibleProperty->SetRepresentationToWireframe();
   this->InvisibleProperty->SetAmbient(0.0);
   this->InvisibleProperty->SetDiffuse(0.0);
@@ -302,8 +284,7 @@ void vtkRectangularSliceRepresentation::CreateRegion()
   for(EDGE i=LEFT; i <= BOTTOM; i=EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Reset();
-    this->EdgePolyData[i]->GetLines()->Allocate(
-      this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
+    this->EdgePolyData[i]->GetLines()->Allocate(this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
     this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
     this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
     this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
@@ -334,10 +315,11 @@ void vtkRectangularSliceRepresentation::UpdateRegion()
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateXYFace()
 {
-  double LB[3] = {LeftEdge,  BottomEdge, -0.1};
-  double LT[3] = {LeftEdge,  TopEdge,    -0.1};
-  double RT[3] = {RightEdge, TopEdge,    -0.1};
-  double RB[3] = {RightEdge, BottomEdge, -0.1};
+  auto sliceDepth = Slice + m_view->widgetDepth();
+  double LB[3] = {LeftEdge,  BottomEdge, sliceDepth};
+  double LT[3] = {LeftEdge,  TopEdge,    sliceDepth};
+  double RT[3] = {RightEdge, TopEdge,    sliceDepth};
+  double RB[3] = {RightEdge, BottomEdge, sliceDepth};
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -355,14 +337,14 @@ void vtkRectangularSliceRepresentation::UpdateXYFace()
   m_repBounds[5] = RB[2];
 }
 
-
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateYZFace()
 {
-  double LB[3] = {0.1, BottomEdge, LeftEdge };
-  double LT[3] = {0.1, TopEdge,    LeftEdge };
-  double RT[3] = {0.1, TopEdge,    RightEdge};
-  double RB[3] = {0.1, BottomEdge, RightEdge};
+  auto sliceDepth = Slice + m_view->widgetDepth();
+  double LB[3] = {sliceDepth, BottomEdge, LeftEdge };
+  double LT[3] = {sliceDepth, TopEdge,    LeftEdge };
+  double RT[3] = {sliceDepth, TopEdge,    RightEdge};
+  double RB[3] = {sliceDepth, BottomEdge, RightEdge};
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -383,10 +365,11 @@ void vtkRectangularSliceRepresentation::UpdateYZFace()
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::UpdateXZFace()
 {
-  double LB[3] = {LeftEdge, 0.1, BottomEdge};
-  double LT[3] = {LeftEdge, 0.1, TopEdge};
-  double RT[3] = {RightEdge, 0.1, TopEdge};
-  double RB[3] = {RightEdge, 0.1, BottomEdge};
+  auto sliceDepth = Slice + m_view->widgetDepth();
+  double LB[3] = {LeftEdge,  sliceDepth, BottomEdge};
+  double LT[3] = {LeftEdge,  sliceDepth, TopEdge};
+  double RT[3] = {RightEdge, sliceDepth, TopEdge};
+  double RB[3] = {RightEdge, sliceDepth, BottomEdge};
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -394,7 +377,9 @@ void vtkRectangularSliceRepresentation::UpdateXZFace()
   this->Vertex->SetPoint(3, RB);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgePolyData[i]->Modified();
+  }
 
   m_bounds[0] = std::min(LeftEdge, RightEdge );
   m_bounds[1] = std::max(LeftEdge, RightEdge );
@@ -409,10 +394,16 @@ void vtkRectangularSliceRepresentation::UpdateXZFace()
 }
 
 //----------------------------------------------------------------------------
+void vtkRectangularSliceRepresentation::SetView(View2D *view)
+{
+  if(m_view != nullptr) return;
+
+  m_view = view;
+}
+//----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::SetPlane(Plane plane)
 {
-  if (plane == m_plane && plane != Plane::UNDEFINED)
-    return;
+  if (plane == m_plane && plane != Plane::UNDEFINED) return;
 
   m_plane = plane;
 
@@ -428,18 +419,23 @@ void vtkRectangularSliceRepresentation::SetSlice(double pos)
   if (Slice < m_bounds[2*index] || m_bounds[2*index+1] < Slice)
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
+    }
     return;
-  } else
+  }
+  else
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(EdgeProperty);
+    }
     UpdateRegion();
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetCuboidBounds(double bounds[6])
+void vtkRectangularSliceRepresentation::SetOrthogonalBounds(double bounds[6])
 {
   memcpy(m_bounds, bounds, 6*sizeof(double));
 
@@ -458,7 +454,7 @@ void vtkRectangularSliceRepresentation::SetCuboidBounds(double bounds[6])
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::GetCuboidBounds(double bounds[6])
+void vtkRectangularSliceRepresentation::GetOrthogonalBounds(double bounds[6])
 {
   memcpy(bounds, m_bounds, 6*sizeof(double));
 }
@@ -480,7 +476,9 @@ void vtkRectangularSliceRepresentation::PlaceWidget(double bds[6])
   this->Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
 
   for (i=0; i<6; i++)
+  {
     this->InitialBounds[i] = bounds[i];
+  }
 
   this->InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
                              (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
@@ -540,10 +538,15 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
     vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, X, Y, 0, pickPoint);
     if ((LeftEdge < pickPoint[hCoord()] && pickPoint[hCoord()] < RightEdge)
      && (TopEdge  < pickPoint[vCoord()] && pickPoint[vCoord()] < BottomEdge))
+    {
       this->InteractionState = vtkRectangularSliceRepresentation::Inside;
+    }
     else
+    {
       this->InteractionState = vtkRectangularSliceRepresentation::Outside;
+    }
   }
+
   return this->InteractionState;
 }
 
@@ -588,6 +591,7 @@ void vtkRectangularSliceRepresentation::BuildRepresentation()
         this->Renderer->GetActiveCamera()->GetMTime() > this->BuildTime)) )
   {
     this->BuildTime.Modified();
+    UpdateRegion();
   }
 }
 
@@ -595,8 +599,9 @@ void vtkRectangularSliceRepresentation::BuildRepresentation()
 void vtkRectangularSliceRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 {
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgeActor[i]->ReleaseGraphicsResources(w);
-
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -606,7 +611,9 @@ int vtkRectangularSliceRepresentation::RenderOpaqueGeometry(vtkViewport *v)
   this->BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     count += this->EdgeActor[i]->RenderOpaqueGeometry(v);
+  }
 
   return count;
 }
@@ -618,7 +625,9 @@ int vtkRectangularSliceRepresentation::RenderTranslucentPolygonalGeometry(vtkVie
   this->BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     count += this->EdgeActor[i]->RenderTranslucentPolygonalGeometry(v);
+  }
 
   return count;
 }
@@ -630,20 +639,26 @@ int vtkRectangularSliceRepresentation::HasTranslucentPolygonalGeometry()
   this->BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     result |= this->EdgeActor[i]->HasTranslucentPolygonalGeometry();
+  }
 
   return result;
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::HighlightEdge(vtkActor* actor)
+void vtkRectangularSliceRepresentation::HighlightEdge(vtkSmartPointer<vtkActor> actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
     if (this->EdgeActor[edge] == actor)
+    {
       this->EdgeActor[edge]->SetProperty(this->SelectedEdgeProperty);
+    }
     else
+    {
       this->EdgeActor[edge]->SetProperty(this->EdgeProperty);
+    }
   }
 }
 
@@ -651,7 +666,9 @@ void vtkRectangularSliceRepresentation::HighlightEdge(vtkActor* actor)
 void vtkRectangularSliceRepresentation::Highlight()
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
+  {
     this->EdgeActor[edge]->SetProperty(this->SelectedEdgeProperty);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -669,8 +686,7 @@ void vtkRectangularSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::setRepresentationColor(double *color)
 {
-  if (0 == memcmp(m_color, color, sizeof(double)*3))
-    return;
+  if (0 == memcmp(m_color, color, sizeof(double)*3)) return;
 
   memcpy(m_color, color, sizeof(double)*3);
   this->EdgeProperty->SetColor(m_color);
@@ -682,8 +698,7 @@ void vtkRectangularSliceRepresentation::setRepresentationColor(double *color)
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::setRepresentationPattern(int pattern)
 {
-  if (m_pattern == pattern)
-    return;
+  if (m_pattern == pattern) return;
 
   m_pattern = pattern;
   this->EdgeProperty->SetLineStipplePattern(m_pattern);

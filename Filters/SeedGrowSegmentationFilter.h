@@ -37,26 +37,20 @@ namespace ESPINA
   : public Filter
   {
   public:
-  	/** \brief SeedGrowSegmentationFilter class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, SeedGrowSegmentationFilter type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
-  	 */
+    /** \brief SeedGrowSegmentationFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type SeedGrowSegmentationFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
     virtual void restoreState(const State& state);
 
-    /** \brief Implements Persistent::state().
-     *
-     */
     virtual State state() const;
 
     /** \brief Sets the lower value of the threshold.
-     * \param[in] th, lower threshold value.
+     * \param[in] th lower threshold value.
      *
      */
     void setLowerThreshold(int th);
@@ -67,7 +61,7 @@ namespace ESPINA
     int lowerThreshold() const;
 
     /** \brief Sets the upper threshold value.
-     * \param[in] th, upper threshold value.
+     * \param[in] th upper threshold value.
      *
      */
     void setUpperThreshold(int th);
@@ -78,7 +72,7 @@ namespace ESPINA
     int upperThreshold() const;
 
     /** \brief Convenience method to set symmetrical lower/upper thresholds.
-     * \param[in] th, threshold value.
+     * \param[in] th threshold value.
      *
      */
     void setThreshold(int th)
@@ -88,7 +82,7 @@ namespace ESPINA
     };
 
     /** \brief Sets the seed point.
-     * \param[in] seed, seed point.
+     * \param[in] seed seed point.
      *
      */
     void setSeed(const NmVector3& seed);
@@ -99,7 +93,7 @@ namespace ESPINA
     NmVector3 seed() const;
 
     /** \brief Sets the region of interest to constrain the application of the filter.
-     * \param[in] roi, ROI object smart pointer.
+     * \param[in] roi ROI object smart pointer.
      *
      */
     void setROI(const ROISPtr roi);
@@ -110,7 +104,7 @@ namespace ESPINA
     ROISPtr roi() const;
 
     /** \brief Sets the radious for the closing morphological operation.
-     * \param[in] radious, close filter radius.
+     * \param[in] radious close filter radius.
      *
      */
     void setClosingRadius(int radius);
@@ -125,6 +119,12 @@ namespace ESPINA
      */
     bool isTouchingROI() const
     { return m_touchesROI; };
+
+    /** \brief Forces filter execution even if its parameters haven't changed
+     *
+     */
+    void forceUpdate()
+    { m_forceUpdate = true; }
 
   protected:
     /** \brief Implements Filter::saveFilterSnapshot().
@@ -160,21 +160,28 @@ namespace ESPINA
     /** \brief Implements Filter::invalidateEditedRegions().
      *
      */
-    virtual bool invalidateEditedRegions();
+    virtual bool areEditedRegionsInvalidated();
 
   private:
     /** \brief Helper method that returns true if the segmentation touches the ROI.
      *
      */
-    virtual bool computeTouchesROIValue() const;
+     bool computeTouchesROIValue() const;
 
+  private:
     int       m_lowerTh, m_prevLowerTh;
     int       m_upperTh, m_prevUpperTh;
     NmVector3 m_seed,    m_prevSeed;
     int       m_radius,  m_prevRadius;
+    bool      m_hasROI;
     ROISPtr   m_ROI;
+    mutable
+    ROIPtr    m_prevROI;
     bool      m_touchesROI;
+    bool      m_forceUpdate;
   };
+
+  using SeedGrowSegmentationFilterSPtr = std::shared_ptr<SeedGrowSegmentationFilter>;
 } // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_FILTER_H

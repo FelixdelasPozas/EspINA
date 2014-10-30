@@ -145,11 +145,11 @@ int ChannelProxy::rowCount(const QModelIndex& parent) const
     return m_samples.size();
 
   // Cast to base type
-  ItemAdapterPtr parentItem = itemAdapter(parent);
+  auto parentItem = itemAdapter(parent);
   int rows = 0;
-  if (ItemAdapter::Type::SAMPLE == parentItem->type())
+  if (isSample(parentItem))
   {
-    SampleAdapterPtr sample = samplePtr(parentItem);
+    auto sample = samplePtr(parentItem);
     rows = numSubSamples(sample) + numChannels(sample);
   }
   return rows;

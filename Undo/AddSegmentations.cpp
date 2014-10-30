@@ -59,12 +59,15 @@ void AddSegmentations::redo()
 {
   unsigned int number = ModelAdapterUtils::firstUnusedSegmentationNumber(m_model);
 
+  for(auto segmentation : m_segmentations)
+  {
+    segmentation->setNumber(number++);
+  }
+
   m_model->add(m_segmentations);
 
   for(auto segmentation : m_segmentations)
   {
-    segmentation->setNumber(number++);
-
     for(auto sample : m_samples)
       m_model->addRelation(sample, segmentation, Sample::CONTAINS);
   }

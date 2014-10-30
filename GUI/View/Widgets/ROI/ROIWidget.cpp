@@ -97,7 +97,7 @@ namespace ESPINA
 
       double position[3];
       m_representations[view].actor->GetPosition(position);
-      position[index] += view->segmentationDepth();
+      position[index] += view->widgetDepth();
       m_representations[view].actor->SetPosition(position);
 
       view->addActor(m_representations[view].actor);
@@ -114,8 +114,8 @@ namespace ESPINA
 
       m_representations[view].actor->SetVisibility(true);
       m_representations[view].actor->Modified();
-      view->updateView();
     }
+    view->updateView();
   }
 
   //-----------------------------------------------------------------------------

@@ -88,7 +88,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief RectangularRegion class constructor.
-     * \param[in] bounds, bounds of the region.
+     * \param[in] bounds bounds of the region.
      *
      */
     explicit RectangularRegion(Bounds bounds);
@@ -114,7 +114,7 @@ namespace ESPINA
     virtual void setEnabled(bool enable);
 
     /** \brief Sets the bounds of the region.
-     * \param[in] bounds, bounds of the region.
+     * \param[in] bounds bounds of the region.
      *
      */
     virtual void setBounds(Bounds bounds);
@@ -136,13 +136,13 @@ namespace ESPINA
     { return m_resolution; }
 
     /** \brief Sets the color of the representation.
-     * \param[in] color, pointer to a vector of three double corresponding to the r,g,b values.
+     * \param[in] color pointer to a vector of three double corresponding to the r,g,b values.
      *
      */
     void setRepresentationColor(double *color);
 
     /** \brief Sets the representation pattern.
-     * \param[in] pattern, pattern in hexadecimal.
+     * \param[in] pattern pattern in hexadecimal.
      */
     void setRepresentationPattern(int pattern);
 
@@ -150,9 +150,9 @@ namespace ESPINA
     void modified(Bounds);
 
   private slots:
-		/** \brief Update the representation when the view changes the slice.
-		 *
-		 */
+    /** \brief Update the representation when the view changes the slice.
+     *
+     */
     void sliceChanged(Plane plane, Nm pos);
 
   private:

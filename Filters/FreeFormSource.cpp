@@ -107,7 +107,7 @@ void FreeFormSource::execute(Output::Id id)
 }
 
 //----------------------------------------------------------------------------
-bool FreeFormSource::invalidateEditedRegions()
+bool FreeFormSource::areEditedRegionsInvalidated()
 {
   return false;
 }

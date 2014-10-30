@@ -15,6 +15,7 @@ endif()
 
 include_directories(
   ${CMAKE_BINARY_DIR}
+  .
   )
 
 set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
@@ -23,6 +24,127 @@ set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
+
+# Core
+qt4_add_resources(CORE_RCCS
+  ${CORE_DIR}/rsc/core.qrc
+  )
+qt4_wrap_cpp(CORE_MOCS
+  ${CORE_DIR}/Analysis/Data.h
+  ${CORE_DIR}/Analysis/Output.h
+  ${CORE_DIR}/Analysis/Extension.h
+  ${CORE_DIR}/Analysis/ViewItem.h
+  ${CORE_DIR}/MultiTasking/Scheduler.h
+  ${CORE_DIR}/MultiTasking/Task.h
+)
+set (CORE_SOURCES
+  ${CORE_RCCS}
+  ${CORE_MOCS}
+  ${CORE_DIR}/Analysis/Data/MeshData.cpp
+  ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
+  ${CORE_DIR}/Analysis/Analysis.cpp
+  ${CORE_DIR}/Analysis/Category.cpp
+  ${CORE_DIR}/Analysis/Channel.cpp
+  ${CORE_DIR}/Analysis/Data.cpp
+  ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
+  ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
+  ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
+  ${CORE_DIR}/Analysis/Filter.cpp
+  ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
+  ${CORE_DIR}/Analysis/Input.cpp
+  ${CORE_DIR}/Analysis/Output.cpp
+  ${CORE_DIR}/Analysis/Query.cpp
+  ${CORE_DIR}/Analysis/Sample.cpp
+  ${CORE_DIR}/Analysis/Segmentation.cpp
+  ${CORE_DIR}/Analysis/ViewItem.cpp
+  ${CORE_DIR}/Factory/CoreFactory.cpp
+  ${CORE_DIR}/IO/ClassificationXML.cpp
+  ${CORE_DIR}/IO/FetchBehaviour/FetchRawData.cpp
+  ${CORE_DIR}/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
+  ${CORE_DIR}/IO/GraphIO.cpp
+  ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
+  ${CORE_DIR}/IO/ReadOnlySegmentationExtension.cpp
+  ${CORE_DIR}/IO/SegFile.cpp
+  ${CORE_DIR}/IO/SegFileInterface.cpp
+  ${CORE_DIR}/IO/SegFile_V4.cpp
+  ${CORE_DIR}/IO/SegFile_V5.cpp
+  ${CORE_DIR}/MultiTasking/Scheduler.cpp
+  ${CORE_DIR}/MultiTasking/Task.cpp
+  ${CORE_DIR}/Utils/AnalysisUtils.cpp
+  ${CORE_DIR}/Utils/Bounds.cpp
+  ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Utils/TemporalStorage.cpp
+  ${CORE_DIR}/Utils/VolumeBounds.cpp
+  ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
+)
+add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
+
+
+# Filters
+set (FILTERS_SOURCES
+  ${FILTERS_DIR}/DilateFilter.cpp
+  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
+  ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
+  ${FILTERS_DIR}/VolumetricStreamReader.cpp
+)
+add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})
+
+
+# Extensions
+set (EXTENSIONS_SOURCES
+  ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
+)
+add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
+
+
+# GUI
+qt4_wrap_cpp(GUI_MOCS
+  ${GUI_DIR}/Model/ItemAdapter.h
+  ${GUI_DIR}/Model/ModelAdapter.h
+  ${GUI_DIR}/Model/Proxies/ChannelProxy.h
+  ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
+  ${GUI_DIR}/Model/ViewItemAdapter.h
+)
+
+set (GUI_SOURCES
+  ${GUI_MOCS}
+  ${GUI_DIR}/Model/CategoryAdapter.cpp
+  ${GUI_DIR}/Model/CategoryAdapter.cpp
+  ${GUI_DIR}/Model/ChannelAdapter.cpp
+  ${GUI_DIR}/Model/ClassificationAdapter.cpp
+  ${GUI_DIR}/Model/ModelAdapter.cpp
+  ${GUI_DIR}/Model/NeuroItemAdapter.cpp
+  ${GUI_DIR}/Model/Proxies/ChannelProxy.cpp
+  ${GUI_DIR}/Model/Proxies/ClassificationProxy.cpp
+  ${GUI_DIR}/Model/SampleAdapter.cpp
+  ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Model/ViewItemAdapter.cpp
+  ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
+)
+
+add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
+
+
+# Testing
+set (TESTING_SOURCES
+  testing_support_channel_input.cpp
+  testing_support_dummy_filter.cpp
+  Testing_Support.cpp
+)
+
+add_library(EspinaTesting SHARED ${TESTING_SOURCES})
+
+
+set(TESTING_DEPENDECIES
+  EspinaCoreTesting
+  EspinaExtensionsTesting
+  EspinaFiltersTesting
+  EspinaGUITesting
+  EspinaTesting
+  )
 
 if (BUILD_UNIT_TESTS)
 

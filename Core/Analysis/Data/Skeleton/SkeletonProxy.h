@@ -87,14 +87,17 @@ namespace ESPINA
       virtual bool isEmpty() const
       { return m_data->isEmpty(); }
 
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix)
-      { return m_data->fetchData(storage, prefix); }
+      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
+      { return m_data->fetchData(storage, path, id); }
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
-      { return m_data->snapshot(storage, prefix); }
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+      { return m_data->snapshot(storage, path, id); }
 
-      virtual Snapshot editedRegionsSnapshot() const
-      { return m_data->editedRegionsSnapshot(); }
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+      { return m_data->editedRegionsSnapshot(storage, path, id); }
+
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id)
+      { return m_data->restoreEditedRegions(storage, path, id); }
 
       virtual void undo()
       { m_data->undo(); }

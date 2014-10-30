@@ -13,26 +13,9 @@ include_directories(
   ${SUBJECT_DIR}
   )
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ${CORE_DIR}/Analysis/Category.h
-  ${GUI_DIR}/Model/ItemAdapter.h
-)
+add_executable(ClassificationAdapter_Tests ${TEST_SOURCES} classification_adapter_testing_support.cpp )
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-add_executable(ClassificationAdapter_Tests
-  ${TEST_SOURCES}
-  ${SUBJECT_MOCS}
-  ${CORE_DIR}/Analysis/Category.cpp
-  ${GUI_DIR}/Model/CategoryAdapter.cpp
-  ${GUI_DIR}/Model/ClassificationAdapter.cpp
-  classification_adapter_testing_support.cpp
-  )
-
-target_link_libraries(ClassificationAdapter_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(ClassificationAdapter_Tests ${GUI_DEPENDECIES} )
 
 add_test("\"Classification Adapter: Create Category Adapter\""       ClassificationAdapter_Tests classification_adapter_create_category)
 add_test("\"Classification Adapter: Create Existing Category\""      ClassificationAdapter_Tests classification_adapter_create_existing_category)

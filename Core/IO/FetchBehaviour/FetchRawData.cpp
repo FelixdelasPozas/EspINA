@@ -24,15 +24,17 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, QString prefix, QXmlStreamAttributes info)
+DataSPtr FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
 {
+  DataSPtr data;
+
   if ("VolumetricData" == info.value("type"))
   {
     if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
     {
-      auto data = DataSPtr { new SparseVolume<itkVolumeType>() };
+      data = DataSPtr{new SparseVolume<itkVolumeType>()};
       data->setOutput(output.get());
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }
@@ -42,9 +44,9 @@ void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storag
   {
     if (!output->hasData(MeshData::TYPE))
     {
-      auto data = DataSPtr { new RawMesh() };
+      data = DataSPtr{new RawMesh()};
       data->setOutput(output.get());
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }
@@ -55,10 +57,12 @@ void FetchRawData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storag
     if (!output->hasData(SkeletonData::TYPE))
     {
       auto data = DataSPtr {new RawSkeleton(output)};
-      if (data->fetchData(storage, prefix))
+      if (data->fetchData(storage, path, QString::number(output->id())))
       {
         output->setData(data);
       }
     }
   }
+
+  return data;
 }

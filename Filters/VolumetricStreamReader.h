@@ -70,42 +70,21 @@ namespace ESPINA
     void setFileName(const QFileInfo& fileName);
 
   protected:
-    /** \brief Implements Filter::saveFilterSnapshot().
-     *
-     */
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
-    /** \brief Implements Filter::needUpdate().
-     *
-     */
     virtual bool needUpdate() const;
 
-    /** \brief Implements Filter::needUpdate(id).
-     *
-     */
     virtual bool needUpdate(Output::Id id) const;
 
-    /** \brief Implements Filter::execute().
-     *
-     */
     virtual void execute();
 
-    /** \brief Implements Filter::execute(id).
-     *
-     */
     virtual void execute(Output::Id id);
 
-    /** \brief Implements Filter::ignoreStorageContent().
-     *
-     */
     virtual bool ignoreStorageContent() const
     {return false;}
 
-    /** \brief Implements Filter::invalidateEditedRegions().
-     *
-     */
-    virtual bool invalidateEditedRegions()
+    virtual bool areEditedRegionsInvalidated()
     { return false; }
 
   private:

@@ -40,186 +40,126 @@ namespace ESPINA
   : public VolumetricData<T>
   , public DataProxy
   {
-		public:
-			/** \brief VolumetricDataProxy class constructor.
-			 *
-			 */
-			explicit VolumetricDataProxy()
-			{}
+  public:
+    /** \brief VolumetricDataProxy class constructor.
+     *
+     */
+    explicit VolumetricDataProxy()
+    {}
 
-			/** \brief VolumetricDataProxy class virtual destructor.
-			 *
-			 */
-			virtual ~VolumetricDataProxy()
-			{}
+    /** \brief VolumetricDataProxy class virtual destructor.
+     *
+     */
+    virtual ~VolumetricDataProxy()
+    {}
 
-			/** \brief Implements DataProxy::set().
-			 *
-			 */
-			virtual void set(DataSPtr data)
-			{
-				m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
-				m_data->setOutput(this->m_output);
-			}
+    virtual void set(DataSPtr data)
+    {
+      m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
+      m_data->setOutput(this->m_output);
+    }
 
-			/** \brief Implements DataProxy::get() const
-			 *
-			 */
-			virtual DataSPtr get() const
-			{ return m_data; }
+    virtual DataSPtr get() const
+    { return m_data; }
 
-			/** \brief Implements Data::memoryUsage() const.
-			 *
-			 */
-			virtual size_t memoryUsage() const
-			{ return m_data->memoryUsage(); }
+    virtual size_t memoryUsage() const
+    { return m_data->memoryUsage(); }
 
-			/** \brief Overrides VolumetricData<T>::bounds() const.
-			 *
-			 */
-			virtual Bounds bounds() const
-			{ return m_data->bounds(); }
+    /** \brief Overrides VolumetricData<T>::bounds() const.
+     *
+     */
+    virtual Bounds bounds() const
+    { return m_data->bounds(); }
 
-			/** \brief Implements VolumetricData<T>::setOrigin().
-			 *
-			 */
-			virtual void setOrigin(const NmVector3& origin)
-			{ m_data->setOrigin(origin); }
+    virtual void setOrigin(const NmVector3& origin)
+    { m_data->setOrigin(origin); }
 
-			/** \brief Implements VolumetricData<T>::origin() const.
-			 *
-			 */
-			virtual NmVector3 origin() const
-			{ return m_data->origin(); }
+    virtual NmVector3 origin() const
+    { return m_data->origin(); }
 
-			/** \brief Implements Data::setSpacing().
-			 *
-			 */
-			virtual void setSpacing(const NmVector3& spacing)
-			{ m_data->setSpacing(spacing); }
+    virtual void setSpacing(const NmVector3& spacing)
+    { m_data->setSpacing(spacing); }
 
-			/** \brief Implements Data::spacing() const.
-			 *
-			 */
-			virtual NmVector3 spacing() const
-			{ return m_data->spacing(); }
+    virtual NmVector3 spacing() const
+    { return m_data->spacing(); }
 
-			/** \brief Implements VolumetricData<T>::itkImage() const.
-			 *
-			 */
-			virtual const typename T::Pointer itkImage() const
-			{ return m_data->itkImage(); }
+    virtual const typename T::Pointer itkImage() const
+    { return m_data->itkImage(); }
 
-			/** \brief Implements VolumetricData<T>::itkImage(Bounds) const.
-			 *
-			 */
-			virtual const typename T::Pointer itkImage(const Bounds& bounds) const
-			{ return m_data->itkImage(bounds); }
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const
+    { return m_data->itkImage(bounds); }
 
-			/** \brief Implements VolumetricData<T>::setBackgroundValue().
-			 *
-			 */
-			virtual void setBackgroundValue(const typename T::ValueType value)
-			{  m_data->setBackgroundValue(value); }
+    virtual void setBackgroundValue(const typename T::ValueType value)
+    {  m_data->setBackgroundValue(value); }
 
-			/** \brief Implements VolumetricData<T>::backgroundValue().
-			 *
-			 */
-			typename T::ValueType backgroundValue() const
-			{  return m_data->backgroundValue(); }
+    typename T::ValueType backgroundValue() const
+    {  return m_data->backgroundValue(); }
 
-			/** \brief Implements VolumetricData<T>::draw(vtkImplicitFunction, Bounds, T::ValueType).
-			 *
-			 */
-			virtual void draw(const vtkImplicitFunction* brush,
-												const Bounds&      bounds,
-												const typename T::ValueType value)
-			{ m_data->draw(brush, bounds, value); }
+    virtual void draw(const vtkImplicitFunction* brush,
+                      const Bounds&      bounds,
+                      const typename T::ValueType value)                   override
+    { m_data->draw(brush, bounds, value); }
 
-			/** \brief Implements VolumetricData<T>::draw(typename T::Pointer).
-			 *
-			 */
-			virtual void draw(const typename T::Pointer volume)
-			{ m_data->draw(volume); }
+    virtual void draw(const typename T::Pointer volume)                    override
+    { m_data->draw(volume); }
 
-			/** \brief Implements VolumetricData<T>::draw(typename T::Pointer, Bounds).
-			 *
-			 */
-			virtual void draw(const typename T::Pointer volume,
-												const Bounds&             bounds)
-			{ m_data->draw(volume, bounds); }
+    virtual void draw(const typename T::Pointer volume,
+                      const Bounds&             bounds)                    override
+    { m_data->draw(volume, bounds); }
 
-			/** \brief Implements VolumetricData<T>::draw(T::IndexType, T::PixelType).
-			 *
-			 */
-			virtual void draw(const typename T::IndexType index,
-												const typename T::PixelType value = SEG_VOXEL_VALUE)
-			{ m_data->draw(index, value); }
+    virtual void draw(const typename T::IndexType index,
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    { m_data->draw(index, value); }
 
-			/** \brief Implements VolumetricData<T>::resize().
-			 *
-			 */
-			virtual void resize(const Bounds &bounds)
-			{ m_data->resize(bounds); }
+    virtual void draw(const Bounds               &bounds,
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    { m_data->draw(bounds, value); }
 
-			/** \brief Implements Data::undo().
-			 *
-			 */
-			virtual void undo()
-			{ m_data->undo(); }
+    virtual void resize(const Bounds &bounds)
+    { m_data->resize(bounds); }
 
-			/** \brief Implements Data::lastModified().
-			 *
-			 */
-			virtual TimeStamp lastModified()
-			{ return m_data->lastModified(); }
+    virtual void undo()
+    { m_data->undo(); }
 
-			/** \brief Implements Data::editedRegions() const.
-			 *
-			 */
-			virtual BoundsList editedRegions() const
-			{ return m_data->editedRegions(); }
+    virtual TimeStamp lastModified()
+    { return m_data->lastModified(); }
 
-			/** \brief Implements Data::clearEditedRegions().
-			 *
-			 */
-			virtual void clearEditedRegions()
-			{ m_data->clearEditedRegions(); }
+    virtual BoundsList editedRegions() const
+    { return m_data->editedRegions(); }
 
-			/** \brief Implements Data::isValid().
-			 *
-			 */
-			virtual bool isValid() const
-			{ return m_data->isValid(); }
+    virtual void clearEditedRegions()
+    { m_data->clearEditedRegions(); }
 
-			/** \brief Implements Data::isEmpty().
-			 *
-			 */
-			virtual bool isEmpty() const
-			{ return m_data->isEmpty(); }
+    virtual bool isValid() const
+    { return m_data->isValid(); }
 
-			/** \brief Implements Data::fetchData().
-			 *
-			 */
-			virtual bool fetchData(TemporalStorageSPtr storage, const QString& prefix)
-			{ return m_data->fetchData(storage, prefix); }
+    virtual bool isEmpty() const
+    { return m_data->isEmpty(); }
 
-			/** \brief Implements Data::snapshot().
-			 *
-			 */
-			virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
-			{ return m_data->snapshot(storage, prefix); }
+    virtual bool fetchData(TemporalStorageSPtr storage,
+                           const QString      &path,
+                           const QString      &id)                       override
+    { return m_data->fetchData(storage, path, id); }
 
-			/** \brief Implements Data::editedRegionsSnapshot().
-			 *
-			 */
-			virtual Snapshot editedRegionsSnapshot() const
-			{ return m_data->editedRegionsSnapshot(); }
+    virtual Snapshot snapshot(TemporalStorageSPtr storage,
+                              const QString      &path,
+                              const QString      &id) const              override
+    { return m_data->snapshot(storage, path, id); }
 
-		private:
-			std::shared_ptr<VolumetricData<T>> m_data;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage,
+                                           const QString      &path,
+                                           const QString      &id) const override
+    { return m_data->editedRegionsSnapshot(storage, path, id); }
 
-			friend class Output;
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage,
+                                      const QString      &path,
+                                      const QString      &id)            override
+    { return m_data->restoreEditedRegions(storage, path, id); }
+
+  private:
+    std::shared_ptr<VolumetricData<T>> m_data;
+
+    friend class Output;
   };
 } // namespace ESPINA
 

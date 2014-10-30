@@ -44,12 +44,12 @@ NmVector3::NmVector3()
 NmVector3::NmVector3(const QString& string)
 : m_values{0, 0, 0}
 {
-  if (string.left(1)  != "{") throw Wrong_format_exception();
-  if (string.right(1) != "}") throw Wrong_format_exception();
+  if (string.left(1)  != "{") throw Wrong_Format_Exception();
+  if (string.right(1) != "}") throw Wrong_Format_Exception();
 
   auto values = string.mid(1,string.length()-2).split(",");
 
-  if (values.size() != 3) throw Wrong_format_exception();
+  if (values.size() != 3) throw Wrong_Format_Exception();
 
   for (int i = 0; i < 3; ++i)
   {

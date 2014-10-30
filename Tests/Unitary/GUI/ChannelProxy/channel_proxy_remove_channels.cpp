@@ -66,7 +66,7 @@ int channel_proxy_remove_channels(int argc, char** argv )
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  FilterAdapterSPtr filter = factory.createFilter<DummyFilter>(inputs, type);
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
 
   ChannelAdapterSList channels;
   channels << factory.createChannel(filter, 0)

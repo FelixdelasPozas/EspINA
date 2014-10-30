@@ -129,11 +129,15 @@ namespace ESPINA
     private:
       struct Data
       {
-        FilterAdapterSPtr adapter;
+        FilterSPtr              adapter;
         SegmentationAdapterSPtr segmentation;
 
-        Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
-        Data(): adapter{nullptr}, segmentation{nullptr} {};
+        Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
+        : adapter{adapterP}, segmentation{segmentationP}
+        {};
+
+        Data(): adapter{nullptr}, segmentation{nullptr}
+        {};
       };
 
       QAction *m_planarSplitAction;
@@ -147,7 +151,7 @@ namespace ESPINA
       bool m_enabled;
       EspinaWidgetSPtr m_widget;
       SplitToolEventHandlerSPtr m_handler;
-      QMap<FilterAdapterPtr, struct Data> m_executingTasks;
+      QMap<FilterPtr, struct Data> m_executingTasks;
   };
 
   using SplitToolPtr  = SplitTool *;

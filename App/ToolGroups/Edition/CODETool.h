@@ -34,8 +34,8 @@ namespace ESPINA {
 
   public:
     /** \brief CODETool class constructor.
-     * \param[in] icon, tool icon.
-     * \param[in] tooltip, tooltip of the tool.
+     * \param[in] icon tool icon.
+     * \param[in] tooltip tooltip of the tool.
      *
      */
     CODETool(const QString&icon, const QString& tooltip);
@@ -57,7 +57,7 @@ namespace ESPINA {
     { return m_enabled; }
 
     /** \brief Sets the radius value.
-     * \param[in] value, value of the radius.
+     * \param[in] value value of the radius.
      */
     void setRadius(int value)
     { m_radius->setValue(value); }
@@ -69,9 +69,9 @@ namespace ESPINA {
     { return m_radius->value(); }
 
   public slots:
-  	/** \brief Hide/show the tool widgets.
-  	 * \param[in] visible. true to set visible, false otherwise.
-  	 */
+    /** \brief Hide/show the tool widgets.
+     * \param[in] visible true to set visible, false otherwise.
+     */
     void toggleToolWidgets(bool visible);
 
   signals:

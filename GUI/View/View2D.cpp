@@ -192,25 +192,36 @@ View2D::View2D(Plane plane, QWidget* parent)
 //-----------------------------------------------------------------------------
 View2D::~View2D()
 {
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Slice View" << m_plane;
-//   qDebug() << "********************************************************";
+  //   qDebug() << "********************************************************";
+  //   qDebug() << "              Destroying Slice View" << m_plane;
+  //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
 
   for(auto segmentation: m_segmentationStates.keys())
-  	RenderView::remove(segmentation);
+  {
+    RenderView::remove(segmentation);
+  }
+
   m_segmentationStates.clear();
 
-	for(auto channel: m_channelStates.keys())
-		RenderView::remove(channel);
+  for(auto channel: m_channelStates.keys())
+  {
+    RenderView::remove(channel);
+  }
+
   m_channelStates.clear();
 
-	for(auto widget: m_widgets)
-		RenderView::removeWidget(widget);
-	m_widgets.clear();
+  for(auto widget: m_widgets)
+  {
+    RenderView::removeWidget(widget);
+  }
 
-	for(auto renderer: m_renderers)
-		removeRendererControls(renderer->name());
+  m_widgets.clear();
+
+  for(auto renderer: m_renderers)
+  {
+    removeRendererControls(renderer->name());
+  }
   m_renderers.clear();
 
   m_renderer->RemoveViewProp(m_ruler);

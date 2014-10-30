@@ -33,7 +33,8 @@
 
 namespace ESPINA
 {
-  static QString RAWSKELETON_DATAFILE = QString("%1_SkeletonData.vtp");
+  static QString RAWSKELETON_DATAFILE               = QString("%1_SkeletonData.vtp");
+  static QString RAWSKELETON_EDITEDREGIONS_DATAFILE = QString("%1_EditedRegionSkeletonData.vtp");
 
   //----------------------------------------------------------------------------
   RawSkeleton::RawSkeleton(OutputSPtr output)
@@ -50,40 +51,6 @@ namespace ESPINA
   {
     this->setOutput(output.get());
     m_output->setSpacing(spacing);
-  }
-
-  //----------------------------------------------------------------------------
-  bool RawSkeleton::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
-  {
-    bool dataFetched = false;
-
-    QString fileName = storage->absoluteFilePath(prefix + QString(RAWSKELETON_DATAFILE).arg(m_output->id()));
-
-    QFileInfo file(fileName);
-
-    if(file.exists())
-    {
-      m_skeleton = PolyDataUtils::readPolyDataFromFile(fileName);
-      dataFetched = true;
-    }
-
-    return dataFetched;
-  }
-
-  //----------------------------------------------------------------------------
-  Snapshot RawSkeleton::snapshot(TemporalStorageSPtr storage, const QString &prefix) const
-  {
-    QString fileName = prefix + QString(RAWSKELETON_DATAFILE).arg(m_output->id());
-    Snapshot snapshot;
-
-    storage->makePath(prefix);
-
-    if (m_skeleton)
-    {
-      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_skeleton));
-    }
-
-    return snapshot;
   }
 
   //----------------------------------------------------------------------------
@@ -104,7 +71,15 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   bool RawSkeleton::isValid() const
   {
-    return (m_skeleton.Get() != nullptr);
+    bool isValid = true;
+    isValid &= (m_skeleton.Get() != nullptr);
+
+    if(isEdited())
+    {
+      isValid &= (m_editedRegionsSkeleton != nullptr);
+    }
+
+    return isValid;
   }
 
   //----------------------------------------------------------------------------
@@ -125,6 +100,72 @@ namespace ESPINA
   {
     RawSkeletonSPtr data = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
     return data;
+  }
+
+  //----------------------------------------------------------------------------
+  bool RawSkeleton::fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id)
+  {
+    bool dataFetched = false;
+
+    QString fileName = storage->absoluteFilePath(path + QString(RAWSKELETON_DATAFILE).arg(id));
+
+    QFileInfo file(fileName);
+
+    if(file.exists())
+    {
+      m_skeleton = PolyDataUtils::readPolyDataFromFile(fileName);
+      dataFetched = true;
+    }
+
+    return dataFetched;
+  }
+
+  //----------------------------------------------------------------------------
+  Snapshot RawSkeleton::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  {
+    QString fileName = path + QString(RAWSKELETON_DATAFILE).arg(id);
+    Snapshot snapshot;
+
+    storage->makePath(path);
+
+    if (m_skeleton)
+    {
+      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_skeleton));
+    }
+
+    return snapshot;
+  }
+
+  //----------------------------------------------------------------------------
+  Snapshot RawSkeleton::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  {
+    Snapshot snapshot;
+
+    if(isEdited())
+    {
+      QString fileName = path + QString(RAWSKELETON_EDITEDREGIONS_DATAFILE).arg(id);
+      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_editedRegionsSkeleton));
+    }
+
+    return snapshot;
+  }
+
+  //----------------------------------------------------------------------------
+  void RawSkeleton::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+  {
+    QString fileName = storage->absoluteFilePath(path + QString(RAWSKELETON_EDITEDREGIONS_DATAFILE).arg(id));
+
+    QFileInfo file(fileName);
+
+    if(file.exists())
+    {
+      m_editedRegionsSkeleton = PolyDataUtils::readPolyDataFromFile(fileName);
+
+      double bounds[6];
+      m_editedRegionsSkeleton->GetBounds(bounds);
+      clearEditedRegions();
+      addEditedRegion(Bounds{bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]});
+    }
   }
 
 } // namespace EspINA
