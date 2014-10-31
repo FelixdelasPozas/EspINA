@@ -32,13 +32,13 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
+#include <testing_support_channel_input.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
-#include "Tests/testing_support_channel_input.h"
 #include "Tests/Testing_Support.h"
 
 #include <itkImageConstIterator.h>
@@ -50,7 +50,7 @@ using namespace ESPINA::IO;
 
 using ConstIterator = itk::ImageRegionConstIterator<itkVolumeType>;
 
-int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** argv )
+int pipeline_access_internal_filter_edited_data( int argc, char** argv )
 {
   class TestFilterFactory
   : public FilterFactory
@@ -82,7 +82,7 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
         {
           Q_ASSERT(false);
         }
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
+        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
       }
 
       return filter;

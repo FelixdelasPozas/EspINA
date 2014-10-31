@@ -30,44 +30,25 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/MeshData.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
 #include <Core/IO/FetchBehaviour/FetchRawData.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
+#include <Core/IO/ReadOnlyFilter.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::IO;
 
-int pipeline_update_fetch_output( int argc, char** argv )
+int pipeline_single_read_only_filter_raw_fetch_behaviour( int argc, char** argv )
 {
-  class TestFilterFactory
-  : public FilterFactory
-  {
-    virtual FilterTypeList providedFilters() const
-    {
-      FilterTypeList list;
-      list << "SGS";
-      return list;
-    }
-
-    virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
-    {
-      if (type == "SGS") {
-        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
-        return filter;
-      }
-    }
-  };
-
   bool error = false;
 
   CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
 
   Analysis analysis;
 
@@ -117,29 +98,47 @@ int pipeline_update_fetch_output( int argc, char** argv )
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedOuptut       = loadedSegmentation->output();
-  auto volume             = volumetricData(loadedOuptut);
 
-  if (volume->editedRegions().size() != 0)
+  if (!loadedOuptut->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
-    cerr << "Unexpeceted number of edited regions" << endl;
+    cerr << "Expected Volumetric Data" << endl;
     error = true;
   }
-
-  TemporalStorageSPtr tmpStorage(new TemporalStorage());
-  for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
+  else
   {
-    if (snapshot.first.contains("EditedRegion"))
+    auto volume = volumetricData(loadedOuptut);
+
+    if (volume->editedRegions().size() != 0)
     {
-      cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
+      cerr << "Unexpeceted number of edited regions" << endl;
       error = true;
+    }
+
+    TemporalStorageSPtr tmpStorage(new TemporalStorage());
+    for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
+    {
+      if (snapshot.first.contains("EditedRegion"))
+      {
+        cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
+        error = true;
+      }
     }
   }
 
-  auto loadedFilter = dynamic_cast<SeedGrowSegmentationFilter*>(loadedOuptut->filter());
-  if (!loadedFilter)
+  if (!loadedOuptut->hasData(MeshData::TYPE))
   {
-    cerr << "Couldn't recover SGS filter" << endl;
+    cerr << "Expected Mesh Data" << endl;
     error = true;
+  }
+  else
+  {
+    auto mesh = meshData(loadedOuptut);
+
+    if (!mesh->mesh())
+    {
+      cerr << "Expected Mesh Data Polydata" << endl;
+      error = true;
+    }
   }
 
   file.absoluteDir().remove(file.fileName());

@@ -80,6 +80,11 @@ namespace ESPINA
     void setOutput(OutputPtr output)
     { m_output = output; }
 
+    /** \brief Updates data contents
+     *
+     */
+    void update();
+
     /** \brief Returns the time stamp of the last modification to the data.
      *
      */

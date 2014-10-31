@@ -188,7 +188,7 @@ bool Filter::fetchOutputData(Output::Id id)
     {
       QXmlStreamReader xml(buffer);
 
-      qDebug() << buffer;
+      //qDebug() << buffer;
 
       OutputSPtr output;
       DataSPtr   data;
