@@ -58,11 +58,14 @@ int pipeline_single_filter( int argc, char** argv )
 
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
+      FilterSPtr filter;
+
       if (type == "SGS") {
-        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
-        return filter;
+        filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+        filter->setDataFactory(DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()});
       }
+
+      return filter;
     }
   };
 
@@ -92,6 +95,13 @@ int pipeline_single_filter( int argc, char** argv )
 
   FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
   segFilter->update();
+
+  auto segVolume = volumetricData(segFilter->output(0));
+  if (segVolume->editedRegions().size() != 0)
+  {
+    cerr << "Unexpeceted number of SGS edited regions" << endl;
+    error = true;
+  }
 
   SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
   segmentation->setNumber(1);
@@ -135,6 +145,12 @@ int pipeline_single_filter( int argc, char** argv )
   else
   {
     auto volume = volumetricData(loadedOuptut);
+
+    if (!volume->isValid())
+    {
+      cerr << "Unexpeceted invalid volumetric data" << endl;
+      error = true;
+    }
 
     if (volume->editedRegions().size() != 0)
     {

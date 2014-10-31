@@ -22,6 +22,7 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -38,6 +39,15 @@
 #include <vtkMath.h>
 
 using namespace ESPINA;
+
+
+namespace ESPINA {
+//   class ReadOnlyData
+//   : public Data
+//   {
+//     virtual DataProxySPtr createProxy() const;
+//   };
+}
 
 //----------------------------------------------------------------------------
 Filter::~Filter()
@@ -86,19 +96,14 @@ void Filter::unload()
 }
 
 //----------------------------------------------------------------------------
-bool Filter::update()
+void Filter::update()
 {
-  bool updated = true;
+  qDebug() << "Update Request: " << m_type;
+  if (m_outputs.isEmpty() || needUpdate())
+  {
+    qDebug() << " - Accepted";
+    bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
-  if (numberOfOutputs() != 0 || restorePreviousOutputs())
-  {
-    for(auto id : m_outputs.keys())
-    {
-      updated &= update(id);
-    }
-  }
-  else if (needUpdate())
-  {
     for(auto input : m_inputs)
     {
       input->update();
@@ -106,17 +111,20 @@ bool Filter::update()
 
     execute();
 
-    // If no previous output is restored then there is no edited
-    // regions to be restored either
-    for (auto output : m_outputs)
+    if (invalidatePreviousEditedRegions)
     {
-      output->clearEditedRegions();
+      for (auto output : m_outputs)
+      {
+        output->clearEditedRegions();
+      }
+    }
+    else
+    {
+      restoreEditedRegions();
     }
   }
-
-  return updated;
 }
-
+/*
 //----------------------------------------------------------------------------
 bool Filter::update(Output::Id id)
 {
@@ -161,16 +169,15 @@ bool Filter::update(Output::Id id)
    }
 
    return true;
-}
+}*/
 
 //----------------------------------------------------------------------------
 Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
-: Task                       {scheduler}
-, m_analysis                 {nullptr}
-, m_type                     {type}
-, m_inputs                   {inputs}
-//, m_invalidateSortoredOutputs{false}
-, m_fetchBehaviour           {nullptr}
+: Task         {scheduler}
+, m_analysis   {nullptr}
+, m_type       {type}
+, m_inputs     {inputs}
+, m_dataFactory{new FetchRawData()}
 {
   setName(m_type);
 }
@@ -180,7 +187,7 @@ bool Filter::fetchOutputData(Output::Id id)
 {
   bool outputDataFetched = false;
 
-  if (validStoredInformation() && m_fetchBehaviour)
+  if (validStoredInformation() && m_dataFactory)
   {
     QByteArray buffer = storage()->snapshot(outputFile());
 
@@ -219,7 +226,7 @@ bool Filter::fetchOutputData(Output::Id id)
           }
           else if ("Data" == xml.name() && output)
           {
-             data = m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
+             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
              data->clearEditedRegions();
              editedRegions.clear();
           }
@@ -238,13 +245,13 @@ bool Filter::fetchOutputData(Output::Id id)
 }
 
 //----------------------------------------------------------------------------
-void Filter::restoreEditedRegions(Output::Id id)
+void Filter::restoreEditedRegions()
 {
   if (validStoredInformation())
   {
     QByteArray buffer = storage()->snapshot(outputFile());
 
-    //qDebug() << buffer;
+    qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {
@@ -261,16 +268,11 @@ void Filter::restoreEditedRegions(Output::Id id)
         {
           if ("Output" == xml.name())
           {
-            if (id == xml.attributes().value("id").toString().toInt())
-            {
-              // Outputs can be already created while checking if an output exists
-              Q_ASSERT(m_outputs.contains(id));
-              output = m_outputs.value(id, OutputSPtr{});
-              output->clearEditedRegions();
-            } else
-            {
-              output.reset();
-            }
+            Output::Id id = xml.attributes().value("id").toString().toInt();
+            // Outputs can be already created while checking if an output exists
+            Q_ASSERT(m_outputs.contains(id));
+            output = m_outputs.value(id);
+            output->clearEditedRegions();
           }
           else if ("Data" == xml.name() && output)
           {
@@ -312,7 +314,7 @@ void Filter::restoreEditedRegions(Output::Id id)
 //----------------------------------------------------------------------------
 bool Filter::validStoredInformation() const
 {
-  return /*!m_invalidateSortoredOutputs &&*/ storage() && !ignoreStorageContent();
+  return storage() && !ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------
@@ -329,8 +331,10 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
+  qDebug() << "Restore Previous Outputs Request: " << m_type;
   if (validStoredInformation())
   {
+    qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
     if (!buffer.isEmpty())
@@ -338,6 +342,7 @@ bool Filter::restorePreviousOutputs() const
       QXmlStreamReader xml(buffer);
 
       OutputSPtr output;
+      DataSPtr   data;
 
       while (!xml.atEnd())
       {
@@ -348,7 +353,17 @@ bool Filter::restorePreviousOutputs() const
           {
             int id = xml.attributes().value("id").toString().toInt();
 
-            m_outputs.insert(id, OutputSPtr{new Output(const_cast<Filter *>(this), id)});
+            output = OutputSPtr{new Output(const_cast<Filter *>(this), id)};
+            m_outputs.insert(id, output);
+          }
+          else if ("Data" == xml.name() && output)
+          {
+            data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
+            if (!data)
+            {
+              // TODO: Create ReadOnlyData to preserve data information in further savings
+            }
+            data->clearEditedRegions();
           }
         }
       }

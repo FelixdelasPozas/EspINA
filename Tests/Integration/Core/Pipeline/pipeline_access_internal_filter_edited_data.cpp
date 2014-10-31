@@ -82,7 +82,7 @@ int pipeline_access_internal_filter_edited_data( int argc, char** argv )
         {
           Q_ASSERT(false);
         }
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
+        filter->setDataFactory(DataFactorySPtr{new FetchRawData()});
       }
 
       return filter;

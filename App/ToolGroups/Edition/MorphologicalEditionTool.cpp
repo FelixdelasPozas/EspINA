@@ -86,7 +86,7 @@ throw (Unknown_Filter_Exception)
 
   if (!m_fetchBehaviour)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
   }
 
   if (filter == CLOSE_FILTER || filter == CLOSE_FILTER_V4)
@@ -118,7 +118,7 @@ throw (Unknown_Filter_Exception)
     throw Unknown_Filter_Exception();
   }
 
-  morphologicalFilter->setFetchBehaviour(m_fetchBehaviour);
+  morphologicalFilter->setDataFactory(m_fetchBehaviour);
 
   return morphologicalFilter;
 }

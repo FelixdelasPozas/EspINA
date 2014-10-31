@@ -57,7 +57,7 @@ namespace ESPINA
       throw (Unknown_Filter_Exception);
 
     private:
-      mutable FetchBehaviourSPtr m_fetchBehaviour;
+      mutable DataFactorySPtr m_fetchBehaviour;
     };
 
   public:

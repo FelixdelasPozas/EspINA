@@ -63,9 +63,9 @@ void Output::setSpacing(const NmVector3& spacing)
 
     for(auto data : m_data)
     {
-      if (data->get()->isValid())
+      if (data->isValid())
       {
-        data->get()->setSpacing(spacing);
+        data->setSpacing(spacing);
       }
     }
 
@@ -88,10 +88,8 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
   auto saveOutput = isSegmentationOutput();
 
-  for(auto dataProxy : m_data)
+  for(auto data : m_data)
   {
-    DataSPtr data = dataProxy->get();
-
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
     xml.writeAttribute("bounds",  data->bounds().toString());
@@ -129,10 +127,10 @@ Bounds Output::bounds() const
   {
     if (bounds.areValid())
     {
-      bounds = boundingBox(bounds, data->get()->bounds());
+      bounds = boundingBox(bounds, data->bounds());
     } else
     {
-      bounds = data->get()->bounds();
+      bounds = data->bounds();
     }
   }
 
@@ -144,7 +142,7 @@ void Output::clearEditedRegions()
 {
   for(auto data: m_data)
   {
-    data->get()->clearEditedRegions();
+    data->clearEditedRegions();
   }
 }
 
@@ -153,7 +151,7 @@ bool Output::isEdited() const
 {
   for(auto data: m_data)
   {
-    if (data->get()->isEdited()) return true;
+    if (data->isEdited()) return true;
   }
 
   return false;
@@ -166,9 +164,9 @@ bool Output::isValid() const
 
   if (m_id == INVALID_OUTPUT_ID) return false;
 
-  for(DataProxySPtr data : m_data)
+  for(auto data : m_data)
   {
-    if (!data->get()->isValid()) return false;
+    if (!data->isValid()) return false;
   }
 
   return !m_data.isEmpty();
@@ -185,18 +183,14 @@ void Output::setData(Output::DataSPtr data)
 {
   Data::Type type = data->type();
 
-  if (m_data.contains(type))
-  {
-    auto oldData = m_data[type]->get();
-    disconnect(oldData.get(), SIGNAL(dataChanged()),
-               this, SLOT(onDataChanged()));
-  }
-  else
+  if (!m_data.contains(type))
   {
     m_data[type] = data->createProxy();
   }
 
-  m_data[type]->set(data);
+  auto base  = m_data.value(type).get();
+  auto proxy = dynamic_cast<DataProxy *>(base);
+  proxy->set(data);
   data->setOutput(this);
 
   // Alternatively we could keep the previous edited clearEditedRegions
@@ -224,7 +218,9 @@ Output::DataSPtr Output::data(const Data::Type& type) const
   DataSPtr result;
 
   if (m_data.contains(type))
-    result = m_data.value(type)->get();
+  {
+    result = m_data.value(type);
+  }
 
   return result;
 }
@@ -239,7 +235,7 @@ bool Output::hasData(const Data::Type& type) const
 //----------------------------------------------------------------------------
 void Output::update()
 {
-  m_filter->update(m_id);
+  m_filter->update();
 }
 
 //----------------------------------------------------------------------------

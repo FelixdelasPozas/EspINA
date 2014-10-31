@@ -176,7 +176,8 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
   {
     m_ROI = ROISPtr{new ROI(Bounds(),NmVector3(), NmVector3())};
 
-    m_ROI->fetchData(storage(), prefix(), "0");
+    m_ROI->setFetchContext(storage(), prefix(), "0");
+    m_ROI->fetchData();
 
     m_prevROI = m_ROI.get();
   }
@@ -209,28 +210,26 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
   return snapshot;
 }
 
+// //----------------------------------------------------------------------------
+// bool SeedGrowSegmentationFilter::needUpdate() const
+// {
+//   return needUpdate(0);
+// }
+
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return needUpdate(0);
+  return m_outputs.isEmpty() || !validOutput(0) || ignoreStorageContent();
 }
 
-//----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::needUpdate(Output::Id id) const
-{
-  if (id != 0) throw Undefined_Output_Exception();
-
-  return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
-}
+// //----------------------------------------------------------------------------
+// void SeedGrowSegmentationFilter::execute()
+// {
+//   execute(0);
+// }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute()
-{
-  execute(0);
-}
-
-//----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::execute(Output::Id id)
 {
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
 
@@ -376,11 +375,11 @@ bool SeedGrowSegmentationFilter::ignoreStorageContent() const
       || m_ROI.get() != m_prevROI;
 }
 
-//----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::areEditedRegionsInvalidated()
-{
-  return false;
-}
+// //----------------------------------------------------------------------------
+// bool SeedGrowSegmentationFilter::areEditedRegionsInvalidated()
+// {
+//   return false;
+// }
 
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::computeTouchesROIValue() const

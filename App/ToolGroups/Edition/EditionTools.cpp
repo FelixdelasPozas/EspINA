@@ -58,9 +58,9 @@ throw(Unknown_Filter_Exception)
   auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
   if (!m_fetchBehaviour)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
   }
-  ffsFilter->setFetchBehaviour(m_fetchBehaviour);
+  ffsFilter->setDataFactory(m_fetchBehaviour);
 
   return ffsFilter;
 }

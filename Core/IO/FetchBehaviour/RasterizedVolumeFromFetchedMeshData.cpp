@@ -25,38 +25,39 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  DataSPtr RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
+  DataSPtr RasterizedVolumeFromFetchedMeshData::createData(OutputSPtr output,
                                                             TemporalStorageSPtr storage,
                                                             const QString &path,
                                                             QXmlStreamAttributes info)
   {
     DataSPtr data;
 
-    if ("MeshData" == info.value("type"))
-    {
-      data = fetchMeshData(output, storage, path);
-    }
-    else if ("VolumetricData" == info.value("type"))
-    {
-      data = DataSPtr {new SparseVolume<itkVolumeType>()};
-      data->setOutput(output.get());
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
-      }
-      else
-      {
-        auto mesh = fetchMeshData(output, storage, path);
-        auto spacing = mesh->spacing();
-        auto bounds = mesh->bounds();
-
-        if (mesh)
-        {
-          data = DataSPtr{new RasterizedVolume<itkVolumeType>(mesh, bounds, spacing)};
-          output->setData(data);
-        }
-      }
-    }
+    // TODO BUG WARNING
+//     if ("MeshData" == info.value("type"))
+//     {
+//       data = fetchMeshData(output, storage, path);
+//     }
+//     else if ("VolumetricData" == info.value("type"))
+//     {
+//       data = DataSPtr {new SparseVolume<itkVolumeType>()};
+//       data->setOutput(output.get());
+//       if (data->fetchData(storage, path, QString::number(output->id())))
+//       {
+//         output->setData(data);
+//       }
+//       else
+//       {
+//         auto mesh = fetchMeshData(output, storage, path);
+//         auto spacing = mesh->spacing();
+//         auto bounds = mesh->bounds();
+//
+//         if (mesh)
+//         {
+//           data = DataSPtr{new RasterizedVolume<itkVolumeType>(mesh, bounds, spacing)};
+//           output->setData(data);
+//         }
+//       }
+//     }
 
     return data;
   }
@@ -68,18 +69,19 @@ namespace ESPINA
   {
     MeshDataSPtr mesh = nullptr;
 
-    if (!output->hasData(MeshData::TYPE))
-    {
-      auto data = DataSPtr{new RawMesh()};
-      data->setOutput(output.get());
-
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
-      }
-    }
-
-    mesh = meshData(output);
+    // TODO BUG WARNING
+//     if (!output->hasData(MeshData::TYPE))
+//     {
+//       auto data = DataSPtr{new RawMesh()};
+//       data->setOutput(output.get());
+//
+//       if (data->fetchData(storage, path, QString::number(output->id())))
+//       {
+//         output->setData(data);
+//       }
+//     }
+//
+//     mesh = meshData(output);
 
     return mesh;
   }

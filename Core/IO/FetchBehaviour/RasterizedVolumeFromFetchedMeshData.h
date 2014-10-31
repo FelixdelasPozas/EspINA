@@ -33,7 +33,7 @@ namespace ESPINA
   : public FetchBehaviour
   {
     public:
-      virtual DataSPtr fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
+      virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
 
     protected:
       /** \brief Helper method to fetch a mesh from storate.

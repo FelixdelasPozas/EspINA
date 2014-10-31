@@ -27,11 +27,21 @@ using namespace ESPINA::Testing;
 
 using ChannelVolume = SparseVolume<itkVolumeType>;
 
+//----------------------------------------------------------------------------
 DummyChannelReader::DummyChannelReader()
 
 : Filter(InputSList(), "DummyChannelReader", SchedulerSPtr())
 {
-  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+}
+
+//----------------------------------------------------------------------------
+void DummyChannelReader::execute()
+{
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  }
+
   m_outputs[0]->setSpacing({1,1,1});
 
   Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
@@ -41,12 +51,16 @@ DummyChannelReader::DummyChannelReader()
 
   m_outputs[0]->setData(data);
   m_outputs[0]->clearEditedRegions();
+
 }
 
+//----------------------------------------------------------------------------
 InputSPtr ESPINA::Testing::channelInput()
 {
 
   std::shared_ptr<DummyChannelReader> filter{new DummyChannelReader()};
+
+  filter->update();
 
   return getInput(filter, 0);
 }

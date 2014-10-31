@@ -31,7 +31,7 @@ namespace ESPINA {
   : public FetchBehaviour
   {
   public:
-    virtual DataSPtr fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
+    virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
   };
 } // namespace ESPINA
 

@@ -62,22 +62,13 @@ namespace ESPINA
     virtual ~VolumetricData()
     {}
 
-    /** \brief Implements Data::bounds() const.
-     *
-     */
     virtual Bounds bounds() const = 0;
 
-    /** \brief Implements Data::type() const.
-     *
-     */
     virtual Data::Type type() const
     { return TYPE; }
 
-    /** \brief Implements Data::createProxy() const.
-     *
-     */
-    virtual DataProxySPtr createProxy() const
-    { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
+    virtual DataSPtr createProxy() const
+    { return DataSPtr{new VolumetricDataProxy<T>()}; }
 
     /** \brief Set the origin of the image.
      * \param[in] origin origin of this image.
@@ -189,7 +180,7 @@ namespace ESPINA
    *
    *  This function ensures the output is up to date by callig ouput::update() first
    */
-  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
+  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
 } // namespace ESPINA
 

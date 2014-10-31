@@ -73,7 +73,7 @@ FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList    
   if (type != AS_FILTER) throw Unknown_Filter_Exception();
 
   auto filter = FilterSPtr{new AppositionSurfaceFilter(inputs, type, scheduler)};
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new SASFetchBehaviour()});
+  filter->setDataFactory(DataFactorySPtr{new SASFetchBehaviour()});
 
   return filter;
 }

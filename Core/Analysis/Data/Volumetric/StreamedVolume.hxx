@@ -132,7 +132,7 @@ namespace ESPINA {
     virtual bool isEmpty() const
     { return !isValid(); }
 
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    virtual bool fetchData() override
     { return false; }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override

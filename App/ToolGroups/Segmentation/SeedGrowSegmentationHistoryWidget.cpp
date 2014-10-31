@@ -141,7 +141,7 @@ private:
   void update()
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_filter->update(0);
+    m_filter->update();
     QApplication::restoreOverrideCursor();
   }
 

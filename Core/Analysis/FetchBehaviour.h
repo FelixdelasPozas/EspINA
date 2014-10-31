@@ -56,10 +56,10 @@ namespace ESPINA {
      * \return       smart pointer to the fetched data
      *
      */
-    virtual DataSPtr fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
+    virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
   };
 
-  using FetchBehaviourSPtr = std::shared_ptr<FetchBehaviour>;
+  using DataFactorySPtr = std::shared_ptr<FetchBehaviour>;
 }
 
 #endif // ESPINA_NEURO_ITEM_H

@@ -60,8 +60,11 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual DataSPtr get() const
-    { return m_data; }
+    virtual void update()
+    { m_data->update(); }
+
+    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
+    { return std::dynamic_pointer_cast<MeshData>(proxy); }
 
     virtual Bounds bounds() const override
     { return m_data->bounds(); }
@@ -78,6 +81,9 @@ namespace ESPINA
     virtual BoundsList editedRegions() const override
     { return m_data->editedRegions(); }
 
+    virtual void setEditedRegions(const BoundsList& regions)
+    { m_data->setEditedRegions(regions); }
+
     virtual void clearEditedRegions() override
     { m_data->clearEditedRegions(); }
 
@@ -87,10 +93,8 @@ namespace ESPINA
     virtual bool isEmpty() const
     { return m_data->isEmpty(); }
 
-    virtual bool fetchData(const TemporalStorageSPtr storage,
-                           const QString            &path,
-                           const QString            &id)    override
-    { return m_data->fetchData(storage, path, id); }
+    virtual bool fetchData() override
+    { return m_data->fetchData(); }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,

@@ -27,6 +27,7 @@
 
 // ESPINA
 #include "Data.h"
+#include "Output.h"
 
 using namespace ESPINA;
 
@@ -34,7 +35,27 @@ using namespace ESPINA;
 TimeStamp Data::s_tick = 0;
 
 //----------------------------------------------------------------------------
+void Data::setFetchContext(const TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  m_storage = storage;
+  m_path    = path;
+  m_id      = id;
+}
+
+//----------------------------------------------------------------------------
 void Data::update()
 {
+  if (!isValid())
+  {
+    BoundsList prevEditedRegions = editedRegions();
 
+    if (fetchData())
+    {
+      setEditedRegions(prevEditedRegions);
+    }
+    else
+    {
+      m_output->update();
+    }
+  }
 }

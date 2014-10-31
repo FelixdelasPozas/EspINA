@@ -33,7 +33,7 @@ DummyFilter::DummyFilter()
 
 
 //------------------------------------------------------------------------
-DataProxySPtr DummyData::createProxy() const
+DataSPtr DummyData::createProxy() const
 {
-  return DataProxySPtr{new DummyDataProxy()};
+  return DataSPtr{new DummyDataProxy()};
 }

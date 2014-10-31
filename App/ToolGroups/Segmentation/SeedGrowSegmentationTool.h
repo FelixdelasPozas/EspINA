@@ -60,7 +60,7 @@ namespace ESPINA
       virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
-      mutable FetchBehaviourSPtr m_fetchBehaviour;
+      mutable DataFactorySPtr m_fetchBehaviour;
     };
 
   public:

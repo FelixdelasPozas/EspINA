@@ -166,7 +166,7 @@ namespace ESPINA
 
     virtual bool isEmpty() const;
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)                 override;
+    virtual bool fetchData() override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
@@ -712,7 +712,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool SparseVolume<T>::fetchData()
   {
     // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
@@ -723,18 +723,23 @@ namespace ESPINA
     int i = 0;
     QFileInfo blockFile;
 
-    for (auto filename : {multiBlockPath(id, i),
-                          singleBlockPath(id),
-                          oldMultiBlockPath(id, i),
+    auto path    = this->m_path;
+    auto id      = this->m_id;
+    auto storage = this->m_storage;
+    auto output  = this->m_output;
+
+    for (auto filename : {multiBlockPath    (id, i),
+                          singleBlockPath   (id)   ,
+                          oldMultiBlockPath (id, i), // This shouldn't exist
                           oldSingleBlockPath(id)})
     {
       blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
       if (blockFile.exists()) break;
     }
 
-    if (this->m_output)
+    if (output)
     {
-      m_spacing = this->m_output->spacing();
+      m_spacing = output->spacing();
     }
 
     auto itkSpacing = ItkSpacing<T>(m_spacing);
@@ -747,7 +752,7 @@ namespace ESPINA
 
       auto image = reader->GetOutput();
 
-      if (m_spacing == NmVector3() || this->m_output == nullptr)
+      if (m_spacing == NmVector3() || output == nullptr)
       {
         for(int s=0; s < 3; ++s)
         {
@@ -755,9 +760,9 @@ namespace ESPINA
           itkSpacing[i] = m_spacing[i];
         }
 
-        if (this->m_output)
+        if (output)
         {
-          this->m_output->setSpacing(m_spacing);
+          output->setSpacing(m_spacing);
         }
       } else
       {
@@ -835,10 +840,18 @@ namespace ESPINA
 
     for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
     {
-      auto filename     = storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId));
-      auto editedRegion = readVolume<itkVolumeType>(filename);
+      QFileInfo filename(storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId)));
 
-      expandAndDraw<T>(this, editedRegion);
+      if (filename.exists())
+      {
+        auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
+
+        expandAndDraw<T>(this, editedRegion);
+      }
+      else
+      {
+        qWarning() << "Unable to locate edited region file:" << filename.absoluteFilePath();
+      }
     }
 
     this->setEditedRegions(restoredEditedRegions);

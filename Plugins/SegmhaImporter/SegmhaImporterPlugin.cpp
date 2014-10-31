@@ -50,7 +50,7 @@ FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Ty
     else
       throw Unknown_Filter_Exception();
 
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
+  filter->setDataFactory(DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()});
   return filter;
 }
 

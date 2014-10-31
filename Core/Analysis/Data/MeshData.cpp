@@ -23,6 +23,7 @@
 #include "MeshData.h"
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
 #include <vtkAlgorithmOutput.h>
@@ -58,17 +59,68 @@ Bounds MeshData::bounds() const
 }
 
 //----------------------------------------------------------------------------
-DataProxySPtr MeshData::createProxy() const
+bool MeshData::fetchData()
 {
-  return DataProxySPtr{ new MeshProxy() };
+  bool dataFetched = false;
+
+  // TODO: Fetch old file names
+  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
+
+
+  for (auto filename : {snapshotFilename   (m_path, m_id),
+                        oldSnapshotFilename(m_path, m_id)})
+  {
+    QFileInfo meshFile(m_storage->absoluteFilePath(filename));
+
+    if(meshFile.exists())
+    {
+      setMesh(PolyDataUtils::readPolyDataFromFile(meshFile.absoluteFilePath()));
+      dataFetched = true;
+      break;
+    }
+  }
+
+  return dataFetched;
 }
 
 //----------------------------------------------------------------------------
-ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output)
+Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
 {
-  output->update();
+  Snapshot snapshot;
 
+  auto currentMesh = mesh();
+  if (currentMesh)
+  {
+    QString fileName = snapshotFilename(path, id);
+    storage->makePath(path);
+
+    snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(currentMesh));
+  }
+
+  return snapshot;
+}
+
+//----------------------------------------------------------------------------
+DataSPtr MeshData::createProxy() const
+{
+  return DataSPtr{ new MeshProxy() };
+}
+
+//----------------------------------------------------------------------------
+ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output, DataUpdatePolicy policy)
+{
   auto data = output->data(MeshData::TYPE);
 
+  if (policy == DataUpdatePolicy::Request)
+  {
+    data->update();
+  }
+
   return std::dynamic_pointer_cast<MeshData>(data);
+}
+
+//----------------------------------------------------------------------------
+bool ESPINA::hasMeshData(OutputSPtr output)
+{
+  return output->hasData(MeshData::TYPE);
 }

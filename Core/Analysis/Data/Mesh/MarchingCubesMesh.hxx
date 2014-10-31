@@ -58,7 +58,7 @@ namespace ESPINA
      */
     virtual ~MarchingCubesMesh();
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchData() override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
@@ -120,16 +120,16 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template <typename T>
-  bool MarchingCubesMesh<T>::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool MarchingCubesMesh<T>::fetchData()
   {
-    return false;
+    return MeshData::fetchData();
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
   Snapshot MarchingCubesMesh<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
-    return Snapshot();
+    return MeshData::snapshot(storage, path, id);
   }
 
   //----------------------------------------------------------------------------

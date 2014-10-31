@@ -57,11 +57,14 @@ int pipeline_single_filter_raw_fetch_behaviour( int argc, char** argv )
 
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
+      FilterSPtr filter;
+
       if (type == "SGS") {
-        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
-        return filter;
+        filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+        filter->setDataFactory(DataFactorySPtr{new FetchRawData()});
       }
+
+      return filter;
     }
   };
 
@@ -136,6 +139,12 @@ int pipeline_single_filter_raw_fetch_behaviour( int argc, char** argv )
   else
   {
     auto volume = volumetricData(loadedOuptut);
+    
+    if (!volume->isValid())
+    {
+      cerr << "Unexpeceted invalid volumetric data" << endl;
+      error = true;
+    }
 
     if (volume->editedRegions().size() != 0)
     {

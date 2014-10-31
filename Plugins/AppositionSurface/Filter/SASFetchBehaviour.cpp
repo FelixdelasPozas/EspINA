@@ -35,24 +35,25 @@ namespace ESPINA
   {
     MeshDataSPtr mesh = nullptr;
 
-    if (!output->hasData(MeshData::TYPE))
-    {
-      auto data = DataSPtr{new RawMesh()};
-      data->setOutput(output.get());
-
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
-
-        // update filter values to avoid unnecessary calls to update().
-        auto filter = dynamic_cast<AppositionSurfaceFilter *>(output->filter());
-        Q_ASSERT(filter != nullptr);
-        filter->m_alreadyFetchedData = true;
-        filter->m_lastModifiedMesh = data->lastModified();
-      }
-    }
-
-    mesh = meshData(output);
+    // TODO BUG WARNING
+//     if (!output->hasData(MeshData::TYPE))
+//     {
+//       auto data = DataSPtr{new RawMesh()};
+//       data->setOutput(output.get());
+//
+//       if (data->fetchData(storage, path, QString::number(output->id())))
+//       {
+//         output->setData(data);
+//
+//         // update filter values to avoid unnecessary calls to update().
+//         auto filter = dynamic_cast<AppositionSurfaceFilter *>(output->filter());
+//         Q_ASSERT(filter != nullptr);
+//         filter->m_alreadyFetchedData = true;
+//         filter->m_lastModifiedMesh = data->lastModified();
+//       }
+//     }
+//
+//     mesh = meshData(output);
 
     return mesh;
   }

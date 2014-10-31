@@ -82,7 +82,7 @@ int pipeline_access_internal_filter_edited_data_with_fetch_behaviour( int argc, 
         {
           Q_ASSERT(false);
         }
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
+        filter->setDataFactory(DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()});
       }
 
       return filter;

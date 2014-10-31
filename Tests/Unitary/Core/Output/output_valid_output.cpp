@@ -47,8 +47,8 @@ int output_valid_output( int argc, char** argv )
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  if (output.data(data->type())->bounds() != data->bounds()) {
+    cerr << "Unxpected output data bounds";
     error = true;
   }
 

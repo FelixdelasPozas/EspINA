@@ -75,7 +75,7 @@ namespace ESPINA
      */
     virtual bool setInternalData(MeshDataSPtr mesh);
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)                 override;
+    virtual bool fetchData() override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
@@ -104,16 +104,6 @@ namespace ESPINA
     { /* TODO: not allowed */ };
 
     size_t memoryUsage() const;
-
-  private:
-    QString snapshotFilename(const QString &path, const QString &id) const
-    { return QString("%1/%2_%3.vtp").arg(path).arg(id).arg(type()); }
-
-    QString oldSnapshotFilename(const QString &path, const QString &id) const
-    { return QString("%1/%2_%3.vtp").arg(path).arg(type()).arg(id); }
-
-    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
-    { return snapshotFilename(path, id); }
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;

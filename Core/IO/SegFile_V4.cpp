@@ -179,7 +179,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
   catch (...)
   {
     filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
-    filter->setFetchBehaviour(m_fetchBehaviour);
+    filter->setDataFactory(m_fetchBehaviour);
   }
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
@@ -230,7 +230,7 @@ ChannelSPtr SegFile_V4::Loader::createChannel(DirectedGraph::Vertex roVertex)
   auto vertex_v4 = edge.source;
   auto filter    = std::dynamic_pointer_cast<Filter>(inflateVertexV4(vertex_v4));
 
-  filter->update(0); // Existing outputs weren't stored in previous versions
+  filter->update(); // Existing outputs weren't stored in previous versions
 
   ChannelSPtr channel = m_factory->createChannel(filter, 0);
 
@@ -285,7 +285,7 @@ SegmentationSPtr SegFile_V4::Loader::createSegmentation(DirectedGraph::Vertex ro
   auto filter   = roOutput.first;
   auto outputId = roOutput.second;
 
-  filter->update(outputId); // Existing outputs weren't stored in previous versions
+  filter->update(); // Existing outputs weren't stored in previous versions
 
   SegmentationSPtr segmentation = m_factory->createSegmentation(filter, outputId);
 

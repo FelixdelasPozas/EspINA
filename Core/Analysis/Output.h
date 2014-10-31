@@ -196,7 +196,7 @@ namespace ESPINA
 
     EditedRegionSList m_editedRegions;
 
-    QMap<Data::Type, DataProxySPtr> m_data;
+    QMap<Data::Type, DataSPtr> m_data;
   };
 
   using OutputIdList = QList<Output::Id>;

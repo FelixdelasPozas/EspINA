@@ -67,9 +67,9 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
 
   if (!m_fetchBehaviour)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
   }
-  sgsFilter->setFetchBehaviour(m_fetchBehaviour);
+  sgsFilter->setDataFactory(m_fetchBehaviour);
 
   return sgsFilter;
 }

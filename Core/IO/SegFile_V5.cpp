@@ -179,13 +179,14 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   catch (const CoreFactory::Unknown_Type_Exception &e)
   {
     filter = FilterSPtr { new ReadOnlyFilter(inputs, roVertex->name()) };
-    filter->setFetchBehaviour(m_fetchBehaviour);
+    filter->setDataFactory(m_fetchBehaviour);
   }
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
   filter->restoreState(roVertex->state());
   filter->setStorage(m_storage);
+  filter->restorePreviousOutputs();
 
   return filter;
 }
@@ -213,10 +214,11 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 {
   auto roOutput = findOutput(roVertex);
 
-  auto filter = roOutput.first;
+  auto filter   = roOutput.first;
   auto outputId = roOutput.second;
 
-  filter->update(outputId);
+  //filter->update(outputId); // No tiene que hacer falta ya que ahora todos los filtros
+                              // van a restaurar su outputs
 
   ChannelSPtr channel = m_factory->createChannel(filter, outputId);
 
@@ -253,7 +255,7 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
     throw Invalid_Input_Exception();
   }
 
-  filter->update(outputId); // Existing outputs were stored in previous versions
+  //filter->update(outputId); // Existing outputs were stored in previous versions
 
   auto segmentation = m_factory->createSegmentation(filter, outputId);
 

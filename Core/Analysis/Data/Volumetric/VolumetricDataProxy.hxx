@@ -59,8 +59,11 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual DataSPtr get() const
-    { return m_data; }
+    virtual void update() override
+    { m_data->update();}
+
+    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const override
+    { return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(proxy); }
 
     virtual size_t memoryUsage() const
     { return m_data->memoryUsage(); }
@@ -124,10 +127,13 @@ namespace ESPINA
     virtual TimeStamp lastModified()
     { return m_data->lastModified(); }
 
-    virtual BoundsList editedRegions() const
+    virtual BoundsList editedRegions() const override
     { return m_data->editedRegions(); }
 
-    virtual void clearEditedRegions()
+    virtual void setEditedRegions(const BoundsList& regions) override
+    { m_data->setEditedRegions(regions); }
+
+    virtual void clearEditedRegions() override
     { m_data->clearEditedRegions(); }
 
     virtual bool isValid() const
@@ -136,10 +142,8 @@ namespace ESPINA
     virtual bool isEmpty() const
     { return m_data->isEmpty(); }
 
-    virtual bool fetchData(TemporalStorageSPtr storage,
-                           const QString      &path,
-                           const QString      &id)                       override
-    { return m_data->fetchData(storage, path, id); }
+    virtual bool fetchData() override
+    { return m_data->fetchData(); }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
