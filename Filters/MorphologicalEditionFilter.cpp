@@ -59,7 +59,7 @@ void MorphologicalEditionFilter::restoreState(const State& state)
 
     if ("Radius" == tokens[0])
     {
-      m_radius = tokens[1].toInt();
+      m_prevRadius = m_radius = tokens[1].toInt();
     }
   }
 }

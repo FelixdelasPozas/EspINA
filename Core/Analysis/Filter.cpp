@@ -251,7 +251,7 @@ void Filter::restoreEditedRegions()
   {
     QByteArray buffer = storage()->snapshot(outputFile());
 
-    qDebug() << buffer;
+    //qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {
@@ -355,7 +355,6 @@ bool Filter::restorePreviousOutputs() const
 
             output = OutputSPtr{new Output(const_cast<Filter *>(this), id)};
             m_outputs.insert(id, output);
-            qDebug() << m_outputs.size();
           }
           else if ("Data" == xml.name() && output)
           {

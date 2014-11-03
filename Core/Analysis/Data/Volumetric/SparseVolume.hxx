@@ -722,6 +722,8 @@ namespace ESPINA
     auto storage = this->m_storage;
     auto output  = this->m_output;
 
+    if (!storage || path.isEmpty() || id.isEmpty() || output == -1) return false;
+
     for (auto filename : {multiBlockPath    (id, i),
                           singleBlockPath   (id)   ,
                           oldMultiBlockPath (id, i), // This shouldn't exist

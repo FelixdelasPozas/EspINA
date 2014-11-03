@@ -56,6 +56,7 @@ const QString LOWER_TH       = "LowerThreshold";
 const QString UPPER_TH       = "UpperThreshold";
 const QString CLOSING_RADIUS = "ClosingRadius";
 const QString ROI_DEFINED    = "ROI";
+const QString V4_ROI         = "VOI";
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
@@ -107,6 +108,27 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
     else if (ROI_DEFINED == tokens[0])
     {
       m_hasROI = tokens[1].toInt();
+    }
+    else if (V4_ROI == tokens[0])
+    {
+      auto spacing   = m_inputs[0]->output()->spacing();
+      auto roiExtent = tokens[1].split(",");
+
+      Bounds roiBounds;
+      for (int i = 0; i < 6; ++i)
+      {
+        roiBounds[i] = roiExtent[i].toInt() * spacing[i/2];
+      }
+
+      m_ROI     = ROISPtr{new ROI(roiBounds, spacing, NmVector3{0, 0, 0})};
+      m_hasROI  = true;
+      m_prevROI = m_ROI.get();
+
+      // V4 seed was given in voxels
+      for (int i = 0; i < 3; ++i)
+      {
+        m_prevSeed[i] = m_seed[i] *= spacing[i];
+      }
     }
   }
 }
@@ -176,7 +198,7 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
   {
     m_ROI = ROISPtr{new ROI(Bounds(),NmVector3(), NmVector3())};
 
-    m_ROI->setFetchContext(storage(), prefix(), "0");
+    m_ROI->setFetchContext(storage(), prefix(), roiId());
     m_ROI->fetchData();
 
     m_prevROI = m_ROI.get();
@@ -204,7 +226,7 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
 
   if (roi())
   {
-    snapshot << m_ROI->snapshot(storage(), prefix(), "0");
+    snapshot << m_ROI->snapshot(storage(), prefix(), roiId());
   }
 
   return snapshot;
@@ -386,8 +408,8 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {
   if (!m_ROI) return false;
 
-  auto volume = volumetricData(m_outputs[0]);
-  auto spacing = volume->spacing();
+  auto volume    = volumetricData(m_outputs[0], DataUpdatePolicy::Ignore);
+  auto spacing   = volume->spacing();
   auto boundsSeg = volume->bounds();
 
   if(m_ROI->isOrthogonal())

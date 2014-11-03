@@ -66,12 +66,17 @@ namespace ESPINA
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
 
-    virtual bool isValid() const
+    virtual void update()
     {
       if (!m_volume->isValid())
       {
         m_volume->update();
       }
+      Data::update();
+    }
+
+    virtual bool isValid() const
+    {
       return m_volume->isValid();
     }
 

@@ -276,8 +276,9 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   auto spacing = volume->spacing();
   auto roi     = m_roiTools->currentROI();
+  auto seed    = m_filter->seed();
 
-  if (roi && !contains(roi, m_filter->seed(), spacing))
+  if (roi && !contains(roi, seed, spacing))
   {
     QMessageBox::warning(this,
                          tr("Seed Grow Segmentation"),
