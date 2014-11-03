@@ -27,6 +27,7 @@
 // ESPINA
 #include <Core/Analysis/Data.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Output.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -87,8 +88,9 @@ namespace ESPINA
    * \param[in] output Output object smart pointer.
    * 
    *  This function ensures the output is up to date by callig mesh data update first
+   *  If the output doesn't contain the requested data type an expection will be thrownn
    */
-  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request);
+  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
 
   /** \brief Returns whether output has any mesh data or not
    *

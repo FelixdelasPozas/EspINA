@@ -195,6 +195,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
       createFilterOutputsFile(filter, parts[1].toInt());
     }
   }
+  filter->restorePreviousOutputs();
 
   return filter;
 }
@@ -285,7 +286,7 @@ SegmentationSPtr SegFile_V4::Loader::createSegmentation(DirectedGraph::Vertex ro
   auto filter   = roOutput.first;
   auto outputId = roOutput.second;
 
-  filter->update(); // Existing outputs weren't stored in previous versions
+  //filter->update(); // Existing outputs weren't stored in previous versions
 
   SegmentationSPtr segmentation = m_factory->createSegmentation(filter, outputId);
 

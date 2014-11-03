@@ -120,6 +120,11 @@ namespace ESPINA {
                       const typename T::PixelType value = SEG_VOXEL_VALUE) override
     {}
 
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override
+    {}
+
+
     virtual void resize(const Bounds &bounds)
     {}
 

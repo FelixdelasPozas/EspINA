@@ -80,7 +80,7 @@ void FreeFormSource::execute(Output::Id id)
 {
   if (id != 0) throw Undefined_Output_Exception();
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
-  if (m_mask == nullptr) throw Invalid_Input_Data_Exception();
+  if (m_mask == nullptr)    throw Invalid_Input_Data_Exception();
 
   emit progress(25);
 

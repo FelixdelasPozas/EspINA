@@ -36,7 +36,7 @@ DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<uns
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::redo()
 {
-  auto volume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volumetricData(m_segmentation->output()));
+  auto volume = volumetricData(m_segmentation->output());
   ChangeSignalDelayer inhibitor(volume);
 
   m_bounds = volume->bounds();

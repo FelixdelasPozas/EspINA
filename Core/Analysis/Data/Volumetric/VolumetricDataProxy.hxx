@@ -23,8 +23,8 @@
 #define ESPINA_VOLUMETRIC_DATA_PROXY_H
 
 // ESPINA
-#include "Core/Analysis/Data/VolumetricData.hxx"
 #include <Core/Analysis/DataProxy.h>
+#include <Core/Utils/BinaryMask.hxx>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -117,6 +117,11 @@ namespace ESPINA
     virtual void draw(const Bounds               &bounds,
                       const typename T::PixelType value = SEG_VOXEL_VALUE) override
     { m_data->draw(bounds, value); }
+
+
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override
+   { m_data->draw(mask, value); }
 
     virtual void resize(const Bounds &bounds)
     { m_data->resize(bounds); }

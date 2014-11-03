@@ -140,14 +140,8 @@ namespace ESPINA
     virtual void draw(const Bounds               &bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    /** \brief Method to modify the volume using a mask and a value.
-     * \param[in] mask BinatyMask smart pointer.
-     * \param[in] value value of the voxels of the binary mask.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE);
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
 
 

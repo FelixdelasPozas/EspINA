@@ -19,15 +19,10 @@
 */
 
 // ESPINA
-#include "SparseVolume.hxx"
+#include "Core/Analysis/Data/VolumetricData.hxx"
 
 namespace ESPINA
 {
-	//-----------------------------------------------------------------------------
-  void expandAndDraw(SparseVolumeSPtr volume, const BinaryMaskSPtr<unsigned char> &mask)
-  {
-    volume->resize(boundingBox(mask->bounds().bounds(), volume->bounds()));
-    volume->draw(mask, mask->foregroundValue());
-  }
+  //-----------------------------------------------------------------------------
 }
 

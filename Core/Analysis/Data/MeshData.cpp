@@ -108,6 +108,7 @@ DataSPtr MeshData::createProxy() const
 
 //----------------------------------------------------------------------------
 ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
 {
   auto data = output->data(MeshData::TYPE);
 

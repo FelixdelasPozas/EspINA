@@ -28,6 +28,7 @@
 // ESPINA
 #include "Data.h"
 #include "Output.h"
+#include "Filter.h"
 
 using namespace ESPINA;
 
@@ -55,7 +56,7 @@ void Data::update()
     }
     else
     {
-      m_output->update();
+      m_output->filter()->update();
     }
   }
 }

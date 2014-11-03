@@ -214,15 +214,16 @@ void Output::removeData(const Data::Type& type)
 
 //----------------------------------------------------------------------------
 Output::DataSPtr Output::data(const Data::Type& type) const
+throw (Unavailable_Output_Data_Exception)
 {
-  DataSPtr result;
-
   if (m_data.contains(type))
   {
-    result = m_data.value(type);
+    return m_data.value(type);
   }
-
-  return result;
+  else
+  {
+    throw Unavailable_Output_Data_Exception();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -235,7 +236,10 @@ bool Output::hasData(const Data::Type& type) const
 //----------------------------------------------------------------------------
 void Output::update()
 {
-  m_filter->update();
+  for (auto data : m_data)
+  {
+    data->update();
+  }
 }
 
 //----------------------------------------------------------------------------

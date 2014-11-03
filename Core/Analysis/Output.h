@@ -44,6 +44,8 @@ class QDir;
 namespace ESPINA
 {
 
+  struct Unavailable_Output_Data_Exception {};
+
   class EspinaCore_EXPORT Output
   : public QObject
   {
@@ -136,7 +138,7 @@ namespace ESPINA
      * \param[in] type data type.
      *
      */
-    DataSPtr data(const Data::Type& type) const;
+    DataSPtr data(const Data::Type& type) const throw (Unavailable_Output_Data_Exception);
 
     /** \brief Returns true if the output has a data of the specified type.
      * \param[in] type data type.
