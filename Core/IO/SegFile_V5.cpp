@@ -79,7 +79,7 @@ SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPt
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V5::Loader::load()
 {
-  m_storage = TemporalStorageSPtr { new TemporalStorage() };
+  m_storage = std::make_shared<TemporalStorage>();
 
   if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
   {
@@ -178,7 +178,7 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   }
   catch (const CoreFactory::Unknown_Type_Exception &e)
   {
-    filter = FilterSPtr { new ReadOnlyFilter(inputs, roVertex->name()) };
+    filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
     filter->setDataFactory(m_fetchBehaviour);
   }
   filter->setErrorHandler(m_handler);
@@ -340,7 +340,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadContent()
 {
-  m_content = DirectedGraphSPtr(new DirectedGraph());
+  m_content = std::make_shared<DirectedGraph>();
 
   QTextStream textStream(readFileFromZip(CONTENT_FILE, m_zip, m_handler));
 
@@ -357,7 +357,7 @@ void SegFile_V5::Loader::loadContent()
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadRelations()
 {
-  DirectedGraphSPtr relations(new DirectedGraph());
+  auto relations = std::make_shared<DirectedGraph>();
 
   QTextStream textStream(readFileFromZip(RELATIONS_FILE, m_zip, m_handler));
 
@@ -389,7 +389,7 @@ void SegFile_V5::Loader::createChannelExtension(ChannelSPtr channel,
   } catch (const CoreFactory::Unknown_Type_Exception &e)
   {
     //qDebug() << "Creating ReadOnlyChannelExtension" << type;
-    extension = ChannelExtensionSPtr { new ReadOnlyChannelExtension(type, cache, state) };
+    extension = std::make_shared<ReadOnlyChannelExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
   channel->addExtension(extension);
@@ -460,7 +460,7 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
   } catch (const CoreFactory::Unknown_Type_Exception &e)
   {
     //qDebug() << "Creating ReadOnlySegmentationExtension" << type;
-    extension = SegmentationExtensionSPtr { new ReadOnlySegmentationExtension(type, cache, state) };
+    extension = std::make_shared<ReadOnlySegmentationExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
   segmentation->addExtension(extension);

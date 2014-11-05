@@ -36,11 +36,11 @@ namespace ESPINA {
     public:
       explicit DummyFilter(InputSList inputs, Filter::Type& type, SchedulerSPtr scheduler)
       : Filter(inputs, type, scheduler)
-      { m_outputs[0] = OutputSPtr{new Output(this, 0)}; }
+      { m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1}); }
 
       virtual void restoreState(const State& state) {}
       virtual State state() const{ return State();}
-      virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
+      virtual OutputSPtr output(Output::Id id) const { return m_outputs[id]; }
 
       void dummyMethod(){}
     protected:

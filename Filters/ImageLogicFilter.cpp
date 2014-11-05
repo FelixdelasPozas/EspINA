@@ -91,8 +91,9 @@ void ImageLogicFilter::execute(Output::Id oId)
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::addition()
 {
-  auto firstVolume = volumetricData(m_inputs[0]->output());
-  Bounds boundingBounds = firstVolume->bounds();
+  auto firstVolume    = volumetricData(m_inputs[0]->output());
+  auto boundingBounds = firstVolume->bounds();
+  auto spacing        = firstVolume->spacing();
 
   emit progress(0);
   if (!canExecute()) return;
@@ -100,13 +101,13 @@ void ImageLogicFilter::addition()
   for(auto input: m_inputs)
   {
     auto inputVolume = volumetricData(input->output());
-    boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds, firstVolume->spacing());
+    boundingBounds = boundingBox(inputVolume->bounds(), boundingBounds, spacing);
   }
 
   emit progress(50);
   if (!canExecute()) return;
 
-  auto outputVolume = new SparseVolume<itkVolumeType>{boundingBounds, firstVolume->spacing()};
+  auto outputVolume = new SparseVolume<itkVolumeType>{boundingBounds, spacing};
 
   for(auto input: m_inputs)
   {
@@ -134,7 +135,10 @@ void ImageLogicFilter::addition()
     outputVolume->draw(mask, mask->foregroundValue());
   }
 
-  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr{new Output(this, 0, spacing)};
+  }
   m_outputs[0]->setData(DataSPtr{outputVolume});
 }
 
@@ -181,8 +185,12 @@ void ImageLogicFilter::subtraction()
     if (!canExecute()) return;
   }
 
-  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr{new Output(this, 0, spacing)};
+  }
   m_outputs[0]->setData(DataSPtr{outputVolume});
+  m_outputs[0]->setSpacing(spacing);
 }
 
 //-----------------------------------------------------------------------------

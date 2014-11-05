@@ -42,9 +42,10 @@ const int ESPINA::Output::INVALID_OUTPUT_ID = -1;
 TimeStamp Output::s_tick = 0;
 
 //----------------------------------------------------------------------------
-Output::Output(FilterPtr filter, const Output::Id& id)
+Output::Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing)
 : m_filter{filter}
 , m_id{id}
+, m_spacing{spacing}
 , m_timeStamp{s_tick++}
 {
 }
@@ -76,7 +77,16 @@ void Output::setSpacing(const NmVector3& spacing)
 //----------------------------------------------------------------------------
 NmVector3 Output::spacing() const
 {
-  return m_spacing;
+  NmVector3 result = m_spacing;
+
+  if (result == NmVector3{0,0,0})
+  {
+    if (m_data.isEmpty()) throw Invalid_Bounds_Exception();
+
+    result = m_data[m_data.keys().first()]->spacing();
+  }
+
+  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -193,7 +203,7 @@ void Output::setData(Output::DataSPtr data)
   proxy->set(data);
   data->setOutput(this);
 
-  // Alternatively we could keep the previous edited clearEditedRegions
+  // Alternatively we could keep the previous edited regions
   // but at the moment I can't find any scenario where it could be useful
   BoundsList regions;
   regions << data->bounds();

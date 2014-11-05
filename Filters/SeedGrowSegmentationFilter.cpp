@@ -351,17 +351,17 @@ void SeedGrowSegmentationFilter::execute()
 
   if (!canExecute()) return;
 
-  if (!m_outputs.contains(0))
-  {
-    m_outputs[0] = OutputSPtr(new Output(this, 0));
-  }
-
   auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
   auto spacing = m_inputs[0]->output()->spacing();
 
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(output, bounds, spacing)};
 
   MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+  }
 
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(mesh);

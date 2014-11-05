@@ -69,6 +69,15 @@ namespace ESPINA
      */
     void addOutput(Output::Id id, OutputSPtr output);
 
+    /** \brief Adds an output data to the filter.
+     * \param[in] id id of the output.
+     * \param[in] output Output object smart pointer.
+     *
+     *  If the no output exits, it creates a new output.
+     *  If any data already exists for the output, it is replaced with the new one
+     */
+    void addOutputData(Output::Id id, DataSPtr data);
+
   protected:
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }

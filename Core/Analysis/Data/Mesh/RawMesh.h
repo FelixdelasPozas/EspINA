@@ -96,7 +96,7 @@ namespace ESPINA
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
     void setSpacing(const NmVector3&)
-    { /* TODO: not allowed */ };
+    { /* TODO: should rescale points */ };
 
     NmVector3 spacing() const;
 

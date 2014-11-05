@@ -44,6 +44,7 @@ class QDir;
 namespace ESPINA
 {
 
+  struct Invalid_Output_Expection{};
   struct Unavailable_Output_Data_Exception {};
 
   class EspinaCore_EXPORT Output
@@ -68,7 +69,7 @@ namespace ESPINA
      * \param[in] id Output::Id specifier.
      *
      */
-    explicit Output(FilterPtr filter, const Output::Id& id);
+    explicit Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing);
 
     /** \brief Output class destructor.
      *

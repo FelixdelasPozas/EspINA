@@ -23,7 +23,7 @@
 #include <App/Undo/BrushUndoCommand.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
-#include <Filters/FreeFormSource.h>
+#include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddSegmentations.h>
@@ -31,8 +31,8 @@
 
 using ESPINA::Filter;
 
-const Filter::Type FREEFORM_FILTER    = "FreeFormSource";
-const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
+const Filter::Type SOURCE_FILTER    = "FreeFormSource";
+const Filter::Type SOURCE_FILTER_V4 = "EditorToolBar::FreeFormSource";
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -42,7 +42,7 @@ FilterTypeList EditionTools::ManualFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
-  filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
+  filters << SOURCE_FILTER << SOURCE_FILTER_V4;
 
   return filters;
 }
@@ -53,9 +53,9 @@ FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList         in
                                                                 SchedulerSPtr       scheduler) const
 throw(Unknown_Filter_Exception)
 {
-  if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
+  if (SOURCE_FILTER != filter && SOURCE_FILTER_V4 != filter) throw Unknown_Filter_Exception();
 
-  auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
+  auto ffsFilter = FilterSPtr{new SourceFilter(inputs, SOURCE_FILTER, scheduler)};
   if (!m_fetchBehaviour)
   {
     m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
@@ -180,21 +180,28 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
   }
   else if(!selection->channels().empty())
   {
-    InputSList inputs;
-    inputs << m_viewManager->activeChannel()->asInput();
+    auto item    = selection->channels().first();
+    auto channel = static_cast<ChannelAdapterPtr>(item);
+    auto output  = channel->output();
 
-    auto filter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
-    filter->setMask(mask);
+    auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+
+    auto strokeBounds  = mask->bounds().bounds();
+    auto strokeSpacing = output->spacing();
+    auto strokeOrigin  = channel->position();
+
+    DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(strokeBounds, strokeSpacing, strokeOrigin)};
+    volume->draw(mask);
+
+    filter->addOutputData(0, volume);
 
     segmentation = m_factory->createSegmentation(filter, 0);
     segmentation->setCategory(category);
 
-    auto item = selection->channels().first();
-    auto channelItem = static_cast<ChannelAdapterPtr>(item);
 
     SampleAdapterSList samples;
-    samples << QueryAdapter::sample(channelItem);
-    Q_ASSERT(channelItem && (samples.size() == 1));
+    samples << QueryAdapter::sample(channel);
+    Q_ASSERT(channel && (samples.size() == 1));
 
     m_undoStack->beginMacro(tr("Add Segmentation"));
     m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));

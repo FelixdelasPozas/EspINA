@@ -131,12 +131,13 @@ void VolumetricStreamReader::execute(Output::Id id)
     }
   }
 
-  if (!m_outputs.contains(0))
-  {
-    m_outputs[0] = OutputSPtr{new Output(this, 0)};
-  }
 
   DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(mhdFile)};
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr{new Output(this, 0, volume->spacing())};
+  }
 
   m_outputs[0]->setData(volume);
 

@@ -37,17 +37,15 @@ DummyChannelReader::DummyChannelReader()
 //----------------------------------------------------------------------------
 void DummyChannelReader::execute()
 {
-  if (!m_outputs.contains(0))
-  {
-    m_outputs[0] = OutputSPtr{new Output(this, 0)};
-  }
-
-  m_outputs[0]->setSpacing({1,1,1});
-
   Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
 
   DefaultVolumetricDataSPtr data{new ChannelVolume(bounds)};
   data->setBackgroundValue(50);
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
+  }
 
   m_outputs[0]->setData(data);
   m_outputs[0]->clearEditedRegions();

@@ -301,6 +301,7 @@ void AppositionSurfaceFilter::execute()
   m_ap->Modified();
 
   auto inputSpacing = m_input->GetSpacing();
+  NmVector3 ispacing{inputSpacing[0], inputSpacing[1], inputSpacing[2]};
   RawMeshSPtr meshOutput{new RawMesh{m_ap, inputSpacing}};
 
   m_lastModifiedMesh = meshOutput->lastModified();
@@ -314,11 +315,13 @@ void AppositionSurfaceFilter::execute()
   DefaultVolumetricDataSPtr volumeOutput{new RasterizedVolume<itkVolumeType>{meshOutput, meshBounds, vectorSpacing}};
 
   if(!m_outputs.contains(0))
-    m_outputs[0] = OutputSPtr(new Output(this, 0));
+  {
+    m_outputs[0] = std::make_shared<Output>(this, 0, ispacing);
+  }
 
   m_outputs[0]->setData(meshOutput);
   m_outputs[0]->setData(volumeOutput);
-  m_outputs[0]->setSpacing(NmVector3{inputSpacing[0], inputSpacing[1], inputSpacing[2]});
+  m_outputs[0]->setSpacing(ispacing);
 
   emit progress(100);
 }

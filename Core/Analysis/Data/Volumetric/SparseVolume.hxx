@@ -80,6 +80,7 @@ namespace ESPINA
     explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
     /** \brief SparseVolume class constructor
+     * \param[in] volume initial content of the sparse volume.
      * \param[in] bounds bounds of the empty volume.
      * \param[in] spacing spacing of the volume.
      * \param[in] origin origin of the volume.

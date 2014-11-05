@@ -37,7 +37,7 @@ int output_valid_output( int argc, char** argv )
 
   DummyFilter filter;
 
-  Output output(&filter, 0);
+  Output output(&filter, 0, NmVector3{1,1,1});
 
   DataSPtr data{new DummyData()};
   output.setData(data);

@@ -32,7 +32,7 @@ namespace ESPINA {
     public:
       explicit DummyFilter()
       : Filter(InputSList(), "Dummy", SchedulerSPtr())
-      { m_outputs[0] = OutputSPtr{new Output(this, 0)};}
+      { m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});}
       virtual void restoreState(const State& state) {}
       virtual State state() const {return State();}
 

@@ -60,7 +60,7 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V4::Loader::load()
 {
-  m_storage = TemporalStorageSPtr{new TemporalStorage()};
+  m_storage = std::make_shared<TemporalStorage>();
   m_analysis->setStorage(m_storage);
 
   m_vertexUuids.clear();
@@ -164,7 +164,8 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
       // traceability was disabled
       if (!inputFilter->m_outputs.contains(id))
       {
-        inputFilter->m_outputs[id] = OutputSPtr{new Output(inputFilter.get(), id)};
+        inputFilter->m_outputs[id] = std::make_shared<Output>(inputFilter.get(), id, NmVector3());
+        Q_ASSERT(false);
       }
 
       inputs << getInput(inputFilter, id);
@@ -178,7 +179,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
   }
   catch (...)
   {
-    filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
+    filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
     filter->setDataFactory(m_fetchBehaviour);
   }
   filter->setErrorHandler(m_handler);

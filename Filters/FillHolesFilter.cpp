@@ -102,20 +102,21 @@ void FillHolesFilter::execute(Output::Id id)
   emit progress(100);
   if (!canExecute()) return;
 
-  auto output = filter->GetOutput();
+  auto output  = filter->GetOutput();
+  auto spacing = input->output()->spacing();
 
   auto volume = DefaultVolumetricDataSPtr{sparseCopy<itkVolumeType>(output)};
   auto mesh   = MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr(new Output(this, 0));
+    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
   }
 
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(mesh);
 
-  m_outputs[0]->setSpacing(input->output()->spacing());
+  m_outputs[0]->setSpacing(spacing);
 }
 
 //-----------------------------------------------------------------------------

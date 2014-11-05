@@ -121,11 +121,6 @@ namespace ESPINA
      */
     void update();
 
-//     /** \brief Update filter output with the specified id.
-//      *
-//      */
-//     bool update(Output::Id id);
-
     /** \brief Creates the outputs of the filter using the stored information.
      *
      */
@@ -254,7 +249,7 @@ namespace ESPINA
 
     //    bool m_invalidateSortoredOutputs;
 
-    DataFactorySPtr m_dataFactory;
+    DataFactorySPtr    m_dataFactory;
     ErrorHandlerSPtr   m_handler;
 
     // TODO : Remove with ESPINA 2.1

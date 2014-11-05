@@ -78,7 +78,7 @@ int output_invalid_output( int argc, char** argv )
 {
   bool error = false;
 
-  Output output(nullptr, 0);
+  Output output(nullptr, 0, NmVector3{1,1,1});
 
   if (output.isValid()) {
     cerr << "Default output constructor creates an invalid output" << endl;
@@ -86,7 +86,7 @@ int output_invalid_output( int argc, char** argv )
   }
 
   Testing::DummyFilter filter;
-  Output output2(&filter, 0);
+  Output output2(&filter, 0, NmVector3{1,1,1});
   
   if (output2.isValid()) {
     cerr << "Output has no associated data" << endl;

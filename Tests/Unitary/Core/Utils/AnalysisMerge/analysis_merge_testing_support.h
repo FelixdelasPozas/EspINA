@@ -35,7 +35,7 @@ namespace ESPINA {
       explicit DummyFilter(InputSList inputs = InputSList())
       : Filter(inputs, "Dummy", SchedulerSPtr())
       {
-        m_outputs[0] = OutputSPtr{new Output(this, 0)};
+        m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
         m_outputs[0]->setData(DataSPtr{new SparseVolume<itkVolumeType>({0,10,0,10,0,10})});
       }
       virtual void restoreState(const State& state) {}

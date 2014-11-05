@@ -55,7 +55,7 @@ int output_update_filter( int argc, char** argv )
     virtual void execute()                       override
     {
       UpdatedOutput = 0;
-      m_outputs[0] = OutputSPtr{new Output(this, 0)};
+      m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
     }
     virtual bool ignoreStorageContent() const    override {return true;}
   };
@@ -66,7 +66,7 @@ int output_update_filter( int argc, char** argv )
 
   Output::Id id = 0;
 
-  Output output(filter, id);
+  Output output(filter, id, NmVector3{1,1,1,});
 
   output.update();
 

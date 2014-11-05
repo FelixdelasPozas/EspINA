@@ -28,7 +28,7 @@ using namespace ESPINA::Testing;
 DummyFilter::DummyFilter()
 : Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
 {
-  m_outputs[0] = OutputSPtr(new Output(this, 0));
+  m_outputs[0] = OutputSPtr(new Output(this, 0, NmVector3{1,1,1}));
 }
 
 
