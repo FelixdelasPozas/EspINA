@@ -63,13 +63,13 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
 {
   if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
 
-  auto sgsFilter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
+  auto sgsFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, filter, scheduler);
 
-  if (!m_fetchBehaviour)
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
   }
-  sgsFilter->setDataFactory(m_fetchBehaviour);
+  sgsFilter->setDataFactory(m_dataFactory);
 
   return sgsFilter;
 }
@@ -92,7 +92,7 @@ throw (Unknown_Filter_Type_Exception)
 
   auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
 
-  return FilterDelegateSPtr(new SeedGrowSegmentationHistory(sgsFilter));
+  return std::make_shared<SeedGrowSegmentationHistory>(sgsFilter);
 }
 
 //-----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                   tr("Create segmentation based on selected pixel (Ctrl +)"),
                                   m_selectorSwitch);
 
-    SelectorSPtr selector{new PixelSelector()};
+    auto selector = std::make_shared<PixelSelector>();
     selector->setMultiSelection(false);
 
     addVoxelSelector(action, selector);
@@ -134,7 +134,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                   tr("Create segmentation based on best pixel (Ctrl +)"),
                                   m_selectorSwitch);
 
-    std::shared_ptr<BestPixelSelector> selector{new BestPixelSelector()};
+    auto selector = std::make_shared<BestPixelSelector>();
     selector->setMultiSelection(false);
 
     QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
@@ -290,7 +290,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     bounds = intersection(bounds, channel->bounds(), spacing);
 
-    roi = ROISPtr{new ROI(bounds, spacing, origin)};
+    roi = std::make_shared<ROI>(bounds, spacing, origin);
   }
   else
   {

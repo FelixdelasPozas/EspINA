@@ -52,9 +52,9 @@ namespace ESPINA {
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
     virtual bool isEmpty() const {return false;}
-    virtual Bounds bounds() const {}
+    virtual Bounds bounds() const { return Bounds{0,1,0,1,0,1};}
     virtual void setSpacing(const NmVector3& spacing){}
-    virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
+    virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
     virtual bool fetchData() { return false; }
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}

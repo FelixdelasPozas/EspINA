@@ -410,10 +410,7 @@ namespace ESPINA
   , m_origin {origin}
   , m_spacing{spacing}
   {
-    if (bounds.areValid())
-    {
-      m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
-    }
+    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
 
     this->setBackgroundValue(0);
   }
@@ -739,8 +736,6 @@ namespace ESPINA
       m_spacing = output->spacing();
     }
 
-    auto itkSpacing = ItkSpacing<T>(m_spacing);
-
     while (blockFile.exists())
     {
       VolumeReader::Pointer reader = VolumeReader::New();
@@ -754,7 +749,6 @@ namespace ESPINA
         for(int s=0; s < 3; ++s)
         {
           m_spacing[s] = image->GetSpacing()[s];
-          itkSpacing[i] = m_spacing[i];
         }
 
         if (output)
@@ -763,7 +757,7 @@ namespace ESPINA
         }
       } else
       {
-        image->SetSpacing(itkSpacing);
+        image->SetSpacing(ItkSpacing<T>(m_spacing));
       }
 
       setBlock(image, true);

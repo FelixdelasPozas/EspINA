@@ -505,6 +505,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
   {
     QByteArray buffer;
     QXmlStreamWriter xml(&buffer);
+    NmVector3 unkownSpacing{0,0,0};
 
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
@@ -515,7 +516,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
       for (auto trc : trcFiles[output])
       {
         xml.writeStartElement("Output");
-        xml.writeAttribute("id", QString::number(output));
+        xml.writeAttribute("id",      QString::number(output));
+        xml.writeAttribute("spacing", unkownSpacing.toString());
 
         QString content(trc);
 

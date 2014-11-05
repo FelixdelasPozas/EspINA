@@ -131,10 +131,10 @@ void Filter::unload()
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  qDebug() << "Update Request: " << m_type;
+  //qDebug() << "Update Request: " << m_type;
   if (m_outputs.isEmpty() || needUpdate())
   {
-    qDebug() << " - Accepted";
+    //qDebug() << " - Accepted";
     bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
@@ -169,65 +169,65 @@ Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
   setName(m_type);
 }
 
-//----------------------------------------------------------------------------
-bool Filter::fetchOutputData(Output::Id id)
-{
-  bool outputDataFetched = false;
-
-  if (validStoredInformation() && m_dataFactory)
-  {
-    QByteArray buffer = storage()->snapshot(outputFile());
-
-    if (!buffer.isEmpty())
-    {
-      QXmlStreamReader xml(buffer);
-
-      //qDebug() << buffer;
-
-      OutputSPtr output;
-      DataSPtr   data;
-      BoundsList editedRegions;
-
-      while (!xml.atEnd())
-      {
-        xml.readNextStartElement();
-        if (xml.isStartElement())
-        {
-          if (isOutputSection(xml))
-          {
-            if (id == parseOutputId(xml))
-            {
-              auto spacing = parseOutputSpacing(xml);
-
-              Q_ASSERT(m_outputs.contains(id));
-              // Outputs can be already created while checking if an output exists
-              output = m_outputs.value(id, std::make_shared<Output>(this, id, spacing));
-
-              m_outputs.insert(id, output);
-            } else
-            {
-              output.reset();
-            }
-          }
-          else if (isDataSection(xml) && output)
-          {
-             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
-             data->clearEditedRegions();
-             editedRegions.clear();
-          }
-          else if (isEditedRegionSection(xml) && output)
-          {
-            editedRegions << parseEditedRegionsBounds(xml);
-            data->setEditedRegions(editedRegions);
-          }
-        }
-      }
-    }
-    outputDataFetched = m_outputs.contains(id) && m_outputs[id]->isValid();
-  }
-
-  return outputDataFetched;
-}
+// //----------------------------------------------------------------------------
+// bool Filter::fetchOutputData(Output::Id id)
+// {
+//   bool outputDataFetched = false;
+//
+//   if (validStoredInformation() && m_dataFactory)
+//   {
+//     QByteArray buffer = storage()->snapshot(outputFile());
+//
+//     if (!buffer.isEmpty())
+//     {
+//       QXmlStreamReader xml(buffer);
+//
+//       //qDebug() << buffer;
+//
+//       OutputSPtr output;
+//       DataSPtr   data;
+//       BoundsList editedRegions;
+//
+//       while (!xml.atEnd())
+//       {
+//         xml.readNextStartElement();
+//         if (xml.isStartElement())
+//         {
+//           if (isOutputSection(xml))
+//           {
+//             if (id == parseOutputId(xml))
+//             {
+//               Q_ASSERT(m_outputs.contains(id));
+//               output = m_outputs[id];
+//               //auto spacing = parseOutputSpacing(xml);
+//
+//               //// Outputs can be already created while checking if an output exists
+//               //output = m_outputs.value(id, std::make_shared<Output>(this, id, spacing));
+//               //m_outputs.insert(id, output);
+//             } else
+//             {
+//               output.reset();
+//             }
+//           }
+//           else if (isDataSection(xml) && output)
+//           {
+//              data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
+//              data->clearEditedRegions();
+//              editedRegions.clear();
+//           }
+//           else if (isEditedRegionSection(xml) && output)
+//           {
+//             editedRegions << parseEditedRegionsBounds(xml);
+//             data->setEditedRegions(editedRegions);
+//           }
+//         }
+//       }
+//     }
+//     outputDataFetched = m_outputs.contains(id) && m_outputs[id]->isValid();
+//   }
+//
+//   return outputDataFetched;
+// }
 
 //----------------------------------------------------------------------------
 void Filter::restoreEditedRegions()
@@ -309,10 +309,10 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
-  qDebug() << "Restore Previous Outputs Request: " << m_type;
+  //qDebug() << "Restore Previous Outputs Request: " << m_type;
   if (validStoredInformation())
   {
-    qDebug() << " - Accepted";
+    //qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
     //qDebug() << buffer;

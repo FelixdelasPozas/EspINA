@@ -28,9 +28,11 @@
 #include "Core/Analysis/Output.h"
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include "testing_support_dummy_filter.h"
 
-using namespace ESPINA;
 using namespace std;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 
 int output_update_filter( int argc, char** argv )
@@ -67,6 +69,8 @@ int output_update_filter( int argc, char** argv )
   Output::Id id = 0;
 
   Output output(filter, id, NmVector3{1,1,1,});
+
+  output.setData(std::make_shared<DummyData>());
 
   output.update();
 

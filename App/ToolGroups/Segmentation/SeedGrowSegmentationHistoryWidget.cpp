@@ -34,8 +34,12 @@ class DiscardROIModificationsCommand
 public:
   explicit DiscardROIModificationsCommand(ROIToolsGroup *roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent = 0)
   : m_roiTools{roiTools}
-  , m_ROI{filter->roi()->clone()}
-  {}
+  {
+    if (filter->roi())
+    {
+      m_ROI = filter->roi()->clone();
+    }
+  }
 
   virtual void redo()
   { swapCurrentROI(); }
@@ -301,9 +305,10 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
     warning.exec();
   }
 
-  if (m_filter->roi())
+  auto currentFilterROI = m_filter->roi();
+  if (currentFilterROI)
   {
-    m_roiTools->setCurrentROI(m_filter->roi()->clone());
+    m_roiTools->setCurrentROI(currentFilterROI->clone());
   }
 
   m_viewManager->updateSegmentationRepresentations();

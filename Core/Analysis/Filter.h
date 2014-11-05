@@ -171,19 +171,13 @@ namespace ESPINA
      */
     virtual bool needUpdate() const = 0;
 
-//     /** \brief Return true if a filter must be executed to update the specified output.
+//     /** \brief Try to load from cache dir all the output data.
 //      * \param[in] id output id
 //      *
+//      *  Returns true if all data snapshot can be recovered
+//      *  and false otherwise
 //      */
-//     virtual bool needUpdate(Output::Id id) const = 0;
-
-    /** \brief Try to load from cache dir all the output data.
-     * \param[in] id output id
-     *
-     *  Returns true if all data snapshot can be recovered
-     *  and false otherwise
-     */
-    bool fetchOutputData(Output::Id id);
+//     bool fetchOutputData(Output::Id id);
 
     /** \brief Restore edited regions for available outputs
      *
@@ -200,12 +194,6 @@ namespace ESPINA
      *
      */
     virtual void execute() = 0;
-
-//     /** \brief Method which actually executes the filter to generate output oId.
-//      * \param[in] id Output::Id object.
-//      *
-//      */
-//     virtual void execute(Output::Id id) = 0;
 
     /** \brief Determine whether or not data at persistent storage is still valid.
      *

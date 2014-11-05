@@ -645,6 +645,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_viewManager->setActiveCategory(CategoryAdapterPtr());
   m_viewManager->setEventHandler(EventHandlerSPtr());
   m_viewManager->selection()->clear();
+  m_viewManager->setSelectionEnabled(true);
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();
 
@@ -665,6 +666,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_contextualBar->setEnabled(false);
   m_mainBar->actions().first()->setChecked(true);
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
+  m_filterDelegateFactory->resetDelegates();
 
   return true;
 }
@@ -1170,6 +1172,8 @@ void EspinaMainWindow::redoAction(bool unused)
 //------------------------------------------------------------------------
 ProblemList EspinaMainWindow::checkAnalysisConsistency()
 {
+  //return ProblemList();
+
   auto check = new CheckAnalysis(m_scheduler, m_model);
   check->exec();
 

@@ -69,7 +69,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter
 , m_prevSeed   {m_seed}
 , m_radius     {0}
 , m_prevRadius {m_radius}
-, m_hasROI     {true}
+, m_hasROI     {false}
 , m_prevROI    {nullptr}
 , m_touchesROI {false}
 , m_forceUpdate{false}
@@ -199,7 +199,11 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
     m_ROI = ROISPtr{new ROI(Bounds(),NmVector3(), NmVector3())};
 
     m_ROI->setFetchContext(storage(), prefix(), roiId());
-    m_ROI->fetchData();
+
+    if (!m_ROI->fetchData())
+    {
+      m_ROI.reset();
+    }
 
     m_prevROI = m_ROI.get();
   }

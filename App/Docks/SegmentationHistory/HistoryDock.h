@@ -35,7 +35,7 @@ namespace ESPINA
   public:
     explicit HistoryDock(ModelAdapterSPtr          model,
                          ModelFactorySPtr          factory,
-                         FilterDelegateFactorySPtr delegatFactory,
+                         FilterDelegateFactorySPtr delegateFactory,
                          ViewManagerSPtr           viewManager,
                          QUndoStack               *undoStack,
                          QWidget                  *parent = 0);

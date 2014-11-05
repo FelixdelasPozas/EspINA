@@ -648,6 +648,7 @@ void View2D::updateView()
 {
   if (isVisible())
   {
+    //if (m_plane == Plane::XY) qDebug() << "Rendering 2D";
     updateRuler();
     updateThumbnail();
     m_renderer->ResetCameraClippingRange();

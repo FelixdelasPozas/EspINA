@@ -47,3 +47,9 @@ throw (Unknown_Filter_Type_Exception)
 
   return m_instances[segmentation].first;
 }
+
+//------------------------------------------------------------------------
+void FilterDelegateFactory::resetDelegates()
+{
+  m_instances.clear();
+}
