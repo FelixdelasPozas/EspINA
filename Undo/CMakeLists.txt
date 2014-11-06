@@ -15,6 +15,7 @@ set (Undo_SOURCES
   ChangeCategoryCommand.cpp
   ChangeSegmentationNotes.cpp
   ChangeSegmentationTags.cpp
+  ModifyDataCommand.cpp
   RemoveCategoryCommand.cpp
   RemoveSegmentations.cpp
   ReparentCategoryCommand.cpp

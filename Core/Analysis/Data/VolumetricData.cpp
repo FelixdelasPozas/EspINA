@@ -37,3 +37,9 @@ throw (Unavailable_Output_Data_Exception)
 
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(data);
 }
+
+//----------------------------------------------------------------------------
+bool ESPINA::hasVolumetricData(OutputSPtr output)
+{
+  return output->hasData(VolumetricData<itkVolumeType>::TYPE);
+}

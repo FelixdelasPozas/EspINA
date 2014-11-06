@@ -108,7 +108,9 @@ void SplitFilter::execute()
 
   int shift[3]; // Stencil origin differ from creation to fetch
   for (int i = 0; i < 3; ++i)
+  {
     shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
+  }
 
   for(; !it.IsAtEnd(); ++it, ++split1it, ++split2it)
   {
@@ -119,14 +121,14 @@ void SplitFilter::execute()
       split1it.Set(value);
       split2it.Set(SEG_BG_VALUE);
       if (isEmpty1)
-        isEmpty1 = value != SEG_VOXEL_VALUE;
+        isEmpty1 = (value != SEG_VOXEL_VALUE);
     }
     else
     {
       split1it.Set(SEG_BG_VALUE);
       split2it.Set(value);
       if (isEmpty2)
-        isEmpty2 = value != SEG_VOXEL_VALUE;
+        isEmpty2 = (value != SEG_VOXEL_VALUE);
     }
   }
 

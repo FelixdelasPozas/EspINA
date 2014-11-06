@@ -128,7 +128,7 @@ namespace ESPINA
       {};
     };
 
-    static bool isSynapse(SegmentationAdapterPtr segmentation);
+    static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
   private:
     ModelAdapterSPtr                 m_model;

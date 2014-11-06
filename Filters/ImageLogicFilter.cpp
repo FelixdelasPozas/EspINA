@@ -22,8 +22,9 @@
 #include "ImageLogicFilter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Utils/Bounds.h>
 #include <Core/Utils/BinaryMask.hxx>
 
 // ITK
@@ -139,7 +140,13 @@ void ImageLogicFilter::addition()
   {
     m_outputs[0] = OutputSPtr{new Output(this, 0, spacing)};
   }
-  m_outputs[0]->setData(DataSPtr{outputVolume});
+  
+  DefaultVolumetricDataSPtr volume{outputVolume};
+  MeshDataSPtr              mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+  m_outputs[0]->setData(volume);
+  m_outputs[0]->setData(mesh);
+  m_outputs[0]->setSpacing(spacing);
 }
 
 //-----------------------------------------------------------------------------
@@ -189,7 +196,12 @@ void ImageLogicFilter::subtraction()
   {
     m_outputs[0] = OutputSPtr{new Output(this, 0, spacing)};
   }
-  m_outputs[0]->setData(DataSPtr{outputVolume});
+
+  DefaultVolumetricDataSPtr volume{outputVolume};
+  MeshDataSPtr              mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+  m_outputs[0]->setData(volume);
+  m_outputs[0]->setData(mesh);
   m_outputs[0]->setSpacing(spacing);
 }
 

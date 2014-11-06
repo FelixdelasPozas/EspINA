@@ -243,6 +243,20 @@ bool Output::hasData(const Data::Type& type) const
   return m_data.contains(type);
 }
 
+//----------------------------------------------------------------------------
+unsigned int Output::numberOfDatas() const
+{
+  unsigned int result = 0;
+  for(auto data : m_data)
+  {
+    if (data->isValid())
+    {
+      ++result;
+    }
+  }
+
+  return result;
+}
 
 //----------------------------------------------------------------------------
 void Output::update()
