@@ -380,7 +380,7 @@ void ManualEditionTool::updateReferenceItem()
   auto selection     = m_viewManager->selection();
   auto segmentations = selection->segmentations();
 
-  if (segmentations.empty() || !hasVolumetricData<itkVolumeType>(segmentations.first()->output()))
+  if (segmentations.empty() || !hasVolumetricData(segmentations.first()->output()))
   {
     image = QImage(":/espina/brush_new.svg");
     enableEraser = false;

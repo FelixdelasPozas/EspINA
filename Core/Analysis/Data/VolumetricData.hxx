@@ -185,7 +185,6 @@ namespace ESPINA
    * \param[in] output, Output object smart pointer.
    *
    */
-  template<typename T>
   bool EspinaCore_EXPORT hasVolumetricData(OutputSPtr output);
 
 } // namespace ESPINA

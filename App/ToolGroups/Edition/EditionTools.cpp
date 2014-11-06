@@ -142,16 +142,18 @@ ToolSList EditionTools::tools()
 //-----------------------------------------------------------------------------
 void EditionTools::selectionChanged()
 {
-  auto selection = m_viewManager->selection()->segmentations();
+  auto selection     = m_viewManager->selection()->segmentations();
   auto selectionSize = selection.size();
 
   SegmentationAdapterSPtr selectedSeg;
   auto noSegmentation      = (selectionSize == 0);
   auto onlyOneSegmentation = (selectionSize == 1);
   auto hasRequiredData     = false;
+
   if(onlyOneSegmentation)
   {
-    hasRequiredData = hasVolumetricData<itkVolumeType>(selection.first()->output());
+    auto selectedSegmentation = selection.first();
+    hasRequiredData = hasVolumetricData(selectedSegmentation->output());
   }
 
   m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
@@ -172,7 +174,6 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
 {
   ManualEditionToolPtr tool = qobject_cast<ManualEditionToolPtr>(sender());
 
-  SegmentationAdapterSPtr segmentation;
   auto selection = m_viewManager->selection();
   if(selection->items().empty())
   {
@@ -181,6 +182,7 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
     selection->set(primaryChannel);
   }
 
+  SegmentationAdapterSPtr segmentation;
   if(!selection->segmentations().empty())
   {
     auto item = selection->segmentations().first();
