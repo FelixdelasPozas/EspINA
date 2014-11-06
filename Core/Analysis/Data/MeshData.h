@@ -71,6 +71,9 @@ namespace ESPINA
      */
     virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
 
+  protected:
+    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+
   private:
     QString snapshotFilename(const QString &path, const QString &id) const
     { return QString("%1/%2_%3.vtp").arg(path).arg(id).arg(type()); }

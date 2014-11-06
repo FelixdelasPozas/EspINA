@@ -85,8 +85,7 @@ namespace ESPINA
     // executing the filter itself if no other data is required)
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
-    { /*TODO*/}
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
     bool isEdited() const
     { return false; }
@@ -104,6 +103,9 @@ namespace ESPINA
     { /* TODO: not allowed */ };
 
     size_t memoryUsage() const;
+
+  protected:
+    virtual bool fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const;
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;

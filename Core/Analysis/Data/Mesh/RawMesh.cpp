@@ -66,6 +66,12 @@ Snapshot RawMesh::editedRegionsSnapshot(TemporalStorageSPtr storage, const QStri
 }
 
 //----------------------------------------------------------------------------
+void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  fetchData(storage, path, id);
+}
+
+//----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
 {
   return m_mesh;
@@ -117,6 +123,13 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
   m_mesh = rhs->mesh();
   return true;
 }
+
+//----------------------------------------------------------------------------
+bool RawMesh::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+{
+  return MeshData::fetchData(storage, path, id);
+}
+
 
 //----------------------------------------------------------------------------
 RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)

@@ -61,16 +61,22 @@ Bounds MeshData::bounds() const
 //----------------------------------------------------------------------------
 bool MeshData::fetchData()
 {
+  return fetchData(m_storage, m_path, m_id);
+}
+
+//----------------------------------------------------------------------------
+bool MeshData::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+{
   bool dataFetched = false;
 
   // TODO: Fetch old file names
   // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
 
 
-  for (auto filename : {snapshotFilename   (m_path, m_id),
-                        oldSnapshotFilename(m_path, m_id)})
+  for (auto filename : {snapshotFilename   (path, id),
+                        oldSnapshotFilename(path, id)})
   {
-    QFileInfo meshFile(m_storage->absoluteFilePath(filename));
+    QFileInfo meshFile(storage->absoluteFilePath(filename));
 
     if(meshFile.exists())
     {
