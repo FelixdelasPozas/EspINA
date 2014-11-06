@@ -284,7 +284,7 @@ void Analysis::addIfNotExists(FilterSPtr filter)
       auto ancestor    = find<Filter>(inputFilter.get(), m_filters);
       Q_ASSERT(ancestor);
 
-      m_content->addRelation(ancestor, filter, QString("%1").arg(i));
+      m_content->addRelation(ancestor, filter, QString("%1-%2").arg(i).arg(input->output()->id()));
     }
   }
 }

@@ -309,7 +309,7 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
-  //qDebug() << "Restore Previous Outputs Request: " << m_type;
+  //qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
     //qDebug() << " - Accepted";

@@ -84,6 +84,7 @@ add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
 set (FILTERS_SOURCES
   ${FILTERS_DIR}/DilateFilter.cpp
   ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
+  ${FILTERS_DIR}/ImageLogicFilter.cpp
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
   ${FILTERS_DIR}/VolumetricStreamReader.cpp
 )

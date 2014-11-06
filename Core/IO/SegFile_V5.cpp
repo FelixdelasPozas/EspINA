@@ -161,12 +161,29 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   DirectedGraph::Edges inputConections = m_content->inEdges(roVertex);
 
   InputSList inputs;
+  int lastOutput = -1; // Debug
   for (auto edge : inputConections)
   {
-    auto input = inflateVertex(edge.source);
+    auto input  = inflateVertex(edge.source);
 
-    FilterSPtr filter = std::dynamic_pointer_cast<Filter>(input);
-    Output::Id id = atoi(edge.relationship.c_str());
+    auto filter = std::dynamic_pointer_cast<Filter>(input);
+    auto ids    = QString(edge.relationship.c_str()).split("-");
+
+    int inputNumber = ids[0].toInt();
+    Output::Id id   = inputNumber;
+
+    // 2014-11-06 There are some seg files created during development of v5 standard
+    // and have only 1 value corresponding to the input id.
+    // Those files won't work if any merge was saved.
+    if (ids.size() == 2)
+    {
+      id = ids[1].toInt();
+    }
+
+    if (inputNumber <= lastOutput) {
+      qWarning() << "Unordered outputs";
+    }
+    lastOutput = inputNumber;
 
     inputs << getInput(filter, id);
   }
