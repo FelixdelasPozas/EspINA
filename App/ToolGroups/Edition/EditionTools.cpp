@@ -22,11 +22,14 @@
 
 #include <App/Undo/BrushUndoCommand.h>
 #include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/FreeFormSource.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddSegmentations.h>
+#include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
 using ESPINA::Filter;
@@ -139,12 +142,22 @@ ToolSList EditionTools::tools()
 //-----------------------------------------------------------------------------
 void EditionTools::selectionChanged()
 {
-  int listSize = m_viewManager->selection()->segmentations().size();
+  auto selection     = m_viewManager->selection()->segmentations();
+  auto selectionSize = selection.size();
 
-  bool noSegmentation         = listSize == 0;
-  bool onlyOneSegmentation    = listSize == 1;
+  SegmentationAdapterSPtr selectedSeg;
+  auto noSegmentation      = (selectionSize == 0);
+  auto onlyOneSegmentation = (selectionSize == 1);
+  auto hasRequiredData     = false;
+
+  if(onlyOneSegmentation)
+  {
+    auto selectedSegmentation = selection.first();
+    hasRequiredData = hasVolumetricData(selectedSegmentation->output());
+  }
+
   m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
-  m_split        ->setEnabled(onlyOneSegmentation);
+  m_split        ->setEnabled(onlyOneSegmentation && hasRequiredData);
   // NOTE: morphological tools manage selection on their own, as it's tools
   // haven't a unique requirement.
 }
@@ -161,7 +174,6 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
 {
   ManualEditionToolPtr tool = qobject_cast<ManualEditionToolPtr>(sender());
 
-  SegmentationAdapterSPtr segmentation;
   auto selection = m_viewManager->selection();
   if(selection->items().empty())
   {
@@ -170,6 +182,7 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
     selection->set(primaryChannel);
   }
 
+  SegmentationAdapterSPtr segmentation;
   if(!selection->segmentations().empty())
   {
     auto item = selection->segmentations().first();
@@ -226,20 +239,29 @@ void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEnt
 
     if (volume->isEmpty())
     {
-      auto name = segmentation->data(Qt::DisplayRole).toString();
-      DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
-                                         tr("%1 has been deleted because all its voxels where erased.").arg(name));
-
       m_undoStack->blockSignals(true);
       do
       {
         m_undoStack->undo();
       }
-      while (volume->isEmpty());
+      while(volume->isEmpty());
       m_undoStack->blockSignals(false);
 
-      m_undoStack->beginMacro("Remove Segmentation");
-      m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+      if(segmentation->output()->numberOfDatas() == 1)
+      {
+        auto name = segmentation->data(Qt::DisplayRole).toString();
+        DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
+                                           tr("%1 will be deleted because all its voxels were erased.").arg(name));
+
+        m_undoStack->beginMacro("Remove Segmentation");
+        m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+      }
+      else
+      {
+        auto output = segmentation->output();
+        m_undoStack->beginMacro("Remove Segmentation's volume");
+        m_undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
+      }
       m_undoStack->endMacro();
     }
     else
