@@ -124,20 +124,20 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
   m_factory->registerFilterFactory (m_channelReader);
-  m_factory->registerChannelRepresentationFactory(RepresentationFactorySPtr{new BasicChannelRepresentationFactory(m_scheduler)});
-  m_factory->registerSegmentationRepresentationFactory(RepresentationFactorySPtr{new BasicSegmentationRepresentationFactory(m_scheduler)});
+  m_factory->registerChannelRepresentationFactory(std::make_shared<BasicChannelRepresentationFactory>(m_scheduler));
+  m_factory->registerSegmentationRepresentationFactory(std::make_shared<BasicSegmentationRepresentationFactory>(m_scheduler));
 
-  m_viewManager->registerRenderer(RendererSPtr{new CrosshairRenderer()});
-  m_viewManager->registerRenderer(RendererSPtr{new MeshRenderer()});
-  m_viewManager->registerRenderer(RendererSPtr{new SmoothedMeshRenderer()});
-  m_viewManager->registerRenderer(RendererSPtr{new SliceRenderer()});
-  m_viewManager->registerRenderer(RendererSPtr{new VolumetricRenderer<itkVolumeType>()});
-  m_viewManager->registerRenderer(RendererSPtr{new VolumetricGPURenderer<itkVolumeType>()});
-  m_viewManager->registerRenderer(RendererSPtr{new ContourRenderer()});
-  m_viewManager->registerRenderer(RendererSPtr{new CachedSliceRenderer(m_scheduler)});
+  m_viewManager->registerRenderer(std::make_shared<CrosshairRenderer>());
+  m_viewManager->registerRenderer(std::make_shared<MeshRenderer>());
+  m_viewManager->registerRenderer(std::make_shared<SmoothedMeshRenderer>());
+  m_viewManager->registerRenderer(std::make_shared<SliceRenderer>());
+  m_viewManager->registerRenderer(std::make_shared<VolumetricRenderer<itkVolumeType>>());
+  m_viewManager->registerRenderer(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
+  m_viewManager->registerRenderer(std::make_shared<ContourRenderer>());
+  m_viewManager->registerRenderer(std::make_shared<CachedSliceRenderer>(m_scheduler));
 
-  m_availableSettingsPanels << SettingsPanelSPtr(new SeedGrowSegmentationsSettingsPanel(m_sgsSettings, m_viewManager));
-  m_availableSettingsPanels << SettingsPanelSPtr(new ROISettingsPanel(m_roiSettings, m_model, m_viewManager));
+  m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
+  m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
 
 #if USE_METADONA
   m_availableSettingsPanels << SettingsPanelSPtr(new MetaDataSettingsPanel());
@@ -752,7 +752,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       {
         if (!channel->hasExtension(ChannelEdges::TYPE))
         {
-          channel->addExtension(ChannelEdgesSPtr{new ChannelEdges(m_scheduler)});
+          channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
         }
       }
     }

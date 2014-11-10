@@ -69,27 +69,12 @@ void VolumetricStreamReader::setFileName(const QFileInfo& fileName)
 //----------------------------------------------------------------------------
 bool VolumetricStreamReader::needUpdate() const
 {
-  return needUpdate(0);
-}
-
-//----------------------------------------------------------------------------
-bool VolumetricStreamReader::needUpdate(Output::Id id) const
-{
-  if (id != 0) throw Undefined_Output_Exception();
-
   return m_outputs.isEmpty() || !validOutput(0);
 }
 
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute()
 {
-  execute(0);
-}
-
-//----------------------------------------------------------------------------
-void VolumetricStreamReader::execute(Output::Id id)
-{
-  Q_ASSERT(0 == id);
   if (!m_fileName.exists())
   {
     if (handler())
@@ -136,7 +121,7 @@ void VolumetricStreamReader::execute(Output::Id id)
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr{new Output(this, 0, volume->spacing())};
+    m_outputs[0] = std::make_shared<Output>(this, 0, volume->spacing());
   }
 
   m_outputs[0]->setData(volume);

@@ -27,6 +27,8 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
+
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
@@ -43,6 +45,32 @@ using namespace ESPINA::IO;
 const Filter::Type VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStreamReader";
 const Filter::Type ESPINA_1_3_2_CHANNEL_READER = "Channel Reader";
 
+class UpdateFilterDataFactory
+: public FetchBehaviour
+{
+public:
+  virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString& path, QXmlStreamAttributes info) override
+  {
+    DataSPtr data;
+
+    if ("VolumetricData" == info.value("type"))
+    {
+      output->filter()->update();
+
+      data = volumetricData(output, DataUpdatePolicy::Ignore);
+    }
+    else
+    {
+      data = m_fetchData.createData(output, storage, path, info);
+    }
+
+    return data;
+  }
+
+private:
+FetchRawData m_fetchData;
+};
+
 //------------------------------------------------------------------------
 FilterTypeList ChannelReader::providedFilters() const
 {
@@ -56,10 +84,16 @@ FilterTypeList ChannelReader::providedFilters() const
 //------------------------------------------------------------------------
 FilterSPtr ChannelReader::createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
 {
+  static auto dataFactory = std::make_shared<UpdateFilterDataFactory>();
+
   if (filter != VOLUMETRIC_STREAM_READER
    && filter != ESPINA_1_3_2_CHANNEL_READER) throw Unknown_Filter_Exception();
 
-  return FilterSPtr{new VolumetricStreamReader(inputs, filter, scheduler)};
+  auto reader = std::make_shared<VolumetricStreamReader>(inputs, VOLUMETRIC_STREAM_READER, scheduler);
+
+  reader->setDataFactory(dataFactory); //FIX: Temporal fix to create output during seg file load
+
+  return reader;
 }
 
 //------------------------------------------------------------------------

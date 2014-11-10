@@ -35,6 +35,8 @@
 #include <Core/Utils/Bounds.h>
 #include "Persistent.h"
 
+#include <QMutex>
+
 namespace ESPINA
 {
   class ChangeSignalDelayer;
@@ -199,7 +201,9 @@ namespace ESPINA
     explicit Data()
     : m_output   {nullptr}
     , m_timeStamp{s_tick++}
-    {}
+    , m_mutex(QMutex::Recursive)
+    {
+    }
 
     /** \brief Increments the modification time and signals the modification of the data.
      *
@@ -221,9 +225,10 @@ namespace ESPINA
     TemporalStorageSPtr m_storage;
 
   private:
-
-    TimeStamp m_timeStamp;
+    TimeStamp  m_timeStamp;
     BoundsList m_editedRegions;
+
+    QMutex m_mutex;
 
     friend class Output;
     friend class ChangeSignalDelayer;

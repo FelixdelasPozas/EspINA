@@ -432,7 +432,7 @@ namespace ESPINA
   template<typename T>
   size_t SparseVolume<T>::memoryUsage() const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
 
     size_t size = 0;
 
@@ -448,7 +448,7 @@ namespace ESPINA
   template<typename T>
   Bounds SparseVolume<T>::bounds() const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
     return m_bounds.bounds();
   }
 
@@ -456,7 +456,7 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::setOrigin(const NmVector3& origin)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
     //TODO
     //NmVector3 shift = m_origin - origin;
     m_origin = origin;
@@ -466,7 +466,7 @@ namespace ESPINA
   template<typename T>
   NmVector3 SparseVolume<T>::origin() const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
     return m_origin;
   }
 
@@ -474,7 +474,7 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::setSpacing(const NmVector3& spacing)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
     if (m_spacing != spacing)
     {
       for(auto block : m_blocks)
@@ -525,7 +525,7 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer SparseVolume<T>::itkImage() const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
     return itkImage(m_bounds.bounds());
   }
 
@@ -533,7 +533,7 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
 
     if (!bounds.areValid())
       throw Invalid_Image_Bounds_Exception();
@@ -586,7 +586,7 @@ namespace ESPINA
                              const Bounds               &bounds,
                              const typename T::ValueType value)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
     if (!intersect(m_bounds, requestedBounds))
@@ -619,7 +619,7 @@ namespace ESPINA
   void SparseVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                              const typename T::ValueType value)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
 
     addBlock(mask);
     this->updateModificationTime();
@@ -639,7 +639,7 @@ namespace ESPINA
   void SparseVolume<T>::draw(const typename T::Pointer volume,
                              const Bounds&             bounds)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
 
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
@@ -696,7 +696,7 @@ namespace ESPINA
   void SparseVolume<T>::draw(const Bounds               &bounds,
                              const typename T::ValueType value)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
 
     if (!intersect(m_bounds.bounds(), bounds))
       return;
@@ -718,7 +718,7 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::resize(const Bounds &bounds)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
     if (m_blocksBounds.areValid())
     {
@@ -732,7 +732,7 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isValid() const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
 
     return m_bounds.areValid();
   }
@@ -741,7 +741,7 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::fetchData()
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
 
     // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
@@ -815,7 +815,7 @@ namespace ESPINA
   template<typename T>
   Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
 
     Snapshot snapshot;
 
@@ -848,7 +848,7 @@ namespace ESPINA
   template<typename T>
   Snapshot SparseVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
 
     Snapshot regionsSnapshot;
 
@@ -870,7 +870,7 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
 
     auto restoredEditedRegions = this->editedRegions();
 
@@ -913,7 +913,7 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::undo()
   {
-    QWriteLocker lock(&m_mutex);
+    //QWriteLocker lock(&m_mutex);
 
     m_blocks.pop_back();
     Q_ASSERT(!m_blocks.empty());
@@ -946,7 +946,7 @@ namespace ESPINA
       VolumeBounds bounds = splitBounds.first;
 
       bool emptyBounds = true;
-      int i = 0;
+      unsigned i = 0;
       while (emptyBounds && i < m_blocks.size())
       {
         VolumeBounds blockBounds = m_blocks[i]->bounds();
@@ -1003,7 +1003,7 @@ namespace ESPINA
   {
     if(!isValid()) return true;
 
-    QReadLocker lock(&m_mutex);
+    //QReadLocker lock(&m_mutex);
 
     if (m_blocks.empty()) return true;
 

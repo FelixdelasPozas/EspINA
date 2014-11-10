@@ -219,10 +219,11 @@ void RenderView::updateSceneBounds()
 
   if (!m_channelStates.isEmpty())
   {
-    ChannelAdapterList channels = m_channelStates.keys();
-    DefaultVolumetricDataSPtr volume = volumetricData(channels.first());
+    auto channels = m_channelStates.keys();
+    auto volume   = volumetricData(channels.first());
+
+    m_sceneBounds     = volume->bounds();
     m_sceneResolution = volume->spacing();
-    m_sceneBounds = volume->bounds();
 
     for (int i = 1; i < channels.size(); ++i)
     {
