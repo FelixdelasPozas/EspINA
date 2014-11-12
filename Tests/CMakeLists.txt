@@ -13,16 +13,19 @@ if (${USE_DASHBOARD})
 
 endif()
 
-include_directories(
-  ${CMAKE_BINARY_DIR}
-  .
-  )
 
 set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
 set( GUI_DIR        ${CMAKE_SOURCE_DIR}/GUI        )
 set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
+set( PLUGINS_DIR    ${CMAKE_SOURCE_DIR}/Plugins    )
+
+include_directories(
+  .
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_BINARY_DIR}/Plugins/AppositionSurface
+  )
 
 
 # Core
@@ -61,6 +64,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/IO/ClassificationXML.cpp
   ${CORE_DIR}/IO/FetchBehaviour/FetchRawData.cpp
   ${CORE_DIR}/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
+  ${CORE_DIR}/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
   ${CORE_DIR}/IO/ReadOnlySegmentationExtension.cpp
@@ -126,6 +130,16 @@ set (GUI_SOURCES
 
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 
+qt4_wrap_cpp(PLUGIN_MOCS
+  ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h
+)
+set (PLUGIN_SOURCES
+  ${PLUGIN_MOCS}
+  ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
+  ${PLUGINS_DIR}/AppositionSurface/Filter/SASFetchBehaviour.cpp
+)
+
+add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
 
 # Testing
 set (TESTING_SOURCES

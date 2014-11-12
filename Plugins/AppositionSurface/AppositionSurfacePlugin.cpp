@@ -65,15 +65,17 @@ FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList          inputs,
+FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList    inputs,
                                                             const Filter::Type& type,
-                                                            SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+                                                            SchedulerSPtr       scheduler) const
+throw (Unknown_Filter_Exception)
 {
 
   if (type != AS_FILTER) throw Unknown_Filter_Exception();
 
-  auto filter = FilterSPtr{new AppositionSurfaceFilter(inputs, type, scheduler)};
-  filter->setDataFactory(DataFactorySPtr{new SASFetchBehaviour()});
+  auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
+
+  filter->setDataFactory(std::make_shared<SASFetchBehaviour>());
 
   return filter;
 }
@@ -85,8 +87,8 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_viewManager     {nullptr}
 , m_scheduler       {nullptr}
 , m_undoStack       {nullptr}
-, m_settings        {SettingsPanelSPtr(new AppositionSurfaceSettings())}
-, m_extensionFactory{SegmentationExtensionFactorySPtr(new ASExtensionFactory())}
+, m_settings        {new AppositionSurfaceSettings()}
+, m_extensionFactory{new ASExtensionFactory()}
 , m_toolGroup       {nullptr}
 , m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
 , m_delayedAnalysis {false}

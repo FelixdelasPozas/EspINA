@@ -152,7 +152,7 @@ void AppositionSurfaceToolGroup::createSAS()
 
     auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-    struct AppositionSurfacePlugin::Data data(filter, m_model->smartPointer(seg));
+    AppositionSurfacePlugin::Data data(filter, m_model->smartPointer(seg));
     m_plugin->m_executingTasks.insert(filter.get(), data);
 
     connect(filter.get(), SIGNAL(finished()),

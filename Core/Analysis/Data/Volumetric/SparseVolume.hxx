@@ -757,7 +757,10 @@ namespace ESPINA
     auto storage = this->m_storage;
     auto output  = this->m_output;
 
-    if (nullptr == output) qWarning() << "Sparse Volume Fetch Data without output";
+    if (nullptr == output)
+    {
+      qWarning() << "Sparse Volume Fetch Data without output";
+    }
 
     if (!storage || path.isEmpty() || id.isEmpty()) return false;
 

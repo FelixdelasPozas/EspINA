@@ -165,7 +165,6 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
       if (!inputFilter->m_outputs.contains(id))
       {
         inputFilter->m_outputs[id] = std::make_shared<Output>(inputFilter.get(), id, NmVector3());
-        Q_ASSERT(false);
       }
 
       inputs << getInput(inputFilter, id);
