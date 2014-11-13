@@ -19,8 +19,8 @@
 */
 
 // ESPINA
-#include "RectangularRegionSliceSelector.h"
-#include "RectangularRegion.h"
+#include "OrthogonalRegionSliceSelector.h"
+#include "OrthogonalRegion.h"
 #include <GUI/View/View2D.h>
 
 // Qt
@@ -29,25 +29,26 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RectangularRegionSliceSelector::RectangularRegionSliceSelector(RectangularRegion* region)
+OrthogonalRegionSliceSelector::OrthogonalRegionSliceSelector(OrthogonalRegion* region)
 : m_region     {region}
-, m_leftWidget {new QPushButton()}
-, m_rightWidget{new QPushButton()}
+, m_leftWidget {RenderView::createButton(":/espina/from_slice.svg", "")}
+, m_rightWidget{RenderView::createButton(":/espina/to_slice.svg",   "")}
 {
-  m_leftWidget->setMaximumHeight(20);
-  m_rightWidget->setMaximumHeight(20);
+  m_leftWidget ->setEnabled(true);
+  m_rightWidget->setEnabled(true);
 
-  connect(region, SIGNAL(modified(double*)),
+  connect(region, SIGNAL(modified(Bounds)),
           this, SLOT(update()));
   connect(m_leftWidget, SIGNAL(clicked(bool)),
           this, SLOT(leftWidgetClicked()));
   connect(m_rightWidget, SIGNAL(clicked(bool)),
           this, SLOT(rightWidgetClicked()));
+
   update();
 }
 
 //----------------------------------------------------------------------------
-RectangularRegionSliceSelector::~RectangularRegionSliceSelector()
+OrthogonalRegionSliceSelector::~OrthogonalRegionSliceSelector()
 {
   delete m_leftWidget;
   delete m_rightWidget;
@@ -55,54 +56,51 @@ RectangularRegionSliceSelector::~RectangularRegionSliceSelector()
 
 
 //----------------------------------------------------------------------------
-void RectangularRegionSliceSelector::setPlane(const Plane plane)
+void OrthogonalRegionSliceSelector::setView(View2D* view)
 {
-  SliceSelectorWidget::setPlane(plane);
+  SliceSelector::setView(view);
+  if (m_view)
+  {
+    connect(m_view, SIGNAL(sliceChanged(Plane,Nm)),
+            this,   SLOT(update()));
+  }
+}
+
+//----------------------------------------------------------------------------
+void OrthogonalRegionSliceSelector::setPlane(const Plane plane)
+{
+  SliceSelector::setPlane(plane);
   update();
 }
 
 //----------------------------------------------------------------------------
-QWidget* RectangularRegionSliceSelector::leftWidget() const
+QWidget* OrthogonalRegionSliceSelector::leftWidget() const
 {
   return m_leftWidget;
 }
 
 //----------------------------------------------------------------------------
-QWidget* RectangularRegionSliceSelector::rightWidget() const
+QWidget* OrthogonalRegionSliceSelector::rightWidget() const
 {
   return m_rightWidget;
 }
 
 //----------------------------------------------------------------------------
-SliceSelectorWidget* RectangularRegionSliceSelector::clone()
+SliceSelectorSPtr OrthogonalRegionSliceSelector::clone()
 {
-  RectangularRegionSliceSelector *selector;
-  selector = new RectangularRegionSliceSelector(m_region);
+  auto selector = std::make_shared<OrthogonalRegionSliceSelector>(m_region);
 
   selector->m_leftLabel  = m_leftLabel;
   selector->m_rightLabel = m_rightLabel;
   selector->m_plane      = m_plane;
   selector->m_view       = m_view;
+
   return selector;
 }
 
 
 //----------------------------------------------------------------------------
-void RectangularRegionSliceSelector::update()
-{
-  auto bounds = m_region->bounds();
-
-  int i = normalCoordinateIndex(m_plane);
-  m_leftWidget->setText(QString("%1(%2)")
-                               .arg(m_leftLabel)
-                               .arg(bounds[2*i]));
-  m_rightWidget->setText(QString("%1(%2)")
-                                .arg(m_rightLabel)
-                                .arg(bounds[2*i+1]));
-}
-
-//----------------------------------------------------------------------------
-void RectangularRegionSliceSelector::leftWidgetClicked()
+void OrthogonalRegionSliceSelector::update()
 {
   if (m_view)
   {
@@ -110,32 +108,49 @@ void RectangularRegionSliceSelector::leftWidgetClicked()
 
     int i = normalCoordinateIndex(m_plane);
 
-    bounds[2*i] = m_view->slicingPosition();
+    Nm voxelSize     = m_view->slicingStep()[i];
+    Nm lowerDistance = m_view->slicingPosition() - bounds[2*i];
+    Nm upperDistance = bounds[2*i+1] - m_view->slicingPosition();
 
-    if (bounds[2*i] > bounds[2*i+1])
-      std::swap(bounds[2*i],bounds[2*i+1]);
+    m_leftWidget ->setEnabled(lowerDistance < 0 || lowerDistance > voxelSize);
+    m_rightWidget->setEnabled(upperDistance < 0 || upperDistance > voxelSize);
 
-
-    m_region->setBounds(Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]});
-    update();
+    m_leftWidget ->setToolTip(QString("%1(%2)").arg(m_leftLabel) .arg(bounds[2*i]));
+    m_rightWidget->setToolTip(QString("%1(%2)").arg(m_rightLabel).arg(bounds[2*i+1]));
   }
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegionSliceSelector::rightWidgetClicked()
+void OrthogonalRegionSliceSelector::leftWidgetClicked()
+{
+  moveEdge(Lower);
+}
+
+//----------------------------------------------------------------------------
+void OrthogonalRegionSliceSelector::rightWidgetClicked()
+{
+  moveEdge(Upper);
+}
+
+//----------------------------------------------------------------------------
+void OrthogonalRegionSliceSelector::moveEdge(Edge edge)
 {
   if (m_view)
   {
     auto bounds = m_region->bounds();
 
-    int i = normalCoordinateIndex(m_plane);
+    int i   = normalCoordinateIndex(m_plane);
+    Nm sign = (Lower==edge)?-0.5:0.5;
 
-    bounds[2*i+1] = m_view->slicingPosition();
+    bounds[2*i+edge] = m_view->slicingPosition() + sign*m_view->slicingStep()[i];
 
     if (bounds[2*i] > bounds[2*i+1])
+    {
       std::swap(bounds[2*i],bounds[2*i+1]);
+    }
 
-    m_region->setBounds(Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]});
+    m_region->setBounds(bounds);
+
     update();
   }
 }

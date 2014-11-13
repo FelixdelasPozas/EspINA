@@ -18,46 +18,36 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef RECTANGULARREGIONSLICESELECTOR_H
-#define RECTANGULARREGIONSLICESELECTOR_H
+#ifndef ESPINA_ORTHOGONAL_REGION_SLICE_SELECTOR_H
+#define ESPINA_ORTHOGONAL_REGION_SLICE_SELECTOR_H
 
 // ESPINA
-#include <GUI/Widgets/SliceSelectorWidget.h>
+#include <GUI/Widgets/SliceSelector.h>
 
 class QPushButton;
 
 namespace ESPINA
 {
-  class RectangularRegion;
+  class OrthogonalRegion;
 
-  class EspinaGUI_EXPORT RectangularRegionSliceSelector
-  : public SliceSelectorWidget
+  class EspinaGUI_EXPORT OrthogonalRegionSliceSelector
+  : public SliceSelector
   {
     Q_OBJECT
   public:
     /** \brief RectangularRegionSliceSelector class constructor.
      *
      */
-    explicit RectangularRegionSliceSelector(RectangularRegion *region);
+    explicit OrthogonalRegionSliceSelector(OrthogonalRegion *region);
 
-    /** \brief RectangularRegionSliceSelector class destructor.
-     *
-     */
-    virtual ~RectangularRegionSliceSelector();
+    virtual ~OrthogonalRegionSliceSelector();
 
-    /** \brief Overrides SliceSelectorWidget::setPlane().
-     *
-     */
+    virtual void setView(View2D* view) override;
+
     virtual void setPlane(const Plane plane) override;
 
-    /** \brief Implements SliceSelectorWidget::leftWidget().
-     *
-     */
     virtual QWidget *leftWidget () const;
 
-    /** \brief Implements SliceSelectorWidget::rightWidget().
-     *
-     */
     virtual QWidget *rightWidget() const;
 
     /** \brief Sets the left widget label.
@@ -66,35 +56,40 @@ namespace ESPINA
     void setLeftLabel (const QString &label)
     { m_leftLabel  = label; update();}
 
-		/** \brief Sets the right widget label.
-		 * \param[in] label.
-		 */
+    /** \brief Sets the right widget label.
+     * \param[in] label.
+     */
     void setRightLabel(const QString &label)
     {m_rightLabel = label; update();}
 
-    /** \brief Implements SliceSelectorWidget::clone().
-     *
-     */
-    virtual SliceSelectorWidget *clone();
+    virtual SliceSelectorSPtr clone() override;
 
   protected slots:
-		/** \brief Update the widgets.
-		 *
-		 */
+    /** \brief Update the widgets.
+     *
+     */
     void update();
 
-		/** \brief Update the widgets when the left widgets has been clicked.
-		 *
-		 */
+    /** \brief Update the widgets when the left widgets has been clicked.
+     *
+     */
     void leftWidgetClicked();
 
-		/** \brief Update the widgets when the right widgets has been clicked.
-		 *
-		 */
+    /** \brief Update the widgets when the right widgets has been clicked.
+     *
+     */
     void rightWidgetClicked();
 
   private:
-    RectangularRegion *m_region;
+    enum Edge
+    {
+      Lower = 0,
+      Upper = 1
+    };
+    void moveEdge(Edge edge);
+
+  private:
+    OrthogonalRegion *m_region;
 
     QPushButton *m_leftWidget;
     QPushButton *m_rightWidget;
@@ -105,4 +100,4 @@ namespace ESPINA
 }// namespace ESPINA
 
 
-#endif // RECTANGULARREGIONSLICESELECTOR_H
+#endif // ESPINA_ORTHOGONAL_REGION_SLICE_SELECTOR_H

@@ -238,6 +238,13 @@ void ROIToolsGroup::consumeROI()
 }
 
 //-----------------------------------------------------------------------------
+void ROIToolsGroup::setColor(const QColor& color)
+{
+  m_manualROITool->setColor(color);
+  m_ortogonalROITool->setColor(color);
+}
+
+//-----------------------------------------------------------------------------
 bool ROIToolsGroup::hasValidROI() const
 {
   return m_accumulator || m_ortogonalROITool->currentROI();

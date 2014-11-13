@@ -19,8 +19,8 @@
 */
 
 // ESPINA
-#include "RectangularRegion.h"
-#include "vtkRectangularSliceWidget.h"
+#include "OrthogonalRegion.h"
+#include "vtkOrthogonalRegionSliceWidget.h"
 #include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <GUI/View/View2D.h>
 
@@ -35,13 +35,13 @@
 
 using namespace ESPINA;
 
-using SliceWidgetAdapter = EspinaInteractorAdapter<vtkRectangularSliceWidget>;
+using SliceWidgetAdapter = EspinaInteractorAdapter<vtkOrthogonalRegionSliceWidget>;
 
 //----------------------------------------------------------------------------
-RectangularRegion::RectangularRegion(Bounds bounds)
+OrthogonalRegion::OrthogonalRegion(Bounds bounds)
 : m_bounds     {bounds}
 , m_pattern    {0xFFFF}
-, m_command    {vtkSmartPointer<vtkRectangularRegionCommand>::New()}
+, m_command    {vtkSmartPointer<vtkOrthogonalRegionCommand>::New()}
 {
   m_command->setWidget(this);
 
@@ -53,7 +53,7 @@ RectangularRegion::RectangularRegion(Bounds bounds)
 }
 
 //----------------------------------------------------------------------------
-RectangularRegion::~RectangularRegion()
+OrthogonalRegion::~OrthogonalRegion()
 {
   for(auto view: m_widgets.keys())
     unregisterView(view);
@@ -62,9 +62,10 @@ RectangularRegion::~RectangularRegion()
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::registerView(RenderView *view)
+void OrthogonalRegion::registerView(RenderView *view)
 {
-  View2D *view2d = dynamic_cast<View2D *>(view);
+  auto view2d = dynamic_cast<View2D *>(view);
+
   if(view2d && !m_widgets.keys().contains(view))
   {
     SliceWidgetAdapter *wi = SliceWidgetAdapter::New();
@@ -87,9 +88,10 @@ void RectangularRegion::registerView(RenderView *view)
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::unregisterView(RenderView *view)
+void OrthogonalRegion::unregisterView(RenderView *view)
 {
-  View2D *view2d = dynamic_cast<View2D *>(view);
+  auto view2d = dynamic_cast<View2D *>(view);
+
   if(view2d && m_widgets.keys().contains(view))
   {
     disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
@@ -105,7 +107,7 @@ void RectangularRegion::unregisterView(RenderView *view)
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::setEnabled(bool enable)
+void OrthogonalRegion::setEnabled(bool enable)
 {
   for(auto widget: m_widgets.values())
   {
@@ -115,7 +117,7 @@ void RectangularRegion::setEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::setBounds(Bounds bounds)
+void OrthogonalRegion::setBounds(Bounds bounds)
 {
   for(auto widget: m_widgets.values())
   {
@@ -124,7 +126,7 @@ void RectangularRegion::setBounds(Bounds bounds)
 }
 
 //----------------------------------------------------------------------------
-Bounds RectangularRegion::bounds() const
+Bounds OrthogonalRegion::bounds() const
 {
   Q_ASSERT(!m_widgets.isEmpty());
 
@@ -133,7 +135,7 @@ Bounds RectangularRegion::bounds() const
   return widget->GetBounds();
 }
 //----------------------------------------------------------------------------
-void RectangularRegion::setResolution(NmVector3 resolution)
+void OrthogonalRegion::setResolution(NmVector3 resolution)
 {
   m_resolution = resolution;
 
@@ -149,42 +151,47 @@ void RectangularRegion::setResolution(NmVector3 resolution)
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::setRepresentationColor(double *color)
+void OrthogonalRegion::setRepresentationColor(double *color)
 {
-  if (0 == memcmp(m_color, color, sizeof(double)*3))
-    return;
+  if (0 == memcmp(m_color, color, sizeof(double)*3)) return;
 
   memcpy(m_color, color, sizeof(double)*3);
 
   for(auto widget: m_widgets.values())
+  {
     widget->setRepresentationColor(m_color);
+  }
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::setRepresentationPattern(int pattern)
+void OrthogonalRegion::setRepresentationPattern(int pattern)
 {
-  if (pattern == m_pattern)
-    return;
+  if (pattern == m_pattern) return;
 
   m_pattern = pattern;
 
   for(auto widget: m_widgets.values())
+  {
     widget->setRepresentationPattern(m_pattern);
+  }
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::sliceChanged(Plane plane, Nm pos)
+void OrthogonalRegion::sliceChanged(Plane plane, Nm pos)
 {
-  View2D *view2d = dynamic_cast<View2D *>(sender());
-  RenderView *view = dynamic_cast<RenderView *>(sender());
+  auto view2d = dynamic_cast<View2D *>(sender());
+  auto view   = dynamic_cast<RenderView *>(sender());
+
   if(view2d && view && m_widgets.keys().contains(view))
+  {
     m_widgets[view]->SetSlice(pos);
+  }
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularRegionCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
+void vtkOrthogonalRegionCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
-  vtkRectangularSliceWidget *widget = static_cast<vtkRectangularSliceWidget *>(caller);
+  auto widget = static_cast<vtkOrthogonalRegionSliceWidget *>(caller);
 
   if (widget)
   {
@@ -200,7 +207,7 @@ void vtkRectangularRegionCommand::Execute(vtkObject* caller, long unsigned int e
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularRegionCommand::setWidget(EspinaWidgetPtr widget)
+void vtkOrthogonalRegionCommand::setWidget(EspinaWidgetPtr widget)
 {
-  m_widget = dynamic_cast<RectangularRegion *>(widget);
+  m_widget = dynamic_cast<OrthogonalRegion *>(widget);
 }

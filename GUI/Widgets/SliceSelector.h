@@ -23,6 +23,7 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
+#include <memory>
 // Qt
 #include <Core/Utils/Spatial.h>
 #include <QObject>
@@ -31,14 +32,17 @@ namespace ESPINA
 {
   class View2D;
 
-  class EspinaGUI_EXPORT SliceSelectorWidget
+  class SliceSelector;
+  using SliceSelectorSPtr = std::shared_ptr<SliceSelector>;
+
+  class EspinaGUI_EXPORT SliceSelector
   : public QObject
   {
   public:
-  	/** \brief SliceSelectorWidget class constructor.
-  	 *
-  	 */
-    virtual ~SliceSelectorWidget()
+    /** \brief SliceSelectorWidget class constructor.
+     *
+     */
+    virtual ~SliceSelector()
     {}
 
     /** \brief Sets the plane of the widget.
@@ -47,10 +51,10 @@ namespace ESPINA
     virtual void setPlane(const Plane plane)
     { m_plane = plane; }
 
-		/** \brief Sets the view of the widget.
-		 * \param[in] view, View2D raw pointer.
-		 *
-		 */
+    /** \brief Sets the view of the widget.
+     * \param[in] view, View2D raw pointer.
+     *
+     */
     virtual void setView(View2D* view)
     { m_view = view; }
 
@@ -67,13 +71,13 @@ namespace ESPINA
     /** \brief Returns a raw pointer to a new instance of the class.
      *
      */
-    virtual SliceSelectorWidget *clone() = 0;
+    virtual SliceSelectorSPtr clone() = 0;
 
   protected:
     /** \brief SliceSelectorWidget class constructor.
      *
      */
-    explicit SliceSelectorWidget()
+    explicit SliceSelector()
     : m_plane{Plane::XY}
     , m_view {nullptr}
     {}

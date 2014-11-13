@@ -19,7 +19,7 @@
 */
 
 // ESPINA
-#include "vtkRectangularSliceRepresentation.h"
+#include "vtkOrthogonalRegionSliceRepresentation.h"
 #include <GUI/View/View2D.h>
 
 // VTK
@@ -44,10 +44,10 @@ const double MIN_SLICE_SPACING = 2;
 
 using namespace ESPINA;
 
-vtkStandardNewMacro(vtkRectangularSliceRepresentation);
+vtkStandardNewMacro(vtkOrthogonalRegionSliceRepresentation);
 
 //----------------------------------------------------------------------------
-vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
+vtkOrthogonalRegionSliceRepresentation::vtkOrthogonalRegionSliceRepresentation()
 : Vertex              {nullptr}
 , EdgePicker          {nullptr}
 , LastPicker          {nullptr}
@@ -68,7 +68,7 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
 , m_view              {nullptr}
 {
   // The initial state
-  this->InteractionState = vtkRectangularSliceRepresentation::Outside;
+  this->InteractionState = vtkOrthogonalRegionSliceRepresentation::Outside;
 
   memset(m_bounds, 0, sizeof(double)*6);
   memset(m_repBounds, 0, sizeof(double)*6);
@@ -111,7 +111,7 @@ vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
 }
 
 //----------------------------------------------------------------------------
-vtkRectangularSliceRepresentation::~vtkRectangularSliceRepresentation()
+vtkOrthogonalRegionSliceRepresentation::~vtkOrthogonalRegionSliceRepresentation()
 {
   for(int i=0; i<4; i++)
   {
@@ -127,13 +127,13 @@ vtkRectangularSliceRepresentation::~vtkRectangularSliceRepresentation()
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::reset()
+void vtkOrthogonalRegionSliceRepresentation::reset()
 {
   CreateRegion();
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::StartWidgetInteraction(double e[2])
+void vtkOrthogonalRegionSliceRepresentation::StartWidgetInteraction(double e[2])
 {
   // Store the start position
   this->StartEventPosition[0] = e[0];
@@ -149,7 +149,7 @@ void vtkRectangularSliceRepresentation::StartWidgetInteraction(double e[2])
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::WidgetInteraction(double e[2])
+void vtkOrthogonalRegionSliceRepresentation::WidgetInteraction(double e[2])
 {
   // Convert events to appropriate coordinate systems
   vtkCamera *camera = this->Renderer->GetActiveCamera();
@@ -175,26 +175,26 @@ void vtkRectangularSliceRepresentation::WidgetInteraction(double e[2])
   vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, e[0], e[1], z, pickPoint);
 
   // Process the motion
-  if ( this->InteractionState == vtkRectangularSliceRepresentation::MoveLeft )
+  if ( this->InteractionState == vtkOrthogonalRegionSliceRepresentation::MoveLeft )
   {
     this->MoveLeftEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRectangularSliceRepresentation::MoveRight )
+  else if ( this->InteractionState == vtkOrthogonalRegionSliceRepresentation::MoveRight )
   {
     this->MoveRightEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRectangularSliceRepresentation::MoveTop )
+  else if ( this->InteractionState == vtkOrthogonalRegionSliceRepresentation::MoveTop )
   {
     this->MoveTopEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRectangularSliceRepresentation::MoveBottom )
+  else if ( this->InteractionState == vtkOrthogonalRegionSliceRepresentation::MoveBottom )
   {
     this->MoveBottomEdge(prevPickPoint,pickPoint);
   }
-  else if ( this->InteractionState == vtkRectangularSliceRepresentation::Translating )
+  else if ( this->InteractionState == vtkOrthogonalRegionSliceRepresentation::Translating )
   {
     this->Translate(prevPickPoint,pickPoint);
   }
@@ -206,7 +206,7 @@ void vtkRectangularSliceRepresentation::WidgetInteraction(double e[2])
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
+void vtkOrthogonalRegionSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
   LeftEdge     += shift;
@@ -214,21 +214,21 @@ void vtkRectangularSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::MoveRightEdge(double* p1, double* p2)
+void vtkOrthogonalRegionSliceRepresentation::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
   RightEdge   += shift;
   UpdateRegion();
 }
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::MoveTopEdge(double* p1, double* p2)
+void vtkOrthogonalRegionSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
   TopEdge     += shift;
   UpdateRegion();
 }
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
+void vtkOrthogonalRegionSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
   BottomEdge  += shift;
@@ -236,7 +236,7 @@ void vtkRectangularSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::Translate(double* p1, double* p2)
+void vtkOrthogonalRegionSliceRepresentation::Translate(double* p1, double* p2)
 {
   double hShift = p2[hCoord()] - p1[hCoord()];
   double vShift = p2[vCoord()] - p1[vCoord()];
@@ -250,7 +250,7 @@ void vtkRectangularSliceRepresentation::Translate(double* p1, double* p2)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::CreateDefaultProperties()
+void vtkOrthogonalRegionSliceRepresentation::CreateDefaultProperties()
 {
   // Edge properties
   this->EdgeProperty = vtkSmartPointer<vtkProperty>::New();
@@ -276,7 +276,7 @@ void vtkRectangularSliceRepresentation::CreateDefaultProperties()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::CreateRegion()
+void vtkOrthogonalRegionSliceRepresentation::CreateRegion()
 {
   // Corners of the rectangular region
   this->Vertex->SetNumberOfPoints(4);
@@ -293,7 +293,7 @@ void vtkRectangularSliceRepresentation::CreateRegion()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::UpdateRegion()
+void vtkOrthogonalRegionSliceRepresentation::UpdateRegion()
 {
   switch (m_plane)
   {
@@ -313,7 +313,7 @@ void vtkRectangularSliceRepresentation::UpdateRegion()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::UpdateXYFace()
+void vtkOrthogonalRegionSliceRepresentation::UpdateXYFace()
 {
   auto sliceDepth = Slice + m_view->widgetDepth();
   double LB[3] = {LeftEdge,  BottomEdge, sliceDepth};
@@ -338,7 +338,7 @@ void vtkRectangularSliceRepresentation::UpdateXYFace()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::UpdateYZFace()
+void vtkOrthogonalRegionSliceRepresentation::UpdateYZFace()
 {
   auto sliceDepth = Slice + m_view->widgetDepth();
   double LB[3] = {sliceDepth, BottomEdge, LeftEdge };
@@ -363,7 +363,7 @@ void vtkRectangularSliceRepresentation::UpdateYZFace()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::UpdateXZFace()
+void vtkOrthogonalRegionSliceRepresentation::UpdateXZFace()
 {
   auto sliceDepth = Slice + m_view->widgetDepth();
   double LB[3] = {LeftEdge,  sliceDepth, BottomEdge};
@@ -394,14 +394,14 @@ void vtkRectangularSliceRepresentation::UpdateXZFace()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetView(View2D *view)
+void vtkOrthogonalRegionSliceRepresentation::SetView(View2D *view)
 {
   if(m_view != nullptr) return;
 
   m_view = view;
 }
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetPlane(Plane plane)
+void vtkOrthogonalRegionSliceRepresentation::SetPlane(Plane plane)
 {
   if (plane == m_plane && plane != Plane::UNDEFINED) return;
 
@@ -411,7 +411,7 @@ void vtkRectangularSliceRepresentation::SetPlane(Plane plane)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetSlice(double pos)
+void vtkOrthogonalRegionSliceRepresentation::SetSlice(double pos)
 {
   Slice = pos;
 
@@ -435,7 +435,7 @@ void vtkRectangularSliceRepresentation::SetSlice(double pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetOrthogonalBounds(double bounds[6])
+void vtkOrthogonalRegionSliceRepresentation::SetOrthogonalBounds(double bounds[6])
 {
   memcpy(m_bounds, bounds, 6*sizeof(double));
 
@@ -454,13 +454,13 @@ void vtkRectangularSliceRepresentation::SetOrthogonalBounds(double bounds[6])
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::GetOrthogonalBounds(double bounds[6])
+void vtkOrthogonalRegionSliceRepresentation::GetOrthogonalBounds(double bounds[6])
 {
   memcpy(bounds, m_bounds, 6*sizeof(double));
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::PlaceWidget(double bds[6])
+void vtkOrthogonalRegionSliceRepresentation::PlaceWidget(double bds[6])
 {
 //   std::cout << "Place Widget: ";
   int i;
@@ -488,13 +488,13 @@ void vtkRectangularSliceRepresentation::PlaceWidget(double bds[6])
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int modify)
+int vtkOrthogonalRegionSliceRepresentation::ComputeInteractionState(int X, int Y, int modify)
 {
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
   if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
   {
-    this->InteractionState = vtkRectangularSliceRepresentation::Outside;
+    this->InteractionState = vtkOrthogonalRegionSliceRepresentation::Outside;
     return this->InteractionState;
   }
 
@@ -513,19 +513,19 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
       reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
     if (this->CurrentEdge == this->EdgeActor[LEFT])
     {
-      this->InteractionState = vtkRectangularSliceRepresentation::MoveLeft;
+      this->InteractionState = vtkOrthogonalRegionSliceRepresentation::MoveLeft;
     }
     else if (this->CurrentEdge == this->EdgeActor[RIGHT])
     {
-      this->InteractionState = vtkRectangularSliceRepresentation::MoveRight;
+      this->InteractionState = vtkOrthogonalRegionSliceRepresentation::MoveRight;
     }
     else if (this->CurrentEdge == this->EdgeActor[TOP])
     {
-      this->InteractionState = vtkRectangularSliceRepresentation::MoveTop;
+      this->InteractionState = vtkOrthogonalRegionSliceRepresentation::MoveTop;
     }
     else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
     {
-      this->InteractionState = vtkRectangularSliceRepresentation::MoveBottom;
+      this->InteractionState = vtkOrthogonalRegionSliceRepresentation::MoveBottom;
     }
     else
     {
@@ -539,11 +539,11 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
     if ((LeftEdge < pickPoint[hCoord()] && pickPoint[hCoord()] < RightEdge)
      && (TopEdge  < pickPoint[vCoord()] && pickPoint[vCoord()] < BottomEdge))
     {
-      this->InteractionState = vtkRectangularSliceRepresentation::Inside;
+      this->InteractionState = vtkOrthogonalRegionSliceRepresentation::Inside;
     }
     else
     {
-      this->InteractionState = vtkRectangularSliceRepresentation::Outside;
+      this->InteractionState = vtkOrthogonalRegionSliceRepresentation::Outside;
     }
   }
 
@@ -551,22 +551,22 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::SetInteractionState(int state)
+void vtkOrthogonalRegionSliceRepresentation::SetInteractionState(int state)
 {
   // Clamp to allowable values
-  state = state < vtkRectangularSliceRepresentation::Outside ? vtkRectangularSliceRepresentation::Outside : state;
+  state = state < vtkOrthogonalRegionSliceRepresentation::Outside ? vtkOrthogonalRegionSliceRepresentation::Outside : state;
 
   // Depending on state, highlight appropriate parts of representation
   this->InteractionState = state;
   switch (state)
     {
-    case vtkRectangularSliceRepresentation::MoveLeft:
-    case vtkRectangularSliceRepresentation::MoveRight:
-    case vtkRectangularSliceRepresentation::MoveTop:
-    case vtkRectangularSliceRepresentation::MoveBottom:
+    case vtkOrthogonalRegionSliceRepresentation::MoveLeft:
+    case vtkOrthogonalRegionSliceRepresentation::MoveRight:
+    case vtkOrthogonalRegionSliceRepresentation::MoveTop:
+    case vtkOrthogonalRegionSliceRepresentation::MoveBottom:
       this->HighlightEdge(this->CurrentEdge);
       break;
-    case vtkRectangularSliceRepresentation::Translating:
+    case vtkOrthogonalRegionSliceRepresentation::Translating:
       this->Highlight();
       break;
     default:
@@ -576,13 +576,13 @@ void vtkRectangularSliceRepresentation::SetInteractionState(int state)
 }
 
 //----------------------------------------------------------------------
-double *vtkRectangularSliceRepresentation::GetBounds()
+double *vtkOrthogonalRegionSliceRepresentation::GetBounds()
 {
   return m_repBounds;
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::BuildRepresentation()
+void vtkOrthogonalRegionSliceRepresentation::BuildRepresentation()
 {
   // Rebuild only if necessary
   if ( this->GetMTime() > this->BuildTime ||
@@ -596,7 +596,7 @@ void vtkRectangularSliceRepresentation::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::ReleaseGraphicsResources(vtkWindow *w)
+void vtkOrthogonalRegionSliceRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 {
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
@@ -605,7 +605,7 @@ void vtkRectangularSliceRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularSliceRepresentation::RenderOpaqueGeometry(vtkViewport *v)
+int vtkOrthogonalRegionSliceRepresentation::RenderOpaqueGeometry(vtkViewport *v)
 {
   int count=0;
   this->BuildRepresentation();
@@ -619,7 +619,7 @@ int vtkRectangularSliceRepresentation::RenderOpaqueGeometry(vtkViewport *v)
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularSliceRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
+int vtkOrthogonalRegionSliceRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
 {
   int count=0;
   this->BuildRepresentation();
@@ -633,7 +633,7 @@ int vtkRectangularSliceRepresentation::RenderTranslucentPolygonalGeometry(vtkVie
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularSliceRepresentation::HasTranslucentPolygonalGeometry()
+int vtkOrthogonalRegionSliceRepresentation::HasTranslucentPolygonalGeometry()
 {
   int result=0;
   this->BuildRepresentation();
@@ -647,7 +647,7 @@ int vtkRectangularSliceRepresentation::HasTranslucentPolygonalGeometry()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::HighlightEdge(vtkSmartPointer<vtkActor> actor)
+void vtkOrthogonalRegionSliceRepresentation::HighlightEdge(vtkSmartPointer<vtkActor> actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
@@ -663,7 +663,7 @@ void vtkRectangularSliceRepresentation::HighlightEdge(vtkSmartPointer<vtkActor> 
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::Highlight()
+void vtkOrthogonalRegionSliceRepresentation::Highlight()
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
@@ -672,7 +672,7 @@ void vtkRectangularSliceRepresentation::Highlight()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
+void vtkOrthogonalRegionSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
@@ -684,7 +684,7 @@ void vtkRectangularSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::setRepresentationColor(double *color)
+void vtkOrthogonalRegionSliceRepresentation::setRepresentationColor(double *color)
 {
   if (0 == memcmp(m_color, color, sizeof(double)*3)) return;
 
@@ -696,7 +696,7 @@ void vtkRectangularSliceRepresentation::setRepresentationColor(double *color)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceRepresentation::setRepresentationPattern(int pattern)
+void vtkOrthogonalRegionSliceRepresentation::setRepresentationPattern(int pattern)
 {
   if (m_pattern == pattern) return;
 

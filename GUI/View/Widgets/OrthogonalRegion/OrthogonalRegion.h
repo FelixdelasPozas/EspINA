@@ -37,51 +37,43 @@
 namespace ESPINA
 {
   class ViewManager;
-  class vtkRectangularSliceWidget;
-  class RectangularRegion;
+  class vtkOrthogonalRegionSliceWidget;
+  class OrthogonalRegion;
 
   //----------------------------------------------------------------------------
-  class EspinaGUI_EXPORT vtkRectangularRegionCommand
+  class EspinaGUI_EXPORT vtkOrthogonalRegionCommand
   : public vtkEspinaCommand
   {
     public:
-      vtkTypeMacro(vtkRectangularRegionCommand, vtkEspinaCommand);
+      vtkTypeMacro(vtkOrthogonalRegionCommand, vtkEspinaCommand);
+
+      virtual ~vtkOrthogonalRegionCommand()
+      {};
 
       /** \brief Creates a new instance.
        *
        */
-      static vtkRectangularRegionCommand *New()
-      { return new vtkRectangularRegionCommand(); }
+      static vtkOrthogonalRegionCommand *New()
+      { return new vtkOrthogonalRegionCommand(); }
 
-      /** \brief Implements vtkEspinaCommand::setWidget().
-       *
-       */
       void setWidget(EspinaWidgetPtr widget);
 
-      /** \brief Implements vtkEspinaCommand::Execute.
-       *
-       */
       virtual void Execute(vtkObject *, unsigned long int, void*);
 
     private:
-      /** \brief RulerCommand class private constructor.
+      /** \brief Private constructor.
        *
        */
-      explicit vtkRectangularRegionCommand()
+      explicit vtkOrthogonalRegionCommand()
       : m_widget{nullptr}
       {}
 
-      /** \brief RulerCommand class private destructor.
-       *
-       */
-      virtual ~vtkRectangularRegionCommand()
-      {};
 
-      RectangularRegion *m_widget;
+      OrthogonalRegion *m_widget;
   };
 
   //----------------------------------------------------------------------------
-  class EspinaGUI_EXPORT RectangularRegion
+  class EspinaGUI_EXPORT OrthogonalRegion
   : public QObject
   , public EspinaWidget
   {
@@ -91,12 +83,12 @@ namespace ESPINA
      * \param[in] bounds bounds of the region.
      *
      */
-    explicit RectangularRegion(Bounds bounds);
+    explicit OrthogonalRegion(Bounds bounds);
 
     /** \brief RectangularRegion class destructor.
      *
      */
-    virtual ~RectangularRegion();
+    virtual ~OrthogonalRegion();
 
     /** \brief Implements EspinaWidget::registerView().
      *
@@ -156,7 +148,7 @@ namespace ESPINA
     void sliceChanged(Plane plane, Nm pos);
 
   private:
-    friend class vtkRectangularRegionCommand;
+    friend class vtkOrthogonalRegionCommand;
 
     /** \brief Emits the modification signal when the representation is modified.
      *
@@ -166,10 +158,10 @@ namespace ESPINA
 
     Bounds m_bounds;
     NmVector3 m_resolution;
-    QMap<RenderView *, vtkRectangularSliceWidget *> m_widgets;
+    QMap<RenderView *, vtkOrthogonalRegionSliceWidget *> m_widgets;
     double m_color[3];
     int m_pattern;
-    vtkSmartPointer<vtkRectangularRegionCommand> m_command;
+    vtkSmartPointer<vtkOrthogonalRegionCommand> m_command;
   };
 
 }// namespace ESPINA

@@ -23,8 +23,8 @@
 #include "ROITools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <GUI/Selectors/PixelSelector.h>
-#include <GUI/View/Widgets/RectangularRegion/RectangularRegion.h>
-#include <GUI/View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h>
+#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegion.h>
+#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h>
 #include <Undo/ROIUndoCommand.h>
 
 // Qt
@@ -33,11 +33,11 @@
 
 using namespace ESPINA;
 
-class ModifyRectangularRegion
+class ModifyOrthogonalRegion
 : public QUndoCommand
 {
 public:
-  ModifyRectangularRegion(ROISPtr roi, const Bounds &bounds)
+  ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
   : m_roi(roi)
   , m_swap(bounds)
   {}
@@ -76,6 +76,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
 , m_applyROI     {new QAction(QIcon(":/espina/roi_go.svg"), tr("Define Orthogonal Region of Interest"), this)}
 , m_enabled      {true}
 , m_mode         {Mode::FIXED}
+, m_color        {Qt::yellow}
 , m_widget       {nullptr}
 , m_selector     {new PixelSelector()}
 , m_sliceSelector{nullptr}
@@ -198,12 +199,49 @@ void OrthogonalROITool::setVisible(bool visible)
 {
   if (visible)
   {
-    if (!m_rrWidget) createOrthogonalWidget();
+    if (!m_orWidget) createOrthogonalWidget();
   }
   else
   {
-    if (m_rrWidget) destroyOrthogonalWidget();
+    if (m_orWidget) destroyOrthogonalWidget();
   }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::setColor(const QColor& color)
+{
+  m_color = color;
+
+  if (m_orWidget)
+  {
+    updateRepresentationColor();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::createOrthogonalWidget()
+{
+  m_orWidget = new OrthogonalRegion(m_roi->bounds());
+  m_orWidget->setResolution(m_roi->spacing());
+  updateRepresentationColor();
+
+  m_sliceSelector = std::make_shared<OrthogonalRegionSliceSelector>(m_orWidget);
+
+  m_sliceSelector->setLeftLabel ("ROI");
+  m_sliceSelector->setRightLabel("ROI");
+
+  connect(m_orWidget, SIGNAL(modified(Bounds)),
+          this,       SLOT(updateBounds(Bounds)));
+  connect(m_roi.get(), SIGNAL(dataChanged()),
+          this,        SLOT(updateOrthogonalRegion()));
+
+  m_widget = EspinaWidgetSPtr(m_orWidget);
+  Q_ASSERT(m_widget);
+
+
+  m_viewManager->addWidget(m_widget);
+
+  setResizeMode(m_mode);
 }
 
 //-----------------------------------------------------------------------------
@@ -213,14 +251,16 @@ void OrthogonalROITool::destroyOrthogonalWidget()
   {
     m_viewManager->removeWidget(m_widget);
 
-    disconnect(m_rrWidget, SIGNAL(modified(Bounds)),
+    disconnect(m_orWidget, SIGNAL(modified(Bounds)),
                this,       SLOT(updateBounds(Bounds)));
     disconnect(m_roi.get(), SIGNAL(dataChanged()),
-               this,        SLOT(updateRectangularRegion()));
+               this,        SLOT(updateOrthogonalRegion()));
 
     m_widget->setEnabled(false);
+
     m_widget   = nullptr;
-    m_rrWidget = nullptr;
+    m_orWidget = nullptr;
+    m_selector = nullptr;
   }
 }
 
@@ -274,14 +314,16 @@ void OrthogonalROITool::setResizable(bool resizable)
   {
     if (resizable)
     {
-      m_rrWidget->setRepresentationPattern(0xFFF0);
+      m_orWidget->setRepresentationPattern(0xFFF0);
+      m_viewManager->addSliceSelectors(m_sliceSelector, View2D::From|View2D::To);
     }
     else
     {
-      m_rrWidget->setRepresentationPattern(0xFFFF);
+      m_orWidget->setRepresentationPattern(0xFFFF);
+      m_viewManager->removeSliceSelectors(m_sliceSelector);
     }
 
-    m_rrWidget   ->setEnabled(resizable);
+    m_orWidget   ->setEnabled(resizable);
     m_viewManager->updateViews();
   }
 
@@ -297,8 +339,7 @@ void OrthogonalROITool::setResizable(bool resizable)
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::defineROI(Selector::Selection channels)
 {
-  if (channels.isEmpty())
-    return;
+  if (channels.isEmpty()) return;
 
   auto activeChannel = m_viewManager->activeChannel();
   bool valid = false;
@@ -311,8 +352,7 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
       break;
     }
 
-  if(!valid)
-    return;
+  if(!valid) return;
 
   if(m_settings->xSize() == 0 || m_settings->ySize() == 0 || m_settings->zSize() == 0)
   {
@@ -337,8 +377,8 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
     auto pickedChannel = channelPtr(pItem);
 
     Bounds bounds{ pos[0] - m_settings->xSize()/2.0, pos[0] + m_settings->xSize()/2.0,
-      pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
-      pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
+                   pos[1] - m_settings->ySize()/2.0, pos[1] + m_settings->ySize()/2.0,
+                   pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
 
 
     ROISPtr roi{new ROI(bounds, pickedChannel->output()->spacing(), pickedChannel->position())};
@@ -347,11 +387,6 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
     activateEventHandler(false);
 
     emit roiDefined(roi);
-
-    //  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
-    //  m_sliceSelector->setLeftLabel ("From");
-    //  m_sliceSelector->setRightLabel("To");
-    //  m_viewManager->addSliceSelectors(m_sliceSelector, ViewManager::From|ViewManager::To);
   }
 }
 
@@ -361,42 +396,30 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
   Q_ASSERT(m_roi);
 
   m_undoStack->beginMacro("Resize Region of Interest");
-  m_undoStack->push(new ModifyRectangularRegion(m_roi, bounds));
+  m_undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
   m_undoStack->endMacro();
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalROITool::updateRectangularRegion()
+void OrthogonalROITool::updateOrthogonalRegion()
 {
-  m_rrWidget->blockSignals(true);
-  m_rrWidget->setBounds(m_roi->bounds());
-  m_rrWidget->blockSignals(false);
+  m_orWidget->blockSignals(true);
+  m_orWidget->setBounds(m_roi->bounds());
+  m_orWidget->blockSignals(false);
 }
 
-//-----------------------------------------------------------------------------
-void OrthogonalROITool::createOrthogonalWidget()
-{
-  m_rrWidget = new RectangularRegion(m_roi->bounds());
-  m_rrWidget->setResolution(m_roi->spacing());
-  m_rrWidget->
-
-  connect(m_rrWidget, SIGNAL(modified(Bounds)),
-          this,       SLOT(updateBounds(Bounds)));
-  connect(m_roi.get(), SIGNAL(dataChanged()),
-          this,        SLOT(updateRectangularRegion()));
-
-  m_widget = EspinaWidgetSPtr(m_rrWidget);
-  Q_ASSERT(m_widget);
-
-
-  m_viewManager->addWidget(m_widget);
-
-  setResizeMode(m_mode);
-}
 
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::setActionVisibility(bool visiblity)
 {
   m_resizeROI->setVisible(visiblity);
   m_applyROI ->setVisible(visiblity);
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::updateRepresentationColor()
+{
+  double color[3] = {m_color.redF(), m_color.greenF(), m_color.blueF()};
+
+  m_orWidget->setRepresentationColor(color);
 }

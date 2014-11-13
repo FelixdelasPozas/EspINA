@@ -26,6 +26,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
+#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h>
 
 // Qt
 #include <QUndoCommand>
@@ -33,8 +34,8 @@
 class QAction;
 namespace ESPINA
 {
-  class RectangularRegion;
-  class RectangularRegionSliceSelector;
+  class OrthogonalRegion;
+  class OrthogonalRegionSliceSelector;
   class ROISettings;
   class ROIToolsGroup;
 
@@ -80,6 +81,8 @@ namespace ESPINA
 
     void setVisible(bool visible);
 
+    void setColor(const QColor &color);
+
   signals:
     void roiDefined(ROISPtr);
 
@@ -121,7 +124,7 @@ namespace ESPINA
 
     void updateBounds(Bounds bounds);
 
-    void updateRectangularRegion();
+    void updateOrthogonalRegion();
 
   private:
     /** \brief Creates the rectangular region widget for the current roi
@@ -146,6 +149,8 @@ namespace ESPINA
     void setResizeMode(const Mode mode)
     { return setResizable(Mode::RESIZABLE == mode); }
 
+    void updateRepresentationColor();
+
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
@@ -159,14 +164,17 @@ namespace ESPINA
 
     ROISPtr          m_roi;
     Mode             m_mode;
+    QColor           m_color;
 
     EspinaWidgetSPtr   m_widget;
-    RectangularRegion *m_rrWidget;
+    OrthogonalRegion *m_orWidget;
 
     PixelSelectorSPtr  m_selector;
 
-    RectangularRegionSliceSelector *m_sliceSelector;
-    ROISettings                    *m_settings;
+    using OrthognalSelectorSPtr = std::shared_ptr<OrthogonalRegionSliceSelector>;
+
+    OrthognalSelectorSPtr m_sliceSelector;
+    ROISettings          *m_settings;
   };
 
   using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
