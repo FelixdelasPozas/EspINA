@@ -55,8 +55,10 @@ OrthogonalRegion::OrthogonalRegion(Bounds bounds)
 //----------------------------------------------------------------------------
 OrthogonalRegion::~OrthogonalRegion()
 {
-  for(auto view: m_widgets.keys())
+  for(auto view : m_widgets.keys())
+  {
     unregisterView(view);
+  }
 
   m_widgets.clear();
 }
@@ -66,7 +68,7 @@ void OrthogonalRegion::registerView(RenderView *view)
 {
   auto view2d = dynamic_cast<View2D *>(view);
 
-  if(view2d && !m_widgets.keys().contains(view))
+  if(view2d && !m_widgets.contains(view))
   {
     SliceWidgetAdapter *wi = SliceWidgetAdapter::New();
     Q_ASSERT(wi);
@@ -83,7 +85,8 @@ void OrthogonalRegion::registerView(RenderView *view)
 
     m_widgets[view] = wi;
 
-    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)),
+            this,   SLOT(sliceChanged(Plane, Nm)));
   }
 }
 
@@ -92,9 +95,10 @@ void OrthogonalRegion::unregisterView(RenderView *view)
 {
   auto view2d = dynamic_cast<View2D *>(view);
 
-  if(view2d && m_widgets.keys().contains(view))
+  if(view2d && m_widgets.contains(view))
   {
-    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
+    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)),
+               this,   SLOT(sliceChanged(Plane, Nm)));
 
     m_widgets[view]->EnabledOff();
     m_widgets[view]->RemoveObserver(m_command);
@@ -109,7 +113,7 @@ void OrthogonalRegion::unregisterView(RenderView *view)
 //----------------------------------------------------------------------------
 void OrthogonalRegion::setEnabled(bool enable)
 {
-  for(auto widget: m_widgets.values())
+  for(auto widget : m_widgets)
   {
     widget->SetProcessEvents(enable);
     widget->GetRepresentation()->SetPickable(enable);
@@ -119,7 +123,7 @@ void OrthogonalRegion::setEnabled(bool enable)
 //----------------------------------------------------------------------------
 void OrthogonalRegion::setBounds(Bounds bounds)
 {
-  for(auto widget: m_widgets.values())
+  for(auto widget : m_widgets)
   {
     widget->SetBounds(bounds);
   }
@@ -139,12 +143,7 @@ void OrthogonalRegion::setResolution(NmVector3 resolution)
 {
   m_resolution = resolution;
 
-//   for(int i = 0; i < 6; i++)
-//   {
-//     m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
-//   }
-
-  for(auto w: m_widgets.values())
+  for (auto w : m_widgets)
   {
     w->SetBounds(m_bounds);
   }
@@ -157,7 +156,7 @@ void OrthogonalRegion::setRepresentationColor(double *color)
 
   memcpy(m_color, color, sizeof(double)*3);
 
-  for(auto widget: m_widgets.values())
+  for (auto widget : m_widgets)
   {
     widget->setRepresentationColor(m_color);
   }
@@ -170,7 +169,7 @@ void OrthogonalRegion::setRepresentationPattern(int pattern)
 
   m_pattern = pattern;
 
-  for(auto widget: m_widgets.values())
+  for (auto widget : m_widgets)
   {
     widget->setRepresentationPattern(m_pattern);
   }
@@ -182,7 +181,7 @@ void OrthogonalRegion::sliceChanged(Plane plane, Nm pos)
   auto view2d = dynamic_cast<View2D *>(sender());
   auto view   = dynamic_cast<RenderView *>(sender());
 
-  if(view2d && view && m_widgets.keys().contains(view))
+  if(view2d && view && m_widgets.contains(view))
   {
     m_widgets[view]->SetSlice(pos);
   }
@@ -197,7 +196,7 @@ void vtkOrthogonalRegionCommand::Execute(vtkObject* caller, long unsigned int ev
   {
     m_widget->m_bounds = widget->GetBounds();
 
-    for(auto w: m_widget->m_widgets.values())
+    for (auto w : m_widget->m_widgets)
     {
       w->SetBounds(m_widget->m_bounds);
     }

@@ -39,15 +39,15 @@ QWidget* SeedGrowSegmentationHistory::createWidget(ModelAdapterSPtr model, Model
     m_roiSettings = new ROISettings();
     m_roiTools    = new ROIToolsGroup(m_roiSettings, model, factory, viewManager, undoStack);
 
+    QColor sgsROIColor{Qt::yellow};
+    sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
+    m_roiTools->setColor(sgsROIColor);
+
     auto currentFilterROI = m_filter->roi();
     if (currentFilterROI)
     {
       m_roiTools->setCurrentROI(currentFilterROI->clone());
     }
-
-    QColor sgsROIColor{Qt::yellow};
-    sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
-    m_roiTools->setColor(sgsROIColor);
   }
 
   m_widgetCount++;

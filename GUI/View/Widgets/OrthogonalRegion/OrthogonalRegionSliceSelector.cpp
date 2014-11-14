@@ -63,6 +63,8 @@ void OrthogonalRegionSliceSelector::setView(View2D* view)
   {
     connect(m_view, SIGNAL(sliceChanged(Plane,Nm)),
             this,   SLOT(update()));
+
+    update();
   }
 }
 
@@ -90,10 +92,9 @@ SliceSelectorSPtr OrthogonalRegionSliceSelector::clone()
 {
   auto selector = std::make_shared<OrthogonalRegionSliceSelector>(m_region);
 
-  selector->m_leftLabel  = m_leftLabel;
-  selector->m_rightLabel = m_rightLabel;
-  selector->m_plane      = m_plane;
-  selector->m_view       = m_view;
+  selector->m_label = m_label;
+  selector->m_plane = m_plane;
+  selector->m_view  = m_view;
 
   return selector;
 }
@@ -115,8 +116,12 @@ void OrthogonalRegionSliceSelector::update()
     m_leftWidget ->setEnabled(lowerDistance < 0 || lowerDistance > voxelSize);
     m_rightWidget->setEnabled(upperDistance < 0 || upperDistance > voxelSize);
 
-    m_leftWidget ->setToolTip(QString("%1(%2)").arg(m_leftLabel) .arg(bounds[2*i]));
-    m_rightWidget->setToolTip(QString("%1(%2)").arg(m_rightLabel).arg(bounds[2*i+1]));
+    Nm leftSlicePosition  = m_view->slicingPosition() - voxelSize/2;
+    Nm rightSlicePosition = m_view->slicingPosition() + voxelSize/2;
+
+    QString tooltip = tr("<b>%1</b><br>Place %2 at %3 nm").arg(m_label);
+    m_leftWidget ->setToolTip(tooltip.arg(leftFaceLabel()) .arg(leftSlicePosition));
+    m_rightWidget->setToolTip(tooltip.arg(rightFaceLabel()).arg(rightSlicePosition));
   }
 }
 
@@ -152,5 +157,37 @@ void OrthogonalRegionSliceSelector::moveEdge(Edge edge)
     m_region->setBounds(bounds);
 
     update();
+  }
+}
+
+//----------------------------------------------------------------------------
+QString OrthogonalRegionSliceSelector::leftFaceLabel() const
+{
+  switch (m_plane)
+  {
+    case Plane::XY:
+      return tr("back face");
+    case Plane::XZ:
+      return tr("top face");
+    case Plane::YZ:
+      return tr("left face");
+    default:
+      return tr("face");
+  }
+}
+
+//----------------------------------------------------------------------------
+QString OrthogonalRegionSliceSelector::rightFaceLabel() const
+{
+  switch (m_plane)
+  {
+    case Plane::XY:
+      return tr("front face");
+    case Plane::XZ:
+      return tr("bottom face");
+    case Plane::YZ:
+      return tr("right face");
+    default:
+      return tr("face");
   }
 }

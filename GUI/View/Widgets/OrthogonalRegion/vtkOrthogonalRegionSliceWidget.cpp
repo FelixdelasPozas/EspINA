@@ -289,12 +289,12 @@ void vtkOrthogonalRegionSliceWidget::SetPlane(Plane plane)
 //----------------------------------------------------------------------
 void vtkOrthogonalRegionSliceWidget::SetSlice(Nm pos)
 {
-  if (!this->WidgetRep)
-    CreateDefaultRepresentation();
+  if (!this->WidgetRep) CreateDefaultRepresentation();
 
-  vtkOrthogonalRegionSliceRepresentation *rep = reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
   rep->SetSlice(pos);
   Slice = pos;
+
   this->Render();
 }
 

@@ -99,7 +99,7 @@ namespace ESPINA
     /** \brief Modifies the tool and activates/deactivates the event handler for this tool.
      * \param[in] value true to activate tool and eventhandler, false to deactivate event handler.
      */
-    void activateEventHandler(bool value);
+    void setDefinitionMode(bool value);
 
     /** \brief Update GUI status to be in accordance with the event handler state
      * \param[in] active event handler status
@@ -169,7 +169,8 @@ namespace ESPINA
     EspinaWidgetSPtr   m_widget;
     OrthogonalRegion *m_orWidget;
 
-    PixelSelectorSPtr  m_selector;
+    EventHandlerSPtr   m_resizeHandler;
+    PixelSelectorSPtr  m_defineHandler;
 
     using OrthognalSelectorSPtr = std::shared_ptr<OrthogonalRegionSliceSelector>;
 

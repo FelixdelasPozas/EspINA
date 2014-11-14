@@ -1127,7 +1127,7 @@ namespace ESPINA
       if (m_actualPos->representations[rep] != nullptr)
       {
         m_actualPos->representations[rep]->SetVisibility(rep->isVisible());
-        m_actualPos->representations[rep]->Update();
+        //m_actualPos->representations[rep]->Update();
         m_view->addActor(m_actualPos->representations[rep]);
         ++numActors;
       }

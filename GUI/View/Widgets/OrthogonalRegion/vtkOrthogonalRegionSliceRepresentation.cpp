@@ -689,6 +689,7 @@ void vtkOrthogonalRegionSliceRepresentation::setRepresentationColor(double *colo
   if (0 == memcmp(m_color, color, sizeof(double)*3)) return;
 
   memcpy(m_color, color, sizeof(double)*3);
+
   this->EdgeProperty->SetColor(m_color);
   this->EdgeProperty->Modified();
   this->SelectedEdgeProperty->SetColor(m_color);

@@ -30,6 +30,7 @@
 // Qt
 #include <QAction>
 #include <QMessageBox>
+#include <QMouseEvent>
 
 using namespace ESPINA;
 
@@ -61,7 +62,6 @@ private:
   Bounds  m_swap;
 };
 
-
 //-----------------------------------------------------------------------------
 OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
                                      ModelAdapterSPtr model,
@@ -77,9 +77,9 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
 , m_enabled      {true}
 , m_mode         {Mode::FIXED}
 , m_color        {Qt::yellow}
-, m_widget       {nullptr}
-, m_selector     {new PixelSelector()}
-, m_sliceSelector{nullptr}
+, m_orWidget     {nullptr}
+, m_resizeHandler{new EventHandler()}
+, m_defineHandler{new PixelSelector()}
 , m_settings     {settings}
 {
   m_activeTool->setCheckable(true);
@@ -88,9 +88,9 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
 
   m_resizeROI->setEnabled(false);
 
-  m_selector->setMultiSelection(false);
-  m_selector->setSelectionTag(Selector::CHANNEL, true);
-  m_selector->setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
+  m_defineHandler->setMultiSelection(false);
+  m_defineHandler->setSelectionTag(Selector::CHANNEL, true);
+  m_defineHandler->setCursor(QCursor(QPixmap(":/espina/roi_go.svg").scaled(32,32)));
 
   setActionVisibility(false);
 
@@ -101,7 +101,7 @@ OrthogonalROITool::OrthogonalROITool(ROISettings     *settings,
           this,        SLOT(setResizable(bool)));
 
   connect(m_applyROI, SIGNAL(triggered(bool)),
-          this,       SLOT(activateEventHandler(bool)));
+          this,       SLOT(setDefinitionMode(bool)));
 
   connect(m_viewManager.get(), SIGNAL(eventHandlerChanged()),
           this,                SLOT(onEventHandlerChanged()));
@@ -115,7 +115,7 @@ OrthogonalROITool::~OrthogonalROITool()
              this,                SLOT(onEventHandlerChanged()));
 
   disconnect(m_applyROI, SIGNAL(triggered(bool)),
-             this,       SLOT(activateEventHandler(bool)));
+             this,       SLOT(setDefinitionMode(bool)));
 
   disconnect(m_resizeROI, SIGNAL(triggered(bool)),
              this,        SLOT(setResizable(bool)));
@@ -139,7 +139,7 @@ void OrthogonalROITool::setEnabled(bool value)
 {
   if(m_enabled == value) return;
 
-  activateEventHandler(value);
+  setDefinitionMode(value);
 
   if (!value)
   {
@@ -227,8 +227,7 @@ void OrthogonalROITool::createOrthogonalWidget()
 
   m_sliceSelector = std::make_shared<OrthogonalRegionSliceSelector>(m_orWidget);
 
-  m_sliceSelector->setLeftLabel ("ROI");
-  m_sliceSelector->setRightLabel("ROI");
+  m_sliceSelector->setLabel("Current ROI");
 
   connect(m_orWidget, SIGNAL(modified(Bounds)),
           this,       SLOT(updateBounds(Bounds)));
@@ -258,16 +257,16 @@ void OrthogonalROITool::destroyOrthogonalWidget()
 
     m_widget->setEnabled(false);
 
-    m_widget   = nullptr;
-    m_orWidget = nullptr;
-    m_selector = nullptr;
+    m_widget        = nullptr;
+    m_orWidget      = nullptr;
+    m_sliceSelector = nullptr;
   }
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalROITool::activateEventHandler(bool value)
+void OrthogonalROITool::setDefinitionMode(bool value)
 {
-  m_selector->setEnabled(value);
+  m_defineHandler->setEnabled(value);
 
   m_applyROI->blockSignals(true);
   m_applyROI->setChecked(value);
@@ -275,29 +274,33 @@ void OrthogonalROITool::activateEventHandler(bool value)
 
   if (value)
   {
-    if (m_viewManager->eventHandler() != m_selector)
+    if (m_viewManager->eventHandler() != m_defineHandler)
     {
-      m_viewManager->setEventHandler(m_selector);
-      connect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
-              this,             SLOT(defineROI(Selector::Selection)));
+      m_viewManager->setEventHandler(m_defineHandler);
+      connect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
+              this,                  SLOT(defineROI(Selector::Selection)));
     }
   }
   else
   {
-    disconnect(m_selector.get(), SIGNAL(itemsSelected(Selector::Selection)),
-               this,             SLOT(defineROI(Selector::Selection)));
-    m_viewManager->unsetEventHandler(m_selector);
+    disconnect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
+               this,                  SLOT(defineROI(Selector::Selection)));
+    m_viewManager->unsetEventHandler(m_defineHandler);
   }
 }
 
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::onEventHandlerChanged()
 {
-  if (m_viewManager->eventHandler() != m_selector)
+  auto handler = m_viewManager->eventHandler();
+
+  if (handler != m_resizeHandler)
   {
     setResizable(false);
-
-    activateEventHandler(false);
+  }
+  if (handler != m_defineHandler)
+  {
+    setDefinitionMode(false);
   }
 }
 
@@ -314,20 +317,20 @@ void OrthogonalROITool::setResizable(bool resizable)
   {
     if (resizable)
     {
-      m_orWidget->setRepresentationPattern(0xFFF0);
+      m_orWidget   ->setRepresentationPattern(0xFFF0);
+      m_viewManager->setEventHandler(m_resizeHandler);
       m_viewManager->addSliceSelectors(m_sliceSelector, View2D::From|View2D::To);
     }
     else
     {
-      m_orWidget->setRepresentationPattern(0xFFFF);
+      m_orWidget   ->setRepresentationPattern(0xFFFF);
+      m_viewManager->unsetEventHandler(m_resizeHandler);
       m_viewManager->removeSliceSelectors(m_sliceSelector);
     }
 
     m_orWidget   ->setEnabled(resizable);
     m_viewManager->updateViews();
   }
-
-  m_viewManager->setSelectionEnabled(!resizable);
 
   m_mode = resizable?Mode::RESIZABLE:Mode::FIXED;
 
@@ -344,13 +347,16 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
   auto activeChannel = m_viewManager->activeChannel();
   bool valid = false;
   Selector::SelectionItem selectedChannel;
+
   for(auto channel: channels)
+  {
     if(channel.second == activeChannel)
     {
       valid = true;
       selectedChannel = channel;
       break;
     }
+  }
 
   if(!valid) return;
 
@@ -381,10 +387,10 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
                    pos[2] - m_settings->zSize()/2.0, pos[2] + m_settings->zSize()/2.0 };
 
 
-    ROISPtr roi{new ROI(bounds, pickedChannel->output()->spacing(), pickedChannel->position())};
+    auto roi = std::make_shared<ROI>(bounds, pickedChannel->output()->spacing(), pickedChannel->position());
 
     setResizable(true);
-    activateEventHandler(false);
+    //setDefinitionMode(false);
 
     emit roiDefined(roi);
   }

@@ -137,8 +137,9 @@ namespace ESPINA
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;
 
-    bool m_enabled;
-    bool m_visible;
+    bool   m_enabled;
+    bool   m_visible;
+    QColor m_color;
 
     ROISPtr          m_accumulator;
     EspinaWidgetSPtr m_accumulatorWidget;

@@ -102,7 +102,6 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_slicingStep     {1, 1, 1}
 , m_showThumbnail   {true}
-, m_sliceSelector   {nullptr, nullptr}
 , m_inThumbnail     {false}
 , m_sceneReady      {false}
 , m_plane           {plane}
@@ -777,20 +776,6 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
 }
 
 //-----------------------------------------------------------------------------
-// void View2D::selectFromSlice()
-// {
-//   m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
-//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
-// }
-
-//-----------------------------------------------------------------------------
-// void View2D::selectToSlice()
-// {
-// //   m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
-// //   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
-// }
-
-//-----------------------------------------------------------------------------
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
   int xPos, yPos;
@@ -1161,15 +1146,7 @@ void View2D::setRulerVisibility(bool visible)
 void View2D::addSliceSelectors(SliceSelectorSPtr widget,
                                SliceSelectionType selectors)
 {
-  if (m_sliceSelector.first != widget)
-  {
-    if (m_sliceSelector.second) m_sliceSelector.second.reset();
-
-    m_sliceSelector.first  = widget;
-    m_sliceSelector.second = widget->clone();
-  }
-
-  auto sliceSelector = m_sliceSelector.second;
+  auto sliceSelector = widget->clone();
 
   sliceSelector->setPlane(m_plane);
   sliceSelector->setView (this);
@@ -1185,18 +1162,25 @@ void View2D::addSliceSelectors(SliceSelectorSPtr widget,
 
   m_fromLayout->addWidget (fromWidget );
   m_toLayout->insertWidget(0, toWidget);
+
+  m_sliceSelectors << SliceSelectorPair(widget, sliceSelector);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
 {
-  if (m_sliceSelector.first == widget)
-  {
-    if (m_sliceSelector.second) m_sliceSelector.second.reset();
+  SliceSelectorPair requestedsliceSelectors;
 
-    m_sliceSelector.first.reset();
-    m_sliceSelector.second.reset();
+  for (auto sliceSelectors : m_sliceSelectors)
+  {
+    if (sliceSelectors.first == widget)
+    {
+      requestedsliceSelectors = sliceSelectors;
+      break;
+    }
   }
+
+  m_sliceSelectors.removeOne(requestedsliceSelectors);
 }
 
 //----------------------------------------------------------------------------

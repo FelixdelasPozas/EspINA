@@ -50,17 +50,12 @@ namespace ESPINA
 
     virtual QWidget *rightWidget() const;
 
-    /** \brief Sets the left widget label.
-     * \param[in] label.
+    /** \brief Sets the widget tooltiptext label.
+     * \param[in] label title of the tooltiptext
      */
-    void setLeftLabel (const QString &label)
-    { m_leftLabel  = label; update();}
+    void setLabel (const QString &label)
+    { m_label  = label; update();}
 
-    /** \brief Sets the right widget label.
-     * \param[in] label.
-     */
-    void setRightLabel(const QString &label)
-    {m_rightLabel = label; update();}
 
     virtual SliceSelectorSPtr clone() override;
 
@@ -88,14 +83,18 @@ namespace ESPINA
     };
     void moveEdge(Edge edge);
 
+    QString leftFaceLabel() const;
+
+    QString rightFaceLabel() const;
+
+
   private:
     OrthogonalRegion *m_region;
 
     QPushButton *m_leftWidget;
     QPushButton *m_rightWidget;
 
-    QString m_leftLabel;
-    QString m_rightLabel;
+    QString m_label;
   };
 }// namespace ESPINA
 

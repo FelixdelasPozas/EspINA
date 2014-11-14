@@ -259,10 +259,6 @@ namespace ESPINA
      */
     void spinValueChanged(double value);
 
-//    void selectFromSlice();
-//
-//    void selectToSlice();
-
     virtual void updateChannelsOpacity();
 
   protected:
@@ -438,7 +434,8 @@ namespace ESPINA
     bool m_showThumbnail;
 
     // Slice Selectors
-    QPair<SliceSelectorSPtr, SliceSelectorSPtr> m_sliceSelector;
+    using SliceSelectorPair = QPair<SliceSelectorSPtr, SliceSelectorSPtr>;
+    QList<SliceSelectorPair> m_sliceSelectors;
 
     // Crosshairs
     vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
