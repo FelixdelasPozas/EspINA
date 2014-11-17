@@ -69,8 +69,7 @@ void Analysis::setClassification(ClassificationSPtr classification)
 //------------------------------------------------------------------------
 void Analysis::add(SampleSPtr sample) throw (Existing_Item_Exception)
 {
-  if (m_samples.contains(sample))
-  	throw (Existing_Item_Exception());
+  if (m_samples.contains(sample)) throw (Existing_Item_Exception());
 
   m_samples << sample;
 
@@ -92,12 +91,11 @@ void Analysis::add(SampleSList samples)
 //------------------------------------------------------------------------
 void Analysis::add(ChannelSPtr channel) throw (Existing_Item_Exception)
 {
-  if (m_channels.contains(channel))
-  	throw (Existing_Item_Exception());
+  if (m_channels.contains(channel)) throw (Existing_Item_Exception());
 
   m_channels << channel;
 
-  FilterSPtr filter = channel->filter(); // TODO: What happens when a channel change its output?!
+  FilterSPtr filter = channel->filter();
 
   addIfNotExists(filter);
 

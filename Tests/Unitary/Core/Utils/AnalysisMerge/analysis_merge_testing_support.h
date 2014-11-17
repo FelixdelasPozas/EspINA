@@ -32,8 +32,12 @@ namespace ESPINA {
     : public Filter
     {
     public:
-      explicit DummyFilter(InputSList inputs = InputSList())
-      : Filter(inputs, "Dummy", SchedulerSPtr())
+      explicit DummyFilter(InputSList inputs)
+      : DummyFilter("Dummy", inputs)
+      {}
+
+      explicit DummyFilter(Type type = "Dummy", InputSList inputs = InputSList())
+      : Filter(inputs, type, SchedulerSPtr())
       {
         m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
         m_outputs[0]->setData(DataSPtr{new SparseVolume<itkVolumeType>({0,10,0,10,0,10})});

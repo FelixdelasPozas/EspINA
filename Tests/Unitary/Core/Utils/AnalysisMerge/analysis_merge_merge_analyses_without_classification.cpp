@@ -75,7 +75,23 @@ int analysis_merge_merge_analyses_without_classification( int argc, char** argv 
   analysis2->add(channel2);
   analysis2->add(segmentation2);
 
+  auto analysis1Ptr = analysis1.get();
+  auto analysis2Ptr = analysis2.get();
+
   AnalysisSPtr merged = merge(analysis1, analysis2);
+
+  for(auto item : merged->content()->vertices())
+  {
+    auto filter = dynamic_pointer_cast<Filter>(item);
+    if (filter)
+    {
+      if (filter->analysis() == analysis1Ptr || filter->analysis() == analysis2Ptr)
+      {
+        cerr << "Unexpected filter analysis pointer" << endl;
+        error = true;
+      }
+    }
+  }
 
   if (merged->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
