@@ -67,6 +67,7 @@ namespace ESPINA
      */
     explicit EditionTools(ModelAdapterSPtr model,
                           ModelFactorySPtr factory,
+                          FilterDelegateFactorySPtr     filterDelegateFactory,
                           ViewManagerSPtr  viewManager,
                           QUndoStack      *undoStack,
                           QWidget         *parent = nullptr);

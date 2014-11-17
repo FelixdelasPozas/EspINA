@@ -88,7 +88,7 @@ QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegat
 FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(FilterSPtr filter)
 throw (Unknown_Filter_Type_Exception)
 {
-  if (!(filter->type() == SGS_FILTER || filter->type() == SGS_FILTER_V4)) throw Unknown_Filter_Type_Exception();
+  if (!availableFilterDelegates().contains(filter->type())) throw Unknown_Filter_Type_Exception();
 
   auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
 

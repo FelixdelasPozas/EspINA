@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "MorphologicalEditionTool.h"
+#include "CODEHistory.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -91,27 +92,27 @@ throw (Unknown_Filter_Exception)
 
   if (filter == CLOSE_FILTER || filter == CLOSE_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new CloseFilter{inputs, CLOSE_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<CloseFilter>(inputs, CLOSE_FILTER, scheduler);
   }
   else if (filter == OPEN_FILTER || filter == OPEN_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new OpenFilter{inputs, OPEN_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<OpenFilter>(inputs, OPEN_FILTER, scheduler);
   }
   else if (filter == DILATE_FILTER || filter == DILATE_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new DilateFilter{inputs, DILATE_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<DilateFilter>(inputs, DILATE_FILTER, scheduler);
   }
   else if (filter == ERODE_FILTER || filter == ERODE_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new ErodeFilter{inputs, ERODE_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<ErodeFilter>(inputs, ERODE_FILTER, scheduler);
   }
   else if (filter == FILL_HOLES_FILTER || filter == FILL_HOLES_FILTER_V4)
   {
-    morphologicalFilter = FilterSPtr{new FillHolesFilter{inputs, FILL_HOLES_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<FillHolesFilter>(inputs, FILL_HOLES_FILTER, scheduler);
   }
   else if(filter == IMAGE_LOGIC_FILTER)
   {
-    morphologicalFilter = FilterSPtr{new ImageLogicFilter{inputs, IMAGE_LOGIC_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER, scheduler);
   }
   else
   {
@@ -124,10 +125,55 @@ throw (Unknown_Filter_Exception)
 }
 
 //------------------------------------------------------------------------
-MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
-                                                   ModelFactorySPtr factory,
-                                                   ViewManagerSPtr  viewManager,
-                                                   QUndoStack      *undoStack)
+QList<Filter::Type> MorphologicalEditionTool::MorphologicalFilterFactory::availableFilterDelegates() const
+{
+  QList<Filter::Type> types;
+
+  types << CLOSE_FILTER  << CLOSE_FILTER_V4
+        << OPEN_FILTER   << OPEN_FILTER_V4
+        << DILATE_FILTER << DILATE_FILTER_V4
+        << ERODE_FILTER  << ERODE_FILTER_V4;
+
+  return types;
+}
+
+//------------------------------------------------------------------------
+FilterDelegateSPtr MorphologicalEditionTool::MorphologicalFilterFactory::createDelegate(FilterSPtr filter)
+throw (Unknown_Filter_Type_Exception)
+{
+  QString title;
+
+  auto type = filter->type();
+
+  if (type == CLOSE_FILTER || type == CLOSE_FILTER_V4)
+  {
+    title = tr("Close");
+  }
+  else if (type == OPEN_FILTER || type == OPEN_FILTER_V4)
+  {
+    title = tr("Open");
+  }
+  else if (type == DILATE_FILTER || type == DILATE_FILTER_V4)
+  {
+    title = tr("Dilate");
+  }
+  else if (type == ERODE_FILTER || type == ERODE_FILTER_V4)
+  {
+    title = tr("Erode");
+  }
+
+  auto codeFilter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(filter);
+
+  return std::make_shared<CODEHistory>(title, codeFilter);
+
+}
+
+//------------------------------------------------------------------------
+MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr          model,
+                                                   ModelFactorySPtr          factory,
+                                                   FilterDelegateFactorySPtr filterDelegateFactory,
+                                                   ViewManagerSPtr           viewManager,
+                                                   QUndoStack                *undoStack)
 : m_model        {model}
 , m_factory      {factory}
 , m_viewManager  {viewManager}
@@ -140,6 +186,7 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
 , m_enabled(false)
 {
   m_factory->registerFilterFactory(m_filterFactory);
+  filterDelegateFactory->registerFilterDelegateFactory(m_filterFactory);
 
   m_addition = new QAction(QIcon(":/espina/add.svg"), tr("Merge selected segmentations"), nullptr);
   connect(m_addition, SIGNAL(triggered(bool)),

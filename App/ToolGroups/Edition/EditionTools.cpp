@@ -72,6 +72,7 @@ throw(Unknown_Filter_Exception)
 //-----------------------------------------------------------------------------
 EditionTools::EditionTools(ModelAdapterSPtr model,
                            ModelFactorySPtr factory,
+                           FilterDelegateFactorySPtr     filterDelegateFactory,
                            ViewManagerSPtr  viewManager,
                            QUndoStack      *undoStack,
                            QWidget         *parent)
@@ -91,7 +92,7 @@ EditionTools::EditionTools(ModelAdapterSPtr model,
 
 
   m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
-  m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
+  m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, filterDelegateFactory, viewManager, undoStack));
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
   connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()));

@@ -24,6 +24,7 @@
 // ESPINA
 #include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Filters/MorphologicalEditionFilter.h>
 #include <Filters/FillHolesFilter.h>
@@ -44,17 +45,16 @@ namespace ESPINA
 
     class MorphologicalFilterFactory
     : public FilterFactory
+    , public SpecificFilterDelegateFactory
     {
-   		/** \brief Implements FilterFactory::providedFilters().
-   		 *
-   		 */
       virtual FilterTypeList providedFilters() const;
 
-   		/** \brief Implements FilterFactory::createFilter().
-   		 *
-   		 */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
       throw (Unknown_Filter_Exception);
+
+      virtual QList<Filter::Type> availableFilterDelegates() const;
+
+      virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
       mutable DataFactorySPtr m_fetchBehaviour;
@@ -68,10 +68,11 @@ namespace ESPINA
      * \param[in] undoStack, QUndoStack object raw pointer.
      *
      */
-    MorphologicalEditionTool(ModelAdapterSPtr model,
-                             ModelFactorySPtr factory,
-                             ViewManagerSPtr  viewManager,
-                             QUndoStack      *undoStack);
+    MorphologicalEditionTool(ModelAdapterSPtr          model,
+                             ModelFactorySPtr          factory,
+                             FilterDelegateFactorySPtr filterDelegateFactory,
+                             ViewManagerSPtr           viewManager,
+                             QUndoStack               *undoStack);
 
     /** \brief MorphologicalEditionTools class destructor.
      *
@@ -243,7 +244,7 @@ namespace ESPINA
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
 
-    FilterFactorySPtr m_filterFactory;
+    std::shared_ptr<MorphologicalFilterFactory> m_filterFactory;
 
     CODETool m_close;
     CODETool m_open;

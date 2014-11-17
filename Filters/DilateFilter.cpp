@@ -51,9 +51,8 @@ DilateFilter::~DilateFilter()
 }
 
 //-----------------------------------------------------------------------------
-void DilateFilter::execute(Output::Id id)
+void DilateFilter::execute()
 {
-  Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();

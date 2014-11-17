@@ -296,7 +296,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
 
-  auto editionTools = new EditionTools(m_model, m_factory, m_viewManager, m_undoStack, this);
+  auto editionTools = new EditionTools(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(editionTools);
 
   auto measuresTools = new MeasuresTools(m_viewManager, this);
