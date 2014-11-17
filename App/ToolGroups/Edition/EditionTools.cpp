@@ -24,6 +24,7 @@
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -203,10 +204,13 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
     auto strokeSpacing = output->spacing();
     auto strokeOrigin  = channel->position();
 
-    DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(strokeBounds, strokeSpacing, strokeOrigin)};
+    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(strokeBounds, strokeSpacing, strokeOrigin);
     volume->draw(mask);
 
+    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
+
     filter->addOutputData(0, volume);
+    filter->addOutputData(0, mesh);
 
     segmentation = m_factory->createSegmentation(filter, 0);
     segmentation->setCategory(category);

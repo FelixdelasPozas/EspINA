@@ -358,9 +358,8 @@ void SeedGrowSegmentationFilter::execute()
   auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
   auto spacing = m_inputs[0]->output()->spacing();
 
-  DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(output, bounds, spacing)};
-
-  MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+  auto volume = std::make_shared<SparseVolume<itkVolumeType>>(output, bounds, spacing);
+  auto mesh   = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
 
   if (!m_outputs.contains(0))
   {

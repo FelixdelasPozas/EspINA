@@ -324,13 +324,19 @@ void RenderView::remove(ChannelAdapterPtr channel)
   Q_ASSERT(m_channelStates.contains(channel));
 
   for(auto representation: m_channelStates[channel].representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if (renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         if (repRenderer->hasRepresentation(representation))
+        {
           repRenderer->removeRepresentation(representation);
+        }
       }
+    }
+  }
 
   m_channelStates.remove(channel);
 
@@ -935,7 +941,7 @@ void RenderView::setRenderersState(QMap<QString, bool> state)
 //-----------------------------------------------------------------------------
 void RenderView::changedOutput(ViewItemAdapterPtr item)
 {
-  if(item->type() == ItemAdapter::Type::SEGMENTATION)
+  if(isSegmentation(item))
   {
     updateRepresentation(dynamic_cast<SegmentationAdapterPtr>(item));
   }
