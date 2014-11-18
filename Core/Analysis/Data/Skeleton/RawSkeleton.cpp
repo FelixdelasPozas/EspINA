@@ -40,7 +40,8 @@ namespace ESPINA
   RawSkeleton::RawSkeleton(OutputSPtr output)
   : m_skeleton{nullptr}
   {
-    this->setOutput(output.get());
+    if(output != nullptr)
+      this->setOutput(output.get());
   }
 
   //----------------------------------------------------------------------------

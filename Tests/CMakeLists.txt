@@ -24,6 +24,13 @@ set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
 
+set(EXTERNAL_LIBS_DEPENDENCIES
+  ${QT_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${QUAZIP_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
 # Core
 qt4_add_resources(CORE_RCCS
@@ -80,6 +87,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
 )
 add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
+target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Filters
@@ -90,6 +98,7 @@ set (FILTERS_SOURCES
   ${FILTERS_DIR}/VolumetricStreamReader.cpp
 )
 add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})
+target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Extensions
@@ -97,6 +106,7 @@ set (EXTENSIONS_SOURCES
   ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
 )
 add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
+target_link_libraries(EspinaExtensionsTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # GUI
@@ -124,19 +134,18 @@ set (GUI_SOURCES
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
 )
-
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
+target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Testing
 set (TESTING_SOURCES
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
+  MeshTestingUtils.cpp
   Testing_Support.cpp
 )
-
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})
-
 
 set(TESTING_DEPENDECIES
   EspinaCoreTesting
@@ -144,6 +153,7 @@ set(TESTING_DEPENDECIES
   EspinaFiltersTesting
   EspinaGUITesting
   EspinaTesting
+  ${EXTERNAL_LIBS_DEPENDENCIES}
   )
 
 if (BUILD_UNIT_TESTS)

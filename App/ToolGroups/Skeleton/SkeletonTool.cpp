@@ -320,13 +320,12 @@ namespace ESPINA
     else
     {
       auto spacing = m_vm->activeChannel()->output()->spacing();
-      auto adapter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-      auto filter  = adapter->get();
+      auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
       auto output = OutputSPtr(new Output(filter.get(), 0));
       output->setData(SkeletonDataSPtr{ new RawSkeleton{m_skeleton, spacing, output}});
 
       filter->addOutput(0, output);
-      auto segmentation = m_factory->createSegmentation(adapter, 0);
+      auto segmentation = m_factory->createSegmentation(filter, 0);
       auto category = m_categorySelector->selectedCategory();
       Q_ASSERT(category);
 

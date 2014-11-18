@@ -26,84 +26,81 @@
  * 
  */
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
 #include "Tests/Testing_Support.h"
 
-#include <vtkSmartPointer.h>
+#include <Core/Analysis/Data/Mesh/RawMesh.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
+
+#include "MeshTestingUtils.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
+using namespace ESPINA::PolyDataUtils;
 
-int sparse_volume_save_edited_regions( int argc, char** argv )
+int raw_mesh_save_edited_regions( int argc, char** argv )
 {
   bool error = false;
 
-  itkVolumeType::PixelType fg = 75;
-
   Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
-  SparseVolume<itkVolumeType> canvas(bounds);
 
-  if (!canvas.editedRegions().isEmpty()) {
-    cerr << "Empty spare volume shouldn't have edited regions " << endl;
+  RawMesh rawMesh;
+  if (!rawMesh.editedRegions().isEmpty()) {
+    cerr << "Empty raw mesh shouldn't have edited regions " << endl;
     error = true;
   }
 
-  Bounds regions[] = {{-0.5,1.5,-0.5,3.5,-0.5,0.5},
-                     {-0.5,3.5,-0.5,1.5,2.5,3.5}};
+  auto mesh = createTriangleMesh();
 
-  canvas.draw(regions[0], fg);
+  rawMesh.setMesh(mesh);
 
-  if (canvas.editedRegions().size() != 1) {
-    cerr << "Unxexpected number of edited regions " << endl;
+  if (rawMesh.mesh() != mesh)
+  {
+    cerr << "Unexpected mesh polydata" << endl;
     error = true;
   }
 
-  canvas.draw(regions[1], fg);
-
-  if (canvas.editedRegions().size() != 2) {
-    cerr << "Unxexpected number of edited regions " << endl;
+  if (rawMesh.editedRegions().size() != 1)
+  {
+    cerr << "Unexpected number of edited regions" << endl;
     error = true;
   }
   else
   {
-    for (int i = 0; i < canvas.editedRegions().size(); ++i) {
-      auto editedRegion = canvas.editedRegions().at(i);
+    auto editedRegion = rawMesh.editedRegions().first();
 
-      if (editedRegion != regions[i])
-      {
-        cerr << "Unxexpected edited region " << editedRegion << " differs from " << regions[i] << endl;
-        error = true;
-      }
+    if (editedRegion != rawMesh.bounds())
+    {
+      cerr << "Unexpected edited region " << editedRegion << " differs from " << rawMesh.bounds() << endl;
+      error = true;
     }
 
     TemporalStorageSPtr storage{new TemporalStorage()};
 
-    auto editedRegionSnapshots = canvas.editedRegionsSnapshot(storage, "sparse", "0");
+    auto editedRegionSnapshots = rawMesh.editedRegionsSnapshot(storage, "testing", "0");
 
-    if (editedRegionSnapshots.size() != 4)
+    if (editedRegionSnapshots.size() != 1)
     {
-      cerr << "Unxexpected number of edited regions snapshots" << endl;
+      cerr << "Unexpected number of edited regions snapshots" << endl;
       error = true;
     }
-
-    for (int i = 0; i < 2; ++i)
+    else
     {
-      storage->saveSnapshot(editedRegionSnapshots[2*i  ]);
-      storage->saveSnapshot(editedRegionSnapshots[2*i+1]);
+      auto snapshot = editedRegionSnapshots.first();
+      storage->saveSnapshot(snapshot);
 
-      auto filename     = storage->absoluteFilePath(editedRegionSnapshots[2*i].first);
-      auto editedVolume = readVolume<itkVolumeType>(filename);
-      auto editedBounds = equivalentBounds<itkVolumeType>(editedVolume, editedVolume->GetLargestPossibleRegion());
+      auto filename     = storage->absoluteFilePath(snapshot.first);
+      auto editedMesh   = readPolyDataFromFile(filename);
 
-      if (regions[i] != editedBounds)
+      if (editedMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints())
       {
-        cerr << "Unxexpected edited volume bounds " << editedBounds << " differs from " << regions[i] << endl;
+        cerr << "Unexpected number of edited region points" << endl;
         error = true;
       }
 
-      if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(editedVolume, fg)) {
-        cerr << "Unexepected loaded voxel values" << endl;
+      if (editedMesh->GetNumberOfCells() != mesh->GetNumberOfCells())
+      {
+        cerr << "Unexpected number of edited region cells" << endl;
         error = true;
       }
     }

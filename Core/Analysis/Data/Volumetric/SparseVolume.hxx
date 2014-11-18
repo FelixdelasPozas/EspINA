@@ -721,7 +721,7 @@ namespace ESPINA
     bool error       = false;
 
     int i = 0;
-    QFileInfo blockFile(storage->absoluteFilePath(path + multiBlockPath(id, i)));
+    QFileInfo blockFile;
 
     for (auto filename : {multiBlockPath(id, i),
                           singleBlockPath(id),

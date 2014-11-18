@@ -70,6 +70,10 @@ namespace ESPINA
      */
     virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
 
+    /** \brief Replace current mesh data with mesh
+     *
+     */
+    virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
   };
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;

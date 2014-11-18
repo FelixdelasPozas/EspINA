@@ -768,6 +768,7 @@ void vtkCountingFrame3DRepresentation::SetInteractionState(int state)
       this->HighlightMargin(nullptr);
 //       this->HighlightHandle(nullptr);
 //       this->HighlightFace(-1);
+      break;
     }
 }
 

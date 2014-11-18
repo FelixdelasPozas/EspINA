@@ -147,7 +147,6 @@ namespace ESPINA
     ViewManagerSPtr       m_viewManager;
     QUndoStack           *m_undoStack;
 
-    ViewManagerSPtr       m_viewManager;
     ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;

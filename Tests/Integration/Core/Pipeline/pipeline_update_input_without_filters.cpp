@@ -32,25 +32,17 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Filters/DilateFilter.h>
+#include <testing_support_channel_input.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
-
-#include "Tests/testing_support_channel_input.h"
-#include "Tests/Testing_Support.h"
-
-#include <itkImageConstIterator.h>
 
 using namespace std;
 using namespace ESPINA;
-using namespace ESPINA::Testing;
 using namespace ESPINA::IO;
 
-using ConstIterator = itk::ImageRegionConstIterator<itkVolumeType>;
-
-int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** argv )
+int pipeline_update_input( int argc, char** argv )
 {
   class TestFilterFactory
   : public FilterFactory
@@ -58,34 +50,17 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
     virtual FilterTypeList providedFilters() const
     {
       FilterTypeList list;
-      list << "DummyChannelReader" << "SGS" << "Dilate";
+      list << "SGS" << "DILATE";
       return list;
     }
 
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
-      FilterSPtr filter;
-
-      if (type == "DummyChannelReader") {
-        filter = FilterSPtr{new DummyChannelReader()};
+      if (type == "SGS") {
+        FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
+        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
+        return filter;
       }
-      else
-      {
-        if (type == "SGS")
-        {
-          filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        }
-        else if (type == "Dilate")
-        {
-          filter = FilterSPtr{new DilateFilter(inputs, type, scheduler)};
-        } else
-        {
-          Q_ASSERT(false);
-        }
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
-      }
-
-      return filter;
     }
   };
 
@@ -103,7 +78,7 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
   SampleSPtr sample{new Sample("C3P0")};
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(channelInput()));
+  ChannelSPtr channel(new Channel(Testing::channelInput()));
   channel->setName("channel");
 
   analysis.add(channel);
@@ -113,33 +88,10 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
   InputSList inputs;
   inputs << channel->asInput();
 
-  SchedulerSPtr scheduler;
+  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
+  segFilter->update();
 
-  FilterSPtr sgs{new SeedGrowSegmentationFilter(inputs, "SGS", scheduler)};
-  sgs->update();
-
-  auto sgsVolume = volumetricData(sgs->output(0));
-
-  Bounds modificationBounds{0,1,0,2,0,3};
-
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_VOXEL_VALUE))
-  {
-    cerr << "Unexpeceted non seg voxel value found" << endl;
-    error = true;
-  }
-
-  sgsVolume->draw(modificationBounds, SEG_BG_VALUE);
-
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(sgsVolume->itkImage(modificationBounds), SEG_BG_VALUE))
-  {
-    cerr << "Unexpeceted non bg voxel value found" << endl;
-    error = true;
-  }
-
-  FilterSPtr dilate{new DilateFilter(getInputs(sgs), "Dilate", scheduler)};
-  dilate->update();
-
-  SegmentationSPtr segmentation(new Segmentation(getInput(dilate, 0)));
+  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
@@ -148,7 +100,7 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception &e) {
+  catch (SegFile::IO_Error_Exception e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -164,58 +116,29 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
   }
 
   auto loadedSegmentation = analysis2->segmentations().first();
-  auto loadedDilateOuptut = loadedSegmentation->output();
-  auto loadedDilateVolume = volumetricData(loadedDilateOuptut);
+  auto loadedOuptut       = loadedSegmentation->output();
+  auto volume             = volumetricData(loadedOuptut);
 
-  if (loadedDilateVolume->editedRegions().size() != 0)
+  if (volume->editedRegions().size() != 0)
   {
-    cerr << "Unexpeceted number of Dilate edited regions" << endl;
+    cerr << "Unexpeceted number of edited regions" << endl;
     error = true;
   }
 
   TemporalStorageSPtr tmpStorage(new TemporalStorage());
-  for (auto snapshot : loadedDilateVolume->snapshot(tmpStorage, "segmentation", "1"))
+  for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
   {
     if (snapshot.first.contains("EditedRegion"))
     {
-      cerr << "Unexpected Dilate edited region found" << snapshot.first.toStdString() << endl;
+      cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
       error = true;
     }
   }
 
-  auto loadedDilateFilter = dynamic_cast<DilateFilter*>(loadedDilateOuptut->filter());
-  if (!loadedDilateFilter)
+  auto loadedFilter = dynamic_cast<SeedGrowSegmentationFilter*>(loadedOuptut->filter());
+  if (!loadedFilter)
   {
-    cerr << "Couldn't recover Dilate filter" << endl;
-    error = true;
-  }
-
-  auto loadedSGSOutput = loadedDilateFilter->inputs().first()->output();
-  auto loadedSGSVolume = volumetricData(loadedSGSOutput);
-
-  if (!Testing_Support<itkVolumeType>::Test_Pixel_Values(loadedSGSVolume->itkImage(modificationBounds), SEG_BG_VALUE))
-  {
-    cerr << "Unexpeceted non bg voxel value found" << endl;
-    error = true;
-  }
-
-  if (loadedSGSVolume->editedRegions().size() != 1)
-  {
-    cerr << "Unexpeceted number of SGS edited regions" << endl;
-    error = true;
-  }
-
-  bool editedRegionSnapshotFound = false;
-  for (auto snapshot : loadedSGSVolume->editedRegionsSnapshot(tmpStorage, "segmentation", "1"))
-  {
-    if (snapshot.first.contains("EditedRegion"))
-    {
-      editedRegionSnapshotFound = true;
-    }
-  }
-  if (!editedRegionSnapshotFound)
-  {
-    cerr << "SGS edited region not found" << endl;
+    cerr << "Couldn't recover SGS filter" << endl;
     error = true;
   }
 

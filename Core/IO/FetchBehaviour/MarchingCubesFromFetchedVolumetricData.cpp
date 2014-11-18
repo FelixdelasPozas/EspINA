@@ -36,19 +36,15 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr outp
   {
     data = DataSPtr{ new RawMesh()};
     data->setOutput(output.get());
-    if (data->fetchData(storage, path, QString::number(output->id())))
-    {
-      output->setData(data);
-    }
-    else
+    if (!data->fetchData(storage, path, QString::number(output->id())))
     {
       auto volume = fetchVolumetricData(output, storage, path);
       if (volume)
       {
         data = DataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
-        output->setData(data);
       }
     }
+    output->setData(data);
   }
 
   return data;
@@ -63,13 +59,13 @@ ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchV
   {
     auto data = DataSPtr { new SparseVolume<itkVolumeType>() };
     data->setOutput(output.get());
-    if (data->fetchData(storage, path, QString::number(output->id())))
-    {
-      output->setData(data);
-    }
+    data->fetchData(storage, path, QString::number(output->id()));
+    output->setData(data);
   }
 
-  volume = volumetricData(output);
+  auto outputData = output->data(VolumetricData<itkVolumeType>::TYPE);
+  volume = std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(outputData);
+  //volume = volumetricData(output);
 
   return volume;
 }
