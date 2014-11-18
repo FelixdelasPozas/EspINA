@@ -44,20 +44,7 @@ void Data::setFetchContext(const TemporalStorageSPtr storage, const QString& pat
 }
 
 //----------------------------------------------------------------------------
-void Data::update()
+QList<Data::Type> Data::dependencies() const
 {
-  //QMutexLocker lock(&m_mutex);
-  if (!isValid())
-  {
-    BoundsList prevEditedRegions = editedRegions();
-
-    if (fetchData())
-    {
-      setEditedRegions(prevEditedRegions);
-    }
-    else
-    {
-      m_output->filter()->update();
-    }
-  }
+  return updateDependencies();
 }

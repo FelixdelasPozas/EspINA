@@ -38,7 +38,7 @@ namespace ESPINA {
       virtual State state() const                   override {return State();}
 
     protected:
-    virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
+      virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
       virtual bool needUpdate() const               override {return false;}
       virtual void execute()                        override {}
       virtual bool ignoreStorageContent() const     override {return false;}
@@ -62,6 +62,10 @@ namespace ESPINA {
     virtual DataSPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
     virtual void undo() {};
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const
+    { return QList<Data::Type>(); }
   };
 
   using DummyDataSPtr = std::shared_ptr<DummyData>;

@@ -394,6 +394,10 @@ namespace ESPINA
     QString oldMultiBlockPath(const QString &id, int part) const
     { return QString("%1_%2_%3.mhd").arg(this->type()).arg(id).arg(part); }
 
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
+
+
   protected:
     mutable
     BlockList    m_blocks;

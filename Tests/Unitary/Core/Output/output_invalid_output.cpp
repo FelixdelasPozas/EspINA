@@ -51,6 +51,10 @@ public:
   virtual size_t memoryUsage() const { return 0; }
   virtual bool isEmpty() const { return true; }
   virtual void undo() {}
+
+private:
+  virtual QList<Data::Type> updateDependencies() const
+  { return QList<Data::Type>(); }
 };
 
 using InvalidDataSPtr = std::shared_ptr<InvalidData>;

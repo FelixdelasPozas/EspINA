@@ -74,7 +74,7 @@ namespace ESPINA
     /** \brief Output class destructor.
      *
      */
-    virtual ~Output();
+    virtual ~Output() override;
 
     /** \brief Returns the filter owner of this output.
      *
@@ -152,10 +152,15 @@ namespace ESPINA
      */
     unsigned int numberOfDatas() const;
 
-    /** \brief Request necessary pipeline execution to update this output.
+    /** \brief Request necessary pipeline execution to update output data
      *
      */
     void update();
+
+    /** \brief Request necessary pipeline execution to update output data of given type
+     *
+     */
+    void update(const Data::Type &type);
 
     /** \brief Returns the bounds of the output.
      *
@@ -163,7 +168,7 @@ namespace ESPINA
      * this function will be needed to represent the bounding box of all those regions
      *
      */
-    virtual Bounds bounds() const;
+    Bounds bounds() const;
 
     /** \brief Returns the time stamp of the last modification.
      *
@@ -177,7 +182,7 @@ namespace ESPINA
     void updateModificationTime()
     { m_timeStamp = s_tick++; }
 
-  protected slots:
+  private slots:
     /** \brief Emits modification signal for this object.
      *
      */
@@ -187,7 +192,6 @@ namespace ESPINA
      *
      */
     bool isSegmentationOutput() const;
-
 
   signals:
     void modified();
@@ -208,6 +212,21 @@ namespace ESPINA
   };
 
   using OutputIdList = QList<Output::Id>;
+
+  template <class T>
+  std::shared_ptr<T> EspinaCore_EXPORT outputData(OutputSPtr output, DataUpdatePolicy policy) {
+    auto type = T::TYPE;
+
+    if (policy == DataUpdatePolicy::Request)
+    {
+      output->update(type);
+    }
+
+    auto data = output->data(type);
+
+    return std::dynamic_pointer_cast<T>(data);
+  }
+
 } // namespace ESPINA
 
 #endif // ESPINA_OUTPUT_H

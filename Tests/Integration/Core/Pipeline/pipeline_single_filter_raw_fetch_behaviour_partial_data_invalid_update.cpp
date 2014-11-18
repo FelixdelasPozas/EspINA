@@ -170,9 +170,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
       error = true;
     }
 
-    data->update();
-
-    auto mesh = std::dynamic_pointer_cast<MeshData>(data);
+    auto mesh = meshData(loadedOuptut);
     if (mesh->isValid())
     {
       cerr << "Expected invalid mesh data" << endl;

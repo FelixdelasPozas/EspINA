@@ -108,6 +108,10 @@ namespace ESPINA
     virtual bool fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const;
 
   private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
+
+  private:
     vtkSmartPointer<vtkPolyData> m_mesh;
   };
 

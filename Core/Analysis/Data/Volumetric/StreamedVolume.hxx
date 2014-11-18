@@ -149,9 +149,11 @@ namespace ESPINA {
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
     {}
 
-
-  protected:
+  private:
     typedef itk::ImageRegionIterator<T> ImageIterator;
+
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
 
   private:
     NmVector3 m_origin;

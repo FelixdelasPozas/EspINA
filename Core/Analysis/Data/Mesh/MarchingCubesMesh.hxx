@@ -66,15 +66,6 @@ namespace ESPINA
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
 
-    virtual void update()
-    {
-      if (!m_volume->isValid())
-      {
-        m_volume->update();
-      }
-      Data::update();
-    }
-
     virtual bool isValid() const
     {
       return m_volume->isValid();
@@ -108,6 +99,8 @@ namespace ESPINA
      *
      */
     void updateMesh();
+
+    virtual QList<Data::Type> updateDependencies() const override;
 
     VolumetricDataSPtr<T> m_volume;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
@@ -260,6 +253,17 @@ namespace ESPINA
 
     m_lastVolumeModification = m_volume->lastModified();
     updateModificationTime();
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  QList<Data::Type> MarchingCubesMesh<T>::updateDependencies() const
+  {
+    QList<Data::Type> types;
+
+    types << VolumetricData<itkVolumeType>::TYPE;
+
+    return types;
   }
 
 } // namespace ESPINA

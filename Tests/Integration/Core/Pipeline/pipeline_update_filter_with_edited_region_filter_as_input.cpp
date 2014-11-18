@@ -146,10 +146,12 @@ int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** a
   analysis.add(segmentation);
 
   QFileInfo file("analysis.seg");
-  try {
+  try
+  {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception e)
+  {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

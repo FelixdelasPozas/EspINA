@@ -60,9 +60,6 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual void update()
-    { m_data->update(); }
-
     virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
     { return std::dynamic_pointer_cast<MeshData>(proxy); }
 
@@ -118,6 +115,10 @@ namespace ESPINA
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
     { m_data->setMesh(mesh); }
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return m_data->dependencies(); }
 
   private:
     MeshDataSPtr m_data;

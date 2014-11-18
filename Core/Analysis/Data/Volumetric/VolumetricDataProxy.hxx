@@ -63,12 +63,6 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual void update() override
-    {
-      QWriteLocker lock(&m_lock);
-      m_data->update();
-    }
-
     virtual DataSPtr dynamicCast(DataProxySPtr proxy) const override
     { return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(proxy); }
 
@@ -252,6 +246,11 @@ namespace ESPINA
       //QWriteLocker lock(&m_lock);
       return m_data->restoreEditedRegions(storage, path, id);
     }
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return m_data->dependencies(); }
+
 
   private:
     mutable QReadWriteLock             m_lock;

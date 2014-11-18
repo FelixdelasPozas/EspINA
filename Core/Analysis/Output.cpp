@@ -263,9 +263,45 @@ void Output::update()
 {
   for (auto data : m_data)
   {
-    data->update();
+    if (!data->isValid())
+    {
+      update(data->type());
+    }
   }
 }
+
+//----------------------------------------------------------------------------
+void Output::update(const Data::Type &type)
+{
+  auto requestedData = data(type);
+
+  if (!requestedData->isValid())
+  {
+    BoundsList editedRegions = requestedData->editedRegions();
+
+    if (requestedData->fetchData())
+    {
+      requestedData->setEditedRegions(editedRegions);
+    }
+    else
+    {
+      auto dependencies = requestedData->dependencies();
+
+      for (auto dependencyType : dependencies)
+      {
+        update(dependencyType);
+      }
+
+      auto currentData = data(type);
+      if (dependencies.isEmpty() || requestedData == currentData)
+      {
+        m_filter->update();
+      }
+    }
+  }
+}
+
+
 
 //----------------------------------------------------------------------------
 bool Output::isSegmentationOutput() const

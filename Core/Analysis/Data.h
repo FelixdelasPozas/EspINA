@@ -82,10 +82,11 @@ namespace ESPINA
     void setOutput(OutputPtr output)
     { m_output = output; }
 
-    /** \brief Updates data contents
+    /** \brief Returns the list of data types on which this
+     *         data type relies on
      *
      */
-    virtual void update();
+    QList<Data::Type> dependencies() const;
 
     /** \brief Returns the time stamp of the last modification to the data.
      *
@@ -216,6 +217,13 @@ namespace ESPINA
 
     void addEditedRegion(const Bounds &bounds)
     { m_editedRegions << bounds; }
+
+  private:
+    /** \brief Returns the list of data types on which this
+     *         data type relies on
+     *
+     */
+    virtual QList<Data::Type> updateDependencies() const = 0;
 
   protected:
     OutputPtr  m_output;

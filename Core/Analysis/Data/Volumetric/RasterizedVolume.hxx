@@ -98,6 +98,9 @@ namespace ESPINA
      */
     void rasterize() const;
 
+    virtual QList<Data::Type> updateDependencies() const override;
+
+
     vtkSmartPointer<vtkPolyData> m_mesh;
     mutable unsigned long int    m_rasterizationTime;
     mutable QMutex               m_mutex;
@@ -222,6 +225,17 @@ namespace ESPINA
       rasterize();
 
     return SparseVolume<T>::isEmpty();
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  QList<Data::Type> RasterizedVolume<T>::updateDependencies() const
+  {
+    QList<Data::Type> types;
+
+    types << MeshData::TYPE;
+
+    return types;
   }
 
   //----------------------------------------------------------------------------
