@@ -27,7 +27,7 @@
 // ESPINA
 #include "SegFileInterface.h"
 #include <Core/Analysis/Output.h>
-#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Analysis/DataFactory.h>
 
 namespace ESPINA {
 
@@ -143,7 +143,7 @@ namespace ESPINA {
           QuaZip                 &m_zip;
           CoreFactorySPtr         m_factory;
           ErrorHandlerSPtr        m_handler;
-          DataFactorySPtr      m_fetchBehaviour;
+          DataFactorySPtr         m_dataFactory;
 
           AnalysisSPtr            m_analysis;
           TemporalStorageSPtr     m_storage;

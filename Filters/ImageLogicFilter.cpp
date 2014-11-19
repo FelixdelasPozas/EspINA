@@ -108,7 +108,7 @@ void ImageLogicFilter::addition()
   emit progress(50);
   if (!canExecute()) return;
 
-  auto outputVolume = new SparseVolume<itkVolumeType>{boundingBounds, spacing};
+  auto volume = std::make_shared<SparseVolume<itkVolumeType>>(boundingBounds, spacing);
 
   for(auto input: m_inputs)
   {
@@ -133,16 +133,15 @@ void ImageLogicFilter::addition()
       ++mit;
     }
 
-    outputVolume->draw(mask, mask->foregroundValue());
+    volume->draw(mask, mask->foregroundValue());
   }
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr{new Output(this, 0, spacing)};
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
-  
-  DefaultVolumetricDataSPtr volume{outputVolume};
-  MeshDataSPtr              mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
 
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(mesh);

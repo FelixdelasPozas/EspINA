@@ -34,7 +34,7 @@
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/ReplaceOutputCommand.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 
 // Qt
 #include <QAction>

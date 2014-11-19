@@ -32,7 +32,7 @@ DataSPtr FetchRawData::createData(OutputSPtr output, TemporalStorageSPtr storage
   {
     if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
     {
-      data = DataSPtr{new SparseVolume<itkVolumeType>()};
+      data = std::make_shared<SparseVolume<itkVolumeType>>();
       data->setFetchContext(storage, path, QString::number(output->id()));
       output->setData(data);
     }
@@ -41,7 +41,7 @@ DataSPtr FetchRawData::createData(OutputSPtr output, TemporalStorageSPtr storage
   {
     if (!output->hasData(MeshData::TYPE))
     {
-      data = DataSPtr{new RawMesh()};
+      data = std::make_shared<RawMesh>();
       data->setFetchContext(storage, path, QString::number(output->id()));
       output->setData(data);
     }

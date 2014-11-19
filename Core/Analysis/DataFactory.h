@@ -39,13 +39,13 @@
 
 namespace ESPINA {
 
-  class EspinaCore_EXPORT FetchBehaviour
+  class EspinaCore_EXPORT DataFactory
   {
   public:
-    /** \brief Class FetchBehaviour class virtual destructor.
+    /** \brief Class DataFactory class virtual destructor.
      *
      */
-    virtual ~FetchBehaviour()
+    virtual ~DataFactory()
     {};
 
     /** \brief Loads the data from disk and set the data into the given output.
@@ -59,7 +59,7 @@ namespace ESPINA {
     virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) = 0;
   };
 
-  using DataFactorySPtr = std::shared_ptr<FetchBehaviour>;
+  using DataFactorySPtr = std::shared_ptr<DataFactory>;
 }
 
 #endif // ESPINA_NEURO_ITEM_H

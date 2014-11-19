@@ -62,9 +62,9 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
-  ${CORE_DIR}/IO/FetchBehaviour/FetchRawData.cpp
-  ${CORE_DIR}/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
-  ${CORE_DIR}/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.cpp
+  ${CORE_DIR}/IO/DataFactory/FetchRawData.cpp
+  ${CORE_DIR}/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
+  ${CORE_DIR}/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
   ${CORE_DIR}/IO/ReadOnlySegmentationExtension.cpp
@@ -136,7 +136,7 @@ qt4_wrap_cpp(PLUGIN_MOCS
 set (PLUGIN_SOURCES
   ${PLUGIN_MOCS}
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
-  ${PLUGINS_DIR}/AppositionSurface/Filter/SASFetchBehaviour.cpp
+  ${PLUGINS_DIR}/AppositionSurface/Filter/SASDataFactory.cpp
 )
 
 add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})

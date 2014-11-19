@@ -22,7 +22,7 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/DataFactory/FetchRawData.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -201,29 +201,27 @@ void Filter::restoreEditedRegions()
           }
           else if (isDataSection(xml) && output)
           {
-            if (data)
-            {
-              data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
-            }
             data = output->data(parseDataType(xml));
-            if (data)
-            {
-              data->clearEditedRegions();
-            }
+
+            Q_ASSERT(data);
+
+            editedRegions.clear();
           }
           else if (isEditedRegionSection(xml) && output)
           {
-            if (data)
-            {
-              editedRegions << parseEditedRegionsBounds(xml);
-              data->setEditedRegions(editedRegions);
-            }
+            Q_ASSERT(data);
+            editedRegions << parseEditedRegionsBounds(xml);
           }
         }
-      }
-      if (data)
-      {
-        data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
+        else if (xml.isEndElement())
+        {
+          if (isDataSection(xml))
+          {
+            Q_ASSERT(data);
+            data->setEditedRegions(editedRegions);
+            data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
+          }
+        }
       }
     }
   }
@@ -263,6 +261,7 @@ bool Filter::restorePreviousOutputs() const
 
       OutputSPtr output;
       DataSPtr   data;
+      BoundsList editedRegions;
 
       while (!xml.atEnd())
       {
@@ -284,7 +283,20 @@ bool Filter::restorePreviousOutputs() const
             {
               // TODO: Create ReadOnlyData to preserve data information in further savings
             }
-            data->clearEditedRegions();
+            editedRegions.clear();
+          }
+          else if (isEditedRegionSection(xml) && output)
+          {
+            Q_ASSERT(data);
+            editedRegions << parseEditedRegionsBounds(xml);
+          }
+        }
+        else if (xml.isEndElement())
+        {
+          if (isDataSection(xml))
+          {
+            Q_ASSERT(data);
+            data->setEditedRegions(editedRegions);
           }
         }
       }

@@ -29,7 +29,7 @@
 #include <Core/Analysis/Extension.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Output.h>
-#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Analysis/DataFactory.h>
 
 namespace ESPINA {
 
@@ -161,7 +161,7 @@ namespace ESPINA {
           ErrorHandlerSPtr        m_handler;
           AnalysisSPtr            m_analysis;
           TemporalStorageSPtr     m_storage;
-          DataFactorySPtr      m_fetchBehaviour;
+          DataFactorySPtr         m_dataFactory;
           DirectedGraphSPtr       m_content;
           DirectedGraph::Vertices m_loadedVertices;
         };

@@ -30,7 +30,7 @@
 #include <Support/ViewManager.h>
 #include <Support/Plugin.h>
 #include <Core/Analysis/Input.h>
-#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Analysis/DataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/EspinaTypes.h>
 

@@ -25,7 +25,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -61,12 +61,12 @@ throw(Unknown_Filter_Exception)
 
   auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
 
-  if (!m_fetchBehaviour)
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
   }
 
-  ffsFilter->setDataFactory(m_fetchBehaviour);
+  ffsFilter->setDataFactory(m_dataFactory);
 
   return ffsFilter;
 }

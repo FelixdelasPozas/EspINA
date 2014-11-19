@@ -50,7 +50,7 @@ using namespace ESPINA::IO;
 
 using ConstIterator = itk::ImageRegionConstIterator<itkVolumeType>;
 
-int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** argv)
+int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char** argv)
 {
   class TestFilterFactory
   : public FilterFactory
@@ -156,29 +156,76 @@ int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** a
     error = true;
   }
 
-  AnalysisSPtr analysis2;
+  AnalysisSPtr loadedAnalysis;
   try
   {
-   analysis2 = SegFile::load(file, factory);
+   loadedAnalysis = SegFile::load(file, factory);
   } catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
     error = true;
   }
 
-  auto loadedSegmentation = analysis2->segmentations().first();
-  auto loadedDilateOuptut = loadedSegmentation->output();
-  auto loadedDilateFilter = dynamic_cast<DilateFilter*>(loadedDilateOuptut->filter());
-  if (!loadedDilateFilter)
+  QFileInfo file2("analysis2.seg");
+  try
+  {
+    SegFile::save(loadedAnalysis.get(), file2);
+  }
+  catch (SegFile::IO_Error_Exception e)
+  {
+    cerr << "Couldn't save seg file" << endl;
+    error = true;
+  }
+
+  AnalysisSPtr reloadedAnalysis;
+  try
+  {
+   reloadedAnalysis = SegFile::load(file2, factory);
+  } catch (...)
+  {
+    cerr << "Couldn't load seg file" << endl;
+    error = true;
+  }
+
+  auto reloadedSegmentation = reloadedAnalysis->segmentations().first();
+  auto reloadedDilateOuptut = reloadedSegmentation->output();
+  auto reloadedDilateFilter = dynamic_cast<DilateFilter*>(reloadedDilateOuptut->filter());
+  if (!reloadedDilateFilter)
   {
     cerr << "Couldn't recover Dilate filter" << endl;
     error = true;
   }
 
-  loadedDilateFilter->setRadius(2);
-  loadedDilateFilter->update();
+  auto reloadedSGSFilter = dynamic_cast<SeedGrowSegmentationFilter *>(reloadedDilateFilter->inputs().first()->filter().get());
+  if (!reloadedSGSFilter)
+  {
+    cerr << "Couldn't recover SGS filter" << endl;
+    error = true;
+  }
 
-  file.absoluteDir().remove(file.fileName());
+  auto reloadedSGSOuptut = reloadedSGSFilter->output(0);
+
+  if (!hasVolumetricData(reloadedSGSOuptut))
+  {
+    cerr << "Couldn't recover SGS output" << endl;
+    error = true;
+  }
+  else
+  {
+    auto volume = volumetricData(reloadedSGSOuptut);
+
+    if (volume->editedRegions().isEmpty())
+    {
+      cerr << "Unexpeceted number of edited regions" << endl;
+      error = true;
+    }
+  }
+
+  reloadedDilateFilter->setRadius(2);
+  reloadedDilateFilter->update();
+
+  file.absoluteDir().remove(file .fileName());
+  file.absoluteDir().remove(file2.fileName());
 
   return error;
 }

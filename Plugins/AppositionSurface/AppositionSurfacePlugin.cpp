@@ -21,7 +21,7 @@
 // plugin
 #include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
-#include <Filter/SASFetchBehaviour.h>
+#include <Filter/SASDataFactory.h>
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceToolGroup.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
@@ -32,7 +32,7 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
-#include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
+#include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
@@ -75,7 +75,7 @@ throw (Unknown_Filter_Exception)
 
   auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
 
-  filter->setDataFactory(std::make_shared<SASFetchBehaviour>());
+  filter->setDataFactory(std::make_shared<SASDataFactory>());
 
   return filter;
 }

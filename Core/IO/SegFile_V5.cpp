@@ -35,7 +35,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/DataFactory/FetchRawData.h>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -68,11 +68,11 @@ QByteArray formatInfo()
 
 //-----------------------------------------------------------------------------
 SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
-: m_zip           (zip)
-, m_factory       {factory}
-, m_handler       {handler}
-, m_analysis      {new Analysis()}
-, m_fetchBehaviour{new FetchRawData()}
+: m_zip        {zip}
+, m_factory    {factory}
+, m_handler    {handler}
+, m_analysis   {new Analysis()}
+, m_dataFactory{new FetchRawData()}
 {
 }
 
@@ -196,7 +196,7 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   catch (const CoreFactory::Unknown_Type_Exception &e)
   {
     filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
-    filter->setDataFactory(m_fetchBehaviour);
+    filter->setDataFactory(m_dataFactory);
   }
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());

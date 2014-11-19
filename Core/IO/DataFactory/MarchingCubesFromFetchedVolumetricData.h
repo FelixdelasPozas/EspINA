@@ -21,13 +21,13 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Analysis/DataFactory.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
   class EspinaCore_EXPORT MarchingCubesFromFetchedVolumetricData
-  : public FetchBehaviour
+  : public DataFactory
   {
   public:
     virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;

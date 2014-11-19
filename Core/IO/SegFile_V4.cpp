@@ -30,7 +30,7 @@
 #include "Core/Analysis/Query.h"
 #include "Core/Factory/CoreFactory.h"
 #include "Core/IO/SegFile.h"
-#include "Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h"
+#include "Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h"
 #include "Core/IO/ClassificationXML.h"
 #include "Core/IO/ReadOnlyFilter.h"
 #include "Core/Utils/TemporalStorage.h"
@@ -51,8 +51,7 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 : m_zip(zip)
 , m_factory(factory)
 , m_handler(handler)
-//, m_fetchBehaviour{new FetchRawData()}
-, m_fetchBehaviour{new MarchingCubesFromFetchedVolumetricData()}
+, m_dataFactory{new MarchingCubesFromFetchedVolumetricData()}
 , m_analysis{new Analysis()}
 {
 }
@@ -179,7 +178,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
   catch (...)
   {
     filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
-    filter->setDataFactory(m_fetchBehaviour);
+    filter->setDataFactory(m_dataFactory);
   }
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());

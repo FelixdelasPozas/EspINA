@@ -31,7 +31,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
 #include <App/Settings/ROI/ROISettings.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
 // Qt

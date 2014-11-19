@@ -38,8 +38,10 @@ DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, T
     {
       auto volume = createVolumetricData(output, storage, path);
       Q_ASSERT(volume);
-      auto data = DataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+      auto data = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
       data->setFetchContext(storage, path, QString::number(output->id()));
+
       output->setData(data);
     }
 

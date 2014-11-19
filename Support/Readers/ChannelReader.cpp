@@ -27,7 +27,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Utils/TemporalStorage.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/DataFactory/FetchRawData.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -46,7 +46,7 @@ const Filter::Type VOLUMETRIC_STREAM_READER    = "ChannelReader::VolumetricStrea
 const Filter::Type ESPINA_1_3_2_CHANNEL_READER = "Channel Reader";
 
 class UpdateFilterDataFactory
-: public FetchBehaviour
+: public DataFactory
 {
 public:
   virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString& path, QXmlStreamAttributes info) override

@@ -161,10 +161,10 @@ namespace ESPINA
 
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override
-   {
+    {
      //QWriteLocker lock(&m_lock);
      m_data->draw(mask, value);
-  }
+    }
 
     virtual void resize(const Bounds &bounds)
     {
