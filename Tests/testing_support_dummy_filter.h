@@ -40,9 +40,7 @@ namespace ESPINA {
     protected:
     virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
       virtual bool needUpdate() const               override {return false;}
-      virtual bool needUpdate(Output::Id id) const  override {return false;}
       virtual void execute()                        override {}
-      virtual void execute(Output::Id id)           override {}
       virtual bool ignoreStorageContent() const     override {return false;}
     };
   }
@@ -54,14 +52,14 @@ namespace ESPINA {
     virtual Type type() const {return "DummyData";}
     virtual bool isValid() const {return true;}
     virtual bool isEmpty() const {return false;}
-    virtual Bounds bounds() const {}
+    virtual Bounds bounds() const { return Bounds{0,1,0,1,0,1};}
     virtual void setSpacing(const NmVector3& spacing){}
-    virtual NmVector3 spacing() const {return NmVector3({1,1,1});}
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id) { return false; }
+    virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
+    virtual bool fetchData() { return false; }
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
-    virtual DataProxySPtr createProxy() const;
+    virtual DataSPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
     virtual void undo() {};
   };
@@ -69,13 +67,18 @@ namespace ESPINA {
   using DummyDataSPtr = std::shared_ptr<DummyData>;
 
   class DummyDataProxy
-  : public DataProxy
+  : public DummyData
+  , public DataProxy
   {
   public:
-    virtual DataSPtr get() const
-    { return m_data; }
+    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
+    { return std::dynamic_pointer_cast<DummyData>(proxy); }
+
     virtual void set(DataSPtr data)
     { m_data = std::dynamic_pointer_cast<DummyData>(data); }
+
+    virtual Bounds bounds() const
+    { return m_data->bounds(); }
 
   private:
     DummyDataSPtr m_data;

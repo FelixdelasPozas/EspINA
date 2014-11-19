@@ -29,6 +29,7 @@
 #include "Core/Analysis/DataProxy.h"
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Volumetric/VolumetricDataProxy.hxx>
+#include <Core/Utils/BinaryMask.hxx>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -62,22 +63,13 @@ namespace ESPINA
     virtual ~VolumetricData()
     {}
 
-    /** \brief Implements Data::bounds() const.
-     *
-     */
     virtual Bounds bounds() const = 0;
 
-    /** \brief Implements Data::type() const.
-     *
-     */
     virtual Data::Type type() const
     { return TYPE; }
 
-    /** \brief Implements Data::createProxy() const.
-     *
-     */
-    virtual DataProxySPtr createProxy() const
-    { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
+    virtual DataSPtr createProxy() const
+    { return DataSPtr{new VolumetricDataProxy<T>()}; }
 
     /** \brief Set the origin of the image.
      * \param[in] origin origin of this image.
@@ -163,6 +155,15 @@ namespace ESPINA
     virtual void draw(const Bounds               &bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
 
+                      /** \brief Method to modify the volume using a mask and a value.
+     * \param[in] mask BinatyMask smart pointer.
+     * \param[in] value value of the voxels of the binary mask.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
+     */
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+
     /** \brief Resize the volume to the given bounds.
      * \param[in] bounds new bounds.
      *
@@ -189,7 +190,14 @@ namespace ESPINA
    *
    *  This function ensures the output is up to date by callig ouput::update() first
    */
-  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
+  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
+
+  /** \brief Returns true if the output has a volumetric data and false otherwise.
+   * \param[in] output, Output object smart pointer.
+   *
+   *  This function ensures the output is up to date by callig ouput::update() first
+   */
+  bool EspinaCore_EXPORT hasVolumetricData(OutputSPtr output);
 
 } // namespace ESPINA
 

@@ -95,12 +95,12 @@ namespace ESPINA
     InputSList inputs() const
     { return m_inputs; }
 
-    /** \brief Sets the fetch data behaviour of the filter.
-     * \param[in] behaviour fetch behaviour object smart pointer.
+    /** \brief Sets the data factory to be used for restore saved output
+     * \param[in] factory data factory
      *
      */
-    void setFetchBehaviour(FetchBehaviourSPtr behaviour)
-    { m_fetchBehaviour = behaviour; }
+    void setDataFactory(DataFactorySPtr factory)
+    { m_dataFactory = factory; }
 
     /** \brief Sets the error handler of the filter.
      * \param[in] handler error handler smart pointer.
@@ -119,12 +119,13 @@ namespace ESPINA
      *
      *  If filter inputs are outdated a pull request will be done
      */
-    bool update();
+    void update();
 
-    /** \brief Update filter output with the specified id.
+    /** \brief Creates the outputs of the filter using the stored information.
      *
      */
-    bool update(Output::Id id);
+    bool restorePreviousOutputs() const;
+
 
     /** \brief Return the number of outputs of the filter.
      *
@@ -170,19 +171,18 @@ namespace ESPINA
      */
     virtual bool needUpdate() const = 0;
 
-    /** \brief Return true if a filter must be executed to update the specified output.
-     * \param[in] id output id
-     *
-     */
-    virtual bool needUpdate(Output::Id id) const = 0;
+//     /** \brief Try to load from cache dir all the output data.
+//      * \param[in] id output id
+//      *
+//      *  Returns true if all data snapshot can be recovered
+//      *  and false otherwise
+//      */
+//     bool fetchOutputData(Output::Id id);
 
-    /** \brief Try to load from cache dir all the output data.
-     * \param[in] id output id
+    /** \brief Restore edited regions for available outputs
      *
-     *  Returns true if all data snapshot can be recovered
-     *  and false otherwise
      */
-    bool fetchOutputData(Output::Id id);
+    void restoreEditedRegions();
 
     /** \brief Restore edited regions for available outputs
      * \param[in] id output id
@@ -200,12 +200,6 @@ namespace ESPINA
      *
      */
     virtual void execute() = 0;
-
-    /** \brief Method which actually executes the filter to generate output oId.
-     * \param[in] id Output::Id object.
-     *
-     */
-    virtual void execute(Output::Id id) = 0;
 
     /** \brief Determine whether or not data at persistent storage is still valid.
      *
@@ -226,11 +220,6 @@ namespace ESPINA
      *
      */
     bool existOutput(Output::Id id) const;
-
-    /** \brief Creates the outputs of the filter using the stored information.
-     *
-     */
-    bool restorePreviousOutputs() const;
 
   private:
     /** \brief Returns the output file name for the filter.
@@ -254,7 +243,7 @@ namespace ESPINA
 
     //    bool m_invalidateSortoredOutputs;
 
-    FetchBehaviourSPtr m_fetchBehaviour;
+    DataFactorySPtr    m_dataFactory;
     ErrorHandlerSPtr   m_handler;
 
     // TODO : Remove with ESPINA 2.1

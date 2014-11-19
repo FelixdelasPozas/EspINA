@@ -28,9 +28,11 @@
 #include "Core/Analysis/Output.h"
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include "testing_support_dummy_filter.h"
 
-using namespace ESPINA;
 using namespace std;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 
 int output_update_filter( int argc, char** argv )
@@ -52,12 +54,10 @@ int output_update_filter( int argc, char** argv )
   protected:
     virtual Snapshot saveFilterSnapshot() const  override {return Snapshot();}
     virtual bool needUpdate() const              override {return true;}
-    virtual bool needUpdate(Output::Id id) const override {return true;}
-    virtual void execute()                       override {}
-    virtual void execute(Output::Id id)          override
+    virtual void execute()                       override
     {
-      UpdatedOutput = id;
-      m_outputs[id] = OutputSPtr{new Output(this, id)};
+      UpdatedOutput = 0;
+      m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
     }
     virtual bool ignoreStorageContent() const    override {return true;}
   };
@@ -68,7 +68,9 @@ int output_update_filter( int argc, char** argv )
 
   Output::Id id = 0;
 
-  Output output(filter, id);
+  Output output(filter, id, NmVector3{1,1,1,});
+
+  output.setData(std::make_shared<DummyData>());
 
   output.update();
 
@@ -77,15 +79,15 @@ int output_update_filter( int argc, char** argv )
     error = true;
   }
 
-  id = 5;
-  Output output2(filter, id);
-
-  output2.update();
-
-  if (filter->UpdatedOutput != id) {
-    cerr << "Unexpected filter update for output " << id << endl;
-    error = true;
-  }
+//   id = 5;
+//   Output output2(filter, id);
+//
+//   output2.update();
+//
+//   if (filter->UpdatedOutput != id) {
+//     cerr << "Unexpected filter update for output " << id << endl;
+//     error = true;
+//   }
 
   return error;
 }

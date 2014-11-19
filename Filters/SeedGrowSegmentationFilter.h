@@ -132,35 +132,17 @@ namespace ESPINA
      */
     virtual Snapshot saveFilterSnapshot() const;
 
-    /** \brief Implements Filter::needUpdate().
-     *
-     */
     virtual bool needUpdate() const;
 
-    /** \brief Implements Filter::needUpdate(id)
-     *
-     */
-    virtual bool needUpdate(Output::Id id) const;
+    //virtual bool needUpdate(Output::Id id) const;
 
-    /** \brief Implements Filter::execute().
-     *
-     */
     virtual void execute();
 
-    /** \brief Implements Filter::execute(id).
-     *
-     */
-    virtual void execute(Output::Id id);
+    //virtual void execute(Output::Id id);
 
-    /** \brief Implements Filter::ignoreStorageContent().
-     *
-     */
     virtual bool ignoreStorageContent() const;
 
-    /** \brief Implements Filter::invalidateEditedRegions().
-     *
-     */
-    virtual bool areEditedRegionsInvalidated();
+    //virtual bool areEditedRegionsInvalidated();
 
   private:
     /** \brief Helper method that returns true if the segmentation touches the ROI.
@@ -168,12 +150,19 @@ namespace ESPINA
      */
      bool computeTouchesROIValue() const;
 
+     QString roiPrefix() const
+     { return prefix() + "roi/"; }
+
+     QString roiId() const
+     { return "roi"; }
+
   private:
     int       m_lowerTh, m_prevLowerTh;
     int       m_upperTh, m_prevUpperTh;
     NmVector3 m_seed,    m_prevSeed;
     int       m_radius,  m_prevRadius;
     bool      m_hasROI;
+    mutable
     ROISPtr   m_ROI;
     mutable
     ROIPtr    m_prevROI;

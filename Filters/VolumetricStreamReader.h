@@ -47,48 +47,35 @@ namespace ESPINA
 
   public:
     /** \brief VolumetricStreamReader class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, VolumetricStreamReader type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type VolumetricStreamReader type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
      */
     explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
-    virtual void restoreState(const State& state);
+    virtual void restoreState(const State& state) override;
 
-    /** \brief Implements Persistent::state().
-     *
-     */
-    virtual State state() const;
+    virtual State state() const override;
 
     /** \brief Sets the name of the image on disk to stream.
-     * \param[in] filename, QFileInfo object.
+     * \param[in] filename QFileInfo object.
      */
     void setFileName(const QFileInfo& fileName);
 
   protected:
-    virtual Snapshot saveFilterSnapshot() const
+    virtual Snapshot saveFilterSnapshot() const override
     { return Snapshot(); }
 
-    virtual bool needUpdate() const;
+    virtual bool needUpdate() const override;
 
-    virtual bool needUpdate(Output::Id id) const;
+    virtual void execute() override;
 
-    virtual void execute();
-
-    virtual void execute(Output::Id id);
-
-    virtual bool ignoreStorageContent() const
+    virtual bool ignoreStorageContent() const override
     {return false;}
 
-    virtual bool areEditedRegionsInvalidated()
-    { return false; }
-
   private:
-    QFileInfo       m_fileName;
+    QFileInfo m_fileName;
   };
 
 }// namespace ESPINA

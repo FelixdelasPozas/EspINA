@@ -13,16 +13,18 @@ if (${USE_DASHBOARD})
 
 endif()
 
-include_directories(
-  ${CMAKE_BINARY_DIR}
-  .
-  )
-
 set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
 set( GUI_DIR        ${CMAKE_SOURCE_DIR}/GUI        )
 set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
 set( FILTERS_DIR    ${CMAKE_SOURCE_DIR}/Filters    )
 set( APP_DIR        ${CMAKE_SOURCE_DIR}/App        )
+set( PLUGINS_DIR    ${CMAKE_SOURCE_DIR}/Plugins    )
+
+include_directories(
+  .
+  ${CMAKE_BINARY_DIR}
+  ${CMAKE_BINARY_DIR}/Plugins/AppositionSurface
+  )
 
 set(EXTERNAL_LIBS_DEPENDENCIES
   ${QT_LIBRARIES}
@@ -54,10 +56,8 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/Channel.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
-  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
-  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp
@@ -70,6 +70,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/IO/ClassificationXML.cpp
   ${CORE_DIR}/IO/FetchBehaviour/FetchRawData.cpp
   ${CORE_DIR}/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
+  ${CORE_DIR}/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
   ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
   ${CORE_DIR}/IO/ReadOnlySegmentationExtension.cpp
@@ -94,6 +95,7 @@ target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 set (FILTERS_SOURCES
   ${FILTERS_DIR}/DilateFilter.cpp
   ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
+  ${FILTERS_DIR}/ImageLogicFilter.cpp
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
   ${FILTERS_DIR}/VolumetricStreamReader.cpp
 )
@@ -146,6 +148,27 @@ set (TESTING_SOURCES
   Testing_Support.cpp
 )
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})
+
+set(TESTING_DEPENDECIES
+  EspinaCoreTesting
+  EspinaExtensionsTesting
+  EspinaFiltersTesting
+  EspinaGUITesting
+  EspinaTesting
+  ${EXTERNAL_LIBS_DEPENDENCIES}
+  )
+
+qt4_wrap_cpp(PLUGIN_MOCS
+  ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h
+)
+set (PLUGIN_SOURCES
+  ${PLUGIN_MOCS}
+  ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
+  ${PLUGINS_DIR}/AppositionSurface/Filter/SASFetchBehaviour.cpp
+)
+
+add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
+target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 set(TESTING_DEPENDECIES
   EspinaCoreTesting

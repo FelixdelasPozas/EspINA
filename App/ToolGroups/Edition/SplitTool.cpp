@@ -68,9 +68,9 @@ namespace ESPINA
 
     if (!m_fetchBehaviour)
     {
-      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+      m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
     }
-    filter->setFetchBehaviour(m_fetchBehaviour);
+    filter->setDataFactory(m_fetchBehaviour);
 
     return filter;
   }

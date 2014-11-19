@@ -27,9 +27,6 @@
 #include <GUI/Settings/AppositionSurfaceSettings.h>
 #include <Core/Extensions/ExtensionFactory.h>
 
-// TODO: no filter inspectors yet
-// #include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
-
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
@@ -65,15 +62,17 @@ FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList          inputs,
+FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList    inputs,
                                                             const Filter::Type& type,
-                                                            SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+                                                            SchedulerSPtr       scheduler) const
+throw (Unknown_Filter_Exception)
 {
 
   if (type != AS_FILTER) throw Unknown_Filter_Exception();
 
-  auto filter = FilterSPtr{new AppositionSurfaceFilter(inputs, type, scheduler)};
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new SASFetchBehaviour()});
+  auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
+
+  filter->setDataFactory(std::make_shared<SASFetchBehaviour>());
 
   return filter;
 }
@@ -85,8 +84,8 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_viewManager     {nullptr}
 , m_scheduler       {nullptr}
 , m_undoStack       {nullptr}
-, m_settings        {SettingsPanelSPtr(new AppositionSurfaceSettings())}
-, m_extensionFactory{SegmentationExtensionFactorySPtr(new ASExtensionFactory())}
+, m_settings        {new AppositionSurfaceSettings()}
+, m_extensionFactory{new ASExtensionFactory()}
 , m_toolGroup       {nullptr}
 , m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
 , m_delayedAnalysis {false}
@@ -227,7 +226,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
   {
     for(auto segmentation: m_model->segmentations())
     {
-      if (isSynapse(segmentation.get()))
+      if (isValidSynapse(segmentation.get()))
       {
         synapsis << segmentation.get();
       }
@@ -237,7 +236,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
   {
     for(auto segmentation: selection)
     {
-      if (isSynapse(segmentation))
+      if (isValidSynapse(segmentation))
       {
         synapsis << segmentation;
       }
@@ -311,9 +310,11 @@ void AppositionSurfacePlugin::createSASAnalysis()
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfacePlugin::isSynapse(SegmentationAdapterPtr segmentation)
+bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation)
 {
-  return segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool hasRequiredData = segmentation->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return (isValidCategory && hasRequiredData);
 }
 
 //-----------------------------------------------------------------------------
@@ -328,7 +329,7 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
   for(auto segmentation: segmentations)
   {
     bool valid = true;
-    if(isSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
+    if(isValidSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
     {
       // must check if the segmentation already has a SAS, as this call
       // could be the result of a redo() in a UndoCommand

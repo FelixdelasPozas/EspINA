@@ -25,7 +25,7 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/SpatialUtils.hxx>
 
 // ITK
 #include <itkImage.h>

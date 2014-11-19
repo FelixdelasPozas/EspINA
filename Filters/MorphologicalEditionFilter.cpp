@@ -59,7 +59,7 @@ void MorphologicalEditionFilter::restoreState(const State& state)
 
     if ("Radius" == tokens[0])
     {
-      m_radius = tokens[1].toInt();
+      m_prevRadius = m_radius = tokens[1].toInt();
     }
   }
 }
@@ -134,17 +134,17 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
 {
   m_isOutputEmpty = true;
 
-  auto bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  auto bounds     = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
   m_isOutputEmpty = !bounds.areValid();
 
   if (!m_isOutputEmpty)
   {
+    NmVector3 spacing = m_inputs[0]->output()->spacing();
+
     if (!m_outputs.contains(0))
     {
-      m_outputs[0] = OutputSPtr(new Output(this, 0));
+      m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
     }
-
-    NmVector3 spacing = m_inputs[0]->output()->spacing();
 
     DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
     volume->draw(output, bounds);
@@ -153,8 +153,7 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
 
     m_outputs[0]->setData(volume);
     m_outputs[0]->setData(mesh);
-
-    m_outputs[0]->setSpacing(spacing);
+    m_outputs[0]->setSpacing(spacing); // it may change after re-execution
 
     m_prevRadius = m_radius;
   }

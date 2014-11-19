@@ -58,7 +58,7 @@ namespace ESPINA
      */
     virtual ~MarchingCubesMesh();
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchData() override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
@@ -66,8 +66,19 @@ namespace ESPINA
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
 
+    virtual void update()
+    {
+      if (!m_volume->isValid())
+      {
+        m_volume->update();
+      }
+      Data::update();
+    }
+
     virtual bool isValid() const
-    { return m_volume->isValid(); }
+    {
+      return m_volume->isValid();
+    }
 
     virtual bool isEmpty() const
     { return m_volume->isEmpty(); }
@@ -120,16 +131,16 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template <typename T>
-  bool MarchingCubesMesh<T>::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool MarchingCubesMesh<T>::fetchData()
   {
-    return false;
+    return MeshData::fetchData();
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
   Snapshot MarchingCubesMesh<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
-    return Snapshot();
+    return MeshData::snapshot(storage, path, id);
   }
 
   //----------------------------------------------------------------------------

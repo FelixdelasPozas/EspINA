@@ -33,9 +33,6 @@
 
 namespace ESPINA
 {
-  static QString RAWSKELETON_DATAFILE               = QString("%1_SkeletonData.vtp");
-  static QString RAWSKELETON_EDITEDREGIONS_DATAFILE = QString("%1_EditedRegionSkeletonData.vtp");
-
   //----------------------------------------------------------------------------
   RawSkeleton::RawSkeleton(OutputSPtr output)
   : m_skeleton{nullptr}
@@ -97,76 +94,53 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  RawSkeletonSPtr rawSkeleton(OutputSPtr output)
+  bool RawSkeleton::fetchData()
   {
-    RawSkeletonSPtr data = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
-    return data;
+    return SkeletonData::fetchData();
   }
 
   //----------------------------------------------------------------------------
-  bool RawSkeleton::fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id)
+  bool RawSkeleton::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
-    bool dataFetched = false;
-
-    QString fileName = storage->absoluteFilePath(path + QString(RAWSKELETON_DATAFILE).arg(id));
-
-    QFileInfo file(fileName);
-
-    if(file.exists())
-    {
-      m_skeleton = PolyDataUtils::readPolyDataFromFile(fileName);
-      dataFetched = true;
-    }
-
-    return dataFetched;
+    return SkeletonData::fetchData(storage, path, id);
   }
 
   //----------------------------------------------------------------------------
   Snapshot RawSkeleton::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
-    QString fileName = path + QString(RAWSKELETON_DATAFILE).arg(id);
-    Snapshot snapshot;
-
-    storage->makePath(path);
-
-    if (m_skeleton)
-    {
-      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_skeleton));
-    }
-
-    return snapshot;
+    SkeletonData::snapshot(storage, path, id);
   }
 
   //----------------------------------------------------------------------------
   Snapshot RawSkeleton::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
-    Snapshot snapshot;
-
-    if(isEdited())
-    {
-      QString fileName = path + QString(RAWSKELETON_EDITEDREGIONS_DATAFILE).arg(id);
-      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_editedRegionsSkeleton));
-    }
-
-    return snapshot;
+    return snapshot(storage, path, id);
   }
 
   //----------------------------------------------------------------------------
   void RawSkeleton::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
-    QString fileName = storage->absoluteFilePath(path + QString(RAWSKELETON_EDITEDREGIONS_DATAFILE).arg(id));
+    fetchData(storage, path, id);
+  }
 
-    QFileInfo file(fileName);
+  //----------------------------------------------------------------------------
+  void RawSkeleton::setSkeleton(vtkSmartPointer<vtkPolyData> skeleton)
+  {
+    m_skeleton = skeleton;
 
-    if(file.exists())
+    BoundsList editedRegions;
+    if (m_skeleton)
     {
-      m_editedRegionsSkeleton = PolyDataUtils::readPolyDataFromFile(fileName);
-
-      double bounds[6];
-      m_editedRegionsSkeleton->GetBounds(bounds);
-      clearEditedRegions();
-      addEditedRegion(Bounds{bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]});
+      editedRegions << bounds();
     }
+    setEditedRegions(editedRegions);
+  }
+
+  //----------------------------------------------------------------------------
+  RawSkeletonSPtr rawSkeleton(OutputSPtr output)
+  {
+    RawSkeletonSPtr data = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
+    return data;
   }
 
 } // namespace EspINA

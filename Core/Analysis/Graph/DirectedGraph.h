@@ -36,9 +36,9 @@
 
 namespace ESPINA
 {
-	/** \brief Graph like structure which contains all the relationships
-	 *        between different elements of the model.
-	 */
+  /** \brief Graph like structure which contains all the relationships
+   *        between different elements of the model.
+   */
   class EspinaCore_EXPORT DirectedGraph
   {
   public:

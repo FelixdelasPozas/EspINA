@@ -36,30 +36,32 @@
 
 namespace ESPINA
 {
-	/** \brief Merges two analysis into one.
-	 * \param[in] lhs, analysis smart pointer.
-	 * \param[in] rhs, analysis smart pointer.
-	 *
-	 */
+  /** \brief Merges two analysis into one.
+   * \param[in] lhs analysis smart pointer.
+   * \param[in] rhs analysis smart pointer.
+   *
+   *  WARNING: merged analysis references will be invalidated.
+   *
+   */
   AnalysisSPtr EspinaCore_EXPORT merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs);
 
   /** \brief Returns the sample with the same name in a list of sample smart pointers.
-   * \param[in] sample, sample smart pointer.
-   * \param[in] samples, list of sample smart pointers.
+   * \param[in] sample sample smart pointer.
+   * \param[in] samples list of sample smart pointers.
    *
    */
   SampleSPtr EspinaCore_EXPORT findSample(SampleSPtr sample, SampleSList samples);
 
   /** \brief Returns the channel with the same name in a list of channel smart pointers.
-   * \param[in] channel, sample smart pointer.
-   * \param[in] channels, list of channel smart pointers.
+   * \param[in] channel sample smart pointer.
+   * \param[in] channels list of channel smart pointers.
    *
    */
   ChannelSPtr EspinaCore_EXPORT findChannel(ChannelSPtr sample, ChannelSList channels);
 
   /** \brief Returns the smart pointer that contains a specified raw pointer in a list of smart pointers.
-   * \param[in] item, T raw pointer.
-   * \param[in] list, list of T smart pointers.
+   * \param[in] item T raw pointer.
+   * \param[in] list list of T smart pointers.
    *
    */
   template<typename T>
@@ -74,8 +76,8 @@ namespace ESPINA
   }
 
   /** \brief Returns the suggested cardinality of an id into a list of elements.
-   * \param[in] id.
-   * \param[in] list, list of elements.
+   * \param[in] id query id
+   * \param[in] list list of elements.
    *
    */
   template<typename T>
@@ -116,7 +118,7 @@ namespace ESPINA
   }
 
   /** \brief Returns the first unused unsigned integer number for a segmentation in an analysis.
-   * \para[in] analysis, analysis smart pointer.
+   * \param[in] analysis analysis smart pointer.
    *
    */
   unsigned int EspinaCore_EXPORT firstUnusedSegmentationNumber(const AnalysisSPtr analysis);

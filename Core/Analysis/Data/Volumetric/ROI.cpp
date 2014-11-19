@@ -103,15 +103,15 @@ ROISPtr ROI::clone() const
 }
 
 //-----------------------------------------------------------------------------
-bool ROI::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
+bool ROI::fetchData()
 {
-  auto volumeBounds = temporalStorageBoundsId(path, id);
+  auto volumeBounds = temporalStorageBoundsId(m_path, m_id);
 
-  m_isRectangular = storage->exists(volumeBounds);
+  m_isRectangular = m_storage->exists(volumeBounds);
 
   if (m_isRectangular)
   {
-    m_bounds  = deserializeVolumeBounds(storage->snapshot(volumeBounds));
+    m_bounds  = deserializeVolumeBounds(m_storage->snapshot(volumeBounds));
     m_origin  = m_bounds.origin();
     m_spacing = m_bounds.spacing();
 
@@ -119,7 +119,7 @@ bool ROI::fetchData(const TemporalStorageSPtr storage, const QString &path, cons
   }
   else
   {
-    return SparseVolume<itkVolumeType >::fetchData(storage, path, id);
+    return SparseVolume<itkVolumeType >::fetchData();
   }
 }
 

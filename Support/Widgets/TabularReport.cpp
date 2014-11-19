@@ -230,10 +230,7 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
 
   auto sItem = itemAdapter(sourceIndex);
   auto segmentation = segmentationPtr(sItem);
-
-  auto volume = volumetricData(segmentation->output());
-
-  Bounds bounds = volume->bounds();
+  auto bounds = segmentation->output()->bounds();
 
   NmVector3 center{(bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
   m_viewManager->focusViewsOn(center);

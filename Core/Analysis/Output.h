@@ -44,6 +44,9 @@ class QDir;
 namespace ESPINA
 {
 
+  struct Invalid_Output_Expection{};
+  struct Unavailable_Output_Data_Exception {};
+
   class EspinaCore_EXPORT Output
   : public QObject
   {
@@ -66,7 +69,7 @@ namespace ESPINA
      * \param[in] id Output::Id specifier.
      *
      */
-    explicit Output(FilterPtr filter, const Output::Id& id);
+    explicit Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing);
 
     /** \brief Output class destructor.
      *
@@ -136,13 +139,18 @@ namespace ESPINA
      * \param[in] type data type.
      *
      */
-    DataSPtr data(const Data::Type& type) const;
+    DataSPtr data(const Data::Type& type) const throw (Unavailable_Output_Data_Exception);
 
     /** \brief Returns true if the output has a data of the specified type.
      * \param[in] type data type.
      *
      */
     bool hasData(const Data::Type& type) const;
+
+    /** \brief Returns the number of valid Data in the output object.
+     *
+     */
+    unsigned int numberOfDatas() const;
 
     /** \brief Request necessary pipeline execution to update this output.
      *
@@ -196,7 +204,7 @@ namespace ESPINA
 
     EditedRegionSList m_editedRegions;
 
-    QMap<Data::Type, DataProxySPtr> m_data;
+    QMap<Data::Type, DataSPtr> m_data;
   };
 
   using OutputIdList = QList<Output::Id>;

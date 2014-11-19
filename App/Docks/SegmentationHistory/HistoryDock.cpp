@@ -30,14 +30,14 @@ using namespace ESPINA;
 //----------------------------------------------------------------------------
 HistoryDock::HistoryDock(ModelAdapterSPtr          model,
                          ModelFactorySPtr          factory,
-                         FilterDelegateFactorySPtr delegatFactory,
+                         FilterDelegateFactorySPtr delegateFactory,
                          ViewManagerSPtr           viewManager,
                          QUndoStack               *undoStack,
                          QWidget                  *parent)
 : DockWidget(parent)
 , m_model(model)
 , m_factory(factory)
-, m_delegateFactory(delegatFactory)
+, m_delegateFactory(delegateFactory)
 , m_viewManager(viewManager)
 , m_undoStack(undoStack)
 , m_segmentation(nullptr)
@@ -61,7 +61,7 @@ void HistoryDock::reset()
   m_filter.reset();
   m_segmentation = nullptr;
 
-  updateDock();
+  setWidget(new EmptyHistory());
 }
 
 //----------------------------------------------------------------------------
@@ -138,10 +138,7 @@ void HistoryDock::updateDock()
     }
     else
     {
-      m_filter.reset();
-      m_segmentation = nullptr;
-
-      setWidget(new EmptyHistory());
+      reset();
     }
   }
 }

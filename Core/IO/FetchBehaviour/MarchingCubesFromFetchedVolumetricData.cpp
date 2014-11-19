@@ -24,48 +24,40 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-DataSPtr MarchingCubesFromFetchedVolumetricData::fetchOutputData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
+DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
 {
   DataSPtr data;
 
   if ("VolumetricData" == info.value("type"))
   {
-    data = fetchVolumetricData(output, storage, path);
+    data = createVolumetricData(output, storage, path);
   }
   else if ("MeshData" == info.value("type"))
   {
-    data = DataSPtr{ new RawMesh()};
-    data->setOutput(output.get());
-    if (!data->fetchData(storage, path, QString::number(output->id())))
+    if (!hasMeshData(output))
     {
-      auto volume = fetchVolumetricData(output, storage, path);
-      if (volume)
-      {
-        data = DataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
-      }
+      auto volume = createVolumetricData(output, storage, path);
+      Q_ASSERT(volume);
+      auto data = DataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
+      data->setFetchContext(storage, path, QString::number(output->id()));
+      output->setData(data);
     }
-    output->setData(data);
+
+    data = meshData(output, DataUpdatePolicy::Ignore);
   }
 
   return data;
 }
 
 //----------------------------------------------------------------------------
-ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::fetchVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path)
+ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::createVolumetricData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path)
 {
-  DefaultVolumetricDataSPtr volume = nullptr;
-
   if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
-    auto data = DataSPtr { new SparseVolume<itkVolumeType>() };
-    data->setOutput(output.get());
-    data->fetchData(storage, path, QString::number(output->id()));
+    auto data = DataSPtr{new SparseVolume<itkVolumeType>()};
+    data->setFetchContext(storage, path, QString::number(output->id()));
     output->setData(data);
   }
 
-  auto outputData = output->data(VolumetricData<itkVolumeType>::TYPE);
-  volume = std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(outputData);
-  //volume = volumetricData(output);
-
-  return volume;
+  return volumetricData(output, DataUpdatePolicy::Ignore);
 }

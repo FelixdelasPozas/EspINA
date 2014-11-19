@@ -28,12 +28,12 @@ using namespace ESPINA::Testing;
 DummyFilter::DummyFilter()
 : Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
 {
-  m_outputs[0] = OutputSPtr(new Output(this, 0));
+  m_outputs[0] = OutputSPtr(new Output(this, 0, NmVector3{1,1,1}));
 }
 
 
 //------------------------------------------------------------------------
-DataProxySPtr DummyData::createProxy() const
+DataSPtr DummyData::createProxy() const
 {
-  return DataProxySPtr{new DummyDataProxy()};
+  return DataSPtr{new DummyDataProxy()};
 }

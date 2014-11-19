@@ -98,10 +98,6 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
     mergedAnalysis->setClassification(classification);
   }
 
-  QMap<SampleSPtr,  SampleSPtr>  mergedSamples;
-  QMap<ChannelSPtr, ChannelSPtr> mergedChannels;
-  QMap<FilterSPtr,  FilterSPtr>  mergedFilters;
-
   QMap<PersistentSPtr, PersistentSPtr> mergedItems;
 
   for(auto analysis : {lhs, rhs})
@@ -114,7 +110,6 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         mergedSample = sample;
         mergedAnalysis->add(sample);
       }
-      mergedSamples[sample] = mergedSample;
       mergedItems[sample]   = mergedSample;
     }
 
@@ -133,9 +128,6 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         // Filters using channel output as input need to be updated
         auto filter       = channel->filter();
         auto mergedFilter = mergedChannel->filter();
-        auto outputId     = mergedChannel->outputId();
-
-        mergedFilters[filter] = mergedFilter;
 
         for(auto vertex : analysis->content()->successors(filter))
         {
@@ -151,16 +143,15 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
                 updatedInputs << getInput(mergedFilter, input->output()->id());
               }
               else
+              {
                 updatedInputs << input;
+              }
             }
             succesor->setInputs(updatedInputs);
           }
         }
-
-        channel->changeOutput(mergedFilter, outputId);
       }
-      mergedChannels[channel] = mergedChannel;
-      mergedItems[channel]    = mergedChannel;
+      mergedItems[channel] = mergedChannel;
     }
 
     for(auto segmentation : analysis->segmentations())
@@ -170,10 +161,6 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       {
         segmentation->setCategory(mergedCategory[category]);
       }
-//       if (mergedFilters.contains(segmentation->filter()))
-//       {
-//         segmentation->changeOutput(mergedFilters[segmentation->filter()], segmentation->outputId());
-//       }
       mergedAnalysis->add(segmentation);
 
       mergedItems[segmentation] = segmentation;

@@ -41,6 +41,10 @@ int main(int argc, char **argv)
   QDir pluginsDir = QDir(app.applicationDirPath());
   qDebug() << "Loading Plugins from path: " << pluginsDir.absolutePath();
 
+  if (argc > 1) {
+    qDebug() << argv[1];
+  }
+
   #if defined(Q_OS_MAC)
     if (pluginsDir.dirName() == "MacOS")
     {

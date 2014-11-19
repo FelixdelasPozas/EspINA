@@ -22,6 +22,7 @@
 #include "SkeletonData.h"
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Skeleton/SkeletonProxy.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
 #include <vtkPolyData.h>
@@ -48,9 +49,54 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  DataProxySPtr SkeletonData::createProxy() const
+  bool SkeletonData::fetchData()
   {
-    return DataProxySPtr{new SkeletonProxy()};
+    return fetchData(m_storage, m_path, m_id);
+  }
+
+  //----------------------------------------------------------------------------
+  bool SkeletonData::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  {
+    bool dataFetched = false;
+
+    QFileInfo skeletonFile(storage->absoluteFilePath(snapshotFilename(path, id)));
+
+    if(skeletonFile.exists())
+    {
+      setSkeleton(PolyDataUtils::readPolyDataFromFile(skeletonFile.absoluteFilePath()));
+      dataFetched = true;
+    }
+
+    return dataFetched;
+  }
+
+  //----------------------------------------------------------------------------
+  Snapshot SkeletonData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  {
+    Snapshot snapshot;
+
+    auto currentSkeleton = skeleton();
+    if (currentSkeleton)
+    {
+      QString fileName = snapshotFilename(path, id);
+      storage->makePath(path);
+
+      snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(currentSkeleton));
+    }
+
+    return snapshot;
+  }
+
+  //----------------------------------------------------------------------------
+  DataSPtr SkeletonData::createProxy() const
+  {
+    return DataSPtr{new SkeletonProxy()};
+  }
+
+  //----------------------------------------------------------------------------
+  bool hasSkeletonData(OutputSPtr output)
+  {
+    return output->hasData(SkeletonData::TYPE);
   }
 
   //----------------------------------------------------------------------------

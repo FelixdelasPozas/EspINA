@@ -27,6 +27,7 @@
 // ESPINA
 #include <Core/Analysis/Data.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Output.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -49,21 +50,16 @@ namespace ESPINA
      */
     explicit MeshData();
 
-    /** \brief Implements Data::type() const.
-     *
-     */
-    virtual Data::Type type() const
+    virtual Data::Type type() const      override
     { return TYPE; }
 
-    /** \brief Implements Data::createProxy() const.
-     *
-     */
-    virtual DataProxySPtr createProxy() const;
+    virtual DataSPtr createProxy() const override;
 
-    /** \brief Implements Data::bounds() const.
-     *
-     */
-    Bounds bounds() const;
+    Bounds bounds() const                override;
+
+    virtual bool fetchData()             override = 0;
+
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
 
     /** \brief Returns the vtkPolyData smart pointer object.
      *
@@ -74,6 +70,19 @@ namespace ESPINA
      *
      */
     virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
+
+  protected:
+    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+
+  private:
+    QString snapshotFilename(const QString &path, const QString &id) const
+    { return QString("%1/%2_%3.vtp").arg(path).arg(id).arg(type()); }
+
+    QString oldSnapshotFilename(const QString &path, const QString &id) const
+    { return QString("%1/%2_%3.vtp").arg(path).arg(type()).arg(id); }
+
+    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
+    { return snapshotFilename(path, id); }
   };
 
   using MeshDataSPtr = std::shared_ptr<MeshData>;
@@ -81,9 +90,16 @@ namespace ESPINA
   /** \brief Obtains and returns the MeshData smart pointer of the spacified Output.
    * \param[in] output Output object smart pointer.
    * 
-   *  This function ensures the output is up to date by callig ouput::update() first
+   *  This function ensures the output is up to date by callig mesh data update first
+   *  If the output doesn't contain the requested data type an expection will be thrownn
    */
-  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output);
+  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
+
+  /** \brief Returns whether output has any mesh data or not
+   *
+   */
+  bool EspinaCore_EXPORT hasMeshData(OutputSPtr output);
+
 
 } // namespace ESPINA
 

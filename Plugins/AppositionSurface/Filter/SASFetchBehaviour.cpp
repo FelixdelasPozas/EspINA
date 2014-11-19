@@ -29,32 +29,30 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  MeshDataSPtr SASFetchBehaviour::fetchMeshData(OutputSPtr output,
+  MeshDataSPtr SASFetchBehaviour::fetchMeshData(OutputSPtr          output,
                                                 TemporalStorageSPtr storage,
-                                                const QString &path)
+                                                const QString      &path)
   {
-    MeshDataSPtr mesh = nullptr;
+    MeshDataSPtr data;
 
-    if (!output->hasData(MeshData::TYPE))
+    if (!hasMeshData(output))
     {
-      auto data = DataSPtr{new RawMesh()};
-      data->setOutput(output.get());
+      data = std::make_shared<RawMesh>();
 
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
+      data->setFetchContext(storage, path, QString::number(output->id()));
+      output->setData(data);
 
-        // update filter values to avoid unnecessary calls to update().
-        auto filter = dynamic_cast<AppositionSurfaceFilter *>(output->filter());
-        Q_ASSERT(filter != nullptr);
-        filter->m_alreadyFetchedData = true;
-        filter->m_lastModifiedMesh = data->lastModified();
-      }
+//         // update filter values to avoid unnecessary calls to update().
+//         auto filter = dynamic_cast<AppositionSurfaceFilter *>(output->filter());
+//         Q_ASSERT(filter != nullptr);
+//         filter->m_alreadyFetchedData = true;
+//         filter->m_lastModifiedMesh = data->lastModified();
+    } else
+    {
+      data = meshData(output, DataUpdatePolicy::Ignore);
     }
 
-    mesh = meshData(output);
-
-    return mesh;
+    return data;
   }
 
 } // namespace ESPINA

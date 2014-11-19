@@ -161,7 +161,7 @@ namespace ESPINA {
         	  ErrorHandlerSPtr        m_handler;
         	  AnalysisSPtr            m_analysis;
         	  TemporalStorageSPtr     m_storage;
-        	  FetchBehaviourSPtr      m_fetchBehaviour;
+        	  DataFactorySPtr      m_fetchBehaviour;
         	  DirectedGraphSPtr       m_content;
         	  DirectedGraph::Vertices m_loadedVertices;
         };

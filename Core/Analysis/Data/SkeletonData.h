@@ -46,20 +46,44 @@ namespace ESPINA
        */
       explicit SkeletonData();
 
-      virtual Data::Type type() const
+      virtual Data::Type type() const override
       { return TYPE; }
 
-      virtual DataProxySPtr createProxy() const;
+      virtual DataSPtr createProxy() const override;
 
-      Bounds bounds() const;
+      Bounds bounds() const override;
+
+      virtual bool fetchData() override = 0;
+
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
 
       /** \brief Returns the vtkPolyData smart pointer object.
        *
        */
       virtual vtkSmartPointer<vtkPolyData> skeleton() const = 0;
+
+      /** \brief Replace current skeleton data with a new skeleton
+       *
+       */
+      virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) = 0;
+
+    protected:
+      virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+
+    private:
+      QString snapshotFilename(const QString &path, const QString &id) const
+      { return QString("%1/%2_%3.vtp").arg(path).arg(id).arg(type()); }
+
+      QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
+      { return snapshotFilename(path, id); }
   };
 
   using SkeletonDataSPtr = std::shared_ptr<SkeletonData>;
+
+  /** \brief Returns true if the output has a SkeletonData type data.
+   *
+   */
+  bool EspinaCore_EXPORT hasSkeletonData(OutputSPtr output);
 
   /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output.
    * \param[in] output, Output object smart pointer.

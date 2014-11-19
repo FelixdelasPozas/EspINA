@@ -42,7 +42,7 @@ namespace ESPINA
     ~SeedGrowSegmentationSettings(){}
 
     /** \brief Sets X size.
-     * \param[in] value, size value.
+     * \param[in] value size value.
      */
     void setXSize(int value);
 
@@ -53,7 +53,7 @@ namespace ESPINA
     {return m_xSize;}
 
     /** \brief Sets Y size.
-     * \param[in] value, size value.
+     * \param[in] value size value.
      *
      */
     void setYSize(int value);
@@ -65,7 +65,7 @@ namespace ESPINA
     {return m_ySize;}
 
     /** \brief Sets Z size.
-     * \param[in] value, size value.
+     * \param[in] value size value.
      *
      */
     void setZSize(int value);
@@ -77,7 +77,7 @@ namespace ESPINA
     {return m_zSize;}
 
     /** \brief Sets apply category flag.
-     * \param[in] value, true to use category ROI size values.
+     * \param[in] value true to use category ROI size values.
      *
      */
     void setApplyCategoryROI(bool value);
@@ -89,7 +89,7 @@ namespace ESPINA
     { return m_applyCategoryROI; }
 
     /** \brief Sets the best pixel value for the selector.
-     * \param[in] value, (0-255) value.
+     * \param[in] value (0-255) value.
      */
     void setBestPixelValue(int value);
 
@@ -100,7 +100,7 @@ namespace ESPINA
     { return m_bestValue; }
 
     /** \brief Sets the closing flag value.
-     * \param[in] value, true to apply a morpholofical close operation after a seedgrow segmentation operation.
+     * \param[in] value true to apply a morpholofical close operation after a seedgrow segmentation operation.
      */
     void setClosing(int value);
 

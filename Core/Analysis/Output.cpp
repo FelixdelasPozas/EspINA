@@ -42,9 +42,10 @@ const int ESPINA::Output::INVALID_OUTPUT_ID = -1;
 TimeStamp Output::s_tick = 0;
 
 //----------------------------------------------------------------------------
-Output::Output(FilterPtr filter, const Output::Id& id)
+Output::Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing)
 : m_filter{filter}
 , m_id{id}
+, m_spacing{spacing}
 , m_timeStamp{s_tick++}
 {
 }
@@ -63,9 +64,9 @@ void Output::setSpacing(const NmVector3& spacing)
 
     for(auto data : m_data)
     {
-      if (data->get()->isValid())
+      if (data->isValid())
       {
-        data->get()->setSpacing(spacing);
+        data->setSpacing(spacing);
       }
     }
 
@@ -77,6 +78,16 @@ void Output::setSpacing(const NmVector3& spacing)
 NmVector3 Output::spacing() const
 {
   return m_spacing;
+//   NmVector3 result = m_spacing;
+//
+//   if (result == NmVector3{0,0,0})
+//   {
+//     if (m_data.isEmpty()) throw Invalid_Bounds_Exception();
+//
+//     result = m_data[m_data.keys().first()]->spacing();
+//   }
+//
+//  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -88,10 +99,8 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
   auto saveOutput = isSegmentationOutput();
 
-  for(auto dataProxy : m_data)
+  for(auto data : m_data)
   {
-    DataSPtr data = dataProxy->get();
-
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
     xml.writeAttribute("bounds",  data->bounds().toString());
@@ -129,10 +138,10 @@ Bounds Output::bounds() const
   {
     if (bounds.areValid())
     {
-      bounds = boundingBox(bounds, data->get()->bounds());
+      bounds = boundingBox(bounds, data->bounds());
     } else
     {
-      bounds = data->get()->bounds();
+      bounds = data->bounds();
     }
   }
 
@@ -144,7 +153,7 @@ void Output::clearEditedRegions()
 {
   for(auto data: m_data)
   {
-    data->get()->clearEditedRegions();
+    data->clearEditedRegions();
   }
 }
 
@@ -153,7 +162,7 @@ bool Output::isEdited() const
 {
   for(auto data: m_data)
   {
-    if (data->get()->isEdited()) return true;
+    if (data->isEdited()) return true;
   }
 
   return false;
@@ -166,9 +175,9 @@ bool Output::isValid() const
 
   if (m_id == INVALID_OUTPUT_ID) return false;
 
-  for(DataProxySPtr data : m_data)
+  for(auto data : m_data)
   {
-    if (!data->get()->isValid()) return false;
+    if (!data->isValid()) return false;
   }
 
   return !m_data.isEmpty();
@@ -185,21 +194,17 @@ void Output::setData(Output::DataSPtr data)
 {
   Data::Type type = data->type();
 
-  if (m_data.contains(type))
-  {
-    auto oldData = m_data[type]->get();
-    disconnect(oldData.get(), SIGNAL(dataChanged()),
-               this, SLOT(onDataChanged()));
-  }
-  else
+  if (!m_data.contains(type))
   {
     m_data[type] = data->createProxy();
   }
 
-  m_data[type]->set(data);
+  auto base  = m_data.value(type).get();
+  auto proxy = dynamic_cast<DataProxy *>(base);
+  proxy->set(data);
   data->setOutput(this);
 
-  // Alternatively we could keep the previous edited clearEditedRegions
+  // Alternatively we could keep the previous edited regions
   // but at the moment I can't find any scenario where it could be useful
   BoundsList regions;
   regions << data->bounds();
@@ -220,13 +225,16 @@ void Output::removeData(const Data::Type& type)
 
 //----------------------------------------------------------------------------
 Output::DataSPtr Output::data(const Data::Type& type) const
+throw (Unavailable_Output_Data_Exception)
 {
-  DataSPtr result;
-
   if (m_data.contains(type))
-    result = m_data.value(type)->get();
-
-  return result;
+  {
+    return m_data.value(type);
+  }
+  else
+  {
+    throw Unavailable_Output_Data_Exception();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -235,11 +243,28 @@ bool Output::hasData(const Data::Type& type) const
   return m_data.contains(type);
 }
 
+//----------------------------------------------------------------------------
+unsigned int Output::numberOfDatas() const
+{
+  unsigned int result = 0;
+  for(auto data : m_data)
+  {
+    if (data->isValid())
+    {
+      ++result;
+    }
+  }
+
+  return result;
+}
 
 //----------------------------------------------------------------------------
 void Output::update()
 {
-  m_filter->update(m_id);
+  for (auto data : m_data)
+  {
+    data->update();
+  }
 }
 
 //----------------------------------------------------------------------------

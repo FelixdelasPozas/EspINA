@@ -39,7 +39,7 @@ QFileInfo EspinaErrorHandler::fileNotFound(const QFileInfo& file, QDir dir, cons
   {
     QString title     = (hint.isEmpty())        ? QObject::tr("Select file for %1:").arg(file.fileName()) : hint;
     QDir    directory = (dir == QDir())         ? m_defaultDir : dir;
-    QString filters   = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1)").arg(file.suffix()) : nameFilters;
+    QString filters   = (nameFilters.isEmpty()) ? QObject::tr("%1 files (*.%1);; All files (*.*)").arg(file.suffix()) : nameFilters;
 
     QList<QUrl> urls;
     urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))

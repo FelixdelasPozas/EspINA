@@ -125,8 +125,7 @@ namespace ESPINA
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if(viewItem != nullptr)
       {
-        auto mesh = meshData(viewItem->output());
-        return (mesh != nullptr);
+        return hasMeshData(viewItem->output());
       }
     }
     return false;

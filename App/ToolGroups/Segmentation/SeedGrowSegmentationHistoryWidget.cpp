@@ -34,8 +34,12 @@ class DiscardROIModificationsCommand
 public:
   explicit DiscardROIModificationsCommand(ROIToolsGroup *roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent = 0)
   : m_roiTools{roiTools}
-  , m_ROI{filter->roi()->clone()}
-  {}
+  {
+    if (filter->roi())
+    {
+      m_ROI = filter->roi()->clone();
+    }
+  }
 
   virtual void redo()
   { swapCurrentROI(); }
@@ -141,7 +145,7 @@ private:
   void update()
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_filter->update(0);
+    m_filter->update();
     QApplication::restoreOverrideCursor();
   }
 
@@ -276,8 +280,9 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   auto spacing = volume->spacing();
   auto roi     = m_roiTools->currentROI();
+  auto seed    = m_filter->seed();
 
-  if (roi && !contains(roi, m_filter->seed(), spacing))
+  if (roi && !contains(roi, seed, spacing))
   {
     QMessageBox::warning(this,
                          tr("Seed Grow Segmentation"),
@@ -300,9 +305,10 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
     warning.exec();
   }
 
-  if (m_filter->roi())
+  auto currentFilterROI = m_filter->roi();
+  if (currentFilterROI)
   {
-    m_roiTools->setCurrentROI(m_filter->roi()->clone());
+    m_roiTools->setCurrentROI(currentFilterROI->clone());
   }
 
   m_viewManager->updateSegmentationRepresentations();

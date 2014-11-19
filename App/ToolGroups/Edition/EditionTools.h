@@ -52,7 +52,7 @@ namespace ESPINA
       virtual FilterTypeList providedFilters() const;
 
     private:
-      mutable FetchBehaviourSPtr m_fetchBehaviour;
+      mutable DataFactorySPtr m_fetchBehaviour;
     };
 
     Q_OBJECT
@@ -67,6 +67,7 @@ namespace ESPINA
      */
     explicit EditionTools(ModelAdapterSPtr model,
                           ModelFactorySPtr factory,
+                          FilterDelegateFactorySPtr     filterDelegateFactory,
                           ViewManagerSPtr  viewManager,
                           QUndoStack      *undoStack,
                           QWidget         *parent = nullptr);

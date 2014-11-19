@@ -24,11 +24,11 @@
 
 namespace ESPINA
 {
-  //----------------------------------------------------------------------------
-  DataSPtr RasterizedVolumeFromFetchedMeshData::fetchOutputData(OutputSPtr output,
-                                                            TemporalStorageSPtr storage,
-                                                            const QString &path,
-                                                            QXmlStreamAttributes info)
+  //---------------------------------------------------------------------------
+  DataSPtr RasterizedVolumeFromFetchedMeshData::createData(OutputSPtr           output,
+                                                           TemporalStorageSPtr  storage,
+                                                           const QString       &path,
+                                                           QXmlStreamAttributes info)
   {
     DataSPtr data;
 
@@ -38,22 +38,20 @@ namespace ESPINA
     }
     else if ("VolumetricData" == info.value("type"))
     {
-      data = DataSPtr {new SparseVolume<itkVolumeType>()};
-      data->setOutput(output.get());
-      if (data->fetchData(storage, path, QString::number(output->id())))
+      data = std::make_shared<SparseVolume<itkVolumeType>>();
+
+      output->setData(data);
+
+      data->setFetchContext(storage, path, QString::number(output->id()));
+      if (!data->fetchData())
       {
-        output->setData(data);
-      }
-      else
-      {
-        auto mesh = fetchMeshData(output, storage, path);
+        auto mesh    = fetchMeshData(output, storage, path);
         auto spacing = mesh->spacing();
-        auto bounds = mesh->bounds();
+        auto bounds  = mesh->bounds();
 
         if (mesh)
         {
-          data = DataSPtr{new RasterizedVolume<itkVolumeType>(mesh, bounds, spacing)};
-          output->setData(data);
+          data = std::make_shared<RasterizedVolume<itkVolumeType>>(mesh, bounds, spacing);
         }
       }
     }
@@ -62,26 +60,23 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr output,
+  MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr          output,
                                                                           TemporalStorageSPtr storage,
-                                                                          const QString &path)
+                                                                          const QString      &path)
   {
-    MeshDataSPtr mesh = nullptr;
+    MeshDataSPtr data;
 
-    if (!output->hasData(MeshData::TYPE))
+    if (!hasMeshData(output))
     {
-      auto data = DataSPtr{new RawMesh()};
-      data->setOutput(output.get());
+      data = std::make_shared<RawMesh>();
 
-      if (data->fetchData(storage, path, QString::number(output->id())))
-      {
-        output->setData(data);
-      }
+      data->setFetchContext(storage, path, QString::number(output->id()));
+      output->setData(data);
     }
 
-    mesh = meshData(output);
+    data = meshData(output, DataUpdatePolicy::Ignore);
 
-    return mesh;
+    return data;
   }
 
 } // namespace ESPINA

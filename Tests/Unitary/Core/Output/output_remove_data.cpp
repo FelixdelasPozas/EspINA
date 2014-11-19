@@ -37,7 +37,7 @@ int output_remove_data( int argc, char** argv )
 
   DummyFilter filter;
 
-  Output output(&filter, 0);
+  Output output(&filter, 0, NmVector3{1,1,1});
 
   DataSPtr data{new DummyData()};
   output.setData(data);
@@ -49,9 +49,19 @@ int output_remove_data( int argc, char** argv )
     error = true;
   }
 
-  if (output.data(data->type()) != nullptr) {
+  if (output.hasData(data->type())) {
     cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
     error = true;
+  }
+
+  try
+  {
+    auto unexpectedData = output.data(data->type());
+    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+    error = true;
+  }
+  catch (Unavailable_Output_Data_Exception &e)
+  {
   }
 
   return error;

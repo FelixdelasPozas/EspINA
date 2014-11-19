@@ -60,18 +60,16 @@ int raw_mesh_save_edited_regions( int argc, char** argv )
     error = true;
   }
 
-  if (rawMesh.editedRegions().size() != 1)
-  {
+  if (rawMesh.editedRegions().size() != 1) {
     cerr << "Unexpected number of edited regions" << endl;
     error = true;
-  }
-  else
+  } else
   {
     auto editedRegion = rawMesh.editedRegions().first();
 
     if (editedRegion != rawMesh.bounds())
     {
-      cerr << "Unexpected edited region " << editedRegion << " differs from " << rawMesh.bounds() << endl;
+      cerr << "Unxexpected edited region " << editedRegion << " differs from " << rawMesh.bounds() << endl;
       error = true;
     }
 
@@ -81,10 +79,9 @@ int raw_mesh_save_edited_regions( int argc, char** argv )
 
     if (editedRegionSnapshots.size() != 1)
     {
-      cerr << "Unexpected number of edited regions snapshots" << endl;
+      cerr << "Unxexpected number of edited regions snapshots" << endl;
       error = true;
-    }
-    else
+    } else
     {
       auto snapshot = editedRegionSnapshots.first();
       storage->saveSnapshot(snapshot);
@@ -92,15 +89,13 @@ int raw_mesh_save_edited_regions( int argc, char** argv )
       auto filename     = storage->absoluteFilePath(snapshot.first);
       auto editedMesh   = readPolyDataFromFile(filename);
 
-      if (editedMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints())
-      {
-        cerr << "Unexpected number of edited region points" << endl;
+      if (editedMesh->GetNumberOfPoints() != mesh->GetNumberOfPoints()){
+        cerr << "Unxexpected number of edited region points" << endl;
         error = true;
       }
 
-      if (editedMesh->GetNumberOfCells() != mesh->GetNumberOfCells())
-      {
-        cerr << "Unexpected number of edited region cells" << endl;
+      if (editedMesh->GetNumberOfCells() != mesh->GetNumberOfCells()){
+        cerr << "Unxexpected number of edited region cells" << endl;
         error = true;
       }
     }

@@ -38,13 +38,13 @@ class InvalidData
 : public Data
 {
 public:
-  virtual DataProxySPtr createProxy() const;
+  virtual DataSPtr createProxy() const;
   virtual Bounds bounds() const {}
   virtual void setSpacing(const NmVector3& spacing){}
   virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
   virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
   virtual bool isValid() const {return false;}
-  virtual bool fetchData(const TemporalStorageSPtr storage, const QString& path, const QString& id) {return false;}
+  virtual bool fetchData() {return false;}
   virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
   virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {}
   virtual Type type() const { return "InvalidData";}
@@ -56,11 +56,12 @@ public:
 using InvalidDataSPtr = std::shared_ptr<InvalidData>;
 
 class InvalidDataProxy
-: public DataProxy
+: public InvalidData
+, public DataProxy
 {
 public:
-  virtual DataSPtr get() const
-  { return m_data; }
+  virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
+  { return std::dynamic_pointer_cast<InvalidData>(proxy); }
   virtual void set(DataSPtr data)
   { m_data = std::dynamic_pointer_cast<InvalidData>(data); }
 
@@ -68,16 +69,16 @@ private:
   InvalidDataSPtr m_data;
 };
 
-DataProxySPtr InvalidData::createProxy() const
+DataSPtr InvalidData::createProxy() const
 {
-  return DataProxySPtr{new InvalidDataProxy()};
+  return DataSPtr{new InvalidDataProxy()};
 }
 
 int output_invalid_output( int argc, char** argv )
 {
   bool error = false;
 
-  Output output(nullptr, 0);
+  Output output(nullptr, 0, NmVector3{1,1,1});
 
   if (output.isValid()) {
     cerr << "Default output constructor creates an invalid output" << endl;
@@ -85,7 +86,7 @@ int output_invalid_output( int argc, char** argv )
   }
 
   Testing::DummyFilter filter;
-  Output output2(&filter, 0);
+  Output output2(&filter, 0, NmVector3{1,1,1});
   
   if (output2.isValid()) {
     cerr << "Output has no associated data" << endl;

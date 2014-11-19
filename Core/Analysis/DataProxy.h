@@ -39,12 +39,15 @@ namespace ESPINA {
   class Data;
   using DataSPtr = std::shared_ptr<Data>;
 
+  class DataProxy;
+  using DataProxySPtr = std::shared_ptr<DataProxy>;
+
   class EspinaCore_EXPORT DataProxy
   {
   public:
-  	/** \brief DataProxy class virtual destructor.
-  	 *
-  	 */
+    /** \brief DataProxy class virtual destructor.
+     *
+     */
     virtual ~DataProxy()
     {}
 
@@ -54,13 +57,12 @@ namespace ESPINA {
      */
     virtual void set(DataSPtr data) = 0;
 
-    /** \brief Returns the data of the proxy.
+    /** \brief Casts data proxy smart pointer to data smart pointer
      *
      */
-    virtual DataSPtr get() const = 0;
+    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const = 0;
   };
 
-  using DataProxySPtr = std::shared_ptr<DataProxy>;
 }
 
 #endif // ESPINA_DATA_PROXY_H

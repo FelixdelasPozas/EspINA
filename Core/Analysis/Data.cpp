@@ -27,8 +27,37 @@
 
 // ESPINA
 #include "Data.h"
+#include "Output.h"
+#include "Filter.h"
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 TimeStamp Data::s_tick = 0;
+
+//----------------------------------------------------------------------------
+void Data::setFetchContext(const TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  m_storage = storage;
+  m_path    = path;
+  m_id      = id;
+}
+
+//----------------------------------------------------------------------------
+void Data::update()
+{
+  //QMutexLocker lock(&m_mutex);
+  if (!isValid())
+  {
+    BoundsList prevEditedRegions = editedRegions();
+
+    if (fetchData())
+    {
+      setEditedRegions(prevEditedRegions);
+    }
+    else
+    {
+      m_output->filter()->update();
+    }
+  }
+}

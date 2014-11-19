@@ -209,6 +209,7 @@ void RenderView::setSegmentationsVisibility(bool visible)
 //-----------------------------------------------------------------------------
 DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
 {
+  Q_ASSERT(hasVolumetricData(item->output()));
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->outputData(VolumetricData<itkVolumeType>::TYPE));
 }
 
@@ -219,10 +220,11 @@ void RenderView::updateSceneBounds()
 
   if (!m_channelStates.isEmpty())
   {
-    ChannelAdapterList channels = m_channelStates.keys();
-    DefaultVolumetricDataSPtr volume = volumetricData(channels.first());
+    auto channels = m_channelStates.keys();
+    auto volume   = volumetricData(channels.first());
+
+    m_sceneBounds     = volume->bounds();
     m_sceneResolution = volume->spacing();
-    m_sceneBounds = volume->bounds();
 
     for (int i = 1; i < channels.size(); ++i)
     {
@@ -323,13 +325,19 @@ void RenderView::remove(ChannelAdapterPtr channel)
   Q_ASSERT(m_channelStates.contains(channel));
 
   for(auto representation: m_channelStates[channel].representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if (renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         if (repRenderer->hasRepresentation(representation))
+        {
           repRenderer->removeRepresentation(representation);
+        }
       }
+    }
+  }
 
   m_channelStates.remove(channel);
 
@@ -840,6 +848,9 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
         BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
         crit.goToBegin();
 
+        if(!hasVolumetricData(segAdapter->output()))
+          continue;
+
         auto volume = volumetricData(segAdapter->output());
         auto itkVolume = volume->itkImage(intersectionBounds);
         auto value = itkVolume->GetBufferPointer();
@@ -934,7 +945,7 @@ void RenderView::setRenderersState(QMap<QString, bool> state)
 //-----------------------------------------------------------------------------
 void RenderView::changedOutput(ViewItemAdapterPtr item)
 {
-  if(item->type() == ItemAdapter::Type::SEGMENTATION)
+  if(isSegmentation(item))
   {
     updateRepresentation(dynamic_cast<SegmentationAdapterPtr>(item));
   }

@@ -120,6 +120,11 @@ namespace ESPINA {
                       const typename T::PixelType value = SEG_VOXEL_VALUE) override
     {}
 
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override
+    {}
+
+
     virtual void resize(const Bounds &bounds)
     {}
 
@@ -132,7 +137,7 @@ namespace ESPINA {
     virtual bool isEmpty() const
     { return !isValid(); }
 
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    virtual bool fetchData() override
     { return false; }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override

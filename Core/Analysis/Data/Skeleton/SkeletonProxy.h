@@ -60,8 +60,14 @@ namespace ESPINA
         m_data->setOutput(this->m_output);
       }
 
+      virtual void update()
+      { m_data->update(); }
+
       virtual DataSPtr get() const
       { return m_data; }
+
+      virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
+      { return std::dynamic_pointer_cast<SkeletonData>(proxy); }
 
       virtual Bounds bounds() const override
       { return m_data->bounds(); }
@@ -87,10 +93,10 @@ namespace ESPINA
       virtual bool isEmpty() const
       { return m_data->isEmpty(); }
 
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
-      { return m_data->fetchData(storage, path, id); }
+      virtual bool fetchData() override
+      { return m_data->fetchData(); }
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
       { return m_data->snapshot(storage, path, id); }
 
       virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
@@ -105,8 +111,11 @@ namespace ESPINA
       virtual size_t memoryUsage() const
       { return m_data->memoryUsage(); }
 
-      virtual vtkSmartPointer<vtkPolyData> skeleton() const
+      virtual vtkSmartPointer<vtkPolyData> skeleton() const override
       { return m_data->skeleton(); }
+
+      virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override
+      { m_data->setSkeleton(skeleton); }
     private:
       SkeletonDataSPtr m_data;
 

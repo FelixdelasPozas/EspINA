@@ -65,7 +65,7 @@ namespace ESPINA
        */
       virtual bool setInternalData(SkeletonDataSPtr skeleton);
 
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id);
+      virtual bool fetchData() override;
 
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
 
@@ -91,6 +91,11 @@ namespace ESPINA
       { /* TODO */ };
 
       size_t memoryUsage() const;
+
+      void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override;
+
+    protected:
+      virtual bool fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const;
     private:
       vtkSmartPointer<vtkPolyData> m_skeleton;
       vtkSmartPointer<vtkPolyData> m_editedRegionsSkeleton;

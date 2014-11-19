@@ -143,7 +143,7 @@ namespace ESPINA {
           QuaZip                 &m_zip;
           CoreFactorySPtr         m_factory;
           ErrorHandlerSPtr        m_handler;
-          FetchBehaviourSPtr      m_fetchBehaviour;
+          DataFactorySPtr      m_fetchBehaviour;
 
           AnalysisSPtr            m_analysis;
           TemporalStorageSPtr     m_storage;

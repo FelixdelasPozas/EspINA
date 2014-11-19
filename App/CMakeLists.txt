@@ -35,6 +35,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/View2D/View2DRenderersPanel.h
   Settings/View2D/View2DSettingsPanel.h
   Settings/View3D/View3DSettingsPanel.h
+  ToolGroups/Edition/CODEHistory.h
+  ToolGroups/Edition/CODEHistoryWidget.h
   ToolGroups/Edition/CODETool.h
   ToolGroups/Edition/EditionTools.h
   ToolGroups/Edition/EditionTools.h
@@ -87,6 +89,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
+  ToolGroups/Edition/CODEHistoryWidget.ui
   ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.ui
   )
 
@@ -134,6 +137,8 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DRenderersPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
+  ToolGroups/Edition/CODEHistory.cpp
+  ToolGroups/Edition/CODEHistoryWidget.cpp
   ToolGroups/Edition/CODETool.cpp
   ToolGroups/Edition/EditionTools.cpp
   ToolGroups/Edition/ManualEditionTool.cpp

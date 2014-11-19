@@ -166,7 +166,7 @@ void Task::runWrapper()
   if(!isAborted())
     run();
 
-  m_pendingPause = false;
+  m_pendingPause     = false;
   m_pendingUserPause = false;
 
   setFinished(true);

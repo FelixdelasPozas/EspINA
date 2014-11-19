@@ -75,7 +75,7 @@ namespace ESPINA
      */
     virtual bool setInternalData(MeshDataSPtr mesh);
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)                 override;
+    virtual bool fetchData() override;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
@@ -85,8 +85,7 @@ namespace ESPINA
     // executing the filter itself if no other data is required)
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
-    { /*TODO*/}
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
     bool isEdited() const
     { return false; }
@@ -96,7 +95,7 @@ namespace ESPINA
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
     void setSpacing(const NmVector3&)
-    { /* TODO: not allowed */ };
+    { /* TODO: should rescale points */ };
 
     NmVector3 spacing() const;
 
@@ -104,6 +103,9 @@ namespace ESPINA
     { /* TODO: not allowed */ };
 
     size_t memoryUsage() const;
+
+  protected:
+    virtual bool fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const;
 
   private:
     QString snapshotFilename(const QString &path, const QString &id) const

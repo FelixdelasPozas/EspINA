@@ -25,11 +25,21 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output)
+ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
 {
-  output->update();
-
   auto data = output->data(VolumetricData<itkVolumeType>::TYPE);
 
+  if (policy == DataUpdatePolicy::Request)
+  {
+    data->update();
+  }
+
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(data);
+}
+
+//----------------------------------------------------------------------------
+bool ESPINA::hasVolumetricData(OutputSPtr output)
+{
+  return output->hasData(VolumetricData<itkVolumeType>::TYPE);
 }

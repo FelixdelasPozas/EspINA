@@ -184,8 +184,7 @@ namespace ESPINA
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if(viewItem != nullptr)
       {
-        auto skeleton = skeletonData(viewItem->output());
-        return (skeleton != nullptr);
+        return hasSkeletonData(viewItem->output());
       }
     }
     return false;

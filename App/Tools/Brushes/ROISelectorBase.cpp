@@ -19,6 +19,7 @@
  */
 
 // ESPINA
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/View/View2D.h>
 #include <Tools/Brushes/ROISelectorBase.h>
 

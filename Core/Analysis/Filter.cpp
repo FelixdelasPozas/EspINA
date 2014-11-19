@@ -22,6 +22,7 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/IO/FetchBehaviour/FetchRawData.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -38,6 +39,48 @@
 #include <vtkMath.h>
 
 using namespace ESPINA;
+
+
+namespace ESPINA {
+//   class ReadOnlyData
+//   : public Data
+//   {
+//     virtual DataProxySPtr createProxy() const;
+//   };
+  namespace OutputParser
+  {
+    bool isOutputSection(const QXmlStreamReader& xml)
+    { return xml.name() == "Output"; }
+
+    bool isDataSection(const QXmlStreamReader& xml)
+    { return xml.name() == "Data"; }
+
+    bool isEditedRegionSection(const QXmlStreamReader& xml)
+    { return xml.name() == "EditedRegion"; }
+
+    Output::Id parseOutputId(const QXmlStreamReader& xml)
+    {
+      return xml.attributes().value("id").toString().toInt();
+    }
+
+    NmVector3 parseOutputSpacing(const QXmlStreamReader& xml)
+    {
+      return NmVector3(xml.attributes().value("spacing").toString());
+    }
+
+    Bounds parseEditedRegionsBounds(const QXmlStreamReader& xml)
+    {
+      return Bounds(xml.attributes().value("bounds").toString());
+    }
+
+    Data::Type parseDataType(const QXmlStreamReader& xml)
+    {
+      return xml.attributes().value("type").toString();
+    }
+  }
+}
+
+using namespace ESPINA::OutputParser;
 
 //----------------------------------------------------------------------------
 Filter::~Filter()
@@ -86,19 +129,14 @@ void Filter::unload()
 }
 
 //----------------------------------------------------------------------------
-bool Filter::update()
+void Filter::update()
 {
-  bool updated = true;
+  //qDebug() << "Update Request: " << m_type;
+  if (m_outputs.isEmpty() || needUpdate())
+  {
+    //qDebug() << " - Accepted";
+    bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
-  if (numberOfOutputs() != 0 || restorePreviousOutputs())
-  {
-    for(auto id : m_outputs.keys())
-    {
-      updated &= update(id);
-    }
-  }
-  else if (needUpdate())
-  {
     for(auto input : m_inputs)
     {
       input->update();
@@ -106,83 +144,39 @@ bool Filter::update()
 
     execute();
 
-    // If no previous output is restored then there is no edited
-    // regions to be restored either
-    for (auto output : m_outputs)
+    if (invalidatePreviousEditedRegions)
     {
-      output->clearEditedRegions();
+      for (auto output : m_outputs)
+      {
+        output->clearEditedRegions();
+      }
+    }
+    else
+    {
+      restoreEditedRegions();
     }
   }
-
-  return updated;
-}
-
-//----------------------------------------------------------------------------
-bool Filter::update(Output::Id id)
-{
-   if (needUpdate(id))
-   {
-     OutputPtr prevOutput = nullptr;
-     if (validOutput(id))
-     {
-       prevOutput = m_outputs[id].get();
-     }
-
-     // Invalidate previous edited regions
-     bool invalidatePreviousEditedRegions = ignoreStorageContent();
-     if (validOutput(id) && invalidatePreviousEditedRegions)
-     {
-       m_outputs[id]->clearEditedRegions();
-     }
-
-     if (!fetchOutputData(id))
-     {
-       for(auto input : m_inputs)
-       {
-         input->output()->update();
-       }
-
-       execute(id);
-
-       Q_ASSERT(existOutput(id));
-       // Existing output objects must remain between filter executions
-       Q_ASSERT(!prevOutput || prevOutput == m_outputs[id].get());
-
-       if (invalidatePreviousEditedRegions)
-       {
-         m_outputs[id]->clearEditedRegions();
-       }
-       else
-       {
-         restoreEditedRegions(id);
-         //m_outputs[id]->restoreEditedRegions(m_cacheDir, cacheOutputId(oId));
-       }
-     }
-   }
-
-   return true;
 }
 
 //----------------------------------------------------------------------------
 Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
-: Task                       {scheduler}
-, m_analysis                 {nullptr}
-, m_type                     {type}
-, m_inputs                   {inputs}
-//, m_invalidateSortoredOutputs{false}
-, m_fetchBehaviour           {nullptr}
+: Task         {scheduler}
+, m_analysis   {nullptr}
+, m_type       {type}
+, m_inputs     {inputs}
+, m_dataFactory{new FetchRawData()}
 {
   setName(m_type);
 }
 
 //----------------------------------------------------------------------------
-bool Filter::fetchOutputData(Output::Id id)
+void Filter::restoreEditedRegions()
 {
-  bool outputDataFetched = false;
-
-  if (validStoredInformation() && m_fetchBehaviour)
+  if (validStoredInformation())
   {
     QByteArray buffer = storage()->snapshot(outputFile());
+
+    //qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {
@@ -199,96 +193,31 @@ bool Filter::fetchOutputData(Output::Id id)
         xml.readNextStartElement();
         if (xml.isStartElement())
         {
-          if ("Output" == xml.name())
+          if (isOutputSection(xml))
           {
-            if (id == xml.attributes().value("id").toString().toInt())
-            {
-              // Outputs can be already created while checking if an output exists
-              output = m_outputs.value(id, OutputSPtr{new Output(this, id)});
-
-              auto spacing = xml.attributes().value("spacing");
-              if (!spacing.isEmpty())
-              {
-                output->setSpacing(NmVector3(spacing.toString()));
-              }
-              m_outputs.insert(id, output);
-            } else
-            {
-              output.reset();
-            }
+            auto id = parseOutputId(xml);
+            // Outputs have been already restored or creted by Filter::update()
+            Q_ASSERT(m_outputs.contains(id));
+            output = m_outputs.value(id);
+            output->clearEditedRegions();
           }
-          else if ("Data" == xml.name() && output)
-          {
-             data = m_fetchBehaviour->fetchOutputData(output, storage(), prefix(), xml.attributes());
-             data->clearEditedRegions();
-             editedRegions.clear();
-          }
-          else if ("EditedRegion" == xml.name() && output)
-          {
-            editedRegions <<  Bounds(xml.attributes().value("bounds").toString());
-            data->setEditedRegions(editedRegions);
-          }
-        }
-      }
-    }
-    outputDataFetched = m_outputs.contains(id) && m_outputs[id]->isValid();
-  }
-
-  return outputDataFetched;
-}
-
-//----------------------------------------------------------------------------
-void Filter::restoreEditedRegions(Output::Id id)
-{
-  if (validStoredInformation())
-  {
-    QByteArray buffer = storage()->snapshot(outputFile());
-
-    //qDebug() << buffer;
-
-    if (!buffer.isEmpty())
-    {
-      QXmlStreamReader xml(buffer);
-
-      OutputSPtr output;
-      DataSPtr   data;
-      BoundsList editedRegions;
-
-      while (!xml.atEnd())
-      {
-        xml.readNextStartElement();
-        if (xml.isStartElement())
-        {
-          if ("Output" == xml.name())
-          {
-            if (id == xml.attributes().value("id").toString().toInt())
-            {
-              // Outputs can be already created while checking if an output exists
-              Q_ASSERT(m_outputs.contains(id));
-              output = m_outputs.value(id, OutputSPtr{});
-              output->clearEditedRegions();
-            } else
-            {
-              output.reset();
-            }
-          }
-          else if ("Data" == xml.name() && output)
+          else if (isDataSection(xml) && output)
           {
             if (data)
             {
               data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
             }
-            data = output->data(xml.attributes().value("type").toString());
+            data = output->data(parseDataType(xml));
             if (data)
             {
               data->clearEditedRegions();
             }
           }
-          else if ("EditedRegion" == xml.name() && output)
+          else if (isEditedRegionSection(xml) && output)
           {
             if (data)
             {
-              editedRegions <<  Bounds(xml.attributes().value("bounds").toString());
+              editedRegions << parseEditedRegionsBounds(xml);
               data->setEditedRegions(editedRegions);
             }
           }
@@ -312,7 +241,7 @@ void Filter::restoreEditedRegions(Output::Id id)
 //----------------------------------------------------------------------------
 bool Filter::validStoredInformation() const
 {
-  return /*!m_invalidateSortoredOutputs &&*/ storage() && !ignoreStorageContent();
+  return storage() && !ignoreStorageContent();
 }
 
 //----------------------------------------------------------------------------
@@ -329,26 +258,42 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
+  //qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
+    //qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
+
+    //qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {
       QXmlStreamReader xml(buffer);
 
       OutputSPtr output;
+      DataSPtr   data;
 
       while (!xml.atEnd())
       {
         xml.readNextStartElement();
         if (xml.isStartElement())
         {
-          if ("Output" == xml.name())
+          if (isOutputSection(xml))
           {
-            int id = xml.attributes().value("id").toString().toInt();
+            auto id      = parseOutputId(xml);
+            auto spacing = parseOutputSpacing(xml);
 
-            m_outputs.insert(id, OutputSPtr{new Output(const_cast<Filter *>(this), id)});
+            output = std::make_shared<Output>(const_cast<Filter *>(this), id, spacing);
+            m_outputs.insert(id, output);
+          }
+          else if (isDataSection(xml) && output)
+          {
+            data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
+            if (!data)
+            {
+              // TODO: Create ReadOnlyData to preserve data information in further savings
+            }
+            data->clearEditedRegions();
           }
         }
       }

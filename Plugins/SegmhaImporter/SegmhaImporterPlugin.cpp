@@ -40,17 +40,19 @@ FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Ty
 
   if(type == SEGMHA_FILTER)
   {
-    filter = FilterSPtr{new SourceFilter(inputs, type, scheduler)};
+    filter = std::make_shared<SourceFilter>(inputs, type, scheduler);
+  }
+  else if(type == SEGMHA_FILTER_V4)
+  {
+    filter = std::make_shared<IO::SegFile::ReadOnlyFilter>(inputs, type);
   }
   else
-    if(type == SEGMHA_FILTER_V4)
-    {
-      filter = FilterSPtr{new IO::SegFile::ReadOnlyFilter(inputs, type)};
-    }
-    else
-      throw Unknown_Filter_Exception();
+  {
+    throw Unknown_Filter_Exception();
+  }
 
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
+  filter->setDataFactory(std::make_shared<MarchingCubesFromFetchedVolumetricData>());
+
   return filter;
 }
 

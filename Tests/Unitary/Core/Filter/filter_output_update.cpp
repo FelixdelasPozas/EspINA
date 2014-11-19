@@ -41,7 +41,7 @@ int filter_output_update( int argc, char** argv )
 
   DummyFilter *filter{new DummyFilter()};
 
-  filter->update(0);
+  filter->update();
 
   auto output = filter->output(0);
 

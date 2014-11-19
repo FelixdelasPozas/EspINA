@@ -108,7 +108,9 @@ void SplitFilter::execute()
 
   int shift[3]; // Stencil origin differ from creation to fetch
   for (int i = 0; i < 3; ++i)
+  {
     shift[i] = vtkMath::Round(m_stencil->GetOrigin()[i] / m_stencil->GetSpacing()[i]);
+  }
 
   for(; !it.IsAtEnd(); ++it, ++split1it, ++split2it)
   {
@@ -119,14 +121,14 @@ void SplitFilter::execute()
       split1it.Set(value);
       split2it.Set(SEG_BG_VALUE);
       if (isEmpty1)
-        isEmpty1 = value != SEG_VOXEL_VALUE;
+        isEmpty1 = (value != SEG_VOXEL_VALUE);
     }
     else
     {
       split1it.Set(SEG_BG_VALUE);
       split2it.Set(value);
       if (isEmpty2)
-        isEmpty2 = value != SEG_VOXEL_VALUE;
+        isEmpty2 = (value != SEG_VOXEL_VALUE);
     }
   }
 
@@ -140,7 +142,6 @@ void SplitFilter::execute()
     for(auto i: {0, 1})
     {
       auto spacing = m_inputs.first()->output()->spacing();
-      m_outputs[i] = OutputSPtr(new Output(this, i));
       auto bounds = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
 
       DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
@@ -148,6 +149,10 @@ void SplitFilter::execute()
 
       MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
 
+      if (!m_outputs.contains(i))
+      {
+        m_outputs[i] = OutputSPtr(new Output(this, i, spacing));
+      }
       m_outputs[i]->setData(volume);
       m_outputs[i]->setData(mesh);
       m_outputs[i]->setSpacing(spacing);

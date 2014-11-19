@@ -69,9 +69,9 @@ namespace ESPINA
     auto sFilter = FilterSPtr{new SourceFilter(inputs, SOURCE_FILTER, scheduler)};
     if (!m_fetchBehaviour)
     {
-      m_fetchBehaviour = FetchBehaviourSPtr{new FetchRawData()};
+      m_fetchBehaviour = DataFactorySPtr{new FetchRawData()};
     }
-    sFilter->setFetchBehaviour(m_fetchBehaviour);
+    sFilter->setDataFactory(m_fetchBehaviour);
 
     return sFilter;
   }
@@ -231,9 +231,9 @@ namespace ESPINA
         auto rep = m_item->representation(SkeletonRepresentation::TYPE);
         if(rep != RepresentationSPtr())
           rep->setVisible(false);
-        auto skeleton = skeletonData(m_item->output());
-        if(skeleton != nullptr)
-          widget->initialize(skeleton->skeleton());
+
+        if(hasSkeletonData(m_item->output()))
+          widget->initialize(skeletonData(m_item->output())->skeleton());
       }
       m_widget->setEnabled(true);
     }
@@ -302,10 +302,9 @@ namespace ESPINA
   {
     if(m_item != nullptr)
     {
-      auto oldSkeleton = skeletonData(m_item->output());
-      if(oldSkeleton != nullptr)
+      if(hasSkeletonData(m_item->output()))
       {
-        auto polyData = oldSkeleton->skeleton();
+        auto polyData = skeletonData(m_item->output())->skeleton();
         polyData->SetPoints(m_skeleton->GetPoints());
         polyData->SetLines(m_skeleton->GetLines());
         polyData->Modified();
@@ -313,7 +312,7 @@ namespace ESPINA
       else
       {
         auto spacing = m_item->output()->spacing();
-        auto data = SkeletonDataSPtr{new RawSkeleton{m_skeleton, spacing, m_item->output()}};
+        auto data = std::make_shared<RawSkeleton>(m_skeleton, spacing, m_item->output());
         m_item->output()->setData(data);
       }
     }
@@ -321,8 +320,9 @@ namespace ESPINA
     {
       auto spacing = m_vm->activeChannel()->output()->spacing();
       auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-      auto output = OutputSPtr(new Output(filter.get(), 0));
-      output->setData(SkeletonDataSPtr{ new RawSkeleton{m_skeleton, spacing, output}});
+      auto output = OutputSPtr(new Output(filter.get(), 0, spacing));
+
+      output->setData(std::make_shared<RawSkeleton>(m_skeleton, spacing, output));
 
       filter->addOutput(0, output);
       auto segmentation = m_factory->createSegmentation(filter, 0);

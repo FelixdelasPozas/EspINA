@@ -35,6 +35,8 @@
 #include <Core/Utils/Bounds.h>
 #include "Persistent.h"
 
+#include <QMutex>
+
 namespace ESPINA
 {
   class ChangeSignalDelayer;
@@ -71,7 +73,7 @@ namespace ESPINA
     /** \brief Creates a proxy for the data type.
      *
      */
-    virtual DataProxySPtr createProxy() const = 0;
+    virtual DataSPtr createProxy() const = 0;
 
     /** \brief Sets the data output.
      * \param[in] output Output object smart pointer.
@@ -79,6 +81,11 @@ namespace ESPINA
      */
     void setOutput(OutputPtr output)
     { m_output = output; }
+
+    /** \brief Updates data contents
+     *
+     */
+    virtual void update();
 
     /** \brief Returns the time stamp of the last modification to the data.
      *
@@ -98,19 +105,23 @@ namespace ESPINA
     virtual void setEditedRegions(const BoundsList &regions)
     { m_editedRegions = regions; }
 
-    /** \brief Clears the edited regions list.
-     *
-     */
-    virtual void clearEditedRegions()
-    { m_editedRegions.clear(); }
-
-    /** \brief Recover data from Persistent Storage.
+    /** \brief Set context to look for data on fetch request
      * \param[in] storage temporal storage where data snasphots can be loaded from.
      * \param[in] path storage path where data snapshosts will be loaded from
      * \param[in] id identifier of stored data snapshosts
      *
      */
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
+    void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id);
+
+    /** \brief Recover data from Persistent Storage.
+     */
+    virtual bool fetchData() = 0;
+
+    /** \brief Clears the edited regions list.
+     *
+     */
+    virtual void clearEditedRegions()
+    { m_editedRegions.clear(); }
 
     /** \brief Return the byte arrays needed to save this object between sessions.
      * \param[in] storage temporal storage where data snasphots can be loaded from
@@ -126,6 +137,7 @@ namespace ESPINA
      * \param[in] path storage path where edited regions snapshosts will be saved to
      * \param[in] id identifier to store edited regions snapshosts
      *
+     *  Temporal storage may be also used to store temporal files where snapshot generation
      */
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
@@ -190,7 +202,9 @@ namespace ESPINA
     explicit Data()
     : m_output   {nullptr}
     , m_timeStamp{s_tick++}
-    {}
+    , m_mutex(QMutex::Recursive)
+    {
+    }
 
     /** \brief Increments the modification time and signals the modification of the data.
      *
@@ -207,14 +221,21 @@ namespace ESPINA
   protected:
     OutputPtr  m_output;
 
+    QString             m_path;
+    QString             m_id;
+    TemporalStorageSPtr m_storage;
+
   private:
-    TimeStamp m_timeStamp;
+    TimeStamp  m_timeStamp;
     BoundsList m_editedRegions;
+
+    QMutex m_mutex;
 
     friend class Output;
     friend class ChangeSignalDelayer;
   };
 
+  enum class DataUpdatePolicy { Request, Ignore};
 } // namespace ESPINA
 
 #endif // ESPINA_DATA_H

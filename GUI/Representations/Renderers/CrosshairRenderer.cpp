@@ -134,8 +134,7 @@ bool CrosshairRenderer::canRender(ItemAdapterPtr item) const
     auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
     if(viewItem != nullptr)
     {
-      auto volume = volumetricData(viewItem->output());
-      return (volume != nullptr);
+      return hasVolumetricData(viewItem->output());
     }
   }
   return false;

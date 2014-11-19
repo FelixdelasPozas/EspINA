@@ -37,10 +37,8 @@ namespace ESPINA {
       virtual State state() const                   override {return State();}
     protected:
       virtual Snapshot saveFilterSnapshot() const   override {return Snapshot();}
-      virtual bool needUpdate() const               override {return false;}
-      virtual bool needUpdate(Output::Id id) const  override {return false;}
-      virtual void execute()                        override {}
-      virtual void execute(Output::Id id)           override {}
+      virtual bool needUpdate() const               override {return true;}
+      virtual void execute()                        override;
       virtual bool ignoreStorageContent() const     override {return false;}
     };
 

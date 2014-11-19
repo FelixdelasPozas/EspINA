@@ -37,7 +37,7 @@ int output_valid_output( int argc, char** argv )
 
   DummyFilter filter;
 
-  Output output(&filter, 0);
+  Output output(&filter, 0, NmVector3{1,1,1});
 
   DataSPtr data{new DummyData()};
   output.setData(data);
@@ -47,8 +47,8 @@ int output_valid_output( int argc, char** argv )
     error = true;
   }
 
-  if (output.data(data->type()) != data) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  if (output.data(data->type())->bounds() != data->bounds()) {
+    cerr << "Unxpected output data bounds";
     error = true;
   }
 

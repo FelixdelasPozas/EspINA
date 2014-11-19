@@ -44,7 +44,7 @@ void SleepyTask::run()
     Result = 0;
     m_mutex.unlock();
 
-    std::cout << description().toStdString() << " is working " << i+1 << "/10 on thread " << thread() << std::endl;
+    //std::cout << description().toStdString() << " is working " << i+1 << "/10 on thread " << thread() << std::endl;
     usleep(m_sleepTime);
     i++;
 
@@ -57,5 +57,5 @@ void SleepyTask::run()
     m_mutex.unlock();
   }
 
-  std::cout << description().toStdString() << " ended" << std::endl;
+  //std::cout << description().toStdString() << " ended" << std::endl;
 }

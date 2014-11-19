@@ -223,7 +223,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
 
       auto volume = label2volume->GetOutput();
 
-      OutputSPtr output{new Output(sourceFilter.get(), id)};
+      auto output = std::make_shared<Output>(sourceFilter.get(), id, ToNmVector3<itkVolumeType>(spacing));
 
       Bounds    bounds  = equivalentBounds<itkVolumeType>(volume, volume->GetLargestPossibleRegion());
       NmVector3 spacing = ToNmVector3<itkVolumeType>(volume->GetSpacing());

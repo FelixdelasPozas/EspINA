@@ -147,6 +147,7 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
 void MorphologicalInformation::updateInformation() const
 {
 //   qDebug() << "Updating" << m_seg->data().toString() << ID;
+  Q_ASSERT(hasVolumetricData(m_extendedItem->output()));
   auto segVolume = volumetricData(m_extendedItem->output());
 
   bool          validInfo = segVolume != nullptr;

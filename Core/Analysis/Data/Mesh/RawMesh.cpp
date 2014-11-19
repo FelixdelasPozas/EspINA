@@ -48,43 +48,21 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 }
 
 //----------------------------------------------------------------------------
-bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
+bool RawMesh::fetchData()
 {
-  bool dataFetched = false;
-
-  // TODO: Fetch old file names
-  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
-
-  for (auto filename : {snapshotFilename(path, id),
-                        oldSnapshotFilename(path, id)})
-  {
-    QFileInfo meshFile(storage->absoluteFilePath(filename));
-
-    if(meshFile.exists())
-    {
-      m_mesh = PolyDataUtils::readPolyDataFromFile(meshFile.absoluteFilePath());
-      dataFetched = true;
-      break;
-    }
-  }
-
-  return dataFetched;
+  return MeshData::fetchData();
 }
 
 //----------------------------------------------------------------------------
 Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
 {
-  Snapshot snapshot;
+  return MeshData::snapshot(storage, path, id);
+}
 
-  if (m_mesh)
-  {
-    QString fileName = snapshotFilename(path, id);
-    storage->makePath(path);
-
-    snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_mesh));
-  }
-
-  return snapshot;
+//----------------------------------------------------------------------------
+void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  fetchData(storage, path, id);
 }
 
 //----------------------------------------------------------------------------
@@ -145,6 +123,13 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
   m_mesh = rhs->mesh();
   return true;
 }
+
+//----------------------------------------------------------------------------
+bool RawMesh::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+{
+  return MeshData::fetchData(storage, path, id);
+}
+
 
 //----------------------------------------------------------------------------
 RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)

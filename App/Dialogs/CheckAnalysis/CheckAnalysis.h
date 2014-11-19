@@ -66,7 +66,7 @@ namespace ESPINA
       /** \brief Adds a problem to the problem list.
        *
        */
-      void addProblem(struct Problem problem);
+      void addProblem(Problem problem);
 
     private:
       ProblemList     m_problems;
@@ -103,9 +103,9 @@ namespace ESPINA
 
     signals:
       /** \brief Signal emitted when a problem has been found with the item being checked.
-       * \param[out] struct Problem, problem description.
+       * \param[out] Problem, problem description.
        */
-      void problem(struct Problem) const;
+      void problem(Problem) const;
 
     protected:
       /** \brief Implements Task::run().
@@ -114,32 +114,32 @@ namespace ESPINA
       virtual void run() override;
 
     private:
-      /** \brief Checks if a segmentation volume is empty, emits problem(struct Problem) if it is.
+      /** \brief Checks if a segmentation volume is empty, emits problem(Problem) if it is.
        *
        */
       void checkVolumeIsEmpty() const;
 
-      /** \brief Checks if a segmentation mesh is empty, emits problem(struct Problem) if it is.
+      /** \brief Checks if a segmentation mesh is empty, emits problem(Problem) if it is.
        *
        */
       void checkMeshIsEmpty() const;
 
-      /** \brief Checks if the segmentation has a channel assigned as a location, emits problem(struct Problem) if not.
+      /** \brief Checks if the segmentation has a channel assigned as a location, emits problem(Problem) if not.
        *
        */
       void checkSegmentationHasChannel() const;
 
-      /** \brief Checks segmentation relations and emits problem(struct Problem) for each problem found.
+      /** \brief Checks segmentation relations and emits problem(Problem) for each problem found.
        *
        */
       void checkSegmentationRelations() const;
 
-      /** \brief Checks channel relations and emits problem(struct Problem) for each problem found.
+      /** \brief Checks channel relations and emits problem(Problem) for each problem found.
        *
        */
       void checkChannelRelations() const;
 
-      /** \brief Checks ViewItem output for existence and emits problem(struct Problem) for each problem found.
+      /** \brief Checks ViewItem output for existence and emits problem(Problem) for each problem found.
        * Returns true if no problem are found, and false otherwise.
        *
        */
