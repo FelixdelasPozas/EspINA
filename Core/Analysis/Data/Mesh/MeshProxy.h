@@ -90,9 +90,6 @@ namespace ESPINA
     virtual bool isEmpty() const
     { return m_data->isEmpty(); }
 
-    virtual bool fetchData() override
-    { return m_data->fetchData(); }
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
                               const QString      &id) const override
@@ -115,6 +112,10 @@ namespace ESPINA
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
     { m_data->setMesh(mesh); }
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return m_data->fetchData(); }
 
   private:
     virtual QList<Data::Type> updateDependencies() const override

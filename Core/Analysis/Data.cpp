@@ -48,3 +48,9 @@ QList<Data::Type> Data::dependencies() const
 {
   return updateDependencies();
 }
+
+//----------------------------------------------------------------------------
+bool Data::fetchData()
+{
+  return fetchDataImplementation(m_storage, m_path, m_id);
+}

@@ -161,8 +161,6 @@ namespace ESPINA
 
     virtual bool isEmpty() const;
 
-    virtual bool fetchData() override;
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
@@ -190,6 +188,8 @@ namespace ESPINA
      *
      */
     VolumeBoundsList compactedBlocks() const;
+
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
   private:
     QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
@@ -396,7 +396,6 @@ namespace ESPINA
 
     virtual QList<Data::Type> updateDependencies() const override
     { return QList<Data::Type>(); }
-
 
   protected:
     mutable
@@ -743,7 +742,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::fetchData()
+  bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
     //QWriteLocker lock(&m_mutex);
 
@@ -756,9 +755,6 @@ namespace ESPINA
     int i = 0;
     QFileInfo blockFile;
 
-    auto path    = this->m_path;
-    auto id      = this->m_id;
-    auto storage = this->m_storage;
     auto output  = this->m_output;
 
     if (nullptr == output)

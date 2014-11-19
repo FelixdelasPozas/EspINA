@@ -38,7 +38,6 @@
  * \param[in] value, content of the cell.
  *
  */
-xlslib_core::cell_t * EspinaSupport_EXPORT createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value);
-
+EspinaSupport_EXPORT xlslib_core::cell_t * createCell(xlslib_core::worksheet *sheet, int row, int column, const QVariant &value);
 
 #endif // XLSUTILS_H

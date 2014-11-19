@@ -58,8 +58,6 @@ namespace ESPINA
      */
     virtual ~MarchingCubesMesh();
 
-    virtual bool fetchData() override;
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
@@ -102,6 +100,8 @@ namespace ESPINA
 
     virtual QList<Data::Type> updateDependencies() const override;
 
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
     VolumetricDataSPtr<T> m_volume;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
     TimeStamp m_lastVolumeModification;
@@ -123,11 +123,12 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  template <typename T>
-  bool MarchingCubesMesh<T>::fetchData()
+  template<typename T>
+  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
-    return MeshData::fetchData();
+    return MeshData::fetchDataImplementation(storage, path, id);
   }
+
 
   //----------------------------------------------------------------------------
   template <typename T>

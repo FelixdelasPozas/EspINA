@@ -75,8 +75,6 @@ namespace ESPINA
      */
     virtual bool setInternalData(MeshDataSPtr mesh);
 
-    virtual bool fetchData() override;
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
     // Because meshes store the whole mesh polydata when their edited regions
@@ -105,7 +103,7 @@ namespace ESPINA
     size_t memoryUsage() const;
 
   protected:
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
   private:
     virtual QList<Data::Type> updateDependencies() const override

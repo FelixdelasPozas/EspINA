@@ -36,7 +36,7 @@ namespace ESPINA {
       virtual State state() const{ return State();}
 
     protected:
-      virtual Snapshot saveFilterSnapshot() const {}
+      virtual Snapshot saveFilterSnapshot() const { return Snapshot(); }
       virtual bool needUpdate() const {return true;}
       virtual bool needUpdate(Output::Id id) const {return true;}
       virtual void execute(){ execute(0); }

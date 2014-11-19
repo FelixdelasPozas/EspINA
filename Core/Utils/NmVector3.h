@@ -109,12 +109,12 @@ namespace ESPINA {
   /** \brief NmVector3 operator<< for QDebug.
    *
    */
-  QDebug EspinaCore_EXPORT operator<< (QDebug d, const NmVector3 &vector);
+  EspinaCore_EXPORT QDebug operator<< (QDebug d, const NmVector3 &vector);
 
   /** \brief NmVector3 operator<< for streams.
    *
    */
-  std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const NmVector3& vector);
+  EspinaCore_EXPORT std::ostream& operator<<(std::ostream& os, const NmVector3& vector);
 
   /** \brief NmVector3 equality operator.
    *

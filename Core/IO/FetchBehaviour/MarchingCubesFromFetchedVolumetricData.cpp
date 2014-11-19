@@ -54,7 +54,7 @@ ESPINA::DefaultVolumetricDataSPtr MarchingCubesFromFetchedVolumetricData::create
 {
   if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
   {
-    auto data = DataSPtr{new SparseVolume<itkVolumeType>()};
+    auto data = std::make_shared<SparseVolume<itkVolumeType>>();
     data->setFetchContext(storage, path, QString::number(output->id()));
     output->setData(data);
   }

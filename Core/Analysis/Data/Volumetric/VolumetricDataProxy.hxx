@@ -217,12 +217,6 @@ namespace ESPINA
       return m_data->isEmpty();
     }
 
-    virtual bool fetchData() override
-    {
-      //QWriteLocker lock(&m_lock);
-      return m_data->fetchData();
-    }
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
                               const QString      &id) const              override
@@ -246,6 +240,10 @@ namespace ESPINA
       //QWriteLocker lock(&m_lock);
       return m_data->restoreEditedRegions(storage, path, id);
     }
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return m_data->fetchData(); }
 
   private:
     virtual QList<Data::Type> updateDependencies() const override

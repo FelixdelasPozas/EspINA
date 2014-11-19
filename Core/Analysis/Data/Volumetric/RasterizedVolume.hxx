@@ -286,7 +286,7 @@ namespace ESPINA
     }
     m_rasterizationTime = m_mesh->GetMTime();
 
-    this->setBlock(image, false);
+    const_cast<RasterizedVolume<T> *>(this)->setBlock(image, false);
 
     this->m_mutex.unlock();
   }

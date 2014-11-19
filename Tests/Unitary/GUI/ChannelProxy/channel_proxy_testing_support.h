@@ -39,11 +39,9 @@ namespace ESPINA {
 
     protected:
     virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const{}
-      virtual bool needUpdate(Output::Id id) const{}
-      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
+      virtual bool needUpdate() const {return false; }
+      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type) {return DataSPtr();}
       virtual void execute(){}
-      virtual void execute(Output::Id id){}
       virtual bool ignoreStorageContent() const {return false;}
       virtual bool areEditedRegionsInvalidated() {return false;}
     };

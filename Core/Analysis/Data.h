@@ -116,7 +116,7 @@ namespace ESPINA
 
     /** \brief Recover data from Persistent Storage.
      */
-    virtual bool fetchData() = 0;
+    bool fetchData();
 
     /** \brief Clears the edited regions list.
      *
@@ -217,6 +217,8 @@ namespace ESPINA
 
     void addEditedRegion(const Bounds &bounds)
     { m_editedRegions << bounds; }
+
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
 
   private:
     /** \brief Returns the list of data types on which this
