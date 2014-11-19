@@ -52,30 +52,32 @@ FilterTypeList EditionTools::ManualFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList         inputs,
-                                                                const Filter::Type& filter,
-                                                                SchedulerSPtr       scheduler) const
+FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList          inputs,
+                                                           const Filter::Type& filter,
+                                                           SchedulerSPtr       scheduler) const
 throw(Unknown_Filter_Exception)
 {
-  if (SOURCE_FILTER != filter && SOURCE_FILTER_V4 != filter) throw Unknown_Filter_Exception();
+  if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
 
-  auto ffsFilter = FilterSPtr{new SourceFilter(inputs, SOURCE_FILTER, scheduler)};
+  auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
+
   if (!m_fetchBehaviour)
   {
-    m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_fetchBehaviour = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
   }
+
   ffsFilter->setDataFactory(m_fetchBehaviour);
 
   return ffsFilter;
 }
 
 //-----------------------------------------------------------------------------
-EditionTools::EditionTools(ModelAdapterSPtr model,
-                           ModelFactorySPtr factory,
-                           FilterDelegateFactorySPtr     filterDelegateFactory,
-                           ViewManagerSPtr  viewManager,
-                           QUndoStack      *undoStack,
-                           QWidget         *parent)
+EditionTools::EditionTools(ModelAdapterSPtr          model,
+                           ModelFactorySPtr          factory,
+                           FilterDelegateFactorySPtr filterDelegateFactory,
+                           ViewManagerSPtr           viewManager,
+                           QUndoStack               *undoStack,
+                           QWidget                  *parent)
 : ToolGroup      {viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent}
 , m_factory      {factory}
 , m_undoStack    {undoStack}
@@ -84,19 +86,24 @@ EditionTools::EditionTools(ModelAdapterSPtr model,
 {
   m_factory->registerFilterFactory(m_filterFactory);
 
-  m_manualEdition = ManualEditionToolSPtr(new ManualEditionTool(model, viewManager));
+  m_manualEdition = std::make_shared<ManualEditionTool>(model, viewManager);
+
   connect(m_manualEdition.get(), SIGNAL(stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)),
           this,                  SLOT(drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
   connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
           this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
 
 
-  m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
-  m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, filterDelegateFactory, viewManager, undoStack));
+  m_split = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
+  m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
-  connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()));
-  connect(parent, SIGNAL(analysisClosed()), this, SLOT(abortOperation()));
+  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+          this,                             SLOT(selectionChanged()));
+
+  connect(parent, SIGNAL(abortOperation()),
+          this,   SLOT(abortOperation()));
+  connect(parent, SIGNAL(analysisClosed()),
+          this,   SLOT(abortOperation()));
 }
 
 //-----------------------------------------------------------------------------
@@ -174,9 +181,9 @@ void EditionTools::abortOperation()
 //-----------------------------------------------------------------------------
 void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsigned char> mask)
 {
-  ManualEditionToolPtr tool = qobject_cast<ManualEditionToolPtr>(sender());
-
+  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
   auto selection = m_viewManager->selection();
+
   if(selection->items().empty())
   {
     ChannelAdapterList primaryChannel;

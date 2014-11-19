@@ -59,9 +59,9 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 , m_delegateFactory{delegateFactory}
 , m_viewManager    {viewManager}
 , m_undoStack      {undoStack}
+, m_selectedSegmentation{nullptr}
 , m_view           {new View3D(true)}
 , m_tabularReport  {new TabularReport(factory, viewManager)}
-, m_selectedSegmentation{nullptr}
 {
   setupUi(this);
 

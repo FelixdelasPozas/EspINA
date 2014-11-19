@@ -50,10 +50,10 @@ namespace ESPINA
      */
     explicit MeshData();
 
-    virtual Data::Type type() const      override
+    virtual Data::Type type() const      final
     { return TYPE; }
 
-    virtual DataSPtr createProxy() const override;
+    virtual DataSPtr createProxy() const final;
 
     Bounds bounds() const                override;
 

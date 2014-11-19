@@ -57,7 +57,16 @@ namespace ESPINA
       virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
 
     private:
-      mutable DataFactorySPtr m_fetchBehaviour;
+      bool isCloseFilter       (const Filter::Type &type) const;
+      bool isOpenFilter        (const Filter::Type &type) const;
+      bool isDilateFilter      (const Filter::Type &type) const;
+      bool isErodeFilter       (const Filter::Type &type) const;
+      bool isFillHolesFilter   (const Filter::Type &type) const;
+      bool isAdditionFilter    (const Filter::Type &type) const;
+      bool isSubstractionFilter(const Filter::Type &type) const;
+
+    private:
+      mutable DataFactorySPtr m_dataFactory;
     };
 
   public:

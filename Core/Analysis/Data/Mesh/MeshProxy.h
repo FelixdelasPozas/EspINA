@@ -60,9 +60,6 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
-    { return std::dynamic_pointer_cast<MeshData>(proxy); }
-
     virtual Bounds bounds() const override
     { return m_data->bounds(); }
 

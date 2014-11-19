@@ -118,8 +118,8 @@ CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
                                      MorphologicalEditionFilterSPtr filter,
                                      ViewManagerSPtr                viewManager,
                                      QUndoStack                    *undoStack,
-                                     QWidget                       *parent = 0,
-                                     Qt::WindowFlags               flags = 0)
+                                     QWidget                       *parent,
+                                     Qt::WindowFlags               flags)
 : QWidget(parent, flags)
 , m_gui(new Ui::CODEHistoryWidget())
 , m_title(title)
@@ -134,8 +134,8 @@ CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
 
   connect(m_gui->radius, SIGNAL(valueChanged(int)),
           this,          SLOT(onRadiusChanged(int)));
-  connect(m_gui->apply,                   SIGNAL(clicked(bool)),
-          this,                           SLOT(modifyFilter()));
+  connect(m_gui->apply,  SIGNAL(clicked(bool)),
+          this,          SLOT(modifyFilter()));
 
   m_viewManager->updateViews();
 }
@@ -171,9 +171,7 @@ void CODEHistoryWidget::modifyFilter()
       return;
   }
 
-  auto volume = volumetricData(output);
-
-  auto spacing = volume->spacing();
+  auto volume  = volumetricData(output);
 
   m_undoStack->beginMacro(tr("Modify %1 Parameters").arg(m_title));
   {

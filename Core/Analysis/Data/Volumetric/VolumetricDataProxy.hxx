@@ -63,9 +63,6 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const override
-    { return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(proxy); }
-
     virtual size_t memoryUsage() const
     {
       //QReadLocker lock(&m_lock);

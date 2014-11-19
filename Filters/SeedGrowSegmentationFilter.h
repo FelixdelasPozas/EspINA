@@ -127,18 +127,11 @@ namespace ESPINA
     { m_forceUpdate = true; }
 
   protected:
-    /** \brief Implements Filter::saveFilterSnapshot().
-     *
-     */
     virtual Snapshot saveFilterSnapshot() const;
 
     virtual bool needUpdate() const;
 
-    //virtual bool needUpdate(Output::Id id) const;
-
     virtual void execute();
-
-    //virtual void execute(Output::Id id);
 
     virtual bool ignoreStorageContent() const;
 

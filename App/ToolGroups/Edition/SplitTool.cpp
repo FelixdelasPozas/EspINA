@@ -62,15 +62,15 @@ namespace ESPINA
                                                          const Filter::Type& type,
                                                          SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
   {
-    if (type != SPLIT_FILTER && type != SPLIT_FILTER_V4) throw Unknown_Filter_Exception();
+    if (!providedFilters().contains(type)) throw Unknown_Filter_Exception();
 
-    auto filter = FilterSPtr{new SplitFilter(inputs, type, scheduler)};
+    auto filter = std::make_shared<SplitFilter>(inputs, type, scheduler);
 
-    if (!m_fetchBehaviour)
+    if (!m_dataFactory)
     {
-      m_fetchBehaviour = DataFactorySPtr{new MarchingCubesFromFetchedVolumetricData()};
+      m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
     }
-    filter->setDataFactory(m_fetchBehaviour);
+    filter->setDataFactory(m_dataFactory);
 
     return filter;
   }
@@ -88,7 +88,7 @@ namespace ESPINA
   , m_undoStack        {undoStack}
   , m_enabled          {false}
   , m_widget           {nullptr}
-  , m_handler          {SplitToolEventHandlerSPtr{new SplitToolEventHandler()}}
+  , m_handler          {new SplitToolEventHandler()}
   {
     m_planarSplitAction->setCheckable(true);
     m_planarSplitAction->setChecked(false);
@@ -102,7 +102,7 @@ namespace ESPINA
     connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
             this,            SLOT(initTool(bool)));
 
-    m_factory->registerFilterFactory(FilterFactorySPtr(new SplitFilterFactory()));
+    m_factory->registerFilterFactory(std::make_shared<SplitFilterFactory>());
   }
 
   //------------------------------------------------------------------------
@@ -164,8 +164,7 @@ namespace ESPINA
     }
     else
     {
-      if(m_widget == nullptr)
-        return;
+      if(m_widget == nullptr) return;
 
       m_widget->setEnabled(false);
       m_viewManager->removeWidget(m_widget);
@@ -187,8 +186,9 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void SplitTool::applyCurrentState()
   {
+    auto widget      = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
     auto selectedSeg = m_viewManager->selection()->segmentations().first();
-    auto widget = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
+
     if (widget->planeIsValid())
     {
       InputSList inputs;
@@ -217,7 +217,7 @@ namespace ESPINA
 
       filter->setStencil(stencil);
 
-      struct Data data(filter, m_model->smartPointer(selectedSeg));
+      Data data(filter, m_model->smartPointer(selectedSeg));
       m_executingTasks.insert(filter.get(), data);
 
       connect(filter.get(), SIGNAL(finished()),

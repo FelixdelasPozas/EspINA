@@ -129,7 +129,7 @@ AnalysisSPtr SegFile_V5::Loader::load()
 }
 
 //-----------------------------------------------------------------------------
-static DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
+DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
 {
   for (auto vertex : vertices)
   {
@@ -252,7 +252,7 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 }
 
 //-----------------------------------------------------------------------------
-static QString SegFile_V5::Loader::parseCategoryName(const State& state)
+QString SegFile_V5::Loader::parseCategoryName(const State& state)
 {
   QStringList params = state.split(";");
 
@@ -271,8 +271,6 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
   {
     throw Invalid_Input_Exception();
   }
-
-  //filter->update(outputId); // Existing outputs were stored in previous versions
 
   auto segmentation = m_factory->createSegmentation(filter, outputId);
 
