@@ -34,8 +34,12 @@ class DiscardROIModificationsCommand
 public:
   explicit DiscardROIModificationsCommand(ROIToolsGroup *roiTools, SeedGrowSegmentationFilterSPtr filter, QUndoCommand* parent = 0)
   : m_roiTools{roiTools}
-  , m_ROI{filter->roi()->clone()}
-  {}
+  {
+    if (filter->roi())
+    {
+      m_ROI = filter->roi()->clone();
+    }
+  }
 
   virtual void redo()
   { swapCurrentROI(); }
@@ -101,9 +105,9 @@ public:
     // if (!m_oldVolume && (output->isEdited() || volumeSize < MAX_UNDO_SIZE))
     if (!m_oldVolume && output->isEdited())
     {
-      m_oldBounds = volume->bounds();
-      m_oldVolume = volume->itkImage();
-//       m_editedRegions = output->editedRegions();
+      m_oldBounds     = volume->bounds();
+      m_oldVolume     = volume->itkImage();
+      m_editedRegions = volume->editedRegions();
     }
 
     //bool ignoreUpdate = m_newVolume.IsNotNull();
@@ -114,20 +118,6 @@ public:
     m_filter->setClosingRadius(m_closingRadius);
 
     update();
-//     if (m_newVolume.IsNull())V
-//     {
-//       update();
-//
-//       SegmentationVolumeSPtr newVolume = volume;
-//       if (newVolume->volumeRegion().GetNumberOfPixels() < MAX_UNDO_SIZE)
-//         m_newVolume = volume->cloneVolume();
-//     }
-//     else
-//     {
-// //       volume->setVolume(m_newVolume);
-//     }
-
-    output->clearEditedRegions();
   }
 
   virtual void undo()
@@ -144,7 +134,7 @@ public:
     {
       volume->resize(m_oldBounds);
       volume->draw(m_oldVolume);
-//       output->setEditedRegions(m_editedRegions);
+      volume->setEditedRegions(m_editedRegions);
     } else
     {
       update();
@@ -155,8 +145,7 @@ private:
   void update()
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    // m_filter->forceUpdate();
-    m_filter->update(0);
+    m_filter->update();
     QApplication::restoreOverrideCursor();
   }
 
@@ -169,9 +158,8 @@ private:
 
   Bounds m_oldBounds;
   itkVolumeType::Pointer m_oldVolume;
+  BoundsList             m_editedRegions;
   //itkVolumeType::Pointer m_newVolume;
-
-  //FilterOutput::EditedRegionSList m_editedRegions;
 };
 
 //----------------------------------------------------------------------------
@@ -292,8 +280,9 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
 
   auto spacing = volume->spacing();
   auto roi     = m_roiTools->currentROI();
+  auto seed    = m_filter->seed();
 
-  if (roi && !contains(roi, m_filter->seed(), spacing))
+  if (roi && !contains(roi, seed, spacing))
   {
     QMessageBox::warning(this,
                          tr("Seed Grow Segmentation"),
@@ -316,9 +305,10 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
     warning.exec();
   }
 
-  if (m_filter->roi())
+  auto currentFilterROI = m_filter->roi();
+  if (currentFilterROI)
   {
-    m_roiTools->setCurrentROI(m_filter->roi()->clone());
+    m_roiTools->setCurrentROI(currentFilterROI->clone());
   }
 
   m_viewManager->updateSegmentationRepresentations();

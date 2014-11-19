@@ -39,8 +39,11 @@ QWidget* SeedGrowSegmentationHistory::createWidget(ModelAdapterSPtr model, Model
     m_roiSettings = new ROISettings();
     m_roiTools    = new ROIToolsGroup(m_roiSettings, model, factory, viewManager, undoStack);
 
-    //m_roi->setGlobalROI(false);
-    m_roiTools->setCurrentROI(m_filter->roi()->clone());
+    auto currentFilterROI = m_filter->roi();
+    if (currentFilterROI)
+    {
+      m_roiTools->setCurrentROI(currentFilterROI->clone());
+    }
   }
 
   m_widgetCount++;

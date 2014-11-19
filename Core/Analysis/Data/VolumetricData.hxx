@@ -29,6 +29,7 @@
 #include "Core/Analysis/DataProxy.h"
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Volumetric/VolumetricDataProxy.hxx>
+#include <Core/Utils/BinaryMask.hxx>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -62,25 +63,16 @@ namespace ESPINA
     virtual ~VolumetricData()
     {}
 
-    /** \brief Implements Data::bounds() const.
-     *
-     */
     virtual Bounds bounds() const = 0;
 
-    /** \brief Implements Data::type() const.
-     *
-     */
-    virtual Data::Type type() const
+    virtual Data::Type type() const final
     { return TYPE; }
 
-    /** \brief Implements Data::createProxy() const.
-     *
-     */
-    virtual DataProxySPtr createProxy() const
-    { return DataProxySPtr{new VolumetricDataProxy<T>()}; }
+    virtual DataSPtr createProxy() const final
+    { return DataSPtr{new VolumetricDataProxy<T>()}; }
 
     /** \brief Set the origin of the image.
-     * \param[in] origin, origin of this image.
+     * \param[in] origin origin of this image.
      *
      */
     virtual void setOrigin(const NmVector3& origin) = 0;
@@ -97,14 +89,14 @@ namespace ESPINA
     virtual const typename T::Pointer itkImage() const  = 0;
 
     /** \brief Return a read only ItkImage of volume representation contained in bounds.
-     * \param[in] bounds, bounds of the resulting image.
+     * \param[in] bounds bounds of the resulting image.
      *
      * This may request extra memory to allocate the requested region.
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const = 0;
 
     /** \brief Set volume background value
-     * \param[in] value, background value.
+     * \param[in] value background value.
      *
      */
     virtual void setBackgroundValue(const typename T::ValueType value)
@@ -117,9 +109,9 @@ namespace ESPINA
     {  return m_bgValue; }
 
     /** \brief Method to modify the volume using a implicit function.
-     * \param[in] brush, vtkImplicitFunction raw pointer.
-     * \param[in] bounds, bounds to constrain the modification.
-     * \param[in] value, value of voxels that comply with the function.
+     * \param[in] brush vtkImplicitFunction raw pointer.
+     * \param[in] bounds bounds to constrain the modification.
+     * \param[in] value value of voxels that comply with the function.
      *
      *  Change every voxel value which satisfies the implicit function to
      *  the value given as parameter.
@@ -131,15 +123,15 @@ namespace ESPINA
                       const typename T::ValueType value) = 0;
 
     /** \brief Method to modify the volume using an itk image.
-     * \param[in] volume, itk image smart pointer.
+     * \param[in] volume itk image smart pointer.
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const typename T::Pointer volume) = 0;
 
     /** \brief Method to modify the volume using a region of an itk image.
-     * \param[in] volume, itk image smart pointer.
-     * \param[in] bounds, bounds to constrain the modification.
+     * \param[in] volume itk image smart pointer.
+     * \param[in] bounds bounds to constrain the modification.
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
@@ -147,15 +139,33 @@ namespace ESPINA
                       const Bounds&             bounds) = 0;
 
     /** \brief Set voxel at index to value.
-     * \param[in] index, index to modify value.
-     * \param[in] value, new value.
+     * \param[in] index index to modify value.
+     * \param[in] value new value.
      *
      */
     virtual void draw(const typename T::IndexType index,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
 
+     /** \brief Set all voxels inside bounds to given value
+     * \param[in] value new value.
+     *
+     *  modifications are constrained to volume bounds. If given bounds are
+     *  bigger than volume bounds only interected bounds are modified
+     */
+    virtual void draw(const Bounds               &bounds,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+
+                      /** \brief Method to modify the volume using a mask and a value.
+     * \param[in] mask BinatyMask smart pointer.
+     * \param[in] value value of the voxels of the binary mask.
+     *
+     *  Draw methods are constrained to sparse volume bounds.
+     */
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+
     /** \brief Resize the volume to the given bounds.
-     * \param[in] bounds, new bounds.
+     * \param[in] bounds new bounds.
      *
      *  New voxels will be set to background value
      */
@@ -176,10 +186,11 @@ namespace ESPINA
   using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
 
   /** \brief Obtains and returns the VolumetricData smart pointer in the specified Output.
-   * \param[in] output, Output object smart pointer.
+   * \param[in] output Output object smart pointer.
    *
+   *  This function ensures the output is up to date by callig ouput::update() first
    */
-  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output);
+  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
 
   /** \brief Returns true if the output has a volumetric data and false otherwise.
    * \param[in] output, Output object smart pointer.

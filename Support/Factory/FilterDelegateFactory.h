@@ -61,7 +61,9 @@ namespace ESPINA {
      *
      * \param[in] filter for which the delegate will be creted
      */
-    virtual FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation) throw (Unknown_Filter_Type_Exception);
+    FilterDelegateSPtr createDelegate(SegmentationAdapterPtr segmentation) throw (Unknown_Filter_Type_Exception);
+
+    void resetDelegates();
 
   private:
     using Factory = QPair<FilterDelegateSPtr, Filter::Type>;

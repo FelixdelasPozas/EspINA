@@ -8,6 +8,7 @@ create_test_sourcelist(Bounds_Tests Bounds_Tests.cpp # this file is created by t
   length.cpp
   limit_inclusion_intersection.cpp
   list_constructor.cpp
+  string_conversion.cpp
   stream_operator.cpp
   valid_bounding_box.cpp
   valid_intersection.cpp
@@ -15,21 +16,12 @@ create_test_sourcelist(Bounds_Tests Bounds_Tests.cpp # this file is created by t
 
 set(SUBJECT_DIR ${CORE_DIR}/Utils)
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
 include_directories(
   ${SUBJECT_DIR}
   )
 
-add_executable(Bounds_Tests
-  ${Bounds_Tests}
-  ${SUBJECT_DIR}/Bounds.cpp
-  ${SUBJECT_DIR}/NmVector3.cpp
-  )
-target_link_libraries(Bounds_Tests ${LIB_DEPENDECIES} )
+add_executable(Bounds_Tests "" ${Bounds_Tests} )
+target_link_libraries(Bounds_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Bounds: Default Constructor\""          Bounds_Tests default_constructor)
 add_test("\"Bounds: List Constructor\""             Bounds_Tests list_constructor)
@@ -41,4 +33,5 @@ add_test("\"Bounds: Valid Intersection\""           Bounds_Tests valid_intersect
 add_test("\"Bounds: Invalid Intersection\""         Bounds_Tests invalid_intersection)
 add_test("\"Bounds: Limit Inclusion Intersection\"" Bounds_Tests limit_inclusion_intersection)
 add_test("\"Bounds: Inclusion\""                    Bounds_Tests inclusion)
+add_test("\"Bounds: String Conversion\""            Bounds_Tests string_conversion)
 add_test("\"Bounds: Stream Operator\""              Bounds_Tests stream_operator)

@@ -91,7 +91,7 @@ namespace ESPINA
 			/** \brief Implements Filter::invalidateEditedRegions().
 			 *
 			 */
-			virtual bool invalidateEditedRegions();
+			virtual bool areEditedRegionsInvalidated();
 
 	};
 

@@ -243,6 +243,7 @@ namespace ESPINA
     double  m_hue;
     double  m_opacity;
     double  m_saturation;
+    mutable
     QString m_metadata;
 
     ChannelExtensionSMap m_extensions;

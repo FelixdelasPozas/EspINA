@@ -1,3 +1,16 @@
+set(GUI_DEPENDECIES
+  ${QT_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${QUAZIP_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${TESTING_DEPENDECIES}
+  EspinaCoreTesting
+  EspinaExtensionsTesting
+  EspinaGUITesting
+  EspinaTesting
+)
+
 add_subdirectory(ChannelAdapter)
 add_subdirectory(ClassificationProxy)
 add_subdirectory(ChannelProxy)

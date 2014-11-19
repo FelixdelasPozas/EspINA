@@ -33,8 +33,6 @@
 
 using namespace ESPINA;
 
-static QString MESHDATA_FILE = QString("%1_MeshData.vtp");
-
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(OutputSPtr output)
 : m_mesh{nullptr}
@@ -49,50 +47,42 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 {
 }
 
-//----------------------------------------------------------------------------
-bool RawMesh::fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id)
-{
-  bool dataFetched = false;
-
-  // TODO: Fetch old file names
-  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
-
-  QString fileName = storage->absoluteFilePath(path + QString(MESHDATA_FILE).arg(id));
-
-  QFileInfo meshFile(fileName);
-
-  if(meshFile.exists())
-  {
-    m_mesh = PolyDataUtils::readPolyDataFromFile(fileName);
-    dataFetched = true;
-  }
-
-  return dataFetched;
-}
 
 //----------------------------------------------------------------------------
 Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
 {
-  QString fileName = path + QString(MESHDATA_FILE).arg(id);
-  Snapshot snapshot;
+  return MeshData::snapshot(storage, path, id);
+}
 
-  storage->makePath(path);
+//----------------------------------------------------------------------------
+Snapshot RawMesh::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+{
+  return snapshot(storage, path, id);
+}
 
-  if (m_mesh)
-  {
-    snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(m_mesh));
-  }
-
-  return snapshot;
+//----------------------------------------------------------------------------
+void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  fetchDataImplementation(storage, path, id);
 }
 
 //----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
 {
-  if (m_mesh)
-    return m_mesh;
+  return m_mesh;
+}
 
-  return nullptr;
+//----------------------------------------------------------------------------
+void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
+{
+  m_mesh = mesh;
+
+  BoundsList editedRegions;
+  if (m_mesh)
+  {
+    editedRegions << bounds();
+  }
+  setEditedRegions(editedRegions);
 }
 
 //----------------------------------------------------------------------------
@@ -128,6 +118,13 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
   m_mesh = rhs->mesh();
   return true;
 }
+
+//----------------------------------------------------------------------------
+bool RawMesh::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  return MeshData::fetchDataImplementation(storage, path, id);
+}
+
 
 //----------------------------------------------------------------------------
 RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)

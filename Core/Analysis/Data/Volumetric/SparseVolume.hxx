@@ -37,11 +37,12 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/BinaryMask.hxx>
 
+#include <QReadWriteLock>
+
 // ITK
 #include <itkImageRegionIterator.h>
 #include <itkExtractImageFilter.h>
 #include <itkMetaImageIO.h>
-#include <itkImageFileWriter.h>
 #include <itkImageFileReader.h>
 
 // VTK
@@ -80,6 +81,15 @@ namespace ESPINA
      */
     explicit SparseVolume(const Bounds& bounds = Bounds(), const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
 
+    /** \brief SparseVolume class constructor
+     * \param[in] volume initial content of the sparse volume.
+     * \param[in] bounds bounds of the empty volume.
+     * \param[in] spacing spacing of the volume.
+     * \param[in] origin origin of the volume.
+     *
+     */
+    explicit SparseVolume(const typename T::Pointer volume, const Bounds& bounds, const NmVector3& spacing = {1, 1, 1}, const NmVector3& origin = NmVector3());
+
     /** \brief SparseVolume class destructor.
      *
      */
@@ -88,8 +98,7 @@ namespace ESPINA
 
     virtual size_t memoryUsage() const;
 
-    virtual Bounds bounds() const
-    { return m_bounds.bounds(); }
+    virtual Bounds bounds() const;
 
     /** \brief Sets the origin of the volume.
      *
@@ -99,8 +108,7 @@ namespace ESPINA
     /** \brief Returns the origin of the volume.
      *
      */
-    virtual NmVector3 origin() const
-    { return m_origin; }
+    virtual NmVector3 origin() const;
 
     virtual void setSpacing(const NmVector3& spacing);
 
@@ -118,53 +126,25 @@ namespace ESPINA
      */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const;
 
-    /** \brief Method to modify the volume using a implicit function.
-     * \param[in] brush vtkImplicitFuncion object raw pointer.
-     * \param[in] bounds bounds to be modified (must be contained in the image bounds).
-     * \param[in] value value of the voxel.
-     *
-     *  Change every voxel value which satisfies the implicit function to
-     *  the value given as parameter.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE);
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    /** \brief Method to modify the volume using a mask and a value.
-     * \param[in] mask BinatyMask smart pointer.
-     * \param[in] value value of the voxels of the binary mask.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
-    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE);
+    virtual void draw(const typename T::Pointer volume)                    override;
 
-    /** \brief Method to modify the volume using an itk image.
-     * \param[in] volume itk image smart pointer to draw.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
-    virtual void draw(const typename T::Pointer volume);
-
-    /** \brief Method to modify the volume using a region of an itk image.
-     * \param[in] volume itk image smart pointer to draw.
-     * \param[in] bounds bounds affected by the draw operation.
-     *
-     *  Draw methods are constrained to sparse volume bounds.
-     */
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds);
+                      const Bounds&             bounds)                    override;
 
-    /** \brief Method to modify a voxel of the volume using an itk index.
-     * \param[in] index index of the voxel.
-     * \param[in] value value of the voxel.
-     *
-     *  Draw methods are constrained to volume bounds.
-     */
     virtual void draw(const typename T::IndexType index,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE);
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+
+    virtual void draw(const Bounds               &bounds,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override;
+
+
 
     /** \brief Resize the volume bounds. The given bounds must containt the original.
      * \param[in] bounds bounds object.
@@ -181,12 +161,11 @@ namespace ESPINA
 
     virtual bool isEmpty() const;
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual Snapshot editedRegionsSnapshot() const
-    { return Snapshot(); }
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
   protected:
     /** \brief Replace sparse volume voxels within data region with data voxels
@@ -210,7 +189,12 @@ namespace ESPINA
      */
     VolumeBoundsList compactedBlocks() const;
 
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
   private:
+    QString editedRegionSnapshotId(const QString &outputId, const int regionId) const
+    { return QString("%1_%2_EditedRegion_%3.mhd").arg(outputId).arg(this->type()).arg(regionId);}
+
     enum class BlockType
     { Set = 0, Add = 1 };
 
@@ -224,10 +208,10 @@ namespace ESPINA
         struct Invalid_Iteration_Bounds_Exception{};
 
       public:
-     		/** \brief Block class constructor.
-     		 * \param[in] locked, true if this image will not be affected by undo() operation.
-     		 *
-     		 */
+        /** \brief Block class constructor.
+         * \param[in] locked true if this image will not be affected by undo() operation.
+         *
+         */
         explicit Block(bool locked)
         : m_locked{locked}
         {}
@@ -254,10 +238,10 @@ namespace ESPINA
         virtual size_t memoryUsage() const = 0;
 
         /** \brief Updates the image passed as parameter with the values of the block.
-         * \param[in] iit, external image region iterator.
-         * \param[in] mit, external mask region iterator.
-         * \param[in] bounds, bounds of the modification.
-         * \param[in] remainingVoxels, remaining voxels of the mask to be updated.
+         * \param[in] iit external image region iterator.
+         * \param[in] mit external mask region iterator.
+         * \param[in] bounds bounds of the modification.
+         * \param[in] remainingVoxels remaining voxels of the mask to be updated.
          *
          */
         virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
@@ -281,37 +265,25 @@ namespace ESPINA
     : public Block
     {
     public:
-    	/** \brief MaskBlock class constructor.
-    	 * \param[in] mask, BinaryMask smart pointer.
-    	 * \param[in] locked, true if this image will not be affected by undo() operation.
-    	 *
-    	 */
+      /** \brief MaskBlock class constructor.
+       * \param[in] mask BinaryMask smart pointer.
+       * \param[in] locked true if this image will not be affected by undo() operation.
+       *
+       */
       MaskBlock(BlockMaskSPtr mask, bool locked)
       : Block(locked)
       , m_mask{mask}
       {}
 
-      /** \brief Implements Block::bounds() const.
-       *
-       */
       virtual VolumeBounds bounds() const
       { return m_mask->bounds(); }
 
-      /** \brief Implements Block::setSpacing().
-       *
-       */
       virtual void setSpacing(const NmVector3& spacing)
       { m_mask->setSpacing(spacing); }
 
-      /** \brief Implements Block::memoryUsage() const.
-       *
-       */
       virtual size_t memoryUsage() const
       { return m_mask->memoryUsage(); }
 
-      /** \brief Implements Block::updateImage() const.
-       *
-       */
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
                                BinaryMask<unsigned char>::region_iterator &mit,
                                const Bounds                              &bounds,
@@ -341,39 +313,25 @@ namespace ESPINA
     : public Block
     {
     public:
-   		/** \brief ImageBlock class constructor.
-   		 * \param[in] image, itk image smart pointer.
-   		 * \param[in] locked, true if this image will not be affected by undo() operation.
-   		 *
-   		 */
+      /** \brief ImageBlock class constructor.
+       * \param[in] image itk image smart pointer.
+       * \param[in] locked true if this image will not be affected by undo() operation.
+       *
+       */
       ImageBlock(typename T::Pointer image, bool locked)
       : Block(locked)
       , m_image{image}
       {}
 
-      /** \brief Implements Block::bounds() const.
-       *
-       */
       virtual VolumeBounds bounds() const
-      {
-        return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
-      }
+      { return volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion()); }
 
-      /** \brief Implements Block::setSpacing().
-       *
-       */
       virtual void setSpacing(const NmVector3& spacing)
       { m_image->SetSpacing(ItkSpacing<T>(spacing)); }
 
-      /** \brief Implements Block::memoryUsage().
-       *
-       */
       virtual size_t memoryUsage() const
       { return m_image->GetBufferedRegion().GetNumberOfPixels()*sizeof(typename T::ValueType); }
 
-      /** \brief Implements Block::updateImage() const.
-       *
-       */
       virtual void updateImage(itk::ImageRegionIterator<T>                &iit,
                                BinaryMask<unsigned char>::region_iterator &mit,
                                const Bounds                              &bounds,
@@ -407,7 +365,7 @@ namespace ESPINA
     VolumeBoundsList boundsPartition(int intervalSize) const;
 
     /** \brief Updates the bounds of the image with the bounds passed as parameter.
-     * \param[in] bounds, VolumeBounds object.
+     * \param[in] bounds VolumeBounds object.
      *
      */
     void updateBlocksBoundingBox(const VolumeBounds& bounds);
@@ -436,12 +394,19 @@ namespace ESPINA
     QString oldMultiBlockPath(const QString &id, int part) const
     { return QString("%1_%2_%3.mhd").arg(this->type()).arg(id).arg(part); }
 
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
+
   protected:
-    mutable BlockList m_blocks;
-    NmVector3 m_origin;
-    NmVector3 m_spacing;
+    mutable
+    BlockList    m_blocks;
+    NmVector3    m_origin;
+    NmVector3    m_spacing;
     VolumeBounds m_bounds;
-    VolumeBounds m_blocks_bounding_box;
+    VolumeBounds m_blocksBounds;
+
+    mutable
+    QReadWriteLock m_mutex;
   };
 
   //-----------------------------------------------------------------------------
@@ -451,18 +416,27 @@ namespace ESPINA
   , m_origin {origin}
   , m_spacing{spacing}
   {
-    if (bounds.areValid())
-    {
-      m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
-    }
+    m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
 
     this->setBackgroundValue(0);
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
+  SparseVolume<T>::SparseVolume(const typename T::Pointer volume, const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
+  : SparseVolume<T>(bounds, spacing, origin)
+  {
+    draw(volume, bounds);
+
+    this->clearEditedRegions();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
   size_t SparseVolume<T>::memoryUsage() const
   {
+    //QReadLocker lock(&m_mutex);
+
     size_t size = 0;
 
     for (auto block : m_blocks)
@@ -475,18 +449,35 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
+  Bounds SparseVolume<T>::bounds() const
+  {
+    //QReadLocker lock(&m_mutex);
+    return m_bounds.bounds();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
   void SparseVolume<T>::setOrigin(const NmVector3& origin)
   {
+    //QWriteLocker lock(&m_mutex);
     //TODO
     //NmVector3 shift = m_origin - origin;
     m_origin = origin;
   }
 
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  NmVector3 SparseVolume<T>::origin() const
+  {
+    //QReadLocker lock(&m_mutex);
+    return m_origin;
+  }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void SparseVolume<T>::setSpacing(const NmVector3& spacing)
   {
+    //QWriteLocker lock(&m_mutex);
     if (m_spacing != spacing)
     {
       for(auto block : m_blocks)
@@ -537,6 +528,7 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer SparseVolume<T>::itkImage() const
   {
+    //QReadLocker lock(&m_mutex);
     return itkImage(m_bounds.bounds());
   }
 
@@ -544,6 +536,8 @@ namespace ESPINA
   template<typename T>
   const typename T::Pointer SparseVolume<T>::itkImage(const Bounds& bounds) const
   {
+    //QReadLocker lock(&m_mutex);
+
     if (!bounds.areValid())
       throw Invalid_Image_Bounds_Exception();
 
@@ -595,6 +589,7 @@ namespace ESPINA
                              const Bounds               &bounds,
                              const typename T::ValueType value)
   {
+    //QWriteLocker lock(&m_mutex);
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
     if (!intersect(m_bounds, requestedBounds))
@@ -627,6 +622,8 @@ namespace ESPINA
   void SparseVolume<T>::draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                              const typename T::ValueType value)
   {
+    //QWriteLocker lock(&m_mutex);
+
     addBlock(mask);
     this->updateModificationTime();
   }
@@ -645,6 +642,8 @@ namespace ESPINA
   void SparseVolume<T>::draw(const typename T::Pointer volume,
                              const Bounds&             bounds)
   {
+    //QWriteLocker lock(&m_mutex);
+
     VolumeBounds requestedBounds(bounds, m_spacing, m_origin);
 
     if (!intersect(m_bounds, requestedBounds))
@@ -692,14 +691,27 @@ namespace ESPINA
                     index[1] * m_spacing[1], index[1] * m_spacing[1],
                     index[2] * m_spacing[2], index[2]	* m_spacing[2] };
 
+    draw(bounds, value);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  void SparseVolume<T>::draw(const Bounds               &bounds,
+                             const typename T::ValueType value)
+  {
+    //QWriteLocker lock(&m_mutex);
+
     if (!intersect(m_bounds.bounds(), bounds))
       return;
 
     BlockMaskSPtr mask { new BinaryMask<unsigned char>(bounds, m_spacing) };
     mask->setForegroundValue(value);
     BinaryMask<unsigned char>::region_iterator it(mask.get(), mask->bounds().bounds());
-    it.goToBegin();
-    it.Set();
+
+    for (it.goToBegin(); !it.isAtEnd(); ++it)
+    {
+      it.Set();
+    }
 
     addBlock(mask);
     this->updateModificationTime();
@@ -709,10 +721,11 @@ namespace ESPINA
   template<typename T>
   void SparseVolume<T>::resize(const Bounds &bounds)
   {
+    //QWriteLocker lock(&m_mutex);
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
-    if (m_blocks_bounding_box.areValid())
+    if (m_blocksBounds.areValid())
     {
-      m_blocks_bounding_box = intersection(m_bounds, m_blocks_bounding_box);
+      m_blocksBounds = intersection(m_bounds, m_blocksBounds);
     }
 
     this->updateModificationTime();
@@ -722,13 +735,17 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isValid() const
   {
+    //QReadLocker lock(&m_mutex);
+
     return m_bounds.areValid();
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  bool SparseVolume<T>::fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  bool SparseVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
+    //QWriteLocker lock(&m_mutex);
+
     // TODO: Manage output dependencies outside this class
     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 
@@ -736,23 +753,30 @@ namespace ESPINA
     bool error       = false;
 
     int i = 0;
-    QFileInfo blockFile(storage->absoluteFilePath(path + multiBlockPath(id, i)));
+    QFileInfo blockFile;
 
-    for (auto filename : {multiBlockPath(id, i),
-                          singleBlockPath(id),
-                          oldMultiBlockPath(id, i),
+    auto output  = this->m_output;
+
+    if (nullptr == output)
+    {
+      qWarning() << "Sparse Volume Fetch Data without output";
+    }
+
+    if (!storage || path.isEmpty() || id.isEmpty()) return false;
+
+    for (auto filename : {multiBlockPath    (id, i),
+                          singleBlockPath   (id)   ,
+                          oldMultiBlockPath (id, i), // This shouldn't exist
                           oldSingleBlockPath(id)})
     {
       blockFile = QFileInfo(storage->absoluteFilePath(path + filename));
       if (blockFile.exists()) break;
     }
 
-    if (this->m_output)
+    if (output)
     {
-      m_spacing = this->m_output->spacing();
+      m_spacing = output->spacing();
     }
-
-    auto itkSpacing = ItkSpacing<T>(m_spacing);
 
     while (blockFile.exists())
     {
@@ -762,21 +786,20 @@ namespace ESPINA
 
       auto image = reader->GetOutput();
 
-      if (m_spacing == NmVector3() || this->m_output == nullptr)
+      if (m_spacing == NmVector3() || output == nullptr)
       {
         for(int s=0; s < 3; ++s)
         {
           m_spacing[s] = image->GetSpacing()[s];
-          itkSpacing[i] = m_spacing[i];
         }
 
-        if (this->m_output)
+        if (output)
         {
-          this->m_output->setSpacing(m_spacing);
+          output->setSpacing(m_spacing);
         }
       } else
       {
-        image->SetSpacing(itkSpacing);
+        image->SetSpacing(ItkSpacing<T>(m_spacing));
       }
 
       setBlock(image, true);
@@ -786,7 +809,7 @@ namespace ESPINA
       dataFetched = true;
     }
 
-    m_bounds = m_blocks_bounding_box;
+    m_bounds = m_blocksBounds;
 
     return dataFetched && !error;
   }
@@ -795,41 +818,28 @@ namespace ESPINA
   template<typename T>
   Snapshot SparseVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
   {
-    using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+    //QReadLocker lock(&m_mutex);
+
     Snapshot snapshot;
 
     auto compactedBounds = compactedBlocks();
 
     for(int i = 0; i < compactedBounds.size(); ++i)
     {
-      VolumeWriter::Pointer writer = VolumeWriter::New();
+      auto bounds = compactedBounds[i].bounds();
 
-      storage->makePath(path);
-
-      QString mhd = path;
+      QString filename = path;
 
       if (compactedBounds.size() == 1)
       {
-        mhd += singleBlockPath(id);
+        filename = singleBlockPath(id);
       }
       else
       {
-        mhd += multiBlockPath(id, i);
+        filename = multiBlockPath(id, i);
       }
 
-      QString raw = mhd;
-      raw.replace("mhd", "raw");
-
-      auto volume = itkImage(compactedBounds[i].bounds());
-      bool releaseFlag = volume->GetReleaseDataFlag();
-      volume->ReleaseDataFlagOff();
-      writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
-      writer->SetInput(volume);
-      writer->Write();
-      volume->SetReleaseDataFlag(releaseFlag);
-
-      snapshot << SnapshotData(mhd, storage->snapshot(mhd));
-      snapshot << SnapshotData(raw, storage->snapshot(raw));
+      snapshot << createSnapshot<T>(itkImage(bounds), storage, path, filename);
 
       // TODO: Remove temporal files from storage (mhd, raw)?
     }
@@ -839,22 +849,75 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
+  Snapshot SparseVolume<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  {
+    //QReadLocker lock(&m_mutex);
+
+    Snapshot regionsSnapshot;
+
+    BoundsList regions = this->editedRegions();
+    // TODO: Simplify edited regions volumes
+
+    int regionId = 0;
+    for(auto region : regions)
+    {
+      auto snapshotId = editedRegionSnapshotId(id, regionId);
+      regionsSnapshot << createSnapshot<T>(itkImage(region), storage, path, snapshotId);
+      ++regionId;
+    }
+
+    return regionsSnapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void SparseVolume<T>::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+  {
+    //QWriteLocker lock(&m_mutex);
+
+    auto restoredEditedRegions = this->editedRegions();
+
+    for (int regionId = 0; regionId < restoredEditedRegions.size(); ++regionId)
+    {
+      QFileInfo filename(storage->absoluteFilePath(path + "/" + editedRegionSnapshotId(id, regionId)));
+
+      if (filename.exists())
+      {
+        auto editedRegion = readVolume<itkVolumeType>(filename.absoluteFilePath());
+
+        expandAndDraw<T>(this, editedRegion);
+      }
+      else
+      {
+        qWarning() << "Unable to locate edited region file:" << filename.absoluteFilePath();
+      }
+    }
+
+    this->setEditedRegions(restoredEditedRegions);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
   void SparseVolume<T>::updateBlocksBoundingBox(const VolumeBounds &bounds)
   {
-    if (m_blocks_bounding_box.areValid())
+    if (m_blocksBounds.areValid())
     {
-      m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, bounds);
+      m_blocksBounds = boundingBox(m_blocksBounds, bounds);
     }
     else
     {
-      m_blocks_bounding_box = bounds;
+      m_blocksBounds = bounds;
     }
+
+    this->addEditedRegion(bounds.bounds());
   }
 
   //-----------------------------------------------------------------------------
   template<typename T>
   void SparseVolume<T>::undo()
   {
+    //QWriteLocker lock(&m_mutex);
+
     m_blocks.pop_back();
     Q_ASSERT(!m_blocks.empty());
 
@@ -863,7 +926,7 @@ namespace ESPINA
     for (auto block: m_blocks)
       bounds = boundingBox(bounds, block->bounds());
 
-    m_blocks_bounding_box = bounds;
+    m_blocksBounds = bounds;
     this->updateModificationTime();
   }
 
@@ -886,7 +949,7 @@ namespace ESPINA
       VolumeBounds bounds = splitBounds.first;
 
       bool emptyBounds = true;
-      int i = 0;
+      unsigned i = 0;
       while (emptyBounds && i < m_blocks.size())
       {
         VolumeBounds blockBounds = m_blocks[i]->bounds();
@@ -941,8 +1004,11 @@ namespace ESPINA
   template<typename T>
   bool SparseVolume<T>::isEmpty() const
   {
-    if(!isValid())
-      return true;
+    if(!isValid()) return true;
+
+    //QReadLocker lock(&m_mutex);
+
+    if (m_blocks.empty()) return true;
 
     auto splittedBounds = boundsPartition(50);
     typename T::Pointer image;
@@ -1077,13 +1143,13 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<typename T>
-  SparseVolume<T> * sparseCopy(typename T::Pointer image)
+  std::shared_ptr<SparseVolume<T>> sparseCopy(typename T::Pointer image)
   {
     auto bounds  = equivalentBounds<T>(image, image->GetLargestPossibleRegion());
     auto spacing = ToNmVector3<T>(image->GetSpacing());
     auto origin  = ToNmVector3<T>(image->GetOrigin());
 
-    auto sparse = new SparseVolume<T>(bounds, spacing, origin);
+    auto sparse = std::make_shared<SparseVolume<T>>(bounds, spacing, origin);
 
     sparse->draw(image, bounds);
 

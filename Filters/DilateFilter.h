@@ -32,12 +32,12 @@ namespace ESPINA
   : public MorphologicalEditionFilter
   {
   public:
-  	/** \brief DilateFilter class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, DilateFilter type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
-  	 */
+    /** \brief DilateFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type DilateFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit DilateFilter(InputSList    inputs,
                           Filter::Type  type,
                           SchedulerSPtr scheduler);
@@ -48,16 +48,7 @@ namespace ESPINA
     virtual ~DilateFilter();
 
   protected:
-    /** \brief Implements Filter::execute().
-     *
-     */
-    virtual void execute()
-    { execute(0); }
-
-    /** \brief Implements Filter::execute(id).
-     *
-     */
-    virtual void execute(Output::Id id);
+    virtual void execute();
   };
 
 } // namespace ESPINA

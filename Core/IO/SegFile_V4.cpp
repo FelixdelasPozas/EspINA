@@ -30,7 +30,7 @@
 #include "Core/Analysis/Query.h"
 #include "Core/Factory/CoreFactory.h"
 #include "Core/IO/SegFile.h"
-#include "Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h"
+#include "Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h"
 #include "Core/IO/ClassificationXML.h"
 #include "Core/IO/ReadOnlyFilter.h"
 #include "Core/Utils/TemporalStorage.h"
@@ -51,8 +51,7 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 : m_zip(zip)
 , m_factory(factory)
 , m_handler(handler)
-//, m_fetchBehaviour{new FetchRawData()}
-, m_fetchBehaviour{new MarchingCubesFromFetchedVolumetricData()}
+, m_dataFactory{new MarchingCubesFromFetchedVolumetricData()}
 , m_analysis{new Analysis()}
 {
 }
@@ -60,7 +59,7 @@ SegFile_V4::Loader::Loader(QuaZip& zip, CoreFactorySPtr factory, ErrorHandlerSPt
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V4::Loader::load()
 {
-  m_storage = TemporalStorageSPtr{new TemporalStorage()};
+  m_storage = std::make_shared<TemporalStorage>();
   m_analysis->setStorage(m_storage);
 
   m_vertexUuids.clear();
@@ -164,7 +163,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
       // traceability was disabled
       if (!inputFilter->m_outputs.contains(id))
       {
-        inputFilter->m_outputs[id] = OutputSPtr{new Output(inputFilter.get(), id)};
+        inputFilter->m_outputs[id] = std::make_shared<Output>(inputFilter.get(), id, NmVector3());
       }
 
       inputs << getInput(inputFilter, id);
@@ -178,8 +177,8 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
   }
   catch (...)
   {
-    filter = FilterSPtr{new ReadOnlyFilter(inputs, roVertex->name())};
-    filter->setFetchBehaviour(m_fetchBehaviour);
+    filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
+    filter->setDataFactory(m_dataFactory);
   }
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
@@ -195,6 +194,7 @@ FilterSPtr SegFile_V4::Loader::createFilter(DirectedGraph::Vertex roVertex)
       createFilterOutputsFile(filter, parts[1].toInt());
     }
   }
+  filter->restorePreviousOutputs();
 
   return filter;
 }
@@ -230,7 +230,7 @@ ChannelSPtr SegFile_V4::Loader::createChannel(DirectedGraph::Vertex roVertex)
   auto vertex_v4 = edge.source;
   auto filter    = std::dynamic_pointer_cast<Filter>(inflateVertexV4(vertex_v4));
 
-  filter->update(0); // Existing outputs weren't stored in previous versions
+  filter->update(); // Existing outputs weren't stored in previous versions
 
   ChannelSPtr channel = m_factory->createChannel(filter, 0);
 
@@ -285,7 +285,7 @@ SegmentationSPtr SegFile_V4::Loader::createSegmentation(DirectedGraph::Vertex ro
   auto filter   = roOutput.first;
   auto outputId = roOutput.second;
 
-  filter->update(outputId); // Existing outputs weren't stored in previous versions
+  //filter->update(); // Existing outputs weren't stored in previous versions
 
   SegmentationSPtr segmentation = m_factory->createSegmentation(filter, outputId);
 
@@ -503,6 +503,7 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
   {
     QByteArray buffer;
     QXmlStreamWriter xml(&buffer);
+    NmVector3 unkownSpacing{0,0,0};
 
     xml.setAutoFormatting(true);
     xml.writeStartDocument();
@@ -513,7 +514,8 @@ void SegFile_V4::Loader::createFilterOutputsFile(FilterSPtr filter, int filterVe
       for (auto trc : trcFiles[output])
       {
         xml.writeStartElement("Output");
-        xml.writeAttribute("id", QString::number(output));
+        xml.writeAttribute("id",      QString::number(output));
+        xml.writeAttribute("spacing", unkownSpacing.toString());
 
         QString content(trc);
 

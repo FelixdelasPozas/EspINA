@@ -23,314 +23,14 @@
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/VolumeBounds.h>
+#include <Core/Utils/TemporalStorage.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
 
 namespace ESPINA {
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
-  {
-    typename T::SpacingType s = image->GetSpacing();
-    typename T::PointType o = image->GetOrigin();
-
-    typename T::PointType p0, p1;
-    for (int i = 0; i < 3; ++i)
-    {
-      Axis dir = toAxis(i);
-
-      p0[i] = bounds[2 * i];
-      p1[i] = bounds[2 * i + 1];
-
-      if (areEqual(p0[i], p1[i]) && !bounds.areUpperIncluded(dir) && !bounds.areLowerIncluded(dir))
-      {
-        throw Invalid_Bounds_Exception();
-      }
-
-      if (isAligned(p0[i], o[i], s[i]))
-      {
-        p0[i] += s[i] / 2.0;
-      }
-
-      if (isAligned(p1[i], o[i], s[i]))
-      {
-        if (bounds.areUpperIncluded(dir))
-        {
-          p1[i] += s[i] / 2.0;
-        }
-        else
-        {
-          p1[i] -= s[i] / 2.0;
-        }
-      }
-    }
-
-    typename T::IndexType i0, i1;
-    image->TransformPhysicalPointToIndex(p0, i0);
-    image->TransformPhysicalPointToIndex(p1, i1);
-
-    typename T::RegionType region;
-    region.SetIndex(i0);
-    region.SetUpperIndex(i1);
-
-    for (auto i: {0,1,2})
-      if (region.GetSize(i) == 0)
-        region.SetSize(i,1);
-
-      return region;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds)
-  {
-    typename T::Pointer image = define_itkImage<T>(origin, spacing);
-
-    return equivalentRegion<T>(image, bounds);
-  }
-
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds equivalentBounds(const typename T::Pointer image, const typename T::RegionType& region)
-  {
-    Bounds bounds;
-
-    typename T::PointType p0, p1;
-
-    image->TransformIndexToPhysicalPoint(region.GetIndex(), p0);
-    image->TransformIndexToPhysicalPoint(region.GetUpperIndex(), p1);
-
-    typename T::SpacingType s = image->GetSpacing();
-
-    for (int i = 0; i < 3; ++i)
-    {
-      bounds[2*i]   = p0[i] - s[i]/2;
-      bounds[2*i+1] = p1[i] + s[i]/2;
-    }
-
-    return bounds;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds equivalentBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region)
-  {
-    typename T::Pointer image = define_itkImage<T>(origin, spacing);
-
-    return equivalentBounds<T>(image, region);
-  }
-
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const typename T::RegionType& region)
-  {
-    return volumeBounds<T>(define_itkImage<T>(origin, spacing), region);
-
-    //typename T::Pointer image = define_itkImage<T>(origin, spacing);
-    // return volumeBounds<T>(image, equivalentBounds<T>(image, region));
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  VolumeBounds volumeBounds(const typename T::Pointer image, const Bounds& bounds)
-  {
-    NmVector3 origin;
-    for (int i = 0; i < 3; ++i) origin[i] = image->GetOrigin()[i];
-
-    NmVector3 spacing;
-    for (int i = 0; i < 3; ++i) spacing[i] = image->GetSpacing()[i];
-
-    return volumeBounds<T>(origin, spacing, bounds);
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  VolumeBounds volumeBounds(const typename T::Pointer image, const typename T::RegionType& region)
-  {
-    return volumeBounds<T>(image, equivalentBounds<T>(image, region));
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  VolumeBounds volumeBounds(const NmVector3& origin, const NmVector3& spacing, const Bounds& bounds)
-  {
-    return VolumeBounds(bounds, spacing, origin);
-  }
-
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds leftSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
-
-    slice[1] = slice[0] + spacing[0]/2.0;
-
-    return slice;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds rightSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
-
-    slice[0] = slice[1] - spacing[0]/2.0;
-
-    return slice;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds topSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
-
-    slice[3] = slice[2] + spacing[1]/2.0;
-
-    return slice;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds bottomSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
-
-    slice[2] = slice[3] - spacing[1]/2.0;
-
-    return slice;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds frontSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
-
-    slice[5] = slice[4] + spacing[2]/2.0;
-
-    return slice;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds backSliceBounds(const  T &volume)
-  {
-    auto slice   = volume->bounds();
-    auto spacing = volume->spacing();
-
-    slice[4] = slice[5] - spacing[2]/2.0;
-
-    return slice;
-  }
-
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  unsigned long voxelCount(const typename T::Pointer image, const typename T::ValueType value)
-  {
-    unsigned long count = 0;
-
-    itk::ImageRegionConstIterator<T> it(image, image->GetLargestPossibleRegion());
-
-    it.GoToBegin();
-    while (!it.IsAtEnd())
-    {
-      if (it.Get()) ++count;
-      ++it;
-    }
-
-    return count;
-  }
-
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueType bgValue)
-  {
-    Bounds bounds;
-
-    itk::ImageRegionConstIterator<T> it(image, image->GetLargestPossibleRegion());
-    auto origin  = image->GetOrigin();
-    auto spacing = image->GetSpacing();
-
-    it.GoToBegin();
-    while (!it.IsAtEnd())
-    {
-      if (it.Get() != bgValue)
-      {
-        auto index   = it.GetIndex();
-        Bounds voxelBounds;
-        for (int i = 0; i < 3; ++i)
-        {
-          voxelBounds[2*i]   = ( index[i]    * spacing[i]) - origin[i] - spacing[i]/2;
-          voxelBounds[2*i+1] = ((index[i]+1) * spacing[i]) - origin[i] - spacing[i]/2;
-        }
-
-        if (!bounds.areValid())
-          bounds = voxelBounds;
-        else
-          bounds = boundingBox(bounds, voxelBounds);
-      }
-      ++it;
-    }
-
-    return bounds;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  typename T::SpacingType ItkSpacing(const NmVector3& spacing)
-  {
-    typename T::SpacingType itkSpacing;
-
-    for(int i = 0; i < 3; ++i)
-      itkSpacing[i] = spacing[i];
-
-    return itkSpacing;
-  }
-
-
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
-  {
-    NmVector3 vector;
-
-    for(int i = 0; i < 3; ++i)
-      vector[i] = itkSpacing[i];
-
-    return vector;
-  }
-
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  NmVector3 ToNmVector3(typename T::PointType itkPoint)
-  {
-    NmVector3 vector;
-
-    for(int i = 0; i < 3; ++i)
-      vector[i] = itkPoint[i];
-
-    return vector;
-  }
-
 
 
   //-----------------------------------------------------------------------------
@@ -414,6 +114,13 @@ namespace ESPINA {
   template<typename T>
   void expandAndDraw(VolumetricDataSPtr<T> volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
   {
+    expandAndDraw<T>(volume.get(), drawnVolume, bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void expandAndDraw(VolumetricData<T> *volume, typename T::Pointer drawnVolume, Bounds bounds = Bounds())
+  {
     if (!bounds.areValid())
     {
       bounds = equivalentBounds<T>(drawnVolume, drawnVolume->GetLargestPossibleRegion());
@@ -424,6 +131,14 @@ namespace ESPINA {
   }
 
   //-----------------------------------------------------------------------------
+  template<class T>
+  void expandAndDraw(VolumetricDataSPtr<T> volume, const BinaryMaskSPtr<unsigned char> &mask)
+  {
+    volume->resize(boundingBox(mask->bounds().bounds(), volume->bounds()));
+    volume->draw(mask, mask->foregroundValue());
+  }
+
+  //-----------------------------------------------------------------------------
   template<typename T>
   void fitToContents(VolumetricDataSPtr<T> volume, typename T::ValueType bgValue)
   {
@@ -431,27 +146,6 @@ namespace ESPINA {
     volume->resize(bounds);
   }
 
-  //-----------------------------------------------------------------------------
-  template<typename T>
-  typename T::Pointer define_itkImage(const NmVector3             &origin,
-                                      const NmVector3             &spacing)
-  {
-    typename T::PointType   itkOrigin;
-    typename T::SpacingType itkSpacing;
-
-    for(int i = 0; i < 3; ++i)
-    {
-      itkOrigin[i]  = origin[i];
-      itkSpacing[i] = spacing[i];
-    }
-
-    typename T::Pointer image = T::New();
-    // Origin and spacing must be set before calling equivalentRegion on image
-    image->SetOrigin(itkOrigin);
-    image->SetSpacing(itkSpacing);
-
-    return image;
-  }
 
   //-----------------------------------------------------------------------------
   template<typename T>
@@ -465,6 +159,51 @@ namespace ESPINA {
     image->SetRegions(equivalentRegion<T>(image, bounds));
     image->Allocate();
     image->FillBuffer(value);
+
+    return image;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot createSnapshot(typename T::Pointer   volume,
+                          TemporalStorageSPtr   storage,
+                          const QString        &path,
+                          const QString        &id)
+  {
+    Snapshot snapshot;
+
+    storage->makePath(path);
+
+    QString mhd = QString("%1/%2").arg(path).arg(id);
+    QString raw = mhd;
+    raw.replace(".mhd",".raw");
+
+    bool releaseFlag = volume->GetReleaseDataFlag();
+    volume->ReleaseDataFlagOff();
+
+    auto writer = itk::ImageFileWriter<itkVolumeType>::New();
+    writer->SetFileName(storage->absoluteFilePath(mhd).toUtf8().data());
+    writer->SetInput(volume);
+    writer->Write();
+    volume->SetReleaseDataFlag(releaseFlag);
+
+    snapshot << SnapshotData(mhd, storage->snapshot(mhd));
+    snapshot << SnapshotData(raw, storage->snapshot(raw));
+
+    return snapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  typename T::Pointer readVolume(const QString &filename)
+  {
+    using VolumeReader = itk::ImageFileReader<T>;
+
+    typename VolumeReader::Pointer reader = VolumeReader::New();
+    reader->SetFileName(filename.toUtf8().data());
+    reader->Update();
+
+    auto image = reader->GetOutput();
 
     return image;
   }

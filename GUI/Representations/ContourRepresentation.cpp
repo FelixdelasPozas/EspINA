@@ -21,6 +21,7 @@
 // ESPINA
 #include "ContourRepresentation.h"
 #include "RepresentationEmptySettings.h"
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include "ContourRepresentationSettings.h"
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/EspinaTypes.h>

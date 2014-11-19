@@ -33,12 +33,12 @@ namespace ESPINA
   : public Filter
   {
     public:
-  		/** \brief FreeFormSource class constructor.
-			 * \param[in] inputs, list of input smart pointers.
-			 * \param[in] type, FreeFormSource type.
-			 * \param[in] scheduler, scheduler smart pointer.
-			 *
-  		 */
+      /** \brief FreeFormSource class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type FreeFormSource type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
       explicit FreeFormSource(InputSList inputs,
                               Filter::Type     type,
                               SchedulerSPtr    scheduler);
@@ -48,14 +48,8 @@ namespace ESPINA
        */
       virtual ~FreeFormSource();
 
-      /** \brief Implements Persistent::restoreState().
-       *
-       */
       virtual void restoreState(const State &state);
 
-      /** \brief Implements Persistent::state().
-       *
-       */
       virtual State state() const;
 
       /** \brief Sets the mask that serves as input for the output volume.
@@ -65,43 +59,22 @@ namespace ESPINA
       { m_mask = mask; }
 
     protected:
-      /** \brief Implements Filter::saveFilterSnapshot().
-       *
-       */
       virtual Snapshot saveFilterSnapshot() const;
 
-      /** \brief Implements Filter::needUpdate().
-       *
-       */
       virtual bool needUpdate() const
       { return needUpdate(0); }
 
-      /** \brief Implements Filter::needUpdate(id).
-       *
-       */
       virtual bool needUpdate(Output::Id oId) const;
 
-      /** \brief Implements Filter::execute().
-       *
-       */
       virtual void execute()
       { execute(0); }
 
-      /** \brief Implements Filter::execute(id).
-       *
-       */
       virtual void execute(Output::Id oId);
 
-      /** \brief Implements Filter::ignoreStorageContent().
-       *
-       */
       virtual bool ignoreStorageContent() const
       { return false; }
 
-      /** \brief Implements Filter::invalidateEditedRegions().
-       *
-       */
-      virtual bool invalidateEditedRegions();
+      virtual bool areEditedRegionsInvalidated();
 
     private:
       BinaryMaskSPtr<unsigned char> m_mask;

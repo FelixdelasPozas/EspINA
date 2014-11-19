@@ -113,9 +113,10 @@ namespace ESPINA
                 const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 
 
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
-
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
   private:
     QString temporalStorageId(const QString &id) const

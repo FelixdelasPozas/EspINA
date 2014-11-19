@@ -79,6 +79,16 @@ int main(int argc, char **argv)
     EspinaMainWindow espina(plugins);
     espina.show();
 
+    if (argc > 1) {
+      QStringList filenames;
+      for (int i = 1; i < argc; ++i)
+      {
+        filenames << argv[i];
+      }
+      qDebug() << "Opening: " << filenames;
+      espina.openAnalysis(filenames);
+    }
+
     res = app.exec();
   }
 

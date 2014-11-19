@@ -25,7 +25,6 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
@@ -68,60 +67,29 @@ namespace ESPINA
      */
     virtual ~RasterizedVolume() {};
 
-    /** \brief Implements SparseVolume<T>::memoryUsage().
-     *
-     */
     virtual size_t memoryUsage() const;
 
-    /** \brief Implements SparseVolume<T>::itkImage().
-     *
-     */
     virtual const typename T::Pointer itkImage() const;
 
-    /** \brief Overrides SparseVolume<T>::itkImage(Bounds).
-     *
-     */
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    /** \brief Overrides SparseVolume<T>::draw(vtkImplicitFunction, Bounds, T::ValueType).
-     *
-     */
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    /** \brief Overrides SparseVolume<T>::draw(BinrayMaskSPtr, T::ValueType).
-     *
-     */
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
-    /** \brief Overrides SparseVolume<T>::draw(T::Pointer).
-     *
-     */
     virtual void draw(const typename T::Pointer volume) override;
 
-    /** \brief Overrides SparseVolume<T>::draw(T::Pointer, Bounds).
-     *
-     */
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds) override;
 
-    /** \brief Overrides SparseVolume<T>::draw(T::IndexType, T::PixelType).
-     *
-     */
     virtual void draw(const typename T::IndexType index,
                       const typename T::PixelType value = SEG_VOXEL_VALUE) override;
 
-
-    /** \brief Overrides SparseVolume<T>::resize().
-     *
-     */
     virtual void resize(const Bounds &bounds) override;
 
-    /** \brief Overrides SparseVolume<T>::isEmpty().
-     *
-     */
     virtual bool isEmpty() const override;
 
   private:
@@ -129,6 +97,9 @@ namespace ESPINA
      *
      */
     void rasterize() const;
+
+    virtual QList<Data::Type> updateDependencies() const override;
+
 
     vtkSmartPointer<vtkPolyData> m_mesh;
     mutable unsigned long int    m_rasterizationTime;
@@ -258,6 +229,17 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
+  QList<Data::Type> RasterizedVolume<T>::updateDependencies() const
+  {
+    QList<Data::Type> types;
+
+    types << MeshData::TYPE;
+
+    return types;
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
   void RasterizedVolume<T>::rasterize() const
   {
     this->m_mutex.lock();
@@ -304,7 +286,7 @@ namespace ESPINA
     }
     m_rasterizationTime = m_mesh->GetMTime();
 
-    this->setBlock(image, false);
+    const_cast<RasterizedVolume<T> *>(this)->setBlock(image, false);
 
     this->m_mutex.unlock();
   }

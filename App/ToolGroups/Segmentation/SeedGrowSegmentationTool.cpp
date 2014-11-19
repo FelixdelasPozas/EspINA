@@ -31,7 +31,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
 #include <App/Settings/ROI/ROISettings.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Undo/AddSegmentations.h>
 
 // Qt
@@ -63,13 +63,13 @@ FilterSPtr SeedGrowSegmentationTool::SGSFactory::createFilter(InputSList        
 {
   if (!(filter == SGS_FILTER || filter == SGS_FILTER_V4)) throw Unknown_Filter_Exception();
 
-  auto sgsFilter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, filter, scheduler)};
+  auto sgsFilter = std::make_shared<SeedGrowSegmentationFilter>(inputs, filter, scheduler);
 
-  if (!m_fetchBehaviour)
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
   }
-  sgsFilter->setFetchBehaviour(m_fetchBehaviour);
+  sgsFilter->setDataFactory(m_dataFactory);
 
   return sgsFilter;
 }
@@ -88,11 +88,11 @@ QList<Filter::Type> SeedGrowSegmentationTool::SGSFactory::availableFilterDelegat
 FilterDelegateSPtr SeedGrowSegmentationTool::SGSFactory::createDelegate(FilterSPtr filter)
 throw (Unknown_Filter_Type_Exception)
 {
-  if (!(filter->type() == SGS_FILTER || filter->type() == SGS_FILTER_V4)) throw Unknown_Filter_Type_Exception();
+  if (!availableFilterDelegates().contains(filter->type())) throw Unknown_Filter_Type_Exception();
 
   auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(filter);
 
-  return FilterDelegateSPtr(new SeedGrowSegmentationHistory(sgsFilter));
+  return std::make_shared<SeedGrowSegmentationHistory>(sgsFilter);
 }
 
 //-----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                   tr("Create segmentation based on selected pixel (Ctrl +)"),
                                   m_selectorSwitch);
 
-    SelectorSPtr selector{new PixelSelector()};
+    auto selector = std::make_shared<PixelSelector>();
     selector->setMultiSelection(false);
 
     addVoxelSelector(action, selector);
@@ -134,7 +134,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
                                   tr("Create segmentation based on best pixel (Ctrl +)"),
                                   m_selectorSwitch);
 
-    std::shared_ptr<BestPixelSelector> selector{new BestPixelSelector()};
+    auto selector = std::make_shared<BestPixelSelector>();
     selector->setMultiSelection(false);
 
     QCursor cursor(QPixmap(":/espina/crossRegion.svg"));
@@ -290,7 +290,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     bounds = intersection(bounds, channel->bounds(), spacing);
 
-    roi = ROISPtr{new ROI(bounds, spacing, origin)};
+    roi = std::make_shared<ROI>(bounds, spacing, origin);
   }
   else
   {

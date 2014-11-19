@@ -25,7 +25,7 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/SpatialUtils.hxx>
 
 // ITK
 #include <itkImage.h>
@@ -47,11 +47,11 @@ namespace ESPINA
 
       struct IndexType
       {
-      		IndexType(): x(0), y(0), z(0) {};
-      		IndexType(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
-      		IndexType(const IndexType &i): x(i.x), y(i.y), z(i.z) {};
+        IndexType(): x(0), y(0), z(0) {};
+        IndexType(const int xv, const int yv, const int zv): x(xv), y(yv), z(zv) {};
+        IndexType(const IndexType &i): x(i.x), y(i.y), z(i.z) {};
 
-      		int x; int y; int z;
+        int x; int y; int z;
       };
 
       using PixelType        = T;
@@ -407,7 +407,7 @@ namespace ESPINA
         protected:
           BinaryMask<T>     *m_mask;
           unsigned long long m_pos;
-          int                m_bitPos;
+          unsigned int       m_bitPos;
       };
 
       //- CONST ITERATOR CLASS --------------------------------------------------------------
@@ -1039,7 +1039,7 @@ namespace ESPINA
     IndexType maskIndex;
 
     // TODO: use itk & mask raw buffers to make a fast copy
-    for (auto i = 0; i < region.GetNumberOfPixels(); ++i, ++mit)
+    for (unsigned i = 0; i < region.GetNumberOfPixels(); ++i, ++mit)
     {
       maskIndex = mit.getIndex();
       imageIndex[0] = maskIndex.x;

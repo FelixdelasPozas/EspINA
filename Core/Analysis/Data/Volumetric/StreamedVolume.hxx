@@ -102,19 +102,28 @@ namespace ESPINA {
 
     virtual void draw(const vtkImplicitFunction*  brush,
                       const Bounds&               bounds,
-                      const typename T::ValueType value)
+                      const typename T::ValueType value)                   override
     {}
 
-    virtual void draw(const typename T::Pointer volume)
+    virtual void draw(const typename T::Pointer volume)                    override
     {}
 
     virtual void draw(const typename T::Pointer volume,
-                      const Bounds&             bounds)
+                      const Bounds&             bounds)                    override
     {}
 
     virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE)
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
     {}
+
+    virtual void draw(const Bounds               &bounds,
+                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    {}
+
+    virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
+                      const typename T::ValueType value = SEG_VOXEL_VALUE) override
+    {}
+
 
     virtual void resize(const Bounds &bounds)
     {}
@@ -128,17 +137,25 @@ namespace ESPINA {
     virtual bool isEmpty() const
     { return !isValid(); }
 
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id)
-    { return false; }
-
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
     { return Snapshot(); }
 
-    virtual Snapshot editedRegionsSnapshot() const
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
     { return Snapshot(); }
+
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+    {}
 
   protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return false; }
+
+
+  private:
     typedef itk::ImageRegionIterator<T> ImageIterator;
+
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
 
   private:
     NmVector3 m_origin;

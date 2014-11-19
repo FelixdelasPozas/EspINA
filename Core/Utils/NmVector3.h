@@ -51,81 +51,81 @@ namespace ESPINA {
    */
   class EspinaCore_EXPORT NmVector3
   {
-		public:
-			struct Wrong_format_exception {};
-			struct Wrong_number_initial_values {};
+  public:
+    struct Wrong_Format_Exception {};
+    struct Wrong_number_initial_values {};
 
-		public:
-			/** \brief NmVector3 class constructor.
-			 *
-			 */
-			NmVector3();
+  public:
+    /** \brief NmVector3 class constructor.
+     *
+     */
+    NmVector3();
 
-			/** \brief NmVector3 class constructor.
-			 * \param[in] value, initial list of values.
-			 *
-			 */
-			NmVector3(std::initializer_list<Nm> values);
+    /** \brief NmVector3 class constructor.
+     * \param[in] value initial list of values.
+     *
+     */
+    NmVector3(std::initializer_list<Nm> values);
 
-			/** \brief NmVector3 class constructor.
-			 * \param[in] string, string in the format {%1,%2,%3}.
-			 *
-			 */
-			NmVector3(const QString& string);
+    /** \brief NmVector3 class constructor.
+     * \param[in] string string in the format {%1,%2,%3}.
+     *
+     */
+    explicit NmVector3(const QString& string);
 
-			/** \brief NmVector3 operator[int]
-			 *
-			 */
-			Nm& operator[](int idx)
-			{ return m_values[idx]; }
+    /** \brief NmVector3 operator[int]
+     *
+     */
+    Nm& operator[](int idx)
+    { return m_values[idx]; }
 
-			/** \brief NmVector3 operator[int] const
-			 *
-			 */
-			const Nm& operator[](int idx) const
-			{ return m_values[idx]; }
+    /** \brief NmVector3 operator[int] const
+     *
+     */
+    const Nm& operator[](int idx) const
+    { return m_values[idx]; }
 
-			/** \brief NmVector3 operator[axis]
-			 *
-			 */
-			Nm& operator[](const Axis dir)
-			{ return m_values[idx(dir)]; }
+    /** \brief NmVector3 operator[axis]
+     *
+     */
+    Nm& operator[](const Axis dir)
+    { return m_values[idx(dir)]; }
 
-			/** \brief NmVector3 operator[axis] const
-			 *
-			 */
-			const Nm& operator[](const Axis dir) const
-			{ return m_values[idx(dir)]; }
+    /** \brief NmVector3 operator[axis] const
+     *
+     */
+    const Nm& operator[](const Axis dir) const
+    { return m_values[idx(dir)]; }
 
-			/** \brief Dumps the contents of the vector formatted to a string.
-			 *
-			 */
-			QString toString() const;
+    /** \brief Dumps the contents of the vector formatted to a string.
+     *
+     */
+    QString toString() const;
 
-		private:
-			Nm m_values[3];
-		};
+  private:
+    Nm m_values[3];
+  };
 
-		/** \brief NmVector3 operator<< for QDebug.
-		 *
-		 */
-		QDebug EspinaCore_EXPORT operator<< (QDebug d, const NmVector3 &vector);
+  /** \brief NmVector3 operator<< for QDebug.
+   *
+   */
+  EspinaCore_EXPORT QDebug operator<< (QDebug d, const NmVector3 &vector);
 
-		/** \brief NmVector3 operator<< for streams.
-		 *
-		 */
-		std::ostream& EspinaCore_EXPORT operator<<(std::ostream& os, const NmVector3& vector);
+  /** \brief NmVector3 operator<< for streams.
+   *
+   */
+  EspinaCore_EXPORT std::ostream& operator<<(std::ostream& os, const NmVector3& vector);
 
-		/** \brief NmVector3 equality operator.
-		 *
-		 */
-		bool EspinaCore_EXPORT operator==(const NmVector3& lhs, const NmVector3& rhs);
+  /** \brief NmVector3 equality operator.
+   *
+   */
+  bool EspinaCore_EXPORT operator==(const NmVector3& lhs, const NmVector3& rhs);
 
-		/** \brief NmVector3 inequality operator.
-		 *
-		 */
-		bool EspinaCore_EXPORT operator!=(const NmVector3& lhs, const NmVector3& rhs);
-	}
+  /** \brief NmVector3 inequality operator.
+   *
+   */
+  bool EspinaCore_EXPORT operator!=(const NmVector3& lhs, const NmVector3& rhs);
+}
 
 
 #endif // ESPINA_NM_VECTOR_3_H

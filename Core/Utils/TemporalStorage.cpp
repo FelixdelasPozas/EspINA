@@ -27,6 +27,7 @@
 
 // Qt
 #include <QStack>
+#include <QDebug>
 
 namespace ESPINA
 {
@@ -67,7 +68,9 @@ namespace ESPINA
     QDir tmpDir;
 
     if (parent)
+    {
       tmpDir = *parent;
+    }
     else
     {
       tmpDir = QDir::tempPath();
@@ -139,10 +142,14 @@ namespace ESPINA
   {
     QString fileName = m_storageDir.absoluteFilePath(descriptor);
 
+    QByteArray data;
+
     QFile file(fileName);
-    file.open(QIODevice::ReadOnly);
-    QByteArray data = file.readAll();
-    file.close();
+    if (file.open(QIODevice::ReadOnly))
+    {
+      data = file.readAll();
+      file.close();
+    }
 
     return data;
   }

@@ -42,7 +42,8 @@ FreeFormSource::FreeFormSource(InputSList   inputs,
 : Filter(inputs, type, scheduler)
 , m_mask(nullptr)
 {
-  m_outputs[0] = OutputSPtr{new Output(this, 0)};
+  //m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
+  qWarning() << "Free Form Source is going to be deprecated. Use Source Filter instead";
 }
 
 //-----------------------------------------------------------------------------
@@ -80,34 +81,34 @@ void FreeFormSource::execute(Output::Id id)
 {
   if (id != 0) throw Undefined_Output_Exception();
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
-  if (m_mask == nullptr) throw Invalid_Input_Data_Exception();
-
-  emit progress(25);
-
-  if (!m_outputs.contains(0))
-  {
-    m_outputs[0] = OutputSPtr(new Output(this, 0));
-  }
+  if (m_mask == nullptr)    throw Invalid_Input_Data_Exception();
 
   emit progress(50);
   if (!canExecute()) return;
 
   DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(m_mask->bounds().bounds(), m_mask->spacing(), m_mask->origin())};
-  auto sparseVolume = std::dynamic_pointer_cast<SparseVolume<itkVolumeType>>(volume);
-  sparseVolume->draw(m_mask);
+  volume->draw(m_mask);
 
   emit progress(75);
   if (!canExecute()) return;
 
+  auto mesh = MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
+
+  auto spacing = m_mask->spacing();
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+  }
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)});
-  m_outputs[0]->setSpacing(m_mask->spacing());
+  m_outputs[0]->setData(mesh);
+  m_outputs[0]->setSpacing(spacing);
 
   emit progress(100);
 }
 
 //----------------------------------------------------------------------------
-bool FreeFormSource::invalidateEditedRegions()
+bool FreeFormSource::areEditedRegionsInvalidated()
 {
   return false;
 }

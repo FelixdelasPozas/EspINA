@@ -52,7 +52,7 @@ namespace ESPINA
       Problem(): element(QString()), severity(Severity::CRITICAL), message(QString()), suggestion(QString()) {};
   };
 
-  using ProblemList = QList<struct Problem>;
+  using ProblemList = QList<Problem>;
 
   class ProblemListDialog
   : public QDialog

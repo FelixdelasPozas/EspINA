@@ -21,7 +21,7 @@
 // plugin
 #include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
-#include <Filter/SASFetchBehaviour.h>
+#include <Filter/SASDataFactory.h>
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceToolGroup.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
@@ -32,7 +32,7 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
-#include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
+#include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
@@ -65,15 +65,17 @@ FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList          inputs,
+FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList    inputs,
                                                             const Filter::Type& type,
-                                                            SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+                                                            SchedulerSPtr       scheduler) const
+throw (Unknown_Filter_Exception)
 {
 
   if (type != AS_FILTER) throw Unknown_Filter_Exception();
 
-  auto filter = FilterSPtr{new AppositionSurfaceFilter(inputs, type, scheduler)};
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new SASFetchBehaviour()});
+  auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
+
+  filter->setDataFactory(std::make_shared<SASDataFactory>());
 
   return filter;
 }
@@ -85,8 +87,8 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_viewManager     {nullptr}
 , m_scheduler       {nullptr}
 , m_undoStack       {nullptr}
-, m_settings        {SettingsPanelSPtr(new AppositionSurfaceSettings())}
-, m_extensionFactory{SegmentationExtensionFactorySPtr(new ASExtensionFactory())}
+, m_settings        {new AppositionSurfaceSettings()}
+, m_extensionFactory{new ASExtensionFactory()}
 , m_toolGroup       {nullptr}
 , m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
 , m_delayedAnalysis {false}

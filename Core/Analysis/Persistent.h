@@ -83,7 +83,13 @@ namespace ESPINA {
      *
      */
     TemporalStorageSPtr storage() const
-    { return m_storage; }
+    {
+      if (!m_storage)
+      {
+        m_storage = TemporalStorageSPtr{new TemporalStorage()};
+      }
+      return m_storage;
+    }
 
     /** \brief Sets the name of the object.
      * \param[in] name object's name.
@@ -123,6 +129,7 @@ namespace ESPINA {
   private:
     Uuid                m_quuid;
     QString             m_name;
+    mutable
     TemporalStorageSPtr m_storage;
   };
 

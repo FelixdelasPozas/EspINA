@@ -25,6 +25,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include "RepresentationEmptySettings.h"
 #include "GUI/Representations/Representation.h"
 #include "GUI/View/RenderView.h"

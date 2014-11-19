@@ -47,69 +47,35 @@ namespace ESPINA
 
   public:
     /** \brief VolumetricStreamReader class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, VolumetricStreamReader type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type VolumetricStreamReader type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
      */
     explicit VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
-    virtual void restoreState(const State& state);
+    virtual void restoreState(const State& state) override;
 
-    /** \brief Implements Persistent::state().
-     *
-     */
-    virtual State state() const;
+    virtual State state() const override;
 
     /** \brief Sets the name of the image on disk to stream.
-     * \param[in] filename, QFileInfo object.
+     * \param[in] filename QFileInfo object.
      */
     void setFileName(const QFileInfo& fileName);
 
   protected:
-    /** \brief Implements Filter::saveFilterSnapshot().
-     *
-     */
-    virtual Snapshot saveFilterSnapshot() const
+    virtual Snapshot saveFilterSnapshot() const override
     { return Snapshot(); }
 
-    /** \brief Implements Filter::needUpdate().
-     *
-     */
-    virtual bool needUpdate() const;
+    virtual bool needUpdate() const override;
 
-    /** \brief Implements Filter::needUpdate(id).
-     *
-     */
-    virtual bool needUpdate(Output::Id id) const;
+    virtual void execute() override;
 
-    /** \brief Implements Filter::execute().
-     *
-     */
-    virtual void execute();
-
-    /** \brief Implements Filter::execute(id).
-     *
-     */
-    virtual void execute(Output::Id id);
-
-    /** \brief Implements Filter::ignoreStorageContent().
-     *
-     */
-    virtual bool ignoreStorageContent() const
+    virtual bool ignoreStorageContent() const override
     {return false;}
 
-    /** \brief Implements Filter::invalidateEditedRegions().
-     *
-     */
-    virtual bool invalidateEditedRegions()
-    { return false; }
-
   private:
-    QFileInfo       m_fileName;
+    QFileInfo m_fileName;
   };
 
 }// namespace ESPINA

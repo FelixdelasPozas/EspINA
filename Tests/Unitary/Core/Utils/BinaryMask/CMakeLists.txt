@@ -10,26 +10,10 @@ create_test_sourcelist(BinaryMask_Tests BinaryMask_Tests.cpp # this file is crea
   itkImage_constructor.cpp
 )
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
 
-qt4_wrap_cpp(SUBJECT_MOCS
-)
+add_executable(BinaryMask_Tests "" ${BinaryMask_Tests} )
 
-add_executable(BinaryMask_Tests
-  ${BinaryMask_Tests}
-#  ${SUBJECT_MOCS}
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/VolumeBounds.cpp
-  )
-
-target_link_libraries(BinaryMask_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(BinaryMask_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Binary Mask: Default Constructor\""                     BinaryMask_Tests default_constructor)
 add_test("\"Binary Mask: Modify Mask\""                             BinaryMask_Tests modify_mask)

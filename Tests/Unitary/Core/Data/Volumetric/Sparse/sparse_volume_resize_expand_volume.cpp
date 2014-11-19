@@ -27,12 +27,12 @@
  */
 
 #include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
-#include "Tests/Unitary/Core/Data/Volumetric/Testing_Support.h"
-
+#include "Tests/Testing_Support.h"
 #include <vtkSmartPointer.h>
 
-using namespace ESPINA;
 using namespace std;
+using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 typedef unsigned char VoxelType;
 typedef itk::Image<VoxelType, 3> ImageType;
@@ -42,36 +42,46 @@ int sparse_volume_resize_expand_volume( int argc, char** argv )
 {
   bool pass = true;
 
-  // TODO: update
-//  VoxelType bg = 0;
-//  VoxelType fg = 255;
-//
-//  Bounds initialBounds{0, 20, 0, 20, 0, 20};
-//  SparseVolume<ImageType> volume(initialBounds);
-//  volume.draw(vtkSmartPointer<vtkNaiveFunction>::New(), initialBounds, fg);
-//
-//  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), fg)) {
-//    cerr << "Initial values are not initialized to " << fg << endl;
-//    pass = false;
-//  }
-//
-//  Bounds resizedBounds{0, 40, 0, 40, 0, 40};
-//  volume.resize(resizedBounds);
-//
-//  if (volume.bounds() != resizedBounds) {
-//    cerr << "Resized bounds " << volume.bounds() << " don't match requested bounds " << resizedBounds << endl;
-//  }
-//
-//  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(initialBounds), fg)) {
-//    cerr << "Initial pixel values have been modified" << endl;
-//    pass = false;
-//  }
-//
-//  Bounds expandedBounds{20, 40, 20, 40, 20, 40};
-//  if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(expandedBounds), volume.backgroundValue())) {
-//    cerr << "Expanded pixel values are different from backround value" << volume.backgroundValue() << endl;
-//    pass = false;
-//  }
+ VoxelType fg = 255;
+
+ Bounds initialBounds{0, 20, 0, 20, 0, 20};
+ SparseVolume<ImageType> volume(initialBounds);
+ volume.draw(initialBounds, fg);
+
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(), fg)) {
+   cerr << "Initial values are not initialized to " << static_cast<int>(fg) << endl;
+   pass = false;
+ }
+
+ Bounds resizedBounds{-0.5, 40.5, -0.5, 40.5, -0.5, 40.5};
+ volume.resize(resizedBounds);
+
+ if (volume.bounds() != resizedBounds) {
+   cerr << "Resized bounds " << volume.bounds() << " don't match requested bounds " << resizedBounds << endl;
+ }
+
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(initialBounds), fg)) {
+   cerr << "Initial pixel values have been modified" << endl;
+   pass = false;
+ }
+
+ Bounds expandedBoundsXY{-0.5, 40.5, -0.5, 40.5, 20.5, 40.5};
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(expandedBoundsXY), volume.backgroundValue())) {
+   cerr << "Expanded pixel values are different from backround value" << static_cast<int>(volume.backgroundValue()) << endl;
+   pass = false;
+ }
+
+ Bounds expandedBoundsX{-0.5, 40.5, 20.5, 40.5, -0.5, 20.5};
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(expandedBoundsX), volume.backgroundValue())) {
+   cerr << "Expanded pixel values are different from backround value" << static_cast<int>(volume.backgroundValue()) << endl;
+   pass = false;
+ }
+
+ Bounds expandedBoundsY{20.5, 40.5, -0.5, 40.5, -0.5, 20.5};
+ if (!Testing_Support<ImageType>::Test_Pixel_Values(volume.itkImage(expandedBoundsY), volume.backgroundValue())) {
+   cerr << "Expanded pixel values are different from backround value" << static_cast<int>(volume.backgroundValue()) << endl;
+   pass = false;
+ }
 
   return !pass;
 }

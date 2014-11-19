@@ -42,9 +42,9 @@ set (CORE_SOURCES
   Analysis/ViewItem.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
-  IO/FetchBehaviour/FetchRawData.cpp
-  IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.cpp
-  IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.cpp
+  IO/DataFactory/FetchRawData.cpp
+  IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
+  IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp
   IO/ReadOnlyChannelExtension.cpp
   IO/ReadOnlySegmentationExtension.cpp

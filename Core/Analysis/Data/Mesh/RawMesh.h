@@ -75,26 +75,25 @@ namespace ESPINA
      */
     virtual bool setInternalData(MeshDataSPtr mesh);
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+    // Because meshes store the whole mesh polydata when their edited regions
+    // are requested, we can use the same name which will casue fetch method to
+    // succeed when restoring from edited regions (this will also will avoid
+    // executing the filter itself if no other data is required)
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual Snapshot editedRegionsSnapshot() const
-    { return Snapshot(); }
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
-    /** \brief Shadows Data::isEdited().
-     *
-     */
     bool isEdited() const
     { return false; }
 
-    void clearEditedRegions() override
-    { /* TODO: not allowed */ };
+    virtual vtkSmartPointer<vtkPolyData> mesh() const       override;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const;
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
     void setSpacing(const NmVector3&)
-    { /* TODO: not allowed */ };
+    { /* TODO: should rescale points */ };
 
     NmVector3 spacing() const;
 
@@ -102,6 +101,13 @@ namespace ESPINA
     { /* TODO: not allowed */ };
 
     size_t memoryUsage() const;
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;

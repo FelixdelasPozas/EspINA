@@ -142,7 +142,6 @@ void SplitFilter::execute()
     for(auto i: {0, 1})
     {
       auto spacing = m_inputs.first()->output()->spacing();
-      m_outputs[i] = OutputSPtr(new Output(this, i));
       auto bounds = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
 
       DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
@@ -150,6 +149,10 @@ void SplitFilter::execute()
 
       MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
 
+      if (!m_outputs.contains(i))
+      {
+        m_outputs[i] = std::make_shared<Output>(this, i, spacing);
+      }
       m_outputs[i]->setData(volume);
       m_outputs[i]->setData(mesh);
       m_outputs[i]->setSpacing(spacing);
@@ -169,7 +172,7 @@ bool SplitFilter::ignoreStorageContent() const
 }
 
 //----------------------------------------------------------------------------
-bool SplitFilter::invalidateEditedRegions()
+bool SplitFilter::areEditedRegionsInvalidated()
 {
   return false;
 }

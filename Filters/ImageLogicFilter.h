@@ -104,7 +104,7 @@ namespace ESPINA
       /** \brief Implements Filter::invalidateEditedRegions().
        *
        */
-      virtual bool invalidateEditedRegions();
+      virtual bool areEditedRegionsInvalidated();
 
     protected:
       /** \brief Performs the logical addition of the input segmentations.

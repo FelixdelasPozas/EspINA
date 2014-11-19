@@ -32,12 +32,12 @@ namespace ESPINA
   : public Filter
   {
   public:
-  	/** \brief SourceFilter class constructor.
-		 * \param[in] inputs, list of input smart pointers.
-		 * \param[in] type, SourceFilter type.
-		 * \param[in] scheduler, scheduler smart pointer.
-		 *
-  	 */
+    /** \brief SourceFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type SourceFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit SourceFilter(InputSList    inputs,
                           Filter::Type  type,
                           SchedulerSPtr scheduler)
@@ -63,51 +63,39 @@ namespace ESPINA
     { return State(); }
 
     /** \brief Adds an output to the filter.
-     * \param[in] id, id of the output.
-     * \param[in] output, Output object smart pointer.
+     * \param[in] id id of the output.
+     * \param[in] output Output object smart pointer.
      *
      */
     void addOutput(Output::Id id, OutputSPtr output);
 
-  protected:
-    /** \brief Implements Filter::saveFilterSnapshot().
+    /** \brief Adds an output data to the filter.
+     * \param[in] id id of the output.
+     * \param[in] output Output object smart pointer.
      *
+     *  If the no output exits, it creates a new output.
+     *  If any data already exists for the output, it is replaced with the new one
      */
+    void addOutputData(Output::Id id, DataSPtr data);
+
+  protected:
     virtual Snapshot saveFilterSnapshot() const
     { return Snapshot(); }
 
-    /** \brief Implements Filter::needUpdate().
-     *
-     */
     virtual bool needUpdate() const
     { return false; }
 
-    /** \brief Implements Filter::needUpdate(oid).
-     *
-     */
     virtual bool needUpdate(Output::Id oId) const;
 
-    /** \brief Implements Filter::execute().
-     *
-     */
     virtual void execute()
     { execute(0); }
 
-    /** \brief Implements Filter::execute(id).
-     *
-     */
     virtual void execute(Output::Id oId);
 
-    /** \brief Implements Filter::ignoreStorageContent().
-     *
-     */
     virtual bool ignoreStorageContent() const
     { return false; }
 
-    /** \brief Implements Filter::invalidateEditedRegions().
-     *
-     */
-    virtual bool invalidateEditedRegions()
+    virtual bool areEditedRegionsInvalidated()
     { return false; }
   };
 

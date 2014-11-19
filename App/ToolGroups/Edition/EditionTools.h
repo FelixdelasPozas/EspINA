@@ -41,60 +41,43 @@ namespace ESPINA
     class ManualFilterFactory
     : public FilterFactory
     {
-    	/** \brief Implements FilterFactory::createFilter().
-    	 *
-    	 */
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
-    	/** \brief Implements FilterFactory::providedFilters().
-    	 *
-    	 */
       virtual FilterTypeList providedFilters() const;
 
     private:
-      mutable FetchBehaviourSPtr m_fetchBehaviour;
+      mutable DataFactorySPtr m_dataFactory;
     };
 
     Q_OBJECT
   public:
     /** \brief EditionTools class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] dactory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
-     * \param[in] parent, QWidget raw pointer of the parent of this object.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] dactory factory smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] parent QWidget raw pointer of the parent of this object.
      *
      */
     explicit EditionTools(ModelAdapterSPtr model,
                           ModelFactorySPtr factory,
+                          FilterDelegateFactorySPtr     filterDelegateFactory,
                           ViewManagerSPtr  viewManager,
                           QUndoStack      *undoStack,
                           QWidget         *parent = nullptr);
 
-    /* \bried EditionTools class virtual destructor.
-     *
-     */
     virtual ~EditionTools();
 
-    /** \brief Implements ToolGroup::setEnabled().
-     *
-     */
     virtual void setEnabled(bool value);
 
-    /** \brief Implements ToolGroup::enabled().
-     *
-     */
     virtual bool enabled() const;
 
-    /** \brief Implements ToolGroup::tools().
-     *
-     */
     virtual ToolSList tools();
 
   public slots:
-		/** \brief Updates the tools based on current selection.
-		 *
-		 */
+    /** \brief Updates the tools based on current selection.
+     *
+     */
     void selectionChanged();
 
     /** \brief Aborts current operation (if any).
@@ -108,9 +91,9 @@ namespace ESPINA
     void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
 
   private slots:
-  	/** \brief Deletes a segmentation from the model if all its voxels have been erased.
-  	 *
-  	 */
+    /** \brief Deletes a segmentation from the model if all its voxels have been erased.
+     *
+     */
     void onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEntered);
 
   private:

@@ -30,6 +30,7 @@
 #include "Filter.h"
 #include "DataProxy.h"
 #include "Analysis.h"
+#include "Segmentation.h"
 
 // VTK
 #include <vtkMath.h>
@@ -41,9 +42,10 @@ const int ESPINA::Output::INVALID_OUTPUT_ID = -1;
 TimeStamp Output::s_tick = 0;
 
 //----------------------------------------------------------------------------
-Output::Output(FilterPtr filter, const Output::Id& id)
+Output::Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing)
 : m_filter{filter}
 , m_id{id}
+, m_spacing{spacing}
 , m_timeStamp{s_tick++}
 {
 }
@@ -62,9 +64,9 @@ void Output::setSpacing(const NmVector3& spacing)
 
     for(auto data : m_data)
     {
-      if (data->get()->isValid())
+      if (data->isValid())
       {
-        data->get()->setSpacing(spacing);
+        data->setSpacing(spacing);
       }
     }
 
@@ -76,6 +78,16 @@ void Output::setSpacing(const NmVector3& spacing)
 NmVector3 Output::spacing() const
 {
   return m_spacing;
+//   NmVector3 result = m_spacing;
+//
+//   if (result == NmVector3{0,0,0})
+//   {
+//     if (m_data.isEmpty()) throw Invalid_Bounds_Exception();
+//
+//     result = m_data[m_data.keys().first()]->spacing();
+//   }
+//
+//  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -85,10 +97,10 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 {
   Snapshot snapshot;
 
-  for(auto dataProxy : m_data)
-  {
-    DataSPtr data = dataProxy->get();
+  auto saveOutput = isSegmentationOutput();
 
+  for(auto data : m_data)
+  {
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
     xml.writeAttribute("bounds",  data->bounds().toString());
@@ -96,20 +108,33 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     for(int i = 0; i < data->editedRegions().size(); ++i)
     {
       auto region = data->editedRegions()[i];
-      xml.writeStartElement("Edited Region");
+      xml.writeStartElement("EditedRegion");
       xml.writeAttribute("id",     QString::number(i));
       xml.writeAttribute("bounds", region.toString());
       xml.writeEndElement();
     }
     xml.writeEndElement();
 
-    if (hasToBeSaved())
+    auto snapshotId = QString::number(id());
+    if (saveOutput)
     {
-      snapshot << data->snapshot(storage, path, QString::number(id()));
+      if (!data->isValid())
+      {
+        data->fetchData();
+      }
+      snapshot << data->snapshot(storage, path, snapshotId);
     }
     else
     {
-      snapshot << data->editedRegionsSnapshot();
+      // Similarly to the output data is the case of the edited regions
+      // we need to copy the existing ones
+      // Alternatively, until the other implementation is available, we
+      // just restore them so they are available on save
+      if (!data->isValid())
+      {
+        data->restoreEditedRegions(storage, path, snapshotId);
+      }
+      snapshot << data->editedRegionsSnapshot(storage, path, snapshotId);
     }
   }
 
@@ -125,10 +150,10 @@ Bounds Output::bounds() const
   {
     if (bounds.areValid())
     {
-      bounds = boundingBox(bounds, data->get()->bounds());
+      bounds = boundingBox(bounds, data->bounds());
     } else
     {
-      bounds = data->get()->bounds();
+      bounds = data->bounds();
     }
   }
 
@@ -140,7 +165,7 @@ void Output::clearEditedRegions()
 {
   for(auto data: m_data)
   {
-    data->get()->clearEditedRegions();
+    data->clearEditedRegions();
   }
 }
 
@@ -149,7 +174,7 @@ bool Output::isEdited() const
 {
   for(auto data: m_data)
   {
-    if (data->get()->isEdited()) return true;
+    if (data->isEdited()) return true;
   }
 
   return false;
@@ -162,9 +187,9 @@ bool Output::isValid() const
 
   if (m_id == INVALID_OUTPUT_ID) return false;
 
-  for(DataProxySPtr data : m_data)
+  for(auto data : m_data)
   {
-    if (!data->get()->isValid()) return false;
+    if (!data->isValid()) return false;
   }
 
   return !m_data.isEmpty();
@@ -181,19 +206,21 @@ void Output::setData(Output::DataSPtr data)
 {
   Data::Type type = data->type();
 
-  if (m_data.contains(type))
-  {
-    auto oldData = m_data[type]->get();
-    disconnect(oldData.get(), SIGNAL(dataChanged()),
-               this, SLOT(onDataChanged()));
-  }
-  else
+  if (!m_data.contains(type))
   {
     m_data[type] = data->createProxy();
   }
 
-  m_data[type]->set(data);
+  auto base  = m_data.value(type).get();
+  auto proxy = dynamic_cast<DataProxy *>(base);
+  proxy->set(data);
   data->setOutput(this);
+
+  // Alternatively we could keep the previous edited regions
+  // but at the moment I can't find any scenario where it could be useful
+  BoundsList regions;
+  regions << data->bounds();
+  data->setEditedRegions(regions);
 
   updateModificationTime();
   emit modified();
@@ -210,15 +237,16 @@ void Output::removeData(const Data::Type& type)
 
 //----------------------------------------------------------------------------
 Output::DataSPtr Output::data(const Data::Type& type) const
+throw (Unavailable_Output_Data_Exception)
 {
-  m_filter->update(m_id);
-
-  DataSPtr result;
-
   if (m_data.contains(type))
-    result = m_data.value(type)->get();
-
-  return result;
+  {
+    return m_data.value(type);
+  }
+  else
+  {
+    throw Unavailable_Output_Data_Exception();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -231,9 +259,9 @@ bool Output::hasData(const Data::Type& type) const
 unsigned int Output::numberOfDatas() const
 {
   unsigned int result = 0;
-  for(DataProxySPtr data : m_data)
+  for(auto data : m_data)
   {
-    if (data->get()->isValid())
+    if (data->isValid())
     {
       ++result;
     }
@@ -245,20 +273,65 @@ unsigned int Output::numberOfDatas() const
 //----------------------------------------------------------------------------
 void Output::update()
 {
-  m_filter->update(m_id);
+  for (auto data : m_data)
+  {
+    if (!data->isValid())
+    {
+      update(data->type());
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-bool Output::hasToBeSaved() const
+void Output::update(const Data::Type &type)
 {
-  bool res = false;
+  auto requestedData = data(type);
 
+  if (!requestedData->isValid())
+  {
+    BoundsList editedRegions = requestedData->editedRegions();
+
+    if (requestedData->fetchData())
+    {
+      requestedData->setEditedRegions(editedRegions);
+    }
+    else
+    {
+      auto dependencies = requestedData->dependencies();
+
+      for (auto dependencyType : dependencies)
+      {
+        update(dependencyType);
+      }
+
+      auto currentData = data(type);
+      if (dependencies.isEmpty() || requestedData == currentData)
+      {
+        m_filter->update();
+      }
+    }
+  }
+}
+
+
+
+//----------------------------------------------------------------------------
+bool Output::isSegmentationOutput() const
+{
   auto analysis = m_filter->analysis();
   if (analysis)
   {
     auto content  = analysis->content();
-    res = !content->outEdges(m_filter, QString::number(m_id)).isEmpty();
+    auto outEdges = content->outEdges(m_filter, QString::number(m_id));
+
+    for (auto edge : outEdges)
+    {
+      if (std::dynamic_pointer_cast<Segmentation>(edge.target))
+      {
+        return true;
+      }
+    }
   }
 
-  return res;
+  return false;
 }

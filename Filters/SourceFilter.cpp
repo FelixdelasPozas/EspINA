@@ -31,6 +31,17 @@ void SourceFilter::addOutput(Output::Id id, OutputSPtr output)
 }
 
 //----------------------------------------------------------------------------
+void SourceFilter::addOutputData(Output::Id id, DataSPtr data)
+{
+  if (!m_outputs.contains(id))
+  {
+    m_outputs[id] = std::make_shared<Output>(this, id, data->spacing());
+  }
+
+  m_outputs[id]->setData(data);
+}
+
+//----------------------------------------------------------------------------
 bool SourceFilter::needUpdate(Output::Id id) const
 {
   if (!m_outputs.contains(id)) throw Undefined_Output_Exception();

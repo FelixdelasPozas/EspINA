@@ -633,9 +633,13 @@ void BrushSelector::stopPreview(RenderView* view)
   m_actor = nullptr;
   m_pBounds = m_lastUpdateBounds = Bounds();
 
-  if (m_item->type() == ViewItemAdapter::Type::SEGMENTATION)
+  if (isSegmentation(m_item))
+  {
     for(auto prototype: m_item->representations())
+    {
       prototype->setActive(true, m_previewView);
+    }
+  }
 
   m_previewView->updateView();
   m_previewView = nullptr;
