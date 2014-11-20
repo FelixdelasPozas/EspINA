@@ -53,6 +53,9 @@ namespace ESPINA
   , public SelectableView
   {
     Q_OBJECT
+  public:
+    static const int BUTTON_SIZE;
+
   protected:
     struct ChannelState
     {
@@ -375,6 +378,13 @@ namespace ESPINA
      */
     virtual struct VisualState visualState() = 0;
 
+    /** \brief Helper method to create a QPushButton.
+     * \param[in] icon icon of the button.
+     * \param[in] tooltip tooltip of the button.
+     *
+     */
+    static QPushButton *createButton(const QString& icon, const QString& tooltip);
+
   signals:
     void sceneResolutionChanged();
 
@@ -384,20 +394,20 @@ namespace ESPINA
      */
     virtual void changedOutput(ViewItemAdapterPtr item);
 
-		/** \brief Updates the view.
-		 *
-		 */
+    /** \brief Updates the view.
+     *
+     */
     virtual void updateView() = 0;
 
   protected slots:
-		/** \brief Updates the bounds of the scene after a channel has been added or deleted.
-		 *
-		 */
+    /** \brief Updates the bounds of the scene after a channel has been added or deleted.
+     *
+     */
     virtual void updateSceneBounds();
 
-		/** \brief Resets the view's camera and updates the bounds of the scene.
-		 *
-		 */
+    /** \brief Resets the view's camera and updates the bounds of the scene.
+     *
+     */
     virtual void resetView();
 
     /** \brief Updates the representations of the given list of segmentations.
@@ -405,13 +415,6 @@ namespace ESPINA
      *
      */
     virtual void updateSelection(SegmentationAdapterList selection);
-
-    /** \brief Helper method to create a QPushButton.
-     * \param[in] icon, icon of the button.
-     * \param[in] tooltip, tooltip of the button.
-     *
-     */
-    QPushButton *createButton(const QString& icon, const QString& tooltip);
 
   protected:
     /** \brief Updates the view when the selection changes.

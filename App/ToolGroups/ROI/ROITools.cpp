@@ -136,9 +136,12 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 , m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
 , m_enabled          {true}
 , m_visible          {true}
+, m_color            {Qt::yellow}
 , m_accumulator      {nullptr}
 , m_accumulatorWidget{nullptr}
 {
+  setColor(m_color);
+
   connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
           this,                     SLOT(onManualROIDefined(Selector::Selection)));
   connect(m_ortogonalROITool.get(), SIGNAL(roiDefined(ROISPtr)),
@@ -204,8 +207,12 @@ void ROIToolsGroup::setCurrentROI(ROISPtr roi)
 
   if (roi && !roi->isOrthogonal())
   {
+    auto widget = std::make_shared<ROIWidget>(roi);
+    widget->setColor(m_color);
+
     m_accumulator       = roi;
-    m_accumulatorWidget = EspinaWidgetSPtr{new ROIWidget(roi)};
+    m_accumulatorWidget = widget;
+
     m_viewManager->addWidget(m_accumulatorWidget);
   }
   m_viewManager->updateViews();
@@ -235,6 +242,15 @@ void ROIToolsGroup::consumeROI()
 {
   // TODO: Must be undoable
   setCurrentROI(nullptr);
+}
+
+//-----------------------------------------------------------------------------
+void ROIToolsGroup::setColor(const QColor& color)
+{
+  m_color = color;
+
+  m_manualROITool->setColor(color);
+  m_ortogonalROITool->setColor(color);
 }
 
 //-----------------------------------------------------------------------------

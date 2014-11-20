@@ -78,6 +78,8 @@ namespace ESPINA
        */
       virtual void setEnabled(bool enable);
 
+      void setColor(const QColor &color);
+
     private slots:
       /** \brief Update the representation when the view changes the slice.
        * \parma[in] plane, orientation plane.
@@ -93,19 +95,21 @@ namespace ESPINA
     private:
       void updateActor(View2D *view);
 
-      struct pipeline
+      struct Pipeline
       {
         vtkSmartPointer<vtkVoxelContour2D> contour;
         vtkSmartPointer<vtkPolyDataMapper> mapper;
         vtkSmartPointer<vtkActor>          actor;
 
-        pipeline(): contour{nullptr}, mapper{nullptr}, actor{nullptr} {};
-        ~pipeline() { contour = nullptr; mapper = nullptr; actor = nullptr; }
+        Pipeline() {}
+
+        ~Pipeline() {}
       };
 
-      QMap<View2D *, struct pipeline> m_representations;
+      QMap<View2D *, Pipeline> m_representations;
 
-      ROISPtr                     m_ROI;
+      ROISPtr m_ROI;
+      QColor  m_color;
   };
 
 } // namespace ESPINA

@@ -1,5 +1,4 @@
 /*
- *    
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -26,7 +25,7 @@
 // ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/Bounds.h>
-#include "GUI/View/Widgets/RectangularRegion/RectangularRegion.h"
+#include "GUI/View/Widgets/OrthogonalRegion/OrthogonalRegion.h"
 
 // VTK
 #include "vtkAbstractWidget.h"
@@ -38,17 +37,17 @@ namespace ESPINA
 {
   class View2D;
 
-  class EspinaGUI_EXPORT vtkRectangularSliceWidget
+  class EspinaGUI_EXPORT vtkOrthogonalRegionSliceWidget
   : public vtkAbstractWidget
   {
   public:
     // Description:
     // Instantiate the object.
-    static vtkRectangularSliceWidget *New();
+    static vtkOrthogonalRegionSliceWidget *New();
 
     // Description:
     // Standard class methods for type information and printing.
-    vtkTypeMacro(vtkRectangularSliceWidget, vtkAbstractWidget);
+    vtkTypeMacro(vtkOrthogonalRegionSliceWidget, vtkAbstractWidget);
     void PrintSelf(ostream& os, vtkIndent indent);
 
     virtual void SetView(View2D *view);
@@ -67,9 +66,13 @@ namespace ESPINA
     void setRepresentationPattern(int);
 
   protected:
-    vtkRectangularSliceWidget();
-    ~vtkRectangularSliceWidget();
+    vtkOrthogonalRegionSliceWidget();
+    ~vtkOrthogonalRegionSliceWidget();
 
+  private:
+    void updateRepresentation();
+
+  private:
     //BTX - manage the state of the widget
     int WidgetState;
     enum _WidgetState {Start=0,Active};
@@ -91,8 +94,8 @@ namespace ESPINA
     int m_pattern;
 
   private:
-    vtkRectangularSliceWidget(const vtkRectangularSliceWidget&);  //Not implemented
-    void operator=(const vtkRectangularSliceWidget&);  //Not implemented
+    vtkOrthogonalRegionSliceWidget(const vtkOrthogonalRegionSliceWidget&);  //Not implemented
+    void operator=(const vtkOrthogonalRegionSliceWidget&);  //Not implemented
   };
 
 } // namespace ESPINA

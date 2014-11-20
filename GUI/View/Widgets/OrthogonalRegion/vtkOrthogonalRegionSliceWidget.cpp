@@ -18,9 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "vtkRectangularSliceWidget.h"
+#include "vtkOrthogonalRegionSliceWidget.h"
 
-#include "vtkRectangularSliceRepresentation.h"
+#include "vtkOrthogonalRegionSliceRepresentation.h"
 
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
@@ -36,15 +36,15 @@
 
 using namespace ESPINA;
 
-vtkStandardNewMacro(vtkRectangularSliceWidget);
+vtkStandardNewMacro(vtkOrthogonalRegionSliceWidget);
 
 //----------------------------------------------------------------------------
-vtkRectangularSliceWidget::vtkRectangularSliceWidget()
+vtkOrthogonalRegionSliceWidget::vtkOrthogonalRegionSliceWidget()
 : m_plane(Plane::XY)
 , Slice(0)
 , m_pattern(0xFFFF)
 {
-  this->WidgetState = vtkRectangularSliceWidget::Start;
+  this->WidgetState = vtkOrthogonalRegionSliceWidget::Start;
   this->ManagesCursor = 1;
 
   // Define widget events
@@ -52,40 +52,48 @@ vtkRectangularSliceWidget::vtkRectangularSliceWidget()
                                           vtkEvent::NoModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::Select,
-                                          this, vtkRectangularSliceWidget::SelectAction);
+                                          this, vtkOrthogonalRegionSliceWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::EndSelect,
-                                          this, vtkRectangularSliceWidget::EndSelectAction);
+                                          this, vtkOrthogonalRegionSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
                                           vtkWidgetEvent::Translate,
-                                          this, vtkRectangularSliceWidget::TranslateAction);
+                                          this, vtkOrthogonalRegionSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonReleaseEvent,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularSliceWidget::EndSelectAction);
+                                          this, vtkOrthogonalRegionSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
                                           vtkWidgetEvent::EndScale,
-                                          this, vtkRectangularSliceWidget::EndSelectAction);
+                                          this, vtkOrthogonalRegionSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
                                           vtkWidgetEvent::Move,
-                                          this, vtkRectangularSliceWidget::MoveAction);
+                                          this, vtkOrthogonalRegionSliceWidget::MoveAction);
 
   m_color[0] = m_color[1] = 1;
   m_color[2] = 0;
 }
 
 //----------------------------------------------------------------------------
-vtkRectangularSliceWidget::~vtkRectangularSliceWidget()
+vtkOrthogonalRegionSliceWidget::~vtkOrthogonalRegionSliceWidget()
 {
 }
 
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
+void vtkOrthogonalRegionSliceWidget::updateRepresentation()
+{
+  auto rep = static_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
+  rep->setRepresentationColor(m_color);
+  rep->setRepresentationPattern(m_pattern);
+}
+
+//----------------------------------------------------------------------
+void vtkOrthogonalRegionSliceWidget::SelectAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
+  vtkOrthogonalRegionSliceWidget *self = reinterpret_cast<vtkOrthogonalRegionSliceWidget*>(w);
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
@@ -95,7 +103,7 @@ void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
     {
-    self->WidgetState = vtkRectangularSliceWidget::Start;
+    self->WidgetState = vtkOrthogonalRegionSliceWidget::Start;
     return;
     }
 
@@ -106,17 +114,17 @@ void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState <= vtkRectangularSliceRepresentation::Inside )
+  if ( interactionState <= vtkOrthogonalRegionSliceRepresentation::Inside )
     {
     return;
     }
 
   // We are definitely selected
-  self->WidgetState = vtkRectangularSliceWidget::Active;
+  self->WidgetState = vtkOrthogonalRegionSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
 
   // The SetInteractionState has the side effect of highlighting the widget
-  reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
+  reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(self->WidgetRep)->
     SetInteractionState(interactionState);
 
   // start the interaction
@@ -127,10 +135,10 @@ void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
+void vtkOrthogonalRegionSliceWidget::TranslateAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
+  vtkOrthogonalRegionSliceWidget *self = reinterpret_cast<vtkOrthogonalRegionSliceWidget*>(w);
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
@@ -140,13 +148,13 @@ void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
   {
-    self->WidgetState = vtkRectangularSliceWidget::Start;
+    self->WidgetState = vtkOrthogonalRegionSliceWidget::Start;
     return;
   }
 
   if (!self->Interactor->GetControlKey())
   {
-    self->WidgetState = vtkRectangularSliceWidget::Start;
+    self->WidgetState = vtkOrthogonalRegionSliceWidget::Start;
     return;
   }
 
@@ -158,15 +166,15 @@ void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
   self->WidgetRep->StartWidgetInteraction(e);
   // Translate only if we are inside the representation
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState != vtkRectangularSliceRepresentation::Inside )
+  if ( interactionState != vtkOrthogonalRegionSliceRepresentation::Inside )
     return;
 
   // We are definitely selected
-  self->WidgetState = vtkRectangularSliceWidget::Active;
+  self->WidgetState = vtkOrthogonalRegionSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularSliceRepresentation::Translating);
-  self->SetCursor(vtkRectangularSliceRepresentation::Translating);
+  reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(self->WidgetRep)->
+    SetInteractionState(vtkOrthogonalRegionSliceRepresentation::Translating);
+  self->SetCursor(vtkOrthogonalRegionSliceRepresentation::Translating);
 
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -176,32 +184,32 @@ void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetView(View2D *view)
+void vtkOrthogonalRegionSliceWidget::SetView(View2D *view)
 {
   if(!this->WidgetRep)
     this->CreateDefaultRepresentation();
 
-  auto rep = reinterpret_cast<vtkRectangularSliceRepresentation *>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkOrthogonalRegionSliceRepresentation *>(this->WidgetRep);
   rep->SetView(view);
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
+void vtkOrthogonalRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
-  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
+  vtkOrthogonalRegionSliceWidget *self = reinterpret_cast<vtkOrthogonalRegionSliceWidget*>(w);
 
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
 
   // See whether we're active
-  if ( self->WidgetState == vtkRectangularSliceWidget::Start )
+  if ( self->WidgetState == vtkOrthogonalRegionSliceWidget::Start )
   {
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
-    if (vtkRectangularSliceRepresentation::Inside < stateAfter
-     || stateAfter == vtkRectangularSliceRepresentation::Translating)
+    if (vtkOrthogonalRegionSliceRepresentation::Inside < stateAfter
+     || stateAfter == vtkOrthogonalRegionSliceRepresentation::Translating)
       self->EventCallbackCommand->SetAbortFlag(1);
     return;
   }
@@ -219,22 +227,22 @@ void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetCursor(int state)
+void vtkOrthogonalRegionSliceWidget::SetCursor(int state)
 {
   switch (state)
   {
-    case vtkRectangularSliceRepresentation::Translating:
+    case vtkOrthogonalRegionSliceRepresentation::Translating:
       this->RequestCursorShape(VTK_CURSOR_SIZEALL);
       break;
-    case vtkRectangularSliceRepresentation::MoveLeft:
-    case vtkRectangularSliceRepresentation::MoveRight:
+    case vtkOrthogonalRegionSliceRepresentation::MoveLeft:
+    case vtkOrthogonalRegionSliceRepresentation::MoveRight:
       this->RequestCursorShape(VTK_CURSOR_SIZEWE);
       break;
-    case vtkRectangularSliceRepresentation::MoveTop:
-    case vtkRectangularSliceRepresentation::MoveBottom:
+    case vtkOrthogonalRegionSliceRepresentation::MoveTop:
+    case vtkOrthogonalRegionSliceRepresentation::MoveBottom:
       this->RequestCursorShape(VTK_CURSOR_SIZENS);
       break;
-    case vtkRectangularSliceRepresentation::Outside:
+    case vtkOrthogonalRegionSliceRepresentation::Outside:
       this->RequestCursorShape(VTK_CURSOR_DEFAULT);
       break;
     default:
@@ -245,18 +253,18 @@ void vtkRectangularSliceWidget::SetCursor(int state)
 
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::EndSelectAction(vtkAbstractWidget *w)
+void vtkOrthogonalRegionSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 {
-  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
-  if ( self->WidgetState == vtkRectangularSliceWidget::Start )
+  vtkOrthogonalRegionSliceWidget *self = reinterpret_cast<vtkOrthogonalRegionSliceWidget*>(w);
+  if ( self->WidgetState == vtkOrthogonalRegionSliceWidget::Start )
     {
     return;
     }
 
   // Return state to not active
-  self->WidgetState = vtkRectangularSliceWidget::Start;
-  reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularSliceRepresentation::Outside);
+  self->WidgetState = vtkOrthogonalRegionSliceWidget::Start;
+  reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(self->WidgetRep)->
+    SetInteractionState(vtkOrthogonalRegionSliceRepresentation::Outside);
   self->ReleaseFocus();
 
   self->EventCallbackCommand->SetAbortFlag(0);
@@ -266,51 +274,52 @@ void vtkRectangularSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetPlane(Plane plane)
+void vtkOrthogonalRegionSliceWidget::SetPlane(Plane plane)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
-  vtkRectangularSliceRepresentation *rep =
-    reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  vtkOrthogonalRegionSliceRepresentation *rep =
+    reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
   rep->SetPlane(plane);
 
   m_plane = plane;
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetSlice(Nm pos)
+void vtkOrthogonalRegionSliceWidget::SetSlice(Nm pos)
 {
-  if (!this->WidgetRep)
-    CreateDefaultRepresentation();
+  if (!this->WidgetRep) CreateDefaultRepresentation();
 
-  vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
   rep->SetSlice(pos);
   Slice = pos;
+
   this->Render();
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::SetBounds(Bounds bounds)
+void vtkOrthogonalRegionSliceWidget::SetBounds(Bounds bounds)
 {
-  if (!this->WidgetRep)
-    CreateDefaultRepresentation();
+  if (!this->WidgetRep) CreateDefaultRepresentation();
 
   double dBounds[6]{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
-  vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
+
   rep->SetOrthogonalBounds(dBounds);
   m_bounds = bounds;
+
   this->Render();
 }
 
 //----------------------------------------------------------------------
-Bounds vtkRectangularSliceWidget::GetBounds()
+Bounds vtkOrthogonalRegionSliceWidget::GetBounds()
 {
-  if (!this->WidgetRep)
-    CreateDefaultRepresentation();
+  if (!this->WidgetRep) CreateDefaultRepresentation();
 
-  vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
   double dBounds[6];
+  auto rep = reinterpret_cast<vtkOrthogonalRegionSliceRepresentation*>(this->WidgetRep);
+
   rep->GetOrthogonalBounds(dBounds);
   m_bounds[0] = dBounds[0];
   m_bounds[1] = dBounds[1];
@@ -326,46 +335,46 @@ Bounds vtkRectangularSliceWidget::GetBounds()
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularSliceWidget::CreateDefaultRepresentation()
+void vtkOrthogonalRegionSliceWidget::CreateDefaultRepresentation()
 {
   if (!this->WidgetRep)
   {
-    this->WidgetRep = vtkRectangularSliceRepresentation::New();
-    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationColor(m_color);
-    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationPattern(m_pattern);
+    this->WidgetRep = vtkOrthogonalRegionSliceRepresentation::New();
+
+    updateRepresentation();
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceWidget::PrintSelf(ostream& os, vtkIndent indent)
+void vtkOrthogonalRegionSliceWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceWidget::setRepresentationColor(double *color)
+void vtkOrthogonalRegionSliceWidget::setRepresentationColor(double *color)
 {
   if (0 == memcmp(m_color, color, sizeof(double)*3))
     return;
 
-  memcpy(m_color, color, sizeof(double)*3);
+  memcpy(m_color, color, 3*sizeof(double));
+
   if (this->WidgetRep)
   {
-    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationColor(m_color);
-    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationPattern(m_pattern);
+    updateRepresentation();
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularSliceWidget::setRepresentationPattern(int pattern)
+void vtkOrthogonalRegionSliceWidget::setRepresentationPattern(int pattern)
 {
   if (m_pattern == pattern)
     return;
 
   m_pattern = pattern;
+
   if (this->WidgetRep)
   {
-    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationColor(m_color);
-    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationPattern(m_pattern);
+    updateRepresentation();
   }
 }

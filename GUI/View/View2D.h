@@ -25,6 +25,7 @@
 #include "GUI/View/RenderView.h"
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Widgets/SliceSelector.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -63,16 +64,16 @@ namespace ESPINA
     static const double SEGMENTATION_SHIFT;
     static const double WIDGET_SHIFT;
 
-    enum SliceSelector
+    enum SliceSelectionTypes
     {
       None=0x0, From = 0x1, To = 0x2
     };
-    Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
+    Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
 
   public:
     /** \brief View2D class constructor.
-     * \param[in] plane, view's orientation plane.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] plane view's orientation plane.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
      */
     explicit View2D(Plane plane = Plane::XY, QWidget* parent = nullptr);
 
@@ -82,7 +83,7 @@ namespace ESPINA
     virtual ~View2D();
 
     /** \brief Enables/disables the "fit to slices" flag.
-     * \param[in] value, true to enable false otherwise.
+     * \param[in] value true to enable false otherwise.
      *
      * If fit to slices is enabled the movement between slices is the resolution of the scene.
      *
@@ -96,7 +97,7 @@ namespace ESPINA
     { return m_fitToSlices; }
 
     /** \brief Reverses the efect of the mouse wheel on the view.
-     * \param[in] value, true to reverse the movement of the wheel, false otherwise.
+     * \param[in] value true to reverse the movement of the wheel, false otherwise.
      *
      */
     void setInvertWheel(bool value)
@@ -109,7 +110,7 @@ namespace ESPINA
     { return m_invertWheel; }
 
     /** \brief Sets the inversion of the slices in the view.
-     * \param[in] value, true show the slices in inverse order, false otherwise.
+     * \param[in] value true show the slices in inverse order, false otherwise.
      *
      */
     void setInvertSliceOrder(bool value);
@@ -126,14 +127,8 @@ namespace ESPINA
     Plane plane() const
     { return m_plane; }
 
-    /** \brief Implements RenderView::reset():
-     *
-     */
     virtual void reset();
 
-    /** \brief Implements RenderView::resetCamera().
-     *
-     */
     virtual void resetCamera();
 
     /** \brief Helper method that returns the depth value required in the view to put representations above the channels representation.
@@ -164,13 +159,10 @@ namespace ESPINA
      */
     Nm slicingPosition() const;
 
-    /** \brief Implements RenderView::centerViewOn().
-     *
-     */
     virtual void centerViewOn(const NmVector3& point, bool force = false);
 
     /** \brief Centers the view of the camera on the given point.
-     * \param[in] center, point to center on.
+     * \param[in] center point to center on.
      *
      * Does not change slice positions.
      *
@@ -178,109 +170,73 @@ namespace ESPINA
     void centerViewOnPosition(const NmVector3& center);
 
     /** \brief Sets the crosshair colors.
-     * \param[in] hColor, color of the horizontal line.
-     * \param[in] vColor, color of the vertical line.
+     * \param[in] hColor color of the horizontal line.
+     * \param[in] vColor color of the vertical line.
      *
      */
     void setCrosshairColors(const QColor& hColor, const QColor& vColor);
 
     /** \brief Enables/disables the visibility of the thumbnail.
-     * \param[in] visible, true to make the thumbnail visible, false otherwise.
+     * \param[in] visible true to make the thumbnail visible, false otherwise.
      *
      */
     void setThumbnailVisibility(bool visible);
 
-    /** \brief Overrides RenderView::addActor().
-     *
-     */
     virtual void addActor   (vtkProp *actor) override;
 
-    /** \brief Overrides RenderView::removeActor().
-     *
-     */
     virtual void removeActor(vtkProp *actor) override;
 
-    /** \brief Implements RenderView::previewBounds().
-     *
-     */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
     /** \brief Sets the visibility of the crosshair lines.
-     * \param[in] show, true to set visible, false otherwise.
+     * \param[in] show true to set visible, false otherwise.
      *
      */
     virtual void setCrosshairVisibility(bool show);
 
     /** \brief Updates the crosshair point moving the given plane to the given position.
-     * \param[in] plane, plane to move.
-     * \param[in] slicePos, new plane position.
+     * \param[in] plane plane to move.
+     * \param[in] slicePos new plane position.
      *
      */
     void updateCrosshairPoint(const Plane plane, const Nm slicePos);
 
-    /** \brief Implements RenderView::cloneRepresentation().
-     *
-     */
     virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
 
-    /** \brief Implements RenderView::setRenderers().
-     *
-     */
     void setRenderers(RendererSList renderers);
 
-    /** \brief Implements RenderView::activateRender().
-     *
-     */
     void activateRender(const QString &rendererName);
 
-    /** \brief Implements RenderView::deactivateRender().
-     *
-     */
     void deactivateRender(const QString &rendererName);
 
-    /** \brief Implements RenderView::setVisualState().
-     *
-     */
     virtual void setVisualState(struct RenderView::VisualState);
 
-    /** \brief Implements RenderView::visualState().
-     *
-     */
     virtual struct RenderView::VisualState visualState();
 
-    /** \brief Implements RenderView::select()
-     *
-     */
     Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
   public slots:
-		/** \brief Alternate the visibility between the processed and unprocessed channels.
-		 * \param[in] visible, true to show the first channel and not the second, false to reverse situation.
-		 *
-		 */
+    /** \brief Alternate the visibility between the processed and unprocessed channels.
+     * \param[in] visible true to show the first channel and not the second, false to reverse situation.
+     *
+     */
     void setShowPreprocessing(bool visible);
 
     /** \brief Sets the ruler visibility.
-     * \param[in] visibile, true to set the ruler visible, false otherwise.
+     * \param[in] visibile true to set the ruler visible, false otherwise.
      *
      */
     void setRulerVisibility(bool visible);
 
-//     /// Set Slice Selection flags to all registered Slice Views
-//     void addSliceSelectors(SliceSelectorWidget* widget,
-//                            SliceSelector selector);
-//
-//     /// Unset Slice Selection flags to all registered Slice Views
-//     void removeSliceSelectors(SliceSelectorWidget* widget);
+    /// Set Slice Selection flags to all registered Slice Views
+    void addSliceSelectors(SliceSelectorSPtr widget,
+                           SliceSelectionType selector);
 
-    /** \brief Overrides RenderView::updateSceneBounds().
-     *
-     */
+    /// Unset Slice Selection flags to all registered Slice Views
+    void removeSliceSelectors(SliceSelectorSPtr widget);
+
     virtual void updateSceneBounds() override;
 
-    /** \brief Implements RenderView::updateView().
-     *
-     */
     virtual void updateView();
 
   signals:
@@ -292,45 +248,30 @@ namespace ESPINA
 
   protected slots:
     /** \brief Updates the view when the scroll widget changes its value.
-     * \param[in] value, new value.
+     * \param[in] value new value.
      *
      */
     void scrollValueChanged(int value);
 
     /** \brief Updates the view when the spinbox widget changes its value.
-     * \param[in] value, new value.
+     * \param[in] value new value.
      *
      */
     void spinValueChanged(double value);
 
-//    void selectFromSlice();
-//    void selectToSlice();
-
-    /** \brief Implements RenderView::updateChannelsOpacity().
-     *
-     */
     virtual void updateChannelsOpacity();
 
   protected:
     /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
-     * \param[in] bounds, new scene bounds.
+     * \param[in] bounds new scene bounds.
      *
      */
     void setSlicingBounds(const Bounds& bounds);
 
-    /** \brief Overrides QObject::eventFilter().
-     *
-     */
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    /** \brief Overrides QWidget::keyPressEvent().
-     *
-     */
-    void keyPressEvent(QKeyEvent *e) override;
+    virtual void keyPressEvent(QKeyEvent *e) override;
 
-    /** \brief Overrides QWidget::keyPressEvent().
-     *
-     */
     void keyReleaseEvent(QKeyEvent *e);
 
     /** \brief Updates the value of the crosshair to the mouse position and signals the change().
@@ -344,23 +285,23 @@ namespace ESPINA
     void centerViewOnMousePosition();
 
     /** \brief Picks and returns the channels under given position.
-     * \param[in] vx, x display coordinate.
-     * \param[in] vy, y display coordinate.
-     * \param[in] repeteable, if true returns the list of items, if false returns the first (if any).
+     * \param[in] vx x display coordinate.
+     * \param[in] vy y display coordinate.
+     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
      *
      */
     ViewItemAdapterList pickChannels(double vx, double vy, bool repeatable = true);
 
     /** \brief Picks and returns the segmentations under given position.
-     * \param[in] vx, x display coordinate.
-     * \param[in] vy, y display coordinate.
-     * \param[in] repeteable, if true returns the list of items, if false returns the first (if any).
+     * \param[in] vx x display coordinate.
+     * \param[in] vy y display coordinate.
+     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
      *
      */
     ViewItemAdapterList pickSegmentations(double vx, double vy, bool repeatable = true);
 
     /** \brief Updates the selection of items.
-     * \param[in] append, if true the elements picked will be merged with the ones currently
+     * \param[in] append if true the elements picked will be merged with the ones currently
      *  selected, if false the elements picked will be the new selection.
      *
      *  If an item is selected and also is on the picked list the merge will deselect the item.
@@ -369,14 +310,8 @@ namespace ESPINA
     void selectPickedItems(bool append);
 
   private:
-    /** \brief Implements RenderView::addRendererControls().
-     *
-     */
     void addRendererControls(RendererSPtr renderer);
 
-    /** \brief Implements RenderView::removeRendererControls().
-     *
-     */
     void removeRendererControls(const QString name);
 
     /** \brief Updates the ruler widget.
@@ -390,50 +325,50 @@ namespace ESPINA
     void updateThumbnail();
 
     /** \brief Returns the bottom value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex, integer slice index.
-     * \param[in] plane, orientation plane.
+     * \param[in] sliceIndex integer slice index.
+     * \param[in] plane orientation plane.
      *
      */
     Nm  voxelBottom(const int sliceIndex, const Plane plane) const;
 
     /** \brief Returns the bottom value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position, Z position of the voxel.
-     * \param[in] plane, orientation plane.
+     * \param[in] position Z position of the voxel.
+     * \param[in] plane orientation plane.
      *
      */
     Nm  voxelBottom(const Nm position, const Plane plane) const;
 
     /** \brief Returns the center value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex, integer slice index.
-     * \param[in] plane, orientation plane.
+     * \param[in] sliceIndex integer slice index.
+     * \param[in] plane orientation plane.
      *
      */
     Nm  voxelCenter(const int sliceIndex, const Plane plane) const;
 
     /** \brief Returns the center value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position, Z position of the voxel.
-     * \param[in] plane, orientation plane.
+     * \param[in] position Z position of the voxel.
+     * \param[in] plane orientation plane.
      *
      */
     Nm  voxelCenter(const Nm position, const Plane plane) const;
 
     /** \brief Returns the top value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex, integer slice index.
-     * \param[in] plane, orientation plane.
+     * \param[in] sliceIndex integer slice index.
+     * \param[in] plane orientation plane.
      *
      */
     Nm  voxelTop(const int sliceIndex, const Plane plane) const;
 
     /** \brief Returns the top value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position, Z position of the voxel.
-     * \param[in] plane, orientation plane.
+     * \param[in] position Z position of the voxel.
+     * \param[in] plane orientation plane.
      *
      */
     Nm  voxelTop(const Nm  position, const Plane plane) const;
 
     /** \brief Returns the numerical index of the slice given the slice position and plane.
-     * \param[in] position, slice position.
-     * \param[in] plane, orientation plane.
+     * \param[in] position slice position.
+     * \param[in] plane orientation plane.
      *
      */
     int voxelSlice (const Nm position, const Plane plane) const;
@@ -449,8 +384,8 @@ namespace ESPINA
     void setupUI();
 
     /** \brief Helper method to initialize the borders data and actors.
-     * \param[in] data, border vtkPolyData raw pointer.
-     * \param[in] actor, border vtkActor raw pointer.
+     * \param[in] data border vtkPolyData raw pointer.
+     * \param[in] actor border vtkActor raw pointer.
      *
      */
     void initBorders(vtkPolyData* data, vtkActor *actor);
@@ -470,9 +405,9 @@ namespace ESPINA
     double viewHeightLength();
 
   private slots:
-		/** \brief Takes an image of the view and saves it to disk.
-		 *
-		 */
+    /** \brief Takes an image of the view and saves it to disk.
+     *
+     */
     void onTakeSnapshot();
 
   private:
@@ -499,7 +434,8 @@ namespace ESPINA
     bool m_showThumbnail;
 
     // Slice Selectors
-    //QPair<SliceSelectorWidget *, SliceSelectorWidget *> m_sliceSelector;
+    using SliceSelectorPair = QPair<SliceSelectorSPtr, SliceSelectorSPtr>;
+    QList<SliceSelectorPair> m_sliceSelectors;
 
     // Crosshairs
     vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
@@ -539,7 +475,7 @@ namespace ESPINA
   inline View2D * view2D_cast(RenderView* view)
   { return dynamic_cast<View2D *>(view); }
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectors)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectionType)
 
 } // namespace ESPINA
 
