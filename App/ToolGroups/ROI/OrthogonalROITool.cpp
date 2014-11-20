@@ -188,6 +188,7 @@ void OrthogonalROITool::setROI(ROISPtr roi)
   else
   {
     m_roi = nullptr;
+    setResizable(false);
   }
 
   m_resizeROI->setEnabled(validRectangularROI);
@@ -318,18 +319,25 @@ void OrthogonalROITool::setResizable(bool resizable)
     if (resizable)
     {
       m_orWidget   ->setRepresentationPattern(0xFFF0);
-      m_viewManager->setEventHandler(m_resizeHandler);
       m_viewManager->addSliceSelectors(m_sliceSelector, View2D::From|View2D::To);
     }
     else
     {
       m_orWidget   ->setRepresentationPattern(0xFFFF);
-      m_viewManager->unsetEventHandler(m_resizeHandler);
       m_viewManager->removeSliceSelectors(m_sliceSelector);
     }
 
     m_orWidget   ->setEnabled(resizable);
     m_viewManager->updateViews();
+  }
+
+  if (resizable)
+  {
+    m_viewManager->setEventHandler(m_resizeHandler);
+  }
+  else
+  {
+    m_viewManager->unsetEventHandler(m_resizeHandler);
   }
 
   m_mode = resizable?Mode::RESIZABLE:Mode::FIXED;
