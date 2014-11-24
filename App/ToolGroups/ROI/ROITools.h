@@ -84,26 +84,12 @@ namespace ESPINA
     ROISPtr accumulator()
     { return m_accumulator; }
 
+    void setColor(const QColor &color);
+
     /** \brief Returns true if there is a valid roi.
      *
      */
     bool hasValidROI() const;
-
-//     /** \brief Returns whether or not ROIs created with this tool are accesible via
-//      *         ViewManager's ROI to other tools
-//      *
-//      *  By default all tools are global
-//      */
-//     bool isGlobalROI() const
-//     { return m_globalROI; }
-
-//     /** \brief Set whether or not ROIs created with this tool are accesible via
-//      *         ViewManager's ROI to other tools
-//      *
-//      *  \param[in] value sets tool behaviour to value
-//      */
-//     void setGlobalROI(bool value)
-//     { m_globalROI = value; }
 
     /** \brief Set wheter or not the accumulated ROI is visible
      *  \param[in] visible ROI visibility state
@@ -151,8 +137,9 @@ namespace ESPINA
     OrthogonalROIToolSPtr m_ortogonalROITool;
     CleanROIToolSPtr      m_cleanROITool;
 
-    bool m_enabled;
-    bool m_visible;
+    bool   m_enabled;
+    bool   m_visible;
+    QColor m_color;
 
     ROISPtr          m_accumulator;
     EspinaWidgetSPtr m_accumulatorWidget;

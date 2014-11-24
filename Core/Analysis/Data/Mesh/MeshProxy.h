@@ -60,12 +60,6 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual void update()
-    { m_data->update(); }
-
-    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
-    { return std::dynamic_pointer_cast<MeshData>(proxy); }
-
     virtual Bounds bounds() const override
     { return m_data->bounds(); }
 
@@ -93,9 +87,6 @@ namespace ESPINA
     virtual bool isEmpty() const
     { return m_data->isEmpty(); }
 
-    virtual bool fetchData() override
-    { return m_data->fetchData(); }
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
                               const QString      &id) const override
@@ -118,6 +109,14 @@ namespace ESPINA
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
     { m_data->setMesh(mesh); }
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return m_data->fetchData(); }
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return m_data->dependencies(); }
 
   private:
     MeshDataSPtr m_data;

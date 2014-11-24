@@ -103,7 +103,7 @@ ROISPtr ROI::clone() const
 }
 
 //-----------------------------------------------------------------------------
-bool ROI::fetchData()
+bool ROI::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
 {
   auto volumeBounds = temporalStorageBoundsId(m_path, m_id);
 
@@ -119,7 +119,7 @@ bool ROI::fetchData()
   }
   else
   {
-    return SparseVolume<itkVolumeType >::fetchData();
+    return SparseVolume<itkVolumeType>::fetchDataImplementation(storage, path, id);
   }
 }
 

@@ -44,10 +44,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ToolGroup class constructor.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] icon, icon of the tool group.
-     * \param[in] text, tooltip of the tool group.
-     * \param[in] parent, raw pointer of the QObject parent of this one.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] icon icon of the tool group.
+     * \param[in] text tooltip of the tool group.
+     * \param[in] parent raw pointer of the QObject parent of this one.
      *
      */
     ToolGroup(ViewManagerSPtr viewManager,
@@ -72,10 +72,10 @@ namespace ESPINA
     virtual ToolSList tools() = 0;
 
   public slots:
-  	/** \brief Shows/Hides the tool group tools.
-  	 * \param[in] value, true to show false otherwise.
-  	 *
-  	 */
+    /** \brief Shows/Hides the tool group tools.
+     * \param[in] value true to show false otherwise.
+     *
+     */
     virtual void showTools(bool value);
 
   protected:

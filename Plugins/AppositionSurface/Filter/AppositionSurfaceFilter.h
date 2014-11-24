@@ -51,7 +51,7 @@ class QString;
 
 namespace ESPINA
 {
-  class SASFetchBehaviour;
+  class SASDataFactory;
 
   const Filter::Type AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
 
@@ -178,7 +178,7 @@ namespace ESPINA
     bool m_alreadyFetchedData;
     TimeStamp m_lastModifiedMesh;
 
-    friend class SASFetchBehaviour;
+    friend class SASDataFactory;
   };
 
   using AppositionSurfaceFilterPtr  = AppositionSurfaceFilter *;

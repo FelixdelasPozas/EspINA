@@ -47,11 +47,6 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 {
 }
 
-//----------------------------------------------------------------------------
-bool RawMesh::fetchData()
-{
-  return MeshData::fetchData();
-}
 
 //----------------------------------------------------------------------------
 Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
@@ -68,7 +63,7 @@ void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& p
 //----------------------------------------------------------------------------
 Snapshot RawMesh::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
 {
-  return snapshot(storage, path, id);
+  fetchDataImplementation(storage, path, id);
 }
 
 //----------------------------------------------------------------------------
@@ -125,9 +120,9 @@ bool RawMesh::setInternalData(MeshDataSPtr rhs)
 }
 
 //----------------------------------------------------------------------------
-bool RawMesh::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+bool RawMesh::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
 {
-  return MeshData::fetchData(storage, path, id);
+  return MeshData::fetchDataImplementation(storage, path, id);
 }
 
 

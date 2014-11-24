@@ -63,15 +63,6 @@ namespace ESPINA
       m_data->setOutput(this->m_output);
     }
 
-    virtual void update() override
-    {
-      QWriteLocker lock(&m_lock);
-      m_data->update();
-    }
-
-    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const override
-    { return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(proxy); }
-
     virtual size_t memoryUsage() const
     {
       //QReadLocker lock(&m_lock);
@@ -170,10 +161,10 @@ namespace ESPINA
 
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override
-   {
+    {
      //QWriteLocker lock(&m_lock);
      m_data->draw(mask, value);
-  }
+    }
 
     virtual void resize(const Bounds &bounds)
     {
@@ -223,12 +214,6 @@ namespace ESPINA
       return m_data->isEmpty();
     }
 
-    virtual bool fetchData() override
-    {
-      //QWriteLocker lock(&m_lock);
-      return m_data->fetchData();
-    }
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
                               const QString      &id) const              override
@@ -252,6 +237,15 @@ namespace ESPINA
       //QWriteLocker lock(&m_lock);
       return m_data->restoreEditedRegions(storage, path, id);
     }
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return m_data->fetchData(); }
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return m_data->dependencies(); }
+
 
   private:
     mutable QReadWriteLock             m_lock;

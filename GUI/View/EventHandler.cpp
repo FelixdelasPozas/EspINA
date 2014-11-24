@@ -26,7 +26,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 EventHandler::EventHandler()
 : m_inUse{false}
-, m_cursor{Qt::CrossCursor}
+, m_cursor{Qt::ArrowCursor}
 {
 }
 

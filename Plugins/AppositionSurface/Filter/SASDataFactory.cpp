@@ -18,7 +18,7 @@
  */
 
 // Plugin
-#include "SASFetchBehaviour.h"
+#include "SASDataFactory.h"
 #include "AppositionSurfaceFilter.h"
 
 // ESPINA
@@ -29,7 +29,7 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  MeshDataSPtr SASFetchBehaviour::fetchMeshData(OutputSPtr          output,
+  MeshDataSPtr SASDataFactory::fetchMeshData(OutputSPtr          output,
                                                 TemporalStorageSPtr storage,
                                                 const QString      &path)
   {

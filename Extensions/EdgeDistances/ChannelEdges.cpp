@@ -264,7 +264,7 @@ itkVolumeType::RegionType ChannelEdges::sliceRegion(unsigned int slice) const
   }
   else
   {
-    initializeEdges();
+    const_cast<ChannelEdges *>(this)->initializeEdges();
 
     double LB[3], RT[3];
 

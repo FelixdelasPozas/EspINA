@@ -54,13 +54,7 @@ Bounds MeshData::bounds() const
 }
 
 //----------------------------------------------------------------------------
-bool MeshData::fetchData()
-{
-  return fetchData(m_storage, m_path, m_id);
-}
-
-//----------------------------------------------------------------------------
-bool MeshData::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
 {
   bool dataFetched = false;
 
@@ -110,14 +104,7 @@ DataSPtr MeshData::createProxy() const
 ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output, DataUpdatePolicy policy)
 throw (Unavailable_Output_Data_Exception)
 {
-  auto data = output->data(MeshData::TYPE);
-
-  if (policy == DataUpdatePolicy::Request)
-  {
-    data->update();
-  }
-
-  return std::dynamic_pointer_cast<MeshData>(data);
+  return outputData<MeshData>(output, policy);
 }
 
 //----------------------------------------------------------------------------

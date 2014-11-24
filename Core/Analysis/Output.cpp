@@ -118,10 +118,22 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
     auto snapshotId = QString::number(id());
     if (saveOutput)
     {
+      if (!data->isValid())
+      {
+        data->fetchData();
+      }
       snapshot << data->snapshot(storage, path, snapshotId);
     }
     else
     {
+      // Similarly to the output data is the case of the edited regions
+      // we need to copy the existing ones
+      // Alternatively, until the other implementation is available, we
+      // just restore them so they are available on save
+      if (!data->isValid())
+      {
+        data->restoreEditedRegions(storage, path, snapshotId);
+      }
       snapshot << data->editedRegionsSnapshot(storage, path, snapshotId);
     }
   }
@@ -263,9 +275,45 @@ void Output::update()
 {
   for (auto data : m_data)
   {
-    data->update();
+    if (!data->isValid())
+    {
+      update(data->type());
+    }
   }
 }
+
+//----------------------------------------------------------------------------
+void Output::update(const Data::Type &type)
+{
+  auto requestedData = data(type);
+
+  if (!requestedData->isValid())
+  {
+    BoundsList editedRegions = requestedData->editedRegions();
+
+    if (requestedData->fetchData())
+    {
+      requestedData->setEditedRegions(editedRegions);
+    }
+    else
+    {
+      auto dependencies = requestedData->dependencies();
+
+      for (auto dependencyType : dependencies)
+      {
+        update(dependencyType);
+      }
+
+      auto currentData = data(type);
+      if (dependencies.isEmpty() || requestedData == currentData)
+      {
+        m_filter->update();
+      }
+    }
+  }
+}
+
+
 
 //----------------------------------------------------------------------------
 bool Output::isSegmentationOutput() const

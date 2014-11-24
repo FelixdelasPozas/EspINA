@@ -22,7 +22,7 @@
 #include "SegmhaImporterPlugin.h"
 
 // ESPINA
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/IO/ReadOnlyFilter.h>
 #include <Filters/SourceFilter.h>
 

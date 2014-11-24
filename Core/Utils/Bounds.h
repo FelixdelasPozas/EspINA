@@ -232,7 +232,7 @@ namespace ESPINA
   /** \brief Bounds operator<< for streams.
    *
    */
-  std::ostream&  operator<<(std::ostream& os, const Bounds& bounds);
+  EspinaCore_EXPORT std::ostream& operator<<(std::ostream& os, const Bounds& bounds);
 
   /** \brief Bounds operator<< for QDebug.
    *

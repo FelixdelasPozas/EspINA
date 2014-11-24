@@ -33,7 +33,7 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/DataFactory/FetchRawData.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -181,9 +181,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
       error = true;
     }
 
-    data->update();
-
-    auto mesh = std::dynamic_pointer_cast<MeshData>(data);
+    auto mesh = meshData(loadedOuptut);
     if (!mesh->isValid())
     {
       cerr << "Expected valid mesh data" << endl;

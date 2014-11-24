@@ -41,10 +41,6 @@ int main(int argc, char **argv)
   QDir pluginsDir = QDir(app.applicationDirPath());
   qDebug() << "Loading Plugins from path: " << pluginsDir.absolutePath();
 
-  if (argc > 1) {
-    qDebug() << argv[1];
-  }
-
   #if defined(Q_OS_MAC)
     if (pluginsDir.dirName() == "MacOS")
     {
@@ -82,6 +78,16 @@ int main(int argc, char **argv)
   {
     EspinaMainWindow espina(plugins);
     espina.show();
+
+    if (argc > 1) {
+      QStringList filenames;
+      for (int i = 1; i < argc; ++i)
+      {
+        filenames << argv[i];
+      }
+      qDebug() << "Opening: " << filenames;
+      espina.openAnalysis(filenames);
+    }
 
     res = app.exec();
   }

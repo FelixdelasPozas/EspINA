@@ -58,22 +58,11 @@ namespace ESPINA
      */
     virtual ~MarchingCubesMesh();
 
-    virtual bool fetchData() override;
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
-
-    virtual void update()
-    {
-      if (!m_volume->isValid())
-      {
-        m_volume->update();
-      }
-      Data::update();
-    }
 
     virtual bool isValid() const
     {
@@ -109,6 +98,10 @@ namespace ESPINA
      */
     void updateMesh();
 
+    virtual QList<Data::Type> updateDependencies() const override;
+
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
     VolumetricDataSPtr<T> m_volume;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
     TimeStamp m_lastVolumeModification;
@@ -130,11 +123,12 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  template <typename T>
-  bool MarchingCubesMesh<T>::fetchData()
+  template<typename T>
+  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
-    return MeshData::fetchData();
+    return MeshData::fetchDataImplementation(storage, path, id);
   }
+
 
   //----------------------------------------------------------------------------
   template <typename T>
@@ -260,6 +254,17 @@ namespace ESPINA
 
     m_lastVolumeModification = m_volume->lastModified();
     updateModificationTime();
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  QList<Data::Type> MarchingCubesMesh<T>::updateDependencies() const
+  {
+    QList<Data::Type> types;
+
+    types << VolumetricData<itkVolumeType>::TYPE;
+
+    return types;
   }
 
 } // namespace ESPINA

@@ -151,7 +151,7 @@ void SplitFilter::execute()
 
       if (!m_outputs.contains(i))
       {
-        m_outputs[i] = OutputSPtr(new Output(this, i, spacing));
+        m_outputs[i] = std::make_shared<Output>(this, i, spacing);
       }
       m_outputs[i]->setData(volume);
       m_outputs[i]->setData(mesh);

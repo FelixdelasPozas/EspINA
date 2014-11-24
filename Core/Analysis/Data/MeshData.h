@@ -50,14 +50,12 @@ namespace ESPINA
      */
     explicit MeshData();
 
-    virtual Data::Type type() const      override
+    virtual Data::Type type() const      final
     { return TYPE; }
 
-    virtual DataSPtr createProxy() const override;
+    virtual DataSPtr createProxy() const final;
 
     Bounds bounds() const                override;
-
-    virtual bool fetchData()             override = 0;
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
 
@@ -71,8 +69,10 @@ namespace ESPINA
      */
     virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
 
+
   protected:
-    virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+    // Default implementation
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override = 0;
 
   private:
     QString snapshotFilename(const QString &path, const QString &id) const

@@ -33,6 +33,8 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/View2D.h>
+#include <GUI/Widgets/SliceSelector.h>
 #include "ROIProvider.h"
 
 // Qt
@@ -51,10 +53,7 @@ class QEvent;
 
 namespace ESPINA
 {
-  class SliceSelectorWidget;
-  class RenderView;
   class SelectableView;
-  class View2D;
   class Measure;
 
   class ToolGroup;
@@ -294,11 +293,13 @@ namespace ESPINA
      */
     void setCrosshairVisibility(bool visible);
 
-//     /// Set Slice Selection flags to all registered Slice Views
-//     void addSliceSelectors(SliceSelectorWidget *widget,
-//                            ViewManager::SliceSelectors selectors);
-//     /// Unset Slice Selection flags to all registered Slice Views
-//     void removeSliceSelectors(SliceSelectorWidget *widget);
+    /** \brief
+     *
+     */
+    void addSliceSelectors(SliceSelectorSPtr widget,
+                           View2D::SliceSelectionType selectors);
+    /// Unset Slice Selection flags to all registered Slice Views
+    void removeSliceSelectors(SliceSelectorSPtr widget);
 
     /** \brief Returns the QAction of the "fit to slices" action.
      *
@@ -359,10 +360,10 @@ private:
     // proper type is required                                                 //
     //---------------------------------------------------------------------------
   public:
-		/** \brief Sets the active channel for the views.
-		 * \param[in] channel, raw pointer of the channel adapter.
-		 *
-		 */
+    /** \brief Sets the active channel for the views.
+     * \param[in] channel raw pointer of the channel adapter.
+     *
+     */
     void setActiveChannel(ChannelAdapterPtr channel);
 
     /** \brief Returns a raw pointer of the active channel.
@@ -372,7 +373,7 @@ private:
     { return m_activeChannel; }
 
     /** \brief Sets the active category.
-     * \param[in] category, raw pointer of the new active category.
+     * \param[in] category raw pointer of the new active category.
      *
      */
     void setActiveCategory(CategoryAdapterPtr category)
@@ -413,8 +414,6 @@ private:
   };
 
   using ViewManagerSPtr = std::shared_ptr<ViewManager>;
-
-//   Q_DECLARE_OPERATORS_FOR_FLAGS(ViewManager::SliceSelectors)
 }
 
 #endif // ESPINA_VIEW_MANAGER_H

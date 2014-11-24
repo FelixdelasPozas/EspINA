@@ -56,11 +56,6 @@ namespace ESPINA {
      *
      */
     virtual void set(DataSPtr data) = 0;
-
-    /** \brief Casts data proxy smart pointer to data smart pointer
-     *
-     */
-    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const = 0;
   };
 
 }

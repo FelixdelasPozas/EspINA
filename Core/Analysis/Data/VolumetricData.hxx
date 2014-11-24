@@ -65,10 +65,10 @@ namespace ESPINA
 
     virtual Bounds bounds() const = 0;
 
-    virtual Data::Type type() const
+    virtual Data::Type type() const final
     { return TYPE; }
 
-    virtual DataSPtr createProxy() const
+    virtual DataSPtr createProxy() const final
     { return DataSPtr{new VolumetricDataProxy<T>()}; }
 
     /** \brief Set the origin of the image.

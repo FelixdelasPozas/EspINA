@@ -28,14 +28,7 @@ using namespace ESPINA;
 ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output, DataUpdatePolicy policy)
 throw (Unavailable_Output_Data_Exception)
 {
-  auto data = output->data(VolumetricData<itkVolumeType>::TYPE);
-
-  if (policy == DataUpdatePolicy::Request)
-  {
-    data->update();
-  }
-
-  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(data);
+  return outputData<VolumetricData<itkVolumeType>>(output, policy);
 }
 
 //----------------------------------------------------------------------------

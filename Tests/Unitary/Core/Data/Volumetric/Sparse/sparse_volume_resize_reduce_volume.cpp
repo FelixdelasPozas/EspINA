@@ -42,7 +42,6 @@ int sparse_volume_resize_reduce_volume( int argc, char** argv )
 {
   bool pass = true;
 
-  VoxelType bg = 0;
   VoxelType fg = 255;
 
   Bounds initialBounds{0, 20, 0, 20, 0, 20};

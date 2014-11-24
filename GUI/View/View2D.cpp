@@ -99,7 +99,6 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_slicingStep     {1, 1, 1}
 , m_showThumbnail   {true}
-// , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(nullptr, nullptr))
 , m_inThumbnail     {false}
 , m_sceneReady      {false}
 , m_plane           {plane}
@@ -774,20 +773,6 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
   updateView();
 }
 
-//slicev//-----------------------------------------------------------------------------
-//void View2D::selectFromSlice()
-//{
-//   m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
-//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
-//}
-
-////-----------------------------------------------------------------------------
-//void View2D::selectToSlice()
-//{
-//   m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
-//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
-//}
-
 //-----------------------------------------------------------------------------
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
@@ -1026,16 +1011,19 @@ ViewItemAdapterList View2D::pickChannels(double vx, double vy, bool repeatable)
   ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
+  {
     if(renderer->type() == Renderer::Type::Representation)
     {
       auto repRenderer = representationRenderer(renderer);
       if (canRender(repRenderer, RenderableType::CHANNEL))
+      {
         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
         {
-          if (!selection.contains(item))
-            selection << item;
+          if (!selection.contains(item)) selection << item;
         }
+      }
     }
+  }
 
   return selection;
 }
@@ -1046,14 +1034,19 @@ ViewItemAdapterList View2D::pickSegmentations(double vx, double vy, bool repeata
   ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
+  {
     if(renderer->type() == Renderer::Type::Representation)
     {
       auto repRenderer = representationRenderer(renderer);
       if (canRender(repRenderer, RenderableType::SEGMENTATION))
+      {
         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
-          if (!selection.contains(item))
-            selection << item;
+        {
+          if (!selection.contains(item)) selection << item;
+        }
+      }
     }
+  }
 
   return selection;
 }
@@ -1147,50 +1140,46 @@ void View2D::setRulerVisibility(bool visible)
   updateView();
 }
 
-// //-----------------------------------------------------------------------------
-// void SliceView::addSliceSelectors(SliceSelectorWidget* widget,
-//                                   ViewManager::SliceSelectors selectors)
-// {
-//   if (m_sliceSelector.first != widget)
-//   {
-//     if (m_sliceSelector.second)
-//       delete m_sliceSelector.second;
-//
-//     m_sliceSelector.first  = widget;
-//     m_sliceSelector.second = widget->clone();
-//   }
-//
-//   SliceSelectorWidget *sliceSelector = m_sliceSelector.second;
-//
-//   sliceSelector->setPlane(m_plane);
-//   sliceSelector->setView (this);
-//
-//   QWidget *fromWidget = sliceSelector->leftWidget();
-//   QWidget *toWidget   = sliceSelector->rightWidget();
-//
-//   bool showFrom = selectors.testFlag(ViewManager::From);
-//   bool showTo   = selectors.testFlag(ViewManager::To  );
-//
-//   fromWidget->setVisible(showFrom);
-//   toWidget  ->setVisible(showTo  );
-//
-//   m_fromLayout->addWidget (fromWidget );
-//   m_toLayout->insertWidget(0, toWidget);
-// }
-//
-// //-----------------------------------------------------------------------------
-// void SliceView::removeSliceSelectors(SliceSelectorWidget* widget)
-// {
-//   if (m_sliceSelector.first == widget)
-//   {
-//     if (m_sliceSelector.second)
-//       delete m_sliceSelector.second;
-//
-//     m_sliceSelector.first  = nullptr;
-//     m_sliceSelector.second = nullptr;
-//   }
-// }
+//-----------------------------------------------------------------------------
+void View2D::addSliceSelectors(SliceSelectorSPtr widget,
+                               SliceSelectionType selectors)
+{
+  auto sliceSelector = widget->clone();
 
+  sliceSelector->setPlane(m_plane);
+  sliceSelector->setView (this);
+
+  QWidget *fromWidget = sliceSelector->leftWidget();
+  QWidget *toWidget   = sliceSelector->rightWidget();
+
+  bool showFrom = selectors.testFlag(SliceSelectionTypes::From);
+  bool showTo   = selectors.testFlag(SliceSelectionTypes::To  );
+
+  fromWidget->setVisible(showFrom);
+  toWidget  ->setVisible(showTo  );
+
+  m_fromLayout->addWidget (fromWidget );
+  m_toLayout->insertWidget(0, toWidget);
+
+  m_sliceSelectors << SliceSelectorPair(widget, sliceSelector);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
+{
+  SliceSelectorPair requestedsliceSelectors;
+
+  for (auto sliceSelectors : m_sliceSelectors)
+  {
+    if (sliceSelectors.first == widget)
+    {
+      requestedsliceSelectors = sliceSelectors;
+      break;
+    }
+  }
+
+  m_sliceSelectors.removeOne(requestedsliceSelectors);
+}
 
 //----------------------------------------------------------------------------
 NmVector3 View2D::slicingStep() const

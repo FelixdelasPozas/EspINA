@@ -1179,8 +1179,6 @@ void EspinaMainWindow::redoAction(bool unused)
 //------------------------------------------------------------------------
 ProblemList EspinaMainWindow::checkAnalysisConsistency()
 {
-  //return ProblemList();
-
   auto check = new CheckAnalysis(m_scheduler, m_model);
   check->exec();
 

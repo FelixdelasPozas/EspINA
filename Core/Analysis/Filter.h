@@ -27,7 +27,7 @@
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Input.h"
 #include "Core/Analysis/Persistent.h"
-#include "FetchBehaviour.h"
+#include "Core/Analysis/DataFactory.h"
 #include "Core/MultiTasking/Task.h"
 #include <Core/IO/ErrorHandler.h>
 #include <Core/IO/SegFile_V4.h>
@@ -121,11 +121,6 @@ namespace ESPINA
      */
     void update();
 
-    /** \brief Creates the outputs of the filter using the stored information.
-     *
-     */
-    bool restorePreviousOutputs() const;
-
 
     /** \brief Return the number of outputs of the filter.
      *
@@ -152,6 +147,11 @@ namespace ESPINA
      */
     OutputSPtr output(Output::Id id) const throw(Undefined_Output_Exception);
 
+    /** \brief Creates the outputs of the filter using the stored information.
+     *
+     */
+    bool restorePreviousOutputs() const;
+
   protected:
     /** \brief Filter class constructor.
      * \param[in] inputs list of input smart pointers.
@@ -170,25 +170,6 @@ namespace ESPINA
      *
      */
     virtual bool needUpdate() const = 0;
-
-//     /** \brief Try to load from cache dir all the output data.
-//      * \param[in] id output id
-//      *
-//      *  Returns true if all data snapshot can be recovered
-//      *  and false otherwise
-//      */
-//     bool fetchOutputData(Output::Id id);
-
-    /** \brief Restore edited regions for available outputs
-     *
-     */
-    void restoreEditedRegions();
-
-    /** \brief Restore edited regions for available outputs
-     * \param[in] id output id
-     *
-     */
-    void restoreEditedRegions(Output::Id id);
 
     /** \brief Executes the filter to generate/update all its outputs.
      *
@@ -220,6 +201,11 @@ namespace ESPINA
      *
      */
     bool existOutput(Output::Id id) const;
+
+    /** \brief Restore edited regions for available outputs
+     *
+     */
+    void restoreEditedRegions();
 
   private:
     /** \brief Returns the output file name for the filter.

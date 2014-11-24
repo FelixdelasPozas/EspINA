@@ -35,7 +35,7 @@ void SourceFilter::addOutputData(Output::Id id, DataSPtr data)
 {
   if (!m_outputs.contains(id))
   {
-    m_outputs[id] = OutputSPtr(new Output(this, id, data->spacing()));
+    m_outputs[id] = std::make_shared<Output>(this, id, data->spacing());
   }
 
   m_outputs[id]->setData(data);

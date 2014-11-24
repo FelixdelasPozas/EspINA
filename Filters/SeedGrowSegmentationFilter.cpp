@@ -120,7 +120,7 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
         roiBounds[i] = roiExtent[i].toInt() * spacing[i/2];
       }
 
-      m_ROI     = ROISPtr{new ROI(roiBounds, spacing, NmVector3{0, 0, 0})};
+      m_ROI     = std::make_shared<ROI>(roiBounds, spacing, NmVector3{0, 0, 0});
       m_hasROI  = true;
       m_prevROI = m_ROI.get();
 
@@ -196,7 +196,7 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
 {
   if (!m_ROI && m_hasROI)
   {
-    m_ROI = ROISPtr{new ROI(Bounds(),NmVector3(), NmVector3())};
+    m_ROI = std::make_shared<ROI>(Bounds(),NmVector3(), NmVector3());
 
     m_ROI->setFetchContext(storage(), prefix(), roiId());
 
@@ -363,7 +363,7 @@ void SeedGrowSegmentationFilter::execute()
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
 
   m_outputs[0]->setData(volume);
@@ -594,8 +594,8 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
     roiCheckIt.GoToBegin();
     while(!imageIt.IsAtEnd())
     {
-      if((roiCheckIt.Value() == SEG_VOXEL_VALUE) && (imageIt.Value() == SEG_VOXEL_VALUE))
-        return true;
+      if((roiCheckIt.Value() == SEG_VOXEL_VALUE)
+         && (imageIt.Value() == SEG_VOXEL_VALUE)) return true;
 
       ++roiCheckIt;
       ++imageIt;

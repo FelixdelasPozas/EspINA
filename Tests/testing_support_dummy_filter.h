@@ -38,7 +38,7 @@ namespace ESPINA {
       virtual State state() const                   override {return State();}
 
     protected:
-    virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
+      virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
       virtual bool needUpdate() const               override {return false;}
       virtual void execute()                        override {}
       virtual bool ignoreStorageContent() const     override {return false;}
@@ -55,13 +55,20 @@ namespace ESPINA {
     virtual Bounds bounds() const { return Bounds{0,1,0,1,0,1};}
     virtual void setSpacing(const NmVector3& spacing){}
     virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
-    virtual bool fetchData() { return false; }
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
     virtual DataSPtr createProxy() const;
     virtual size_t memoryUsage() const {return 0;}
     virtual void undo() {};
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+    { return false; }
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const
+    { return QList<Data::Type>(); }
   };
 
   using DummyDataSPtr = std::shared_ptr<DummyData>;
@@ -79,6 +86,10 @@ namespace ESPINA {
 
     virtual Bounds bounds() const
     { return m_data->bounds(); }
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+    { return m_data->fetchData();}
 
   private:
     DummyDataSPtr m_data;

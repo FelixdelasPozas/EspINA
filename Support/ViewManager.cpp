@@ -23,7 +23,6 @@
 #include "Widgets/ToolGroup.h"
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
-#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkMath.h>
@@ -423,29 +422,31 @@ void ViewManager::setSegmentationVisibility(bool visible)
 //----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
-  for(auto view: m_renderViews)
+  for(auto view: sliceViews())
   {
-    auto view2d = dynamic_cast<View2D *>(view);
-    if(view2d != nullptr)
-      view2d->setCrosshairVisibility(value);
+    view->setCrosshairVisibility(value);
   }
 }
 
-// //----------------------------------------------------------------------------
-// void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
-//                                     ViewManager::SliceSelectors selectors)
-// {
-//   foreach(View2D *view, m_sliceViews)
-//     view->addSliceSelectors(widget, selectors);
-// }
-//
-// //----------------------------------------------------------------------------
-// void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
-// {
-//   foreach(View2D *view, m_sliceViews)
-//     view->removeSliceSelectors(widget);
-// }
-//
+//----------------------------------------------------------------------------
+void ViewManager::addSliceSelectors(SliceSelectorSPtr widget,
+                                    View2D::SliceSelectionType selectors)
+{
+  for(auto view : sliceViews())
+  {
+    view->addSliceSelectors(widget, selectors);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::removeSliceSelectors(SliceSelectorSPtr widget)
+{
+  for(auto view : sliceViews())
+  {
+    view->removeSliceSelectors(widget);
+  }
+}
+
 
 //----------------------------------------------------------------------------
 void ViewManager::setColorEngine(ColorEngineSPtr engine)

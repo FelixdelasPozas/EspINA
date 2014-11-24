@@ -188,7 +188,7 @@ namespace ESPINA
   /** \brief VolumeBounds operator<< for streams.
    *
    */
-  std::ostream& operator<<(std::ostream& os, const VolumeBounds& bounds);
+  EspinaCore_EXPORT std::ostream& operator<<(std::ostream& os, const VolumeBounds& bounds);
 
   /** \brief VolumeBounds operator<< for QDebug
    *

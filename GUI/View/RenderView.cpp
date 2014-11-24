@@ -47,6 +47,8 @@
 
 using namespace ESPINA;
 
+const int RenderView::BUTTON_SIZE = 22;
+
 //-----------------------------------------------------------------------------
 RenderView::RenderView(QWidget* parent)
 : QWidget                 {parent}
@@ -628,14 +630,16 @@ void RenderView::updateSelection(SegmentationAdapterList selection)
 //-----------------------------------------------------------------------------
 QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip)
 {
+  const int ICON_SIZE = 20;
+
   QPushButton *button = new QPushButton();
 
   button->setIcon(QIcon(icon));
   button->setToolTip(tooltip);
   button->setFlat(true);
-  button->setIconSize(QSize(20,20));
-  button->setMinimumSize(QSize(22,22));
-  button->setMaximumSize(QSize(22,22));
+  button->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
+  button->setMinimumSize(QSize(BUTTON_SIZE, BUTTON_SIZE));
+  button->setMaximumSize(QSize(BUTTON_SIZE, BUTTON_SIZE));
   button->setEnabled(false);
   button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 

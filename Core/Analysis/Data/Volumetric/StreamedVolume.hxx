@@ -137,9 +137,6 @@ namespace ESPINA {
     virtual bool isEmpty() const
     { return !isValid(); }
 
-    virtual bool fetchData() override
-    { return false; }
-
     virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
     { return Snapshot(); }
 
@@ -149,9 +146,16 @@ namespace ESPINA {
     virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
     {}
 
-
   protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return false; }
+
+
+  private:
     typedef itk::ImageRegionIterator<T> ImageIterator;
+
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
 
   private:
     NmVector3 m_origin;

@@ -117,7 +117,7 @@ void VolumetricStreamReader::execute()
   }
 
 
-  DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(mhdFile)};
+  auto volume = std::make_shared<StreamedVolume<itkVolumeType>>(mhdFile);
 
   if (!m_outputs.contains(0))
   {

@@ -55,35 +55,24 @@ namespace ESPINA
      */
     virtual ~ManualROITool();
 
+    void setColor(const QColor &color);
+
   signals:
     void roiDefined(Selector::Selection);
 
   protected slots:
-    /** \brief Overrides ManualEditionTool::drawingModeChanged(bool) slot.
-     *
-     */
     void drawingModeChanged(bool) override;
 
-    /** \brief Overrides ManualEditionTool::changeSelector(QAction *) slot.
-     *
-     */
     void changeSelector(QAction *selectorAction) override;
 
-    /** \brief Overrides ManualEditionTool::selectorInUse(bool) slot.
-     *
-     */
     void selectorInUse(bool value) override;
 
-    /** \brief Overrides ManualEditionTool::drawStroke(Selector::Selection) slot.
-     *
-     */
     void drawStroke(Selector::Selection) override;
 
     /** \brief Updates the selector parameters based on application selected items.
-     * \param[in] unused, unused value.
      *
      */
-    void updateReferenceItem(SelectionSPtr unused);
+    void updateReferenceItem();
 
     /** \brief Aborts current tool operation.
      *
@@ -104,6 +93,7 @@ namespace ESPINA
   private:
     QUndoStack    *m_undoStack;
     ROIToolsGroup *m_toolGroup;
+    QColor         m_color;
   };
 
   using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;

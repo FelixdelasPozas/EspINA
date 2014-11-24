@@ -33,13 +33,13 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/DataFactory/FetchRawData.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Plugins/AppositionSurface/Filter/AppositionSurfaceFilter.h>
-#include <Plugins/AppositionSurface/Filter/SASFetchBehaviour.h>
+#include <Plugins/AppositionSurface/Filter/SASDataFactory.h>
 
 using namespace std;
 using namespace ESPINA;
@@ -67,7 +67,7 @@ int io_sgs_sas( int argc, char** argv )
       } else if (type == "SAS")
       {
         filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
-        filter->setDataFactory(std::make_shared<SASFetchBehaviour>());
+        filter->setDataFactory(std::make_shared<SASDataFactory>());
       }
 
       return filter;

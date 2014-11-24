@@ -82,10 +82,11 @@ namespace ESPINA
     void setOutput(OutputPtr output)
     { m_output = output; }
 
-    /** \brief Updates data contents
+    /** \brief Returns the list of data types on which this
+     *         data type relies on
      *
      */
-    virtual void update();
+    QList<Data::Type> dependencies() const;
 
     /** \brief Returns the time stamp of the last modification to the data.
      *
@@ -115,7 +116,7 @@ namespace ESPINA
 
     /** \brief Recover data from Persistent Storage.
      */
-    virtual bool fetchData() = 0;
+    bool fetchData();
 
     /** \brief Clears the edited regions list.
      *
@@ -217,6 +218,15 @@ namespace ESPINA
 
     void addEditedRegion(const Bounds &bounds)
     { m_editedRegions << bounds; }
+
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) = 0;
+
+  private:
+    /** \brief Returns the list of data types on which this
+     *         data type relies on
+     *
+     */
+    virtual QList<Data::Type> updateDependencies() const = 0;
 
   protected:
     OutputPtr  m_output;

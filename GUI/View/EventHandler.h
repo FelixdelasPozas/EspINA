@@ -41,9 +41,9 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/** \brief EventHandler class constructor.
-			 *
-			 */
+      /** \brief EventHandler class constructor.
+       *
+       */
       explicit EventHandler();
 
       /** \brief EventHandler class virtual destructor.
@@ -52,14 +52,14 @@ namespace ESPINA
       virtual ~EventHandler()
       {};
 
-      /** \brief Activates/deactivates the event handler.
-       * \param[in] value, true to enable false otherwise.
+      /** \brief Activates/deactvates the event handler.
+       * \param[in] value true to enable false otherwise.
        */
       virtual void setInUse(bool value);
 
       /** \brief Perform the operations needed to events in the given view.
-       * \param[in] e, raw pointer of the event received.
-       * \param[in] view, raw pointer of the view of the event.
+       * \param[in] e raw pointer of the event received.
+       * \param[in] view raw pointer of the view of the event.
        *
        */
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);

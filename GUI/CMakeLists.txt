@@ -34,8 +34,8 @@ qt4_wrap_cpp(GUI_MOC
   View/ViewRendererMenu.h
   View/View3D.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
-  View/Widgets/RectangularRegion/RectangularRegion.h
-  View/Widgets/RectangularRegion/RectangularRegionSliceSelector.h
+  View/Widgets/OrthogonalRegion/OrthogonalRegion.h
+  View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
   View/Widgets/Ruler/RulerWidget.h
@@ -141,10 +141,10 @@ set (GUI_SOURCES
   View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
-  View/Widgets/RectangularRegion/RectangularRegion.cpp
-  View/Widgets/RectangularRegion/RectangularRegionSliceSelector.cpp
-  View/Widgets/RectangularRegion/vtkRectangularSliceWidget.cpp
-  View/Widgets/RectangularRegion/vtkRectangularSliceRepresentation.cpp
+  View/Widgets/OrthogonalRegion/OrthogonalRegion.cpp
+  View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.cpp
+  View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceWidget.cpp
+  View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceRepresentation.cpp
   View/Widgets/ROI/ROIWidget.cpp
   View/Widgets/Ruler/RulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget.cpp
