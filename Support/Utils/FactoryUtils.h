@@ -28,10 +28,10 @@
 
 namespace ESPINA
 {
-	/** \brief Creates an returns a new core factory.
-	 * \param[in] scheduler, scheduler smart pointer.
-	 *
-	 */
+  /** \brief Creates an returns a new core factory.
+   * \param[in] scheduler scheduler smart pointer.
+   *
+   */
   CoreFactorySPtr EspinaSupport_EXPORT espinaCoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
 
 } // namespace ESPINA

@@ -33,6 +33,7 @@
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
+#include <Support/Utils/SelectionUtils.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
@@ -221,16 +222,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
 
   SegmentationAdapterList synapsis;
 
-  auto selection = m_viewManager->selection()->segmentations();
-  if (selection.isEmpty())
-  {
-    for(auto segmentation: m_model->segmentations())
-    {
-      selection << segmentation.get();
-    }
-  }
-
-  for(auto segmentation: selection)
+  for(auto segmentation: defaultReportInputSegmentations(m_viewManager, m_model))
   {
     if (isValidSynapse(segmentation))
     {

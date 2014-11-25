@@ -39,8 +39,8 @@ namespace ESPINA {
   class TaskQueue
   : public QList<TaskSPtr>
   {
-		public:
-			void orderedInsert(TaskSPtr worker);
+  public:
+    void orderedInsert(TaskSPtr worker);
   };
 
   class EspinaCore_EXPORT Scheduler
@@ -49,8 +49,8 @@ namespace ESPINA {
     Q_OBJECT
   public:
     /** \brief Scheduler class constructor.
-     * \param[in] period, interval for scheduling tasks.
-     * \param[in] parent, raw pointer of the parent of this object.
+     * \param[in] period interval for scheduling tasks.
+     * \param[in] parent raw pointer of the parent of this object.
      *
      */
     explicit Scheduler(int period/*ns*/, QObject* parent = 0);
@@ -61,13 +61,13 @@ namespace ESPINA {
     virtual ~Scheduler();
 
     /** \brief Adds a task to the task list.
-     * \param[in] task, task smart pointer.
+     * \param[in] task task smart pointer.
      *
      */
     void addTask(TaskSPtr task);
 
     /** \brief Removes a task from the task list.
-     * \param[in] task, task smart pointer.
+     * \param[in] task task smart pointer.
      *
      */
     void removeTask(TaskSPtr task);
@@ -78,13 +78,13 @@ namespace ESPINA {
     void abortExecutingTasks();
 
     /** \brief Changes a task priority.
-     * \param[in] task, task raw pointer.
+     * \param[in] task task raw pointer.
      *
      */
     void changePriority(TaskPtr task, Priority prevPriority);
 
     /** \brief Changes a task priority.
-     * \param[in] task, task smart pointer.
+     * \param[in] task task smart pointer.
      *
      */
     void changePriority(TaskSPtr task, Priority prevPriority);
@@ -95,9 +95,9 @@ namespace ESPINA {
     unsigned int numberOfTasks() const;
 
   public slots:
-		/** \brief Starts the scheduler.
-		 *
-		 */
+    /** \brief Starts the scheduler.
+     *
+     */
     void scheduleTasks();
 
   signals:
