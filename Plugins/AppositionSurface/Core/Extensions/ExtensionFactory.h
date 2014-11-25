@@ -29,8 +29,17 @@ class ASExtensionFactory
 : public SegmentationExtensionFactory
 {
   public:
-    explicit ASExtensionFactory();
-    virtual ~ASExtensionFactory();
+    /** \brief ASExtensionFactory class constructor.
+     *
+     */
+    explicit ASExtensionFactory()
+    {}
+
+    /** \brief ASExtensionFactory class virtual destructor.
+     *
+     */
+    virtual ~ASExtensionFactory()
+    {}
 
     virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
                                                                   const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),

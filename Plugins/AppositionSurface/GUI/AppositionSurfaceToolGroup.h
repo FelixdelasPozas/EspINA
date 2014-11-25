@@ -64,19 +64,10 @@ namespace ESPINA
      */
     virtual ~AppositionSurfaceToolGroup();
 
-    /** \brief Implements ToolGroup::setEnabled().
-     *
-     */
     virtual void setEnabled(bool value);
 
-    /** \brief Implements ToolGroup::enabled().
-     *
-     */
     virtual bool enabled() const;
 
-    /** \brief Implements ToolGroup::tools().
-     *
-     */
     virtual ToolSList tools();
 
   public slots:
@@ -117,24 +108,16 @@ namespace ESPINA
        */
       virtual ~AppositionSurfaceTool();
 
-      /** \brief Implements Tool::setEnabled().
-       *
-       */
       virtual void setEnabled(bool value)
       { m_action->setEnabled(value); }
 
-      /** \brief Implements Tool::enabled().
-       *
-       */
       virtual bool enabled() const
       { return m_action->isEnabled(); }
 
-      /** \brief Implements Tool::actions().
-       *
-       */
       virtual QList<QAction *> actions() const;
 
       /** \brief Sets the tooltip of the action.
+       * \param[in] tooltip tooltip text.
        *
        */
       void setToolTip(const QString &tooltip)

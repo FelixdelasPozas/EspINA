@@ -44,6 +44,18 @@ RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
 
   TabularReport *report = new TabularReport(factory, viewManager, this);
   report->setModel(model);
+
+  auto segmentations = viewManager->selection()->segmentations();
+  if(segmentations.empty())
+  {
+    for(auto segmentation: model->segmentations())
+    {
+      segmentations << segmentation.get();
+    }
+  }
+
+  report->setFilter(segmentations);
+
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
 
@@ -58,12 +70,6 @@ RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
   resize(settings.value("size", QSize (200, 200)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
-}
-
-//----------------------------------------------------------------------------
-RawInformationDialog::~RawInformationDialog()
-{
-
 }
 
 //----------------------------------------------------------------------------
