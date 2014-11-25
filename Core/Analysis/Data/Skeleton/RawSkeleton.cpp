@@ -23,10 +23,7 @@
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
-#include <vtkPolyData.h>
-
-// Qt
-#include <QDir>
+#include <vtkPoints.h>
 
 // C++
 #include <memory>
@@ -38,7 +35,9 @@ namespace ESPINA
   : m_skeleton{nullptr}
   {
     if(output != nullptr)
+    {
       this->setOutput(output.get());
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -47,80 +46,35 @@ namespace ESPINA
                            OutputSPtr output)
   : m_skeleton{skeleton}
   {
-    this->setOutput(output.get());
-    m_output->setSpacing(spacing);
-  }
-
-  //----------------------------------------------------------------------------
-  vtkSmartPointer<vtkPolyData> RawSkeleton::skeleton() const
-  {
-    return m_skeleton;
+    if(output != nullptr)
+    {
+      this->setOutput(output.get());
+    }
   }
 
   //----------------------------------------------------------------------------
   size_t RawSkeleton::memoryUsage() const
   {
     if (m_skeleton)
+    {
       return m_skeleton->GetActualMemorySize();
+    }
 
     return 0;
   }
 
   //----------------------------------------------------------------------------
-  bool RawSkeleton::isValid() const
+  void RawSkeleton::setSpacing(const NmVector3 &newSpacing)
   {
-    bool isValid = true;
-    isValid &= (m_skeleton.Get() != nullptr);
-
-    if(isEdited())
+    if(m_skeleton != nullptr && spacing() != newSpacing)
     {
-      isValid &= (m_editedRegionsSkeleton != nullptr);
+      auto oldSpacing = spacing();
+      Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
+      NmVector3 ratio{newSpacing[0]/oldSpacing[0], newSpacing[1]/oldSpacing[1], newSpacing[2]/oldSpacing[2]};
+
+      PolyDataUtils::scalePolyData(m_skeleton, ratio);
+      updateModificationTime();
     }
-
-    return isValid;
-  }
-
-  //----------------------------------------------------------------------------
-  bool RawSkeleton::isEmpty() const
-  {
-    return !isValid();
-  }
-
-  //----------------------------------------------------------------------------
-  bool RawSkeleton::setInternalData(SkeletonDataSPtr rhs)
-  {
-    m_skeleton = rhs->skeleton();
-    return true;
-  }
-
-  //----------------------------------------------------------------------------
-  bool RawSkeleton::fetchData()
-  {
-    return SkeletonData::fetchData();
-  }
-
-  //----------------------------------------------------------------------------
-  bool RawSkeleton::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
-  {
-    return SkeletonData::fetchData(storage, path, id);
-  }
-
-  //----------------------------------------------------------------------------
-  Snapshot RawSkeleton::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
-  {
-    SkeletonData::snapshot(storage, path, id);
-  }
-
-  //----------------------------------------------------------------------------
-  Snapshot RawSkeleton::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
-  {
-    return snapshot(storage, path, id);
-  }
-
-  //----------------------------------------------------------------------------
-  void RawSkeleton::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
-  {
-    fetchData(storage, path, id);
   }
 
   //----------------------------------------------------------------------------
@@ -133,14 +87,29 @@ namespace ESPINA
     {
       editedRegions << bounds();
     }
+
     setEditedRegions(editedRegions);
+  }
+
+  //----------------------------------------------------------------------------
+  NmVector3 RawSkeleton::spacing() const
+  {
+    NmVector3 result;
+
+    if(m_output != nullptr)
+    {
+      result = m_output->spacing();
+    }
+
+    return result;
   }
 
   //----------------------------------------------------------------------------
   RawSkeletonSPtr rawSkeleton(OutputSPtr output)
   {
-    RawSkeletonSPtr data = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
-    return data;
+    RawSkeletonSPtr skeletonData = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
+    Q_ASSERT(skeletonData);
+    return skeletonData;
   }
 
 } // namespace EspINA

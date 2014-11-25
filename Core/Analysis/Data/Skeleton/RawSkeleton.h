@@ -27,6 +27,10 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+
 namespace ESPINA
 {
   class EspinaCore_EXPORT RawSkeleton
@@ -55,50 +59,45 @@ namespace ESPINA
       virtual ~RawSkeleton()
       {};
 
-      virtual bool isValid() const;
+      virtual bool isValid() const
+      { return (m_skeleton.Get() != nullptr); }
 
-      virtual bool isEmpty() const;
+      virtual bool isEmpty() const
+      { return !isValid(); }
 
-      /** \brief Sets the data using a SkeletonData smart pointer.
-       * \param[in] skeleton, SkeletonData smart pointer.
-       *
-       */
-      virtual bool setInternalData(SkeletonDataSPtr skeleton);
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+      { return SkeletonData::snapshot(storage, path, id); }
 
-      virtual bool fetchData() override;
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
+      { return snapshot(storage, path, id); }
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+      { fetchDataImplementation(storage, path, id); }
 
-      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+      virtual vtkSmartPointer<vtkPolyData> skeleton() const
+      { return m_skeleton; }
 
-      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString &path, const QString &id);
+      virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override;
 
-      bool isEdited() const
-      { return false; }
+      void setSpacing(const NmVector3 &spacing);
 
-      void clearEditedRegions() override
-      { /* TODO */ };
-
-      virtual vtkSmartPointer<vtkPolyData> skeleton() const;
-
-      void setSpacing(const NmVector3 &spacing)
-      { m_output->setSpacing(spacing); };
-
-      NmVector3 spacing() const
-      { return m_output->spacing(); }
+      NmVector3 spacing() const;
 
       void undo()
-      { /* TODO */ };
+      { /* TODO: not allowed */ };
 
       size_t memoryUsage() const;
 
-      void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override;
-
     protected:
-      virtual bool fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const;
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+      { return SkeletonData::fetchDataImplementation(storage, path, id); }
+
+    private:
+      virtual QList<Data::Type> updateDependencies() const override
+      { return QList<Data::Type>(); }
+
     private:
       vtkSmartPointer<vtkPolyData> m_skeleton;
-      vtkSmartPointer<vtkPolyData> m_editedRegionsSkeleton;
   };
 
   using RawSkeletonPtr  = RawSkeleton *;

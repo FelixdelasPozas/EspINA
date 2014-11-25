@@ -59,43 +59,34 @@ namespace ESPINA
     virtual ~RawMesh()
     {};
 
-    /** \brief Implements Data::isValid().
-     *
-     */
-    virtual bool isValid() const;
+    virtual bool isValid() const
+    { return (m_mesh.Get() != nullptr); }
 
-    /** \brief Implements Data::isEmpty().
-     *
-     */
-    virtual bool isEmpty() const;
+    virtual bool isEmpty() const
+    { return !isValid(); }
 
-    /** \brief Sets the data using a MeshData smart pointer.
-     * \param[in] mesh, MeshData smart pointer.
-     *
-     */
-    virtual bool setInternalData(MeshDataSPtr mesh);
-
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override
+    { return MeshData::snapshot(storage, path, id); }
 
     // Because meshes store the whole mesh polydata when their edited regions
-    // are requested, we can use the same name which will casue fetch method to
+    // are requested, we can use the same name which will cause fetch method to
     // succeed when restoring from edited regions (this will also will avoid
     // executing the filter itself if no other data is required)
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+    { return MeshData::snapshot(storage, path, id); };
 
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override
+    { fetchDataImplementation(storage, path, id); }
 
-    bool isEdited() const
-    { return false; }
-
-    virtual vtkSmartPointer<vtkPolyData> mesh() const       override;
+    virtual vtkSmartPointer<vtkPolyData> mesh() const       override
+    { return m_mesh; }
 
     virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
-    void setSpacing(const NmVector3&)
-    { /* TODO: should rescale points */ };
+    void setSpacing(const NmVector3&);
 
-    NmVector3 spacing() const;
+    NmVector3 spacing() const
+    { return m_output->spacing(); }
 
     void undo()
     { /* TODO: not allowed */ };
@@ -103,7 +94,8 @@ namespace ESPINA
     size_t memoryUsage() const;
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return MeshData::fetchDataImplementation(storage, path, id); }
 
   private:
     virtual QList<Data::Type> updateDependencies() const override

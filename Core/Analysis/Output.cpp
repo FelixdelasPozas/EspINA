@@ -60,8 +60,6 @@ void Output::setSpacing(const NmVector3& spacing)
 {
   if (m_spacing != spacing)
   {
-    m_spacing = spacing;
-
     for(auto data : m_data)
     {
       if (data->isValid())
@@ -70,6 +68,9 @@ void Output::setSpacing(const NmVector3& spacing)
       }
     }
 
+    // NOTE: spacing change must be set after propagating it to the data
+    // so the data can get the old spacing to scale if needed.
+    m_spacing = spacing;
     updateModificationTime();
   }
 }

@@ -26,6 +26,7 @@
 // ESPINA
 #include <Core/Analysis/Data.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Output.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -46,14 +47,12 @@ namespace ESPINA
        */
       explicit SkeletonData();
 
-      virtual Data::Type type() const override
+      virtual Data::Type type() const override final
       { return TYPE; }
 
-      virtual DataSPtr createProxy() const override;
+      virtual DataSPtr createProxy() const override final;
 
       Bounds bounds() const override;
-
-      virtual bool fetchData() override = 0;
 
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
 
@@ -68,7 +67,7 @@ namespace ESPINA
       virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) = 0;
 
     protected:
-      virtual bool fetchData(TemporalStorageSPtr storage, const QString &path, const QString &id) const;
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override = 0;
 
     private:
       QString snapshotFilename(const QString &path, const QString &id) const
@@ -88,7 +87,7 @@ namespace ESPINA
   /** \brief Obtains and returns the SkeletonData smart pointer of the specified Output.
    * \param[in] output, Output object smart pointer.
    */
-  SkeletonDataSPtr EspinaCore_EXPORT skeletonData(OutputSPtr output);
+  SkeletonDataSPtr EspinaCore_EXPORT skeletonData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
 
 } // namespace ESPINA
 

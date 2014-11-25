@@ -60,15 +60,6 @@ namespace ESPINA
         m_data->setOutput(this->m_output);
       }
 
-      virtual void update()
-      { m_data->update(); }
-
-      virtual DataSPtr get() const
-      { return m_data; }
-
-      virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
-      { return std::dynamic_pointer_cast<SkeletonData>(proxy); }
-
       virtual Bounds bounds() const override
       { return m_data->bounds(); }
 
@@ -93,9 +84,6 @@ namespace ESPINA
       virtual bool isEmpty() const
       { return m_data->isEmpty(); }
 
-      virtual bool fetchData() override
-      { return m_data->fetchData(); }
-
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override
       { return m_data->snapshot(storage, path, id); }
 
@@ -116,6 +104,15 @@ namespace ESPINA
 
       virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) override
       { m_data->setSkeleton(skeleton); }
+
+    protected:
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+      { return m_data->fetchData(); }
+
+    private:
+      virtual QList<Data::Type> updateDependencies() const override
+      { return m_data->dependencies(); }
+
     private:
       SkeletonDataSPtr m_data;
 

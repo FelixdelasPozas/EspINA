@@ -30,7 +30,9 @@
 
 using namespace ESPINA;
 
-QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polyData) throw (IO_Error_Exception)
+//------------------------------------------------------------------------------------
+QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polyData)
+throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectWriter> polyWriter = vtkSmartPointer<vtkGenericDataObjectWriter>::New();
   polyWriter->SetInputData(polyData);
@@ -44,7 +46,9 @@ QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
   return QByteArray(polyWriter->GetOutputString(), polyWriter->GetOutputStringLength());
 }
 
-vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName) throw (IO_Error_Exception)
+//------------------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName)
+throw (IO_Error_Exception)
 {
   vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
   reader->SetFileName(fileName.toUtf8());
@@ -60,3 +64,22 @@ vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString
   return mesh;
 }
 
+//------------------------------------------------------------------------------------
+void EspinaCore_EXPORT ESPINA::PolyDataUtils::scalePolyData(vtkSmartPointer<vtkPolyData> polyData, const NmVector3 &ratio)
+{
+  auto points = polyData->GetPoints();
+  double point[3];
+
+  for(vtkIdType i = 0; i < points->GetNumberOfPoints(); ++i)
+  {
+    points->GetPoint(i, point);
+    for(auto coord: {0,1,2})
+    {
+      point[coord] = point[coord] * ratio[coord];
+    }
+    points->SetPoint(i, point);
+  }
+
+  points->Modified();
+  polyData->Modified();
+}

@@ -50,6 +50,7 @@ set (CORE_SOURCES
   ${CORE_RCCS}
   ${CORE_MOCS}
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
@@ -58,6 +59,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp
@@ -149,12 +151,14 @@ set (PLUGIN_SOURCES
   ${PLUGINS_DIR}/AppositionSurface/Filter/SASDataFactory.cpp
 )
 add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
+target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Testing
 set (TESTING_SOURCES
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
   MeshTestingUtils.cpp
+  SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})
@@ -167,18 +171,6 @@ set(TESTING_DEPENDECIES
   EspinaTesting
   ${EXTERNAL_LIBS_DEPENDENCIES}
   )
-
-qt4_wrap_cpp(PLUGIN_MOCS
-  ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h
-)
-set (PLUGIN_SOURCES
-  ${PLUGIN_MOCS}
-  ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
-  ${PLUGINS_DIR}/AppositionSurface/Filter/SASFetchBehaviour.cpp
-)
-
-add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
-target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 set(TESTING_DEPENDECIES
   EspinaCoreTesting

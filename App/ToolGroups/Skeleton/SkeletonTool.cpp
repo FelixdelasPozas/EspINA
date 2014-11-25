@@ -23,7 +23,7 @@
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Output.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/DataFactory/FetchRawData.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Representations/SkeletonRepresentation.h>

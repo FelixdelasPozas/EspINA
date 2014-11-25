@@ -39,23 +39,24 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   Bounds SkeletonData::bounds() const
   {
-    Nm bounds[6]{0,-1,0,-1,0,-1};
+    Bounds result;
 
-    auto data = this->skeleton();
-    if(data != nullptr)
-      data->GetBounds(bounds);
+    auto skeletonData = this->skeleton();
 
-    return Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+    if(skeletonData != nullptr)
+    {
+      Nm bounds[6];
+
+      skeletonData->GetBounds(bounds);
+
+      result = Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+    }
+
+    return result;
   }
 
   //----------------------------------------------------------------------------
-  bool SkeletonData::fetchData()
-  {
-    return fetchData(m_storage, m_path, m_id);
-  }
-
-  //----------------------------------------------------------------------------
-  bool SkeletonData::fetchData(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+  bool SkeletonData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
   {
     bool dataFetched = false;
 
@@ -76,7 +77,7 @@ namespace ESPINA
     Snapshot snapshot;
 
     auto currentSkeleton = skeleton();
-    if (currentSkeleton)
+    if (currentSkeleton != nullptr)
     {
       QString fileName = snapshotFilename(path, id);
       storage->makePath(path);
@@ -90,7 +91,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   DataSPtr SkeletonData::createProxy() const
   {
-    return DataSPtr{new SkeletonProxy()};
+    return std::make_shared<SkeletonProxy>();
   }
 
   //----------------------------------------------------------------------------
@@ -100,11 +101,10 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  SkeletonDataSPtr skeletonData(OutputSPtr output)
+  SkeletonDataSPtr skeletonData(OutputSPtr output, DataUpdatePolicy policy)
+  throw (Unavailable_Output_Data_Exception)
   {
-    SkeletonDataSPtr skeletonData = std::dynamic_pointer_cast<SkeletonData>(output->data(SkeletonData::TYPE));
-
-    return skeletonData;
+    return outputData<SkeletonData>(output, policy);
   }
 
 } // namespace EspINA

@@ -47,29 +47,18 @@ RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
 {
 }
 
-
 //----------------------------------------------------------------------------
-Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+void RawMesh::setSpacing(const NmVector3 &newSpacing)
 {
-  return MeshData::snapshot(storage, path, id);
-}
+  if(m_mesh != nullptr)
+  {
+    auto oldSpacing = spacing();
+    Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
+    NmVector3 ratio{newSpacing[0]/oldSpacing[0], newSpacing[1]/oldSpacing[1], newSpacing[2]/oldSpacing[2]};
 
-//----------------------------------------------------------------------------
-void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
-{
-  fetchData(storage, path, id);
-}
-
-//----------------------------------------------------------------------------
-Snapshot RawMesh::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
-{
-  fetchDataImplementation(storage, path, id);
-}
-
-//----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
-{
-  return m_mesh;
+    PolyDataUtils::scalePolyData(m_mesh, ratio);
+    updateModificationTime();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -86,12 +75,6 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RawMesh::spacing() const
-{
-  return m_output->spacing();
-}
-
-//----------------------------------------------------------------------------
 size_t RawMesh::memoryUsage() const
 {
   if (m_mesh)
@@ -99,32 +82,6 @@ size_t RawMesh::memoryUsage() const
 
   return 0;
 }
-
-//----------------------------------------------------------------------------
-bool RawMesh::isValid() const
-{
-  return (m_mesh.Get() != nullptr);
-}
-
-//----------------------------------------------------------------------------
-bool RawMesh::isEmpty() const
-{
-  return !isValid();
-}
-
-//----------------------------------------------------------------------------
-bool RawMesh::setInternalData(MeshDataSPtr rhs)
-{
-  m_mesh = rhs->mesh();
-  return true;
-}
-
-//----------------------------------------------------------------------------
-bool RawMesh::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
-{
-  return MeshData::fetchDataImplementation(storage, path, id);
-}
-
 
 //----------------------------------------------------------------------------
 RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)

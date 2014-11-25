@@ -235,7 +235,7 @@ namespace ESPINA
                                       const QString      &id)            override
     {
       //QWriteLocker lock(&m_lock);
-      return m_data->restoreEditedRegions(storage, path, id);
+      m_data->restoreEditedRegions(storage, path, id);
     }
 
   protected:
