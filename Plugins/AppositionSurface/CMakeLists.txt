@@ -45,7 +45,6 @@ qt4_add_resources (RCC_BUILT_SOURCES
 qt4_wrap_ui (UI_BUILT_SOURCES
   ${ESPINA_INCLUDE}/Support/Widgets/TabularReportEntry.ui
   GUI/Settings/AppositionSurfaceSettings.ui
-#  GUI/FilterInspector/AppositionSurfaceFilterInspector.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
@@ -53,7 +52,6 @@ QT4_WRAP_CPP(MOC_SOURCES
   Filter/AppositionSurfaceFilter.h
   GUI/Settings/AppositionSurfaceSettings.h
   GUI/AppositionSurfaceToolGroup.h
-#  GUI/FilterInspector/AppositionSurfaceFilterInspector.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
@@ -72,7 +70,6 @@ set (PLUGIN_SOURCES
   GUI/Analysis/SASInformationProxy.cpp
   GUI/AppositionSurfaceToolGroup.cpp
   GUI/Settings/AppositionSurfaceSettings.cpp
-#  GUI/FilterInspector/AppositionSurfaceFilterInspector.cpp
 )
 
 set (PLUGIN_LIBRARIES

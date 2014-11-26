@@ -13,7 +13,6 @@ if (${USE_DASHBOARD})
 
 endif()
 
-
 set( CORE_DIR       ${CMAKE_SOURCE_DIR}/Core       )
 set( GUI_DIR        ${CMAKE_SOURCE_DIR}/GUI        )
 set( EXTENSIONS_DIR ${CMAKE_SOURCE_DIR}/Extensions )
@@ -27,6 +26,13 @@ include_directories(
   ${CMAKE_BINARY_DIR}/Plugins/AppositionSurface
   )
 
+set(EXTERNAL_LIBS_DEPENDENCIES
+  ${QT_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${QUAZIP_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 
 # Core
 qt4_add_resources(CORE_RCCS
@@ -82,6 +88,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
 )
 add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
+target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Filters
@@ -93,6 +100,7 @@ set (FILTERS_SOURCES
   ${FILTERS_DIR}/VolumetricStreamReader.cpp
 )
 add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})
+target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Extensions
@@ -100,6 +108,7 @@ set (EXTENSIONS_SOURCES
   ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
 )
 add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
+target_link_libraries(EspinaExtensionsTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # GUI
@@ -127,19 +136,20 @@ set (GUI_SOURCES
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
 )
-
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
+target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 qt4_wrap_cpp(PLUGIN_MOCS
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h
 )
+
 set (PLUGIN_SOURCES
   ${PLUGIN_MOCS}
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
   ${PLUGINS_DIR}/AppositionSurface/Filter/SASDataFactory.cpp
 )
-
 add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
+target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Testing
 set (TESTING_SOURCES
@@ -148,9 +158,7 @@ set (TESTING_SOURCES
   MeshTestingUtils.cpp
   Testing_Support.cpp
 )
-
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})
-
 
 set(TESTING_DEPENDECIES
   EspinaCoreTesting
@@ -158,6 +166,16 @@ set(TESTING_DEPENDECIES
   EspinaFiltersTesting
   EspinaGUITesting
   EspinaTesting
+  ${EXTERNAL_LIBS_DEPENDENCIES}
+  )
+
+set(TESTING_DEPENDECIES
+  EspinaCoreTesting
+  EspinaExtensionsTesting
+  EspinaFiltersTesting
+  EspinaGUITesting
+  EspinaTesting
+  ${EXTERNAL_LIBS_DEPENDENCIES}
   )
 
 if (BUILD_UNIT_TESTS)
