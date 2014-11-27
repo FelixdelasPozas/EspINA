@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,14 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "View2DSettingsPanel.h"
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 View2DSettingsPanel::View2DSettingsPanel(View2D *view)
-: m_view(view)
+: m_view{view}
 {
   setupUi(this);
 
@@ -66,7 +66,6 @@ void View2DSettingsPanel::acceptChanges()
 //------------------------------------------------------------------------
 void View2DSettingsPanel::rejectChanges()
 {
-
 }
 
 //------------------------------------------------------------------------

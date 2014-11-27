@@ -14,20 +14,8 @@ create_test_sourcelist(VolumeBounds_Tests VolumeBounds_Tests.cpp # this file is 
   toString.cpp
 )
 
-set(LIB_DEPENDECIES
-  ${ITK_LIBRARIES}
-  ${QT_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-
-add_executable(VolumeBounds_Tests
-  ${VolumeBounds_Tests}
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/VolumeBounds.cpp
-  )
-target_link_libraries(VolumeBounds_Tests ${LIB_DEPENDECIES} )
+add_executable(VolumeBounds_Tests "" ${VolumeBounds_Tests} )
+target_link_libraries(VolumeBounds_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Volume Bounds: Default Constructor\"" VolumeBounds_Tests default_constructor)
 add_test("\"Volume Bounds: Bounds Constructor\""  VolumeBounds_Tests bounds_constructor)

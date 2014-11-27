@@ -26,8 +26,8 @@
  * 
  */
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
-#include "Tests/Unitary/Testing_Support.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
+#include "Tests/Testing_Support.h"
 
 #include <vtkSmartPointer.h>
 
@@ -42,43 +42,75 @@ int draw_implicit_function( int argc, char** argv )
 {
   bool pass = true;
 
- auto bg = 0;
- auto fg = 255;
+  auto bg = 0;
+  auto fg = 255;
 
- Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
- SparseVolume<ImageType> canvas(bounds);
+  Bounds bounds{-0.5, 3.5, -0.5, 3.5, -0.5, 3.5};
+  SparseVolume<ImageType> canvas(bounds);
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
-   cerr << "Initial values are not initialized to " << bg << endl;
-   pass = false;
- }
+  if (!canvas.editedRegions().isEmpty()) {
+    cerr << "Empty spare volume shouldn't have edited regions " << endl;
+    pass = false;
+  }
 
- Bounds lowerHalfVolume{-0.5, 3.5, -0.5, 3.5, -0.5, 1.5};
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-   cerr << "Initial Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
-   pass = false;
- }
 
- auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
- canvas.draw(brush, lowerHalfVolume, fg);
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(), bg)) {
+    cerr << "Initial values are not initialized to " << bg << endl;
+    pass = false;
+  }
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), fg, lowerHalfVolume)) {
-   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << fg << endl;
-   pass = false;
- }
+  Bounds lowerHalfVolume{-0.5, 3.5, -0.5, 3.5, -0.5, 1.5};
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
+    cerr << "Initial Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
+    pass = false;
+  }
 
- Bounds upperHalfVolume{-0.5, 3.5, -0.5, 3.5, 1.5, 3.5};
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(upperHalfVolume), bg, upperHalfVolume)) {
-   cerr << "Pixel values inside " << upperHalfVolume << " should be " << bg << endl;
-   pass = false;
- }
+  auto brush = vtkSmartPointer<vtkNaiveFunction>::New();
+  canvas.draw(brush, lowerHalfVolume, fg);
 
- canvas.draw(brush, lowerHalfVolume, bg);
+  if (canvas.editedRegions().size() != 1) {
+    cerr << "Unexpected number of edited regions" << endl;
+    pass = false;
+  }
+  else {
+    auto lowerRegion = canvas.editedRegions().first();
 
- if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
-   cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
-   pass = false;
- }
+    if (lowerRegion != lowerHalfVolume) {
+      cerr << "Unexpected edited regions" << lowerRegion << lowerHalfVolume <<  endl;
+      pass = false;
+    }
+  }
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), fg, lowerHalfVolume)) {
+    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << fg << endl;
+    pass = false;
+  }
+
+  Bounds upperHalfVolume{-0.5, 3.5, -0.5, 3.5, 1.5, 3.5};
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(upperHalfVolume), bg, upperHalfVolume)) {
+    cerr << "Pixel values inside " << upperHalfVolume << " should be " << bg << endl;
+    pass = false;
+  }
+
+  canvas.draw(brush, lowerHalfVolume, bg);
+
+  if (canvas.editedRegions().size() != 2) {
+    cerr << "Unexpected number of edited regions" << endl;
+    pass = false;
+  }
+  else {
+    auto lowerRegion = canvas.editedRegions().at(1);
+
+    if (lowerRegion != lowerHalfVolume) {
+      cerr << "Unexpected edited regions" << lowerRegion << lowerHalfVolume <<  endl;
+      pass = false;
+    }
+  }
+
+  if (!Testing_Support<ImageType>::Test_Pixel_Values(canvas.itkImage(lowerHalfVolume), bg, lowerHalfVolume)) {
+    cerr << "Pixel values inside " << lowerHalfVolume << " should be " << bg << endl;
+    pass = false;
+  }
 
   return !pass;
 }

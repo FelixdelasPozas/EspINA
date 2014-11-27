@@ -43,8 +43,8 @@ int channel_adapter_set_invalid_hue(int argc, char** argv )
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
 
-  FilterAdapterSPtr filter   = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
-  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
+  auto filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
+  auto channel = factory.createChannel(filter, 0);
 
   channel->setHue(-0.5);
   if (channel->hue() != 0.0) {

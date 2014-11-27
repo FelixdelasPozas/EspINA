@@ -13,7 +13,7 @@
    height="48"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.48.3.1 r9886"
+   inkscape:version="0.48.5 r10040"
    version="1.0"
    sodipodi:docname="from_slice.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
@@ -49,18 +49,6 @@
     </filter>
     <filter
        inkscape:collect="always"
-       id="filter4424"
-       x="-0.061657234"
-       width="1.1233145"
-       y="-5.2203125"
-       height="11.440625">
-      <feGaussianBlur
-         inkscape:collect="always"
-         stdDeviation="0.81567383"
-         id="feGaussianBlur4426" />
-    </filter>
-    <filter
-       inkscape:collect="always"
        id="filter4903"
        x="-0.079754988"
        width="1.15951"
@@ -71,6 +59,18 @@
          stdDeviation="1.076533"
          id="feGaussianBlur4905" />
     </filter>
+    <filter
+       inkscape:collect="always"
+       id="filter4007"
+       x="-0.22677096"
+       width="1.4535419"
+       y="-0.037800807"
+       height="1.0756016">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.6876482"
+         id="feGaussianBlur4009" />
+    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -79,17 +79,19 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="303.3124"
-     inkscape:cy="-99.495021"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="13.970712"
+     inkscape:cy="53.473085"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1440"
-     inkscape:window-height="880"
+     inkscape:window-width="1280"
+     inkscape:window-height="977"
      inkscape:window-x="-2"
-     inkscape:window-y="-3"
-     inkscape:window-maximized="1" />
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -98,7 +100,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -107,31 +109,38 @@
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:none;stroke:#000000;stroke-width:6.40000018;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;filter:url(#filter3217)"
+       style="fill:none;stroke:#000000;stroke-width:6.4000001;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:6.40000018, 6.40000018;stroke-dashoffset:3.20000008;filter:url(#filter3217)"
        id="rect3155"
        width="38.444946"
        height="36.959084"
        x="5.5814853"
        y="6.464591"
-       transform="matrix(1.0121529,0,0,1.0467056,-0.12286832,-1.7007446)" />
+       transform="matrix(1.0121529,0,0,1.0467056,-0.77764588,-1.7007446)" />
     <rect
-       style="fill:none;stroke:#edd400;stroke-width:6.58741951;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:none;stroke:#edd400;stroke-width:6.58741951;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:6.58741951, 6.58741951;stroke-dashoffset:3.29370975"
        id="rect2383"
        width="38.912163"
        height="38.68528"
-       x="4.8034825"
+       x="4.1487036"
        y="4.1312213" />
     <rect
-       style="fill:#008000;stroke:#008000;stroke-width:1.46022391000000007;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
+       style="fill:#000000;stroke:#000000;stroke-width:2.04996562;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;filter:url(#filter4007)"
+       id="rect3765-4"
+       width="7.2776322"
+       height="43.659271"
+       x="2.0983384"
+       y="2.6563904" />
+    <rect
+       style="fill:#edd400;stroke:#edd400;stroke-width:2.04996562;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
        id="rect3765"
-       width="5.2473607"
-       height="30.723543"
-       x="2.2563665"
-       y="8.140295" />
+       width="7.2776322"
+       height="43.659271"
+       x="1.7986252"
+       y="1.7565095" />
     <g
        id="g4893"
        style="fill:#000000;stroke:#000000;filter:url(#filter4903)"
-       transform="translate(0,0.34704571)">
+       transform="matrix(-1,0,0,1,46.091557,0.34704571)">
       <path
          style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.23796286;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0"
          d="m 19.770796,31.0638 c -2.2,-1.256898 -6.067188,-3.444875 -8.59375,-4.862169 C 8.6504832,24.784337 6.5836374,23.578976 6.584055,23.52305 6.585016,23.394354 23.714049,12.793271 23.771503,12.885814 c 0.02337,0.03763 -0.206931,0.883293 -0.511771,1.87924 -0.876008,2.862027 -1.095945,4.477989 -1.095945,8.052296 0,3.689692 0.221112,5.224463 1.211021,8.405863 0.370403,1.19041 0.611029,2.155715 0.534724,2.14512 -0.0763,-0.01067 -1.938736,-1.047634 -4.138736,-2.304533 z"
@@ -147,7 +156,7 @@
     </g>
     <g
        id="g4879"
-       transform="translate(0,0.34704571)">
+       transform="matrix(-1,0,0,1,46.091557,0.34704571)">
       <path
          inkscape:connector-curvature="0"
          id="path4631"

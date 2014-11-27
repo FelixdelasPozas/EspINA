@@ -13,31 +13,9 @@ include_directories(
   ${SUBJECT_DIR}
   )
 
-# qt4_wrap_cpp(SUBJECT_MOCS
-#   ${SUBJECT_DIR}/Category.h
-#   ${SUBJECT_DIR}/Data.h
-# )
+add_executable(Sample_Tests "" ${TEST_SOURCES})
 
-# set(SUBJECT_SOURCES
-#   ${SUBJECT_DIR}/Classification.cpp
-#   ${SUBJECT_DIR}/Category.cpp
-# )
-
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-add_executable(Sample_Tests
-  ${TEST_SOURCES}
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${SUBJECT_DIR}/Sample.cpp
-)
-
-target_link_libraries(Sample_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(Sample_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Sample: Set Name\""      Sample_Tests sample_set_name)
 add_test("\"Sample: Set Bounds\""    Sample_Tests sample_set_bounds)

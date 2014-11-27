@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "ViewItem.h"
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Input.h"
@@ -70,8 +71,11 @@ void ViewItem::changeOutput(InputSPtr input)
     disconnect(output().get(), SIGNAL(modified()),
                this, SLOT(onOutputModified()));
 
-    analysis()->removeFilterContentRelation(m_input->filter(), this);
-    analysis()->removeIfIsolated(m_input->filter());
+    if (analysis())
+    {
+      analysis()->removeFilterContentRelation(m_input->filter(), this);
+      analysis()->removeIfIsolated(m_input->filter());
+    }
   }
 
   m_input = input;
@@ -81,9 +85,14 @@ void ViewItem::changeOutput(InputSPtr input)
     connect(output().get(), SIGNAL(modified()),
             this, SLOT(onOutputModified()));
 
-    analysis()->addIfNotExists(m_input->filter());
-    analysis()->addFilterContentRelation(m_input->filter(), this);
+    if (analysis())
+    {
+      analysis()->addIfNotExists(m_input->filter());
+      analysis()->addFilterContentRelation(m_input->filter(), this);
+    }
   }
+
+  onOutputModified();
 }
 
 //------------------------------------------------------------------------

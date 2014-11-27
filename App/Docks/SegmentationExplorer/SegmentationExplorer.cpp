@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,18 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "SegmentationExplorer.h"
-
 #include "Dialogs/SegmentationInspector/SegmentationInspector.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorerLayout.h"
-// #include "LayoutComposition.h"
-// #include "LayoutLocation.h"
 #include "Layouts/ClassificationLayout.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
-
-// ESPINA
-// #include <Undo/RemoveSegmentation.h>
 
 // Qt
 #include <QContextMenuEvent>
@@ -48,41 +43,39 @@ class SegmentationExplorer::GUI
 , public Ui::SegmentationExplorer
 {
 public:
-  GUI();
+	/** \brief GUI class constructor.
+	 *
+	 */
+  GUI()
+  {
+		setupUi(this);
+		view->setSortingEnabled(true);
+		view->sortByColumn(0, Qt::AscendingOrder);
+
+		showInformationButton->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
+	}
 };
 
-SegmentationExplorer::GUI::GUI()
-{
-  setupUi(this);
-  view->setSortingEnabled(true);
-  view->sortByColumn(0, Qt::AscendingOrder);
-
-  showInformationButton->setIcon(
-    qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
-}
-
-
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
-                                           ModelFactorySPtr factory,
-                                           ViewManagerSPtr  viewManager,
-                                           QUndoStack      *undoStack,
-                                           QWidget         *parent)
-: DockWidget   (parent)
-, m_baseModel  (model)
-, m_viewManager(viewManager)
-, m_undoStack  (undoStack)
-, m_gui        (new GUI())
-, m_layout     (nullptr)
+SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr          model,
+                                           ModelFactorySPtr          factory,
+                                           FilterDelegateFactorySPtr delegateFactory,
+                                           ViewManagerSPtr           viewManager,
+                                           QUndoStack               *undoStack,
+                                           QWidget                  *parent)
+: DockWidget   {parent}
+, m_baseModel  {model}
+, m_viewManager{viewManager}
+, m_undoStack  {undoStack}
+, m_gui        {new GUI()}
+, m_layout     {nullptr}
 {
   setObjectName("SegmentationExplorer");
 
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, m_viewManager, m_undoStack));
-//   addLayout("Location",    new LocationLayout   (m_gui->view, m_baseModel, m_viewManager, m_undoStack));
-//   addLayout("Composition", new CompositionLayout(m_gui->view, m_baseModel, m_viewManager, m_undoStack));
+  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, delegateFactory, m_viewManager, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -104,13 +97,6 @@ SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr model,
   setWidget(m_gui);
 
   m_gui->view->installEventFilter(this);
-
-  //TODO
-//   QCompleter *completer = new QCompleter(&SegmentationTags::TagModel, this);
-//   completer->setCaseSensitivity(Qt::CaseInsensitive);
-//   completer->setCompletionMode(QCompleter::InlineCompletion);
-//   completer->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-//   m_gui->searchText->setCompleter(completer);
   m_gui->tagsLabel->setVisible(false);
   m_gui->selectedTags->setVisible(false);
 }
@@ -121,13 +107,19 @@ SegmentationExplorer::~SegmentationExplorer()
 //   qDebug() << "********************************************************";
 //   qDebug() << "          Destroying Segmentation Explorer";
 //   qDebug() << "********************************************************";
-  for(auto layout : m_layouts) delete layout;
+  for(auto layout : m_layouts)
+  {
+  	delete layout;
+  }
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::reset()
 {
-  for(auto layout : m_layouts) layout->reset();
+  for(auto layout : m_layouts)
+  {
+  	layout->reset();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -249,7 +241,9 @@ void SegmentationExplorer::deleteSelectedItems()
 void SegmentationExplorer::showSelectedItemsInformation()
 {
   if (m_layout)
+  {
     m_layout->showSelectedItemsInformation();
+  }
 
   return;
 }
@@ -274,7 +268,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   ViewItemAdapterList selection;
 
   QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
-  foreach(QModelIndex index, selectedIndexes)
+  for(auto index: selectedIndexes)
   {
     auto item = m_layout->item(index);
     if (ItemAdapter::Type::SEGMENTATION == item->type())
@@ -289,21 +283,6 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   m_viewManager->selection()->set(selection);
   this->blockSignals(false);
 }
-
-// //------------------------------------------------------------------------
-// void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
-// {
-//   m_viewManager->updateSegmentationRepresentations(list);
-//   m_viewManager->updateViews();
-// }
-// 
-// //------------------------------------------------------------------------
-// void SegmentationExplorer::updateChannelRepresentations(ChannelList list)
-// {
-//   m_viewManager->updateChannelRepresentations(list);
-//   m_viewManager->updateViews();
-// }
-// 
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSearchFilter()

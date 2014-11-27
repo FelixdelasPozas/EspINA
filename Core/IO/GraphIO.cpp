@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -18,9 +18,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-#include "GraphIO.h"
 
+// Boost
 #include <boost/graph/adjacency_list_io.hpp>
+
+// ESPINA
+#include "GraphIO.h"
 #include "Core/Analysis/Graph/DirectedGraph.h"
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
@@ -30,14 +33,15 @@
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::Graph;
 
-namespace ESPINA {
+namespace ESPINA
+{
 
   const std::string CHANNEL_TYPE            = "trapezium";
   const std::string SEGMENTATION_TYPE       = "ellipse";
   const std::string FILTER_TYPE             = "box";
   const std::string SAMPLE_TYPE             = "invtriangle";
 
-//------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   std::string type(const PersistentSPtr item)
   {
     if (dynamic_cast<SamplePtr>(item.get()))
@@ -57,7 +61,7 @@ namespace ESPINA {
     }
   }
 
-//------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::Vertex& v)
   {
     out << v->uuid().toString().toStdString() << std::endl;
@@ -68,7 +72,7 @@ namespace ESPINA {
     return out;
   }
 
-//------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   VertexType vertexType(const std::string& shape)
   {
     if (shape == SAMPLE_TYPE)
@@ -89,9 +93,8 @@ namespace ESPINA {
     }
   }
 
-
-//------------------------------------------------------------------------
-std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
+	//------------------------------------------------------------------------
+	std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
   {
     const int MAX = 10000;
     char buff[MAX];
@@ -117,14 +120,14 @@ std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
     return in;
   }
 
-//------------------------------------------------------------------------
+	//------------------------------------------------------------------------
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::EdgeProperty& e)
   {
     out << e.relationship << " ";
     return out;
   }
 
-//------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   static std::istream& operator>>(std::istream& in, DirectedGraph::EdgeProperty& e)
   {
     in >> e.relationship;

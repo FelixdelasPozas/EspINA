@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -24,18 +24,18 @@
 // Qt
 #include <QDialog>
 #include <QRadioButton>
-#include <qpicture.h>
-#include <qpaintengine.h>
-#include <qbitmap.h>
+#include <QPicture>
+#include <QPaintEngine>
+#include <QBitmap>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 AdaptiveEdgesDialog::AdaptiveEdgesDialog(QWidget *parent)
-: QDialog(parent)
-, m_adaptiveEdgesEnabled(false)
-, m_backgroundColor(0)
-, m_threshold(50)
+: QDialog               {parent}
+, m_adaptiveEdgesEnabled{false}
+, m_backgroundColor     {0}
+, m_threshold           {50}
 {
   setupUi(this);
 

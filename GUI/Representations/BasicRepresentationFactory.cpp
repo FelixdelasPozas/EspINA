@@ -20,7 +20,7 @@
  */
 
 // ESPINA
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include "BasicRepresentationFactory.h"
 #include "CrosshairRepresentation.h"
@@ -28,8 +28,8 @@
 #include "ContourRepresentation.h"
 #include "MeshRepresentation.h"
 #include "SmoothedMeshRepresentation.h"
-#include "VolumetricRepresentation.h"
-#include "VolumetricGPURepresentation.h"
+#include "VolumetricRepresentation.hxx"
+#include "VolumetricGPURepresentation.hxx"
 #include "SliceCachedRepresentation.h"
 
 using namespace ESPINA;
@@ -52,22 +52,22 @@ RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(Outpu
 {
   RepresentationSPtr representation;
 
-  if (type == ChannelSliceRepresentation::TYPE)
+  if (hasVolumetricData(output))
   {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr{new ChannelSliceRepresentation(volume, nullptr)};
-  }
+    auto volume = volumetricData(output);
 
-  if (type == CrosshairRepresentation::TYPE)
-  {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr { new CrosshairRepresentation(volume, nullptr) };
-  }
-
-  if (type == ChannelSliceCachedRepresentation::TYPE)
-  {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
-    representation = RepresentationSPtr { new ChannelSliceCachedRepresentation(volume, nullptr) };
+    if (ChannelSliceRepresentation::TYPE == type)
+    {
+      representation = std::make_shared<ChannelSliceRepresentation>(volume, nullptr);
+    }
+    else if (CrosshairRepresentation::TYPE == type)
+    {
+      representation = std::make_shared<CrosshairRepresentation>(volume, nullptr);
+    }
+    else if (ChannelSliceCachedRepresentation::TYPE == type)
+    {
+      representation = std::make_shared<ChannelSliceCachedRepresentation>(volume, nullptr);
+    }
   }
 
   return representation;
@@ -94,73 +94,43 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
 {
   RepresentationSPtr representation;
 
-  if (type == SegmentationSliceRepresentation::TYPE)
+  if (hasVolumetricData(output))
   {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
+    auto volume = volumetricData(output);
 
-    if (volume)
+    if (SegmentationSliceRepresentation::TYPE == type)
     {
-      representation = RepresentationSPtr{new SegmentationSliceRepresentation(volume, nullptr)};
+      representation = std::make_shared<SegmentationSliceRepresentation>(volume, nullptr);
+    }
+    else if (ContourRepresentation::TYPE == type)
+    {
+      representation = std::make_shared<ContourRepresentation>(volume, nullptr);
+    }
+    else if (VolumetricRepresentation<itkVolumeType>::TYPE == type)
+    {
+      representation = std::make_shared<VolumetricRepresentation<itkVolumeType>>(volume, nullptr);
+    }
+    else if (VolumetricGPURepresentation<itkVolumeType>::TYPE == type)
+    {
+      representation = std::make_shared<VolumetricGPURepresentation<itkVolumeType>>(volume, nullptr);
+    }
+    else if (SegmentationSliceCachedRepresentation::TYPE == type)
+    {
+      representation = std::make_shared<SegmentationSliceCachedRepresentation>(volume, nullptr);
     }
   }
 
-  if (type == ContourRepresentation::TYPE)
+  if (hasMeshData(output))
   {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
+    auto mesh = meshData(output);
 
-    if (volume)
+    if (MeshRepresentation::TYPE == type)
     {
-      representation = RepresentationSPtr{new ContourRepresentation(volume, nullptr)};
+      representation = std::make_shared<MeshRepresentation>(mesh, nullptr);
     }
-  }
-
-  if (type == MeshRepresentation::TYPE)
-  {
-    MeshDataSPtr mesh = meshData(output);
-
-    if (mesh)
+    else if (SmoothedMeshRepresentation::TYPE == type)
     {
-      representation = RepresentationSPtr{new MeshRepresentation(mesh, nullptr)};
-    }
-  }
-
-  if (type == SmoothedMeshRepresentation::TYPE)
-  {
-    MeshDataSPtr mesh = meshData(output);
-
-    if (mesh)
-    {
-      representation = RepresentationSPtr{new SmoothedMeshRepresentation(mesh, nullptr)};
-    }
-  }
-
-  if (type == VolumetricRepresentation<itkVolumeType>::TYPE)
-  {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
-
-    if (volume)
-    {
-      representation = RepresentationSPtr{ new VolumetricRepresentation<itkVolumeType>(volume, nullptr)};
-    }
-  }
-
-  if (type == VolumetricGPURepresentation<itkVolumeType>::TYPE)
-  {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
-
-    if (volume)
-    {
-      representation = RepresentationSPtr{ new VolumetricGPURepresentation<itkVolumeType>(volume, nullptr)};
-    }
-  }
-
-  if (type == SegmentationSliceCachedRepresentation::TYPE)
-  {
-    DefaultVolumetricDataSPtr volume = volumetricData(output);
-
-    if (volume)
-    {
-      representation = RepresentationSPtr { new SegmentationSliceCachedRepresentation(volume, nullptr) };
+      representation = std::make_shared<SmoothedMeshRepresentation>(mesh, nullptr);
     }
   }
 

@@ -29,107 +29,185 @@
 #ifndef ESPINA_WORKER_H
 #define ESPINA_WORKER_H
 
-#include <QObject>
+#include "Core/EspinaCore_Export.h"
 
+// ESPINA
+#include <Core/EspinaTypes.h>
+
+// Qt
+#include <QObject>
 #include <QMutex>
 #include <QWaitCondition>
 #include <QReadWriteLock>
-#include <Core/EspinaTypes.h>
+
+// C++
+#include <cstdint>
 
 namespace ESPINA {
 
-  enum Priority { VERY_LOW, LOW, NORMAL, HIGH, VERY_HIGHT };
+  enum class Priority: std::int8_t { VERY_LOW = 0, LOW = 1, NORMAL = 2, HIGH = 3, VERY_HIGH = 4 };
 
   class Task;
   using TaskPtr  = Task *;
   using TaskSPtr = std::shared_ptr<Task>;
 
-  class Task 
+  class EspinaCore_EXPORT Task
   : public QObject
   {
     Q_OBJECT
   public:
     typedef unsigned int Id;
   public:
+    /** \brief Task class constructor.
+     * \param[in] scheduler, scheduler smart pointer.
+     *
+     */
     explicit Task(SchedulerSPtr scheduler);
+
+    /** \brief Task class virtual destructor.
+     *
+     */
     virtual ~Task();
 
-    void setId(Id id) { m_id = id;}
+    /** \brief Sets task id.
+     * \param[in] id.
+     *
+     */
+    void setId(Id id)
+    { m_id = id;}
 
-    Id id() const { return m_id;}
+    /** \brief Returns task id.
+     *
+     */
+    Id id() const
+    { return m_id;}
 
+    /** \brief Sets task description.
+     * \param[in] description.
+     *
+     */
     void setDescription(const QString& description)
     {
       QWriteLocker lock(&m_descriptionLock);
       m_description = description;
     }
 
+    /** \brief Returns task description.
+     *
+     */
     QString description() const
     {
       QReadLocker lock(&m_descriptionLock);
       return m_description;
     }
- 
+
     /** \brief Pause worker execution
-     * 
+     *
      *  It is up to the worker to implement the mechanism needed to interrupt its execution
      *  Paused workers will ignore signals on its slots
      */
     virtual void pause();
 
     /** \brief Resume worker execution
-     * 
+     *
      *  It is up to the worker to implement the mechanism needed to resume its execution
      */
     virtual void resume();
 
+    /** \brief Returns true if the task is running but has been signaled to pause.
+     *
+     */
     virtual bool isPendingPause() const;
 
-    bool isRunning() const {return m_isThreadAttached && !isPendingPause();}
+    /** \brief Returns true if the task is running.
+     *
+     */
+    bool isRunning() const
+    {return m_isThreadAttached && !isPendingPause();}
 
-    bool isAborted() const { return m_isAborted; }
+    /** \brief Returns true if the task has been aborted.
+     *
+     */
+    bool isAborted() const
+    { return m_isAborted; }
 
-    bool hasFinished() const { return m_hasFinished; }
+    /** \brief Returns true if the task has finished its execution.
+     *
+     */
+    bool hasFinished() const
+    { return m_hasFinished; }
 
-    int priority() const { return m_priority; }
+    /** \brief Returns task priority.
+     *
+     */
+    Priority priority() const
+    { return m_priority; }
 
-    void setHidden(bool hidden) { m_hidden = hidden; }
+    /** \brief Sets the task as hidden.
+     * \param[in] hidden, true to set as hidden, false otherwise.
+     *
+     * Scheduler won't signal any action regarding hidden tasks.
+     *
+     */
+    void setHidden(bool hidden)
+    { m_hidden = hidden; }
 
-    bool isHidden() const { return m_hidden; }
+    /** \brief Returns true if the task is a hidden task.
+     *
+     */
+    bool isHidden() const
+    { return m_hidden; }
 
-    bool isPaused() const { return m_isPaused; }
+    /** \brief Returns true if the task is paused.
+     *
+     */
+    bool isPaused() const
+    { return m_isPaused; }
 
-    /** \brief The task is waiting waiting to another process to finished
+    /** \brief The task is waiting waiting to another process to finish.
      *
      */
     bool isWaiting() const {return m_isWaiting; }
 
-    // Need to be public so we can reuse itkProgressReporters
+    /** \brief Emits progress signal.
+     *
+     * NOTE: Need to be public so we can reuse itkProgressReporters.
+     */
     void reportProgress(int value)
     { emit progress(value); }
 
 
   public slots:
-    void setPriority(const int value);
+		/** \brief Sets task priority.
+		 * \param[in] value, priority level.
+		 *
+		 */
+    void setPriority(Priority value);
 
-    /** \brief Notify the scheduler this task is ready to be executed
-     * 
-     *  From this time, it is reponsability of the scheduler to active this task
+    /** \brief Notify the scheduler this task is ready to be executed.
+     *
+     *  From this time, it is responsibility of the scheduler to active this task.
      */
     static void submit(TaskSPtr task);
 
-    /** \brief Abort task execution
-     * 
+    /** \brief Abort task execution.
+     *
      *  It is up to the task to implement the mechanism needed to pause, resume or abort its execution
      */
     void abort();
 
   protected:
+    /** \brief Returns true if the task has not been signaled to abort or pause.
+     *
+     */
     bool canExecute();
 
+    /** \brief Executes the task.
+     *
+     */
     virtual void run() = 0;
 
-    /** \brief Change the waiting state of the task
+    /** \brief Change the waiting state of the task.
      *
      *  Usually a task should change its state before executing potentially blocking calls
      *  and restore it after the call itself so the scheduler may execute other pending tasks
@@ -137,6 +215,9 @@ namespace ESPINA {
     void setWaiting(bool value)
     { m_isWaiting = value; }
 
+    /** \brief Sets the task as finished.
+     * \param[in] value, finished value.
+     */
     void setFinished(bool value)
     {
       m_hasFinished = value;
@@ -145,20 +226,42 @@ namespace ESPINA {
 
     /** \brief Method to be executed when a task is aborted
      *
-     *  Overload this method when your task needs to do some proeccesing when it is aborted
+     *  Overload this method when your task needs to do some processing when it is aborted
      */
-    virtual void onAbort() {}
+    virtual void onAbort()
+    {}
 
   protected slots:
+		/** \brief Helper method to set some values after execution.
+		 *
+		 */
     void runWrapper();
 
   protected:
+    /** \brief Pauses the task from the scheduler.
+     *
+     */
     void dispatcherPause();
+
+    /** \brief Resumes the task from the scheduler.
+     *
+     */
     void dispatcherResume();
+
+    /** \brief Returns true if the scheduler paused the task.
+     *
+     */
     bool isDispatcherPaused();
+
+    /** \brief Helper method to set some values before execution.
+     *
+     */
     void prepareToRun();
 
   private slots:
+		/** \brief Starts the thread.
+		 *
+		 */
     void start();
 
   signals:
@@ -171,7 +274,7 @@ namespace ESPINA {
     SchedulerSPtr m_scheduler;
 
   private:
-    int m_priority;
+    Priority m_priority;
 
     bool m_pendingPause;
     bool m_pendingUserPause;

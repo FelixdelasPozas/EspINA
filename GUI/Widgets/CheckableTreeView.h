@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef CHECKABLETREEVIEW_H
 #define CHECKABLETREEVIEW_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// Qt
 #include <QTreeView>
 
 class EspinaGUI_EXPORT CheckableTreeView
@@ -31,10 +31,20 @@ class EspinaGUI_EXPORT CheckableTreeView
 {
   Q_OBJECT
 public:
-  explicit CheckableTreeView(QWidget* parent = 0);
+  /** \brief CheckableTreeView class constructor.
+   * \param[in] parent, raw pointer of the QWidget parent of this one.
+   */
+  explicit CheckableTreeView(QWidget* parent = nullptr);
+
+  /** \brief CheckableTreeView class virtual destructor.
+   *
+   */
   virtual ~CheckableTreeView();
 
-  virtual void mouseReleaseEvent(QMouseEvent* event);
+  /** \brief Overrides QTreeView::mouseReleaseEvent().
+   *
+   */
+  virtual void mouseReleaseEvent(QMouseEvent* event) override;
 
 signals:
   void itemStateChanged(const QModelIndex &);

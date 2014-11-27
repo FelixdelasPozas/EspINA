@@ -25,22 +25,27 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #ifndef ESPINA_OUTPUT_H
 #define ESPINA_OUTPUT_H
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPINA
 #include "Core/EspinaTypes.h"
 #include "Core/Analysis/Data.h"
 #include <Core/Utils/NmVector3.h>
 
+// Qt
 #include <QMap>
 #include <QXmlStreamWriter>
 
 class QDir;
+
 namespace ESPINA
 {
+
+  struct Invalid_Output_Expection{};
+  struct Unavailable_Output_Data_Exception {};
 
   class EspinaCore_EXPORT Output
   : public QObject
@@ -59,63 +64,134 @@ namespace ESPINA
     using DataSList = QList<DataSPtr>;
 
   public:
-    explicit Output(FilterPtr filter, const Output::Id& id);
-    virtual ~Output();
+    /** \brief Output class constructor.
+     * \param[in] filter filter object smart pointer.
+     * \param[in] id Output::Id specifier.
+     *
+     */
+    explicit Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing);
 
+    /** \brief Output class destructor.
+     *
+     */
+    virtual ~Output() override;
+
+    /** \brief Returns the filter owner of this output.
+     *
+     */
     FilterPtr filter() const
     { return m_filter; }
 
+    /** \brief Returns this output's id.
+     *
+     */
     Id id() const
     { return m_id; }
 
+    /** \brief Sets the spacing.
+     * \param[in] spacing
+     *
+     */
     void setSpacing(const NmVector3& spacing);
 
+    /** \brief Returns the spacing.
+     *
+     */
     NmVector3 spacing() const;
 
+    /** \brief Returns a snapshot data for this output.
+     * \param[in]  storage temporal storage object where data files will be saved.
+     * \param[out] xml     information of the output data in xml format.
+     * \param[in]  path    data snapshots path
+     *
+     */
     Snapshot snapshot(TemporalStorageSPtr storage,
                       QXmlStreamWriter       &xml,
-                      const QString          &prefix) const;
+                      const QString          &path) const;
 
+    /** \brief Returns true if this output is valid.
+    *
+    */
     bool isValid() const;
 
+    /** \brief Returns true if this output has been modified.
+     *
+     */
     bool isEdited() const;
 
+    /** \brief Clears the mofications made to this output.
+     *
+     */
     void clearEditedRegions();
 
-//     /// restore output's edited regions information from cache
-//     void restoreEditedRegions(const QDir &cacheDir, const QString &ouptutId);
-
+    /** \brief Sets a data object for this output.
+     * \param[in] data data object smart pointer.
+     *
+     */
     void setData(DataSPtr data);
 
+    /** \brief Removes a data object from this output.
+     *
+     */
     void removeData(const Data::Type& type);
 
-    DataSPtr data(const Data::Type& type) const;
+    /** \brief Returns the data of the specified type.
+     * \param[in] type data type.
+     *
+     */
+    DataSPtr data(const Data::Type& type) const throw (Unavailable_Output_Data_Exception);
 
+    /** \brief Returns true if the output has a data of the specified type.
+     * \param[in] type data type.
+     *
+     */
     bool hasData(const Data::Type& type) const;
 
-    /** \brief Request necessary pipeline execution to update this output
+    /** \brief Returns the number of valid Data in the output object.
+     *
+     */
+    unsigned int numberOfDatas() const;
+
+    /** \brief Request necessary pipeline execution to update output data
      *
      */
     void update();
 
-    bool hasToBeSaved() const;
+    /** \brief Request necessary pipeline execution to update output data of given type
+     *
+     */
+    void update(const Data::Type &type);
 
-//     void markToSave(bool value)
-//     { m_hasToBeSaved = value; }
+    /** \brief Returns the bounds of the output.
+     *
+     * TODO: Representation may have different bounds, in which case,
+     * this function will be needed to represent the bounding box of all those regions
+     *
+     */
+    Bounds bounds() const;
 
-    // TODO: Representation may have different bounds, in which case,
-    // this function will be needed to represent the bounding box of all those regions
-    virtual Bounds bounds() const;
-
+    /** \brief Returns the time stamp of the last modification.
+     *
+     */
     TimeStamp lastModified()
     { return m_timeStamp; }
 
-    // NOTE: Temporal solution to change output when filters are updated
-    void updateModificationTime() 
+    /** \brief Increments modification time for the output.
+     *
+     */
+    void updateModificationTime()
     { m_timeStamp = s_tick++; }
 
-  protected slots:
-    void onDataChanged(); // former onRepresentationChange
+  private slots:
+    /** \brief Emits modification signal for this object.
+     *
+     */
+    void onDataChanged();
+
+    /** \brief Returns true if the output need to save data to disk.
+     *
+     */
+    bool isSegmentationOutput() const;
 
   signals:
     void modified();
@@ -130,13 +206,27 @@ namespace ESPINA
 
     TimeStamp m_timeStamp;
 
-//     bool              m_hasToBeSaved;
     EditedRegionSList m_editedRegions;
 
-    QMap<Data::Type, DataProxySPtr> m_data;
+    QMap<Data::Type, DataSPtr> m_data;
   };
 
   using OutputIdList = QList<Output::Id>;
+
+  template <class T>
+  std::shared_ptr<T> EspinaCore_EXPORT outputData(OutputSPtr output, DataUpdatePolicy policy) {
+    auto type = T::TYPE;
+
+    if (policy == DataUpdatePolicy::Request)
+    {
+      output->update(type);
+    }
+
+    auto data = output->data(type);
+
+    return std::dynamic_pointer_cast<T>(data);
+  }
+
 } // namespace ESPINA
 
 #endif // ESPINA_OUTPUT_H

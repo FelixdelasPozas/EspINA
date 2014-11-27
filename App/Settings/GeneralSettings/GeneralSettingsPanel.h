@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,37 +22,69 @@
 #ifndef ESPINA_GENERAL_SETTINGS_PANEL_H
 #define ESPINA_GENERAL_SETTINGS_PANEL_H
 
+// ESPINA
 #include <Support/Settings/SettingsPanel.h>
+#include "GeneralSettings.h"
+
+// Qt
 #include <ui_GeneralSettingsPanel.h>
 
-#include "Settings/GeneralSettings/GeneralSettings.h"
-
-namespace ESPINA {
+namespace ESPINA
+{
 
   class GeneralSettingsPanel
   : public SettingsPanel
   , Ui::GeneralSettingsPanel
   {
   public:
+  	/** \brief GeneralSettinsPanel class constructor.
+  	 * \param[in] settings, GeneralSettings object smart pointer.
+  	 *
+  	 */
     explicit GeneralSettingsPanel(GeneralSettingsSPtr settings);
+
+    /** \brief GeneralSettingsPanel class virtual destructor.
+     *
+     */
     virtual ~GeneralSettingsPanel();
 
-    virtual const QString shortDescription()
+    /** \brief Overrides SettingsPanel::shortDescription().
+     *
+     */
+    virtual const QString shortDescription() override
     {return "Session";}
 
-    virtual const QString longDescription()
+    /** \brief Overrides SettingsPanel::longDescription().
+     *
+     */
+    virtual const QString longDescription() override
     {return "Session";}
 
-    virtual const QIcon icon()
+    /** \brief Overrides SettingsPanel::icon().
+     *
+     */
+    virtual const QIcon icon() override
     {return QIcon(":/espina/editor.ico");}
 
-    virtual void acceptChanges();
+    /** \brief Overrides SettingsPanel::acceptChanges().
+     *
+     */
+    virtual void acceptChanges() override;
 
-    virtual void rejectChanges();
+    /** \brief Overrides SettingsPanel::rejectChanges().
+     *
+     */
+    virtual void rejectChanges() override;
 
-    virtual bool modified() const;
+    /** \brief Overrides SettingsPanel::modified().
+     *
+     */
+    virtual bool modified() const override;
 
-    virtual SettingsPanelPtr clone();
+    /** \brief Overrides SettingsPanel::clone().
+     *
+     */
+    virtual SettingsPanelPtr clone() override;
 
   private:
     GeneralSettingsSPtr m_settings;

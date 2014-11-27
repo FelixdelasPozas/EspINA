@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014
     Jorge Pe�a Pastor<jpena@cesvima.upm.es>,
     Felix de las Pozas<fpozas@cesvima.upm.es>
@@ -20,74 +20,62 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ModelAdapterUtils.h"
-
-#include <QString>
-
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 
+// Qt
+#include <QString>
+
 using namespace ESPINA;
 
-//------------------------------------------------------------------------
-void ESPINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory)
-{
-  if (analysis)
-  {
-    model->reset();
-
-    QMap<FilterSPtr,       FilterAdapterSPtr>       filters;
-    QMap<SegmentationSPtr, SegmentationAdapterSPtr> segmentations;
-
-    QMap<PersistentSPtr, ItemAdapterSPtr> items;
-
-    // Adaptar la clasificacion
-    ClassificationAdapterSPtr classification{new ClassificationAdapter(analysis->classification())};
-    model->setClassification(classification);
-
-    // Adapt Samples
-    for(auto sample : analysis->samples())
-    {
-      auto adapted = factory->adaptSample(sample);
-      items[sample] = adapted;
-      model->add(adapted);
-    }
-    // Adapt channels --> adapt non adapted filters
-    for(auto channel : analysis->channels())
-    {
-      FilterAdapterSPtr filter = filters.value(channel->filter(), FilterAdapterSPtr());
-      if (!filter)
-      {
-        filter = factory->adaptFilter(channel->filter());
-      }
-
-      auto adapted = factory->adaptChannel(filter, channel);
-      items[channel] = adapted;
-      model->add(adapted);
-    }
-    // Adapt segmentation --> adapt non adapted filters
-    for(auto segmentation : analysis->segmentations())
-    {
-      FilterAdapterSPtr filter = filters.value(segmentation->filter(), FilterAdapterSPtr());
-      if (!filter)
-      {
-        filter = factory->adaptFilter(segmentation->filter());
-      }
-
-      model->add(factory->adaptSegmentation(filter, segmentation));
-    }
-
-    for(auto relation : analysis->relationships()->edges())
-    {
-      ItemAdapterSPtr source = items[relation.source];
-      ItemAdapterSPtr target = items[relation.target];
-      RelationName name(relation.relationship.c_str());
-
-      model->addRelation(source, target, name);
-    }
-  }
-}
+// //------------------------------------------------------------------------
+// void ESPINA::ModelAdapterUtils::setAnalysis(ModelAdapterSPtr model, AnalysisSPtr analysis, ModelFactorySPtr factory)
+// {
+//   if (analysis)
+//   {
+//     model->reset();
+//
+//     QMap<SegmentationSPtr, SegmentationAdapterSPtr> segmentations;
+//
+//     QMap<PersistentSPtr, ItemAdapterSPtr> items;
+//
+//     // Adaptar la clasificacion
+//     ClassificationAdapterSPtr classification{new ClassificationAdapter(analysis->classification())};
+//     model->setClassification(classification);
+//
+//     // Adapt Samples
+//     for(auto sample : analysis->samples())
+//     {
+//       auto adapted = factory->adaptSample(sample);
+//       items[sample] = adapted;
+//       model->add(adapted);
+//     }
+//     // Adapt channels
+//     for(auto channel : analysis->channels())
+//     {
+//       auto adapted = factory->adaptChannel(channel);
+//       items[channel] = adapted;
+//       model->add(adapted);
+//     }
+//     // Adapt segmentation
+//     for(auto segmentation : analysis->segmentations())
+//     {
+//       model->add(factory->adaptSegmentation(segmentation));
+//     }
+//
+//     for(auto relation : analysis->relationships()->edges())
+//     {
+//       ItemAdapterSPtr source = items[relation.source];
+//       ItemAdapterSPtr target = items[relation.target];
+//       RelationName name(relation.relationship.c_str());
+//
+//       model->addRelation(source, target, name);
+//     }
+//   }
+// }
 
 //------------------------------------------------------------------------
 DefaultVolumetricDataSPtr ESPINA::ModelAdapterUtils::volumetricData(OutputSPtr output)

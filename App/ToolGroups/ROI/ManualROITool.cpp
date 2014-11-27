@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,8 +22,8 @@
 #include "ManualROITool.h"
 #include "ROITools.h"
 #include <GUI/Widgets/SliderAction.h>
-#include <Tools/Brushes/CircularBrushSelector.h>
-#include <Tools/Brushes/SphericalBrushSelector.h>
+#include <GUI/Selectors/CircularBrushSelector.h>
+#include <GUI/Selectors/SphericalBrushSelector.h>
 #include <Tools/Brushes/CircularBrushROISelector.h>
 #include <Tools/Brushes/SphericalBrushROISelector.h>
 #include <Undo/ROIUndoCommand.h>
@@ -42,8 +42,8 @@ ManualROITool::ManualROITool(ModelAdapterSPtr model,
 : ManualEditionTool{model, viewManager}
 , m_undoStack      {undoStack}
 , m_toolGroup      {toolGroup}
+, m_color          {Qt::yellow}
 {
-
   disconnect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
              this,                          SLOT(  drawStroke(Selector::Selection)));
   disconnect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
@@ -139,8 +139,8 @@ ManualROITool::ManualROITool(ModelAdapterSPtr model,
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
 
-  connect(m_viewManager.get(), SIGNAL(ROIChanged()),
-          this,                SLOT(ROIChanged()));
+  connect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
+          this,        SLOT(ROIChanged()));
 }
 
 //-----------------------------------------------------------------------------
@@ -149,9 +149,20 @@ ManualROITool::~ManualROITool()
 }
 
 //-----------------------------------------------------------------------------
+void ManualROITool::setColor(const QColor& color)
+{
+  m_color = color;
+
+  if (m_currentSelector)
+  {
+    m_currentSelector->setBrushColor(color);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void ManualROITool::ROIChanged()
 {
-  bool hasROI = (m_toolGroup->currentROI() != nullptr);
+  bool hasROI = m_toolGroup->hasValidROI();
 
   auto disc = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
   disc->setHasROI(hasROI);
@@ -167,9 +178,9 @@ void ManualROITool::changeSelector(QAction* action)
   setControlVisibility(true);
 
   m_currentSelector = m_drawTools[action];
-  m_currentSelector->setBrushColor(Qt::yellow);
+  m_currentSelector->setBrushColor(m_color);
   m_currentSelector->setRadius(m_radiusWidget->value());
-  updateReferenceItem(m_viewManager->selection());
+  updateReferenceItem();
 
   m_viewManager->setEventHandler(m_currentSelector);
 }
@@ -177,7 +188,7 @@ void ManualROITool::changeSelector(QAction* action)
 //-----------------------------------------------------------------------------
 void ManualROITool::selectorInUse(bool value)
 {
-  if (!value)
+  if (!value && (m_currentSelector != nullptr))
   {
     emit stopDrawing(m_currentSelector->referenceItem(), m_hasEnteredEraserMode);
 
@@ -218,15 +229,9 @@ void ManualROITool::drawingModeChanged(bool isDrawing)
 //------------------------------------------------------------------------
 void ManualROITool::drawStroke(Selector::Selection selection)
 {
-  if(m_toolGroup->currentROI() == nullptr)
-    m_undoStack->beginMacro("Create Region Of Interest");
-  else
-    m_undoStack->beginMacro("Modify Region Of Interest");
+  emit roiDefined(selection);
 
-  m_undoStack->push(new ModifyROIUndoCommand{m_toolGroup, selection.first().first});
-  m_undoStack->endMacro();
-
-  updateReferenceItem(m_viewManager->selection());
+  updateReferenceItem();
 }
 
 //-----------------------------------------------------------------------------
@@ -236,23 +241,25 @@ void ManualROITool::cancelROI()
 }
 
 //-----------------------------------------------------------------------------
-void ManualROITool::updateReferenceItem(SelectionSPtr selection)
+void ManualROITool::updateReferenceItem()
 {
-  m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
-
-  if(m_toolGroup->currentROI() != nullptr)
+  if (m_currentSelector)
   {
-    auto disk = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
-    disk->setHasROI(true);
-    auto sphere = dynamic_cast<SphericalBrushROISelector *>(m_sphericalBrushSelector.get());
-    sphere->setHasROI(true);
-
-    m_currentSelector->setBrushImage(QImage());
-  }
-  else
-  {
-    m_currentSelector->setBrushImage(QImage(":/espina/add.svg"));
     m_currentSelector->setReferenceItem(m_viewManager->activeChannel());
+
+    if(m_toolGroup->currentROI() != nullptr)
+    {
+      auto disk = dynamic_cast<CircularBrushROISelector *>(m_circularBrushSelector.get());
+      disk->setHasROI(true);
+      auto sphere = dynamic_cast<SphericalBrushROISelector *>(m_sphericalBrushSelector.get());
+      sphere->setHasROI(true);
+
+      m_currentSelector->setBrushImage(QImage());
+    }
+    else
+    {
+      m_currentSelector->setBrushImage(QImage(":/espina/add.svg"));
+    }
   }
 }
 

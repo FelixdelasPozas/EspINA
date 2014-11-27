@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,16 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "GUI/Widgets/ActionSelector.h"
 #include "GUI/Widgets/ActionSelectorWidget.h"
 
-#include <QDebug>
-
 //------------------------------------------------------------------------
 ActionSelector::ActionSelector(QObject *parent)
-: QWidgetAction(parent)
-, m_enabled(true)
-, m_checked(false)
+: QWidgetAction{parent}
+, m_enabled    {true}
+, m_checked    {false}
 {
   m_button = nullptr;
   m_defaultAction = -1;

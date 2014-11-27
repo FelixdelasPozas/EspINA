@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -20,9 +20,8 @@
 
 // ESPINA
 #include "SplitTool.h"
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
-#include <GUI/Model/FilterAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
@@ -63,15 +62,15 @@ namespace ESPINA
                                                          const Filter::Type& type,
                                                          SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
   {
-    if (type != SPLIT_FILTER && type != SPLIT_FILTER_V4) throw Unknown_Filter_Exception();
+    if (!providedFilters().contains(type)) throw Unknown_Filter_Exception();
 
-    auto filter = FilterSPtr{new SplitFilter(inputs, type, scheduler)};
+    auto filter = std::make_shared<SplitFilter>(inputs, type, scheduler);
 
-    if (!m_fetchBehaviour)
+    if (!m_dataFactory)
     {
-      m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+      m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
     }
-    filter->setFetchBehaviour(m_fetchBehaviour);
+    filter->setDataFactory(m_dataFactory);
 
     return filter;
   }
@@ -89,7 +88,7 @@ namespace ESPINA
   , m_undoStack        {undoStack}
   , m_enabled          {false}
   , m_widget           {nullptr}
-  , m_handler          {SplitToolEventHandlerSPtr{new SplitToolEventHandler()}}
+  , m_handler          {new SplitToolEventHandler()}
   {
     m_planarSplitAction->setCheckable(true);
     m_planarSplitAction->setChecked(false);
@@ -103,7 +102,7 @@ namespace ESPINA
     connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
             this,            SLOT(initTool(bool)));
 
-    m_factory->registerFilterFactory(FilterFactorySPtr(new SplitFilterFactory()));
+    m_factory->registerFilterFactory(std::make_shared<SplitFilterFactory>());
   }
 
   //------------------------------------------------------------------------
@@ -165,8 +164,7 @@ namespace ESPINA
     }
     else
     {
-      if(m_widget == nullptr)
-        return;
+      if(m_widget == nullptr) return;
 
       m_widget->setEnabled(false);
       m_viewManager->removeWidget(m_widget);
@@ -188,15 +186,15 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void SplitTool::applyCurrentState()
   {
+    auto widget      = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
     auto selectedSeg = m_viewManager->selection()->segmentations().first();
-    auto widget = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
+
     if (widget->planeIsValid())
     {
       InputSList inputs;
       inputs << selectedSeg->asInput();
 
-      auto adapter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
-      auto filter = adapter.get();
+      auto filter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
 
       auto spacing = selectedSeg->output()->spacing();
       auto bounds = selectedSeg->bounds();
@@ -217,13 +215,15 @@ namespace ESPINA
       vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
       stencil = plane2stencil->GetOutput();
 
-      filter->get()->setStencil(stencil);
+      filter->setStencil(stencil);
 
-      struct Data data(adapter, m_model->smartPointer(selectedSeg));
-      m_executingTasks.insert(adapter.get(), data);
+      Data data(filter, m_model->smartPointer(selectedSeg));
+      m_executingTasks.insert(filter.get(), data);
 
-      connect(adapter.get(), SIGNAL(finished()), this, SLOT(createSegmentations()));
-      adapter->submit();
+      connect(filter.get(), SIGNAL(finished()),
+              this,         SLOT(createSegmentations()));
+
+      Task::submit(filter);
     }
     else
     {
@@ -243,7 +243,7 @@ namespace ESPINA
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    auto filter = qobject_cast<FilterAdapterPtr>(sender());
+    auto filter = dynamic_cast<FilterPtr>(sender());
     Q_ASSERT(m_executingTasks.keys().contains(filter));
 
     if(!filter->isAborted())
@@ -299,6 +299,5 @@ namespace ESPINA
     // passive handler
     return false;
   }
-
 
 } // namespace ESPINA

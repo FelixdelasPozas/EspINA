@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,22 +19,38 @@
  *
  */
 
+// ESPINA
 #include "ViewItemAdapter.h"
-
+#include "ModelAdapter.h"
 #include <Core/Analysis/NeuroItem.h>
 #include <GUI/Representations/RepresentationFactory.h>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-ViewItemAdapter::ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item)
-: NeuroItemAdapter(item)
-, m_filter{filter}
-, m_viewItem{item}
-, m_isSelected{false}
-, m_isVisible{true}
-, m_outputIsModified{false}
+ViewItemAdapter::ViewItemAdapter(ViewItemSPtr item)
+: NeuroItemAdapter  {item}
+, m_viewItem        {item}
+, m_isSelected      {false}
+, m_isVisible       {true}
 {
+  connect(output().get(), SIGNAL(modified()),
+          this,           SLOT(onOutputModified()));
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::changeOutput(InputSPtr input)
+{
+  disconnect(output().get(), SIGNAL(modified()),
+             this,           SLOT(onOutputModified()));
+
+  changeOutputImplementation(input);
+
+  connect(output().get(), SIGNAL(modified()),
+          this,           SLOT(onOutputModified()));
+
+  m_representations.clear();
+  onOutputModified();
 }
 
 //------------------------------------------------------------------------
@@ -52,6 +68,12 @@ RepresentationSPtr ViewItemAdapter::representation(Representation::Type represen
 RepresentationTypeList ViewItemAdapter::representationTypes() const
 {
   return m_factory->representations();
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::onOutputModified()
+{
+  emit outputChanged(this);
 }
 
 //------------------------------------------------------------------------

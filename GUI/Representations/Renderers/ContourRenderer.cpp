@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -30,7 +30,7 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   ContourRenderer::ContourRenderer(QObject *parent)
-  : MeshRenderer(parent)
+  : MeshRenderer{parent}
   {
   }
 
@@ -55,12 +55,14 @@ namespace ESPINA
       }
 
       if (m_enable)
+      {
         for (auto prop: rep->getActors())
         {
           prop->SetPickable(true);
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
         }
+      }
     }
   }
 
@@ -107,7 +109,7 @@ namespace ESPINA
       return selection;
 
     View2D *view = static_cast<View2D *>(m_view);
-    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), ((view->plane() == Plane::XY) ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT) };
+    Nm pickPoint[3] = { static_cast<Nm>(x), static_cast<Nm>(y), view->segmentationDepth() };
 
     while (m_picker->Pick(pickPoint, renderer))
     {

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,9 +19,13 @@
  *
  */
 
+// ESPINA
 #include "ZipUtils.h"
 
+// QuaZip
 #include <quazip/quazipfile.h>
+
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -30,8 +34,7 @@ using namespace ESPINA::IO;
 //-----------------------------------------------------------------------------
 void ZipUtils::AddFileToZip(const QString&    fileName,
                             const QByteArray& content,
-                            QuaZip&           zip)
-throw (IO_Zip_Exception)
+                            QuaZip&           zip) throw (IO_Zip_Exception)
 {
   QuaZipFile zFile(&zip);
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);

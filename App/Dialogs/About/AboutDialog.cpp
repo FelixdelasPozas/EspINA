@@ -17,11 +17,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "AboutDialog.h"
-
 #include "EspinaConfig.h"
 
+//-----------------------------------------------------------------------------
 AboutDialog::AboutDialog()
 {
   setupUi(this);

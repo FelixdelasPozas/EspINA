@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -22,7 +22,7 @@
 #define RULERTOOL_H_
 
 // ESPINA
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 
 namespace ESPINA
@@ -30,34 +30,47 @@ namespace ESPINA
   class ViewManager;
   class RenderView;
   class RulerWidget;
-  
+
   class RulerTool
   : public Tool
   {
     Q_OBJECT
     public:
-      explicit RulerTool(ViewManagerSPtr);
+			/** \brief RulerTool class constructor.
+			 * \param[in] viewManager, view manager smart pointer.
+			 */
+      explicit RulerTool(ViewManagerSPtr viewManager);
+
+      /** \brief RulerTool class destructor.
+       *
+       */
       virtual ~RulerTool();
 
-      /* \brief Implements Tool::setEnabled.
+      /** \brief Implements Tool::setEnabled().
        *
        */
       virtual void setEnabled(bool value);
 
-      /* \brief Implements Tool::enabled.
+      /** \brief Implements Tool::enabled().
        *
        */
       virtual bool enabled() const;
 
-      /* \brief Implements Tool::actions.
+      /** \brief Implements Tool::actions().
        *
        */
       virtual QList<QAction *> actions() const;
 
     public slots:
+			/** \brief Initializes/De-initializes tool.
+			 * \param[in] value, true to initialize tool, false to de-initialize.
+			 */
       void initTool(bool value);
+
+      /** \brief Updates the ruler widget.
+       *
+       */
       void selectionChanged();
-      void selectedElementChanged();
 
     private:
       bool             m_enabled;
@@ -72,27 +85,27 @@ namespace ESPINA
   : public EventHandler
   {
     public:
-      /* \brief RulerEventHandler class constructor.
+      /** \brief RulerEventHandler class constructor.
        *
        */
       RulerEventHandler()
       {}
 
-      /* \brief RulerEventHadler class destructor.
+      /** \brief RulerEventHadler class destructor.
        *
        */
       ~RulerEventHandler()
       {}
 
-      /* \brief Implements EventHandler::setInUse.
+      /** \brief Overrides EventHandler::setInUse().
        *
        */
-      virtual void setInUse(bool value);
+      virtual void setInUse(bool value) override;
 
-      /* \brief Implements EventHandler::filterEvent.
+      /** \brief Overrides EventHandler::filterEvent().
        *
        */
-      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
+      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
   };
 
   using RulerToolPtr  = RulerTool *;

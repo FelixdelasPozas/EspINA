@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,15 +18,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "View2D.h"
 
 // ESPINA
+#include "View2D.h"
 #include "View2DState.h"
 #include "ViewRendererMenu.h"
 #include "Widgets/EspinaWidget.h"
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
-#include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
 // Debug
@@ -83,7 +83,7 @@
 using namespace ESPINA;
 
 const double View2D::SEGMENTATION_SHIFT = 0.05;
-const double View2D::WIDGET_SHIFT = 0.15;
+const double View2D::WIDGET_SHIFT       = 0.15;
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
@@ -102,7 +102,6 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_slicingStep     {1, 1, 1}
 , m_showThumbnail   {true}
-// , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(nullptr, nullptr))
 , m_inThumbnail     {false}
 , m_sceneReady      {false}
 , m_plane           {plane}
@@ -194,15 +193,40 @@ View2D::View2D(Plane plane, QWidget* parent)
 //-----------------------------------------------------------------------------
 View2D::~View2D()
 {
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying Slice View" << m_plane;
-//   qDebug() << "********************************************************";
+  //   qDebug() << "********************************************************";
+  //   qDebug() << "              Destroying Slice View" << m_plane;
+  //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
+
+  for(auto segmentation: m_segmentationStates.keys())
+  {
+    RenderView::remove(segmentation);
+  }
+
+  m_segmentationStates.clear();
+
+  for(auto channel: m_channelStates.keys())
+  {
+    RenderView::remove(channel);
+  }
+
+  m_channelStates.clear();
+
+  for(auto widget: m_widgets)
+  {
+    RenderView::removeWidget(widget);
+  }
+
+  m_widgets.clear();
+
+  for(auto renderer: m_renderers)
+  {
+    removeRendererControls(renderer->name());
+  }
+  m_renderers.clear();
 
   m_renderer->RemoveViewProp(m_ruler);
 
-  m_channelStates.clear();
-  m_segmentationStates.clear();
   m_state.reset();
 }
 
@@ -485,22 +509,22 @@ void View2D::buildCrosshairs()
   HLine->InsertNextCell (2);
   HLine->InsertCellPoint(0);
   HLine->InsertCellPoint(1);
-  
+
   m_HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
   m_HCrossLineData->SetPoints(HPoints);
   m_HCrossLineData->SetLines (HLine);
-  
+
   HPoints->Delete();
   HLine->Delete();
 
   auto HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   HMapper->SetInputData(m_HCrossLineData);
-  
+
   m_HCrossLine = vtkSmartPointer<vtkActor>::New();
   m_HCrossLine->SetMapper(HMapper);
   m_HCrossLine->GetProperty()->SetLineWidth(2);
   m_HCrossLine->SetPickable(false);
-  
+
   auto VPoints = vtkPoints::New();
   VPoints->InsertNextPoint(0, -0.5, 0);
   VPoints->InsertNextPoint(0, 0.5, 0);
@@ -509,17 +533,17 @@ void View2D::buildCrosshairs()
   VLine->InsertNextCell (2);
   VLine->InsertCellPoint(0);
   VLine->InsertCellPoint(1);
-  
+
   m_VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
   m_VCrossLineData->SetPoints(VPoints);
   m_VCrossLineData->SetLines(VLine);
-  
+
   VPoints->Delete();
   VLine->Delete();
 
   auto VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   VMapper->SetInputData(m_VCrossLineData);
-  
+
   m_VCrossLine = vtkSmartPointer<vtkActor>::New();
   m_VCrossLine->SetMapper(VMapper);
   m_VCrossLine->GetProperty()->SetLineWidth(2);
@@ -623,6 +647,7 @@ void View2D::updateView()
 {
   if (isVisible())
   {
+    //if (m_plane == Plane::XY) qDebug() << "Rendering 2D";
     updateRuler();
     updateThumbnail();
     m_renderer->ResetCameraClippingRange();
@@ -715,13 +740,6 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::sliceViewCenterChanged(NmVector3 center)
-{
-  //qDebug() << "Slice View: " << m_plane << " has new center";
-  emit centerChanged(center);
-}
-
-//-----------------------------------------------------------------------------
 void View2D::scrollValueChanged(int value /*slice index */)
 {
   // WARNING: Any modification to this method must be taken into account
@@ -743,7 +761,7 @@ void View2D::scrollValueChanged(int value /*slice index */)
 void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToSlices */)
 {
   int sliceIndex = m_fitToSlices ? (value - 1) : voxelSlice(value, m_plane);
-  
+
   m_crosshairPoint[m_normalCoord] = voxelCenter(sliceIndex, m_plane);
 
   updateRepresentations();
@@ -755,20 +773,6 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
   emit sliceChanged(m_plane, slicingPosition());
 
   updateView();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::selectFromSlice()
-{
-//   m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
-//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::selectToSlice()
-{
-//   m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
-//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 
 //-----------------------------------------------------------------------------
@@ -996,7 +1000,6 @@ void View2D::centerViewOnMousePosition()
         auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
         if (!selection.isEmpty())
         {
-          // TODO 2013-10-04: Check if it is needed inside the loop
           centerViewOnPosition(repRenderer->pickCoordinates());
           return;
         }
@@ -1005,41 +1008,47 @@ void View2D::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList View2D::pickChannels(double vx, double vy,
-                                         bool repeatable)
+ViewItemAdapterList View2D::pickChannels(double vx, double vy, bool repeatable)
 {
   ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
+  {
     if(renderer->type() == Renderer::Type::Representation)
     {
       auto repRenderer = representationRenderer(renderer);
       if (canRender(repRenderer, RenderableType::CHANNEL))
+      {
         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
         {
-          if (!selection.contains(item))
-            selection << item;
+          if (!selection.contains(item)) selection << item;
         }
+      }
     }
+  }
 
   return selection;
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList View2D::pickSegmentations(double vx, double vy,
-                                                       bool repeatable)
+ViewItemAdapterList View2D::pickSegmentations(double vx, double vy, bool repeatable)
 {
   ViewItemAdapterList selection;
 
   for(auto renderer: m_renderers)
+  {
     if(renderer->type() == Renderer::Type::Representation)
     {
       auto repRenderer = representationRenderer(renderer);
       if (canRender(repRenderer, RenderableType::SEGMENTATION))
+      {
         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
-          if (!selection.contains(item))
-            selection << item;
+        {
+          if (!selection.contains(item)) selection << item;
+        }
+      }
     }
+  }
 
   return selection;
 }
@@ -1082,7 +1091,7 @@ void View2D::selectPickedItems(bool append)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateChannelsOpactity()
+void View2D::updateChannelsOpacity()
 {
   // TODO: Define opacity behaviour
   double opacity = suggestedChannelOpacity();
@@ -1096,7 +1105,7 @@ void View2D::updateChannelsOpactity()
 //-----------------------------------------------------------------------------
 void View2D::onTakeSnapshot()
 {
-  takeSnapshot(m_renderer);
+  takeSnapshot();
 }
 
 //-----------------------------------------------------------------------------
@@ -1133,50 +1142,46 @@ void View2D::setRulerVisibility(bool visible)
   updateView();
 }
 
-// //-----------------------------------------------------------------------------
-// void SliceView::addSliceSelectors(SliceSelectorWidget* widget,
-//                                   ViewManager::SliceSelectors selectors)
-// {
-//   if (m_sliceSelector.first != widget)
-//   {
-//     if (m_sliceSelector.second)
-//       delete m_sliceSelector.second;
-// 
-//     m_sliceSelector.first  = widget;
-//     m_sliceSelector.second = widget->clone();
-//   }
-// 
-//   SliceSelectorWidget *sliceSelector = m_sliceSelector.second;
-// 
-//   sliceSelector->setPlane(m_plane);
-//   sliceSelector->setView (this);
-// 
-//   QWidget *fromWidget = sliceSelector->leftWidget();
-//   QWidget *toWidget   = sliceSelector->rightWidget();
-// 
-//   bool showFrom = selectors.testFlag(ViewManager::From);
-//   bool showTo   = selectors.testFlag(ViewManager::To  );
-// 
-//   fromWidget->setVisible(showFrom);
-//   toWidget  ->setVisible(showTo  );
-// 
-//   m_fromLayout->addWidget (fromWidget );
-//   m_toLayout->insertWidget(0, toWidget);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::removeSliceSelectors(SliceSelectorWidget* widget)
-// {
-//   if (m_sliceSelector.first == widget)
-//   {
-//     if (m_sliceSelector.second)
-//       delete m_sliceSelector.second;
-// 
-//     m_sliceSelector.first  = nullptr;
-//     m_sliceSelector.second = nullptr;
-//   }
-// }
+//-----------------------------------------------------------------------------
+void View2D::addSliceSelectors(SliceSelectorSPtr widget,
+                               SliceSelectionType selectors)
+{
+  auto sliceSelector = widget->clone();
 
+  sliceSelector->setPlane(m_plane);
+  sliceSelector->setView (this);
+
+  QWidget *fromWidget = sliceSelector->leftWidget();
+  QWidget *toWidget   = sliceSelector->rightWidget();
+
+  bool showFrom = selectors.testFlag(SliceSelectionTypes::From);
+  bool showTo   = selectors.testFlag(SliceSelectionTypes::To  );
+
+  fromWidget->setVisible(showFrom);
+  toWidget  ->setVisible(showTo  );
+
+  m_fromLayout->addWidget (fromWidget );
+  m_toLayout->insertWidget(0, toWidget);
+
+  m_sliceSelectors << SliceSelectorPair(widget, sliceSelector);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
+{
+  SliceSelectorPair requestedsliceSelectors;
+
+  for (auto sliceSelectors : m_sliceSelectors)
+  {
+    if (sliceSelectors.first == widget)
+    {
+      requestedsliceSelectors = sliceSelectors;
+      break;
+    }
+  }
+
+  m_sliceSelectors.removeOne(requestedsliceSelectors);
+}
 
 //----------------------------------------------------------------------------
 NmVector3 View2D::slicingStep() const
@@ -1448,7 +1453,7 @@ void View2D::addRendererControls(RendererSPtr renderer)
               rep->setVisible(m_channelStates[channel].visible);
 
               rep->updateRepresentation();
-              updateChannelsOpactity();
+              updateChannelsOpacity();
             }
           }
         }

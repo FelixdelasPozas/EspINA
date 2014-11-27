@@ -27,20 +27,9 @@ include_directories(
   ${SUBJECT_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
+add_executable(DirectedGraph_Tests ${TEST_SOURCES} DummyItem.cpp)
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-add_executable(DirectedGraph_Tests
-  ${TEST_SOURCES}
-  DummyItem.cpp
-  ${SUBJECT_DIR}/DirectedGraph.cpp
-  )
-
-target_link_libraries(DirectedGraph_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(DirectedGraph_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"DirectedGraph: Default Constructor\""                     DirectedGraph_Tests directed_graph_default_constructor)
 add_test("\"DirectedGraph: Add Null Item\""                           DirectedGraph_Tests directed_graph_add_null_item)

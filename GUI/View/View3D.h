@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -51,86 +51,206 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit View3D(bool     showCrosshairPlaneSelectors = false,
-                    QWidget* parent = 0);
+    /** \brief View3D class constructor.
+     * \param[in] showCrosshairPlaneSelectors, true to show three aditional
+     *            scrollbars in the borders of the view to manipulate the
+     *            crosshair point, false otherwise.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     *
+     */
+    explicit View3D(bool showCrosshairPlaneSelectors = false,
+                    QWidget* parent = nullptr);
+
+    /** \brief View3D class virtual destructor.
+     *
+     */
     virtual ~View3D();
 
+    /** \brief Sets the focal point of the camera in the given point.
+     * \param[in] center, focal point.
+     *
+     */
     void setCameraFocus(const NmVector3& center);
 
+    /** \brief Implements RenderView::reset().
+     *
+     */
     virtual void reset();
 
+    /** \brief Implements RenderView::resetCamera().
+     *
+     */
     virtual void resetCamera();
 
+    /** \brief Implements RenderView::centerViewOn().
+     *
+     */
     virtual void centerViewOn(const NmVector3& center, bool force = false);
 
-    virtual void addWidget   (EspinaWidgetSPtr widget);
-    virtual void removeWidget(EspinaWidgetSPtr widget);
+    /** \brief Overrides RenderView::addWidget().
+     *
+     */
+    virtual void addWidget(EspinaWidgetSPtr widget) override;
 
+    /** \brief Overrides RenderView::removeWidget().
+     *
+     */
+    virtual void removeWidget(EspinaWidgetSPtr widget) override;
+
+    /** \brief Implements RenderView::previewBounds().
+     *
+     */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
-    virtual void add(ChannelAdapterPtr channel);
-    virtual void add(SegmentationAdapterPtr seg)
+    /** \brief Overrides RenderView::add(channel).
+     *
+     */
+    virtual void add(ChannelAdapterPtr channel) override;
+
+    /** \brief Overrides RenderView::add(segmentation)
+     *
+     */
+    virtual void add(SegmentationAdapterPtr seg) override
     { RenderView::add(seg); }
 
-    virtual void remove(ChannelAdapterPtr channel);
-    virtual void remove(SegmentationAdapterPtr seg)
+    /** \brief Overrides RenderView::remove(channel).
+     *
+     */
+    virtual void remove(ChannelAdapterPtr channel) override;
+
+    /** \brief Overrides RenderView::remove(segmentation).
+     *
+     */
+    virtual void remove(SegmentationAdapterPtr seg) override
     { RenderView::remove(seg); }
 
-    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
+    /** \brief Overrides RenderView::updateRepresentation(channel).
+     *
+     */
+    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true) override;
+
+    /** \brief Overrides RenderView::updateRepresentation(segmentation).
+     *
+     */
     virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
 
-    void changePlanePosition(Plane, Nm);
+    /** \brief Modifies the position of a specified plane of the crosshair to the given position.
+     * \param[in] plane, crosshair plane to move.
+     * \param[in] position, new position.
+     *
+     */
+    void changePlanePosition(Plane plane, Nm position);
 
+    /** \brief Implements RenderView::addRendererControls().
+     *
+     */
+    void addRendererControls(RendererSPtr renderer);
 
+    /** \brief Implements RenderView::removeRendererControls().
+     *
+     */
     void removeRendererControls(const QString name);
 
-    virtual bool eventFilter(QObject* caller, QEvent* e);
+    /** \brief Overrides QObject::eventFilter().
+     *
+     */
+    virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
+    /** \brief Implements RenderView::cloneRepresentation().
+     *
+     */
     virtual RepresentationSPtr cloneRepresentation(ESPINA::ViewItemAdapterPtr item, ESPINA::Representation::Type representation);
 
+    /** \brief Implements RenderView::setRenderers().
+     *
+     */
     void setRenderers(RendererSList renderers);
+
+    /** \brief Implements RenderView::activateRender().
+     *
+     */
     void activateRender(const QString &rendererName);
+
+    /** \brief Implements RenderView::deactivateRender().
+     *
+     */
     void deactivateRender(const QString &rendererName);
 
+    /** \brief Implements RenderView::setVisualState().
+     *
+     */
     virtual void setVisualState(struct RenderView::VisualState);
+
+    /** \brief Implements RenderView::visualState().
+     *
+     */
     virtual struct RenderView::VisualState visualState();
 
-    /* \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
+    /** \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
      *
      */
     Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
   public slots:
+  /** \brief Implements RenderView::updateView().
+		 *
+		 */
     virtual void updateView();
-
-    virtual void updateSelection(){};
 
   signals:
     void centerChanged(NmVector3);
 
   protected:
+    /** \brief Selects items under the given coordinates.
+     * \param[in] x, x display coordinate.
+     * \param[in] y, y display coordinate.
+     * \param[in] append, if true returns all the items if false returns only the first picked (if any).
+     *
+     */
     void selectPickedItems(int x, int y, bool append);
 
-    virtual void updateChannelsOpactity(){}
-
-    
+    /** \brief Implements RenderView::updateChannelsOpacity().
+     *
+     */
+    virtual void updateChannelsOpacity()
+    {}
 
   protected slots:
-    void scrollBarMoved(int);
+		/** \brief Updates the view then a crosshair scroll bar changes value.
+		 * \param[in] value, new scrollbar value.
+		 *
+		 */
+  	void scrollBarMoved(int value);
 
-    void exportScene();
+    /** \brief Exports the scene meshes to an external format and saves the result to disk.
+     *
+     */
+  	void exportScene();
 
+    /** \brief Takes an 2D image of the current view and saves it to disk.
+     *
+     */
     void onTakeSnapshot();
 
+    /** \brief Updates the state of the renderers controls.
+     *
+     */
     void updateRenderersControls();
 
   private:
+    /** \brief Helper method to setup the UI.
+     *
+     */
     void setupUI();
 
-    void addRendererControls(RendererSPtr renderer);
-
+    /** \brief Helper method to build the UI controls.
+     *
+     */
     void buildControls();
 
+    /** \brief Helper method to update the limit of the crosshair scrollbars.
+     *
+     */
     void updateScrollBarsLimits();
 
   private:
@@ -155,9 +275,17 @@ namespace ESPINA
     unsigned int m_numEnabledRenderers;
   };
 
+  /** \brief Returns true if the view is a 3D view.
+   * \param[in] view, RenderView raw pointer.
+   *
+   */
   inline bool isView3D(RenderView *view)
   { return dynamic_cast<View3D *>(view) != nullptr; }
 
+  /** \brief Returns the 3D view raw pointer given a RenderView raw pointer.
+   * \param[in] view, RenderView raw pointer.
+   *
+   */
   inline View3D * view3D_cast(RenderView* view)
   { return dynamic_cast<View3D *>(view); }
 

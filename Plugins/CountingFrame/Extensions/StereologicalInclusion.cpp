@@ -28,7 +28,7 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Category.h>
 
 #include <vtkCellArray.h>

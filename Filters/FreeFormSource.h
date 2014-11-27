@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,16 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_FREE_FORM_SOURCE_H
 #define ESPINA_FREE_FORM_SOURCE_H
 
-// #include "EspinaFilters_Export.h" añadir EspinaFilters_EXPORT a la clase luego
+#include "Filters/EspinaFilters_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Filter.h>
-#include <Core/Utils/BinaryMask.h>
-
-#include <QVector3D>
+#include <Core/Utils/BinaryMask.hxx>
 
 namespace ESPINA
 {
@@ -35,14 +33,28 @@ namespace ESPINA
   : public Filter
   {
     public:
+      /** \brief FreeFormSource class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type FreeFormSource type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
       explicit FreeFormSource(InputSList inputs,
                               Filter::Type     type,
                               SchedulerSPtr    scheduler);
+
+      /** \brief FreeFormSource class virtual destructor.
+       *
+       */
       virtual ~FreeFormSource();
 
       virtual void restoreState(const State &state);
+
       virtual State state() const;
 
+      /** \brief Sets the mask that serves as input for the output volume.
+       *
+       */
       void setMask(BinaryMaskSPtr<unsigned char> mask)
       { m_mask = mask; }
 
@@ -62,7 +74,7 @@ namespace ESPINA
       virtual bool ignoreStorageContent() const
       { return false; }
 
-      virtual bool invalidateEditedRegions();
+      virtual bool areEditedRegionsInvalidated();
 
     private:
       BinaryMaskSPtr<unsigned char> m_mask;

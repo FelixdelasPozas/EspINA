@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,6 +22,8 @@
 #ifndef ESPINA_METADATA_VIEWER_H
 #define ESPINA_METADATA_VIEWER_H
 
+#include "Support/EspinaSupport_Export.h"
+
 #include <QWidget>
 #include <QTimer>
 #include <Support/ui_MetadataViewer.h>
@@ -32,7 +34,7 @@ namespace ESPINA {
   class MetadataLoader;
   using MetadataLoaderSPtr = std::shared_ptr<MetadataLoader>;
 
-  class MetadataViewer
+  class EspinaSupport_EXPORT MetadataViewer
   : public QWidget
   , private Ui::MatadataViewer
   {

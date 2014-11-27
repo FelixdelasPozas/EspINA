@@ -27,7 +27,6 @@
 
 // ESPINA
 #include "ChangeSegmentationNotes.h"
-
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 
@@ -37,9 +36,9 @@ using namespace ESPINA;
 ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
                                                  const QString&         note,
                                                  QUndoCommand*          parent)
-: QUndoCommand(parent)
-, m_segmentation(segmentation)
-, m_formerNote(note)
+: QUndoCommand  {parent}
+, m_segmentation{segmentation}
+, m_formerNote  {note}
 {
 }
 

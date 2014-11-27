@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,10 +18,6 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//----------------------------------------------------------------------------
-// File:    RemoveSegmentation.h
-// Purpose: Undo-able action to remove segmentations from the model
-//----------------------------------------------------------------------------
 #ifndef ESPINA_REMOVE_SEGMENTATIONS_H
 #define ESPINA_REMOVE_SEGMENTATIONS_H
 
@@ -37,22 +33,51 @@ namespace ESPINA
 {
   class ViewManager;
 
+  /** \class RemoveSegmentations
+   * \brief Undo-able action to remove segmentations from the model.
+   *
+   */
   class EspinaUndo_EXPORT RemoveSegmentations
   : public QUndoCommand
   {
     public:
+  		/** \brief RemoveSegmentations class constructor.
+  		 * \param[in] segmentation, raw pointer of the segmentation adapter to remove.
+  		 * \param[in] model, smart pointer of the model adapter containing the segmentation.
+  		 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  		 *
+  		 */
       explicit RemoveSegmentations(SegmentationAdapterPtr segmentation,
                                    ModelAdapterSPtr       model,
                                    QUndoCommand *         parent = nullptr);
 
+  		/** \brief RemoveSegmentations class constructor.
+  		 * \param[in] segmentations, list of raw pointers of the segmentation adapters to remove.
+  		 * \param[in] model, smart pointer of the model adapter containing the segmentation.
+  		 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  		 *
+  		 */
       explicit RemoveSegmentations(SegmentationAdapterList segmentations,
                                    ModelAdapterSPtr        model,
                                    QUndoCommand *          parent = nullptr);
 
-      virtual void redo();
-      virtual void undo();
+      /** \brief Overrides QUndoCommand::redo().
+       *
+       */
+      virtual void redo() override;
+
+      /** \brief Overrides QUndoCommand::undo().
+       *
+       */
+      virtual void undo() override;
 
     private:
+      /** \brief Helper method to analyze the relations of the segmentation to be
+       * removed so any other segmentation depending on it can be removed too.
+       *
+       * TODO: work in progress
+       *
+       */
       void analyzeSegmentation(SegmentationAdapterPtr segmentation);
 //       bool isADupicatedRelation(Relation relation);
 //       void addFilterDependencies(FilterSPtr filter);

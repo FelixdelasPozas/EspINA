@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,15 +21,15 @@
 #ifndef ESPINA_MORPHOLOGICAL_EDITION_TOOL_H_
 #define ESPINA_MORPHOLOGICAL_EDITION_TOOL_H_
 
-#include <Support/Tool.h>
+// ESPINA
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
-
+#include <Support/Factory/FilterDelegateFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Filters/MorphologicalEditionFilter.h>
 #include <Filters/FillHolesFilter.h>
 #include <Filters/ImageLogicFilter.h>
 #include "CODETool.h"
-
 
 class QAction;
 class QUndoStack;
@@ -37,7 +37,7 @@ class QUndoStack;
 namespace ESPINA
 {
   class SpinBoxAction;
-  
+
   class MorphologicalEditionTool
   : public Tool
   {
@@ -45,41 +45,60 @@ namespace ESPINA
 
     class MorphologicalFilterFactory
     : public FilterFactory
+    , public SpecificFilterDelegateFactory
     {
       virtual FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
       throw (Unknown_Filter_Exception);
 
+      virtual QList<Filter::Type> availableFilterDelegates() const;
+
+      virtual FilterDelegateSPtr createDelegate(FilterSPtr filter) throw (Unknown_Filter_Type_Exception);
+
     private:
-      mutable FetchBehaviourSPtr m_fetchBehaviour;
+      bool isCloseFilter       (const Filter::Type &type) const;
+      bool isOpenFilter        (const Filter::Type &type) const;
+      bool isDilateFilter      (const Filter::Type &type) const;
+      bool isErodeFilter       (const Filter::Type &type) const;
+      bool isFillHolesFilter   (const Filter::Type &type) const;
+      bool isAdditionFilter    (const Filter::Type &type) const;
+      bool isSubstractionFilter(const Filter::Type &type) const;
+
+    private:
+      mutable DataFactorySPtr m_dataFactory;
     };
 
   public:
-    /** \brief Class constructor.
+    /** \brief MorphologicalEdtionTool class constructor.
+     * \param[in] model, model adapter smart pointer.
+     * \param[in] factory, factory smart pointer.
+     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] undoStack, QUndoStack object raw pointer.
      *
      */
-    MorphologicalEditionTool(ModelAdapterSPtr model,
-                             ModelFactorySPtr factory,
-                             ViewManagerSPtr  viewManager,
-                             QUndoStack      *undoStack);
+    MorphologicalEditionTool(ModelAdapterSPtr          model,
+                             ModelFactorySPtr          factory,
+                             FilterDelegateFactorySPtr filterDelegateFactory,
+                             ViewManagerSPtr           viewManager,
+                             QUndoStack               *undoStack);
 
-    /** \brief Class destructor.
+    /** \brief MorphologicalEditionTools class destructor.
      *
      */
     virtual ~MorphologicalEditionTool();
 
-    /** \brief Tool method to enable/disable this tool.
+    /** \brief Implements Tool::setEnabled().
      *
      */
     virtual void setEnabled(bool value);
 
-    /** \brief Returns if the class is actually enabled.
+    /** \brief Implements Tool::enabled().
      *
      */
     virtual bool enabled() const;
 
-    /** \brief Returns the group of actions provided by the tool.
+    /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
@@ -120,25 +139,59 @@ namespace ESPINA
      */
     void fillHoles();
 
+    /** \brief Changes/Deletes the segmentation when the morphological after the filter has finished.
+     *
+     */
     void onMorphologicalFilterFinished();
 
+    /** \brief Changes the segmentation when the morphological after the filter has finished.
+     *
+     */
     void onFillHolesFinished();
 
+    /** \brief Modifies the GUI when the close operation is toggled.
+     * \param[in] toggled, true if toggled.
+     *
+     */
     void onCloseToggled(bool toggled);
 
+    /** \brief Modifies the GUI when the open operation is toggled.
+     * \param[in] toggled, true if toggled.
+     *
+     */
     void onOpenToggled(bool toggled);
 
+    /** \brief Modifies the GUI when the dilate operation is toggled.
+     * \param[in] toggled, true if toggled.
+     *
+     */
     void onDilateToggled(bool toggled);
 
+    /** \brief Modifies the GUI when the erode operation is toggled.
+     * \param[in] toggled, true if toggled.
+     *
+     */
     void onErodeToggled(bool toggled);
 
+    /** \brief Modifies the GUI based on the current selection.
+     *
+     */
     void updateAvailableActionsForSelection();
 
+    /** \brief Changes the segmentation(s) when the image logic filter has finished.
+     *
+     */
     void onImageLogicFilterFinished();
 
   private:
+    /** \brief Launches the CODE filter (Morphological filter).
+     * \param[in] type, type of the morphological operation.
+     * \param[in] name, name of the operation.
+     * \param[in] radius, radius of the morphological operation.
+     *
+     */
     template<typename T>
-    void launchCODE(const Filter::Type& type, const QString& name, int r)
+    void launchCODE(const Filter::Type& type, const QString& name, int radius)
     {
       m_viewManager->unsetActiveEventHandler();
 
@@ -152,10 +205,9 @@ namespace ESPINA
 
           inputs << segmentation->asInput();
 
-          auto adapter = m_factory->createFilter<T>(inputs, type);
-          auto filter  = adapter->get();
+          auto filter = m_factory->createFilter<T>(inputs, type);
 
-          filter->setRadius(r);
+          filter->setRadius(radius);
           filter->setDescription(tr("%1 %2").arg(name)
                                             .arg(segmentation->data(Qt::DisplayRole).toString()));
 
@@ -170,7 +222,7 @@ namespace ESPINA
           connect(filter.get(), SIGNAL(finished()),
                   this,         SLOT(onMorphologicalFilterFinished()));
 
-          adapter->submit();
+          Task::submit(filter);
         }
       }
     }
@@ -190,7 +242,7 @@ namespace ESPINA
     };
     struct ImageLogicContext
     {
-      FilterAdapterSPtr           Task;
+      FilterSPtr                  Task;
       ImageLogicFilter::Operation Operation;
       SegmentationAdapterList     Segmentations;
     };
@@ -201,7 +253,7 @@ namespace ESPINA
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
 
-    FilterFactorySPtr m_filterFactory;
+    std::shared_ptr<MorphologicalFilterFactory> m_filterFactory;
 
     CODETool m_close;
     CODETool m_open;

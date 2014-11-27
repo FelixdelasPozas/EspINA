@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -23,19 +23,21 @@
 
 #include "Extensions/EspinaExtensions_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Extension.h>
 #include <Core/Utils/Spatial.h>
 #include "AdaptiveEdgesCreator.h"
 #include "EdgesAnalyzer.h"
 
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
+// Qt
 #include <QMutex>
 
 namespace ESPINA
 {
-
   class AdaptiveEdgesCreator;
   class EdgesAnalyzer;
 
@@ -50,70 +52,157 @@ namespace ESPINA
     static const Type TYPE;
 
   public:
+    /** \brief ChannelEdges class constructor.
+     * \param[in] scheduler, scheduler smart pointer.
+     * \parma[in] cache, cache object.
+     * \param[in] state, state object.
+     *
+     */
     explicit ChannelEdges(SchedulerSPtr   scheduler = SchedulerSPtr(),
                           const InfoCache &cache    = InfoCache(),
                           const State     &state    = State());
+
+    /** \brief ChannelEdges class destructor.
+     *
+     */
     virtual ~ChannelEdges();
 
+    /** \brief Implements Extension::type().
+     *
+     */
     virtual Type type() const
     { return TYPE; }
 
+    /** \brief Implements Extension::invalidateOnChange().
+     *
+     */
     virtual bool invalidateOnChange() const
     { return true; }
 
+    /** \brief Implements Extension::state().
+     *
+     */
     virtual State state() const;
 
+    /** \brief Implements Extension::snapshot().
+     *
+     */
     virtual Snapshot snapshot() const;
 
+    /** \brief Implements Extension::dependencies().
+     *
+     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
+    /** \brief Implements Extension::availableInformations().
+     *
+     */
     virtual InfoTagList availableInformations() const
     { return InfoTagList(); }
 
+    /** \brief Sets the "use distance to bounds" flag.
+     * \param[in] value, true to use the distance to bounds, false otherwise.
+     *
+     */
     void setUseDistanceToBounds(bool value);
 
+    /** \brief Returns the "use distance to bounds" flag.
+     *
+     */
     bool useDistanceToBounds() const;
 
-    /**
-     * \brief Return the image region that excludes slice margin voxels
+    /** \brief Return the image region that excludes slice margin voxels.
+     *
      */
     itkVolumeType::RegionType sliceRegion(unsigned int slice) const;
 
+    /** \brief Returns the distances in Nm from the segmentations to the bounds of the channel.
+     * \param[in] segmentation, segmentation raw pointer.
+     * \param[out] distances, distances in each direction.
+     *
+     */
     void distanceToBounds(SegmentationPtr segmentation, Nm distances[6]) const;
 
+    /** \brief Returns the distances in Nm from the segmentations to the edges of the channel.
+     * \param[in] segmentation, segmentation raw pointer.
+     * \param[out] distances, distances in each direction.
+     *
+     */
     void distanceToEdges(SegmentationPtr segmentation, Nm distances[6]);
 
+    /** \brief Returns the vtkPolyData that define the edges of the channel.
+     *
+     */
     vtkSmartPointer<vtkPolyData> channelEdges();
 
+    /** \brief Return the volume un Nm^3.
+     *
+     */
     Nm computedVolume();
 
+    /** \brief Sets the channel background color.
+     *
+     */
     void setBackgroundColor(int value);
 
+    /** \brief Returns the channel background color.
+     *
+     */
     int backgroundColor() const;
 
+    /** \brief Sets the threshold value.
+     *
+     */
     void setThreshold(int value);
 
+    /** \brief Returns the threshold value.
+     *
+     */
     int threshold() const;
 
   protected:
+    /** \brief Implements Extension::onExtendedItemSet().
+     *
+     */
     virtual void onExtendedItemSet(Channel* item);
 
+    /** \brief Implements Extension::cacheFail().
+     *
+     */
     virtual QVariant cacheFail(const QString& tag) const
     { return QVariant(); }
 
   private:
+    /** \brief Loads the edges from the cache and computes the adaptive edges.
+     *
+     */
     void initializeEdges();
 
+    /** \brief Launches the edges analizer task.
+     *
+     */
     void analyzeChannel();
 
+    /** \brief Computes the channel's adaptive edges.
+     *
+     */
     void computeAdaptiveEdges();
 
+    /** \brief Loads edge values from cache.
+     *
+     */
     void loadEdgesCache();
 
+    /** \brief Loads face values from cache.
+     *
+     */
     void loadFacesCache();
 
   private slots:
+  	/** \brief Perform operations after finishing the edges computation.
+  	 *
+  	 */
     void onChannelAnalyzed();
 
   private:
@@ -134,7 +223,9 @@ namespace ESPINA
     vtkSmartPointer<vtkPolyData> m_edges;
     vtkSmartPointer<vtkPolyData> m_faces[6];
 
-    // build a surface for each face the first time they're needed
+    /** \brief Build a surface for each face the first time they're needed.
+     *
+     */
     void computeSurfaces();
 
     friend class AdaptiveEdgesCreator;
@@ -144,7 +235,16 @@ namespace ESPINA
   using ChannelEdgesPtr  = ChannelEdges *;
   using ChannelEdgesSPtr = std::shared_ptr<ChannelEdges>;
 
+  /** \brief Casts a channel extension pointer to a ChannelEdges extension raw pointer.
+   *
+   * Returns nullptr if the extension it's not a ChannelEdges extension.
+   *
+   */
   ChannelEdgesPtr  channelEdgesExtension(ChannelExtensionPtr extension);
+
+  /** \brief Returns a smart pointer of the channel's ChannelEdges extension.
+   *
+   */
   ChannelEdgesSPtr channelEdgesExtension(ChannelPtr channel);
 
 }// namespace ESPINA

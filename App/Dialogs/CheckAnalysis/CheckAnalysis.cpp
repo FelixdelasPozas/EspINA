@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "CheckAnalysis.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
@@ -34,7 +34,7 @@ namespace ESPINA
   {
     setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
-    qRegisterMetaType<struct Problem>("struct Problem");
+    qRegisterMetaType<Problem>("Problem");
 
     m_progress->setMinimum(0);
     m_progress->setMaximum(model->segmentations().size() + model->channels().size() + model->samples().size());
@@ -42,30 +42,29 @@ namespace ESPINA
 
     for(auto seg: model->segmentations())
     {
-      Task *task = new CheckTask(scheduler, seg, model);
-      m_taskList << TaskSPtr(task);
+      m_taskList << std::make_shared<CheckTask>(scheduler, seg, model);
     }
 
     for(auto channel: model->channels())
     {
-      Task *task = new CheckTask(scheduler, channel, model);
-      m_taskList << TaskSPtr(task);
+      m_taskList << std::make_shared<CheckTask>(scheduler, channel, model);
     }
 
     for(auto sample: model->samples())
     {
-      Task *task = new CheckTask(scheduler, sample, model);
-      m_taskList << TaskSPtr(task);
+      m_taskList << std::make_shared<CheckTask>(scheduler, sample, model);
     }
 
     for(auto task: m_taskList)
     {
-      connect(task.get(), SIGNAL(finished()), this, SLOT(finishedTask()), Qt::QueuedConnection);
-      connect(task.get(), SIGNAL(problem(struct Problem)), this, SLOT(addProblem(struct Problem)), Qt::QueuedConnection);
+      connect(task.get(), SIGNAL(finished()),
+              this,       SLOT(finishedTask()));
+      connect(task.get(), SIGNAL(problem(Problem)),
+              this,       SLOT(addProblem(Problem)));
       task->submit(task);
     }
   }
-  
+
   //------------------------------------------------------------------------
   void CheckAnalysis::finishedTask()
   {
@@ -77,8 +76,10 @@ namespace ESPINA
     for(auto task: m_taskList)
       if(task.get() == senderTask)
       {
-        disconnect(task.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-        disconnect(task.get(), SIGNAL(problem(struct Problem)), this, SLOT(addProblem(struct Problem)));
+        disconnect(task.get(), SIGNAL(finished()),
+                   this,       SLOT(finishedTask()));
+        disconnect(task.get(), SIGNAL(problem(Problem)),
+                   this,       SLOT(addProblem(Problem)));
         m_taskList.removeOne(task);
         break;
       }
@@ -88,7 +89,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void CheckAnalysis::addProblem(struct Problem problem)
+  void CheckAnalysis::addProblem(Problem problem)
   {
     m_problems << problem;
     m_numProblems->setText(QString().number(++m_problemsNum));
@@ -126,7 +127,7 @@ namespace ESPINA
           auto volume = volumetricData(seg->output());
           if(volume == nullptr || volume->isEmpty())
           {
-            struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation has a volume data associated but is empty or null.", "Delete segmentation."};
+            Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume data associated but is empty or null."), tr("Delete segmentation.")};
             emit problem(segProblem);
           }
         }
@@ -137,7 +138,7 @@ namespace ESPINA
           auto volume = volumetricData(channel->output());
           if(volume == nullptr)
           {
-            struct Problem channelProblem{channel->data().toString(), Severity::CRITICAL, "Channel has a volume data associated but is null.", "Delete channel."};
+            Problem channelProblem{channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume data associated but is null."), tr("Delete channel.")};
             emit problem(channelProblem);
           }
         }
@@ -152,12 +153,16 @@ namespace ESPINA
   void CheckTask::checkMeshIsEmpty() const
   {
     auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
-    auto mesh = meshData(seg->output());
 
-    if(mesh == nullptr || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
+    if (hasMeshData(seg->output()))
     {
-      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation has a mesh data associated but is empty or null.", "Delete segmentation"};
-      emit problem(segProblem);
+      auto mesh = meshData(seg->output());
+
+      if(mesh == nullptr || mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
+      {
+        Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a mesh data associated but is empty or null."), tr("Delete segmentation")};
+        emit problem(segProblem);
+      }
     }
   }
 
@@ -169,7 +174,7 @@ namespace ESPINA
 
     if(channels.empty())
     {
-      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any channel.", "Delete segmentation."};
+      Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any channel."), tr("Delete segmentation.")};
       emit problem(segProblem);
     }
   }
@@ -182,7 +187,7 @@ namespace ESPINA
 
     if(relations.empty())
     {
-      struct Problem segProblem{seg->data().toString(), Severity::CRITICAL, "Segmentation is not related to any sample.", "Delete segmentation."};
+      Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation is not related to any sample."), tr("Delete segmentation.")};
       emit problem(segProblem);
     }
   }
@@ -195,7 +200,7 @@ namespace ESPINA
 
     if(relations.empty())
     {
-      struct Problem segProblem{channel->data().toString(), Severity::CRITICAL, "Channel is not related to any sample.", "Change relations in the \"Channel Explorer\" dialog."};
+      Problem segProblem{channel->data().toString(), Severity::CRITICAL, tr("Channel is not related to any sample."), tr("Change relations in the \"Channel Explorer\" dialog.")};
       emit problem(segProblem);
     }
   }
@@ -209,19 +214,19 @@ namespace ESPINA
 
     if (output == nullptr)
     {
-      struct Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, "Item does not have an output.", "Delete item." };
+      Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have an output."), tr("Delete item.") };
       emit problem(segProblem);
     }
     else
     {
       int numberOfDatas = 0;
-      if (output->hasData(MeshData::TYPE))
+      if (hasMeshData(output))
       {
         checkMeshIsEmpty();
         ++numberOfDatas;
       }
 
-      if (output->hasData(VolumetricData<itkVolumeType>::TYPE))
+      if (hasVolumetricData(output))
       {
         checkVolumeIsEmpty();
         ++numberOfDatas;
@@ -229,14 +234,14 @@ namespace ESPINA
 
       if (numberOfDatas == 0)
       {
-        struct Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, "Item does not have any data.", "Delete item." };
+        Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have any data."), tr("Delete item.") };
         emit problem(segProblem);
       }
     }
 
     if (filter == nullptr)
     {
-      struct Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, "Item does not have a filter.", "Delete item." };
+      Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have a filter."), tr("Delete item.")};
       emit problem(segProblem);
     }
 

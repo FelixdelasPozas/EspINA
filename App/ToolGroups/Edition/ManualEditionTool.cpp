@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,14 +18,14 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+ // ESPINA
 #include "ManualEditionTool.h"
-
-#include <App/Tools/Brushes/CircularBrushSelector.h>
-#include <App/Tools/Brushes/SphericalBrushSelector.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Widgets/SliderAction.h>
 #include <Support/Settings/EspinaSettings.h>
 
+// Qt
 #include <QAction>
 #include <QSettings>
 
@@ -147,7 +147,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
   connect(m_eraserWidget, SIGNAL(toggled(bool)),
           this, SLOT(setEraserMode(bool)));
 
-
   setControlVisibility(false);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
@@ -222,19 +221,24 @@ void ManualEditionTool::unsetSelector()
 }
 
 //-----------------------------------------------------------------------------
-void ManualEditionTool::categoryChanged(CategoryAdapterSPtr category)
+void ManualEditionTool::categoryChanged(CategoryAdapterSPtr unused)
 {
   if (m_categorySelector)
   {
     m_eraserWidget->setChecked(false);
 
-    auto selection = m_viewManager->selection();
-    selection->clear();
+    if(m_viewManager->activeChannel() == nullptr)
+      return;
 
     ChannelAdapterList channels;
     channels << m_viewManager->activeChannel();
-    selection->set(channels);
 
+    if(!channels.empty())
+    {
+      auto selection = m_viewManager->selection();
+      selection->clear();
+      selection->set(channels);
+    }
   }
 
   updateReferenceItem();
@@ -376,13 +380,8 @@ void ManualEditionTool::updateReferenceItem()
   auto selection     = m_viewManager->selection();
   auto segmentations = selection->segmentations();
 
-  if (segmentations.size() == 1)
+  if (segmentations.empty() || !hasVolumetricData(segmentations.first()->output()))
   {
-    item = segmentations.first();
-  }
-  else
-  {
-    item = m_viewManager->activeChannel();
     image = QImage(":/espina/brush_new.svg");
     enableEraser = false;
 
@@ -404,7 +403,7 @@ void ManualEditionTool::updateReferenceItem()
     }
     else
     {
-      auto segmentation = selection->segmentations().first();
+      auto segmentation = segmentations.first();
       auto category     = segmentation->category();
 
       m_categorySelector->blockSignals(true);

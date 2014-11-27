@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_MULTI_COLOR_ENGINE_H
 #define ESPINA_MULTI_COLOR_ENGINE_H
 
-#include <QList>
+// ESPINA
 #include "ColorEngine.h"
+
+// Qt
+#include <QList>
 
 namespace ESPINA
 {
@@ -31,11 +33,31 @@ namespace ESPINA
   : public ColorEngine
   {
   public:
-    virtual QColor  color(SegmentationAdapterPtr seg);
-    virtual LUTSPtr lut  (SegmentationAdapterPtr seg);
+ 		/** \brief Implements ColorEngine::color().
+ 		 *
+ 		 */
+    virtual QColor color(SegmentationAdapterPtr seg);
+
+ 		/** \brief Implements ColorEngine::lut().
+ 		 *
+ 		 */
+    virtual LUTSPtr lut(SegmentationAdapterPtr seg);
+
+ 		/** \brief Implements ColorEngine::supportedComposition().
+ 		 *
+ 		 */
     virtual ColorEngine::Composition supportedComposition() const;
 
+    /** \brief Adds a color engine.
+     * \param[in] engine, color engine to add.
+     *
+     */
     virtual void add(ColorEngineSPtr engine);
+
+    /** \brief Removes a color engine.
+     * \param[in] engine, color engine to remove.
+     *
+     */
     virtual void remove(ColorEngineSPtr engine);
 
   protected:

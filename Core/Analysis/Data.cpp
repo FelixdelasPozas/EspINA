@@ -25,10 +25,32 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "Data.h"
+#include "Output.h"
+#include "Filter.h"
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 TimeStamp Data::s_tick = 0;
+
+//----------------------------------------------------------------------------
+void Data::setFetchContext(const TemporalStorageSPtr storage, const QString& path, const QString& id)
+{
+  m_storage = storage;
+  m_path    = path;
+  m_id      = id;
+}
+
+//----------------------------------------------------------------------------
+QList<Data::Type> Data::dependencies() const
+{
+  return updateDependencies();
+}
+
+//----------------------------------------------------------------------------
+bool Data::fetchData()
+{
+  return fetchDataImplementation(m_storage, m_path, m_id);
+}

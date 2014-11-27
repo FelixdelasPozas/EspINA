@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -142,10 +142,14 @@ namespace ESPINA
   {
     QString fileName = m_storageDir.absoluteFilePath(descriptor);
 
+    QByteArray data;
+
     QFile file(fileName);
-    file.open(QIODevice::ReadOnly);
-    QByteArray data = file.readAll();
-    file.close();
+    if (file.open(QIODevice::ReadOnly))
+    {
+      data = file.readAll();
+      file.close();
+    }
 
     return data;
   }

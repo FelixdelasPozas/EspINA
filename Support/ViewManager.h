@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,11 +18,6 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-//----------------------------------------------------------------------------
-// File:    ViewManager.h
-// Purpose: Singleton to register and keep views updated
-//----------------------------------------------------------------------------
 #ifndef ESPINA_VIEW_MANAGER_H
 #define ESPINA_VIEW_MANAGER_H
 
@@ -38,6 +33,9 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/View2D.h>
+#include <GUI/Widgets/SliceSelector.h>
+#include "ROIProvider.h"
 
 // Qt
 #include <QList>
@@ -55,54 +53,89 @@ class QEvent;
 
 namespace ESPINA
 {
-  class SliceSelectorWidget;
-  class RenderView;
   class SelectableView;
-  class View2D;
   class Measure;
 
   class ToolGroup;
   using ToolGroupPtr = ToolGroup*;
 
+  /** \class ViewManager.
+   * \brief Singleton to register and keep views updated.
+   *
+   */
   class EspinaSupport_EXPORT ViewManager
   : public QObject
   {
     Q_OBJECT
   public:
+    /** \brief ViewManager class constructor.
+     *
+     */
     explicit ViewManager();
+
+    /** \brief ViewManager class destructor.
+     *
+     */
     ~ViewManager();
 
+    /** \brief Registers a view to be managed by this view manager.
+     * \param[in] view SelectableView raw pointer of the view to register.
+     *
+     */
     void registerView(SelectableView* view);
+
+    /** \brief Registers a view to be managed by this view manager.
+     * \param[in] view RenderView raw pointer of the view to register.
+     *
+     */
     void registerView(RenderView*     view);
 
+    /** \brief Unregisters a view from the view manager so it wont receive updates.
+     * \param[in] view Selectable raw pointer of the view to unregister.
+     *
+     */
     void unregisterView(SelectableView* view);
-    void unregisterView(RenderView*     view);
 
+    /** \brief Unregisters a view from the view manager so it wont receive updates.
+     * \param[in] view RenderView raw pointer of the view to unregister.
+     *
+     */
+    void unregisterView(RenderView* view);
+
+    /** \brief Returns a list of raw pointers of registered render views (2D and 3D views).
+     *
+     */
     QList<RenderView*> renderViews()
     { return m_renderViews; }
 
+    /** \brief Returns a list of raw pointers of registered selectable views.
+     *
+     */
     QList<SelectableView*> selectableViews()
     { return m_espinaViews; }
 
+    /** \brief Returns a list of raw pointers of registered 2D views.
+     *
+     */
     QList<View2D *> sliceViews();
 
-    /* \brief Register a renderer.
-     * \param[in] renderer, renderer prototype.
+    /** \brief Register a renderer.
+     * \param[in] renderer renderer prototype.
      */
     void registerRenderer(RendererSPtr renderer);
 
-    /* \brief Unregister a renderer and remove it from the list of renderers.
-     * \param[in] name, name of the renderer to unregister.
+    /** \brief Unregister a renderer and remove it from the list of renderers.
+     * \param[in] name name of the renderer to unregister.
      */
     void unregisterRenderer(const QString &name);
 
-    /* \brief Returns a list of renderers for the specified view type.
-     * \param[in] type, view type.
+    /** \brief Returns a list of renderers for the specified view type.
+     * \param[in] type view type.
      */
     QStringList renderers(const RendererType type) const;
 
-    /* \brief Returns an instance of the specified renderer.
-     * \param[in] name, name of the renderer to clone.
+    /** \brief Returns an instance of the specified renderer.
+     * \param[in] name name of the renderer to clone.
      */
     RendererSPtr cloneRenderer(const QString &name) const;
 
@@ -115,17 +148,19 @@ namespace ESPINA
     /*************************** Selection API *********************************/
     //---------------------------------------------------------------------------
   public:
-    /** \brief Enable item selection in views controlled by the ViewManager
-     * 
+    /** \brief Enable item selection in views controlled by the ViewManager.
+     * \param[in] enable true to enable the user to select objects in the view, false otherwise.
+     *
      */
     void setSelectionEnabled(bool enable);
 
-    /** \brief Request all controlled views to update their selection
+    /** \brief Request all controlled views to update their selection.
+     * \param[in] selection current selection.
      *
      */
     void setSelection(ViewItemAdapterList selection);
 
-    /** \brief Return selection shared amongs all the views controlled by the ViewManager
+    /** \brief Return selection shared among all the views controlled by the ViewManager
      *
      */
     SelectionSPtr selection() const
@@ -141,34 +176,73 @@ namespace ESPINA
     /************************* Tool Group API ********************************/
     //---------------------------------------------------------------------------
   public:
+    /** \brief Sets the contextual tool bar.
+     * \param[in] toolbar QToolBar raw pointer.
+     *
+     */
     void setContextualBar(QToolBar *toolbar)
     { m_contextualToolBar = toolbar; }
 
+    /** \brief Shows the tools of the specified tool group.
+     * \param[in] group ToolGroup smart pointer.
+     *
+     */
     void displayTools(ToolGroupPtr group);
 
+    /** \brief Hides the tools of the specified tool group.
+     * \param[in] group ToolGroup smart pointer.
+     *
+     */
     void hideTools(ToolGroupPtr group);
 
+    /** \brief Sets the event handler as the active one.
+     * \param[in] eventHandler event handler smart pointer.
+     *
+     */
     void setEventHandler(EventHandlerSPtr eventHandler);
 
+    /** \brief Unsets the active event handler.
+     *
+     */
     void unsetActiveEventHandler();
 
+    /** \brief Unsets the specified eventhandler if it was enabled.
+     * \param[in] eventHandler event handler smart pointer.
+     *
+     */
     void unsetEventHandler(EventHandlerSPtr eventHandler);
 
+    /** \brief Returns the current event handler.
+     *
+     */
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setCurrentROI(ROISPtr roi)
-    { m_roi = roi; emit ROIChanged(); }
+    /** \brief Sets the current region of interest provider
+     * \param[in] provider ROI Provider smart pointer.
+     *
+     */
+    void setROIProvider(ROIProviderPtr provider)
+    { m_roiProvider = provider;}
+
+    /** \brief Returns the current region of interest provider.
+     *
+     */
+    ROIProviderPtr roiProvider() const
+    { return m_roiProvider; }
 
     ROISPtr currentROI() const
-    { return m_roi; }
+    { return m_roiProvider?m_roiProvider->currentROI():ROISPtr();}
+
+    void consumeROI()
+    { if (m_roiProvider) m_roiProvider->consumeROI();}
 
   signals:
-    void ROIChanged();
+    void roiRoviderChanged();
     void eventHandlerChanged();
 
   private:
-    ROISPtr          m_roi;
+    ROIProviderPtr   m_roiProvider;
     QToolBar        *m_contextualToolBar;
     ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;
@@ -177,7 +251,16 @@ namespace ESPINA
     /***************************** Widget API **********************************/
     //---------------------------------------------------------------------------
   public:
-    void addWidget   (EspinaWidgetSPtr widget);
+    /** \brief Adds a widget to the registered views.
+     * \param[in] widget smart pointer of the widget to add.
+     *
+     */
+    void addWidget(EspinaWidgetSPtr widget);
+
+    /** \brief Removes a widget from the registered views.
+     * \param[in] widget smart pointer of the widget to remove.
+     *
+     */
     void removeWidget(EspinaWidgetSPtr widget);
 
   private:
@@ -187,45 +270,82 @@ namespace ESPINA
     /*********************** View Synchronization API **************************/
     //---------------------------------------------------------------------------
   public:
-    /// Reset Camera
+    /** \brief Resets the camera of all the views.
+     *
+     */
     void resetViewCameras();
 
-    /// Focus
+    /** \brief Centers the views on the specified point.
+     * \param[in] point point to center the views on.
+     *
+     */
     void focusViewsOn(const NmVector3& point);
 
-    /// Toggle segmentations visibility
+    /** \brief Toggles segmentations visibility.
+     * \param[in] visible true to make segmentation representations visible, false otherwise.
+     *
+     */
     void setSegmentationVisibility(bool visible);
 
-    /// Toggle crosshair visibility
+    /** \brief Toggles crosshair visibility.
+     * \param[in] visible true to make the crosshair visible false otherwise.
+     *
+     */
     void setCrosshairVisibility(bool visible);
 
-//     /// Set Slice Selection flags to all registered Slice Views
-//     void addSliceSelectors(SliceSelectorWidget *widget,
-//                            ViewManager::SliceSelectors selectors);
-//     /// Unset Slice Selection flags to all registered Slice Views
-//     void removeSliceSelectors(SliceSelectorWidget *widget);
+    /** \brief
+     *
+     */
+    void addSliceSelectors(SliceSelectorSPtr widget,
+                           View2D::SliceSelectionType selectors);
+    /// Unset Slice Selection flags to all registered Slice Views
+    void removeSliceSelectors(SliceSelectorSPtr widget);
 
+    /** \brief Returns the QAction of the "fit to slices" action.
+     *
+     */
     QAction *fitToSlices()
     {return m_fitToSlices;}
 
+    /** \brief Returns the resolution of the view in every axis.
+     *
+     */
     NmVector3 viewResolution();
 
+    /** \brief Returns a measure object of the provided measure in Nm.
+     * \param[in] distance measure in Nm units.
+     *
+     */
     MeasureSPtr measure(Nm distance);
 
   public slots:
-    /// Update Segmentation Representation
+    /** \brief Updates the representations of a segmentation.
+     * \param[in] segmentation raw pointer of the segmentation adapter to update.
+     *
+     */
     void updateSegmentationRepresentations(SegmentationAdapterPtr segmentation);
 
-    /// Update Segmentation Representation
+    /** \brief Update segmentation representations.
+     * \param[in] list list of segmentation raw pointers to update.
+     *
+     */
     void updateSegmentationRepresentations(SegmentationAdapterList list = SegmentationAdapterList());
 
-    /// Update Channel Representation
+    /** \brief Update channel representations.
+     * \param[in] list list of channel adapter raw pointer to update.
+     *
+     */
     void updateChannelRepresentations(ChannelAdapterList list = ChannelAdapterList());
 
-    /// Request all registered views to update themselves
+    /** \brief Request all registered views to update themselves.
+     *
+     */
     void updateViews();
 
-    /// Change fit to slice settings
+    /** \brief Change "fit to slice" flag.
+     * \param[in] enabled true to enable "fit to slices" false otherwise.
+     *
+     */
     void setFitToSlices(bool enabled);
 
 private:
@@ -240,14 +360,28 @@ private:
     // proper type is required                                                 //
     //---------------------------------------------------------------------------
   public:
+    /** \brief Sets the active channel for the views.
+     * \param[in] channel raw pointer of the channel adapter.
+     *
+     */
     void setActiveChannel(ChannelAdapterPtr channel);
 
+    /** \brief Returns a raw pointer of the active channel.
+     *
+     */
     ChannelAdapterPtr activeChannel() const
     { return m_activeChannel; }
 
+    /** \brief Sets the active category.
+     * \param[in] category raw pointer of the new active category.
+     *
+     */
     void setActiveCategory(CategoryAdapterPtr category)
     { m_activeCategory = category; }
 
+    /** \brief Returns a raw pointer of the active category.
+     *
+     */
     CategoryAdapterPtr activeCategory() const
     { return m_activeCategory; }
 
@@ -263,8 +397,15 @@ private:
     /************************* Color Engine API ********************************/
     //---------------------------------------------------------------------------
   public:
+    /** \brief Sets the color engine for the views.
+     * \param[in] engine, color engine smart pointer.
+     *
+     */
     void setColorEngine(ColorEngineSPtr engine);
 
+    /** \brief Returns the color engine smart pointer.
+     *
+     */
     ColorEngineSPtr colorEngine() const
     { return m_colorEngine;}
 
@@ -273,8 +414,6 @@ private:
   };
 
   using ViewManagerSPtr = std::shared_ptr<ViewManager>;
-
-//   Q_DECLARE_OPERATORS_FOR_FLAGS(ViewManager::SliceSelectors)
 }
 
 #endif // ESPINA_VIEW_MANAGER_H

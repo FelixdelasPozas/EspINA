@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,16 +18,17 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_CONTEXTUAL_MENU_H
 #define ESPINA_CONTEXTUAL_MENU_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include "GUI/Model/ViewItemAdapter.h"
 #include <GUI/View/SelectableView.h>
 
+// Qt
 #include <QMenu>
 
 namespace ESPINA
@@ -36,9 +37,17 @@ namespace ESPINA
   : public QMenu
   {
   public:
-    explicit ContextualMenu(QWidget *parent = 0)
-    : QMenu(parent) {}
+  	/** \brief ContextualMenu class constructor.
+  	 * \param[in] parent, raw pointer of the QWidget parent of this one.
+  	 *
+  	 */
+    explicit ContextualMenu(QWidget *parent = nullptr)
+    : QMenu{parent}
+		{}
 
+		/** \brief Sets the selection of the menu.
+		 *
+		 */
     virtual void setSelection(SelectionSPtr selection) = 0;
   };
 

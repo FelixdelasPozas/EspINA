@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,16 +19,15 @@
  *
  */
 
+// ESPINA
 #include "ToggleCrosshairVisibility.h"
-
 
 using namespace ESPINA;
 
-
 //----------------------------------------------------------------------------
 ToggleCrosshairVisibility::ToggleCrosshairVisibility(ViewManagerSPtr viewManager)
-: m_viewManager(viewManager)
-, m_toggle(QIcon(":/espina/show_planes.svg"), tr("Toggle Crosshair visibility"), this)
+: m_viewManager{viewManager}
+, m_toggle     {QIcon(":/espina/show_planes.svg"), tr("Toggle Crosshair visibility"), this}
 {
   m_toggle.setCheckable(true);
   m_toggle.setChecked(false);

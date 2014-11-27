@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "ReparentCategoryCommand.h"
 
 using namespace ESPINA;
@@ -28,9 +29,9 @@ ReparentCategoryCommand::ReparentCategoryCommand(CategoryAdapterPtr category,
                                                  CategoryAdapterPtr parentCategory,
                                                  ModelAdapterSPtr   model,
                                                  QUndoCommand*      parent)
-: QUndoCommand(parent)
-, m_model(model)
-, m_parent(m_model->smartPointer(parentCategory))
+: QUndoCommand{parent}
+, m_model     {model}
+, m_parent    {m_model->smartPointer(parentCategory)}
 {
   storePreviousParent(category);
 }
@@ -40,9 +41,9 @@ ReparentCategoryCommand::ReparentCategoryCommand(CategoryAdapterList categories,
                                                  CategoryAdapterPtr  parentCategory,
                                                  ModelAdapterSPtr    model,
                                                  QUndoCommand*       parent)
-: QUndoCommand    (parent)
-, m_model         (model)
-, m_parent(m_model->smartPointer(parentCategory))
+: QUndoCommand{parent}
+, m_model     {model}
+, m_parent    {m_model->smartPointer(parentCategory)}
 {
   for(auto category : categories)
   {
@@ -53,9 +54,7 @@ ReparentCategoryCommand::ReparentCategoryCommand(CategoryAdapterList categories,
 //------------------------------------------------------------------------
 ReparentCategoryCommand::~ReparentCategoryCommand()
 {
-
 }
-
 
 //------------------------------------------------------------------------
 void ReparentCategoryCommand::redo()

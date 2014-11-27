@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,11 +19,13 @@
  *
  */
 
+// ESPINA
 #include "MeshData.h"
-
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 
+// VTK
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyData.h>
 #include <vtkAlgorithm.h>
@@ -40,22 +42,79 @@ MeshData::MeshData()
 //----------------------------------------------------------------------------
 Bounds MeshData::bounds() const
 {
-  Nm bounds[6];
-  mesh()->GetBounds(bounds);
+  Bounds result;
 
-  return Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+  auto meshPolyData = mesh();
+
+  if (meshPolyData)
+  {
+    Nm bounds[6];
+
+    meshPolyData->GetBounds(bounds);
+
+    result = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+  }
+
+  return result;
 }
 
 //----------------------------------------------------------------------------
-DataProxySPtr MeshData::createProxy() const
+bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
 {
-  return DataProxySPtr{ new MeshProxy() };
+  bool dataFetched = false;
+
+  // TODO: Fetch old file names
+  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
+
+
+  for (auto filename : {snapshotFilename   (path, id),
+                        oldSnapshotFilename(path, id)})
+  {
+    QFileInfo meshFile(storage->absoluteFilePath(filename));
+
+    if(meshFile.exists())
+    {
+      setMesh(PolyDataUtils::readPolyDataFromFile(meshFile.absoluteFilePath()));
+      dataFetched = true;
+      break;
+    }
+  }
+
+  return dataFetched;
 }
 
 //----------------------------------------------------------------------------
-ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output)
+Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
 {
-  MeshDataSPtr meshData = std::dynamic_pointer_cast<MeshData>(output->data(MeshData::TYPE));
+  Snapshot snapshot;
 
-  return meshData;
+  auto currentMesh = mesh();
+  if (currentMesh)
+  {
+    QString fileName = snapshotFilename(path, id);
+    storage->makePath(path);
+
+    snapshot << SnapshotData(fileName, PolyDataUtils::savePolyDataToBuffer(currentMesh));
+  }
+
+  return snapshot;
+}
+
+//----------------------------------------------------------------------------
+DataSPtr MeshData::createProxy() const
+{
+  return DataSPtr{ new MeshProxy() };
+}
+
+//----------------------------------------------------------------------------
+ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
+{
+  return outputData<MeshData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+bool ESPINA::hasMeshData(OutputSPtr output)
+{
+  return output->hasData(MeshData::TYPE);
 }

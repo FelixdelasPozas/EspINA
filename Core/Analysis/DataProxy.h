@@ -28,6 +28,10 @@
 
 #ifndef ESPINA_DATA_PROXY_H
 #define ESPINA_DATA_PROXY_H
+
+#include "Core/EspinaCore_Export.h"
+
+// C++
 #include <memory>
 
 namespace ESPINA {
@@ -35,17 +39,25 @@ namespace ESPINA {
   class Data;
   using DataSPtr = std::shared_ptr<Data>;
 
-  class DataProxy
+  class DataProxy;
+  using DataProxySPtr = std::shared_ptr<DataProxy>;
+
+  class EspinaCore_EXPORT DataProxy
   {
   public:
-    virtual ~DataProxy(){}
+    /** \brief DataProxy class virtual destructor.
+     *
+     */
+    virtual ~DataProxy()
+    {}
 
+    /** \brief Sets the internal data of the proxy.
+     * \param[in] data, data object smart pointer.
+     *
+     */
     virtual void set(DataSPtr data) = 0;
-
-    virtual DataSPtr get() const = 0;
   };
 
-  using DataProxySPtr = std::shared_ptr<DataProxy>;
 }
 
 #endif // ESPINA_DATA_PROXY_H

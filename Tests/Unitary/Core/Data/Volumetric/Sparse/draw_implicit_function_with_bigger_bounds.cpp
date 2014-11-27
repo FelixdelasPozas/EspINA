@@ -26,8 +26,8 @@
  * 
  */
 
-#include "Core/Analysis/Data/Volumetric/SparseVolume.h"
-#include "Tests/Unitary/Testing_Support.h"
+#include "Core/Analysis/Data/Volumetric/SparseVolume.hxx"
+#include "Tests/Testing_Support.h"
 
 #include <vtkSmartPointer.h>
 
@@ -35,9 +35,8 @@ using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-
-typedef unsigned char VoxelType;
-typedef itk::Image<VoxelType, 3> ImageType;
+using VoxelType = unsigned char;
+using ImageType = itk::Image<VoxelType, 3>;
 
 int draw_implicit_function_with_bigger_bounds( int argc, char** argv )
 {

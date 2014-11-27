@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "ReplaceOutputCommand.h"
 
 using namespace ESPINA;
@@ -27,9 +28,9 @@ using namespace ESPINA;
 ReplaceOutputCommand::ReplaceOutputCommand(SegmentationAdapterPtr segmentation,
                                            InputSPtr              input,
                                            QUndoCommand*          parent)
-: QUndoCommand(parent)
-, m_segmentation(segmentation)
-, m_input(input)
+: QUndoCommand  {parent}
+, m_segmentation{segmentation}
+, m_input       {input}
 {
 }
 

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,17 +21,31 @@
 #ifndef ESPINA_ITK_PROGRESS_REPORTER_H
 #define ESPINA_ITK_PROGRESS_REPORTER_H
 
-// #include "EspinaFilters_Export.h"
+#include "Filters/EspinaFilters_Export.h"
 
+// ESPINA
 #include "Core/Analysis/Filter.h"
+
+// ITK
 #include <itkCommand.h>
 
 namespace ESPINA
 {
+	/** \class ITKProgressReporter
+	 * \brief Encapsulates ITK filters progress report so it will be reported by the task class.
+	 *
+	 */
   template<typename T>
-  class ITKProgressReporter
+  class EspinaFilters_EXPORT ITKProgressReporter
   {
   public:
+  	/** \brief ITKProgressReporter class constructor.
+  	 * \param[in] reporter, raw pointer of the task that will report progress.
+  	 * \param[in] filter, smart pointer of itk filter contained in task.
+  	 * \param[in] fromValue, initial progress value.
+  	 * \param[in] toValue, end progress value.
+  	 *
+  	 */
     ITKProgressReporter(Task* reporter, typename T::Pointer filter, int fromValue=0, int toValue = 100)
     : m_task(reporter)
     , m_filter(filter)
@@ -45,6 +59,9 @@ namespace ESPINA
     }
 
   private:
+    /** \brief Makes the task report the progress of the itk filter.
+     *
+     */
     void reportProgress()
     {
       m_task->reportProgress(m_initialProgress + m_delta*m_filter->GetProgress());
@@ -53,8 +70,8 @@ namespace ESPINA
   private:
     Task*               m_task;
     typename T::Pointer m_filter;
-    int m_initialProgress;
-    int m_delta;
+    int                 m_initialProgress;
+    int                 m_delta;
   };
 } // namespace ESPINA
 

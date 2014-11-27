@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,14 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "EventHandler.h"
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 EventHandler::EventHandler()
-: m_inUse(false)
-, m_cursor(Qt::CrossCursor)
+: m_inUse{false}
+, m_cursor{Qt::ArrowCursor}
 {
 }
 

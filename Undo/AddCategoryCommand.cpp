@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "AddCategoryCommand.h"
 
 using namespace ESPINA;
@@ -28,7 +29,7 @@ AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                        CategoryAdapterSPtr category,
                                        ModelAdapterSPtr    model,
                                        QUndoCommand*       parent)
-: QUndoCommand(parent)
+: QUndoCommand    {parent}
 , m_model         {model}
 , m_name          {category->name()}
 , m_color         {category->color()}
@@ -43,7 +44,7 @@ AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                        ModelAdapterSPtr    model,
                                        QColor              color,
                                        QUndoCommand*       parent)
-: QUndoCommand(parent)
+: QUndoCommand    {parent}
 , m_model         {model}
 , m_name          {name}
 , m_color         {color}

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,15 +19,17 @@
  *
  */
 
+// ESPINA
 #include "CODETool.h"
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CODETool::CODETool(const QString& icon, const QString& tooltip)
-: m_toggle(new QAction(this))
-, m_radius(new SpinBoxAction(this))
-, m_apply(new QAction(this))
+: m_toggle {new QAction(this)}
+, m_radius {new SpinBoxAction(this)}
+, m_apply  {new QAction(this)}
+, m_enabled{false}
 {
   m_toggle->setIcon(QIcon(icon));
   m_toggle->setToolTip(tooltip);
@@ -60,19 +62,17 @@ QList<QAction *> CODETool::actions() const
 //------------------------------------------------------------------------
 void CODETool::setEnabled(bool enabled)
 {
+	if(m_enabled == enabled)
+		return;
+
+	m_enabled = enabled;
+
   m_toggle->setEnabled(enabled);
   m_radius->setEnabled(enabled);
   m_apply ->setEnabled(enabled);
 
   if(m_toggle->isChecked() && !enabled)
     toggleToolWidgets(false);
-
-  //if (m_toggle->isChecked() && !enabled)
-  //{
-  //  m_toggle->setChecked(false);
-  //  m_radius->setVisible(false);
-  //  m_apply ->setVisible(false);
-  //}
 }
 
 //------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -30,9 +30,8 @@ using namespace ESPINA;
 RemoveSegmentations::RemoveSegmentations(SegmentationAdapterPtr segmentation,
                                          ModelAdapterSPtr       model,
                                          QUndoCommand          *parent)
-
-: QUndoCommand(parent)
-, m_model(model)
+: QUndoCommand{parent}
+, m_model     {model}
 {
   analyzeSegmentation(segmentation);
 }
@@ -41,8 +40,8 @@ RemoveSegmentations::RemoveSegmentations(SegmentationAdapterPtr segmentation,
 RemoveSegmentations::RemoveSegmentations(SegmentationAdapterList segmentations,
                                          ModelAdapterSPtr        model,
                                          QUndoCommand           *parent)
-: QUndoCommand(parent)
-, m_model(model)
+: QUndoCommand{parent}
+, m_model     {model}
 {
   for (auto segmentation : segmentations)
   {
@@ -89,7 +88,6 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
   }
 }
 
-
 //------------------------------------------------------------------------
 void RemoveSegmentations::redo()
 {
@@ -132,14 +130,14 @@ void RemoveSegmentations::undo()
 //         return;
 //         break;
 //     }
-// 
+//
 //   if (!m_filters.contains(filter))
 //     m_filters << filter;
-// 
+//
 //   foreach(Relation relation, filter->relations())
 //     if (!isADupicatedRelation(relation))
 //       m_relations << relation;
-// 
+//
 //   ModelItemSList ancestors = filter->relatedItems(ESPINA::RELATION_IN);
 //   foreach(ModelItemSPtr ancestor, ancestors)
 //     if (ancestor->type() == ESPINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
@@ -156,6 +154,6 @@ void RemoveSegmentations::undo()
 //     {
 //       return true;
 //     }
-// 
+//
 //   return false;
 // }

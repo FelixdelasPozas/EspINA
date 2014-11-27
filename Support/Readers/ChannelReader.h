@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -21,12 +21,16 @@
 
 #ifndef ESPINA_CHANNEL_READER_H
 #define ESPINA_CHANNEL_READER_H
+
+#include "Support/EspinaSupport_Export.h"
+
+// ESPINA
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 
 namespace ESPINA {
 
-  class ChannelReader
+  class EspinaSupport_EXPORT ChannelReader
   : public FilterFactory
   , public IO::AnalysisReader
   {

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "SliceRepresentationSettings.h"
 #include "SliceRepresentation.h"
 
@@ -26,7 +27,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 SliceRepresentationSettings::SliceRepresentationSettings()
-: m_init(false)
+: m_init{false}
 {
   setupUi(this);
 }

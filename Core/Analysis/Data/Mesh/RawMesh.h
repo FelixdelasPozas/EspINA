@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -37,44 +37,63 @@ namespace ESPINA
   : public MeshData
   {
   public:
+    /** \brief RawMesh class constructor.
+     * \param[in] output, smart pointer of associated output.
+     *
+     */
     explicit RawMesh(OutputSPtr output = nullptr);
+
+    /** \brief RawMesh class constructor.
+     * \param[in] mesh, vtkPolyData smart pointer.
+     * \param[in] spacing, spacing of origin volume.
+     * \param[in] output, smart pointer of associated output.
+     *
+     */
     explicit RawMesh(vtkSmartPointer<vtkPolyData> mesh,
                      itkVolumeType::SpacingType spacing,
                      OutputSPtr output = nullptr);
-    virtual ~RawMesh() {};
 
+    /** \brief RawMesh class virtual destructor.
+     *
+     */
+    virtual ~RawMesh()
+    {};
+
+    /** \brief Implements Data::isValid().
+     *
+     */
     virtual bool isValid() const;
+
+    /** \brief Implements Data::isEmpty().
+     *
+     */
     virtual bool isEmpty() const;
-    virtual bool setInternalData(MeshDataSPtr rhs);
 
-    Snapshot snapshot() const
-    { return Snapshot(); }
+    /** \brief Sets the data using a MeshData smart pointer.
+     * \param[in] mesh, MeshData smart pointer.
+     *
+     */
+    virtual bool setInternalData(MeshDataSPtr mesh);
 
-    virtual Snapshot editedRegionsSnapshot() const
-    { return Snapshot(); }
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const              override;
 
-    virtual Bounds bounds() const
-    {
-      Nm bounds[6];
-      m_mesh->GetBounds(bounds);
+    // Because meshes store the whole mesh polydata when their edited regions
+    // are requested, we can use the same name which will casue fetch method to
+    // succeed when restoring from edited regions (this will also will avoid
+    // executing the filter itself if no other data is required)
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-      return Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
-    }
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)            override;
 
     bool isEdited() const
     { return false; }
 
-    void clearEditedRegions()
-    { /* TODO: not allowed */ };
+    virtual vtkSmartPointer<vtkPolyData> mesh() const       override;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const;
-
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
-
-    Snapshot snapshot(TemporalStorageSPtr storage, const QString &prefix) const;
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override;
 
     void setSpacing(const NmVector3&)
-    { /* TODO: not allowed */ };
+    { /* TODO: should rescale points */ };
 
     NmVector3 spacing() const;
 
@@ -83,6 +102,13 @@ namespace ESPINA
 
     size_t memoryUsage() const;
 
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return QList<Data::Type>(); }
+
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
   };
@@ -90,6 +116,9 @@ namespace ESPINA
   using RawMeshPtr = RawMesh *;
   using RawMeshSPtr = std::shared_ptr<RawMesh>;
 
+  /** \brief Obtains and returns the RawMesh smart pointer of the specified Output.
+   * \param[in] output, Output object smart pointer.
+   */
   RawMeshSPtr rawMesh(OutputSPtr output);
 }
 

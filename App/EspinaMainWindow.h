@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -21,8 +21,7 @@
 #ifndef ESPINA_MAIN_WINDOW_H
 #define ESPINA_MAIN_WINDOW_H
 
-#include <QMainWindow>
-
+// ESPINA
 #include "EspinaConfig.h"
 #include "EspinaErrorHandler.h"
 #include "RecentDocuments.h"
@@ -34,14 +33,22 @@
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/Representations/Renderers/VolumetricRenderer.h>
+#include <GUI/Representations/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Widgets/SchedulerProgress.h>
-#include <Support/DockWidget.h>
+#include <Support/Widgets/DockWidget.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 
+// Qt
+#include <QMainWindow>
 #include <QTimer>
+
+// C++
+#include <cstdint>
 
 class QLabel;
 class QPluginLoader;
@@ -52,14 +59,12 @@ class QShortcut;
 
 namespace ESPINA
 {
-
-class SeedGrowSegmentationSettings;
-
-class ROISettings;
-
-class MainToolBar;
-
+  class SeedGrowSegmentationSettings;
+  class ROISettings;
+  class MainToolBar;
   class ColorEngineMenu;
+  template class VolumetricRenderer<itkVolumeType>;
+  template class VolumetricGPURenderer<itkVolumeType>;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -67,109 +72,228 @@ class MainToolBar;
     Q_OBJECT
     class FilterFactory;
 
-    enum class MenuState 
-    { OPEN_STATE,
-      ADD_STATE
-    };
+    enum class MenuState: std::int8_t { OPEN_STATE, ADD_STATE };
 
   public:
+    /** \brief EspinaMainWindow class constructor.
+     * \param[in] plugins list of ESPINA plugins to load.
+     *
+     */
     explicit EspinaMainWindow(QList<QObject *> &plugins);
+
+    /** \brief EspinaMainWindow class destructor.
+     *
+     */
     virtual ~EspinaMainWindow();
 
   public slots:
+    /** \brief Close current analysis.
+     *
+     */
     bool closeCurrentAnalysis();
 
+    /** \brief Opens an analysis from the recent list.
+     *
+     */
     void openRecentAnalysis();
-    /// Close former analysis and load a new one
+
+    /** \brief Close current analysis and load a new one.
+     *
+     */
     void openAnalysis();
 
+    /** \brief Opens a list of analyses.
+     * \param[in] files list of files to open.
+     *
+     */
     void openAnalysis(const QStringList files);
-    /// Add new data from file to current analysis
 
+    /** \brief Add new data from file to current analysis.
+     *
+     */
     void addToAnalysis();
 
+    /** \brief Adds data from a file from the recent list to current analysis.
+     *
+     */
     void addRecentToAnalysis();
 
+    /** \brief Adds a list of analysis to the current analysis.
+     *      \param[in] files list of files to add.
+     *
+     */
     void addToAnalysis(const QStringList files);
 
+    /** \brief Merges a list of analysis into a sigle analysis.
+     * \param[in] files list of files to merge.
+     *
+     */
     AnalysisSPtr loadedAnalysis(const QStringList files);
 
-    /// Save Current Analysis
+    /** \brief Save current analysis.
+     *
+     */
     void saveAnalysis();
 
+    /** \brief Saves the current analysis (auto-save).
+     *
+     */
     void saveSessionAnalysis();
 
   private slots:
+    /** \brief Updates application status bar.
+     * \param[in] msg message to show.
+     *
+     */
     void updateStatus(QString msg);
 
+    /** \brief Updates the tooltip of the menu.
+     * \param[in] action action that contains the tooltip.
+     *
+     */
     void updateTooltip(QAction *action);
 
+    /** \brief Shows the preferences dialog.
+     *
+     */
     void showPreferencesDialog();
 
+    /** \brief Shows the about dialog.
+     *
+     */
     void showAboutDialog();
 
-    void showConnectomicsInformation();
-
+    /** \brief Shows the raw information dialog.
+     *
+     */
     void showRawInformation();
 
-    void openState() {m_menuState = MenuState::OPEN_STATE;}
+    /** \brief Sets the menu state as "open".
+     *
+     */
+    void openState()
+    { m_menuState = MenuState::OPEN_STATE; }
 
-    void addState()  {m_menuState = MenuState::ADD_STATE;}
+    /** \brief Sets the menu state as "add".
+     *
+     */
+    void addState()
+    { m_menuState = MenuState::ADD_STATE; }
 
+    /** \brief Saves the current analysis to disk.
+     *
+     */
     void autosave();
 
-    void cancelOperation() {emit analysisClosed(); }
+    /** \brief Cancels current operation.
+     *
+     */
+    void cancelOperation();
 
-    /// undo slots
-    void undoTextChanged(QString);
+    /** \brief Updates the undo action text in the menu.
+     * \param[in] text text of the operation to update.
+     *
+     */
+    void undoTextChanged(QString text);
 
-    void redoTextChanged(QString);
+    /** \brief Updates the redo action text in the menu.
+     * \param[in] text text of the operation to update.*
+     *
+     */
+    void redoTextChanged(QString text);
 
+    /** \brief Enables/Disables the redo action in the menu.
+     *
+     */
     void canRedoChanged(bool);
 
+    /** \brief Enables/Disables the redo action in the menu.
+     *
+     */
     void canUndoChanged(bool);
 
+    /** \brief Executes undo action.
+     *
+     */
     void undoAction(bool);
 
+    /** \brief Executes redo action.
+     *
+     */
     void redoAction(bool);
 
   signals:
     void analysisChanged();
-
     void analysisClosed();
-
     void abortOperation();
 
   protected:
-    virtual void closeEvent(QCloseEvent* );
+    /** \brief Overrides QWidget::closeEvent.
+     * \param[in] event close event to manage.
+     *
+     */
+    virtual void closeEvent(QCloseEvent *event) override;
 
   private:
+    /** \brief Runs a series of test on the analysis to check for errors.
+     *
+     */
     ProblemList checkAnalysisConsistency();
 
+    /** \brief Creates activity menu.
+     *
+     */
     void createActivityMenu();
 
+    /** \brief Creates dynamic menu.
+     * \param[in] entry pair of <QStringList, Action *> object to add.
+     *
+     */
     void createDynamicMenu(MenuEntry entry);
 
+    /** \brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
+     *
+     */
     void checkAutosave();
 
+    /** \brief Adds a dock widget to the application.
+     * param[in] area, area of the widget.
+     * param[in] dock, raw pointer of the dock widget to add.
+     *
+     */
     void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
 
+    /** \brief Adds a tool group to the application.
+     * \param[in] tools tool group raw pointer.
+     *
+     */
     void registerToolGroup(ToolGroupPtr tools);
 
+    /** \brief Loads a list of plugins in the application.
+     * \param[in] plugins list of plugins to load.
+     *
+     */
     void loadPlugins(QList<QObject *> &plugins);
 
+    /** \brief Returns true if the analysis have been modified.
+     *
+     */
     bool isModelModified();
 
+    /** \brief Enables/disables the application widgets.
+     *
+     */
     void enableWidgets(bool value);
 
   private:
     // ESPINA
-    SchedulerSPtr    m_scheduler;
-    ModelFactorySPtr m_factory;
-    AnalysisSPtr     m_analysis;
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    SchedulerSPtr             m_scheduler;
+    ModelFactorySPtr          m_factory;
+    FilterDelegateFactorySPtr m_filterDelegateFactory;
+    AnalysisSPtr              m_analysis;
+    ModelAdapterSPtr          m_model;
+    ViewManagerSPtr           m_viewManager;
+    QUndoStack               *m_undoStack;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;
@@ -206,12 +330,11 @@ class MainToolBar;
     RecentDocuments m_recentDocuments1;
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
-    QList<QPluginLoader *> m_plugins;
+    QList<QPluginLoader *>    m_plugins;
 
     MenuState m_menuState;
 
     bool m_busy;
-    QShortcut *cancel;
 
     struct DynamicMenuNode
     {
@@ -227,7 +350,6 @@ class MainToolBar;
     QTimer    m_autosave;
     QFileInfo m_sessionFile;
 
-    // Status Bar
     EspinaErrorHandlerSPtr m_errorHandler;
   };
 

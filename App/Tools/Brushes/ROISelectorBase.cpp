@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -19,6 +19,7 @@
  */
 
 // ESPINA
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/View/View2D.h>
 #include <Tools/Brushes/ROISelectorBase.h>
 
@@ -41,7 +42,7 @@ namespace ESPINA
   : m_hasROI{false}
   {
   }
-  
+
   //----------------------------------------------------------------------------
   ROISelectorBase::~ROISelectorBase()
   {
@@ -73,7 +74,7 @@ namespace ESPINA
         break;
     }
 
-    return BrushSelector::filterEvent(e, view);;
+    return BrushSelector::filterEvent(e, view);
   }
 
   //----------------------------------------------------------------------------

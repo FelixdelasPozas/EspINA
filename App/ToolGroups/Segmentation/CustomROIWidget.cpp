@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "CustomROIWidget.h"
 
+// Qt
 #include <QCheckBox>
 #include <QHBoxLayout>
 
@@ -28,8 +29,8 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CustomROIWidget::CustomROIWidget(QObject* parent)
-: QWidgetAction(parent)
-, m_useROI(true)
+: QWidgetAction{parent}
+, m_useROI     {true}
 {
   for(int i = 0; i < 3; ++i)
   {
@@ -43,8 +44,6 @@ CustomROIWidget::CustomROIWidget(QObject* parent)
 //------------------------------------------------------------------------
 QWidget* CustomROIWidget::createWidget(QWidget* parent)
 {
-  //if (m_currentWidget) delete m_currentWidget;
-
   QWidget *widget = new QWidget(parent);
 
   QCheckBox *roiCheckBox = new QCheckBox(tr("Apply ROI"), parent);

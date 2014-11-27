@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "CoreFactory.h"
-
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
 #include <Core/Analysis/Segmentation.h>

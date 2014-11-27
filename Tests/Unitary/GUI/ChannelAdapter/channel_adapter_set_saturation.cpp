@@ -55,8 +55,8 @@ int channel_adapter_set_saturation(int argc, char** argv )
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
 
-  FilterAdapterSPtr filter   = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
-  ChannelAdapterSPtr channel = factory.createChannel(filter, 0);
+  auto filter  = factory.createFilter<DummyFilter>(InputSList(), DummyFilter::TYPE);
+  auto channel = factory.createChannel(filter, 0);
 
   if (channel->saturation() != 0) {
     cerr << "Unexepected initial saturation value" << endl;

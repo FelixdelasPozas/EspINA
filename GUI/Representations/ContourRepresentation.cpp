@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -21,6 +21,7 @@
 // ESPINA
 #include "ContourRepresentation.h"
 #include "RepresentationEmptySettings.h"
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include "ContourRepresentationSettings.h"
 #include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 #include <Core/EspinaTypes.h>
@@ -60,8 +61,8 @@ ContourRepresentation::ContourRepresentation(DefaultVolumetricDataSPtr data,
 , m_tubes       {nullptr}
 , m_mapper      {nullptr}
 , m_actor       {nullptr}
-, m_width       {medium}
-, m_pattern     {normal}
+, m_width       {LineWidth::medium}
+, m_pattern     {LinePattern::normal}
 , m_minSpacing  {0}
 {
   setType(TYPE);
@@ -348,7 +349,7 @@ void ContourRepresentation::updateWidth()
 {
   if (m_tubes)
   {
-    if (m_width == tiny)
+    if (m_width == LineWidth::tiny)
     {
       m_mapper->SetInputData(m_voxelContour->GetOutput());
       updatePattern();
@@ -365,18 +366,18 @@ void ContourRepresentation::updateWidth()
 //-----------------------------------------------------------------------------
 void ContourRepresentation::updatePattern()
 {
-  if (m_width == tiny)
+  if (m_width == LineWidth::tiny)
   {
     int linePattern;
     switch(m_pattern)
     {
-      case dotted:
+      case LinePattern::dotted:
         linePattern = 0xAAAA;
         break;
-      case dashed:
+      case LinePattern::dashed:
         linePattern = 0xFF00;
         break;
-      case normal:
+      case LinePattern::normal:
       default:
         linePattern = 0xFFFF;
         break;
@@ -409,15 +410,15 @@ void ContourRepresentation::generateTexture()
 
   switch(m_pattern)
   {
-    case dotted:
+    case LinePattern::dotted:
       m_textureIcon->FillBox(16, 31, 0, 15);    // checkered pattern
       m_textureIcon->FillBox(0, 15, 16, 31);
       break;
-    case dashed:
+    case LinePattern::dashed:
       m_textureIcon->FillBox(24, 31, 0, 7);      // small transparent square
       m_textureIcon->FillBox(0, 7, 24, 31);      // small transparent square
       break;
-    case normal:
+    case LinePattern::normal:
     default:
       // nothing to do
       break;

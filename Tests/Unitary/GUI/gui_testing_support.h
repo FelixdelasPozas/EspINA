@@ -36,22 +36,20 @@ namespace ESPINA {
     public:
       explicit DummyFilter(InputSList inputs, Filter::Type& type, SchedulerSPtr scheduler)
       : Filter(inputs, type, scheduler)
-      { m_outputs[0] = OutputSPtr{new Output(this, 0)}; }
+      { m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1}); }
 
       virtual void restoreState(const State& state) {}
       virtual State state() const{ return State();}
-      virtual OutputSPtr output(Output::Id id) const {return OutputSPtr{new Output(this, 0)};}
+      virtual OutputSPtr output(Output::Id id) const { return m_outputs[id]; }
 
       void dummyMethod(){}
     protected:
       virtual Snapshot saveFilterSnapshot() const {return Snapshot(); }
-      virtual bool needUpdate() const{}
-      virtual bool needUpdate(Output::Id id) const{}
-      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){}
+      virtual bool needUpdate() const{ return false; }
+      virtual DataSPtr createDataProxy(Output::Id id, const Data::Type& type){ return DataSPtr(); }
       virtual void execute(){}
-      virtual void execute(Output::Id id){}
       virtual bool ignoreStorageContent() const {return false;}
-      virtual bool invalidateEditedRegions() {return false;}
+      virtual bool areEditedRegionsInvalidated() {return false;}
     };
   }
 }

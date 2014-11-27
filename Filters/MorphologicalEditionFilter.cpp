@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "MorphologicalEditionFilter.h"
-#include <Core/Analysis/Data/VolumetricDataUtils.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -35,10 +36,10 @@ const unsigned int LABEL_VALUE = 255;
 MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList    inputs,
                                                        Filter::Type  type,
                                                        SchedulerSPtr scheduler)
-: Filter(inputs, type, scheduler)
-, m_ignoreStorageContent(false)
-, m_radius(0)
-, m_isOutputEmpty(true)
+: Filter         {inputs, type, scheduler}
+, m_radius       {0}
+, m_prevRadius   {m_radius}
+, m_isOutputEmpty{true}
 {
 }
 
@@ -58,7 +59,7 @@ void MorphologicalEditionFilter::restoreState(const State& state)
 
     if ("Radius" == tokens[0])
     {
-      m_radius = tokens[1].toInt();
+      m_prevRadius = m_radius = tokens[1].toInt();
     }
   }
 }
@@ -85,7 +86,7 @@ Snapshot MorphologicalEditionFilter::saveFilterSnapshot() const
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return needUpdate(0);
 }
 
 
@@ -117,7 +118,13 @@ bool MorphologicalEditionFilter::needUpdate(Output::Id id) const
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::invalidateEditedRegions()
+bool MorphologicalEditionFilter::ignoreStorageContent() const
+{
+  return m_prevRadius != m_radius;
+}
+
+//-----------------------------------------------------------------------------
+bool MorphologicalEditionFilter::areEditedRegionsInvalidated()
 {
   return false;
 }
@@ -127,17 +134,17 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
 {
   m_isOutputEmpty = true;
 
-  auto bounds = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  auto bounds     = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
   m_isOutputEmpty = !bounds.areValid();
 
   if (!m_isOutputEmpty)
   {
+    NmVector3 spacing = m_inputs[0]->output()->spacing();
+
     if (!m_outputs.contains(0))
     {
-      m_outputs[0] = OutputSPtr(new Output(this, 0));
+      m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
     }
-
-    NmVector3 spacing = m_inputs[0]->output()->spacing();
 
     DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
     volume->draw(output, bounds);
@@ -146,8 +153,9 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
 
     m_outputs[0]->setData(volume);
     m_outputs[0]->setData(mesh);
+    m_outputs[0]->setSpacing(spacing); // it may change after re-execution
 
-    m_outputs[0]->setSpacing(spacing);
+    m_prevRadius = m_radius;
   }
   else
   {

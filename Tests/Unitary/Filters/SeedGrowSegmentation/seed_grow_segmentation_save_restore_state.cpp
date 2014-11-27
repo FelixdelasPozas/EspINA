@@ -28,7 +28,7 @@
 
 #include "Filters/SeedGrowSegmentationFilter.h"
 
-#include "seed_grow_segmentation_testing_support.h"
+#include "testing_support_channel_input.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -39,7 +39,7 @@ int seed_grow_segmentation_save_restore_state(int argc, char** argv)
   bool error = false;
 
   InputSList   inputs;
-  inputs << inputChannel();
+  inputs << channelInput();
 
   Filter::Type  type{"SGS"};
 

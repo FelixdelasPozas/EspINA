@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_DILATE_FILTER_H
 #define ESPINA_DILATE_FILTER_H
 
 #include "Filters/EspinaFilters_Export.h"
 
+// ESPINA
 #include "MorphologicalEditionFilter.h"
 
 namespace ESPINA
@@ -32,16 +32,23 @@ namespace ESPINA
   : public MorphologicalEditionFilter
   {
   public:
+    /** \brief DilateFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type DilateFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit DilateFilter(InputSList    inputs,
                           Filter::Type  type,
                           SchedulerSPtr scheduler);
+
+    /** \brief DilateFilter class virtual destructor.
+     *
+     */
     virtual ~DilateFilter();
 
   protected:
-    virtual void execute()
-    { execute(0); }
-
-    virtual void execute(Output::Id id);
+    virtual void execute();
   };
 
 } // namespace ESPINA

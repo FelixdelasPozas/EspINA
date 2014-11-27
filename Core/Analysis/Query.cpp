@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "Query.h"
 #include "Sample.h"
 #include "Analysis.h"
@@ -26,7 +27,7 @@
 #include "Segmentation.h"
 
 // IMPORTANT NOTE: If current relation queries are not enough to retrieve segmentation channels
-//                 we add extra check to search by content
+//                 we add extra check to search by content.
 
 namespace ESPINA
 {

@@ -99,7 +99,7 @@ void AppositionSurfaceToolGroup::selectionChanged()
 
   for(auto segmentation: m_viewManager->selection()->segmentations())
   {
-    if (m_plugin->isSynapse(segmentation))
+    if (m_plugin->isValidSynapse(segmentation))
     {
       enabled = true;
       break;
@@ -120,7 +120,7 @@ void AppositionSurfaceToolGroup::createSAS()
   SegmentationAdapterList validSegmentations;
   for(auto seg: segmentations)
   {
-    if (m_plugin->isSynapse(seg))
+    if (m_plugin->isValidSynapse(seg))
     {
       bool valid = true;
       for (auto item : m_model->relatedItems(seg, RELATION_OUT))
@@ -150,13 +150,15 @@ void AppositionSurfaceToolGroup::createSAS()
     InputSList inputs;
     inputs << seg->asInput();
 
-    auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+    auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-    struct AppositionSurfacePlugin::Data data(adapter, m_model->smartPointer(seg));
-    m_plugin->m_executingTasks.insert(adapter.get(), data);
+    AppositionSurfacePlugin::Data data(filter, m_model->smartPointer(seg));
+    m_plugin->m_executingTasks.insert(filter.get(), data);
 
-    connect(adapter.get(), SIGNAL(finished()), m_plugin, SLOT(finishedTask()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            m_plugin, SLOT(finishedTask()));
+
+    Task::submit(filter);
   }
 }
 

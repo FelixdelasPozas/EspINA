@@ -1,11 +1,8 @@
-find_package(XLSLIB REQUIRED)
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}     # Generated EspinaConfig.h
   ${CMAKE_BINARY_DIR}/GUI # Generated UI files
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-  ${XLSLIB_INCLUDE_DIRS}
   )
 
 #------------------------------------------------------------------------------
@@ -21,12 +18,13 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/CheckAnalysis/CheckAnalysis.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
-  Dialogs/TabularReport/TabularReport.h
-  Dialogs/TabularReport/TabularReportEntry.h
   Docks/ChannelExplorer/ChannelExplorer.h
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
   Docks/SegmentationExplorer/SegmentationExplorer.h
   Docks/SegmentationExplorer/SegmentationExplorerLayout.h
+  Docks/SegmentationHistory/DefaultHistory.h
+  Docks/SegmentationHistory/EmptyHistory.h
+  Docks/SegmentationHistory/HistoryDock.h
   EspinaMainWindow.h
   Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
@@ -37,6 +35,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/View2D/View2DRenderersPanel.h
   Settings/View2D/View2DSettingsPanel.h
   Settings/View3D/View3DSettingsPanel.h
+  ToolGroups/Edition/CODEHistory.h
+  ToolGroups/Edition/CODEHistoryWidget.h
   ToolGroups/Edition/CODETool.h
   ToolGroups/Edition/EditionTools.h
   ToolGroups/Edition/EditionTools.h
@@ -50,6 +50,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ROI/OrthogonalROITool.h
   ToolGroups/ROI/ROITools.h
   ToolGroups/Segmentation/CustomROIWidget.h
+  ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
   ToolGroups/Segmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segmentation/SeedThreshold.h
@@ -59,30 +61,11 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ViewState/ViewTools.h
   ToolGroups/ViewState/ZoomArea.h
   Tools/Brushes/CircularBrushROISelector.h
-  Tools/Brushes/CircularBrushSelector.h
   Tools/Brushes/SphericalBrushROISelector.h
-  Tools/Brushes/SphericalBrushSelector.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
   Undo/BrushUndoCommand.h
   Views/DefaultView.h
-#   Dialogs/Connectomics/ConnectomicsDialog.h
-#   Docks/FilterInspectorDock/FilterInspectorDock.h
-#   Docks/SegmentationExplorer/LayoutComposition.h
-#   Docks/SegmentationExplorer/LayoutLocation.h
-#   FilterInspectors/CODE/CODEFilterInspector.h
-#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
-#   FilterInspectors/TubularSegmentation/NodesInformationDialog.h
-#   FilterInspectors/TubularSegmentation/TubularFilterInspector.h
-#   Settings/Editor/SettingsPanel.h
-#   Toolbars/Composition/CompositionToolBar.h
-#   Toolbars/Editor/EditorToolBar.h
-#   Toolbars/Main/MainToolBar.h
-#   Toolbars/Segmentation/SegmentationToolBar.h
-#   Tools/Contour/FilledContour.h
-#   Tools/PlanarSplit/PlanarSplitTool.h
-#   Tools/SegmentationRemover/SegmentationRemover.h
-#   Tools/TubularSegmentation/TubularTool.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -95,19 +78,17 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/ProblemList/ProblemListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
-  Dialogs/TabularReport/TabularReportEntry.ui
   Docks/ChannelExplorer/ChannelExplorer.ui
   Docks/SegmentationExplorer/SegmentationExplorer.ui
+  Docks/SegmentationHistory/DefaultHistory.ui
+  Docks/SegmentationHistory/EmptyHistory.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
-#   Dialogs/Connectomics/ConnectomicsDialog.ui
-#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
-#   FilterInspectors/TubularSegmentation/NodesInformationDialog.ui
-#   FilterInspectors/TubularSegmentation/TubularFilterInspector.ui
-#   Settings/Editor/EditorSettingsPanel.ui
+  ToolGroups/Edition/CODEHistoryWidget.ui
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -129,13 +110,14 @@ set (ESPINA_SOURCES
   Dialogs/ProblemList/ProblemListDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
-  Dialogs/TabularReport/RawInformationDialog.cpp
-  Dialogs/TabularReport/TabularReport.cpp
-  Dialogs/TabularReport/TabularReportEntry.cpp
+  Dialogs/RawInformation/RawInformationDialog.cpp
   Docks/ChannelExplorer/ChannelExplorer.cpp
   Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
   Docks/SegmentationExplorer/SegmentationExplorer.cpp
   Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
+  Docks/SegmentationHistory/DefaultHistory.cpp
+  Docks/SegmentationHistory/EmptyHistory.cpp
+  Docks/SegmentationHistory/HistoryDock.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -153,6 +135,8 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DRenderersPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
+  ToolGroups/Edition/CODEHistory.cpp
+  ToolGroups/Edition/CODEHistoryWidget.cpp
   ToolGroups/Edition/CODETool.cpp
   ToolGroups/Edition/EditionTools.cpp
   ToolGroups/Edition/ManualEditionTool.cpp
@@ -164,6 +148,8 @@ set (ESPINA_SOURCES
   ToolGroups/ROI/OrthogonalROITool.cpp
   ToolGroups/ROI/ROITools.cpp
   ToolGroups/Segmentation/CustomROIWidget.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationHistory.cpp
+  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segmentation/SeedThreshold.cpp
@@ -174,45 +160,14 @@ set (ESPINA_SOURCES
   ToolGroups/ViewState/ViewTools.cpp
   ToolGroups/ViewState/ZoomArea.cpp
   Tools/Brushes/CircularBrushROISelector.cpp
-  Tools/Brushes/CircularBrushSelector.cpp
   Tools/Brushes/ROISelectorBase.cpp
   Tools/Brushes/SphericalBrushROISelector.cpp
-  Tools/Brushes/SphericalBrushSelector.cpp
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
   Undo/BrushUndoCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
   Views/DefaultView.cpp
-#   Dialogs/Connectomics/ConnectomicsDialog.cpp
-#   Docks/FilterInspectorDock/FilterInspectorDock.cpp
-#   Docks/SegmentationExplorer/LayoutComposition.cpp
-#   Docks/SegmentationExplorer/LayoutLocation.cpp
-#   FilterInspectors/CODE/CODEFilterInspector.cpp
-#   FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
-#   FilterInspectors/TubularSegmentation/NodesInformationDialog.cpp
-#   FilterInspectors/TubularSegmentation/TubularFilterInspector.cpp
-#   Settings/Editor/SettingsPanel.cpp
-#   Toolbars/Composition/CompositionToolBar.cpp
-#   Toolbars/Editor/EditorToolBar.cpp
-#   Toolbars/Editor/Settings.cpp
-#   Toolbars/Main/MainToolBar.cpp
-#   Tools/Contour/FilledContour.cpp
-#   Tools/PlanarSplit/PlanarSplitTool.cpp
-#   Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
-#   Tools/SegmentationRemover/SegmentationRemover.cpp
-#   Tools/TubularSegmentation/TubularTool.cpp
-#   Tools/Zoom/ZoomTool.cpp
-#   Undo/AtomicModelOperations.cpp
-#   Undo/CompositionCommand.cpp
-#   Undo/ContourUndoCommand.cpp
-#   Undo/ImageLogicCommand.cpp
-#   Undo/SeedGrowSegmentationCommand.cpp
-#   Undo/UndoableEspinaModel.cpp
-#   Undo/UnloadChannelCommand.cpp
-#   Undo/UnloadSampleCommand.cpp
-#   Undo/VolumeSnapshotCommand.cpp
-#  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
   )
 
 set (ESPINA_LIBRARIES
@@ -225,7 +180,6 @@ set (ESPINA_LIBRARIES
 )
 
 set (EXTERNAL_LIBRARIES
-  ${XLSLIB_LIBRARIES}
   ${METADONA_LIBRARIES}
 )
 

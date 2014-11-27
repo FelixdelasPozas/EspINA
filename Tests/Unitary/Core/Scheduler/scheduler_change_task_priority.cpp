@@ -42,40 +42,40 @@ using namespace std;
 int scheduler_change_task_priority( int argc, char** argv )
 {
   int error = 0;
-  
+
   int schedulerPeriod = 5000;
   int taskSleepTime   = 4*schedulerPeriod;
   int taskTime        = 10*taskSleepTime;
-  
+
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(schedulerPeriod));
-  
+
   int numThreads = QThreadPool::globalInstance()->maxThreadCount();
   int numTasks   = numThreads + 5;
-  
+
   std::vector<shared_ptr<SleepyTask>> tasks;
-  
+
   for (int i = 0; i < numTasks; ++i) {
-    tasks.push_back(shared_ptr<SleepyTask>(new SleepyTask(taskSleepTime, scheduler)));
+    tasks.push_back(make_shared<SleepyTask>(taskSleepTime, scheduler));
     tasks.at(i)->setDescription(QString("Task %1").arg(i));
     Task::submit(tasks.at(i));
   }
-  
-  usleep(schedulerPeriod);
-  
+
+  usleep(numTasks*schedulerPeriod);
+
   for (int i = 0; i < numThreads; ++i) {
     if (tasks.at(i)->Result != 0) {
-      error = 1;      
+      error = 1;
       std::cerr << "Task " << i << " should be running" << std::endl;
     }
   }
-  
+
   if (tasks.at(numTasks-1)->Result != -1) {
-    error = 1;      
+    error = 1;
     std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
-  
-  tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGHT);
-  
+
+  tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGH);
+
   usleep(schedulerPeriod);
 
   for (int i = 0; i < numThreads - 1; ++i) {
@@ -84,12 +84,12 @@ int scheduler_change_task_priority( int argc, char** argv )
       std::cerr << "Task " << i << " should be running" << std::endl;
     }
   }
-  
+
   if (tasks.at(numTasks-1)->Result != 0) {
     error = 1;      
     std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
   }
-  
+
   usleep((numTasks + 1) * taskTime);
   
   for (int i = 0; i < numTasks; ++i) {
@@ -98,6 +98,6 @@ int scheduler_change_task_priority( int argc, char** argv )
       std::cerr << "Task " << i << " should have finished" << std::endl;
     }
   }
-  
+
   return error;
 }

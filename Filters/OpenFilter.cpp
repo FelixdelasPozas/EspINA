@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,16 +18,17 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "OpenFilter.h"
 #include "Utils/ItkProgressReporter.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
-
+// ITK
 #include <itkImageRegionConstIterator.h>
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalOpeningImageFilter.h>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -39,7 +40,7 @@ using BinaryOpenFilter       = itk::BinaryMorphologicalOpeningImageFilter<itkVol
 OpenFilter::OpenFilter(InputSList    inputs,
                              Filter::Type  type,
                              SchedulerSPtr scheduler)
-: MorphologicalEditionFilter(inputs, type, scheduler)
+: MorphologicalEditionFilter{inputs, type, scheduler}
 {
 }
 
@@ -75,8 +76,10 @@ void OpenFilter::execute(Output::Id id)
   filter->SetInput(inputVolume->itkImage());
   filter->SetKernel(ball);
   filter->SetForegroundValue(SEG_VOXEL_VALUE);
-  filter->Update();
+
   ITKProgressReporter<BinaryOpenFilter> reporter(this, filter, 0, 100);
+
+  filter->Update();
 
   emit progress(100);
   if (!canExecute()) return;

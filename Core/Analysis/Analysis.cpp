@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "Analysis.h"
-
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Filter.h"
 #include "Core/Analysis/Channel.h"
@@ -34,7 +34,6 @@ Analysis::Analysis()
 , m_relations{new DirectedGraph()}
 , m_content{new DirectedGraph()}
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -68,7 +67,7 @@ void Analysis::setClassification(ClassificationSPtr classification)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(SampleSPtr sample)
+void Analysis::add(SampleSPtr sample) throw (Existing_Item_Exception)
 {
   if (m_samples.contains(sample)) throw (Existing_Item_Exception());
 
@@ -83,20 +82,20 @@ void Analysis::add(SampleSPtr sample)
 //------------------------------------------------------------------------
 void Analysis::add(SampleSList samples)
 {
-  foreach(SampleSPtr sample, samples)
+  for(auto sample: samples)
   {
     add(sample);
   }
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(ChannelSPtr channel)
+void Analysis::add(ChannelSPtr channel) throw (Existing_Item_Exception)
 {
   if (m_channels.contains(channel)) throw (Existing_Item_Exception());
 
   m_channels << channel;
 
-  FilterSPtr filter = channel->filter(); // TODO: What happens when a channel change its output?!
+  FilterSPtr filter = channel->filter();
 
   addIfNotExists(filter);
 
@@ -114,27 +113,28 @@ void Analysis::add(ChannelSPtr channel)
 //------------------------------------------------------------------------
 void Analysis::add(ChannelSList channels)
 {
-  foreach(ChannelSPtr channel, channels)
+  for(auto channel: channels)
   {
     add(channel);
   }
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(SegmentationSPtr segmentation)
+void Analysis::add(SegmentationSPtr segmentation) throw (Existing_Item_Exception)
 {
-  if (m_segmentations.contains(segmentation)) throw (Existing_Item_Exception());
+  if (m_segmentations.contains(segmentation))
+    throw (Existing_Item_Exception());
 
   m_segmentations << segmentation;
 
-  FilterSPtr filter = segmentation->filter(); // TODO: What happens when a segmentation change its output?!
+  FilterSPtr filter = segmentation->filter();
 
   addIfNotExists(filter);
 
   m_content->add(segmentation);
 
   addFilterContentRelation(filter, segmentation);
-  
+
   m_relations->add(segmentation);
 
   segmentation->setAnalysis(this);
@@ -143,16 +143,17 @@ void Analysis::add(SegmentationSPtr segmentation)
 //------------------------------------------------------------------------
 void Analysis::add(SegmentationSList segmentations)
 {
-  foreach(SegmentationSPtr segmentation, segmentations)
+  for(auto segmentation: segmentations)
   {
     add(segmentation);
   }
 }
 
 //------------------------------------------------------------------------
-void Analysis::remove(SampleSPtr sample)
+void Analysis::remove(SampleSPtr sample) throw (Item_Not_Found_Exception)
 {
-  if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
+  if (!m_samples.contains(sample))
+  	throw (Item_Not_Found_Exception());
 
   sample->setAnalysis(nullptr);
   m_samples.removeOne(sample);
@@ -164,7 +165,7 @@ void Analysis::remove(SampleSPtr sample)
 //------------------------------------------------------------------------
 void Analysis::remove(SampleSList samples)
 {
-  foreach(SampleSPtr sample, samples)
+  for(auto sample: samples)
   {
     remove(sample);
   }
@@ -172,9 +173,10 @@ void Analysis::remove(SampleSList samples)
 
 
 //------------------------------------------------------------------------
-void Analysis::remove(ChannelSPtr channel)
+void Analysis::remove(ChannelSPtr channel) throw (Item_Not_Found_Exception)
 {
-  if (!m_channels.contains(channel)) throw (Item_Not_Found_Exception());
+  if (!m_channels.contains(channel))
+  	throw (Item_Not_Found_Exception());
 
   channel->setAnalysis(nullptr);
   m_channels.removeOne(channel);
@@ -188,16 +190,17 @@ void Analysis::remove(ChannelSPtr channel)
 //------------------------------------------------------------------------
 void Analysis::remove(ChannelSList channels)
 {
-  foreach(ChannelSPtr channel, channels)
+  for(auto channel: channels)
   {
     remove(channel);
   }
 }
 
 //------------------------------------------------------------------------
-void Analysis::remove(SegmentationSPtr segmentation)
+void Analysis::remove(SegmentationSPtr segmentation) throw (Item_Not_Found_Exception)
 {
-  if (!m_segmentations.contains(segmentation)) throw (Item_Not_Found_Exception());
+  if (!m_segmentations.contains(segmentation))
+    throw (Item_Not_Found_Exception());
 
   segmentation->setAnalysis(nullptr);
   m_segmentations.removeOne(segmentation);
@@ -211,7 +214,7 @@ void Analysis::remove(SegmentationSPtr segmentation)
 //------------------------------------------------------------------------
 void Analysis::remove(SegmentationSList segmentations)
 {
-  foreach(SegmentationSPtr segmentation, segmentations)
+  for(auto segmentation: segmentations)
   {
     remove(segmentation);
   }
@@ -220,13 +223,16 @@ void Analysis::remove(SegmentationSList segmentations)
 //------------------------------------------------------------------------
 void Analysis::addRelation(PersistentSPtr    ancestor,
                            PersistentSPtr    succesor,
-                           const RelationName& relation)
+                           const RelationName& relation)  throw (Item_Not_Found_Exception,Existing_Relation_Exception)
 {
-  if (!m_relations->contains(ancestor)) throw (Item_Not_Found_Exception());
+  if (!m_relations->contains(ancestor))
+    throw (Item_Not_Found_Exception());
 
-  if (!m_relations->contains(succesor)) throw (Item_Not_Found_Exception());
+  if (!m_relations->contains(succesor))
+    throw (Item_Not_Found_Exception());
 
-  if (findRelation(ancestor, succesor, relation))  throw (Existing_Relation_Exception());
+  if (findRelation(ancestor, succesor, relation))
+    throw (Existing_Relation_Exception());
 
   m_relations->addRelation(ancestor, succesor, relation);
 }
@@ -234,9 +240,10 @@ void Analysis::addRelation(PersistentSPtr    ancestor,
 //------------------------------------------------------------------------
 void Analysis::deleteRelation(PersistentSPtr    ancestor,
                               PersistentSPtr    succesor,
-                              const RelationName& relation)
+                              const RelationName& relation) throw (Relation_Not_Found_Exception)
 {
-  if (!findRelation(ancestor, succesor, relation)) throw (Relation_Not_Found_Exception());
+  if (!findRelation(ancestor, succesor, relation))
+    throw (Relation_Not_Found_Exception());
 
   m_relations->removeRelation(ancestor, succesor, relation);
 }
@@ -259,7 +266,7 @@ bool Analysis::removeIfIsolated(DirectedGraphSPtr graph, PersistentSPtr item)
 void Analysis::addIfNotExists(FilterSPtr filter)
 {
   // NOTE: We could use m_filters instead to check if there is a copy in the content
-  if (!m_content->contains(filter)) 
+  if (!m_content->contains(filter))
   {
     filter->setAnalysis(this);
     m_filters << filter;
@@ -275,7 +282,7 @@ void Analysis::addIfNotExists(FilterSPtr filter)
       auto ancestor    = find<Filter>(inputFilter.get(), m_filters);
       Q_ASSERT(ancestor);
 
-      m_content->addRelation(ancestor, filter, QString("%1").arg(i));
+      m_content->addRelation(ancestor, filter, QString("%1-%2").arg(i).arg(input->output()->id()));
     }
   }
 }

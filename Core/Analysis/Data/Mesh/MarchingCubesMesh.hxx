@@ -30,10 +30,12 @@
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPINA
 #include "Core/Analysis/Data/MeshData.h"
-#include "Core/Analysis/Data/VolumetricData.h"
-#include "Core/Analysis/Data/VolumetricDataUtils.h"
+#include "Core/Analysis/Data/VolumetricData.hxx"
+#include "Core/Analysis/Data/VolumetricDataUtils.hxx"
 
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
@@ -46,23 +48,34 @@ namespace ESPINA
   : public MeshData
   {
   public:
+    /** \brief MarchingCubesMesh class constructor.
+     * \param[in] volume volume to use source for marching cubes algorithm.
+     */
     explicit MarchingCubesMesh(VolumetricDataSPtr<T> volume);
 
+    /** \brief MarchingCubesMesh class virtual destructor.
+     *
+     */
     virtual ~MarchingCubesMesh();
 
-    virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix);
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const;
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override;
 
-    virtual Snapshot editedRegionsSnapshot() const;
+    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {/*TODO*/}
 
     virtual bool isValid() const
-    { return m_volume->isValid(); }
+    {
+      return m_volume->isValid();
+    }
 
     virtual bool isEmpty() const
     { return m_volume->isEmpty(); }
 
-    virtual Bounds bounds() const
+    /** \brief Overrides MeshData::bounds() const.
+     *
+     */
+    virtual Bounds bounds() const override
     { return m_volume->bounds(); }
 
     virtual void setSpacing(const NmVector3& spacing);
@@ -73,20 +86,33 @@ namespace ESPINA
 
     virtual size_t memoryUsage() const;
 
-    virtual vtkSmartPointer<vtkPolyData> mesh() const;
+    virtual vtkSmartPointer<vtkPolyData> mesh() const override;
+
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh);
+
+    virtual TimeStamp lastModified() override;
 
   private:
+    /** \brief Applies marching cubes algorithm to the volumetric data to generate a mesh.
+     *
+     */
     void updateMesh();
+
+    virtual QList<Data::Type> updateDependencies() const override;
+
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
     VolumetricDataSPtr<T> m_volume;
     mutable vtkSmartPointer<vtkPolyData> m_mesh;
+    TimeStamp m_lastVolumeModification;
   };
 
   //----------------------------------------------------------------------------
   template <typename T>
   MarchingCubesMesh<T>::MarchingCubesMesh(VolumetricDataSPtr<T> volume)
   : m_volume{volume}
-  , m_mesh{nullptr}
+  , m_mesh  {nullptr}
+  , m_lastVolumeModification{VTK_UNSIGNED_LONG_LONG_MAX}
   {
   }
 
@@ -97,22 +123,23 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  template <typename T>
-  bool MarchingCubesMesh<T>::fetchData(const TemporalStorageSPtr storage, const QString& prefix)
+  template<typename T>
+  bool MarchingCubesMesh<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
-    return false;
+    return MeshData::fetchDataImplementation(storage, path, id);
+  }
+
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  Snapshot MarchingCubesMesh<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+  {
+    return MeshData::snapshot(storage, path, id);
   }
 
   //----------------------------------------------------------------------------
   template <typename T>
-  Snapshot MarchingCubesMesh<T>::snapshot(TemporalStorageSPtr storage, const QString& prefix) const
-  {
-    return Snapshot();
-  }
-
-  //----------------------------------------------------------------------------
-  template <typename T>
-  Snapshot MarchingCubesMesh<T>::editedRegionsSnapshot() const
+  Snapshot MarchingCubesMesh<T>::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
   {
     return Snapshot();
   }
@@ -154,7 +181,6 @@ namespace ESPINA
   {
     if (!m_mesh)
     {
-      m_mesh = vtkSmartPointer<vtkPolyData>::New();
       const_cast<MarchingCubesMesh<T> *>(this)->updateMesh();
     }
 
@@ -163,19 +189,44 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template <typename T>
+  void MarchingCubesMesh<T>::setMesh(vtkSmartPointer< vtkPolyData > mesh)
+  {
+    m_mesh = mesh;
+
+    BoundsList editedRegions;
+    if (m_mesh)
+    {
+      editedRegions << bounds();
+    }
+    setEditedRegions(editedRegions);
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  TimeStamp MarchingCubesMesh<T>::lastModified()
+  {
+    updateMesh(); // updates the mesh only if necessary.
+    return Data::lastModified();
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
   void MarchingCubesMesh<T>::updateMesh()
   {
+    if(m_lastVolumeModification == m_volume->lastModified())
+      return;
+
     vtkSmartPointer<vtkImageData> image = vtkImage(m_volume, m_volume->bounds());
 
     int extent[6];
     image->GetExtent(extent);
 
-    extent[0]--;
-    extent[1]++;
-    extent[2]--;
-    extent[3]++;
-    extent[4]--;
-    extent[5]++;
+    --extent[0];
+    ++extent[1];
+    --extent[2];
+    ++extent[3];
+    --extent[4];
+    ++extent[5];
 
     // segmentation image need to be padded to avoid segmentation voxels from touching
     // the edges of the image (and create morphologically correct actors)
@@ -196,7 +247,24 @@ namespace ESPINA
     marchingCubes->SetInputData(padding->GetOutput());
     marchingCubes->Update();
 
+    if(!m_mesh)
+      m_mesh = vtkSmartPointer<vtkPolyData>::New();
+
     m_mesh->DeepCopy(marchingCubes->GetOutput());
+
+    m_lastVolumeModification = m_volume->lastModified();
+    updateModificationTime();
+  }
+
+  //----------------------------------------------------------------------------
+  template <typename T>
+  QList<Data::Type> MarchingCubesMesh<T>::updateDependencies() const
+  {
+    QList<Data::Type> types;
+
+    types << VolumetricData<itkVolumeType>::TYPE;
+
+    return types;
   }
 
 } // namespace ESPINA

@@ -1,5 +1,4 @@
 /*
-    
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -17,12 +16,10 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-#include "FilterInspectorDock.h"
-
-#include <Core/Model/Segmentation.h>
-#include <Core/Model/Filter.h>
-#include <GUI/ViewManager.h>
+#include "HistoryDock.h"
+#include "DefaultHistory.h"
+#include "EmptyHistory.h"
+#include <Support/FilterHistory.h>
 
 #include <QDebug>
 #include <QLayout>
@@ -31,145 +28,117 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-FilterInspectorDock::FilterInspectorDock(QUndoStack *undoStack,
-                                 ViewManager* vm,
-                                 QWidget* parent)
-: IDockWidget(parent)
+HistoryDock::HistoryDock(ModelAdapterSPtr          model,
+                         ModelFactorySPtr          factory,
+                         FilterDelegateFactorySPtr delegateFactory,
+                         ViewManagerSPtr           viewManager,
+                         QUndoStack               *undoStack,
+                         QWidget                  *parent)
+: DockWidget(parent)
+, m_model(model)
+, m_factory(factory)
+, m_delegateFactory(delegateFactory)
+, m_viewManager(viewManager)
 , m_undoStack(undoStack)
-, m_viewManager(vm)
-, m_seg   (NULL)
+, m_segmentation(nullptr)
 {
   setObjectName(tr("History Panel"));
 
   setWindowTitle(tr("History"));
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
-          this, SLOT(updatePannel()));
+  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+          this,                             SLOT(updateDock()));
 }
 
 //----------------------------------------------------------------------------
-FilterInspectorDock::~FilterInspectorDock()
+HistoryDock::~HistoryDock()
 {
 }
 
 //----------------------------------------------------------------------------
-void FilterInspectorDock::initDockWidget(EspinaModel *model,
-                                     QUndoStack  *undoStack,
-                                     ViewManager *viewManager)
+void HistoryDock::reset()
 {
-  updatePannel();
+  m_filter.reset();
+  m_segmentation = nullptr;
+
+  setWidget(new EmptyHistory());
 }
 
 //----------------------------------------------------------------------------
-void FilterInspectorDock::reset()
-{
-
-}
-
-//----------------------------------------------------------------------------
-void FilterInspectorDock::showEvent(QShowEvent *e)
+void HistoryDock::showEvent(QShowEvent *e)
 {
   QWidget::showEvent(e);
-  updatePannel();
+
+  updateDock();
 }
 
 //----------------------------------------------------------------------------
-void FilterInspectorDock::updatePannel()
+void HistoryDock::updateDock()
 {
   if (!isVisible())
     return;
 
-  SegmentationPtr seg = NULL;
+  SegmentationAdapterPtr segmentation = nullptr;
   bool changeWidget = false;
 
-  SegmentationList selectedSegs;
-  foreach (PickableItemPtr item, m_viewManager->selection())
-  {
-    if (ESPINA::SEGMENTATION == item->type())
-      selectedSegs << segmentationPtr(item);
-  }
+  auto selectedSegmentations = m_viewManager->selection()->segmentations();
 
-  if (selectedSegs.size() == 1)
-    seg = selectedSegs[0];
+  if (selectedSegmentations.size() == 1)
+  {
+    segmentation = selectedSegmentations.first();
+  }
 
   // Update if segmentation are different
-  if (seg != m_seg)
+  if (segmentation != m_segmentation)
   {
-    if (m_seg)
+    if (m_segmentation)
     {
-      disconnect(m_seg, SIGNAL(outputModified()),
-                 this, SLOT(updatePannel()));
+      disconnect(m_segmentation, SIGNAL(outputModified()),
+                 this,           SLOT(updateDock()));
     }
 
-    m_seg = seg;
+    m_segmentation = segmentation;
 
-    if (m_seg)
+    if (m_segmentation)
     {
-      connect(m_seg, SIGNAL(outputModified()),
-              this, SLOT(updatePannel()));
+      connect(m_segmentation, SIGNAL(outputModified()),
+                 this,        SLOT(updateDock()));
     }
+
     changeWidget = true;
   }
-  else if ((m_filter && m_filter != seg->filter())|| (m_seg == NULL && seg == NULL && widget() == NULL))
+  else if ((m_filter && m_filter != segmentation->filter())
+    ||     (m_segmentation == nullptr && segmentation == nullptr && widget() == nullptr))
   {
     changeWidget = true;
   }
 
   if (changeWidget)
   {
-    QWidget *prevWidget = widget();
+    auto prevWidget = widget();
+
     if (prevWidget)
-      delete prevWidget;
-
-    if (m_seg)
     {
-      m_filter = seg->filter();
-      Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
-      if (inspector.get())
-        setWidget(inspector->createWidget(m_undoStack, m_viewManager));
-      else
+      delete prevWidget;
+    }
+
+    if (m_segmentation)
+    {
+      m_filter = segmentation->filter();
+
+      try
       {
-        QWidget *defaultWidgetInspector = new QWidget();
-        defaultWidgetInspector->setLayout(new QVBoxLayout());
-        defaultWidgetInspector->layout()->setSpacing(10);
-
-        QLabel *typeLabel = new QLabel(defaultWidgetInspector);
-        typeLabel->setText(QString("<b>Segmentation: </b>") + m_seg->data().toString());
-        typeLabel->setWordWrap(true);
-        typeLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-        defaultWidgetInspector->layout()->addWidget(typeLabel);
-
-        QLabel *infoLabel = new QLabel(defaultWidgetInspector);
-        infoLabel->setText(QLabel::tr("Segmentation cannot be modified."));
-        infoLabel->setWordWrap(true);
-        infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-        defaultWidgetInspector->layout()->addWidget(infoLabel);
-
-        QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
-        defaultWidgetInspector->layout()->addItem(spacer);
-
-        setWidget(defaultWidgetInspector);
+        auto delegate = m_delegateFactory->createDelegate(m_segmentation);
+        setWidget(delegate->createWidget(m_model, m_factory, m_viewManager, m_undoStack));
+      }
+      catch (...)
+      {
+        setWidget(new DefaultHistory(m_segmentation));
       }
     }
     else
     {
-      m_filter.reset();
-      m_seg = NULL;
-
-      QWidget *noWidgetInspector = new QWidget();
-      noWidgetInspector->setLayout(new QVBoxLayout());
-      noWidgetInspector->layout()->setSpacing(10);
-
-      QLabel *infoLabel = new QLabel(noWidgetInspector);
-      infoLabel->setText(QLabel::tr("No segmentation selected."));
-      infoLabel->setWordWrap(true);
-      infoLabel->setTextInteractionFlags(Qt::NoTextInteraction);
-      noWidgetInspector->layout()->addWidget(infoLabel);
-
-      QSpacerItem* spacer = new QSpacerItem(-1, -1, QSizePolicy::Minimum, QSizePolicy::Expanding);
-      noWidgetInspector->layout()->addItem(spacer);
-
-      setWidget(noWidgetInspector);
+      reset();
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) <year>  <name of author>
 
  This file is part of ESPINA.
@@ -18,18 +18,24 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  */
+
+// ESPINA
 #include "Segmentation.h"
 #include "Category.h"
 
+// VTK
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkImageData.h>
 
+// Qt
 #include <QDebug>
 #include <QPainter>
 #include <QTextStream>
 #include <QUuid>
 #include <QXmlStreamWriter>
+
+// C++
 #include <string>
 
 using namespace std;
@@ -40,10 +46,11 @@ const QString STATE_ALIAS    = "Alias";
 const QString STATE_USERS    = "Users";
 const QString STATE_CATEGORY = "Category";
 
+//------------------------------------------------------------------------
 Segmentation::Segmentation(InputSPtr input)
-: ViewItem(input)
-, m_number{0}
-, m_users{QSet<QString>()}
+: ViewItem  {input}
+, m_number  {0}
+, m_users   {QSet<QString>()}
 , m_category{nullptr}
 {
 }
@@ -52,8 +59,6 @@ Segmentation::Segmentation(InputSPtr input)
 Segmentation::~Segmentation()
 {
   m_category = nullptr;
-
-//   this->output()->markToSave(false);
 
   for (auto extension: m_extensions)
     extension = nullptr;

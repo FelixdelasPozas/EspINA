@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014 Felix de las Pozas Alvarez <@>
 
     This file is part of ESPINA.
@@ -21,8 +21,6 @@
 // ESPINA
 #include "ViewTools.h"
 
-// #include <Tools/Zoom/ViewTool.h>
-
 // Qt
 #include <QIcon>
 #include <QAction>
@@ -33,13 +31,13 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ViewTools::ViewTools(ViewManagerSPtr viewManager, QWidget* parent)
-: ToolGroup(viewManager, QIcon(":/espina/show_all.svg"), tr("View Tools"), parent)
-, m_toggleSegmentations(new ToggleSegmentationsVisibility(viewManager))
-, m_toggleCrosshair(new ToggleCrosshairVisibility(viewManager))
-, m_resetZoom(new ResetZoom(viewManager))
-, m_zoomArea(new ZoomArea(viewManager))
-, m_segmentationsShortcut(new QShortcut(parent))
-, m_crosshairShortcut(new QShortcut(parent))
+: ToolGroup              {viewManager, QIcon(":/espina/show_all.svg"), tr("View Tools"), parent}
+, m_toggleSegmentations  {new ToggleSegmentationsVisibility(viewManager)}
+, m_toggleCrosshair      {new ToggleCrosshairVisibility(viewManager)}
+, m_resetZoom            {new ResetZoom(viewManager)}
+, m_zoomArea             {new ZoomArea(viewManager)}
+, m_segmentationsShortcut{new QShortcut(parent)}
+, m_crosshairShortcut    {new QShortcut(parent)}
 {
   m_segmentationsShortcut->setKey(Qt::Key_Space);
   m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);

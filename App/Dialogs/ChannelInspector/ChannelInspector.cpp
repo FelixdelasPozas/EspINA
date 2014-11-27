@@ -1,8 +1,21 @@
 /*
- * ChannelInspector.cpp
- *
- *  Created on: Dec 16, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // ESPINA
@@ -54,13 +67,13 @@ typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationF
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent)
-: QDialog(parent)
-, m_spacingModified(false)
-, m_edgesModified(false)
-, m_channel(channel)
-, m_model(model)
-, m_scheduler(scheduler)
-, m_view(new View2D(Plane::XY, this))
+: QDialog          {parent}
+, m_spacingModified{false}
+, m_edgesModified  {false}
+, m_channel        {channel}
+, m_model          {model}
+, m_scheduler      {scheduler}
+, m_view           {new View2D(Plane::XY, this)}
 {
   setupUi(this);
 
@@ -198,7 +211,7 @@ ChannelInspector::~ChannelInspector()
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::unitsChanged(int value)
+void ChannelInspector::unitsChanged(int unused)
 {
   spacingXBox->setSuffix(unitsBox->currentText());
   spacingYBox->setSuffix(unitsBox->currentText());
@@ -218,7 +231,7 @@ void ChannelInspector::changeSpacing()
   if (spacingXBox->value() == 0 || spacingYBox->value() == 0 || spacingZBox->value() == 0)
   {
     QMessageBox msgBox;
-    msgBox.setText("The spacing specified is invalid and cannot be applied to the channel.");
+    msgBox.setText("The spacing specified is invalid and won't be applied to the channel.");
     msgBox.setIcon(QMessageBox::Critical);
     msgBox.setStandardButtons(QMessageBox::Ok);
     QString detailedText = QString("Spacing was set to:\n  X: ") + QString().number(spacingXBox->value())
@@ -564,7 +577,6 @@ void ChannelInspector::applyEdgesChanges()
       distanceExtension->invalidate();
     }
   }
-
 
   if (radioImageEdges->isChecked())
   {

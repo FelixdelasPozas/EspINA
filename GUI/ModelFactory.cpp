@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ModelFactory.h"
-
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SampleAdapter.h"
 #include <Core/Analysis/Channel.h>
@@ -47,7 +47,6 @@ ModelFactory::ModelFactory(CoreFactorySPtr factory,
 //------------------------------------------------------------------------
 ModelFactory::~ModelFactory()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -94,7 +93,6 @@ void ModelFactory::registerSegmentationRepresentationFactory(RepresentationFacto
   m_segmentationRepresentationFactory->addRepresentationFactory(factory);
 }
 
-
 //------------------------------------------------------------------------
 ChannelExtensionTypeList ModelFactory::availableChannelExtensions() const
 {
@@ -133,7 +131,6 @@ AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
   return m_readerExtensions[file.suffix()];
 }
 
-
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 {
@@ -143,11 +140,11 @@ SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 }
 
 //------------------------------------------------------------------------
-ChannelAdapterSPtr ModelFactory::createChannel(FilterAdapterSPtr filter, Output::Id output) const
+ChannelAdapterSPtr ModelFactory::createChannel(FilterSPtr filter, Output::Id output) const
 {
-  ChannelSPtr channel{m_factory->createChannel(filter->adaptedFilter(), output)};
+  auto channel = m_factory->createChannel(filter, output);
 
-  return adaptChannel(filter, channel);
+  return adaptChannel(channel);
 }
 
 //------------------------------------------------------------------------
@@ -157,11 +154,11 @@ ChannelExtensionSPtr ModelFactory::createChannelExtension(const ChannelExtension
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterAdapterSPtr filter, Output::Id output) const
+SegmentationAdapterSPtr ModelFactory::createSegmentation(FilterSPtr filter, Output::Id output) const
 {
-  SegmentationSPtr segmentation{m_factory->createSegmentation(filter->adaptedFilter(), output)};
+  auto segmentation = m_factory->createSegmentation(filter, output);
 
-  return adaptSegmentation(filter, segmentation);
+  return adaptSegmentation(segmentation);
 }
 
 //------------------------------------------------------------------------
@@ -177,27 +174,21 @@ SampleAdapterSPtr ModelFactory::adaptSample(SampleSPtr sample) const
 }
 
 //------------------------------------------------------------------------
-FilterAdapterSPtr ModelFactory::adaptFilter(FilterSPtr filter) const
+ChannelAdapterSPtr ModelFactory::adaptChannel(ChannelSPtr channel) const
 {
-  return FilterAdapterSPtr{new FilterAdapter<Filter>(filter)};
-}
+  ChannelAdapterSPtr adapter{new ChannelAdapter(channel)};
 
-
-//------------------------------------------------------------------------
-ChannelAdapterSPtr ModelFactory::adaptChannel(FilterAdapterSPtr filter, ChannelSPtr channel) const
-{
-  ChannelAdapterSPtr adapter{new ChannelAdapter(filter, channel)};
   adapter->setRepresentationFactory(m_channelRepresentationFactory);
 
   return adapter;
 }
 
 //------------------------------------------------------------------------
-SegmentationAdapterSPtr ModelFactory::adaptSegmentation(FilterAdapterSPtr filter, SegmentationSPtr segmentation) const
+SegmentationAdapterSPtr ModelFactory::adaptSegmentation(SegmentationSPtr segmentation) const
 {
-  SegmentationAdapterSPtr adapter{new SegmentationAdapter(filter, segmentation)};
+  SegmentationAdapterSPtr adapter{new SegmentationAdapter(segmentation)};
+
   adapter->setRepresentationFactory(m_segmentationRepresentationFactory);
 
   return adapter;
 }
-

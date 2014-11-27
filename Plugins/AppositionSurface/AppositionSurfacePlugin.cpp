@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -21,21 +21,19 @@
 // plugin
 #include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
-#include <Filter/SASFetchBehaviour.h>
+#include <Filter/SASDataFactory.h>
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceToolGroup.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
 #include <Core/Extensions/ExtensionFactory.h>
 
-// TODO: no filter inspectors yet
-// #include <GUI/FilterInspector/AppositionSurfaceFilterInspector.h>
-
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
-#include <Core/IO/FetchBehaviour/RasterizedVolumeFromFetchedMeshData.h>
+#include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddCategoryCommand.h>
+#include <Support/Utils/SelectionUtils.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
@@ -65,15 +63,17 @@ FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList          inputs,
+FilterSPtr AppositionSurfacePlugin::ASFilterFactory::createFilter(InputSList    inputs,
                                                             const Filter::Type& type,
-                                                            SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception)
+                                                            SchedulerSPtr       scheduler) const
+throw (Unknown_Filter_Exception)
 {
 
   if (type != AS_FILTER) throw Unknown_Filter_Exception();
 
-  auto filter = FilterSPtr{new AppositionSurfaceFilter(inputs, type, scheduler)};
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new SASFetchBehaviour()});
+  auto filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);
+
+  filter->setDataFactory(std::make_shared<SASDataFactory>());
 
   return filter;
 }
@@ -85,8 +85,8 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_viewManager     {nullptr}
 , m_scheduler       {nullptr}
 , m_undoStack       {nullptr}
-, m_settings        {SettingsPanelSPtr(new AppositionSurfaceSettings())}
-, m_extensionFactory{SegmentationExtensionFactorySPtr(new ASExtensionFactory())}
+, m_settings        {new AppositionSurfaceSettings()}
+, m_extensionFactory{new ASExtensionFactory()}
 , m_toolGroup       {nullptr}
 , m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
 , m_delayedAnalysis {false}
@@ -222,96 +222,84 @@ void AppositionSurfacePlugin::createSASAnalysis()
 
   SegmentationAdapterList synapsis;
 
-  auto selection = m_viewManager->selection()->segmentations();
-  if (selection.isEmpty())
+  for(auto segmentation: defaultReportInputSegmentations(m_viewManager, m_model))
   {
-    for(auto segmentation: m_model->segmentations())
+    if (isValidSynapse(segmentation))
     {
-      if (isSynapse(segmentation.get()))
-      {
-        synapsis << segmentation.get();
-      }
-    }
-  }
-  else
-  {
-    for(auto segmentation: selection)
-    {
-      if (isSynapse(segmentation))
-      {
-        synapsis << segmentation;
-      }
+      synapsis << segmentation;
     }
   }
 
-  if (!synapsis.isEmpty())
-  {
-    if (m_model->classification()->category(SAS) == nullptr)
-    {
-      m_undoStack->beginMacro(tr("Apposition Surface"));
-      m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255,255,0)));
-      m_undoStack->endMacro();
-
-      m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
-      m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
-      m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
-    }
-
-    // check segmentations for SAS and create it if needed
-    for(auto segmentation: synapsis)
-    {
-      auto sasItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
-      if(sasItems.empty())
-      {
-        if(!m_delayedAnalysis)
-        {
-          m_delayedAnalysis = true;
-          m_analysisSynapses = synapsis;
-          QApplication::setOverrideCursor(Qt::WaitCursor);
-        }
-
-        InputSList inputs;
-        inputs << segmentation->asInput();
-
-        auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
-
-        struct Data data(adapter, m_model->smartPointer(segmentation));
-        m_executingTasks.insert(adapter.get(), data);
-
-        connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-        adapter->submit();
-      }
-      else
-      {
-        Q_ASSERT(sasItems.size() == 1);
-        auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
-        if(!sas->hasExtension(AppositionSurfaceExtension::TYPE))
-        {
-          auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-          std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_model->smartPointer(segmentation));
-          sas->addExtension(extension);
-        }
-      }
-    }
-
-    if(!m_delayedAnalysis)
-    {
-      SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
-      analysis->exec();
-
-      delete analysis;
-    }
-  }
-  else
+  if (synapsis.isEmpty())
   {
     QMessageBox::warning(nullptr, tr("ESPINA"), tr("Current analysis does not contain any synapses"));
+    return;
+  }
+
+  if (m_model->classification()->category(SAS) == nullptr)
+  {
+    m_undoStack->beginMacro(tr("Apposition Surface"));
+    m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255, 255, 0)));
+    m_undoStack->endMacro();
+
+    m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
+    m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
+    m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
+  }
+
+  // check segmentations for SAS and create it if needed
+  for (auto segmentation : synapsis)
+  {
+    auto sasItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
+    if (sasItems.empty())
+    {
+      if (!m_delayedAnalysis)
+      {
+        m_delayedAnalysis = true;
+        m_analysisSynapses = synapsis;
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+      }
+
+      InputSList inputs;
+      inputs << segmentation->asInput();
+
+      auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+
+      struct Data data(filter, m_model->smartPointer(segmentation));
+      m_executingTasks.insert(filter.get(), data);
+
+      connect(filter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+
+      Task::submit(filter);
+    }
+    else
+    {
+      Q_ASSERT(sasItems.size() == 1);
+      auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
+      if (!sas->hasExtension(AppositionSurfaceExtension::TYPE))
+      {
+        auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+        std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_model->smartPointer(segmentation));
+        sas->addExtension(extension);
+      }
+    }
+  }
+
+  if (!m_delayedAnalysis)
+  {
+    SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
+    analysis->exec();
+
+    delete analysis;
   }
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfacePlugin::isSynapse(SegmentationAdapterPtr segmentation)
+bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation)
 {
-  return segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool hasRequiredData = segmentation->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return (isValidCategory && hasRequiredData);
 }
 
 //-----------------------------------------------------------------------------
@@ -326,7 +314,7 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
   for(auto segmentation: segmentations)
   {
     bool valid = true;
-    if(isSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
+    if(isValidSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
     {
       // must check if the segmentation already has a SAS, as this call
       // could be the result of a redo() in a UndoCommand
@@ -353,20 +341,22 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
     InputSList inputs;
     inputs << seg->asInput();
 
-    auto adapter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+    auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
 
-    struct Data data(adapter, m_model->smartPointer(seg));
-    m_executingTasks.insert(adapter.get(), data);
+    struct Data data(filter, m_model->smartPointer(seg));
+    m_executingTasks.insert(filter.get(), data);
 
-    connect(adapter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(finishedTask()));
+
+    Task::submit(filter);
   }
 }
 
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::finishedTask()
 {
-  auto filter = qobject_cast<FilterAdapterPtr>(sender());
+  auto filter = dynamic_cast<FilterPtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
 
   if(!filter->isAborted())
@@ -394,7 +384,15 @@ void AppositionSurfacePlugin::finishedTask()
   }
 
   CategoryAdapterSPtr category = classification->category(SAS);
-  SegmentationAdapterList createdSegmentations;
+
+  // we don't have an operator< for SampleAdapterSList so can't use a QMap and must use two lists to avoid
+  // adding the segmentations one by one. Each segmentation can have a different sample list.
+  QVector<SampleAdapterSList> usedSamples;
+  QVector<SegmentationAdapterSList> createdSegmentations;
+  int index = 0;
+
+  RelationList createdRelations;
+  SegmentationAdapterList segmentationsToUpdate;
 
   for(auto filter: m_finishedTasks.keys())
   {
@@ -409,14 +407,42 @@ void AppositionSurfacePlugin::finishedTask()
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
     Q_ASSERT(!samples.empty());
 
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-    m_undoStack->push(new AddRelationCommand(m_finishedTasks[filter].segmentation, segmentation, SAS, m_model));
+    for(index = 0; index < usedSamples.size(); ++index)
+      if(samples == usedSamples[index])
+        break;
 
-    createdSegmentations << segmentation.get();
+    if(index == usedSamples.size())
+    {
+      usedSamples.push_back(samples);
+      SegmentationAdapterSList list;
+      list << segmentation;
+      createdSegmentations.push_back(list);
+    }
+    else
+      createdSegmentations[index] << segmentation;
+
+    Relation relation;
+    relation.ancestor = m_finishedTasks[filter].segmentation;
+    relation.succesor = segmentation;
+    relation.relation = SAS;
+
+    createdRelations << relation;
+
+    segmentationsToUpdate << segmentation.get();
   }
+
+  // add segmentations by their related sample list
+  for(index = 0; index < usedSamples.size(); ++index)
+  {
+    m_undoStack->push(new AddSegmentations(createdSegmentations[index], usedSamples[index], m_model));
+  }
+
+  // add relations
+  m_undoStack->push(new AddRelationsCommand(createdRelations, m_model));
+
   m_undoStack->endMacro();
 
-  m_viewManager->updateSegmentationRepresentations(createdSegmentations);
+  m_viewManager->updateSegmentationRepresentations(segmentationsToUpdate);
   m_viewManager->updateViews();
 
   m_finishedTasks.clear();

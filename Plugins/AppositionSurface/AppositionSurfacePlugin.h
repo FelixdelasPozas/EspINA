@@ -30,7 +30,7 @@
 #include <Support/ViewManager.h>
 #include <Support/Plugin.h>
 #include <Core/Analysis/Input.h>
-#include <Core/Analysis/FetchBehaviour.h>
+#include <Core/Analysis/DataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/EspinaTypes.h>
 
@@ -59,54 +59,24 @@ namespace ESPINA
                       SchedulerSPtr    scheduler,
                       QUndoStack      *undoStack);
 
-    /* \brief Implements Plugin::channelExtensionFactories().
-     *
-     */
     virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
-    /* \brief Implements Plugin::segmentationExtensionFactories().
-     *
-     */
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-    /* \brief Implements Plugin::colorEngines().
-     *
-     */
     virtual NamedColorEngineSList colorEngines() const;
 
-    /* \brief Implements Plugin::toolGroups().
-     *
-     */
     virtual QList<ToolGroup *> toolGroups() const;
 
-    /* \brief Implements Plugin::dockWidgets().
-     *
-     */
     virtual QList<DockWidget *> dockWidgets() const;
 
-    /* \brief Implements Plugin::renderers().
-     *
-     */
     virtual RendererSList renderers() const;
 
-    /* \brief Implements Plugin::settingsPanels().
-     *
-     */
     virtual SettingsPanelSList settingsPanels() const;
 
-    /* \brief Implements Plugin::menuEntries().
-     *
-     */
     virtual QList<MenuEntry> menuEntries() const;
 
-    /* \brief Implements Plugin::analysisReaders().
-     *
-     */
     virtual AnalysisReaderSList analysisReaders() const;
 
-    /* \brief Implements Plugin::filterFactories().
-     *
-     */
     virtual FilterFactorySList filterFactories() const;
 
   public slots:
@@ -117,14 +87,18 @@ namespace ESPINA
   private:
     struct Data
     {
-      FilterAdapterSPtr adapter;
+      FilterSPtr              adapter;
       SegmentationAdapterSPtr segmentation;
 
-      Data(FilterAdapterSPtr adapterP, SegmentationAdapterSPtr segmentationP): adapter{adapterP}, segmentation{segmentationP} {};
-      Data(): adapter{nullptr}, segmentation{nullptr} {};
+      Data(FilterSPtr adapterP, SegmentationAdapterSPtr segmentationP)
+      : adapter{adapterP}, segmentation{segmentationP}
+      {};
+
+      Data(): adapter{nullptr}, segmentation{nullptr}
+      {};
     };
 
-    static bool isSynapse(SegmentationAdapterPtr segmentation);
+    static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
   private:
     ModelAdapterSPtr                 m_model;
@@ -140,8 +114,8 @@ namespace ESPINA
     bool                             m_delayedAnalysis;
     SegmentationAdapterList          m_analysisSynapses;
 
-    QMap<FilterAdapterPtr, struct Data> m_executingTasks;
-    QMap<FilterAdapterPtr, struct Data> m_finishedTasks;
+    QMap<FilterPtr, struct Data> m_executingTasks;
+    QMap<FilterPtr, struct Data> m_finishedTasks;
 
     friend class AppositionSurfaceToolGroup;
   };

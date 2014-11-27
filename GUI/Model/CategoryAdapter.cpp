@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,6 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "CategoryAdapter.h"
 
 // ESPINA
@@ -29,18 +30,18 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategorySPtr category)
-: ItemAdapter(PersistentSPtr())
-, m_category{category}
-, m_parent  {nullptr}
+: ItemAdapter{PersistentSPtr()}
+, m_category {category}
+, m_parent   {nullptr}
 {
-  // NOTE: parent need to be set by intance creator.
+  // NOTE: parent need to be set by instance creator.
 }
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
-: ItemAdapter(PersistentSPtr())
-, m_category{nullptr}
-, m_parent{parent}
+: ItemAdapter{PersistentSPtr()}
+, m_category {nullptr}
+, m_parent   {parent}
 {
   // NOTE: m_category needs to be set by instance creator.
 }
@@ -231,7 +232,7 @@ CategoryAdapterPtr ESPINA::categoryPtr(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
-QString ESPINA::print(CategoryAdapterSPtr category, int level)
+QString ESPINA::print(CategoryAdapterSPtr category, int indent)
 {
-  return print(category->m_category, level);
+  return print(category->m_category, indent);
 }

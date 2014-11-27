@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -18,12 +18,12 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef ESPINA_VISUALIZATION_STATE_H
 #define ESPINA_VISUALIZATION_STATE_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
 #include <Core/EspinaTypes.h>
 #include <Core/Analysis/Extension.h>
 
@@ -40,33 +40,54 @@ namespace ESPINA
     static const Type TYPE;
 
   public:
+    /** \brief VisualizationState class constructor.
+     *
+     */
     explicit VisualizationState();
+
+    /** \brief VisualizationState class virtual destructor.
+     *
+     */
     virtual ~VisualizationState();
 
+    /** \brief Implements Extension::type().
+     *
+     */
     virtual Type type() const
     { return TYPE; }
 
+    /** \brief Implements Extension::dependencies().
+     *
+     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-    virtual void onSegmentationSet(SegmentationPtr seg);
-
+    /** \brief Implements SegmentationExtension::validCategory().
+     *
+     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
+    /** \brief Implements Extension::availableInformations().
+     *
+     */
     virtual InfoTagList availableInformations() const;
 
+    /** \brief Shadows Extension::information(tag).
+     *
+     */
     virtual QVariant information(const InfoTag &tag) const;
 
-//     virtual void loadCache(QuaZipFile  &file,
-//                            const QDir  &tmpDir,
-//                            IEspinaModel *model);
-// 
-//     virtual bool saveCache(Snapshot &snapshot);
-
-
+    /** \brief Sets the state of a representation.
+     * \param[in] representation, representation name.
+     * \param[in] state, string with the state of the representation.
+     *
+     */
     void setState(const QString& representation, const QString& state);
 
+    /** \brief Returns the state of the representation as a string.
+     *
+     */
     QString state(const QString& representation);
 
   private:

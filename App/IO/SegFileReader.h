@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -21,6 +21,8 @@
 
 #ifndef ESPINA_SEGFILEREADER_H
 #define ESPINA_SEGFILEREADER_H
+
+// ESPINA
 #include <Core/Factory/AnalysisReader.h>
 
 namespace ESPINA {
@@ -29,14 +31,23 @@ namespace ESPINA {
   : public IO::AnalysisReader
   {
   public:
-    virtual QString type() const
+  	/** \brief Overrides IO::AnalisysReader::type().
+  	 *
+  	 */
+    virtual QString type() const override
     { return "SegFileReader"; }
 
-    virtual ExtensionList supportedFileExtensions() const;
+    /** \brief Overrides IO::AnalisysReader::supportedFileExtensions().
+     *
+     */
+    virtual ExtensionList supportedFileExtensions() const override;
 
+    /** \brief Overrides IO::AnalisysReader::read().
+     *
+     */
     virtual AnalysisSPtr read(const QFileInfo& file,
                               CoreFactorySPtr  factory,
-                              ErrorHandlerSPtr handler = ErrorHandlerSPtr()); 
+                              ErrorHandlerSPtr handler = ErrorHandlerSPtr()) override;
   };
 
 }

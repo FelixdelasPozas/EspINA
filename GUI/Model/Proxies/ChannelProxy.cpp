@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "ChannelProxy.h"
-
-// Espina
 #include <GUI/Model/SampleAdapter.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <Core/Analysis/Channel.h>
@@ -37,7 +36,7 @@ using ChannelSet = QSet<ItemAdapterPtr>;
 
 //------------------------------------------------------------------------
 ChannelProxy::ChannelProxy(ModelAdapterSPtr sourceModel, QObject* parent)
-: QAbstractProxyModel(parent)
+: QAbstractProxyModel{parent}
 {
   setSourceModel(sourceModel);
 }
@@ -146,11 +145,11 @@ int ChannelProxy::rowCount(const QModelIndex& parent) const
     return m_samples.size();
 
   // Cast to base type
-  ItemAdapterPtr parentItem = itemAdapter(parent);
+  auto parentItem = itemAdapter(parent);
   int rows = 0;
-  if (ItemAdapter::Type::SAMPLE == parentItem->type())
+  if (isSample(parentItem))
   {
-    SampleAdapterPtr sample = samplePtr(parentItem);
+    auto sample = samplePtr(parentItem);
     rows = numSubSamples(sample) + numChannels(sample);
   }
   return rows;
@@ -248,7 +247,7 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
       }
     }
   }
-  else 
+  else
   {
     proxyIndex = QModelIndex();
   }
@@ -273,7 +272,7 @@ QModelIndex ChannelProxy::mapToSource(const QModelIndex& proxyIndex) const
   {
     ChannelAdapterPtr proxyChannel = channelPtr(proxyItem);
     sourceIndex = m_model->channelIndex(proxyChannel);
-  } else 
+  } else
   {
     throw -1;
   }
@@ -598,7 +597,7 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
   QModelIndexList sources;
   indices(sourceTopLeft, sourceBottomRight, sources);
 
-  foreach(QModelIndex source, sources)
+  for(auto source: sources)
   {
     QModelIndex proxyIndex = mapFromSource(source);
     if (proxyIndex.isValid())
@@ -657,7 +656,6 @@ void ChannelProxy::sourceModelReset()
   }
   endResetModel();
 }
-
 
 //------------------------------------------------------------------------
 int ChannelProxy::numChannels(SampleAdapterPtr sample) const

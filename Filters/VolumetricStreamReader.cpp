@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,15 +18,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "VolumetricStreamReader.h"
+#include <Core/IO/ErrorHandler.h>
 
-#include <Core/Analysis/Data/Volumetric/StreamedVolume.h>
-
+// Qt
 #include <QFileDialog>
+
+// ITK
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-#include <Core/IO/ErrorHandler.h>
 
 using namespace ESPINA;
 
@@ -68,27 +69,12 @@ void VolumetricStreamReader::setFileName(const QFileInfo& fileName)
 //----------------------------------------------------------------------------
 bool VolumetricStreamReader::needUpdate() const
 {
-  return needUpdate(0);
-}
-
-//----------------------------------------------------------------------------
-bool VolumetricStreamReader::needUpdate(Output::Id id) const
-{
-  if (id != 0) throw Undefined_Output_Exception();
-
   return m_outputs.isEmpty() || !validOutput(0);
 }
 
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute()
 {
-  execute(0);
-}
-
-//----------------------------------------------------------------------------
-void VolumetricStreamReader::execute(Output::Id id)
-{
-  Q_ASSERT(0 == id);
   if (!m_fileName.exists())
   {
     if (handler())
@@ -130,12 +116,13 @@ void VolumetricStreamReader::execute(Output::Id id)
     }
   }
 
+
+  auto volume = std::make_shared<StreamedVolume<itkVolumeType>>(mhdFile);
+
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr{new Output(this, 0)};
+    m_outputs[0] = std::make_shared<Output>(this, 0, volume->spacing());
   }
-
-  DefaultVolumetricDataSPtr volume{new StreamedVolume<itkVolumeType>(mhdFile)};
 
   m_outputs[0]->setData(volume);
 

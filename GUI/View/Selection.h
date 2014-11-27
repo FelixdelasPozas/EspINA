@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -24,12 +24,14 @@
 
 #include "GUI/EspinaGUI_Export.h"
 
-#include <QObject>
-
+// ESPINA
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace ESPINA 
+// Qt
+#include <QObject>
+
+namespace ESPINA
 {
 
   class EspinaGUI_EXPORT Selection
@@ -38,40 +40,64 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    void set(ChannelAdapterList      selection);
-    void set(SegmentationAdapterList selection);
-    void set(ViewItemAdapterList     selection);
+    /** \brief Sets the given list of channels as selected.
+     * \param[in] selection, list of channel adapter raw pointers.
+     *
+     */
+    void set(ChannelAdapterList selection);
 
+    /** \brief Sets the given list of segmentations as selected.
+     * \param[in] selection, list of segmentation adapter raw pointers.
+     *
+     */
+    void set(SegmentationAdapterList selection);
+
+    /** \brief Sets the given list of view items as selected.
+     * \param[in] selection, list of view item adapter raw pointers.
+     *
+     */
+    void set(ViewItemAdapterList selection);
+
+    /** \brief Returns the list of selected channels.
+     *
+     */
     ChannelAdapterList channels() const
     { return m_channels; }
 
+    /** \brief Returns the list of selected segmentations.
+     *
+     */
     SegmentationAdapterList segmentations() const
     { return m_segmentations; }
 
+    /** \brief Returns the list of selected items.
+     *
+     */
     ViewItemAdapterList items() const;
 
+    /** \brief Clears the selection.
+     *
+     */
     void clear();
 
   signals:
-    /** \brief Emited when any item changes its selection state
-     */
     void selectionStateChanged();
-
     void selectionStateChanged(ChannelAdapterList);
-
     void selectionStateChanged(SegmentationAdapterList);
-
-    /** \brief Emit current selection whenever it changes
-     */
     void selectionChanged(ChannelAdapterList);
-
     void selectionChanged(SegmentationAdapterList);
-
     void selectionChanged();
 
   private:
-    ChannelAdapterList setChannels(ChannelAdapterList);
-    SegmentationAdapterList setSegmentations(SegmentationAdapterList);
+    /** \brief Helper method to set the given list of channels as selected.
+     * \param[in] list, list of channel adapter raw pointers.
+     */
+    ChannelAdapterList setChannels(ChannelAdapterList list);
+
+    /** \brief Helper method to set the given list of segmentations as selected.
+     * \param[in] list, list of segmentation adapter raw pointers.
+     */
+    SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
 
     ChannelAdapterList      m_channels;
     SegmentationAdapterList m_segmentations;

@@ -1,6 +1,6 @@
 /*
-    
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -24,46 +24,46 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  ModifyROIUndoCommand::ModifyROIUndoCommand(ROIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
-  : m_newROI    {nullptr}
-  , m_toolGroup {toolsGroup}
-  , m_mask      {mask}
+  AddROIUndoCommand::AddROIUndoCommand(ROIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
+  : m_newROI   {nullptr}
+  , m_toolGroup{toolsGroup}
+  , m_mask     {mask}
   {
     if(m_toolGroup->currentROI() == nullptr)
-      m_newROI = ROISPtr{new ROI{mask, mask->foregroundValue()}};
+      m_newROI = ROISPtr{new ROI{mask}};
   }
 
   //-----------------------------------------------------------------------------
-  ModifyROIUndoCommand::~ModifyROIUndoCommand()
+  AddROIUndoCommand::~AddROIUndoCommand()
   {
   }
 
   //-----------------------------------------------------------------------------
-  void ModifyROIUndoCommand::redo()
+  void AddROIUndoCommand::redo()
   {
     auto ROI = m_toolGroup->currentROI();
 
     if(ROI == nullptr)
+    {
       m_toolGroup->setCurrentROI(m_newROI);
+    }
     else
     {
-      if(contains(ROI->bounds(), m_mask->bounds().bounds(), ROI->spacing()))
-        ROI->draw(m_mask, m_mask->foregroundValue());
-      else
-      {
-        ROI->resize(boundingBox(ROI->bounds(), m_mask->bounds().bounds()));
-        ROI->draw(m_mask, m_mask->foregroundValue());
-      }
+      expandAndDraw(ROI, m_mask);
     }
   }
 
   //-----------------------------------------------------------------------------
-  void ModifyROIUndoCommand::undo()
+  void AddROIUndoCommand::undo()
   {
     if(m_newROI != nullptr)
+    {
       m_toolGroup->setCurrentROI(nullptr);
+    }
     else
+    {
       m_toolGroup->currentROI()->undo();
+    }
   }
 
   //-----------------------------------------------------------------------------

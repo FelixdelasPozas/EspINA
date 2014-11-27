@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -30,11 +30,11 @@ namespace ESPINA
   RenderersSelector::RenderersSelector(RendererSList renderersList,
                                        QStringList activeRenderersList,
                                        RendererTypes filter)
-  : m_renderers(renderersList)
-  , m_activeRenderers(activeRenderersList)
+  : m_renderers      {renderersList}
+  , m_activeRenderers{activeRenderersList}
   {
     setupUi(this);
-    
+
     QStandardItemModel *active, *available;
 
     active    = new QStandardItemModel(this);
@@ -85,7 +85,7 @@ namespace ESPINA
   RenderersSelector::~RenderersSelector()
   {
   }
-  
+
   //-----------------------------------------------------------------------------
   RendererSList RenderersSelector::getActiveRenderers()
   {
@@ -97,7 +97,7 @@ namespace ESPINA
 
     return renderers;
   }
-  
+
   //-----------------------------------------------------------------------------
   void RenderersSelector::onActivateRenderersDropped()
   {

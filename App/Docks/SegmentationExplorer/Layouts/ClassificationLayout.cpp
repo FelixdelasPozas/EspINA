@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,9 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "ClassificationLayout.h"
-
 #include <GUI/Model/ModelAdapter.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
@@ -28,6 +27,7 @@
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
 
+// Qt
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QColorDialog>
@@ -40,21 +40,39 @@ class RenameCategoryCommand
 : public QUndoCommand
 {
 public:
+	/** \brief RenameCategoryCommand class constructor.
+	 * \param[in] categoryItem, category adapter raw pointer of the element to rename.
+	 * \param[in] name, string reference to the new name.
+	 * \param[in] model, model adapter smart pointer of the model containing the category.
+	 * \param[in] parent, parent QUndoCommand raw pointer.
+	 *
+	 */
   explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
                                  const QString      &name,
                                  ModelAdapterSPtr   model,
                                  QUndoCommand      *parent = 0)
-  : QUndoCommand(parent)
-  , m_model(model)
-  , m_categoryItem(categoryItem)
-  , m_name(name)
+  : QUndoCommand  {parent}
+  , m_model       {model}
+  , m_categoryItem{categoryItem}
+  , m_name        {name}
   {}
 
-  virtual void redo() { swapName(); }
+  /** \brief Overrides QUndoCommand::redo().
+   *
+   */
+  virtual void redo() override
+  { swapName(); }
 
-  virtual void undo() { swapName(); }
+  /** \brief Overrides QUndoCommand::undo().
+   *
+   */
+  virtual void undo() override
+  { swapName(); }
 
 private:
+  /** \brief Helper method to swap the name of the category.
+   *
+   */
   void swapName()
   {
     QString     tmp   = m_categoryItem->name();
@@ -73,22 +91,30 @@ private:
 
 
 //------------------------------------------------------------------------
-class CategorytemDelegate
+class CategoryItemDelegate
 : public QItemDelegate
 {
 public:
-  explicit CategorytemDelegate(ModelAdapterSPtr model,
-                                QUndoStack     *undoStack,
-                                QObject        *parent = 0)
-  : QItemDelegate(parent)
-  , m_model(model)
-  , m_undoStack(undoStack)
-  {
-  }
+  /** \brief Class CategoryItemDelegate class constructor.
+   * \param[in] model model adapter smart pointer.
+   * \param[in] undoStack QUndoStack object raw pointer.
+   * \param[in] parent parent object raw pointer.
+   *
+   */
+  explicit CategoryItemDelegate(ModelAdapterSPtr model,
+                                QUndoStack      *undoStack,
+                                QObject         *parent = nullptr)
+  : QItemDelegate{parent}
+  , m_model      {model}
+  , m_undoStack  {undoStack}
+  {}
 
+  /** \brief Overrides QItemDelegate::setModelData().
+   *
+   */
   virtual void setModelData(QWidget            *editor,
                             QAbstractItemModel *model,
-                            const QModelIndex  &index) const
+                            const QModelIndex  &index) const override
   {
     QSortFilterProxyModel *proxy = static_cast<QSortFilterProxyModel *>(model);
     ItemAdapterPtr item = itemAdapter(proxy->mapToSource(index));
@@ -163,18 +189,19 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 }
 
 //------------------------------------------------------------------------
-ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
-                                           ModelAdapterSPtr   model,
-                                           ModelFactorySPtr   factory,
-                                           ViewManagerSPtr    viewManager,
-                                           QUndoStack        *undoStack)
-: Layout    (view, model, factory, viewManager, undoStack)
-, m_proxy   (new ClassificationProxy(model))
-, m_sort    (new SortFilter())
-, m_delegate(new CategorytemDelegate(model, undoStack, this))
-, m_createCategory(nullptr)
-, m_createSubCategory(nullptr)
-, m_changeCategoryColor(nullptr)
+ClassificationLayout::ClassificationLayout(CheckableTreeView        *view,
+                                           ModelAdapterSPtr          model,
+                                           ModelFactorySPtr          factory,
+                                           FilterDelegateFactorySPtr delegateFactory,
+                                           ViewManagerSPtr           viewManager,
+                                           QUndoStack                *undoStack)
+: Layout               {view, model, factory, delegateFactory, viewManager, undoStack}
+, m_proxy              {new ClassificationProxy(model)}
+, m_sort               {new SortFilter()}
+, m_delegate           {new CategoryItemDelegate(model, undoStack, this)}
+, m_createCategory     {nullptr}
+, m_createSubCategory  {nullptr}
+, m_changeCategoryColor{nullptr}
 {
   m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.get());
@@ -198,7 +225,6 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView *view,
 //------------------------------------------------------------------------
 ClassificationLayout::~ClassificationLayout()
 {
-//   qDebug() << "Destroying Taxonomy Layout";
 }
 
 //------------------------------------------------------------------------
@@ -595,7 +621,7 @@ void ClassificationLayout::disconnectSelectionModel()
   m_createCategory = m_createSubCategory = m_changeCategoryColor = nullptr;
 
   disconnect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
-          this, SLOT(updateSelection()));
+             this,                     SLOT(updateSelection()));
 }
 
 //------------------------------------------------------------------------
@@ -648,7 +674,7 @@ void ClassificationLayout::selectCategoryAdapters()
    }
 
    QItemSelection newSelection;
-   foreach(QModelIndex sortIndex, indices(index, true))
+   for(auto sortIndex: indices(index, true))
    {
      if (!sortIndex.isValid())
        continue;

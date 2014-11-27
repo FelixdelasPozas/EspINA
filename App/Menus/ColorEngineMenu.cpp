@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -32,9 +32,9 @@ const QString COLOR_ENGINE("ColorEngine");
 ColorEngineMenu::ColorEngineMenu(ViewManagerSPtr vm,
                                  const QString& title,
                                  QWidget* parent)
-: QMenu(title, parent)
-, m_viewManager(vm)
-, m_engine(new MultiColorEngine())
+: QMenu        {title, parent}
+, m_viewManager{vm}
+, m_engine     {new MultiColorEngine()}
 {
   connect(this, SIGNAL(triggered(QAction*)),
           this, SLOT(setColorEngine(QAction*)));

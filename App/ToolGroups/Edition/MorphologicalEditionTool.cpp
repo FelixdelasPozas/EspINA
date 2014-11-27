@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -18,7 +18,9 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ESPINA
 #include "MorphologicalEditionTool.h"
+#include "CODEHistory.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/SpinBoxAction.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -32,8 +34,9 @@
 #include <Undo/AddSegmentations.h>
 #include <Undo/RemoveSegmentations.h>
 #include <Undo/ReplaceOutputCommand.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 
+// Qt
 #include <QAction>
 #include <QSettings>
 #include <QUndoStack>
@@ -58,6 +61,8 @@ const Filter::Type ERODE_FILTER_V4       = "EditorToolBar::ErodeFilter";
 const Filter::Type FILL_HOLES_FILTER     = "FillSegmentationHoles";
 const Filter::Type FILL_HOLES_FILTER_V4  = "EditorToolBar::FillHolesFilter";
 const Filter::Type IMAGE_LOGIC_FILTER    = "ImageLogicFilter";
+const Filter::Type ADDITION_FILTER       = "AdditionFilter";
+const Filter::Type SUBSTRACTION_FILTER   = "SubstractionFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList MorphologicalEditionTool::MorphologicalFilterFactory::providedFilters() const
@@ -77,67 +82,165 @@ FilterTypeList MorphologicalEditionTool::MorphologicalFilterFactory::providedFil
 }
 
 //------------------------------------------------------------------------
-FilterSPtr MorphologicalEditionTool::MorphologicalFilterFactory::createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
+FilterSPtr MorphologicalEditionTool::MorphologicalFilterFactory::createFilter(InputSList          inputs,
+                                                                              const Filter::Type& filter,
+                                                                              SchedulerSPtr       scheduler) const
 throw (Unknown_Filter_Exception)
 {
   FilterSPtr morphologicalFilter;
 
-  if (!m_fetchBehaviour)
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
   }
 
-  if (filter == CLOSE_FILTER || filter == CLOSE_FILTER_V4)
+  if (isCloseFilter(filter))
   {
-    morphologicalFilter = FilterSPtr{new CloseFilter{inputs, CLOSE_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<CloseFilter>(inputs, CLOSE_FILTER, scheduler);
   }
-  else if (filter == OPEN_FILTER || filter == OPEN_FILTER_V4)
+  else if (isOpenFilter(filter))
   {
-    morphologicalFilter = FilterSPtr{new OpenFilter{inputs, OPEN_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<OpenFilter>(inputs, OPEN_FILTER, scheduler);
   }
-  else if (filter == DILATE_FILTER || filter == DILATE_FILTER_V4)
+  else if (isDilateFilter(filter))
   {
-    morphologicalFilter = FilterSPtr{new DilateFilter{inputs, DILATE_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<DilateFilter>(inputs, DILATE_FILTER, scheduler);
   }
-  else if (filter == ERODE_FILTER || filter == ERODE_FILTER_V4)
+  else if (isErodeFilter(filter))
   {
-    morphologicalFilter = FilterSPtr{new ErodeFilter{inputs, ERODE_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<ErodeFilter>(inputs, ERODE_FILTER, scheduler);
   }
-  else if (filter == FILL_HOLES_FILTER || filter == FILL_HOLES_FILTER_V4)
+  else if (isFillHolesFilter(filter))
   {
-    morphologicalFilter = FilterSPtr{new FillHolesFilter{inputs, FILL_HOLES_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<FillHolesFilter>(inputs, FILL_HOLES_FILTER, scheduler);
   }
-  else if(filter == IMAGE_LOGIC_FILTER)
+  else if (isAdditionFilter(filter) || isSubstractionFilter(filter))
   {
-    morphologicalFilter = FilterSPtr{new ImageLogicFilter{inputs, IMAGE_LOGIC_FILTER, scheduler}};
+    morphologicalFilter = std::make_shared<ImageLogicFilter>(inputs, filter, scheduler);
+  }
+  else if(filter == IMAGE_LOGIC_FILTER) // Older versions didn't distinguish between addition/substraction
+  {
+    morphologicalFilter = std::make_shared<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER, scheduler);
   }
   else
   {
     throw Unknown_Filter_Exception();
   }
 
-  morphologicalFilter->setFetchBehaviour(m_fetchBehaviour);
+  morphologicalFilter->setDataFactory(m_dataFactory);
 
   return morphologicalFilter;
 }
 
 //------------------------------------------------------------------------
-MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr model,
-                                                   ModelFactorySPtr factory,
-                                                   ViewManagerSPtr  viewManager,
-                                                   QUndoStack      *undoStack)
-: m_model(model)
-, m_factory(factory)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
+QList<Filter::Type> MorphologicalEditionTool::MorphologicalFilterFactory::availableFilterDelegates() const
+{
+  QList<Filter::Type> types;
+
+  types << CLOSE_FILTER  << CLOSE_FILTER_V4
+        << OPEN_FILTER   << OPEN_FILTER_V4
+        << DILATE_FILTER << DILATE_FILTER_V4
+        << ERODE_FILTER  << ERODE_FILTER_V4;
+
+  return types;
+}
+
+//------------------------------------------------------------------------
+FilterDelegateSPtr MorphologicalEditionTool::MorphologicalFilterFactory::createDelegate(FilterSPtr filter)
+throw (Unknown_Filter_Type_Exception)
+{
+  QString title;
+
+  auto type = filter->type();
+
+  if (isCloseFilter(type))
+  {
+    title = tr("Close");
+  }
+  else if (isOpenFilter(type))
+  {
+    title = tr("Open");
+  }
+  else if (isDilateFilter(type))
+  {
+    title = tr("Dilate");
+  }
+  else if (isErodeFilter(type))
+  {
+    title = tr("Erode");
+  }
+
+  auto codeFilter = std::dynamic_pointer_cast<MorphologicalEditionFilter>(filter);
+
+  return std::make_shared<CODEHistory>(title, codeFilter);
+
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isCloseFilter(const Filter::Type &type) const
+{
+ return CLOSE_FILTER == type || CLOSE_FILTER_V4 == type;
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isOpenFilter(const Filter::Type &type) const
+{
+
+  return OPEN_FILTER == type|| OPEN_FILTER_V4 == type;
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isDilateFilter(const Filter::Type &type) const
+{
+  return DILATE_FILTER == type || DILATE_FILTER_V4 == type;
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isErodeFilter(const Filter::Type &type) const
+{
+  return ERODE_FILTER == type || ERODE_FILTER_V4 == type;
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isFillHolesFilter(const Filter::Type &type) const
+{
+  return FILL_HOLES_FILTER == type || FILL_HOLES_FILTER_V4 == type;
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isAdditionFilter(const Filter::Type &type) const
+{
+  return ADDITION_FILTER == type;
+}
+
+//------------------------------------------------------------------------
+bool MorphologicalEditionTool::MorphologicalFilterFactory::isSubstractionFilter(const Filter::Type &type) const
+{
+  return SUBSTRACTION_FILTER == type;
+}
+
+
+
+//------------------------------------------------------------------------
+//------------------------------------------------------------------------
+MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr          model,
+                                                   ModelFactorySPtr          factory,
+                                                   FilterDelegateFactorySPtr filterDelegateFactory,
+                                                   ViewManagerSPtr           viewManager,
+                                                   QUndoStack                *undoStack)
+: m_model        {model}
+, m_factory      {factory}
+, m_viewManager  {viewManager}
+, m_undoStack    {undoStack}
 , m_filterFactory{new MorphologicalFilterFactory()}
-, m_close (":/espina/close.png" , tr("Close selected segmentations" ))
-, m_open  (":/espina/open.png"  , tr("Open selected segmentations"  ))
-, m_dilate(":/espina/dilate.png", tr("Dilate selected segmentations"))
-, m_erode (":/espina/erode.png" , tr("Erode selected segmentations" ))
+, m_close        {":/espina/close.png" , tr("Close selected segmentations" )}
+, m_open         {":/espina/open.png"  , tr("Open selected segmentations"  )}
+, m_dilate       {":/espina/dilate.png", tr("Dilate selected segmentations")}
+, m_erode        {":/espina/erode.png" , tr("Erode selected segmentations" )}
 , m_enabled(false)
 {
   m_factory->registerFilterFactory(m_filterFactory);
+  filterDelegateFactory->registerFilterDelegateFactory(m_filterFactory);
 
   m_addition = new QAction(QIcon(":/espina/add.svg"), tr("Merge selected segmentations"), nullptr);
   connect(m_addition, SIGNAL(triggered(bool)),
@@ -234,10 +337,11 @@ void MorphologicalEditionTool::mergeSegmentations()
 
     InputSList inputs;
     for(auto segmentation: segmentations)
+    {
       inputs << segmentation->asInput();
+    }
 
-    auto adapter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
-    auto filter = adapter->get();
+    auto filter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::ADDITION);
     filter->setDescription("Segmentations Addition");
 
@@ -245,12 +349,14 @@ void MorphologicalEditionTool::mergeSegmentations()
 
     context.Operation = ImageLogicFilter::Operation::ADDITION;
     context.Segmentations = segmentations;
-    context.Task = adapter;
+    context.Task = filter;
 
     m_executingImageLogicTasks.insert(filter.get(), context);
 
-    connect(filter.get(), SIGNAL(finished()), this, SLOT(onImageLogicFilterFinished()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(onImageLogicFilterFinished()));
+
+    Task::submit(filter);
   }
 }
 
@@ -269,8 +375,7 @@ void MorphologicalEditionTool::subtractSegmentations()
     for(auto segmentation: segmentations)
       inputs << segmentation->asInput();
 
-    auto adapter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
-    auto filter = adapter->get();
+    auto filter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
     filter->setDescription("Segmentations Subtraction");
 
@@ -278,12 +383,14 @@ void MorphologicalEditionTool::subtractSegmentations()
 
     context.Operation = ImageLogicFilter::Operation::SUBTRACTION;
     context.Segmentations = segmentations;
-    context.Task = adapter;
+    context.Task = filter;
 
     m_executingImageLogicTasks.insert(filter.get(), context);
 
-    connect(filter.get(), SIGNAL(finished()), this, SLOT(onImageLogicFilterFinished()));
-    adapter->submit();
+    connect(filter.get(), SIGNAL(finished()),
+            this,         SLOT(onImageLogicFilterFinished()));
+
+    Task::submit(filter);
   }
 }
 
@@ -308,7 +415,7 @@ void MorphologicalEditionTool::dilateSegmentations()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::erodeSegmentations()
 {
-  launchCODE<DilateFilter>(ERODE_FILTER, "Erode", m_erode.radius());
+  launchCODE<ErodeFilter>(ERODE_FILTER, "Erode", m_erode.radius());
 }
 
 //------------------------------------------------------------------------
@@ -326,8 +433,7 @@ void MorphologicalEditionTool::fillHoles()
 
       inputs << segmentation->asInput();
 
-      auto adapter = m_factory->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
-      auto filter  = adapter->get();
+      auto filter = m_factory->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
 
       filter->setDescription(tr("Fill %1 Holes").arg(segmentation->data(Qt::DisplayRole).toString()));
 
@@ -342,7 +448,7 @@ void MorphologicalEditionTool::fillHoles()
       connect(filter.get(), SIGNAL(finished()),
               this,         SLOT(onFillHolesFinished()));
 
-      adapter->submit();
+      Task::submit(filter);
     }
   }
 }
@@ -402,18 +508,25 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  int listSize = m_viewManager->selection()->segmentations().size();
+  auto selection = m_viewManager->selection()->segmentations();
 
-  bool atLeastOneSegmentation = listSize > 0;
-  bool atLeasttwoSegmentations = listSize >= 2;
+  bool hasRequiredData = true;
 
-  m_addition->setEnabled(m_enabled && atLeasttwoSegmentations);
-  m_subtract->setEnabled(m_enabled && atLeasttwoSegmentations);
-  m_close .setEnabled(m_enabled && atLeastOneSegmentation);
-  m_open  .setEnabled(m_enabled && atLeastOneSegmentation);
-  m_dilate.setEnabled(m_enabled && atLeastOneSegmentation);
-  m_erode .setEnabled(m_enabled && atLeastOneSegmentation);
-  m_fill ->setEnabled(m_enabled && atLeastOneSegmentation);
+  for(auto seg: selection)
+  {
+    hasRequiredData &= hasVolumetricData(seg->output());
+  }
+
+  auto morphologicalEnabled = m_enabled && (selection.size() > 0) && hasRequiredData;
+  auto logicalEnabled = m_enabled && (selection.size() >= 2) && hasRequiredData;
+
+  m_addition->setEnabled(logicalEnabled);
+  m_subtract->setEnabled(logicalEnabled);
+  m_close .setEnabled(morphologicalEnabled);
+  m_open  .setEnabled(morphologicalEnabled);
+  m_dilate.setEnabled(morphologicalEnabled);
+  m_erode .setEnabled(morphologicalEnabled);
+  m_fill ->setEnabled(morphologicalEnabled);
 }
 
 //------------------------------------------------------------------------

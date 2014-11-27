@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,17 +19,18 @@
  *
  */
 
+// ESPINA
 #include "ToggleSegmentationsVisibility.h"
 
+// Qt
 #include <QAction>
 
 using namespace ESPINA;
 
-
 //----------------------------------------------------------------------------
 ToggleSegmentationsVisibility::ToggleSegmentationsVisibility(ViewManagerSPtr viewManager)
-: m_viewManager(viewManager)
-, m_toggle(QIcon(":/espina/show_all.svg"), tr("Toggle Segmentations visibility"), this)
+: m_viewManager{viewManager}
+, m_toggle     {QIcon(":/espina/show_all.svg"), tr("Toggle Segmentations visibility"), this}
 {
   m_toggle.setCheckable(true);
   m_toggle.setChecked(true);

@@ -30,15 +30,15 @@
 
 #include "Extensions/EspinaExtensions_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Extension.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
+// Qt
 #include <QStringListModel>
 
 namespace ESPINA
 {
-
-
   class EspinaExtensions_EXPORT SegmentationTags
   : public SegmentationExtension
   {
@@ -48,53 +48,117 @@ namespace ESPINA
 
     //static QStringListModel TagModel;
   public:
+    /** \brief SegmentationTags class constructor.
+     * \param[in] infoCache, cache object.
+     *
+     */
     explicit SegmentationTags(const InfoCache& infoCache = InfoCache());
+
+    /** \brief SegmentationTags class virtual destructor.
+     *
+     */
     virtual ~SegmentationTags();
 
+    /** \brief Implements Extension::type().
+     *
+     */
     virtual Type type() const
     { return TYPE; }
 
+    /** \brief Implements Extension::invalidateOnChange().
+     *
+     */
     virtual bool invalidateOnChange() const
     { return false; }
 
+    /** \brief Implements Extension::state().
+     *
+     */
     virtual State state() const
     { return m_tags.join(","); }
 
+    /** \brief Implements Extension::snapshot().
+     *
+     */
     virtual Snapshot snapshot() const
     { return Snapshot(); }
 
+    /** \brief Implements Extension::dependencies().
+     *
+     */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
+    /** \brief Implements SegmentationExtension::validCategory().
+     *
+     */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
+    /** \brief Implements Extension::availableInformations().
+     *
+     */
     virtual InfoTagList availableInformations() const;
 
-    virtual QString toolTipText() const;
+    /** \brief Overrides Extension::tooltipText() const.
+     *
+     */
+    virtual QString toolTipText() const override;
 
+    /** \brief Adds a tag.
+     * \param[in] tag, text string.
+     *
+     */
     void addTag(const QString &tag);
 
+    /** \brief Adds multiple tags.
+     * \param[in] tags, text string list.
+     *
+     */
     void addTags(const QStringList &tags);
 
+    /** \brief Removes a tag.
+     * \param[in] tag, text string.
+     *
+     */
     void removeTag(const QString &tag);
 
+    /** \brief Sets the tags.
+     * \param[in] tags, text string list.
+     *
+     */
     void setTags(const QStringList &tags);
 
+    /** \brief Returns the tags.
+     *
+     */
     QStringList tags() const
     { return m_tags; }
 
   protected:
+    /** \brief Implements Extension::OnExtendedItemSet().
+     *
+     */
     virtual void onExtendedItemSet(Segmentation* item);
 
+    /** \brief Implements Extension::cacheFail().
+     *
+     */
     virtual QVariant cacheFail(const QString& tag) const;
 
   private:
+    /** \brief Returns trimmed tag (spaces removed at the beginning and end of the string).
+     *
+     */
     void addTagImplementation(const QString &tag);
 
+    /** \brief Updates available tags for all extensions.
+     *
+     */
     void updateAvailableTags();
 
     QStringList m_tags;
+    static QStringList s_availableTags;
   };
 
   using SegmentationTagsPtr  = SegmentationTags *;

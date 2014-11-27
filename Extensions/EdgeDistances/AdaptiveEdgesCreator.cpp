@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -20,9 +20,8 @@
 
 // ESPINA
 #include "AdaptiveEdgesCreator.h"
-
 #include "ChannelEdges.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Channel.h>
 
 //VTK
@@ -35,6 +34,7 @@
 #include <vtkOBBTree.h>
 #include <itkImageToVTKImageFilter.h>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -70,7 +70,6 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 
   return points;
 }
-
 
 //------------------------------------------------------------------------
 AdaptiveEdgesCreator::AdaptiveEdgesCreator(ChannelEdges *extension,
@@ -153,7 +152,7 @@ void AdaptiveEdgesCreator::run()
     {
       bool nonBlackPixelDetected = false;
       double p1[3], p2[3];
-      bool singlePixel = true;;
+      bool singlePixel = true;
       for (unsigned long x = 0; x < xMax; x++)
       {
         bool nonBlackPixel = false;

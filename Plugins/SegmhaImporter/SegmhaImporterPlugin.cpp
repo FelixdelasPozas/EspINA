@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -22,13 +22,11 @@
 #include "SegmhaImporterPlugin.h"
 
 // ESPINA
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/IO/ReadOnlyFilter.h>
 #include <Filters/SourceFilter.h>
 
 using namespace ESPINA;
-
-//const QString SegmhaImporter::UndoCommand::FILTER_TYPE = "Segmha Importer";
 
 static const QString SEGMHA = "segmha";
 
@@ -42,17 +40,19 @@ FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Ty
 
   if(type == SEGMHA_FILTER)
   {
-    filter = FilterSPtr{new SourceFilter(inputs, type, scheduler)};
+    filter = std::make_shared<SourceFilter>(inputs, type, scheduler);
+  }
+  else if(type == SEGMHA_FILTER_V4)
+  {
+    filter = std::make_shared<IO::SegFile::ReadOnlyFilter>(inputs, type);
   }
   else
-    if(type == SEGMHA_FILTER_V4)
-    {
-      filter = FilterSPtr{new IO::SegFile::ReadOnlyFilter(inputs, type)};
-    }
-    else
-      throw Unknown_Filter_Exception();
+  {
+    throw Unknown_Filter_Exception();
+  }
 
-  filter->setFetchBehaviour(FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()});
+  filter->setDataFactory(std::make_shared<MarchingCubesFromFetchedVolumetricData>());
+
   return filter;
 }
 

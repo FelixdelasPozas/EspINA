@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,11 +23,13 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
+// ESPINA
 #include "NmVector3.h"
 
+// Qt
 #include <QStringList>
 
 using namespace ESPINA;
@@ -42,12 +44,12 @@ NmVector3::NmVector3()
 NmVector3::NmVector3(const QString& string)
 : m_values{0, 0, 0}
 {
-  if (string.left(1)  != "{") throw Wrong_format_exception();
-  if (string.right(1) != "}") throw Wrong_format_exception();
+  if (string.left(1)  != "{") throw Wrong_Format_Exception();
+  if (string.right(1) != "}") throw Wrong_Format_Exception();
 
   auto values = string.mid(1,string.length()-2).split(",");
 
-  if (values.size() != 3) throw Wrong_format_exception();
+  if (values.size() != 3) throw Wrong_Format_Exception();
 
   for (int i = 0; i < 3; ++i)
   {
@@ -81,8 +83,6 @@ std::ostream& ESPINA::operator<<(std::ostream& os, const NmVector3& vector)
 
   return os;
 }
-
-
 
 //-----------------------------------------------------------------------------
 bool ESPINA::operator==(const NmVector3 &lhs, const NmVector3 &rhs)

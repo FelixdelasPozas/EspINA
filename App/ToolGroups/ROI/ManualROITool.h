@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,7 +21,7 @@
 #define ESPINA_BRUSH_ROI_H
 
 // ESPINA
-#include <Support/Tool.h>
+#include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <App/ToolGroups/Edition/ManualEditionTool.h>
@@ -34,70 +34,66 @@ namespace ESPINA
 {
   class ROIToolsGroup;
 
-  // Volume Of Interest Toolbar
   class ManualROITool
   : public ManualEditionTool
   {
     Q_OBJECT
   public:
-    /* \brief ManualROITool class constructor.
-     * \param[in] model       Analysis model adapter.
-     * \param[in] viewManager Application view manager.
-     * \param[in] undoStack   Application qt undo stack pointer.
-     * \param[in] toolGroup   ROIToolsGroup pointer containing ROI accumulator.
+    /** \brief ManualROITool class constructor.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] toolGroup ROIToolsGroup raw pointer containing ROI accumulator.
      */
     explicit ManualROITool(ModelAdapterSPtr model,
                            ViewManagerSPtr  viewManager,
                            QUndoStack      *undoStack,
                            ROIToolsGroup   *toolGroup);
 
-    /* \brief ManualROITool class virtual destructor.
+    /** \brief ManualROITool class virtual destructor.
      *
      */
     virtual ~ManualROITool();
 
+    void setColor(const QColor &color);
+
+  signals:
+    void roiDefined(Selector::Selection);
+
   protected slots:
-    /* \brief Implements ManualEditionTool::drawingModeChanged(bool) slot.
+    void drawingModeChanged(bool) override;
+
+    void changeSelector(QAction *selectorAction) override;
+
+    void selectorInUse(bool value) override;
+
+    void drawStroke(Selector::Selection) override;
+
+    /** \brief Updates the selector parameters based on application selected items.
      *
      */
-    void drawingModeChanged(bool);
+    void updateReferenceItem();
 
-    /* \brief Implements ManualEditionTool::changeSelector(QAction *) slot.
-     *
-     */
-    void changeSelector(QAction *selectorAction);
-
-    /* \brief Implements ManualEditionTool::selectorInUse(bool) slot.
-     *
-     */
-    void selectorInUse(bool value);
-
-    /* \brief Implements ManualEditionTool::drawStroke(Selector::Selection) slot.
-     *
-     */
-    void drawStroke(Selector::Selection);
-
-    /* \brief Updates the selector parameters based on application selected items.
-     *
-     */
-    void updateReferenceItem(SelectionSPtr selection);
-
-    /* \brief Aborts current tool operation.
+    /** \brief Aborts current tool operation.
      *
      */
     void cancelROI();
 
-    /* \brief Updates the selectors parameters based on ROI existence or not.
+    /** \brief Updates the selectors parameters based on ROI existence or not.
      *
      */
     void ROIChanged();
 
   private:
+    /** \brief Shows/hides controls for this tool.
+     * \param[in] value, true to show controls, false otherwise.
+     */
     void setControlVisibility(bool value);
 
   private:
     QUndoStack    *m_undoStack;
     ROIToolsGroup *m_toolGroup;
+    QColor         m_color;
   };
 
   using ManualROIToolSPtr = std::shared_ptr<ManualROITool>;

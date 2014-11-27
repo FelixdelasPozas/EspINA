@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  * This file is part of ESPINA.
@@ -22,24 +22,44 @@
 #ifndef ESPINA_REPLACE_OUTPUT_COMMAND_H
 #define ESPINA_REPLACE_OUTPUT_COMMAND_H
 
-#include <QUndoCommand>
+#include "Undo/EspinaUndo_Export.h"
+
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace ESPINA {
+// Qt
+#include <QUndoCommand>
 
-  class ReplaceOutputCommand
+namespace ESPINA
+{
+  class EspinaUndo_EXPORT ReplaceOutputCommand
   : public QUndoCommand
   {
   public:
+  	/** \brief ReplaceOutputCommand class constructor.
+  	 * \param[in] segmentation, raw pointer of the segmentation to change output.
+  	 * \param[in] input, smart pointer of the new output.
+  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+  	 *
+  	 */
     explicit ReplaceOutputCommand(SegmentationAdapterPtr segmentation,
                                   InputSPtr              input,
-                                  QUndoCommand*          parent = 0);
+                                  QUndoCommand*          parent = nullptr);
 
-    virtual void redo();
+    /** \brief Overrides QUndoCommand::redo().
+     *
+     */
+    virtual void redo() override;
 
-    virtual void undo();
+    /** \brief Overrides QUndoCommand::undo().
+     *
+     */
+    virtual void undo() override;
 
   private:
+    /** \brief Helper method to swap new-old outputs.
+     *
+     */
     void swapInputs();
 
   private:

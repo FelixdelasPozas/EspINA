@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,14 +19,20 @@
  *
  */
 
-#include <Core/Analysis/Data/VolumetricData.h>
+// ESPINA
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output)
+ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output, DataUpdatePolicy policy)
+throw (Unavailable_Output_Data_Exception)
 {
-  DefaultVolumetricDataSPtr volume = std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(output->data(VolumetricData<itkVolumeType>::TYPE));
+  return outputData<VolumetricData<itkVolumeType>>(output, policy);
+}
 
-  return volume;
+//----------------------------------------------------------------------------
+bool ESPINA::hasVolumetricData(OutputSPtr output)
+{
+  return output->hasData(VolumetricData<itkVolumeType>::TYPE);
 }

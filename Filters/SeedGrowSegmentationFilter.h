@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -20,10 +20,12 @@
 #ifndef ESPINA_SEED_GROW_SEGMENTATION_FILTER_H
 #define ESPINA_SEED_GROW_SEGMENTATION_FILTER_H
 
+#include "Filters/EspinaFilters_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include "Core/Analysis/Filter.h"
-#include <Core/Utils/BinaryMask.h>
+#include <Core/Utils/BinaryMask.hxx>
 #include "Core/EspinaTypes.h"
 
 class vtkImageData;
@@ -31,70 +33,137 @@ class vtkConnectedThresholdImageFilter;
 
 namespace ESPINA
 {
-  class SeedGrowSegmentationFilter
+  class EspinaFilters_EXPORT SeedGrowSegmentationFilter
   : public Filter
   {
   public:
+    /** \brief SeedGrowSegmentationFilter class constructor.
+     * \param[in] inputs list of input smart pointers.
+     * \param[in] type SeedGrowSegmentationFilter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
 
     virtual void restoreState(const State& state);
 
     virtual State state() const;
 
+    /** \brief Sets the lower value of the threshold.
+     * \param[in] th lower threshold value.
+     *
+     */
     void setLowerThreshold(int th);
 
+    /** \brief Returns the lower threshold value.
+     *
+     */
     int lowerThreshold() const;
 
+    /** \brief Sets the upper threshold value.
+     * \param[in] th upper threshold value.
+     *
+     */
     void setUpperThreshold(int th);
 
+    /** \brief Returns the upper threshold value.
+     *
+     */
     int upperThreshold() const;
 
-    // Convenience method to set symmetrical lower/upper thresholds
+    /** \brief Convenience method to set symmetrical lower/upper thresholds.
+     * \param[in] th threshold value.
+     *
+     */
     void setThreshold(int th)
     {
       setLowerThreshold(th);
       setUpperThreshold(th);
     };
 
+    /** \brief Sets the seed point.
+     * \param[in] seed seed point.
+     *
+     */
     void setSeed(const NmVector3& seed);
+
+    /** \brief Returns the seed point.
+     *
+     */
     NmVector3 seed() const;
 
+    /** \brief Sets the region of interest to constrain the application of the filter.
+     * \param[in] roi ROI object smart pointer.
+     *
+     */
     void setROI(const ROISPtr roi);
 
-    template<typename T>
-    BinaryMask<T> roi() const;
+    /** \brief Returns the ROI of the filter.
+     *
+     */
+    ROISPtr roi() const;
 
+    /** \brief Sets the radious for the closing morphological operation.
+     * \param[in] radious close filter radius.
+     *
+     */
     void setClosingRadius(int radius);
 
-    int closingRadius();
+    /** \brief Returns the closing filter radius.
+     *
+     */
+    int closingRadius() const;
+
+    /** \brief Returns true if the resulting segmentation touches the used ROI.
+     *
+     */
+    bool isTouchingROI() const
+    { return m_touchesROI; };
+
+    /** \brief Forces filter execution even if its parameters haven't changed
+     *
+     */
+    void forceUpdate()
+    { m_forceUpdate = true; }
 
   protected:
     virtual Snapshot saveFilterSnapshot() const;
 
     virtual bool needUpdate() const;
 
-    virtual bool needUpdate(Output::Id id) const;
-
     virtual void execute();
-
-    virtual void execute(Output::Id id);
 
     virtual bool ignoreStorageContent() const;
 
-    virtual bool invalidateEditedRegions();
+    //virtual bool areEditedRegionsInvalidated();
 
-//   private:
-//     Bounds minimalBounds(itkVolumeType::Pointer image) const;
+  private:
+    /** \brief Helper method that returns true if the segmentation touches the ROI.
+     *
+     */
+     bool computeTouchesROIValue() const;
+
+     QString roiPrefix() const
+     { return prefix() + "roi/"; }
+
+     QString roiId() const
+     { return "roi"; }
 
   private:
     int       m_lowerTh, m_prevLowerTh;
     int       m_upperTh, m_prevUpperTh;
     NmVector3 m_seed,    m_prevSeed;
     int       m_radius,  m_prevRadius;
-    bool      m_usesROI;
-    ROISPtr   m_roi;
+    bool      m_hasROI;
+    mutable
+    ROISPtr   m_ROI;
+    mutable
+    ROIPtr    m_prevROI;
+    bool      m_touchesROI;
+    bool      m_forceUpdate;
   };
 
+  using SeedGrowSegmentationFilterSPtr = std::shared_ptr<SeedGrowSegmentationFilter>;
 } // namespace ESPINA
 
 #endif // ESPINA_SEED_GROW_SEGMENTATION_FILTER_H

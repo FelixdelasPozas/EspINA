@@ -102,7 +102,7 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
 
   // Change its depth to be always on top of the XY plane
   // according to Espina's Camera
-  LB[2] = LT[2] = RT[2] = RB[2] = -ESPINA::View2D::WIDGET_SHIFT;
+  LB[2] = LT[2] = RT[2] = RB[2] = -ESPINA::View2D::WIDGET_SHIFT; // TODO: make this constant private and use view->widgetDepth() instead.
 
   // Shift edges' points
   LB[0] += InclusionOffset[hCoord];

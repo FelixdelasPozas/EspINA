@@ -23,18 +23,17 @@ set (FILTERS_SOURCES
   SeedGrowSegmentationFilter.cpp
   SplitFilter.cpp
   SourceFilter.cpp
-  Utils/vtkTube.cxx
+  Utils/vtkTube.cpp
   VolumetricStreamReader.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS
   ${QT_LIBRARIES}
-#${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
 )
 
-if(DEFINED MINGW OR DEFINED MSVC)
+if(DEFINED MINGW)
 
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     SET (FILTERS_EXTERNAL_LIBS ${FILTERS_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
@@ -47,8 +46,7 @@ if(DEFINED MINGW OR DEFINED MSVC)
     enable_language(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
 
-endif(DEFINED MINGW OR DEFINED MSVC)
-
+endif(DEFINED MINGW)
 
 add_library (EspinaFilters SHARED ${FILTERS_SOURCES})
 
@@ -60,14 +58,6 @@ GENERATE_EXPORT_HEADER(
   EXPORT_MACRO_NAME EspinaFilters_EXPORT
   EXPORT_FILE_NAME EspinaFilters_Export.h
   )
-
-#set (FILTERS_HEADERS 
-#  #TODO: set all header files required to develop external apps
-#  "${CMAKE_CURRENT_BINARY_DIR}/EspinaFilers_Export.h"
-#  )
-#
-#set_target_properties(EspinaFilters PROPERTIES
-#  PUBLIC_HEADER "${FILTERS_HEADERS}")
  
 install(TARGETS EspinaFilters
   # IMPORTANT: Add the EspinaFilters library to the "export-set"
@@ -76,3 +66,9 @@ install(TARGETS EspinaFilters
   LIBRARY       DESTINATION "${INSTALL_LIB_DIR}"            COMPONENT shlib
   PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/espina" COMPONENT dev
   )
+
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")

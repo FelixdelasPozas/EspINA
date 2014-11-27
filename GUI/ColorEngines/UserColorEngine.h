@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_USER_COLOR_ENGINE_H
 #define ESPINA_USER_COLOR_ENGINE_H
 
+// ESPINA
 #include "GUI/ColorEngines/ColorEngine.h"
 
+// Qt
 #include <QMap>
 
 namespace ESPINA
@@ -32,14 +33,31 @@ namespace ESPINA
   : public ColorEngine
   {
   public:
+  	/** \brief UserColorEngine class constructor.
+  	 *
+  	 */
     explicit UserColorEngine();
 
+    /** \brief Implements ColorEngine::color().
+     *
+     */
     virtual QColor color(SegmentationAdapterPtr seg);
+
+    /** \brief Implements ColorEngine::lut().
+     *
+     */
     virtual LUTSPtr lut (SegmentationAdapterPtr seg);
+
+    /** \brief Implements ColorEngine::supportedComposition().
+     *
+     */
     virtual ColorEngine::Composition supportedComposition() const
     { return ColorEngine::Color; }
 
   private:
+    /** \brief Returns the next unused color.
+     *
+     */
     QColor nextColor();
 
   private:

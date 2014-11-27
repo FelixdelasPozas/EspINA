@@ -1,6 +1,6 @@
 /*
-    
-    Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+    Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <Core/EspinaCore_Export.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 // ITK
 #include <itkImageRegionExclusionIteratorWithIndex.h>
@@ -39,103 +39,123 @@ namespace ESPINA
   : public SparseVolume<itkVolumeType>
   {
     public:
-      /* \brief ROI class constructor from a VolumeBounds.
+      /** \brief ROI class constructor.
+       * \param[in] bounds initial bounds of the volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
        *
        */
       ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
-      /* \brief ROI class constructor from a templated mask.
+      /** \brief ROI class constructor.
+       * \param[in] mask mask used as a volume.
        *
        */
-      ROI(const BinaryMaskSPtr<unsigned char> mask, unsigned char value);
+      ROI(const BinaryMaskSPtr<unsigned char> mask);
 
-      /* \brief ROI class virtual destructor.
+      /** \brief ROI class virtual destructor.
        *
        */
       virtual ~ROI();
 
-      /* \brief Returns true if the ROI is a rectangular area.
+      /** \brief Returns true if the ROI is an orthogonal region.
        *
        */
-      bool isRectangular() const;
+      bool isOrthogonal() const;
 
-      /* \brief Returns a new ROI object that is a copy of this one.
+      /** \brief Returns a new ROI object that is a copy of this one.
        *
        */
       ROISPtr clone() const;
 
-      /* \brief Applies the ROI to the volume passed as argument.
+      /** \brief Applies the ROI to the volume passed as argument.
+       * \param[in] volume volumetricData to apply the ROI.
+       * \param[in] outsideValue value to be considered outside the ROI when applying it.
        *
        */
-      template<class T> void applyROI(VolumetricData<T> &volume, const typename T::ValueType outsideValue) const;
+      template<class T> void applyROI(VolumetricDataSPtr<T> volume, const typename T::ValueType outsideValue) const;
 
-      /* \brief Applies the ROI to the itk volume passes as argument
+      /** \brief Applies the ROI to the volume passed as argument.
+       * \param[in] volume itk volume smart pointer to apply the ROI.
+       * \param[in] outsideValue value to be considered outside the ROI when applying it.
        *
        */
       template<class T> void applyROI(typename T::Pointer volume, const typename T::ValueType outsideValue) const;
 
-      /** \brief Implements SparseVolume::draw(brush, bounds, value)
+      /** \brief Overrides SparseVolume<T>::draw(vtkImplicitFunction, Bounds, T::valueType)
        *
        */
-      void draw(const vtkImplicitFunction*  brush,
-                const Bounds&               bounds,
-                const unsigned char         value = SEG_VOXEL_VALUE);
+      void draw(const vtkImplicitFunction*     brush,
+                const Bounds&                  bounds,
+                const itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 
-      /** \brief Implements SparseVolume::draw(mask, value)
+      /** \brief Overrides SparseVolume<T>::draw(BinaryMaskSPtr, T:ValueType)
        *
        */
       void draw(const BinaryMaskSPtr<unsigned char> mask,
-                const unsigned char                 value = SEG_VOXEL_VALUE);
+                const itkVolumeType::ValueType      value = SEG_VOXEL_VALUE) override;
 
-      /** \brief Implements SparseVolume::draw(volume)
+      /** \brief Overrides SparseVolume::draw(T::Pointer)
        *
        */
-      void draw(const typename itkVolumeType::Pointer volume);
+      void draw(const typename itkVolumeType::Pointer volume) override;
 
-      /** \brief Implements SparseVolume::draw(volume, bounds)
+      /** \brief Overrides SparseVolume::draw(T::Pointer, bounds)
        *
        */
       void draw(const typename itkVolumeType::Pointer volume,
-                const Bounds&                         bounds);
+                const Bounds&                         bounds) override;
 
-      /** \brief Implements SparseVolume::draw(index, value)
+      /** \brief Overrides SparseVolume::draw(T::IndexType, T::ValueType)
        *
        */
       void draw(const typename itkVolumeType::IndexType index,
-                const typename itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+                const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
 
-    private:
-      bool m_isRectangular;
+
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;
+
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
+  private:
+    QString temporalStorageId(const QString &id) const
+    { return QString("%1_roi").arg(id); }
+
+    QString temporalStorageBoundsId(const QString &path, const QString &id) const
+    { return QString("%1/%2.bin").arg(path).arg(temporalStorageId(id)); }
+
+  private:
+    bool m_isRectangular;
   };
-
 
   //-----------------------------------------------------------------------------
   template<class T>
-  inline void ROI::applyROI(VolumetricData<T>& volume, const typename T::ValueType outsideValue) const
+  inline void ROI::applyROI(VolumetricDataSPtr<T> volume, const typename T::ValueType outsideValue) const
   {
-    if(!intersect(bounds(), volume.bounds()))
+    if(!intersect(bounds(), volume->bounds()))
     {
       // erase the image
-      BinaryMaskSPtr<typename T::ValueType> mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume.bounds(), volume.spacing(), volume.origin()}};
-      // TODO -> set fg value of mask to outsideValue;
-      volume.draw(mask, outsideValue);
+      BinaryMaskSPtr<typename T::ValueType> mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume->bounds(), volume->spacing(), volume->origin()}};
+      mask->setForegroundValue(outsideValue);
+      volume->draw(mask, outsideValue);
 
       return;
     }
 
-    auto intersectionBounds = intersection(bounds(), volume.bounds());
+    auto intersectionBounds = intersection(bounds(), volume->bounds());
 
     // extract the intersection region
-    auto image = volume.itkImage(intersectionBounds);
+    auto image = volume->itkImage(intersectionBounds);
 
     // erase the rest of the voxels
-    auto mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume.bounds(), volume.spacing(), volume.origin()}};
-    volume.draw(mask, outsideValue);
+    auto mask = BinaryMaskSPtr<typename T::ValueType>{ new BinaryMask<typename T::ValueType>{volume->bounds(), volume->spacing(), volume->origin()}};
+    volume->draw(mask, outsideValue);
 
     BinaryMask<unsigned char>::const_region_iterator crit(this, intersectionBounds);
     crit.goToBegin();
 
-    if(spacing() == volume.spacing())
+    if(spacing() == volume->spacing())
     {
       itk::ImageRegionIterator<T> it(image, image->GetLargestPossibleRegion());
       it.Begin();
@@ -214,7 +234,7 @@ namespace ESPINA
     }
 
     // if it's rectangular we're done now.
-    if(!this->isRectangular())
+    if(!this->isOrthogonal())
     {
       auto image = this->itkImage(intersectionBounds);
       itk::ImageRegionIterator<itkVolumeType> it(image, image->GetLargestPossibleRegion());
@@ -265,6 +285,21 @@ namespace ESPINA
     }
   }
 
+
+  /** \brief Returns whether or not point is inside the roi
+   *
+   *  \param[in] roi region of interest
+   *  \param[in] point point to be checked for inclussion inside the roi
+   *  \param[in] spacing to determine whether two distances belong to the same voxel
+   */
+  bool contains(ROISPtr roi, NmVector3 point, NmVector3 spacing = NmVector3{1, 1, 1});
+
+//   /** \brief Draw mask values into ROI, if the mask is bigger than the ROI, its bounds will be expanded
+//    *
+//    *  \param[in] roi where the mask will be drawn on
+//    *  \param[in] mask to be drawn
+//    */
+  void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask);
 } // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

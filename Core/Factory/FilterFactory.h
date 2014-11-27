@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,12 +18,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_FILTER_FACTORY_H
 #define ESPINA_FILTER_FACTORY_H
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPINA
 #include "Core/Analysis/Filter.h"
 
 namespace ESPINA
@@ -37,12 +37,25 @@ namespace ESPINA
     struct Filter_Not_Provided_Exception{};
 
   public:
-    virtual ~FilterFactory(){}
+    /** \brief FilterFactory class destructor.
+     *
+     */
+    virtual ~FilterFactory()
+    {}
 
+    /** \brief Creates a filter of the given type with the given inputs and scheduler.
+     * \param[in] inputs, list of input object smart pointers.
+     * \param[in] type, filter type.
+     * \param[in] sheduler, scheduler object smart pointer.
+     *
+     */
     virtual FilterSPtr createFilter(InputSList          inputs,
                                     const Filter::Type& filter,
                                     SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception) = 0;
 
+    /** \brief Returns a list types of filter this factory can create.
+     *
+     */
     virtual FilterTypeList providedFilters() const = 0;
   };
 

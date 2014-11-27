@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -34,9 +34,15 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
+    	/** \brief CircularBrushROISelector class constructor.
+    	 *
+    	 */
       explicit CircularBrushROISelector();
 
     protected slots:
+			/** \brief Implements BrushSelector::createBrushShape().
+			 *
+			 */
       virtual BrushSelector::BrushShape createBrushShape(ViewItemAdapterPtr item,
                                                          NmVector3 center,
                                                          Nm radius,

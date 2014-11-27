@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,13 +18,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "GeneralSettings.h"
 #include <Support/Settings/EspinaSettings.h>
 
-
+// Qt
 #include <QDir>
 #include <QSettings>
-#include <QDebug>
 
 using namespace ESPINA;
 
@@ -40,7 +40,6 @@ GeneralSettings::GeneralSettings()
 //-----------------------------------------------------------------------------
 GeneralSettings::~GeneralSettings()
 {
-  //qDebug() << "Destroying General Settings";
 }
 
 //-----------------------------------------------------------------------------

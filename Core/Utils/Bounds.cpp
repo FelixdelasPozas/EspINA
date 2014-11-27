@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the <organization> nor the
  *     names of its contributors may be used to endorse or promote products
  *     derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,12 +23,15 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  */
 
+// ESPINA
 #include "Bounds.h"
 
-#include <tgmath.h> // std::round(double)
+// C++
+#include <tgmath.h>
+#include <QStringList>
 
 using namespace ESPINA;
 
@@ -47,7 +50,7 @@ bool lowerBoundsInclusion(double value) {
   if (value == '[') return true;
   if (value == '(') return false;
 
-  throw Invalid_bounds_token();
+  throw Invalid_Bounds_Token();
 }
 
 //-----------------------------------------------------------------------------
@@ -55,7 +58,7 @@ bool upperBoundsInclusion(double value) {
   if (value == ']') return true;
   if (value == ')') return false;
 
-  throw Invalid_bounds_token();
+  throw Invalid_Bounds_Token();
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +110,7 @@ Bounds::Bounds(std::initializer_list<double> bounds)
       break;
     }
     default:
-      throw Wrong_number_initial_values{};
+      throw Wrong_Number_Initial_Values{};
   }
 
 }
@@ -123,6 +126,31 @@ Bounds::Bounds(const NmVector3& point)
     m_lowerInclusion[idx(dir)] = true;
     m_upperInclusion[idx(dir)] = true;
   }
+}
+
+//-----------------------------------------------------------------------------
+Bounds::Bounds(const QString& string)
+{
+  if (string.left(1)  != "{") throw Invalid_Bounds_Token();
+  if (string.right(1) != "}") throw Invalid_Bounds_Token();
+
+  QStringList ranges = string.split(",");
+
+  if (ranges.size() != 6) throw Invalid_Bounds_Token();
+
+  m_lowerInclusion[0] = ranges[0].startsWith("{[");
+  m_lowerInclusion[1] = ranges[2].startsWith("[");
+  m_lowerInclusion[2] = ranges[4].startsWith("[");
+  m_upperInclusion[0] = ranges[1].endsWith("]");
+  m_upperInclusion[1] = ranges[3].endsWith("]");
+  m_upperInclusion[2] = ranges[5].endsWith("]}");
+
+  m_bounds[0] = ranges[0].mid(2).toDouble();
+  m_bounds[1] = ranges[1].mid(0, ranges[1].length()-1).toDouble();
+  m_bounds[2] = ranges[2].mid(1).toDouble();
+  m_bounds[3] = ranges[3].mid(0, ranges[3].length()-1).toDouble();
+  m_bounds[4] = ranges[4].mid(1).toDouble();
+  m_bounds[5] = ranges[5].mid(0, ranges[5].length()-2).toDouble();
 }
 
 //-----------------------------------------------------------------------------
@@ -167,7 +195,7 @@ bool ESPINA::intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing)
       overlap &= b1UpperIncluded && b2.areLowerIncluded(dir);
     }
 
-    i += 2; 
+    i += 2;
   }
 
   return overlap;
@@ -341,7 +369,7 @@ bool ESPINA::operator==(const Bounds &lhs, const Bounds &rhs)
   }
 
   for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
-    if (lhs.areLowerIncluded(dir) != rhs.areLowerIncluded(dir) 
+    if (lhs.areLowerIncluded(dir) != rhs.areLowerIncluded(dir)
      || lhs.areUpperIncluded(dir) != rhs.areUpperIncluded(dir))
       return false;
   }

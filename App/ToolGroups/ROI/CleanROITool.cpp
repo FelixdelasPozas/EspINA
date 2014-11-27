@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -43,18 +43,17 @@ CleanROITool::CleanROITool(ModelAdapterSPtr  model,
 {
   m_cleanROI->setEnabled(false);
 
-  connect(m_toolGroup, SIGNAL(roiChanged()),
+  connect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
           this,        SLOT(onROIChanged()));
 
   connect(m_cleanROI, SIGNAL(triggered(bool)),
           this,       SLOT(cancelROI()));
-
 }
 
 //-----------------------------------------------------------------------------
 CleanROITool::~CleanROITool()
 {
-  disconnect(m_toolGroup, SIGNAL(roiChanged()),
+  disconnect(m_toolGroup, SIGNAL(roiChanged(ROISPtr)),
              this,        SLOT(onROIChanged()));
 
   disconnect(m_cleanROI, SIGNAL(triggered(bool)),

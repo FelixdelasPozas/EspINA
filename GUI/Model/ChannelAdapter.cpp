@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,24 +18,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "ChannelAdapter.h"
 
+// ESPINA
+#include "ChannelAdapter.h"
 #include <Core/Analysis/Channel.h>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-ChannelAdapter::ChannelAdapter(FilterAdapterSPtr filter, ChannelSPtr channel)
-: ViewItemAdapter(filter, channel)
-, m_channel(channel)
+ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
+: ViewItemAdapter{channel}
+, m_channel      {channel}
 {
-
 }
 
 //------------------------------------------------------------------------
 ChannelAdapter::~ChannelAdapter()
 {
-
 }
 
 //------------------------------------------------------------------------
@@ -74,10 +73,9 @@ InputSPtr ChannelAdapter::asInput() const
 }
 
 //------------------------------------------------------------------------
-void ChannelAdapter::changeOutput(InputSPtr input)
+void ChannelAdapter::changeOutputImplementation(InputSPtr input)
 {
   m_channel->changeOutput(input);
-  m_representations.clear();
 }
 
 //------------------------------------------------------------------------
@@ -206,7 +204,6 @@ bool ESPINA::operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 {
   return lhs == rhs->m_channel;
 }
-
 
 //------------------------------------------------------------------------
 bool ESPINA::operator!=(ChannelAdapterSPtr lhs, ChannelSPtr rhs)

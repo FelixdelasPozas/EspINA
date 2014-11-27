@@ -27,7 +27,7 @@
  */
 #include "Core/Analysis/Output.h"
 #include <Core/Analysis/DataProxy.h>
-#include "output_testing_support.h"
+#include "testing_support_dummy_filter.h"
 
 using namespace ESPINA;
 using namespace std;
@@ -38,45 +38,58 @@ class InvalidData
 : public Data
 {
 public:
-  virtual DataProxySPtr createProxy() const;
-  virtual Bounds bounds() const {}
+  virtual DataSPtr createProxy() const;
+  virtual Bounds bounds() const { return Bounds(); }
   virtual void setSpacing(const NmVector3& spacing){}
   virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
-  virtual Snapshot editedRegionsSnapshot() const {}
+  virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
   virtual bool isValid() const {return false;}
-  virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix) {return false; }
-  virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const{return Snapshot();}
+  virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
+  virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {}
   virtual Type type() const { return "InvalidData";}
   virtual size_t memoryUsage() const { return 0; }
   virtual bool isEmpty() const { return true; }
   virtual void undo() {}
+
+protected:
+  virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  { return false; }
+
+private:
+  virtual QList<Data::Type> updateDependencies() const
+  { return QList<Data::Type>(); }
 };
 
 using InvalidDataSPtr = std::shared_ptr<InvalidData>;
 
 class InvalidDataProxy
-: public DataProxy
+: public InvalidData
+, public DataProxy
 {
 public:
-  virtual DataSPtr get() const
-  { return m_data; }
+  virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
+  { return std::dynamic_pointer_cast<InvalidData>(proxy); }
   virtual void set(DataSPtr data)
   { m_data = std::dynamic_pointer_cast<InvalidData>(data); }
+
+protected:
+  virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  { return false; }
 
 private:
   InvalidDataSPtr m_data;
 };
 
-DataProxySPtr InvalidData::createProxy() const
+DataSPtr InvalidData::createProxy() const
 {
-  return DataProxySPtr{new InvalidDataProxy()};
+  return DataSPtr{new InvalidDataProxy()};
 }
 
 int output_invalid_output( int argc, char** argv )
 {
   bool error = false;
 
-  Output output(nullptr, 0);
+  Output output(nullptr, 0, NmVector3{1,1,1});
 
   if (output.isValid()) {
     cerr << "Default output constructor creates an invalid output" << endl;
@@ -84,7 +97,7 @@ int output_invalid_output( int argc, char** argv )
   }
 
   Testing::DummyFilter filter;
-  Output output2(&filter, 0);
+  Output output2(&filter, 0, NmVector3{1,1,1});
   
   if (output2.isValid()) {
     cerr << "Output has no associated data" << endl;

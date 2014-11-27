@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -25,9 +25,9 @@
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // ESPINA
-#include <App/Dialogs/TabularReport/TabularReport.h>
-#include <App/Dialogs/TabularReport/TabularReportEntry.h>
 #include <GUI/ModelFactory.h>
+#include <Support/Widgets/TabularReport.h>
+#include <Support/Widgets/TabularReportEntry.h>
 
 // Qt
 #include <QDebug>
@@ -41,7 +41,7 @@ namespace ESPINA
       class Entry;
 
     public:
-      /* \brief SASTabularReport class constructor.
+      /** \brief SASTabularReport class constructor.
        *
        */
       SASTabularReport(ModelAdapterSPtr model,
@@ -54,22 +54,12 @@ namespace ESPINA
       , m_sasTags{factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
       {};
 
-      protected slots:
-      /* \brief Implements TabularReport::exportInformation()
-       *
-       */
+    protected slots:
       void exportInformation();
 
     private:
-      /* \brief Implements TabularReport::createCategoryEntry(const QString);
-       * \param[in] category, QString with category to be created.
-       *
-       */
       void createCategoryEntry(const QString &category);
 
-      /* \brief Implements TabularReport::extraPath(const QString);
-       *
-       */
       static QString extraPath(const QString &file = QString())
       { return "Extra/SASInformation/" + file; }
 
@@ -81,7 +71,7 @@ namespace ESPINA
   : public TabularReport::Entry
   {
     public:
-      /* \brief Entry class constructor.
+      /** \brief Entry class constructor.
        *
        */
       explicit Entry(const QString   &category,
@@ -90,20 +80,11 @@ namespace ESPINA
       : TabularReport::Entry{category, model, factory}
       {};
 
-      /* \brief Implements TabularReport::Entry::avalableInformation().
-       *
-       */
       InformationSelector::GroupedInfo availableInformation();
 
-      /* \brief Implements TabularReport::Entry::setInformation().
-       *
-       */
       void setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
 
     private slots:
-      /* \brief Implements TabularReport::Entry::extractInformation().
-       *
-       */
       void extractInformation();
   };
 

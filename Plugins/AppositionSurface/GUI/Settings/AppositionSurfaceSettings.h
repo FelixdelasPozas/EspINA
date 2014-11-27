@@ -25,8 +25,16 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /** \brief AppositionSurfaceSettings class constructor.
+     *
+     */
     explicit AppositionSurfaceSettings();
-    virtual ~AppositionSurfaceSettings() {};
+
+    /** \brief AppositionSurfaceSettings class virtual destructor.
+     *
+     */
+    virtual ~AppositionSurfaceSettings()
+    {};
 
     virtual const QString shortDescription() { return tr("Synaptic Apposition Surface"); }
     virtual const QString longDescription()  { return tr("Synaptic Apposition Surface"); }

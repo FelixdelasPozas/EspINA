@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,14 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "AddSegmentations.h"
-
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Sample.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -35,9 +35,9 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
                                    SampleAdapterSList      samples,
                                    ModelAdapterSPtr        model,
                                    QUndoCommand           *parent)
-: QUndoCommand(parent)
-, m_samples(samples)
-, m_model(model)
+: QUndoCommand{parent}
+, m_samples   {samples}
+, m_model     {model}
 {
   m_segmentations << segmentation;
 }
@@ -47,9 +47,9 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
                                    SampleAdapterSList       samples,
                                    ModelAdapterSPtr         model,
                                    QUndoCommand            *parent)
-: QUndoCommand(parent)
-, m_samples(samples)
-, m_model(model)
+: QUndoCommand{parent}
+, m_samples   {samples}
+, m_model     {model}
 {
   m_segmentations << segmentations;
 }
@@ -59,12 +59,15 @@ void AddSegmentations::redo()
 {
   unsigned int number = ModelAdapterUtils::firstUnusedSegmentationNumber(m_model);
 
+  for(auto segmentation : m_segmentations)
+  {
+    segmentation->setNumber(number++);
+  }
+
   m_model->add(m_segmentations);
 
   for(auto segmentation : m_segmentations)
   {
-    segmentation->setNumber(number++);
-
     for(auto sample : m_samples)
       m_model->addRelation(sample, segmentation, Sample::CONTAINS);
   }

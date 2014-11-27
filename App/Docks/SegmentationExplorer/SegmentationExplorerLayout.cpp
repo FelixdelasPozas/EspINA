@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -43,7 +43,7 @@ const QString SegmentationExplorer::Layout::MIXED_MESSAGE
 
 //------------------------------------------------------------------------
 SegmentationFilterProxyModel::SegmentationFilterProxyModel(QObject *parent)
-: QSortFilterProxyModel(parent)
+: QSortFilterProxyModel{parent}
 {
   setFilterCaseSensitivity(Qt::CaseInsensitive);
 }
@@ -88,16 +88,18 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 }
 
 //------------------------------------------------------------------------
-SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
-                                     ModelAdapterSPtr   model,
-                                     ModelFactorySPtr  factory,
-                                     ViewManagerSPtr    viewManager,
-                                     QUndoStack        *undoStack)
-: m_model      (model      )
-, m_factory    (factory    )
-, m_viewManager(viewManager)
-, m_undoStack  (undoStack  )
-, m_view       (view       )
+SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
+                                     ModelAdapterSPtr          model,
+                                     ModelFactorySPtr          factory,
+                                     FilterDelegateFactorySPtr delegateFactory,
+                                     ViewManagerSPtr           viewManager,
+                                     QUndoStack                *undoStack)
+: m_model          {model}
+, m_factory        {factory}
+, m_delegateFactory{delegateFactory}
+, m_viewManager    {viewManager}
+, m_undoStack      {undoStack}
+, m_view           {view}
 {
   connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
@@ -107,10 +109,6 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView *view,
 SegmentationExplorer::Layout::~Layout()
 {
   reset();
-}
-//------------------------------------------------------------------------
-void SegmentationExplorer::Layout::createSpecificControls(QHBoxLayout *specificControlLayout)
-{
 }
 
 //------------------------------------------------------------------------
@@ -124,13 +122,13 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList s
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapterList segmentations)
 {
-  SegmentationInspector *inspector = m_inspectors.value(toKey(segmentations));
+  auto inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_model, m_factory , m_viewManager, m_undoStack);
-    connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)), this,
-        SLOT(releaseInspectorResources(SegmentationInspector*)));
-    m_inspectors[toKey(segmentations)] = inspector;
+    inspector = new SegmentationInspector(segmentations, m_model, m_factory, m_delegateFactory, m_viewManager, m_undoStack);
+    connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
+    		    this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
+    m_inspectors.insert(toKey(segmentations), inspector);
   }
   inspector->show();
   inspector->raise();
@@ -144,7 +142,7 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
   Q_ASSERT(model() == index.model());
   for(int r = 0; r < model()->rowCount(index); r++)
   {
-    QModelIndex child = index.child(r, 0);
+    auto child = index.child(r, 0);
     res << child;
     if (recursive)
       res << indices(child, recursive);
@@ -156,8 +154,9 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspector *inspector)
 {
-  SegmentationInspectorKey key = m_inspectors.key(inspector);
-  m_inspectors.remove(key);
+	auto key = m_inspectors.key(inspector);
+	m_inspectors[key] = nullptr;
+	m_inspectors.remove(key);
 }
 
 //------------------------------------------------------------------------
@@ -167,17 +166,17 @@ void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent
   {
     for(int row = start; row <= end; row++)
     {
-      QModelIndex child = parent.child(row, 0);
-      ItemAdapterPtr item = itemAdapter(child);
+      auto child = parent.child(row, 0);
+      auto item = itemAdapter(child);
       if (isSegmentation(item))
       {
-        SegmentationInspectorKey segKey = toKey(segmentationPtr(item));
+        auto segKey = toKey(segmentationPtr(item));
 
         for(auto key : m_inspectors.keys())
         {
           if (key.contains(segKey))
           {
-            SegmentationInspector *inspector = m_inspectors[key];
+            auto inspector = m_inspectors[key];
             if (key == segKey)
             {
               m_inspectors.remove(key);
@@ -211,12 +210,12 @@ QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentation
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::reset()
-{//TODO
-//   foreach(SegmentationInspectorKey key, m_inspectors.keys())
-//   {
-//     m_inspectors[key]->close();
-//     m_inspectors.remove(key);
-//   }
+{
+	for(auto key: m_inspectors.keys())
+	{
+		m_inspectors[key]->close();
+		m_inspectors.remove(key);
+	}
 }
 
 //------------------------------------------------------------------------
@@ -254,7 +253,7 @@ bool ESPINA::sortSegmentationLessThan(ItemAdapterPtr left, ItemAdapterPtr right)
     else
       return numLeft < numRight;
   }
-  else 
+  else
   {
     return leftSeg->category()->name() < rightSeg->category()->name();
   }

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,16 +18,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// ESPINA
 #include "DilateFilter.h"
 #include "Utils/ItkProgressReporter.h"
-
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 
+// ITK
 #include <itkBinaryBallStructuringElement.h>
 #include <itkDilateObjectMorphologyImageFilter.h>
 #include <itkConstantPadImageFilter.h>
 
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -38,7 +40,7 @@ using BinaryDilateFilter     = itk::DilateObjectMorphologyImageFilter<itkVolumeT
 
 //-----------------------------------------------------------------------------
 DilateFilter::DilateFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
-: MorphologicalEditionFilter(inputs, type, scheduler)
+: MorphologicalEditionFilter{inputs, type, scheduler}
 {
 }
 
@@ -49,9 +51,8 @@ DilateFilter::~DilateFilter()
 }
 
 //-----------------------------------------------------------------------------
-void DilateFilter::execute(Output::Id id)
+void DilateFilter::execute()
 {
-  Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
   if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();

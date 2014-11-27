@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,8 +19,8 @@
  *
  */
 
+// ESPINA
 #include "DefaultSegmentationExtensionFactory.h"
-
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <Extensions/Tags/SegmentationTags.h>

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,17 +18,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// ESPINA
 #include "CategorySelector.h"
 
+// Qt
 #include "QComboTreeView.h"
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)
-: QWidgetAction{parent}
-, m_model{model}
+: QWidgetAction     {parent}
+, m_model           {model}
 , m_selectedCategory{nullptr}
 {
   connect(m_model.get(), SIGNAL(modelAboutToBeReset()),
@@ -36,7 +37,6 @@ CategorySelector::CategorySelector(ModelAdapterSPtr model, QObject* parent)
   connect(m_model.get(), SIGNAL(modelReset()),
           this,          SLOT(resetRootItem()));
 }
-
 
 //------------------------------------------------------------------------
 QWidget* CategorySelector::createWidget(QWidget* parent)

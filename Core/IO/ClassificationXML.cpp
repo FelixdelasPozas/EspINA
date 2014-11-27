@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -29,6 +29,7 @@
 using namespace ESPINA;
 using namespace ESPINA::IO;
 
+//-----------------------------------------------------------------------------
 ClassificationSPtr parse(QXmlStreamReader& stream)
 {
   stream.readNextStartElement();
@@ -77,7 +78,7 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 }
 
 //-----------------------------------------------------------------------------
-void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream) 
+void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
 {
   stream.writeStartElement("category");
   stream.writeAttribute("name", category->name());

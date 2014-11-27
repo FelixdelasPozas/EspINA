@@ -1,5 +1,5 @@
 /*
- *    
+ *
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
@@ -29,7 +29,7 @@
 
 // ESPINA
 #include <Support/ViewManager.h>
-#include <Support/ToolGroup.h>
+#include <Support/Widgets/ToolGroup.h>
 
 class QUndoStack;
 class QIcon;
@@ -50,7 +50,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /* \brief AppositionSurfaceToolGroup class constructor.
+    /** \brief AppositionSurfaceToolGroup class constructor.
      *
      */
     explicit AppositionSurfaceToolGroup(ModelAdapterSPtr model,
@@ -59,33 +59,24 @@ namespace ESPINA
                                         ViewManagerSPtr viewManager,
                                         AppositionSurfacePlugin *plugin);
 
-    /* \brief AppositionSurfaceToolGroup class virtual destructor.
+    /** \brief AppositionSurfaceToolGroup class virtual destructor.
      *
      */
     virtual ~AppositionSurfaceToolGroup();
 
-    /* \brief Implements ToolGroup::setEnabled().
-     *
-     */
     virtual void setEnabled(bool value);
 
-    /* \brief Implements ToolGroup::enabled().
-     *
-     */
     virtual bool enabled() const;
 
-    /* \brief Implements ToolGroup::tools().
-     *
-     */
     virtual ToolSList tools();
 
   public slots:
-    /* \brief Changes action enabled/disabled depending on the actual selection.
+    /** \brief Changes action enabled/disabled depending on the actual selection.
      *
      */
     void selectionChanged();
 
-    /* \brief Launches the tasks to create SAS from the group of selected segmentations.
+    /** \brief Launches the tasks to create SAS from the group of selected segmentations.
      *
      */
     void createSAS();
@@ -105,49 +96,41 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-      /* \brief AppositionSurfaceTool class constructor.
+      /** \brief AppositionSurfaceTool class constructor.
        * \param[in] icon, icon for the QAction.
        * \param[in] text, text to use as the QAction tooltip.
        *
        */
       explicit AppositionSurfaceTool(const QIcon& icon, const QString& text);
 
-      /* \brief AppositionSurfaceTool class virtual destructor.
+      /** \brief AppositionSurfaceTool class virtual destructor.
        *
        */
       virtual ~AppositionSurfaceTool();
 
-      /* \brief Implements Tool::setEnabled().
-       *
-       */
       virtual void setEnabled(bool value)
       { m_action->setEnabled(value); }
 
-      /* \brief Implements Tool::enabled().
-       *
-       */
       virtual bool enabled() const
       { return m_action->isEnabled(); }
 
-      /* \brief Implements Tool::actions().
-       *
-       */
       virtual QList<QAction *> actions() const;
 
-      /* \brief Sets the tooltip of the action.
+      /** \brief Sets the tooltip of the action.
+       * \param[in] tooltip tooltip text.
        *
        */
       void setToolTip(const QString &tooltip)
       { m_action->setToolTip(tooltip); }
 
     signals:
-      /* \brief Signal emmited when the QAction has been triggered.
+      /** \brief Signal emmited when the QAction has been triggered.
        *
        */
       void triggered();
 
     private slots:
-      /* \brief Emits the triggered signal for the toolgroup.
+      /** \brief Emits the triggered signal for the toolgroup.
        *
        */
       void activated()

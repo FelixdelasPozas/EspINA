@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,23 +18,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_INFORMATION_SELECTOR_H
 #define ESPINA_INFORMATION_SELECTOR_H
 
 #include "GUI/EspinaGUI_Export.h"
 
+// ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/ModelFactory.h>
 
+// Qt
 #include <QDialog>
-
 #include <QStringListModel>
 
 class QTreeWidgetItem;
 namespace ESPINA
 {
-
   class EspinaFactory;
 
   class EspinaGUI_EXPORT InformationSelector
@@ -48,15 +47,33 @@ namespace ESPINA
     using GroupedInfo = QMap<QString, QStringList>;
 
   public:
+    /** \brief InformationSelector class constructor.
+     * \param[in] availableGroups, map of available title-tags groups.
+     * \param[in] selection, map of checked title-tags groups.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     */
     explicit InformationSelector(const GroupedInfo &availableGroups,
                                  GroupedInfo       &selection,
-                                 QWidget         *parent = 0,
+                                 QWidget         *parent = nullptr,
                                  Qt::WindowFlags  flags = 0);
+
+    /** \brief InformationSelector class virtual destructor.
+     *
+     */
     virtual ~InformationSelector();
 
   protected slots:
+    /** \brief Overrides QDialog::accept().
+     *
+     */
     void accept();
 
+    /** \brief Updates the state of the tree widget.
+     * \param[in] item, tree item.
+     * \param[in] column, column of the item.
+     * \param[in] updateParent, true to update the parent state, false otherwise.
+     *
+     */
     void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
 
   private:

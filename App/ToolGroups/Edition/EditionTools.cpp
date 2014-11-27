@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -22,17 +22,21 @@
 
 #include <App/Undo/BrushUndoCommand.h>
 #include <Core/Analysis/Filter.h>
-#include <Core/IO/FetchBehaviour/MarchingCubesFromFetchedVolumetricData.h>
-#include <Filters/FreeFormSource.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Undo/AddSegmentations.h>
+#include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
 using ESPINA::Filter;
 
-const Filter::Type FREEFORM_FILTER    = "FreeFormSource";
-const Filter::Type FREEFORM_FILTER_V4 = "EditorToolBar::FreeFormSource";
+const Filter::Type SOURCE_FILTER    = "FreeFormSource";
+const Filter::Type SOURCE_FILTER_V4 = "EditorToolBar::FreeFormSource";
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -42,56 +46,64 @@ FilterTypeList EditionTools::ManualFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
-  filters << FREEFORM_FILTER << FREEFORM_FILTER_V4;
+  filters << SOURCE_FILTER << SOURCE_FILTER_V4;
 
   return filters;
 }
 
 //-----------------------------------------------------------------------------
-FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList         inputs,
-                                                                const Filter::Type& filter,
-                                                                SchedulerSPtr       scheduler) const
+FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList          inputs,
+                                                           const Filter::Type& filter,
+                                                           SchedulerSPtr       scheduler) const
 throw(Unknown_Filter_Exception)
 {
-  if (FREEFORM_FILTER != filter && FREEFORM_FILTER_V4 != filter) throw Unknown_Filter_Exception();
+  if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
 
-  auto ffsFilter = FilterSPtr{new FreeFormSource(inputs, FREEFORM_FILTER, scheduler)};
-  if (!m_fetchBehaviour)
+  auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
+
+  if (!m_dataFactory)
   {
-    m_fetchBehaviour = FetchBehaviourSPtr{new MarchingCubesFromFetchedVolumetricData()};
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
   }
-  ffsFilter->setFetchBehaviour(m_fetchBehaviour);
+
+  ffsFilter->setDataFactory(m_dataFactory);
 
   return ffsFilter;
 }
 
 //-----------------------------------------------------------------------------
-EditionTools::EditionTools(ModelAdapterSPtr model,
-                           ModelFactorySPtr factory,
-                           ViewManagerSPtr  viewManager,
-                           QUndoStack      *undoStack,
-                           QWidget         *parent)
-: ToolGroup(viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent)
-, m_factory{factory}
-, m_undoStack{undoStack}
-, m_model{model}
-, m_filterFactory(new ManualFilterFactory())
+EditionTools::EditionTools(ModelAdapterSPtr          model,
+                           ModelFactorySPtr          factory,
+                           FilterDelegateFactorySPtr filterDelegateFactory,
+                           ViewManagerSPtr           viewManager,
+                           QUndoStack               *undoStack,
+                           QWidget                  *parent)
+: ToolGroup      {viewManager, QIcon(":/espina/pencil.png"), tr("Edition Tools"), parent}
+, m_factory      {factory}
+, m_undoStack    {undoStack}
+, m_model        {model}
+, m_filterFactory{new ManualFilterFactory()}
 {
   m_factory->registerFilterFactory(m_filterFactory);
 
-  m_manualEdition = ManualEditionToolSPtr(new ManualEditionTool(model, viewManager));
+  m_manualEdition = std::make_shared<ManualEditionTool>(model, viewManager);
+
   connect(m_manualEdition.get(), SIGNAL(stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)),
           this,                  SLOT(drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
   connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
           this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
 
 
-  m_split = SplitToolSPtr(new SplitTool(model, factory, viewManager, undoStack));
-  m_morphological = MorphologicalEditionToolSPtr(new MorphologicalEditionTool(model, factory, viewManager, undoStack));
+  m_split = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
+  m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
-  connect(parent, SIGNAL(abortOperation()), this, SLOT(abortOperation()));
-  connect(parent, SIGNAL(analysisClosed()), this, SLOT(abortOperation()));
+  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+          this,                             SLOT(selectionChanged()));
+
+  connect(parent, SIGNAL(abortOperation()),
+          this,   SLOT(abortOperation()));
+  connect(parent, SIGNAL(analysisClosed()),
+          this,   SLOT(abortOperation()));
 }
 
 //-----------------------------------------------------------------------------
@@ -139,12 +151,22 @@ ToolSList EditionTools::tools()
 //-----------------------------------------------------------------------------
 void EditionTools::selectionChanged()
 {
-  int listSize = m_viewManager->selection()->segmentations().size();
+  auto selection     = m_viewManager->selection()->segmentations();
+  auto selectionSize = selection.size();
 
-  bool noSegmentation         = listSize == 0;
-  bool onlyOneSegmentation    = listSize == 1;
+  SegmentationAdapterSPtr selectedSeg;
+  auto noSegmentation      = (selectionSize == 0);
+  auto onlyOneSegmentation = (selectionSize == 1);
+  auto hasRequiredData     = false;
+
+  if(onlyOneSegmentation)
+  {
+    auto selectedSegmentation = selection.first();
+    hasRequiredData = hasVolumetricData(selectedSegmentation->output());
+  }
+
   m_manualEdition->setEnabled(noSegmentation || onlyOneSegmentation);
-  m_split        ->setEnabled(onlyOneSegmentation);
+  m_split        ->setEnabled(onlyOneSegmentation && hasRequiredData);
   // NOTE: morphological tools manage selection on their own, as it's tools
   // haven't a unique requirement.
 }
@@ -159,10 +181,9 @@ void EditionTools::abortOperation()
 //-----------------------------------------------------------------------------
 void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsigned char> mask)
 {
-  ManualEditionToolPtr tool = qobject_cast<ManualEditionToolPtr>(sender());
-
-  SegmentationAdapterSPtr segmentation;
+  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
   auto selection = m_viewManager->selection();
+
   if(selection->items().empty())
   {
     ChannelAdapterList primaryChannel;
@@ -170,6 +191,7 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
     selection->set(primaryChannel);
   }
 
+  SegmentationAdapterSPtr segmentation;
   if(!selection->segmentations().empty())
   {
     auto item = selection->segmentations().first();
@@ -180,21 +202,31 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
   }
   else if(!selection->channels().empty())
   {
-    InputSList inputs;
-    inputs << m_viewManager->activeChannel()->asInput();
-    auto adapter = m_factory->createFilter<FreeFormSource>(inputs, FREEFORM_FILTER);
-    auto filter = adapter->get();
-    filter->setMask(mask);
+    auto item    = selection->channels().first();
+    auto channel = static_cast<ChannelAdapterPtr>(item);
+    auto output  = channel->output();
 
-    segmentation = m_factory->createSegmentation(adapter, 0);
+    auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+
+    auto strokeBounds  = mask->bounds().bounds();
+    auto strokeSpacing = output->spacing();
+    auto strokeOrigin  = channel->position();
+
+    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(strokeBounds, strokeSpacing, strokeOrigin);
+    volume->draw(mask);
+
+    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
+
+    filter->addOutputData(0, volume);
+    filter->addOutputData(0, mesh);
+
+    segmentation = m_factory->createSegmentation(filter, 0);
     segmentation->setCategory(category);
 
-    auto item = selection->channels().first();
-    auto channelItem = static_cast<ChannelAdapterPtr>(item);
 
     SampleAdapterSList samples;
-    samples << QueryAdapter::sample(channelItem);
-    Q_ASSERT(channelItem && (samples.size() == 1));
+    samples << QueryAdapter::sample(channel);
+    Q_ASSERT(channel && (samples.size() == 1));
 
     m_undoStack->beginMacro(tr("Add Segmentation"));
     m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
@@ -226,21 +258,33 @@ void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEnt
 
     if (volume->isEmpty())
     {
-      auto name = segmentation->data(Qt::DisplayRole).toString();
-      DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
-                                         tr("%1 has been deleted because all its voxels where erased.").arg(name));
-
       m_undoStack->blockSignals(true);
       do
       {
         m_undoStack->undo();
-      } while (volume->isEmpty());
+      }
+      while(volume->isEmpty());
       m_undoStack->blockSignals(false);
 
-      m_undoStack->beginMacro("Remove Segmentation");
-      m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+      if(segmentation->output()->numberOfDatas() == 1)
+      {
+        auto name = segmentation->data(Qt::DisplayRole).toString();
+        DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
+                                           tr("%1 will be deleted because all its voxels were erased.").arg(name));
+
+        m_undoStack->beginMacro("Remove Segmentation");
+        m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+      }
+      else
+      {
+        auto output = segmentation->output();
+        m_undoStack->beginMacro("Remove Segmentation's volume");
+        m_undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
+      }
       m_undoStack->endMacro();
-    } else {
+    }
+    else
+    {
       fitToContents(volume, SEG_BG_VALUE);
     }
   }

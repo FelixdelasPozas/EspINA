@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,6 +19,7 @@
  *
  */
 
+// ESPINA
 #include "ReadOnlyChannelExtension.h"
 
 using namespace ESPINA;
@@ -27,9 +28,10 @@ using namespace ESPINA;
 ReadOnlyChannelExtension::ReadOnlyChannelExtension(const ChannelExtension::Type type,
                                                    const ChannelExtension::InfoCache &cache,
                                                    const State &state)
-: ChannelExtension(cache)
-, m_type(type)
-, m_state(state)
+: ChannelExtension    {cache}
+, m_type              {type}
+, m_state             {state}
+, m_invalidateOnChange{false}
 {
 }
 

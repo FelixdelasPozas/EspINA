@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,8 +22,12 @@
 #ifndef ESPINA_IO_GRAPH_GRAPHIO_H
 #define ESPINA_IO_GRAPH_GRAPHIO_H
 
+// C++
 #include <iostream>
+#include <cstdint>
 #include <memory>
+
+// ESPINA
 #include <Core/Analysis/Persistent.h>
 
 namespace ESPINA
@@ -35,40 +39,60 @@ namespace ESPINA
   {
     namespace Graph
     {
-      enum class PrintFormat
-      { BOOST
-      , DEBUG
-      };
+      enum class PrintFormat: std::int8_t { BOOST = 1, DEBUG = 2 };
 
       struct Unknown_Type_Found{};
 
-      enum class VertexType
+      enum class VertexType: std::int8_t
       {
-        SAMPLE, FILTER, CHANNEL, SEGMENTATION
+        SAMPLE = 1, FILTER = 2, CHANNEL = 3, SEGMENTATION = 4
       };
 
       class ReadOnlyVertex
       : public Persistent
       {
       public:
+      	/** \brief ReadOnlyVertex class constructor.
+      	 * \param[in] type, VertexType type.
+      	 * \param[in] vertexid, id of the vertex.
+      	 *
+      	 */
         explicit ReadOnlyVertex(VertexType type, int vertexId)
         : m_type{type}, m_vertexId(vertexId) {}
 
+        /** \brief Returns the type of the vertex.
+         *
+         */
         VertexType type() const
         { return m_type; }
 
+        /** \brief Returns the id of the vertex.
+         *
+         */
         int vertexId() const
         { return m_vertexId; }
 
+        /** \brief Implements Persistent::restoreState().
+         *
+         */
         virtual void restoreState(const State& state)
         { m_state = state; }
 
+        /** \brief Implements Persistent::state().
+         *
+         */
         virtual State state() const
         { return m_state; }
 
+        /** \brief Implements Persistent::snapshot().
+         *
+         */
         virtual Snapshot snapshot() const
         { return Snapshot(); }
 
+        /** \brief Implements Persistent::unload().
+         *
+         */
         virtual void unload(){}
 
       private:
@@ -77,18 +101,47 @@ namespace ESPINA
         State      m_state;
       };
 
+      /** \brief Reads and builds the graph from a byte stream.
+       * \param[in] stream, graph to parse.
+       * \param[out] graph, directed graph.
+       * \param[in] format, print format specifier.
+       *
+       */
       void read (std::istream& stream, DirectedGraphSPtr graph, PrintFormat format = PrintFormat::BOOST);
+
+      /** \brief Writes the graph to a byte stream.
+       * \param[in] graph, directed graph.
+       * \param[out] stream, graph to parse.
+       * \param[in] format, print format specifier.
+       *
+       */
       void write(const DirectedGraphSPtr graph, std::ostream& stream, PrintFormat format = PrintFormat::BOOST);
 
+      /** \brief Returns true if the vertex is the type SAMPLE.
+       * \param[in] vertex.
+       *
+       */
       template<class T> bool isSample(const T &vertex)
       { return vertex->type() == VertexType::SAMPLE; }
 
+      /** \brief Returns true if the vertex is the type FILTER.
+       * \param[in] vertex.
+       *
+       */
       template<class T> bool isFilter(const T &vertex)
       { return vertex->type() == VertexType::FILTER; }
 
+      /** \brief Returns true if the vertex is the type CHANNEL.
+       * \param[in] vertex.
+       *
+       */
       template<class T> bool isChannel(const T &vertex)
       { return vertex->type() == VertexType::CHANNEL; }
 
+      /** \brief Returns true if the vertex is the type SEGMENTATION.
+       * \param[in] vertex.
+       *
+       */
       template<class T> bool isSegmentation(const T &vertex)
       { return vertex->type() == VertexType::SEGMENTATION; }
     }

@@ -45,6 +45,9 @@ int scheduler_simple_task_execution( int argc, char** argv )
   QApplication app(argc, argv);
 
   int period = 50000;
+
+  std::shared_ptr<SleepyTask> nonScheduled(new SleepyTask(period/5, SchedulerSPtr()));
+
   SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
   std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(period/5, scheduler)};
   sleepyTask->setDescription("Simple Task");

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -24,12 +24,15 @@
 
 #include "Core/EspinaCore_Export.h"
 
+// ESPAIN
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/DataProxy.h>
 #include <Core/Utils/Bounds.h>
 
+// VTK
 #include <vtkImplicitFunction.h>
 
+// C++
 #include <memory>
 
 namespace ESPINA
@@ -38,69 +41,92 @@ namespace ESPINA
   : public MeshData
   , public DataProxy
   {
-    public:
-      explicit MeshProxy() {}
-      virtual ~MeshProxy() {}
+  public:
+    /** \brief MeshProxy class constructor.
+     *
+     */
+    explicit MeshProxy()
+    {}
 
-      virtual void set(DataSPtr data)
-      {
-        m_data = std::dynamic_pointer_cast<MeshData>(data);
-        m_data->setOutput(this->m_output);
-      }
+    /** \brief MeshProxy class virtual destructor.
+     *
+     */
+    virtual ~MeshProxy()
+    {}
 
-      virtual DataSPtr get() const
-      { return m_data; }
+    virtual void set(DataSPtr data)
+    {
+      m_data = std::dynamic_pointer_cast<MeshData>(data);
+      m_data->setOutput(this->m_output);
+    }
 
-      virtual Bounds bounds() const
-      { return m_data->bounds(); }
+    virtual Bounds bounds() const override
+    { return m_data->bounds(); }
 
-      virtual void setSpacing(const NmVector3& spacing)
-      { m_data->setSpacing(spacing); }
+    virtual void setSpacing(const NmVector3& spacing)
+    { m_data->setSpacing(spacing); }
 
-      virtual NmVector3 spacing() const
-      { return m_data->spacing(); }
+    virtual NmVector3 spacing() const
+    { return m_data->spacing(); }
 
-      virtual TimeStamp lastModified()
-      { return m_data->lastModified(); }
+    virtual TimeStamp lastModified() override
+    { return m_data->lastModified(); }
 
-      virtual BoundsList editedRegions() const
-      { return m_data->editedRegions(); }
+    virtual BoundsList editedRegions() const override
+    { return m_data->editedRegions(); }
 
-      virtual void clearEditedRegions()
-      { m_data->clearEditedRegions(); }
+    virtual void setEditedRegions(const BoundsList& regions)
+    { m_data->setEditedRegions(regions); }
 
-      virtual bool isValid() const
-      { return m_data->isValid(); }
+    virtual void clearEditedRegions() override
+    { m_data->clearEditedRegions(); }
 
-      virtual bool isEmpty() const
-      { return m_data->isEmpty(); }
+    virtual bool isValid() const
+    { return m_data->isValid(); }
 
-      virtual bool fetchData(const TemporalStorageSPtr storage, const QString& prefix)
-      { return m_data->fetchData(storage, prefix); }
+    virtual bool isEmpty() const
+    { return m_data->isEmpty(); }
 
-      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& prefix) const
-      { return m_data->snapshot(storage, prefix); }
+    virtual Snapshot snapshot(TemporalStorageSPtr storage,
+                              const QString      &path,
+                              const QString      &id) const override
+    { return m_data->snapshot(storage, path, id); }
 
-      virtual Snapshot editedRegionsSnapshot() const
-      { return m_data->editedRegionsSnapshot(); }
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+   { return m_data->editedRegionsSnapshot(storage, path, id); }
 
-      virtual void undo()
-      { m_data->undo(); }
+   virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+   { return m_data->restoreEditedRegions(storage, path, id); }
 
-      virtual size_t memoryUsage() const
-      { return m_data->memoryUsage(); }
+    virtual void undo()
+    { m_data->undo(); }
 
-      virtual vtkSmartPointer< vtkPolyData > mesh() const
-      { return m_data->mesh(); }
-    private:
-      MeshDataSPtr m_data;
+    virtual size_t memoryUsage() const
+    { return m_data->memoryUsage(); }
 
-      friend class Output;
-    };
+    virtual vtkSmartPointer<vtkPolyData> mesh() const       override
+    { return m_data->mesh(); }
 
-    using MeshProxyPtr = MeshProxy *;
-    using MeshProxySPtr = std::shared_ptr<MeshProxy>;
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
+    { m_data->setMesh(mesh); }
 
-  } // namespace ESPINA
+  protected:
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    { return m_data->fetchData(); }
+
+  private:
+    virtual QList<Data::Type> updateDependencies() const override
+    { return m_data->dependencies(); }
+
+  private:
+    MeshDataSPtr m_data;
+
+    friend class Output;
+  };
+
+  using MeshProxyPtr = MeshProxy *;
+  using MeshProxySPtr = std::shared_ptr<MeshProxy>;
+
+} // namespace ESPINA
 
 #endif // ESPINA_MESH_PROXY_H

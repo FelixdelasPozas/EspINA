@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "SourceFilter.h"
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 using namespace ESPINA;
 
@@ -28,6 +28,17 @@ using namespace ESPINA;
 void SourceFilter::addOutput(Output::Id id, OutputSPtr output)
 {
   m_outputs[id] = output;
+}
+
+//----------------------------------------------------------------------------
+void SourceFilter::addOutputData(Output::Id id, DataSPtr data)
+{
+  if (!m_outputs.contains(id))
+  {
+    m_outputs[id] = std::make_shared<Output>(this, id, data->spacing());
+  }
+
+  m_outputs[id]->setData(data);
 }
 
 //----------------------------------------------------------------------------

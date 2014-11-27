@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -21,8 +21,8 @@
 // ESPINA
 #include "RenderView.h"
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Data/Volumetric/SparseVolume.h>
-#include <Core/Analysis/Data/VolumetricData.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
@@ -47,6 +47,8 @@
 
 using namespace ESPINA;
 
+const int RenderView::BUTTON_SIZE = 22;
+
 //-----------------------------------------------------------------------------
 RenderView::RenderView(QWidget* parent)
 : QWidget                 {parent}
@@ -61,9 +63,8 @@ RenderView::RenderView(QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
-  m_widgets.clear();
-  m_renderers.clear();
-
+  // subclasses of this one should take care of removing elements
+  // (channels, segmentations, widgets and renderers).
   delete m_view;
 }
 
@@ -106,7 +107,7 @@ void RenderView::showEvent(QShowEvent *event)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::takeSnapshot(vtkSmartPointer<vtkRenderer> renderer)
+void RenderView::takeSnapshot()
 {
   QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
   fileDialog.setObjectName("SaveSnapshotFileDialog");
@@ -181,7 +182,7 @@ double RenderView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
 
-  foreach(ChannelAdapterPtr  channel, m_channelStates.keys())
+  for(auto channel: m_channelStates.keys())
     if (channel->isVisible())
       numVisibleRep++;
 
@@ -199,7 +200,6 @@ void RenderView::resetSceneBounds()
   m_sceneBounds[1] = m_sceneBounds[3] = m_sceneBounds[5] = 0;
 }
 
-
 //-----------------------------------------------------------------------------
 void RenderView::setSegmentationsVisibility(bool visible)
 {
@@ -211,7 +211,7 @@ void RenderView::setSegmentationsVisibility(bool visible)
 //-----------------------------------------------------------------------------
 DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
 {
-  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->get(VolumetricData<itkVolumeType>::TYPE));
+  return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->outputData(VolumetricData<itkVolumeType>::TYPE));
 }
 
 //-----------------------------------------------------------------------------
@@ -221,10 +221,11 @@ void RenderView::updateSceneBounds()
 
   if (!m_channelStates.isEmpty())
   {
-    ChannelAdapterList channels = m_channelStates.keys();
-    DefaultVolumetricDataSPtr volume = volumetricData(channels.first());
+    auto channels = m_channelStates.keys();
+    auto volume   = volumetricData(channels.first());
+
+    m_sceneBounds     = volume->bounds();
     m_sceneResolution = volume->spacing();
-    m_sceneBounds = volume->bounds();
 
     for (int i = 1; i < channels.size(); ++i)
     {
@@ -264,6 +265,9 @@ void RenderView::add(ChannelAdapterPtr channel)
 
   m_channelStates.insert(channel, state);
 
+  connect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+          this,    SLOT(changedOutput(ViewItemAdapterPtr)));
+
   // need to manage other channels' opacity too.
   updateSceneBounds();
 
@@ -282,6 +286,9 @@ void RenderView::add(SegmentationAdapterPtr seg)
 
   state.visible   = false;
 
+  connect(seg,  SIGNAL(outputChanged(ViewItemAdapterPtr)),
+          this, SLOT(changedOutput(ViewItemAdapterPtr)));
+
   m_segmentationStates.insert(seg, state);
 
   updateRepresentation(seg, false);
@@ -293,13 +300,22 @@ void RenderView::remove(SegmentationAdapterPtr seg)
   Q_ASSERT(m_segmentationStates.contains(seg));
 
   for(auto rep: m_segmentationStates[seg].representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if (renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         if (repRenderer->hasRepresentation(rep))
+        {
           repRenderer->removeRepresentation(rep);
+        }
       }
+    }
+  }
+
+  disconnect(seg,  SIGNAL(outputChanged(ViewItemAdapterPtr)),
+             this, SLOT(changedOutput(ViewItemAdapterPtr)));
 
   m_segmentationStates.remove(seg);
 }
@@ -310,18 +326,27 @@ void RenderView::remove(ChannelAdapterPtr channel)
   Q_ASSERT(m_channelStates.contains(channel));
 
   for(auto representation: m_channelStates[channel].representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if (renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         if (repRenderer->hasRepresentation(representation))
+        {
           repRenderer->removeRepresentation(representation);
+        }
       }
+    }
+  }
 
   m_channelStates.remove(channel);
 
+  disconnect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+             this,    SLOT(changedOutput(ViewItemAdapterPtr)));
+
   updateSceneBounds();
-  updateChannelsOpactity();
+  updateChannelsOpacity();
 }
 
 //-----------------------------------------------------------------------------
@@ -352,7 +377,7 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
   bool outputChanged     = false;
 
   if (visibilityChanged)
-    updateChannelsOpactity();
+    updateChannelsOpacity();
 
   double hue = -1.0 == channel->hue() ? 0 : channel->hue();
   double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
@@ -385,35 +410,18 @@ bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
     state.timeStamp   = requestedTimeStamp;
   }
 
+  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
+
   if (outputChanged)
   {
     removeRepresentations(state);
-
-    for(auto representationName : channel->representationTypes())
-    {
-      for(auto renderer : m_renderers)
-        if(renderer->type() == Renderer::Type::Representation)
-        {
-          auto repRenderer = representationRenderer(renderer);
-          if (repRenderer->canRender(channel) && repRenderer->managesRepresentation(representationName))
-          {
-            RepresentationSPtr representation = cloneRepresentation(channel, representationName);
-            if (representation.get() != nullptr)
-            {
-              representation->setVisible(requestedVisibility);
-              repRenderer->addRepresentation(channel, representation);
-              state.representations << representation;
-            }
-          }
-        }
-    }
+    createRepresentations(channel);
   }
 
-  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
   for(auto representation : state.representations)
   {
     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
-    if (hasChanged || crosshairChanged)
+    if (hasChanged || crosshairChanged || outputChanged)
     {
       opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
 
@@ -519,32 +527,7 @@ bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
   if (outputChanged)
   {
     removeRepresentations(state);
-
-    for(auto representationName : seg->representationTypes())
-    {
-      for(auto renderer : m_renderers)
-        if(renderer->type() == Renderer::Type::Representation)
-        {
-          auto repRenderer = representationRenderer(renderer);
-          if (repRenderer->canRender(seg) && repRenderer->managesRepresentation(representationName))
-          {
-            RepresentationSPtr representation = cloneRepresentation(seg, representationName);
-            if (representation.get() != nullptr)
-            {
-              representation->setVisible(requestedVisibility);
-              repRenderer->addRepresentation(seg, representation);
-              state.representations << representation;
-
-              if (seg->hasExtension(VisualizationState::TYPE))
-              {
-                VisualizationStateSPtr stateExtension = std::dynamic_pointer_cast<VisualizationState>(seg->extension(VisualizationState::TYPE));
-
-                representation->restoreSettings(stateExtension->state(representation->type()));
-              }
-            }
-          }
-        }
-    }
+    createRepresentations(seg);
   }
 
   bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
@@ -578,12 +561,16 @@ void RenderView::updateRepresentations(SegmentationAdapterList list)
     SegmentationAdapterList updateSegmentations;
 
     if (list.empty())
+    {
       updateSegmentations = m_segmentationStates.keys();
+    }
     else
+    {
       updateSegmentations = list;
+    }
 
     bool updated = false;
-    for(SegmentationAdapterPtr seg : updateSegmentations)
+    for(auto seg : updateSegmentations)
     {
       updated |= updateRepresentation(seg, false);
     }
@@ -642,14 +629,16 @@ void RenderView::updateSelection(SegmentationAdapterList selection)
 //-----------------------------------------------------------------------------
 QPushButton* RenderView::createButton(const QString& icon, const QString& tooltip)
 {
+  const int ICON_SIZE = 20;
+
   QPushButton *button = new QPushButton();
 
   button->setIcon(QIcon(icon));
   button->setToolTip(tooltip);
   button->setFlat(true);
-  button->setIconSize(QSize(20,20));
-  button->setMinimumSize(QSize(22,22));
-  button->setMaximumSize(QSize(22,22));
+  button->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
+  button->setMinimumSize(QSize(BUTTON_SIZE, BUTTON_SIZE));
+  button->setMaximumSize(QSize(BUTTON_SIZE, BUTTON_SIZE));
   button->setEnabled(false);
   button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -677,15 +666,72 @@ void RenderView::resetView()
 }
 
 //-----------------------------------------------------------------------------
+void RenderView::createRepresentations(ChannelAdapterPtr channel)
+{
+  for(auto representationName : channel->representationTypes())
+  {
+    for(auto renderer : m_renderers)
+      if(renderer->type() == Renderer::Type::Representation)
+      {
+        auto repRenderer = representationRenderer(renderer);
+        if (repRenderer->canRender(channel) && repRenderer->managesRepresentation(representationName))
+        {
+          RepresentationSPtr representation = cloneRepresentation(channel, representationName);
+          if (representation.get() != nullptr)
+          {
+            representation->setVisible(channel->isVisible());
+            repRenderer->addRepresentation(channel, representation);
+            m_channelStates[channel].representations << representation;
+          }
+        }
+      }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::createRepresentations(SegmentationAdapterPtr segmentation)
+{
+  for(auto representationName : segmentation->representationTypes())
+  {
+    for(auto renderer : m_renderers)
+      if(renderer->type() == Renderer::Type::Representation)
+      {
+        auto repRenderer = representationRenderer(renderer);
+        if (repRenderer->canRender(segmentation) && repRenderer->managesRepresentation(representationName))
+        {
+          RepresentationSPtr representation = cloneRepresentation(segmentation, representationName);
+          if (representation.get() != nullptr)
+          {
+            representation->setVisible(segmentation->isVisible() && m_showSegmentations);
+            repRenderer->addRepresentation(segmentation, representation);
+            m_segmentationStates[segmentation].representations << representation;
+
+            if (segmentation->hasExtension(VisualizationState::TYPE))
+            {
+              VisualizationStateSPtr stateExtension = std::dynamic_pointer_cast<VisualizationState>(segmentation->extension(VisualizationState::TYPE));
+
+              representation->restoreSettings(stateExtension->state(representation->type()));
+            }
+          }
+        }
+      }
+  }
+}
+
+//-----------------------------------------------------------------------------
 void RenderView::removeRepresentations(ChannelState &state)
 {
   for(auto rep: state.representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if(renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         repRenderer->removeRepresentation(rep);
       }
+    }
+  }
 
   state.representations.clear();
 }
@@ -694,12 +740,16 @@ void RenderView::removeRepresentations(ChannelState &state)
 void RenderView::removeRepresentations(SegmentationState &state)
 {
   for(auto rep: state.representations)
+  {
     for(auto renderer: m_renderers)
+    {
       if(renderer->type() == Renderer::Type::Representation)
       {
         auto repRenderer = representationRenderer(renderer);
         repRenderer->removeRepresentation(rep);
       }
+    }
+  }
 
   state.representations.clear();
 }
@@ -889,5 +939,18 @@ void RenderView::setRenderersState(QMap<QString, bool> state)
        else
          deactivateRender(renderer->name());
     }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::changedOutput(ViewItemAdapterPtr item)
+{
+  if(isSegmentation(item))
+  {
+    updateRepresentation(dynamic_cast<SegmentationAdapterPtr>(item));
+  }
+  else
+  {
+    updateRepresentation(dynamic_cast<ChannelAdapterPtr>(item));
   }
 }

@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -22,89 +22,157 @@
 #ifndef ESPINA_VIEW_ITEM_ADAPTER_H
 #define ESPINA_VIEW_ITEM_ADAPTER_H
 
+// ESPINA
 #include "GUI/Model/NeuroItemAdapter.h"
-#include "FilterAdapter.h"
 #include <GUI/Representations/Representation.h>
-
+#include <GUI/Representations/RepresentationFactory.h>
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/ViewItem.h>
 
 namespace ESPINA {
 
-  class FilterAdapterInterface;
-  using FilterAdapterSPtr = std::shared_ptr<FilterAdapterInterface>;
+  class ViewItemAdapter;
+  using ViewItemAdapterPtr  = ViewItemAdapter *;
+  using ViewItemAdapterList = QList<ViewItemAdapterPtr>;
+  using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
 
   class EspinaGUI_EXPORT ViewItemAdapter
   : public NeuroItemAdapter
   {
+    Q_OBJECT
   public:
-    virtual ~ViewItemAdapter(){}
+    /** \brief ViewItemAdapter class virtual destructor.
+     *
+     */
+    virtual ~ViewItemAdapter()
+    {}
 
+    /** \brief Returns true if the item is selected.
+     *
+     */
     bool isSelected() const
     { return m_isSelected; }
 
+    /** \brief Sets the selection of the item.
+     * \param[in] value true to select it false otherwise.
+     *
+     */
     void setSelected(bool value)
     { m_isSelected = value; }
 
+    /** \brief Sets the visibility of the item.
+     * \param[in] value true to set visible false otherwise.
+     *
+     */
     void setVisible(bool value)
     { m_isVisible = value; }
 
+    /** \brief Returns true if the item is visible.
+     *
+     */
     bool isVisible() const
     { return m_isVisible; }
 
+    /** \brief Returns the item as a input smart pointer.
+     *
+     */
     virtual InputSPtr asInput() const = 0;
 
-    virtual void changeOutput(InputSPtr input) = 0;
+    /** \brief Changes the output of the item.
+     * \param[in] input input smart pointer as new output.
+     *
+     */
+    void changeOutput(InputSPtr input);
 
-    FilterAdapterSPtr filter()
-    { return m_filter; }
-    const FilterAdapterSPtr filter() const
-    { return m_filter; }
+    /** \brief Returns the filter smart pointer of the item.
+     *
+     */
+    FilterSPtr filter()
+    { return m_viewItem->filter(); }
 
-    /// Convenience method
+    /** \brief Returns the filter smart pointer of the item.
+     *
+     */
+    const FilterSPtr filter() const
+    { return m_viewItem->filter(); }
+
+    /** \brief Returns the output smart pointer of the item.
+     *
+     * Convenience method.
+     *
+     */
     OutputSPtr output()
     { return m_viewItem->output(); }
 
-    /// Convenience method
+    /** \brief Returns the output smart pointer of the item.
+     *
+     * Convenience method
+     *
+     */
     const OutputSPtr output() const
     { return m_viewItem->output(); }
 
-    DataSPtr get(Data::Type type)
+    /** \brief Returns the data of the specified type of the item.
+     * \param[in] type data type.
+     *
+     */
+    DataSPtr outputData(Data::Type type)
     { return m_viewItem->data(type); }
 
-    const DataSPtr get(Data::Type type) const
+    /** \brief Returns the data of the specified type of the item.
+     * \param[in] type data type.
+     *
+     */
+    const DataSPtr outputData(Data::Type type) const
     { return m_viewItem->data(type); }
 
-    RepresentationSPtr representation(Representation::Type representation) const;
+    /** \brief Returns the representation smart pointer of the specified type of the item.
+     * \param[in] type representation type.
+     *
+     */
+    RepresentationSPtr representation(Representation::Type type) const;
 
+    /** \brief Returns the list of representations of the item.
+     *
+     */
     RepresentationSList representations() const
     { return m_representations.values(); }
 
+    /** \brief Returns the list of types the item has.
+     *
+     */
     RepresentationTypeList representationTypes() const;
 
+    /** \brief Sets the representation factory of the item.
+     * \param[in] factory representation factory smart pointer.
+     *
+     */
     void setRepresentationFactory(RepresentationFactorySPtr factory)
     { m_factory = factory; }
 
-//     /// Convenience method to access output's representations
-//     RepresentationSList representations() const
-//     { return output()->graphicalRepresentations(); }
-
-
-//     /// Return whether item's volume has been modified or not after its creation
-//     bool outputIsModified() { return m_outputIsModified; }
-
-//   protected slots:
-//     void onOutputModified() { m_outputIsModified = true; emit outputModified(); emit modified(this);}
-// 
-//   signals:
-//     void outputModified();
-// 
-  protected:
-    explicit ViewItemAdapter(FilterAdapterSPtr filter, ViewItemSPtr item);
+  signals:
+    void outputModified();
+    void outputChanged(ViewItemAdapterPtr);
 
   protected:
-    FilterAdapterSPtr m_filter;
+    /** \brief ViewItemAdapter class constructor.
+     * \param[in] filter filter adapter smart pointer.
+     * \param[in] item view item smart pointer to adapt.
+     *
+     */
+    explicit ViewItemAdapter(ViewItemSPtr item);
+
+    /** \brief Changes the output of the item
+     * \param[in] input input smart pointer as new output.
+     *
+     */
+    virtual void changeOutputImplementation(InputSPtr input) = 0;
+
+  private slots:
+    void onOutputModified();
+
+  protected:
     ViewItemSPtr      m_viewItem;
 
     RepresentationFactorySPtr m_factory;
@@ -112,15 +180,9 @@ namespace ESPINA {
 
     bool m_isSelected;
     bool m_isVisible;
-    bool m_outputIsModified; // sticky bit
   };
 
-  using ViewItemAdapterPtr  = ViewItemAdapter *;
-  using ViewItemAdapterList = QList<ViewItemAdapterPtr>;
-  using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
-
-  ViewItemAdapterPtr viewItemAdapter(ItemAdapterPtr item);
-
+  ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);
 
 } // namespace ESPINA
 

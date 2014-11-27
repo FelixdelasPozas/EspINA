@@ -1,6 +1,6 @@
 /*
- 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -18,8 +18,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ESPINA
 #include "ProblemListDialog.h"
-#include <QDebug>
 
 namespace ESPINA
 {
@@ -38,7 +38,7 @@ namespace ESPINA
     headerLabels << tr("Problem");
     headerLabels << tr("Suggestion");
     m_problemTable->setHorizontalHeaderLabels(headerLabels);
-    
+
     int row = 0;
     for(auto problem: problemList)
     {

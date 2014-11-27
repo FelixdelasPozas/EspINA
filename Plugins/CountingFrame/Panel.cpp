@@ -609,7 +609,7 @@ void Panel::showInfo(CountingFrame* activeCF)
   m_gui->bottomMargin->blockSignals(true);
   m_gui->backMargin  ->blockSignals(true);
 
-  auto channel = activeCF->extension()->extendedItem();;
+  auto channel = activeCF->extension()->extendedItem();
   auto spacing = channel->output()->spacing();
 
   m_gui->leftMargin  ->setSingleStep(spacing[0]);
@@ -844,7 +844,7 @@ void Panel::inclusionMargins(double values[3])
 
   if (m_useSlices)
   {
-    auto channel = m_activeCF->extension()->extendedItem();;
+    auto channel = m_activeCF->extension()->extendedItem();
     auto spacing = channel->output()->spacing();
 
     values[2] *= spacing[2];
@@ -860,7 +860,7 @@ void Panel::exclusionMargins(double values[3])
 
   if (m_useSlices)
   {
-    auto channel = m_activeCF->extension()->extendedItem();;
+    auto channel = m_activeCF->extension()->extendedItem();
     auto spacing = channel->output()->spacing();
 
     values[2] = (m_gui->backMargin->value() + 0.5) * spacing[2];

@@ -1,5 +1,5 @@
 /*
- 
+
  Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
@@ -36,25 +36,25 @@
 
 namespace ESPINA
 {
-  class CachedSliceRendererTask
+  class EspinaGUI_EXPORT CachedSliceRendererTask
   : public Task
   {
     Q_OBJECT
     public:
-      /* \brief CachedRepresentationTask Class constructor.
-       * \param[in] scheduler Scheduler to sumbit.
+      /** \brief CachedRepresentationTask class constructor.
+       * \param[in] scheduler, scheduler smart pointer.
        *
        */
       explicit CachedSliceRendererTask(SchedulerSPtr scheduler);
 
-      /* \brief CachedRepresentationTask virtual destructor.
+      /** \brief CachedRepresentationTask class virtual destructor.
        *
        */
       virtual ~CachedSliceRendererTask();
 
-      /* \brief Sets task input values.
-       * \param[in] *node    Pointer to the node where the actors will be placed.
-       * \param[in] repList  List of representations.
+      /** \brief Sets task input values.
+       * \param[in] node, pointer to the node where the actors will be placed.
+       * \param[in] repList, list of representations.
        *
        *  The values must be valid to guarantee that an actor will be generated.
        */
@@ -64,23 +64,24 @@ namespace ESPINA
       void ready(CachedSliceRenderer::CacheNode *);
 
     protected:
-      /* \brief Threaded code.
+      /** \brief Implements Task::run().
        *
        */
       virtual void run();
 
     private:
-      /* \brief Compute the actor for that representation in the specified position.
+      /** \brief Compute the actor for that representation in the specified position.
+       * \param[in] rep, cached representation smart pointer.
        *
        */
       void computeData(CachedRepresentationSPtr rep);
 
-      /* \brief Deallocates all actors.
+      /** \brief Deallocates all actors.
        *
        */
       void releaseActors();
 
-      /* \brief Checks the node flag and returns true if the task must restart its work.
+      /** \brief Checks the node flag and returns true if the task must restart its work.
        *
        */
       bool needToRestart();

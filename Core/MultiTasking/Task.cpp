@@ -25,13 +25,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "Task.h"
 
+// ESPINA
+#include "Task.h"
 #include "Scheduler.h"
 
+// C++
 #include <iostream>
 #include <unistd.h>
 
+// Qt
 #include <QCoreApplication>
 #include <QThread>
 
@@ -69,9 +72,9 @@ Task::~Task()
 }
 
 //-----------------------------------------------------------------------------
-void Task::setPriority(const int value)
+void Task::setPriority(Priority value)
 {
-  int previous = m_priority;
+  Priority previous = m_priority;
 
   if (previous != value)
   {
@@ -163,7 +166,7 @@ void Task::runWrapper()
   if(!isAborted())
     run();
 
-  m_pendingPause = false;
+  m_pendingPause     = false;
   m_pendingUserPause = false;
 
   setFinished(true);

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,13 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ViewManager.h"
-#include "ToolGroup.h"
-
 // ESPINA
+#include "ViewManager.h"
+#include "Widgets/ToolGroup.h"
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
-#include <GUI/View/View2D.h>
 
 // VTK
 #include <vtkMath.h>
@@ -43,7 +41,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
 : m_selection        {new Selection()}
-, m_roi              {nullptr}
+, m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
 , m_eventHandler     {nullptr}
@@ -180,7 +178,9 @@ RendererSPtr ViewManager::cloneRenderer(const QString &name) const
 void ViewManager::setSelectionEnabled(bool enable)
 {
   for(auto view: m_renderViews)
+  {
     view->setSelectionEnabled(enable);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -422,29 +422,31 @@ void ViewManager::setSegmentationVisibility(bool visible)
 //----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
-  for(auto view: m_renderViews)
+  for(auto view: sliceViews())
   {
-    auto view2d = dynamic_cast<View2D *>(view);
-    if(view2d != nullptr)
-      view2d->setCrosshairVisibility(value);
+    view->setCrosshairVisibility(value);
   }
 }
 
-// //----------------------------------------------------------------------------
-// void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
-//                                     ViewManager::SliceSelectors selectors)
-// {
-//   foreach(View2D *view, m_sliceViews)
-//     view->addSliceSelectors(widget, selectors);
-// }
-// 
-// //----------------------------------------------------------------------------
-// void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
-// {
-//   foreach(View2D *view, m_sliceViews)
-//     view->removeSliceSelectors(widget);
-// }
-// 
+//----------------------------------------------------------------------------
+void ViewManager::addSliceSelectors(SliceSelectorSPtr widget,
+                                    View2D::SliceSelectionType selectors)
+{
+  for(auto view : sliceViews())
+  {
+    view->addSliceSelectors(widget, selectors);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::removeSliceSelectors(SliceSelectorSPtr widget)
+{
+  for(auto view : sliceViews())
+  {
+    view->removeSliceSelectors(widget);
+  }
+}
+
 
 //----------------------------------------------------------------------------
 void ViewManager::setColorEngine(ColorEngineSPtr engine)

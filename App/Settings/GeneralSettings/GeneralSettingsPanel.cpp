@@ -1,5 +1,5 @@
 /*
- * 
+ *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -19,14 +19,14 @@
  *
  */
 
+// ESPINA
 #include "GeneralSettingsPanel.h"
 
 using namespace ESPINA;
 
-
 //------------------------------------------------------------------------
 GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettingsSPtr settings)
-: m_settings(settings)
+: m_settings{settings}
 {
   setupUi(this);
 
@@ -52,7 +52,6 @@ void GeneralSettingsPanel::acceptChanges()
 //------------------------------------------------------------------------
 void GeneralSettingsPanel::rejectChanges()
 {
-
 }
 
 //------------------------------------------------------------------------

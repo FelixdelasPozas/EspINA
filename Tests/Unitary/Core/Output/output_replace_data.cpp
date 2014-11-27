@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-#include "output_testing_support.h"
+#include "testing_support_dummy_filter.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -33,6 +33,8 @@ using namespace ESPINA::Testing;
 
 int output_replace_data( int argc, char** argv )
 {
+  static Bounds modified{1,2,3,4,5,6};
+
   class NoProxyData
   : public DummyData
   {
@@ -40,17 +42,24 @@ int output_replace_data( int argc, char** argv )
     struct Invalid_Create_Proxy_Exception{};
 
   public:
-    virtual DataProxySPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
+    virtual Bounds bounds() const
+    { return modified; }
+    virtual DataSPtr createProxy() const { throw Invalid_Create_Proxy_Exception(); }
   };
 
   bool error = false;
 
   DummyFilter filter;
 
-  Output output(&filter, 0);
+  Output output(&filter, 0, NmVector3{1,1,1});
 
   DataSPtr data{new DummyData()};
   output.setData(data);
+
+  if (output.data(data->type())->bounds() == modified) {
+    cerr << "Unxpected data bounds" << endl;
+    error = true;
+  }
 
   DataSPtr noProxyData{new NoProxyData()};
   try {
@@ -61,8 +70,8 @@ int output_replace_data( int argc, char** argv )
     error = true;
   }
 
-  if (output.data(data->type()) != noProxyData) {
-    cerr << "Unxpected output data for type" << data->type().toStdString() << endl;
+  if (output.data(data->type())->bounds() != modified) {
+    cerr << "Unxpected data bounds" << endl;
     error = true;
   }
 

@@ -27,8 +27,8 @@
  */
 
 #include "Filters/VolumetricStreamReader.h"
-#include "Tests/Unitary/Testing_Support.h"
-#include <Core/Analysis/Data/VolumetricData.h>
+#include "Tests/Testing_Support.h"
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <itkImageFileWriter.h>
 
 using namespace std;

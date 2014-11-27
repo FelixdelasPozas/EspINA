@@ -22,49 +22,9 @@ include_directories(
   ${SUBJECT_DIR}
   )
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ${CORE_DIR}/Analysis/Data.h
-  ${CORE_DIR}/Analysis/Output.h
-  ${CORE_DIR}/Analysis/Extension.h
-  ${CORE_DIR}/Analysis/ViewItem.h
-  ${CORE_DIR}/MultiTasking/Scheduler.h
-  ${CORE_DIR}/MultiTasking/Task.h
-)
+add_executable(Segmentation_Tests "" ${TEST_SOURCES} )
 
-set(SUBJECT_SOURCES
-  ${TEST_SOURCES}
-  ${SUBJECT_MOCS}
-  ${CORE_DIR}/Analysis/Analysis.cpp
-  ${CORE_DIR}/Analysis/Category.cpp
-  ${CORE_DIR}/Analysis/Channel.cpp
-  ${CORE_DIR}/Analysis/Data.cpp
-  ${CORE_DIR}/Analysis/Filter.cpp
-  ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
-  ${CORE_DIR}/Analysis/Input.cpp
-  ${CORE_DIR}/Analysis/Output.cpp
-  ${CORE_DIR}/Analysis/Segmentation.cpp
-  ${CORE_DIR}/Analysis/ViewItem.cpp
-  ${CORE_DIR}/MultiTasking/Scheduler.cpp
-  ${CORE_DIR}/MultiTasking/Task.cpp
-  ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
-  ${CORE_DIR}/Utils/TemporalStorage.cpp
-  ${CORE_DIR}/Utils/VolumeBounds.cpp
- )
-
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-add_executable(Segmentation_Tests
-   ${SUBJECT_MOCS}
-   ${SUBJECT_SOURCES}
-  )
-
-target_link_libraries(Segmentation_Tests ${LIB_DEPENDECIES} )
+target_link_libraries(Segmentation_Tests ${CORE_DEPENDECIES} )
 
 add_test("\"Segmentation: Default Constructor\""              Segmentation_Tests segmentation_default_constructor)
 add_test("\"Segmentation: Change Number\""                    Segmentation_Tests segmentation_change_number)
@@ -78,4 +38,4 @@ add_test("\"Segmentation: Request Non Existing Information\"" Segmentation_Tests
 add_test("\"Segmentation: Save State\""                       Segmentation_Tests segmentation_save_state)
 add_test("\"Segmentation: Restore State\""                    Segmentation_Tests segmentation_restore_state)
 add_test("\"Segmentation: Save Snapshot\""                    Segmentation_Tests segmentation_save_snapshot)
-add_test("\"Segmentation: Unload\""                           Segmentation_Tests segmentation_unload)
+#add_test("\"Segmentation: Unload\""                           Segmentation_Tests segmentation_unload)

@@ -1,5 +1,5 @@
 /*
-    
+
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -18,20 +18,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #ifndef ESPINA_PLUGIN_H
 #define ESPINA_PLUGIN_H
 
 #include "Support/EspinaSupport_Export.h"
 
+// ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <Support/DockWidget.h>
+#include <Support/Widgets/DockWidget.h>
+#include <Support/Widgets/ToolGroup.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
-#include "ToolGroup.h"
 
+// Qt
 #include <QtPlugin>
 
 class QUndoStack;
@@ -47,15 +48,29 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    virtual ~Plugin(){}
+    /** \brief Plugin class virtual destructor.
+     *
+     */
+    virtual ~Plugin()
+    {}
 
+    /** \brief Gives the plugin the neccesary objects to initilize itself.
+     *        Must be called before any other plugin method.
+     *
+     * \param[in] model model adapter smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] factory model factory smart pointer.
+     * \param[in] scheduler scheduler smart pointer.
+     * \param[in] undoStack QUndoStack object raw pointer.
+     *
+     */
     virtual void init(ModelAdapterSPtr model,
                       ViewManagerSPtr  viewManager,
                       ModelFactorySPtr factory,
                       SchedulerSPtr    scheduler,
                       QUndoStack      *undoStack) = 0;
 
-    /** \brief Returns a list of channel extension factories
+    /** \brief Returns a list of channel extension factories.
      *
      *  Whenever this plugin provides a channel extension, it should provide
      *  a factory to obtain such extensions, otherwise read only information will
@@ -63,7 +78,7 @@ namespace ESPINA
      */
     virtual ChannelExtensionFactorySList channelExtensionFactories() const = 0;
 
-    /** \brief Returns a list of segmentation extension factories
+    /** \brief Returns a list of segmentation extension factories.
      *
      *  Whenever this plugin provides a segmentation extension, it should provide
      *  a factory to obtain such extensions, otherwise read only information will
@@ -71,61 +86,62 @@ namespace ESPINA
      */
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const = 0;
 
-    /* \brief Returns a list of filter factories.
+    /** \brief Returns a list of filter factories provided by the plugin.
      *
      */
     virtual FilterFactorySList filterFactories() const = 0;
 
-    /* \brief Returns a list of analysis readers.
+    /** \brief Returns a list of analysis readers provided by the plugin.
      *
      */
     virtual AnalysisReaderSList analysisReaders() const = 0;
 
-    /* \brief Returns a list of color engines.
+    /** \brief Returns a list of color engines provided by the plugin.
      *
      */
     virtual NamedColorEngineSList colorEngines() const = 0;
 
-    /* \brief Returns a list of ToolGroups.
+    /** \brief Returns a list of ToolGroups provided by the plugin.
      *
      */
     virtual QList<ToolGroup *> toolGroups() const = 0;
 
-    /* \brief Returns a list of Dock Widgets.
+    /** \brief Returns a list of Dock Widgets provided by the plugin.
      *
      */
     virtual QList<DockWidget *> dockWidgets() const = 0;
 
-    /* \brief Returns a list of Renderers.
+    /** \brief Returns a list of Renderers provided by the plugin.
      *
      */
     virtual RendererSList renderers() const = 0;
 
-    /* \brief Returns a list of settings panels.
+    /** \brief Returns a list of settings panels provided by the plugin.
      *
      */
     virtual SettingsPanelSList settingsPanels() const = 0;
 
-    /* \brief Returns a list of menu entries to add to the main application.
+    /** \brief Returns a list of menu entries to add to the main application.
      *
      */
     virtual QList<MenuEntry> menuEntries() const = 0;
 
   public slots:
-    virtual void onAnalysisClosed()  {}
-    virtual void onAnalysisChanged() {}
-//     /** \brief
-//      */
-//     virtual Snapshot snapshot() const = 0;
-//
-//     void setStorage(TemporalStorageSPtr storage)
-//     { m_storage = storage; }
-//
-//     TemporalStorageSPtr storage() const
-//     { return m_storage; }
-//
-//   private:
-//     TemporalStorageSPtr m_storage;
+    /** \brief Perform operations when an analysis is closed.
+     *
+     * Use to free resources.
+     *
+     */
+    virtual void onAnalysisClosed()
+    {}
+
+    /** \brief Perform operations when an analysis changes.
+     *
+     * Use to free resources or reevaluate values.
+     *
+     */
+    virtual void onAnalysisChanged()
+    {}
   };
 
 } // namespace ESPINA
