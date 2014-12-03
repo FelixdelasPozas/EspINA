@@ -65,7 +65,7 @@ int channel_proxy_delete_non_existing_relation( int argc, char** argv )
   try {
     modelAdapter->deleteRelation(sample1, sample2, relation);
     cerr << "Non existing relation deleted" << endl;
-  } catch (ModelAdapter::Relation_Not_Found_Exception e) {
+  } catch (ModelAdapter::Relation_Not_Found_Exception &e) {
     error = false;
   }
 

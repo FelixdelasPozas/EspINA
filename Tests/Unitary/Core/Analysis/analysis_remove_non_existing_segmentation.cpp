@@ -47,7 +47,7 @@ int analysis_remove_non_existing_segmentation( int argc, char** argv )
   try {
     analysis.remove(segmentation);
     cerr << "Non existing segmentation removed" << endl;
-  } catch (Analysis::Item_Not_Found_Exception e) {
+  } catch (Analysis::Item_Not_Found_Exception &e) {
     error = false;
   }
 

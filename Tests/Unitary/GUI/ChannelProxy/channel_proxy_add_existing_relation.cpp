@@ -63,7 +63,7 @@ int channel_proxy_add_existing_relation( int argc, char** argv )
   try {
     modelAdapter->addRelation(sample1, sample2, relation);
     cerr << "Adding already existing relation" << endl;
-  } catch (ModelAdapter::Existing_Relation_Exception e) {
+  } catch (ModelAdapter::Existing_Relation_Exception &e) {
       error = false;
   }
 

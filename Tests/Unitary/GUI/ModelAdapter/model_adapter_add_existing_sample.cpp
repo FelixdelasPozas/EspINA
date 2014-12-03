@@ -56,7 +56,7 @@ int model_adapter_add_existing_sample( int argc, char** argv )
   try {
     modelAdapter.add(sample);
     cerr << "Adding already existing sample" << endl;
-  } catch (ModelAdapter::Existing_Item_Exception e) {
+  } catch (ModelAdapter::Existing_Item_Exception &e) {
       error = false;
   }
 

@@ -64,7 +64,7 @@ int output_replace_data( int argc, char** argv )
   DataSPtr noProxyData{new NoProxyData()};
   try {
     output.setData(noProxyData);
-  } catch (NoProxyData::Invalid_Create_Proxy_Exception e) 
+  } catch (NoProxyData::Invalid_Create_Proxy_Exception &e) 
   {
     cerr << "Output is creating a new data proxy instead of replacing proxy delegate" << endl;
     error = true;

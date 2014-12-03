@@ -8,3 +8,5 @@ set(TESTING_DEPENDECIES
 )
 
 add_subdirectory( Core )
+
+#add_subdirectory(Metadona)

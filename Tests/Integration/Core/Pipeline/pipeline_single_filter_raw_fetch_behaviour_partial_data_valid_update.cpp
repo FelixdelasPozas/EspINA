@@ -109,7 +109,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

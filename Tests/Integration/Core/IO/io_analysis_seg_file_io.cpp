@@ -51,25 +51,29 @@ int io_analysis_seg_file_io( int argc, char** argv )
     { FilterTypeList list; list << "DummyFilter"; return list; }
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
     {
-      return FilterSPtr{new DummyFilter()};
+      return  std::make_shared<DummyFilter>();
     }
   } dummyFactory;
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
+  auto factory = make_shared<CoreFactory>();
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = make_shared<Classification>("Test");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  FilterSPtr filter{new DummyFilter()};
-  ChannelSPtr channel(new Channel(getInput(filter, 0)));
-  channel->setName("channel");
+  QString channelName     = "channel";
+  QString channelMetadata = "<xml>Test<xml>";
+
+  auto filter  = make_shared<DummyFilter>();
+  auto channel = make_shared<Channel>(getInput(filter, 0));
+  channel->setName(channelName);
+  channel->setMetadata(channelMetadata);
 
   analysis.add(channel);
 
@@ -88,7 +92,7 @@ int io_analysis_seg_file_io( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }
@@ -100,6 +104,12 @@ int io_analysis_seg_file_io( int argc, char** argv )
   } catch (...)
   {
     cerr << "Couldn't load seg file" << endl;
+    error = true;
+  }
+
+  auto channel2 = analysis2->channels().first();
+  if (channel2->metadata() != channelMetadata) {
+    cerr << "Unexpected loaded metadata" << channel2->metadata().toStdString() << endl;
     error = true;
   }
 

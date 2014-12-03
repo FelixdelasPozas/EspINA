@@ -278,7 +278,6 @@ void SeedGrowSegmentationFilter::execute()
   itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
   itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
 
-  int  outValue      = 0;
   auto extractFilter = ExtractFilterType::New();
 
   if(m_ROI != nullptr)
@@ -293,7 +292,7 @@ void SeedGrowSegmentationFilter::execute()
     extractFilter->ReleaseDataFlagOn();
     extractFilter->Update();
 
-    outValue = seedIntensity + m_upperTh + 1;
+    int outValue = seedIntensity + m_upperTh + 1;
 
     if (outValue > 255)
     {
@@ -420,10 +419,10 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
     auto boundsROI = m_ROI->bounds();
     for (int i = 0, j = 1; i < 6; i += 2, j += 2)
     {
-      if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2]) || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
+      if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2])
+       || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
       {
         return true;
-        break;
       }
     }
   }

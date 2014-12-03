@@ -71,7 +71,7 @@ int channel_proxy_add_existing_channel( int argc, char** argv )
   try {
     modelAdapter->add(channel);
     cerr << "Adding already existing channel" << endl;
-  } catch (ModelAdapter::Existing_Item_Exception e) {
+  } catch (ModelAdapter::Existing_Item_Exception &e) {
       error = false;
   }
 

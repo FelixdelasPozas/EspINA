@@ -68,7 +68,7 @@ int channel_proxy_remove_non_existing_segmentation( int argc, char** argv )
   try {
     modelAdapter->remove(segmentation);
     cerr << "Non existing segmentation removed" << endl;
-  } catch (ModelAdapter::Item_Not_Found_Exception e) {
+  } catch (ModelAdapter::Item_Not_Found_Exception &e) {
     error = false;
   }
 

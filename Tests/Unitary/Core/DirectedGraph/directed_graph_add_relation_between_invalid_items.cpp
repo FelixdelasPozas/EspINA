@@ -53,14 +53,14 @@ int directed_graph_add_relation_between_invalid_items( int argc, char** argv )
   try {
     graph.addRelation(item1, invalidItem, relation);
     cerr << "Added relation to invalid item" << endl;
-  } catch (DirectedGraph::Null_Item_Exception e) {
+  } catch (DirectedGraph::Null_Item_Exception &e) {
     error1 = false;
   }
 
   try {
     graph.addRelation(invalidItem, item2, relation);
     cerr << "Added relation to invalid item" << endl;
-  } catch (DirectedGraph::Null_Item_Exception e) {
+  } catch (DirectedGraph::Null_Item_Exception &e) {
     error2 = false;
   }
 

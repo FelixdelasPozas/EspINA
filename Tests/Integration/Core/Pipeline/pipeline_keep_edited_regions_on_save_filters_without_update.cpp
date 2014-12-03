@@ -150,7 +150,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e)
+  catch (SegFile::IO_Error_Exception &e)
   {
     cerr << "Couldn't save seg file" << endl;
     error = true;
@@ -171,7 +171,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   {
     SegFile::save(loadedAnalysis.get(), file2);
   }
-  catch (SegFile::IO_Error_Exception e)
+  catch (SegFile::IO_Error_Exception &e)
   {
     cerr << "Couldn't save seg file" << endl;
     error = true;

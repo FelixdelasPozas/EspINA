@@ -313,9 +313,9 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
   SegmentationAdapterList validSegmentations;
   for(auto segmentation: segmentations)
   {
-    bool valid = true;
     if(isValidSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
     {
+      bool valid = true;
       // must check if the segmentation already has a SAS, as this call
       // could be the result of a redo() in a UndoCommand
       for(auto item: m_model->relatedItems(segmentation.get(), RELATION_OUT))

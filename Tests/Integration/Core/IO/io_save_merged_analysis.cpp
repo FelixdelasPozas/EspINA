@@ -128,7 +128,7 @@ int io_save_merged_analysis( int argc, char** argv )
   try {
     SegFile::save(mergedAnalysis.get(), file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

@@ -50,10 +50,9 @@ bool Test_Bounds_Are_Inside(const Bounds& contained, const Bounds& container, bo
 bool Test_Bounds_Are_Inside(const Bounds& internalBounds, const Bounds& bounds, int offset, bool same_boundary_type) {
   bool pass = true;
 
-  int i;
   for (bool edgeInclussion : {true, false})
   {
-    i = 0;
+    int i = 0;
     Bounds edgeBounds;
     for (auto dir : {Axis::X, Axis::Y, Axis::Z}) {
 
@@ -126,7 +125,7 @@ for (int i = 0; i < 6; ++i)
             bool invalidTestOnIntersection = o == 4;
             bool invalidTest = invalidTestOnSameBounds || invalidTestOnIntersection;
             Bounds internal{ILB,2,8,2,8,2,8,IUB};
-            internal[i] += i % 2?o:-o;
+            internal[i] += (i % 2)?o:-o;
             Bounds external{ELB,0,10,0,10,0,10,EUB};
             pass &= Test_Bounds_Are_Inside(internal, external, !invalidTest);
           }

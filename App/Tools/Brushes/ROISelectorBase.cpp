@@ -51,13 +51,12 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   bool ROISelectorBase::filterEvent(QEvent* e, RenderView* view)
   {
-    QKeyEvent *ke = nullptr;
-
     switch(e->type())
     {
       case QEvent::KeyPress:
         {
-          ke = static_cast<QKeyEvent *>(e);
+          auto ke = static_cast<QKeyEvent *>(e);
+
           if ((ke->key() == Qt::Key_Shift) && !m_tracking && m_hasROI)
           {
             m_drawing = false;

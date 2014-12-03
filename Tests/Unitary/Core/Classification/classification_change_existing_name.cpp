@@ -47,7 +47,7 @@ int classification_change_existing_name( int argc, char** argv )
     level2->setName(name1);    
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
     error = true;
-  } catch (Category::AlreadyDefinedCategoryException e) {
+  } catch (Category::AlreadyDefinedCategoryException &e) {
     
   }
   

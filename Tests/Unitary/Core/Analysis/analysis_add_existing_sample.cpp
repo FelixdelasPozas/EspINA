@@ -45,7 +45,7 @@ int analysis_add_existing_sample( int argc, char** argv )
   try {
     analysis.add(sample);
     cerr << "Adding already existing sample" << endl;
-  } catch (Analysis::Existing_Item_Exception e) {
+  } catch (Analysis::Existing_Item_Exception &e) {
       error = false;
   }
 
