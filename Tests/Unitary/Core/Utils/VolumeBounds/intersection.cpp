@@ -111,6 +111,7 @@ int intersection( int argc, char** argv )
   try
   {
     auto incompatibleIntersection = ESPINA::intersection(vb1, incompatible);
+    cerr << "incompatible intersection: " << incompatibleIntersection << endl;
     error = true;
   } catch (Incompatible_Volume_Bounds_Exception &e)
   {

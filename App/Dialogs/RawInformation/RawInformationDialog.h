@@ -26,7 +26,6 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <EspinaConfig.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/ViewManager.h>
 
@@ -38,10 +37,10 @@ namespace ESPINA
   {
   public:
   	/** \brief RawInformationDialog class constructor.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] factory, factory smart pointer.
-  	 * \param[in] viewmanager, view manager smart pointer.
-  	 * \param[in] parent, parent widget.
+  	 * \param[in] model model adapter smart pointer.
+  	 * \param[in] factory factory smart pointer.
+  	 * \param[in] viewmanager view manager smart pointer.
+  	 * \param[in] parent parent widget.
   	 */
     explicit RawInformationDialog(ModelAdapterSPtr model,
                                   ModelFactorySPtr factory,
@@ -51,7 +50,8 @@ namespace ESPINA
     /** \brief RawInformationDialog class destructor.
      *
      */
-    virtual ~RawInformationDialog();
+    virtual ~RawInformationDialog()
+    {}
 
   protected:
     virtual void closeEvent(QCloseEvent *event) override;

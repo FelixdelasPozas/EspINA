@@ -53,14 +53,14 @@ int directed_graph_add_relation_between_non_existing_items( int argc, char** arg
   try {
     graph.addRelation(item1, unexistingItem, relation);
     cerr << "Added relation to unexisting item" << endl;
-  } catch (DirectedGraph::Item_Not_Found_Exception e) {
+  } catch (DirectedGraph::Item_Not_Found_Exception &e) {
     error1 = false;
   }
 
   try {
     graph.addRelation(unexistingItem, item2, relation);
     cerr << "Added relation to unexisting item" << endl;
-  } catch (DirectedGraph::Item_Not_Found_Exception e) {
+  } catch (DirectedGraph::Item_Not_Found_Exception &e) {
     error2 = false;
   }
 

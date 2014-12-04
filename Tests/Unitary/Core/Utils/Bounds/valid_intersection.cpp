@@ -104,7 +104,7 @@ int valid_intersection( int argc, char** argv )
         for (double ELB : {'[', '('})
           for (double EUB : {']', ')'}) {
             Bounds internal{ILB,2,8,2,8,2,8,IUB};
-            internal[i] += i % 2?o:-o;
+            internal[i] += (i % 2)?o:-o;
             Bounds external{ELB,0,10,0,10,0,10,EUB};
             Bounds expected{internal};
             if (o > 0) {

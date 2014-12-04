@@ -105,7 +105,7 @@ int volumetric_utils_symmetric_equivalences( int argc, char** argv )
   auto er3 = equivalentRegion<itkVolumeType>(e3, eqb);
   auto er6 = equivalentRegion<itkVolumeType>(e6, eqb);
 
-  if (er2.GetSize() != er3.GetSize() || er2.GetSize() != er3.GetSize())
+  if (er2.GetSize() != er3.GetSize() || er2.GetSize() != er6.GetSize())
   {
     cerr << "Equivalent Region sizes for same bounds doesn't match" << endl;
     error = true;

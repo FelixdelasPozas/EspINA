@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "RawInformationDialog.h"
+#include <Support/Utils/SelectionUtils.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Settings/EspinaSettings.h>
 
@@ -44,6 +45,10 @@ RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
 
   TabularReport *report = new TabularReport(factory, viewManager, this);
   report->setModel(model);
+
+  auto segmentations = defaultReportInputSegmentations(viewManager, model);
+  report->setFilter(segmentations);
+
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
 
@@ -58,12 +63,6 @@ RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
   resize(settings.value("size", QSize (200, 200)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
-}
-
-//----------------------------------------------------------------------------
-RawInformationDialog::~RawInformationDialog()
-{
-
 }
 
 //----------------------------------------------------------------------------

@@ -23,16 +23,6 @@
 #include "AppositionSurfaceExtension.h"
 
 //-----------------------------------------------------------------------------
-ASExtensionFactory::ASExtensionFactory()
-{
-}
-
-//-----------------------------------------------------------------------------
-ASExtensionFactory::~ASExtensionFactory()
-{
-}
-
-//-----------------------------------------------------------------------------
 SegmentationExtensionSPtr ASExtensionFactory::createSegmentationExtension(const SegmentationExtension::Type      &type,
                                                                           const SegmentationExtension::InfoCache &cache,
                                                                           const State& state) const

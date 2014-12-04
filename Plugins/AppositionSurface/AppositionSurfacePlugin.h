@@ -59,54 +59,24 @@ namespace ESPINA
                       SchedulerSPtr    scheduler,
                       QUndoStack      *undoStack);
 
-    /** \brief Implements Plugin::channelExtensionFactories().
-     *
-     */
     virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
-    /** \brief Implements Plugin::segmentationExtensionFactories().
-     *
-     */
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-    /** \brief Implements Plugin::colorEngines().
-     *
-     */
     virtual NamedColorEngineSList colorEngines() const;
 
-    /** \brief Implements Plugin::toolGroups().
-     *
-     */
     virtual QList<ToolGroup *> toolGroups() const;
 
-    /** \brief Implements Plugin::dockWidgets().
-     *
-     */
     virtual QList<DockWidget *> dockWidgets() const;
 
-    /** \brief Implements Plugin::renderers().
-     *
-     */
     virtual RendererSList renderers() const;
 
-    /** \brief Implements Plugin::settingsPanels().
-     *
-     */
     virtual SettingsPanelSList settingsPanels() const;
 
-    /** \brief Implements Plugin::menuEntries().
-     *
-     */
     virtual QList<MenuEntry> menuEntries() const;
 
-    /** \brief Implements Plugin::analysisReaders().
-     *
-     */
     virtual AnalysisReaderSList analysisReaders() const;
 
-    /** \brief Implements Plugin::filterFactories().
-     *
-     */
     virtual FilterFactorySList filterFactories() const;
 
   public slots:

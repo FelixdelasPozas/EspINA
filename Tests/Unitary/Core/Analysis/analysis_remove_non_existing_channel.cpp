@@ -47,7 +47,7 @@ int analysis_remove_non_existing_channel( int argc, char** argv )
   try {
     analysis.remove(channel);
     cerr << "Non existing channel removed" << endl;
-  } catch (Analysis::Item_Not_Found_Exception e) {
+  } catch (Analysis::Item_Not_Found_Exception &e) {
     error = false;
   }
 

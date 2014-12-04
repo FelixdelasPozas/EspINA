@@ -60,9 +60,9 @@ int bounding_box( int argc, char** argv )
   try
   {
     auto bb1_invalid = boundingBox(vb1, VolumeBounds());
-    cerr << "Expected exception due to invalid bounds" << endl;
+    cerr << "Expected exception due to invalid bounds: " << bb1_invalid << endl;
     error = true;
-  } catch (Incompatible_Volume_Bounds_Exception e)
+  } catch (Incompatible_Volume_Bounds_Exception &e)
   {
   }
 
@@ -70,9 +70,9 @@ int bounding_box( int argc, char** argv )
   try
   {
     auto bb1_incompatible = boundingBox(vb1, incompatible);
-    cerr << "Expected exception due to incompatible bounds" << endl;
+    cerr << "Expected exception due to incompatible bounds: " << bb1_incompatible << endl;
     error = true;
-  } catch (Incompatible_Volume_Bounds_Exception e)
+  } catch (Incompatible_Volume_Bounds_Exception &e)
   {
   }
 

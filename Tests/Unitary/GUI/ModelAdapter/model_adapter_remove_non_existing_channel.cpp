@@ -66,7 +66,7 @@ int model_adapter_remove_non_existing_channel( int argc, char** argv )
   try {
     modelAdapter.remove(channel);
     cerr << "Non existing channel removed" << endl;
-  } catch (ModelAdapter::Item_Not_Found_Exception e) {
+  } catch (ModelAdapter::Item_Not_Found_Exception &e) {
     error = false;
   }
 

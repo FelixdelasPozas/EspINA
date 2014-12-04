@@ -157,7 +157,9 @@ unsigned int Scheduler::numberOfTasks() const
 
   unsigned int result = 0;
   for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
-    result += m_runningTasks[priority].size();
+  {
+    result += m_runningTasks.at(priority).size();
+  }
 
   return result;
 }

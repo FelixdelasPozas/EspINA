@@ -48,7 +48,7 @@ int directed_graph_add_existing_item( int argc, char** argv )
     graph.add(item);
     cerr << "Expected existing item exception" << endl;
     error = true;
-  } catch (DirectedGraph::Existing_Item_Exception e) {
+  } catch (DirectedGraph::Existing_Item_Exception &e) {
   }
 
   DummyItemSPtr ref{item};
@@ -57,7 +57,7 @@ int directed_graph_add_existing_item( int argc, char** argv )
     graph.add(ref);
     cerr << "Expected existing item exception" << endl;
     error = true;
-  } catch (DirectedGraph::Existing_Item_Exception e) {
+  } catch (DirectedGraph::Existing_Item_Exception &e) {
   }
 
   return error;

@@ -132,7 +132,7 @@ int pipeline_image_logic_filter_addition( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

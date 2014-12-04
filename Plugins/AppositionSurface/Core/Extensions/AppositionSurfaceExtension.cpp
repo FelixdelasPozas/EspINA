@@ -84,11 +84,6 @@ AppositionSurfaceExtension::AppositionSurfaceExtension(const SegmentationExtensi
 }
 
 //------------------------------------------------------------------------
-AppositionSurfaceExtension::~AppositionSurfaceExtension()
-{
-}
-
-//------------------------------------------------------------------------
 SegmentationExtension::InfoTagList AppositionSurfaceExtension::availableInformations() const
 {
   SegmentationExtension::InfoTagList tags;

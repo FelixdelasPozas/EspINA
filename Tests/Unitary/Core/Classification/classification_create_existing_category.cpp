@@ -44,7 +44,7 @@ int classification_create_existing_category( int argc, char** argv )
     CategorySPtr category1 = classification.createNode(name);
     std::cerr << "AlreadyDefinedCategoryException expected" << std::endl;
     error = true;
-  } catch (Already_Defined_Node_Exception e) {
+  } catch (Already_Defined_Node_Exception &e) {
     
   }
   

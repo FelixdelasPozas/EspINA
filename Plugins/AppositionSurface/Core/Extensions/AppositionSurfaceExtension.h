@@ -44,47 +44,34 @@ namespace ESPINA
       static const Type TYPE;
 
     public:
+      /** \brief AppositionSurfaceExtension class constructor.
+       * \param[in] infocache InfoCache object reference.
+       */
       explicit AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache);
-      virtual ~AppositionSurfaceExtension();
 
-      /** \brief Implements Extension:type().
+      /** \brief AppositionSurfaceExtension class virtual destructor.
        *
        */
+      virtual ~AppositionSurfaceExtension()
+      {}
+
       virtual Type type() const
       { return TYPE; }
 
-      /** \brief Implements Extension::invalidateOnChange().
-       *
-       */
       virtual bool invalidateOnChange() const
       { return true; }
 
-      /** \brief Implements Extension::state().
-       *
-       */
       virtual State state() const
       { return State(); }
 
-      /** \brief Implements Extension::snapshot().
-       *
-       */
       virtual Snapshot snapshot() const
       { return Snapshot(); }
 
-      /** \brief Implements Extension::dependencies().
-       *
-       */
       virtual TypeList dependencies() const
       { return TypeList(); }
 
-      /** \brief Implements Extension::availableInformations().
-       *
-       */
       virtual InfoTagList availableInformations() const;
 
-      /** \brief Implements SegmentationExtension::validCategory().
-       *
-       */
       virtual bool validCategory(const QString &classificationName) const;
 
       /** \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
@@ -94,49 +81,43 @@ namespace ESPINA
       { m_originSegmentation = segmentation; }
 
     protected:
-      /** \brief Implements Extension::cacheFail().
-       *
-       */
       virtual QVariant cacheFail(const InfoTag &tag) const;
 
-      /** \brief Implements Extension::onExtendedItemSet().
-       *
-       */
       virtual void onExtendedItemSet(Segmentation* item);
 
   private:
       /** \brief Computes SAS area.
-       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[in] asMesh SAS polydata smart pointer.
        */
       Nm computeArea(const vtkSmartPointer<vtkPolyData> &asMesh) const;
 
       /** \brief Returns true if the specified cell is part of the perimeter.
-       * \param[in] asMesh, SAS polydata smart pointer.
-       * \param[in] cellId, id of the cell.
+       * \param[in] asMesh SAS polydata smart pointer.
+       * \param[in] cellId id of the cell.
        * \param[in] p1
        * \param[in] p2
        */
       bool isPerimeter(const vtkSmartPointer<vtkPolyData> &asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
 
       /** \brief Returns the perimeter of the SAS.
-       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[in] asMesh SAS polydata smart pointer.
        *
        */
       Nm computePerimeter(const vtkSmartPointer<vtkPolyData> &asMesh) const;
 
       /** \brief Returns the projection of the SAS polydata to a plane.
-       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[in] asMesh SAS polydata smart pointer.
        */
       vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> &mesh) const;
 
       /** \brief Returns the tortuosity of the SAS.
-       * \param[in] asMesh, SAS polydata smart pointer.
-       * \param[in] asArea, area of the SAS.
+       * \param[in] asMesh SAS polydata smart pointer.
+       * \param[in] asArea area of the SAS.
        */
       double computeTortuosity(const vtkSmartPointer<vtkPolyData> &asMesh, const Nm asArea) const;
 
       /** \brief Computes SAS curvatures.
-       * \param[in] asMesh, SAS polydata smart pointer.
+       * \param[in] asMesh SAS polydata smart pointer.
        * \param[out] gaussCurvature
        * \param[out] meanCurvature
        * \param[out] minCurvature

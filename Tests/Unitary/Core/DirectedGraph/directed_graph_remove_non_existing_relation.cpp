@@ -48,7 +48,7 @@ int directed_graph_remove_non_existing_relation( int argc, char** argv )
   try {
     graph.removeRelation(item1, item2, relation);
     cerr << "Remove non added relation" << endl;
-  } catch (DirectedGraph::Relation_Not_Found_Exception e) {
+  } catch (DirectedGraph::Relation_Not_Found_Exception &e) {
     return 0;
   }
 

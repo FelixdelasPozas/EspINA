@@ -532,7 +532,6 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageTy
                    originIndex[1], originIndex[1] + imageSize[1] - 1,
                    originIndex[2], originIndex[2] + imageSize[2] - 1);
   image->SetSpacing(spacing[0], spacing[1], spacing[2]);
-  // image->SetSpacing(vectorImage->GetSpacing()[0], vectorImage->GetSpacing()[1], vectorImage->GetSpacing()[2]);
 
   // image->Print(std::cout);
   vtkSmartPointer<vtkFloatArray> vectors = vtkSmartPointer<vtkFloatArray>::New();
@@ -668,8 +667,7 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(vtkPolyData
   implicitVolFilter->SetVolume(image);
   implicitVolFilter->SetOutValue(0);
 
-  double inValue = 255.0;
-  inValue = image->GetScalarRange()[1];
+  double inValue = image->GetScalarRange()[1];
 
   vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
   clipper->SetClipFunction(implicitVolFilter);

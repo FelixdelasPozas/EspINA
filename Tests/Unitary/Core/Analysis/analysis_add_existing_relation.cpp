@@ -50,7 +50,7 @@ int analysis_add_existing_relation( int argc, char** argv )
   try {
     analysis.addRelation(sample1, sample2, relation);
     cerr << "Adding already existing relation" << endl;
-  } catch (Analysis::Existing_Relation_Exception e) {
+  } catch (Analysis::Existing_Relation_Exception &e) {
       error = false;
   }
 

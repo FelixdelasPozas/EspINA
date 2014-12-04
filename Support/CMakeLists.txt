@@ -58,6 +58,7 @@ set (Support_SOURCES
   Factory/FilterDelegateFactory.cpp
   Readers/ChannelReader.cpp
   Utils/FactoryUtils.cpp
+  Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
   Widgets/ToolGroup.cpp  
   Widgets/ActionGroupWidget.cpp  

@@ -59,7 +59,7 @@ int channel_proxy_remove_non_existing_sample(int argc, char** argv)
   try {
     modelAdapter->remove(sample);
     cerr << "Non existing sample removed" << endl;
-  } catch (ModelAdapter::Item_Not_Found_Exception e) {
+  } catch (ModelAdapter::Item_Not_Found_Exception &e) {
     error = false;
   }
 

@@ -47,10 +47,9 @@ int region_iterator(int argc, char** argv)
   BMask::region_iterator rit(&mask, goodRegionBounds);
 
   rit.goToEnd();
-  unsigned char test;
   try
   {
-    test = rit.Get();
+    unsigned char test = rit.Get();
     error |= true;
   }
   catch(BMask::Out_Of_Bounds_Exception const &e)

@@ -49,7 +49,7 @@ int analysis_delete_non_existing_relation( int argc, char** argv )
   try {
     analysis.deleteRelation(sample1, sample2, relation);
     cerr << "Non existing relation deleted" << endl;
-  } catch (Analysis::Relation_Not_Found_Exception e) {
+  } catch (Analysis::Relation_Not_Found_Exception &e) {
     error = false;
   }
 

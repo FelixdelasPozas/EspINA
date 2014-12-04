@@ -47,9 +47,6 @@ namespace ESPINA
       virtual ~SASInformationProxy()
       {};
 
-      /** \brief Implements QAbstractProxyModel::data()
-       *
-       */
       virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
     protected:

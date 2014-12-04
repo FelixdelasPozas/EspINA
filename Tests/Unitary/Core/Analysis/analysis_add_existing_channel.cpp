@@ -51,7 +51,7 @@ int analysis_add_existing_channel( int argc, char** argv )
   try {
     analysis.add(channel);
     cerr << "Adding already existing channel" << endl;
-  } catch (Analysis::Existing_Item_Exception e) {
+  } catch (Analysis::Existing_Item_Exception &e) {
       error = false;
   }
 

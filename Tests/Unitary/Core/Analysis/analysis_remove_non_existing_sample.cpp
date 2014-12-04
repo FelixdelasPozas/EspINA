@@ -43,7 +43,7 @@ int analysis_remove_non_existing_sample(int argc, char** argv)
   try {
     analysis.remove(sample);
     cerr << "Non existing sample removed" << endl;
-  } catch (Analysis::Item_Not_Found_Exception e) {
+  } catch (Analysis::Item_Not_Found_Exception &e) {
     error = false;
   }
 

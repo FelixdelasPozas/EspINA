@@ -45,7 +45,7 @@ int classification_adapter_create_existing_category( int argc, char** argv )
     CategoryAdapterSPtr category2 = classification.createCategory(name);
     cerr << "AlreadyDefinedCategoryException expected" << endl;
     error = true;
-  } catch (Already_Defined_Node_Exception e) {
+  } catch (Already_Defined_Node_Exception &e) {
 
   }
 

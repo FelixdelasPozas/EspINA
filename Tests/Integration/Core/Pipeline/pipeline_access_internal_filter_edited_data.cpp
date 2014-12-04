@@ -148,7 +148,7 @@ int pipeline_access_internal_filter_edited_data( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

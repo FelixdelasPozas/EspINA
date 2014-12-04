@@ -96,7 +96,17 @@ namespace ESPINA
     static const char * MESH_NORMAL;
 
   public:
+    /** \brief AppositionSurfaceFilter class constructor.
+     * \param[in] inputs list of inputs.
+     * \param[in] type filter type.
+     * \param[in] scheduler scheduler smart pointer.
+     *
+     */
     explicit AppositionSurfaceFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
+
+    /** \brief AppositionSurfaceFilter class virtual destructor.
+     *
+     */
     virtual ~AppositionSurfaceFilter();
 
   protected:
@@ -120,9 +130,6 @@ namespace ESPINA
     virtual bool ignoreStorageContent() const
     { return this->m_alreadyFetchedData; }
 
-    virtual bool areEditedRegionsInvalidated()
-    { return false; }
-
   protected slots:
     virtual void inputModified();
 
@@ -145,7 +152,7 @@ namespace ESPINA
     Points corners(const double corner[3], const double max[3], const double mid[3], const double min[3]) const;
 
     /** \brief Returns a distance map of the volume passed as parameter.
-     * \param[in] volume, itk::Image<unsigned char, 3>::Pointer.
+     * \param[in] volume itk::Image<unsigned char, 3>::Pointer.
      * \param[in] sigma
      */
     DistanceMapType::Pointer computeDistanceMap(const itkVolumeType::Pointer &volume, const float sigma) const;
