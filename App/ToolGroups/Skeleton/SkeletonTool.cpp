@@ -190,8 +190,7 @@ namespace ESPINA
   {
     if (value)
     {
-      if(nullptr == m_vm->activeChannel())
-        return;
+      if(nullptr == m_vm->activeChannel()) return;
 
       updateReferenceItem();
       NmVector3 spacing;
@@ -289,12 +288,12 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void SkeletonTool::eventHandlerToogled(bool value)
+  void SkeletonTool::eventHandlerToogled(bool toggled)
   {
-    if(value || m_widget == nullptr)
-      return;
-
-    initTool(false);
+    if (!toggled && m_widget != nullptr)
+    {
+      initTool(false);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -305,6 +304,7 @@ namespace ESPINA
       if(hasSkeletonData(m_item->output()))
       {
         auto polyData = skeletonData(m_item->output())->skeleton();
+
         polyData->SetPoints(m_skeleton->GetPoints());
         polyData->SetLines(m_skeleton->GetLines());
         polyData->Modified();
@@ -312,21 +312,23 @@ namespace ESPINA
       else
       {
         auto spacing = m_item->output()->spacing();
-        auto data = std::make_shared<RawSkeleton>(m_skeleton, spacing, m_item->output());
+        auto data    = std::make_shared<RawSkeleton>(m_skeleton, spacing, m_item->output());
+
         m_item->output()->setData(data);
       }
     }
     else
     {
       auto spacing = m_vm->activeChannel()->output()->spacing();
-      auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-      auto output = OutputSPtr(new Output(filter.get(), 0, spacing));
+      auto filter  = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+      auto output  = OutputSPtr(new Output(filter.get(), 0, spacing));
 
       output->setData(std::make_shared<RawSkeleton>(m_skeleton, spacing, output));
 
       filter->addOutput(0, output);
+
+      auto category     = m_categorySelector->selectedCategory();
       auto segmentation = m_factory->createSegmentation(filter, 0);
-      auto category = m_categorySelector->selectedCategory();
       Q_ASSERT(category);
 
       segmentation->setCategory(category);
@@ -344,11 +346,11 @@ namespace ESPINA
 
     m_skeleton = nullptr;
 
-    m_vm->updateSegmentationRepresentations(m_item);
     SegmentationAdapterList selection;
     selection << m_item;
-    m_vm->selection()->set(selection);
 
+    m_vm->selection()->set(selection);
+    m_vm->updateSegmentationRepresentations(m_item);
     m_vm->updateViews();
   }
 } // namespace EspINA

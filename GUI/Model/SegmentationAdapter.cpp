@@ -307,3 +307,9 @@ SegmentationAdapterPtr ESPINA::segmentationPtr(ItemAdapterPtr item)
 {
   return dynamic_cast<SegmentationAdapterPtr>(item);
 }
+
+//------------------------------------------------------------------------
+bool ESPINA::isSegmentation(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::SEGMENTATION == item->type();
+}

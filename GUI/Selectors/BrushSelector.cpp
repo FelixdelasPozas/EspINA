@@ -256,7 +256,7 @@ void BrushSelector::setBrushOpacity(int value)
 //-----------------------------------------------------------------------------
 void BrushSelector::setReferenceItem(ViewItemAdapterPtr item)
 {
-  if (!item || !hasVolumetricData(item->output()))
+  if (!item)
   {
     m_item       = nullptr;
     m_origin     = NmVector3();
@@ -363,8 +363,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 //-----------------------------------------------------------------------------
 void BrushSelector::startStroke(QPoint pos, RenderView* view)
 {
-  if (!m_item)
-    return;
+  if (!m_item) return;
 
   View2D *previewView = static_cast<View2D*>(view);
   m_plane = previewView->plane();
@@ -487,6 +486,7 @@ void BrushSelector::startPreview(RenderView* view)
   }
   else
   {
+    // CHECK: Volume output may not exist
     auto volume = volumetricData(m_item->output());
     if (!intersect(previewBounds.bounds(), volume->bounds()))
     {

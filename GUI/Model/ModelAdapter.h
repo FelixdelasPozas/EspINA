@@ -597,34 +597,23 @@ namespace ESPINA
   ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);
 
   /** \brief Returns true if the given item adpter is a classification item.
-   * \param[in] item, item adapter raw pointer.
+   * \param[in] item item adapter raw pointer.
    *
    */
   bool EspinaGUI_EXPORT isClassification(ItemAdapterPtr item);
 
   /** \brief Returns true if the given item is a category item.
-   * \param[in] item, item adapter raw pointer.
+   * \param[in] item item adapter raw pointer.
    *
    */
   bool EspinaGUI_EXPORT isCategory(ItemAdapterPtr item);
 
   /** \brief Returns true if the given item is a sample item.
-   * \param[in] item, item adapter raw pointer.
+   * \param[in] item item adapter raw pointer.
    *
    */
   bool EspinaGUI_EXPORT isSample(ItemAdapterPtr item);
 
-  /** \brief Returns true if the given item is a channel item.
-   * \param[in] item, item adapter raw pointer.
-   *
-   */
-  bool EspinaGUI_EXPORT isChannel(ItemAdapterPtr item);
-
-  /** \brief Returns true if the given item is a segmentation item.
-   * \param[in] item, item adapter raw pointer.
-   *
-   */
-  bool EspinaGUI_EXPORT isSegmentation(ItemAdapterPtr item);
 
 } // namespace ESPINA
 

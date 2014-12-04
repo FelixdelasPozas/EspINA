@@ -85,7 +85,9 @@ namespace ESPINA
        *
        */
       vtkSmartPointer<vtkPolyData> getSkeleton()
-      { return m_skeleton; m_skeleton = nullptr; }
+      {
+        return m_skeleton; m_skeleton = nullptr;
+      }
 
       /** \brief Returns the category of the category selector of the tool.
        *
@@ -133,7 +135,7 @@ namespace ESPINA
        * by another event handler.
        *
        */
-      void eventHandlerToogled(bool value);
+      void eventHandlerToogled(bool toggled);
 
     private:
       /** \brief Helper method to manage the visibility of widgets.

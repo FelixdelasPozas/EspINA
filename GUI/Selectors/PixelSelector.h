@@ -104,20 +104,14 @@ namespace ESPINA
      */
     virtual ~BestPixelSelector();
 
-    /** \brief Overrides PixelSelector::onMouseDown().
-     *
-     */
     virtual void onMouseDown(const QPoint &pos, RenderView* view) override;
 
-    /** \brief Overrides PixelSelector::getPickPoint().
-     *
-     */
     virtual NmVector3 getPickPoint(RenderView* view) override;
 
   public slots:
-		/** \brief Sets the color of the best pixel for the selector.
-		 *
-		 */
+    /** \brief Sets the color of the best pixel for the selector.
+     *
+     */
     void setBestPixelValue(int value)
     { m_bestPixel = value; }
 

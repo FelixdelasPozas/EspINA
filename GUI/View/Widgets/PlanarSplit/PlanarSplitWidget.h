@@ -109,13 +109,13 @@ namespace ESPINA
       /** \brief Returns the vtkPlane defined in the tool.
        * \param[in] spacing
        */
-      virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 spacing) const;
+      virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 &spacing) const;
 
       /** \brief Sets the bounds of the segmentation to be splitted.
        * \param[in] bounds, bounds of the segmentation.
        *
        */
-      virtual void setSegmentationBounds(const Bounds bounds);
+      virtual void setSegmentationBounds(const Bounds &bounds);
 
       /** \brief Returns true if the defined plane is valid.
        *

@@ -422,15 +422,25 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
 {
   using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
 
+  auto output = m_extendedItem->output();
+
+  if (hasVolumetricData(output))
+  {
   auto volume = volumetricData(m_extendedItem->output());
-  auto image = volume->itkImage(interscetion);
+  auto image  = volume->itkImage(interscetion);
 
   ImageIterator it = ImageIterator(image, image->GetLargestPossibleRegion());
   it.GoToBegin();
-  while (!it.IsAtEnd()) {
-    if (it.Get() != volume->backgroundValue())
-      return true;
+  while (!it.IsAtEnd())
+  {
+    if (it.Get() != volume->backgroundValue()) return true;
     ++it;
+  }
+  }
+  else
+  {
+    // TODO: Detect collision using other techniques
+    //       (possibly collision detection should be part of the data API)
   }
 
   return false;

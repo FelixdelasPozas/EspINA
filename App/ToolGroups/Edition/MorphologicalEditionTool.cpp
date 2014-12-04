@@ -512,13 +512,13 @@ void MorphologicalEditionTool::updateAvailableActionsForSelection()
 
   bool hasRequiredData = true;
 
-  for(auto seg: selection)
+  for(auto seg : selection)
   {
     hasRequiredData &= hasVolumetricData(seg->output());
   }
 
-  auto morphologicalEnabled = m_enabled && (selection.size() > 0) && hasRequiredData;
-  auto logicalEnabled = m_enabled && (selection.size() >= 2) && hasRequiredData;
+  auto morphologicalEnabled = m_enabled && (selection.size() >  0) && hasRequiredData;
+  auto logicalEnabled       = m_enabled && (selection.size() >= 2) && hasRequiredData;
 
   m_addition->setEnabled(logicalEnabled);
   m_subtract->setEnabled(logicalEnabled);

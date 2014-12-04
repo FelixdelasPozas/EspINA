@@ -455,14 +455,13 @@ namespace ESPINA
            */
           region_iterator(BinaryMask<T> *mask, const Bounds &bounds)
           throw (Region_Not_Contained_In_Mask_Exception)
-          : m_mask(mask)
+          : m_mask  {mask}
+          , m_bounds{bounds, mask->m_spacing, mask->m_origin}
           {
-            m_bounds = VolumeBounds(bounds, mask->m_spacing, mask->m_origin);
 
-            if (!contains(mask->bounds(), m_bounds))
-              throw Region_Not_Contained_In_Mask_Exception();
+            if (!contains(mask->bounds(), m_bounds)) throw Region_Not_Contained_In_Mask_Exception();
 
-            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(mask->m_origin, mask->m_spacing, bounds);
+            auto region = equivalentRegion<itkVolumeType>(mask->m_origin, mask->m_spacing, bounds);
 
             m_extent[0] = region.GetIndex(0);
             m_extent[1] = region.GetIndex(0) + region.GetSize(0) - 1;

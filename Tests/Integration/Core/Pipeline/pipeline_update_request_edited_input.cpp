@@ -148,7 +148,7 @@ int pipeline_update_request_edited_input( int argc, char** argv )
   try {
     SegFile::save(&analysis, file);
   }
-  catch (SegFile::IO_Error_Exception e) {
+  catch (SegFile::IO_Error_Exception &e) {
     cerr << "Couldn't save seg file" << endl;
     error = true;
   }

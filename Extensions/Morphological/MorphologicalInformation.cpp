@@ -135,12 +135,19 @@ QVariant MorphologicalInformation::cacheFail(const QString& tag) const
     m_labelMap->SetComputeFeretDiameter(true);
   }
 
-  updateInformation();
+  QVariant info;
 
-  if (availableInformations().contains(tag))
-    return information(tag);
-  else
-    return QVariant();
+  if (hasVolumetricData(m_extendedItem->output()))
+  {
+    updateInformation();
+
+    if (availableInformations().contains(tag))
+    {
+      info = information(tag);
+    }
+  }
+
+  return info;
 }
 
 //------------------------------------------------------------------------
@@ -148,6 +155,7 @@ void MorphologicalInformation::updateInformation() const
 {
 //   qDebug() << "Updating" << m_seg->data().toString() << ID;
   Q_ASSERT(hasVolumetricData(m_extendedItem->output()));
+
   auto segVolume = volumetricData(m_extendedItem->output());
 
   bool          validInfo = segVolume != nullptr;

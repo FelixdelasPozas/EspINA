@@ -198,36 +198,42 @@ namespace ESPINA
   };
 
   /** \brief Equality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation adapter smart pointer.
-   * \param[in] rhs, segmentation smart pointer.
+   * \param[in] lhs segmentation adapter smart pointer.
+   * \param[in] rhs segmentation smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
 
   /** \brief Equality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation smart pointer.
-   * \param[in] rhs, segmentation adapter smart pointer.
+   * \param[in] lhs segmentation smart pointer.
+   * \param[in] rhs segmentation adapter smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator==(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
 
   /** \brief Inequality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation adapter smart pointer.
-   * \param[in] rhs, segmentation smart pointer.
+   * \param[in] lhs segmentation adapter smart pointer.
+   * \param[in] rhs segmentation smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
 
   /** \brief Inequality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation smart pointer.
-   * \param[in] rhs, segmentation adapter smart pointer.
+   * \param[in] lhs segmentation smart pointer.
+   * \param[in] rhs segmentation adapter smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator!=(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
 
   /** \brief Returns the segmentation adapter smart pointer from the item adapter raw pointer.
-   * \param[in] item, item adapter raw pointer.
+   * \param[in] item item adapter raw pointer.
    */
   SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ItemAdapterPtr item);
+
+  /** \brief Returns true if the given item is a segmentation item.
+   * \param[in] item item adapter raw pointer.
+   *
+   */
+  bool EspinaGUI_EXPORT isSegmentation(ItemAdapterPtr item);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

@@ -65,10 +65,6 @@ namespace ESPINA {
 
     ROISettings   *m_roiSettings;
     ROIToolsGroup *m_roiTools;
-
-    int  m_threshold;
-    bool m_applyClosing;
-    int  m_closingRadius;
   };
 
 } // namespace ESPINA

@@ -1164,18 +1164,6 @@ bool ESPINA::isSample(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
-bool ESPINA::isChannel(ItemAdapterPtr item)
-{
-  return ItemAdapter::Type::CHANNEL == item->type();
-}
-
-//------------------------------------------------------------------------
-bool ESPINA::isSegmentation(ItemAdapterPtr item)
-{
-  return ItemAdapter::Type::SEGMENTATION == item->type();
-}
-
-//------------------------------------------------------------------------
 // Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 // {
 //   if (!index.isValid())

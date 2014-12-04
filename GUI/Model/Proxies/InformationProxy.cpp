@@ -264,7 +264,12 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
         }
       } else if (m_pendingInformation[segmentation]->hasFinished())
       {
-        return segmentation->information(tag);
+          auto info = segmentation->information(tag);
+          if (!info.isValid())
+          {
+            info = tr("Unavailable");
+          }
+          return info;
       }
 
       return "";
@@ -274,9 +279,11 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
       return tr("Unavailable");
     }
   } else if (proxyIndex.column() > 0)
+  {
     return QVariant();//To avoid checkrole or other roles
+  }
 
-    return QAbstractProxyModel::data(proxyIndex, role);
+  return QAbstractProxyModel::data(proxyIndex, role);
 }
 
 //------------------------------------------------------------------------
