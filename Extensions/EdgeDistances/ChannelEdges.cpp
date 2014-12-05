@@ -28,6 +28,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
 // VTK
@@ -286,10 +287,14 @@ void ChannelEdges::distanceToBounds(SegmentationPtr segmentation, Nm distances[6
   Bounds segmentationBounds = segmentation->bounds();
 
   for (int i = 0; i < 6; i+=2)
+  {
     distances[i] = segmentationBounds[i] - channelBounds[i];
+  }
 
   for (int i = 1; i < 6; i+=2)
+  {
     distances[i] = channelBounds[i] - segmentationBounds[i];
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -304,23 +309,39 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   }
   m_facesMutex.unlock();
 
+  auto output = segmentation->output();
+
   QReadLocker lock(&m_facesMutex);
   //qDebug() << "Computing distances";
-  // BUG: fails when no mesh data is available
-  vtkSmartPointer<vtkPolyData> segmentationMesh = vtkSmartPointer<vtkPolyData>::New();
-  segmentationMesh->DeepCopy(meshData(segmentation->output())->mesh());
-  for(int face = 0; face < 6; ++face)
+  auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
+  if (hasMeshData(output))
   {
-    //qDebug() << "Computing distance to face"<< face;
-    vtkSmartPointer<vtkPolyData> faceMesh = vtkSmartPointer<vtkPolyData>::New();
-    faceMesh->DeepCopy(m_faces[face]);
+    segmentationPolyData->DeepCopy(meshData(output)->mesh());
+    for(int face = 0; face < 6; ++face)
+    {
+      //qDebug() << "Computing distance to face"<< face;
+      auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
+      faceMesh->DeepCopy(m_faces[face]);
 
-    vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
-    distanceFilter->SignedDistanceOff();
-    distanceFilter->SetInputData(0, segmentationMesh);
-    distanceFilter->SetInputData(1, faceMesh);
-    distanceFilter->Update();
-    distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+      auto distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
+      distanceFilter->SignedDistanceOff();
+      distanceFilter->SetInputData(0, segmentationPolyData);
+      distanceFilter->SetInputData(1, faceMesh);
+      distanceFilter->Update();
+      distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+    }
+  }
+//   else if (hasSkeletonData(output))
+//   {
+//     segmentationPolyData->DeepCopy(skeletonData(output)->skeleton());
+//   }
+  else
+  {
+    qWarning() << tr("Unavailable mesh information");
+    for (int i = 0; i < 6; ++i)
+    {
+      distances[i] = -1;
+    }
   }
 }
 

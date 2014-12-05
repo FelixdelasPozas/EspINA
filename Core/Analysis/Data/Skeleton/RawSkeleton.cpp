@@ -107,7 +107,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   RawSkeletonSPtr rawSkeleton(OutputSPtr output)
   {
-    RawSkeletonSPtr skeletonData = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
+    auto skeletonData = std::dynamic_pointer_cast<RawSkeleton>(output->data(SkeletonData::TYPE));
     Q_ASSERT(skeletonData);
     return skeletonData;
   }
