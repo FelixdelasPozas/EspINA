@@ -346,7 +346,7 @@ void ROIToolsGroup::addMask(const BinaryMaskSPtr<unsigned char> mask)
 {
   if (m_accumulator)
   {
-    expandAndDraw(m_accumulator, mask);
+    expandAndDraw(m_accumulator.get(), mask);
   }
   else
   {

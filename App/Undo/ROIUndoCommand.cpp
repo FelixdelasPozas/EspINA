@@ -49,7 +49,7 @@ namespace ESPINA
     }
     else
     {
-      expandAndDraw(ROI, m_mask);
+      expandAndDraw(ROI.get(), m_mask);
     }
   }
 

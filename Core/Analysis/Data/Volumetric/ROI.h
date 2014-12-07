@@ -292,14 +292,14 @@ namespace ESPINA
    *  \param[in] point point to be checked for inclussion inside the roi
    *  \param[in] spacing to determine whether two distances belong to the same voxel
    */
-  bool contains(ROISPtr roi, NmVector3 point, NmVector3 spacing = NmVector3{1, 1, 1});
+  bool EspinaCore_EXPORT contains(ROIPtr roi, NmVector3 point, NmVector3 spacing = NmVector3{1, 1, 1});
 
-//   /** \brief Draw mask values into ROI, if the mask is bigger than the ROI, its bounds will be expanded
-//    *
-//    *  \param[in] roi where the mask will be drawn on
-//    *  \param[in] mask to be drawn
-//    */
-  void expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask);
+   /** \brief Draw mask values into ROI, if the mask is bigger than the ROI, its bounds will be expanded
+    *
+    *  \param[in] roi where the mask will be drawn on
+    *  \param[in] mask to be drawn
+    */
+  void EspinaCore_EXPORT expandAndDraw(ROIPtr roi, const BinaryMaskSPtr<unsigned char> mask);
 } // namespace ESPINA
 #endif // ESPINA_ROI_H_
 

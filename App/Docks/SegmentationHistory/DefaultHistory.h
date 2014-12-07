@@ -19,11 +19,14 @@
 #ifndef ESPINA_DEFAULT_HISTORY_H
 #define ESPINA_DEFAULT_HISTORY_H
 
-#include <qt4/QtGui/QWidget>
+// Qt
+#include <QWidget>
 
+// ESPINA
 #include <GUI/Model/SegmentationAdapter.h>
 
-namespace ESPINA {
+namespace ESPINA
+{
 
   namespace Ui
   {

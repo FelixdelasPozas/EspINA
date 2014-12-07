@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -21,6 +21,8 @@
 #ifndef ESPINA_UNDO_MODIFY_DATA_COMMAND_H_
 #define ESPINA_UNDO_MODIFY_DATA_COMMAND_H_
 
+#include "Undo/EspinaUndo_Export.h"
+
 // ESPINA
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
@@ -30,8 +32,8 @@
 
 namespace ESPINA
 {
-  
-  class RemoveDataCommand
+
+  class EspinaUndo_EXPORT RemoveDataCommand
   : public QUndoCommand
   {
     public:
@@ -55,7 +57,7 @@ namespace ESPINA
       DataSPtr   m_data;
   };
 
-  class AddDataCommand
+  class EspinaUndo_EXPORT AddDataCommand
   : public QUndoCommand
   {
     public:

@@ -214,7 +214,8 @@ namespace ESPINA
   using OutputIdList = QList<Output::Id>;
 
   template <class T>
-  std::shared_ptr<T> EspinaCore_EXPORT outputData(OutputSPtr output, DataUpdatePolicy policy) {
+  std::shared_ptr<T> outputData(OutputSPtr output, DataUpdatePolicy policy)
+  {
     auto type = T::TYPE;
 
     if (policy == DataUpdatePolicy::Request)
