@@ -19,6 +19,9 @@
 #ifndef ESPINA_FILTER_DELEGATE_FACTORY_H
 #define ESPINA_FILTER_DELEGATE_FACTORY_H
 
+#include "Support/EspinaSupport_Export.h"
+
+// ESPINA
 #include <Core/Analysis/Filter.h>
 #include <Support/FilterHistory.h>
 
@@ -26,7 +29,7 @@ namespace ESPINA {
 
   struct Unknown_Filter_Type_Exception{};
 
-  class SpecificFilterDelegateFactory
+  class EspinaSupport_EXPORT SpecificFilterDelegateFactory
   {
   public:
     virtual ~SpecificFilterDelegateFactory(){}
@@ -47,7 +50,7 @@ namespace ESPINA {
 
   using SpecificFilterDelegateFactorySPtr = std::shared_ptr<SpecificFilterDelegateFactory>;
 
-  class FilterDelegateFactory
+  class EspinaSupport_EXPORT FilterDelegateFactory
   {
   public:
     /** \brief Register a filter delegate factory

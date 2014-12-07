@@ -19,7 +19,10 @@
 #ifndef ESPINA_SEED_GROW_SEGMENTATION_HISTORY_WIDGET_H
 #define ESPINA_SEED_GROW_SEGMENTATION_HISTORY_WIDGET_H
 
-#include <qt4/QtGui/QWidget>
+// Qt
+#include <QWidget>
+
+// ESPINA
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>

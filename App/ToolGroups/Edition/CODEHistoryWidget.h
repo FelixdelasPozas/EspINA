@@ -19,14 +19,18 @@
 #ifndef ESPINA_CODE_HISTORY_WIDGET_H
 #define ESPINA_CODE_HISTORY_WIDGET_H
 
-#include <qt4/QtGui/QWidget>
+// Qt
+#include <QWidget>
+
+// ESPINA
 #include <Filters/MorphologicalEditionFilter.h>
 #include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
 
 class QUndoStack;
 
-namespace ESPINA {
+namespace ESPINA
+{
 
   namespace Ui
   {
