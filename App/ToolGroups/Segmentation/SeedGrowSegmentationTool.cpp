@@ -301,7 +301,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
   if(roi != nullptr)
   {
-    validSeed = contains(roi, seed, volume->spacing());
+    validSeed = contains(roi.get(), seed, volume->spacing());
   }
 
   validSeed &= contains(volume->bounds(), seedBounds, volume->spacing());

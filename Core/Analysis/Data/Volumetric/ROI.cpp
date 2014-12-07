@@ -141,7 +141,7 @@ Snapshot ROI::snapshot(TemporalStorageSPtr storage, const QString &path, const Q
 }
 
 //-----------------------------------------------------------------------------
-bool ESPINA::contains(ROISPtr roi, NmVector3 point, NmVector3 spacing)
+bool ESPINA::contains(ROIPtr roi, NmVector3 point, NmVector3 spacing)
 {
   bool result = contains(roi->bounds(), point, spacing);
 
@@ -156,7 +156,7 @@ bool ESPINA::contains(ROISPtr roi, NmVector3 point, NmVector3 spacing)
 
 
   //-----------------------------------------------------------------------------
-  void ESPINA::expandAndDraw(ROISPtr roi, const BinaryMaskSPtr<unsigned char> mask)
+  void ESPINA::expandAndDraw(ROIPtr roi, const BinaryMaskSPtr<unsigned char> mask)
   {
     if(contains(roi->bounds(), mask->bounds().bounds(), roi->spacing()))
     {

@@ -19,10 +19,11 @@
 #ifndef ESPINA_EMPTY_HISTORY_H
 #define ESPINA_EMPTY_HISTORY_H
 
-#include <qt4/QtGui/QWidget>
+// Qt
+#include <QWidget>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   namespace Ui
   {
     class EmptyHistory;

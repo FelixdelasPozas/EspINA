@@ -1054,7 +1054,7 @@ namespace ESPINA
     if (position < m_actualPos->position)
     {
       // left shift
-      while (position < m_actualPos->position)
+      while (position < m_actualPos->position && !areEqual(position, m_actualPos->position, 0.1))
       {
         m_actualPos = m_actualPos->previous;
 
@@ -1087,7 +1087,7 @@ namespace ESPINA
     else
     {
       // right shift
-      while (position > m_actualPos->position)
+      while (position > m_actualPos->position && !areEqual(position, m_actualPos->position, 0.1))
       {
         m_actualPos = m_actualPos->next;
 
@@ -1110,8 +1110,7 @@ namespace ESPINA
         {
           m_edgePos->worker = createTask();
           m_edgePos->worker->setInput(m_edgePos, reps);
-          m_edgePos->worker->setDescription(
-              QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
+          m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
           m_edgePos->worker->submit(m_edgePos->worker);
         }
 
