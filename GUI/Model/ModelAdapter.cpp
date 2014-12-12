@@ -870,7 +870,9 @@ void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
   }
   endRemoveRows();
 
-  //emit segmentationRemoved(segmentation);
+  SegmentationAdapterSList segmentationList;
+  segmentationList << segmentation;
+  emit segmentationsRemoved(segmentationList);
 
   Q_ASSERT (!m_segmentations.contains(segmentation));
 }
@@ -883,7 +885,7 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
     remove(segmentation);
   }
 
-  //emit segmentationRemoved(segmentation);
+  emit segmentationsRemoved(segmentations);
 }
 
 //------------------------------------------------------------------------

@@ -61,7 +61,8 @@ namespace ESPINA
        */
       virtual vtkSmartPointer<vtkPolyData> skeleton() const = 0;
 
-      /** \brief Replace current skeleton data with a new skeleton
+      /** \brief Replace current skeleton data with a new skeleton. Is somewhat the equivalent
+       *   of 'draw' methods in the volumetric data. But this one replaces the entire polydata.
        *
        */
       virtual void setSkeleton(vtkSmartPointer<vtkPolyData> skeleton) = 0;

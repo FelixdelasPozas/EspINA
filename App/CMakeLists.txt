@@ -169,6 +169,7 @@ set (ESPINA_SOURCES
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
   Undo/BrushUndoCommand.cpp
+  Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
   Views/DefaultView.cpp

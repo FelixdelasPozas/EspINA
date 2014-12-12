@@ -48,7 +48,9 @@ namespace ESPINA
   SkeletonWidget::~SkeletonWidget()
   {
     for(auto view: m_widgets.keys())
+    {
       unregisterView(view);
+    }
 
     m_widgets.clear();
   }
@@ -58,8 +60,7 @@ namespace ESPINA
   {
     auto view2d = dynamic_cast<View2D *>(view);
 
-    if (!view2d || m_widgets.keys().contains(view))
-      return;
+    if (!view2d || m_widgets.keys().contains(view)) return;
 
     auto plane = view2d->plane();
     auto slice = view2d->crosshairPoint()[normalCoordinateIndex(plane)];
@@ -80,8 +81,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonWidget::unregisterView(RenderView* view)
   {
-    if (!m_widgets.keys().contains(view))
-      return;
+    if (!m_widgets.keys().contains(view)) return;
 
     auto view2d = dynamic_cast<View2D *>(view);
     disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
@@ -98,7 +98,9 @@ namespace ESPINA
   void SkeletonWidget::setEnabled(bool enable)
   {
     for(auto vtkWidget: m_widgets)
+    {
       vtkWidget->SetEnabled(enable);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -124,16 +126,30 @@ namespace ESPINA
               if(e->type() == QEvent::MouseButtonPress)
               {
                 if(me->button() == Qt::RightButton)
+                {
                   m_widgets[view]->GetInteractor()->RightButtonPressEvent();
+                }
                 else
+                {
                   m_widgets[view]->GetInteractor()->LeftButtonPressEvent();
+                }
               }
-              else
+              else // QEvent::MouseButtonRelease
               {
                 if(me->button() == Qt::RightButton)
+                {
                   m_widgets[view]->GetInteractor()->RightButtonReleaseEvent();
+                }
                 else
+                {
+                  auto validInteractionState = (m_widgets[view]->GetWidgetState() == vtkSkeletonWidget::Manipulate);
                   m_widgets[view]->GetInteractor()->LeftButtonReleaseEvent();
+                  if(m_widgets[view]->eventModifiedData() && validInteractionState)
+                  {
+                    emit modified(m_widgets[view]->getSkeleton());
+                    m_widgets[view]->resetModifiedFlag();
+                  }
+                }
               }
               return true;
             }
@@ -164,16 +180,16 @@ namespace ESPINA
       {
         QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
 
-        if(ke->key() == Qt::Key_Control || ke->key() == Qt::Key_Backspace || ke->key() == Qt::Key_Delete)
+        if(ke->key() == Qt::Key_Tab || ke->key() == Qt::Key_Backspace || ke->key() == Qt::Key_Alt)
         {
           const char *keyString;
           switch(ke->key())
           {
+            case Qt::Key_Tab:
+              keyString = "Tab";
+              break;
             case Qt::Key_Alt:
               keyString = "Alt_L";
-              break;
-            case Qt::Key_Control:
-              keyString = "Control_L";
               break;
             case Qt::Key_Backspace:
               keyString = "BackSpace";
@@ -200,9 +216,18 @@ namespace ESPINA
               {
                 m_widgets[view]->GetInteractor()->KeyPressEvent();
               }
-              else
+              else // QEvent::KeyRelease
               {
+                auto widgetState = m_widgets[view]->GetWidgetState();
                 m_widgets[view]->GetInteractor()->KeyReleaseEvent();
+                auto validInteractionState = (widgetState == vtkSkeletonWidget::Define && ke->key() == Qt::Key_Tab) ||
+                                             (widgetState == vtkSkeletonWidget::Start && ke->key() == Qt::Key_Alt) ||
+                                             ke->key() == Qt::Key_Backspace;
+                if(m_widgets[view]->eventModifiedData() && validInteractionState)
+                {
+                  emit modified(m_widgets[view]->getSkeleton());
+                  m_widgets[view]->resetModifiedFlag();
+                }
               }
             }
           }
@@ -220,8 +245,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonWidget::setInUse(bool value)
   {
-    if(m_inUse == value)
-      return;
+    if(m_inUse == value) return;
 
     m_inUse = value;
 
@@ -231,20 +255,23 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonWidget::setTolerance(const double value)
   {
-    if(this->m_tolerance == value)
-      return;
+    if(this->m_tolerance == value) return;
 
     this->m_tolerance = value;
 
     for(auto vtkWidget: this->m_widgets)
+    {
       vtkWidget->SetTolerance(m_tolerance);
+    }
   }
 
   //-----------------------------------------------------------------------------
   void SkeletonWidget::changeSlice(Plane plane, Nm slice)
   {
     for(auto vtkWidget: this->m_widgets)
+    {
       vtkWidget->changeSlice(plane, slice);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -257,8 +284,7 @@ namespace ESPINA
         auto callerWidget = dynamic_cast<vtkSkeletonWidget *>(caller);
         for(auto vtkWidget: m_widget->m_widgets)
         {
-          if(vtkWidget == callerWidget)
-            continue;
+          if(vtkWidget == callerWidget) continue;
 
           vtkWidget->UpdateRepresentation();
         }
@@ -270,15 +296,16 @@ namespace ESPINA
   void SkeletonWidget::initialize(vtkSmartPointer<vtkPolyData> pd)
   {
     for(auto vtkWidget: this->m_widgets)
+    {
       vtkWidget->Initialize(pd);
+    }
   }
 
   //-----------------------------------------------------------------------------
   vtkSmartPointer<vtkPolyData> SkeletonWidget::getSkeleton()
   {
     // all the vtkSkeletonWidgets should have the same data so anyone can suffice.
-    if(m_widgets.isEmpty())
-      return nullptr;
+    if(m_widgets.isEmpty()) return nullptr;
 
     return m_widgets.values().first()->getSkeleton();
   }
@@ -287,7 +314,9 @@ namespace ESPINA
   void SkeletonWidget::setRepresentationColor(const QColor &color)
   {
     for(auto vtkWidget: this->m_widgets)
+    {
       vtkWidget->setRepresentationColor(color);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -296,7 +325,9 @@ namespace ESPINA
     m_spacing = spacing;
 
     for(auto vtkWidget: this->m_widgets)
+    {
       vtkWidget->SetSpacing(spacing);
+    }
   }
 
 } // namespace ESPINA

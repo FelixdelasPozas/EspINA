@@ -43,7 +43,7 @@ class QUndoStack;
 namespace ESPINA
 {
   class CategorySelector;
-  class SpinBoxAction;
+  class DoubleSpinBoxAction;
 
   class SourceFilterFactory
   : public FilterFactory
@@ -81,14 +81,6 @@ namespace ESPINA
 
       virtual QList<QAction *> actions() const;
 
-      /** \brief Returns the Skeleton created by the user.
-       *
-       */
-      vtkSmartPointer<vtkPolyData> getSkeleton()
-      {
-        return m_skeleton; m_skeleton = nullptr;
-      }
-
       /** \brief Returns the category of the category selector of the tool.
        *
        */
@@ -108,10 +100,17 @@ namespace ESPINA
       { initTool(false); };
 
     public slots:
-      /** \brief Helper method to create a segmentation and assigns a skeleton output to it.
+      /** \brief Helper method to modify an existing skeleton of a segmentation.
+       * \param[in] polyData smart pointer of the new vtkPolyData.
        *
        */
-      void createSegmentation();
+      void skeletonModification(vtkSmartPointer<vtkPolyData> polyData);
+
+      /** \brief Helper method to update the representation in the widget if the data
+       *  being edited changes (by undo/redo).
+       *
+       */
+      void updateWidgetRepresentation();
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.
@@ -137,6 +136,18 @@ namespace ESPINA
        */
       void eventHandlerToogled(bool toggled);
 
+      /** \brief Updates the tolerance value in the widgets when the value in the spinbox changes.
+       * \param[in] value new tolerance value.
+       *
+       */
+      void toleranceValueChanged(double value);
+
+      /** \brief Updates the widget if the item being modified is removed from the model (i.e. by undo).
+       * \param[in] segmentations List of segmentation adapter smart pointers removed from the model.
+       *
+       */
+      void checkItemRemoval(SegmentationAdapterSList segmentations);
+
     private:
       /** \brief Helper method to manage the visibility of widgets.
        * \param[in] value true to set visible false otherwise.
@@ -149,20 +160,20 @@ namespace ESPINA
        */
       void updateReferenceItem();
 
-      ViewManagerSPtr   m_vm;
-      ModelAdapterSPtr  m_model;
-      ModelFactorySPtr  m_factory;
-      QUndoStack       *m_undoStack;
-      bool              m_enabled;
-      CategorySelector *m_categorySelector;
-      EventHandlerSPtr  m_handler;
-      QAction          *m_action;
-      EspinaWidgetSPtr  m_widget;
+      ViewManagerSPtr      m_vm;
+      ModelAdapterSPtr     m_model;
+      ModelFactorySPtr     m_factory;
+      QUndoStack          *m_undoStack;
+      bool                 m_enabled;
+      CategorySelector    *m_categorySelector;
+      DoubleSpinBoxAction *m_toleranceWidget;
+      EventHandlerSPtr     m_handler;
+      QAction             *m_action;
+      EspinaWidgetSPtr     m_widget;
 
       // widget's return values
       SegmentationAdapterPtr       m_item;
       CategoryAdapterSPtr          m_itemCategory;
-      vtkSmartPointer<vtkPolyData> m_skeleton;
   };
 
   using SkeletonToolPtr  = SkeletonTool *;

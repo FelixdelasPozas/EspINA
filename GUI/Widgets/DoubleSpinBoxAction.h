@@ -1,10 +1,10 @@
 /*
 
- Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
-    ESPINA is free software: you can redistribute it and/or modify
+ ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -18,74 +18,73 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_SPINBOX_ACTION_WIDGET_H_
-#define ESPINA_SPINBOX_ACTION_WIDGET_H_
-
-#include "GUI/EspinaGUI_Export.h"
+#ifndef ESPINA_DOUBLE_SPINBOX_ACTION_H_
+#define ESPINA_DOUBLE_SPINBOX_ACTION_H_
 
 // Qt
 #include <QWidgetAction>
 #include <QLabel>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT SpinBoxAction
+  
+  class DoubleSpinBoxAction
   : public QWidgetAction
   {
     Q_OBJECT
     public:
-      /** \brief SpinBoxAction class constructor.
-       * \param[in] parent, raw pointer of the QObject parent of this one.
+      /** \brief DoubleSpinBoxAction class constructor.
+       * \param[in] parent raw pointer of the QObject parent of this one.
        *
        */
-      explicit SpinBoxAction(QObject *parent = nullptr);
+      explicit DoubleSpinBoxAction(QObject *parent = nullptr);
 
-      /** \brief SpinBoxAction class virtual destructor.
+      /** \brief DoubleSpinBoxAction class virtual destructor.
        *
        */
-      virtual ~SpinBoxAction();
+      virtual ~DoubleSpinBoxAction();
 
       virtual QWidget* createWidget(QWidget* parent) override;
 
       /** \brief Returns widget's radius value.
        *
        */
-      int value() const
+      double value() const
       { return m_value; }
 
       /** \brief Set minimum value for widget's QSpinBox.
-       * \param[in] value, new value.
+       * \param[in] value new spinbox minimium value.
        *
        */
-      void setSpinBoxMinimum(int value);
+      void setSpinBoxMinimum(double value);
 
       /** \brief Returns the minimum value for the widget's QSpinBox.
        *
        */
-      int getSpinBoxMinimumValue()
+      double getSpinBoxMinimumValue()
       { return m_minimumValue; }
 
       /** \brief Set maximum value for widget's QSpinBox.
-       * \param[in] value, new value.
+       * \param[in] value new spinbox maximum value.
        *
        */
-      void setSpinBoxMaximum(int value);
+      void setSpinBoxMaximum(double value);
 
       /** \brief Returns the maximum value for the widget's QSpinBox.
        *
        */
-      int getSpinBoxMaximumValue()
+      double getSpinBoxMaximumValue()
       { return m_maximumValue; }
 
       /** \brief Set value for the widget's QLabel.
-       * \param[in] label, new label.
+       * \param[in] label new action label.
        *
        */
       void setLabelText(const QString &label);
 
       /** \brief Set suffix of the spin box.
-       * \param[in] suffix, new suffix.
+       * \param[in] suffix new spinbox suffix.
        *
        */
       void setSuffix(const QString &suffix);
@@ -94,12 +93,12 @@ namespace ESPINA
        * \param[in] value new increment value.
        *
        */
-      void setStepping(int value);
+      void setStepping(double value);
 
       /** \brief Returs the spinbox stepping value.
        *
        */
-      int getSpinBoxStepping()
+      double getSpinBoxStepping()
       { return m_step; }
 
       void setEnabled(bool value)
@@ -121,7 +120,7 @@ namespace ESPINA
        * \param[in] value, new value.
        *
        */
-      void setValue(int value);
+      void setValue(double value);
 
       /** \brief It's necessary to connect to the destroy signal of allocated
        *         widgets so we can nullify the pointers when they are destroyed.
@@ -133,21 +132,21 @@ namespace ESPINA
       /** \brief Signal to propagate changes into the widget's values.
        *
        */
-      void valueChanged(int);
+      void valueChanged(double);
 
     private:
-      QLabel   *m_label;
-      QSpinBox *m_spinBox;
+      QLabel         *m_label;
+      QDoubleSpinBox *m_spinBox;
 
-      int       m_value;
+      double    m_value;
       QString   m_text;
       QString   m_suffix;
       bool      m_enabled;
-      int       m_maximumValue;
-      int       m_minimumValue;
-      int       m_step;
+      double    m_maximumValue;
+      double    m_minimumValue;
+      double    m_step;
   };
 
 } // namespace ESPINA
 
-#endif // ESPINA_SPINBOX_ACTION_WIDGET_H_
+#endif // ESPINA_DOUBLE_SPINBOX_ACTION_H_

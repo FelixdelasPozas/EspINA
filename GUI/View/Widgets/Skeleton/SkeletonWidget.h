@@ -99,6 +99,9 @@ namespace ESPINA
     public slots:
       void changeSlice(Plane, Nm);
 
+    signals:
+      void modified(vtkSmartPointer<vtkPolyData> polydata);
+
     private:
       friend class vtkSkeletonWidgetCommand;
 

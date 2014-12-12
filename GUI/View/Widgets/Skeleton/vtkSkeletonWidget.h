@@ -153,6 +153,24 @@ namespace ESPINA
        */
       void UpdateRepresentation();
 
+      /** \brief Returns true if the last event has resulted in data modification.
+       *  Used to signal modifications to the parent tool.
+       *
+       */
+      bool eventModifiedData() const
+      { return m_modified; }
+
+      /** \brief Deactivated the modified flag.
+       *
+       */
+      void resetModifiedFlag()
+      { m_modified = false; }
+
+      enum
+      {
+        Start, Define, Manipulate
+      };
+
     protected:
       int       m_widgetState;
       int       m_currentHandle;
@@ -168,7 +186,6 @@ namespace ESPINA
        */
       static void StopAction(vtkAbstractWidget*);
       static void MoveAction(vtkAbstractWidget*);
-      static void ResetAction(vtkAbstractWidget*);
       static void KeyPressAction(vtkAbstractWidget *);
       static void ReleaseKeyPressAction(vtkAbstractWidget *);
       static void TranslateAction(vtkAbstractWidget *);
@@ -177,11 +194,6 @@ namespace ESPINA
        *
        */
       virtual void SetCursor(int State) override;
-
-      enum
-      {
-        Start, Define, Manipulate
-      };
 
     protected:
       /** \brief vtkSkeletonWidget class constructor.
@@ -204,6 +216,7 @@ namespace ESPINA
 
       QCursor         m_crossMinusCursor, m_crossPlusCursor, m_crossCheckCursor;
       SkeletonWidget *m_parent;
+      bool            m_modified;
   };
 
 } // namespace ESPINA

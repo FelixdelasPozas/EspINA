@@ -23,6 +23,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Skeleton/SkeletonProxy.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
+#include <Core/Utils/VolumeBounds.h>
 
 // VTK
 #include <vtkPolyData.h>
@@ -49,7 +50,7 @@ namespace ESPINA
 
       skeletonData->GetBounds(bounds);
 
-      result = Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] };
+      result = VolumeBounds{Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] }, m_output->spacing(), NmVector3{0,0,0}}.bounds();
     }
 
     return result;

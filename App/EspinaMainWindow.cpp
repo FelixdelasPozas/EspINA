@@ -79,6 +79,7 @@ using namespace ESPINA::GUI;
 
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 const int PERIOD_NS = 250000;
+const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
@@ -285,8 +286,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
   m_contextualBar->setObjectName("Contextual ToolBar");
-  m_contextualBar->setMinimumHeight(44);
-  m_contextualBar->setMaximumHeight(44);
+  m_contextualBar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
+  m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_viewManager->setContextualBar(m_contextualBar);
 
   auto defaultActiveTool = new ViewTools(m_viewManager, this);

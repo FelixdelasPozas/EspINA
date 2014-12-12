@@ -1,10 +1,10 @@
 /*
 
- Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2014 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
-    ESPINA is free software: you can redistribute it and/or modify
+ ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -19,7 +19,7 @@
  */
 
 // ESPINA
-#include "SpinBoxAction.h"
+#include "DoubleSpinBoxAction.h"
 
 // Qt
 #include <QHBoxLayout>
@@ -27,7 +27,7 @@
 namespace ESPINA
 {
   //------------------------------------------------------------------------
-  SpinBoxAction::SpinBoxAction(QObject *parent)
+  DoubleSpinBoxAction::DoubleSpinBoxAction(QObject *parent)
   : QWidgetAction {parent}
   , m_label       {nullptr}
   , m_spinBox     {nullptr}
@@ -42,7 +42,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  SpinBoxAction::~SpinBoxAction()
+  DoubleSpinBoxAction::~DoubleSpinBoxAction()
   {
     if (m_label)
     {
@@ -56,7 +56,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  QWidget* SpinBoxAction::createWidget(QWidget* parent)
+  QWidget* DoubleSpinBoxAction::createWidget(QWidget* parent)
   {
     QWidget*     widget = new QWidget(parent);
     QHBoxLayout* layout = new QHBoxLayout();
@@ -64,10 +64,7 @@ namespace ESPINA
     widget->setLayout(layout);
 
     m_label   = new QLabel(m_text);
-    m_spinBox = new QSpinBox();
-
-    // only catching one of them will suffice
-    connect(m_spinBox, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));
+    m_spinBox = new QDoubleSpinBox();
 
     m_spinBox->setValue(m_value);
     m_spinBox->setMinimum(m_minimumValue);
@@ -75,8 +72,10 @@ namespace ESPINA
     m_spinBox->setSuffix(m_suffix);
     m_spinBox->setSingleStep(m_step);
 
-    connect(m_spinBox,SIGNAL(valueChanged(int)),
-            this, SLOT(setValue(int)));
+    connect(m_spinBox, SIGNAL(destroyed(QObject*)),
+            this,      SLOT(destroySignalEmmited()));
+    connect(m_spinBox, SIGNAL(valueChanged(double)),
+            this,      SLOT(setValue(double)));
 
     layout->addWidget(m_label);
     layout->addWidget(m_spinBox);
@@ -88,7 +87,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setValue(int value)
+  void DoubleSpinBoxAction::setValue(double value)
   {
     m_value = value;
     if (m_spinBox)
@@ -99,7 +98,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setSpinBoxMinimum(int value)
+  void DoubleSpinBoxAction::setSpinBoxMinimum(double value)
   {
     m_minimumValue = value;
 
@@ -115,7 +114,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setSpinBoxMaximum(int value)
+  void DoubleSpinBoxAction::setSpinBoxMaximum(double value)
   {
     m_maximumValue = value;
 
@@ -131,7 +130,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setLabelText(const QString &label)
+  void DoubleSpinBoxAction::setLabelText(const QString &label)
   {
     m_text = label;
 
@@ -142,7 +141,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setSuffix(const QString &suffix)
+  void DoubleSpinBoxAction::setSuffix(const QString &suffix)
   {
     m_suffix = suffix;
 
@@ -153,7 +152,7 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void SpinBoxAction::setStepping(int value)
+  void DoubleSpinBoxAction::setStepping(double value)
   {
     m_step = value;
 

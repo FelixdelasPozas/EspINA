@@ -18,39 +18,38 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ESPINA
-#include "SkeletonToolGroup.h"
+#include "ModifySkeletonCommand.h"
 
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  SkeletonToolGroup::SkeletonToolGroup(ModelAdapterSPtr model,
-                                       ModelFactorySPtr factory,
-                                       ViewManagerSPtr  viewManager,
-                                       QUndoStack      *undoStack,
-                                       QObject *parent)
-  : ToolGroup  {viewManager, QIcon(":/espina/tubular.svg"), tr("Skeleton tools."), parent}
-  , m_model    {model}
-  , m_factory  {factory}
-  , m_undoStack{undoStack}
-  , m_tool     {new SkeletonTool{model, factory, viewManager, undoStack}}
-  , m_enabled  {false}
+  ModifySkeletonCommand::ModifySkeletonCommand(SkeletonDataSPtr data, vtkSmartPointer<vtkPolyData> skeletonPolyData)
+  : m_skeletonData{data}
+  , m_newSkeleton {skeletonPolyData}
+  , m_oldSkeleton {data->skeleton()}
+  , m_editedRegions{data->editedRegions()}
   {
   }
   
   //-----------------------------------------------------------------------------
-  void SkeletonToolGroup::setEnabled(bool value)
+  ModifySkeletonCommand::~ModifySkeletonCommand()
   {
-    m_enabled = value;
-    m_tool->setEnabled(value);
   }
 
   //-----------------------------------------------------------------------------
-  ToolSList SkeletonToolGroup::tools()
+  void ModifySkeletonCommand::redo()
   {
-    ToolSList list;
-    list << m_tool;
-    return list;
+    // set skeleton modifies edited regions accordingly
+    m_skeletonData->setSkeleton(m_newSkeleton);
+  }
+
+  //-----------------------------------------------------------------------------
+  void ModifySkeletonCommand::undo()
+  {
+    m_skeletonData->setSkeleton(m_oldSkeleton);
+    // original skeleton edited regions can be empty, must restore the original state,
+    // as setSkeleton() modifies edited regions.
+    m_skeletonData->setEditedRegions(m_editedRegions);
   }
 
 } // namespace EspINA

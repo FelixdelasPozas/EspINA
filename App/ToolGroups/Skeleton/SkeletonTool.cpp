@@ -29,9 +29,12 @@
 #include <GUI/Representations/SkeletonRepresentation.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
 #include <GUI/Widgets/CategorySelector.h>
-#include <GUI/Widgets/SpinBoxAction.h>
+#include <GUI/Widgets/DoubleSpinBoxAction.h>
 #include <Filters/SourceFilter.h>
 #include <Undo/AddSegmentations.h>
+#include <Undo/ModifyDataCommand.h>
+#include <Undo/ModifySkeletonCommand.h>
+#include <Undo/RemoveSegmentations.h>
 
 // VTK
 #include <vtkIdList.h>
@@ -84,6 +87,7 @@ namespace ESPINA
   , m_undoStack       {undoStack}
   , m_enabled         {false}
   , m_categorySelector{new CategorySelector(model)}
+  , m_toleranceWidget {new DoubleSpinBoxAction(this)}
   , m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
   {
     m_factory->registerFilterFactory(FilterFactorySPtr{new SourceFilterFactory()});
@@ -91,15 +95,22 @@ namespace ESPINA
     m_action->setCheckable(true);
 
     connect(m_action, SIGNAL(triggered(bool)),
-            this,     SLOT(initTool(bool)), Qt::QueuedConnection);
+            this,     SLOT(initTool(bool)));
 
     connect(m_vm->selection().get(), SIGNAL(selectionChanged()),
-            this,                    SLOT(updateState()), Qt::QueuedConnection);
+            this,                    SLOT(updateState()));
 
     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-            this,               SLOT(categoryChanged(CategoryAdapterSPtr)), Qt::QueuedConnection);
+            this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
 
-    setControlsVisibility(false);
+    m_categorySelector->setVisible(false);
+
+    m_toleranceWidget->setLabelText(tr("Points Tolerance"));
+    m_toleranceWidget->setSuffix(tr(" nm"));
+    m_toleranceWidget->setVisible(false);
+
+    connect(m_toleranceWidget, SIGNAL(valueChanged(double)),
+            this,              SLOT(toleranceValueChanged(double)));
   }
   
   //-----------------------------------------------------------------------------
@@ -110,15 +121,6 @@ namespace ESPINA
       m_widget->setEnabled(false);
       m_widget = nullptr;
     }
-
-    disconnect(m_action, SIGNAL(triggered(bool)),
-               this,     SLOT(initTool(bool)));
-
-    disconnect(m_vm->selection().get(), SIGNAL(selectionChanged()),
-               this,                    SLOT(updateState()));
-
-    disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-               this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
   }
   
   //-----------------------------------------------------------------------------
@@ -126,35 +128,56 @@ namespace ESPINA
   {
     m_enabled = value;
 
-    if (m_widget != nullptr)
+    if (m_widget)
       m_widget->setEnabled(value);
 
     m_action->setEnabled(value);
     m_categorySelector->setEnabled(value);
+    m_toleranceWidget->setEnabled(value);
   }
   
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateState()
   {
-    auto selectedSegs = m_vm->selection()->segmentations();
-    auto enabled = (selectedSegs.size() <= 1);
+    if(!enabled())
+      return;
 
-    m_action->setEnabled(enabled);
-    m_categorySelector->setEnabled(enabled);
+    auto selection = m_vm->selection()->segmentations();
+    auto validItem = (selection.size() <= 1);
 
-    if(enabled && !selectedSegs.empty())
+    m_action->setEnabled(validItem);
+    m_categorySelector->setEnabled(validItem);
+    m_toleranceWidget->setEnabled(validItem);
+
+    NmVector3 spacing;
+
+    if(validItem && !selection.empty())
     {
-      m_item = selectedSegs.first();
+      spacing = m_item->output()->spacing();
+      m_item = selection.first();
       m_itemCategory = m_item->category();
     }
     else
     {
+      if(!m_vm->activeChannel())
+      {
+        spacing = NmVector3{1,1,1};
+      }
+      else
+      {
+        spacing = m_vm->activeChannel()->output()->spacing();
+      }
       m_item = nullptr;
       m_itemCategory = m_categorySelector->selectedCategory();
 
-      if(m_widget != nullptr)
+      if(m_widget)
+      {
         initTool(false);
+      }
+      m_toleranceWidget->setSpinBoxMinimum(1);
     }
+
+    m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
     m_categorySelector->selectCategory(m_itemCategory);
   }
 
@@ -164,6 +187,7 @@ namespace ESPINA
     QList<QAction *> actions;
     actions << m_action;
     actions << m_categorySelector;
+    actions << m_toleranceWidget;
 
     return actions;
   }
@@ -177,12 +201,33 @@ namespace ESPINA
     {
       m_item = nullptr;
       m_itemCategory = m_categorySelector->selectedCategory();
+      m_toleranceWidget->setSpinBoxMinimum(1);
     }
     else
     {
       m_item = selectedSegs.first();
       m_itemCategory = m_item->category();
+
+      auto spacing = m_item->output()->spacing();
+      m_toleranceWidget->setSpinBoxMinimum(std::max(spacing[0], std::max(spacing[1], spacing[2])));
     }
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::updateWidgetRepresentation()
+  {
+    auto skeleton = dynamic_cast<SkeletonData *>(sender());
+
+    if(!m_widget)
+    {
+      disconnect(skeleton, SIGNAL(dataChanged()),
+              this       , SLOT(updateWidgetRepresentation()));
+
+      return;
+    }
+
+    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+    widget->initialize(skeleton->skeleton());
   }
 
   //-----------------------------------------------------------------------------
@@ -190,51 +235,72 @@ namespace ESPINA
   {
     if (value)
     {
-      if(nullptr == m_vm->activeChannel()) return;
+      if(!m_vm->activeChannel()) return;
 
       updateReferenceItem();
-      NmVector3 spacing;
-      if(m_item == nullptr)
-      {
-        spacing = m_vm->activeChannel()->output()->spacing();
-      }
-      else
+      auto spacing = m_vm->activeChannel()->output()->spacing();
+      if(m_item)
       {
         spacing = m_item->output()->spacing();
-      }
-
-      auto toleranceValue = std::floor(std::max(spacing[0], std::max(spacing[1], spacing[2]))) + 1;
-
-      QColor color;
-      auto selection = m_vm->selection()->segmentations();
-      if(selection.size() != 1)
-        color = m_categorySelector->selectedCategory()->color();
-      else
-        color = m_vm->colorEngine()->color(selection.first());
-
-      auto widget = new SkeletonWidget();
-      widget->setTolerance(toleranceValue);
-
-      m_widget = EspinaWidgetSPtr{widget};
-      m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
-      connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
-              this,            SLOT(eventHandlerToogled(bool)), Qt::QueuedConnection);
-
-      m_vm->setEventHandler(m_handler);
-      m_vm->addWidget(m_widget);
-      m_vm->setSelectionEnabled(false);
-      widget->setSpacing(spacing);
-      widget->setRepresentationColor(color);
-      if(m_item != nullptr)
-      {
-        auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-        if(rep != RepresentationSPtr())
-          rep->setVisible(false);
 
         if(hasSkeletonData(m_item->output()))
-          widget->initialize(skeletonData(m_item->output())->skeleton());
+        {
+          auto skeleton = skeletonData(m_item->output());
+          connect(skeleton.get(), SIGNAL(dataChanged()),
+                  this          , SLOT(updateWidgetRepresentation()));
+        }
       }
+
+      auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+
+      auto selection = m_vm->selection()->segmentations();
+      auto color = m_categorySelector->selectedCategory()->color();
+      if(selection.size() == 1)
+      {
+        color = m_vm->colorEngine()->color(selection.first());
+      }
+
+      auto widget = new SkeletonWidget();
+      connect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
+              this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
+
+      m_toleranceWidget->setSpinBoxMinimum(minimumDistance);
+      m_toleranceWidget->setStepping(minimumDistance);
+      widget->setTolerance(minimumDistance);
+
+      m_widget.reset(widget);
+
+      m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
+      m_handler->setCursor(Qt::CrossCursor);
+
+      connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
+              this,            SLOT(eventHandlerToogled(bool)));
+
+      m_vm->setEventHandler(m_handler);
+      m_vm->setSelectionEnabled(false);
+      m_vm->addWidget(m_widget);
+      widget->setSpacing(spacing);
+      widget->setRepresentationColor(color);
+
+      if(m_item)
+      {
+        if(hasSkeletonData(m_item->output()))
+        {
+          auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+          if(rep)
+          {
+            rep->setVisible(false);
+          }
+
+          widget->initialize(skeletonData(m_item->output())->skeleton());
+        }
+      }
+
       m_widget->setEnabled(true);
+
+      connect(m_model.get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+              this,          SLOT(checkItemRemoval(SegmentationAdapterSList)));
+
     }
     else
     {
@@ -242,7 +308,8 @@ namespace ESPINA
       m_action->setChecked(false);
       m_action->blockSignals(false);
 
-      m_skeleton = dynamic_cast<SkeletonWidget *>(m_widget.get())->getSkeleton();
+      disconnect(m_model.get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+                 this,          SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
       disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
                  this,            SLOT(eventHandlerToogled(bool)));
@@ -250,23 +317,38 @@ namespace ESPINA
       m_widget->setEnabled(false);
       m_vm->removeWidget(m_widget);
 
+      auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+      Q_ASSERT(widget);
+      disconnect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
+                 this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
+
       m_vm->unsetEventHandler(m_handler);
-      m_handler = nullptr;
+      m_handler.reset();
       m_vm->setSelectionEnabled(true);
-      m_widget = nullptr;
+      m_widget.reset();
 
-      if(m_item != nullptr)
+      if(m_item)
       {
-        auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-        if(rep != RepresentationSPtr())
-          rep->setVisible(true);
+        if(hasSkeletonData(m_item->output()))
+        {
+          auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+          if(rep)
+          {
+            rep->setVisible(true);
+          }
+
+          auto skeleton = skeletonData(m_item->output());
+          disconnect(skeleton.get(), SIGNAL(dataChanged()),
+                     this          , SLOT(updateWidgetRepresentation()));
+
+          SegmentationAdapterList selection;
+          selection << m_item;
+
+          m_vm->selection()->set(selection);
+          m_vm->updateSegmentationRepresentations(m_item);
+          m_vm->updateViews();
+        }
       }
-
-      if(m_skeleton->GetNumberOfPoints() != 0)
-        createSegmentation();
-      else
-        m_skeleton = nullptr;
-
     }
 
     setControlsVisibility(value);
@@ -276,12 +358,51 @@ namespace ESPINA
   void SkeletonTool::setControlsVisibility(bool value)
   {
     m_categorySelector->setVisible(value);
+    m_toleranceWidget->setVisible(value);
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::toleranceValueChanged(double value)
+  {
+    if(m_widget)
+    {
+      auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+      widget->setTolerance(value);
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::checkItemRemoval(SegmentationAdapterSList segmentations)
+  {
+    if(!m_item) return;
+
+    for(auto seg: segmentations)
+    {
+      if(seg.get() == m_item)
+      {
+        // need to activate the representation because the removal can be undoed.
+        auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+        if(rep)
+        {
+          rep->setVisible(true);
+        }
+
+        auto skeleton = skeletonData(m_item->output());
+        disconnect(skeleton.get(), SIGNAL(dataChanged()),
+                   this          , SLOT(updateWidgetRepresentation()));
+
+        m_item = nullptr;
+        initTool(false);
+
+        return;
+      }
+    }
   }
 
   //-----------------------------------------------------------------------------
   void SkeletonTool::categoryChanged(CategoryAdapterSPtr category)
   {
-    if(m_widget != nullptr)
+    if(m_widget)
     {
       dynamic_cast<SkeletonWidget *>(m_widget.get())->setRepresentationColor(category->color());
     }
@@ -290,45 +411,73 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::eventHandlerToogled(bool toggled)
   {
-    if (!toggled && m_widget != nullptr)
+    if (!toggled && m_widget)
     {
       initTool(false);
     }
   }
 
   //-----------------------------------------------------------------------------
-  void SkeletonTool::createSegmentation()
+  void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
   {
-    if(m_item != nullptr)
+    if(m_item)
     {
       if(hasSkeletonData(m_item->output()))
       {
-        auto polyData = skeletonData(m_item->output())->skeleton();
+        if(polyData->GetNumberOfPoints() == 0)
+        {
+          if(m_item->output()->numberOfDatas() == 1)
+          {
+            m_undoStack->beginMacro(tr("Remove Segmentation"));
+            m_undoStack->push(new RemoveSegmentations(m_item, m_model));
+            m_undoStack->endMacro();
 
-        polyData->SetPoints(m_skeleton->GetPoints());
-        polyData->SetLines(m_skeleton->GetLines());
-        polyData->Modified();
+            m_item = nullptr;
+            initTool(false);
+          }
+          else
+          {
+            m_undoStack->beginMacro(tr("Remove Skeleton from segmentation"));
+            m_undoStack->push(new RemoveDataCommand(m_item->output(), SkeletonData::TYPE));
+            m_undoStack->endMacro();
+          }
+        }
+        else
+        {
+          auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+
+          m_undoStack->beginMacro(tr("Modify segmentation's skeleton"));
+          m_undoStack->push(new ModifySkeletonCommand(skeletonData(m_item->output()), widget->getSkeleton()));
+          m_undoStack->endMacro();
+        }
       }
       else
       {
-        auto spacing = m_item->output()->spacing();
-        auto data    = std::make_shared<RawSkeleton>(m_skeleton, spacing, m_item->output());
+        if(polyData->GetNumberOfPoints() == 0) return;
 
-        m_item->output()->setData(data);
+        auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+        auto itemOuput = m_item->output();
+        auto data = std::make_shared<RawSkeleton>(widget->getSkeleton(), itemOuput->spacing(), itemOuput);
+
+        m_undoStack->beginMacro(tr("Add Skeleton to segmentation"));
+        m_undoStack->push(new AddDataCommand(itemOuput, data));
+        m_undoStack->endMacro();
       }
     }
     else
     {
-      auto spacing = m_vm->activeChannel()->output()->spacing();
-      auto filter  = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-      auto output  = OutputSPtr(new Output(filter.get(), 0, spacing));
+      if(polyData->GetNumberOfPoints() == 0) return;
 
-      output->setData(std::make_shared<RawSkeleton>(m_skeleton, spacing, output));
+      auto spacing = m_vm->activeChannel()->output()->spacing();
+      auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+      auto output = OutputSPtr(new Output(filter.get(), 0, spacing));
+
+      auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing, output);
+      output->setData(skeleton);
 
       filter->addOutput(0, output);
-
-      auto category     = m_categorySelector->selectedCategory();
       auto segmentation = m_factory->createSegmentation(filter, 0);
+      auto category = m_categorySelector->selectedCategory();
       Q_ASSERT(category);
 
       segmentation->setCategory(category);
@@ -342,16 +491,28 @@ namespace ESPINA
       m_undoStack->endMacro();
 
       m_item = segmentation.get();
+
+      connect(skeleton.get(), SIGNAL(dataChanged()),
+              this          , SLOT(updateWidgetRepresentation()));
+
+      auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+      if(rep)
+      {
+        rep->setVisible(false);
+      }
     }
 
-    m_skeleton = nullptr;
+    if(m_item)
+    {
+      SegmentationAdapterList selection;
+      selection << m_item;
 
-    SegmentationAdapterList selection;
-    selection << m_item;
+      m_vm->selection()->set(selection);
+      m_vm->updateSegmentationRepresentations(m_item);
+    }
 
-    m_vm->selection()->set(selection);
-    m_vm->updateSegmentationRepresentations(m_item);
     m_vm->updateViews();
   }
-} // namespace EspINA
+
+} // namespace ESPINA
 

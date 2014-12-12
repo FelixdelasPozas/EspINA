@@ -89,6 +89,7 @@ namespace ESPINA
     }
 
     setEditedRegions(editedRegions);
+    updateModificationTime();
   }
 
   //----------------------------------------------------------------------------

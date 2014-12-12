@@ -44,6 +44,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
+  Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
   Widgets/NoteEditor.h
@@ -158,6 +159,7 @@ set (GUI_SOURCES
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
+  Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 

@@ -48,6 +48,7 @@ namespace ESPINA
   , m_shift           {1}
   , m_color           {QColor{254,254,154}}
   , m_parent          {nullptr}
+  , m_modified        {false}
   {
     this->ManagesCursor = 0; // from Superclass
     this->CreateDefaultRepresentation();
@@ -75,7 +76,9 @@ namespace ESPINA
   {
     // restore the pointer if the widget has changed it
     if (this->ManagesCursor == true)
+    {
       QApplication::restoreOverrideCursor();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -149,9 +152,9 @@ namespace ESPINA
     }
 
     this->m_widgetState = vtkSkeletonWidget::Start;
+    this->m_modified = false;
 
-    if(this->GetCurrentRenderer() == nullptr)
-      return;
+    if(this->GetCurrentRenderer() == nullptr) return;
 
     int X = this->Interactor->GetEventPosition()[0];
     int Y = this->Interactor->GetEventPosition()[1];
@@ -159,9 +162,13 @@ namespace ESPINA
     int wState = this->WidgetRep->GetInteractionState();
 
     if (pd == nullptr)
+    {
       this->SetCursor(vtkSkeletonWidgetRepresentation::Outside);
+    }
     else
+    {
       this->SetCursor(wState);
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -172,7 +179,9 @@ namespace ESPINA
       this->m_orientation = plane;
 
       if(this->WidgetRep)
+      {
         reinterpret_cast<vtkSkeletonWidgetRepresentation*>(this->WidgetRep)->SetOrientation(plane);
+      }
     }
   }
 
@@ -197,6 +206,7 @@ namespace ESPINA
         if (!rep->IsPointTooClose(X,Y))
         {
           rep->AddNodeAtDisplayPosition(X,Y);
+          self->m_modified = true;
           self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
         }
         break;
@@ -206,9 +216,13 @@ namespace ESPINA
         break;
       case vtkSkeletonWidget::Start:
         if(rep->IsNearNode(X,Y))
+        {
           rep->ActivateNode(X,Y);
+        }
         else
+        {
           rep->DeactivateNode();
+        }
         break;
       default:
         break;
@@ -249,6 +263,7 @@ namespace ESPINA
         break;
       case vtkSkeletonWidget::Manipulate:
         rep->SetActiveNodeToDisplayPosition(X,Y);
+        self->m_modified = true;
 
         self->m_widgetState = vtkSkeletonWidget::Start;
         self->Superclass::EndInteraction();
@@ -298,16 +313,6 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void vtkSkeletonWidget::ResetAction(vtkAbstractWidget *w)
-  {
-    auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
-    self->Initialize(nullptr);
-
-    self->Render();
-    self->WidgetRep->NeedToRenderOff();
-  }
-
-  //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::KeyPressAction(vtkAbstractWidget *w)
   {
     auto self = reinterpret_cast<vtkSkeletonWidget*>(w);
@@ -320,16 +325,26 @@ namespace ESPINA
 
     if("BackSpace" == key)
     {
+      auto hadSkeleton = (rep->GetRepresentationPolyData()->GetNumberOfPoints() != 0);
       self->m_widgetState = vtkSkeletonWidget::Start;
       self->EnabledOff();
-      self->ResetAction(w);
+      self->Initialize(nullptr);
+
+      self->Render();
+      self->WidgetRep->NeedToRenderOff();
+
       self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
       self->EnabledOn();
+      self->m_modified = hadSkeleton;
     }
 
     if(("Alt_L" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
     {
-      rep->DeleteCurrentNode();
+      if(rep->DeleteCurrentNode())
+      {
+        self->m_modified = true;
+      }
+
       self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
     }
 
@@ -359,7 +374,7 @@ namespace ESPINA
     int state = self->WidgetRep->GetInteractionState();
     self->SetCursor(state);
 
-    if("Control_L" == key)
+    if("Tab" == key)
     {
       switch(self->m_widgetState)
       {
@@ -367,7 +382,10 @@ namespace ESPINA
         {
           self->m_widgetState = vtkSkeletonWidget::Start;
           vtkSkeletonWidgetRepresentation::SkeletonNode *nullnode = nullptr;
-          rep->TryToJoin(X,Y);
+          if(rep->TryToJoin(X,Y))
+          {
+            self->m_modified = true;
+          }
           rep->ActivateNode(nullnode);
 
           self->Superclass::EndInteraction();
@@ -384,15 +402,22 @@ namespace ESPINA
           switch(state)
           {
             case vtkSkeletonWidgetRepresentation::NearContour:
-              rep->AddNodeOnContour(X,Y);
+              if(rep->AddNodeOnContour(X,Y))
+              {
+                self->m_modified = true;
+              }
               break;
             case vtkSkeletonWidgetRepresentation::NearPoint:
               rep->ActivateNode(X,Y);
               if(!rep->IsPointTooClose(X,Y))
+              {
                 rep->AddNodeAtDisplayPosition(X,Y);
+                self->m_modified = true;
+              }
               break;
             case vtkSkeletonWidgetRepresentation::Outside:
               rep->AddNodeAtDisplayPosition(X,Y);
+              self->m_modified = true;
               break;
             default:
               break;
@@ -446,7 +471,9 @@ namespace ESPINA
               this->ManagesCursorOn();
             }
             else
+            {
               QApplication::changeOverrideCursor(Qt::PointingHandCursor);
+            }
             break;
           case vtkSkeletonWidgetRepresentation::NearContour:
           {
@@ -456,7 +483,9 @@ namespace ESPINA
               this->ManagesCursorOn();
             }
             else
+            {
               QApplication::changeOverrideCursor(m_crossPlusCursor);
+            }
           }
             break;
           case vtkSkeletonWidgetRepresentation::Outside:
@@ -478,8 +507,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::changeSlice(Plane plane, Nm value)
   {
-    if(m_orientation != plane)
-      return;
+    if(m_orientation != plane) return;
 
     m_slice = value;
 
@@ -509,9 +537,13 @@ namespace ESPINA
       if(this->m_widgetState == vtkSkeletonWidget::Start)
       {
         if(rep->IsNearNode(X,Y))
+        {
           rep->ActivateNode(X,Y);
+        }
         else
+        {
           rep->DeactivateNode();
+        }
       }
     }
 
@@ -532,8 +564,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::SetShift(const Nm shift)
   {
-    if(m_shift == shift)
-      return;
+    if(m_shift == shift) return;
 
     m_shift = shift;
 
@@ -549,8 +580,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::SetTolerance(const double tolerance)
   {
-    if(m_drawTolerance == tolerance)
-      return;
+    if(m_drawTolerance == tolerance) return;
 
     m_drawTolerance = tolerance;
 
@@ -581,8 +611,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::UpdateRepresentation()
   {
-    if(!this->WidgetRep)
-      return;
+    if(!this->WidgetRep) return;
 
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep);
     rep->BuildRepresentation();
