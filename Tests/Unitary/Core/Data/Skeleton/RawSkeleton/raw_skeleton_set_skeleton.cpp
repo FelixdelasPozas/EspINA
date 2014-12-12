@@ -61,7 +61,12 @@ int raw_skeleton_set_skeleton( int argc, char** argv )
   auto newPolyData = ESPINA::Testing::createRandomTestSkeleton(newNumberOfNodes);
   Nm bounds[6];
   newPolyData->GetBounds(bounds);
-  auto newPolyDataBounds = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+  auto newPolyDataBounds = Bounds{ std::roundf(bounds[0]/spacing[0])-spacing[0]/2,
+                                   std::roundf(bounds[1]/spacing[0])+spacing[0]/2,
+                                   std::roundf(bounds[2]/spacing[1])-spacing[1]/2,
+                                   std::roundf(bounds[3]/spacing[1])+spacing[1]/2,
+                                   std::roundf(bounds[4]/spacing[2])-spacing[2]/2,
+                                   std::roundf(bounds[5]/spacing[2])+spacing[2]/2};
 
   skeleton.setSkeleton(newPolyData);
 

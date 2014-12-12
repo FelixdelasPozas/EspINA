@@ -48,7 +48,7 @@ int raw_skeleton_constructor( int argc, char** argv )
     error = true;
   }
 
-  if (defaultBounds != Bounds{0.0, 1.0, 0.0, 1.0, 0.0, 1.0})
+  if (defaultBounds != Bounds{-0.5, 1.5, -0.5, 1.5, -0.5, 1.5})
   {
     std::cerr << "Constructed skeleton bounds: " << defaultBounds << ". Expected different bounds." << std::endl;
     error = true;
