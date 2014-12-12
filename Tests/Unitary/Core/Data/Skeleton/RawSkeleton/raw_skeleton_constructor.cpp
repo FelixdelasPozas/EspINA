@@ -34,11 +34,12 @@ int raw_skeleton_constructor( int argc, char** argv )
 {
   bool error = false;
 
-  auto polyData = ESPINA::Testing::createSimpleTestSkeleton();
   NmVector3 spacing{1.0, 1.0, 1.0};
-  auto output = std::make_shared<Output>(new DummyFilter(), 0, spacing);
 
-  auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing, output);
+  auto polyData = ESPINA::Testing::createSimpleTestSkeleton();
+  auto output   = std::make_shared<Output>(new DummyFilter(), 0, spacing);
+
+  auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
 
   Bounds defaultBounds = skeleton->bounds();
 

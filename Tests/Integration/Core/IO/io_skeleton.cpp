@@ -30,20 +30,24 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
-#include <testing_support_channel_input.h>
-#include <Filters/SeedGrowSegmentationFilter.h>
+#include <Filters/SourceFilter.h>
+#include <Plugins/AppositionSurface/Filter/AppositionSurfaceFilter.h>
+#include <Plugins/AppositionSurface/Filter/SASDataFactory.h>
+#include "testing_support_channel_input.h"
+#include "SkeletonTestingUtils.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::IO;
+using namespace ESPINA::Testing;
 
-int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int argc, char** argv )
+int io_skeleton( int argc, char** argv )
 {
   class TestFilterFactory
   : public FilterFactory
@@ -51,7 +55,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
     virtual FilterTypeList providedFilters() const
     {
       FilterTypeList list;
-      list << "SGS";
+      list << "Skeleton";
       return list;
     }
 
@@ -59,9 +63,9 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
     {
       FilterSPtr filter;
 
-      if (type == "SGS") {
-        filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setDataFactory(DataFactorySPtr{new RawDataFactory()});
+      if (type == "Skeleton") {
+        filter = std::make_shared<SourceFilter>(inputs, type, scheduler);
+        filter->setDataFactory(std::make_shared<RawDataFactory>());
       }
 
       return filter;
@@ -70,32 +74,35 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
 
   bool error = false;
 
-  CoreFactorySPtr factory{new CoreFactory()};
-  factory->registerFilterFactory(FilterFactorySPtr{new TestFilterFactory()});
+  auto factory = make_shared<CoreFactory>();
+  factory->registerFilterFactory(make_shared<TestFilterFactory>());
 
   Analysis analysis;
 
-  ClassificationSPtr classification{new Classification("Test")};
+  auto classification = make_shared<Classification>("Test");
   classification->createNode("Synapse");
   analysis.setClassification(classification);
 
-  SampleSPtr sample{new Sample("C3P0")};
+  auto sample = make_shared<Sample>("C3P0");
   analysis.add(sample);
 
-  ChannelSPtr channel(new Channel(Testing::channelInput()));
+  auto channel = make_shared<Channel>(Testing::channelInput());
   channel->setName("channel");
 
   analysis.add(channel);
 
   analysis.addRelation(sample, channel, "Stain");
 
-  InputSList inputs;
-  inputs << channel->asInput();
+  auto sourceFilter = make_shared<SourceFilter>(InputSList(), "Skeleton", SchedulerSPtr());
 
-  FilterSPtr segFilter{new SeedGrowSegmentationFilter(inputs, "SGS", SchedulerSPtr())};
-  segFilter->update();
+  auto output   = make_shared<Output>(sourceFilter.get(), 0, NmVector3{1,1,1});
+  auto skeleton = make_shared<RawSkeleton>(createSimpleTestSkeleton());
 
-  SegmentationSPtr segmentation(new Segmentation(getInput(segFilter, 0)));
+  output->setData(skeleton);
+  sourceFilter->addOutput(0, output);
+
+
+  auto segmentation = make_shared<Segmentation>(getInput(sourceFilter, 0));
   segmentation->setNumber(1);
 
   analysis.add(segmentation);
@@ -121,59 +128,32 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
 
   auto loadedSegmentation = analysis2->segmentations().first();
   auto loadedOuptut       = loadedSegmentation->output();
-  auto loadedFilter       = dynamic_cast<SeedGrowSegmentationFilter*>(loadedOuptut->filter());
+  auto loadedFilter       = dynamic_cast<SourceFilter *>(loadedOuptut->filter());
 
   if (!loadedFilter)
   {
-    cerr << "Couldn't recover SGS filter" << endl;
+    cerr << "Couldn't recover Source Filter" << endl;
     error = true;
   }
 
-  if (!loadedOuptut->hasData(VolumetricData<itkVolumeType>::TYPE))
+  if (!loadedOuptut->hasData(SkeletonData::TYPE))
   {
-    cerr << "Expected Volumetric Data" << endl;
-    error = true;
-  }
-  else
-  {
-    auto volume = volumetricData(loadedOuptut);
-
-    if (volume->editedRegions().size() != 0)
-    {
-      cerr << "Unexpeceted number of edited regions" << endl;
-      error = true;
-    }
-
-    TemporalStorageSPtr tmpStorage(new TemporalStorage());
-    for (auto snapshot : volume->snapshot(tmpStorage, "segmentation", "1"))
-    {
-      if (snapshot.first.contains("EditedRegion"))
-      {
-        cerr << "Unexpected edited region found" << snapshot.first.toStdString() << endl;
-        error = true;
-      }
-    }
-  }
-
-  if (!loadedOuptut->hasData(MeshData::TYPE))
-  {
-    cerr << "Expected Mesh Data" << endl;
+    cerr << "Expected Skeleton Data" << endl;
     error = true;
   }
   else
   {
-    auto data = loadedOuptut->data(MeshData::TYPE);
-
-    if (data->isValid())
+    auto loadedSkeleton = skeletonData(loadedOuptut);
+    
+    if (!loadedSkeleton->isValid())
     {
-      cerr << "Expected invalid mesh data" << endl;
+      cerr << "Unexpeceted invalid skeleton data" << endl;
       error = true;
     }
 
-    auto mesh = meshData(loadedOuptut);
-    if (mesh->isValid())
+    if (loadedSkeleton->editedRegions().size() != 1)
     {
-      cerr << "Expected invalid mesh data" << endl;
+      cerr << "Unexpeceted number of edited regions" << loadedSkeleton->editedRegions().size() << endl;
       error = true;
     }
   }

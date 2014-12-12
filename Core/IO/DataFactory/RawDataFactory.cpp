@@ -16,7 +16,7 @@
  */
 
 // ESPINA
-#include "FetchRawData.h"
+#include "RawDataFactory.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
@@ -24,28 +24,37 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-DataSPtr FetchRawData::createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
+DataSPtr RawDataFactory::createData(OutputSPtr           output,
+                                  TemporalStorageSPtr  storage,
+                                  const QString       &path,
+                                  QXmlStreamAttributes info)
 {
   DataSPtr data;
 
-  if ("VolumetricData" == info.value("type"))
+  const Data::Type requestedType = info.value("type").toString();
+
+  if (!output->hasData(requestedType))
   {
-    if (!output->hasData(VolumetricData<itkVolumeType>::TYPE))
+    if (VolumetricData<itkVolumeType>::TYPE == requestedType)
     {
       data = std::make_shared<SparseVolume<itkVolumeType>>();
-      data->setFetchContext(storage, path, QString::number(output->id()));
-      output->setData(data);
     }
-  }
-  else if ("MeshData" == info.value("type"))
-  {
-    if (!output->hasData(MeshData::TYPE))
+    else if (MeshData::TYPE == requestedType)
     {
       data = std::make_shared<RawMesh>();
+    }
+    else if (SkeletonData::TYPE == requestedType)
+    {
+      data = std::make_shared<RawSkeleton>();
+    }
+
+    if (data)
+    {
       data->setFetchContext(storage, path, QString::number(output->id()));
       output->setData(data);
     }
   }
+
 
   return data;
 }

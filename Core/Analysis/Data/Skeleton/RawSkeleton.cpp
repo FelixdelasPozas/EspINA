@@ -31,25 +31,22 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  RawSkeleton::RawSkeleton(OutputSPtr output)
+  RawSkeleton::RawSkeleton(const NmVector3             &spacing,
+                           const NmVector3             &origin)
   : m_skeleton{nullptr}
+  , m_spacing{spacing}
+  , m_origin{origin}
   {
-    if(output != nullptr)
-    {
-      this->setOutput(output.get());
-    }
   }
 
   //----------------------------------------------------------------------------
   RawSkeleton::RawSkeleton(vtkSmartPointer<vtkPolyData> skeleton,
-                           const NmVector3 &spacing,
-                           OutputSPtr output)
+                           const NmVector3             &spacing,
+                           const NmVector3             &origin)
   : m_skeleton{skeleton}
+  , m_spacing{spacing}
+  , m_origin{origin}
   {
-    if(output != nullptr)
-    {
-      this->setOutput(output.get());
-    }
   }
 
   //----------------------------------------------------------------------------
@@ -66,15 +63,18 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   void RawSkeleton::setSpacing(const NmVector3 &newSpacing)
   {
-    if(m_skeleton != nullptr && spacing() != newSpacing)
+    if(m_skeleton != nullptr && m_spacing != newSpacing)
     {
-      auto oldSpacing = spacing();
       Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
-      NmVector3 ratio{newSpacing[0]/oldSpacing[0], newSpacing[1]/oldSpacing[1], newSpacing[2]/oldSpacing[2]};
+      NmVector3 ratio{newSpacing[0]/m_spacing[0],
+                      newSpacing[1]/m_spacing[1],
+                      newSpacing[2]/m_spacing[2]};
 
       PolyDataUtils::scalePolyData(m_skeleton, ratio);
       updateModificationTime();
     }
+
+    m_spacing = newSpacing;
   }
 
   //----------------------------------------------------------------------------
@@ -95,14 +95,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   NmVector3 RawSkeleton::spacing() const
   {
-    NmVector3 result;
-
-    if(m_output != nullptr)
-    {
-      result = m_output->spacing();
-    }
-
-    return result;
+    return m_spacing;
   }
 
   //----------------------------------------------------------------------------

@@ -38,20 +38,22 @@ namespace ESPINA
   {
   public:
     /** \brief RawMesh class constructor.
-     * \param[in] output, smart pointer of associated output.
+     * \param[in] spacing spacing of origin volume.
+     * \param[in] output smart pointer of associated output.
      *
      */
-    explicit RawMesh(OutputSPtr output = nullptr);
+    explicit RawMesh(const NmVector3 &spacing = NmVector3{1,1,1},
+                     const NmVector3 &origin  = NmVector3{0,0,0});
 
     /** \brief RawMesh class constructor.
-     * \param[in] mesh, vtkPolyData smart pointer.
-     * \param[in] spacing, spacing of origin volume.
-     * \param[in] output, smart pointer of associated output.
+     * \param[in] mesh vtkPolyData smart pointer.
+     * \param[in] spacing spacing of origin volume.
+     * \param[in] output smart pointer of associated output.
      *
      */
     explicit RawMesh(vtkSmartPointer<vtkPolyData> mesh,
-                     itkVolumeType::SpacingType spacing,
-                     OutputSPtr output = nullptr);
+                     const NmVector3 &spacing = NmVector3{1,1,1},
+                     const NmVector3 &origin  = NmVector3{0,0,0});
 
     /** \brief RawMesh class virtual destructor.
      *
@@ -86,7 +88,7 @@ namespace ESPINA
     void setSpacing(const NmVector3&);
 
     NmVector3 spacing() const
-    { return m_output->spacing(); }
+    { return m_spacing; }
 
     void undo()
     { /* TODO: not allowed */ };
@@ -113,6 +115,8 @@ namespace ESPINA
 
   private:
     vtkSmartPointer<vtkPolyData> m_mesh;
+    NmVector3 m_spacing;
+    NmVector3 m_origin;
   };
 
   using RawMeshPtr = RawMesh *;

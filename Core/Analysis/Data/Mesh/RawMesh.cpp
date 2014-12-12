@@ -34,31 +34,39 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawMesh::RawMesh(OutputSPtr output)
-: m_mesh{nullptr}
+RawMesh::RawMesh(const NmVector3             &spacing,
+                 const NmVector3             &origin)
+: m_mesh(nullptr)
+, m_spacing(spacing)
+, m_origin(origin)
+{
+}
+//----------------------------------------------------------------------------
+RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
+                 const NmVector3             &spacing,
+                 const NmVector3             &origin)
+: m_mesh(mesh)
+, m_spacing(spacing)
+, m_origin(origin)
 {
 }
 
-//----------------------------------------------------------------------------
-RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
-                 itkVolumeType::SpacingType spacing,
-                 OutputSPtr output)
-: m_mesh{mesh}
-{
-}
 
 //----------------------------------------------------------------------------
 void RawMesh::setSpacing(const NmVector3 &newSpacing)
 {
   if(m_mesh != nullptr)
   {
-    auto oldSpacing = spacing();
     Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
-    NmVector3 ratio{newSpacing[0]/oldSpacing[0], newSpacing[1]/oldSpacing[1], newSpacing[2]/oldSpacing[2]};
+    NmVector3 ratio{newSpacing[0]/m_spacing[0],
+                    newSpacing[1]/m_spacing[1],
+                    newSpacing[2]/m_spacing[2]};
 
     PolyDataUtils::scalePolyData(m_mesh, ratio);
     updateModificationTime();
   }
+
+  m_spacing = m_spacing;
 }
 
 //----------------------------------------------------------------------------

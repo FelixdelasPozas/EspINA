@@ -34,12 +34,12 @@ int raw_skeleton_set_spacing( int argc, char** argv )
 {
   bool error = false;
 
+  NmVector3 spacing{1.0, 2.0, 3.0};
+
   auto polyData = ESPINA::Testing::createSimpleTestSkeleton();
-  NmVector3 spacing{1.0, 1.0, 1.0};
-  auto output = std::make_shared<Output>(new DummyFilter(), 0, spacing);
   auto numberOfNodes = polyData->GetPoints()->GetNumberOfPoints();
 
-  RawSkeleton skeleton{polyData, spacing, output};
+  RawSkeleton skeleton{polyData, spacing};
 
   if(skeleton.spacing() != spacing)
   {
@@ -49,7 +49,7 @@ int raw_skeleton_set_spacing( int argc, char** argv )
 
   NmVector3 newSpacing{2.0,2.0,2.0};
 
-  output->setSpacing(newSpacing);
+  skeleton.setSpacing(newSpacing);
 
   if(skeleton.spacing() != newSpacing)
   {

@@ -23,7 +23,7 @@
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Output.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Representations/SkeletonRepresentation.h>
@@ -72,7 +72,7 @@ namespace ESPINA
     auto sFilter = FilterSPtr{new SourceFilter(inputs, SOURCE_FILTER, scheduler)};
     if (!m_fetchBehaviour)
     {
-      m_fetchBehaviour = DataFactorySPtr{new FetchRawData()};
+      m_fetchBehaviour = DataFactorySPtr{new RawDataFactory()};
     }
     sFilter->setDataFactory(m_fetchBehaviour);
 
@@ -90,7 +90,7 @@ namespace ESPINA
   , m_toleranceWidget {new DoubleSpinBoxAction(this)}
   , m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
   {
-    m_factory->registerFilterFactory(FilterFactorySPtr{new SourceFilterFactory()});
+    m_factory->registerFilterFactory(std::make_shared<SourceFilterFactory>());
 
     m_action->setCheckable(true);
 
@@ -455,9 +455,9 @@ namespace ESPINA
       {
         if(polyData->GetNumberOfPoints() == 0) return;
 
-        auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+        auto widget    = dynamic_cast<SkeletonWidget *>(m_widget.get());
         auto itemOuput = m_item->output();
-        auto data = std::make_shared<RawSkeleton>(widget->getSkeleton(), itemOuput->spacing(), itemOuput);
+        auto data      = std::make_shared<RawSkeleton>(widget->getSkeleton(), itemOuput->spacing());
 
         m_undoStack->beginMacro(tr("Add Skeleton to segmentation"));
         m_undoStack->push(new AddDataCommand(itemOuput, data));
@@ -468,11 +468,10 @@ namespace ESPINA
     {
       if(polyData->GetNumberOfPoints() == 0) return;
 
-      auto spacing = m_vm->activeChannel()->output()->spacing();
-      auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-      auto output = OutputSPtr(new Output(filter.get(), 0, spacing));
-
-      auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing, output);
+      auto spacing  = m_vm->activeChannel()->output()->spacing();
+      auto filter   = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+      auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
+      auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
       output->setData(skeleton);
 
       filter->addOutput(0, output);

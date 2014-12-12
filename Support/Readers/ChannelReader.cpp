@@ -27,7 +27,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Utils/TemporalStorage.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -68,7 +68,7 @@ public:
   }
 
 private:
-FetchRawData m_fetchData;
+RawDataFactory m_fetchData;
 };
 
 //------------------------------------------------------------------------

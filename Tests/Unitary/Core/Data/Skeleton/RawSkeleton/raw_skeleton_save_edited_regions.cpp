@@ -45,12 +45,6 @@ int raw_skeleton_save_edited_regions( int argc, char** argv )
     error = true;
   }
 
-  if(skeleton.bounds() != Bounds{0.0, 1.0, 0.0, 1.0, 0.0, 1.0})
-  {
-    std::cerr << "Incorrect bounds in skeleton data." << std::endl;
-    error = true;
-  }
-
   if (skeleton.editedRegions().size() != 1)
   {
     std::cerr << "Unexpected number of edited regions." << std::endl;

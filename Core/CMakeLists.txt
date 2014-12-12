@@ -44,7 +44,7 @@ set (CORE_SOURCES
   Analysis/ViewItem.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
-  IO/DataFactory/FetchRawData.cpp
+  IO/DataFactory/RawDataFactory.cpp
   IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp

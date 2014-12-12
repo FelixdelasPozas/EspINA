@@ -32,7 +32,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -76,7 +76,7 @@ int pipeline_access_internal_filter_non_edited_data( int argc, char** argv )
         {
           Q_ASSERT(false);
         }
-        filter->setDataFactory(DataFactorySPtr{new FetchRawData()});
+        filter->setDataFactory(DataFactorySPtr{new RawDataFactory()});
       }
 
       return filter;

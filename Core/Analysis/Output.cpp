@@ -215,7 +215,6 @@ void Output::setData(Output::DataSPtr data)
   auto base  = m_data.value(type).get();
   auto proxy = dynamic_cast<DataProxy *>(base);
   proxy->set(data);
-  data->setOutput(this);
 
   // Alternatively we could keep the previous edited regions
   // but at the moment I can't find any scenario where it could be useful

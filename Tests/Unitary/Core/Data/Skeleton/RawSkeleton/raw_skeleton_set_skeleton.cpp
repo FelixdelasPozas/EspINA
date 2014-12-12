@@ -32,12 +32,11 @@ int raw_skeleton_set_skeleton( int argc, char** argv )
 {
   bool error = false;
 
-  auto polyData = ESPINA::Testing::createSimpleTestSkeleton();
-  NmVector3 spacing{1.0, 1.0, 1.0};
-  auto output = std::make_shared<Output>(new DummyFilter(), 0, spacing);
+  auto polyData      = ESPINA::Testing::createSimpleTestSkeleton();
   auto numberOfNodes = polyData->GetPoints()->GetNumberOfPoints();
 
-  RawSkeleton skeleton{polyData, spacing, output};
+  NmVector3   spacing{1.0, 1.0, 1.0};
+  RawSkeleton skeleton{polyData, spacing};
 
   if(skeleton.editedRegions() != BoundsList())
   {
@@ -57,8 +56,9 @@ int raw_skeleton_set_skeleton( int argc, char** argv )
     error = true;
   }
 
-  int newNumberOfNodes = 5;
-  auto newPolyData = ESPINA::Testing::createRandomTestSkeleton(newNumberOfNodes);
+  int  newNumberOfNodes = 5;
+  auto newPolyData      = ESPINA::Testing::createRandomTestSkeleton(newNumberOfNodes);
+
   Nm bounds[6];
   newPolyData->GetBounds(bounds);
   auto newPolyDataBounds = Bounds{ std::roundf(bounds[0]/spacing[0])-spacing[0]/2,

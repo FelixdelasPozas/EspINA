@@ -32,7 +32,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/FetchBehaviour/FetchRawData.h>
+#include <Core/IO/FetchBehaviour/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -58,7 +58,7 @@ int pipeline_update_fetch_output( int argc, char** argv )
     {
       if (type == "SGS") {
         FilterSPtr filter{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setFetchBehaviour(FetchBehaviourSPtr{new FetchRawData()});
+        filter->setFetchBehaviour(FetchBehaviourSPtr{new RawDataFactory()});
         return filter;
       }
     }

@@ -50,7 +50,10 @@ namespace ESPINA
 
       skeletonData->GetBounds(bounds);
 
-      result = VolumeBounds{Bounds{ bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5] }, m_output->spacing(), NmVector3{0,0,0}}.bounds();
+      Bounds polyDataBounds{bounds[0], bounds[1], bounds[2],
+                            bounds[3], bounds[4], bounds[5]};
+
+      result = VolumeBounds{polyDataBounds, spacing(), NmVector3{0,0,0}}.bounds();
     }
 
     return result;

@@ -70,7 +70,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
-  ${CORE_DIR}/IO/DataFactory/FetchRawData.cpp
+  ${CORE_DIR}/IO/DataFactory/RawDataFactory.cpp
   ${CORE_DIR}/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   ${CORE_DIR}/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
@@ -95,6 +95,7 @@ target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Filters
 set (FILTERS_SOURCES
+  ${FILTERS_DIR}/SourceFilter.cpp
   ${FILTERS_DIR}/DilateFilter.cpp
   ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/ImageLogicFilter.cpp

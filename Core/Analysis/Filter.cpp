@@ -22,7 +22,7 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -164,7 +164,7 @@ Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
 , m_analysis   {nullptr}
 , m_type       {type}
 , m_inputs     {inputs}
-, m_dataFactory{new FetchRawData()}
+, m_dataFactory{new RawDataFactory()}
 {
   setName(m_type);
 }
@@ -262,7 +262,7 @@ bool Filter::restorePreviousOutputs() const
     //qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
-    //qDebug() << buffer;
+    qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {
@@ -291,12 +291,12 @@ bool Filter::restorePreviousOutputs() const
             if (!data)
             {
               // TODO: Create ReadOnlyData to preserve data information in further savings
+              qWarning() << "Unable to create requested data type";
             }
             editedRegions.clear();
           }
           else if (isEditedRegionSection(xml) && output)
           {
-            Q_ASSERT(data);
             editedRegions << parseEditedRegionsBounds(xml);
           }
         }
@@ -304,8 +304,10 @@ bool Filter::restorePreviousOutputs() const
         {
           if (isDataSection(xml))
           {
-            Q_ASSERT(data);
-            data->setEditedRegions(editedRegions);
+            if (data)
+            {
+              data->setEditedRegions(editedRegions);
+            }
           }
         }
       }

@@ -149,7 +149,8 @@ void AppositionSurfaceFilter::execute()
   itk2vtk_filter->Update();
   vtkSmartPointer<vtkImageData> vtk_padImage = itk2vtk_filter->GetOutput();
 
-  double *spacing = vtk_padImage->GetSpacing();
+  double spacing[3];
+  vtk_padImage->GetSpacing(spacing);
 
   //qDebug() << "Computing Distance Map";
   Points points = segmentationPoints(padImage);
@@ -300,9 +301,8 @@ void AppositionSurfaceFilter::execute()
   m_ap->GetPointData()->AddArray(normalArray);
   m_ap->Modified();
 
-  auto inputSpacing = m_input->GetSpacing();
-  NmVector3 ispacing{inputSpacing[0], inputSpacing[1], inputSpacing[2]};
-  RawMeshSPtr meshOutput{new RawMesh{m_ap, inputSpacing}};
+  auto outpuSpacing = ToNmVector3<itkVolumeType>(m_input->GetSpacing());
+  auto meshOutput   = std::make_shared<RawMesh>(m_ap, outpuSpacing);
 
   m_lastModifiedMesh = meshOutput->lastModified();
 
@@ -310,18 +310,17 @@ void AppositionSurfaceFilter::execute()
   m_ap->GetBounds(meshVTKBounds);
 
   Bounds meshBounds{meshVTKBounds[0], meshVTKBounds[1], meshVTKBounds[2], meshVTKBounds[3], meshVTKBounds[4], meshVTKBounds[5]};
-  NmVector3 vectorSpacing{inputSpacing[0], inputSpacing[1], inputSpacing[2]};
 
-  DefaultVolumetricDataSPtr volumeOutput{new RasterizedVolume<itkVolumeType>{meshOutput, meshBounds, vectorSpacing}};
+  auto volumeOutput = std::make_shared<RasterizedVolume<itkVolumeType>>(meshOutput, meshBounds, outpuSpacing);
 
   if(!m_outputs.contains(0))
   {
-    m_outputs[0] = std::make_shared<Output>(this, 0, ispacing);
+    m_outputs[0] = std::make_shared<Output>(this, 0, outpuSpacing);
   }
 
   m_outputs[0]->setData(meshOutput);
   m_outputs[0]->setData(volumeOutput);
-  m_outputs[0]->setSpacing(ispacing);
+  m_outputs[0]->setSpacing(outpuSpacing);
 
   emit progress(100);
 }
