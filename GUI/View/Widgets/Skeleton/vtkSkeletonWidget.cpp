@@ -323,21 +323,6 @@ namespace ESPINA
     int X = self->Interactor->GetEventPosition()[0];
     int Y = self->Interactor->GetEventPosition()[1];
 
-    if("BackSpace" == key)
-    {
-      auto hadSkeleton = (rep->GetRepresentationPolyData()->GetNumberOfPoints() != 0);
-      self->m_widgetState = vtkSkeletonWidget::Start;
-      self->EnabledOff();
-      self->Initialize(nullptr);
-
-      self->Render();
-      self->WidgetRep->NeedToRenderOff();
-
-      self->InvokeEvent(vtkCommand::ModifiedEvent, nullptr);
-      self->EnabledOn();
-      self->m_modified = hadSkeleton;
-    }
-
     if(("Alt_L" == key) && self->m_widgetState == vtkSkeletonWidget::Start)
     {
       if(rep->DeleteCurrentNode())

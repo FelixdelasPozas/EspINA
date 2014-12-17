@@ -44,6 +44,7 @@ namespace ESPINA
 {
   class CategorySelector;
   class DoubleSpinBoxAction;
+  class SkeletonToolStatusAction;
 
   class SourceFilterFactory
   : public FilterFactory
@@ -160,16 +161,17 @@ namespace ESPINA
        */
       void updateReferenceItem();
 
-      ViewManagerSPtr      m_vm;
-      ModelAdapterSPtr     m_model;
-      ModelFactorySPtr     m_factory;
-      QUndoStack          *m_undoStack;
-      bool                 m_enabled;
-      CategorySelector    *m_categorySelector;
-      DoubleSpinBoxAction *m_toleranceWidget;
-      EventHandlerSPtr     m_handler;
-      QAction             *m_action;
-      EspinaWidgetSPtr     m_widget;
+      ViewManagerSPtr           m_vm;
+      ModelAdapterSPtr          m_model;
+      ModelFactorySPtr          m_factory;
+      QUndoStack               *m_undoStack;
+      bool                      m_enabled;
+      CategorySelector         *m_categorySelector;
+      DoubleSpinBoxAction      *m_toleranceWidget;
+      SkeletonToolStatusAction *m_toolStatus;
+      EventHandlerSPtr          m_handler;
+      QAction                  *m_action;
+      EspinaWidgetSPtr          m_widget;
 
       // widget's return values
       SegmentationAdapterPtr       m_item;

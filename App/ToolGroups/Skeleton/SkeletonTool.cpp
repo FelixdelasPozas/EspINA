@@ -35,6 +35,7 @@
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
+#include "SkeletonToolStatusAction.h"
 
 // VTK
 #include <vtkIdList.h>
@@ -88,6 +89,7 @@ namespace ESPINA
   , m_enabled         {false}
   , m_categorySelector{new CategorySelector(model)}
   , m_toleranceWidget {new DoubleSpinBoxAction(this)}
+  , m_toolStatus      {new SkeletonToolStatusAction(this)}
   , m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
   {
     m_factory->registerFilterFactory(std::make_shared<SourceFilterFactory>());
@@ -111,6 +113,9 @@ namespace ESPINA
 
     connect(m_toleranceWidget, SIGNAL(valueChanged(double)),
             this,              SLOT(toleranceValueChanged(double)));
+
+    m_toolStatus->reset();
+    m_toolStatus->setVisible(false);
   }
   
   //-----------------------------------------------------------------------------
@@ -134,13 +139,13 @@ namespace ESPINA
     m_action->setEnabled(value);
     m_categorySelector->setEnabled(value);
     m_toleranceWidget->setEnabled(value);
+    m_toolStatus->setEnabled(value);
   }
   
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateState()
   {
-    if(!enabled())
-      return;
+    if(!enabled()) return;
 
     auto selection = m_vm->selection()->segmentations();
     auto validItem = (selection.size() <= 1);
@@ -185,9 +190,11 @@ namespace ESPINA
   QList<QAction*> SkeletonTool::actions() const
   {
     QList<QAction *> actions;
+
     actions << m_action;
     actions << m_categorySelector;
     actions << m_toleranceWidget;
+    actions << m_toolStatus;
 
     return actions;
   }
@@ -264,6 +271,9 @@ namespace ESPINA
       connect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
               this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
 
+      connect(widget,       SIGNAL(status(SkeletonWidget::Status)),
+              m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
+
       m_toleranceWidget->setSpinBoxMinimum(minimumDistance);
       m_toleranceWidget->setStepping(minimumDistance);
       widget->setTolerance(minimumDistance);
@@ -304,6 +314,8 @@ namespace ESPINA
     }
     else
     {
+      if(!m_widget) return; // can be called twice on undo/redo action combinations.
+
       m_action->blockSignals(true);
       m_action->setChecked(false);
       m_action->blockSignals(false);
@@ -321,6 +333,10 @@ namespace ESPINA
       Q_ASSERT(widget);
       disconnect(widget, SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
                  this  , SLOT(skeletonModification(vtkSmartPointer<vtkPolyData>)));
+
+      disconnect(widget,       SIGNAL(status(SkeletonWidget::Status)),
+                 m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
+      m_toolStatus->reset();
 
       m_vm->unsetEventHandler(m_handler);
       m_handler.reset();
@@ -359,6 +375,7 @@ namespace ESPINA
   {
     m_categorySelector->setVisible(value);
     m_toleranceWidget->setVisible(value);
+    m_toolStatus->setVisible(value);
   }
 
   //-----------------------------------------------------------------------------
@@ -393,7 +410,6 @@ namespace ESPINA
 
         m_item = nullptr;
         initTool(false);
-
         return;
       }
     }
@@ -424,7 +440,7 @@ namespace ESPINA
     {
       if(hasSkeletonData(m_item->output()))
       {
-        if(polyData->GetNumberOfPoints() == 0)
+        if(polyData->GetNumberOfLines() == 0)
         {
           if(m_item->output()->numberOfDatas() == 1)
           {
@@ -453,7 +469,7 @@ namespace ESPINA
       }
       else
       {
-        if(polyData->GetNumberOfPoints() == 0) return;
+        if(polyData->GetNumberOfLines() == 0) return;
 
         auto widget    = dynamic_cast<SkeletonWidget *>(m_widget.get());
         auto itemOuput = m_item->output();
@@ -466,7 +482,7 @@ namespace ESPINA
     }
     else
     {
-      if(polyData->GetNumberOfPoints() == 0) return;
+      if(polyData->GetNumberOfLines() == 0) return;
 
       auto spacing  = m_vm->activeChannel()->output()->spacing();
       auto filter   = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);

@@ -49,6 +49,8 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
+      enum class Status : std::int8_t { READY_TO_CREATE = 0, CREATING = 1, READY_TO_EDIT = 2, EDITING = 3 };
+
       /** \brief SkeletonWidget class constructor.
        *
        */
@@ -101,6 +103,7 @@ namespace ESPINA
 
     signals:
       void modified(vtkSmartPointer<vtkPolyData> polydata);
+      void status(SkeletonWidget::Status status);
 
     private:
       friend class vtkSkeletonWidgetCommand;

@@ -52,6 +52,7 @@ namespace ESPINA
       unregisterView(view);
     }
 
+    setCursor(Qt::ArrowCursor);
     m_widgets.clear();
   }
 
@@ -132,6 +133,10 @@ namespace ESPINA
                 else
                 {
                   m_widgets[view]->GetInteractor()->LeftButtonPressEvent();
+                  if(m_widgets[view]->GetWidgetState() == vtkSkeletonWidget::Manipulate)
+                  {
+                    emit status(Status::EDITING);
+                  }
                 }
               }
               else // QEvent::MouseButtonRelease
@@ -144,10 +149,12 @@ namespace ESPINA
                 {
                   auto validInteractionState = (m_widgets[view]->GetWidgetState() == vtkSkeletonWidget::Manipulate);
                   m_widgets[view]->GetInteractor()->LeftButtonReleaseEvent();
+
                   if(m_widgets[view]->eventModifiedData() && validInteractionState)
                   {
-                    emit modified(m_widgets[view]->getSkeleton());
                     m_widgets[view]->resetModifiedFlag();
+                    emit modified(m_widgets[view]->getSkeleton());
+                    emit status(Status::READY_TO_EDIT);
                   }
                 }
               }
@@ -180,7 +187,7 @@ namespace ESPINA
       {
         QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
 
-        if(ke->key() == Qt::Key_Tab || ke->key() == Qt::Key_Backspace || ke->key() == Qt::Key_Alt)
+        if(ke->key() == Qt::Key_Tab || ke->key() == Qt::Key_Alt)
         {
           const char *keyString;
           switch(ke->key())
@@ -190,9 +197,6 @@ namespace ESPINA
               break;
             case Qt::Key_Alt:
               keyString = "Alt_L";
-              break;
-            case Qt::Key_Backspace:
-              keyString = "BackSpace";
               break;
             default:
               break;
@@ -220,13 +224,29 @@ namespace ESPINA
               {
                 auto widgetState = m_widgets[view]->GetWidgetState();
                 m_widgets[view]->GetInteractor()->KeyReleaseEvent();
+
                 auto validInteractionState = (widgetState == vtkSkeletonWidget::Define && ke->key() == Qt::Key_Tab) ||
-                                             (widgetState == vtkSkeletonWidget::Start && ke->key() == Qt::Key_Alt) ||
-                                             ke->key() == Qt::Key_Backspace;
+                                             (widgetState == vtkSkeletonWidget::Start && ke->key() == Qt::Key_Alt);
                 if(m_widgets[view]->eventModifiedData() && validInteractionState)
                 {
-                  emit modified(m_widgets[view]->getSkeleton());
                   m_widgets[view]->resetModifiedFlag();
+                  emit modified(m_widgets[view]->getSkeleton());
+                }
+
+                if(ke->key() == Qt::Key_Tab)
+                {
+                  widgetState = m_widgets[view]->GetWidgetState();
+                  switch(widgetState)
+                  {
+                    case vtkSkeletonWidget::Define:
+                      emit status(Status::CREATING);
+                      break;
+                    case vtkSkeletonWidget::Start:
+                      emit status(Status::READY_TO_EDIT);
+                      break;
+                    default:
+                      break;
+                  }
                 }
               }
             }
@@ -298,6 +318,15 @@ namespace ESPINA
     for(auto vtkWidget: this->m_widgets)
     {
       vtkWidget->Initialize(pd);
+    }
+
+    if(pd)
+    {
+      emit status(Status::READY_TO_EDIT);
+    }
+    else
+    {
+      emit status(Status::READY_TO_CREATE);
     }
   }
 

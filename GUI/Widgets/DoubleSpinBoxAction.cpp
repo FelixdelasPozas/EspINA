@@ -94,6 +94,7 @@ namespace ESPINA
     {
       m_spinBox->setValue(value);
     }
+
     emit valueChanged(value);
   }
 

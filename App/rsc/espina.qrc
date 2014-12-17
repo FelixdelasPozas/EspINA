@@ -101,5 +101,7 @@
     <file>voi_brush.svg</file>
     <file>voi_clean.svg</file>
     <file>database.png</file>
+    <file>skelCreate.png</file>
+    <file>skelModify.png</file>
   </qresource>
 </RCC>
