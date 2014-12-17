@@ -333,6 +333,7 @@ namespace ESPINA
 
     if(node_i != node_j)
     {
+      s_currentVertex = nullptr;
       AddNodeAtPosition(worldPos); // adds a new node and makes it current node.
 
       s_currentVertex->connections << s_skeleton[node_i] << s_skeleton[node_j];
