@@ -338,8 +338,7 @@ namespace ESPINA
 
       for (auto item : m_representations.keys())
       {
-        if (!((item->type() == ViewItemAdapter::Type::CHANNEL && itemType.testFlag(RenderableType::CHANNEL)) ||
-            (item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION))))
+        if (!((isChannel(item) && itemType.testFlag(RenderableType::CHANNEL)) || (isSegmentation(item) && itemType.testFlag(RenderableType::SEGMENTATION))))
           continue;
 
         if (m_representations[item].contains(pickedRepresentation))
@@ -902,7 +901,7 @@ namespace ESPINA
       if (m_edgePos->worker != nullptr)
       {
         m_edgePos->repsToAdd = reps;
-        m_edgePos->restart = (reps.empty() ? false : true);
+        m_edgePos->restart = !reps.empty();
         m_edgePos->worker->setPriority(priority);
       }
       else
@@ -931,7 +930,7 @@ namespace ESPINA
       if (node->worker != nullptr)
       {
         node->repsToAdd = reps;
-        node->restart = (reps.empty() ? false : true);
+        node->restart = !reps.empty();
         node->worker->setPriority(priority);
       }
       else
@@ -955,7 +954,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   bool CachedSliceRenderer::canRender(ItemAdapterPtr item) const
   {
-    if (item->type() == ItemAdapter::Type::SEGMENTATION || item->type() == ItemAdapter::Type::CHANNEL)
+    if (isSegmentation(item) || isChannel(item))
     {
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if(viewItem != nullptr)

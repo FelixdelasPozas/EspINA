@@ -203,7 +203,7 @@ namespace ESPINA
 
     int    m_tolerance; // Selection tolerance for the handles
     Plane  m_plane;
-    Nm     m_epsilon;
+    Nm     m_actorShift;
     Nm     m_slice;
   private:
     /** \brief vtkPlanarSplitRepresentation2D copy constructor not implemented.

@@ -853,7 +853,9 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
         crit.goToBegin();
 
         if(!hasVolumetricData(segAdapter->output()))
+        {
           continue;
+        }
 
         auto volume = volumetricData(segAdapter->output());
         auto itkVolume = volume->itkImage(intersectionBounds);

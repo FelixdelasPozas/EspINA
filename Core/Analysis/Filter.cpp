@@ -176,13 +176,9 @@ void Filter::restoreEditedRegions()
   {
     QByteArray buffer = storage()->snapshot(outputFile());
 
-    //qDebug() << buffer;
-
     if (!buffer.isEmpty())
     {
       QXmlStreamReader xml(buffer);
-
-      qDebug() << buffer;
 
       OutputSPtr output;
       DataSPtr   data;

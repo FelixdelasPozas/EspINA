@@ -229,12 +229,12 @@ namespace ESPINA
     {
       disconnect(skeleton, SIGNAL(dataChanged()),
               this       , SLOT(updateWidgetRepresentation()));
-
-      return;
     }
-
-    auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
-    widget->initialize(skeleton->skeleton());
+    else
+    {
+      auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
+      widget->initialize(skeleton->skeleton());
+    }
   }
 
   //-----------------------------------------------------------------------------

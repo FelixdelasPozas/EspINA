@@ -209,7 +209,7 @@ namespace ESPINA
   template<class T>
   bool VolumetricRenderer<T>::canRender(ItemAdapterPtr item) const
   {
-    if(item->type() == ItemAdapter::Type::SEGMENTATION)
+    if(isSegmentation(item))
     {
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if(viewItem != nullptr)

@@ -129,7 +129,7 @@ bool CrosshairRenderer::hasRepresentation(RepresentationSPtr rep) const
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::canRender(ItemAdapterPtr item) const
 {
-  if(item->type() == ItemAdapter::Type::CHANNEL)
+  if(isChannel(item))
   {
     auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
     if(viewItem != nullptr)

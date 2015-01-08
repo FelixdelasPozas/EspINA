@@ -53,8 +53,7 @@ namespace ESPINA
   {
     Representation::setColor(color);
 
-    if(m_actor == nullptr)
-      return;
+    if(m_actor == nullptr) return;
 
     auto segColor = s_highlighter->color(m_color, m_highlight);
     m_actor->GetProperty()->SetColor(segColor.redF(), segColor.greenF(), segColor.blueF());
@@ -67,8 +66,7 @@ namespace ESPINA
   {
     Representation::setHighlighted(highlighted);
 
-    if(m_actor == nullptr)
-      return;
+    if(m_actor == nullptr) return;
 
     auto segColor = s_highlighter->color(m_color, m_highlight);
     m_actor->GetProperty()->SetColor(segColor.redF(), segColor.greenF(), segColor.blueF());
@@ -101,10 +99,14 @@ namespace ESPINA
   void SkeletonRepresentation::updateVisibility(bool visible)
   {
     if(visible && needUpdate())
+    {
       updateRepresentation();
+    }
 
     if (m_actor != nullptr)
+    {
       m_actor->SetVisibility(visible);
+    }
   }
   
   //-----------------------------------------------------------------------------
@@ -128,8 +130,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonRepresentation::updateRepresentation()
   {
-    if(m_data->skeleton() == nullptr || m_data->skeleton()->GetNumberOfPoints() == 0)
-      return;
+    if(m_data->skeleton() == nullptr || m_data->skeleton()->GetNumberOfPoints() == 0) return;
 
     auto view2d = dynamic_cast<View2D*>(m_view);
 
@@ -143,8 +144,7 @@ namespace ESPINA
       auto data = m_data->skeleton();
       auto planeSpacing = m_data->spacing()[planeIndex];
 
-      if(slice == m_slice && m_lastUpdatedTime == data->GetMTime())
-        return;
+      if(slice == m_slice && m_lastUpdatedTime == data->GetMTime()) return;
 
       m_slice = slice;
       QMap<vtkIdType, NmVector3> pointIds;

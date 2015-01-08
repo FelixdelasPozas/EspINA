@@ -154,20 +154,21 @@ namespace ESPINA
     this->m_widgetState = vtkSkeletonWidget::Start;
     this->m_modified = false;
 
-    if(this->GetCurrentRenderer() == nullptr) return;
-
-    int X = this->Interactor->GetEventPosition()[0];
-    int Y = this->Interactor->GetEventPosition()[1];
-    this->WidgetRep->ComputeInteractionState(X,Y);
-    int wState = this->WidgetRep->GetInteractionState();
-
-    if (pd == nullptr)
+    if(this->GetCurrentRenderer() != nullptr)
     {
-      this->SetCursor(vtkSkeletonWidgetRepresentation::Outside);
-    }
-    else
-    {
-      this->SetCursor(wState);
+      int X = this->Interactor->GetEventPosition()[0];
+      int Y = this->Interactor->GetEventPosition()[1];
+      this->WidgetRep->ComputeInteractionState(X,Y);
+      int wState = this->WidgetRep->GetInteractionState();
+
+      if (pd == nullptr)
+      {
+        this->SetCursor(vtkSkeletonWidgetRepresentation::Outside);
+      }
+      else
+      {
+        this->SetCursor(wState);
+      }
     }
   }
 
@@ -549,48 +550,53 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::SetShift(const Nm shift)
   {
-    if(m_shift == shift) return;
-
-    m_shift = shift;
-
-    if(this->WidgetRep == nullptr)
+    if(m_shift != shift)
     {
-      this->CreateDefaultRepresentation();
-      return;
-    }
+      m_shift = shift;
 
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetShift(shift);
+      if(this->WidgetRep == nullptr)
+      {
+        this->CreateDefaultRepresentation();
+        return;
+      }
+
+      reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetShift(shift);
+    }
   }
 
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::SetTolerance(const double tolerance)
   {
-    if(m_drawTolerance == tolerance) return;
-
-    m_drawTolerance = tolerance;
-
-    if(this->WidgetRep == nullptr)
+    if(m_drawTolerance != tolerance)
     {
-      this->CreateDefaultRepresentation();
-      return;
-    }
+      m_drawTolerance = tolerance;
 
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetTolerance(m_drawTolerance);
+      if(this->WidgetRep == nullptr)
+      {
+        this->CreateDefaultRepresentation();
+        return;
+      }
+
+      reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetTolerance(m_drawTolerance);
+    }
   }
 
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::setRepresentationColor(const QColor &color)
   {
-    this->m_color = color;
-
-    if(this->WidgetRep == nullptr)
+    if(m_color != color)
     {
-      this->CreateDefaultRepresentation();
-    }
+      this->m_color = color;
 
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetColor(color);
-    this->Render();
-    this->WidgetRep->NeedToRenderOff();
+      if(this->WidgetRep == nullptr)
+      {
+        this->CreateDefaultRepresentation();
+      }
+
+      reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetColor(color);
+      this->Render();
+      this->WidgetRep->NeedToRenderOff();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -607,14 +613,17 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void vtkSkeletonWidget::SetSpacing(const NmVector3 &spacing)
   {
-    this->m_spacing = spacing;
-
-    if(this->WidgetRep == nullptr)
+    if(m_spacing != spacing)
     {
-      this->CreateDefaultRepresentation();
-    }
+      this->m_spacing = spacing;
 
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSpacing(spacing);
+      if(this->WidgetRep == nullptr)
+      {
+        this->CreateDefaultRepresentation();
+      }
+
+      reinterpret_cast<vtkSkeletonWidgetRepresentation *>(this->WidgetRep)->SetSpacing(spacing);
+    }
   }
 
 } // namespace ESPINA

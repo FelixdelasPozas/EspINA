@@ -50,16 +50,24 @@ namespace ESPINA
     for (auto item: m_representations.keys())
     {
       if (m_enable)
+      {
         for (auto rep: m_representations[item])
+        {
           for (auto prop: rep->getActors())
+          {
             m_view->removeActor(prop);
+          }
+        }
+      }
 
       m_representations[item].clear();
     }
     m_representations.clear();
 
     if(m_picker != nullptr)
+    {
       m_picker->GetPickList()->RemoveAllItems();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -81,7 +89,9 @@ namespace ESPINA
     if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
       if (m_representations.keys().contains(item))
+      {
         m_representations[item] << rep;
+      }
       else
       {
         RepresentationSList list;
@@ -109,6 +119,7 @@ namespace ESPINA
     if ((segSlice.get() != nullptr) || (channelSlice.get() != nullptr))
     {
       for (auto item: m_representations.keys())
+      {
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
@@ -123,13 +134,14 @@ namespace ESPINA
           if (m_representations[item].isEmpty())
             m_representations.remove(item);
         }
+      }
     }
   }
 
   //-----------------------------------------------------------------------------
   bool SliceRenderer::canRender(ItemAdapterPtr item) const
   {
-    if(item->type() == ItemAdapter::Type::CHANNEL || item->type() == ItemAdapter::Type::SEGMENTATION)
+    if(isChannel(item) || isSegmentation(item))
     {
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if(viewItem != nullptr)
@@ -150,8 +162,9 @@ namespace ESPINA
   bool SliceRenderer::hasRepresentation(RepresentationSPtr rep) const
   {
     for (auto item: m_representations.keys())
-      if (m_representations[item].contains(rep))
-        return true;
+    {
+      if (m_representations[item].contains(rep)) return true;
+    }
 
     return false;
   }
@@ -159,16 +172,19 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SliceRenderer::hide()
   {
-    if (!m_enable)
-      return;
+    if (!m_enable) return;
 
     for (auto item: m_representations.keys())
+    {
       for (auto rep: m_representations[item])
+      {
         for (auto prop: rep->getActors())
         {
           m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
         }
+      }
+    }
 
     emit renderRequested();
   }
@@ -176,17 +192,20 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SliceRenderer::show()
   {
-     if (m_enable)
-       return;
+     if (m_enable) return;
 
      QApplication::setOverrideCursor(Qt::WaitCursor);
      for (auto item: m_representations.keys())
+     {
        for (auto rep: m_representations[item])
+       {
          for (auto prop: rep->getActors())
          {
            m_view->addActor(prop);
            m_picker->AddPickList(prop);
          }
+       }
+     }
 
      QApplication::restoreOverrideCursor();
      emit renderRequested();
@@ -197,8 +216,12 @@ namespace ESPINA
   {
     unsigned int returnVal = 0;
     for (auto item:  m_representations.keys())
+    {
       for (auto rep: m_representations[item])
+      {
         if (rep->isVisible()) ++returnVal;
+      }
+    }
 
     return returnVal;
   }
@@ -214,7 +237,9 @@ namespace ESPINA
     auto view = reinterpret_cast<View2D *>(m_view);
 
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
+    {
       return selection;
+    }
 
     while (m_picker->Pick(x,y,0, renderer))
     {
@@ -231,9 +256,10 @@ namespace ESPINA
 
       for (auto item: m_representations.keys())
       {
-        if (!((item->type() == ViewItemAdapter::Type::CHANNEL && itemType.testFlag(RenderableType::CHANNEL)) ||
-              (item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION))))
+        if (!((isChannel(item) && itemType.testFlag(RenderableType::CHANNEL)) || (isSegmentation(item) && itemType.testFlag(RenderableType::SEGMENTATION))))
+        {
           continue;
+        }
 
         for (auto rep: m_representations[item])
         {
@@ -245,7 +271,9 @@ namespace ESPINA
             if (!repeat)
             {
               for (auto actor: removedProps)
+              {
                 m_picker->AddPickList(actor);
+              }
 
               return selection;
             }
@@ -257,7 +285,9 @@ namespace ESPINA
     }
 
     for (auto actor: removedProps)
+    {
       m_picker->AddPickList(actor);
+    }
 
     return selection;
   }

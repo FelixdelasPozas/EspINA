@@ -93,7 +93,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   bool ContourRenderer::canRender(ItemAdapterPtr item) const
   {
-    if(item->type() == ItemAdapter::Type::SEGMENTATION)
+    if(isSegmentation(item))
     {
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if (viewItem != nullptr)
@@ -139,7 +139,7 @@ namespace ESPINA
 
       for (auto item: m_representations.keys())
       {
-        if (!(item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION)))
+        if (!(isSegmentation(item) && itemType.testFlag(RenderableType::SEGMENTATION)))
           continue;
 
         NmVector3 vecPoint{ point[0], point[1], point[2] };

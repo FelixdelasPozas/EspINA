@@ -418,7 +418,7 @@ bool StereologicalInclusion::isOnEdge() const
 }
 
 //------------------------------------------------------------------------
-bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
+bool StereologicalInclusion::isRealCollision(const Bounds& intersection)
 {
   using ImageIterator = itk::ImageRegionIterator<itkVolumeType>;
 
@@ -427,7 +427,7 @@ bool StereologicalInclusion::isRealCollision(const Bounds& interscetion)
   if (hasVolumetricData(output))
   {
   auto volume = volumetricData(m_extendedItem->output());
-  auto image  = volume->itkImage(interscetion);
+  auto image  = volume->itkImage(intersection);
 
   ImageIterator it = ImageIterator(image, image->GetLargestPossibleRegion());
   it.GoToBegin();

@@ -56,7 +56,9 @@ namespace ESPINA
     m_representations.clear();
 
     if(m_picker != nullptr)
+    {
       m_picker->GetPickList()->RemoveAllItems();
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -72,17 +74,20 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonRenderer::show()
   {
-    if (m_enable)
-      return;
+    if (m_enable) return;
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
     for (auto item: m_representations.keys())
+    {
       for (auto rep: m_representations[item])
+      {
         for (auto prop: rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
         }
+      }
+    }
 
     QApplication::restoreOverrideCursor();
     emit renderRequested();
@@ -91,16 +96,19 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonRenderer::hide()
   {
-    if (!m_enable)
-      return;
+    if (!m_enable) return;
 
     for (auto item: m_representations.keys())
+    {
       for (auto rep: m_representations[item])
+      {
         for (auto prop: rep->getActors())
         {
           m_view->removeActor(prop);
           m_picker->DeletePickList(prop);
         }
+      }
+    }
 
     emit renderRequested();
   }
@@ -110,8 +118,12 @@ namespace ESPINA
   {
     unsigned int returnVal = 0;
     for (auto item:  m_representations.keys())
+    {
       for (auto rep: m_representations[item])
+      {
         if (rep->isVisible()) ++returnVal;
+      }
+    }
 
     return returnVal;
   }
@@ -124,7 +136,9 @@ namespace ESPINA
     if (SkeletonRep != nullptr)
     {
       if (m_representations.keys().contains(item))
+      {
         m_representations[item] << rep;
+      }
       else
       {
         RepresentationSList list;
@@ -133,11 +147,13 @@ namespace ESPINA
       }
 
       if (m_enable)
+      {
         for (auto prop: rep->getActors())
         {
           m_view->addActor(prop);
           m_picker->AddPickList(prop);
         }
+      }
     }
   }
 
@@ -149,20 +165,26 @@ namespace ESPINA
     if (SkeletonRep != nullptr)
     {
       for (auto item: m_representations.keys())
+      {
         if (m_representations[item].contains(rep))
         {
           if (m_enable)
+          {
             for (auto prop: rep->getActors())
             {
               m_view->removeActor(prop);
               m_picker->DeletePickList(prop);
             }
+          }
 
           m_representations[item].removeAll(rep);
 
           if (m_representations[item].isEmpty())
+          {
             m_representations.remove(item);
+          }
         }
+      }
     }
   }
 
@@ -170,8 +192,9 @@ namespace ESPINA
   bool SkeletonRenderer::hasRepresentation(RepresentationSPtr rep) const
   {
     for (auto item: m_representations.keys())
-      if (m_representations[item].contains(rep))
-        return true;
+    {
+      if (m_representations[item].contains(rep)) return true;
+    }
 
     return false;
   }
@@ -179,7 +202,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   bool SkeletonRenderer::canRender(ItemAdapterPtr item) const
   {
-    if(item->type() == ItemAdapter::Type::SEGMENTATION)
+    if(isSegmentation(item))
     {
       auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
       if(viewItem != nullptr)
@@ -204,7 +227,9 @@ namespace ESPINA
     auto view = reinterpret_cast<View2D *>(m_view);
 
     if (!renderer || !renderer.GetPointer() || !itemType.testFlag(RenderableType::SEGMENTATION))
+    {
       return selection;
+    }
 
     while (m_picker->Pick(x,y,0, renderer))
     {
@@ -243,7 +268,9 @@ namespace ESPINA
     }
 
     for (auto actor: removedProps)
+    {
       m_picker->AddPickList(actor);
+    }
 
     return selection;
   }

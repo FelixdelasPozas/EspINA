@@ -32,8 +32,6 @@ namespace ESPINA
   , m_label       {nullptr}
   , m_spinBox     {nullptr}
   , m_value       {0}
-  , m_text        {QString()}
-  , m_suffix      {QString()}
   , m_enabled     {true}
   , m_maximumValue{30}
   , m_minimumValue{1}
