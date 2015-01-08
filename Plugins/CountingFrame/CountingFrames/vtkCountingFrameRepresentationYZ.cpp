@@ -158,7 +158,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
     int interval = slice - UpperSlice;
     // Bottom
     Region->GetPoint(slice*4+0,point);
-    point[0]  = Slice + ESPINA::View2D::WIDGET_SHIFT;
+    point[0]  = Slice + SlicingStep[0];
     point[1] -= ExclusionOffset[1];
     if (slice == 0)
       point[2] += InclusionOffset[2];
@@ -170,7 +170,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
     this->Vertex->SetPoint(2*interval, point);
     // Top
     Region->GetPoint(slice*4+1,point);
-    point[0]  = Slice + ESPINA::View2D::WIDGET_SHIFT;
+    point[0]  = Slice + SlicingStep[0];
     point[1] += InclusionOffset[1];
     if (slice == 0)
       point[2] += InclusionOffset[2];

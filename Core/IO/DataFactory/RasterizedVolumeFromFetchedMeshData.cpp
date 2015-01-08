@@ -56,7 +56,6 @@ namespace ESPINA
       }
     }
 
-
     return data;
   }
 

@@ -114,7 +114,7 @@ void View3D::reset()
 //-----------------------------------------------------------------------------
 void View3D::addRendererControls(RendererSPtr renderer)
 {
-  if (m_renderers.contains(renderer) || (renderer->renderType() != RendererTypes(RENDERER_VIEW3D)))
+  if (m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW3D))
     return;
 
   m_renderers << renderer;

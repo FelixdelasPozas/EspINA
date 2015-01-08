@@ -76,7 +76,7 @@ void AdaptiveCountingFrame::registerView(RenderView *view)
     QReadLocker lockMargins(&m_marginsMutex);
     auto wa = CountingFrame3DWidgetAdapter::New();
     wa->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
-    wa->SetCurrentRenderer(view3d->mainRenderer());
+    wa->SetCurrentRenderer(view->mainRenderer());
     wa->SetInteractor(view3d->renderWindow()->GetInteractor());
     wa->SetEnabled(true);
 
@@ -97,7 +97,7 @@ void AdaptiveCountingFrame::registerView(RenderView *view)
       wa->SetSlicingStep(m_channel->output()->spacing());
       wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
       wa->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
-      wa->SetCurrentRenderer(view2d->mainRenderer());
+      wa->SetCurrentRenderer(view->mainRenderer());
       wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
       wa->SetEnabled(true);
 

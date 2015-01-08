@@ -23,6 +23,7 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolumeUtils.h>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/Utils/ChangeSignalDelayer.h>
 
 using namespace ESPINA;
@@ -31,25 +32,51 @@ using namespace ESPINA;
 DrawUndoCommand::DrawUndoCommand(SegmentationAdapterSPtr seg, BinaryMaskSPtr<unsigned char> mask)
 : m_segmentation(seg)
 , m_mask(mask)
+, m_output(m_segmentation->output())
+, m_hasVolume(hasVolumetricData(m_output))
 {
 }
 
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::redo()
 {
-  auto volume = volumetricData(m_segmentation->output());
+  if (m_hasVolume)
+  {
+    auto volume = volumetricData(m_output);
 
-  ChangeSignalDelayer inhibitor(volume);
-  m_bounds = volume->bounds();
-  expandAndDraw(volume, m_mask);
+    ChangeSignalDelayer inhibitor(volume);
+    m_bounds = volume->bounds();
+    expandAndDraw(volume, m_mask);
+  }
+  else
+  {
+    m_bounds =  m_mask->bounds().bounds();
+    auto strokeSpacing = m_output->spacing();
+    //auto strokeOrigin  = m_->position();
+
+    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_bounds, strokeSpacing);
+    volume->draw(m_mask);
+
+    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
+
+    m_output->setData(volume);
+    m_output->setData(mesh);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void DrawUndoCommand::undo()
 {
-  auto volume = volumetricData(m_segmentation->output());
+  if (m_hasVolume)
+  {
+    auto volume = volumetricData(m_segmentation->output());
 
-  ChangeSignalDelayer inhibitor(volume);
-  volume->undo();
-  volume->resize(m_bounds);
+    ChangeSignalDelayer inhibitor(volume);
+    volume->undo();
+    volume->resize(m_bounds);
+  }
+  else
+  {
+    m_output->removeData(VolumetricData<itkVolumeType>::TYPE);
+  }
 }

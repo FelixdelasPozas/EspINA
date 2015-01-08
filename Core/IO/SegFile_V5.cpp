@@ -35,7 +35,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -72,7 +72,7 @@ SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPt
 , m_factory    {factory}
 , m_handler    {handler}
 , m_analysis   {new Analysis()}
-, m_dataFactory{new FetchRawData()}
+, m_dataFactory{new RawDataFactory()}
 {
 }
 

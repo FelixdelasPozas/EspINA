@@ -222,3 +222,10 @@ ChannelAdapterPtr ESPINA::channelPtr(ItemAdapterPtr item)
 {
   return static_cast<ChannelAdapterPtr>(item);
 }
+
+
+//------------------------------------------------------------------------
+bool ESPINA::isChannel(ItemAdapterPtr item)
+{
+  return ItemAdapter::Type::CHANNEL == item->type();
+}

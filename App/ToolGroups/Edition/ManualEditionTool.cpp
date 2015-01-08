@@ -132,7 +132,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
   connect(m_radiusWidget, SIGNAL(valueChanged(int)),
           this, SLOT(changeRadius(int)));
 
-
   m_opacityWidget->setSliderMinimum(1);
   m_opacityWidget->setSliderMaximum(100);
   m_opacityWidget->setValue(opacity);
@@ -140,7 +139,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
 
   connect(m_opacityWidget, SIGNAL(valueChanged(int)),
           this, SLOT(changeOpacity(int)));
-
 
   m_eraserWidget->setCheckable(true);
 

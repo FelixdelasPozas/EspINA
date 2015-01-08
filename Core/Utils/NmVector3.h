@@ -127,5 +127,4 @@ namespace ESPINA {
   bool EspinaCore_EXPORT operator!=(const NmVector3& lhs, const NmVector3& rhs);
 }
 
-
 #endif // ESPINA_NM_VECTOR_3_H

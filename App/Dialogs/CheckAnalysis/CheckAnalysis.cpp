@@ -124,22 +124,28 @@ namespace ESPINA
       case ItemAdapter::Type::SEGMENTATION:
         {
           auto seg = std::dynamic_pointer_cast<SegmentationAdapter>(m_item);
-          auto volume = volumetricData(seg->output());
-          if(volume == nullptr || volume->isEmpty())
+          if(hasVolumetricData(seg->output()))
           {
-            Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume data associated but is empty or null."), tr("Delete segmentation.")};
-            emit problem(segProblem);
+            auto volume = volumetricData(seg->output());
+            if(volume == nullptr || volume->isEmpty())
+            {
+              Problem segProblem{seg->data().toString(), Severity::CRITICAL, tr("Segmentation has a volume data associated but is empty or null."), tr("Delete segmentation.")};
+              emit problem(segProblem);
+            }
           }
         }
         break;
       case ItemAdapter::Type::CHANNEL:
         {
           auto channel = std::dynamic_pointer_cast<ChannelAdapter>(m_item);
-          auto volume = volumetricData(channel->output());
-          if(volume == nullptr)
+          if(hasVolumetricData(channel->output()))
           {
-            Problem channelProblem{channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume data associated but is null."), tr("Delete channel.")};
-            emit problem(channelProblem);
+            auto volume = volumetricData(channel->output());
+            if(volume == nullptr)
+            {
+              Problem channelProblem{channel->data().toString(), Severity::CRITICAL, tr("Channel has a volume data associated but is null."), tr("Delete channel.")};
+              emit problem(channelProblem);
+            }
           }
         }
         break;

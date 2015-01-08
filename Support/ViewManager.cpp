@@ -158,7 +158,7 @@ QStringList ViewManager::renderers(const RendererType type) const
   QStringList rendererNames;
 
   for(auto renderer: m_availableRenderers)
-    if(renderer->renderType().testFlag(type))
+    if(renderer->renderType().testFlag(type) && !rendererNames.contains(renderer->name()))
       rendererNames << renderer->name();
 
   return rendererNames;
@@ -169,7 +169,7 @@ RendererSPtr ViewManager::cloneRenderer(const QString &name) const
 {
   for(auto renderer: m_availableRenderers)
     if(renderer->name() == name)
-      return RendererSPtr{renderer->clone()};
+      return renderer->clone();
 
   return RendererSPtr{};
 }

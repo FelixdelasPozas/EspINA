@@ -107,7 +107,6 @@ namespace ESPINA
   	 * \param[in] points.
   	 *
   	 */
-    //
     virtual void setPoints(vtkSmartPointer<vtkPoints> points);
 
     /** \brief Returns the points of the segment.
@@ -116,10 +115,16 @@ namespace ESPINA
     vtkSmartPointer<vtkPoints> getPoints();
 
   	/** \brief Sets widget orientation.
-  	 * \param[in] orientantion, orientation plane.
+  	 * \param[in] orientation orientation plane.
   	 *
   	 */
     virtual void setOrientation(Plane orientation);
+
+    /** \brief Sets the distance of the widget over the rest of the view's representations.
+     * \param[in] shift view's wigets' shift value.
+     *
+     */
+    virtual void setShift(const Nm shift);
 
     /** \brief Returns the widget orientation.
      *
@@ -138,7 +143,7 @@ namespace ESPINA
     virtual void disableWidget();
 
   	/** \brief Sets the segmentations bounds to draw the widget.
-  	 * \param[in] bounds, pointer to a vector of six double values.
+  	 * \param[in] bounds pointer to a vector of six double values.
   	 *
   	 */
     virtual void setSegmentationBounds(double *bounds);
@@ -165,7 +170,8 @@ namespace ESPINA
     int CurrentHandle;
     Plane  m_plane;
     double m_segmentationBounds[6];
-    double m_slice;
+    Nm m_slice;
+    Nm m_shift;
 
     /** \brief Callback interface to capture events when
      * placing the widget.

@@ -33,7 +33,7 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -61,7 +61,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
 
       if (type == "SGS") {
         filter = FilterSPtr{new SeedGrowSegmentationFilter(inputs, type, scheduler)};
-        filter->setDataFactory(DataFactorySPtr{new FetchRawData()});
+        filter->setDataFactory(DataFactorySPtr{new RawDataFactory()});
       }
 
       return filter;

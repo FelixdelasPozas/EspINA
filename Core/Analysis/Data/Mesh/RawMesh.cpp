@@ -34,42 +34,39 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawMesh::RawMesh(OutputSPtr output)
-: m_mesh{nullptr}
+RawMesh::RawMesh(const NmVector3             &spacing,
+                 const NmVector3             &origin)
+: m_mesh(nullptr)
+, m_spacing(spacing)
+, m_origin(origin)
 {
 }
-
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
-                 itkVolumeType::SpacingType spacing,
-                 OutputSPtr output)
-: m_mesh{mesh}
+                 const NmVector3             &spacing,
+                 const NmVector3             &origin)
+: m_mesh(mesh)
+, m_spacing(spacing)
+, m_origin(origin)
 {
 }
 
 
 //----------------------------------------------------------------------------
-Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
+void RawMesh::setSpacing(const NmVector3 &newSpacing)
 {
-  return MeshData::snapshot(storage, path, id);
-}
+  if(m_mesh != nullptr)
+  {
+    Q_ASSERT(newSpacing[0] != 0 && newSpacing[1] != 0 && newSpacing[2] != 0);
+    NmVector3 ratio{newSpacing[0]/m_spacing[0],
+                    newSpacing[1]/m_spacing[1],
+                    newSpacing[2]/m_spacing[2]};
 
-//----------------------------------------------------------------------------
-Snapshot RawMesh::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
-{
-  return snapshot(storage, path, id);
-}
+    PolyDataUtils::scalePolyData(m_mesh, ratio);
+    updateModificationTime();
+  }
 
-//----------------------------------------------------------------------------
-void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
-{
-  fetchDataImplementation(storage, path, id);
-}
-
-//----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
-{
-  return m_mesh;
+  m_spacing = m_spacing;
 }
 
 //----------------------------------------------------------------------------
@@ -86,12 +83,6 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RawMesh::spacing() const
-{
-  return m_output->spacing();
-}
-
-//----------------------------------------------------------------------------
 size_t RawMesh::memoryUsage() const
 {
   if (m_mesh)
@@ -99,32 +90,6 @@ size_t RawMesh::memoryUsage() const
 
   return 0;
 }
-
-//----------------------------------------------------------------------------
-bool RawMesh::isValid() const
-{
-  return (m_mesh.Get() != nullptr);
-}
-
-//----------------------------------------------------------------------------
-bool RawMesh::isEmpty() const
-{
-  return !isValid();
-}
-
-//----------------------------------------------------------------------------
-bool RawMesh::setInternalData(MeshDataSPtr rhs)
-{
-  m_mesh = rhs->mesh();
-  return true;
-}
-
-//----------------------------------------------------------------------------
-bool RawMesh::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
-{
-  return MeshData::fetchDataImplementation(storage, path, id);
-}
-
 
 //----------------------------------------------------------------------------
 RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)

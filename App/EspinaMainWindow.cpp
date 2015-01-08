@@ -33,6 +33,7 @@
 #include "ToolGroups/ROI/ROITools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
+#include "ToolGroups/Skeleton/SkeletonToolGroup.h"
 #include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
@@ -53,6 +54,7 @@
 #include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
 #include <GUI/Representations/Renderers/MeshRenderer.h>
+#include <GUI/Representations/Renderers/SkeletonRenderer.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
 #include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Utils/DefaultIcons.h>
@@ -77,6 +79,7 @@ using namespace ESPINA::GUI;
 
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 const int PERIOD_NS = 250000;
+const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------
 EspinaMainWindow::DynamicMenuNode::DynamicMenuNode()
@@ -135,6 +138,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_viewManager->registerRenderer(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
   m_viewManager->registerRenderer(std::make_shared<ContourRenderer>());
   m_viewManager->registerRenderer(std::make_shared<CachedSliceRenderer>(m_scheduler));
+  m_viewManager->registerRenderer(std::make_shared<SkeletonRenderer>());
+  m_viewManager->registerRenderer(std::make_shared<SkeletonRenderer3D>());
 
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
@@ -281,8 +286,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);
   m_contextualBar->setObjectName("Contextual ToolBar");
-  m_contextualBar->setMinimumHeight(44);
-  m_contextualBar->setMaximumHeight(44);
+  m_contextualBar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
+  m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_viewManager->setContextualBar(m_contextualBar);
 
   auto defaultActiveTool = new ViewTools(m_viewManager, this);
@@ -298,6 +303,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   auto editionTools = new EditionTools(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(editionTools);
+
+  auto skeletonTools = new SkeletonToolGroup(m_model, m_factory, m_viewManager, m_undoStack, this);
+  registerToolGroup(skeletonTools);
 
   auto measuresTools = new MeasuresTools(m_viewManager, this);
   registerToolGroup(measuresTools);

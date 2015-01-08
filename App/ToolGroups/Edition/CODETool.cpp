@@ -29,7 +29,7 @@ CODETool::CODETool(const QString& icon, const QString& tooltip)
 : m_toggle {new QAction(this)}
 , m_radius {new SpinBoxAction(this)}
 , m_apply  {new QAction(this)}
-, m_enabled{false}
+, m_enabled{true}
 {
   m_toggle->setIcon(QIcon(icon));
   m_toggle->setToolTip(tooltip);
@@ -62,10 +62,10 @@ QList<QAction *> CODETool::actions() const
 //------------------------------------------------------------------------
 void CODETool::setEnabled(bool enabled)
 {
-	if(m_enabled == enabled)
-		return;
+  if(m_enabled == enabled)
+    return;
 
-	m_enabled = enabled;
+  m_enabled = enabled;
 
   m_toggle->setEnabled(enabled);
   m_radius->setEnabled(enabled);

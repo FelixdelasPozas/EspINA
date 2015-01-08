@@ -33,7 +33,7 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/IO/SegFile.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 #include <testing_support_channel_input.h>
@@ -63,7 +63,7 @@ int io_sgs_sas( int argc, char** argv )
 
       if (type == "SGS") {
         filter = std::make_shared<SeedGrowSegmentationFilter>(inputs, type, scheduler);
-        filter->setDataFactory(std::make_shared<FetchRawData>());
+        filter->setDataFactory(std::make_shared<RawDataFactory>());
       } else if (type == "SAS")
       {
         filter = std::make_shared<AppositionSurfaceFilter>(inputs, type, scheduler);

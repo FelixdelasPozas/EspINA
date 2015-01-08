@@ -22,6 +22,7 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include "BasicRepresentationFactory.h"
 #include "CrosshairRepresentation.h"
 #include "SliceRepresentation.h"
@@ -31,6 +32,7 @@
 #include "VolumetricRepresentation.hxx"
 #include "VolumetricGPURepresentation.hxx"
 #include "SliceCachedRepresentation.h"
+#include "SkeletonRepresentation.h"
 
 using namespace ESPINA;
 
@@ -45,7 +47,6 @@ RepresentationTypeList BasicChannelRepresentationFactory::representations() cons
 
   return representations;
 }
-
 
 //-----------------------------------------------------------------------------
 RepresentationSPtr BasicChannelRepresentationFactory::createRepresentation(OutputSPtr output, Representation::Type type)
@@ -85,6 +86,7 @@ RepresentationTypeList BasicSegmentationRepresentationFactory::representations()
   representations << SmoothedMeshRepresentation::TYPE;
   representations << VolumetricRepresentation<itkVolumeType>::TYPE;
   representations << VolumetricGPURepresentation<itkVolumeType>::TYPE;
+  representations << SkeletonRepresentation::TYPE;
 
   return representations;
 }
@@ -131,6 +133,16 @@ RepresentationSPtr BasicSegmentationRepresentationFactory::createRepresentation(
     else if (SmoothedMeshRepresentation::TYPE == type)
     {
       representation = std::make_shared<SmoothedMeshRepresentation>(mesh, nullptr);
+    }
+  }
+
+  if(hasSkeletonData(output))
+  {
+    auto skeleton = skeletonData(output);
+
+    if(SkeletonRepresentation::TYPE == type)
+    {
+      representation = std::make_shared<SkeletonRepresentation>(skeleton, nullptr);
     }
   }
 

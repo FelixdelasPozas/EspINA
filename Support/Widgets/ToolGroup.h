@@ -50,7 +50,10 @@ namespace ESPINA
      * \param[in] parent raw pointer of the QObject parent of this one.
      *
      */
-    ToolGroup(ViewManagerSPtr viewManager, const QIcon& icon, const QString& text, QObject* parent);
+    ToolGroup(ViewManagerSPtr viewManager,
+              const QIcon& icon,
+              const QString& text,
+              QObject* parent = nullptr);
 
     /** \brief Enables/Disables the tool group.
      * \param[in] value, true to enable false otherwise.

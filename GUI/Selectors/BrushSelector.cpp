@@ -92,7 +92,9 @@ BrushSelector::~BrushSelector()
   }
 
   if (m_previewView)
+  {
     stopPreview(m_previewView);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -212,11 +214,17 @@ void BrushSelector::setEraseMode(bool value)
 void BrushSelector::setRadius(int radius)
 {
   if (radius <= 0)
+  {
     m_displayRadius = 1;
+  }
   else if (radius > MAX_RADIUS)
+  {
     m_displayRadius = MAX_RADIUS;
+  }
   else
+  {
     m_displayRadius = radius;
+  }
 
   buildCursor();
 }
@@ -227,7 +235,9 @@ void BrushSelector::setBorderPaintColor(QColor color)
   m_borderPaintColor = color;
 
   if(m_drawing)
+  {
     buildCursor();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -236,7 +246,9 @@ void BrushSelector::setBorderEraseColor(QColor color)
   m_borderEraseColor = color;
 
   if(!m_drawing)
+  {
     buildCursor();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -336,7 +348,9 @@ void BrushSelector::getBrushPosition(NmVector3 &center, QPoint const pos)
   wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_viewSize[1];
 
   for(int i=0; i < 3; i++)
+  {
     center[i] = wPos[i];
+  }
 }
 
 
@@ -345,8 +359,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 {
   Bounds brushBounds = buildBrushBounds(center);
 
-  if (!brushBounds.areValid())
-    return false;
+  if (!brushBounds.areValid()) return false;
 
   if(hasVolumetricData(m_item->output()))
   {
@@ -363,8 +376,7 @@ bool BrushSelector::validStroke(NmVector3 &center)
 //-----------------------------------------------------------------------------
 void BrushSelector::startStroke(QPoint pos, RenderView* view)
 {
-  if (!m_item)
-    return;
+  if (!m_item) return;
 
   View2D *previewView = static_cast<View2D*>(view);
   m_plane = previewView->plane();
@@ -405,8 +417,7 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 {
-  if (!m_item)
-    return;
+  if (!m_item) return;
 
   if (!m_brushes.empty() > 0 && QLineF(m_lastDot, pos).length() < m_displayRadius/2.0)
     return;
@@ -426,8 +437,7 @@ void BrushSelector::updateStroke(QPoint pos, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::stopStroke(RenderView* view)
 {
-  if(!m_item)
-    return;
+  if(!m_item) return;
 
   if (!m_brushes.empty())
   {
@@ -447,8 +457,7 @@ void BrushSelector::stopStroke(RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::startPreview(RenderView* view)
 {
-  if (m_previewView != nullptr)
-    return;
+  if (m_previewView != nullptr || !m_item || !hasVolumetricData(m_item->output())) return;
 
   m_pBounds = view->previewBounds(false);
   NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
@@ -539,12 +548,14 @@ void BrushSelector::startPreview(RenderView* view)
 void BrushSelector::updatePreview(BrushShape shape, RenderView* view)
 {
   NmVector3 nmSpacing{m_spacing[0], m_spacing[1], m_spacing[2]};
+
+  if (!m_item || !hasVolumetricData(m_item->output())) return;
+
   if (m_previewView == nullptr)
   {
     startPreview(view);
 
-    if (!intersect(VolumeBounds(m_pBounds, nmSpacing, m_origin).bounds(), m_item->output()->bounds()))
-        return;
+    if (!intersect(VolumeBounds(m_pBounds, nmSpacing, m_origin).bounds(), m_item->output()->bounds())) return;
   }
 
   Bounds brushBounds = shape.second;
@@ -622,8 +633,7 @@ void BrushSelector::updatePreview(BrushShape shape, RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::stopPreview(RenderView* view)
 {
-  if (m_previewView == nullptr || m_previewView != view)
-    return;
+  if (m_previewView == nullptr || m_previewView != view || !m_item || !hasVolumetricData(m_item->output())) return;
 
   disconnect(m_previewView, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(updateSliceChange()));
   m_previewView->removeActor(m_actor);

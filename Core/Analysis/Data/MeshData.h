@@ -50,10 +50,10 @@ namespace ESPINA
      */
     explicit MeshData();
 
-    virtual Data::Type type() const      final
+    virtual Data::Type type() const override final
     { return TYPE; }
 
-    virtual DataSPtr createProxy() const final;
+    virtual DataSPtr createProxy() const override final;
 
     Bounds bounds() const                override;
 
@@ -68,7 +68,6 @@ namespace ESPINA
      *
      */
     virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
-
 
   protected:
     // Default implementation

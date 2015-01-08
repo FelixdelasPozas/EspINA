@@ -49,7 +49,6 @@ void DummyChannelReader::execute()
 
   m_outputs[0]->setData(data);
   m_outputs[0]->clearEditedRegions();
-
 }
 
 //----------------------------------------------------------------------------
@@ -57,7 +56,6 @@ InputSPtr ESPINA::Testing::channelInput()
 {
 
   std::shared_ptr<DummyChannelReader> filter{new DummyChannelReader()};
-
   filter->update();
 
   return getInput(filter, 0);

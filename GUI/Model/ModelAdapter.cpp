@@ -870,7 +870,9 @@ void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
   }
   endRemoveRows();
 
-  //emit segmentationRemoved(segmentation);
+  SegmentationAdapterSList segmentationList;
+  segmentationList << segmentation;
+  emit segmentationsRemoved(segmentationList);
 
   Q_ASSERT (!m_segmentations.contains(segmentation));
 }
@@ -883,7 +885,7 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
     remove(segmentation);
   }
 
-  //emit segmentationRemoved(segmentation);
+  emit segmentationsRemoved(segmentations);
 }
 
 //------------------------------------------------------------------------
@@ -1161,18 +1163,6 @@ bool ESPINA::isCategory(ItemAdapterPtr item)
 bool ESPINA::isSample(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SAMPLE == item->type();
-}
-
-//------------------------------------------------------------------------
-bool ESPINA::isChannel(ItemAdapterPtr item)
-{
-  return ItemAdapter::Type::CHANNEL == item->type();
-}
-
-//------------------------------------------------------------------------
-bool ESPINA::isSegmentation(ItemAdapterPtr item)
-{
-  return ItemAdapter::Type::SEGMENTATION == item->type();
 }
 
 //------------------------------------------------------------------------

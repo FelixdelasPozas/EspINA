@@ -195,6 +195,7 @@ namespace ESPINA
   /** \brief Returns true if the output has a volumetric data and false otherwise.
    * \param[in] output, Output object smart pointer.
    *
+   *  This function ensures the output is up to date by callig ouput::update() first
    */
   bool EspinaCore_EXPORT hasVolumetricData(OutputSPtr output);
 

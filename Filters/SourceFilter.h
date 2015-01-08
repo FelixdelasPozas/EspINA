@@ -32,6 +32,9 @@ namespace ESPINA
   : public Filter
   {
   public:
+    struct Unexpected_Filter_Exception{};
+
+  public:
     /** \brief SourceFilter class constructor.
      * \param[in] inputs list of input smart pointers.
      * \param[in] type SourceFilter type.

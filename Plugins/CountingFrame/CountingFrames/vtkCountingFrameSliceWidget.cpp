@@ -359,6 +359,7 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
         break;
       default:
         Q_ASSERT(false);
+        break;
     }
   }
 }

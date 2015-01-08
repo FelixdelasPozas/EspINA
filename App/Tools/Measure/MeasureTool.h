@@ -22,7 +22,6 @@
 #define ESPINA_MEASURE_TOOL_H_
 
 // ESPINA
-#include <GUI/View/Widgets/Measures/MeasureWidget.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
@@ -38,7 +37,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief MeasureTool class constructor.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] viewManager view manager smart pointer.
      *
      */
     explicit MeasureTool(ViewManagerSPtr viewManager);
@@ -56,7 +55,8 @@ namespace ESPINA
     /** \brief Implements Tool::enabled().
      *
      */
-    virtual bool enabled() const;
+    virtual bool enabled() const
+    { return m_enabled; }
 
     /** \brief Implements Tool::actions().
      *
@@ -65,7 +65,7 @@ namespace ESPINA
 
   public slots:
   	/** \brief Initializes/De-initializes tool.
-  	 * \param[in] value, true to initialize tool, false to de-initialize.
+  	 * \param[in] value true to initialize tool, false to de-initialize.
   	 */
     void initTool(bool value);
 

@@ -21,7 +21,6 @@
 // ESPINA
 #include "PlanarSplitWidget.h"
 #include "vtkPlanarSplitWidget.h"
-#include <GUI/View/Widgets/EspinaInteractorAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
@@ -33,6 +32,7 @@
 #include <vtkImplicitPlaneWidget2.h>
 #include <vtkAbstractWidget.h>
 #include <vtkImplicitPlaneRepresentation.h>
+#include <vtkRenderWindow.h>
 
 using namespace ESPINA;
 
@@ -70,6 +70,7 @@ void PlanarSplitWidget::registerView(RenderView *view)
     widget->SetInteractor(view->renderWindow()->GetInteractor());
     widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
     widget->setOrientation(plane);
+    widget->setShift(view2d->widgetDepth());
     widget->setSlice(slice);
     widget->CreateDefaultRepresentation();
     widget->SetEnabled(true);
@@ -169,7 +170,7 @@ vtkSmartPointer<vtkPoints> PlanarSplitWidget::getPlanePoints() const
 }
 
 //-----------------------------------------------------------------------------
-void PlanarSplitWidget::setSegmentationBounds(const Bounds bounds)
+void PlanarSplitWidget::setSegmentationBounds(const Bounds &bounds)
 {
   double dBounds[6]{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
 
@@ -219,7 +220,7 @@ bool PlanarSplitWidget::planeIsValid() const
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane(const NmVector3 spacing) const
+vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane(const NmVector3 &spacing) const
 {
   vtkSmartPointer<vtkPlane> plane = nullptr;
 
@@ -236,7 +237,9 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane(const NmVector3 sp
     points->GetPoint(1, point2);
 
     double normal[3], upVector[3];
-    double planeVector[3] = { point2[0]-point1[0] - spacing[0]/2, point2[1]-point1[1] - spacing[1]/2, point2[2]-point1[2] - spacing[2]/2};
+    double planeVector[3] = { point2[0]-point1[0] - spacing[0]/2,
+                              point2[1]-point1[1] - spacing[1]/2,
+                              point2[2]-point1[2] - spacing[2]/2};
 
     switch(m_mainWidget)
     {

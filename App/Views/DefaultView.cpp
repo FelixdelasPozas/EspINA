@@ -101,6 +101,8 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
   {
     storedRenderers = settings.value(RENDERERS).toStringList();
+    storedRenderers.removeDuplicates();
+
     for(auto name: storedRenderers)
       viewSettings[name] = settings.value(name).toBool();
   }
@@ -111,25 +113,28 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
     // 3D -> all renderers included but initially inactive.
     storedRenderers << QString("Slice (Cached)");
     storedRenderers << QString("Contour");
+    storedRenderers << QString("Skeleton");
     viewSettings[QString("Slice (Cached)")] = true;
     viewSettings[QString("Contour")] = false;
+    viewSettings[QString("Skeleton")] = true;
     storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
+    storedRenderers.removeDuplicates();
 
     settings.setValue(RENDERERS, storedRenderers);
   }
   settings.endGroup();
 
-  QStringList available2DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW2D);
-  QStringList available3DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
+  QStringList available2DRenderers = m_viewManager->renderers(RendererType::RENDERER_VIEW2D);
+  QStringList available3DRenderers = m_viewManager->renderers(RendererType::RENDERER_VIEW3D);
   RendererSList renderers2D, renderers3D;
 
   for(auto name : storedRenderers)
   {
     if(available2DRenderers.contains(name))
       renderers2D << m_viewManager->cloneRenderer(name);
-    else
-      if(available3DRenderers.contains(name))
-        renderers3D << m_viewManager->cloneRenderer(name);
+
+    if(available3DRenderers.contains(name))
+      renderers3D << m_viewManager->cloneRenderer(name);
   }
 
   m_view3D->setRenderers(renderers3D);

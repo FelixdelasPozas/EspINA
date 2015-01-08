@@ -70,35 +70,35 @@ void ZoomSelectionWidget::registerView(RenderView *view)
     return;
 
   View2D *view2d = dynamic_cast<View2D *>(view);
-  if (view2d)
+  if (view2d == nullptr)
+    return;
+
+  ZoomSelectionWidgetAdapter *widget = ZoomSelectionWidgetAdapter::New();
+  Q_ASSERT(widget);
+
+  widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+
+  switch (view2d->plane())
   {
-    ZoomSelectionWidgetAdapter *widget = ZoomSelectionWidgetAdapter::New();
-    Q_ASSERT(widget);
-
-    widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
-
-    switch (view2d->plane())
-    {
-      case Plane::XY:
-        widget->SetWidgetType(vtkZoomSelectionWidget::AXIAL_WIDGET);
-        break;
-      case Plane::XZ:
-        widget->SetWidgetType(vtkZoomSelectionWidget::CORONAL_WIDGET);
-        break;
-      case Plane::YZ:
-        widget->SetWidgetType(vtkZoomSelectionWidget::SAGITTAL_WIDGET);
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-
-    widget->SetCurrentRenderer(view2d->renderWindow()->GetRenderers()->GetFirstRenderer());
-    widget->SetInteractor(view2d->renderWindow()->GetInteractor());
-    widget->On();
-
-    m_views.insert(view, widget);
+    case Plane::XY:
+      widget->SetWidgetType(vtkZoomSelectionWidget::AXIAL_WIDGET);
+      break;
+    case Plane::XZ:
+      widget->SetWidgetType(vtkZoomSelectionWidget::CORONAL_WIDGET);
+      break;
+    case Plane::YZ:
+      widget->SetWidgetType(vtkZoomSelectionWidget::SAGITTAL_WIDGET);
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
   }
+
+  widget->SetCurrentRenderer(view->mainRenderer());
+  widget->SetInteractor(view2d->renderWindow()->GetInteractor());
+  widget->On();
+
+  m_views.insert(view, widget);
 }
 
 //----------------------------------------------------------------------------

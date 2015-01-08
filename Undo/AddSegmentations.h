@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPIN_ADD_SEGMENTATION_H
-#define ESPIN_ADD_SEGMENTATION_H
+#ifndef ESPINA_ADD_SEGMENTATION_H
+#define ESPINA_ADD_SEGMENTATION_H
 
 #include "Undo/EspinaUndo_Export.h"
 
@@ -77,4 +77,4 @@ namespace ESPINA
   };
 } // namespace ESPINA
 
-#endif // ESPIN_ADD_SEGMENTATION_H
+#endif // ESPINA_ADD_SEGMENTATION_H

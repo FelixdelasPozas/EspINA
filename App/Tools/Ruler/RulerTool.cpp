@@ -93,15 +93,14 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   void RulerTool::selectionChanged()
   {
-    if (!m_widget)
-      return;
+    if (!m_widget) return;
 
     auto selection = m_viewManager->selection();
     if (!m_selection->items().empty())
     {
       for(auto item: m_selection->items())
       {
-        if (item->type() == ItemAdapter::Type::SEGMENTATION)
+        if (isSegmentation(item))
         {
           disconnect(item->output().get(), SIGNAL(modified()),
                      this,                 SLOT(selectionChanged()));
@@ -115,56 +114,62 @@ namespace ESPINA
     {
       for(auto item: selection->items())
       {
-        switch(item->type())
+        if (isSegmentation(item))
         {
-          case ItemAdapter::Type::CHANNEL:
-            if (!channelBounds.areValid())
-              channelBounds = channelPtr(item)->bounds();
-            else
-            {
-              Bounds bounds;
-              bounds = channelPtr(item)->bounds();
-              for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-              {
-                channelBounds[i] = std::min(bounds[i], channelBounds[i]);
-                channelBounds[j] = std::max(bounds[j], channelBounds[j]);
-              }
-            }
-            break;
-          case ItemAdapter::Type::SEGMENTATION:
+          connect(item->output().get(), SIGNAL(modified()),
+                  this,                 SLOT(selectionChanged()));
+          if (segmentationBounds.areValid())
           {
-            connect(item->output().get(), SIGNAL(modified()),
-                    this,                 SLOT(selectionChanged()));
-            if (!segmentationBounds.areValid())
-              segmentationBounds = segmentationPtr(item)->bounds();
-            else
+            Bounds bounds = segmentationPtr(item)->bounds();
+            for (int i = 0, j = 1; i < 6; i += 2, j += 2)
             {
-              Bounds bounds;
-              bounds = segmentationPtr(item)->bounds();
-              for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-              {
-                segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
-                segmentationBounds[j] = std::max(bounds[j], segmentationBounds[j]);
-              }
+              segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
+              segmentationBounds[j] = std::max(bounds[j], segmentationBounds[j]);
             }
-            break;
           }
-          default:
-            Q_ASSERT(false);
-            break;
+          else
+          {
+            segmentationBounds = segmentationPtr(item)->bounds();
+          }
+        }
+        else if (isChannel(item))
+        {
+          if (channelBounds.areValid())
+          {
+            Bounds bounds = channelPtr(item)->bounds();
+
+            for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+            {
+              channelBounds[i] = std::min(bounds[i], channelBounds[i]);
+              channelBounds[j] = std::max(bounds[j], channelBounds[j]);
+            }
+          }
+          else
+          {
+            channelBounds = channelPtr(item)->bounds();
+          }
         }
       }
     }
 
     auto widget = dynamic_cast<RulerWidget *>(m_widget.get());
     Q_ASSERT(widget);
+
     if (segmentationBounds.areValid())
+    {
       widget->setBounds(segmentationBounds);
+    }
     else
+    {
       if (channelBounds.areValid())
+      {
         widget->setBounds(channelBounds);
+      }
       else
+      {
         widget->setBounds(segmentationBounds);
+      }
+    }
 
     m_selection = selection;
   }

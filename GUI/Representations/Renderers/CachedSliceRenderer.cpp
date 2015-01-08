@@ -338,8 +338,7 @@ namespace ESPINA
 
       for (auto item : m_representations.keys())
       {
-        if (!((item->type() == ViewItemAdapter::Type::CHANNEL && itemType.testFlag(RenderableType::CHANNEL)) ||
-            (item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION))))
+        if (!((isChannel(item) && itemType.testFlag(RenderableType::CHANNEL)) || (isSegmentation(item) && itemType.testFlag(RenderableType::SEGMENTATION))))
           continue;
 
         if (m_representations[item].contains(pickedRepresentation))
@@ -475,20 +474,30 @@ namespace ESPINA
         m_edgePos = m_edgePos->next;
         m_edgePos->position = m_edgePos->previous->position + m_windowSpacing;
 
-        m_edgePos->worker = createTask();
-        m_edgePos->worker->setInput(m_edgePos, reps);
-        m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
-        m_edgePos->worker->submit(m_edgePos->worker);
+        if(!reps.empty())
+        {
+          m_edgePos->worker = createTask();
+          m_edgePos->worker->setInput(m_edgePos, reps);
+          m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
+          m_edgePos->worker->submit(m_edgePos->worker);
+        }
+        else
+          m_edgePos->worker = nullptr;
 
         node->previous = new CacheNode();
         node->previous->next = node;
         node = node->previous;
         node->position = node->next->position - m_windowSpacing;
 
-        node->worker = createTask();
-        node->worker->setInput(node, reps);
-        node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
-        node->worker->submit(node->worker);
+        if(!reps.empty())
+        {
+          node->worker = createTask();
+          node->worker->setInput(node, reps);
+          node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
+          node->worker->submit(node->worker);
+        }
+        else
+          node->worker = nullptr;
       }
     }
 
@@ -601,8 +610,11 @@ namespace ESPINA
 
     if (m_representationsActors[rep] != nullptr)
     {
-      m_representationsActors[rep]->SetVisibility(rep->isVisible());
-      m_representationsActors[rep]->Update();
+      if(m_representationsActors[rep]->GetVisibility() != static_cast<int>(rep->isVisible()))
+      {
+        m_representationsActors[rep]->SetVisibility(rep->isVisible());
+        m_representationsActors[rep]->Update();
+      }
     }
 
     auto node = m_actualPos;
@@ -611,8 +623,11 @@ namespace ESPINA
       node->mutex.lockForWrite();
       if (node->representations[rep] != nullptr)
       {
-        node->representations[rep]->SetVisibility(rep->isVisible());
-        node->representations[rep]->Update();
+        if(node->representations[rep]->GetVisibility() != static_cast<int>(rep->isVisible()))
+        {
+          node->representations[rep]->SetVisibility(rep->isVisible());
+          node->representations[rep]->Update();
+        }
       }
       node->mutex.unlock();
     }
@@ -659,7 +674,7 @@ namespace ESPINA
       lut->Build();
     }
 
-      if (m_representationsActors[rep] != nullptr)
+    if (m_representationsActors[rep] != nullptr)
     {
       auto imageMapToColors = vtkImageMapToColors::SafeDownCast(m_representationsActors[rep]->GetMapper()->GetInputAlgorithm(0, 0));
       imageMapToColors->SetLookupTable(lut);
@@ -859,10 +874,13 @@ namespace ESPINA
     }
     else
     {
-      m_actualPos->worker = createTask(priority);
-      m_actualPos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_actualPos->position));
-      m_actualPos->worker->setInput(m_actualPos, reps);
-      m_actualPos->worker->submit(m_actualPos->worker);
+      if(!reps.empty())
+      {
+        m_actualPos->worker = createTask(priority);
+        m_actualPos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_actualPos->position));
+        m_actualPos->worker->setInput(m_actualPos, reps);
+        m_actualPos->worker->submit(m_actualPos->worker);
+      }
     }
 
     m_actualPos->mutex.unlock();
@@ -883,16 +901,18 @@ namespace ESPINA
       if (m_edgePos->worker != nullptr)
       {
         m_edgePos->repsToAdd = reps;
-        m_edgePos->restart = true;
+        m_edgePos->restart = !reps.empty();
         m_edgePos->worker->setPriority(priority);
       }
       else
       {
-        m_edgePos->worker = createTask(priority);
-        m_edgePos->worker->setDescription(
-            QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
-        m_edgePos->worker->setInput(m_edgePos, reps);
-        m_edgePos->worker->submit(m_edgePos->worker);
+        if(!reps.empty())
+        {
+          m_edgePos->worker = createTask(priority);
+          m_edgePos->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(m_edgePos->position));
+          m_edgePos->worker->setInput(m_edgePos, reps);
+          m_edgePos->worker->submit(m_edgePos->worker);
+        }
       }
 
       m_edgePos->mutex.unlock();
@@ -910,15 +930,18 @@ namespace ESPINA
       if (node->worker != nullptr)
       {
         node->repsToAdd = reps;
-        node->restart = true;
+        node->restart = !reps.empty();
         node->worker->setPriority(priority);
       }
       else
       {
-        node->worker = createTask(priority);
-        node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
-        node->worker->setInput(node, reps);
-        node->worker->submit(node->worker);
+        if(!reps.empty())
+        {
+          node->worker = createTask(priority);
+          node->worker->setDescription(QString("Cache %1 Pos %2").arg(planeName(m_planeIndex)).arg(node->position));
+          node->worker->setInput(node, reps);
+          node->worker->submit(node->worker);
+        }
       }
 
       node->mutex.unlock();
@@ -926,6 +949,21 @@ namespace ESPINA
 
     Q_ASSERT(node->previous = m_edgePos);
     Q_ASSERT(m_edgePos->next = node);
+  }
+
+  //-----------------------------------------------------------------------------
+  bool CachedSliceRenderer::canRender(ItemAdapterPtr item) const
+  {
+    if (isSegmentation(item) || isChannel(item))
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if(viewItem != nullptr)
+      {
+        return hasVolumetricData(viewItem->output());
+      }
+    }
+
+    return false;
   }
 
   //-----------------------------------------------------------------------------
@@ -1125,8 +1163,11 @@ namespace ESPINA
     {
       if (m_actualPos->representations[rep] != nullptr)
       {
-        m_actualPos->representations[rep]->SetVisibility(rep->isVisible());
-        //m_actualPos->representations[rep]->Update();
+        if(m_actualPos->representations[rep]->GetVisibility() != static_cast<int>(rep->isVisible()))
+        {
+          m_actualPos->representations[rep]->SetVisibility(rep->isVisible());
+          m_actualPos->representations[rep]->Update();
+        }
         m_view->addActor(m_actualPos->representations[rep]);
         ++numActors;
       }

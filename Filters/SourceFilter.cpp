@@ -27,6 +27,8 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 void SourceFilter::addOutput(Output::Id id, OutputSPtr output)
 {
+  if (output->filter() != this) throw Unexpected_Filter_Exception();
+
   m_outputs[id] = output;
 }
 

@@ -45,13 +45,13 @@ namespace ESPINA
        * \param[in] origin origin of the volume.
        *
        */
-      ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
+      explicit ROI(const Bounds &bounds, const NmVector3 &spacing, const NmVector3 &origin);
 
       /** \brief ROI class constructor.
        * \param[in] mask mask used as a volume.
        *
        */
-      ROI(const BinaryMaskSPtr<unsigned char> mask);
+      explicit ROI(const BinaryMaskSPtr<unsigned char> mask);
 
       /** \brief ROI class virtual destructor.
        *

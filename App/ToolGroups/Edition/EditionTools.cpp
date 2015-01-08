@@ -93,7 +93,6 @@ EditionTools::EditionTools(ModelAdapterSPtr          model,
   connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
           this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
 
-
   m_split = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
   m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
 

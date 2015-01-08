@@ -25,11 +25,6 @@
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
-// VTK
-#include <vtkAlgorithmOutput.h>
-#include <vtkPolyData.h>
-#include <vtkAlgorithm.h>
-
 using namespace ESPINA;
 
 const Data::Type MeshData::TYPE = "MeshData";
@@ -65,7 +60,6 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
 
   // TODO: Fetch old file names
   // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
-
 
   for (auto filename : {snapshotFilename   (path, id),
                         oldSnapshotFilename(path, id)})

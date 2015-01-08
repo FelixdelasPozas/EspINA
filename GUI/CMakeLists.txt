@@ -37,12 +37,14 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/OrthogonalRegion/OrthogonalRegion.h
   View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
+  View/Widgets/Skeleton/SkeletonWidget.h
   View/Widgets/Ruler/RulerWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
+  Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
   Widgets/NoteEditor.h
@@ -100,6 +102,7 @@ set (GUI_SOURCES
   Representations/MeshRepresentation.cpp 
   Representations/MeshRepresentationBase.cpp
   Representations/CrosshairRepresentation.cpp
+  Representations/SkeletonRepresentation.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp
   Representations/Renderers/SmoothedMeshRenderer.cpp
@@ -109,6 +112,7 @@ set (GUI_SOURCES
   Representations/Renderers/CrosshairRenderer.cpp
   Representations/Renderers/CachedSliceRenderer.cpp
   Representations/Renderers/CachedSliceRendererTask.cpp
+  Representations/Renderers/SkeletonRenderer.cpp
   Representations/Representation.cpp
   Representations/RepresentationEmptySettings.cpp
   Representations/RepresentationFactoryGroup.cpp 
@@ -146,12 +150,16 @@ set (GUI_SOURCES
   View/Widgets/Ruler/RulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget.cpp
   View/Widgets/Ruler/vtkRulerWidget3D.cpp
+  View/Widgets/Skeleton/SkeletonWidget.cpp
+  View/Widgets/Skeleton/vtkSkeletonWidget.cpp
+  View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
   View/vtkInteractorStyleEspinaSlice.cpp
   Widgets/ActionSelector.cpp
   Widgets/ActionSelectorWidget.cpp
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
+  Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 

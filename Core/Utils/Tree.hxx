@@ -223,7 +223,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   // WARNING: Untested
   template<typename T>
-  std::shared_ptr<Tree<T>> copy(const std::shared_ptr<Tree<T>> tree)
+  std::shared_ptr<Tree<T>> copy(const std::shared_ptr<Tree<T>> &tree)
   {
     std::shared_ptr<Tree<T>> result;
 

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef ESPINA_FETCH_RAW_DATA_H
-#define ESPINA_FETCH_RAW_DATA_H
+#ifndef ESPINA_RAW_DATA_FACTORY_H
+#define ESPINA_RAW_DATA_FACTORY_H
 
 #include "Core/EspinaCore_Export.h"
 
@@ -27,11 +27,14 @@
 namespace ESPINA {
 
   /// This Fetch DataFactory only fetch existing data from temporal storage
-  class EspinaCore_EXPORT FetchRawData
+  class EspinaCore_EXPORT RawDataFactory
   : public DataFactory
   {
   public:
-    virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
+    virtual DataSPtr createData(OutputSPtr           output,
+                                TemporalStorageSPtr  storage,
+                                const QString       &path,
+                                QXmlStreamAttributes info) override;
   };
 } // namespace ESPINA
 

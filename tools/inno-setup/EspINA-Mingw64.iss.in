@@ -4,6 +4,8 @@
 ;
 ; NOTES: Assumes that the user has compiled all the library dependencies, not 
 ; installed precompiled libraries.
+; This file has been fitted to work on the vagrant box, so some of the names of
+; the directories have been fixed.
 
 [Setup]
 AppName=ESPINA
@@ -34,7 +36,7 @@ Name: "plugins"; Description: "ESPINA Plugins"; Types: full custom
 Name: "plugins\ASurface"; Description: "Apposition Surface Plugin"; Types: full custom
 Name: "plugins\CFrame"; Description: "Counting Frame Plugin"; Types: full custom
 Name: "plugins\Segmha"; Description: "SEGMHA Importer Plugin"; Types: full custom
-Name: "plugins\AutoSeg"; Description: "AutoSegmenter Plugin"; Types: full custom
+;Name: "plugins\AutoSeg"; Description: "AutoSegmenter Plugin"; Types: full custom
 Name: "dependencies"; Description: "Library Dependencies"; Types: full custom
 Name: "dependencies\VTK"; Description: "VTK v6.1.0 Libraries"; Types: full custom
 Name: "dependencies\ITK"; Description: "ITK v4.6.0 Libraries"; Types: full custom
@@ -54,22 +56,13 @@ Source: "libEspinaGUI.dll"; DestDir: "{app}"; Components: program
 Source: "libEspinaSupport.dll"; DestDir: "{app}"; Components: program
 Source: "libEspinaUndo.dll"; DestDir: "{app}"; Components: program
 
-Source: "libatomic-1.dll"; DestDir: "{app}"; Components: program
-Source: "libgcc_s_seh-1.dll"; DestDir: "{app}"; Components: program
-Source: "libgfortran-3.dll"; DestDir: "{app}"; Components: program
-Source: "libgnarl-4.9.dll"; DestDir: "{app}"; Components: program
-Source: "libgnat-4.9.dll"; DestDir: "{app}"; Components: program
-Source: "libgomp-1.dll"; DestDir: "{app}"; Components: program
-Source: "libobjc-4.dll"; DestDir: "{app}"; Components: program
-Source: "libquadmath-0.dll"; DestDir: "{app}"; Components: program
-Source: "libssp-0.dll"; DestDir: "{app}"; Components: program
-Source: "libstdc++-6.dll"; DestDir: "{app}"; Components: program
-Source: "libwinpthread-1.dll"; DestDir: "{app}"; Components: program
+; Need the compiler dlls.
+Source: "c:\mingw64\bin\*.dll"; DestDir: "{app}"; Components: program
 
 Source: "plugins\libAppositionSurfacePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\ASurface
 Source: "plugins\libCountingFramePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\CFrame
 Source: "plugins\libSegmhaImporterPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\Segmha
-Source: "plugins\libAutoSegmentPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\AutoSeg
+;Source: "plugins\libAutoSegmentPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\AutoSeg
 
 Source: "@VTK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: dependencies\VTK
 
@@ -81,7 +74,7 @@ Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}"; Components: dep
 
 Source: "@QUAZIP_LIBRARY_DIR@\libquazip.dll"; DestDir: "{app}"; Components: dependencies\Quazip
 
-Source: "@BOOST_LIBRARY_DIR@\libboost_*-mt-1_56.dll"; DestDir: "{app}"; Components: dependencies\Boost
+Source: "c:\deplibs\boost_1_57_0\stage\lib\libboost_*-mt-1_56.dll"; DestDir: "{app}"; Components: dependencies\Boost
 
 [Icons]
 Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"

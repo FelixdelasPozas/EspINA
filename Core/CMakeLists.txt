@@ -30,6 +30,8 @@ set (CORE_SOURCES
   Analysis/Data.cpp
   Analysis/Data/MeshData.cpp
   Analysis/Data/Mesh/RawMesh.cpp
+  Analysis/Data/SkeletonData.cpp
+  Analysis/Data/Skeleton/RawSkeleton.cpp
   Analysis/Data/VolumetricData.cpp
   Analysis/Data/Volumetric/ROI.cpp
   Analysis/Filter.cpp
@@ -42,7 +44,7 @@ set (CORE_SOURCES
   Analysis/ViewItem.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
-  IO/DataFactory/FetchRawData.cpp
+  IO/DataFactory/RawDataFactory.cpp
   IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp

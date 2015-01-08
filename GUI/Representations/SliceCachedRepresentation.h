@@ -352,7 +352,7 @@ namespace ESPINA
       { return RepresentationSPtr(); }
 
     private:
-      NmVector3 m_depth; // depth of the actor for this view
+      Nm m_shift; // depth of the actor for this view
   };
 
   using SegmentationSliceCachedRepresentationPtr  = SegmentationSliceCachedRepresentation *;

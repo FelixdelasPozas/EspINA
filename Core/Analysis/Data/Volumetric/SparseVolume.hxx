@@ -145,7 +145,6 @@ namespace ESPINA
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
 
-
     /** \brief Resize the volume bounds. The given bounds must containt the original.
      * \param[in] bounds bounds object.
      *

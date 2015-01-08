@@ -91,6 +91,20 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  bool ContourRenderer::canRender(ItemAdapterPtr item) const
+  {
+    if(isSegmentation(item))
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if (viewItem != nullptr)
+      {
+        return hasVolumetricData(viewItem->output());
+      }
+    }
+
+    return false;
+  }
+  //-----------------------------------------------------------------------------
   bool ContourRenderer::managesRepresentation(const QString &repType) const
   {
     return (repType == ContourRepresentation::TYPE);
@@ -125,7 +139,7 @@ namespace ESPINA
 
       for (auto item: m_representations.keys())
       {
-        if (!(item->type() == ViewItemAdapter::Type::SEGMENTATION && itemType.testFlag(RenderableType::SEGMENTATION)))
+        if (!(isSegmentation(item) && itemType.testFlag(RenderableType::SEGMENTATION)))
           continue;
 
         NmVector3 vecPoint{ point[0], point[1], point[2] };

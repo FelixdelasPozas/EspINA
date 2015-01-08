@@ -50,6 +50,7 @@ set (CORE_SOURCES
   ${CORE_RCCS}
   ${CORE_MOCS}
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
@@ -58,6 +59,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp
@@ -68,7 +70,7 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
-  ${CORE_DIR}/IO/DataFactory/FetchRawData.cpp
+  ${CORE_DIR}/IO/DataFactory/RawDataFactory.cpp
   ${CORE_DIR}/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   ${CORE_DIR}/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
@@ -93,6 +95,7 @@ target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Filters
 set (FILTERS_SOURCES
+  ${FILTERS_DIR}/SourceFilter.cpp
   ${FILTERS_DIR}/DilateFilter.cpp
   ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/ImageLogicFilter.cpp
@@ -156,6 +159,7 @@ set (TESTING_SOURCES
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
   MeshTestingUtils.cpp
+  SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})

@@ -217,35 +217,42 @@ namespace ESPINA
     friend bool operator==(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
   };
 
-	/** \brief Equality operator for a channel adapter smart pointer and a channel smart pointer.
-	 * \param[in] lhs channel adapter smart pointer.
-	 * \param[in] rhs channel smart pointer.
-	 *
-	 */
+  /** \brief Equality operator for a channel adapter smart pointer and a channel smart pointer.
+   * \param[in] lhs channel adapter smart pointer.
+   * \param[in] rhs channel smart pointer.
+   *
+   */
   bool EspinaGUI_EXPORT operator==(ChannelAdapterSPtr lhs, ChannelSPtr rhs);
 
-	/** \brief Equality operator for a channel smart pointer and a channel adapter smart pointer.
-	 * \param[in] lhs channel smart pointer.
-	 * \param[in] rhs channel adapter smart pointer.
-	 *
-	 */
+  /** \brief Equality operator for a channel smart pointer and a channel adapter smart pointer.
+   * \param[in] lhs channel smart pointer.
+   * \param[in] rhs channel adapter smart pointer.
+   *
+   */
   bool EspinaGUI_EXPORT operator==(ChannelSPtr lhs, ChannelAdapterSPtr rhs);
 
-	/** \brief Inequality operator for a channel adapter smart pointer and a channel smart pointer.
-	 * \param[in] lhs channel adapter smart pointer.
-	 * \param[in] rhs channel smart pointer.
-	 *
-	 */
+  /** \brief Inequality operator for a channel adapter smart pointer and a channel smart pointer.
+   * \param[in] lhs channel adapter smart pointer.
+   * \param[in] rhs channel smart pointer.
+   *
+   */
   bool EspinaGUI_EXPORT operator!=(ChannelAdapterSPtr lhs, ChannelSPtr        rhs);
 
-	/** \brief Inequality operator for a channel smart pointer and a channel adapter smart pointer.
-	 * \param[in] lhs channel smart pointer.
-	 * \param[in] rhs channel adapter smart pointer.
-	 *
-	 */
+  /** \brief Inequality operator for a channel smart pointer and a channel adapter smart pointer.
+   * \param[in] lhs channel smart pointer.
+   * \param[in] rhs channel adapter smart pointer.
+   *
+   */
   bool EspinaGUI_EXPORT operator!=(ChannelSPtr        lhs, ChannelAdapterSPtr rhs);
 
   ChannelAdapterPtr EspinaGUI_EXPORT channelPtr(ItemAdapterPtr item);
+
+  /** \brief Returns true if the given item is a channel item.
+   * \param[in] item item adapter raw pointer.
+   *
+   */
+  bool EspinaGUI_EXPORT isChannel(ItemAdapterPtr item);
+
 }// namespace ESPINA
 
 #endif // CHANNEL_H

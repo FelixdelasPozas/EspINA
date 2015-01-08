@@ -138,6 +138,7 @@ namespace ESPINA
      * \param[in] path storage path where edited regions snapshosts will be saved to
      * \param[in] id identifier to store edited regions snapshosts
      *
+     *  Temporal storage may be also used to store temporal files where snapshot generation
      */
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const = 0;
 
@@ -193,7 +194,7 @@ namespace ESPINA
     virtual size_t memoryUsage() const = 0;
 
   signals:
-    void dataChanged();//former representationChanged
+    void dataChanged(); //former representationChanged
 
   protected:
     /** \brief Data class constructor.

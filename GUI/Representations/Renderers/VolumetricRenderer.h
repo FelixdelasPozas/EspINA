@@ -52,102 +52,50 @@ namespace ESPINA
      */
     virtual ~VolumetricRenderer();
 
-    /** \brief Implements Renderer::icon() const.
-     *
-     */
     const QIcon icon() const
     {return QIcon(":/espina/voxel.png");}
 
-    /** \brief Implements Renderer::name() const.
-     *
-     */
     const QString name() const
     {return "Volumetric";}
 
-    /** \brief Implements Renderer::tooltip() const.
-     *
-     */
     const QString tooltip() const
     {return "Segmentation's Volumes";}
 
-    /** \brief Implements RepresentationRenderer::addRepresentation().
-     *
-     */
     virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-    /** \brief Implements RepresentationRenderer::removeRepresentation().
-     *
-     */
     virtual void removeRepresentation(RepresentationSPtr rep);
 
-    /** \brief Implements RepresentationRenderer::hasRepresentation().
-     *
-     */
     virtual bool hasRepresentation(RepresentationSPtr rep) const;
 
-    /** \brief Implements RepresentationRenderer::managesRepresentation().
-     *
-     */
     virtual bool managesRepresentation(const QString &representationType) const;
 
-    /** \brief Implements Renderer::clone() const.
-     *
-     */
     RendererSPtr clone() const
     {return RendererSPtr(new VolumetricRenderer());}
 
-    /** \brief Implements Renderer::numberOfvtkActors() const.
-     *
-     */
     unsigned int numberOfvtkActors() const
     { return 0; }
 
-    /** \brief Implements RepresentationRenderer::renderableItems().
-     *
-     */
     RenderableItems renderableItems() const
     { return RenderableItems(RenderableType::SEGMENTATION); }
 
-    /** \brief Implements Renderer::renderType() const.
-     *
-     */
     RendererTypes renderType() const
     { return RendererTypes(RENDERER_VIEW3D); }
 
-    /** \brief Implements RepresentationRenderer::canRender() const.
-     *
-     */
-    bool canRender(ItemAdapterPtr item) const
-    { return (item->type() == ItemAdapter::Type::SEGMENTATION); }
+    bool canRender(ItemAdapterPtr item) const;
 
-    /** \brief Implements Renderer::numberOfRenderedItems() const.
-     *
-     */
     int numberOfRenderedItems() const
     { return m_representations.size(); }
 
-    /** \brief Implements RepresentationRenderer::pick().
-     *
-     */
     ViewItemAdapterList pick(int x, int y, Nm z,
                              vtkSmartPointer<vtkRenderer> renderer,
                              RenderableItems itemType = RenderableItems(),
                              bool repeat = false);
 
-    /** \brief Overrides Renderer::setView().
-     *
-     */
     virtual void setView(RenderView *view) override;
 
   protected:
-    /** \brief Implements Renderer::hide().
-     *
-     */
     void hide();
 
-    /** \brief Implements Renderer::show().
-     *
-     */
     void show();
 
     vtkSmartPointer<vtkVolumePicker> m_picker;
@@ -254,6 +202,21 @@ namespace ESPINA
       if (m_representations[item].contains(rep))
         return true;
 
+    return false;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<class T>
+  bool VolumetricRenderer<T>::canRender(ItemAdapterPtr item) const
+  {
+    if(isSegmentation(item))
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if(viewItem != nullptr)
+      {
+        return hasVolumetricData(viewItem->output());
+      }
+    }
     return false;
   }
 

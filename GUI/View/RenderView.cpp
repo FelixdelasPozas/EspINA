@@ -211,6 +211,7 @@ void RenderView::setSegmentationsVisibility(bool visible)
 //-----------------------------------------------------------------------------
 DefaultVolumetricDataSPtr volumetricData(ViewItemAdapterPtr item)
 {
+  Q_ASSERT(hasVolumetricData(item->output()));
   return std::dynamic_pointer_cast<VolumetricData<itkVolumeType>>(item->outputData(VolumetricData<itkVolumeType>::TYPE));
 }
 
@@ -850,6 +851,11 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
         auto intersectionBounds = intersection(segAdapter->bounds(), mask->bounds().bounds());
         BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
         crit.goToBegin();
+
+        if(!hasVolumetricData(segAdapter->output()))
+        {
+          continue;
+        }
 
         auto volume = volumetricData(segAdapter->output());
         auto itkVolume = volume->itkImage(intersectionBounds);

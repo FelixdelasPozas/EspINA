@@ -216,12 +216,12 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   Q_ASSERT(intersectionBounds.areValid());
   auto region = equivalentRegion<itkVolumeType>(channelOrigin, channelSpacing, intersectionBounds);
 
-  itkVolumeType::Pointer preview = volumetricData(channel->output())->itkImage(intersectionBounds);
+  auto preview = volumetricData(channel->output())->itkImage(intersectionBounds);
   itk::ImageRegionConstIterator<itkVolumeType> it(preview, region);
   it.GoToBegin();
 
   unsigned char bestValue = abs(it.Get() - m_bestPixel);
-  itkVolumeType::IndexType bestPixelIndex = it.GetIndex();
+  auto bestPixelIndex = it.GetIndex();
   double bestPoint[3] = { bestPixelIndex[0]*channelSpacing[0], bestPixelIndex[1]*channelSpacing[1], bestPixelIndex[2]*channelSpacing[2] };
   double dpoint[3];
 
@@ -256,12 +256,7 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
     ++it;
   }
 
-  NmVector3 requestedPoint;
-  requestedPoint[0] = bestPoint[0];
-  requestedPoint[1] = bestPoint[1];
-  requestedPoint[2] = bestPoint[2];
-
-  return requestedPoint;
+  return NmVector3{bestPoint[0], bestPoint[1], bestPoint[2]};
 }
 
 //-----------------------------------------------------------------------------

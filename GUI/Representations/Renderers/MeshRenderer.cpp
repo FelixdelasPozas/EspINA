@@ -19,8 +19,12 @@
 */
 
 // ESPINA
-#include "MeshRenderer.h"
+#include <GUI/Model/ItemAdapter.h>
+#include <GUI/Model/ViewItemAdapter.h>
 #include <GUI/Representations/MeshRepresentation.h>
+#include <GUI/Representations/Renderers/MeshRenderer.h>
+#include <GUI/Representations/Renderers/Renderer.h>
+#include <GUI/View/RenderView.h>
 
 // VTK
 #include <vtkPropPicker.h>
@@ -113,6 +117,19 @@ namespace ESPINA
     }
   }
 
+  //-----------------------------------------------------------------------------
+  bool MeshRenderer::canRender(ItemAdapterPtr item) const
+  {
+    if(isSegmentation(item))
+    {
+      auto viewItem = dynamic_cast<ViewItemAdapterPtr>(item);
+      if(viewItem != nullptr)
+      {
+        return hasMeshData(viewItem->output());
+      }
+    }
+    return false;
+  }
   //-----------------------------------------------------------------------------
   bool MeshRenderer::managesRepresentation(const QString &repType) const
   {
