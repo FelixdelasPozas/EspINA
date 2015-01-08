@@ -47,6 +47,14 @@ int raw_skeleton_set_spacing( int argc, char** argv )
     error = true;
   }
 
+  Bounds defaultBounds = skeleton.bounds();
+
+  if(defaultBounds != Bounds{-0.5, 1.5, -1.0, 1.0, -1.5, 1.5})
+  {
+    std::cerr << "Scaled skeleton bounds: " << defaultBounds << ". Expected different bounds." << std::endl;
+    error = true;
+  }
+
   NmVector3 newSpacing{2.0,2.0,2.0};
 
   skeleton.setSpacing(newSpacing);
@@ -57,22 +65,23 @@ int raw_skeleton_set_spacing( int argc, char** argv )
     error = true;
   }
 
-  Bounds defaultBounds = skeleton.bounds();
+  Bounds newBounds = skeleton.bounds();
 
-  if(defaultBounds != Bounds{0.0, 2.0, 0.0, 2.0, 0.0, 2.0})
+  if(newBounds != Bounds{-1.0, 3.0, -1.0, 1.0, -1.0, 1.0})
   {
-    std::cerr << "Scaled skeleton bounds: " << defaultBounds << ". Expected different bounds." << std::endl;
+    std::cerr << "Scaled skeleton bounds: " << newBounds << ". Expected different bounds." << std::endl;
+    error = true;
   }
 
   for (Axis dir : { Axis::X, Axis::Y, Axis::Z })
   {
-    if (!defaultBounds.areLowerIncluded(dir))
+    if (!newBounds.areLowerIncluded(dir))
     {
       std::cerr << "Default skeleton bounds must have lower bounds included" << std::endl;
       error = true;
     }
 
-    if (defaultBounds.areUpperIncluded(dir))
+    if (newBounds.areUpperIncluded(dir))
     {
       std::cerr << "Default skeleton bounds must have upper bounds excluded" << std::endl;
       error = true;
@@ -88,6 +97,7 @@ int raw_skeleton_set_spacing( int argc, char** argv )
   if(numberOfNodes != skeleton.skeleton()->GetPoints()->GetNumberOfPoints())
   {
     std::cerr << "Unexpected number of points of scaled skeleton." << std::endl;
+    error = true;
   }
 
   return error;
