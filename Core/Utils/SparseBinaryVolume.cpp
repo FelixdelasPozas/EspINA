@@ -460,7 +460,7 @@ namespace ESPINA
     auto bitsetMask = new BinaryMask<unsigned char>(bounds, m_spacing);
     unsigned long long numVoxels = bitsetMask->numberOfVoxels();
 
-    for (unsigned int i = m_blocks.size() -1; i >= 0; --i)
+    for (int i = m_blocks.size() -1; i >= 0; --i)
     {
       if (!intersect(bounds, m_blocks[i]->bounds()))
         continue;

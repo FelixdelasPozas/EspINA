@@ -36,11 +36,7 @@ if (UNIX)
     )
 endif (UNIX)
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ModelTest.h
-)
-
-add_executable(ChannelProxy_Tests ${ChannelProxy_Tests} ${SUBJECT_MOCS} ModelTest.cpp )
+add_executable(ChannelProxy_Tests "" ${ChannelProxy_Tests} ${SUBJECT_MOCS})
 target_link_libraries(ChannelProxy_Tests ${LIB_DEPENDECIES} )
 
 add_test("\"Channel Proxy: Empty Analysis Constructor\""              ChannelProxy_Tests channel_proxy_empty_analysis_constructor)

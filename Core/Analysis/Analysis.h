@@ -49,7 +49,7 @@ namespace ESPINA
     /** \brief Empties the analysis.
      *
      */
-    void reset();
+    void clear();
 
     /** \brief Sets the storage for the analysis.
      * \param[in] storage, temporal storage object smart pointer.

@@ -26,34 +26,11 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_replace_classification.cpp
   model_adapter_set_classification.cpp
   model_adapter_set_empty_classification.cpp
-  model_adapter_reset.cpp
+  model_adapter_clear.cpp
 )
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-if (UNIX)
-  set (LIB_DEPENDECIES
-     ${GUI_DEPENDECIES}
-     QtTest
-    )
-endif (UNIX)
-
-qt4_wrap_cpp(SUBJECT_MOCS
-  ModelTest.h
-)
-
-add_executable(ModelAdapter_Tests
-  ${ModelAdapter_Tests}
-  ${SUBJECT_MOCS}
-  ModelTest.cpp
-  )
-target_link_libraries(ModelAdapter_Tests ${LIB_DEPENDECIES} )
+add_executable(ModelAdapter_Tests "" ${ModelAdapter_Tests})
+target_link_libraries(ModelAdapter_Tests ${GUI_DEPENDECIES} ${TESTING_DEPENDECIES})
 
 add_test("\"Model Adapter: Empty Analysis Constructor\""              ModelAdapter_Tests model_adapter_empty_analysis_constructor)
 add_test("\"Model Adapter: Add Sample\""                              ModelAdapter_Tests model_adapter_add_sample)
@@ -82,4 +59,4 @@ add_test("\"Model Adapter: Delete Non Existing Relation\""            ModelAdapt
 add_test("\"Model Adapter: Set Empty Classification\""                ModelAdapter_Tests model_adapter_set_empty_classification)
 add_test("\"Model Adapter: Set Classification\""                      ModelAdapter_Tests model_adapter_set_classification)
 add_test("\"Model Adapter: Replace Classification\""                  ModelAdapter_Tests model_adapter_replace_classification)
-add_test("\"Model Adapter: Reset\""                                   ModelAdapter_Tests model_adapter_reset)
+add_test("\"Model Adapter: Clear\""                                   ModelAdapter_Tests model_adapter_clear)

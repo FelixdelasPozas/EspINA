@@ -104,7 +104,6 @@ ModelTest::ModelTest ( QAbstractItemModel *_model, QObject *parent ) : QObject (
               this, SLOT ( rowsRemoved ( const QModelIndex &, int, int ) ) );
 
     runAllTests();
-    qDebug() << "Using Model Tester";
 }
 
 void ModelTest::runAllTests()

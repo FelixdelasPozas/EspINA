@@ -35,8 +35,9 @@ using namespace ESPINA;
 bool Test_Create_Region_From_Slice_Bounds(int w, int h, int d, bool passIfEquivalent = true) {
   bool pass = true;
 
-  for (int i = 0;  i < 3; ++i) {
-    int dim[3] = {w, h, d};
+  for (int i = 0;  i < 3; ++i)
+  {
+    Nm dim[3] = {w, h, d};
 
     dim[i] = 1;
     itkVolumeType::SizeType size{dim[0], dim[1], dim[2]};

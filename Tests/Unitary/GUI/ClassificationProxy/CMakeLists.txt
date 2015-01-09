@@ -23,15 +23,7 @@ if (UNIX)
     )
 endif (UNIX)
 
-qt4_wrap_cpp(SUBJECT_MOCS
-  ModelTest.h
-)
-
-add_executable(ClassificationProxy_Tests
-  ${ClassificationProxy_Tests}
-  ${SUBJECT_MOCS}
-  ModelTest.cpp
-  )
+add_executable(ClassificationProxy_Tests "" ${ClassificationProxy_Tests})
 target_link_libraries(ClassificationProxy_Tests ${LIB_DEPENDECIES} )
 
 add_test("\"Classification Proxy: Empty Analysis Constructor\""              ClassificationProxy_Tests classification_proxy_empty_analysis_constructor)

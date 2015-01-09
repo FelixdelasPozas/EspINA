@@ -31,9 +31,11 @@
 #include <GUI/Model/SampleAdapter.h>
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
+#include "ModelProfiler.h"
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int model_adapter_add_sample(int argc, char** argv )
 {
@@ -41,14 +43,29 @@ int model_adapter_add_sample(int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapter modelAdapter;
-  ModelTest    modelTester(&modelAdapter);
+  ModelAdapter  modelAdapter;
+  ModelTest     modelTester(&modelAdapter);
+  ModelProfiler modelProfiler(modelAdapter);
 
   SchedulerSPtr sch;
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
   modelAdapter.setAnalysis(analysis, factory);
+
+  if (modelProfiler.numberOfResetSignals() != 1)
+  {
+    cerr << "Unexpected number of reset signals" << endl;
+    error = true;
+  }
+
+  if (modelProfiler.totalNumberOfSignals() != 1)
+  {
+    cerr << "Unexpected number of model signals" << endl;
+    error = true;
+  }
+
+  modelProfiler.reset();
 
   QString name = "Sample";
 
@@ -60,12 +77,6 @@ int model_adapter_add_sample(int argc, char** argv )
     error = true;
   }
 
-
-//   if (!analysis->samples().contains(sample)) {
-//     cerr << "Unexpected sample retrieved from analysis" << endl;
-//     error = true;
-//   }
-// 
   if (analysis->samples().first() != sample) {
     cerr << "Unexpected sample retrieved from analysis" << endl;
     error = true;
@@ -108,6 +119,18 @@ int model_adapter_add_sample(int argc, char** argv )
 
   if (!analysis->relationships()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
+    error = true;
+  }
+
+  if (modelProfiler.numberOfRowsInsertedSignals() != 1)
+  {
+    cerr << "Unexpected number of RIS" << endl;
+    error = true;
+  }
+
+  if (modelProfiler.totalNumberOfSignals() != 1)
+  {
+    cerr << "Unexpected number of model signals" << endl;
     error = true;
   }
 

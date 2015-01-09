@@ -98,10 +98,9 @@ namespace ESPINA
      */
     void setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory);
 
-    /** \brief Shadows QAbstractItemModel::reset().
-     *
+    /** \brief Clears current analysis items and reset views
      */
-    void reset();
+    void clear();
 
     /** \brief Sets the model temporal storage.
      * \param[in] storage, temporal storage smart pointer.
@@ -114,44 +113,20 @@ namespace ESPINA
      */
     TemporalStorageSPtr storage() const;
 
-    /** \brief Implements QAbstractItemModel::data().
-     *
-     */
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 
-    /** \brief Overrides QAbstractItemModel::setData().
-     *
-     */
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
-    /** \brief Overrides QAbstractItemModel::itemData().
-     *
-     */
     virtual QMap<int, QVariant> itemData(const QModelIndex &index) const override;
 
-    /** \brief Overrides QAbstractItemModel::flags().
-     *
-     */
     virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    /** \brief Implements QAbstractItemModel::columnCount().
-     *
-     */
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
-    /** \brief Implements QAbstractItemModel::rowCount().
-     *
-     */
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
-    /** \brief Implements QAbstractItemModel::parent().
-     *
-     */
     virtual QModelIndex parent(const QModelIndex& child) const;
 
-    /** \brief Implements QAbstractItemModel::index().
-     *
-     */
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
     /** \brief Returns the model index of the given item.
@@ -536,11 +511,13 @@ namespace ESPINA
     void segmentationsRemoved(SegmentationAdapterSList segmentations);
 
   private slots:
-		/** \brief Perform operations when a item has been modified.
-		 * \param[in] item, item adapter smart pointer.
-		 *
-		 */
+    /** \brief Perform operations when a item has been modified.
+     * \param[in] item, item adapter smart pointer.
+     *
+     */
     void itemModified(ItemAdapterSPtr item);
+
+    void resetInternalData();
 
   private:
     /** \brief Adds an initialized sample adapter to the model, and its correspondent sample to the analysis.

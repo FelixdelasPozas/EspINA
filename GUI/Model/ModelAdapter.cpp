@@ -57,50 +57,58 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
     endInsertRows();
   }
 
-  // Adapt Samples
-  beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);
-  for(auto sample : analysis->samples())
+  if (!analysis->samples().isEmpty())
   {
-    auto adapted = factory->adaptSample(sample);
-    m_samples << adapted;
-    adapted->setModel(this);
-  }
-  endInsertRows();
-
-  // Adapt channels --> adapt non adapted filters
-  beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
-  for(auto channel : analysis->channels())
-  {
-    auto adapted = factory->adaptChannel(channel);
-    m_channels << adapted;
-    adapted->setModel(this);
-  }
-  endInsertRows();
-
-  // Adapt segmentation --> adapt non adapted filters
-  beginInsertRows(segmentationRoot(), 0, analysis->segmentations().size() - 1);
-  for(auto segmentation : analysis->segmentations())
-  {
-    auto adapted = factory->adaptSegmentation(segmentation);
-
-    auto categoy = segmentation->category();
-
-    if (categoy)
+    // Adapt Samples
+    beginInsertRows(sampleRoot(), 0, analysis->samples().size() - 1);
+    for(auto sample : analysis->samples())
     {
-      adapted->setCategory(m_classification->category(categoy->classificationName()));
+      auto adapted = factory->adaptSample(sample);
+      m_samples << adapted;
+      adapted->setModel(this);
     }
-
-    m_segmentations << adapted;
-    adapted->setModel(this);
+    endInsertRows();
   }
-  endInsertRows();
+
+  if (!analysis->channels().isEmpty())
+  {
+    // Adapt channels --> adapt non adapted filters
+    beginInsertRows(channelRoot(), 0, analysis->channels().size() - 1);
+    for(auto channel : analysis->channels())
+    {
+      auto adapted = factory->adaptChannel(channel);
+      m_channels << adapted;
+      adapted->setModel(this);
+    }
+    endInsertRows();
+  }
+
+  if (!analysis->segmentations().isEmpty())
+  {
+    // Adapt segmentation --> adapt non adapted filters
+    beginInsertRows(segmentationRoot(), 0, analysis->segmentations().size() - 1);
+    for(auto segmentation : analysis->segmentations())
+    {
+      auto adapted = factory->adaptSegmentation(segmentation);
+
+      auto categoy = segmentation->category();
+
+      if (categoy)
+      {
+        adapted->setCategory(m_classification->category(categoy->classificationName()));
+      }
+
+      m_segmentations << adapted;
+      adapted->setModel(this);
+    }
+    endInsertRows();
+  }
 }
 
 //------------------------------------------------------------------------
 void ModelAdapter::addImplementation(SampleAdapterSPtr sample) throw(Existing_Item_Exception)
 {
-  if (m_samples.contains(sample))
-  	throw Existing_Item_Exception();
+  if (m_samples.contains(sample)) throw Existing_Item_Exception();
 
   m_analysis->add(sample->m_sample);
   m_samples << sample;
@@ -951,18 +959,24 @@ void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapte
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::reset()
+void ModelAdapter::clear()
 {
   beginResetModel();
   {
-    m_segmentations.clear();
-    m_channels.clear();
-    m_samples.clear();
-    m_classification.reset();
+    m_analysis->clear();
 
-    m_analysis->reset();
+    resetInternalData();
   }
   endResetModel();
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::resetInternalData()
+{
+  m_segmentations.clear();
+  m_channels.clear();
+  m_samples.clear();
+  m_classification.reset();
 }
 
 //------------------------------------------------------------------------

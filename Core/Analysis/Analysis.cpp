@@ -37,7 +37,7 @@ Analysis::Analysis()
 }
 
 //------------------------------------------------------------------------
-void Analysis::reset()
+void Analysis::clear()
 {
   m_classification.reset();
   m_content   = DirectedGraphSPtr{new DirectedGraph()};

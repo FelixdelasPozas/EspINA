@@ -42,7 +42,7 @@ using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int model_adapter_reset( int argc, char** argv )
+int model_adapter_clear( int argc, char** argv )
 {
   bool error = false;
 
@@ -71,8 +71,7 @@ int model_adapter_reset( int argc, char** argv )
   auto segmentation = factory->createSegmentation(filter, 0);
   modelAdapter.add(segmentation);
 
-
-  modelAdapter.reset();
+  modelAdapter.clear();
 
   if (analysis->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;

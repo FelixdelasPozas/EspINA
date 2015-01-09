@@ -73,7 +73,7 @@ int channel_proxy_reset( int argc, char** argv )
   auto segmentation = factory->createSegmentation(filter, 0);
   modelAdapter->add(segmentation);
 
-  modelAdapter->reset();
+  modelAdapter->clear();
 
   if (analysis->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
