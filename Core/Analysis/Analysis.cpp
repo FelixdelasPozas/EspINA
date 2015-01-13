@@ -152,8 +152,7 @@ void Analysis::add(SegmentationSList segmentations)
 //------------------------------------------------------------------------
 void Analysis::remove(SampleSPtr sample) throw (Item_Not_Found_Exception)
 {
-  if (!m_samples.contains(sample))
-  	throw (Item_Not_Found_Exception());
+  if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
 
   sample->setAnalysis(nullptr);
   m_samples.removeOne(sample);

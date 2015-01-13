@@ -18,7 +18,9 @@
  */
 
 #include "ModelProfiler.h"
+#include <iostream>
 
+using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
@@ -68,4 +70,33 @@ void ModelProfiler::onDataChanged()
 void ModelProfiler::onReset()
 {
   ++m_numRS;
+}
+
+//------------------------------------------------------------------------
+bool ESPINA::Testing::checkExpectedNumberOfSignals(ModelProfiler &profiler,
+                                                   unsigned       expectedRIS,
+                                                   unsigned       expectedDCS,
+                                                   unsigned       expectedRATBRS)
+{
+  bool error = false;
+
+  auto numRIS = profiler.numberOfRowsInsertedSignals();
+  if (numRIS != expectedRIS) {
+    cerr << "Unexpected number of RIS: " << numRIS << " instead of " << expectedRIS << endl;
+    error = true;
+  }
+
+  auto numDCS = profiler.numberOfDataChangedSignals();
+  if (numDCS != expectedDCS) {
+    cerr << "Unexpected number of DCS: " << numDCS << " instead of " << expectedDCS << endl;
+    error = true;
+  }
+
+  auto numRATBRS = profiler.numberOfRowsAboutToBeRemovedSignals();
+  if (numRATBRS != expectedRATBRS) {
+    cerr << "Unexpected number of RATBRS: " << numRATBRS << " instead of " << expectedRATBRS << endl;
+    error = true;
+  }
+
+  return error;
 }

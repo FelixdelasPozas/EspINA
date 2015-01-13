@@ -39,11 +39,11 @@ int analysis_add_samples( int argc, char** argv )
   Analysis analysis;
 
   SampleSList samples;
-  samples << SampleSPtr{new Sample()} << SampleSPtr{new Sample()} << SampleSPtr{new Sample()};
+  samples << make_shared<Sample>() << make_shared<Sample>() << make_shared<Sample>();
 
   analysis.add(samples);
 
-  foreach(SampleSPtr sample, samples) {
+  for(auto sample : samples) {
     if (!analysis.samples().contains(sample)) {
       cerr << "Unexpected sample retrieved from analysis" << endl;
       error = true;
@@ -75,7 +75,7 @@ int analysis_add_samples( int argc, char** argv )
     error = true;
   }
 
-  foreach(SampleSPtr sample, samples) {
+  for(auto sample : samples) {
     if (!analysis.content()->contains(sample)) {
       cerr << "Unexpected sample retrieved from analysis content" << endl;
       error = true;

@@ -27,6 +27,8 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_set_classification.cpp
   model_adapter_set_empty_classification.cpp
   model_adapter_clear.cpp
+  model_adapter_batch_mode.cpp
+  model_adapter_profile_batch_mode.cpp
 )
 
 add_executable(ModelAdapter_Tests "" ${ModelAdapter_Tests})
@@ -60,3 +62,5 @@ add_test("\"Model Adapter: Set Empty Classification\""                ModelAdapt
 add_test("\"Model Adapter: Set Classification\""                      ModelAdapter_Tests model_adapter_set_classification)
 add_test("\"Model Adapter: Replace Classification\""                  ModelAdapter_Tests model_adapter_replace_classification)
 add_test("\"Model Adapter: Clear\""                                   ModelAdapter_Tests model_adapter_clear)
+add_test("\"Model Adapter: Batch Mode\""                              ModelAdapter_Tests model_adapter_batch_mode)
+add_test("\"Model Adapter: Profile Batch Mode\""                      ModelAdapter_Tests model_adapter_profile_batch_mode)

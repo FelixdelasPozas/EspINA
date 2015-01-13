@@ -33,16 +33,16 @@ namespace ESPINA
     public:
       explicit ModelProfiler(QAbstractItemModel &model);
 
-      int numberOfRowsInsertedSignals() const
+      unsigned numberOfRowsInsertedSignals() const
       { return m_numRIS; }
 
-      int numberOfRowsAboutToBeRemovedSignals() const
+      unsigned numberOfRowsAboutToBeRemovedSignals() const
       { return m_numRATBRS; }
 
-      int numberOfDataChangedSignals() const
+      unsigned numberOfDataChangedSignals() const
       { return m_numDCS; }
 
-      int numberOfResetSignals() const
+      unsigned numberOfResetSignals() const
       { return m_numRS; }
 
       int totalNumberOfSignals() const
@@ -65,11 +65,16 @@ namespace ESPINA
       void onReset();
 
     private:
-      int m_numRIS;
-      int m_numRATBRS;
-      int m_numDCS;
-      int m_numRS;
+      unsigned m_numRIS;
+      unsigned m_numRATBRS;
+      unsigned m_numDCS;
+      unsigned m_numRS;
     };
+
+    bool checkExpectedNumberOfSignals(ModelProfiler &profiler,
+                                      unsigned       expectedRIS,
+                                      unsigned       expectedDCS,
+                                      unsigned       expectedRATBRS);
   }
 }
 

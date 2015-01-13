@@ -44,7 +44,7 @@ using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int classification_proxy_add_segmentation( int argc, char** argv )
+int classification_proxy_add_different_category_segmentations( int argc, char** argv )
 {
   bool error = false;
 
@@ -54,20 +54,12 @@ int classification_proxy_add_segmentation( int argc, char** argv )
 
   auto classification = make_shared<ClassificationAdapter>();
   classification->setName("Test");
-  auto category = classification->createCategory("Level 1");
+
+  auto category1 = classification->createCategory("Category 1");
+  auto category2 = classification->createCategory("Category 2");
+  auto category3 = classification->createCategory("Category 3");
 
   modelAdapter->setClassification(classification);
-
-  if (proxy.rowCount() != 1) {
-    cerr << "Unexpected number of root categories" << endl;
-    error = true;
-  }
-
-  auto level1 = proxy.index(0, 0);
-  if (proxy.rowCount(level1) != 0) {
-    cerr << "Unexpected number of level 1 row count" << endl;
-    error = true;
-  }
 
   ModelFactory factory(make_shared<CoreFactory>());
 
@@ -82,11 +74,6 @@ int classification_proxy_add_segmentation( int argc, char** argv )
   ModelProfiler modelProfiler(proxy);
 
   modelAdapter->add(segmentation);
-
-  if (proxy.rowCount(level1) != 1) {
-    cerr << "Unexpected number of level 1 row count" << endl;
-    error = true;
-  }
 
   error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0);
 

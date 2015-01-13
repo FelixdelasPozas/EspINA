@@ -32,25 +32,30 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/Proxies/ClassificationProxy.h>
 #include "ModelTest.h"
+#include "ModelProfiler.h"
 
 using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Testing;
 
 int classification_proxy_set_classification( int argc, char** argv )
 {
   bool error = false;
 
-  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  auto modelAdapter = make_shared<ModelAdapter>();
+
   ClassificationProxy proxy(modelAdapter);
   ModelTest           modelTester(&proxy);
+  ModelProfiler       modelProfiler(proxy);
 
-  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
+  auto classification = make_shared<ClassificationAdapter>();
   classification->setName("Test");
   classification->createCategory("Level 1/Level 2");
+  classification->createCategory("Level 2/Level 2");
 
   modelAdapter->setClassification(classification);
 
-  if (proxy.rowCount() != 1) {
+  if (proxy.rowCount() != 2) {
     cerr << "Unexpected number of root categories" << endl;
     error = true;
   }
@@ -65,6 +70,8 @@ int classification_proxy_set_classification( int argc, char** argv )
     cerr << "Unexpected number of level 1 sub-categories" << endl;
     error = true;
   }
+
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0);
 
   return error;
 }
