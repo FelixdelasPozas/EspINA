@@ -31,56 +31,61 @@
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 #include "ModelProfiler.h"
-#include "model_adapter_testing_support.h"
+#include "testing_support_dummy_filter.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
 
-void populateModel( ModelAdapter      &modelAdapter,
-                    ModelFactorySPtr   factory,
-                    FilterSPtr         filter,
-                    SampleAdapterSPtr  sample1,
-                    SampleAdapterSPtr  sample2,
-                    SampleAdapterSPtr  sample3,
-                    ChannelAdapterSPtr channel1)
+namespace MABM
 {
-  auto sample4 = factory->createSample("Sample 4");
-
-  modelAdapter.addRelation(sample2, sample3, "link");
-
-  modelAdapter.add(sample4);
-  modelAdapter.addRelation(sample1, sample4, "link");
-
-  auto channel2 = factory->createChannel(filter, 0);
-  modelAdapter.add(channel2);
-  modelAdapter.addRelation(channel1, channel2, "link");
-
-  modelAdapter.addRelation(channel1, sample2, "link");
-  modelAdapter.addRelation(sample1, channel2, "link");
-
-  auto segmentation1 = factory->createSegmentation(filter, 0);
-  auto segmentation2 = factory->createSegmentation(filter, 0);
-  modelAdapter.add(segmentation1);
-  modelAdapter.add(segmentation2);
-  modelAdapter.addRelation(segmentation1, segmentation2, "link");
-
-  SegmentationAdapterSList segmentationSet;
-
-  for (int i = 0; i < 3; ++i)
+  void populateModel( ModelAdapter      &modelAdapter,
+                      ModelFactorySPtr   factory,
+                      FilterSPtr         filter,
+                      SampleAdapterSPtr  sample1,
+                      SampleAdapterSPtr  sample2,
+                      SampleAdapterSPtr  sample3,
+                      ChannelAdapterSPtr channel1)
   {
-    auto segmentation = factory->createSegmentation(filter, 0);
+    auto sample4 = factory->createSample("Sample 4");
 
-    segmentationSet << segmentation;
+    modelAdapter.addRelation(sample2, sample3, "link");
+
+    modelAdapter.add(sample4);
+    modelAdapter.addRelation(sample1, sample4, "link");
+
+    auto channel2 = factory->createChannel(filter, 0);
+    modelAdapter.add(channel2);
+    modelAdapter.addRelation(channel1, channel2, "link");
+
+    modelAdapter.addRelation(channel1, sample2, "link");
+    modelAdapter.addRelation(sample1, channel2, "link");
+
+    auto segmentation1 = factory->createSegmentation(filter, 0);
+    auto segmentation2 = factory->createSegmentation(filter, 0);
+    modelAdapter.add(segmentation1);
+    modelAdapter.add(segmentation2);
+    modelAdapter.addRelation(segmentation1, segmentation2, "link");
+
+    SegmentationAdapterSList segmentationSet;
+
+    for (int i = 0; i < 3; ++i)
+    {
+      auto segmentation = factory->createSegmentation(filter, 0);
+
+      segmentationSet << segmentation;
+    }
+
+    modelAdapter.add(segmentationSet);
+
+    modelAdapter.remove(channel1);
+
+    modelAdapter.remove(segmentationSet);
+
   }
-
-  modelAdapter.add(segmentationSet);
-
-  modelAdapter.remove(channel1);
-
-  modelAdapter.remove(segmentationSet);
-
 }
+
+using namespace MABM;
 
 int model_adapter_batch_mode(int argc, char** argv)
 {
@@ -95,8 +100,14 @@ int model_adapter_batch_mode(int argc, char** argv)
   Filter::Type type{"DummyFilter"};
   auto filter  = factory->createFilter<DummyFilter>(inputs, type);
 
-
   ModelAdapter  modelAdapter;
+
+  auto classification = make_shared<ClassificationAdapter>();
+  auto category1   = classification->createCategory("Level 1");
+  auto category1_1 = classification->createCategory("Level 1/Level 1-1");
+
+  modelAdapter.setClassification(classification);
+
   ModelTest     modelTester(&modelAdapter);
   ModelProfiler modelProfiler(modelAdapter);
 
@@ -109,13 +120,33 @@ int model_adapter_batch_mode(int argc, char** argv)
 
   auto channel1 = factory->createChannel(filter, 0);
   modelAdapter.add(channel1);
+
+  auto segmentation1 = factory->createSegmentation(filter, 0);
+  auto segmentation2 = factory->createSegmentation(filter, 0);
+
+  segmentation1->setCategory(category1);
+  segmentation2->setCategory(category1);
+
+  modelAdapter.add(segmentation1);
+  modelAdapter.add(segmentation2);
+
   modelProfiler.reset();
 
   cout << "Normal Mode Execution" << endl;
+  cout << "Change Category" << endl;
+  modelAdapter.setSegmentationCategory(segmentation1, category1_1);
+  modelAdapter.setSegmentationCategory(segmentation2, category1_1);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 2, 0, 0);
+
+  modelProfiler.reset();
+
+  cout << "Populate Model" << endl;
   populateModel(modelAdapter, factory, filter, sample1, sample2, sample3, channel1);
-  error |= checkExpectedNumberOfSignals(modelProfiler, 5, 9, 2); // 1 add for each add
-                                                                  // 2 update for each non consecutive item relation, 1 for consecutive
-                                                                  // 1 remove for each remove
+  // 1 add for each add
+  // 2 update for each non consecutive item relation, 1 for consecutive
+  // 0
+  // 1 remove for each remove
+  error |= checkExpectedNumberOfSignals(modelProfiler, 5, 9, 0, 2);
 
   modelAdapter.clear();
   modelAdapter.add(sample1);
@@ -125,12 +156,26 @@ int model_adapter_batch_mode(int argc, char** argv)
   modelProfiler.reset();
 
   cout << "Batch Mode Execution" << endl;
+
+  cout << "Change Category" << endl;
+  modelAdapter.beginBatchMode();
+  modelAdapter.setSegmentationCategory(segmentation1, category1);
+  modelAdapter.setSegmentationCategory(segmentation2, category1);
+  modelAdapter.endBatchMode();
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 1, 0, 0);
+
+  modelProfiler.reset();
+
+  cout << "Populate Model" << endl;
   modelAdapter.beginBatchMode();
   populateModel(modelAdapter, factory, filter, sample1, sample2, sample3, channel1);
   modelAdapter.endBatchMode();
-  error |= checkExpectedNumberOfSignals(modelProfiler, 3, 1, 1); // 1 add for each type minus one for the remove
-                                                                 // 1 update for all existing samples and no update for channel1 since its removed
-                                                                 // 1 remove for the removal of an already added item
+  // 1 add for each type minus one for the remove
+  // 1 update for all existing samples and no update for channel1 since its removed
+  // 0
+  // 1 remove for the removal of an already added item
+  error |= checkExpectedNumberOfSignals(modelProfiler, 3, 1, 0, 1);
+
 
   return error;
 }

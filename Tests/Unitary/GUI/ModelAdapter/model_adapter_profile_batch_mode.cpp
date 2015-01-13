@@ -31,7 +31,7 @@
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
 #include "ModelProfiler.h"
-#include "model_adapter_testing_support.h"
+#include "testing_support_dummy_filter.h"
 #include <QElapsedTimer>
 
 using namespace std;
@@ -39,26 +39,36 @@ using namespace ESPINA;
 using namespace ESPINA::Testing;
 
 
-const unsigned NUM_SAMPLES = 500;
+const unsigned NUM_SAMPLES   = 100;
+const unsigned NUM_RELATIONS = 2;
 
-void profileModel(ModelAdapter       &modelAdapter,
-                  ModelFactorySPtr   factory,
-                  FilterSPtr         filter,
-                  SampleAdapterSList initialSamples)
+namespace MAPBB
 {
-  SampleAdapterSList newSamples;
-  for (unsigned i = 0; i < NUM_SAMPLES; ++i)
+  void profileModel(ModelAdapter       &modelAdapter,
+                    ModelFactorySPtr   factory,
+                    FilterSPtr         filter,
+                    SampleAdapterSList initialSamples)
   {
-    auto sample = factory->createSample(QString("New Sample %1").arg(i));
-    modelAdapter.add(sample);
-    modelAdapter.addRelation(initialSamples[i], sample, "link");
-  }
+    SampleAdapterSList newSamples;
+    for (unsigned i = 0; i < NUM_SAMPLES; ++i)
+    {
+      auto sample = factory->createSample(QString("New Sample %1").arg(i));
+      modelAdapter.add(sample);
 
-  for (unsigned i = 0; i < NUM_SAMPLES; ++i)
-  {
-    modelAdapter.remove(initialSamples[i]);
+      for (unsigned j = 0; j < NUM_RELATIONS; ++j) {
+        modelAdapter.addRelation(initialSamples[i], sample, QString("link %1").arg(j));
+      }
+    }
+
+    // Remove on inverse order
+    for (int i = NUM_SAMPLES - 1; i >= 0; --i)
+    {
+      modelAdapter.remove(initialSamples[i]);
+    }
   }
 }
+
+using namespace MAPBB;
 
 int model_adapter_profile_batch_mode(int argc, char** argv)
 {
@@ -80,20 +90,21 @@ int model_adapter_profile_batch_mode(int argc, char** argv)
   {
     initialSamples << factory->createSample(QString("Sample %1").arg(i));
   }
+
   QElapsedTimer t;
   t.start();
   modelAdapter.add(initialSamples);
-  cout << "Initial Population Time: " << t.elapsed() << " ms" << endl;
-
   modelProfiler.reset();
+  cout << "Initial Population Time: " << t.elapsed() << " ms" << endl;
 
   t.start();
   profileModel(modelAdapter, factory, filter, initialSamples);
   cout << "Normal Mode Execution Time: " << t.elapsed() << " ms" << endl;
   // 1 add for each add
   // 2 update for each non consecutive item relation, 1 for consecutive
+  // 0
   // 1 add for each remove
-  error |= checkExpectedNumberOfSignals(modelProfiler, NUM_SAMPLES, 2*NUM_SAMPLES, NUM_SAMPLES);
+  error |= checkExpectedNumberOfSignals(modelProfiler, NUM_SAMPLES, 2*NUM_RELATIONS*NUM_SAMPLES, 0, NUM_SAMPLES);
 
   t.start();
   modelAdapter.clear();
@@ -108,8 +119,9 @@ int model_adapter_profile_batch_mode(int argc, char** argv)
   cout << "Batch Mode Execution Time: " << t.elapsed() << " ms" << endl;
   // 1 add for each type minus one for the remove
   // 1 update for all existing samples
+  // 0
   // 1 remove for the removal of an already added consecutive items
-  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 1);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 1);
 
   return error;
 }

@@ -71,15 +71,15 @@ namespace ESPINA
     { return m_name; }
 
     /** \brief Creates a node in the tree.
-     * \param[in] name, name of the node.
-     * \param[in] parent, parent node object.
+     * \param[in] name name of the node.
+     * \param[in] parent parent node object.
      *
      */
     Node createNode(const QString &relativeName,
                     Node parent = Node());
 
     /** \brief Removes a node from the tree.
-     * \param[in] node, node object to remove.
+     * \param[in] node node object to remove.
      *
      */
     void removeNode(Node element);
@@ -90,13 +90,13 @@ namespace ESPINA
     Node  root() const {return m_root;}
 
     /** \brief Returns the node with the specified name.
-     * \param[in] name, node name.
+     * \param[in] name node name.
      *
      */
     Node  node(const QString &name);
 
     /** \brief Returns the parent node of the specified one.
-     * \param[in] node, node to find the parent.
+     * \param[in] node node to find the parent.
      *
      */
     Node  parent(const Node node) const;
@@ -107,8 +107,8 @@ namespace ESPINA
   };
 
   /** \brief Prints the tree as a QString.
-   * \param[in] tree, tree object.
-   * \param[in] indent, indentation value.
+   * \param[in] tree tree object.
+   * \param[in] indent indentation value.
    *
    */
   template<typename T>
@@ -126,7 +126,6 @@ namespace ESPINA
   template<typename T>
   Tree<T>::~Tree()
   {
-     //qDebug() << "Destroy classification";
   }
 
   //-----------------------------------------------------------------------------

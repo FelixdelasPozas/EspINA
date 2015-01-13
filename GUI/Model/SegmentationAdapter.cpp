@@ -42,8 +42,8 @@ SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
 //------------------------------------------------------------------------
 SegmentationAdapter::~SegmentationAdapter()
 {
-  connect(m_segmentation.get(), SIGNAL(outputModified()),
-          this,                 SIGNAL(outputModified()));
+  disconnect(m_segmentation.get(), SIGNAL(outputModified()),
+             this,                 SIGNAL(outputModified()));
 }
 
 //------------------------------------------------------------------------

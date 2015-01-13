@@ -35,7 +35,8 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 
-#include "model_adapter_testing_support.h"
+#include <testing_support_dummy_filter.h>
+
 #include "ModelTest.h"
 
 using namespace std;

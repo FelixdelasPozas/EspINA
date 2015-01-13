@@ -71,7 +71,7 @@ int classification_proxy_set_classification( int argc, char** argv )
     error = true;
   }
 
-  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
 
   return error;
 }

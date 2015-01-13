@@ -167,6 +167,7 @@ set (TESTING_SOURCES
   MeshTestingUtils.cpp
   ModelProfiler.cpp
   ModelTest.cpp
+  ModelTestUtils.cpp
   SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )

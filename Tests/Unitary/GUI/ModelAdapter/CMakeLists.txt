@@ -11,6 +11,7 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_add_samples.cpp
   model_adapter_add_segmentation.cpp
   model_adapter_add_segmentations.cpp
+  model_adapter_change_segmentation_category.cpp
   model_adapter_remove_sample.cpp
   model_adapter_remove_samples.cpp
   model_adapter_remove_channel.cpp
@@ -19,6 +20,7 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_remove_segmentations.cpp
   model_adapter_delete_relation.cpp
   model_adapter_delete_non_existing_relation.cpp
+  model_adapter_remove_non_consecutive_segmentations.cpp
   model_adapter_remove_non_existing_sample.cpp
   model_adapter_remove_non_existing_channel.cpp
   model_adapter_remove_non_existing_segmentation.cpp
@@ -41,6 +43,7 @@ add_test("\"Model Adapter: Add Channel\""                             ModelAdapt
 add_test("\"Model Adapter: Add Channels\""                            ModelAdapter_Tests model_adapter_add_channels)
 add_test("\"Model Adapter: Add Segmentation\""                        ModelAdapter_Tests model_adapter_add_segmentation)
 add_test("\"Model Adapter: Add Segmentations\""                       ModelAdapter_Tests model_adapter_add_segmentations)
+add_test("\"Model Adapter: Change Segmentation Category\""            ModelAdapter_Tests model_adapter_change_segmentation_category)
 add_test("\"Model Adapter: Add Relation\""                            ModelAdapter_Tests model_adapter_add_relation)
 # add_test("\"Model Adapter: Add Relation Between Non Existing Items\"" ModelAdapter_Tests model_adapter_add_relation)
 add_test("\"Model Adapter: Add Existing Sample\""                     ModelAdapter_Tests model_adapter_add_existing_sample)
@@ -53,6 +56,7 @@ add_test("\"Model Adapter: Remove Channel\""                          ModelAdapt
 add_test("\"Model Adapter: Remove Channels\""                         ModelAdapter_Tests model_adapter_remove_channels)
 add_test("\"Model Adapter: Remove Segmentation\""                     ModelAdapter_Tests model_adapter_remove_segmentation)
 add_test("\"Model Adapter: Remove Segmentations\""                    ModelAdapter_Tests model_adapter_remove_segmentations)
+add_test("\"Model Adapter: Remove Non Consecutive Segmentations\""    ModelAdapter_Tests model_adapter_remove_non_consecutive_segmentations)
 add_test("\"Model Adapter: Delete Relation\""                         ModelAdapter_Tests model_adapter_delete_relation)
 add_test("\"Model Adapter: Remove Non Existing Sample\""              ModelAdapter_Tests model_adapter_remove_non_existing_sample)
 add_test("\"Model Adapter: Remove Non Existing Channel\""             ModelAdapter_Tests model_adapter_remove_non_existing_channel)

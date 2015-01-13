@@ -27,16 +27,19 @@ using namespace ESPINA::Testing;
 //------------------------------------------------------------------------
 ModelProfiler::ModelProfiler(QAbstractItemModel &model)
 : m_numRIS   {0}
-, m_numRATBRS{0}
 , m_numDCS   {0}
+, m_numRATBMS{0}
+, m_numRATBRS{0}
 , m_numRS    {0}
 {
   connect(&model, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(onRowsInserted()));
-  connect(&model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
-          this, SLOT(onRowsAboutToBeRemoved()));
   connect(&model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this, SLOT(onDataChanged()));
+  connect(&model, SIGNAL(rowsAboutToBeMoved(const QModelIndex &, int, int, const QModelIndex &, int)),
+          this, SLOT(onRowsAboutToBeMoved()));
+  connect(&model, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+          this, SLOT(onRowsAboutToBeRemoved()));
   connect(&model, SIGNAL(modelAboutToBeReset()),
           this, SLOT(onReset()));
 }
@@ -44,7 +47,7 @@ ModelProfiler::ModelProfiler(QAbstractItemModel &model)
 //------------------------------------------------------------------------
 void ModelProfiler::reset()
 {
-  m_numRIS = m_numRATBRS = m_numDCS = m_numRS = 0;
+  m_numRIS = m_numDCS = m_numRATBMS = m_numRATBRS = m_numRS = 0;
 }
 
 //------------------------------------------------------------------------
@@ -65,6 +68,12 @@ void ModelProfiler::onDataChanged()
   ++m_numDCS;
 }
 
+//------------------------------------------------------------------------
+void ModelProfiler::onRowsAboutToBeMoved()
+{
+  ++m_numRATBMS;
+}
+
 
 //------------------------------------------------------------------------
 void ModelProfiler::onReset()
@@ -76,6 +85,7 @@ void ModelProfiler::onReset()
 bool ESPINA::Testing::checkExpectedNumberOfSignals(ModelProfiler &profiler,
                                                    unsigned       expectedRIS,
                                                    unsigned       expectedDCS,
+                                                   unsigned       expectedRATBMS,
                                                    unsigned       expectedRATBRS)
 {
   bool error = false;
@@ -89,6 +99,12 @@ bool ESPINA::Testing::checkExpectedNumberOfSignals(ModelProfiler &profiler,
   auto numDCS = profiler.numberOfDataChangedSignals();
   if (numDCS != expectedDCS) {
     cerr << "Unexpected number of DCS: " << numDCS << " instead of " << expectedDCS << endl;
+    error = true;
+  }
+
+  auto numRATBMS = profiler.numberOfRowsAboutToBeMovedSignals();
+  if (numRATBMS != expectedRATBMS) {
+    cerr << "Unexpected number of RATBMS: " << numRATBMS << " instead of " << expectedRATBMS << endl;
     error = true;
   }
 

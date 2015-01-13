@@ -40,6 +40,7 @@ ModelAdapter::ModelAdapter()
 //------------------------------------------------------------------------
 ModelAdapter::~ModelAdapter()
 {
+//   qDebug() << "Destroying Model Adapter";
 }
 
 //------------------------------------------------------------------------
@@ -891,10 +892,10 @@ int ModelAdapter::rowCount(const QModelIndex& parent) const
   else
   {
     // Cast to base type
-    ItemAdapterPtr parentItem = itemAdapter(parent);
+    auto parentItem = itemAdapter(parent);
     if (isCategory(parentItem))
     {
-      CategoryAdapterPtr parentCategory = categoryPtr(parentItem);
+      auto parentCategory = categoryPtr(parentItem);
       count = parentCategory->subCategories().size();
     }
   }
@@ -1043,10 +1044,13 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
 //------------------------------------------------------------------------
 void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation, CategoryAdapterSPtr category)
 {
-  segmentation->setCategory(category);
+  auto command = [this, segmentation, category]() {
+    segmentation->setCategory(category);
+  };
 
-  QModelIndex index = segmentationIndex(segmentation);
-  emit dataChanged(index, index);
+  queueUpdateCommand(segmentation, std::make_shared<Command<decltype(command)>>(command));
+
+  executeCommandsIfNoBatchMode();
 }
 
 //------------------------------------------------------------------------
@@ -1148,9 +1152,11 @@ void ModelAdapter::queueAddRelationCommand(ItemAdapterSPtr ancestor,
 void ModelAdapter::queueAddCommand(ItemAdapterSPtr item,
                                    BatchCommandSPtr command)
 {
-  if (contains(item, m_removeCommands))
+  int i = find(item, m_removeCommands);
+
+  if (0 <= i && i < m_removeCommands.size())
   {
-    remove(item, m_removeCommands);
+    m_removeCommands.at(i);
   }
   else if (contains(item, m_addCommands) || contains(item, m_updateCommands))
   {
@@ -1158,18 +1164,12 @@ void ModelAdapter::queueAddCommand(ItemAdapterSPtr item,
   }
   else
   {
-    int i = find(item, m_addCommands);
+    ItemCommands itemCommands;
 
-    if (i == -1)
-    {
-      i = m_addCommands.size();
+    itemCommands.Item = item;
+    itemCommands.Commands.push_back(command);
 
-      ItemCommands itemCommands;
-      itemCommands.Item = item;
-      m_addCommands.push_back(itemCommands);
-    }
-
-    m_addCommands[i].Commands.push_back(command);
+    m_addCommands.push_back(itemCommands);
   }
 }
 
@@ -1209,15 +1209,19 @@ void ModelAdapter::queueUpdateCommand(ItemAdapterSPtr  item,
 void ModelAdapter::queueRemoveCommand(ItemAdapterSPtr  item,
                                       BatchCommandSPtr command)
 {
-  if (contains(item, m_addCommands))
+  int i = find(item, m_addCommands);
+
+  if (0 <= i && i < m_addCommands.size())
   {
-    remove(item, m_addCommands);
+    m_addCommands.removeAt(i);
   }
   else
   {
-    if (contains(item, m_updateCommands))
+    i = find(item, m_updateCommands);
+
+    if (0 <= i && i < m_updateCommands.size())
     {
-      remove(item, m_updateCommands);
+      m_updateCommands.removeAt(i);
     }
 
     if (contains(item, m_removeCommands)) throw Item_Not_Found_Exception();
@@ -1327,10 +1331,12 @@ void ModelAdapter::executeUpdateQueues(ItemCommandsList &queueList)
 //------------------------------------------------------------------------
 void ModelAdapter::executeRemoveQueues(QModelIndex parent, ItemCommandsList &queueList)
 {
+  unsigned shift = 0; // we need to correct indices after removal
+
   for (auto commandQueues : groupConsecutiveQueues(queueList))
   {
     if (!commandQueues.StartIndex.isValid()
-      ||!commandQueues.EndIndex.isValid())
+      ||!commandQueues.EndIndex  .isValid())
     {
       throw Item_Not_Found_Exception();
     }
@@ -1338,7 +1344,12 @@ void ModelAdapter::executeRemoveQueues(QModelIndex parent, ItemCommandsList &que
     Q_ASSERT(commandQueues.StartIndex.parent() == parent);
     Q_ASSERT(commandQueues.EndIndex  .parent() == parent);
 
-    beginRemoveRows(parent, commandQueues.StartIndex.row(), commandQueues.EndIndex.row());
+    int start = commandQueues.StartIndex.row() - shift;
+    int end   = commandQueues.EndIndex  .row() - shift;
+
+    shift += end - start + 1;
+
+    beginRemoveRows(parent, start, end);
     for (auto command : commandQueues.Commands)
     {
       command->execute();
@@ -1379,7 +1390,7 @@ ModelAdapter::ConsecutiveQueuesList ModelAdapter::groupConsecutiveQueues(ItemCom
 
     QModelIndex batchStartIndex;
     QModelIndex batchEndIndex;
-    QModelIndex batchLastIndex;
+    QModelIndex batchNextIndex;
 
     for (int i = 0; i <= indexedCommands.size(); ++i)
     {
@@ -1387,19 +1398,19 @@ ModelAdapter::ConsecutiveQueuesList ModelAdapter::groupConsecutiveQueues(ItemCom
       {
         IndexedCommand &indexedCommand = indexedCommands[i];
 
-        batchEndIndex = indexedCommand.first;
+        batchNextIndex = indexedCommand.first;
 
         if (batch.isEmpty())
         {
-          batchStartIndex = batchEndIndex;
-          batchLastIndex  = batchEndIndex;
+          batchStartIndex = batchNextIndex;
+          batchEndIndex   = batchNextIndex;
         }
       }
 
-      Q_ASSERT(batchEndIndex.row() >= batchStartIndex.row());
+      Q_ASSERT(batchNextIndex.row() >= batchStartIndex.row());
 
       // Not consecutive indices
-      if ( batchEndIndex.row() - batchLastIndex.row() > 1
+      if ( batchNextIndex.row() - batchEndIndex.row() > 1
         || i == indexedCommands.size())
       {
         if (!batch.isEmpty())
@@ -1410,15 +1421,17 @@ ModelAdapter::ConsecutiveQueuesList ModelAdapter::groupConsecutiveQueues(ItemCom
           consecutiveQueues.Commands  << batch;
 
           result << consecutiveQueues;
+
           batch.clear();
+          batchStartIndex = batchNextIndex;
         }
       }
 
       if (i < indexedCommands.size())
       {
         batch << indexedCommands[i].second;
+        batchEndIndex = batchNextIndex;
       }
-      batchLastIndex = batchEndIndex;
     }
   }
 

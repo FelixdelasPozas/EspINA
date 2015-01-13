@@ -39,10 +39,76 @@
 #include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
 #include "ModelProfiler.h"
+#include <QElapsedTimer>
+#include <QElapsedTimer>
 
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
+
+
+namespace CPADCS
+{
+  const unsigned NUM_CAT        = 3;
+  const unsigned NUM_SEG_BY_CAT = 100;
+
+  using CategorySegmentations = QList<SegmentationAdapterSList>;
+
+  ModelFactory factory(make_shared<CoreFactory>());
+
+  InputSList inputs;
+  Filter::Type type{"DummyFilter"};
+
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
+
+  CategorySegmentations createCategorySegmentations(ModelAdapterSPtr model)
+  {
+    CategorySegmentations segsByCat;
+
+    for (unsigned i = 0; i < NUM_CAT; ++i)
+    {
+      auto category = model->createRootCategory(QString("Category %1").arg(i));
+
+      SegmentationAdapterSList segmentations;
+
+      for (unsigned j = 0; j < NUM_SEG_BY_CAT; ++j)
+      {
+        auto segmentation = factory.createSegmentation(filter, 0);
+        segmentation->setCategory(category);
+        segmentation->setNumber(j);
+
+        segmentations << segmentation;
+      }
+
+      segsByCat << segmentations;
+    }
+
+    return segsByCat;
+  }
+
+
+  void addInterlacedSegmentations(ModelAdapterSPtr model, CategorySegmentations segsByCat)
+  {
+    for (unsigned i = 0; i < NUM_SEG_BY_CAT; ++i)
+    {
+      for (auto &catSeg : segsByCat)
+      {
+        model->add(catSeg[i]);
+      }
+    }
+  }
+
+
+  void removeSegmentations(ModelAdapterSPtr model, CategorySegmentations segsByCat)
+  {
+    for (auto &catSeg : segsByCat)
+    {
+      model->remove(catSeg);
+    }
+  }
+}
+
+using namespace CPADCS;
 
 int classification_proxy_add_different_category_segmentations( int argc, char** argv )
 {
@@ -50,32 +116,58 @@ int classification_proxy_add_different_category_segmentations( int argc, char** 
 
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
   ClassificationProxy proxy(modelAdapter);
-  ModelTest           modelTester(&proxy);
+  //ModelTest           modelTester(&proxy);
 
   auto classification = make_shared<ClassificationAdapter>();
   classification->setName("Test");
-
-  auto category1 = classification->createCategory("Category 1");
-  auto category2 = classification->createCategory("Category 2");
-  auto category3 = classification->createCategory("Category 3");
-
   modelAdapter->setClassification(classification);
 
-  ModelFactory factory(make_shared<CoreFactory>());
+  auto segsByCat = createCategorySegmentations(modelAdapter);
 
-  InputSList inputs;
-  Filter::Type type{"DummyFilter"};
+  ModelProfiler modelProfiler(*modelAdapter);
+  ModelProfiler proxyProfiler(proxy);
 
-  auto filter       = factory.createFilter<DummyFilter>(inputs, type);
-  auto segmentation = factory.createSegmentation(filter, 0);
+  const unsigned NUM_SEGS          = NUM_SEG_BY_CAT*NUM_CAT;
+  // The last removal is consecutive because all interlazed segmentation have been removed
+  const unsigned NUM_NORMAL_RATBRS = NUM_SEG_BY_CAT*(NUM_CAT - 1) + 1;
 
-  segmentation->setCategory(category);
+  QElapsedTimer timer;
+  timer.start();
+  addInterlacedSegmentations(modelAdapter, segsByCat);
+  cout << "Normal Mode Addition Time: " << timer.elapsed() << " ms" << endl;
+  error |= checkExpectedNumberOfSignals(modelProfiler, NUM_SEGS, 0, 0, 0);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, NUM_SEGS, 0, 0, 0);
 
-  ModelProfiler modelProfiler(proxy);
+  modelProfiler.reset();
+  proxyProfiler.reset();
 
-  modelAdapter->add(segmentation);
+  timer.start();
+  removeSegmentations(modelAdapter, segsByCat);
+  cout << "Normal Mode Remove Time: " << timer.elapsed() << " ms" << endl;
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 0, 0, NUM_NORMAL_RATBRS);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, 0, 0, 0, NUM_NORMAL_RATBRS);
 
-  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0);
+  modelProfiler.reset();
+  proxyProfiler.reset();
+
+  timer.start();
+  modelAdapter->beginBatchMode();
+  addInterlacedSegmentations(modelAdapter, segsByCat);
+  modelAdapter->endBatchMode();
+  cout << "Batch Mode Addition Time: " << timer.elapsed() << " ms" << endl;
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, NUM_CAT, 0, 0, 0);
+
+  modelProfiler.reset();
+  proxyProfiler.reset();
+
+  timer.start();
+  modelAdapter->beginBatchMode();
+  removeSegmentations(modelAdapter, segsByCat);
+  modelAdapter->endBatchMode();
+  cout << "Batch Mode Remove Time: " << timer.elapsed() << " ms" << endl;
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 0, 0, 1);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, 0, 0, 0, NUM_CAT);
 
   return error;
 }

@@ -39,6 +39,9 @@ namespace ESPINA
       unsigned numberOfRowsAboutToBeRemovedSignals() const
       { return m_numRATBRS; }
 
+      unsigned numberOfRowsAboutToBeMovedSignals() const
+      { return m_numRATBMS; }
+
       unsigned numberOfDataChangedSignals() const
       { return m_numDCS; }
 
@@ -47,8 +50,9 @@ namespace ESPINA
 
       int totalNumberOfSignals() const
       { return numberOfRowsInsertedSignals()
-             + numberOfRowsAboutToBeRemovedSignals()
              + numberOfDataChangedSignals()
+             + numberOfRowsAboutToBeMovedSignals()
+             + numberOfRowsAboutToBeRemovedSignals()
              + numberOfResetSignals();
       }
 
@@ -58,22 +62,26 @@ namespace ESPINA
     private slots:
       void onRowsInserted();
 
-      void onRowsAboutToBeRemoved();
-
       void onDataChanged();
+
+      void onRowsAboutToBeMoved();
+
+      void onRowsAboutToBeRemoved();
 
       void onReset();
 
     private:
       unsigned m_numRIS;
-      unsigned m_numRATBRS;
       unsigned m_numDCS;
+      unsigned m_numRATBMS;
+      unsigned m_numRATBRS;
       unsigned m_numRS;
     };
 
     bool checkExpectedNumberOfSignals(ModelProfiler &profiler,
                                       unsigned       expectedRIS,
                                       unsigned       expectedDCS,
+                                      unsigned       expectedRATBMS,
                                       unsigned       expectedRATBRS);
   }
 }

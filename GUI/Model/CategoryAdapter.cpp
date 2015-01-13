@@ -49,10 +49,6 @@ CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
 //------------------------------------------------------------------------
 CategoryAdapter::~CategoryAdapter()
 {
-  auto parent = m_category->parent();
-
-  if(parent != nullptr)
-    parent->removeSubCategory(m_category);
 }
 
 //------------------------------------------------------------------------

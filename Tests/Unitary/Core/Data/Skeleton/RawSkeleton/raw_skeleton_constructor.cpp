@@ -22,6 +22,7 @@
 #include <Core/Utils/Spatial.h>
 #include <Tests/testing_support_dummy_filter.h>
 
+
 #include "SkeletonTestingUtils.h"
 
 #include <QList>

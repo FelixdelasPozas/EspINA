@@ -44,7 +44,7 @@ using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int classification_proxy_add_segmentation( int argc, char** argv )
+int classification_proxy_add_segmentation(int argc, char** argv)
 {
   bool error = false;
 
@@ -88,7 +88,7 @@ int classification_proxy_add_segmentation( int argc, char** argv )
     error = true;
   }
 
-  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
 
   return error;
 }

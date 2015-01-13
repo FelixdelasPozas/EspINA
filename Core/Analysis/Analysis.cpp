@@ -37,6 +37,12 @@ Analysis::Analysis()
 }
 
 //------------------------------------------------------------------------
+Analysis::~Analysis()
+{
+//   qDebug() << "Destroying Analysis";
+}
+
+//------------------------------------------------------------------------
 void Analysis::clear()
 {
   m_classification.reset();

@@ -37,35 +37,46 @@
 
 #include "testing_support_dummy_filter.h"
 #include "ModelTest.h"
+#include "ModelProfiler.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int model_adapter_remove_segmentation( int argc, char** argv )
+int model_adapter_remove_non_consecutive_segmentations( int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto analysis    = make_shared<Analysis>();
+  auto coreFactory = make_shared<CoreFactory>();
+  auto factory     = make_shared<ModelFactory>(coreFactory);
 
   ModelAdapter modelAdapter;
   ModelTest    modelTester(&modelAdapter);
-
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
   modelAdapter.setAnalysis(analysis, factory);
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter       = factory->createFilter<DummyFilter>(inputs, type);
-  auto segmentation = factory->createSegmentation(filter, 0);
+  auto filter = factory->createFilter<DummyFilter>(inputs, type);
 
-  modelAdapter.add(segmentation);
+  SegmentationAdapterSList segmentations;
+  segmentations << factory->createSegmentation(filter, 0)
+                << factory->createSegmentation(filter, 0)
+                << factory->createSegmentation(filter, 0);
 
-  modelAdapter.remove(segmentation);
+  ModelProfiler modelProfiler(modelAdapter);
+
+  modelAdapter.add(segmentations);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
+
+  segmentations.removeAt(1);
+  modelProfiler.reset();
+
+  modelAdapter.remove(segmentations);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 0, 0, 2);
+
 
   if (analysis->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
@@ -82,22 +93,22 @@ int model_adapter_remove_segmentation( int argc, char** argv )
     error = true;
   }
 
-  if (!analysis->segmentations().isEmpty()) {
+  if (analysis->segmentations().size() != 1) {
     cerr << "Unexpected number of segmentations in analysis" << endl;
     error = true;
   }
 
-  if (!analysis->content()->vertices().isEmpty()) {
+  if (analysis->content()->vertices().size() != 2) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis->content()->edges().isEmpty()) {
+  if (analysis->content()->edges().size() != 1) {
     cerr << "Unexpected number of edges in analysis content" << endl;
     error = true;
   }
 
-  if (!analysis->relationships()->vertices().isEmpty()) {
+  if (analysis->relationships()->vertices().size() != 1) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }

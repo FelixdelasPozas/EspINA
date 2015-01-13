@@ -33,79 +33,50 @@
 #include <Core/MultiTasking/Scheduler.h>
 
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "testing_support_dummy_filter.h"
+#include "ModelProfiler.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
+#include <testing_support_dummy_filter.h>
+
 
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int model_adapter_remove_segmentation( int argc, char** argv )
+int model_adapter_change_segmentation_category( int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ModelTest           modelTester(modelAdapter.get());
 
-  ModelAdapter modelAdapter;
-  ModelTest    modelTester(&modelAdapter);
+  auto classification = make_shared<ClassificationAdapter>();
+  auto category1   = classification->createCategory("Level 1");
+  auto category1_1 = classification->createCategory("Level 1/Level 1-1");
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  modelAdapter->setClassification(classification);
 
-  modelAdapter.setAnalysis(analysis, factory);
+  ModelFactory factory(make_shared<CoreFactory>());
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter       = factory->createFilter<DummyFilter>(inputs, type);
-  auto segmentation = factory->createSegmentation(filter, 0);
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
 
-  modelAdapter.add(segmentation);
+  auto segmentation = factory.createSegmentation(filter, 0);
 
-  modelAdapter.remove(segmentation);
+  segmentation->setCategory(category1);
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
+  modelAdapter->add(segmentation);
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
+  ModelProfiler modelProfiler(*modelAdapter);
 
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
+  modelAdapter->setSegmentationCategory(segmentation, category1_1);
 
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 1, 0, 0);
 
   return error;
 }

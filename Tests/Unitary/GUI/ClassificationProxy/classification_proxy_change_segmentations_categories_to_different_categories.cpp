@@ -33,79 +33,75 @@
 #include <Core/MultiTasking/Scheduler.h>
 
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "testing_support_dummy_filter.h"
+#include "classification_proxy_testing_support.h"
+#include "ModelProfiler.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int model_adapter_remove_segmentation( int argc, char** argv )
+int classification_proxy_change_segmentations_categories_to_different_categories( int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter);
+  ModelTest           modelTester(&proxy);
 
-  ModelAdapter modelAdapter;
-  ModelTest    modelTester(&modelAdapter);
+  auto classification = make_shared<ClassificationAdapter>();
+  auto category1   = classification->createCategory("Level 1");
+  auto category1_1 = classification->createCategory("Level 1/Level 1-1");
+  auto category1_2 = classification->createCategory("Level 1/Level 1-2");
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  modelAdapter->setClassification(classification);
 
-  modelAdapter.setAnalysis(analysis, factory);
+  auto level1   = proxy .index(0, 0);
+  auto level1_1 = level1.child(0, 0);
+  auto level1_2 = level1.child(1, 0);
+
+  error |= checkRowCount(level1,   2);
+  error |= checkRowCount(level1_1, 0);
+  error |= checkRowCount(level1_2, 0);
+
+  ModelFactory factory(make_shared<CoreFactory>());
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter       = factory->createFilter<DummyFilter>(inputs, type);
-  auto segmentation = factory->createSegmentation(filter, 0);
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
 
-  modelAdapter.add(segmentation);
+  auto segmentation1 = factory.createSegmentation(filter, 0);
+  auto segmentation2 = factory.createSegmentation(filter, 0);
 
-  modelAdapter.remove(segmentation);
+  segmentation1->setCategory(category1);
+  segmentation2->setCategory(category1);
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
+  modelAdapter->add(segmentation1);
+  modelAdapter->add(segmentation2);
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
+  error |= checkRowCount(level1,   4);
+  error |= checkRowCount(level1_1, 0);
+  error |= checkRowCount(level1_2, 0);
 
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
+  ModelProfiler modelProfiler(*modelAdapter);
+  ModelProfiler proxyProfiler(proxy);
 
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
+  modelAdapter->beginBatchMode();
+  modelAdapter->setSegmentationCategory(segmentation1, category1_1);
+  modelAdapter->setSegmentationCategory(segmentation2, category1_2);
+  modelAdapter->endBatchMode();
 
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
+  error |= checkRowCount(level1,   2);
+  error |= checkRowCount(level1_1, 1);
+  error |= checkRowCount(level1_2, 1);
 
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 1, 0, 0);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, 0, 0, 2, 0);
 
   return error;
 }
