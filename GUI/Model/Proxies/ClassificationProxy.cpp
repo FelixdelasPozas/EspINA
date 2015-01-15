@@ -879,59 +879,19 @@ void ClassificationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, co
 
     for(auto currentCategory : itemsByCurrentCategory.keys())
     {
-      auto itemsByPreviousCategory = groupSegmentationsByPreviousCategory(itemsByCurrentCategory[currentCategory], currentCategory);
+      auto proxyDestination  = categoryIndex(currentCategory);
+      auto groupedItems      = groupSegmentationsByPreviousCategory(itemsByCurrentCategory[currentCategory], currentCategory);
 
-      for (auto &prevCategory : itemsByPreviousCategory.keys())
+      auto itemsByPreviousCategory = groupedItems.first;
+      auto unchangedItems          = groupedItems.second;
+
+      processConsecutiveDataChanges(unchangedItems, currentCategory);
+
+      for (auto prevCategory : itemsByPreviousCategory.keys())
       {
-        auto proxySource      = categoryIndex(prevCategory);
-        auto proxyDestination = categoryIndex(currentCategory);
+        auto proxySource = categoryIndex(prevCategory);
 
-        int start;
-        int end;
-        int next;
-        ItemAdapterList moveItems;
-
-        auto previousItems = itemsByPreviousCategory[prevCategory];
-
-        for (int i = 0; i <= previousItems.size(); ++i)
-        {
-          if (i < previousItems.size())
-          {
-            next = currentSegmentationRow(previousItems[i], prevCategory);
-
-            if (moveItems.isEmpty())
-            {
-              start = next;
-              end   = next;
-            }
-          }
-
-          if (next - end > 1 || i == previousItems.size())
-          {
-            if (!moveItems.isEmpty())
-            {
-              int newRow = rowCount(proxyDestination);
-
-              beginMoveRows(proxySource, start, end, proxyDestination, newRow);
-              for (auto sourceItem : moveItems)
-              {
-                m_categorySegmentations[prevCategory].removeOne(sourceItem);
-                m_categorySegmentations[currentCategory] << sourceItem;
-              }
-              endMoveRows();
-
-              moveItems.clear();
-              start = next;
-            }
-          }
-
-          if (i < previousItems.size())
-          {
-            auto sourceItem = previousItems[i];
-            moveItems << sourceItem;
-            next = currentSegmentationRow(sourceItem, prevCategory);
-          }
-        }
+        processConsecutiveCategoryChanges(itemsByPreviousCategory[prevCategory], prevCategory, currentCategory, proxySource, proxyDestination);
       }
     }
   }
@@ -957,7 +917,7 @@ void ClassificationProxy::sourceModelReset()
 {
   beginResetModel();
   {
-    m_classification = ClassificationAdapterSPtr{new ClassificationAdapter()};
+    m_classification = std::make_shared<ClassificationAdapter>();
     m_rootCategories.clear();
     m_numCategories.clear();
     m_categorySegmentations.clear();
@@ -1053,10 +1013,11 @@ ClassificationProxy::CategorySegmentations ClassificationProxy::groupSegmentatio
 }
 
 //------------------------------------------------------------------------
-ClassificationProxy::CategorySegmentations ClassificationProxy::groupSegmentationsByPreviousCategory(ItemAdapterList    sourceItems,
-                                                                                                     CategoryAdapterPtr currentCategory)
+ClassificationProxy::SegmentationsGroup ClassificationProxy::groupSegmentationsByPreviousCategory(ItemAdapterList    sourceItems,
+                                                                                                                             CategoryAdapterPtr currentCategory)
 {
   CategorySegmentations prevCategories;
+  ItemAdapterList       unchangedItems;
 
   for (auto sourceItem : sourceItems)
   {
@@ -1070,14 +1031,110 @@ ClassificationProxy::CategorySegmentations ClassificationProxy::groupSegmentatio
         }
         else
         {
-          Q_ASSERT(false); // TODO propagate dataChanged signals
+          unchangedItems << sourceItem;
         }
         break;
       }
     }
   }
 
-  return prevCategories;
+  return SegmentationsGroup(prevCategories, unchangedItems);
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::processConsecutiveCategoryChanges(ItemAdapterList    sourceItems,
+                                                            CategoryAdapterPtr prevCategory,
+                                                            CategoryAdapterPtr currentCategory,
+                                                            const QModelIndex& proxySource,
+                                                            const QModelIndex& proxyDestination)
+{
+  int start;
+  int end;
+  int next;
+  ItemAdapterList consecutiveItems;
+
+  for (int i = 0; i <= sourceItems.size(); ++i)
+  {
+    if (i < sourceItems.size())
+    {
+      next = currentSegmentationRow(sourceItems[i], prevCategory);
+
+      if (consecutiveItems.isEmpty())
+      {
+        start = next;
+        end   = next;
+      }
+    }
+
+    if (next - end > 1 || i == sourceItems.size())
+    {
+      if (!consecutiveItems.isEmpty())
+      {
+        int newRow = rowCount(proxyDestination);
+
+        beginMoveRows(proxySource, start, end, proxyDestination, newRow);
+        for (auto sourceItem : sourceItems)
+        {
+          m_categorySegmentations[prevCategory].removeOne(sourceItem);
+          m_categorySegmentations[currentCategory] << sourceItem;
+        }
+        endMoveRows();
+
+        consecutiveItems.clear();
+        start = next;
+      }
+    }
+
+    if (i < sourceItems.size())
+    {
+      auto sourceItem = sourceItems[i];
+      consecutiveItems << sourceItem;
+      next = currentSegmentationRow(sourceItem, prevCategory);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::processConsecutiveDataChanges(ItemAdapterList    sourceItems,
+                                                        CategoryAdapterPtr currentCategory)
+{
+  int end;
+  int next;
+  ItemAdapterList consecutiveItems;
+
+  for (int i = 0; i <= sourceItems.size(); ++i)
+  {
+    if (i < sourceItems.size())
+    {
+      next = currentSegmentationRow(sourceItems[i], currentCategory);
+
+      if (consecutiveItems.isEmpty())
+      {
+        end = next;
+      }
+    }
+
+    if (next - end > 1 || i == sourceItems.size())
+    {
+      if (!consecutiveItems.isEmpty())
+      {
+        auto index       = categoryIndex(currentCategory);
+        auto topLeft     = index.child(currentSegmentationRow(consecutiveItems.first(), currentCategory), 0);
+        auto bottomRight = index.child(currentSegmentationRow(consecutiveItems.last() , currentCategory), 0);
+
+        emit dataChanged(topLeft, bottomRight);
+
+        consecutiveItems.clear();
+      }
+    }
+
+    if (i < sourceItems.size())
+    {
+      auto sourceItem = sourceItems[i];
+      consecutiveItems << sourceItem;
+      next = currentSegmentationRow(sourceItem, currentCategory);
+    }
+  }
 }
 
 //------------------------------------------------------------------------

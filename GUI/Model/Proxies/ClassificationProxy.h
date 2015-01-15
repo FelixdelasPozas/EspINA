@@ -222,20 +222,37 @@ namespace ESPINA
     /** \brief Returns the index of the category in the proxy model.
      * \param[in] category category adapter raw pointer.
      */
-    QModelIndex categoryIndex(CategoryAdapterPtr category) const;
+    QModelIndex categoryIndex(CategoryAdapterPtr proxyCategory) const;
 
   private:
-    using CategorySegmentations = QMap<CategoryAdapterPtr, QList<ItemAdapterPtr>>;
+    using CategorySegmentations    = QMap<CategoryAdapterPtr, ItemAdapterList>;
+    using SegmentationsGroup       = QPair<CategorySegmentations, ItemAdapterList>;
 
     /** \brief Group all segmentations of the base model between start and end by their categories
      *
      */
     CategorySegmentations groupSegmentationsByCategory(int start, int end);
 
-    /** \brief Group all segmentations by their previous categories
+    /** \brief Group segmentations which changed their category by their previous categories
      *
      */
-    CategorySegmentations groupSegmentationsByPreviousCategory(ItemAdapterList sourceItems, CategoryAdapterPtr currentCategory);
+    SegmentationsGroup groupSegmentationsByPreviousCategory(ItemAdapterList    sourceItems,
+                                                            CategoryAdapterPtr currentCategory);
+
+    /** \brief Change category for given source items
+     *
+     */
+    void processConsecutiveCategoryChanges(ItemAdapterList    sourceItems,
+                                           CategoryAdapterPtr prevCategory,
+                                           CategoryAdapterPtr currentCategory,
+                                           const QModelIndex &proxySource,
+                                           const QModelIndex &proxyDestination);
+
+    /** \brief Send dataChanged signal
+     *
+     */
+    void processConsecutiveDataChanges(ItemAdapterList    sourceItems,
+                                       CategoryAdapterPtr currentCategory);
 
     /** \brief Returns the position of a segmentation item under the given category
      *
