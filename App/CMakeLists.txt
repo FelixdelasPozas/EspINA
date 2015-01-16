@@ -58,11 +58,13 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Skeleton/SkeletonToolGroup.h
   ToolGroups/Skeleton/SkeletonTool.h
   ToolGroups/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/ViewState/ResetZoom.h
-  ToolGroups/ViewState/ToggleCrosshairVisibility.h
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.h
-  ToolGroups/ViewState/ViewTools.h
-  ToolGroups/ViewState/ZoomArea.h
+  ToolGroups/View/RenderGroupTool.h
+  ToolGroups/View/RenderSwitches/CrosshairsRenderSwitch2D.h
+  ToolGroups/View/ResetZoom.h
+  ToolGroups/View/ToggleCrosshairVisibility.h
+  ToolGroups/View/ToggleSegmentationsVisibility.h
+  ToolGroups/View/ViewToolGroup.h
+  ToolGroups/View/ZoomAreaTool.h
   Tools/Brushes/CircularBrushROISelector.h
   Tools/Brushes/SphericalBrushROISelector.h
   Tools/Measure/MeasureTool.h
@@ -160,11 +162,13 @@ set (ESPINA_SOURCES
   ToolGroups/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Skeleton/SkeletonTool.cpp
   ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
-  ToolGroups/ViewState/ResetZoom.cpp
-  ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp
-  ToolGroups/ViewState/ViewTools.cpp
-  ToolGroups/ViewState/ZoomArea.cpp
+  ToolGroups/View/RenderGroupTool.cpp
+  ToolGroups/View/RenderSwitches/CrosshairsRenderSwitch2D.cpp
+  ToolGroups/View/ResetZoom.cpp
+  ToolGroups/View/ToggleCrosshairVisibility.cpp
+  ToolGroups/View/ToggleSegmentationsVisibility.cpp
+  ToolGroups/View/ViewToolGroup.cpp
+  ToolGroups/View/ZoomAreaTool.cpp
   Tools/Brushes/CircularBrushROISelector.cpp
   Tools/Brushes/ROISelectorBase.cpp
   Tools/Brushes/SphericalBrushROISelector.cpp

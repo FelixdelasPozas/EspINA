@@ -34,7 +34,6 @@
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Skeleton/SkeletonToolGroup.h"
-#include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
 #include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
@@ -53,6 +52,7 @@
 #include <GUI/Representations/Renderers/CachedSliceRenderer.h>
 #include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
+#include "App/ToolGroups/View/RenderSwitches/CrosshairsRenderSwitch2D.h"
 #include <GUI/Representations/Renderers/MeshRenderer.h>
 #include <GUI/Representations/Renderers/SkeletonRenderer.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
@@ -111,6 +111,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     {new GeneralSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
+, m_viewToolGroup{new ViewToolGroup(m_viewManager, this)}
 , m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy{false}
 , m_undoStackSavedIndex{m_undoStack->index()}
@@ -130,16 +131,17 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerChannelRepresentationFactory(std::make_shared<BasicChannelRepresentationFactory>(m_scheduler));
   m_factory->registerSegmentationRepresentationFactory(std::make_shared<BasicSegmentationRepresentationFactory>(m_scheduler));
 
-  m_viewManager->registerRenderer(std::make_shared<CrosshairRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<MeshRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<SmoothedMeshRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<SliceRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<VolumetricRenderer<itkVolumeType>>());
-  m_viewManager->registerRenderer(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
-  m_viewManager->registerRenderer(std::make_shared<ContourRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<CachedSliceRenderer>(m_scheduler));
-  m_viewManager->registerRenderer(std::make_shared<SkeletonRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<SkeletonRenderer3D>());
+  registerRenderer(std::make_shared<CrosshairRenderer>());
+  m_viewToolGroup->addRenderSwitch(ViewToolGroup::CHANNELS_GROUP, std::make_shared<CrosshairsRenderSwitch2D>(m_viewManager));
+  registerRenderer(std::make_shared<MeshRenderer>());
+  registerRenderer(std::make_shared<SmoothedMeshRenderer>());
+  registerRenderer(std::make_shared<SliceRenderer>());
+  registerRenderer(std::make_shared<VolumetricRenderer<itkVolumeType>>());
+  registerRenderer(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
+  registerRenderer(std::make_shared<ContourRenderer>());
+  registerRenderer(std::make_shared<CachedSliceRenderer>(m_scheduler));
+  registerRenderer(std::make_shared<SkeletonRenderer>());
+  registerRenderer(std::make_shared<SkeletonRenderer3D>());
 
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
@@ -290,10 +292,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_viewManager->setContextualBar(m_contextualBar);
 
-  auto defaultActiveTool = new ViewTools(m_viewManager, this);
-  registerToolGroup(defaultActiveTool);
-
   /*** TOOLS ***/
+  registerToolGroup(m_viewToolGroup);
+
   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   registerToolGroup(roiTools);
   m_viewManager->setROIProvider(roiTools);
@@ -321,7 +322,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto segmentationHistory = new HistoryDock(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 
-  defaultActiveTool->showTools(true);
+  m_viewToolGroup->showTools(true);
 
   /*** MENU ACTIONS ***/
   QAction *rawInformationAction = m_dynamicMenuRoot->submenus[0]->menu->addAction(tr("Raw Information"));
@@ -447,7 +448,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       for (auto renderer : validPlugin->renderers())
       {
 //        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
-        m_viewManager->registerRenderer(renderer);
+        registerRenderer(renderer);
       }
 
       for(auto entry: validPlugin->menuEntries())
@@ -584,6 +585,13 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* d
 void EspinaMainWindow::registerToolGroup(ToolGroupPtr tools)
 {
   m_mainBar->addAction(tools);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerRenderer(RendererSPtr renderer)
+{
+
+  m_viewManager->registerRenderer(renderer);
 }
 
 //------------------------------------------------------------------------
@@ -1096,8 +1104,7 @@ void EspinaMainWindow::showAboutDialog()
 //------------------------------------------------------------------------
 void EspinaMainWindow::autosave()
 {
-  if (!isModelModified())
-  	return;
+  if (!isModelModified()) return;
 
   m_busy = true;
 

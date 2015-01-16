@@ -19,7 +19,7 @@
 */
 
 // ESPINA
-#include "ZoomArea.h"
+#include "ZoomAreaTool.h"
 #include <GUI/View/Widgets/Zoom/ZoomSelectionWidget.h>
 
 // Qt
@@ -29,7 +29,7 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ZoomArea::ZoomArea(ViewManagerSPtr viewManager)
+ZoomAreaTool::ZoomAreaTool(ViewManagerSPtr viewManager)
 : m_enabled{false}
 , m_viewManager{viewManager}
 , m_zoomArea   {new QAction(QIcon(":/espina/zoom_selection.png"), tr("Define Zoom Area"),this)}
@@ -46,25 +46,25 @@ ZoomArea::ZoomArea(ViewManagerSPtr viewManager)
 }
 
 //----------------------------------------------------------------------------
-ZoomArea::~ZoomArea()
+ZoomAreaTool::~ZoomAreaTool()
 {
   m_widget->setEnabled(false);
 }
 
 //----------------------------------------------------------------------------
-void ZoomArea::setEnabled(bool value)
+void ZoomAreaTool::setEnabled(bool value)
 {
   m_enabled = value;
 }
 
 //----------------------------------------------------------------------------
-bool ZoomArea::enabled() const
+bool ZoomAreaTool::enabled() const
 {
   return m_enabled;
 }
 
 //----------------------------------------------------------------------------
-QList<QAction *> ZoomArea::actions() const
+QList<QAction *> ZoomAreaTool::actions() const
 {
   QList<QAction *> actions;
 
@@ -74,7 +74,7 @@ QList<QAction *> ZoomArea::actions() const
 }
 
 //----------------------------------------------------------------------------
-void ZoomArea::abortOperation()
+void ZoomAreaTool::abortOperation()
 {
   if (m_zoomArea->isChecked())
   {
@@ -85,7 +85,7 @@ void ZoomArea::abortOperation()
 }
 
 //----------------------------------------------------------------------------
-void ZoomArea::activateTool(bool value)
+void ZoomAreaTool::activateTool(bool value)
 {
   if (value)
   {

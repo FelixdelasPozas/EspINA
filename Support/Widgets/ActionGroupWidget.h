@@ -34,25 +34,22 @@ namespace ESPINA
   : public QWidgetAction
   {
   public:
-  	/** \brief ActionGroupWidget class constructor.
-  	 * \param[in] parent, raw pointer of the QObject parent of this one.
-  	 *
-  	 */
-    explicit ActionGroupWidget(QObject* parent);
-
-    /** \brief Overrides QWidgetAction::createWidget().
+    /** \brief ActionGroupWidget class constructor.
+     * \param[in] parent raw pointer of the QObject parent of this one.
      *
      */
+    explicit ActionGroupWidget(QObject* parent);
+
     virtual QWidget* createWidget(QWidget* parent) override;
 
     /** \brief Adds a QAction to the widget.
-     * \param[in] action, action to add.
+     * \param[in] action action to add.
      *
      */
     void add(QAction* action);
 
     /** \brief Removes a QAction from the widget.
-     * \param[in] action, action to remove.
+     * \param[in] action action to remove.
      *
      */
     void remove(QAction* action);

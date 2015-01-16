@@ -47,15 +47,15 @@ namespace ESPINA
   : public ChannelRenderer
   {
   public:
-  	/** \brief CrosshairRenderer class constructor.
-  	 * \param[in] parent, raw pointer of the QObject parent of this one.
-  	 *
-  	 */
+    /** \brief CrosshairRenderer class constructor.
+     * \param[in] parent raw pointer of the QObject parent of this one.
+     *
+     */
     explicit CrosshairRenderer(QObject* parent = nullptr);
 
-  	/** \brief CrosshairRenderer class virtual destructor.
-  	 *
-  	 */
+    /** \brief CrosshairRenderer class virtual destructor.
+     *
+     */
     virtual ~CrosshairRenderer();
 
     virtual const QIcon icon() const
@@ -76,7 +76,7 @@ namespace ESPINA
     virtual bool managesRepresentation(const QString &representationType) const;
 
     virtual RendererSPtr clone() const
-    { return RendererSPtr(new CrosshairRenderer()); }
+    { return std::make_shared<CrosshairRenderer>(); }
 
     virtual unsigned int numberOfvtkActors() const;
 

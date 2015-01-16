@@ -27,7 +27,7 @@
 #include <memory>
 
 // Qt
-#include <QObject>
+#include <QPushButton>
 #include <QCursor>
 
 class QEvent;
@@ -56,6 +56,8 @@ namespace ESPINA
        *
        */
       virtual QList<QAction *> actions() const = 0;
+
+      static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
 
     signals:
       void changedActions();

@@ -30,6 +30,7 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/ProblemList/ProblemListDialog.h>
+#include "ToolGroups/View/ViewToolGroup.h"
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
@@ -269,6 +270,11 @@ namespace ESPINA
      */
     void registerToolGroup(ToolGroupPtr tools);
 
+    /** \brief Adds renderer to view tool group and available views
+     *
+     */
+    void registerRenderer(RendererSPtr renderer);
+
     /** \brief Loads a list of plugins in the application.
      * \param[in] plugins list of plugins to load.
      *
@@ -323,7 +329,8 @@ namespace ESPINA
     ExtensionFactorySList m_extensionFactories;
     SettingsPanelSList    m_availableSettingsPanels;
 
-    MainToolBar*          m_mainToolBar;
+    MainToolBar          *m_mainToolBar;
+    ViewToolGroup        *m_viewToolGroup;
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 

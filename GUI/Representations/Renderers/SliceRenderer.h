@@ -26,7 +26,6 @@
 // ESPINA
 #include "RepresentationRenderer.h"
 #include <GUI/View/SelectableView.h>
-#include <QFlags>
 
 class vtkPropPicker;
 
@@ -37,62 +36,62 @@ namespace ESPINA
   class EspinaGUI_EXPORT SliceRenderer
   : public RepresentationRenderer
   {
-    public:
-  		/** \brief SliceRenderer class constructor.
-  		 * \param[in] parent, raw pointer of the QObject parent of this one.
-  		 *
-  		 */
-      explicit SliceRenderer(QObject* parent = nullptr);
+  public:
+    /** \brief SliceRenderer class constructor.
+     * \param[in] parent raw pointer of the QObject parent of this one.
+     *
+     */
+    explicit SliceRenderer(QObject* parent = nullptr);
 
-  		/** \brief SliceRenderer class virtual destructor.
-  		 *
-  		 */
-      virtual ~SliceRenderer();
+    /** \brief SliceRenderer class virtual destructor.
+     *
+     */
+    virtual ~SliceRenderer();
 
-      virtual const QIcon icon()      const   { return QIcon(":/espina/slice.png"); }
+    virtual const QIcon icon()      const   { return QIcon(":/espina/slice.png"); }
 
-      virtual const QString name()    const   { return "Slice"; }
+    virtual const QString name()    const   { return "Slice"; }
 
-      virtual const QString tooltip() const   { return "Segmentation's Slices"; }
+    virtual const QString tooltip() const   { return "Segmentation's Slices"; }
 
-      virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
+    virtual void addRepresentation(ViewItemAdapterPtr item, RepresentationSPtr rep);
 
-      virtual void removeRepresentation(RepresentationSPtr rep);
+    virtual void removeRepresentation(RepresentationSPtr rep);
 
-      virtual bool hasRepresentation(RepresentationSPtr rep) const;
+    virtual bool hasRepresentation(RepresentationSPtr rep) const;
 
-      virtual bool managesRepresentation(const QString &representationType) const;
+    virtual bool managesRepresentation(const QString &representationType) const;
 
-      virtual RendererSPtr clone() const
-      { return RendererSPtr(new SliceRenderer()); }
+    virtual RendererSPtr clone() const
+    { return RendererSPtr(new SliceRenderer()); }
 
-      virtual unsigned int numberOfvtkActors() const;
+    virtual unsigned int numberOfvtkActors() const;
 
-      virtual RenderableItems renderableItems() const
-      { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
+    virtual RenderableItems renderableItems() const
+    { return RenderableItems(RenderableType::CHANNEL|RenderableType::SEGMENTATION); }
 
-      virtual RendererTypes renderType() const
-      { return RendererTypes(RENDERER_VIEW2D); }
+    virtual RendererTypes renderType() const
+    { return RendererTypes(RENDERER_VIEW2D); }
 
-      virtual int numberOfRenderedItems() const
-      { return m_representations.size(); }
+    virtual int numberOfRenderedItems() const
+    { return m_representations.size(); }
 
-      virtual ViewItemAdapterList pick(int x, int y, Nm z,
-                                       vtkSmartPointer<vtkRenderer> renderer,
-                                       RenderableItems itemType = RenderableItems(),
-                                       bool repeat = false);
+    virtual ViewItemAdapterList pick(int x, int y, Nm z,
+                                     vtkSmartPointer<vtkRenderer> renderer,
+                                     RenderableItems itemType = RenderableItems(),
+                                     bool repeat = false);
 
-      virtual void setView(RenderView *view) override;
+    virtual void setView(RenderView *view) override;
 
-      virtual bool canRender(ItemAdapterPtr item) const;
+    virtual bool canRender(ItemAdapterPtr item) const;
 
-    protected:
-      virtual void hide();
+  protected:
+    virtual void hide();
 
-      virtual void show();
+    virtual void show();
 
-    private:
-      vtkSmartPointer<vtkPropPicker> m_picker;
+  private:
+    vtkSmartPointer<vtkPropPicker> m_picker;
   };
 
 } // namespace ESPINA

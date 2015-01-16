@@ -60,10 +60,12 @@ set (Support_SOURCES
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
-  Widgets/ToolGroup.cpp  
-  Widgets/ActionGroupWidget.cpp  
+  Widgets/ToolGroup.cpp
+  Widgets/Tool.cpp
+  Widgets/ActionGroupWidget.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
+  RenderSwitch.cpp
   ViewManager.cpp
   )
 

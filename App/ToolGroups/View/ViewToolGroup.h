@@ -18,14 +18,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_ZOOM_TOOLS_H
-#define ESPINA_ZOOM_TOOLS_H
+#ifndef ESPINA_ZOOM_TOOL_GROUP_H
+#define ESPINA_ZOOM_TOOL_GROUP_H
 
 // ESPINA
 #include <Support/Widgets/ToolGroup.h>
 #include "ToggleSegmentationsVisibility.h"
 #include "ResetZoom.h"
-#include "ZoomArea.h"
+#include "ZoomAreaTool.h"
+#include "RenderGroupTool.h"
 #include "ToggleCrosshairVisibility.h"
 
 // Qt
@@ -33,49 +34,63 @@
 
 namespace ESPINA
 {
-  class ViewTools
+  class ViewToolGroup
   : public ToolGroup
   {
     Q_OBJECT
 
   public:
+    using RenderGroup = QString;
+
+    static RenderGroup CHANNELS_GROUP;
+    static RenderGroup SEGMENTATIONS_GROUP;
+
+  public:
     /** \brief ViewTools class constructor.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] parent, raw pointer to the QWidget parent of this object.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] parent raw pointer to the QWidget parent of this object.
      */
-    explicit ViewTools(ViewManagerSPtr viewManager, QWidget *parent = 0);
+    explicit ViewToolGroup(ViewManagerSPtr viewManager, QWidget *parent = 0);
 
     /** \brief ViewTools class virtual destructor.
      *
      */
-    virtual ~ViewTools();
+    virtual ~ViewToolGroup();
 
-    /** \brief Implements ToolGroup::setEnabled().
-     *
-     */
     virtual void setEnabled(bool value);
 
-    /** \brief Implements ToolGroup::enabled().
-     *
-     */
     virtual bool enabled() const;
 
-    /** \brief Implements ToolGroup::tools().
-     *
-     */
     virtual ToolSList tools();
 
+    /** \brief Add render switch to group render group tool
+     *
+     */
+    void addRenderSwitch(RenderGroup      group,
+                         RenderSwitchSPtr renderSwitch,
+                         QIcon            groupIcon        = QIcon(),
+                         const QString   &groupDescription = QString());
+
   public slots:
-  	/** \brief Aborts current operation.
-  	 *
-  	 */
+    /** \brief Aborts current operation.
+     *
+     */
     void abortOperation();
 
   private:
+    class SettingsTool;
+    using SettingsToolSPtr = std::shared_ptr<SettingsTool>;
+
+    using RenderGroupTools = QMap<RenderGroup, RenderGroupToolSPtr>;
+
     ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
     ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
     ResetZoomSPtr                     m_resetZoom;
-    ZoomAreaSPtr                      m_zoomArea;
+    ZoomAreaToolSPtr                  m_zoomArea;
+    SettingsToolSPtr                  m_renderSettings;
+    RenderGroupToolSPtr               m_channelsRenderGroup;
+    RenderGroupToolSPtr               m_segmentationsRenderGroup;
+    RenderGroupTools                  m_dynamicRenderGroups;
 
     bool m_enabled;
 
@@ -85,4 +100,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // ESPINA_ZOOM_TOOLS_H
+#endif // ESPINA_ZOOM_TOOL_GROUP_H

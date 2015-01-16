@@ -33,7 +33,7 @@ namespace ESPINA
 {
   class ZoomSelectionWidget;
 
-  class ZoomArea
+  class ZoomAreaTool
   : public Tool
   {
     Q_OBJECT
@@ -41,26 +41,17 @@ namespace ESPINA
       /** \brief ZoomArea class constructor.
        * \param[in] viewManager, view manager smart pointer.
        */
-      explicit ZoomArea(ViewManagerSPtr viewManager);
+      explicit ZoomAreaTool(ViewManagerSPtr viewManager);
 
       /** \brief ZoomArea class destructor.
        *
        */
-      virtual ~ZoomArea();
+      virtual ~ZoomAreaTool();
 
-      /** \brief Implements Tool::enabled().
-       *
-       */
       virtual bool enabled() const;
 
-      /** \brief Implements Tool::setEnabled().
-       *
-       */
       virtual void setEnabled(bool value);
 
-      /** \brief Implements Tool::actions().
-       *
-       */
       virtual QList<QAction *> actions() const;
 
       /** \brief Cancels current operation.
@@ -82,7 +73,7 @@ namespace ESPINA
       EventHandlerSPtr     m_zoomHandler;
   };
 
-  using ZoomAreaSPtr = std::shared_ptr<ZoomArea>;
+  using ZoomAreaToolSPtr = std::shared_ptr<ZoomAreaTool>;
 
 } // namespace ESPINA
 
