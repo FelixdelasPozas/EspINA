@@ -17,38 +17,18 @@
  *
  */
 
-#ifndef ESPINA_RENDER_SWITCH_H
-#define ESPINA_RENDER_SWITCH_H
+#include "SegmentationSliceRepresentationDriver.h"
 
-#include <GUI/View/ViewTypeFlags.h>
-#include <memory>
-#include <QWidget>
+#include <ToolGroups/View/ViewToolGroup.h>
 
-namespace ESPINA
+using namespace ESPINA;
+
+//----------------------------------------------------------------------------
+RepresnetationDriver SegmentationSliceRepresentationDriver::createRepresentationDriver() const
 {
-  class RenderSwitch
-  : public QObject
-  {
-  public:
-    virtual ~RenderSwitch() {}
+  RepresnetationDriver driver;
 
-    void setSettingsVisibility(bool visible);
+  driver.Group = ViewToolGroup::SEGMENTATIONS_GROUP;
 
-    bool settingsVisible() const
-    { return m_settingsVisibility; }
-
-    virtual QWidget *widget() = 0;
-
-    virtual ViewTypeFlags supportedViews() = 0;
-
-  private:
-    virtual void onSettingsVisibilityChanged(bool visible) {}
-
-  private:
-    bool m_settingsVisibility;
-  };
-
-  using RenderSwitchSPtr = std::shared_ptr<RenderSwitch>;
+  return driver;
 }
-
-#endif // ESPINA_RENDERSWITCH_H

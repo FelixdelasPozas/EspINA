@@ -35,6 +35,9 @@
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/View2D.h>
 #include <GUI/Widgets/SliceSelector.h>
+#include <GUI/Representations/RepresentationPool.h>
+#include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Representations/RepresentationsState.h>
 #include "ROIProvider.h"
 
 // Qt
@@ -119,21 +122,36 @@ namespace ESPINA
      */
     QList<View2D *> sliceViews();
 
+    /** \brief Adds a representation pools to the view manager
+     *
+     */
+    void addRepresentationPools(RepresentationPoolSList pools);
+
+    /** \brief Adds a representation managers to the views registered at the
+     *         view manager
+     *
+     */
+    void addRepresentationManagers(RepresentationManagerSList managers);
+
     /** \brief Register a renderer.
      * \param[in] renderer renderer prototype.
      */
+    // DEPRECATED
     void registerRenderer(RendererSPtr renderer);
 
     /** \brief Unregister a renderer and remove it from the list of renderers.
      * \param[in] name name of the renderer to unregister.
      */
+    // DEPRECATED
     void unregisterRenderer(const QString &name);
 
     /** \brief Returns a list of renderers for the specified view type.
      * \param[in] type view type.
      */
+    // DEPRECATED
     QStringList renderers(const RendererType type) const;
 
+    // DEPRECATED
     /** \brief Returns an instance of the specified renderer.
      * \param[in] name name of the renderer to clone.
      */
@@ -142,7 +160,12 @@ namespace ESPINA
   private:
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
-    RendererSList           m_availableRenderers;
+
+    RepresentationsStateSList  m_repStates;
+    RepresentationPoolSList    m_repPools;
+    RepresentationManagerSList m_repManagers;
+
+    RendererSList           m_availableRenderers; // DEPRECATED
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/

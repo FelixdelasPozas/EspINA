@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,32 +17,6 @@
  *
  */
 
-#ifndef ESPINA_CROSSHAIR_RENDER_SWITCH_H
-#define ESPINA_CROSSHAIR_RENDER_SWITCH_H
+#include "ViewItemRepresentationState.h"
 
-#include <Support/RenderSwitch.h>
-#include <Support/ViewManager.h>
-
-namespace ESPINA
-{
-  class CrosshairsRenderSwitch2D
-  : public RenderSwitch
-  {
-    Q_OBJECT
-  public:
-    explicit CrosshairsRenderSwitch2D(ViewManagerSPtr viewManager);
-
-    virtual QWidget *widget();
-
-    virtual ViewTypeFlags supportedViews();
-
-  private slots:
-    void setCrosshairsVisibility(bool visibile);
-
-  private:
-    ViewManagerSPtr m_viewManager;
-    bool            m_crosshairsVisible;
-  };
-}
-
-#endif // ESPINA_CROSSHAIR_RENDER_SWITCH_H
+using namespace ESPINA;

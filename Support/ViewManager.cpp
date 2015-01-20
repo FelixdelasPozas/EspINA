@@ -78,20 +78,6 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-QList<View2D *> ViewManager::sliceViews()
-{
-  QList<View2D *> views;
-  for(auto view: m_renderViews)
-  {
-    auto view2d = dynamic_cast<View2D *>(view);
-    if(view2d != nullptr)
-      views << view2d;
-  }
-
-  return views;
-}
-
-//----------------------------------------------------------------------------
 void ViewManager::registerView(SelectableView* view)
 {
   Q_ASSERT(!m_espinaViews.contains(view));
@@ -129,6 +115,33 @@ void ViewManager::unregisterView(RenderView* view)
 
   for(auto widget: m_widgets)
     view->removeWidget(widget);
+}
+
+//----------------------------------------------------------------------------
+QList<View2D *> ViewManager::sliceViews()
+{
+  QList<View2D *> views;
+  for(auto view: m_renderViews)
+  {
+    auto view2d = dynamic_cast<View2D *>(view);
+    if(view2d != nullptr)
+      views << view2d;
+  }
+
+  return views;
+}
+
+
+//----------------------------------------------------------------------------
+void ViewManager::addRepresentationPools(RepresentationPoolSList pools)
+{
+  m_repPools << pools;
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::addRepresentationManagers(RepresentationManagerSList managers)
+{
+  m_repManagers << managers;
 }
 
 //----------------------------------------------------------------------------

@@ -58,8 +58,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Skeleton/SkeletonToolGroup.h
   ToolGroups/Skeleton/SkeletonTool.h
   ToolGroups/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/View/RenderGroupTool.h
-  ToolGroups/View/RenderSwitches/CrosshairsRenderSwitch2D.h
+  ToolGroups/View/RepresentationsGroupTool.h
+  ToolGroups/View/Representations/CrosshairsSwitch2D.h
   ToolGroups/View/ResetZoom.h
   ToolGroups/View/ToggleCrosshairVisibility.h
   ToolGroups/View/ToggleSegmentationsVisibility.h
@@ -162,8 +162,9 @@ set (ESPINA_SOURCES
   ToolGroups/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Skeleton/SkeletonTool.cpp
   ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
-  ToolGroups/View/RenderGroupTool.cpp
-  ToolGroups/View/RenderSwitches/CrosshairsRenderSwitch2D.cpp
+  ToolGroups/View/RepresentationsGroupTool.cpp
+  ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
+  ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp
   ToolGroups/View/ToggleSegmentationsVisibility.cpp

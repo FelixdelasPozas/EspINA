@@ -17,10 +17,10 @@
  *
  */
 
-#ifndef ESPINA_RENDER_GROUP_TOOL_H
-#define ESPINA_RENDER_GROUP_TOOL_H
+#ifndef ESPINA_REPRESENTATIONS_GROUP_TOOL_H
+#define ESPINA_REPRESENTATIONS_GROUP_TOOL_H
 
-#include <Support/RenderSwitch.h>
+#include <Support/Representations/RepresentationSwitch.h>
 #include <Support/Widgets/Tool.h>
 #include <QIcon>
 
@@ -28,12 +28,12 @@ class QWidgetAction;
 
 namespace ESPINA
 {
-  class RenderGroupTool
+  class RepresentationsGroupTool
   : public Tool
   {
     Q_OBJECT
   public:
-    explicit RenderGroupTool(QIcon icon, QString description);
+    explicit RepresentationsGroupTool(QIcon icon, QString description);
 
     virtual void setEnabled ( bool value ) override;
 
@@ -44,24 +44,24 @@ namespace ESPINA
     /** \brief Add render switch to this render tool group
      *
      */
-    void addRenderSwitch(RenderSwitchSPtr renderSwitch);
+    void addRepresentationSwitch(RepresentationSwitchSPtr renderSwitch);
 
-    void showRenders(ViewTypeFlags views);
+    void showRepresentationSwitchs(ViewTypeFlags views);
 
   private slots:
     void onToolToggled(bool toggled);
 
   private:
-    QAction                *m_globalSwitch;
-    QWidgetAction          *m_content;
-    QWidget                *m_contentWidget;
-    QList<RenderSwitchSPtr> m_switches;
+    QAction                  *m_globalSwitch;
+    QWidgetAction            *m_content;
+    QWidget                  *m_contentWidget;
+    RepresentationSwitchSList m_switches;
 
     ViewTypeFlags m_viewFlags;
   };
 
-  using RenderGroupToolSPtr  = std::shared_ptr<RenderGroupTool>;
+  using RenderGroupToolSPtr  = std::shared_ptr<RepresentationsGroupTool>;
   using RenderGroupToolSList = QList<RenderGroupToolSPtr>;
 }
 
-#endif // ESPINA_RENDER_GROUP_TOOL_H
+#endif // ESPINA_REPRESENTATIONS_GROUP_TOOL_H

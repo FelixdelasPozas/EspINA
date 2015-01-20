@@ -26,7 +26,7 @@
 #include "ToggleSegmentationsVisibility.h"
 #include "ResetZoom.h"
 #include "ZoomAreaTool.h"
-#include "RenderGroupTool.h"
+#include "RepresentationsGroupTool.h"
 #include "ToggleCrosshairVisibility.h"
 
 // Qt
@@ -66,10 +66,10 @@ namespace ESPINA
     /** \brief Add render switch to group render group tool
      *
      */
-    void addRenderSwitch(RenderGroup      group,
-                         RenderSwitchSPtr renderSwitch,
-                         QIcon            groupIcon        = QIcon(),
-                         const QString   &groupDescription = QString());
+    void addRepresentationSwitch(RenderGroup              group,
+                                 RepresentationSwitchSPtr repSwitch,
+                                 QIcon                    groupIcon        = QIcon(),
+                                 const QString           &groupDescription = QString());
 
   public slots:
     /** \brief Aborts current operation.

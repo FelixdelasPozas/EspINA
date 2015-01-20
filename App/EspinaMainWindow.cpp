@@ -52,7 +52,6 @@
 #include <GUI/Representations/Renderers/CachedSliceRenderer.h>
 #include <GUI/Representations/Renderers/ContourRenderer.h>
 #include <GUI/Representations/Renderers/CrosshairRenderer.h>
-#include "App/ToolGroups/View/RenderSwitches/CrosshairsRenderSwitch2D.h"
 #include <GUI/Representations/Renderers/MeshRenderer.h>
 #include <GUI/Representations/Renderers/SkeletonRenderer.h>
 #include <GUI/Representations/Renderers/SliceRenderer.h>
@@ -63,6 +62,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
+#include "ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -131,17 +131,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerChannelRepresentationFactory(std::make_shared<BasicChannelRepresentationFactory>(m_scheduler));
   m_factory->registerSegmentationRepresentationFactory(std::make_shared<BasicSegmentationRepresentationFactory>(m_scheduler));
 
-  registerRenderer(std::make_shared<CrosshairRenderer>());
-  m_viewToolGroup->addRenderSwitch(ViewToolGroup::CHANNELS_GROUP, std::make_shared<CrosshairsRenderSwitch2D>(m_viewManager));
-  registerRenderer(std::make_shared<MeshRenderer>());
-  registerRenderer(std::make_shared<SmoothedMeshRenderer>());
-  registerRenderer(std::make_shared<SliceRenderer>());
-  registerRenderer(std::make_shared<VolumetricRenderer<itkVolumeType>>());
-  registerRenderer(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
-  registerRenderer(std::make_shared<ContourRenderer>());
-  registerRenderer(std::make_shared<CachedSliceRenderer>(m_scheduler));
-  registerRenderer(std::make_shared<SkeletonRenderer>());
-  registerRenderer(std::make_shared<SkeletonRenderer3D>());
+  initRepresentationDrivers();
 
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
@@ -448,7 +438,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       for (auto renderer : validPlugin->renderers())
       {
 //        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
-        registerRenderer(renderer);
+       //TODO: change Plugin API registerRepresentationDriverFactory(renderer);
       }
 
       for(auto entry: validPlugin->menuEntries())
@@ -588,10 +578,19 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr tools)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::registerRenderer(RendererSPtr renderer)
+void EspinaMainWindow::registerRepresentationDriverFactory(RepresentationDriverFactorySPtr factory)
 {
+  auto driver = factory->createRepresentationDriver();
 
-  m_viewManager->registerRenderer(renderer);
+  for (auto repSwitch : driver.Switches)
+  {
+    m_viewToolGroup->addRepresentationSwitch(driver.Group, repSwitch);
+  }
+
+  m_viewManager->addRepresentationPools(driver.Pools);
+  m_viewManager->addRepresentationManagers(driver.Managers);
+
+  m_driverFactories << factory;
 }
 
 //------------------------------------------------------------------------
@@ -1182,6 +1181,23 @@ void EspinaMainWindow::redoAction(bool unused)
   emit abortOperation();
   m_undoStack->redo();
   m_viewManager->updateSegmentationRepresentations();
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::initRepresentationDrivers()
+{
+  registerRepresentationDriverFactory(std::make_shared<SegmentationSliceRepresentationDriver>());
+//   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
+//   registerRepresentationDriver(std::make_shared<MeshRenderer>());
+//   registerRepresentationDriver(std::make_shared<SmoothedMeshRenderer>());
+//   registerRepresentationDriver(std::make_shared<SliceRenderer>());
+//   registerRepresentationDriver(std::make_shared<VolumetricRenderer<itkVolumeType>>());
+//   registerRepresentationDriver(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
+//   registerRepresentationDriver(std::make_shared<ContourRenderer>());
+//   registerRepresentationDriver(std::make_shared<CachedSliceRenderer>(m_scheduler));
+//   registerRepresentationDriver(std::make_shared<SkeletonRenderer>());
+//   registerRepresentationDriver(std::make_shared<SkeletonRenderer3D>());
+
 }
 
 //------------------------------------------------------------------------

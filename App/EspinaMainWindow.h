@@ -26,23 +26,22 @@
 #include "EspinaErrorHandler.h"
 #include "RecentDocuments.h"
 #include "Settings/GeneralSettings/GeneralSettings.h"
+#include "ToolGroups/View/ViewToolGroup.h"
 #include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/ProblemList/ProblemListDialog.h>
-#include "ToolGroups/View/ViewToolGroup.h"
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
-#include <GUI/Representations/Renderers/VolumetricRenderer.h>
-#include <GUI/Representations/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Widgets/SchedulerProgress.h>
-#include <Support/Widgets/DockWidget.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
+#include <Support/Representations/RepresentationDriverFactory.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Widgets/DockWidget.h>
 
 // Qt
 #include <QMainWindow>
@@ -64,8 +63,6 @@ namespace ESPINA
   class ROISettings;
   class MainToolBar;
   class ColorEngineMenu;
-  template class VolumetricRenderer<itkVolumeType>;
-  template class VolumetricGPURenderer<itkVolumeType>;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -236,6 +233,8 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private:
+    void initRepresentationDrivers();
+
     /** \brief Runs a series of test on the analysis to check for errors.
      *
      */
@@ -270,10 +269,10 @@ namespace ESPINA
      */
     void registerToolGroup(ToolGroupPtr tools);
 
-    /** \brief Adds renderer to view tool group and available views
+    /** \brief Registers representation driver factory
      *
      */
-    void registerRenderer(RendererSPtr renderer);
+    void registerRepresentationDriverFactory(RepresentationDriverFactorySPtr factory);
 
     /** \brief Loads a list of plugins in the application.
      * \param[in] plugins list of plugins to load.
@@ -338,6 +337,8 @@ namespace ESPINA
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
     QList<QPluginLoader *>    m_plugins;
+
+    RepresentationDriverFactorySList m_driverFactories;
 
     MenuState m_menuState;
 

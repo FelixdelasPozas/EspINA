@@ -17,7 +17,7 @@
  *
  */
 
-#include "RenderGroupTool.h"
+#include "RepresentationsGroupTool.h"
 
 #include <QAction>
 #include <QWidgetAction>
@@ -29,7 +29,7 @@ using namespace ESPINA;
 #include <QDebug>
 
 //----------------------------------------------------------------------------
-RenderGroupTool::RenderGroupTool(QIcon icon, QString description)
+RepresentationsGroupTool::RepresentationsGroupTool(QIcon icon, QString description)
 : m_globalSwitch{new QAction(icon, description, this)}
 , m_content{new QWidgetAction(this)}
 , m_contentWidget{new QWidget()}
@@ -47,19 +47,19 @@ RenderGroupTool::RenderGroupTool(QIcon icon, QString description)
 }
 
 //----------------------------------------------------------------------------
-void RenderGroupTool::setEnabled(bool value)
+void RepresentationsGroupTool::setEnabled(bool value)
 {
 
 }
 
 //----------------------------------------------------------------------------
-bool RenderGroupTool::enabled() const
+bool RepresentationsGroupTool::enabled() const
 {
   return true;
 }
 
 //----------------------------------------------------------------------------
-QList<QAction *> RenderGroupTool::actions() const
+QList<QAction *> RepresentationsGroupTool::actions() const
 {
   QList<QAction *> renderGroupActions;
 
@@ -70,7 +70,7 @@ QList<QAction *> RenderGroupTool::actions() const
 }
 
 //----------------------------------------------------------------------------
-void RenderGroupTool::addRenderSwitch(RenderSwitchSPtr renderSwitch)
+void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr renderSwitch)
 {
   m_contentWidget->layout()->addWidget(renderSwitch->widget());
 
@@ -78,7 +78,7 @@ void RenderGroupTool::addRenderSwitch(RenderSwitchSPtr renderSwitch)
 }
 
 //----------------------------------------------------------------------------
-void RenderGroupTool::onToolToggled(bool toggled)
+void RepresentationsGroupTool::onToolToggled(bool toggled)
 {
   m_content->setVisible(toggled);
 }

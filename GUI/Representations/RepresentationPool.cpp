@@ -1,6 +1,6 @@
 /*
  * <one line to give the program's name and a brief idea of what it does.>
- * Copyright (C) 2015  <copyright holder> <email>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,51 +17,32 @@
  *
  */
 
-#include "CrosshairsRenderSwitch2D.h"
-#include <Support/Widgets/Tool.h>
-
-#include <QIcon>
-#include <QPushButton>
-#include <QHBoxLayout>
+#include "RepresentationPool.h"
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-CrosshairsRenderSwitch2D::CrosshairsRenderSwitch2D(ViewManagerSPtr viewManager)
-: m_viewManager{viewManager}
-, m_crosshairsVisible{false}
+RepresentationPool::RepresentationPool()
+: m_numActiveRenderers{0}
 {
 }
 
-
 //-----------------------------------------------------------------------------
-QWidget *CrosshairsRenderSwitch2D::widget()
+bool RepresentationPool::isBeingUsed() const
 {
-  auto showCrosshais = Tool::createToolButton(QIcon(":espina/show_crosshairs2D.svg"), tr("Show Crosshairs 2D"));
-
-  showCrosshais->setCheckable(true);
-
-  connect(showCrosshais, SIGNAL(toggled(bool)),
-          this,          SLOT(setCrosshairsVisibility(bool)), Qt::QueuedConnection);
-
-
-  return showCrosshais;
-}
-
-
-//-----------------------------------------------------------------------------
-ViewTypeFlags CrosshairsRenderSwitch2D::supportedViews()
-{
-  ViewTypeFlags flags;
-
-  flags = ViewType::VIEW_2D;
-
-  return flags;
+  return m_numActiveRenderers > 0;
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairsRenderSwitch2D::setCrosshairsVisibility(bool visibile)
+void RepresentationPool::incrementActiveRenderers()
 {
-  m_crosshairsVisible = visibile;
-  m_viewManager->setCrosshairVisibility(visibile);
+  ++m_numActiveRenderers;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::decrementActiveRenderers()
+{
+  if (m_numActiveRenderers == 0) qWarning() << "Unexpected active renderer decrement";
+
+  --m_numActiveRenderers;
 }

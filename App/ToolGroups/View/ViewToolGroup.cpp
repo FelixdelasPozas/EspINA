@@ -70,8 +70,8 @@ ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
 , m_resetZoom               {new ResetZoom(viewManager)}
 , m_zoomArea                {new ZoomAreaTool(viewManager)}
 , m_renderSettings          {new SettingsTool()}
-, m_channelsRenderGroup     {new RenderGroupTool(QIcon(":/espina/show_channels.png"), tr("Show Channels"))}
-, m_segmentationsRenderGroup{new RenderGroupTool(QIcon(":/espina/show_segmentations.svg"), tr("Show Segmentations"))}
+, m_channelsRenderGroup     {new RepresentationsGroupTool(QIcon(":/espina/show_channels.png"), tr("Show Channels"))}
+, m_segmentationsRenderGroup{new RepresentationsGroupTool(QIcon(":/espina/show_segmentations.svg"), tr("Show Segmentations"))}
 , m_segmentationsShortcut   {new QShortcut(parent)}
 , m_crosshairShortcut       {new QShortcut(parent)}
 {
@@ -134,24 +134,24 @@ ToolSList ViewToolGroup::tools()
 }
 
 //----------------------------------------------------------------------------
-void ViewToolGroup::addRenderSwitch(RenderGroup      group,
-                                    RenderSwitchSPtr renderSwitch,
-                                    QIcon            groupIcon,
-                                    const QString   &groupDescription)
+void ViewToolGroup::addRepresentationSwitch(RenderGroup              group,
+                                            RepresentationSwitchSPtr repSwitch,
+                                            QIcon                    groupIcon,
+                                            const QString           &groupDescription)
 {
   if (CHANNELS_GROUP == group)
   {
-    m_channelsRenderGroup->addRenderSwitch(renderSwitch);
+    m_channelsRenderGroup->addRepresentationSwitch(repSwitch);
   }
   else if (SEGMENTATIONS_GROUP == group)
   {
-    m_segmentationsRenderGroup->addRenderSwitch(renderSwitch);
+    m_segmentationsRenderGroup->addRepresentationSwitch(repSwitch);
   }
   else
   {
-    auto renderGroup = m_dynamicRenderGroups.value(group, std::make_shared<RenderGroupTool>(groupIcon, groupDescription));
+    auto renderGroup = m_dynamicRenderGroups.value(group, std::make_shared<RepresentationsGroupTool>(groupIcon, groupDescription));
 
-    renderGroup->addRenderSwitch(renderSwitch);
+    renderGroup->addRepresentationSwitch(repSwitch);
   }
 }
 

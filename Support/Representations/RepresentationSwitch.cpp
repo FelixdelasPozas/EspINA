@@ -17,12 +17,12 @@
  *
  */
 
-#include "RenderSwitch.h"
+#include "RepresentationSwitch.h"
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-void RenderSwitch::setSettingsVisibility(bool visible)
+void RepresentationSwitch::setSettingsVisibility(bool visible)
 {
   m_settingsVisibility = visible;
 

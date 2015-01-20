@@ -18,6 +18,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/MeshRepresentation.h
   Representations/MeshRepresentationBase.h
   Representations/Renderers/Renderer.h
+  Representations/RepresentationManager.h
   Representations/SmoothedMeshRepresentation.h
   Representations/SliceCachedRepresentation.h
   Representations/Renderers/CachedSliceRenderer.h
@@ -96,6 +97,8 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
+  Representations/RepresentationManager.cpp
+  Representations/Renderers/Renderer.cpp
   Representations/BasicRepresentationFactory.cpp
   Representations/ContourRepresentation.cpp
   Representations/ContourRepresentationSettings.cpp
@@ -106,7 +109,6 @@ set (GUI_SOURCES
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp
   Representations/Renderers/SmoothedMeshRenderer.cpp
-  Representations/Renderers/Renderer.cpp
   Representations/Renderers/RepresentationRenderer.cpp
   Representations/Renderers/SliceRenderer.cpp
   Representations/Renderers/CrosshairRenderer.cpp
@@ -211,8 +213,8 @@ GENERATE_EXPORT_HEADER(
   BASE_NAME         EspinaGUI
   EXPORT_MACRO_NAME EspinaGUI_EXPORT
   EXPORT_FILE_NAME  EspinaGUI_Export.h
-	)
- 
+  )
+
 install(TARGETS EspinaGUI
   # IMPORTANT: Add the EspinaGUI library to the "export-set"
   EXPORT        ESPINATargets
@@ -226,4 +228,3 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
-

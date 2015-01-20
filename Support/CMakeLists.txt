@@ -65,7 +65,7 @@ set (Support_SOURCES
   Widgets/ActionGroupWidget.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
-  RenderSwitch.cpp
+  Representations/RepresentationSwitch.cpp
   ViewManager.cpp
   )
 
@@ -124,4 +124,3 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
-
