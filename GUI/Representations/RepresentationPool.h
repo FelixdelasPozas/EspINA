@@ -21,6 +21,8 @@
 #define ESPINA_REPRESENTATION_POOL_H
 
 #include <Core/Utils/NmVector3.h>
+#include <GUI/Representations/RepresentationsState.h>
+#include "RepresentationPipeline.h"
 
 #include <memory>
 
@@ -31,8 +33,9 @@ namespace ESPINA
   public:
     virtual ~RepresentationPool() {}
 
-    /** \brief Notifies the cache to update its representation pipelines
-     *         to the given position
+    void setState(RepresentationsStateSPtr state);
+
+    /** \brief Updates pool representation pipelines to the given position
      *
      */
     virtual void setCrosshair(NmVector3 position) = 0;
@@ -43,31 +46,47 @@ namespace ESPINA
      */
     virtual bool isReady() const = 0;
 
-    // TODO: Que debería devolver? Una lista de actores o sus pipeline asociados
-    virtual QList<int> pipelineRepresentations() = 0;
-
-    bool isBeingUsed() const;
-
-    /** \brief Increment the number of active renderers using this cache (TODO)
+    /** \brief Returns all representation pipelines in the pool
      *
      */
-    void incrementActiveRenderers();
+    virtual RepresentationPipelineSList representationPipelines() = 0;
 
-    /** \brief Decrement the number of active renderers using this cache (TODO)
+    /** \brief Returns visible representation pipelines in the pool
      *
      */
-    void decrementActiveRenderers();
+    virtual RepresentationPipelineSList visibleRepresentationPipelines() = 0;
+
+    /** \brief Returns invisible representation pipelines in the pool
+     *
+     */
+    virtual RepresentationPipelineSList invisibleRepresentationPipelines() = 0;
+
+    /** \brief Increment the number of active managers using this pool
+     *
+     */
+    void incrementActiveManagers(); // manage?
+
+    /** \brief Decrement the number of active managers using this pool
+     *
+     */
+    void decrementActiveManagers(); // release?
 
   protected:
     explicit RepresentationPool();
 
-  private:
-    unsigned m_numActiveRenderers;
+    /** \brief Returns whether the pool representations are displayed by
+     *         at least one representation manager
+     */
+    bool isBeingUsed() const;
 
+  private:
+    RepresentationsStateSPtr m_state;
+
+    unsigned m_numActiveManagers;
   };
 
-  using RepresentationCacheSPtr  = std::shared_ptr<RepresentationPool>;
-  using RepresentationPoolSList = QList<RepresentationCacheSPtr>;
+  using RepresentationPoolSPtr  = std::shared_ptr<RepresentationPool>;
+  using RepresentationPoolSList = QList<RepresentationPoolSPtr>;
 } // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_POOL_H

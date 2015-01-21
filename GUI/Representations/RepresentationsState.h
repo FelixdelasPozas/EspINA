@@ -33,6 +33,9 @@ namespace ESPINA
     void representationAdded();
     void representationUpdated();
     void representationRemoved();
+
+    void visibilityChanged();
+    void outputChanged();
   };
 
   using RepresentationsStateSPtr  = std::shared_ptr<RepresentationsState>;
@@ -44,12 +47,82 @@ namespace ESPINA
   {
   public:
     void addRepresentation(typename T::Item item);
-    void updateRepresentation(typename T::Item item);
+
+    bool updateRepresentation(typename T::Item item);
+
     void removeRepresentation(typename T::Item item);
+
+    void insert(typename T::Item item)
+    { m_states.insert(item, T(item)); }
+
+    bool contains(typename T::Item item) const
+    { return m_states.contains(item); }
+
+    void remove(typename T::Item item)
+    { m_states.remove(item); }
 
   private:
     QMap<typename T::Item, T> m_states;
   };
+
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void StateList<T>::addRepresentation(typename T::Item item)
+  {
+    Q_ASSERT(!contains(item));
+
+    item->output()->update();
+
+    //TODO: se podria conectar directamente a la señal del m_channelStates representationUpdated
+    //   connect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+    //           this,    SLOT(changedOutput(ViewItemAdapterPtr)));
+    insert(item);
+
+    updateRepresentation(item /*, false*/);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  bool StateList<T>::updateRepresentation(typename T::Item item)
+  {
+    if (!contains(item))
+    {
+      qWarning() << "Update Representation on non-registered channel";
+      return false;
+    }
+
+    Q_ASSERT(contains(item));
+
+    return m_states.value(item).updateState();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  void StateList<T>::removeRepresentation(typename T::Item item)
+  {
+    Q_ASSERT(contains(item));
+
+    //   for(auto representation: m_channelStates[channel].representations)
+    //   {
+    //     for(auto renderer: m_renderers)
+    //     {
+    //       if (renderer->type() == Renderer::Type::Representation)
+    //       {
+    //         auto repRenderer = representationRenderer(renderer);
+    //         if (repRenderer->hasRepresentation(representation))
+    //         {
+    //           repRenderer->removeRepresentation(representation);
+    //         }
+    //       }
+    //     }
+    //   }
+
+
+    //   disconnect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+    //              this,    SLOT(changedOutput(ViewItemAdapterPtr)));
+    remove(item);
+  }
 }
 
 #endif // ESPINA_REPRESENTATION_STATE_LIST_H

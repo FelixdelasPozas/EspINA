@@ -17,18 +17,21 @@
  *
  */
 
-#ifndef ESPINA_VIEW_ITEM_REPRESENTATION_STATE_H
-#define ESPINA_VIEW_ITEM_REPRESENTATION_STATE_H
+#include "ChannelSliceRepresentationDriver.h"
 
-namespace ESPINA
+#include "ChannelSliceSwitch.h"
+
+#include <ToolGroups/View/ViewToolGroup.h>
+
+using namespace ESPINA;
+
+//----------------------------------------------------------------------------
+RepresnetationDriver ChannelSliceRepresentationDriver::createRepresentationDriver() const
 {
-  class ViewItemRepresentationState
-  {
-  public:
-    virtual ~ViewItemRepresentationState(){}
+  RepresnetationDriver driver;
 
-    virtual bool representationChanged() = 0;
-  };
+  driver.Group = ViewToolGroup::CHANNELS_GROUP;
+  driver.Switches << std::make_shared<ChannelSliceSwitch>();
+
+  return driver;
 }
-
-#endif // ESPINA_VIEW_ITEM_REPRESENTATION_STATE_H

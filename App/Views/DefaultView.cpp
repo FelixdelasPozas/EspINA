@@ -44,7 +44,6 @@ const QString DEFAULT_VIEW_SETTINGS = "DefaultView";
 const QString X_LINE_COLOR  = "CrosshairXLineColor";
 const QString Y_LINE_COLOR  = "CrosshairYLineColor";
 const QString Z_LINE_COLOR  = "CrosshairZLineColor";
-const QString RENDERERS     = "DefaultView::renderers";
 const QString SETTINGS_FILE = "Extra/DefaultView.ini";
 
 //----------------------------------------------------------------------------
@@ -95,57 +94,29 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
 
-  QMap<QString, bool> viewSettings;
-  QStringList storedRenderers;
-  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-  if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
-  {
-    storedRenderers = settings.value(RENDERERS).toStringList();
-    storedRenderers.removeDuplicates();
 
-    for(auto name: storedRenderers)
-      viewSettings[name] = settings.value(name).toBool();
-  }
-  else
-  {
-    // default init state: (can be overridden by seg file settings).
-    // 2D -> cached slice renderer active, and the rest not included in XY view.
-    // 3D -> all renderers included but initially inactive.
-    storedRenderers << QString("Slice (Cached)");
-    storedRenderers << QString("Contour");
-    storedRenderers << QString("Skeleton");
-    viewSettings[QString("Slice (Cached)")] = true;
-    viewSettings[QString("Contour")] = false;
-    viewSettings[QString("Skeleton")] = true;
-    storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-    storedRenderers.removeDuplicates();
+//   QStringList available2DRenderers = m_viewManager->renderers(RendererType::RENDERER_VIEW2D);
+//   QStringList available3DRenderers = m_viewManager->renderers(RendererType::RENDERER_VIEW3D);
+//   RendererSList renderers2D, renderers3D;
 
-    settings.setValue(RENDERERS, storedRenderers);
-  }
-  settings.endGroup();
+//   for(auto name : storedRenderers)
+//   {
+//     if(available2DRenderers.contains(name))
+//       renderers2D << m_viewManager->cloneRenderer(name);
+//
+//     if(available3DRenderers.contains(name))
+//       renderers3D << m_viewManager->cloneRenderer(name);
+//   }
 
-  QStringList available2DRenderers = m_viewManager->renderers(RendererType::RENDERER_VIEW2D);
-  QStringList available3DRenderers = m_viewManager->renderers(RendererType::RENDERER_VIEW3D);
-  RendererSList renderers2D, renderers3D;
+//   m_view3D->setRenderers(renderers3D);
+//   m_viewXY->setRenderers(renderers2D);
+//   m_viewXZ->setRenderers(renderers2D);
+//   m_viewYZ->setRenderers(renderers2D);
 
-  for(auto name : storedRenderers)
-  {
-    if(available2DRenderers.contains(name))
-      renderers2D << m_viewManager->cloneRenderer(name);
-
-    if(available3DRenderers.contains(name))
-      renderers3D << m_viewManager->cloneRenderer(name);
-  }
-
-  m_view3D->setRenderers(renderers3D);
-  m_viewXY->setRenderers(renderers2D);
-  m_viewXZ->setRenderers(renderers2D);
-  m_viewYZ->setRenderers(renderers2D);
-
-  m_view3D->setRenderersState(viewSettings);
-  m_viewXY->setRenderersState(viewSettings);
-  m_viewXZ->setRenderersState(viewSettings);
-  m_viewYZ->setRenderersState(viewSettings);
+//   m_view3D->setRenderersState(viewSettings);
+//   m_viewXY->setRenderersState(viewSettings);
+//   m_viewXZ->setRenderersState(viewSettings);
+//   m_viewYZ->setRenderersState(viewSettings);
 
   connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
@@ -172,23 +143,23 @@ DefaultView::~DefaultView()
   QStringList activeRenderersNames;
   QMap<QString, bool> viewState;
 
-  for(auto renderer : m_view3D->renderers())
-  {
-    activeRenderersNames << renderer->name();
-    viewState[renderer->name()] = !renderer->isHidden();
-  }
-
-  for(auto renderer : m_viewXY->renderers())
-  {
-    activeRenderersNames << renderer->name();
-    viewState[renderer->name()] = !renderer->isHidden();
-  }
-
-  settings.setValue(RENDERERS, activeRenderersNames);
-  for(auto name: activeRenderersNames)
-  {
-    settings.setValue(name, viewState[name]);
-  }
+//   for(auto renderer : m_view3D->renderers())
+//   {
+//     activeRenderersNames << renderer->name();
+//     viewState[renderer->name()] = !renderer->isHidden();
+//   }
+//
+//   for(auto renderer : m_viewXY->renderers())
+//   {
+//     activeRenderersNames << renderer->name();
+//     viewState[renderer->name()] = !renderer->isHidden();
+//   }
+//
+//   settings.setValue(RENDERERS, activeRenderersNames);
+//   for(auto name: activeRenderersNames)
+//   {
+//     settings.setValue(name, viewState[name]);
+//   }
 
   settings.endGroup();
   settings.sync();
@@ -216,19 +187,19 @@ void DefaultView::initView2D(View2D *view)
           this, SLOT(changePlanePosition(Plane, Nm)));
 }
 
-//-----------------------------------------------------------------------------
-RendererSPtr DefaultView::renderer(const QString& name) const
-{
-  for(auto renderer : m_viewManager->renderers(RendererType::RENDERER_VIEW2D))
-    if (renderer == name)
-      return m_viewManager->cloneRenderer(name);
-
-  for(auto renderer : m_viewManager->renderers(RendererType::RENDERER_VIEW3D))
-    if (renderer == name)
-      return m_viewManager->cloneRenderer(name);
-
-  return nullptr;
-}
+// //-----------------------------------------------------------------------------
+// RendererSPtr DefaultView::renderer(const QString& name) const
+// {
+//   for(auto renderer : m_viewManager->renderers(RendererType::RENDERER_VIEW2D))
+//     if (renderer == name)
+//       return m_viewManager->cloneRenderer(name);
+//
+//   for(auto renderer : m_viewManager->renderers(RendererType::RENDERER_VIEW3D))
+//     if (renderer == name)
+//       return m_viewManager->cloneRenderer(name);
+//
+//   return nullptr;
+// }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
@@ -264,12 +235,12 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
 //-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
-  m_renderersMenu = new RenderersMenu(m_viewManager, this);
-  for(auto renderer: m_view3D->renderers())
-    m_renderersMenu->addRenderer(renderer);
-  for(auto renderer: m_viewXY->renderers())
-    m_renderersMenu->addRenderer(renderer);
-  menu->addMenu(m_renderersMenu);
+//   m_renderersMenu = new RenderersMenu(m_viewManager, this);
+//   for(auto renderer: m_view3D->renderers())
+//     m_renderersMenu->addRenderer(renderer);
+//   for(auto renderer: m_viewXY->renderers())
+//     m_renderersMenu->addRenderer(renderer);
+//   menu->addMenu(m_renderersMenu);
 
   m_camerasMenu = new CamerasMenu(m_viewManager, this);
   menu->addMenu(m_camerasMenu);
@@ -341,59 +312,65 @@ SettingsPanelSPtr DefaultView::settingsPanel()
 //-----------------------------------------------------------------------------
 void DefaultView::add(ChannelAdapterPtr channel)
 {
-  m_viewXY->add(channel);
-  m_viewYZ->add(channel);
-  m_viewXZ->add(channel);
-  m_view3D->add(channel);
+  m_viewManager->add(channel);
+//   m_viewXY->add(channel);
+//   m_viewYZ->add(channel);
+//   m_viewXZ->add(channel);
+//   m_view3D->add(channel);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::remove(ChannelAdapterPtr channel)
 {
-  m_viewXY->remove(channel);
-  m_viewYZ->remove(channel);
-  m_viewXZ->remove(channel);
-  m_view3D->remove(channel);
+  m_viewManager->remove(channel);
+//   m_viewXY->remove(channel);
+//   m_viewYZ->remove(channel);
+//   m_viewXZ->remove(channel);
+//   m_view3D->remove(channel);
 }
 
 //-----------------------------------------------------------------------------
 bool DefaultView::updateRepresentation(ChannelAdapterPtr channel)
 {
-  bool modified = false;
-  modified |= m_viewXY->updateRepresentation(channel);
-  modified |= m_viewYZ->updateRepresentation(channel);
-  modified |= m_viewXZ->updateRepresentation(channel);
-  modified |= m_view3D->updateRepresentation(channel);
-  return modified;
+  return m_viewManager->updateRepresentation(channel);
+//   bool modified = false;
+//   modified |= m_viewXY->updateRepresentation(channel);
+//   modified |= m_viewYZ->updateRepresentation(channel);
+//   modified |= m_viewXZ->updateRepresentation(channel);
+//   modified |= m_view3D->updateRepresentation(channel);
+//   return modified;
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::add(SegmentationAdapterPtr seg)
+void DefaultView::add(SegmentationAdapterPtr segmentation)
 {
-  m_viewXY->add(seg);
-  m_viewYZ->add(seg);
-  m_viewXZ->add(seg);
-  m_view3D->add(seg);
+  m_viewManager->add(segmentation);
+//   m_viewXY->add(seg);
+//   m_viewYZ->add(seg);
+//   m_viewXZ->add(seg);
+//   m_view3D->add(seg);
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::remove(SegmentationAdapterPtr seg)
+void DefaultView::remove(SegmentationAdapterPtr segmentation)
 {
-  m_viewXY->remove(seg);
-  m_viewYZ->remove(seg);
-  m_viewXZ->remove(seg);
-  m_view3D->remove(seg);
+  m_viewManager->remove(segmentation);
+//   m_viewXY->remove(seg);
+//   m_viewYZ->remove(seg);
+//   m_viewXZ->remove(seg);
+//   m_view3D->remove(seg);
 }
 
 //-----------------------------------------------------------------------------
-bool DefaultView::updateRepresentation(SegmentationAdapterPtr seg)
+bool DefaultView::updateRepresentation(SegmentationAdapterPtr segmentation)
 {
-  bool modified = false;
-  modified |= m_viewXY->updateRepresentation(seg);
-  modified |= m_viewYZ->updateRepresentation(seg);
-  modified |= m_viewXZ->updateRepresentation(seg);
-  modified |= m_view3D->updateRepresentation(seg);
-  return modified;
+  return m_viewManager->updateRepresentation(segmentation);
+//   bool modified = false;
+//   modified |= m_viewXY->updateRepresentation(seg);
+//   modified |= m_viewYZ->updateRepresentation(seg);
+//   modified |= m_viewXZ->updateRepresentation(seg);
+//   modified |= m_view3D->updateRepresentation(seg);
+//   return modified;
 }
 
 //-----------------------------------------------------------------------------
@@ -432,40 +409,34 @@ void DefaultView::rowsInserted(const QModelIndex& parent, int start, int end)
 //-----------------------------------------------------------------------------
 void DefaultView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
 {
-  if (!parent.isValid())
-    return;
+  if (!parent.isValid()) return;
 
   for (int child = start; child <= end; child++)
   {
-    QModelIndex index = parent.child(child, 0);
-    ItemAdapterPtr item = itemAdapter(index);
-    switch (item->type())
+    auto index = parent.child(child, 0);
+    auto item  = itemAdapter(index);
+
+    if (isChannel(item))
     {
-      case ItemAdapter::Type::CHANNEL:
-      {
-        ChannelAdapterPtr channel = channelPtr(item);
-        remove(channel);
-        break;
-      }
-      case ItemAdapter::Type::SEGMENTATION:
-      {
-        SegmentationAdapterPtr seg = segmentationPtr(item);
-        remove(seg);
-        break;
-      }
-      default:
-        break;
-    };
+      auto channel = channelPtr(item);
+      remove(channel);
+    }
+    else if (isSegmentation(item))
+    {
+      auto segmentation = segmentationPtr(item);
+      remove(segmentation);
+    }
   }
 }
 
 //----------------------------------------------------------------------------
 void DefaultView::sourceModelReset()
 {
-  m_viewXY->reset();
-  m_viewYZ->reset();
-  m_viewXZ->reset();
-  m_view3D->reset();
+  m_viewManager->removeAllViewItems();
+//   m_viewXY->reset();
+//   m_viewYZ->reset();
+//   m_viewXZ->reset();
+//   m_view3D->reset();
 }
 
 //----------------------------------------------------------------------------
@@ -545,18 +516,19 @@ void DefaultView::changePlanePosition(Plane plane, Nm dist)
   switch(plane)
   {
     case Plane::XY:
-      this->m_viewYZ->updateCrosshairPoint(plane, dist);
-      this->m_viewXZ->updateCrosshairPoint(plane, dist);
+      m_viewYZ->updateCrosshairPoint(plane, dist);
+      m_viewXZ->updateCrosshairPoint(plane, dist);
       break;
     case Plane::XZ:
-      this->m_viewXY->updateCrosshairPoint(plane, dist);
-      this->m_viewYZ->updateCrosshairPoint(plane, dist);
+      m_viewXY->updateCrosshairPoint(plane, dist);
+      m_viewYZ->updateCrosshairPoint(plane, dist);
       break;
     case Plane::YZ:
-      this->m_viewXY->updateCrosshairPoint(plane, dist);
-      this->m_viewXZ->updateCrosshairPoint(plane, dist);
+      m_viewXY->updateCrosshairPoint(plane, dist);
+      m_viewXZ->updateCrosshairPoint(plane, dist);
       break;
     default:
+      qWarning() << "Unexpected plane";
       return;
       break;
   }
@@ -629,13 +601,13 @@ void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
   QSettings settings(storage->absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
 
   settings.beginGroup("View2D");
-  for(auto renderer: m_viewXY->renderers())
-    settings.setValue(renderer->name(), !renderer->isHidden());
+//   for(auto renderer: m_viewXY->renderers())
+//     settings.setValue(renderer->name(), !renderer->isHidden());
   settings.endGroup();
 
   settings.beginGroup("View3D");
-  for(auto renderer: m_view3D->renderers())
-    settings.setValue(renderer->name(), !renderer->isHidden());
+//   for(auto renderer: m_view3D->renderers())
+//     settings.setValue(renderer->name(), !renderer->isHidden());
   settings.endGroup();
 
   settings.sync();

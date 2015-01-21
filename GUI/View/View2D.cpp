@@ -203,12 +203,12 @@ View2D::~View2D()
 
   m_segmentationStates.clear();
 
-  for(auto channel: m_channelStates.keys())
-  {
-    RenderView::remove(channel);
-  }
-
-  m_channelStates.clear();
+//   for(auto channel: m_channelStates.keys())
+//   {
+//     RenderView::remove(channel);
+//   }
+//
+//   m_channelStates.clear();
 
   for(auto widget: m_widgets)
   {
@@ -249,8 +249,8 @@ void View2D::reset()
   for(auto segmentation: m_segmentationStates.keys())
     remove(segmentation);
 
-  for(auto channel: m_channelStates.keys())
-    remove(channel);
+//   for(auto channel: m_channelStates.keys())
+//     remove(channel);
 }
 
 //-----------------------------------------------------------------------------

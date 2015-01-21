@@ -69,6 +69,25 @@ RenderView::~RenderView()
 }
 
 //-----------------------------------------------------------------------------
+void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
+{
+  connect(manager.get(), SIGNAL(renderRequested()),
+          this,          SLOT(onRenderReqest()));
+
+  m_managers << manager;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
+{
+  if (m_managers.removeOne(manager))
+  {
+    disconnect(manager.get(), SIGNAL(renderRequested()),
+               this,          SLOT(onRenderReqest()));
+  }
+}
+
+//-----------------------------------------------------------------------------
 void RenderView::onSelectionSet(SelectionSPtr selection)
 {
   connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
@@ -253,27 +272,27 @@ void RenderView::updateSceneBounds()
     emit sceneResolutionChanged();
 }
 
-//-----------------------------------------------------------------------------
-void RenderView::add(ChannelAdapterPtr channel)
-{
-  Q_ASSERT(!m_channelStates.contains(channel));
-
-  channel->output()->update();
-
-  ChannelState state;
-
-  state.visible = !channel->isVisible();
-
-  m_channelStates.insert(channel, state);
-
-  connect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
-          this,    SLOT(changedOutput(ViewItemAdapterPtr)));
-
-  // need to manage other channels' opacity too.
-  updateSceneBounds();
-
-  updateRepresentation(channel, false);
-}
+// //-----------------------------------------------------------------------------
+// void RenderView::add(ChannelAdapterPtr channel)
+// {
+//   Q_ASSERT(!m_channelStates.contains(channel));
+//
+//   channel->output()->update();
+//
+//   ChannelState state;
+//
+//   state.visible = !channel->isVisible();
+//
+//   m_channelStates.insert(channel, state);
+//
+//   connect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+//           this,    SLOT(changedOutput(ViewItemAdapterPtr)));
+//
+//   // need to manage other channels' opacity too.
+//   updateSceneBounds();
+//
+//   updateRepresentation(channel, false);
+// }
 
 
 //-----------------------------------------------------------------------------
@@ -321,137 +340,137 @@ void RenderView::remove(SegmentationAdapterPtr seg)
   m_segmentationStates.remove(seg);
 }
 
+// //-----------------------------------------------------------------------------
+// void RenderView::remove(ChannelAdapterPtr channel)
+// {
+//   Q_ASSERT(m_channelStates.contains(channel));
+//
+//   for(auto representation: m_channelStates[channel].representations)
+//   {
+//     for(auto renderer: m_renderers)
+//     {
+//       if (renderer->type() == Renderer::Type::Representation)
+//       {
+//         auto repRenderer = representationRenderer(renderer);
+//         if (repRenderer->hasRepresentation(representation))
+//         {
+//           repRenderer->removeRepresentation(representation);
+//         }
+//       }
+//     }
+//   }
+//
+//   m_channelStates.remove(channel);
+//
+//   disconnect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+//              this,    SLOT(changedOutput(ViewItemAdapterPtr)));
+//
+//   updateSceneBounds();
+//   updateChannelsOpacity();
+// }
+
 //-----------------------------------------------------------------------------
-void RenderView::remove(ChannelAdapterPtr channel)
-{
-  Q_ASSERT(m_channelStates.contains(channel));
-
-  for(auto representation: m_channelStates[channel].representations)
-  {
-    for(auto renderer: m_renderers)
-    {
-      if (renderer->type() == Renderer::Type::Representation)
-      {
-        auto repRenderer = representationRenderer(renderer);
-        if (repRenderer->hasRepresentation(representation))
-        {
-          repRenderer->removeRepresentation(representation);
-        }
-      }
-    }
-  }
-
-  m_channelStates.remove(channel);
-
-  disconnect(channel, SIGNAL(outputChanged(ViewItemAdapterPtr)),
-             this,    SLOT(changedOutput(ViewItemAdapterPtr)));
-
-  updateSceneBounds();
-  updateChannelsOpacity();
-}
-
-//-----------------------------------------------------------------------------
-bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
-{
-  if (!isVisible())
-    return false;
-
-  if (!m_channelStates.contains(channel))
-  {
-    qWarning() << "Update Graphical Representation on non-registered channel";
-    return false;
-  }
-
-  Q_ASSERT(m_channelStates.contains(channel));
-
-  ChannelState &state = m_channelStates[channel];
-
-  bool requestedVisibility = channel->isVisible();
-
-  bool visibilityChanged = state.visible != requestedVisibility;
-  state.visible = requestedVisibility;
-
-  bool brightnessChanged = false;
-  bool contrastChanged   = false;
-  bool opacityChanged    = false;
-  bool stainChanged      = false;
-  bool outputChanged     = false;
-
-  if (visibilityChanged)
-    updateChannelsOpacity();
-
-  double hue = -1.0 == channel->hue() ? 0 : channel->hue();
-  double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
-
-  if (state.visible)
-  {
-    double    requestedBrightness = channel->brightness();
-    double    requestedContrast   = channel->contrast();
-    double    requestedOpacity    = channel->opacity();
-    QColor    requestedStain      = QColor::fromHsvF(hue, sat, 1.0);
-    TimeStamp requestedTimeStamp  = channel->output()->lastModified();
-
-    Q_ASSERT(channel->output());
-    if (!state.output)
-    {
-      state.timeStamp = channel->output()->lastModified();
-    }
-
-    outputChanged     = state.output     != channel->output()   || state.timeStamp != requestedTimeStamp;
-    brightnessChanged = state.brightness != requestedBrightness || outputChanged;
-    contrastChanged   = state.contrast   != requestedContrast   || outputChanged;
-    opacityChanged    = state.opacity    != requestedOpacity    || outputChanged;
-    stainChanged      = state.stain      != requestedStain      || outputChanged;
-
-    state.brightness  = requestedBrightness;
-    state.contrast    = requestedContrast;
-    state.opacity     = requestedOpacity;
-    state.stain       = requestedStain;
-    state.output      = channel->output();
-    state.timeStamp   = requestedTimeStamp;
-  }
-
-  bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
-
-  if (outputChanged)
-  {
-    removeRepresentations(state);
-    createRepresentations(channel);
-  }
-
-  for(auto representation : state.representations)
-  {
-    bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
-    if (hasChanged || crosshairChanged || outputChanged)
-    {
-      opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
-
-      if (brightnessChanged) representation->setBrightness(state.brightness);
-      if (contrastChanged  ) representation->setContrast(state.contrast);
-      if (stainChanged     ) representation->setColor(state.stain);
-      if (opacityChanged   ) representation->setOpacity(state.opacity);
-      if (visibilityChanged) representation->setVisible(state.visible);
-
-      representation->updateRepresentation();
-    }
-  }
-
-  if (!m_sceneCameraInitialized && state.visible)
-  {
-    m_sceneCameraInitialized = true;
-    resetCamera();
-  }
-
-  m_renderer->ResetCameraClippingRange();
-
-  if (render && isVisible())
-  {
-    m_view->GetRenderWindow()->Render();
-    m_view->update();
-  }
-
-  return hasChanged;
-}
+// bool RenderView::updateRepresentation(ChannelAdapterPtr channel, bool render)
+// {
+//   if (!isVisible())
+//     return false;
+//
+//   if (!m_channelStates.contains(channel))
+//   {
+//     qWarning() << "Update Graphical Representation on non-registered channel";
+//     return false;
+//   }
+//
+//   Q_ASSERT(m_channelStates.contains(channel));
+//
+//   ChannelState &state = m_channelStates[channel];
+//
+//   bool requestedVisibility = channel->isVisible();
+//
+//   bool visibilityChanged = state.visible != requestedVisibility;
+//   state.visible = requestedVisibility;
+//
+//   bool brightnessChanged = false;
+//   bool contrastChanged   = false;
+//   bool opacityChanged    = false;
+//   bool stainChanged      = false;
+//   bool outputChanged     = false;
+//
+//   if (visibilityChanged)
+//     updateChannelsOpacity();
+//
+//   double hue = -1.0 == channel->hue() ? 0 : channel->hue();
+//   double sat = -1.0 == channel->hue() ? 0 : channel->saturation();
+//
+//   if (state.visible)
+//   {
+//     double    requestedBrightness = channel->brightness();
+//     double    requestedContrast   = channel->contrast();
+//     double    requestedOpacity    = channel->opacity();
+//     QColor    requestedStain      = QColor::fromHsvF(hue, sat, 1.0);
+//     TimeStamp requestedTimeStamp  = channel->output()->lastModified();
+//
+//     Q_ASSERT(channel->output());
+//     if (!state.output)
+//     {
+//       state.timeStamp = channel->output()->lastModified();
+//     }
+//
+//     outputChanged     = state.output     != channel->output()   || state.timeStamp != requestedTimeStamp;
+//     brightnessChanged = state.brightness != requestedBrightness || outputChanged;
+//     contrastChanged   = state.contrast   != requestedContrast   || outputChanged;
+//     opacityChanged    = state.opacity    != requestedOpacity    || outputChanged;
+//     stainChanged      = state.stain      != requestedStain      || outputChanged;
+//
+//     state.brightness  = requestedBrightness;
+//     state.contrast    = requestedContrast;
+//     state.opacity     = requestedOpacity;
+//     state.stain       = requestedStain;
+//     state.output      = channel->output();
+//     state.timeStamp   = requestedTimeStamp;
+//   }
+//
+//   bool hasChanged = visibilityChanged || brightnessChanged || contrastChanged || opacityChanged || stainChanged;
+//
+//   if (outputChanged)
+//   {
+//     removeRepresentations(state);
+//     createRepresentations(channel);
+//   }
+//
+//   for(auto representation : state.representations)
+//   {
+//     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
+//     if (hasChanged || crosshairChanged || outputChanged)
+//     {
+//       opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
+//
+//       if (brightnessChanged) representation->setBrightness(state.brightness);
+//       if (contrastChanged  ) representation->setContrast(state.contrast);
+//       if (stainChanged     ) representation->setColor(state.stain);
+//       if (opacityChanged   ) representation->setOpacity(state.opacity);
+//       if (visibilityChanged) representation->setVisible(state.visible);
+//
+//       representation->updateRepresentation();
+//     }
+//   }
+//
+//   if (!m_sceneCameraInitialized && state.visible)
+//   {
+//     m_sceneCameraInitialized = true;
+//     resetCamera();
+//   }
+//
+//   m_renderer->ResetCameraClippingRange();
+//
+//   if (render && isVisible())
+//   {
+//     m_view->GetRenderWindow()->Render();
+//     m_view->update();
+//   }
+//
+//   return hasChanged;
+// }
 
 //-----------------------------------------------------------------------------
 void RenderView::updateRepresentations(ChannelAdapterList list)
@@ -470,10 +489,10 @@ void RenderView::updateRepresentations(ChannelAdapterList list)
     }
 
     bool updated = false;
-    for(ChannelAdapterPtr channel : updateChannels)
-    {
-      updated |= updateRepresentation(channel, false);
-    }
+//     for(ChannelAdapterPtr channel : updateChannels)
+//     {
+//       updated |= updateRepresentation(channel, false);
+//     }
 
     if (updated)
       updateView();
@@ -927,11 +946,11 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
   return select(flags, displayCoords[0], displayCoords[1], multiselection);
 }
 
-//-----------------------------------------------------------------------------
-RendererSList RenderView::renderers() const
-{
-  return m_renderers;
-}
+// //-----------------------------------------------------------------------------
+// RendererSList RenderView::renderers() const
+// {
+//   return m_renderers;
+// }
 
 //-----------------------------------------------------------------------------
 void RenderView::setRenderersState(QMap<QString, bool> state)
@@ -957,6 +976,24 @@ void RenderView::changedOutput(ViewItemAdapterPtr item)
   }
   else
   {
-    updateRepresentation(dynamic_cast<ChannelAdapterPtr>(item));
+    //updateRepresentation(dynamic_cast<ChannelAdapterPtr>(item));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onRenderReqest()
+{
+  bool isReady = true;
+  int  i       = 0;
+
+  while (isReady && i < m_managers.size())
+  {
+    isReady &= m_managers[i]->isReady();
+    ++i;
+  }
+
+  if (isReady)
+  {
+    updateView();
   }
 }

@@ -38,6 +38,7 @@
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/RepresentationsState.h>
+#include <GUI/Representations/ChannelRepresentationState.h>
 #include "ROIProvider.h"
 
 // Qt
@@ -81,6 +82,10 @@ namespace ESPINA
      */
     ~ViewManager();
 
+    //---------------------------------------------------------------------------
+    /*********************** Configuration API *********************************/
+    // Configure the view manager components
+    //---------------------------------------------------------------------------
     /** \brief Registers a view to be managed by this view manager.
      * \param[in] view SelectableView raw pointer of the view to register.
      *
@@ -122,16 +127,109 @@ namespace ESPINA
      */
     QList<View2D *> sliceViews();
 
-    /** \brief Adds a representation pools to the view manager
+    /** \brief Adds a representation pools to view manager
      *
      */
-    void addRepresentationPools(RepresentationPoolSList pools);
+    void addRepresentationPools(const QString &group, RepresentationPoolSList pools);
 
     /** \brief Adds a representation managers to the views registered at the
      *         view manager
      *
      */
-    void addRepresentationManagers(RepresentationManagerSList managers);
+    void addRepresentationManagers(RepresentationManagerSList repManagers);
+
+    //---------------------------------------------------------------------------
+    /********************* ViewItem Management API *****************************/
+    // Add, Update or Remove view items
+    //---------------------------------------------------------------------------
+  public:
+    /** \brief Adds channel to registered views
+     * \param[in] channel to be added
+     *
+     */
+    void add(ChannelAdapterPtr channel);
+
+    /** \brief Adds segmentation to registered views
+     * \param[in] segmentation to be added
+     *
+     */
+    void add(SegmentationAdapterPtr segmentation);
+
+    /** \brief Removes channel from registered views
+     * \param[in] channel to be removed
+     *
+     */
+    void remove(ChannelAdapterPtr channel);
+
+    /** \brief Removes segmentation from registered views
+     * \param[in] segmentation to be removed
+     *
+     */
+    void remove(SegmentationAdapterPtr segmentation);
+
+    /** \brief Update the representations of the given channel.
+     * \param[in] channel channel adapter raw pointer.
+     * \param[in] render true to force a render after updating, false otherwise.
+     *
+     */
+    bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
+
+    /** \brief Update the representations of the given segmentation.
+     * \param[in] channel segmentation adapter raw pointer.
+     * \param[in] render true to force a render after updating, false otherwise.
+     *
+     */
+    bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
+
+    /** \brief Removes all view items from the registered views
+     *
+     */
+    void removeAllViewItems();
+
+    /** \brief Implements SelectableView::updateRepresentations(ChannelAdapterList).
+     *
+     */
+    virtual void updateRepresentations(ChannelAdapterList list){}
+
+    /** \brief Implements SelectableView::updateRepresentations(SegmentationAdapterList).
+     *
+     */
+    virtual void updateRepresentations(SegmentationAdapterList list){}
+
+    /** \brief Implements SelectableView::updateRepresentations().
+     *
+     */
+    virtual void updateRepresentations(){}
+
+  public slots:
+    /** \brief Updates the representations of a segmentation.
+     * \param[in] segmentation raw pointer of the segmentation adapter to update.
+     *
+     */
+    void updateSegmentationRepresentations(SegmentationAdapterPtr segmentation);
+
+    /** \brief Update segmentation representations.
+     * \param[in] list list of segmentation raw pointers to update.
+     *
+     */
+    void updateSegmentationRepresentations(SegmentationAdapterList list = SegmentationAdapterList());
+
+    /** \brief Update channel representations.
+     * \param[in] list list of channel adapter raw pointer to update.
+     *
+     */
+    void updateChannelRepresentations(ChannelAdapterList list = ChannelAdapterList());
+
+    /** \brief Request all registered views to update themselves.
+     *
+     */
+    void updateViews();
+
+    /** \brief Change "fit to slice" flag.
+     * \param[in] enabled true to enable "fit to slices" false otherwise.
+     *
+     */
+    void setFitToSlices(bool enabled);
 
     /** \brief Register a renderer.
      * \param[in] renderer renderer prototype.
@@ -158,12 +256,18 @@ namespace ESPINA
     RendererSPtr cloneRenderer(const QString &name) const;
 
   private:
+    using ChannelRepresentationStates     = StateList<ChannelRepresentationState>;
+    using ChannelRepresentationStatesSPtr = std::shared_ptr<ChannelRepresentationStates>;
+
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
 
-    RepresentationsStateSList  m_repStates;
-    RepresentationPoolSList    m_repPools;
+    RepresentationPoolSList    m_channelPools;
+    RepresentationPoolSList    m_segmentationPools;
+    RepresentationPoolSList    m_autonomousPools;
     RepresentationManagerSList m_repManagers;
+
+    ChannelRepresentationStatesSPtr m_channelStates;
 
     RendererSList           m_availableRenderers; // DEPRECATED
 
@@ -341,35 +445,6 @@ namespace ESPINA
      */
     MeasureSPtr measure(Nm distance);
 
-  public slots:
-    /** \brief Updates the representations of a segmentation.
-     * \param[in] segmentation raw pointer of the segmentation adapter to update.
-     *
-     */
-    void updateSegmentationRepresentations(SegmentationAdapterPtr segmentation);
-
-    /** \brief Update segmentation representations.
-     * \param[in] list list of segmentation raw pointers to update.
-     *
-     */
-    void updateSegmentationRepresentations(SegmentationAdapterList list = SegmentationAdapterList());
-
-    /** \brief Update channel representations.
-     * \param[in] list list of channel adapter raw pointer to update.
-     *
-     */
-    void updateChannelRepresentations(ChannelAdapterList list = ChannelAdapterList());
-
-    /** \brief Request all registered views to update themselves.
-     *
-     */
-    void updateViews();
-
-    /** \brief Change "fit to slice" flag.
-     * \param[in] enabled true to enable "fit to slices" false otherwise.
-     *
-     */
-    void setFitToSlices(bool enabled);
 
 private:
   QAction*  m_fitToSlices;

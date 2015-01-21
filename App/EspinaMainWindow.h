@@ -233,6 +233,8 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private:
+    void restoreRepresentationSwitchSettings();
+
     void initRepresentationDrivers();
 
     /** \brief Runs a series of test on the analysis to check for errors.

@@ -17,6 +17,6 @@
  *
  */
 
-#include "ViewItemRepresentationState.h"
+#include "RepresentationPipeline.h"
 
 using namespace ESPINA;

@@ -199,7 +199,7 @@ namespace ESPINA
     virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
 
     void setRenderers(RendererSList renderers);
-
+   
     void activateRender(const QString &rendererName);
 
     void deactivateRender(const QString &rendererName);
@@ -456,19 +456,20 @@ namespace ESPINA
     friend class Representation;
   };
 
-  /** \brief Returns true if the view is a 2D view.
-   * \param[in] view, RenderView raw pointer.
-   *
-   */
-  inline bool isView2D(RenderView* view)
-  { return dynamic_cast<View2D *>(view) != nullptr; }
-
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.
-   * \param[in] view, RenderView raw pointer.
+   * \param[in] view RenderView raw pointer.
    *
    */
   inline View2D * view2D_cast(RenderView* view)
   { return dynamic_cast<View2D *>(view); }
+
+  /** \brief Returns true if the view is a 2D view.
+   * \param[in] view RenderView raw pointer.
+   *
+   */
+  inline bool isView2D(RenderView* view)
+  { return view2D_cast(view) != nullptr; }
+
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectionType)
 

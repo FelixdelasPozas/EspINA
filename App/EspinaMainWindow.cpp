@@ -62,6 +62,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
+#include "ToolGroups/View/Representations/ChannelSliceRepresentationDriver.h"
 #include "ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.h"
 
 #if USE_METADONA
@@ -587,7 +588,7 @@ void EspinaMainWindow::registerRepresentationDriverFactory(RepresentationDriverF
     m_viewToolGroup->addRepresentationSwitch(driver.Group, repSwitch);
   }
 
-  m_viewManager->addRepresentationPools(driver.Pools);
+  m_viewManager->addRepresentationPools(driver.Group, driver.Pools);
   m_viewManager->addRepresentationManagers(driver.Managers);
 
   m_driverFactories << factory;
@@ -1184,8 +1185,45 @@ void EspinaMainWindow::redoAction(bool unused)
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::restoreRepresentationSwitchSettings()
+{
+  const QString REP_MANAGERS = "ActiveRepresentationManagers";
+//TODO: recordar el estado del usuario
+//   QMap<QString, bool> viewSettings;
+//
+//   QStringList storedRenderers;
+//   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
+//   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
+//   {
+//     storedRenderers = settings.value(RENDERERS).toStringList();
+//     storedRenderers.removeDuplicates();
+//
+//     for(auto name: storedRenderers)
+//       viewSettings[name] = settings.value(name).toBool();
+//   }
+//   else
+//   {
+//     // default init state: (can be overridden by seg file settings).
+//     // 2D -> cached slice renderer active, and the rest not included in XY view.
+//     // 3D -> all renderers included but initially inactive.
+//     storedRenderers << QString("Slice (Cached)");
+//     storedRenderers << QString("Contour");
+//     storedRenderers << QString("Skeleton");
+//     viewSettings[QString("Slice (Cached)")] = true;
+//     viewSettings[QString("Contour")] = false;
+//     viewSettings[QString("Skeleton")] = true;
+//     storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
+//     storedRenderers.removeDuplicates();
+//
+//     settings.setValue(RENDERERS, storedRenderers);
+//   }
+//   settings.endGroup();
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentationDrivers()
 {
+  registerRepresentationDriverFactory(std::make_shared<ChannelSliceRepresentationDriver>());
   registerRepresentationDriverFactory(std::make_shared<SegmentationSliceRepresentationDriver>());
 //   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
 //   registerRepresentationDriver(std::make_shared<MeshRenderer>());

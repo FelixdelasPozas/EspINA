@@ -78,9 +78,9 @@ View3D::~View3D()
   	RenderView::remove(segmentation);
   m_segmentationStates.clear();
 
-	for(auto channel: m_channelStates.keys())
-	  RenderView::remove(channel);
-  m_channelStates.clear();
+//   for(auto channel: m_channelStates.keys())
+//     RenderView::remove(channel);
+//   m_channelStates.clear();
 
 	for(auto widget: m_widgets)
 	  RenderView::removeWidget(widget); // faster than calling this->removeWidget(widget);
@@ -101,8 +101,8 @@ void View3D::reset()
   for(auto segmentation: m_segmentationStates.keys())
     RenderView::remove(segmentation);
 
-  for(auto channel: m_channelStates.keys())
-    remove(channel);
+//   for(auto channel: m_channelStates.keys())
+//     remove(channel);
 
   Q_ASSERT(m_channelStates.isEmpty());
   Q_ASSERT(m_segmentationStates.isEmpty());
@@ -303,32 +303,32 @@ void View3D::resetCamera()
   m_renderer->ResetCamera();
 }
 
-//-----------------------------------------------------------------------------
-void View3D::add(ChannelAdapterPtr channel)
-{
-  RenderView::add(channel);
+// //-----------------------------------------------------------------------------
+// void View3D::add(ChannelAdapterPtr channel)
+// {
+//   RenderView::add(channel);
+//
+//   updateRenderersControls();
+//   updateScrollBarsLimits();
+// }
 
-  updateRenderersControls();
-  updateScrollBarsLimits();
-}
+// //-----------------------------------------------------------------------------
+// void View3D::remove(ChannelAdapterPtr channel)
+// {
+//   RenderView::remove(channel);
+//
+//   updateRenderersControls();
+//   updateScrollBarsLimits();
+// }
 
-//-----------------------------------------------------------------------------
-void View3D::remove(ChannelAdapterPtr channel)
-{
-  RenderView::remove(channel);
-
-  updateRenderersControls();
-  updateScrollBarsLimits();
-}
-
-//-----------------------------------------------------------------------------
-bool View3D::updateRepresentation(ChannelAdapterPtr channel, bool render)
-{
-  bool returnVal = RenderView::updateRepresentation(channel, render);
-
-  updateRenderersControls();
-  return returnVal;
-}
+// //-----------------------------------------------------------------------------
+// bool View3D::updateRepresentation(ChannelAdapterPtr channel, bool render)
+// {
+//   bool returnVal = RenderView::updateRepresentation(channel, render);
+//
+//   updateRenderersControls();
+//   return returnVal;
+// }
 
 //-----------------------------------------------------------------------------
 bool View3D::updateRepresentation(SegmentationAdapterPtr seg, bool render)

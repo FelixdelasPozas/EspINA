@@ -19,6 +19,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/MeshRepresentationBase.h
   Representations/Renderers/Renderer.h
   Representations/RepresentationManager.h
+  Representations/RepresentationsState.h
   Representations/SmoothedMeshRepresentation.h
   Representations/SliceCachedRepresentation.h
   Representations/Renderers/CachedSliceRenderer.h
@@ -98,6 +99,7 @@ set (GUI_SOURCES
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
   Representations/RepresentationManager.cpp
+  Representations/RepresentationPool.cpp
   Representations/Renderers/Renderer.cpp
   Representations/BasicRepresentationFactory.cpp
   Representations/ContourRepresentation.cpp
@@ -105,6 +107,7 @@ set (GUI_SOURCES
   Representations/MeshRepresentation.cpp 
   Representations/MeshRepresentationBase.cpp
   Representations/CrosshairRepresentation.cpp
+  Representations/ChannelRepresentationState.cpp
   Representations/SkeletonRepresentation.cpp
   Representations/Renderers/ContourRenderer.cpp
   Representations/Renderers/MeshRenderer.cpp

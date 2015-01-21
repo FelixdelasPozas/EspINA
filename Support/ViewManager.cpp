@@ -23,6 +23,7 @@
 #include "Widgets/ToolGroup.h"
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
+#include <App/ToolGroups/View/ViewToolGroup.h>
 
 // VTK
 #include <vtkMath.h>
@@ -40,7 +41,8 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_selection        {new Selection()}
+: m_channelStates(std::make_shared<ChannelRepresentationStates>())
+, m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
@@ -131,18 +133,128 @@ QList<View2D *> ViewManager::sliceViews()
   return views;
 }
 
-
 //----------------------------------------------------------------------------
-void ViewManager::addRepresentationPools(RepresentationPoolSList pools)
+void ViewManager::addRepresentationPools(const QString& group, RepresentationPoolSList pools)
 {
-  m_repPools << pools;
+  if (ViewToolGroup::CHANNELS_GROUP == group)
+  {
+    for (auto pool : pools)
+    {
+      pool->setState(m_channelStates);
+      m_channelPools << pool;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::addRepresentationManagers(RepresentationManagerSList managers)
+void ViewManager::addRepresentationManagers(RepresentationManagerSList repManagers)
 {
-  m_repManagers << managers;
+  for (auto repManager : repManagers)
+  {
+    for (auto renderView : m_renderViews)
+    {
+      renderView->addRepresentationManager(repManager);
+    }
+    m_repManagers << repManager;
+  }
 }
+
+//---------------------------------------------------------------------------
+/********************* ViewItem Management API *****************************/
+//---------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------
+void ViewManager::add(ChannelAdapterPtr channel)
+{
+  m_channelStates->addRepresentation(channel);
+
+  // TODO: need to manage other channels' opacity too.
+//   for (auto renderView : m_renderViews)
+//   {
+//     renderView->updateSceneBounds();
+//   }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::add(SegmentationAdapterPtr segmentation)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::remove(ChannelAdapterPtr channel)
+{
+  m_channelStates->removeRepresentation(channel);
+
+//   updateSceneBounds();
+//   updateChannelsOpacity();
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::remove(SegmentationAdapterPtr segmentation)
+{
+
+}
+
+//----------------------------------------------------------------------------
+bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render)
+{
+  return m_channelStates->updateRepresentation(channel);
+
+  // TODO gestionar usando señales: if (visibilityChanged) updateChannelsOpacity();
+
+
+  // TODO gestionar usando señales: if (outputChanged)
+//   {
+//     removeRepresentations(state);
+//     createRepresentations(channel);
+//   }
+
+//   for(auto representation : state.representations)
+//   {
+//     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
+//     if (hasChanged || crosshairChanged || outputChanged)
+//     {
+//       opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
+//
+//       if (brightnessChanged) representation->setBrightness(state.brightness);
+//       if (contrastChanged  ) representation->setContrast(state.contrast);
+//       if (stainChanged     ) representation->setColor(state.stain);
+//       if (opacityChanged   ) representation->setOpacity(state.opacity);
+//       if (visibilityChanged) representation->setVisible(state.visible);
+//
+//       representation->updateRepresentation();
+//     }
+//   }
+
+  // TODO: Seguramente como parte del nuevo algoritmo de render de la vista
+//   if (!m_sceneCameraInitialized && state.visible)
+//   {
+//     m_sceneCameraInitialized = true;
+//     resetCamera();
+//   }
+//
+//   m_renderer->ResetCameraClippingRange();
+//
+//   if (render && isVisible())
+//   {
+//     m_view->GetRenderWindow()->Render();
+//     m_view->update();
+//   }
+}
+
+//----------------------------------------------------------------------------
+bool ViewManager::updateRepresentation(SegmentationAdapterPtr seg, bool render)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::removeAllViewItems()
+{
+
+}
+
 
 //----------------------------------------------------------------------------
 void ViewManager::registerRenderer(RendererSPtr newRenderer)

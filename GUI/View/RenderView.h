@@ -26,6 +26,7 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Representations/Representation.h>
+#include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Widgets/ContextualMenu.h>
 #include <GUI/ColorEngines/ColorEngine.h>
@@ -120,62 +121,59 @@ namespace ESPINA
     ColorEngineSPtr colorEngine() const
     { return m_colorEngine; }
 
-    /** \brief Resets the view to it's initial state.
+    /** \brief Adds a representation manager to the view
      *
+     */
+    void addRepresentationManager(RepresentationManagerSPtr manager);
+
+    /** \brief Removes a representation manager from the view
+     *
+     */
+    void removeRepresentationManager(RepresentationManagerSPtr manager);
+
+    /** \brief Resets the view to it's initial state.
+     *  TODO: Rename to clear?
      */
     virtual void reset() = 0;
-
-    /** \brief Adds a channel to the view.
-     * \param[in] channel, channel adapter raw pointer.
-     *
-     */
-    virtual void add(ChannelAdapterPtr channel);
 
     /** \brief Adds a segmentation to the view.
      * \param[in] seg, segmentation adapter raw pointer.
      *
      */
+    // DEPRECATED
     virtual void add(SegmentationAdapterPtr seg);
-
-    /** \brief Removes a channel from the view.
-     * \param[in] channel, channel adapter raw pointer.
-     *
-     */
-    virtual void remove(ChannelAdapterPtr channel);
 
     /** \brief Removes a segmentation from the view.
      * \param[in] seg, segmentation adapter raw pointer.
      *
      */
+    // DEPRECATED
     virtual void remove(SegmentationAdapterPtr seg);
-
-    /** \brief Update the representations of the given channel.
-     * \param[in] channel, channel adapter raw pointer.
-     * \param[in] render, true to force a render after updating, false otherwise.
-     *
-     */
-    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
 
     /** \brief Update the representations of the given segmentation.
      * \param[in] channel, segmentation adapter raw pointer.
      * \param[in] render, true to force a render after updating, false otherwise.
      *
      */
+    // DEPRECATED
     virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
 
     /** \brief Implements SelectableView::updateRepresentations(ChannelAdapterList).
      *
      */
+    // DEPRECATED
     virtual void updateRepresentations(ChannelAdapterList list);
 
     /** \brief Implements SelectableView::updateRepresentations(SegmentationAdapterList).
      *
      */
+    // DEPRECATED
     virtual void updateRepresentations(SegmentationAdapterList list);
 
     /** \brief Implements SelectableView::updateRepresentations().
      *
      */
+    // DEPRECATED
     virtual void updateRepresentations();
 
     /** \brief Adds a widget to the view.
@@ -293,17 +291,6 @@ namespace ESPINA
     virtual void setContextualMenu(ContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
 
-    /** \brief Adds the widgets of the renderer to the view's controls.
-     * \param[in] renderer, renderer smart pointer.
-     *
-     */
-    virtual void addRendererControls(RendererSPtr renderer) = 0;
-
-    /** \brief Removes the widgets of the renderer from the view's controls.
-     *
-     */
-    virtual void removeRendererControls(const QString name) = 0;
-
     /** \brief Creates and returns an instance of the given representation type for the given item.
      * \param[in] item, view item adapter raw pointer.
      * \param[in] type, type of representation to return.
@@ -334,17 +321,6 @@ namespace ESPINA
      *
      */
     virtual void deactivateRender(const QString &rendererName) = 0;
-
-    /** \brief Sets the renderers for the view.
-     * \param[in] renderers, list of renderer smart pointers.
-     *
-     */
-    virtual void setRenderers(RendererSList renderers) = 0;
-
-    /** \brief Returns the list of smart pointers of the renderers of the view.
-     *
-     */
-    RendererSList renderers() const;
 
     /** \brief Sets the activation state of the renderers of the view.
      * \param[in] state, map of pair values of renderers' name and boolean state.
@@ -478,6 +454,9 @@ namespace ESPINA
      */
     unsigned int numEnabledRenderersForViewItem(RenderableType type);
 
+  private slots:
+    void onRenderReqest();
+
   protected:
     EventHandlerSPtr m_eventHandler;
     ColorEngineSPtr  m_colorEngine;
@@ -495,7 +474,8 @@ namespace ESPINA
     QMap<SegmentationAdapterPtr, SegmentationState> m_segmentationStates;
 
     RendererSList m_renderers;
-    QList<EspinaWidgetSPtr> m_widgets;
+    RepresentationManagerSList m_managers;
+    QList<EspinaWidgetSPtr>    m_widgets;
 
     bool m_sceneCameraInitialized;
     bool m_showSegmentations;

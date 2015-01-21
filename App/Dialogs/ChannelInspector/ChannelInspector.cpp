@@ -89,7 +89,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
   RendererSList renderers;
   renderers << RendererSPtr{new SliceRenderer()};
   m_view->setRenderers(renderers);
-  m_view->add(channel);
+  //TODO: m_view->add(channel);
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
 

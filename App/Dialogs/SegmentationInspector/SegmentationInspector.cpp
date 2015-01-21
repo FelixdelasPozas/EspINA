@@ -76,34 +76,34 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
   }
 
   ESPINA_SETTINGS(settings);
-
-  QStringList defaultRenderers;
-  if (!settings.contains(RENDERERS) || !settings.value(RENDERERS).isValid())
-  {
-    defaultRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-
-    settings.setValue(RENDERERS, defaultRenderers);
-  }
-
-  defaultRenderers = settings.value(RENDERERS).toStringList();
-  RendererSList renderers;
-
-  for(auto name: defaultRenderers)
-  {
-    if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
-    {
-      renderers << m_viewManager->cloneRenderer(name);
-    }
-  }
-
-  m_view->setRenderers(renderers);
+// TODO: Usar los RepresentationsDrivers
+//   QStringList defaultRenderers;
+//   if (!settings.contains(RENDERERS) || !settings.value(RENDERERS).isValid())
+//   {
+//     defaultRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
+//
+//     settings.setValue(RENDERERS, defaultRenderers);
+//   }
+//
+//   defaultRenderers = settings.value(RENDERERS).toStringList();
+//   RendererSList renderers;
+//
+//   for(auto name: defaultRenderers)
+//   {
+//     if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
+//     {
+//       renderers << m_viewManager->cloneRenderer(name);
+//     }
+//   }
+//
+//   m_view->setRenderers(renderers);
   m_view->setColorEngine(m_viewManager->colorEngine());
   m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view->setMinimumWidth(250);
   m_view->resetCamera();
   m_view->updateView();
 
-  QVBoxLayout *viewportLayout = new QVBoxLayout();
+  auto viewportLayout = new QVBoxLayout();
   viewportLayout->addWidget(m_view);
   viewportLayout->setSizeConstraint(QLayout::SetMinimumSize);
 
@@ -118,7 +118,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
   m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport->setMinimumHeight(0);
 
-  QHBoxLayout *informationLayout = new QHBoxLayout();
+  auto informationLayout = new QHBoxLayout();
   informationLayout->addWidget(m_tabularReport);
 
   m_viewport         ->setLayout(viewportLayout);
@@ -265,7 +265,7 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
 
   m_channels << channel;
 
-  m_view->add(channel);
+  m_viewManager->add(channel);
   m_view->updateView();
 
   generateWindowTitle();
@@ -279,7 +279,7 @@ void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
 
   m_channels.removeOne(channel);
 
-  m_view->remove(channel);
+  m_viewManager->remove(channel);
   m_view->updateView();
 
   generateWindowTitle();

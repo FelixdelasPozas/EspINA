@@ -164,6 +164,8 @@ set (ESPINA_SOURCES
   ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
   ToolGroups/View/RepresentationsGroupTool.cpp
   ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
+  ToolGroups/View/Representations/ChannelSliceRepresentationDriver.cpp
+  ToolGroups/View/Representations/ChannelSliceSwitch.cpp
   ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp

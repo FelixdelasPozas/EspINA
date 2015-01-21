@@ -102,10 +102,10 @@ namespace ESPINA
      */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
-    /** \brief Overrides RenderView::add(channel).
-     *
-     */
-    virtual void add(ChannelAdapterPtr channel) override;
+//     /** \brief Overrides RenderView::add(channel).
+//      *
+//      */
+//     virtual void add(ChannelAdapterPtr channel) override;
 
     /** \brief Overrides RenderView::add(segmentation)
      *
@@ -113,10 +113,10 @@ namespace ESPINA
     virtual void add(SegmentationAdapterPtr seg) override
     { RenderView::add(seg); }
 
-    /** \brief Overrides RenderView::remove(channel).
-     *
-     */
-    virtual void remove(ChannelAdapterPtr channel) override;
+//     /** \brief Overrides RenderView::remove(channel).
+//      *
+//      */
+//     virtual void remove(ChannelAdapterPtr channel) override;
 
     /** \brief Overrides RenderView::remove(segmentation).
      *
@@ -124,10 +124,10 @@ namespace ESPINA
     virtual void remove(SegmentationAdapterPtr seg) override
     { RenderView::remove(seg); }
 
-    /** \brief Overrides RenderView::updateRepresentation(channel).
-     *
-     */
-    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true) override;
+//     /** \brief Overrides RenderView::updateRepresentation(channel).
+//      *
+//      */
+//     virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true) override;
 
     /** \brief Overrides RenderView::updateRepresentation(segmentation).
      *

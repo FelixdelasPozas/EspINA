@@ -17,38 +17,36 @@
  *
  */
 
-#include "RepresentationPool.h"
+#include "BasicRepresentationPool.h"
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationPool::RepresentationPool()
-: m_numActiveManagers{0}
+void BasicRepresentationPool::setCrosshair(NmVector3 position)
 {
+
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setState(RepresentationsStateSPtr state)
+bool BasicRepresentationPool::isReady() const
 {
-  m_state = state;
+
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationPool::isBeingUsed() const
+RepresentationPipelineSList BasicRepresentationPool::representationPipelines()
 {
-  return m_numActiveManagers > 0;
+
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::incrementActiveManagers()
+RepresentationPipelineSList BasicRepresentationPool::visibleRepresentationPipelines()
 {
-  ++m_numActiveManagers;
+
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::decrementActiveManagers()
+RepresentationPipelineSList BasicRepresentationPool::invisibleRepresentationPipelines()
 {
-  if (m_numActiveManagers == 0) qWarning() << "Unexpected active renderer decrement";
 
-  --m_numActiveManagers;
 }
