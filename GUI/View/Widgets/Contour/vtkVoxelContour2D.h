@@ -26,7 +26,7 @@
 // VTK
 #include <vtkPolyDataAlgorithm.h>
 
-/** ass vtkVoxelContour2D
+/** \Class vtkVoxelContour2D
  * \brief Creates a 2D contour given a 3d volume and a slice between the bounds.
  *
  *  This filter only works for slices in the axial plane (extent[4] == extent[5]),

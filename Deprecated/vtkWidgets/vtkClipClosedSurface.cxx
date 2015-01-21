@@ -12,6 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+#include <GUI/View/Widgets/Contour/vtkContourToPolygonFilter.h>
 #include "vtkClipClosedSurface.h"
 
 #include "vtkDataSet.h"
@@ -33,8 +34,6 @@
 #include "vtkTriangleStrip.h"
 #include "vtkLine.h"
 #include "vtkMatrix4x4.h"
-#include "vtkContourToPolygonFilter.h"
-
 #include "vtkIncrementalOctreePointLocator.h"
 
 #include <vector>

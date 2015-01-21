@@ -35,7 +35,6 @@ CircularBrushSelector::CircularBrushSelector()
 //-----------------------------------------------------------------------------
 CircularBrushSelector::~CircularBrushSelector()
 {
-
 }
 
 //-----------------------------------------------------------------------------

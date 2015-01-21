@@ -419,7 +419,9 @@ void AppositionSurfacePlugin::finishedTask()
       createdSegmentations.push_back(list);
     }
     else
+    {
       createdSegmentations[index] << segmentation;
+    }
 
     Relation relation;
     relation.ancestor = m_finishedTasks[filter].segmentation;

@@ -24,42 +24,55 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/Selectors/Selector.h>
+#include <GUI/Selectors/BrushSelector.h>
+#include <GUI/View/Widgets/Contour/ContourWidget.h>
 
-class QCursor;
+// Qt
+#include <QObject>
 
 namespace ESPINA
 {
   class EspinaGUI_EXPORT ContourSelector
-  : public Selector
+  : public BrushSelector
   {
-	public:
-  	/** \brief ContourSelector class constructor.
-  	 *
-  	 */
-	  explicit ContourSelector()
-	  : m_cursor(Qt::CrossCursor)
-	  {}
+    Q_OBJECT
+    public:
+      /** \brief ContourSelector class constructor.
+       *
+       */
+      explicit ContourSelector();
 
-  	/** \brief ContourSelector class destructor.
-  	 *
-  	 */
-	  virtual ~ContourSelector()
-	  {}
+      /** \brief ContourSelector class virtual destructor.
+       *
+       */
+      virtual ~ContourSelector()
+      {}
 
-  	/** \brief Overrides EventHandler::filterEvent().
-  	 *
-  	 */
-	  virtual bool filterEvent(QEvent* e, RenderView *view = nullptr) override;
+      virtual bool filterEvent(QEvent* e, RenderView *view = nullptr) override;
 
-	  /** \brief Overrides EventHandler::cursor() const.
-	   *
-	   */
-	  virtual QCursor cursor() const override;
-	private:
-	  QCursor m_cursor;
+      /** \brief Sets the contour widget that has the vtkWidgets for the interaction.
+       * \param[in] widget ContourWidget raw pointer.
+       *
+       */
+      void setContourWidget(ContourWidgetPtr widget)
+      { m_widget = widget; }
+
+    protected slots:
+      virtual BrushShape createBrushShape(ViewItemAdapterPtr item,
+                                          NmVector3 center,
+                                          Nm radius,
+                                          Plane plane)
+      { return BrushShape(); };
+
+    protected:
+      virtual void buildCursor() override;
+
+      ContourWidgetPtr m_widget;
   };
+
+  using ContourSelectorPtr  = ContourSelector *;
+  using ContourSelectorSPtr = std::shared_ptr<ContourSelector>;
 
 } // namespace ESPINA
 
-#endif /* _CONTOURSELECTOR_H_ */
+#endif // ESPINA_CONTOUR_SELECTOR_H_

@@ -157,7 +157,7 @@ namespace ESPINA
       /** \brief Returns the mask of the pixels selected.
        *
        */
-      BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
+      virtual BinaryMaskSPtr<unsigned char> voxelSelectionMask() const;
 
       /** \brief Aborts the current operation.
        *
@@ -190,7 +190,7 @@ namespace ESPINA
     	/** \brief Helper method to build the brush cursor.
     	 *
     	 */
-      void buildCursor();
+      virtual void buildCursor();
 
       /** \brief Returns the bounds of the brush shape in the given center.
        * \param[in] center, center of the brush.
@@ -254,7 +254,6 @@ namespace ESPINA
        */
       inline bool ShiftKeyIsDown();
 
-  private:
       /** \brief Updates the cursor and the view when the drawing mode changes.
        * \param[in] view, raw pointer of the view.
        *

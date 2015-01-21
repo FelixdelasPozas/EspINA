@@ -24,7 +24,10 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
+#include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
+#include <Core/Utils/BinaryMask.hxx>
+
 // VTK
 #include <vtkSmartPointer.h>
 
@@ -56,6 +59,15 @@ namespace ESPINA
      *
      */
     void EspinaCore_EXPORT scalePolyData(vtkSmartPointer<vtkPolyData> polyData, const NmVector3 &ratio);
+
+    /** \brief Rasterizes the polyData to a DefaultVolumetricDataSPtr.
+     * \param[in] polyData vtkPolyData raw pointer to rasterize to a volume.
+     * \param[in] plane orientation of the contour.
+     * \param[in] slice position of the contour.
+     * \param[in] spacing spacing of the volume.
+     *
+     */
+    BinaryMaskSPtr<unsigned char> rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
 
   }
 }

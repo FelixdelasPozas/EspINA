@@ -22,41 +22,39 @@
 #include <Undo/BrushUndoCommand.h>
 
 // ESPINA
-#include <GUI/Pickers/ContourSelector.h>
-#include <GUI/vtkWidgets/ContourWidget.h>
-#include <GUI/ViewManager.h>
-#include <GUI/Representations/BasicGraphicalRepresentationFactory.h>
-#include <Core/Model/ModelItem.h>
-#include <Core/Model/Channel.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/Taxonomy.h>
-#include <Core/Filters/FreeFormSource.h>
-#include <Undo/AddSegmentation.h>
-#include <Undo/RemoveSegmentation.h>
-#include <App/Undo/ContourUndoCommand.h>
+#include <GUI/Selectors/ContourSelector.h>
+#include <GUI/View/Widgets/Contour/ContourWidget.h>
+#include <Support/ViewManager.h>
+#include <GUI/Representations/BasicRepresentationFactory.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <Core/Factory/FilterFactory.h>
+#include <GUI/Model/CategoryAdapter.h>
+#include <Filters/FreeFormSource.h>
+#include <Undo/AddSegmentations.h>
+#include <Undo/ContourUndoCommand.h>
+#include <Undo/RemoveSegmentations.h>
 
-// Qt
+// GUI
 #include <QUndoStack>
-#include <QtGui>
 
 using namespace ESPINA;
 
-const Filter::FilterType FilledContour::FILTER_TYPE = "EditorToolBar::ContourSource";
+//const Filter::FilterType FilledContour::FILTER_TYPE = "EditorToolBar::ContourSource";
 
 //-----------------------------------------------------------------------------
-FilledContour::FilledContour(EspinaModel *model,
+FilledContour::FilledContour(ModelAdapterSPtr model,
                              QUndoStack  *undo,
-                             ViewManager *viewManager)
-: m_model(model)
-, m_undoStack(undo)
-, m_viewManager(viewManager)
-, m_picker(new ContourSelector())
-, m_enabled(false)
-, m_inUse(false)
-, m_contourWidget(NULL)
-, m_widgetHasContour(false)
-, m_lastContour(NULL)
+                             ViewManagerSPtr viewManager)
+: m_model           {model}
+, m_undoStack       {undo}
+, m_viewManager     {viewManager}
+, m_picker          {new ContourSelector()}
+, m_enabled         {false}
+, m_inUse           {false}
+, m_contourWidget   {nullptr}
+, m_widgetHasContour{false}
+, m_lastContour     {nullptr}
 {
   m_picker->setPickable(ISelector::CHANNEL);
 }

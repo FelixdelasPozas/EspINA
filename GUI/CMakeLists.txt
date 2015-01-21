@@ -27,6 +27,7 @@ qt4_wrap_cpp(GUI_MOC
   Selectors/BrushSelector.h
   Selectors/CircularBrushSelector.h
   Selectors/SphericalBrushSelector.h
+  Selectors/ContourSelector.h
   View/EventHandler.h
   View/RenderView.h
   View/Selection.h
@@ -39,6 +40,7 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
   View/Widgets/Ruler/RulerWidget.h
+  View/Widgets/Contour/ContourWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
@@ -125,6 +127,7 @@ set (GUI_SOURCES
   Selectors/Selector.cpp
   Selectors/CircularBrushSelector.cpp
   Selectors/SphericalBrushSelector.cpp
+  Selectors/ContourSelector.cpp
   Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
   View/EventHandler.cpp
@@ -134,7 +137,13 @@ set (GUI_SOURCES
   View/ViewRendererMenu.cpp
   View/View2DState.cpp
   View/View3D.cpp
+  View/Widgets/Contour/ContourWidget.cpp
+  View/Widgets/Contour/SliceContourWidget.cpp
+  View/Widgets/Contour/vtkPlaneContourRepresentation.cpp
+  View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.cpp
+  View/Widgets/Contour/vtkPlaneContourWidget.cpp
   View/Widgets/Contour/vtkVoxelContour2D.cpp
+  View/Widgets/Contour/vtkContourToPolygonFilter.cxx
   View/Widgets/Zoom/ZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp

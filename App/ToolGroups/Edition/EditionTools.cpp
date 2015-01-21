@@ -18,8 +18,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ESPINA
 #include "EditionTools.h"
-
 #include <App/Undo/BrushUndoCommand.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Output.h>
@@ -29,9 +29,14 @@
 #include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <Support/Utils/SelectionUtils.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
+#include <Undo/ContourUndoCommand.h>
+
+// Qt
+#include <QApplication>
 
 using ESPINA::Filter;
 
@@ -92,6 +97,10 @@ EditionTools::EditionTools(ModelAdapterSPtr          model,
           this,                  SLOT(drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
   connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
           this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
+  connect(m_manualEdition.get(), SIGNAL(drawContours(ContourWidget::ContourList)),
+          this,                  SLOT(drawContours(ContourWidget::ContourList)));
+  connect(m_manualEdition.get(), SIGNAL(contourEnded(SegmentationAdapterPtr, CategoryAdapterSPtr)),
+          this,                  SLOT(endContour(SegmentationAdapterPtr, CategoryAdapterSPtr)));
 
   m_split = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
   m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
@@ -287,4 +296,90 @@ void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEnt
       fitToContents(volume, SEG_BG_VALUE);
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void EditionTools::drawContours(ContourWidget::ContourList contours)
+{
+  bool reduction = false;
+
+  ContourWidget::ContourData contour;
+  SegmentationAdapterSPtr segmentation;
+
+  for(auto contourData: contours)
+  {
+    if(contourData.polyData)
+    {
+      contour = contourData;
+      if(contour.mode == BrushSelector::BrushMode::ERASER)
+      {
+        reduction = true;
+      }
+    }
+
+    break;
+  }
+
+  if (!contour.polyData || contour.polyData->GetNumberOfPoints() == 0)
+    return;
+
+  Q_ASSERT(m_undoStack->index() >= 1);
+  const QUndoCommand *command = m_undoStack->command(m_undoStack->index()-1);
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  if (command->text() == QString("Draw segmentation using contours"))
+  {
+    const ContourAddSegmentation *addCommand = dynamic_cast<const ContourAddSegmentation *>(command->child(0));
+    addCommand->rasterizeContour(contour);
+
+    segmentation = addCommand->getCreatedSegmentation();
+  }
+  else
+    if (command->text() == QString("Modify segmentation using contours"))
+    {
+      const ContourUndoCommand *undoCommand = dynamic_cast<const ContourUndoCommand *>(command->child(0));
+      undoCommand->rasterizeContour(contour);
+    }
+    else
+      Q_ASSERT(false);
+
+  if (reduction)
+  {
+    auto volume = volumetricData(segmentation->output());
+
+    if(!volume->isEmpty())
+    {
+      fitToContents(volume, SEG_BG_VALUE);
+    }
+    else
+    {
+      m_undoStack->push(new RemoveSegmentations(segmentation.get(), m_model));
+      m_manualEdition->resetContourTool();
+    }
+  }
+
+  QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void EditionTools::endContour(SegmentationAdapterPtr segmentation, CategoryAdapterSPtr category)
+{
+  qDebug() << "editionTools::endContour";
+  if(!segmentation)
+  {
+    m_undoStack->beginMacro("Draw segmentation using contours");
+    m_undoStack->push(new ContourAddSegmentation(m_viewManager->activeChannel(),
+                                                 category,
+                                                 m_model,
+                                                 m_factory,
+                                                 m_viewManager,
+                                                 m_manualEdition));
+  }
+  else
+  {
+    m_undoStack->beginMacro("Modify segmentation using contours");
+    m_undoStack->push(new ContourUndoCommand(segmentation, m_viewManager, m_manualEdition));
+  }
+
+  m_undoStack->endMacro();
 }

@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -21,11 +21,9 @@
 #ifndef _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 #define _VTKPLANECONTOURREPRESENTATIONGLYPH_H_
 
+#include <GUI/View/Widgets/Contour/vtkContourToPolygonFilter.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentation.h>
 #include "GUI/EspinaGUI_Export.h"
-
-// VTK
-#include "vtkPlaneContourRepresentation.h"
-#include "vtkContourToPolygonFilter.h"
 
 // Qt
 #include <QColor>
@@ -36,6 +34,7 @@ class vtkPolyDataMapper;
 class vtkPolyData;
 class vtkGlyph3D;
 class vtkPoints;
+class vtkSphereSource;
 
 namespace ESPINA
 {
@@ -52,20 +51,6 @@ namespace ESPINA
     // Standard methods for instances of this class.
     vtkTypeMacro(vtkPlaneContourRepresentationGlyph,vtkPlaneContourRepresentation);
     void PrintSelf(ostream& os, vtkIndent indent);
-
-    // Description:
-    // Specify the cursor shape. Keep in mind that the shape will be
-    // aligned with the  constraining plane by orienting it such that
-    // the x axis of the geometry lies along the normal of the plane.
-    void SetCursorShape(vtkPolyData *cursorShape);
-    vtkPolyData *GetCursorShape();
-
-    // Description:
-    // Specify the shape of the cursor (handle) when it is active.
-    // This is the geometry that will be used when the mouse is
-    // close to the handle or if the user is manipulating the handle.
-    void SetActiveCursorShape(vtkPolyData *activeShape);
-    vtkPolyData *GetActiveCursorShape();
 
     // Description:
     // This is the property used when the handle is not active
@@ -118,11 +103,6 @@ namespace ESPINA
     void SetLineColor(double r, double g, double b);
 
     // Description:
-    // A flag to indicate whether to show the Selected nodes
-    // Default is to set it to false.
-    virtual void SetShowSelectedNodes(int);
-
-    // Description:
     // Return the bounds of the representation
     virtual double *GetBounds();
 
@@ -134,35 +114,24 @@ namespace ESPINA
     // get/set polygon color
     virtual void setPolygonColor(QColor);
     virtual QColor getPolygonColor();
+
   protected:
     vtkPlaneContourRepresentationGlyph();
     ~vtkPlaneContourRepresentationGlyph();
 
     // Render the cursor
-    vtkActor *Actor;
-    vtkPolyDataMapper *Mapper;
-    vtkGlyph3D *Glypher;
-    vtkActor *ActiveActor;
-    vtkPolyDataMapper *ActiveMapper;
-    vtkGlyph3D *ActiveGlypher;
-    vtkPolyData *CursorShape;
-    vtkPolyData *ActiveCursorShape;
-    vtkPolyData *FocalData;
-    vtkPoints *FocalPoint;
-    vtkPolyData *ActiveFocalData;
-    vtkPoints *ActiveFocalPoint;
+    vtkSmartPointer<vtkActor>          Actor;
+    vtkSmartPointer<vtkPolyDataMapper> Mapper;
+    vtkSmartPointer<vtkGlyph3D>        Glypher;
+    vtkSmartPointer<vtkActor>          ActiveActor;
+    vtkSmartPointer<vtkPolyDataMapper> ActiveMapper;
+    vtkSmartPointer<vtkSphereSource>   ActiveSource;
+    vtkSmartPointer<vtkPolyData>       FocalData;
+    vtkSmartPointer<vtkPoints>         FocalPoint;
 
-    vtkPolyData *SelectedNodesData;
-    vtkPoints *SelectedNodesPoints;
-    vtkActor *SelectedNodesActor;
-    vtkPolyDataMapper *SelectedNodesMapper;
-    vtkGlyph3D *SelectedNodesGlypher;
-    vtkPolyData *SelectedNodesCursorShape;
-    void CreateSelectedNodesRepresentation();
-
-    vtkPolyData *Lines;
-    vtkPolyDataMapper *LinesMapper;
-    vtkActor *LinesActor;
+    vtkSmartPointer<vtkPolyData>       Lines;
+    vtkSmartPointer<vtkPolyDataMapper> LinesMapper;
+    vtkSmartPointer<vtkActor>          LinesActor;
 
     // Support picking
     double LastPickPosition[3];

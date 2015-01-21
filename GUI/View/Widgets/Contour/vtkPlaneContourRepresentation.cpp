@@ -1,13 +1,31 @@
 /*
- * vtkPlaneContourRepresentation.cpp
- *
- *  Created on: Sep 8, 2012
- *      Author: Felix de las Pozas Alvarez
+
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+
+ This file is part of ESPINA.
+
+    ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "vtkPlaneContourRepresentation.h"
-#include "vtkContourToPolygonFilter.h"
+
+// ESPINA
+#include <GUI/View/Widgets/Contour/vtkContourToPolygonFilter.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentation.h>
+
+// C++
 #include <cmath>
 
+// VTK
 #include <vtkBox.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
@@ -26,6 +44,7 @@
 #include <vtkRenderer.h>
 #include <vtkWindow.h>
 
+// Qt
 #include <QtGlobal>
 
 using namespace ESPINA;
@@ -33,48 +52,58 @@ using namespace ESPINA;
 vtkCxxSetObjectMacro(vtkPlaneContourRepresentation, PointPlacer, vtkPointPlacer);
 vtkCxxSetObjectMacro(vtkPlaneContourRepresentation, LineInterpolator, vtkContourLineInterpolator);
 
+//----------------------------------------------------------------------------
 vtkPlaneContourRepresentation::vtkPlaneContourRepresentation()
 {
   this->Internal = new vtkPlaneContourRepresentationInternals;
 
   this->PixelTolerance = 15;
   this->WorldTolerance = 0.004;
-  this->PointPlacer = NULL;
-  this->LineInterpolator = NULL;
-  this->Locator = NULL;
+  this->PointPlacer = nullptr;
+  this->LineInterpolator = nullptr;
+  this->Locator = nullptr;
   this->RebuildLocator = false;
   this->ActiveNode = -1;
   this->NeedToRender = 0;
   this->ClosedLoop = 0;
   this->ShowSelectedNodes = 0;
   this->CurrentOperation = vtkPlaneContourRepresentation::Inactive;
-  this->Orientation = AXIAL;
+  this->Orientation = Plane::XY;
+  this->PlaneShift = 0;
+  this->Slice = 0;
 
   this->ResetLocator();
 }
 
+//----------------------------------------------------------------------------
 vtkPlaneContourRepresentation::~vtkPlaneContourRepresentation()
 {
-  this->SetPointPlacer(NULL);
-  this->SetLineInterpolator(NULL);
+  this->SetPointPlacer(nullptr);
+  this->SetLineInterpolator(nullptr);
   this->Internal->ClearNodes();
 
   delete this->Internal;
 
   if (this->Locator)
+  {
     this->Locator->Delete();
+  }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::ResetLocator()
 {
   if (this->Locator)
+  {
     this->Locator->Delete();
+  }
 
   this->Locator = vtkIncrementalOctreePointLocator::New();
   this->Locator->SetBuildCubicOctree(1);
   this->RebuildLocator = true;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::ClearAllNodes()
 {
   this->ResetLocator();
@@ -86,6 +115,7 @@ void vtkPlaneContourRepresentation::ClearAllNodes()
   this->Modified();
 }
 
+//----------------------------------------------------------------------------
 // NOTE: modified to avoid inserting duplicated nodes
 void vtkPlaneContourRepresentation::AddNodeAtPositionInternal(double worldPos[3], double worldOrient[9], double displayPos[2])
 {
@@ -93,19 +123,7 @@ void vtkPlaneContourRepresentation::AddNodeAtPositionInternal(double worldPos[3]
   vtkPlaneContourRepresentationNode *node = new vtkPlaneContourRepresentationNode;
   memcpy(node->WorldPosition, worldPos, 3*sizeof(double));
 
-  switch(Orientation)
-  {
-    case AXIAL:
-      node->WorldPosition[this->Orientation] = -0.1;
-      break;
-    case CORONAL:
-    case SAGITTAL:
-      node->WorldPosition[this->Orientation] = 0.1;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
+  node->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
 
   node->Selected = 0;
   node->NormalizedDisplayPosition[0] = displayPos[0];
@@ -138,32 +156,20 @@ void vtkPlaneContourRepresentation::AddNodeAtPositionInternal(double worldPos[3]
       node->WorldPosition[1] = worldPos[1];
       node->WorldPosition[2] = worldPos[2];
 
-      switch(Orientation)
-      {
-        case AXIAL:
-          node->WorldPosition[this->Orientation] = -0.1;
-          break;
-        case CORONAL:
-        case SAGITTAL:
-          node->WorldPosition[this->Orientation] = 0.1;
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
-      }
+      node->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
     }
   }
 
   this->UpdateLines(static_cast<int>(this->Internal->Nodes.size()) - 1);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::GetNodePolyData(vtkPolyData* poly)
 {
   poly->Initialize();
   int count = this->GetNumberOfNodes();
 
-  if (count == 0)
-    return;
+  if (count == 0) return;
 
   vtkPoints *points = vtkPoints::New();
   vtkCellArray *lines = vtkCellArray::New();
@@ -172,7 +178,9 @@ void vtkPlaneContourRepresentation::GetNodePolyData(vtkPolyData* poly)
   vtkIdType numLines = count;
 
   if (this->ClosedLoop)
+  {
     numLines++;
+  }
 
   vtkIdType *lineIndices = new vtkIdType[numLines];
 
@@ -190,7 +198,9 @@ void vtkPlaneContourRepresentation::GetNodePolyData(vtkPolyData* poly)
   }
 
   if (this->ClosedLoop)
+  {
     lineIndices[index] = 0;
+  }
 
   lines->InsertNextCell(numLines, lineIndices);
   delete[] lineIndices;
@@ -202,6 +212,7 @@ void vtkPlaneContourRepresentation::GetNodePolyData(vtkPolyData* poly)
   lines->Delete();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::AddNodeAtPositionInternal(double worldPos[3], double worldOrient[9], int displayPos[2])
 {
   double dispPos[2];
@@ -210,11 +221,11 @@ void vtkPlaneContourRepresentation::AddNodeAtPositionInternal(double worldPos[3]
   this->AddNodeAtPositionInternal(worldPos, worldOrient, dispPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeAtWorldPosition(double worldPos[3], double worldOrient[9])
 {
   // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos, worldOrient))
-    return 0;
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos, worldOrient)) return 0;
 
   double displayPos[2];
   this->GetRendererComputedDisplayPositionFromWorldPosition(worldPos, worldOrient, displayPos);
@@ -223,17 +234,18 @@ int vtkPlaneContourRepresentation::AddNodeAtWorldPosition(double worldPos[3], do
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeAtWorldPosition(double x, double y, double z)
 {
   double worldPos[3] = { x, y, z };
   return this->AddNodeAtWorldPosition(worldPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeAtWorldPosition(double worldPos[3])
 {
   // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
-    return 0;
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos)) return 0;
 
   double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 
@@ -244,6 +256,7 @@ int vtkPlaneContourRepresentation::AddNodeAtWorldPosition(double worldPos[3])
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeAtDisplayPosition(double displayPos[2])
 {
   double worldPos[3];
@@ -251,13 +264,13 @@ int vtkPlaneContourRepresentation::AddNodeAtDisplayPosition(double displayPos[2]
 
   // Compute the world position from the display position based on the concrete representation's constraints
   // If this is not a valid display location return 0
-  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, worldPos, worldOrient))
-    return 0;
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, worldPos, worldOrient)) return 0;
 
   this->AddNodeAtPositionInternal(worldPos, worldOrient, displayPos);
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeAtDisplayPosition(int displayPos[2])
 {
   double doubleDisplayPos[2];
@@ -267,12 +280,14 @@ int vtkPlaneContourRepresentation::AddNodeAtDisplayPosition(int displayPos[2])
   return this->AddNodeAtDisplayPosition(doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeAtDisplayPosition(int X, int Y)
 {
   double displayPos[2] = { static_cast<double>(X), static_cast<double>(Y) };
   return this->AddNodeAtDisplayPosition(displayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::ActivateNode(double displayPos[2])
 {
   this->BuildLocator();
@@ -291,6 +306,7 @@ int vtkPlaneContourRepresentation::ActivateNode(double displayPos[2])
   return (this->ActiveNode >= 0);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::ActivateNode(int displayPos[2])
 {
   double doubleDisplayPos[2];
@@ -300,6 +316,7 @@ int vtkPlaneContourRepresentation::ActivateNode(int displayPos[2])
   return this->ActivateNode(doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::ActivateNode(int X, int Y)
 {
   double doubleDisplayPos[2];
@@ -309,27 +326,25 @@ int vtkPlaneContourRepresentation::ActivateNode(int X, int Y)
   return this->ActivateNode(doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetActiveNodeToWorldPosition(double worldPos[3], double worldOrient[9])
 {
-  if ((this->ActiveNode < 0) || (static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((this->ActiveNode < 0) || (static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size())) return 0;
 
   // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos, worldOrient))
-    return 0;
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos, worldOrient)) return 0;
 
   this->SetNthNodeWorldPositionInternal(this->ActiveNode, worldPos, worldOrient);
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetActiveNodeToWorldPosition(double worldPos[3])
 {
-  if ((this->ActiveNode < 0) || (static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((this->ActiveNode < 0) || (static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size())) return 0;
 
   // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
-    return 0;
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos)) return 0;
 
   double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 
@@ -337,10 +352,10 @@ int vtkPlaneContourRepresentation::SetActiveNodeToWorldPosition(double worldPos[
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetActiveNodeToDisplayPosition(double displayPos[2])
 {
-  if ((this->ActiveNode < 0) || static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size())
-    return 0;
+  if ((this->ActiveNode < 0) || static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size()) return 0;
 
   double worldPos[3];
   double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
@@ -348,13 +363,13 @@ int vtkPlaneContourRepresentation::SetActiveNodeToDisplayPosition(double display
   // Compute the world position from the display position
   // based on the concrete representation's constraints
   // If this is not a valid display location return 0
-  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, worldPos, worldOrient))
-    return 0;
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, worldPos, worldOrient)) return 0;
 
   this->SetNthNodeWorldPositionInternal(this->ActiveNode, worldPos, worldOrient);
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetActiveNodeToDisplayPosition(int displayPos[2])
 {
   double doubleDisplayPos[2];
@@ -363,6 +378,7 @@ int vtkPlaneContourRepresentation::SetActiveNodeToDisplayPosition(int displayPos
   return this->SetActiveNodeToDisplayPosition(doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetActiveNodeToDisplayPosition(int X, int Y)
 {
   double doubleDisplayPos[2];
@@ -372,6 +388,7 @@ int vtkPlaneContourRepresentation::SetActiveNodeToDisplayPosition(int X, int Y)
   return this->SetActiveNodeToDisplayPosition(doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::ToggleActiveNodeSelected()
 {
   if ((this->ActiveNode < 0) || (static_cast<unsigned int>(this->ActiveNode) >= this->Internal->Nodes.size()))
@@ -386,6 +403,7 @@ int vtkPlaneContourRepresentation::ToggleActiveNodeSelected()
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetNthNodeSelected(int n)
 {
   if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
@@ -397,6 +415,7 @@ int vtkPlaneContourRepresentation::GetNthNodeSelected(int n)
   return this->Internal->Nodes[n]->Selected;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetNthNodeSelected(int n)
 {
   if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
@@ -417,31 +436,37 @@ int vtkPlaneContourRepresentation::SetNthNodeSelected(int n)
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetActiveNodeSelected()
 {
   return this->GetNthNodeSelected(this->ActiveNode);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetActiveNodeWorldPosition(double pos[3])
 {
   return this->GetNthNodeWorldPosition(this->ActiveNode, pos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetActiveNodeWorldOrientation(double orient[9])
 {
   return this->GetNthNodeWorldOrientation(this->ActiveNode, orient);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetActiveNodeDisplayPosition(double pos[2])
 {
   return this->GetNthNodeDisplayPosition(this->ActiveNode, pos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetNumberOfNodes()
 {
   return static_cast<int>(this->Internal->Nodes.size());
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetNumberOfIntermediatePoints(int n)
 {
   if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
@@ -450,10 +475,10 @@ int vtkPlaneContourRepresentation::GetNumberOfIntermediatePoints(int n)
   return static_cast<int>(this->Internal->Nodes[n]->Points.size());
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetIntermediatePointWorldPosition(int n, int idx, double point[3])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   if ((idx < 0) || (static_cast<unsigned int>(idx) >= this->Internal->Nodes[n]->Points.size()))
     return 0;
@@ -465,13 +490,13 @@ int vtkPlaneContourRepresentation::GetIntermediatePointWorldPosition(int n, int 
   return 1;
 }
 
+//----------------------------------------------------------------------------
 // The display position for a given world position must be re-computed
 // from the world positions... It should not be queried from the renderer
 // whose camera position may have changed
 int vtkPlaneContourRepresentation::GetNthNodeDisplayPosition(int n, double displayPos[2])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   double pos[4];
   pos[0] = this->Internal->Nodes[n]->WorldPosition[0];
@@ -488,59 +513,37 @@ int vtkPlaneContourRepresentation::GetNthNodeDisplayPosition(int n, double displ
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetNthNodeWorldPosition(int n, double worldPos[3])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   worldPos[0] = this->Internal->Nodes[n]->WorldPosition[0];
   worldPos[1] = this->Internal->Nodes[n]->WorldPosition[1];
   worldPos[2] = this->Internal->Nodes[n]->WorldPosition[2];
 
-  switch(this->Orientation)
-  {
-    case AXIAL:
-      worldPos[this->Orientation] = -0.1;
-      break;
-    case CORONAL:
-    case SAGITTAL:
-      worldPos[this->Orientation] = 0.1;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
+  worldPos[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
+
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetNthNodeWorldOrientation(int n, double worldOrient[9])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   memcpy(worldOrient, this->Internal->Nodes[n]->WorldOrientation, 9 * sizeof(double));
   return 1;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::SetNthNodeWorldPositionInternal(int n, double worldPos[3], double worldOrient[9])
 {
   this->Internal->Nodes[n]->WorldPosition[0] = worldPos[0];
   this->Internal->Nodes[n]->WorldPosition[1] = worldPos[1];
   this->Internal->Nodes[n]->WorldPosition[2] = worldPos[2];
 
-  switch(this->Orientation)
-  {
-    case AXIAL:
-      this->Internal->Nodes[n]->WorldPosition[this->Orientation] = -0.1;
-      break;
-    case CORONAL:
-    case SAGITTAL:
-      this->Internal->Nodes[n]->WorldPosition[this->Orientation] = 0.1;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
+  this->Internal->Nodes[n]->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
 
   this->GetRendererComputedDisplayPositionFromWorldPosition(worldPos, worldOrient, this->Internal->Nodes[n]->NormalizedDisplayPosition);
   this->Renderer->DisplayToNormalizedDisplay(this->Internal->Nodes[n]->NormalizedDisplayPosition[0], this->Internal->Nodes[n]->NormalizedDisplayPosition[1]);
@@ -551,27 +554,25 @@ void vtkPlaneContourRepresentation::SetNthNodeWorldPositionInternal(int n, doubl
   this->NeedToRender = 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetNthNodeWorldPosition(int n, double worldPos[3], double worldOrient[9])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos, worldOrient))
-    return 0;
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos, worldOrient)) return 0;
 
   this->SetNthNodeWorldPositionInternal(n, worldPos, worldOrient);
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetNthNodeWorldPosition(int n, double worldPos[3])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   // Check if this is a valid location
-  if (!this->PointPlacer->ValidateWorldPosition(worldPos))
-    return 0;
+  if (!this->PointPlacer->ValidateWorldPosition(worldPos)) return 0;
 
   double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 
@@ -579,6 +580,7 @@ int vtkPlaneContourRepresentation::SetNthNodeWorldPosition(int n, double worldPo
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetNthNodeDisplayPosition(int n, double displayPos[2])
 {
   double worldPos[3];
@@ -587,12 +589,12 @@ int vtkPlaneContourRepresentation::SetNthNodeDisplayPosition(int n, double displ
   // Compute the world position from the display position
   // based on the concrete representation's constraints
   // If this is not a valid display location return 0
-  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, worldPos, worldOrient))
-    return 0;
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, worldPos, worldOrient)) return 0;
 
   return this->SetNthNodeWorldPosition(n, worldPos, worldOrient);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetNthNodeDisplayPosition(int n, int displayPos[2])
 {
   double doubleDisplayPos[2];
@@ -602,6 +604,7 @@ int vtkPlaneContourRepresentation::SetNthNodeDisplayPosition(int n, int displayP
   return this->SetNthNodeDisplayPosition(n, doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::SetNthNodeDisplayPosition(int n, int X, int Y)
 {
   double doubleDisplayPos[2];
@@ -611,6 +614,7 @@ int vtkPlaneContourRepresentation::SetNthNodeDisplayPosition(int n, int X, int Y
   return this->SetNthNodeDisplayPosition(n, doubleDisplayPos);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::FindClosestPointOnContour(int X, int Y, double closestWorldPos[3], int *idx)
 {
   // Make a line out of this viewing ray
@@ -764,6 +768,7 @@ int vtkPlaneContourRepresentation::FindClosestPointOnContour(int X, int Y, doubl
   return 0;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddNodeOnContour(int X, int Y)
 {
   int idx;
@@ -791,6 +796,9 @@ int vtkPlaneContourRepresentation::AddNodeOnContour(int X, int Y)
   node->WorldPosition[0] = worldPos[0];
   node->WorldPosition[1] = worldPos[1];
   node->WorldPosition[2] = worldPos[2];
+
+  node->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
+
   node->Selected = 0;
 
   this->GetRendererComputedDisplayPositionFromWorldPosition(worldPos, worldOrient, node->NormalizedDisplayPosition);
@@ -805,37 +813,46 @@ int vtkPlaneContourRepresentation::AddNodeOnContour(int X, int Y)
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::DeleteNthNode(int n)
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   for (unsigned int j = 0; j < this->Internal->Nodes[n]->Points.size(); j++)
+  {
     delete this->Internal->Nodes[n]->Points[j];
+  }
 
   this->Internal->Nodes[n]->Points.clear();
   delete this->Internal->Nodes[n];
   this->Internal->Nodes.erase(this->Internal->Nodes.begin() + n);
 
   if (n)
+  {
     this->UpdateLines(n - 1);
+  }
   else
+  {
     this->UpdateLines(this->GetNumberOfNodes() - 1);
+  }
 
   this->NeedToRender = 1;
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::DeleteActiveNode()
 {
   return this->DeleteNthNode(this->ActiveNode);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::DeleteLastNode()
 {
   return this->DeleteNthNode(static_cast<int>(this->Internal->Nodes.size()) - 1);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::SetClosedLoop(int val)
 {
   if (this->ClosedLoop != val)
@@ -847,6 +864,7 @@ void vtkPlaneContourRepresentation::SetClosedLoop(int val)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::UpdateLines(int index)
 {
   int indices[2];
@@ -871,7 +889,9 @@ void vtkPlaneContourRepresentation::UpdateLines(int index)
   {
     int idx = static_cast<int>(this->Internal->Nodes.size()) - 1;
     for (unsigned int j = 0; j < this->Internal->Nodes[idx]->Points.size(); j++)
+    {
       delete this->Internal->Nodes[idx]->Points[j];
+    }
 
     this->Internal->Nodes[idx]->Points.clear();
   }
@@ -880,29 +900,17 @@ void vtkPlaneContourRepresentation::UpdateLines(int index)
   this->RebuildLocator = true;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::AddIntermediatePointWorldPosition(int n, double pos[3])
 {
-  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
-    return 0;
+  if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size())) return 0;
 
   vtkPlaneContourRepresentationPoint *point = new vtkPlaneContourRepresentationPoint;
   point->WorldPosition[0] = pos[0];
   point->WorldPosition[1] = pos[1];
   point->WorldPosition[2] = pos[2];
 
-  switch(Orientation)
-  {
-    case AXIAL:
-      point->WorldPosition[this->Orientation] = -0.1;
-      break;
-    case CORONAL:
-    case SAGITTAL:
-      point->WorldPosition[this->Orientation] = 0.1;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
+  point->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
 
   double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 
@@ -913,6 +921,7 @@ int vtkPlaneContourRepresentation::AddIntermediatePointWorldPosition(int n, doub
   return 1;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::GetNthNodeSlope(int n, double slope[3])
 {
   if ((n < 0) || (static_cast<unsigned int>(n) >= this->Internal->Nodes.size()))
@@ -937,10 +946,14 @@ int vtkPlaneContourRepresentation::GetNthNodeSlope(int n, double slope[3])
       idx2 = n + 1;
 
       if (idx1 < 0)
+      {
         idx1 += this->GetNumberOfNodes();
+      }
 
       if (idx2 >= this->GetNumberOfNodes())
+      {
         idx2 -= this->GetNumberOfNodes();
+      }
     }
 
   slope[0] = this->Internal->Nodes[idx2]->WorldPosition[0] - this->Internal->Nodes[idx1]->WorldPosition[0];
@@ -951,44 +964,55 @@ int vtkPlaneContourRepresentation::GetNthNodeSlope(int n, double slope[3])
   return 1;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::UpdateLine(int idx1, int idx2)
 {
-  if (!this->LineInterpolator)
-    return;
+  if (!this->LineInterpolator) return;
 
   // Clear all the points at idx1
   for (unsigned int j = 0; j < this->Internal->Nodes[idx1]->Points.size(); j++)
+  {
     delete this->Internal->Nodes[idx1]->Points[j];
+  }
 
   this->Internal->Nodes[idx1]->Points.clear();
   this->LineInterpolator->InterpolateLine(this->Renderer, this, idx1, idx2);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::ComputeInteractionState(int vtkNotUsed(X), int vtkNotUsed(Y), int vtkNotUsed(modified))
 {
   return this->InteractionState;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentation::UpdateContour()
 {
   this->PointPlacer->UpdateInternalState();
 
   //even if just the camera has moved we need to mark the locator as needing to be rebuilt
   if (this->Locator->GetMTime() < this->Renderer->GetActiveCamera()->GetMTime())
+  {
     this->RebuildLocator = true;
+  }
 
-  if (this->ContourBuildTime > this->PointPlacer->GetMTime())
-    return 0;   // Contour does not need to be rebuilt
+  if (this->ContourBuildTime > this->PointPlacer->GetMTime()) return 0;   // Contour does not need to be rebuilt
 
   unsigned int i;
   for (i = 0; i < this->Internal->Nodes.size(); i++)
+  {
     this->PointPlacer->UpdateWorldPosition(this->Renderer, this->Internal->Nodes[i]->WorldPosition, this->Internal->Nodes[i]->WorldOrientation);
+  }
 
   for (i = 0; (i + 1) < this->Internal->Nodes.size(); i++)
+  {
     this->UpdateLine(i, i + 1);
+  }
 
   if (this->ClosedLoop)
+  {
     this->UpdateLine(static_cast<int>(this->Internal->Nodes.size()) - 1, 0);
+  }
 
   this->BuildLines();
   this->RebuildLocator = true;
@@ -998,6 +1022,7 @@ int vtkPlaneContourRepresentation::UpdateContour()
   return 1;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::GetRendererComputedDisplayPositionFromWorldPosition(double worldPos[3], double worldOrient[9], int displayPos[2])
 {
   double dispPos[2];
@@ -1008,6 +1033,7 @@ void vtkPlaneContourRepresentation::GetRendererComputedDisplayPositionFromWorldP
   displayPos[1] = static_cast<int>(dispPos[1]);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::GetRendererComputedDisplayPositionFromWorldPosition(double worldPos[3], double * vtkNotUsed(worldOrient[9]), double displayPos[2])
 {
   double pos[4];
@@ -1024,12 +1050,12 @@ void vtkPlaneContourRepresentation::GetRendererComputedDisplayPositionFromWorldP
   displayPos[1] = pos[1];
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::Initialize(vtkPolyData * pd)
 {
   vtkPoints *points = pd->GetPoints();
   vtkIdType nPoints = points->GetNumberOfPoints();
-  if (nPoints <= 0) // Yeah right.. build from nothing!
-    return;
+  if (nPoints <= 0) return; // Yeah right.. build from nothing!
 
   // Clear all existing nodes.
   for (unsigned int i = 0; i < this->Internal->Nodes.size(); i++)
@@ -1077,19 +1103,7 @@ void vtkPlaneContourRepresentation::Initialize(vtkPolyData * pd)
     node->WorldPosition[2] = pos[2];
     node->Selected = 0;
 
-    switch(Orientation)
-    {
-      case AXIAL:
-        node->WorldPosition[this->Orientation] = -0.1;
-        break;
-      case CORONAL:
-      case SAGITTAL:
-        node->WorldPosition[this->Orientation] = 0.1;
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
+    node->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
 
     node->NormalizedDisplayPosition[0] = displayPos[0];
     node->NormalizedDisplayPosition[1] = displayPos[1];
@@ -1113,29 +1127,21 @@ void vtkPlaneContourRepresentation::Initialize(vtkPolyData * pd)
         node->WorldPosition[1] = worldPos[1];
         node->WorldPosition[2] = worldPos[2];
 
-        switch(Orientation)
-        {
-          case AXIAL:
-            node->WorldPosition[this->Orientation] = -0.1;
-            break;
-          case CORONAL:
-          case SAGITTAL:
-            node->WorldPosition[this->Orientation] = 0.1;
-            break;
-          default:
-            Q_ASSERT(false);
-            break;
-        }
+        node->WorldPosition[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
       }
     }
   }
 
   if (pointIds->GetNumberOfIds() > nPoints)
+  {
     this->ClosedLoopOn();
+  }
 
   // Update the contour representation from the nodes using the line interpolator
   for (vtkIdType i = 1; i <= nPoints; ++i)
+  {
     this->UpdateLines(i);
+  }
 
   this->BuildRepresentation();
 
@@ -1143,10 +1149,10 @@ void vtkPlaneContourRepresentation::Initialize(vtkPolyData * pd)
   this->VisibilityOn();
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::BuildLocator()
 {
-  if (!this->RebuildLocator && !this->NeedToRender)
-    return;     // rebuild if rebuildLocator or needtorender are true
+  if (!this->RebuildLocator && !this->NeedToRender) return; // rebuild if rebuildLocator or needtorender are true
 
   vtkIdType size = (vtkIdType) this->Internal->Nodes.size();
   vtkPoints *points = vtkPoints::New();
@@ -1172,7 +1178,9 @@ void vtkPlaneContourRepresentation::BuildLocator()
     viewPortRatio[1] = (sizey * (viewPort[3] - viewPort[1])) / 2.0 + sizey * viewPort[1];
   }
   else
-    return;     //can't compute the locator without a vtk window
+  {
+    return; //can't compute the locator without a vtk window
+  }
 
   double view[4];
   double pos[3] = { 0, 0, 0 };
@@ -1214,6 +1222,7 @@ void vtkPlaneContourRepresentation::BuildLocator()
   this->RebuildLocator = false;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::SetShowSelectedNodes(int flag)
 {
   if (this->ShowSelectedNodes != flag)
@@ -1223,6 +1232,7 @@ void vtkPlaneContourRepresentation::SetShowSelectedNodes(int flag)
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
@@ -1237,14 +1247,19 @@ void vtkPlaneContourRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "Current Operation: ";
   if (this->CurrentOperation == vtkPlaneContourRepresentation::Inactive)
+  {
     os << "Inactive\n";
+  }
   else
+  {
     os << "Translate\n";
+  }
 
   os << indent << "Line Interpolator: " << this->LineInterpolator << "\n";
   os << indent << "Point Placer: " << this->PointPlacer << "\n";
 }
 
+//----------------------------------------------------------------------------
 bool vtkPlaneContourRepresentation::CheckNodesForDuplicates(int node1, int node2)
 {
   int numNodes = this->GetNumberOfNodes();
@@ -1259,11 +1274,14 @@ bool vtkPlaneContourRepresentation::CheckNodesForDuplicates(int node1, int node2
   this->GetNthNodeWorldPosition(node2, p2);
 
   if ((p1[0] == p2[0]) && (p1[1] == p2[1]) && (p1[2] == p2[2]))
+  {
     return true;
+  }
 
   return false;
 }
 
+//----------------------------------------------------------------------------
 bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(void)
 {
   double intersection[3];
@@ -1280,7 +1298,9 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
   {
     // delete useless nodes
     for (int j = 0; j <= node; j++)
+    {
       this->DeleteNthNode(0);
+    }
 
     if (previousNode)
     {
@@ -1293,10 +1313,14 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
     while (this->LineIntersection(lastNode - 1, intersection, &node, &previousNode))
     {
       for (int j = 0; j <= node; j++)
+      {
         this->DeleteNthNode(0);
+      }
 
       if (previousNode)
+      {
         this->DeleteLastNode();
+      }
 
       lastNode = this->GetNumberOfNodes()-1;
     }
@@ -1314,7 +1338,9 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
   if (this->LineIntersection(lastNode, intersection, &node, &previousNode))
   {
     for (int j = this->GetNumberOfNodes() - 1; j > node; j--)
+    {
       this->DeleteLastNode();
+    }
 
     if (previousNode)
     {
@@ -1327,10 +1353,14 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
     while (this->LineIntersection(lastNode, intersection, &node, &previousNode))
     {
       for (int j = this->GetNumberOfNodes() - 1; j > node; j--)
+      {
         this->DeleteLastNode();
+      }
 
       if (previousNode)
+      {
         this->DeleteLastNode();
+      }
 
       lastNode = this->GetNumberOfNodes()-1;
     }
@@ -1344,6 +1374,7 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
   return false;
 }
 
+//----------------------------------------------------------------------------
 bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
 {
   // remove duplicated nodes except the last one (the cursor node)
@@ -1354,11 +1385,12 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
     this->GetNthNodeWorldPosition(i+1, p2);
 
     if ((p1[0] == p2[0]) && (p1[1] == p2[1]) && (p1[2] == p2[2]))
+    {
       this->DeleteNthNode(i+1);
+    }
   }
 
-  if (this->GetNumberOfNodes() < 4)
-    return false;
+  if (this->GetNumberOfNodes() < 4) return false;
 
   double intersection[3];
   int node;
@@ -1371,7 +1403,9 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
   {
     // delete useless nodes
     for (int j = 0; j <= node; j++)
+    {
       this->DeleteNthNode(0);
+    }
 
     if (previousNode)
     {
@@ -1384,17 +1418,23 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
     while (LineIntersection(lastNode-1, intersection, &node, &previousNode))
     {
       for (int j = 0; j <= node; j++)
+      {
         this->DeleteNthNode(0);
+      }
 
       if (previousNode)
+      {
         this->DeleteLastNode();
+      }
 
       lastNode = (this->CheckNodesForDuplicates(this->GetNumberOfNodes()-1, this->GetNumberOfNodes()-2) ? this->GetNumberOfNodes()-2 : this->GetNumberOfNodes()-1);
     }
 
     // we have an intersection so delete the cursor nodeif duplicated and the last one
     if (this->CheckNodesForDuplicates(this->GetNumberOfNodes() - 1, this->GetNumberOfNodes() - 2))
+    {
       this->DeleteLastNode();
+    }
 
     this->DeleteLastNode();
 
@@ -1407,6 +1447,7 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
   return false;
 }
 
+//----------------------------------------------------------------------------
 bool vtkPlaneContourRepresentation::CheckContourIntersection(int nodeA)
 {
   // must check the intersection of (nodeA-1, nodeA) and (nodeA, nodeA+1)
@@ -1415,28 +1456,34 @@ bool vtkPlaneContourRepresentation::CheckContourIntersection(int nodeA)
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
   {
     if (this->NodesIntersection(nodeA, i))
+    {
       return true;
+    }
 
     if (this->NodesIntersection(nodeB, i))
+    {
       return true;
+    }
   }
 
   return false;
 }
 
+//----------------------------------------------------------------------------
 bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection, int *intersectionNode, bool *previous)
 {
   int node = n;
   int numNodes = this->GetNumberOfNodes() - 1;
 
-  if ((node < 0) || (node > numNodes) || (numNodes < 3))
-    return false;
+  if ((node < 0) || (node > numNodes) || (numNodes < 3)) return false;
 
   // avoid using the cursor node when (n-1) is the same node as (n)
   if (this->CheckNodesForDuplicates(numNodes, numNodes - 1))
   {
     if (node == numNodes)
+    {
       node--;
+    }
 
     numNodes--;
   }
@@ -1454,7 +1501,9 @@ bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection
   {
     // we already know we're colliding with those nodes
     if ((node == i) || (previousNode == i))
+    {
       continue;
+    }
 
     if (NodesIntersection(previousNode, i) && (i != previousNode-1))
     {
@@ -1500,15 +1549,15 @@ bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection
   return false;
 }
 
-// we orient the point where the coursor is attending to the plane is in
+//----------------------------------------------------------------------------
+// we orient the point where the cursor is attending to the plane is in
 // (axial, coronal, sagittal), and do the same with the contour points.
 // that's because we're going to compute the shooting algorithm in an
 // axial coordinated plane.
 bool vtkPlaneContourRepresentation::ShootingAlgorithm(int X, int Y)
 {
   // is the polygon closed?
-  if (!this->ClosedLoop)
-    return false;
+  if (!this->ClosedLoop) return false;
 
   double displayPos[3] = { static_cast<double>(X), static_cast<double>(Y), 0.0 };
   double point[3];
@@ -1519,12 +1568,12 @@ bool vtkPlaneContourRepresentation::ShootingAlgorithm(int X, int Y)
   // from now on only coords [0] and [1] as we're working in a plane
   switch(this->Orientation)
   {
-    case AXIAL:
+    case Plane::XY:
       break;
-    case CORONAL:
+    case Plane::XZ:
       point[1] = point[2];
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       point[0] = point[1];
       point[1] = point[2];
       break;
@@ -1546,13 +1595,13 @@ bool vtkPlaneContourRepresentation::ShootingAlgorithm(int X, int Y)
 
     switch(this->Orientation)
     {
-      case AXIAL:
+      case Plane::XY:
         break;
-      case CORONAL:
+      case Plane::XZ:
         p1[1] = p1[2];
         p2[1] = p2[2];
         break;
-      case SAGITTAL:
+      case Plane::YZ:
         p1[0] = p1[1];
         p1[1] = p1[2];
         p2[0] = p2[1];
@@ -1565,14 +1614,18 @@ bool vtkPlaneContourRepresentation::ShootingAlgorithm(int X, int Y)
 
     // check if the point is a vertex
     if ((point[0] == p1[0]) && (point[1] == p1[1]))
+    {
       return false;
+    }
 
     if (((p1[1] - point[1]) > 0) != ((p2[1] - point[1]) > 0))
     {
       double x = ((p1[0] - point[0]) * (double) (p2[1] - point[1]) - (p2[0] - point[0]) * (double) (p1[1] - point[1])) / (double) ((p2[1] - point[1]) - (p1[1] - point[1]));
 
       if (x > 0)
+      {
         right++;
+      }
     }
 
     if (((p1[1] - point[1]) < 0) != ((p2[1] - point[1]) < 0))
@@ -1582,21 +1635,28 @@ bool vtkPlaneContourRepresentation::ShootingAlgorithm(int X, int Y)
           / (double) ((p2[1] - point[1]) - (p1[1] - point[1]));
 
       if (x < 0)
+      {
         left++;
+      }
     }
   }
 
   // check if the point belongs to the frontier
   if ((right % 2) != (left % 2))
+  {
     return false;
+  }
 
   // if there is an even number of intersections then the point is inside
   if ((right % 2) == 1)
+  {
     return true;
+  }
 
   return false;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::RemoveDuplicatedNodes()
 {
   int i = this->GetNumberOfNodes() - 2;
@@ -1608,20 +1668,22 @@ void vtkPlaneContourRepresentation::RemoveDuplicatedNodes()
     this->GetNthNodeWorldPosition(i + 1, pos2);
 
     if ((pos1[0] == pos2[0]) && (pos1[1] == pos2[1]) && (pos1[2] == pos2[2]))
+    {
       this->DeleteNthNode(i + 1);
+    }
 
     i--;
   }
 }
 
+//----------------------------------------------------------------------------
 // checks intersection between segments [A,B], [C,D]
 bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
 {
   double a[3], b[3], c[3], d[3];
 
   // don't want to check the obvious case, return false instead of true
-  if (nodeA == nodeC)
-    return false;
+  if (nodeA == nodeC) return false;
 
   int nodeB = (nodeA + 1) % this->GetNumberOfNodes();
   int nodeD = (nodeC + 1) % this->GetNumberOfNodes();
@@ -1634,17 +1696,17 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
   // NOTE: from now on we'll only use [0] and [1] (we're working in a plane)
   switch(this->Orientation)
   {
-    case AXIAL:
+    case Plane::XY:
       // p[0] & p[1] are the correct values
       break;
-    case CORONAL:
+    case Plane::XZ:
       // p[0] & p[2] are the correct values
       a[1] = a[2];
       b[1] = b[2];
       c[1] = c[2];
       d[1] = d[2];
       break;
-    case SAGITTAL:
+    case Plane::YZ:
       // p[1] & p[2] are the correct values
       a[0] = a[1];
       a[1] = a[2];
@@ -1666,19 +1728,27 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
   if (nodeC == nodeB) // check only node A with segment [C,D]
   {
     if (0 != det)
+    {
       return false;
+    }
 
     if ((a[0] == b[0]) && (c[0] == d[0])) // special case: [A,B] and [C,D] are vertical line segments.
     {
       if (a[0] == c[0]) // true if [A,B] and [C,D] are in the same vertical line.
       {
         if (c[1] < d[1]) // check if A is in the bounds of [C,D] (y coord).
+        {
           return ((c[1] <= a[1]) && (a[1] <= d[1]));
+        }
         else
+        {
           return ((d[1] <= a[1]) && (a[1] <= c[1]));
+        }
       }
       else
+      {
         return false;
+      }
     }
 
     // for parallel lines to overlap, they need the same y-intercept. integer relations to y-intercepts of [A,B] and [C,D] are as follows.
@@ -1688,30 +1758,44 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
     if (cd_offset == ab_offset) // true only when [A,B] y_intercept == [C,D] y_intercept.
     {
       if (c[0] < d[0]) // check if A is in the bounds of [C,D] (x coord)
+      {
         return ((c[0] <= a[0]) && (a[0] <= d[0]));
+      }
       else
+      {
         return ((d[0] <= a[0]) && (a[0] <= c[0]));
+      }
     }
     else
+    {
       return false; // different y_intercepts; no intersection.
+    }
   }
 
   if (nodeA == nodeD) // check only node B with segment [C,D]
   {
     if (0 != det)
+    {
       return false;
+    }
 
     if ((a[0] == b[0]) && (c[0] == d[0])) // special case: [A,B] and [C,D] are vertical line segments.
     {
       if (a[0] == c[0]) // true if [A,B] and [C,D] are in the same vertical line.
       {
         if (c[1] < d[1]) // check if B is in the bounds of [C,D] (y coord).
+        {
           return ((c[1] <= b[1]) && (b[1] <= d[1]));
+        }
         else
+        {
           return ((d[1] <= b[1]) && (b[1] <= c[1]));
+        }
       }
       else
+      {
         return false;
+      }
     }
 
     // for parallel lines to overlap, they need the same y-intercept. integer relations to y-intercepts of A and B are as follows.
@@ -1721,12 +1805,18 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
     if (cd_offset == ab_offset) // true only when [A,B] y_intercept == [C,D] y_intercept.
     {
       if (c[0] < d[0]) // check B is in the bounds of [C,D] (x coord)
+      {
         return ((c[0] <= b[0]) && (b[0] <= d[0]));
+      }
       else
+      {
         return ((d[0] <= b[0]) && (b[0] <= c[0]));
+      }
     }
     else
+    {
       return false; // different y_intercepts; no intersection.
+    }
   }
 
   // [A,B] and [C,D] are disjoint segments
@@ -1737,12 +1827,18 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
       if (a[0] == c[0]) // true if [A,B] and [C,D] are in the same vertical line.
       {
         if (c[1] < d[1]) // check if bounds of [A,B] are in the bounds of [C,D]
+        {
           return ((c[1] <= a[1]) && (a[1] <= d[1])) || ((c[1] <= b[1]) && (b[1] <= d[1]));
+        }
         else
+        {
           return ((d[1] <= a[1]) && (a[1] <= c[1])) || ((d[1] <= b[1]) && (b[1] <= c[1]));
+        }
       }
       else
+      {
         return false; // different vertical lines, no intersection.
+      }
     }
 
     // for parallel lines to overlap, they need the same y-intercept. relations to y-intercepts of [A,B] and [C,D] are as follows.
@@ -1752,12 +1848,18 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
     if (b_offset == a_offset) // true only when [A,B] y_intercept == [C,D] y_intercept.
     {
       if (c[0] < d[0]) // true when some bounds of [A,B] are in the bounds of [C,D].
+      {
         return (c[0] <= a[0] && a[0] <= d[0]) || (c[0] <= b[0] && b[0] <= d[0]);
+      }
       else
+      {
         return (d[0] <= a[0] && a[0] <= c[0]) || (d[0] <= b[0] && b[0] <= c[0]);
+      }
     }
     else
+    {
       return false; // different y intercepts; no intersection.
+    }
   }
 
   // nMitc[0] = numerator_of_M_inverse_times_c0
@@ -1768,6 +1870,7 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
   return (((0 <= nMitc[0]) && (nMitc[0] <= det)) && ((0 >= nMitc[1]) && (nMitc[1] >= -det))) || (((0 >= nMitc[0]) && (nMitc[0] >= det)) && ((0 <= nMitc[1]) && (nMitc[1] <= -det)));
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::TranslatePoints(double *vector)
 {
   double worldPos[3];
@@ -1781,6 +1884,7 @@ void vtkPlaneContourRepresentation::TranslatePoints(double *vector)
   }
 }
 
+//----------------------------------------------------------------------------
 double vtkPlaneContourRepresentation::FindClosestDistanceToContour(int x, int y)
 {
   double displayPos_i[3], displayPos_j[3];
@@ -1806,7 +1910,9 @@ double vtkPlaneContourRepresentation::FindClosestDistanceToContour(int x, int y)
         + pow(displayPos_j[1] - displayPos_i[1], 2));
 
     if (tempD == 0.0)
+    {
       continue;
+    }
 
     double distance = fabs(tempN) / tempD;
 
@@ -1823,25 +1929,32 @@ double vtkPlaneContourRepresentation::FindClosestDistanceToContour(int x, int y)
       double dist2 = fabs(sqrt(pow(displayPos_j[0] - static_cast<double>(x), 2) + pow(displayPos_j[1] - static_cast<double>(y), 2)));
 
       if (dist1 <= dist2)
+      {
         distance = dist1;
+      }
       else
+      {
         distance = dist2;
+      }
     }
 
     if (distance < result)
+    {
       result = distance;
+    }
   }
 
   return result;
 }
 
-// get/plane orientation
-void vtkPlaneContourRepresentation::SetOrientation(PlaneType orientation)
+//----------------------------------------------------------------------------
+void vtkPlaneContourRepresentation::SetOrientation(Plane orientation)
 {
   this->Orientation = orientation;
 }
 
-PlaneType vtkPlaneContourRepresentation::GetOrientation()
+//----------------------------------------------------------------------------
+Plane vtkPlaneContourRepresentation::GetOrientation()
 {
   return this->Orientation;
 }

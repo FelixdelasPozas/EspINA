@@ -12,8 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkContourToPolygonFilter.h"
-
+#include <GUI/View/Widgets/Contour/vtkContourToPolygonFilter.h>
 #include "vtkDataSet.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"

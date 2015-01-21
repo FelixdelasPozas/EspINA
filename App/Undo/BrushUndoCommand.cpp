@@ -52,7 +52,6 @@ void DrawUndoCommand::redo()
   {
     m_bounds =  m_mask->bounds().bounds();
     auto strokeSpacing = m_output->spacing();
-    //auto strokeOrigin  = m_->position();
 
     auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_bounds, strokeSpacing);
     volume->draw(m_mask);

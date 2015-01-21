@@ -19,13 +19,11 @@
  */
 
 // ESPINA
-#include "vtkPlaneContourWidget.h"
-#include "vtkPlaneContourRepresentation.h"
-#include "vtkPlaneContourRepresentationGlyph.h"
 #include <Core/EspinaTypes.h>
-#include "ContourWidget.h"
-
-// VTK
+#include <GUI/View/Widgets/Contour/ContourWidget.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentation.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
 #include <vtkCommand.h>
 #include <vtkCallbackCommand.h>
 #include <vtkRenderWindowInteractor.h>
@@ -56,19 +54,20 @@ vtkStandardNewMacro(vtkPlaneContourWidget);
 
 //----------------------------------------------------------------------------
 vtkPlaneContourWidget::vtkPlaneContourWidget()
-: WidgetState(vtkPlaneContourWidget::Start)
-, CurrentHandle(0)
-, AllowNodePicking(true)
-, FollowCursor(true)
-, ContinuousDraw(true)
-, ContinuousActive(0)
-, Orientation(CORONAL)
-, ContinuousDrawTolerance(40)
-, mouseButtonDown(false)
-, m_polygonColor(Qt::black)
-, m_parent(NULL)
-, m_contourMode(Brush::BRUSH)
-, m_actualBrushMode(Brush::BRUSH)
+: WidgetState            {vtkPlaneContourWidget::Start}
+, CurrentHandle          {0}
+, AllowNodePicking       {true}
+, FollowCursor           {true}
+, ContinuousDraw         {true}
+, ContinuousActive       {0}
+, Orientation            {Plane::XY}
+, ContinuousDrawTolerance{40}
+, mouseButtonDown        {false}
+, m_polygonColor         {Qt::black}
+, m_parent               {nullptr}
+, m_contourMode          {BrushSelector::BrushMode::BRUSH}
+, m_actualBrushMode      {BrushSelector::BrushMode::BRUSH}
+, m_actorShift           {0}
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -96,7 +95,9 @@ vtkPlaneContourWidget::~vtkPlaneContourWidget()
 {
   // restore the pointer if the widget has changed it
   if (this->ManagesCursor == true)
+  {
     QApplication::restoreOverrideCursor();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -104,18 +105,13 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
 {
   if (!this->WidgetRep)
   {
-    vtkPlaneContourRepresentationGlyph *rep = vtkPlaneContourRepresentationGlyph::New();
+    auto rep = vtkPlaneContourRepresentationGlyph::New();
     this->WidgetRep = rep;
 
-    vtkSmartPointer<vtkLinearContourLineInterpolator> interpolator = vtkSmartPointer<vtkLinearContourLineInterpolator>::New();
+    auto interpolator = vtkSmartPointer<vtkLinearContourLineInterpolator>::New();
     rep->SetLineInterpolator(interpolator);
 
-    vtkSphereSource *ss = vtkSphereSource::New();
-    ss->SetRadius(0.5);
-    rep->SetActiveCursorShape(ss->GetOutput());
-    ss->Delete();
-
-    vtkProperty *property = vtkProperty::SafeDownCast(rep->GetActiveProperty());
+    auto property = vtkProperty::SafeDownCast(rep->GetActiveProperty());
     if (property)
     {
       property->SetRepresentationToSurface();
@@ -123,13 +119,16 @@ void vtkPlaneContourWidget::CreateDefaultRepresentation()
       property->SetDiffuse(0.9);
       property->SetSpecular(0.0);
     }
+
+    rep->setShift(this->m_actorShift);
+    rep->setSlice(this->m_slice);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::CloseLoop()
 {
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   if (!rep->GetClosedLoop() && rep->GetNumberOfNodes() > 1)
   {
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
@@ -145,18 +144,21 @@ void vtkPlaneContourWidget::SetEnabled(int enabling)
 {
   // The handle widgets are not actually enabled until they are placed.
   // The handle widgets take their representation from the vtkPlaneContourRepresentation.
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   if (enabling)
   {
     if (this->WidgetState == vtkPlaneContourWidget::Start)
     {
-      reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->VisibilityOff();
-      reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->UseContourPolygon(false);
+      rep->VisibilityOff();
+      rep->UseContourPolygon(false);
     }
     else
     {
-      reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->VisibilityOn();
+      rep->VisibilityOn();
       if (this->WidgetState == vtkPlaneContourWidget::Manipulate)
-        reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->UseContourPolygon(true);
+      {
+        rep->UseContourPolygon(true);
+      }
     }
   }
 
@@ -167,10 +169,10 @@ void vtkPlaneContourWidget::SetEnabled(int enabling)
 // The following methods are the callbacks that the contour widget responds to.
 void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
-  Qt::KeyboardModifiers pressedKeys = QApplication::keyboardModifiers();
+  auto pressedKeys = QApplication::keyboardModifiers();
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -200,13 +202,13 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       if ((self->FollowCursor || self->ContinuousDraw) && (rep->GetNumberOfNodes() == 0))
       {
         self->m_parent->startContourFromWidget();
-        vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(self->WidgetRep);
+        auto repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(self->WidgetRep);
         switch(self->m_actualBrushMode)
         {
-          case Brush::BRUSH:
+          case BrushSelector::BrushMode::BRUSH:
             repGlyph->SetLineColor(0,0,1);
             break;
-          case Brush::ERASER:
+          case BrushSelector::BrushMode::ERASER:
             repGlyph->SetLineColor(1,0,0);
             break;
           default:
@@ -234,7 +236,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         rep->UseContourPolygon(true);
         self->WidgetState = vtkPlaneContourWidget::Manipulate;
         self->EventCallbackCommand->SetAbortFlag(1);
-        self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+        self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
         self->m_contourMode = self->m_actualBrushMode;
         self->m_parent->endContourFromWidget();
       }
@@ -268,7 +270,7 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       if (rep->ActivateNode(X, Y))
       {
         self->Superclass::StartInteraction();
-        self->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+        self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
         self->StartInteraction();
         rep->SetCurrentOperationToTranslate();
         rep->StartWidgetInteraction(pos);
@@ -307,13 +309,13 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
   if (self->WidgetState == vtkPlaneContourWidget::Manipulate)
   {
     // pass the event forward
-    vtkInteractorStyle *style = reinterpret_cast<vtkInteractorStyle*>(self->GetInteractor()->GetInteractorStyle());
+    auto style = reinterpret_cast<vtkInteractorStyle*>(self->GetInteractor()->GetInteractorStyle());
     style->OnRightButtonDown();
     return;
   }
@@ -322,10 +324,11 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 
   // the last node is the cursor so we need to check if there are really that amount of unique points in the representation
   if (rep->CheckNodesForDuplicates(numnodes - 1, numnodes - 2))
+  {
     numnodes--;
+  }
 
-  if (numnodes < 3)
-    return;
+  if (numnodes < 3) return;
 
   // assumed at this point
   Q_ASSERT(self->WidgetState != vtkPlaneContourWidget::Manipulate);
@@ -333,13 +336,17 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
   // In follow cursor and continuous draw mode, the "extra" node
   // has already been added for us.
   if (!self->FollowCursor && !self->ContinuousDraw)
+  {
     self->AddNode();
+  }
 
   // need to modify the contour if intersects with itself
   rep->CheckAndCutContourIntersectionInFinalPoint();
 
   if (self->ContinuousDraw)
+  {
     self->ContinuousActive = 0;
+  }
 
   // set the closed loop now
   rep->ClosedLoopOn();
@@ -347,7 +354,7 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 
   self->WidgetState = vtkPlaneContourWidget::Manipulate;
   self->EventCallbackCommand->SetAbortFlag(1);
-  self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -373,7 +380,7 @@ void vtkPlaneContourWidget::AddNode()
   int Y = this->Interactor->GetEventPosition()[1];
 
   // If the rep already has at least 2 nodes, check how close we are to the first
-  vtkPlaneContourRepresentation* rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
 
   int numNodes = rep->GetNumberOfNodes();
   if (numNodes > 1)
@@ -386,7 +393,9 @@ void vtkPlaneContourWidget::AddNode()
     {
       double nodePos[3];
       if (this->FollowCursor)
+      {
         rep->DeleteLastNode();
+      }
       rep->GetNthNodeWorldPosition(closestNode, nodePos);
       rep->AddNodeAtWorldPosition(nodePos);
       rep->CheckAndCutContourIntersectionInFinalPoint();
@@ -398,7 +407,7 @@ void vtkPlaneContourWidget::AddNode()
       this->WidgetState = vtkPlaneContourWidget::Manipulate;
       this->Render();
       this->EventCallbackCommand->SetAbortFlag(1);
-      this->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+      this->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
       this->m_contourMode = this->m_actualBrushMode;
       this->m_parent->endContourFromWidget();
 
@@ -418,24 +427,24 @@ void vtkPlaneContourWidget::AddNode()
   if (rep->AddNodeAtDisplayPosition(X, Y))
   {
     if (this->WidgetState == vtkPlaneContourWidget::Start)
-      this->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+    {
+      this->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
+    }
 
     this->WidgetState = vtkPlaneContourWidget::Define;
     rep->VisibilityOn();
     this->EventCallbackCommand->SetAbortFlag(1);
-    this->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+    this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::TranslateContourAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
-  if (self->WidgetState != vtkPlaneContourWidget::Manipulate)
-    return;
-
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  if (self->WidgetState != vtkPlaneContourWidget::Manipulate) return;
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -444,7 +453,7 @@ void vtkPlaneContourWidget::TranslateContourAction(vtkAbstractWidget *w)
   pos[1] = Y;
 
   self->Superclass::StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+  self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
   self->StartInteraction();
   rep->SetCurrentOperationToShift(); // Here
   rep->StartWidgetInteraction(pos);
@@ -461,12 +470,10 @@ void vtkPlaneContourWidget::TranslateContourAction(vtkAbstractWidget *w)
 // not used
 void vtkPlaneContourWidget::ScaleContourAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
-  if (self->WidgetState != vtkPlaneContourWidget::Manipulate)
-    return;
-
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  if (self->WidgetState != vtkPlaneContourWidget::Manipulate) return;
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -477,7 +484,7 @@ void vtkPlaneContourWidget::ScaleContourAction(vtkAbstractWidget *w)
   if (rep->ActivateNode(X, Y))
   {
     self->Superclass::StartInteraction();
-    self->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+    self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
     self->StartInteraction();
     rep->SetCurrentOperationToScale(); // Here
     rep->StartWidgetInteraction(pos);
@@ -492,7 +499,7 @@ void vtkPlaneContourWidget::ScaleContourAction(vtkAbstractWidget *w)
       rep->GetNthNodeDisplayPosition(idx, pos);
       rep->ActivateNode(pos);
       self->Superclass::StartInteraction();
-      self->InvokeEvent(vtkCommand::StartInteractionEvent, NULL);
+      self->InvokeEvent(vtkCommand::StartInteractionEvent, nullptr);
       self->StartInteraction();
       rep->SetCurrentOperationToScale(); // Here
       rep->StartWidgetInteraction(pos);
@@ -510,17 +517,15 @@ void vtkPlaneContourWidget::ScaleContourAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::DeleteAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
-  if (self->WidgetState == vtkPlaneContourWidget::Start)
-    return;
-
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  if (self->WidgetState == vtkPlaneContourWidget::Start) return;
 
   if (self->WidgetState == vtkPlaneContourWidget::Define)
   {
     if (rep->DeleteLastNode())
-      self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+      self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
   }
   else
   {
@@ -533,7 +538,7 @@ void vtkPlaneContourWidget::DeleteAction(vtkAbstractWidget *w)
     int Y = self->Interactor->GetEventPosition()[1];
     rep->ActivateNode(X, Y);
     if (rep->DeleteActiveNode())
-      self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+      self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
 
     rep->ActivateNode(X, Y);
   }
@@ -555,14 +560,13 @@ void vtkPlaneContourWidget::DeleteAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
-  if (self->WidgetState == vtkPlaneContourWidget::Start)
-    return;
+  if (self->WidgetState == vtkPlaneContourWidget::Start) return;
 
   self->WidgetRep->ComputeInteractionState(X, Y);
   int state = self->WidgetRep->GetInteractionState();
@@ -582,10 +586,12 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
           if (self->ContinuousDraw && self->ContinuousActive)
           {
             if (self->IsPointTooClose(X, Y) && (rep->GetNumberOfNodes() > 2))
+            {
               return;
+            }
 
             rep->AddNodeAtDisplayPosition(X, Y);
-            self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+            self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
 
             // check the contour detect if it intersects with itself
             if (rep->CheckAndCutContourIntersection())
@@ -593,10 +599,14 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
               // last check
               int numNodes = rep->GetNumberOfNodes();
               if (rep->CheckNodesForDuplicates(numNodes - 1, numNodes - 2))
+              {
                 rep->DeleteNthNode(numNodes - 2);
+              }
 
               if (self->ContinuousDraw)
+              {
                 self->ContinuousActive = 0;
+              }
 
               // set the closed loop now
               rep->ClosedLoopOn();
@@ -604,7 +614,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
 
               self->WidgetState = vtkPlaneContourWidget::Manipulate;
               self->EventCallbackCommand->SetAbortFlag(1);
-              self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+              self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
               self->m_contourMode = self->m_actualBrushMode;
               self->m_parent->endContourFromWidget();
               return;
@@ -614,7 +624,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
           {
             // If we aren't changing the loop topology, simply update the position of the latest node to follow the mouse cursor position (X,Y).
             rep->SetNthNodeDisplayPosition(numNodes - 1, X, Y);
-            self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+            self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
           }
         }
       }
@@ -634,7 +644,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
     pos[0] = X;
     pos[1] = Y;
     self->WidgetRep->WidgetInteraction(pos);
-    self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+    self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
   }
 
   if (self->WidgetRep->GetNeedToRender())
@@ -647,8 +657,8 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
   if (self->ContinuousDraw)
   {
@@ -666,11 +676,13 @@ void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
   rep->SetCurrentOperationToInactive();
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Superclass::EndInteraction();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent, NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
 
   // Node picking
   if (self->AllowNodePicking && self->Interactor->GetControlKey() && self->WidgetState == vtkPlaneContourWidget::Manipulate)
+  {
     rep->ToggleActiveNodeSelected();
+  }
 
   if (self->WidgetRep->GetNeedToRender())
   {
@@ -689,21 +701,23 @@ void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::ResetAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
-  self->Initialize(NULL);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  self->Initialize(nullptr);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
 {
   if (!this->WidgetRep)
+  {
     this->CreateDefaultRepresentation();
+  }
 
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   rep->UseContourPolygon(false);
 
-  Brush::BrushMode brushMode;
-  if (pd == NULL)
+  BrushSelector::BrushMode brushMode;
+  if (!pd)
   {
     while (rep->DeleteLastNode())
     {
@@ -722,15 +736,16 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
     this->WidgetState = vtkPlaneContourWidget::Manipulate;
     rep->UseContourPolygon(true);
     brushMode = m_contourMode;
+    rep->NeedToRenderOn();
   }
 
-  vtkPlaneContourRepresentationGlyph *repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
+  auto repGlyph = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
   switch(brushMode)
   {
-    case Brush::BRUSH:
+    case BrushSelector::BrushMode::BRUSH:
       repGlyph->SetLineColor(0,0,1);
       break;
-    case Brush::ERASER:
+    case BrushSelector::BrushMode::ERASER:
       repGlyph->SetLineColor(1,0,0);
       break;
     default:
@@ -742,22 +757,26 @@ void vtkPlaneContourWidget::Initialize(vtkPolyData * pd, int state)
   int Y = this->Interactor->GetEventPosition()[1];
   this->WidgetRep->ComputeInteractionState(X,Y);
   int wState = this->WidgetRep->GetInteractionState();
-  if (pd == NULL)
+  if (!pd)
+  {
     this->SetCursor(vtkPlaneContourRepresentation::Outside);
+  }
   else
+  {
     this->SetCursor(wState);
+  }
+  this->Render();
 }
 
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::SetAllowNodePicking(int val)
 {
-  if (this->AllowNodePicking == val)
-    return;
+  if (this->AllowNodePicking == val) return;
 
   this->AllowNodePicking = val;
   if (this->AllowNodePicking)
   {
-    vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+    auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
     rep->SetShowSelectedNodes(this->AllowNodePicking);
   }
 }
@@ -782,7 +801,7 @@ int vtkPlaneContourWidget::FindClosestNode()
   int closestNode = -1;
   double closestDistance = VTK_DOUBLE_MAX;
 
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   if (rep->GetNumberOfNodes() >= 4)
   {
     int pixelTolerance = rep->GetPixelTolerance();
@@ -828,7 +847,7 @@ void vtkPlaneContourWidget::SetCursor(int cState)
   }
 
   // using vtk keypress/keyrelease events is useless when the interactor loses it's focus
-  Qt::KeyboardModifiers pressedKeys = QApplication::keyboardModifiers();
+  auto pressedKeys = QApplication::keyboardModifiers();
 
   if (!this->ManagesCursor && cState != vtkPlaneContourRepresentation::Outside)
   {
@@ -841,15 +860,23 @@ void vtkPlaneContourWidget::SetCursor(int cState)
     case vtkPlaneContourRepresentation::Nearby:
     case vtkPlaneContourRepresentation::NearPoint:
       if (pressedKeys & Qt::ShiftModifier)
+      {
         QApplication::changeOverrideCursor(crossMinusCursor);
+      }
       else
+      {
         QApplication::changeOverrideCursor(Qt::PointingHandCursor);
+      }
       break;
     case vtkPlaneContourRepresentation::NearContour:
       if (pressedKeys & Qt::ShiftModifier)
+      {
         QApplication::changeOverrideCursor(Qt::CrossCursor);
+      }
       else
+      {
         QApplication::changeOverrideCursor(crossPlusCursor);
+      }
       break;
     case vtkPlaneContourRepresentation::Inside:
       this->RequestCursorShape(VTK_CURSOR_SIZEALL);
@@ -872,15 +899,15 @@ void vtkPlaneContourWidget::SetCursor(int cState)
 //     focus in the interactor associated with the widgets when the mouse leaves or enters those widgets.
 void vtkPlaneContourWidget::KeyPressAction(vtkAbstractWidget *w)
 {
-  vtkPlaneContourWidget *self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
 
-  std::string key = std::string(self->Interactor->GetKeySym());
+  auto key = std::string(self->Interactor->GetKeySym());
 
   if (("Delete" == key) || ("BackSpace" == key))
   {
     self->EnabledOff();
     self->ResetAction(w);
-    self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
+    self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
     self->SetCursor(vtkPlaneContourRepresentation::Outside);
     self->EnabledOn();
     return;
@@ -895,15 +922,15 @@ void vtkPlaneContourWidget::KeyPressAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------------
-void vtkPlaneContourWidget::SetOrientation(PlaneType plane)
+void vtkPlaneContourWidget::SetOrientation(Plane plane)
 {
   Orientation = plane;
-  vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
   rep->SetOrientation(Orientation);
 }
 
 //----------------------------------------------------------------------------
-PlaneType vtkPlaneContourWidget::GetOrientation()
+Plane vtkPlaneContourWidget::GetOrientation()
 {
   return Orientation;
 }
@@ -911,15 +938,17 @@ PlaneType vtkPlaneContourWidget::GetOrientation()
 //----------------------------------------------------------------------------
 bool vtkPlaneContourWidget::IsPointTooClose(int X, int Y)
 {
-  vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
   return (rep->Distance2BetweenPoints(X,Y, rep->GetNumberOfNodes()-2) < this->ContinuousDrawTolerance);
 }
 
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::setPolygonColor(QColor color)
 {
+  if(color == m_polygonColor) return;
+
   this->m_polygonColor = color;
-  vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph *>(this->WidgetRep);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph *>(this->WidgetRep);
   rep->setPolygonColor(color);
 }
 
@@ -930,25 +959,25 @@ QColor vtkPlaneContourWidget::getPolygonColor()
 }
 
 //----------------------------------------------------------------------------
-void vtkPlaneContourWidget::setActualContourMode(Brush::BrushMode mode)
+void vtkPlaneContourWidget::setActualContourMode(BrushSelector::BrushMode mode)
 {
   m_contourMode = mode;
 }
 
 //----------------------------------------------------------------------------
-void vtkPlaneContourWidget::setContourMode(Brush::BrushMode mode)
+void vtkPlaneContourWidget::setContourMode(BrushSelector::BrushMode mode)
 {
   m_actualBrushMode = mode;
 
   if (this->WidgetState != vtkPlaneContourWidget::Manipulate)
   {
-    vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
+    auto rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
     switch(m_actualBrushMode)
     {
-      case Brush::BRUSH:
+      case BrushSelector::BrushMode::BRUSH:
         rep->SetLineColor(0,0,1);
         break;
-      case Brush::ERASER:
+      case BrushSelector::BrushMode::ERASER:
         rep->SetLineColor(1,0,0);
         break;
       default:
@@ -959,7 +988,32 @@ void vtkPlaneContourWidget::setContourMode(Brush::BrushMode mode)
 }
 
 //----------------------------------------------------------------------------
-Brush::BrushMode vtkPlaneContourWidget::getContourMode()
+BrushSelector::BrushMode vtkPlaneContourWidget::getContourMode()
 {
   return m_contourMode;
+}
+
+//----------------------------------------------------------------------------
+void vtkPlaneContourWidget::setActorsShift(Nm value)
+{
+  if(value == m_actorShift) return;
+
+  m_actorShift = value;
+  if(this->WidgetRep)
+  {
+    reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep)->setShift(value);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkPlaneContourWidget::setSlice(Nm slice)
+{
+  if(m_slice == slice) return;
+
+  m_slice = slice;
+
+  if(this->WidgetRep)
+  {
+    reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep)->setSlice(slice);
+  }
 }

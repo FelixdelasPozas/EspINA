@@ -20,39 +20,154 @@
 
 // ESPINA
 #include "ContourSelector.h"
+#include <GUI/View/View2D.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
 
 // Qt
-#include <QPolygon>
 #include <QEvent>
+#include <QCursor>
 #include <QMouseEvent>
 #include <QApplication>
-#include <QVTKWidget.h>
+
+// VTK
+#include <vtkRenderWindowInteractor.h>
 
 using namespace ESPINA;
+
+ContourSelector::ContourSelector()
+: m_widget{nullptr}
+{
+  setMultiSelection(false);
+  setCursor(Qt::CrossCursor);
+}
+
+//-----------------------------------------------------------------------------
+void ContourSelector::buildCursor()
+{
+  if(m_widget)
+  {
+    auto mode = (m_drawing ? BrushMode::BRUSH : BrushMode::ERASER);
+    for(auto vtkWidget: m_widget->m_widgets.values())
+    {
+      vtkWidget->setPolygonColor(m_brushColor);
+      vtkWidget->setContourMode(mode);
+    }
+  }
+}
 
 //-----------------------------------------------------------------------------
 bool ContourSelector::filterEvent(QEvent* e, RenderView *view)
 {
+  auto ke = static_cast<QKeyEvent *>(e);
+  auto me = static_cast<QMouseEvent *>(e);
+  auto view2d = dynamic_cast<View2D*>(view);
+
   switch (e->type())
   {
-    case QEvent::Enter:
-      return Selector::filterEvent(e, view);
-      break;
     case QEvent::Leave:
-      return Selector::filterEvent(e, view);
+    case QEvent::Enter:
+      {
+        updateCurrentDrawingMode(view);
+      }
       break;
-    case QEvent::Wheel:
-      return Selector::filterEvent(e, view);
+    case QEvent::KeyPress:
+      {
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking && m_item && (m_item->type() == ViewItemAdapter::Type::SEGMENTATION))
+        {
+          updateCurrentDrawingMode(view);
+          return true;
+        }
+      }
+      break;
+    case QEvent::KeyRelease:
+      {
+        if ((ke->key() == Qt::Key_Shift) && !m_tracking)
+        {
+          updateCurrentDrawingMode(view);
+          return true;
+        }
+      }
+      break;
+    case QEvent::MouseButtonPress:
+      {
+        if(!(me->button() == Qt::MiddleButton) && view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible() && m_widget)
+        {
+          m_widget->m_widgets[view2d]->GetInteractor()->SetEventInformationFlipY(me->x(),
+                                                                                 me->y(),
+                                                                                 Qt::ControlModifier == QApplication::keyboardModifiers(),
+                                                                                 Qt::ShiftModifier == QApplication::keyboardModifiers());
+          // the crtl check is to avoid interference with View2D ctrl+click
+          if (!QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+          {
+            if (me->button() == Qt::LeftButton)
+            {
+              m_tracking = true;
+              startStroke(me->pos(), view);
+              m_widget->m_widgets[view2d]->GetInteractor()->LeftButtonPressEvent();
+            }
+            else
+            {
+              if (me->button() == Qt::RightButton)
+              {
+                m_widget->m_widgets[view2d]->GetInteractor()->RightButtonPressEvent();
+              }
+            }
+            return true;
+          }
+        }
+      }
+      break;
+    case QEvent::MouseMove:
+      {
+        if(view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible() && m_widget)
+        {
+          m_widget->m_widgets[view2d]->GetInteractor()->SetEventInformationFlipY(me->x(),
+                                                                                 me->y(),
+                                                                                 Qt::ControlModifier == QApplication::keyboardModifiers(),
+                                                                                 Qt::ShiftModifier == QApplication::keyboardModifiers());
+
+          if(m_tracking)
+          {
+            updateStroke(me->pos(), view);
+          }
+
+          m_widget->m_widgets[view2d]->GetInteractor()->MouseMoveEvent();
+          return true;
+        }
+      }
+      break;
+    case QEvent::MouseButtonRelease:
+      {
+        if(!(me->button() == Qt::MiddleButton) && view->rect().contains(view->mapFromGlobal(QCursor::pos())) && view->isVisible() && m_widget)
+        {
+          m_widget->m_widgets[view2d]->GetInteractor()->SetEventInformationFlipY(me->x(),
+                                                                                 me->y(),
+                                                                                 Qt::ControlModifier == QApplication::keyboardModifiers(),
+                                                                                 Qt::ShiftModifier == QApplication::keyboardModifiers());
+
+          if (m_tracking && me->button() == Qt::LeftButton)
+          {
+            m_tracking = false;
+            stopStroke(view);
+          }
+
+          if(me->button() == Qt::LeftButton)
+          {
+            m_widget->m_widgets[view2d]->GetInteractor()->LeftButtonReleaseEvent();
+          }
+          else
+          {
+            m_widget->m_widgets[view2d]->GetInteractor()->RightButtonReleaseEvent();
+          }
+
+          return true;
+        }
+      }
       break;
     default:
       break;
   }
 
-  return true;
+  return false;
 }
 
-//-----------------------------------------------------------------------------
-QCursor ContourSelector::cursor()
-{
-  return m_cursor;
-}

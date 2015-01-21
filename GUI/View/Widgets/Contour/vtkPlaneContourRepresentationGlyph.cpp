@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -18,13 +18,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "vtkPlaneContourRepresentationGlyph.h"
-
-// ESPINA
 #include "GUI/Selectors/Selector.h"
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <Core/Utils/Spatial.h>
+#include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.h>
 
 // VTK
 #include <vtkCleanPolyData.h>
@@ -57,12 +55,14 @@
 #include <vtkIncrementalOctreePointLocator.h>
 #include <vtkPolygon.h>
 
+// Qt
 #include <QtGlobal>
 
 using namespace ESPINA;
 
 vtkStandardNewMacro(vtkPlaneContourRepresentationGlyph);
 
+//----------------------------------------------------------------------------
 vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
 {
   this->Property = nullptr;
@@ -79,106 +79,56 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
 
   this->Spacing[0] = 1.0;
   this->Spacing[1] = 1.0;
-  this->CursorShape = nullptr;
-  this->ActiveCursorShape = nullptr;
   this->HandleSize = 0.01;
   this->PointPlacer = vtkFocalPlanePointPlacer::New();
   this->LineInterpolator = vtkBezierContourLineInterpolator::New();
 
   // Represent the position of the cursor
-  this->FocalPoint = vtkPoints::New();
+  this->FocalPoint = vtkSmartPointer<vtkPoints>::New();
   this->FocalPoint->SetNumberOfPoints(1);
   this->FocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
 
   vtkDoubleArray *normals = vtkDoubleArray::New();
   normals->SetNumberOfComponents(3);
-  normals->SetNumberOfTuples(100);
   normals->SetNumberOfTuples(1);
   double n[3] = { 0, 0, 0 };
   normals->SetTuple(0, n);
 
-  // Represent the position of the cursor
-  this->ActiveFocalPoint = vtkPoints::New();
-  this->ActiveFocalPoint->SetNumberOfPoints(100);
-  this->ActiveFocalPoint->SetNumberOfPoints(1);
-  this->ActiveFocalPoint->SetPoint(0, 0.0, 0.0, 0.0);
-
-  vtkDoubleArray *activeNormals = vtkDoubleArray::New();
-  activeNormals->SetNumberOfComponents(3);
-  activeNormals->SetNumberOfTuples(100);
-  activeNormals->SetNumberOfTuples(1);
-  activeNormals->SetTuple(0, n);
-
-  this->FocalData = vtkPolyData::New();
+  this->FocalData = vtkSmartPointer<vtkPolyData>::New();
   this->FocalData->SetPoints(this->FocalPoint);
   this->FocalData->GetPointData()->SetNormals(normals);
   normals->Delete();
 
-  this->ActiveFocalData = vtkPolyData::New();
-  this->ActiveFocalData->SetPoints(this->ActiveFocalPoint);
-  this->ActiveFocalData->GetPointData()->SetNormals(activeNormals);
-  activeNormals->Delete();
-
-  this->Glypher = vtkGlyph3D::New();
-  //TODO 2013-10-08 this->Glypher->SetInput(this->FocalData);
+  this->Glypher = vtkSmartPointer<vtkGlyph3D>::New();
+  this->Glypher->SetInputData(this->FocalData);
   this->Glypher->SetVectorModeToUseNormal();
   this->Glypher->OrientOn();
   this->Glypher->ScalingOn();
   this->Glypher->SetScaleModeToDataScalingOff();
   this->Glypher->SetScaleFactor(1.0);
 
-  this->ActiveGlypher = vtkGlyph3D::New();
-  //TODO 2013-10-08 this->ActiveGlypher->SetInput(this->ActiveFocalData);
-  this->ActiveGlypher->SetVectorModeToUseNormal();
-  this->ActiveGlypher->OrientOn();
-  this->ActiveGlypher->ScalingOn();
-  this->ActiveGlypher->SetScaleModeToDataScalingOff();
-  this->ActiveGlypher->SetScaleFactor(1.0);
-
   // The transformation of the cursor will be done via vtkGlyph3D
   // By default a vtkCursor2D will be used to define the cursor shape
-  vtkCursor2D *cursor2D = vtkCursor2D::New();
+  auto cursor2D = vtkSmartPointer<vtkCursor2D>::New();
   cursor2D->AllOff();
   cursor2D->PointOn();
   cursor2D->Update();
-  this->SetCursorShape(cursor2D->GetOutput());
-  cursor2D->Delete();
 
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetThetaResolution(12);
-  sphere->SetRadius(0.5);
-  sphere->SetCenter(0, 0, 0);
+  this->Glypher->SetSourceData(cursor2D->GetOutput());
 
-  vtkCleanPolyData* clean = vtkCleanPolyData::New();
-  clean->PointMergingOn();
-  clean->CreateDefaultLocator();
-  clean->SetInputConnection(0, sphere->GetOutputPort(0));
+  this->ActiveSource = vtkSmartPointer<vtkSphereSource>::New();
+  this->ActiveSource->SetThetaResolution(12);
+  this->ActiveSource->SetRadius(0.5);
+  this->ActiveSource->SetCenter(0, 0, 0);
 
-  vtkTransform *t = vtkTransform::New();
-  t->RotateZ(90.0);
-
-  vtkTransformPolyDataFilter *tpd = vtkTransformPolyDataFilter::New();
-  tpd->SetInputConnection(0, clean->GetOutputPort(0));
-  tpd->SetTransform(t);
-  clean->Delete();
-  sphere->Delete();
-
-  tpd->Update();
-  this->SetActiveCursorShape(tpd->GetOutput());
-  tpd->Delete();
-  t->Delete();
-
-  //TODO 2013-10-08 this->Glypher->SetSource(this->CursorShape);
-  //TODO 2013-10-08 this->ActiveGlypher->SetSource(this->ActiveCursorShape);
-
-  this->Mapper = vtkPolyDataMapper::New();
-  //TODO 2013-10-08 this->Mapper->SetInput(this->Glypher->GetOutput());
+  this->Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->Mapper->SetInputData(this->Glypher->GetOutput());
   this->Mapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->Mapper->ScalarVisibilityOff();
   this->Mapper->ImmediateModeRenderingOn();
 
-  this->ActiveMapper = vtkPolyDataMapper::New();
-  //TODO 2013-10-08 this->ActiveMapper->SetInput(this->ActiveGlypher->GetOutput());
+  this->ActiveMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->ActiveMapper->SetInputData(this->ActiveSource->GetOutput());
   this->ActiveMapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->ActiveMapper->ScalarVisibilityOff();
   this->ActiveMapper->ImmediateModeRenderingOn();
@@ -186,19 +136,19 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   // Set up the initial properties
   this->CreateDefaultProperties();
 
-  this->Actor = vtkActor::New();
+  this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetMapper(this->Mapper);
   this->Actor->SetProperty(this->Property);
 
-  this->ActiveActor = vtkActor::New();
+  this->ActiveActor = vtkSmartPointer<vtkActor>::New();
   this->ActiveActor->SetMapper(this->ActiveMapper);
   this->ActiveActor->SetProperty(this->ActiveProperty);
 
-  this->Lines = vtkPolyData::New();
-  this->LinesMapper = vtkPolyDataMapper::New();
-  //TODO 2013-10-08 this->LinesMapper->SetInput(this->Lines);
+  this->Lines = vtkSmartPointer<vtkPolyData>::New();
+  this->LinesMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  this->LinesMapper->SetInputData(this->Lines);
 
-  this->LinesActor = vtkActor::New();
+  this->LinesActor = vtkSmartPointer<vtkActor>::New();
   this->LinesActor->SetMapper(this->LinesMapper);
   this->LinesActor->SetProperty(this->LinesProperty);
 
@@ -206,115 +156,25 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   this->InteractionOffset[1] = 0.0;
 
   this->AlwaysOnTop = 0;
-
-  this->SelectedNodesPoints = nullptr;
-  this->SelectedNodesData = nullptr;
-  this->SelectedNodesCursorShape = nullptr;
-  this->SelectedNodesGlypher = nullptr;
-  this->SelectedNodesMapper = nullptr;
-  this->SelectedNodesActor = nullptr;
 }
 
+//----------------------------------------------------------------------------
 vtkPlaneContourRepresentationGlyph::~vtkPlaneContourRepresentationGlyph()
 {
-  this->FocalPoint->Delete();
-  this->FocalData->Delete();
-
-  this->ActiveFocalPoint->Delete();
-  this->ActiveFocalData->Delete();
-
-  this->SetCursorShape(nullptr);
-  this->SetActiveCursorShape(nullptr);
-
-  this->Glypher->Delete();
-  this->Mapper->Delete();
-  this->Actor->Delete();
-
-  this->ActiveGlypher->Delete();
-  this->ActiveMapper->Delete();
-  this->ActiveActor->Delete();
-
-  this->Lines->Delete();
-  this->LinesMapper->Delete();
-  this->LinesActor->Delete();
-
-  this->Property->Delete();
   this->ActiveProperty->Delete();
   this->LinesProperty->Delete();
-
-  // Clear the selected nodes representation
-  if (this->SelectedNodesPoints)
-    this->SelectedNodesPoints->Delete();
-
-  if (this->SelectedNodesData)
-    this->SelectedNodesData->Delete();
-
-  if (this->SelectedNodesCursorShape)
-    this->SelectedNodesCursorShape->Delete();
-
-  if (this->SelectedNodesGlypher)
-    this->SelectedNodesGlypher->Delete();
-
-  if (this->SelectedNodesMapper)
-    this->SelectedNodesMapper->Delete();
-
-  if (this->SelectedNodesActor)
-    this->SelectedNodesActor->Delete();
+  this->Property->Delete();
 
   this->UseContourPolygon(false);
 }
 
-void vtkPlaneContourRepresentationGlyph::SetCursorShape(vtkPolyData *shape)
-{
-  if (shape != this->CursorShape)
-  {
-    if (this->CursorShape)
-      this->CursorShape->Delete();
-
-    this->CursorShape = shape;
-    if (this->CursorShape)
-      this->CursorShape->Register(this);
-
-    //TODO 2013-10-08 if (this->CursorShape)
-      //TODO 2013-10-08 this->Glypher->SetSource(this->CursorShape);
-
-    this->Modified();
-  }
-}
-
-vtkPolyData *vtkPlaneContourRepresentationGlyph::GetCursorShape()
-{
-	return this->CursorShape;
-}
-
-void vtkPlaneContourRepresentationGlyph::SetActiveCursorShape(vtkPolyData *shape)
-{
-  if (shape != this->ActiveCursorShape)
-  {
-    if (this->ActiveCursorShape)
-      this->ActiveCursorShape->Delete();
-
-    this->ActiveCursorShape = shape;
-    if (this->ActiveCursorShape)
-      this->ActiveCursorShape->Register(this);
-
-    //TODO 2013-10-08 if (this->ActiveCursorShape)
-      //TODO 2013-10-08 this->ActiveGlypher->SetSource(this->ActiveCursorShape);
-
-    this->Modified();
-  }
-}
-
-vtkPolyData *vtkPlaneContourRepresentationGlyph::GetActiveCursorShape()
-{
-  return this->ActiveCursorShape;
-}
-
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::SetRenderer(vtkRenderer *ren)
 {
   this->Superclass::SetRenderer(ren);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
   double pos[4], xyz[3];
@@ -333,48 +193,42 @@ int vtkPlaneContourRepresentationGlyph::ComputeInteractionState(int X, int Y, in
   if (vtkMath::Distance2BetweenPoints(xyz, pos) <= tol2)
   {
     this->InteractionState = vtkPlaneContourRepresentationGlyph::Nearby;
-    if (!this->ActiveCursorShape)
-      this->VisibilityOff();
   }
   else
   {
     if (this->ActiveNode != -1)
     {
       this->InteractionState = vtkPlaneContourRepresentation::NearPoint;
-      if (!this->ActiveCursorShape)
-        this->VisibilityOff();
     }
     else
     {
       if (this->FindClosestDistanceToContour(X, Y) <= this->PixelTolerance)
       {
         this->InteractionState = vtkPlaneContourRepresentation::NearContour;
-        if (!this->ActiveCursorShape)
-          this->VisibilityOff();
       }
       else
       {
         if (!this->ClosedLoop)
         {
           this->InteractionState = vtkPlaneContourRepresentationGlyph::Outside;
-          if (!this->CursorShape)
-            this->VisibilityOff();
         }
         else
         {
           if (!this->ShootingAlgorithm(X, Y))
           {
             this->InteractionState = vtkPlaneContourRepresentationGlyph::Outside;
-            if (!this->CursorShape)
-              this->VisibilityOff();
           }
           else
           {
             // checking the active node allow better node picking, even being inside the polygon
             if (-1 == this->ActiveNode)
+            {
               this->InteractionState = vtkPlaneContourRepresentation::Inside;
+            }
             else
+            {
               this->InteractionState = vtkPlaneContourRepresentationGlyph::Outside;
+            }
           }
         }
       }
@@ -383,6 +237,7 @@ int vtkPlaneContourRepresentationGlyph::ComputeInteractionState(int X, int Y, in
   return this->InteractionState;
 }
 
+//----------------------------------------------------------------------------
 // Record the current event position, and the rectilinear wipe position.
 void vtkPlaneContourRepresentationGlyph::StartWidgetInteraction(double startEventPos[2])
 {
@@ -405,6 +260,7 @@ void vtkPlaneContourRepresentationGlyph::StartWidgetInteraction(double startEven
   this->InteractionOffset[1] = pos[1] - startEventPos[1];
 }
 
+//----------------------------------------------------------------------------
 // Based on the displacement vector (computed in display coordinates) and
 // the cursor state (which corresponds to which part of the widget has been
 // selected), the widget points are modified.
@@ -414,26 +270,32 @@ void vtkPlaneContourRepresentationGlyph::WidgetInteraction(double eventPos[2])
 {
   // Process the motion
   if (this->CurrentOperation == vtkPlaneContourRepresentation::Translate)
+  {
     this->Translate(eventPos);
+  }
 
   if (this->CurrentOperation == vtkPlaneContourRepresentation::Shift)
+  {
     this->ShiftContour(eventPos);
+  }
 
   if (this->CurrentOperation == vtkPlaneContourRepresentation::Scale)
+  {
     this->ScaleContour(eventPos);
+  }
 
-  // Book keeping
+  // Bookeeping
   this->LastEventPosition[0] = eventPos[0];
   this->LastEventPosition[1] = eventPos[1];
 }
 
+//----------------------------------------------------------------------------
 // Translate everything
 void vtkPlaneContourRepresentationGlyph::Translate(double eventPos[2])
 {
   double ref[3];
 
-  if (!this->GetActiveNodeWorldPosition(ref))
-    return;
+  if (!this->GetActiveNodeWorldPosition(ref)) return;
 
   double displayPos[2];
   displayPos[0] = eventPos[0] + this->InteractionOffset[0];
@@ -445,24 +307,14 @@ void vtkPlaneContourRepresentationGlyph::Translate(double eventPos[2])
   if (this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, ref, worldPos, worldOrient))
   {
     this->GetActiveNodeWorldPosition(ref);
-    switch(this->Orientation)
-    {
-      case AXIAL:
-        worldPos[this->Orientation] = -0.1;
-        break;
-      case CORONAL:
-      case SAGITTAL:
-        worldPos[this->Orientation] = 0.1;
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
+    worldPos[normalCoordinateIndex(this->Orientation)] = this->Slice + this->PlaneShift;
     this->SetActiveNodeToWorldPosition(worldPos, worldOrient);
 
     // take back movement if it breaks the contour
     if (this->CheckContourIntersection(this->ActiveNode))
+    {
       this->SetActiveNodeToWorldPosition(ref, worldOrient);
+    }
   }
   else
   {
@@ -471,6 +323,7 @@ void vtkPlaneContourRepresentationGlyph::Translate(double eventPos[2])
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::ShiftContour(double eventPos[2])
 {
   double vector[3];
@@ -495,6 +348,7 @@ void vtkPlaneContourRepresentationGlyph::ShiftContour(double eventPos[2])
   vector[0] = worldPos[0] - worldPos2[0];
   vector[1] = worldPos[1] - worldPos2[1];
   vector[2] = worldPos[2] - worldPos2[2];
+  vector[normalCoordinateIndex(this->Orientation)] = 0; // don't want a shift in the orientation plane.
 
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
   {
@@ -507,6 +361,7 @@ void vtkPlaneContourRepresentationGlyph::ShiftContour(double eventPos[2])
   this->NeedToRenderOn();
 }
 
+//----------------------------------------------------------------------------
 // not used
 void vtkPlaneContourRepresentationGlyph::ScaleContour(double eventPos[2])
 {
@@ -545,6 +400,7 @@ void vtkPlaneContourRepresentationGlyph::ScaleContour(double eventPos[2])
   }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::ComputeCentroid(double* ioCentroid)
 {
   double p[3];
@@ -565,6 +421,7 @@ void vtkPlaneContourRepresentationGlyph::ComputeCentroid(double* ioCentroid)
   ioCentroid[2] *= inv_N;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::Scale(double eventPos[2])
 {
   // Get the current scale factor
@@ -577,10 +434,9 @@ void vtkPlaneContourRepresentationGlyph::Scale(double eventPos[2])
 
   // Scale the handle
   this->Glypher->SetScaleFactor(sf);
-  if (this->ShowSelectedNodes && this->SelectedNodesGlypher)
-    this->SelectedNodesGlypher->SetScaleFactor(sf);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::CreateDefaultProperties()
 {
   this->Property = vtkProperty::New();
@@ -604,19 +460,22 @@ void vtkPlaneContourRepresentationGlyph::CreateDefaultProperties()
   this->LinesProperty->SetLineWidth(1);
 }
 
+//----------------------------------------------------------------------------
 // NOTE: modified to make the representation a closed loop, but the value of closed loop is
 // false until the used ends defining the contour, then its true.
 void vtkPlaneContourRepresentationGlyph::BuildLines()
 {
-  vtkPoints *points = vtkPoints::New();
-  vtkCellArray *lines = vtkCellArray::New();
+  auto points = vtkSmartPointer<vtkPoints>::New();
+  auto lines = vtkSmartPointer<vtkCellArray>::New();
 
   int i, j;
   vtkIdType index = 0;
 
   int count = this->GetNumberOfNodes();
   for (i = 0; i < this->GetNumberOfNodes(); i++)
+  {
     count += this->GetNumberOfIntermediatePoints(i);
+  }
 
   points->SetNumberOfPoints(count);
   vtkIdType numLines;
@@ -655,17 +514,34 @@ void vtkPlaneContourRepresentationGlyph::BuildLines()
 
   this->Lines->SetPoints(points);
   this->Lines->SetLines(lines);
-
-  points->Delete();
-  lines->Delete();
 }
 
+//----------------------------------------------------------------------------
 vtkPolyData *vtkPlaneContourRepresentationGlyph::GetContourRepresentationAsPolyData()
 {
-  // Get the points in this contour as a vtkPolyData.
-  return this->Lines;
+  vtkPolyData *polyData = nullptr;
+
+  if(this->Lines != nullptr && this->Lines->GetNumberOfLines() != 0 && this->ClosedLoop)
+  {
+    polyData = vtkPolyData::New();
+    polyData->DeepCopy(this->Lines);
+
+    for(vtkIdType i = 0; i < polyData->GetNumberOfPoints(); ++i)
+    {
+      double worldPos[3];
+      polyData->GetPoints()->GetPoint(i, worldPos);
+      worldPos[normalCoordinateIndex(this->Orientation)] = this->Slice;
+      polyData->GetPoints()->SetPoint(i, worldPos);
+    }
+
+    polyData->GetPoints()->Modified();
+    polyData->Modified();
+  }
+
+  return polyData;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::BuildRepresentation()
 {
   // Make sure we are up to date with any changes made in the placer
@@ -712,102 +588,66 @@ void vtkPlaneContourRepresentationGlyph::BuildRepresentation()
 
   distance = 1000 * distance / scale;
 
-  this->Glypher->SetScaleFactor(distance * this->HandleSize);
-  this->ActiveGlypher->SetScaleFactor(distance * this->HandleSize);
   int numPoints = this->GetNumberOfNodes();
-  int i;
-  if (this->ShowSelectedNodes && this->SelectedNodesGlypher)
+
+  if (this->ActiveNode >= 0 && this->ActiveNode < this->GetNumberOfNodes())
   {
-    this->SelectedNodesGlypher->SetScaleFactor(distance * this->HandleSize);
-    this->FocalPoint->Reset();
-    this->FocalPoint->SetNumberOfPoints(0);
-    this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
-    this->SelectedNodesPoints->Reset();
-    this->SelectedNodesPoints->SetNumberOfPoints(0);
-    this->SelectedNodesData->GetPointData()->GetNormals()->SetNumberOfTuples(0);
-    for (i = 0; i < numPoints; i++)
-    {
-      if (i != this->ActiveNode)
-      {
-        double worldPos[3];
-        double worldOrient[9];
-        this->GetNthNodeWorldPosition(i, worldPos);
-        this->GetNthNodeWorldOrientation(i, worldOrient);
-        if (this->GetNthNodeSelected(i))
-        {
-          this->SelectedNodesPoints->InsertNextPoint(worldPos);
-          this->SelectedNodesData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
-        }
-        else
-        {
-          this->FocalPoint->InsertNextPoint(worldPos);
-          this->FocalData->GetPointData()->GetNormals()->InsertNextTuple(worldOrient + 6);
-        }
-      }
-    }
-    this->SelectedNodesPoints->Modified();
-    this->SelectedNodesData->GetPointData()->GetNormals()->Modified();
-    this->SelectedNodesData->Modified();
+    this->FocalPoint->SetNumberOfPoints(numPoints - 1);
+    this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(numPoints - 1);
   }
   else
   {
-    if (this->ActiveNode >= 0 && this->ActiveNode < this->GetNumberOfNodes())
+    this->FocalPoint->SetNumberOfPoints(numPoints);
+    this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(numPoints);
+  }
+  int idx = 0;
+  for (auto i = 0; i < numPoints; i++)
+  {
+    if (i != this->ActiveNode)
     {
-      this->FocalPoint->SetNumberOfPoints(numPoints - 1);
-      this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(numPoints - 1);
-    }
-    else
-    {
-      this->FocalPoint->SetNumberOfPoints(numPoints);
-      this->FocalData->GetPointData()->GetNormals()->SetNumberOfTuples(numPoints);
-    }
-    int idx = 0;
-    for (i = 0; i < numPoints; i++)
-    {
-      if (i != this->ActiveNode)
-      {
-        double worldPos[3];
-        double worldOrient[9];
-        this->GetNthNodeWorldPosition(i, worldPos);
-        this->GetNthNodeWorldOrientation(i, worldOrient);
-        this->FocalPoint->SetPoint(idx, worldPos);
-        this->FocalData->GetPointData()->GetNormals()->SetTuple(idx, worldOrient + 6);
-        idx++;
-      }
+      double worldPos[3];
+      double worldOrient[9];
+      this->GetNthNodeWorldPosition(i, worldPos);
+      this->GetNthNodeWorldOrientation(i, worldOrient);
+      this->FocalPoint->SetPoint(idx, worldPos);
+      this->FocalData->GetPointData()->GetNormals()->SetTuple(idx, worldOrient + 6);
+      idx++;
     }
   }
 
   this->FocalPoint->Modified();
   this->FocalData->GetPointData()->GetNormals()->Modified();
   this->FocalData->Modified();
+  this->Glypher->SetScaleFactor(distance * this->HandleSize);
+  this->Glypher->Update();
+  this->Mapper->Update();
 
-  if (this->ActiveNode >= 0 && this->ActiveNode < this->GetNumberOfNodes())
+  if ((this->ActiveNode >= 0) && (this->ActiveNode < this->GetNumberOfNodes()))
   {
     double worldPos[3];
-    double worldOrient[9];
     this->GetNthNodeWorldPosition(this->ActiveNode, worldPos);
-    this->GetNthNodeWorldOrientation(this->ActiveNode, worldOrient);
-    this->ActiveFocalPoint->SetPoint(0, worldPos);
-    this->ActiveFocalData->GetPointData()->GetNormals()->SetTuple(0, worldOrient + 6);
-
-    this->ActiveFocalPoint->Modified();
-    this->ActiveFocalData->GetPointData()->GetNormals()->Modified();
-    this->ActiveFocalData->Modified();
+    this->ActiveSource->SetCenter(worldPos);
+    this->ActiveSource->SetRadius(distance * this->HandleSize * 0.6);
+    this->ActiveSource->Update();
+    this->ActiveMapper->SetInputData(this->ActiveSource->GetOutput());
+    this->ActiveMapper->Update();
     this->ActiveActor->VisibilityOn();
   }
   else
+  {
     this->ActiveActor->VisibilityOff();
+  }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::GetActors(vtkPropCollection *pc)
 {
   this->Actor->GetActors(pc);
   this->ActiveActor->GetActors(pc);
   this->LinesActor->GetActors(pc);
-  if (this->ShowSelectedNodes && this->SelectedNodesActor)
-    this->SelectedNodesActor->GetActors(pc);
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::ReleaseGraphicsResources(vtkWindow *win)
 {
   this->Actor->ReleaseGraphicsResources(win);
@@ -815,183 +655,135 @@ void vtkPlaneContourRepresentationGlyph::ReleaseGraphicsResources(vtkWindow *win
   this->LinesActor->ReleaseGraphicsResources(win);
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::RenderOverlay(vtkViewport *viewport)
 {
   int count = 0;
   count += this->LinesActor->RenderOverlay(viewport);
   if (this->Actor->GetVisibility())
+  {
     count += this->Actor->RenderOverlay(viewport);
+  }
+
   if (this->ActiveActor->GetVisibility())
+  {
     count += this->ActiveActor->RenderOverlay(viewport);
+  }
+
   return count;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::RenderOpaqueGeometry(vtkViewport *viewport)
 {
   // Since we know RenderOpaqueGeometry gets called first, will do the build here
   this->BuildRepresentation();
 
-  GLboolean flag = GL_FALSE;
-  if (this->AlwaysOnTop && (this->ActiveActor->GetVisibility() || this->LinesActor->GetVisibility()))
-  {
-    glGetBooleanv(GL_DEPTH_TEST, &flag);
-    if (flag)
-      glDisable(GL_DEPTH_TEST);
-  }
-
   int count = 0;
   count += this->LinesActor->RenderOpaqueGeometry(viewport);
   if (this->Actor->GetVisibility())
+  {
     count += this->Actor->RenderOpaqueGeometry(viewport);
+  }
   if (this->ActiveActor->GetVisibility())
+  {
     count += this->ActiveActor->RenderOpaqueGeometry(viewport);
-  if (this->ShowSelectedNodes && this->SelectedNodesActor
-      && this->SelectedNodesActor->GetVisibility())
-    count += this->SelectedNodesActor->RenderOpaqueGeometry(viewport);
-
-  if (flag && this->AlwaysOnTop && (this->ActiveActor->GetVisibility() || this->LinesActor->GetVisibility()))
-    glEnable(GL_DEPTH_TEST);
+  }
 
   return count;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::RenderTranslucentPolygonalGeometry(vtkViewport *viewport)
 {
   int count = 0;
   count += this->LinesActor->RenderTranslucentPolygonalGeometry(viewport);
   if (this->Actor->GetVisibility())
+  {
     count += this->Actor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+
   if (this->ActiveActor->GetVisibility())
+  {
     count += this->ActiveActor->RenderTranslucentPolygonalGeometry(viewport);
+  }
+
   return count;
 }
 
+//----------------------------------------------------------------------------
 int vtkPlaneContourRepresentationGlyph::HasTranslucentPolygonalGeometry()
 {
   int result = 0;
   result |= this->LinesActor->HasTranslucentPolygonalGeometry();
   if (this->Actor->GetVisibility())
+  {
     result |= this->Actor->HasTranslucentPolygonalGeometry();
+  }
+
   if (this->ActiveActor->GetVisibility())
+  {
     result |= this->ActiveActor->HasTranslucentPolygonalGeometry();
+  }
 
   return result;
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::SetLineColor(double r, double g, double b)
 {
   if (this->GetLinesProperty())
-    this->GetLinesProperty()->SetColor(r, g, b);
-}
-
-void vtkPlaneContourRepresentationGlyph::SetShowSelectedNodes(int flag)
-{
-  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): setting ShowSelectedNodes to " << flag);
-  if (this->ShowSelectedNodes != flag)
   {
-    this->ShowSelectedNodes = flag;
-    this->Modified();
-
-    if (this->ShowSelectedNodes)
-    {
-      if (!this->SelectedNodesActor)
-        this->CreateSelectedNodesRepresentation();
-      else
-        this->SelectedNodesActor->SetVisibility(1);
-    }
-    else
-    {
-      if (this->SelectedNodesActor)
-        this->SelectedNodesActor->SetVisibility(0);
-    }
+    this->GetLinesProperty()->SetColor(r, g, b);
   }
 }
 
+//----------------------------------------------------------------------------
 double* vtkPlaneContourRepresentationGlyph::GetBounds()
 {
   return this->Lines->GetPoints() ? this->Lines->GetPoints()->GetBounds() : nullptr;
 }
 
-void vtkPlaneContourRepresentationGlyph::CreateSelectedNodesRepresentation()
-{
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetThetaResolution(12);
-  sphere->SetRadius(0.3);
-  this->SelectedNodesCursorShape = sphere->GetOutput();
-  this->SelectedNodesCursorShape->Register(this);
-  sphere->Delete();
-
-  // Represent the position of the cursor
-  this->SelectedNodesPoints = vtkPoints::New();
-  this->SelectedNodesPoints->SetNumberOfPoints(100);
-
-  vtkDoubleArray *normals = vtkDoubleArray::New();
-  normals->SetNumberOfComponents(3);
-  normals->SetNumberOfTuples(100);
-  normals->SetNumberOfTuples(1);
-  double n[3] = { 0, 0, 0 };
-  normals->SetTuple(0, n);
-
-  this->SelectedNodesData = vtkPolyData::New();
-  this->SelectedNodesData->SetPoints(this->SelectedNodesPoints);
-  this->SelectedNodesData->GetPointData()->SetNormals(normals);
-  normals->Delete();
-
-  this->SelectedNodesGlypher = vtkGlyph3D::New();
-  //TODO 2013-10-08 this->SelectedNodesGlypher->SetInput(this->SelectedNodesData);
-  this->SelectedNodesGlypher->SetVectorModeToUseNormal();
-  this->SelectedNodesGlypher->OrientOn();
-  this->SelectedNodesGlypher->ScalingOn();
-  this->SelectedNodesGlypher->SetScaleModeToDataScalingOff();
-  this->SelectedNodesGlypher->SetScaleFactor(1.0);
-
-  //TODO 2013-10-08 this->SelectedNodesGlypher->SetSource(this->SelectedNodesCursorShape);
-
-  this->SelectedNodesMapper = vtkPolyDataMapper::New();
-  //TODO 2013-10-08 this->SelectedNodesMapper->SetInput(this->SelectedNodesGlypher->GetOutput());
-  this->SelectedNodesMapper->SetResolveCoincidentTopologyToPolygonOffset();
-  this->SelectedNodesMapper->ScalarVisibilityOff();
-  this->SelectedNodesMapper->ImmediateModeRenderingOn();
-
-  vtkProperty* selProperty = vtkProperty::New();
-  selProperty->SetColor(0.0, 1.0, 0.0);
-  selProperty->SetLineWidth(0.5);
-  selProperty->SetPointSize(3);
-
-  this->SelectedNodesActor = vtkActor::New();
-  this->SelectedNodesActor->SetMapper(this->SelectedNodesMapper);
-  this->SelectedNodesActor->SetProperty(selProperty);
-  selProperty->Delete();
-}
-
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::PrintSelf(ostream& os, vtkIndent indent)
 {
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
   this->Superclass::PrintSelf(os, indent);
 
   os << indent << "Always On Top: " << (this->AlwaysOnTop ? "On\n" : "Off\n");
-  os << indent << "ShowSelectedNodes: " << this->ShowSelectedNodes << endl;
 
   if (this->Property)
+  {
     os << indent << "Property: " << this->Property << "\n";
+  }
   else
+  {
     os << indent << "Property: (none)\n";
+  }
 
   if (this->ActiveProperty)
+  {
     os << indent << "Active Property: " << this->ActiveProperty << "\n";
+  }
   else
+  {
     os << indent << "Active Property: (none)\n";
+  }
 
   if (this->LinesProperty)
+  {
     os << indent << "Lines Property: " << this->LinesProperty << "\n";
+  }
   else
+  {
     os << indent << "Lines Property: (none)\n";
+  }
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 {
-  if (this->useContourPolygon == value)
-    return;
+  if (this->useContourPolygon == value) return;
 
   QColor color;
 
@@ -999,10 +791,12 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
   {
     case true:
       if (this->Lines->GetPoints()->GetNumberOfPoints() < 3)
+      {
         return;
+      }
 
       this->m_polygonFilter = vtkSmartPointer<vtkContourToPolygonFilter>::New();
-      //TODO 2013-10-08 this->m_polygonFilter->SetInputConnection(this->Lines->GetProducerPort());
+      this->m_polygonFilter->SetInputData(this->Lines);
       this->m_polygonFilter->SetReleaseDataFlag(true);
       this->m_polygonFilter->Update();
 
@@ -1017,19 +811,7 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 
       double position[3];
       this->m_polygon->GetPosition(position);
-      switch(this->Orientation)
-      {
-        case AXIAL:
-          position[this->Orientation] = -0.1;
-          break;
-        case CORONAL:
-        case SAGITTAL:
-          position[this->Orientation] = 0.1;
-          break;
-        default:
-          Q_ASSERT(false);
-          break;
-      }
+      position[normalCoordinateIndex(this->Orientation)] += this->PlaneShift;
       this->m_polygon->SetPosition(position);
       this->Renderer->AddActor(this->m_polygon);
       this->useContourPolygon = true;
@@ -1049,6 +831,7 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
   }
 }
 
+//----------------------------------------------------------------------------
 double vtkPlaneContourRepresentationGlyph::Distance2BetweenPoints(int displayPosX, int displayPosY, int node)
 {
   double displayPos[2];
@@ -1064,25 +847,16 @@ double vtkPlaneContourRepresentationGlyph::Distance2BetweenPoints(int displayPos
   // Compute the world position from the display position based on the concrete representation's constraints
   // If this is not a valid display location return 0
   if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, pointPos, worldOrient))
-    return 0;
-
-  switch(this->Orientation)
   {
-    case AXIAL:
-      pointPos[this->Orientation] = -0.1;
-      break;
-    case CORONAL:
-    case SAGITTAL:
-      pointPos[this->Orientation] = 0.1;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
+    return 0;
   }
+
+  pointPos[normalCoordinateIndex(this->Orientation)] += this->PlaneShift;
 
   return ((pointPos[0] - nodePos[0]) * (pointPos[0] - nodePos[0])) + ((pointPos[1] - nodePos[1]) * (pointPos[1] - nodePos[1])) + ((pointPos[2] - nodePos[2]) * (pointPos[2] - nodePos[2]));
 }
 
+//----------------------------------------------------------------------------
 void vtkPlaneContourRepresentationGlyph::setPolygonColor(QColor color)
 {
   this->m_polygonColor = color;
@@ -1094,6 +868,7 @@ void vtkPlaneContourRepresentationGlyph::setPolygonColor(QColor color)
   }
 }
 
+//----------------------------------------------------------------------------
 QColor vtkPlaneContourRepresentationGlyph::getPolygonColor()
 {
   return this->m_polygonColor;

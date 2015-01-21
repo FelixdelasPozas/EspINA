@@ -366,7 +366,8 @@ DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::VertexPtr vertex, D
       {
         rootAncestors << ancestor;
       }
-    } else
+    }
+    else
     {
       ancestors << grandAncestors;
     }

@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -168,7 +168,8 @@ namespace ESPINA
      * Parent needed to signal start/end of a contour.
      *
      */
-    void setContourWidget(ContourWidget *parent) { m_parent = parent; }
+    void setContourWidget(ContourWidget *parent)
+    { m_parent = parent; }
 
     /** \brief Sets the contour mode.
      * \param[in] mode, brush erase/draw mode.
@@ -181,10 +182,22 @@ namespace ESPINA
      */
     BrushSelector::BrushMode getContourMode();
 
-    /** \brief Used by the slice widget to set the mode of a previosly stored contour.
+    /** \brief Used by the slice widget to set the mode of a previously stored contour.
      *
      */
-    void setActualContourMode(Brush::BrushMode mode);
+    void setActualContourMode(BrushSelector::BrushMode mode);
+
+    /** \brief Sets the shift in the orientation of the representation of the widget.
+     * \param[in] value representation shift value in Nm.
+     *
+     */
+    void setActorsShift(Nm value);
+
+    /** \brief Sets the slice in the orientation of the representation of the widget.
+     * \param[in] slice Slice value in Nm.
+     *
+     */
+    void setSlice(Nm slice);
 
   protected:
     /** \brief vtkPlaneContourWidget class constructor.
@@ -209,7 +222,7 @@ namespace ESPINA
     int FollowCursor;
     int ContinuousDraw;
     int ContinuousActive;
-    ESPINA::PlaneType Orientation;
+    ESPINA::Plane Orientation;
     double ContinuousDrawTolerance;
 
     /** \brief Callback interface to capture events when placing the widget.
@@ -262,8 +275,10 @@ namespace ESPINA
     bool mouseButtonDown; /// to create almost equally spaced points when using continuous drawing
     QColor m_polygonColor;
     ContourWidget *m_parent;
-    Brush::BrushMode m_contourMode;
-    Brush::BrushMode m_actualBrushMode;
+    BrushSelector::BrushMode m_contourMode;
+    BrushSelector::BrushMode m_actualBrushMode;
+    Nm m_actorShift;
+    Nm m_slice;
   };
 
 } // namespace ESPINA

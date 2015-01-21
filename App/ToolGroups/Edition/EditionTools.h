@@ -30,6 +30,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/Selection.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/View/Widgets/Contour/ContourWidget.h>
 
 class QUndoStack;
 
@@ -89,6 +90,19 @@ namespace ESPINA
      *
      */
     void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
+
+    /** \brief Adds/Modifies a segmentation with a contour.
+     * \param[in] contours List of contours to draw.
+     *
+     */
+    void drawContours(ContourWidget::ContourList contours);
+
+    /** \brief Creates the undo commands associated with the contour tool.
+     * \param[in] segmentation segmentation adapter smart pointer. Can be null if it needs to be created (first contour).
+     * \param[in] category category adapter smart pointer of the category of the segmentation to be created/modified.
+     *
+     */
+    void endContour(SegmentationAdapterPtr segmentation, CategoryAdapterSPtr category);
 
   private slots:
     /** \brief Deletes a segmentation from the model if all its voxels have been erased.

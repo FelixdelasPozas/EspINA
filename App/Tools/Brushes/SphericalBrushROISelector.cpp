@@ -33,9 +33,9 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   BrushSelector::BrushShape SphericalBrushROISelector::createBrushShape(ViewItemAdapterPtr item,
-                                                                     NmVector3          center,
-                                                                     Nm                 radius,
-                                                                     Plane              plane)
+                                                                        NmVector3          center,
+                                                                        Nm                 radius,
+                                                                        Plane              plane)
   {
     Bounds brushBounds{ center[0] - radius,
                         center[0] + radius,

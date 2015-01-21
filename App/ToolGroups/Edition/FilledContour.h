@@ -18,15 +18,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILLEDCONTOUR_H
-#define FILLEDCONTOUR_H
+#ifndef ESPINA_FILLED_CONTOUR_H
+#define ESPINA_FILLED_CONTOUR_H
 
 // ESPINA
-#include <GUI/Tools/ITool.h>
 #include <Core/EspinaTypes.h>
-#include <Core/Model/EspinaModel.h>
-#include <Tools/Brushes/Brush.h>
-#include <GUI/vtkWidgets/ContourWidget.h>
+#include <Support/Widgets/Tool.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/Selectors/BrushSelector.h>
+#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 
 class QUndoStack;
 class vtkPolyData;
@@ -38,41 +38,59 @@ namespace ESPINA
   class ContourWidget;
 
   class FilledContour
-  : public ITool  // TODO Change to IROI to use countour as ROI
+  : public Tool
   {
     Q_OBJECT
     public:
-      static const Filter::FilterType FILTER_TYPE;
+      /** \brief FilledContour class constructor.
+       * \param[in] model ModelAdapter smart pointer.
+       * \param[in] undoStack application QUndoStack object raw pointer.
+       * \param[in] viewManager application view manager smart pointer.
+       */
+      explicit FilledContour(ModelAdapterSPtr model, QUndoStack *undoStack, ViewManagerSPtr viewManager);
 
-    public:
-      explicit FilledContour(EspinaModel *model, QUndoStack *undoStack, ViewManager *viewManager);
+      /** \brief FilledContour class virtual destructor.
+       *
+       */
       virtual ~FilledContour();
 
-      virtual QCursor cursor() const;
-      virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-      virtual void setInUse(bool enable);
       virtual void setEnabled(bool enable);
       virtual bool enabled() const;
+      virtual QList<QAction *> actions();
 
-      // called by unrasterized UndoCommands
+      /** \brief Sets the contour of the widget.
+       * \param[in] contour ContourData object.
+       *
+       */
       void setContour(ContourWidget::ContourData contour);
+
+      /** \brief Returs the contour of the ContourWidget.
+       *
+       */
       ContourWidget::ContourData getContour();
 
     signals:
-      void changeMode(Brush::BrushMode);
+      void changeMode(DrawSelector::BrushMode);
       void stopDrawing();
       void startDrawing();
 
     public slots:
+      /** \brief Helper method to create and undo command in response to a user interaction in the widget.
+       *
+       */
       void createUndoCommand();
 
     protected slots:
-      void rasterize(ContourWidget::ContourList);
+      /** \brief Helper method to create a volume from the given contour list.
+       * \param[in] contours list of ContourWidget's contours.
+       *
+       */
+      void rasterize(ContourWidget::ContourList contours);
 
     private:
-      EspinaModel *m_model;
-      QUndoStack *m_undoStack;
-      ViewManager *m_viewManager;
+      ModelAdapterSPtr m_model;
+      QUndoStack      *m_undoStack;
+      ViewManagerSPtr  m_viewManager;
 
       ContourSelector *m_picker;
       bool m_enabled;
@@ -87,8 +105,9 @@ namespace ESPINA
       vtkPolyData *m_lastContour;
   };
 
-  typedef boost::shared_ptr<FilledContour> FilledContourSPtr;
+  using FilledContourPtr  = FilledContour *;
+  using FilledContourSPtr = std::shared_ptr<FilledContour>;
 
 } // namespace ESPINA
 
-#endif // FILLEDCONTOUR_H
+#endif // ESPINA_FILLED_CONTOUR_H

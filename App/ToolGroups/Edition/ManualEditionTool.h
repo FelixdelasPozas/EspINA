@@ -24,19 +24,20 @@
 // ESPINA
 #include <GUI/Selectors/CircularBrushSelector.h>
 #include <GUI/Selectors/SphericalBrushSelector.h>
+#include <GUI/Selectors/ContourSelector.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Widgets/ActionSelector.h>
-#include <GUI/Selectors/Selector.h>
-#include <GUI/Selectors/BrushSelector.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
+#include <GUI/View/Widgets/Contour/ContourWidget.h>
 
 class QAction;
 
 namespace ESPINA
 {
   class SliderAction;
+  class CountourWidget;
 
   class ManualEditionTool
   : public Tool
@@ -156,10 +157,29 @@ namespace ESPINA
     void setPencil3DText(QString text)
     { m_sphereTool->setText(text); }
 
+    /** \brief Reinitializes the contour tool.
+     *
+     */
+    void resetContourTool();
+
+    /** \brief Returs the contour actually stored in the contour tool.
+     *  Required for working undo/redo commands.
+     *
+     */
+    ContourWidget::ContourData getContour();
+
+    /** \brief Sets the contour to be used/edited in the contour tool.
+     *  Required for working undo/redo commands.
+     *
+     */
+    void setContour(ContourWidget::ContourData contours);
+
   signals:
     void brushModeChanged(BrushSelector::BrushMode);
     void stopDrawing(ViewItemAdapterPtr item, bool eraseModeEntered);
     void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
+    void contourEnded(SegmentationAdapterPtr, CategoryAdapterSPtr);
+    void drawContours(ContourWidget::ContourList);
 
   public slots:
     /** \brief Emits a stroke signal with the mask and the selected category.
@@ -226,11 +246,33 @@ namespace ESPINA
      */
     CategoryAdapterSPtr currentReferenceCategory();
 
+    /** \brief Helper method that returns the reference item of the current selector.
+     *
+     */
+    ViewItemAdapterPtr getSelectorReferenceItem();
+
+    /** \brief Helper method to initialize/de-initialize the contour widget.
+     * \param[in] value boolean value to indicate initialization/de-initialization.
+     *
+     */
+    void initializeContourWidget(bool value);
+
   private slots:
     /** \brief Modifies the GUI when the eraser mode changes.
      *
      */
     void setEraserMode(bool value);
+
+    /** \brief Notifies the parent tool that the user has finished a contour. Used to create undoCommands.
+     *
+     */
+    void contourEnded();
+
+    /** \brief Notifies the parent tool that a contour needs to be rasterized.
+     *
+     */
+    void rasterizeContour(ContourWidget::ContourList list)
+    { emit drawContours(list); }
 
   protected:
     ModelAdapterSPtr m_model;
@@ -238,11 +280,12 @@ namespace ESPINA
 
     BrushSelectorSPtr m_circularBrushSelector;
     BrushSelectorSPtr m_sphericalBrushSelector;
+    BrushSelectorSPtr m_contourSelector;
     BrushSelectorSPtr m_currentSelector;
 
     ActionSelector   *m_drawToolSelector;
     CategorySelector *m_categorySelector;
-    QMap<QAction *, SelectorSPtr> m_drawTools;
+    QMap<QAction *, BrushSelectorSPtr> m_drawTools;
 
     SliderAction *m_radiusWidget;
     SliderAction *m_opacityWidget;
@@ -250,6 +293,7 @@ namespace ESPINA
 
     QAction *m_discTool;
     QAction *m_sphereTool;
+    QAction *m_contourTool;
 
     bool m_showCategoryControls;
     bool m_showRadiusControls;
@@ -258,6 +302,8 @@ namespace ESPINA
 
     bool m_enabled;
     bool m_hasEnteredEraserMode;
+
+    ContourWidgetSPtr m_contourWidget;
   };
 
   using ManualEditionToolPtr = ManualEditionTool *;

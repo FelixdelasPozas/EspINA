@@ -22,11 +22,20 @@
 #include "vtkPolyDataUtils.h"
 #include <vtkGenericDataObjectReader.h>
 #include <vtkGenericDataObjectWriter.h>
+#include <vtkImageData.h>
+#include <vtkImageStencilToImage.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataToImageStencil.h>
+#include <vtkSmartPointer.h>
 
 // QT
 #include <QByteArray>
 #include <QString>
+
+// ITK
+#include <itkImage.h>
+#include <vtkCellArray.h>
+#include <vtkPoints.h>
 
 using namespace ESPINA;
 
@@ -82,4 +91,177 @@ void EspinaCore_EXPORT ESPINA::PolyDataUtils::scalePolyData(vtkSmartPointer<vtkP
 
   points->Modified();
   polyData->Modified();
+}
+
+//------------------------------------------------------------------------------------
+ESPINA::BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT ESPINA::PolyDataUtils::rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing)
+{
+  double bounds[6];
+  contour->ComputeBounds();
+  contour->GetBounds(bounds);
+  auto contourBounds = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
+  auto idx = normalCoordinateIndex(plane);
+  contourBounds[2*idx] = contourBounds[(2*idx)+1] = slice;
+
+  auto mask = std::make_shared<BinaryMask<unsigned char>>(contourBounds, spacing);
+
+  // vtkPolyDataToImageStencil filter only works in XY plane so we must rotate the contour to that plane.
+  int count = contour->GetPoints()->GetNumberOfPoints();
+  vtkSmartPointer<vtkPolyData> rotatedContour = vtkSmartPointer<vtkPolyData>::New();
+  vtkPoints *points = vtkPoints::New();
+  vtkCellArray *lines = vtkCellArray::New();
+  vtkIdType index = 0;
+
+  points->SetNumberOfPoints(count);
+  vtkIdType numLines = count + 1;
+
+  if (numLines > 0)
+  {
+    double pos[3];
+    vtkIdType *lineIndices = new vtkIdType[numLines];
+    for (int i = 0; i < count; i++)
+    {
+      contour->GetPoint(i, pos);
+      switch(plane)
+      {
+        case Plane::XY:
+          break;
+        case Plane::XZ:
+          pos[1] = pos[2];
+          break;
+        case Plane::YZ:
+          pos[0] = pos[1];
+          pos[1] = pos[2];
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+      pos[2] = slice;
+
+      points->InsertPoint(index, pos);
+      lineIndices[index] = index;
+      index++;
+    }
+
+    lineIndices[index] = 0;
+
+    lines->InsertNextCell(numLines, lineIndices);
+    delete[] lineIndices;
+  }
+
+  rotatedContour->SetPoints(points);
+  rotatedContour->SetLines(lines);
+
+  points->Delete();
+  lines->Delete();
+
+  rotatedContour->Modified();
+
+  NmVector3 origin{0,0,0};
+  auto contourRegion = equivalentRegion<itkVolumeType>(origin, spacing, contourBounds);
+  auto contourRegionIndex = contourRegion.GetIndex();
+  auto contourRegionSize = contourRegion.GetSize();
+
+  int extent[6];
+  extent[0] = contourRegionIndex[0];
+  extent[1] = contourRegionIndex[0] + contourRegionSize[0] -1;
+  extent[2] = contourRegionIndex[1];
+  extent[3] = contourRegionIndex[1] + contourRegionSize[1] -1;
+  extent[4] = contourRegionIndex[2];
+  extent[5] = contourRegionIndex[2] + contourRegionSize[2] -1;
+
+  // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane
+  // and we've rotated the contour to that plane
+  double temporal;
+  double spacingNm[3]{spacing[0], spacing[1], spacing[2]};
+  switch(plane)
+  {
+    case Plane::XY:
+      break;
+    case Plane::XZ:
+      temporal = spacingNm[1];
+      spacingNm[1] = spacingNm[2];
+      spacingNm[2] = temporal;
+
+      extent[2] = extent[4];
+      extent[3] = extent[5];
+      break;
+    case Plane::YZ:
+      temporal = spacingNm[0];
+      spacingNm[0] = spacingNm[1];
+      spacingNm[1] = spacingNm[2];
+      spacingNm[2] = temporal;
+
+      extent[0] = extent[2];
+      extent[1] = extent[3];
+      extent[2] = extent[4];
+      extent[3] = extent[5];
+      break;
+      default:
+      Q_ASSERT(false);
+      break;
+  }
+  extent[4] = contourRegionIndex[idx];
+  extent[5] = contourRegionIndex[idx] + contourRegionSize[idx] -1;
+
+  vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  polyDataToStencil->SetInputData(rotatedContour);
+  polyDataToStencil->SetOutputOrigin(0,0,0);
+  polyDataToStencil->SetOutputSpacing(spacingNm[0], spacingNm[1], spacingNm[2]);
+  polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+  polyDataToStencil->SetTolerance(0);
+  polyDataToStencil->Update();
+
+  vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
+  stencilToImage->SetInputConnection(polyDataToStencil->GetOutputPort());
+  stencilToImage->SetOutputScalarTypeToUnsignedChar();
+  stencilToImage->SetInsideValue(1);
+  stencilToImage->SetOutsideValue(0);
+  stencilToImage->Update();
+
+  auto outputImage = stencilToImage->GetOutput();
+
+  BinaryMask<unsigned char>::IndexType imageIndex;
+  imageIndex.x = imageIndex.y = imageIndex.z = 0;
+  unsigned char *pixel;
+  for (int x = extent[0]; x <= extent[1]; ++x)
+  {
+    for (int y = extent[2]; y <= extent[3]; ++y)
+    {
+      for (int z = extent[4]; z <= extent[5]; ++z)
+      {
+        switch(plane)
+        {
+          case Plane::XY:
+            imageIndex.x = x;
+            imageIndex.y = y;
+            imageIndex.z = z;
+            break;
+          case Plane::XZ:
+            imageIndex.x = x;
+            imageIndex.y = z;
+            imageIndex.z = y;
+            break;
+          case Plane::YZ:
+            imageIndex.x = z;
+            imageIndex.y = x;
+            imageIndex.z = y;
+            break;
+          default:
+            Q_ASSERT(false);
+            break;
+        }
+
+        pixel = reinterpret_cast<unsigned char*>(outputImage->GetScalarPointer(x, y, z));
+
+        if (*pixel == 1)
+        {
+          mask->setPixel(imageIndex);
+        }
+      }
+    }
+  }
+
+  return mask;
 }
