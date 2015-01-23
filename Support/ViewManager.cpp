@@ -41,8 +41,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_channelStates(std::make_shared<ChannelRepresentationStates>())
-, m_selection        {new Selection()}
+: m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
@@ -140,7 +139,7 @@ void ViewManager::addRepresentationPools(const QString& group, RepresentationPoo
   {
     for (auto pool : pools)
     {
-      pool->setState(m_channelStates);
+      pool->setPipelineSources(&m_channelSources);
       m_channelPools << pool;
     }
   }
@@ -166,7 +165,7 @@ void ViewManager::addRepresentationManagers(RepresentationManagerSList repManage
 //----------------------------------------------------------------------------
 void ViewManager::add(ChannelAdapterPtr channel)
 {
-  m_channelStates->addRepresentation(channel);
+  m_channelSources.addSource(channel);
 
   // TODO: need to manage other channels' opacity too.
 //   for (auto renderView : m_renderViews)
@@ -178,14 +177,15 @@ void ViewManager::add(ChannelAdapterPtr channel)
 //----------------------------------------------------------------------------
 void ViewManager::add(SegmentationAdapterPtr segmentation)
 {
-
+  m_segmentationSources.addSource(segmentation);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::remove(ChannelAdapterPtr channel)
 {
-  m_channelStates->removeRepresentation(channel);
+  m_channelSources.removeSource(channel);
 
+  // TODO: Move to representation Manager
 //   updateSceneBounds();
 //   updateChannelsOpacity();
 }
@@ -193,15 +193,17 @@ void ViewManager::remove(ChannelAdapterPtr channel)
 //----------------------------------------------------------------------------
 void ViewManager::remove(SegmentationAdapterPtr segmentation)
 {
-
+  m_segmentationSources.removeSource(segmentation);
 }
 
 //----------------------------------------------------------------------------
-bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render)
+bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render) // TODO: Remove render flag
 {
-  return m_channelStates->updateRepresentation(channel);
+  m_channelSources.onSourceUpdated(channel);
 
-  // TODO gestionar usando señales: if (visibilityChanged) updateChannelsOpacity();
+  return true; // TODO Void
+
+  // TODO Manager-> gestionar usando señales: if (visibilityChanged) updateChannelsOpacity();
 
 
   // TODO gestionar usando señales: if (outputChanged)

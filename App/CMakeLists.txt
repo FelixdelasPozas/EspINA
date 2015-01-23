@@ -49,6 +49,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ROI/ManualROITool.h
   ToolGroups/ROI/OrthogonalROITool.h
   ToolGroups/ROI/ROITools.h
+  ToolGroups/View/Representations/ChannelSlice/ChannelSliceSwitch.h
   ToolGroups/Segmentation/CustomROIWidget.h
   ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
   ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
@@ -164,8 +165,10 @@ set (ESPINA_SOURCES
   ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
   ToolGroups/View/RepresentationsGroupTool.cpp
   ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
-  ToolGroups/View/Representations/ChannelSliceRepresentationDriver.cpp
-  ToolGroups/View/Representations/ChannelSliceSwitch.cpp
+  ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationDriver.cpp
+  ToolGroups/View/Representations/ChannelSlice/ChannelSliceSwitch.cpp
+  ToolGroups/View/Representations/ChannelSlice/ChannelSliceSettingsEditor.cpp
+  ToolGroups/View/Representations/ChannelSlice/ChannelSliceManager.cpp
   ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp

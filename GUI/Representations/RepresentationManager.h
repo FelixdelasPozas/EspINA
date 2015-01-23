@@ -46,11 +46,6 @@ namespace ESPINA
     virtual ~RepresentationManager()
     {}
 
-    /** \brief Returns view flags where this renderer can render actors
-     *
-     */
-    ViewTypeFlags supportedViews() const;
-
     /** \brief Sets the name of the representation manager
      *
      */
@@ -91,7 +86,7 @@ namespace ESPINA
      *
      */
     bool representationsVisibility() const
-    { return m_displayRepresentations; }
+    { return m_showPipelines; }
 
     /** \brief Shows all representations
      *
@@ -127,26 +122,32 @@ namespace ESPINA
     void renderRequested();
 
   protected:
-    explicit RepresentationManager(ViewTypeFlags flags);
+    explicit RepresentationManager();
 
   private:
-    virtual void updateRepresentationImplementation(RenderView *view, bool visibility) = 0;
+    virtual RepresentationPipelineSList pipelines() = 0;
 
     virtual RepresentationManagerSPtr cloneImpelementation() = 0;
 
   protected:
-    ViewTypeFlags m_flags;
-
     QString m_name;
     QIcon   m_icon;
     QString m_description;
+    bool    m_showPipelines;
 
+  private:
     RenderView* m_view;
-    bool        m_displayRepresentations;
 
     RepresentationManagerSList m_childs;
+
+    RepresentationPipelineSList m_viewPipelines; // pipeline being rendered by its view
   };
 
+  class RepresentationManager2D
+  {
+  public:
+    virtual void setPlane(Plane plane) = 0;
+  };
 
 }// namespace ESPINA
 

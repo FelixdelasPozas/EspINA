@@ -17,25 +17,36 @@
  *
  */
 
-#include "ChannelSliceSwitch.h"
-
-#include <Support/Widgets/Tool.h>
+#include "ChannelSliceSettingsEditor.h"
+#include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-ESPINA::ViewTypeFlags ChannelSliceSwitch::supportedViews()
+ChannelSliceSettingsEditor::ChannelSliceSettingsEditor()
+: m_opacity(0)
 {
-  return ViewType::VIEW_2D;
 }
 
 //----------------------------------------------------------------------------
-QWidget* ChannelSliceSwitch::widget()
+void ChannelSliceSettingsEditor::setOpacity(double value)
 {
-  auto icon    = QIcon(":espina/slice.png");
-  auto tooltip = tr("Show Channel Slices");
+  m_opacity = value;
+}
 
-  auto channelSliceSwitch = Tool::createToolButton(icon, tooltip);
+//----------------------------------------------------------------------------
+double ChannelSliceSettingsEditor::opacity() const
+{
+  return m_opacity;
+}
 
-  return channelSliceSwitch;
+//----------------------------------------------------------------------------
+RepresentationPipeline::Settings ChannelSliceSettingsEditor::settings()
+{
+  RepresentationPipeline::Settings settings;
+
+  settings.setValue<double>(OPACITY, m_opacity);
+
+  return settings;
 }

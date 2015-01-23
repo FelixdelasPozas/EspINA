@@ -94,6 +94,8 @@ namespace ESPINA {
      */
     unsigned int numberOfTasks() const;
 
+    unsigned int maxRunningTasks() const;
+
   public slots:
     /** \brief Starts the scheduler.
      *
@@ -111,7 +113,7 @@ namespace ESPINA {
 
     Task::Id m_lastId;
 
-    int            m_maxNumRunningThreads;
+    int            m_maxNumRunningTasks;
     mutable QMutex m_mutex;
     bool           m_abort;
   };

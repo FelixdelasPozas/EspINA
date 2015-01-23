@@ -23,32 +23,106 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationPool::RepresentationPool()
-: m_numActiveManagers{0}
+: m_sources(nullptr)
+, m_numObservers{0}
 {
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setState(RepresentationsStateSPtr state)
+RepresentationPool::~RepresentationPool()
 {
-  m_state = state;
+  qDebug() << "Destroyed";
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::setPipelineSources(PipelineSources *sources)
+{
+  if (m_sources)
+  {
+    disconnect(m_sources, SIGNAL(sourceAdded(ViewItemAdapterPtr)),
+               this,      SLOT(onSourceAdded(ViewItemAdapterPtr)));
+    disconnect(m_sources, SIGNAL(sourceRemoved(ViewItemAdapterPtr)),
+               this,      SLOT(onSourceRemoved(ViewItemAdapterPtr)));
+    disconnect(m_sources, SIGNAL(sourceUpdated(ViewItemAdapterPtr)),
+               this,      SLOT(onSourceUpdated(ViewItemAdapterPtr)));
+  }
+
+  m_sources = sources;
+
+  if (m_sources)
+  {
+    connect(m_sources, SIGNAL(sourceAdded(ViewItemAdapterPtr)),
+            this,      SLOT(onSourceAdded(ViewItemAdapterPtr)));
+    connect(m_sources, SIGNAL(sourceRemoved(ViewItemAdapterPtr)),
+            this,      SLOT(onSourceRemoved(ViewItemAdapterPtr)));
+    connect(m_sources, SIGNAL(sourceUpdated(ViewItemAdapterPtr)),
+            this,      SLOT(onSourceUpdated(ViewItemAdapterPtr)));
+  }
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationPool::isBeingUsed() const
 {
-  return m_numActiveManagers > 0;
+  return m_numObservers > 0;
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::incrementActiveManagers()
+ViewItemAdapterList RepresentationPool::sources() const
 {
-  ++m_numActiveManagers;
+  return m_sources->getSources();
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::decrementActiveManagers()
+void RepresentationPool::incrementObservers()
 {
-  if (m_numActiveManagers == 0) qWarning() << "Unexpected active renderer decrement";
+  ++m_numObservers;
+}
 
-  --m_numActiveManagers;
+//-----------------------------------------------------------------------------
+void RepresentationPool::decrementObservers()
+{
+  if (m_numObservers == 0) qWarning() << "Unexpected observer decrement";
+
+  --m_numObservers;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSourceAdded(ViewItemAdapterPtr source)
+{
+//   if (isBeingUsed())
+//   {
+    addRepresentationPipeline(source);
+
+    update();
+//   }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSourceRemoved(ViewItemAdapterPtr source)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSourceUpdated(ViewItemAdapterPtr source)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onSourcesUpdated(ViewItemAdapterList sources)
+{
+
 }

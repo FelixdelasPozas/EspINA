@@ -235,7 +235,7 @@ namespace ESPINA
   private:
     void restoreRepresentationSwitchSettings();
 
-    void initRepresentationDrivers();
+    void initRepresentations();
 
     /** \brief Runs a series of test on the analysis to check for errors.
      *

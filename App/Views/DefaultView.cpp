@@ -306,7 +306,7 @@ SettingsPanelSPtr DefaultView::settingsPanel()
   for(auto name : m_viewManager->renderers(RendererType::RENDERER_VIEW3D))
     renderers << m_viewManager->cloneRenderer(name);
 
-  return SettingsPanelSPtr(new DefaultViewSettingsPanel(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu));
+  return std::make_shared<DefaultViewSettingsPanel>(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu);
 }
 
 //-----------------------------------------------------------------------------

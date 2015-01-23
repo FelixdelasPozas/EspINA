@@ -17,21 +17,25 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_SWITCH_H
-#define ESPINA_CHANNEL_SLICE_SWITCH_H
-
-#include <Support/Representations/RepresentationSwitch.h>
+#ifndef ESPINA_REPRESENTATION_SETTINGS_H
+#define ESPINA_REPRESENTATION_SETTINGS_H
 
 namespace ESPINA {
-
-  class ChannelSliceSwitch
-  : public RepresentationSwitch
+  namespace Representations
   {
-  public:
-    virtual ViewTypeFlags supportedViews();
+    const QString CROSSHAIR_X = "CHX";
+    const QString CROSSHAIR_Y = "CHY";
+    const QString CROSSHAIR_Z = "CHZ";
 
-    virtual QWidget* widget();
-  };
+    const QString VISIBLE = "Visible";
+
+    const QString OPACITY      = "Opacity";
+    const QString CONTRAST     = "Contrast";
+    const QString BRIGHTNESS   = "Brightness";
+    const QString STAIN        = "Stain";
+
+    const QString TIME_STAMP   = "TimeStamp";
+  }
 }
 
 #endif // ESPINA_CHANNEL_SLICE_SWITCH_H

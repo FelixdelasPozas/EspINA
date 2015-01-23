@@ -17,6 +17,30 @@
  *
  */
 
-#include "RepresentationsState.h"
+#ifndef ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H
+#define ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H
 
-using namespace ESPINA;
+#include <memory>
+#include <GUI/Representations/RepresentationPipeline.h>
+
+namespace ESPINA
+{
+  class ChannelSliceSettingsEditor
+  {
+  public:
+    explicit ChannelSliceSettingsEditor();
+
+    void setOpacity(double value);
+
+    double opacity() const;
+
+    RepresentationPipeline::Settings settings();
+
+  private:
+    double m_opacity;
+  };
+
+  using ChannelSliceSettingsEditorSPtr = std::shared_ptr<ChannelSliceSettingsEditor>;
+}
+
+#endif // ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H

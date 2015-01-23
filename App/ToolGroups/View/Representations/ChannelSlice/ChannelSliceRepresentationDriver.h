@@ -17,19 +17,24 @@
  *
  */
 
-#ifndef ESPINA_SEGMENTATION_SLICE_REPRESENTATION_DRIVER_H
-#define ESPINA_SEGMENTATION_SLICE_REPRESENTATION_DRIVER_H
+#ifndef ESPINA_CHANNEL_SLICE_REPRESENTATION_DRIVER_H
+#define ESPINA_CHANNEL_SLICE_REPRESENTATION_DRIVER_H
 
 #include <Support/Representations/RepresentationDriverFactory.h>
 
-namespace ESPINA
-{
-  class SegmentationSliceRepresentationDriver
+namespace ESPINA {
+
+  class ChannelSliceRepresentationDriver
   : public RepresentationDriverFactory
   {
   public:
+    explicit ChannelSliceRepresentationDriver(SchedulerSPtr scheduler);
+
     virtual RepresentationDriver createRepresentationDriver() const;
+
+  private:
+    SchedulerSPtr m_scheduler;
   };
 }
 
-#endif // ESPINA_SEGMENTATION_SLICE_REPRESENTATION_DRIVER_H
+#endif // ESPINA_CHANNEL_SLICE_REPRESENTATION_DRIVER_H

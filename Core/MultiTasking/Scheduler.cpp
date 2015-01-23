@@ -39,7 +39,10 @@
 #include <QThreadPool>
 #include <QApplication>
 
+#include <chrono>
+
 using namespace ESPINA;
+using namespace std::chrono;
 
 //-----------------------------------------------------------------------------
 void TaskQueue::orderedInsert(TaskSPtr worker)
@@ -60,7 +63,7 @@ Scheduler::Scheduler(int period, QObject* parent)
 : QObject               {parent}
 , m_period              {period}
 , m_lastId              {0}
-, m_maxNumRunningThreads{QThreadPool::globalInstance()->maxThreadCount() }
+, m_maxNumRunningTasks{QThreadPool::globalInstance()->maxThreadCount() }
 , m_abort               {false}
 {
   QThread *thread = new QThread();
@@ -82,14 +85,18 @@ void Scheduler::addTask(TaskSPtr task)
   if (m_runningTasks[task->priority()].contains(task))
   {
     m_mutex.unlock();
-    return;
   }
+  else
+  {
+    task->setId(m_lastId++);
+    m_runningTasks[task->priority()].orderedInsert(task);
+    m_mutex.unlock();
 
-  task->setId(m_lastId++);
-  m_runningTasks[task->priority()].orderedInsert(task);
-  m_mutex.unlock();
-  if (!task->isHidden())
-    emit taskAdded(task);
+    if (!task->isHidden())
+    {
+      emit taskAdded(task);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -137,11 +144,13 @@ void Scheduler::changePriority(TaskPtr task, Priority prevPriority)
   QMutexLocker lock(&m_mutex);
 
   for (auto otherTask : m_runningTasks[prevPriority])
+  {
     if (otherTask.get() == task)
     {
       m_runningTasks[prevPriority].removeOne(otherTask);
       m_runningTasks[task->priority()].orderedInsert(otherTask);
     }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -165,15 +174,29 @@ unsigned int Scheduler::numberOfTasks() const
 }
 
 //-----------------------------------------------------------------------------
+unsigned int Scheduler::maxRunningTasks() const
+{
+  return m_maxNumRunningTasks;
+}
+
+//-----------------------------------------------------------------------------
 void Scheduler::scheduleTasks()
 {
+  high_resolution_clock::time_point start;
+  high_resolution_clock::time_point end;
+
+  int lastSchedulingTime;
+
   while (!m_abort)
   {
     QApplication::processEvents();
 
     m_mutex.lock();
 
-//     std::cout << "Start Scheduling on thread " << thread() << std::endl;
+    start = high_resolution_clock::now();
+
+//     std::cout << "Start Scheduling" << std::endl;
+//     std::cout << "\t Scheduler thread " << thread() << std::endl;
 //     int numTasks = 0;
 //     for (int priority = 4; priority >= 0; --priority)
 //     {
@@ -190,7 +213,7 @@ void Scheduler::scheduleTasks()
 //       std::cout << "Updating Priority " << priority << std::endl;
       QList<TaskSPtr> deferredDeletionTaskList;
 
-      for (TaskSPtr task : m_runningTasks[priority])
+      for (auto task : m_runningTasks[priority])
       {
         // TODO: this shouldn't be here?
         if (task == nullptr)
@@ -201,7 +224,7 @@ void Scheduler::scheduleTasks()
 
         bool is_thread_attached = task->m_isThreadAttached;
 
-        if (num_running_threads < m_maxNumRunningThreads
+        if (num_running_threads < m_maxNumRunningTasks
             && !(task->isPendingPause() || task->isWaiting() || task->isAborted() || task->hasFinished()))
         {
           if (is_thread_attached)
@@ -296,6 +319,12 @@ void Scheduler::scheduleTasks()
     }
     m_mutex.unlock();
 
-    usleep(m_period);
+    end  = high_resolution_clock::now();
+
+    lastSchedulingTime = duration_cast<microseconds>(end - start).count();
+
+//     std::cout << "Scheduling End after " << lastSchedulingTime << std::endl;
+
+    usleep(std::max(0, m_period - lastSchedulingTime));
   }
 }

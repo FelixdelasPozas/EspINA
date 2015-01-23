@@ -404,7 +404,7 @@ namespace ESPINA
      */
     virtual void showEvent(QShowEvent *event) override;
 
-    /** \brief Gernerates and saves to disk an image of the actual view state.
+    /** \brief Generates and saves to disk an image of the actual view state.
      *
      */
     void takeSnapshot();
@@ -453,6 +453,9 @@ namespace ESPINA
      *
      */
     unsigned int numEnabledRenderersForViewItem(RenderableType type);
+
+  private:
+    virtual void configureManager(RepresentationManagerSPtr manager) {}
 
   private slots:
     void onRenderReqest();

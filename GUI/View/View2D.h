@@ -399,6 +399,9 @@ namespace ESPINA
      */
     double viewHeightLength();
 
+  private:
+    virtual void configureManager(RepresentationManagerSPtr manager);
+
   private slots:
     /** \brief Takes an image of the view and saves it to disk.
      *

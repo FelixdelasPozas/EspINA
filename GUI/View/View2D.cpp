@@ -1101,6 +1101,17 @@ void View2D::updateChannelsOpacity()
 }
 
 //-----------------------------------------------------------------------------
+void View2D::configureManager(RepresentationManagerSPtr manager)
+{
+  auto manager2D = dynamic_cast<RepresentationManager2D *>(manager.get());
+
+  if (manager2D)
+  {
+    manager2D->setPlane(m_plane);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void View2D::onTakeSnapshot()
 {
   takeSnapshot();

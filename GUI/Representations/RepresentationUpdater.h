@@ -17,39 +17,39 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_STATE_H
-#define ESPINA_CHANNEL_STATE_H
+#ifndef ESPINA_REPRESENTATION_UPDATER_H
+#define ESPINA_REPRESENTATION_UPDATER_H
 
-#include <GUI/Model/ChannelAdapter.h>
+#include <Core/MultiTasking/Task.h>
+#include <GUI/Representations/PipelineMultiplexer.h>
 
-namespace ESPINA {
+namespace ESPINA
+{
 
-  class ChannelRepresentationState
+  class RepresentationUpdater
+  : public Task
   {
   public:
-    using Item = ChannelAdapterPtr;
+    explicit RepresentationUpdater(SchedulerSPtr scheduler);
 
-  public:
-    explicit ChannelRepresentationState();
+    void addPipeline(ViewItemAdapterPtr item, RepresentationPipelineSPtr pipeline);
 
-    explicit ChannelRepresentationState(Item item);
+    void removePipeline(ViewItemAdapterPtr item);
 
-    bool updateState();
+    void setCroshair(const NmVector3 &point);
+
+    void applySettings(const RepresentationPipeline::Settings &state);
+
+    RepresentationPipelineSList pipelines();
+
+  protected:
+    virtual void run();
 
   private:
-    Item       m_item;
-
-    double     m_brightness;
-    double     m_contrast;
-    double     m_opacity;
-    QColor     m_stain;
-    bool       m_visible;
-    TimeStamp  m_timeStamp;
-    OutputSPtr m_output;
-
-    RepresentationSList representations;
+    QMap<ViewItemAdapterPtr, PipelineMultiplexerSPtr> m_multiplexers;
   };
 
+  using RepresentationUpdaterSPtr = std::shared_ptr<RepresentationUpdater>;
 }
 
-#endif // ESPINA_CHANNELSTATE_H
+#endif // ESPINA_REPRESENTATIONUPDATER_H

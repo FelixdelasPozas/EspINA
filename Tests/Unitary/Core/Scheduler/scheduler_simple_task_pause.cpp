@@ -43,7 +43,7 @@ int scheduler_simple_task_pause( int argc, char** argv )
 {
   int error = 0;
   
-  int period = 50000;//0.05 sec
+  int period = 1000;// 1 ms
   
   int tasksPerPeriod = 2;
   int sleepTime = period/tasksPerPeriod;

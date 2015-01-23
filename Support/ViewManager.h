@@ -37,8 +37,8 @@
 #include <GUI/Widgets/SliceSelector.h>
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
-#include <GUI/Representations/RepresentationsState.h>
-#include <GUI/Representations/ChannelRepresentationState.h>
+#include <GUI/Representations/PipelineSources.h>
+#include <GUI/Representations/ChannelRepresentationSettingsEditor.h>
 #include "ROIProvider.h"
 
 // Qt
@@ -256,9 +256,6 @@ namespace ESPINA
     RendererSPtr cloneRenderer(const QString &name) const;
 
   private:
-    using ChannelRepresentationStates     = StateList<ChannelRepresentationState>;
-    using ChannelRepresentationStatesSPtr = std::shared_ptr<ChannelRepresentationStates>;
-
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
 
@@ -267,7 +264,8 @@ namespace ESPINA
     RepresentationPoolSList    m_autonomousPools;
     RepresentationManagerSList m_repManagers;
 
-    ChannelRepresentationStatesSPtr m_channelStates;
+    PipelineSources m_channelSources;
+    PipelineSources m_segmentationSources;
 
     RendererSList           m_availableRenderers; // DEPRECATED
 

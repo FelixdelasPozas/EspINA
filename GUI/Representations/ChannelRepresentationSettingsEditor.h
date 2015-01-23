@@ -17,21 +17,30 @@
  *
  */
 
-#include "ChannelSliceRepresentationDriver.h"
+#ifndef ESPINA_CHANNEL_STATE_H
+#define ESPINA_CHANNEL_STATE_H
 
-#include "ChannelSliceSwitch.h"
+#include <GUI/Model/ChannelAdapter.h>
 
-#include <ToolGroups/View/ViewToolGroup.h>
+namespace ESPINA {
 
-using namespace ESPINA;
+  class ChannelRepresentationSettingsEditor
+  {
+  public:
+    explicit ChannelRepresentationSettingsEditor(ChannelAdapterPtr channel);
 
-//----------------------------------------------------------------------------
-RepresnetationDriver ChannelSliceRepresentationDriver::createRepresentationDriver() const
-{
-  RepresnetationDriver driver;
+    ChannelAdapterPtr channel() const
+    { return m_channel; }
 
-  driver.Group = ViewToolGroup::CHANNELS_GROUP;
-  driver.Switches << std::make_shared<ChannelSliceSwitch>();
+    /** \brief Sets state to current channel representation state
+     *
+     */
+    RepresentationPipeline::Settings settings();
 
-  return driver;
+  private:
+    ChannelAdapterPtr m_channel;
+  };
+
 }
+
+#endif // ESPINA_CHANNELSTATE_H

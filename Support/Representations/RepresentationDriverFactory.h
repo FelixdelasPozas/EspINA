@@ -30,7 +30,7 @@ namespace ESPINA
    *         an specific type of related items
    *
    */
-  struct RepresnetationDriver
+  struct RepresentationDriver
   {
     QString                    Group;
     RepresentationPoolSList    Pools;
@@ -50,7 +50,7 @@ namespace ESPINA
      *         to display an specific type of related elements
      *
      */
-    virtual RepresnetationDriver createRepresentationDriver() const = 0;
+    virtual RepresentationDriver createRepresentationDriver() const = 0;
 
   };
 

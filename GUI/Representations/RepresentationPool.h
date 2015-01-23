@@ -21,24 +21,29 @@
 #define ESPINA_REPRESENTATION_POOL_H
 
 #include <Core/Utils/NmVector3.h>
-#include <GUI/Representations/RepresentationsState.h>
 #include "RepresentationPipeline.h"
+#include "PipelineSources.h"
 
 #include <memory>
 
 namespace ESPINA
 {
   class RepresentationPool
+  : public QObject
   {
-  public:
-    virtual ~RepresentationPool() {}
+    Q_OBJECT
 
-    void setState(RepresentationsStateSPtr state);
+  public:
+    virtual ~RepresentationPool();
+
+    void setPipelineSources(PipelineSources *sources);
 
     /** \brief Updates pool representation pipelines to the given position
      *
      */
-    virtual void setCrosshair(NmVector3 position) = 0;
+    virtual void setCrosshair(const NmVector3 &point) = 0;
+
+    virtual void update() = 0;
 
     /** \brief Returns whether all pipeline representations are set to the
      *         current position or not
@@ -49,27 +54,20 @@ namespace ESPINA
     /** \brief Returns all representation pipelines in the pool
      *
      */
-    virtual RepresentationPipelineSList representationPipelines() = 0;
-
-    /** \brief Returns visible representation pipelines in the pool
-     *
-     */
-    virtual RepresentationPipelineSList visibleRepresentationPipelines() = 0;
-
-    /** \brief Returns invisible representation pipelines in the pool
-     *
-     */
-    virtual RepresentationPipelineSList invisibleRepresentationPipelines() = 0;
+    virtual RepresentationPipelineSList pipelines() = 0;
 
     /** \brief Increment the number of active managers using this pool
      *
      */
-    void incrementActiveManagers(); // manage?
+    void incrementObservers();
 
     /** \brief Decrement the number of active managers using this pool
      *
      */
-    void decrementActiveManagers(); // release?
+    void decrementObservers();
+
+  signals:
+    void representationsReady();
 
   protected:
     explicit RepresentationPool();
@@ -79,10 +77,25 @@ namespace ESPINA
      */
     bool isBeingUsed() const;
 
-  private:
-    RepresentationsStateSPtr m_state;
+    ViewItemAdapterList sources() const;
 
-    unsigned m_numActiveManagers;
+  private slots:
+    void onSourceAdded (ViewItemAdapterPtr source);
+    void onSourcesAdded(ViewItemAdapterList sources);
+
+    void onSourceRemoved (ViewItemAdapterPtr source);
+    void onSourcesRemoved(ViewItemAdapterList sources);
+
+    void onSourceUpdated (ViewItemAdapterPtr source);
+    void onSourcesUpdated(ViewItemAdapterList sources);
+
+  private:
+    virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
+
+  private:
+    PipelineSources *m_sources;
+
+    unsigned m_numObservers;
   };
 
   using RepresentationPoolSPtr  = std::shared_ptr<RepresentationPool>;

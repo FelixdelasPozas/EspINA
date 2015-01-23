@@ -26,6 +26,7 @@
 #include "GUI/Model/NeuroItemAdapter.h"
 #include <GUI/Representations/Representation.h>
 #include <GUI/Representations/RepresentationFactory.h>
+#include <GUI/Representations/RepresentationPipeline.h>
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/ViewItem.h>
@@ -154,6 +155,8 @@ namespace ESPINA {
   signals:
     void outputModified();
     void outputChanged(ViewItemAdapterPtr);
+
+    void activateTemporalPipeline(RepresentationPipelineSPtr);
 
   protected:
     /** \brief ViewItemAdapter class constructor.

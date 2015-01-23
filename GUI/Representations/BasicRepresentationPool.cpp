@@ -19,34 +19,50 @@
 
 #include "BasicRepresentationPool.h"
 
-using namespace ESPINA;
-
 //-----------------------------------------------------------------------------
-void BasicRepresentationPool::setCrosshair(NmVector3 position)
+template<typename P, typename S>
+ESPINA::BasicRepresentationPool<P, S>::BasicRepresentationPool(S settings, SchedulerSPtr scheduler)
+: m_settings{settings}
+, m_updater{std::make_shared<RepresentationUpdater>(scheduler)}
 {
-
+  connect(m_updater.get(), SIGNAL(finished()),
+          this,            SIGNAL(representationsReady()));
 }
 
 //-----------------------------------------------------------------------------
-bool BasicRepresentationPool::isReady() const
+template<typename P, typename S>
+void ESPINA::BasicRepresentationPool<P, S>::setCrosshair(const NmVector3 &point)
 {
-
+  m_updater->setCroshair(point);
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipelineSList BasicRepresentationPool::representationPipelines()
+template<typename P, typename S>
+void ESPINA::BasicRepresentationPool<P, S>::update()
 {
+  m_updater->applySettings(m_settings->settings());
 
+  Task::submit(m_updater);
+}
+
+
+//-----------------------------------------------------------------------------
+template<typename P, typename S>
+bool ESPINA::BasicRepresentationPool<P, S>::isReady() const
+{
+  return m_updater->hasFinished();
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipelineSList BasicRepresentationPool::visibleRepresentationPipelines()
+template<typename P, typename S>
+ESPINA::RepresentationPipelineSList ESPINA::BasicRepresentationPool<P, S>::pipelines()
 {
-
+  return m_updater->pipelines();
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipelineSList BasicRepresentationPool::invisibleRepresentationPipelines()
+template<typename P, typename S>
+void ESPINA::BasicRepresentationPool<P, S>::addRepresentationPipeline(ViewItemAdapterPtr source)
 {
-
+  m_updater->addPipeline(source, std::make_shared<P>(source));
 }

@@ -44,15 +44,16 @@ using namespace ESPINA;
 Task::Task(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 , m_priority{Priority::NORMAL}
-, m_pendingPause{false}
+, m_isRunning       {false}
+, m_pendingPause    {false}
 , m_pendingUserPause{false}
-, m_isAborted{false}
-, m_hasFinished{false}
-, m_isPaused{false}
-, m_isWaiting{false}
-, m_id {0}
+, m_isAborted       {false}
+, m_hasFinished     {false}
+, m_isPaused        {false}
+, m_isWaiting       {false}
 , m_isThreadAttached{false}
-, m_hidden{false}
+, m_id              {0}
+, m_hidden          {false}
 {
   prepareToRun();
 
@@ -81,7 +82,9 @@ void Task::setPriority(Priority value)
     m_priority = value;
 
     if (m_scheduler != nullptr)
+    {
       m_scheduler->changePriority(this, previous);
+    }
   }
 }
 
@@ -126,6 +129,12 @@ bool Task::isPendingPause() const
 }
 
 //-----------------------------------------------------------------------------
+bool Task::isRunning() const
+{
+  return m_isThreadAttached && !isPendingPause();
+}
+
+//-----------------------------------------------------------------------------
 void Task::abort()
 {
   QMutexLocker lock(&m_mutex);
@@ -148,9 +157,11 @@ bool Task::canExecute()
     if (notify)
       emit paused();
 
-    m_isPaused = true;
+    m_isRunning    = false;
+    m_isPaused     = true;
     m_pauseCondition.wait(&m_mutex);
-    m_isPaused = false;
+    m_isRunning    = true;
+    m_isPaused     = false;
     m_pendingPause = false;
 
     if (notify)
@@ -161,11 +172,25 @@ bool Task::canExecute()
 }
 
 //-----------------------------------------------------------------------------
+void Task::setFinished(bool value)
+{
+  m_hasFinished = value;
+  emit finished();
+}
+
+//-----------------------------------------------------------------------------
 void Task::runWrapper()
 {
+  m_isRunning = true;
+
   if(!isAborted())
+  {
     run();
 
+    canExecute();
+  }
+
+  m_isRunning        = false;
   m_pendingPause     = false;
   m_pendingUserPause = false;
 
@@ -208,12 +233,13 @@ class TestThread: public QThread
 //-----------------------------------------------------------------------------
 void Task::prepareToRun()
 {
-  m_pendingPause = false;
-  m_pendingUserPause =false;
-  m_isAborted = false;
-  m_hasFinished = false;
-  m_isPaused = false;
-  m_isWaiting = false;
+  m_isRunning        = false;
+  m_pendingPause     = false;
+  m_pendingUserPause = false;
+  m_isAborted        = false;
+  m_hasFinished      = false;
+  m_isPaused         = false;
+  m_isWaiting        = false;
   m_isThreadAttached = false;
 }
 

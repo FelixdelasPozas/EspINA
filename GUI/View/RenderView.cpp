@@ -74,6 +74,8 @@ void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
   connect(manager.get(), SIGNAL(renderRequested()),
           this,          SLOT(onRenderReqest()));
 
+  configureManager(manager);
+
   m_managers << manager;
 }
 
@@ -994,6 +996,7 @@ void RenderView::onRenderReqest()
 
   if (isReady)
   {
+    updateSceneBounds();
     updateView();
   }
 }

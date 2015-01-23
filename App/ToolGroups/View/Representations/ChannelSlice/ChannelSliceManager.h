@@ -17,39 +17,41 @@
  *
  */
 
-#ifndef ESPINA_BASIC_REPRESENTATION_POOL_H
-#define ESPINA_BASIC_REPRESENTATION_POOL_H
+#ifndef ESPINA_CHANNEL_SLICE_MANAGER_H
+#define ESPINA_CHANNEL_SLICE_MANAGER_H
 
+#include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/RepresentationPool.h>
-#include "RepresentationUpdater.h"
 
-namespace ESPINA {
-
-  template<typename P, typename S>
-  class BasicRepresentationPool
-  : public RepresentationPool
+namespace ESPINA
+{
+  class ChannelSliceManager
+  : public RepresentationManager
+  , public RepresentationManager2D
   {
   public:
-    explicit BasicRepresentationPool(S settings, SchedulerSPtr scheduler);
-
-    virtual void setCrosshair(const NmVector3 &point);
-
-    virtual void update();
+    ChannelSliceManager(RepresentationPoolSPtr xy,
+                        RepresentationPoolSPtr xz,
+                        RepresentationPoolSPtr yz);
 
     virtual bool isReady() const;
 
+    virtual void onCrosshairChanged(NmVector3 crosshair);
+
+    virtual void setPlane(Plane plane);
+
+  private:
     virtual RepresentationPipelineSList pipelines();
 
-  private:
-    virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
+    virtual RepresentationManagerSPtr cloneImpelementation();
+
+    RepresentationPoolSPtr planePool() const;
 
   private:
-    S m_settings;
+    RepresentationPoolSPtr m_xy, m_xz, m_yz;
 
-    RepresentationUpdaterSPtr m_updater;
+    Plane m_plane;
   };
 }
 
-#include "BasicRepresentationPool.cpp"
-
-#endif // ESPINA_BASIC_REPRESENTATION_POOL_H
+#endif // ESPINA_CHANNELSLICEMANAGER_H

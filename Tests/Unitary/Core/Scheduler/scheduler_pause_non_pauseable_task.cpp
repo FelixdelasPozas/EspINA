@@ -28,76 +28,97 @@
 
 #include <Scheduler.h>
 
-#include "SleepyTask.h"
-
 #include <iostream>
-#include <memory>
 #include <unistd.h>
 
-#include <QThreadPool>
+#include <QApplication>
+#include <QThread>
  
 using namespace ESPINA;
 using namespace std;
 
-int scheduler_change_task_priority( int argc, char** argv )
+namespace SPNPT
 {
-  int error = 0;
+  class OneShotTask
+  : public Task
+  {
+  public:
+    explicit OneShotTask(int sleepTime, SchedulerSPtr scheduler)
+    : Task(scheduler)
+    , m_sleepTime{sleepTime}
+    {}
 
-  int schedulerPeriod = 2000;
-  int taskSleepTime   = 4*schedulerPeriod;
-  int taskTime        = 10*taskSleepTime;
-
-  auto scheduler = make_shared<Scheduler>(schedulerPeriod);
-
-  int maxTasks = scheduler->maxRunningTasks();
-  int numTasks = maxTasks + 5;
-
-  std::vector<shared_ptr<SleepyTask>> tasks;
-
-  for (int i = 0; i < numTasks; ++i) {
-    tasks.push_back(make_shared<SleepyTask>(taskSleepTime, scheduler));
-    tasks.at(i)->setDescription(QString("Task %1").arg(i));
-    Task::submit(tasks.at(i));
-  }
-
-  usleep(numTasks*schedulerPeriod);
-
-  for (int i = 0; i < maxTasks; ++i) {
-    if (tasks.at(i)->Result != 0) {
-      error = 1;
-      std::cerr << "Task " << i << " should be running: " << tasks.at(i)->Result << std::endl;
+  private:
+    virtual void run()
+    {
+      usleep(m_sleepTime);
     }
-  }
 
-  if (tasks.at(numTasks-1)->Result != -1) {
-    error = 1;
-    std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
-  }
+  private:
+    int m_sleepTime;
+  };
+}
 
-  tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGH);
+using namespace SPNPT;
 
-  usleep(2*schedulerPeriod);
+int scheduler_pause_non_pauseable_task(int argc, char** argv)
+{
+  bool error = false;
 
-  for (int i = 0; i < maxTasks - 1; ++i) {
-    if (tasks.at(i)->Result != 0) {
-      error = 1;      
-      std::cerr << "Task " << i << " should be running" << std::endl;
-    }
-  }
+  int period = 5000;//0.005 sec
 
-  if (tasks.at(numTasks-1)->Result != 0) {
-    error = 1;      
-    std::cerr << "Last Task should be running: " << tasks.at(numTasks-1)->Result  << std::endl;
-  }
+  int sleepTime = 3*period;
 
-  usleep((numTasks + 1) * taskTime);
+  QApplication app(argc, argv);
+
+  auto scheduler   = std::make_shared<Scheduler>(period);
+  auto oneShotTask = std::make_shared<OneShotTask>(sleepTime, scheduler);
+
+  oneShotTask->setDescription("Non Pauseable Simple Task");
+
+
+  Task::submit(oneShotTask);
+
+  usleep(period);
+
+  oneShotTask->pause();
   
-  for (int i = 0; i < numTasks; ++i) {
-    if (tasks.at(i)->Result != 1) {
-      error = 1;      
-      std::cerr << "Task " << i << " should have finished" << std::endl;
-    }
+  usleep(2*sleepTime);
+  
+  if (!oneShotTask->isPaused())
+  {
+    std::cerr << "Unexpected task status: should be paused" << std::endl;
+    error = true;
   }
 
+  if (oneShotTask->hasFinished())
+  {
+    std::cerr << "Unexpected task status: should not has finished" << std::endl;
+    error = true;
+  }
+
+  oneShotTask->resume();
+
+  usleep(period);
+
+  if (oneShotTask->isPaused())
+  {
+    std::cerr << "Unexpected task status: should not be paused" << std::endl;
+    error = true;
+  }
+
+  if (!oneShotTask->hasFinished())
+  {
+    std::cerr << "Unexpected task status: should has finished" << std::endl;
+    error = true;
+  }
+
+  QObject::connect(oneShotTask->thread(), SIGNAL(destroyed(QObject*)),
+                   &app, SLOT(quit()));
+  
+  oneShotTask.reset();
+
+  app.exec();
+  
   return error;
 }

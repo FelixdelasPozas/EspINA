@@ -24,9 +24,9 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RepresnetationDriver SegmentationSliceRepresentationDriver::createRepresentationDriver() const
+RepresentationDriver SegmentationSliceRepresentationDriver::createRepresentationDriver() const
 {
-  RepresnetationDriver driver;
+  RepresentationDriver driver;
 
   driver.Group = ViewToolGroup::SEGMENTATIONS_GROUP;
 

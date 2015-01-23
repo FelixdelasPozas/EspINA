@@ -62,7 +62,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
-#include "ToolGroups/View/Representations/ChannelSliceRepresentationDriver.h"
+#include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationDriver.h"
 #include "ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.h"
 
 #if USE_METADONA
@@ -78,8 +78,8 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 
-const QString AUTOSAVE_FILE = "espina-autosave.seg";
-const int PERIOD_NS = 250000;
+const QString AUTOSAVE_FILE     = "espina-autosave.seg";
+const int PERIOD_uSEC           = 25000; // 25ms
 const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------
@@ -100,7 +100,7 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
-, m_scheduler(new Scheduler(PERIOD_NS))
+, m_scheduler(new Scheduler(PERIOD_uSEC))
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 , m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
@@ -132,7 +132,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerChannelRepresentationFactory(std::make_shared<BasicChannelRepresentationFactory>(m_scheduler));
   m_factory->registerSegmentationRepresentationFactory(std::make_shared<BasicSegmentationRepresentationFactory>(m_scheduler));
 
-  initRepresentationDrivers();
+  initRepresentations();
 
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
@@ -1221,10 +1221,10 @@ void EspinaMainWindow::restoreRepresentationSwitchSettings()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::initRepresentationDrivers()
+void EspinaMainWindow::initRepresentations()
 {
-  registerRepresentationDriverFactory(std::make_shared<ChannelSliceRepresentationDriver>());
-  registerRepresentationDriverFactory(std::make_shared<SegmentationSliceRepresentationDriver>());
+  registerRepresentationDriverFactory(std::make_shared<ChannelSliceRepresentationDriver>(m_scheduler));
+  //registerRepresentationDriverFactory(std::make_shared<SegmentationSliceRepresentationDriver>());
 //   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
 //   registerRepresentationDriver(std::make_shared<MeshRenderer>());
 //   registerRepresentationDriver(std::make_shared<SmoothedMeshRenderer>());

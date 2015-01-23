@@ -20,21 +20,15 @@
 
 // ESPINA
 #include "RepresentationManager.h"
+#include <GUI/View/RenderView.h>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationManager::RepresentationManager(ViewTypeFlags flags)
-: m_flags{flags}
+RepresentationManager::RepresentationManager()
+: m_showPipelines{false}
 , m_view{nullptr}
-, m_displayRepresentations{false}
 {
-}
-
-//-----------------------------------------------------------------------------
-ViewTypeFlags RepresentationManager::supportedViews() const
-{
-  return m_flags;
 }
 
 //-----------------------------------------------------------------------------
@@ -81,7 +75,7 @@ void RepresentationManager::show()
     child->show();
   }
 
-  m_displayRepresentations = true;
+  m_showPipelines = true;
 
   updateRepresentationActors();
 }
@@ -94,7 +88,7 @@ void RepresentationManager::hide()
     child->hide();
   }
 
-  m_displayRepresentations = false;
+  m_showPipelines = false;
 
   updateRepresentationActors();
 }
@@ -105,7 +99,28 @@ void RepresentationManager::updateRepresentationActors()
 {
   if (m_view != nullptr)
   {
-    updateRepresentationImplementation(m_view, m_displayRepresentations);
+    for (auto pipeline : m_viewPipelines)
+    {
+      for (auto actor : pipeline->getActors())
+      {
+        m_view->removeActor(actor);
+      }
+    }
+
+    m_viewPipelines.clear();
+
+    if (m_showPipelines)
+    {
+      for (auto pipeline : pipelines())
+      {
+        for (auto actor : pipeline->getActors())
+        {
+          m_view->addActor(actor);
+        }
+
+        m_viewPipelines << pipeline;
+      }
+    }
 
     emit renderRequested();
   }
@@ -124,7 +139,7 @@ RepresentationManagerSPtr RepresentationManager::clone()
 //-----------------------------------------------------------------------------
 void RepresentationManager::setRepresentationsVisibility(bool value)
 {
-  if (m_displayRepresentations != value)
+  if (m_showPipelines != value)
   {
     if (value)
     {
