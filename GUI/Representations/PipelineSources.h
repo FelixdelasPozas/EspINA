@@ -52,7 +52,10 @@ namespace ESPINA
      */
     void removeSource(ViewItemAdapterPtr source);
 
-    ViewItemAdapterList getSources() const;
+    ViewItemAdapterList sources() const;
+
+    bool isEmpty() const
+    { return m_sources.isEmpty(); }
 
   signals:
     void sourceAdded(ViewItemAdapterPtr);

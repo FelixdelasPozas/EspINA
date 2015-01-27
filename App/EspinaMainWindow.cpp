@@ -79,7 +79,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
-const int PERIOD_uSEC           = 25000; // 25ms
+const int PERIOD_uSEC           = 16000; // 16ms
 const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------

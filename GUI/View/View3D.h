@@ -72,67 +72,17 @@ namespace ESPINA
      */
     void setCameraFocus(const NmVector3& center);
 
-    /** \brief Implements RenderView::reset().
-     *
-     */
     virtual void reset();
 
-    /** \brief Implements RenderView::resetCamera().
-     *
-     */
     virtual void resetCamera();
 
-    /** \brief Implements RenderView::centerViewOn().
-     *
-     */
     virtual void centerViewOn(const NmVector3& center, bool force = false);
 
-    /** \brief Overrides RenderView::addWidget().
-     *
-     */
     virtual void addWidget(EspinaWidgetSPtr widget) override;
 
-    /** \brief Overrides RenderView::removeWidget().
-     *
-     */
     virtual void removeWidget(EspinaWidgetSPtr widget) override;
 
-    /** \brief Implements RenderView::previewBounds().
-     *
-     */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
-
-//     /** \brief Overrides RenderView::add(channel).
-//      *
-//      */
-//     virtual void add(ChannelAdapterPtr channel) override;
-
-    /** \brief Overrides RenderView::add(segmentation)
-     *
-     */
-    virtual void add(SegmentationAdapterPtr seg) override
-    { RenderView::add(seg); }
-
-//     /** \brief Overrides RenderView::remove(channel).
-//      *
-//      */
-//     virtual void remove(ChannelAdapterPtr channel) override;
-
-    /** \brief Overrides RenderView::remove(segmentation).
-     *
-     */
-    virtual void remove(SegmentationAdapterPtr seg) override
-    { RenderView::remove(seg); }
-
-//     /** \brief Overrides RenderView::updateRepresentation(channel).
-//      *
-//      */
-//     virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true) override;
-
-    /** \brief Overrides RenderView::updateRepresentation(segmentation).
-     *
-     */
-    virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
 
     /** \brief Modifies the position of a specified plane of the crosshair to the given position.
      * \param[in] plane, crosshair plane to move.
@@ -141,60 +91,15 @@ namespace ESPINA
      */
     void changePlanePosition(Plane plane, Nm position);
 
-    /** \brief Implements RenderView::addRendererControls().
-     *
-     */
-    void addRendererControls(RendererSPtr renderer);
-
-    /** \brief Implements RenderView::removeRendererControls().
-     *
-     */
-    void removeRendererControls(const QString name);
-
-    /** \brief Overrides QObject::eventFilter().
-     *
-     */
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    /** \brief Implements RenderView::cloneRepresentation().
-     *
-     */
-    virtual RepresentationSPtr cloneRepresentation(ESPINA::ViewItemAdapterPtr item, ESPINA::Representation::Type representation);
-
-    /** \brief Implements RenderView::setRenderers().
-     *
-     */
-    void setRenderers(RendererSList renderers);
-
-    /** \brief Implements RenderView::activateRender().
-     *
-     */
-    void activateRender(const QString &rendererName);
-
-    /** \brief Implements RenderView::deactivateRender().
-     *
-     */
-    void deactivateRender(const QString &rendererName);
-
-    /** \brief Implements RenderView::setVisualState().
-     *
-     */
     virtual void setVisualState(struct RenderView::VisualState);
 
-    /** \brief Implements RenderView::visualState().
-     *
-     */
     virtual struct RenderView::VisualState visualState();
 
-    /** \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
-     *
-     */
     Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
   public slots:
-  /** \brief Implements RenderView::updateView().
-		 *
-		 */
     virtual void updateView();
 
   signals:
@@ -202,30 +107,24 @@ namespace ESPINA
 
   protected:
     /** \brief Selects items under the given coordinates.
-     * \param[in] x, x display coordinate.
-     * \param[in] y, y display coordinate.
-     * \param[in] append, if true returns all the items if false returns only the first picked (if any).
+     * \param[in] x display coordinate.
+     * \param[in] y display coordinate.
+     * \param[in] append if true returns all the items if false returns only the first picked (if any).
      *
      */
     void selectPickedItems(int x, int y, bool append);
 
-    /** \brief Implements RenderView::updateChannelsOpacity().
+  protected slots:
+    /** \brief Updates the view then a crosshair scroll bar changes value.
+     * \param[in] value new scrollbar value.
      *
      */
-    virtual void updateChannelsOpacity()
-    {}
-
-  protected slots:
-		/** \brief Updates the view then a crosshair scroll bar changes value.
-		 * \param[in] value, new scrollbar value.
-		 *
-		 */
-  	void scrollBarMoved(int value);
+    void scrollBarMoved(int value);
 
     /** \brief Exports the scene meshes to an external format and saves the result to disk.
      *
      */
-  	void exportScene();
+    void exportScene();
 
     /** \brief Takes an 2D image of the current view and saves it to disk.
      *
@@ -235,7 +134,7 @@ namespace ESPINA
     /** \brief Updates the state of the renderers controls.
      *
      */
-    void updateRenderersControls();
+    void updateViewActions();
 
   private:
     /** \brief Helper method to setup the UI.
@@ -246,7 +145,7 @@ namespace ESPINA
     /** \brief Helper method to build the UI controls.
      *
      */
-    void buildControls();
+    void buildViewActionsButtons();
 
     /** \brief Helper method to update the limit of the crosshair scrollbars.
      *
@@ -275,19 +174,19 @@ namespace ESPINA
     unsigned int m_numEnabledRenderers;
   };
 
-  /** \brief Returns true if the view is a 3D view.
-   * \param[in] view, RenderView raw pointer.
-   *
-   */
-  inline bool isView3D(RenderView *view)
-  { return dynamic_cast<View3D *>(view) != nullptr; }
-
   /** \brief Returns the 3D view raw pointer given a RenderView raw pointer.
    * \param[in] view, RenderView raw pointer.
    *
    */
   inline View3D * view3D_cast(RenderView* view)
   { return dynamic_cast<View3D *>(view); }
+
+  /** \brief Returns true if the view is a 3D view.
+   * \param[in] view RenderView raw pointer.
+   *
+   */
+  inline bool isView3D(RenderView *view)
+  { return view3D_cast(view) != nullptr; }
 
 } // namespace ESPINA
 

@@ -63,7 +63,7 @@ int scheduler_change_task_priority( int argc, char** argv )
   usleep(numTasks*schedulerPeriod);
 
   for (int i = 0; i < maxTasks; ++i) {
-    if (tasks.at(i)->Result != 0) {
+    if (tasks.at(i)->Result == -1 || tasks.at(i)->Result == SleepyTask::Iterations) {
       error = 1;
       std::cerr << "Task " << i << " should be running: " << tasks.at(i)->Result << std::endl;
     }
@@ -79,22 +79,22 @@ int scheduler_change_task_priority( int argc, char** argv )
   usleep(2*schedulerPeriod);
 
   for (int i = 0; i < maxTasks - 1; ++i) {
-    if (tasks.at(i)->Result != 0) {
-      error = 1;      
+    if (tasks.at(i)->Result == -1 || tasks.at(i)->Result == SleepyTask::Iterations) {
+      error = 1;
       std::cerr << "Task " << i << " should be running" << std::endl;
     }
   }
 
-  if (tasks.at(numTasks-1)->Result != 0) {
-    error = 1;      
+  if (tasks.at(numTasks -1)->Result == -1 || tasks.at(numTasks - 1)->Result == SleepyTask::Iterations) {
+    error = 1;
     std::cerr << "Last Task should be running: " << tasks.at(numTasks-1)->Result  << std::endl;
   }
 
   usleep((numTasks + 1) * taskTime);
   
   for (int i = 0; i < numTasks; ++i) {
-    if (tasks.at(i)->Result != 1) {
-      error = 1;      
+    if (tasks.at(i)->Result != SleepyTask::Iterations) {
+      error = 1;
       std::cerr << "Task " << i << " should have finished" << std::endl;
     }
   }

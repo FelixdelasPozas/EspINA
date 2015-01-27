@@ -120,6 +120,8 @@ void ChannelSlicePipeline<T>::update()
     m_actor->Update();
     m_state.commit();
   }
+
+  m_actors << m_actor;
 }
 
 //----------------------------------------------------------------------------
@@ -129,6 +131,7 @@ QList<ESPINA::RepresentationPipeline::Actor> ESPINA::ChannelSlicePipeline<T>::ge
   return m_actors;
 }
 
+#include <QDebug>
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::applySettings(const Settings &settings)

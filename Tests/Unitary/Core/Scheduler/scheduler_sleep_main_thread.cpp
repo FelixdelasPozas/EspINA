@@ -53,7 +53,7 @@ int scheduler_sleep_main_thread( int argc, char** argv )
 
   usleep(20*period);
 
-  if (sleepyTask->Result != 1) {
+  if (sleepyTask->Result != SleepyTask::Iterations) {
     error = 1;
     std::cerr << "Unexpected final sleepy task value" << std::endl;
   }

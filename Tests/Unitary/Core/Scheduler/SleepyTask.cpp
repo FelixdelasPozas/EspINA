@@ -36,26 +36,28 @@ SleepyTask::~SleepyTask()
 
 void SleepyTask::run()
 {
-  const int NUM_ITERATIONS = 10;
-
-  int i = 0;
-  while (canExecute() && i < NUM_ITERATIONS) {
-    m_mutex.lock();
-    Result = 0;
-    m_mutex.unlock();
-
-    //std::cout << description().toStdString() << " is working " << i+1 << "/10 on thread " << thread() << std::endl;
+  int  i = 0;
+  Result = 0;
+  while (canExecute() && i < Iterations)
+  {
+    std::cout << description().toStdString() << " is working " << i+1 << "/10 on thread " << thread() << std::endl;
     usleep(m_sleepTime);
     i++;
 
+    Result = i;
+
     emit progress(i*10);
   }
+  std::cout << description().toStdString() << " ended" << std::endl;
+}
 
-  if (!isAborted()) {
-    m_mutex.lock();
-    Result = 1;
-    m_mutex.unlock();
-  }
 
-  //std::cout << description().toStdString() << " ended" << std::endl;
+bool SleepyTask::isFinished()
+{
+  return Result == Iterations;
+}
+
+bool SleepyTask::isExecuting()
+{
+  return Result > -1 && Result < Iterations;
 }

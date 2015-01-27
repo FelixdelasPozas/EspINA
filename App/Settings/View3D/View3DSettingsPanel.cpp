@@ -47,7 +47,7 @@ View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& rend
 //-----------------------------------------------------------------------------
 void View3DSettingsPanel::acceptChanges()
 {
-  m_view->setRenderers(m_rendererSelector->getActiveRenderers());
+  //TODO m_view->setRenderers(m_rendererSelector->getActiveRenderers());
 }
 
 //-----------------------------------------------------------------------------

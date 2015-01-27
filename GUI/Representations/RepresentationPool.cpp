@@ -61,6 +61,17 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationPool::update()
+{
+  if (isBeingUsed())
+  {
+    processPendingSources();
+
+    updateImplementation();
+  }
+}
+
+//-----------------------------------------------------------------------------
 bool RepresentationPool::isBeingUsed() const
 {
   return m_numObservers > 0;
@@ -69,7 +80,7 @@ bool RepresentationPool::isBeingUsed() const
 //-----------------------------------------------------------------------------
 ViewItemAdapterList RepresentationPool::sources() const
 {
-  return m_sources->getSources();
+  return m_sources->sources();
 }
 
 //-----------------------------------------------------------------------------
@@ -89,12 +100,16 @@ void RepresentationPool::decrementObservers()
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourceAdded(ViewItemAdapterPtr source)
 {
-//   if (isBeingUsed())
-//   {
+  if (isBeingUsed())
+  {
     addRepresentationPipeline(source);
 
     update();
-//   }
+  }
+  else
+  {
+    m_pendingSources << source;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -125,4 +140,15 @@ void RepresentationPool::onSourceUpdated(ViewItemAdapterPtr source)
 void RepresentationPool::onSourcesUpdated(ViewItemAdapterList sources)
 {
 
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::processPendingSources()
+{
+  for (auto source : m_pendingSources)
+  {
+    addRepresentationPipeline(source);
+  }
+
+  m_pendingSources.clear();
 }

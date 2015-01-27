@@ -97,7 +97,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 //   }
 //
 //   m_view->setRenderers(renderers);
-  m_view->setColorEngine(m_viewManager->colorEngine());
+  //TODO m_view->setColorEngine(m_viewManager->colorEngine());
   m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view->setMinimumWidth(250);
   m_view->resetCamera();
@@ -171,7 +171,7 @@ SegmentationInspector::~SegmentationInspector()
 void SegmentationInspector::updateScene(ItemAdapterPtr item)
 {
   auto segmentation = segmentationPtr(item);
-  m_view->updateRepresentation(segmentation);
+  //TODO m_view->updateRepresentation(segmentation);
   m_view->updateView();
 }
 
@@ -182,7 +182,7 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
     return;
 
   m_segmentations << segmentation;
-  m_view->add(segmentation);
+  //TODO use sources and pools m_view->add(segmentation);
 
   auto channels = QueryAdapter::channels(segmentation);
 
@@ -216,7 +216,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     return;
   }
 
-  m_view->remove(segmentation);
+  //TODO use sources and pools m_view->remove(segmentation);
 
   ChannelAdapterSPtr channelToBeRemoved;
   auto channels = QueryAdapter::channels(segmentation);

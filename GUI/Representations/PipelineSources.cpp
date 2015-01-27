@@ -70,7 +70,7 @@ void PipelineSources::removeSource(ViewItemAdapterPtr source)
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList PipelineSources::getSources() const
+ViewItemAdapterList PipelineSources::sources() const
 {
   return m_sources;
 }

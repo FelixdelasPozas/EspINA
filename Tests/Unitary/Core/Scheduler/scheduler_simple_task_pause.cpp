@@ -51,8 +51,8 @@ int scheduler_simple_task_pause( int argc, char** argv )
     
   QApplication app(argc, argv);
   
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(sleepTime, scheduler)};
+  auto scheduler  = make_shared<Scheduler>(period);
+  auto sleepyTask = make_shared<SleepyTask>(sleepTime, scheduler);
   sleepyTask->setDescription("Simple Task");
   
   if (sleepyTask->Result != -1) {
@@ -63,31 +63,30 @@ int scheduler_simple_task_pause( int argc, char** argv )
   Task::submit(sleepyTask);
   
   usleep(taskTime/2);
-  
+
+  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
+                   &app, SLOT(quit()));
+
+
   sleepyTask->pause();
-  
-  usleep(taskTime);
-  
-  if (sleepyTask->Result != 0) {
+
+  usleep(2*taskTime);
+
+  if (sleepyTask->Result == -1 || sleepyTask->Result == SleepyTask::Iterations) {
     error = 1;
     std::cerr << "Unexpected paused sleepy task value" << std::endl;
   }
-  
+
   sleepyTask->resume();
-  
-  usleep(taskTime);
-  
-  if (sleepyTask->Result != 1) {
+
+  usleep(2*taskTime);
+
+  if (sleepyTask->Result != SleepyTask::Iterations) {
     error = 1;
     std::cerr << "Unexpected final sleepy task value" << std::endl;
   }
-  
-  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
-                   &app, SLOT(quit()));
-  
-  sleepyTask.reset();
-  
+
   app.exec();
-  
+
   return error;
 }

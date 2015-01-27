@@ -23,6 +23,8 @@
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Representations/PipelineMultiplexer.h>
 
+#include <atomic>
+
 namespace ESPINA
 {
 
@@ -42,10 +44,14 @@ namespace ESPINA
 
     RepresentationPipelineSList pipelines();
 
+    bool needsRestart() const;
+
   protected:
     virtual void run();
 
   private:
+    std::atomic<bool> m_needRestart;
+
     QMap<ViewItemAdapterPtr, PipelineMultiplexerSPtr> m_multiplexers;
   };
 

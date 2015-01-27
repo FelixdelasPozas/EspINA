@@ -66,12 +66,6 @@ namespace ESPINA {
      */
     void addTask(TaskSPtr task);
 
-    /** \brief Removes a task from the task list.
-     * \param[in] task task smart pointer.
-     *
-     */
-    void removeTask(TaskSPtr task);
-
     /** \brief Aborts all tasks currently in the task list.
      *
      */
@@ -105,6 +99,13 @@ namespace ESPINA {
   signals:
     void taskAdded(TaskSPtr);
     void taskRemoved(TaskSPtr);
+
+  private:
+    /** \brief Removes a task from the task list.
+     * \param[in] task task smart pointer.
+     *
+     */
+    void removeTask(Priority priority, TaskSPtr task);
 
   private:
     int m_period;

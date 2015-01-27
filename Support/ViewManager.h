@@ -29,7 +29,6 @@
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
@@ -231,30 +230,6 @@ namespace ESPINA
      */
     void setFitToSlices(bool enabled);
 
-    /** \brief Register a renderer.
-     * \param[in] renderer renderer prototype.
-     */
-    // DEPRECATED
-    void registerRenderer(RendererSPtr renderer);
-
-    /** \brief Unregister a renderer and remove it from the list of renderers.
-     * \param[in] name name of the renderer to unregister.
-     */
-    // DEPRECATED
-    void unregisterRenderer(const QString &name);
-
-    /** \brief Returns a list of renderers for the specified view type.
-     * \param[in] type view type.
-     */
-    // DEPRECATED
-    QStringList renderers(const RendererType type) const;
-
-    // DEPRECATED
-    /** \brief Returns an instance of the specified renderer.
-     * \param[in] name name of the renderer to clone.
-     */
-    RendererSPtr cloneRenderer(const QString &name) const;
-
   private:
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
@@ -266,8 +241,6 @@ namespace ESPINA
 
     PipelineSources m_channelSources;
     PipelineSources m_segmentationSources;
-
-    RendererSList           m_availableRenderers; // DEPRECATED
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/
@@ -405,12 +378,6 @@ namespace ESPINA
      *
      */
     void focusViewsOn(const NmVector3& point);
-
-    /** \brief Toggles segmentations visibility.
-     * \param[in] visible true to make segmentation representations visible, false otherwise.
-     *
-     */
-    void setSegmentationVisibility(bool visible);
 
     /** \brief Toggles crosshair visibility.
      * \param[in] visible true to make the crosshair visible false otherwise.

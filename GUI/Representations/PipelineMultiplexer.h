@@ -38,9 +38,9 @@ namespace ESPINA
     RepresentationPipelineSPtr active() const;
 
   private slots:
-    void onTemporalPipelineActivated(RepresentationSPtr pipeline);
+    void onTemporalPipelineActivated(RepresentationPipelineSPtr pipeline);
 
-    void onTemporalPipelineDeactivated(RepresentationSPtr pipeline);
+    void onTemporalPipelineDeactivated(RepresentationPipelineSPtr pipeline);
 
   private:
     bool m_tmpPipelineActive;

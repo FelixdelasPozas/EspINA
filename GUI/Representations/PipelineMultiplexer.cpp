@@ -29,7 +29,7 @@ ESPINA::PipelineMultiplexer::PipelineMultiplexer(ViewItemAdapterPtr item, Repres
   Q_ASSERT(m_pipeline);
 
   connect(item, SIGNAL(activateTemporalPipeline(RepresentationPipelineSPtr)),
-          this, SLOT(onTemporalPipelineActivated(RepresentationSPtr)));
+          this, SLOT(onTemporalPipelineActivated(RepresentationPipelineSPtr)));
 }
 
 //-----------------------------------------------------------------------------
@@ -39,13 +39,13 @@ RepresentationPipelineSPtr PipelineMultiplexer::active() const
 }
 
 //-----------------------------------------------------------------------------
-void PipelineMultiplexer::onTemporalPipelineActivated(RepresentationSPtr pipeline)
+void PipelineMultiplexer::onTemporalPipelineActivated(RepresentationPipelineSPtr pipeline)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void PipelineMultiplexer::onTemporalPipelineDeactivated(RepresentationSPtr pipeline)
+void PipelineMultiplexer::onTemporalPipelineDeactivated(RepresentationPipelineSPtr pipeline)
 {
 
 }

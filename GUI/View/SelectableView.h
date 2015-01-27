@@ -36,9 +36,9 @@ namespace ESPINA
   class EspinaGUI_EXPORT SelectableView
   {
   public:
-  	/** \brief SelectableView class constructor.
-  	 *
-  	 */
+    /** \brief SelectableView class constructor.
+     *
+     */
     SelectableView()
     : m_selectionEnabled{true}
     , m_selection{new Selection()}

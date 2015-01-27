@@ -27,6 +27,7 @@
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
 #include <vtkSmartPointer.h>
+#include <vtkLookupTable.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImplicitFunction.h>

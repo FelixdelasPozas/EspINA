@@ -82,50 +82,29 @@ Scheduler::~Scheduler()
 void Scheduler::addTask(TaskSPtr task)
 {
   m_mutex.lock();
-  if (m_runningTasks[task->priority()].contains(task))
-  {
-    m_mutex.unlock();
-  }
-  else
-  {
-    task->setId(m_lastId++);
-    m_runningTasks[task->priority()].orderedInsert(task);
-    m_mutex.unlock();
+  task->setId(m_lastId++);
+  m_runningTasks[task->priority()].orderedInsert(task);
 
-    if (!task->isHidden())
-    {
-      emit taskAdded(task);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void Scheduler::removeTask(TaskSPtr task)
-{
-  // NOTE: not used actually, used to be in Task destructor, but now task
-  // are smartpointers, and deleting them from the list deletes them.
-  m_mutex.lock();
-  if (!m_runningTasks[task->priority()].contains(task))
-  {
-    m_mutex.unlock();
-    return;
-  }
-
-  m_runningTasks[task->priority()].removeOne(task);
-  m_mutex.unlock();
   if (!task->isHidden())
-    emit taskRemoved(task);
+  {
+    emit taskAdded(task);
+  }
+  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
 void Scheduler::abortExecutingTasks()
 {
   m_abort = true;
+
   m_mutex.lock();
   for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
   {
     for (auto task : m_runningTasks[priority])
     {
+      QMutexLocker lock(&task->m_submissionMutex);
+      task->m_submitted = false;
+
       if (!task->hasFinished())
       {
         task->abort();
@@ -218,11 +197,12 @@ void Scheduler::scheduleTasks()
         // TODO: this shouldn't be here?
         if (task == nullptr)
         {
+          Q_ASSERT(false);
           deferredDeletionTaskList << task;
           continue;
         }
 
-        bool is_thread_attached = task->m_isThreadAttached;
+        bool is_thread_attached = task->isExecutingOnThread();
 
         if (num_running_threads < m_maxNumRunningTasks
             && !(task->isPendingPause() || task->isWaiting() || task->isAborted() || task->hasFinished()))
@@ -241,7 +221,7 @@ void Scheduler::scheduleTasks()
           }
           else
           {
-            task->start();
+            task->startThreadExecution();
 //             std::cout << "- " << task->id() << ": " << task->description().toStdString() << " started" << std::endl;
           }
           num_running_threads++;
@@ -263,11 +243,6 @@ void Scheduler::scheduleTasks()
 //               }
 //             }
             deferredDeletionTaskList << task;
-
-            if (!task->isHidden())
-            {
-              emit taskRemoved(task);
-            }
           }
           else
           {
@@ -302,7 +277,9 @@ void Scheduler::scheduleTasks()
       }
 
       for (auto task : deferredDeletionTaskList)
-        m_runningTasks[priority].removeOne(task);
+      {
+        removeTask(priority, task);
+      }
 
 //      for (auto task : m_runningTasks[priority])
 //      {
@@ -326,5 +303,22 @@ void Scheduler::scheduleTasks()
 //     std::cout << "Scheduling End after " << lastSchedulingTime << std::endl;
 
     usleep(std::max(0, m_period - lastSchedulingTime));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Scheduler::removeTask(Priority priority, TaskSPtr task)
+{
+  QMutexLocker sumbissionLock(&task->m_submissionMutex);
+  if (task->m_submitted)
+  {
+    m_runningTasks[priority].removeOne(task);
+
+    task->m_submitted = false;
+
+    if (!task->isHidden())
+    {
+      emit taskRemoved(task);
+    }
   }
 }

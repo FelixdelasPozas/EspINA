@@ -74,128 +74,114 @@ View3D::~View3D()
 //   qDebug() << "              Destroying Volume View";
 //   qDebug() << "********************************************************";
 
-  for(auto segmentation: m_segmentationStates.keys())
-  	RenderView::remove(segmentation);
-  m_segmentationStates.clear();
+  for(auto widget: m_widgets)
+  {
+    RenderView::removeWidget(widget); // faster than calling this->removeWidget(widget);
+  }
 
-//   for(auto channel: m_channelStates.keys())
-//     RenderView::remove(channel);
-//   m_channelStates.clear();
-
-	for(auto widget: m_widgets)
-	  RenderView::removeWidget(widget); // faster than calling this->removeWidget(widget);
-	m_widgets.clear();
-
-	for(auto renderer: m_renderers)
-		removeRendererControls(renderer->name());
-  m_renderers.clear();
+  m_widgets.clear();
 }
 
 //-----------------------------------------------------------------------------
 void View3D::reset()
 {
   for(auto widget: m_widgets)
+  {
     widget->unregisterView(this);
+  }
+
   m_widgets.clear();
 
-  for(auto segmentation: m_segmentationStates.keys())
-    RenderView::remove(segmentation);
-
-//   for(auto channel: m_channelStates.keys())
-//     remove(channel);
-
-  Q_ASSERT(m_channelStates.isEmpty());
-  Q_ASSERT(m_segmentationStates.isEmpty());
   Q_ASSERT(m_widgets.isEmpty());
 
-  updateRenderersControls();
+  updateViewActions();
 }
 
+// //-----------------------------------------------------------------------------
+// void View3D::addRendererControls(RendererSPtr renderer)
+// {
+//   if (m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW3D))
+//     return;
+//
+//   m_renderers << renderer;
+//
+//   renderer->setView(this);
+//   renderer->setEnable(false);
+//
+//   // add segmentation representations to renderer
+//   for(auto segmentation : m_segmentationStates.keys())
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (repRenderer->canRender(segmentation))
+//         for(auto rep : m_segmentationStates[segmentation].representations)
+//            if (repRenderer->managesRepresentation(rep->type()))
+//              repRenderer->addRepresentation(segmentation, rep);
+//     }
+//
+//   // add channel representations to renderer
+//   for(auto channel : m_channelStates.keys())
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (repRenderer->canRender(channel))
+//         for(auto rep : m_channelStates[channel].representations)
+//           if (repRenderer->managesRepresentation(rep->type()))
+//             repRenderer->addRepresentation(channel, rep);
+//     }
+//
+//   auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
+//   if (configMenu == nullptr)
+//   {
+//     configMenu = new ViewRendererMenu(m_renderConfig);
+//     m_renderConfig->setMenu(configMenu);
+//     m_renderConfig->setEnabled(true);
+//   }
+//   configMenu->add(renderer);
+//
+//   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateViewActions()), Qt::QueuedConnection);
+//   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
+//
+//   updateViewActions();
+// }
+//
+// //-----------------------------------------------------------------------------
+// void View3D::removeRendererControls(const QString name)
+// {
+//   RendererSPtr removedRenderer;
+//   for(auto renderer: m_renderers)
+//     if (renderer->name() == name)
+//     {
+//       removedRenderer = renderer;
+//       break;
+//     }
+//
+//   if (!removedRenderer)
+//     return;
+//
+//   m_renderers.removeOne(removedRenderer);
+//
+//   if (!removedRenderer->isHidden())
+//     removedRenderer->setEnable(false);
+//
+//   auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
+//   if (configMenu != nullptr)
+//   {
+//     configMenu->remove(removedRenderer);
+//     if (configMenu->actions().isEmpty())
+//     {
+//       m_renderConfig->setMenu(nullptr);
+//       delete configMenu;
+//       m_renderConfig->setEnabled(false);
+//     }
+//   }
+//   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
+//
+//   updateViewActions();
+// }
+
 //-----------------------------------------------------------------------------
-void View3D::addRendererControls(RendererSPtr renderer)
-{
-  if (m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW3D))
-    return;
-
-  m_renderers << renderer;
-
-  renderer->setView(this);
-  renderer->setEnable(false);
-
-  // add segmentation representations to renderer
-  for(auto segmentation : m_segmentationStates.keys())
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (repRenderer->canRender(segmentation))
-        for(auto rep : m_segmentationStates[segmentation].representations)
-           if (repRenderer->managesRepresentation(rep->type()))
-             repRenderer->addRepresentation(segmentation, rep);
-    }
-
-  // add channel representations to renderer
-  for(auto channel : m_channelStates.keys())
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (repRenderer->canRender(channel))
-        for(auto rep : m_channelStates[channel].representations)
-          if (repRenderer->managesRepresentation(rep->type()))
-            repRenderer->addRepresentation(channel, rep);
-    }
-
-  auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
-  if (configMenu == nullptr)
-  {
-    configMenu = new ViewRendererMenu(m_renderConfig);
-    m_renderConfig->setMenu(configMenu);
-    m_renderConfig->setEnabled(true);
-  }
-  configMenu->add(renderer);
-
-  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateRenderersControls()), Qt::QueuedConnection);
-  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
-
-  updateRenderersControls();
-}
-
-//-----------------------------------------------------------------------------
-void View3D::removeRendererControls(const QString name)
-{
-  RendererSPtr removedRenderer;
-  for(auto renderer: m_renderers)
-    if (renderer->name() == name)
-    {
-      removedRenderer = renderer;
-      break;
-    }
-
-  if (!removedRenderer)
-    return;
-
-  m_renderers.removeOne(removedRenderer);
-
-  if (!removedRenderer->isHidden())
-    removedRenderer->setEnable(false);
-
-  auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
-  if (configMenu != nullptr)
-  {
-    configMenu->remove(removedRenderer);
-    if (configMenu->actions().isEmpty())
-    {
-      m_renderConfig->setMenu(nullptr);
-      delete configMenu;
-      m_renderConfig->setEnabled(false);
-    }
-  }
-  disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
-
-  updateRenderersControls();
-}
-
-//-----------------------------------------------------------------------------
-void View3D::buildControls()
+void View3D::buildViewActionsButtons()
 {
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
@@ -220,9 +206,9 @@ void View3D::buildControls()
   m_controlLayout->addItem(horizontalSpacer);
   m_controlLayout->addWidget(m_renderConfig);
 
-  for(auto renderer : m_renderers)
-    if (canRender(renderer, RendererType::RENDERER_VIEW3D))
-      this->addRendererControls(renderer->clone());
+//   for(auto renderer : m_renderers)
+//     if (canRender(renderer, RendererType::RENDERER_VIEW3D))
+//       this->addRendererControls(renderer->clone());
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -238,52 +224,33 @@ void View3D::centerViewOn(const NmVector3& point, bool force)
 
   m_center = point;
 
-  bool updated = false;
-
-  for(auto renderer: m_renderers)
+  for (auto manager :m_managers)
   {
-    auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
-    if (channelRenderer)
-      channelRenderer->setCrosshair(m_center);
-
-    updated |= !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
+    manager->onCrosshairChanged(m_center);
   }
 
-  if (m_showCrosshairPlaneSelectors && !m_channelStates.empty())
+  if (m_showCrosshairPlaneSelectors && !m_channelSources->isEmpty())
   {
-    NmVector3 minSpacing = m_channelStates.begin().key()->output()->spacing();
+    int iCenter[3] = {
+      vtkMath::Round(point[0]/m_sceneResolution[0]),
+      vtkMath::Round(point[1]/m_sceneResolution[1]),
+      vtkMath::Round(point[2]/m_sceneResolution[2])
+    };
 
-    for(auto channel: m_channelStates.keys())
-    {
-      NmVector3 spacing;
-      spacing = channel->output()->spacing();
-      if (spacing[0] < minSpacing[0])
-        minSpacing[0] = spacing[0];
-
-      if (spacing[1] < minSpacing[1])
-        minSpacing[1] = spacing[1];
-
-      if (spacing[2] < minSpacing[2])
-        minSpacing[2] = spacing[2];
-    }
-
-    int iCenter[3] = { vtkMath::Round(point[0]/minSpacing[0]), vtkMath::Round(point[1]/minSpacing[1]), vtkMath::Round(point[2]/minSpacing[2]) };
-    m_axialScrollBar->blockSignals(true);
-    m_coronalScrollBar->blockSignals(true);
+    m_axialScrollBar   ->blockSignals(true);
+    m_coronalScrollBar ->blockSignals(true);
     m_sagittalScrollBar->blockSignals(true);
-    m_axialScrollBar->setValue(iCenter[0]);
-    m_coronalScrollBar->setValue(iCenter[1]);
+
+    m_axialScrollBar   ->setValue(iCenter[0]);
+    m_coronalScrollBar ->setValue(iCenter[1]);
     m_sagittalScrollBar->setValue(iCenter[2]);
-    m_axialScrollBar->blockSignals(false);
-    m_coronalScrollBar->blockSignals(false);
+
+    m_axialScrollBar   ->blockSignals(false);
+    m_coronalScrollBar ->blockSignals(false);
     m_sagittalScrollBar->blockSignals(false);
   }
 
-  if (updated)
-  {
-    setCameraFocus(point);
-    updateView();
-  }
+  setCameraFocus(point); // NOTE: We used to do it only if
 }
 
 //-----------------------------------------------------------------------------
@@ -303,49 +270,12 @@ void View3D::resetCamera()
   m_renderer->ResetCamera();
 }
 
-// //-----------------------------------------------------------------------------
-// void View3D::add(ChannelAdapterPtr channel)
-// {
-//   RenderView::add(channel);
-//
-//   updateRenderersControls();
-//   updateScrollBarsLimits();
-// }
-
-// //-----------------------------------------------------------------------------
-// void View3D::remove(ChannelAdapterPtr channel)
-// {
-//   RenderView::remove(channel);
-//
-//   updateRenderersControls();
-//   updateScrollBarsLimits();
-// }
-
-// //-----------------------------------------------------------------------------
-// bool View3D::updateRepresentation(ChannelAdapterPtr channel, bool render)
-// {
-//   bool returnVal = RenderView::updateRepresentation(channel, render);
-//
-//   updateRenderersControls();
-//   return returnVal;
-// }
-
-//-----------------------------------------------------------------------------
-bool View3D::updateRepresentation(SegmentationAdapterPtr seg, bool render)
-{
-  bool returnVal = RenderView::updateRepresentation(seg, render);
-
-  updateRenderersControls();
-  return returnVal;
-}
-
-
 //-----------------------------------------------------------------------------
 void View3D::addWidget(EspinaWidgetSPtr widget)
 {
   RenderView::addWidget(widget);
 
-  updateRenderersControls();
+  updateViewActions();
 }
 
 //-----------------------------------------------------------------------------
@@ -353,20 +283,20 @@ void View3D::removeWidget(EspinaWidgetSPtr widget)
 {
   RenderView::removeWidget(widget);
 
-  updateRenderersControls();
+  updateViewActions();
 }
 
 //-----------------------------------------------------------------------------
 Bounds View3D::previewBounds(bool cropToSceneBounds) const
 {
   Bounds resultBounds;
-  for (auto channel: m_channelStates.keys())
-  {
-    if (!resultBounds.areValid())
-      resultBounds = channel->bounds();
-    else
-      resultBounds = boundingBox(resultBounds, channel->bounds());
-  }
+//   for (auto channel: m_channelStates.keys())
+//   {
+//     if (!resultBounds.areValid())
+//       resultBounds = channel->bounds();
+//     else
+//       resultBounds = boundingBox(resultBounds, channel->bounds());
+//   }
 
   return resultBounds;
 }
@@ -376,8 +306,9 @@ void View3D::setupUI()
 {
   if (m_showCrosshairPlaneSelectors)
   {
-    m_additionalGUI = new QHBoxLayout();
+    m_additionalGUI  = new QHBoxLayout();
     m_axialScrollBar = new QScrollBar(Qt::Horizontal);
+
     m_axialScrollBar->setEnabled(false);
     m_axialScrollBar->setFixedHeight(15);
     m_axialScrollBar->setToolTip("Axial scroll bar");
@@ -421,7 +352,7 @@ void View3D::setupUI()
   m_view->GetRenderWindow()->Render();
   m_view->installEventFilter(this);
 
-  buildControls();
+  buildViewActionsButtons();
 
   // Color background
   QPalette pal = this->palette();
@@ -445,60 +376,60 @@ void View3D::updateView()
 void View3D::selectPickedItems(int vx, int vy, bool append)
 {
   ViewItemAdapterList selection, pickedItems;
-  if (append)
-    selection = currentSelection()->items();
-
-  // If no append, segmentations have priority over channels
-  for(auto renderer : m_renderers)
-  {
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::SEGMENTATION))
-      {
-        pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
-        if (!pickedItems.empty())
-        {
-          for(ViewItemAdapterPtr item : pickedItems)
-            if (!selection.contains(item))
-              selection << item;
-            else
-              selection.removeAll(item);
-        }
-      }
-    }
-  }
-
-  pickedItems.clear();
-
-  for(auto renderer : m_renderers)
-  {
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::CHANNEL))
-      {
-        pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
-        if (!pickedItems.empty())
-        {
-          for(ViewItemAdapterPtr item : pickedItems)
-            if (!selection.contains(item))
-              selection << item;
-            else
-              selection.removeAll(item);
-        }
-      }
-    }
-  }
-
-  if (!append && !selection.empty())
-  {
-    ViewItemAdapterPtr returnItem = selection.first();
-    selection.clear();
-    selection << returnItem;
-  }
-
-  currentSelection()->set(selection);
+//   if (append)
+//     selection = currentSelection()->items();
+//
+//   // If no append, segmentations have priority over channels
+//   for(auto renderer : m_renderers)
+//   {
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::SEGMENTATION))
+//       {
+//         pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
+//         if (!pickedItems.empty())
+//         {
+//           for(ViewItemAdapterPtr item : pickedItems)
+//             if (!selection.contains(item))
+//               selection << item;
+//             else
+//               selection.removeAll(item);
+//         }
+//       }
+//     }
+//   }
+//
+//   pickedItems.clear();
+//
+//   for(auto renderer : m_renderers)
+//   {
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::CHANNEL))
+//       {
+//         pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
+//         if (!pickedItems.empty())
+//         {
+//           for(ViewItemAdapterPtr item : pickedItems)
+//             if (!selection.contains(item))
+//               selection << item;
+//             else
+//               selection.removeAll(item);
+//         }
+//       }
+//     }
+//   }
+//
+//   if (!append && !selection.empty())
+//   {
+//     ViewItemAdapterPtr returnItem = selection.first();
+//     selection.clear();
+//     selection << returnItem;
+//   }
+//
+//   currentSelection()->set(selection);
 }
 
 //-----------------------------------------------------------------------------
@@ -512,47 +443,47 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
   int newX, newY;
   eventPosition(newX, newY);
 
-  if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
-    {
-      if (me->modifiers() == Qt::CTRL)
-      {
-        for(auto renderer: m_renderers)
-        {
-          if(renderer->type() == Renderer::Type::Representation)
-          {
-            auto repRenderer = representationRenderer(renderer);
-            if (!repRenderer->isHidden())
-            {
-              auto selection = repRenderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
-              if (!selection.empty())
-              {
-                NmVector3 point = repRenderer->pickCoordinates();
-
-                emit centerChanged(point);
-                break;
-              }
-            }
-          }
-        }
-      }
-      else
-      {
-        x = newX;
-        y = newY;
-      }
-    }
-  }
-
-  if (e->type() == QEvent::MouseButtonRelease)
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(e);
-    if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
-      if ((newX == x) && (newY == y))
-        selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
-  }
+//   if (e->type() == QEvent::MouseButtonPress)
+//   {
+//     QMouseEvent *me = static_cast<QMouseEvent*>(e);
+//     if (me->button() == Qt::LeftButton)
+//     {
+//       if (me->modifiers() == Qt::CTRL)
+//       {
+//         for(auto renderer: m_renderers)
+//         {
+//           if(renderer->type() == Renderer::Type::Representation)
+//           {
+//             auto repRenderer = representationRenderer(renderer);
+//             if (!repRenderer->isHidden())
+//             {
+//               auto selection = repRenderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
+//               if (!selection.empty())
+//               {
+//                 NmVector3 point = repRenderer->pickCoordinates();
+//
+//                 emit centerChanged(point);
+//                 break;
+//               }
+//             }
+//           }
+//         }
+//       }
+//       else
+//       {
+//         x = newX;
+//         y = newY;
+//       }
+//     }
+//   }
+//
+//   if (e->type() == QEvent::MouseButtonRelease)
+//   {
+//     QMouseEvent *me = static_cast<QMouseEvent*>(e);
+//     if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
+//       if ((newX == x) && (newY == y))
+//         selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
+//   }
 
   return QObject::eventFilter(caller, e);
 }
@@ -640,70 +571,62 @@ void View3D::changePlanePosition(Plane plane, Nm position)
 {
   bool needUpdate = false;
 
-  for(auto renderer: m_renderers)
+  for(auto manager: m_managers)
   {
-    auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
-    if (channelRenderer)
-    {
-      channelRenderer->setPlanePosition(plane, position);
-      needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
-    }
+    manager->onCrosshairChanged(m_center); // REVIEW manage from single point
   }
-
-  if (needUpdate)
-    updateView();
 }
 
 //-----------------------------------------------------------------------------
-void View3D::updateRenderersControls()
+void View3D::updateViewActions()
 {
   bool canTakeSnapshot = false;
   bool canBeExported = false;
 
-  for(auto renderer: m_renderers)
-  {
-    if(renderer->isHidden())
-      continue;
-
-    canTakeSnapshot |= (renderer->numberOfRenderedItems() != 0);
-    canBeExported |= canTakeSnapshot && (renderer->numberOfvtkActors() != 0);
-  }
-
-  m_zoom->setEnabled(canTakeSnapshot);
-  m_snapshot->setEnabled(canTakeSnapshot);
-  m_export->setEnabled(canBeExported);
-
-  if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
-  {
-    for(auto widget: m_widgets)
-      if (widget->manipulatesSegmentations())
-        widget->setEnabled(true);
-  }
-
-  if(m_numEnabledRenderers == 0)
-    resetCamera();
-
-  m_numEnabledRenderers = 0;
-  bool channelRendererIsEnabled = false;
-
-  for(RendererSPtr render: m_renderers)
-  {
-    if(!render->isHidden())
-      ++m_numEnabledRenderers;
-
-    if(m_showCrosshairPlaneSelectors)
-    {
-      auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(render);
-      if(channelRenderer != nullptr)
-      {
-        channelRendererIsEnabled |= !channelRenderer->isHidden();
-        m_axialScrollBar->setEnabled(channelRendererIsEnabled);
-        m_coronalScrollBar->setEnabled(channelRendererIsEnabled);
-        m_sagittalScrollBar->setEnabled(channelRendererIsEnabled);
-        updateScrollBarsLimits();
-      }
-    }
-  }
+//   for(auto renderer: m_renderers)
+//   {
+//     if(renderer->isHidden())
+//       continue;
+//
+//     canTakeSnapshot |= (renderer->numberOfRenderedItems() != 0);
+//     canBeExported |= canTakeSnapshot && (renderer->numberOfvtkActors() != 0);
+//   }
+//
+//   m_zoom->setEnabled(canTakeSnapshot);
+//   m_snapshot->setEnabled(canTakeSnapshot);
+//   m_export->setEnabled(canBeExported);
+//
+//   if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
+//   {
+//     for(auto widget: m_widgets)
+//       if (widget->manipulatesSegmentations())
+//         widget->setEnabled(true);
+//   }
+//
+//   if(m_numEnabledRenderers == 0)
+//     resetCamera();
+//
+//   m_numEnabledRenderers = 0;
+//   bool channelRendererIsEnabled = false;
+//
+//   for(RendererSPtr render: m_renderers)
+//   {
+//     if(!render->isHidden())
+//       ++m_numEnabledRenderers;
+//
+//     if(m_showCrosshairPlaneSelectors)
+//     {
+//       auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(render);
+//       if(channelRenderer != nullptr)
+//       {
+//         channelRendererIsEnabled |= !channelRenderer->isHidden();
+//         m_axialScrollBar->setEnabled(channelRendererIsEnabled);
+//         m_coronalScrollBar->setEnabled(channelRendererIsEnabled);
+//         m_sagittalScrollBar->setEnabled(channelRendererIsEnabled);
+//         updateScrollBarsLimits();
+//       }
+//     }
+//   }
 }
 
 //-----------------------------------------------------------------------------
@@ -711,46 +634,19 @@ void View3D::scrollBarMoved(int value)
 {
   NmVector3 point;
 
-  if(m_channelStates.isEmpty())
-    return;
+  point[0] = m_axialScrollBar   ->value() * m_sceneResolution[0];
+  point[1] = m_coronalScrollBar ->value() * m_sceneResolution[1];
+  point[2] = m_sagittalScrollBar->value() * m_sceneResolution[2];
 
-  NmVector3 minSpacing = m_channelStates.keys().first()->output()->spacing();
-
-  for(auto channel: m_channelStates.keys())
-  {
-    NmVector3 spacing = channel->output()->spacing();
-    minSpacing[0] = std::min(minSpacing[0], spacing[0]);
-    minSpacing[1] = std::min(minSpacing[1], spacing[1]);
-    minSpacing[2] = std::min(minSpacing[2], spacing[2]);
-  }
-
-  point[0] = m_axialScrollBar   ->value() * minSpacing[0];
-  point[1] = m_coronalScrollBar ->value() * minSpacing[1];
-  point[2] = m_sagittalScrollBar->value() * minSpacing[2];
-
-  bool needUpdate = false;
-  for(auto renderer: m_renderers)
-  {
-    auto channelRenderer = dynamic_cast<ChannelRenderer *>(renderer.get());
-    if (channelRenderer)
-    {
-      channelRenderer->setCrosshair(point);
-      needUpdate = !renderer->isHidden() && (renderer->numberOfRenderedItems() != 0);
-      break;
-    }
-  }
-
-  if (needUpdate)
-    m_view->update();
+  centerViewOn(point);
 }
 
 //-----------------------------------------------------------------------------
 void View3D::updateScrollBarsLimits()
 {
-  if(!m_showCrosshairPlaneSelectors)
-    return;
+  if(!m_showCrosshairPlaneSelectors) return;
 
-  if (m_channelStates.isEmpty())
+  if (m_channelSources->isEmpty())
   {
     m_axialScrollBar   ->setMinimum(0);
     m_axialScrollBar   ->setMaximum(0);
@@ -758,89 +654,16 @@ void View3D::updateScrollBarsLimits()
     m_coronalScrollBar ->setMaximum(0);
     m_sagittalScrollBar->setMinimum(0);
     m_sagittalScrollBar->setMaximum(0);
+
     return;
   }
 
-  // scrollbars deals with ints for their limits, so we need to use 'extent'
-  Bounds maxBounds = previewBounds();
-  auto minSpacing = m_channelStates.keys().first()->output()->spacing();
-
-  for(auto channel: m_channelStates.keys())
-  {
-    auto spacing = channel->output()->spacing();
-    for(auto i: { 0,1,2 })
-      minSpacing[i] = std::min(minSpacing[i], spacing[i]);
-  }
-
-  m_axialScrollBar   ->setMinimum(vtkMath::Round(maxBounds[0]/minSpacing[0]));
-  m_axialScrollBar   ->setMaximum(vtkMath::Round(maxBounds[1]/minSpacing[0])-1);
-  m_coronalScrollBar ->setMinimum(vtkMath::Round(maxBounds[2]/minSpacing[1]));
-  m_coronalScrollBar ->setMaximum(vtkMath::Round(maxBounds[3]/minSpacing[1])-1);
-  m_sagittalScrollBar->setMinimum(vtkMath::Round(maxBounds[4]/minSpacing[2]));
-  m_sagittalScrollBar->setMaximum(vtkMath::Round(maxBounds[5]/minSpacing[2])-1);
-}
-
-//-----------------------------------------------------------------------------
-RepresentationSPtr View3D::cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation)
-{
-  RepresentationSPtr prototype = item->representation(representation);
-  RepresentationSPtr rep;
-
-  if (prototype && prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_VOLUME))
-    rep = prototype->clone(this);
-
-  return rep;
-}
-
-//-----------------------------------------------------------------------------
-void View3D::activateRender(const QString &rendererName)
-{
-  for(auto action: m_renderConfig->menu()->actions())
-    if (action->text() == rendererName)
-      action->setChecked(true);
-
-  for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName && renderer->isHidden())
-    {
-      renderer->setEnable(true);
-
-      auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(renderer);
-      if(channelRenderer != nullptr && m_showCrosshairPlaneSelectors)
-      {
-        m_axialScrollBar->setEnabled(true);
-        m_coronalScrollBar->setEnabled(true);
-        m_sagittalScrollBar->setEnabled(true);
-        updateScrollBarsLimits();
-      }
-
-      break;
-    }
-}
-
-//-----------------------------------------------------------------------------
-void View3D::deactivateRender(const QString &rendererName)
-{
-  for(auto action: m_renderConfig->menu()->actions())
-    if (action->text() == rendererName)
-      action->setChecked(false);
-
-  for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName && !renderer->isHidden())
-    {
-      renderer->setEnable(false);
-
-      auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(renderer);
-
-      if(channelRenderer != nullptr && m_showCrosshairPlaneSelectors)
-      {
-        m_axialScrollBar->setEnabled(false);
-        m_coronalScrollBar->setEnabled(false);
-        m_sagittalScrollBar->setEnabled(false);
-        updateScrollBarsLimits();
-      }
-
-      break;
-    }
+  m_axialScrollBar   ->setMinimum(vtkMath::Round(m_sceneBounds[0]/m_sceneResolution[0]));
+  m_axialScrollBar   ->setMaximum(vtkMath::Round(m_sceneBounds[1]/m_sceneResolution[0])-1);
+  m_coronalScrollBar ->setMinimum(vtkMath::Round(m_sceneBounds[2]/m_sceneResolution[1]));
+  m_coronalScrollBar ->setMaximum(vtkMath::Round(m_sceneBounds[3]/m_sceneResolution[1])-1);
+  m_sagittalScrollBar->setMinimum(vtkMath::Round(m_sceneBounds[4]/m_sceneResolution[2]));
+  m_sagittalScrollBar->setMaximum(vtkMath::Round(m_sceneBounds[5]/m_sceneResolution[2])-1);
 }
 
 //-----------------------------------------------------------------------------
@@ -881,84 +704,57 @@ Selector::Selection View3D::select(const Selector::SelectionFlags flags, const i
   QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
 
-  for(auto renderer: m_renderers)
-  {
-    if(renderer->type() != Renderer::Type::Representation)
-      continue;
-
-    auto repRenderer = representationRenderer(renderer);
-
-    if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
-    {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
-      {
-        BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-        BinaryMask<unsigned char>::iterator bmit(bm.get());
-        bmit.goToBegin();
-        bmit.Set();
-
-        selectedItems[item] = bm;
-      }
-    }
-
-    if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
-    {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
-      {
-        if(flags.contains(Selector::CHANNEL))
-        {
-          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-          BinaryMask<unsigned char>::iterator bmit(bm.get());
-          bmit.goToBegin();
-          bmit.Set();
-
-          selectedItems[item] = bm;
-        }
-
-
-        if(flags.contains(Selector::SAMPLE))
-        {
-          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-          BinaryMask<unsigned char>::iterator bmit(bm.get());
-          bmit.goToBegin();
-          bmit.Set();
-
-          auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
-          selectedItems[item] = bm;
-        }
-      }
-    }
-  }
-
-  for(auto item: selectedItems.keys())
-    finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+//   for(auto renderer: m_renderers)
+//   {
+//     if(renderer->type() != Renderer::Type::Representation)
+//       continue;
+//
+//     auto repRenderer = representationRenderer(renderer);
+//
+//     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
+//     {
+//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
+//       {
+//         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+//         BinaryMask<unsigned char>::iterator bmit(bm.get());
+//         bmit.goToBegin();
+//         bmit.Set();
+//
+//         selectedItems[item] = bm;
+//       }
+//     }
+//
+//     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
+//     {
+//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
+//       {
+//         if(flags.contains(Selector::CHANNEL))
+//         {
+//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+//           BinaryMask<unsigned char>::iterator bmit(bm.get());
+//           bmit.goToBegin();
+//           bmit.Set();
+//
+//           selectedItems[item] = bm;
+//         }
+//
+//
+//         if(flags.contains(Selector::SAMPLE))
+//         {
+//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+//           BinaryMask<unsigned char>::iterator bmit(bm.get());
+//           bmit.goToBegin();
+//           bmit.Set();
+//
+//           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
+//           selectedItems[item] = bm;
+//         }
+//       }
+//     }
+//   }
+//
+//   for(auto item: selectedItems.keys())
+//     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
 
   return finalSelection;
-}
-
-//-----------------------------------------------------------------------------
-void View3D::setRenderers(RendererSList renderers)
-{
-  QStringList oldRenderersNames, newRenderersNames;
-
-  for (auto renderer: m_renderers)
-    oldRenderersNames << renderer->name();
-
-  for (auto renderer: renderers)
-    newRenderersNames << renderer->name();
-
-  // remove controls of unused renderers
-  for (auto renderer : m_renderers)
-    if (!newRenderersNames.contains(renderer->name()))
-      removeRendererControls(renderer->name());
-
-  // add controls for new renderers
-  for (auto renderer: renderers)
-  {
-    if (!canRender(renderer, RendererType::RENDERER_VIEW3D))
-      continue;
-
-    if (!oldRenderersNames.contains(renderer->name()))
-      addRendererControls(renderer->clone());
-  }
 }

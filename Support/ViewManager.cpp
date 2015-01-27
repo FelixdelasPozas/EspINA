@@ -94,10 +94,19 @@ void ViewManager::registerView(RenderView* view)
   registerView(static_cast<SelectableView *>(view));
 
   view->setEventHandler(m_eventHandler);
-  view->setColorEngine(m_colorEngine);
+  //view->setColorEngine(m_colorEngine);
+
+  view->setChannelSources(&m_channelSources);
+
+  for (auto manager : m_repManagers)
+  {
+    view->addRepresentationManager(manager->clone());
+  }
 
   for(auto widget: m_widgets)
+  {
     view->addWidget(widget);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -152,7 +161,7 @@ void ViewManager::addRepresentationManagers(RepresentationManagerSList repManage
   {
     for (auto renderView : m_renderViews)
     {
-      renderView->addRepresentationManager(repManager);
+      renderView->addRepresentationManager(repManager->clone());
     }
     m_repManagers << repManager;
   }
@@ -166,12 +175,6 @@ void ViewManager::addRepresentationManagers(RepresentationManagerSList repManage
 void ViewManager::add(ChannelAdapterPtr channel)
 {
   m_channelSources.addSource(channel);
-
-  // TODO: need to manage other channels' opacity too.
-//   for (auto renderView : m_renderViews)
-//   {
-//     renderView->updateSceneBounds();
-//   }
 }
 
 //----------------------------------------------------------------------------
@@ -184,10 +187,6 @@ void ViewManager::add(SegmentationAdapterPtr segmentation)
 void ViewManager::remove(ChannelAdapterPtr channel)
 {
   m_channelSources.removeSource(channel);
-
-  // TODO: Move to representation Manager
-//   updateSceneBounds();
-//   updateChannelsOpacity();
 }
 
 //----------------------------------------------------------------------------
@@ -203,31 +202,6 @@ bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render) /
 
   return true; // TODO Void
 
-  // TODO Manager-> gestionar usando señales: if (visibilityChanged) updateChannelsOpacity();
-
-
-  // TODO gestionar usando señales: if (outputChanged)
-//   {
-//     removeRepresentations(state);
-//     createRepresentations(channel);
-//   }
-
-//   for(auto representation : state.representations)
-//   {
-//     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
-//     if (hasChanged || crosshairChanged || outputChanged)
-//     {
-//       opacityChanged &= Channel::AUTOMATIC_OPACITY != state.opacity;
-//
-//       if (brightnessChanged) representation->setBrightness(state.brightness);
-//       if (contrastChanged  ) representation->setContrast(state.contrast);
-//       if (stainChanged     ) representation->setColor(state.stain);
-//       if (opacityChanged   ) representation->setOpacity(state.opacity);
-//       if (visibilityChanged) representation->setVisible(state.visible);
-//
-//       representation->updateRepresentation();
-//     }
-//   }
 
   // TODO: Seguramente como parte del nuevo algoritmo de render de la vista
 //   if (!m_sceneCameraInitialized && state.visible)
@@ -255,50 +229,6 @@ bool ViewManager::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 void ViewManager::removeAllViewItems()
 {
 
-}
-
-
-//----------------------------------------------------------------------------
-void ViewManager::registerRenderer(RendererSPtr newRenderer)
-{
-  for(auto renderer: m_availableRenderers)
-    if(renderer->name() == newRenderer->name())
-      return;
-
-  m_availableRenderers << newRenderer;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterRenderer(const QString &name)
-{
-  for (auto renderer: m_availableRenderers)
-    if(renderer->name() == name)
-    {
-      m_availableRenderers.removeOne(renderer);
-      return;
-    }
-}
-
-//----------------------------------------------------------------------------
-QStringList ViewManager::renderers(const RendererType type) const
-{
-  QStringList rendererNames;
-
-  for(auto renderer: m_availableRenderers)
-    if(renderer->renderType().testFlag(type) && !rendererNames.contains(renderer->name()))
-      rendererNames << renderer->name();
-
-  return rendererNames;
-}
-
-//----------------------------------------------------------------------------
-RendererSPtr ViewManager::cloneRenderer(const QString &name) const
-{
-  for(auto renderer: m_availableRenderers)
-    if(renderer->name() == name)
-      return renderer->clone();
-
-  return RendererSPtr{};
 }
 
 //----------------------------------------------------------------------------
@@ -538,15 +468,6 @@ void ViewManager::updateChannelRepresentations(ChannelAdapterList list)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setSegmentationVisibility(bool visible)
-{
-  for(auto view: m_renderViews)
-  {
-    view->setSegmentationsVisibility(visible);
-  }
-}
-
-//----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
   for(auto view: sliceViews())
@@ -581,7 +502,9 @@ void ViewManager::setColorEngine(ColorEngineSPtr engine)
   m_colorEngine = engine;
 
   for(auto view: m_renderViews)
-    view->setColorEngine(engine);
+  {
+   // TODO view->setColorEngine(engine);
+  }
 
   updateSegmentationRepresentations();
 }

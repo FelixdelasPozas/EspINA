@@ -98,11 +98,6 @@ namespace ESPINA
      */
     void hide();
 
-    /** \brief Update all actors of the managed representations
-     *
-     */
-    void updateRepresentationActors();
-
     virtual bool isReady() const = 0;
 
     /** \brief Returns a new instance of the class.
@@ -124,10 +119,22 @@ namespace ESPINA
   protected:
     explicit RepresentationManager();
 
+  protected slots:
+    /** \brief Update all actors of the managed representations
+     *
+     */
+    void updateRepresentationActors();
+
   private:
     virtual RepresentationPipelineSList pipelines() = 0;
 
-    virtual RepresentationManagerSPtr cloneImpelementation() = 0;
+    virtual void updatePipelines() = 0;
+
+    virtual void notifyPoolUsed() = 0;
+
+    virtual void notifyPoolNotUsed() = 0;
+
+    virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
   protected:
     QString m_name;

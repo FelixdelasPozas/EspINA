@@ -22,6 +22,8 @@
 #include "RepresentationManager.h"
 #include <GUI/View/RenderView.h>
 
+#include <vtkProp.h>
+
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
@@ -77,7 +79,9 @@ void RepresentationManager::show()
 
   m_showPipelines = true;
 
-  updateRepresentationActors();
+  notifyPoolUsed();
+
+  updatePipelines();
 }
 
 //-----------------------------------------------------------------------------
@@ -89,6 +93,8 @@ void RepresentationManager::hide()
   }
 
   m_showPipelines = false;
+
+  notifyPoolNotUsed();
 
   updateRepresentationActors();
 }
@@ -129,7 +135,7 @@ void RepresentationManager::updateRepresentationActors()
 //-----------------------------------------------------------------------------
 RepresentationManagerSPtr RepresentationManager::clone()
 {
-  auto child = cloneImpelementation();
+  auto child = cloneImplementation();
 
   m_childs << child;
 

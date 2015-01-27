@@ -73,8 +73,6 @@ void ToggleSegmentationsVisibility::toggleVisibility(bool visible)
   {
     m_toggle.setIcon(QIcon(":/espina/hide_all.svg"));
   }
-
-  m_viewManager->setSegmentationVisibility(visible);
 }
 
 //----------------------------------------------------------------------------

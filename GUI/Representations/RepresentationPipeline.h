@@ -138,7 +138,7 @@ namespace ESPINA {
 
     if (pair.second)
     {
-      pair.first  = value;
+      pair.first.setValue<T>(value);
       m_properties.insert(tag, pair);
     }
   }

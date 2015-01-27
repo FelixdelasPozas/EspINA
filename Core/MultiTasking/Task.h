@@ -119,6 +119,8 @@ namespace ESPINA {
      */
     virtual bool isPendingPause() const;
 
+    void restart();
+
     /** \brief Returns true if the task is running.
      *
      */
@@ -127,14 +129,12 @@ namespace ESPINA {
     /** \brief Returns true if the task has been aborted.
      *
      */
-    bool isAborted() const
-    { return m_isAborted; }
+    bool isAborted() const;
 
     /** \brief Returns true if the task has finished its execution.
      *
      */
-    bool hasFinished() const
-    { return m_hasFinished; }
+    bool hasFinished() const;
 
     /** \brief Returns task priority.
      *
@@ -235,6 +235,8 @@ namespace ESPINA {
      */
     bool isDispatcherPaused();
 
+    bool needsRestart() const;
+
     /** \brief Helper method to set some values before execution.
      *
      */
@@ -248,15 +250,20 @@ namespace ESPINA {
     {}
 
   private slots:
-    /** \brief Starts the thread.
-     *
-     */
-    void start();
-
     /** \brief Helper method to set some values after execution.
      *
      */
     void runWrapper();
+
+    /** \brief Starts the thread.
+     *
+     */
+    void startThreadExecution();
+
+    void finishThreadExecution();
+
+  private:
+    bool isExecutingOnThread() const;
 
   signals:
     void progress(int);
@@ -268,6 +275,11 @@ namespace ESPINA {
     SchedulerSPtr m_scheduler;
 
   private:
+    QThread *m_thread;
+    QThread *m_executingThread;
+    bool     m_submitted;
+    QMutex   m_submissionMutex;
+
     Priority m_priority;
 
     bool m_isRunning;
@@ -277,7 +289,7 @@ namespace ESPINA {
     bool m_hasFinished;
     bool m_isPaused;
     bool m_isWaiting;
-    bool m_isThreadAttached;
+    bool m_needsRestart;
 
     Id   m_id;
     bool m_hidden;

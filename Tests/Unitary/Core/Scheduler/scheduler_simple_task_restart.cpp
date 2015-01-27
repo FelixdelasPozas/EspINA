@@ -28,6 +28,8 @@
 
 #include <Scheduler.h>
 
+#include "SleepyTask.h"
+
 #include <iostream>
 #include <unistd.h>
 
@@ -37,86 +39,73 @@
 using namespace ESPINA;
 using namespace std;
 
-namespace SPNPT
+int scheduler_simple_task_restart( int argc, char** argv )
 {
-  class OneShotTask
-  : public Task
-  {
-  public:
-    explicit OneShotTask(int sleepTime, SchedulerSPtr scheduler)
-    : Task(scheduler)
-    , m_sleepTime{sleepTime}
-    {}
+  int error = 0;
 
-  private:
-    virtual void run()
-    {
-      usleep(m_sleepTime);
-    }
+  int period = 1000;// 1 ms
 
-  private:
-    int m_sleepTime;
-  };
-}
-
-using namespace SPNPT;
-
-int scheduler_pause_non_pauseable_task(int argc, char** argv)
-{
-  bool error = false;
-
-  int period = 5000;//0.005 sec
-
-  int sleepTime = 3*period;
+  int sleepTime = period;
+  int taskTime  = SleepyTask::Iterations*sleepTime;
 
   QApplication app(argc, argv);
+  
+  auto scheduler  = make_shared<Scheduler>(period);
+  auto sleepyTask = make_shared<SleepyTask>(sleepTime, scheduler);
+  sleepyTask->setDescription("Simple Task");
+  
+  Task::submit(sleepyTask);
+  
+  usleep(4*period);
 
-  auto scheduler   = std::make_shared<Scheduler>(period);
-  auto oneShotTask = std::make_shared<OneShotTask>(sleepTime, scheduler);
+  if (!sleepyTask->isExecuting()) {
+    error = 1;
+    std::cerr << "Unexpected paused sleepy task" << std::endl;
+  }
 
-  oneShotTask->setDescription("Non Pauseable Simple Task");
+  auto lastResult = sleepyTask->Result;
 
-
-  Task::submit(oneShotTask);
+  sleepyTask->restart();
 
   usleep(period);
 
-  QObject::connect(oneShotTask->thread(), SIGNAL(destroyed(QObject*)),
-                   &app, SLOT(quit()));
-
-  oneShotTask->pause();
-  
-  usleep(2*sleepTime);
-  
-  if (!oneShotTask->isPaused())
+  auto currentResult = sleepyTask->Result;
+  if (lastResult < currentResult)
   {
-    std::cerr << "Unexpected task status: should be paused" << std::endl;
-    error = true;
+    error = 1;
+    std::cerr << "Unexpected restarted value: " << currentResult << " != " << lastResult << std::endl;
   }
 
-  if (oneShotTask->hasFinished())
+  usleep(1.5*taskTime);
+
+  if (!sleepyTask->isFinished())
   {
-    std::cerr << "Unexpected task status: should not has finished" << std::endl;
-    error = true;
+    error = 1;
+    std::cerr << "Task has not finished executing " << std::endl;
   }
 
-  oneShotTask->resume();
+  Task::submit(sleepyTask);
+
+  usleep(2*period);
+
+  if (!sleepyTask->isExecuting()) {
+    error = 1;
+    std::cerr << "Unexpected paused task" << std::endl;
+  }
+
+  lastResult = sleepyTask->Result;
+
+  Task::submit(sleepyTask);
 
   usleep(period);
 
-  if (oneShotTask->isPaused())
+  if (lastResult < sleepyTask->Result)
   {
-    std::cerr << "Unexpected task status: should not be paused" << std::endl;
-    error = true;
+    error = 1;
+    std::cerr << "Unexpected restarted value" << std::endl;
   }
 
-  if (!oneShotTask->hasFinished())
-  {
-    std::cerr << "Unexpected task status: should has finished" << std::endl;
-    error = true;
-  }
-  
-  app.exec();
-  
+  usleep(1.5*taskTime);
+
   return error;
 }

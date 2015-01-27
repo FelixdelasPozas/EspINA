@@ -43,11 +43,19 @@ namespace ESPINA
   private:
     virtual RepresentationPipelineSList pipelines();
 
-    virtual RepresentationManagerSPtr cloneImpelementation();
+    virtual void updatePipelines();
+
+    virtual void notifyPoolUsed();
+
+    virtual void notifyPoolNotUsed();
+
+    virtual RepresentationManagerSPtr cloneImplementation();
 
     RepresentationPoolSPtr planePool() const;
 
   private:
+    bool validPlane() const;
+
     RepresentationPoolSPtr m_xy, m_xz, m_yz;
 
     Plane m_plane;

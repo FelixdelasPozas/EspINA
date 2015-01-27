@@ -23,14 +23,13 @@
 
 // ESPINA
 #include "GUI/View/RenderView.h"
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Widgets/SliceSelector.h>
 
 // VTK
 #include <vtkSmartPointer.h>
 
 //Forward declaration
+class vtkActor;
 class vtkPolyData;
 class vtkAxisActor2D;
 class vtkPropPicker;
@@ -139,7 +138,7 @@ namespace ESPINA
     double widgetDepth() const;
 
     /** \brief Set the distance between two consecutive slices when displacement is set to SLICES.
-     * \param[in] steps.
+     * \param[in] steps
      *
      */
     void setSlicingStep(const NmVector3& steps);
@@ -196,14 +195,6 @@ namespace ESPINA
      */
     void updateCrosshairPoint(const Plane plane, const Nm slicePos);
 
-    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
-
-    void setRenderers(RendererSList renderers);
-   
-    void activateRender(const QString &rendererName);
-
-    void deactivateRender(const QString &rendererName);
-
     virtual void setVisualState(struct RenderView::VisualState);
 
     virtual struct RenderView::VisualState visualState();
@@ -230,9 +221,8 @@ namespace ESPINA
     /// Unset Slice Selection flags to all registered Slice Views
     void removeSliceSelectors(SliceSelectorSPtr widget);
 
-    virtual void updateSceneBounds() override;
 
-    virtual void updateView();
+    virtual void updateView() override;
 
   signals:
     void centerChanged(NmVector3);
@@ -253,8 +243,8 @@ namespace ESPINA
      *
      */
     void spinValueChanged(double value);
-
-    virtual void updateChannelsOpacity();
+  
+    virtual void updateSceneBounds() override;
 
   protected:
     /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
@@ -305,9 +295,9 @@ namespace ESPINA
     void selectPickedItems(bool append);
 
   private:
-    void addRendererControls(RendererSPtr renderer);
+    void addRepresentationManagerMenu(RepresentationManagerSPtr manager);
 
-    void removeRendererControls(const QString name);
+    void removeRepresentationManagerMenu(RepresentationManagerSPtr manager);
 
     /** \brief Updates the ruler widget.
      *
@@ -418,7 +408,7 @@ namespace ESPINA
     QDoubleSpinBox *m_spinBox;
     QPushButton    *m_zoomButton;
     QPushButton    *m_snapshot;
-    QPushButton    *m_renderConfig;
+    QPushButton    *m_repManagerMenu;
 
     // VTK View
     vtkSmartPointer<vtkRenderer>    m_thumbnail;
@@ -455,8 +445,6 @@ namespace ESPINA
     bool  m_invertWheel;
     bool  m_rulerVisibility;
     bool  m_inThumbnailClick;
-
-    friend class Representation;
   };
 
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.

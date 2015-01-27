@@ -35,13 +35,17 @@ ChannelSliceManager::ChannelSliceManager(RepresentationPoolSPtr xy, Representati
 //----------------------------------------------------------------------------
 bool ChannelSliceManager::isReady() const
 {
-  return planePool()->isReady();
+  return validPlane()?planePool()->isReady():true;
 }
 
 //----------------------------------------------------------------------------
 void ChannelSliceManager::onCrosshairChanged(NmVector3 crosshair)
 {
-  planePool()->setCrosshair(crosshair);
+  if (validPlane())
+  {
+    planePool()->setCrosshair(crosshair);
+    planePool()->update();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -49,28 +53,62 @@ void ChannelSliceManager::setPlane(Plane plane)
 {
   if (plane != m_plane)
   {
-    if (Plane::UNDEFINED != plane)
+    if (Plane::UNDEFINED != m_plane)
     {
       qWarning() << "The DAY has come";
       disconnect(planePool().get(), SIGNAL(representationsReady()),
-                 this,              SIGNAL(renderRequested()));
+                 this,              SLOT(updateRepresentationActors()));
     }
 
     m_plane = plane;
 
     connect(planePool().get(), SIGNAL(representationsReady()),
-            this,              SIGNAL(renderRequested()));
+            this,              SLOT(updateRepresentationActors()));
   }
 }
 
 //----------------------------------------------------------------------------
 RepresentationPipelineSList ChannelSliceManager::pipelines()
 {
-  return planePool()->pipelines();
+  RepresentationPipelineSList pipelines;
+
+  if (validPlane())
+  {
+    pipelines = planePool()->pipelines();
+  }
+
+  return pipelines;
 }
 
 //----------------------------------------------------------------------------
-RepresentationManagerSPtr ChannelSliceManager::cloneImpelementation()
+void ChannelSliceManager::notifyPoolUsed()
+{
+  if (validPlane())
+  {
+    planePool()->incrementObservers();
+  }
+}
+
+//----------------------------------------------------------------------------
+void ChannelSliceManager::notifyPoolNotUsed()
+{
+  if (validPlane())
+  {
+    planePool()->decrementObservers();
+  }
+}
+
+//----------------------------------------------------------------------------
+void ChannelSliceManager::updatePipelines()
+{
+  if (validPlane())
+  {
+    planePool()->update();
+  }
+}
+
+//----------------------------------------------------------------------------
+RepresentationManagerSPtr ChannelSliceManager::cloneImplementation()
 {
   auto clone = std::make_shared<ChannelSliceManager>(m_xy, m_xz, m_yz);
 
@@ -100,3 +138,8 @@ RepresentationPoolSPtr ChannelSliceManager::planePool() const
   return RepresentationPoolSPtr();
 }
 
+//----------------------------------------------------------------------------
+bool ChannelSliceManager::validPlane() const
+{
+  return Plane::UNDEFINED != m_plane;
+}

@@ -31,6 +31,7 @@
 #include <QApplication>
 #include "SleepyTask.h"
 #include <QThread>
+#include <QDebug>
 
 #include <iostream>
 #include <unistd.h>
@@ -44,12 +45,11 @@ int scheduler_simple_task_execution( int argc, char** argv )
 
   QApplication app(argc, argv);
 
-  int period = 50000;
+  int period = 1000;
 
-  std::shared_ptr<SleepyTask> nonScheduled(new SleepyTask(period/5, SchedulerSPtr()));
+  auto scheduler  = make_shared<Scheduler>(period); //0.5sec
+  auto sleepyTask = make_shared<SleepyTask>(period, scheduler);
 
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(period/5, scheduler)};
   sleepyTask->setDescription("Simple Task");
 
   if (sleepyTask->Result != -1) {
@@ -59,12 +59,10 @@ int scheduler_simple_task_execution( int argc, char** argv )
 
   Task::submit(sleepyTask);
 
-  usleep(period); // Guarantee task is started
+  usleep(2*period); // Guarantee task is started
 
   QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
                    &app, SLOT(quit()));
-
-  sleepyTask.reset(); // we don't care about the task
 
   app.exec();
 

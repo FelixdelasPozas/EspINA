@@ -43,7 +43,7 @@ namespace ESPINA
      */
     virtual void setCrosshair(const NmVector3 &point) = 0;
 
-    virtual void update() = 0;
+    void update();
 
     /** \brief Returns whether all pipeline representations are set to the
      *         current position or not
@@ -92,8 +92,14 @@ namespace ESPINA
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
+    virtual void updateImplementation() = 0;
+
+    void processPendingSources();
+
   private:
     PipelineSources *m_sources;
+
+    ViewItemAdapterList m_pendingSources;
 
     unsigned m_numObservers;
   };

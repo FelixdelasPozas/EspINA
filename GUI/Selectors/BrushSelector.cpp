@@ -50,6 +50,7 @@
 #include <vtkImageData.h>
 #include <vtkInformation.h>
 #include <vtkPoints.h>
+#include <vtkLookupTable.h>
 
 using namespace ESPINA;
 

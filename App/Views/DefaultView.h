@@ -173,11 +173,6 @@ namespace ESPINA
      */
     void setRulerVisibility(bool visible);
 
-    /** \brief Shows/hides the segmentations.
-     * \param[in] visible, true to show the segmentations, false to hide.
-     */
-    void showSegmentations(bool visible);
-
     /** \brief Shows/hides the thumbnail in 2D views.
      * \param[in] visible, true to show the thumbnail, false to hide.
      */
@@ -228,7 +223,6 @@ namespace ESPINA
     ViewManagerSPtr  m_viewManager;
 
     bool m_showProcessing;
-    bool m_showSegmentations;
 
     NmVector3 m_slicingStep;
 

@@ -18,26 +18,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINARENDERVIEW_H
-#define ESPINARENDERVIEW_H
+#ifndef ESPINA_RENDER_VIEW_H
+#define ESPINA_RENDER_VIEW_H
 
 // ESPINA
 #include "GUI/View/SelectableView.h"
+
 #include <Core/EspinaTypes.h>
-#include <GUI/Representations/Renderers/RepresentationRenderer.h>
-#include <GUI/Representations/Representation.h>
 #include <GUI/Representations/RepresentationManager.h>
-#include <GUI/Representations/Renderers/RepresentationRenderer.h>
 #include <GUI/Widgets/ContextualMenu.h>
-#include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
+#include <GUI/Representations/PipelineSources.h>
 
 // Qt
 #include <QWidget>
-#include <QMenu>
-#include <QFlags>
 
 class vtkRenderer;
 class vtkProp;
@@ -55,37 +51,8 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    static const int BUTTON_SIZE;
-
-  protected:
-    struct ChannelState
-    {
-      double     brightness;
-      double     contrast;
-      double     opacity;
-      TimeStamp  timeStamp;
-      QColor     stain;
-      bool       visible;
-      OutputSPtr output;
-
-      RepresentationSList representations;
-    };
-
-    struct SegmentationState
-    {
-      Nm         depth;
-      QColor     color;
-      bool       highlited;
-      TimeStamp  timeStamp;
-      bool       visible;
-      OutputSPtr output;
-
-      RepresentationSList representations;
-    };
-
-  public:
     /** \brief RenderView class constructor.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
     explicit RenderView(QWidget* parent = nullptr);
@@ -108,18 +75,7 @@ namespace ESPINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    /** \brief Sets the view's color engine.
-     * \param[in] engine, color engine smart pointer.
-     *
-     */
-    void setColorEngine(ColorEngineSPtr engine)
-    { m_colorEngine = engine; }
-
-    /** \brief Returns the view's color engine.
-     *
-     */
-    ColorEngineSPtr colorEngine() const
-    { return m_colorEngine; }
+    void setChannelSources(PipelineSources *channels);
 
     /** \brief Adds a representation manager to the view
      *
@@ -136,85 +92,45 @@ namespace ESPINA
      */
     virtual void reset() = 0;
 
-    /** \brief Adds a segmentation to the view.
-     * \param[in] seg, segmentation adapter raw pointer.
-     *
-     */
-    // DEPRECATED
-    virtual void add(SegmentationAdapterPtr seg);
-
-    /** \brief Removes a segmentation from the view.
-     * \param[in] seg, segmentation adapter raw pointer.
-     *
-     */
-    // DEPRECATED
-    virtual void remove(SegmentationAdapterPtr seg);
-
-    /** \brief Update the representations of the given segmentation.
-     * \param[in] channel, segmentation adapter raw pointer.
-     * \param[in] render, true to force a render after updating, false otherwise.
-     *
-     */
-    // DEPRECATED
-    virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
-
-    /** \brief Implements SelectableView::updateRepresentations(ChannelAdapterList).
-     *
-     */
-    // DEPRECATED
-    virtual void updateRepresentations(ChannelAdapterList list);
-
-    /** \brief Implements SelectableView::updateRepresentations(SegmentationAdapterList).
-     *
-     */
-    // DEPRECATED
-    virtual void updateRepresentations(SegmentationAdapterList list);
-
-    /** \brief Implements SelectableView::updateRepresentations().
-     *
-     */
-    // DEPRECATED
-    virtual void updateRepresentations();
-
     /** \brief Adds a widget to the view.
-     * \param[in] widget, espina widget smart pointer.
+     * \param[in] widget espina widget smart pointer.
      *
      */
     virtual void addWidget(EspinaWidgetSPtr widget);
 
     /** \brief Removes a widget to the view.
-     * \param[in] widget, espina widget smart pointer.
+     * \param[in] widget espina widget smart pointer.
      *
      */
     virtual void removeWidget(EspinaWidgetSPtr widget);
 
     /** \brief Adds an actor to the vtkRenderer.
-     * \param[in] actor, vtkProp raw pointer.
+     * \param[in] actor vtkProp raw pointer.
      *
      */
-    virtual void addActor   (vtkProp *actor);
+    virtual void addActor(vtkProp *actor);
 
     /** \brief Removes an actor to the vtkRenderer.
-     * \param[in] actor, vtkProp raw pointer.
+     * \param[in] actor vtkProp raw pointer.
      *
      */
     virtual void removeActor(vtkProp *actor);
 
     /** \brief Returns the bounds in world coordinates that contains all of the objects in the view.
-     * \param[in] cropToSceneBounds, true to crop the bounds to the limits of the actual view, false otherwise.
+     * \param[in] cropToSceneBounds true to crop the bounds to the limits of the actual view, false otherwise.
      *
      */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const = 0;
 
     /** \brief Sets the view's cursor.
-     * \param[in] cursor, QCursor object.
+     * \param[in] cursor QCursor object.
      *
      */
     virtual void setCursor(const QCursor& cursor);
 
     /** \brief Returns the coordinates of the last mouse event.
-     * \param[out] x, x coordinate.
-     * \param[out] y, y coordinate.
+     * \param[out] x coordinate.
+     * \param[out] y coordinate.
      *
      */
     virtual void eventPosition(int &x, int &y);
@@ -238,8 +154,8 @@ namespace ESPINA
     /** \brief Selects the NeuroItems specified in the flags parameter that has a voxel in the DISPLAY
      * position specified by the x and y parameters.
      * \param[in] flags, NeuroItems selection flags.
-     * \param[in] x, x position in display coordinates.
-     * \param[in] y, y position in display coordinates.
+     * \param[in] x position in display coordinates.
+     * \param[in] y position in display coordinates.
      *
      */
     virtual Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
@@ -252,7 +168,7 @@ namespace ESPINA
     /** \brief Returns the raw pointer of the vtkRenderer of the view.
      *
      */
-    virtual vtkRenderer     *mainRenderer() const;
+    virtual vtkRenderer *mainRenderer() const;
 
     /** \brief Resets the view's camera.
      *
@@ -278,61 +194,24 @@ namespace ESPINA
     {return m_sceneResolution;}
 
     /** \brief Centers the view on the given point.
-     * \param[in] point, point to center the view.
-     * \param[in] force, true to force a render after setting the viewpoint.
+     * \param[in] point to center the view.
+     * \param[in] force if set to true, force render after setting the viewpoint.
      *
      */
     virtual void centerViewOn(const NmVector3& point, bool force=false) = 0;
 
     /** \brief Sets the contextual menu of the view.
-     * \param[in] contextMenu, ContextualMenu smart pointer.
+     * \param[in] contextMenu ContextualMenu smart pointer.
      *
      */
     virtual void setContextualMenu(ContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
 
-    /** \brief Creates and returns an instance of the given representation type for the given item.
-     * \param[in] item, view item adapter raw pointer.
-     * \param[in] type, type of representation to return.
-     *
-     */
-    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation) = 0;
-
-    /** \brief Returns true if the segmentations are visible, false otherwise.
-     *
-     */
-    bool segmentationsVisibility() const
-    { return m_showSegmentations; }
-
-    /** \brief Sets the segmentations visibility.
-     * \param[in] visiblity, true to set visible, false otherwise.
-     *
-     */
-    void setSegmentationsVisibility(bool visibility);
-
-    /** \brief Activates the render with the given name.
-     * \param[in] rendererName.
-     *
-     */
-    virtual void activateRender(const QString &rendererName) = 0;
-
-    /** \brief Dectivates the render with the given name.
-     * \param[in] rendererName.
-     *
-     */
-    virtual void deactivateRender(const QString &rendererName) = 0;
-
-    /** \brief Sets the activation state of the renderers of the view.
-     * \param[in] state, map of pair values of renderers' name and boolean state.
-     *
-     */
-    void setRenderersState(QMap<QString, bool> state);
-
     /** \brief Struct used to store/restore camera state. Used in
      * "view state" snapshots.
      *
      */
-    struct VisualState
+    struct VisualState // RENAME
     {
       Plane     plane;
       int       slice;           // Only used in View2D
@@ -354,115 +233,75 @@ namespace ESPINA
      */
     virtual struct VisualState visualState() = 0;
 
+    virtual void updateRepresentations(SegmentationAdapterList list);
+    virtual void updateRepresentations(ChannelAdapterList list);
+    virtual void updateRepresentations();
+
     /** \brief Helper method to create a QPushButton.
-     * \param[in] icon icon of the button.
-     * \param[in] tooltip tooltip of the button.
+     * \param[in] icon of the button.
+     * \param[in] tooltip of the button.
      *
      */
     static QPushButton *createButton(const QString& icon, const QString& tooltip);
 
-  signals:
-    void sceneResolutionChanged();
-
   public slots:
-    /** \brief Recreates the representations after the given view item has changed its output.
-     * \param[in] item ViewItemAdapter raw pointer.
-     */
-    virtual void changedOutput(ViewItemAdapterPtr item);
-
     /** \brief Updates the view.
      *
      */
-    virtual void updateView() = 0;
+    virtual void updateView() = 0; // TODO: RENAME?
+
+  signals:
+    void sceneResolutionChanged();
 
   protected slots:
-    /** \brief Updates the bounds of the scene after a channel has been added or deleted.
-     *
-     */
-    virtual void updateSceneBounds();
-
     /** \brief Resets the view's camera and updates the bounds of the scene.
      *
      */
     virtual void resetView();
 
     /** \brief Updates the representations of the given list of segmentations.
-     * \param[in] selection, list of segmentation adapter raw pointers.
+     * \param[in] selection list of segmentation adapter raw pointers.
      *
      */
-    virtual void updateSelection(SegmentationAdapterList selection);
+    virtual void updateSelection(SegmentationAdapterList selection); // TODO: REVIEW
+
+    /** \brief Updates the bounds of the scene after a channel has been added or deleted.
+     *
+     */
+    virtual void updateSceneBounds();
 
   protected:
     /** \brief Updates the view when the selection changes.
-     * \param[in] selection, new selection.
+     * \param[in] selection new selection.
      *
      */
     virtual void onSelectionSet(SelectionSPtr selection);
-
-    /** \brief Overrides QWidget::showEvent().
-     *
-     */
-    virtual void showEvent(QShowEvent *event) override;
 
     /** \brief Generates and saves to disk an image of the actual view state.
      *
      */
     void takeSnapshot();
 
-    /** \brief Returns the suggested opacity for a channel.
-     *
-     */
-    double suggestedChannelOpacity();
-
-    /** \brief Updates the channel's opacity value.
-     *
-     */
-    virtual void updateChannelsOpacity() = 0;
-
     /** \brief Resets the bounds of the scene.
      *
      */
     void resetSceneBounds();
 
-    /** \brief Creates all the representations for the given item that can be renderer on the view.
-     * \param[in] channel channel raw pointer.
-     *
-     */
-    void createRepresentations(ChannelAdapterPtr channel);
-
-    /** \brief Creates all the representations for the given item that can be renderer on the view.
-     * \param[in] segmentation segmentation raw pointer.
-     *
-     */
-    void createRepresentations(SegmentationAdapterPtr segmentation);
-
-    /** \brief Removes the channels representations from the view.
-     * \param[in] state, map of the items and their representations in the view.
-     *
-     */
-    void removeRepresentations(ChannelState &state);
-
-    /** \brief Removes the segmentations representations from the view.
-     * \param[in] state, map of the items and their representations in the view.
-     *
-     */
-    void removeRepresentations(SegmentationState &state);
-
     /** \brief Returns the number of active renderers for a given type of item.
-     * \param[in] type, RenderableType type.
+     * \param[in] type RenderableType type.
      *
      */
-    unsigned int numEnabledRenderersForViewItem(RenderableType type);
+    unsigned int numberActiveRepresentationManagers(Data::Type type);
 
   private:
     virtual void configureManager(RepresentationManagerSPtr manager) {}
 
   private slots:
-    void onRenderReqest();
+    void onRenderRequest();
+
 
   protected:
     EventHandlerSPtr m_eventHandler;
-    ColorEngineSPtr  m_colorEngine;
 
     QVTKWidget*  m_view;
     vtkSmartPointer<vtkRenderer> m_renderer;
@@ -473,17 +312,13 @@ namespace ESPINA
 
     ContextualMenuSPtr m_contextMenu;
 
-    QMap<ChannelAdapterPtr,      ChannelState>      m_channelStates;
-    QMap<SegmentationAdapterPtr, SegmentationState> m_segmentationStates;
-
-    RendererSList m_renderers;
+    PipelineSources           *m_channelSources;
     RepresentationManagerSList m_managers;
     QList<EspinaWidgetSPtr>    m_widgets;
 
     bool m_sceneCameraInitialized;
-    bool m_showSegmentations;
   };
 
 } // namespace ESPINA
 
-#endif // ESPINARENDERVIEW_H
+#endif // ESPINA_RENDER_VIEW_H

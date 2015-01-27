@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "View2D.h"
+
 #include "View2DState.h"
 #include "ViewRendererMenu.h"
 #include "Widgets/EspinaWidget.h"
@@ -95,7 +96,7 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_spinBox         {new QDoubleSpinBox()}
 , m_zoomButton      {nullptr}
 , m_snapshot        {nullptr}
-, m_renderConfig    {nullptr}
+, m_repManagerMenu    {nullptr}
 , m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_slicingStep     {1, 1, 1}
 , m_showThumbnail   {true}
@@ -195,33 +196,11 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-
-  for(auto segmentation: m_segmentationStates.keys())
-  {
-    RenderView::remove(segmentation);
-  }
-
-  m_segmentationStates.clear();
-
-//   for(auto channel: m_channelStates.keys())
-//   {
-//     RenderView::remove(channel);
-//   }
-//
-//   m_channelStates.clear();
-
   for(auto widget: m_widgets)
   {
     RenderView::removeWidget(widget);
   }
-
   m_widgets.clear();
-
-  for(auto renderer: m_renderers)
-  {
-    removeRendererControls(renderer->name());
-  }
-  m_renderers.clear();
 
   m_renderer->RemoveViewProp(m_ruler);
 
@@ -244,13 +223,9 @@ void View2D::setInvertSliceOrder(bool value)
 void View2D::reset()
 {
   for(auto widget: m_widgets)
+  {
     widget->unregisterView(this);
-
-  for(auto segmentation: m_segmentationStates.keys())
-    remove(segmentation);
-
-//   for(auto channel: m_channelStates.keys())
-//     remove(channel);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -259,23 +234,31 @@ Nm rulerScale(Nm value)
   int factor = 100;
 
   if (value < 10)
+  {
     factor = 1;
+  }
   else if (value < 25)
+  {
     factor = 5;
+  }
   else if (value < 100)
+  {
     factor = 10;
+  }
   else if (value < 250)
+  {
     factor = 50;
+  }
 
   int res = int(value/factor)*factor;
+
   return std::max(res,1);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::updateRuler()
 {
-  if (!m_renderer || !m_view->GetRenderWindow())
-    return;
+  if (!m_renderer || !m_view->GetRenderWindow()) return;
 
   double *value;
   Nm left, right;
@@ -376,10 +359,11 @@ void View2D::updateSceneBounds()
   double sceneLower = m_sceneBounds[2*v+1];
   updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
 
-  // we need to update the view only if a signal has been sent
-  // (the volume of a channel has been updated)
-  if (sender() != nullptr)
-    updateView();
+  // REVIEW
+//   // we need to update the view only if a signal has been sent
+//   // (the volume of a channel has been updated)
+//   if (sender() != nullptr)
+//     updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -570,8 +554,8 @@ void View2D::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
-  m_renderConfig = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
-  m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
+  m_repManagerMenu = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
+  m_repManagerMenu->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
   connect(m_spinBox,   SIGNAL(valueChanged(double)),
           this,        SLOT(spinValueChanged(double)));
@@ -583,7 +567,7 @@ void View2D::setupUI()
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
-  m_controlLayout->addWidget(m_renderConfig);
+  m_controlLayout->addWidget(m_repManagerMenu);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
   m_controlLayout->addLayout(m_toLayout);
@@ -645,10 +629,14 @@ void View2D::updateView()
 {
   if (isVisible())
   {
-    //if (m_plane == Plane::XY) qDebug() << "Rendering 2D";
+//     if (m_plane == Plane::XY) qDebug() << "Rendering XY";
+//     if (m_plane == Plane::XZ) qDebug() << "Rendering XZ";
+
     updateRuler();
     updateThumbnail();
+
     m_renderer->ResetCameraClippingRange();
+
     m_view->GetRenderWindow()->Render();
   }
 }
@@ -663,14 +651,16 @@ void View2D::resetCamera()
 
   m_thumbnail->RemoveViewProp(m_channelBorder);
   m_thumbnail->RemoveViewProp(m_viewportBorder);
+
   updateSceneBounds();
   updateThumbnail();
+
   m_renderer->ResetCamera();
   m_thumbnail->ResetCamera();
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);
 
-  m_sceneReady = !m_channelStates.isEmpty();
+  m_sceneReady = !m_channelSources->isEmpty();
 }
 
 //-----------------------------------------------------------------------------
@@ -750,9 +740,11 @@ void View2D::scrollValueChanged(int value /*slice index */)
   m_spinBox->setValue(m_fitToSlices ? value + 1: slicingPosition());
   m_spinBox->blockSignals(false);
 
-  emit sliceChanged(m_plane, slicingPosition());
-
-  updateView();
+  emit centerChanged(m_crosshairPoint);
+//NOTE: Previoues implementation
+//   emit sliceChanged(m_plane, slicingPosition());
+//
+//   updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -768,9 +760,12 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
   m_scrollBar->setValue(m_fitToSlices? (value - 1) : vtkMath::Round(value/m_slicingStep[m_normalCoord]));
   m_scrollBar->blockSignals(false);
 
-  emit sliceChanged(m_plane, slicingPosition());
-
-  updateView();
+  emit centerChanged(m_crosshairPoint);
+//   {
+//     emit sliceChanged(m_plane, slicingPosition());
+//
+//     updateView();
+//   }
 }
 
 //-----------------------------------------------------------------------------
@@ -936,44 +931,45 @@ void View2D::centerCrosshairOnMousePosition()
 
   NmVector3 center;  //World coordinates
   bool channelPicked = false;
-  if (m_inThumbnail)
-  {
-    for(auto renderer: m_renderers)
-    {
-      if(renderer->type() == Renderer::Type::Representation)
-      {
-        auto repRenderer = representationRenderer(renderer);
-        if (canRender(repRenderer, RenderableType::CHANNEL))
-        {
-          auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
-          if (!selection.isEmpty())
-          {
-            channelPicked = true;
-            center = repRenderer->pickCoordinates();
-            break;
-          }
-        }
-      }
-    }
-  }
-  else
-  {
-    for(auto renderer: m_renderers)
-      if(renderer->type() == Renderer::Type::Representation)
-        {
-          auto repRenderer = representationRenderer(renderer);
-          if (canRender(repRenderer, RenderableType::CHANNEL))
-          {
-          auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
-          if (!selection.isEmpty())
-          {
-            channelPicked = true;
-            center = repRenderer->pickCoordinates();
-            break;
-          }
-        }
-      }
-  }
+  // TODO
+//   if (m_inThumbnail)
+//   {
+//     for(auto renderer: m_renderers)
+//     {
+//       if(renderer->type() == Renderer::Type::Representation)
+//       {
+//         auto repRenderer = representationRenderer(renderer);
+//         if (canRender(repRenderer, RenderableType::CHANNEL))
+//         {
+//           auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
+//           if (!selection.isEmpty())
+//           {
+//             channelPicked = true;
+//             center = repRenderer->pickCoordinates();
+//             break;
+//           }
+//         }
+//       }
+//     }
+//   }
+//   else
+//   {
+//     for(auto renderer: m_renderers)
+//       if(renderer->type() == Renderer::Type::Representation)
+//         {
+//           auto repRenderer = representationRenderer(renderer);
+//           if (canRender(repRenderer, RenderableType::CHANNEL))
+//           {
+//           auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
+//           if (!selection.isEmpty())
+//           {
+//             channelPicked = true;
+//             center = repRenderer->pickCoordinates();
+//             break;
+//           }
+//         }
+//       }
+//   }
 
   if (channelPicked)
   {
@@ -989,20 +985,21 @@ void View2D::centerViewOnMousePosition()
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
-  for(auto renderer: m_renderers)
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (canRender(repRenderer, RenderableType::CHANNEL))
-      {
-        auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
-        if (!selection.isEmpty())
-        {
-          centerViewOnPosition(repRenderer->pickCoordinates());
-          return;
-        }
-      }
-    }
+  // TODO
+//   for(auto renderer: m_renderers)
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (canRender(repRenderer, RenderableType::CHANNEL))
+//       {
+//         auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
+//         if (!selection.isEmpty())
+//         {
+//           centerViewOnPosition(repRenderer->pickCoordinates());
+//           return;
+//         }
+//       }
+//     }
 }
 
 //-----------------------------------------------------------------------------
@@ -1010,20 +1007,21 @@ ViewItemAdapterList View2D::pickChannels(double vx, double vy, bool repeatable)
 {
   ViewItemAdapterList selection;
 
-  for(auto renderer: m_renderers)
-  {
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (canRender(repRenderer, RenderableType::CHANNEL))
-      {
-        for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
-        {
-          if (!selection.contains(item)) selection << item;
-        }
-      }
-    }
-  }
+  //TODO
+//   for(auto renderer: m_renderers)
+//   {
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (canRender(repRenderer, RenderableType::CHANNEL))
+//       {
+//         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
+//         {
+//           if (!selection.contains(item)) selection << item;
+//         }
+//       }
+//     }
+//   }
 
   return selection;
 }
@@ -1033,20 +1031,21 @@ ViewItemAdapterList View2D::pickSegmentations(double vx, double vy, bool repeata
 {
   ViewItemAdapterList selection;
 
-  for(auto renderer: m_renderers)
-  {
-    if(renderer->type() == Renderer::Type::Representation)
-    {
-      auto repRenderer = representationRenderer(renderer);
-      if (canRender(repRenderer, RenderableType::SEGMENTATION))
-      {
-        for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
-        {
-          if (!selection.contains(item)) selection << item;
-        }
-      }
-    }
-  }
+  // TODO
+//   for(auto renderer: m_renderers)
+//   {
+//     if(renderer->type() == Renderer::Type::Representation)
+//     {
+//       auto repRenderer = representationRenderer(renderer);
+//       if (canRender(repRenderer, RenderableType::SEGMENTATION))
+//       {
+//         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
+//         {
+//           if (!selection.contains(item)) selection << item;
+//         }
+//       }
+//     }
+//   }
 
   return selection;
 }
@@ -1088,22 +1087,25 @@ void View2D::selectPickedItems(bool append)
   currentSelection()->set(selection);
 }
 
-//-----------------------------------------------------------------------------
-void View2D::updateChannelsOpacity()
-{
-  // TODO: Define opacity behaviour
-  double opacity = suggestedChannelOpacity();
-
-  for(auto channel: m_channelStates.keys())
-    if (Channel::AUTOMATIC_OPACITY == channel->opacity())
-      for(auto representation: m_channelStates[channel].representations)
-        representation->setOpacity(opacity);
-}
+// //-----------------------------------------------------------------------------
+// void View2::updateChannelsOpacity()
+// {
+//   // TODO: Define opacity behaviour
+//   double opacity = suggestedChannelOpacity();
+//
+//   for(auto channel: m_channelStates.keys())
+//     if (Channel::AUTOMATIC_OPACITY == channel->opacity())
+//       for(auto representation: m_channelStates[channel].representations)
+//         representation->setOpacity(opacity);
+// }
 
 //-----------------------------------------------------------------------------
 void View2D::configureManager(RepresentationManagerSPtr manager)
 {
   auto manager2D = dynamic_cast<RepresentationManager2D *>(manager.get());
+
+  connect(this,          SIGNAL(centerChanged(NmVector3)),
+          manager.get(), SLOT(onCrosshairChanged(NmVector3)));
 
   if (manager2D)
   {
@@ -1120,24 +1122,24 @@ void View2D::onTakeSnapshot()
 //-----------------------------------------------------------------------------
 void View2D::setShowPreprocessing(bool visible)
 {
-  if (m_channelStates.size() < 2)
-    return;
-
-  ChannelAdapterPtr hiddenChannel = m_channelStates.keys()[visible];
-  ChannelAdapterPtr visibleChannel = m_channelStates.keys()[1 - visible];
-  hiddenChannel->setData(false, Qt::CheckStateRole);
-  hiddenChannel->notifyModification();
-  visibleChannel->setData(true, Qt::CheckStateRole);
-  visibleChannel->notifyModification();
-
-  for (int i = 2; i < m_channelStates.keys().size(); i++)
-  {
-    ChannelAdapterPtr otherChannel = m_channelStates.keys()[i];
-    otherChannel->setData(false, Qt::CheckStateRole);
-    otherChannel->notifyModification();
-  }
-
-  updateRepresentations(ChannelAdapterList());
+//   if (m_channelStates.size() < 2)
+//     return;
+//
+//   ChannelAdapterPtr hiddenChannel = m_channelStates.keys()[visible];
+//   ChannelAdapterPtr visibleChannel = m_channelStates.keys()[1 - visible];
+//   hiddenChannel->setData(false, Qt::CheckStateRole);
+//   hiddenChannel->notifyModification();
+//   visibleChannel->setData(true, Qt::CheckStateRole);
+//   visibleChannel->notifyModification();
+//
+//   for (int i = 2; i < m_channelStates.keys().size(); i++)
+//   {
+//     ChannelAdapterPtr otherChannel = m_channelStates.keys()[i];
+//     otherChannel->setData(false, Qt::CheckStateRole);
+//     otherChannel->notifyModification();
+//   }
+//
+//   updateRepresentations(ChannelAdapterList());
 }
 
 //-----------------------------------------------------------------------------
@@ -1231,8 +1233,9 @@ void View2D::setSlicingStep(const NmVector3& steps)
     m_spinBox->setValue(m_fitToSlices ? sliceIndex + 1: slicingPosition());
     m_spinBox->blockSignals(false);
 
-    emit sliceChanged(m_plane, slicingPosition());
-    //scrollValueChanged(sliceIndex); // Updates spin box's value
+    emit centerChanged(m_crosshairPoint);
+    // NOTE: previous implementation
+    //emit sliceChanged(m_plane, slicingPosition());
   }
 }
 
@@ -1344,10 +1347,10 @@ void View2D::centerViewOn(const NmVector3& point, bool force)
     m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
   }
 
-  // needed to make some renderers update (cached ones for example)
-  emit sliceChanged(m_plane, slicingPosition());
+  emit centerChanged(m_crosshairPoint);
 
-  updateView();
+  //NOTE: Before managers we emitted this: emit sliceChanged(m_plane, slicingPosition());
+  //updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -1362,218 +1365,204 @@ void View2D::centerViewOnPosition(const NmVector3& center)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationSPtr View2D::cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation)
+void View2D::addRepresentationManagerMenu(RepresentationManagerSPtr manager)
 {
-  RepresentationSPtr prototype = item->representation(representation);
-  RepresentationSPtr rep;
-
-  if (prototype && prototype->canRenderOnView().testFlag(Representation::RENDERABLEVIEW_SLICE))
-  {
-    rep = prototype->clone(this);
-  }
-
-  return rep;
+//   if(m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW2D))
+//     return;
+//
+//   m_renderers << renderer;
+//
+//   renderer->setView(this);
+//   renderer->setEnable(true);
+//
+//   // add representations to renderer
+//   if(renderer->type() == Renderer::Type::Representation)
+//   {
+//     auto repRenderer = representationRenderer(renderer);
+//     for (auto seg : m_segmentationStates.keys())
+//     {
+//       if (repRenderer->canRender(seg))
+//       {
+//         for (auto repName : seg->representationTypes())
+//         {
+//           if (!repRenderer->managesRepresentation(repName))
+//             continue;
+//
+//           bool found = false;
+//           for (auto rep : m_segmentationStates[seg].representations)
+//           {
+//             if (rep->type() == repName)
+//             {
+//               repRenderer->addRepresentation(seg, rep);
+//               found = true;
+//             }
+//           }
+//
+//           if (!found)
+//           {
+//             auto rep = cloneRepresentation(seg, repName);
+//             if (rep.get() != nullptr)
+//             {
+//               repRenderer->addRepresentation(seg, rep);
+//               m_segmentationStates[seg].representations << rep;
+//
+//               rep->setColor(m_colorEngine->color(seg));
+//               rep->setHighlighted(m_segmentationStates[seg].highlited);
+//               rep->setVisible(m_segmentationStates[seg].visible);
+//
+//               rep->updateRepresentation();
+//             }
+//           }
+//         }
+//       }
+//     }
+//
+//     for (auto channel : m_channelStates.keys())
+//     {
+//       if (repRenderer->canRender(channel))
+//       {
+//         for (auto repName : channel->representationTypes())
+//         {
+//           if (!repRenderer->managesRepresentation(repName))
+//             continue;
+//
+//           bool found = false;
+//           for (auto rep : m_channelStates[channel].representations)
+//           {
+//             if (rep->type() == repName)
+//             {
+//               repRenderer->addRepresentation(channel, rep);
+//               found = true;
+//             }
+//           }
+//
+//           if (!found)
+//           {
+//             auto rep = cloneRepresentation(channel, repName);
+//             if (rep.get() != nullptr)
+//             {
+//               repRenderer->addRepresentation(channel, rep);
+//               m_channelStates[channel].representations << rep;
+//
+//               rep->setBrightness(m_channelStates[channel].brightness);
+//               rep->setContrast(m_channelStates[channel].contrast);
+//               rep->setColor(m_channelStates[channel].stain);
+//               rep->setOpacity(m_channelStates[channel].opacity);
+//               rep->setVisible(m_channelStates[channel].visible);
+//
+//               rep->updateRepresentation();
+//               updateChannelsOpacity();
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+//
+//   if (0 != numberActiveRepresentationManagers(RenderableType::SEGMENTATION))
+//   {
+//     for(auto widget: m_widgets)
+//     {
+//       if (widget->manipulatesSegmentations())
+//       {
+//         widget->setEnabled(true);
+//       }
+//     }
+//   }
+//
+//   ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_repManagerMenu->menu());
+//   if (configMenu == nullptr)
+//   {
+//     configMenu = new ViewRendererMenu(m_repManagerMenu);
+//     m_repManagerMenu->setMenu(configMenu);
+//     m_repManagerMenu->setEnabled(true);
+//   }
+//   configMenu->add(renderer);
+//
+//   m_zoomButton->setEnabled(false);
+//   m_snapshot->setEnabled(false);
+//   for(auto renderer: m_renderers)
+//     if(!renderer->isHidden())
+//     {
+//       m_zoomButton->setEnabled(true);
+//       m_snapshot->setEnabled(true);
+//       break;
+//     }
+//
+//   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
-void View2D::addRendererControls(RendererSPtr renderer)
+void View2D::removeRepresentationManagerMenu(RepresentationManagerSPtr manager)
 {
-  if(m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW2D))
-    return;
-
-  m_renderers << renderer;
-
-  renderer->setView(this);
-  renderer->setEnable(true);
-
-  // add representations to renderer
-  if(renderer->type() == Renderer::Type::Representation)
-  {
-    auto repRenderer = representationRenderer(renderer);
-    for (auto seg : m_segmentationStates.keys())
-    {
-      if (repRenderer->canRender(seg))
-      {
-        for (auto repName : seg->representationTypes())
-        {
-          if (!repRenderer->managesRepresentation(repName))
-            continue;
-
-          bool found = false;
-          for (auto rep : m_segmentationStates[seg].representations)
-          {
-            if (rep->type() == repName)
-            {
-              repRenderer->addRepresentation(seg, rep);
-              found = true;
-            }
-          }
-
-          if (!found)
-          {
-            auto rep = cloneRepresentation(seg, repName);
-            if (rep.get() != nullptr)
-            {
-              repRenderer->addRepresentation(seg, rep);
-              m_segmentationStates[seg].representations << rep;
-
-              rep->setColor(m_colorEngine->color(seg));
-              rep->setHighlighted(m_segmentationStates[seg].highlited);
-              rep->setVisible(m_segmentationStates[seg].visible);
-
-              rep->updateRepresentation();
-            }
-          }
-        }
-      }
-    }
-
-    for (auto channel : m_channelStates.keys())
-    {
-      if (repRenderer->canRender(channel))
-      {
-        for (auto repName : channel->representationTypes())
-        {
-          if (!repRenderer->managesRepresentation(repName))
-            continue;
-
-          bool found = false;
-          for (auto rep : m_channelStates[channel].representations)
-          {
-            if (rep->type() == repName)
-            {
-              repRenderer->addRepresentation(channel, rep);
-              found = true;
-            }
-          }
-
-          if (!found)
-          {
-            auto rep = cloneRepresentation(channel, repName);
-            if (rep.get() != nullptr)
-            {
-              repRenderer->addRepresentation(channel, rep);
-              m_channelStates[channel].representations << rep;
-
-              rep->setBrightness(m_channelStates[channel].brightness);
-              rep->setContrast(m_channelStates[channel].contrast);
-              rep->setColor(m_channelStates[channel].stain);
-              rep->setOpacity(m_channelStates[channel].opacity);
-              rep->setVisible(m_channelStates[channel].visible);
-
-              rep->updateRepresentation();
-              updateChannelsOpacity();
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
-  {
-    for(auto widget: m_widgets)
-    {
-      if (widget->manipulatesSegmentations())
-      {
-        widget->setEnabled(true);
-      }
-    }
-  }
-
-  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
-  if (configMenu == nullptr)
-  {
-    configMenu = new ViewRendererMenu(m_renderConfig);
-    m_renderConfig->setMenu(configMenu);
-    m_renderConfig->setEnabled(true);
-  }
-  configMenu->add(renderer);
-
-  m_zoomButton->setEnabled(false);
-  m_snapshot->setEnabled(false);
-  for(auto renderer: m_renderers)
-    if(!renderer->isHidden())
-    {
-      m_zoomButton->setEnabled(true);
-      m_snapshot->setEnabled(true);
-      break;
-    }
-
-  connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::removeRendererControls(QString name)
-{
-  RendererSPtr removedRenderer = nullptr;
-  for(auto renderer: m_renderers)
-    if (renderer->name() == name)
-    {
-      removedRenderer = renderer;
-      break;
-    }
-
-  if (removedRenderer == nullptr)
-    return;
-
-  // delete representations for this renderer if its a representationRenderer
-  if(removedRenderer->type() == Renderer::Type::Representation)
-  {
-    auto repRenderer = representationRenderer(removedRenderer);
-
-    for(auto seg : m_segmentationStates.keys())
-      if(repRenderer->canRender(seg))
-      {
-        for(auto rep: m_segmentationStates[seg].representations)
-          if(repRenderer->managesRepresentation(rep->type()))
-            m_segmentationStates[seg].representations.removeOne(rep);
-      }
-
-    for(auto channel : m_channelStates.keys())
-      if(repRenderer->canRender(channel))
-      {
-        for(auto rep: m_channelStates[channel].representations)
-          if(repRenderer->managesRepresentation(rep->type()))
-            m_channelStates[channel].representations.removeOne(rep);
-      }
-  }
-
-  m_renderers.removeOne(removedRenderer);
-
-    if (!removedRenderer->isHidden())
-      removedRenderer->setEnable(false);
-
-  if (0 == numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
-  {
-    for (auto widget: m_widgets)
-      if (widget->manipulatesSegmentations())
-        widget->setEnabled(false);
-  }
-
-  ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
-  if (configMenu != nullptr)
-  {
-    configMenu->remove(removedRenderer);
-    if (configMenu->actions().isEmpty())
-    {
-      m_renderConfig->setMenu(nullptr);
-      delete configMenu;
-      m_renderConfig->setEnabled(false);
-    }
-  }
-
-  m_zoomButton->setEnabled(false);
-  m_snapshot->setEnabled(false);
-  for(auto renderer: m_renderers)
-    if(!renderer->isHidden())
-    {
-      m_zoomButton->setEnabled(true);
-      m_snapshot->setEnabled(true);
-      break;
-    }
-
-  disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
+//   RendererSPtr removedRenderer = nullptr;
+//   for(auto renderer: m_renderers)
+//     if (renderer->name() == name)
+//     {
+//       removedRenderer = renderer;
+//       break;
+//     }
+//
+//   if (removedRenderer == nullptr)
+//     return;
+//
+//   // delete representations for this renderer if its a representationRenderer
+//   if(removedRenderer->type() == Renderer::Type::Representation)
+//   {
+//     auto repRenderer = representationRenderer(removedRenderer);
+//
+//     for(auto seg : m_segmentationStates.keys())
+//       if(repRenderer->canRender(seg))
+//       {
+//         for(auto rep: m_segmentationStates[seg].representations)
+//           if(repRenderer->managesRepresentation(rep->type()))
+//             m_segmentationStates[seg].representations.removeOne(rep);
+//       }
+//
+//     for(auto channel : m_channelStates.keys())
+//       if(repRenderer->canRender(channel))
+//       {
+//         for(auto rep: m_channelStates[channel].representations)
+//           if(repRenderer->managesRepresentation(rep->type()))
+//             m_channelStates[channel].representations.removeOne(rep);
+//       }
+//   }
+//
+//   m_renderers.removeOne(removedRenderer);
+//
+//     if (!removedRenderer->isHidden())
+//       removedRenderer->setEnable(false);
+//
+//   if (0 == numberActiveRepresentationManagers(RenderableType::SEGMENTATION))
+//   {
+//     for (auto widget: m_widgets)
+//       if (widget->manipulatesSegmentations())
+//         widget->setEnabled(false);
+//   }
+//
+//   ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_repManagerMenu->menu());
+//   if (configMenu != nullptr)
+//   {
+//     configMenu->remove(removedRenderer);
+//     if (configMenu->actions().isEmpty())
+//     {
+//       m_repManagerMenu->setMenu(nullptr);
+//       delete configMenu;
+//       m_repManagerMenu->setEnabled(false);
+//     }
+//   }
+//
+//   m_zoomButton->setEnabled(false);
+//   m_snapshot->setEnabled(false);
+//   for(auto renderer: m_renderers)
+//     if(!renderer->isHidden())
+//     {
+//       m_zoomButton->setEnabled(true);
+//       m_snapshot->setEnabled(true);
+//       break;
+//     }
+//
+//   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
 }
 
 //-----------------------------------------------------------------------------
@@ -1586,30 +1575,6 @@ void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
   // render if present
   if (this->m_renderer->HasViewProp(this->m_HCrossLine))
     updateView();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::activateRender(const QString &rendererName)
-{
-  for(auto action: m_renderConfig->menu()->actions())
-    if (action->text() == rendererName)
-      action->setChecked(true);
-
-  for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName && renderer->isHidden())
-      renderer->setEnable(true);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::deactivateRender(const QString &rendererName)
-{
-  for(auto action: m_renderConfig->menu()->actions())
-    if (action->text() == rendererName)
-      action->setChecked(false);
-
-  for(auto renderer: m_renderers)
-    if (renderer->name() == rendererName && !renderer->isHidden())
-      renderer->setEnable(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -1678,88 +1643,61 @@ Selector::Selection View2D::select(const Selector::SelectionFlags flags, const i
   QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
 
-  for(auto renderer: m_renderers)
-  {
-    if(renderer->type() != Renderer::Type::Representation)
-      continue;
-
-    auto repRenderer = representationRenderer(renderer);
-
-    if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
-    {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
-      {
-        auto rendererPoint = repRenderer->pickCoordinates();
-        BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
-        BinaryMask<unsigned char>::iterator bmit(bm.get());
-        bmit.goToBegin();
-        bmit.Set();
-
-        selectedItems[item] = bm;
-      }
-    }
-
-    if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
-    {
-      for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
-      {
-        if(flags.contains(Selector::CHANNEL))
-        {
-          auto rendererPoint = repRenderer->pickCoordinates();
-          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
-          BinaryMask<unsigned char>::iterator bmit(bm.get());
-          bmit.goToBegin();
-          bmit.Set();
-
-          selectedItems[item] = bm;
-        }
-
-        if(flags.contains(Selector::SAMPLE))
-        {
-          auto rendererPoint = repRenderer->pickCoordinates();
-          BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
-          BinaryMask<unsigned char>::iterator bmit(bm.get());
-          bmit.goToBegin();
-          bmit.Set();
-
-          auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
-          selectedItems[item] = bm;
-        }
-      }
-    }
-  }
-
-  for(auto item: selectedItems.keys())
-    finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+//   for(auto renderer: m_renderers)
+//   {
+//     if(renderer->type() != Renderer::Type::Representation)
+//       continue;
+//
+//     auto repRenderer = representationRenderer(renderer);
+//
+//     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
+//     {
+//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
+//       {
+//         auto rendererPoint = repRenderer->pickCoordinates();
+//         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
+//         BinaryMask<unsigned char>::iterator bmit(bm.get());
+//         bmit.goToBegin();
+//         bmit.Set();
+//
+//         selectedItems[item] = bm;
+//       }
+//     }
+//
+//     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
+//     {
+//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
+//       {
+//         if(flags.contains(Selector::CHANNEL))
+//         {
+//           auto rendererPoint = repRenderer->pickCoordinates();
+//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
+//           BinaryMask<unsigned char>::iterator bmit(bm.get());
+//           bmit.goToBegin();
+//           bmit.Set();
+//
+//           selectedItems[item] = bm;
+//         }
+//
+//         if(flags.contains(Selector::SAMPLE))
+//         {
+//           auto rendererPoint = repRenderer->pickCoordinates();
+//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
+//           BinaryMask<unsigned char>::iterator bmit(bm.get());
+//           bmit.goToBegin();
+//           bmit.Set();
+//
+//           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
+//           selectedItems[item] = bm;
+//         }
+//       }
+//     }
+//   }
+//
+//   for(auto item: selectedItems.keys())
+//     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
 
   return finalSelection;
-}
-
-//-----------------------------------------------------------------------------
-void View2D::setRenderers(RendererSList renderers)
-{
-  QStringList oldRenderersNames, newRenderersNames;
-
-  for (auto renderer: m_renderers)
-    oldRenderersNames << renderer->name();
-
-  for (auto renderer: renderers)
-    newRenderersNames << renderer->name();
-
-  // remove controls of unused renderers
-  for (auto renderer : m_renderers)
-    if (!newRenderersNames.contains(renderer->name()))
-      removeRendererControls(renderer->name());
-
-  // add controls for new renderers
-  for (auto renderer: renderers)
-  {
-    if (!canRender(renderer, RendererType::RENDERER_VIEW2D))
-      continue;
-
-    if (!oldRenderersNames.contains(renderer->name()))
-      addRendererControls(renderer->clone());
-  }
 }
 
 //-----------------------------------------------------------------------------

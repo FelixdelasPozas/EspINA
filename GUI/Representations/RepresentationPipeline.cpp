@@ -20,6 +20,8 @@
 #include "RepresentationPipeline.h"
 #include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
+#include <QDebug>
+
 using namespace ESPINA;
 using namespace ESPINA::Representations;
 
@@ -106,11 +108,11 @@ Nm RepresentationPipeline::crosshairPosition(const Plane &plane) const
   switch (plane)
   {
     case Plane::XY:
-      return m_state.getValue<double>(CROSSHAIR_X);
+      return m_state.getValue<double>(CROSSHAIR_Z);
     case Plane::XZ:
       return m_state.getValue<double>(CROSSHAIR_Y);
     case Plane::YZ:
-      return m_state.getValue<double>(CROSSHAIR_Z);
+      return m_state.getValue<double>(CROSSHAIR_X);
     default:
       qWarning() << "Unexpected crosshair plane";
   }
@@ -132,11 +134,11 @@ bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane) con
   switch (plane)
   {
     case Plane::XY:
-      return m_state.isModified(CROSSHAIR_X);
+      return m_state.isModified(CROSSHAIR_Z);
     case Plane::XZ:
       return m_state.isModified(CROSSHAIR_Y);
     case Plane::YZ:
-      return m_state.isModified(CROSSHAIR_Z);
+      return m_state.isModified(CROSSHAIR_X);
     default:
       qWarning() << "Unexpected crosshair plane";
   }
