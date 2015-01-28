@@ -40,7 +40,7 @@ ESPINA::ViewTypeFlags SegmentationSliceSwitch::supportedViews()
 QWidget* SegmentationSliceSwitch::widget()
 {
   auto icon    = QIcon(":espina/slice.png");
-  auto tooltip = tr("Show Channel Slices");
+  auto tooltip = tr("Show Segmentation Slices");
 
   auto channelSliceSwitch = Tool::createToolButton(icon, tooltip);
 
