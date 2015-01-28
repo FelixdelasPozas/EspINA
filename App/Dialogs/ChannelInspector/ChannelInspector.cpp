@@ -32,7 +32,6 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>
-#include <GUI/Representations/Renderers/SliceRenderer.h>
 
 #if USE_METADONA
   #include <Producer.h>

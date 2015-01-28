@@ -22,6 +22,7 @@
 #include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
 #include <vtkType.h>
+#include <QColor>
 
 using namespace ESPINA;
 using namespace ESPINA::Representations;

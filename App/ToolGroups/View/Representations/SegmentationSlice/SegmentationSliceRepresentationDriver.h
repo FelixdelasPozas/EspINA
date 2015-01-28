@@ -25,10 +25,10 @@
 namespace ESPINA
 {
   class SegmentationSliceRepresentationDriver
-  : public RepresentationDriverFactory
+  : public RepresentationFactory
   {
   public:
-    virtual RepresentationDriver createRepresentationDriver() const;
+    virtual Representation createRepresentationDriver() const;
   };
 }
 

@@ -25,7 +25,6 @@
 
 // ESPINA
 #include "Model/SegmentationAdapter.h"
-#include "Representations/RepresentationFactoryGroup.h"
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
@@ -87,18 +86,6 @@ namespace ESPINA
      *
      */
     void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
-
-    /** \brief Registers a channel representation factory in the factory.
-     * \param[in] factory channel representation factory smart pointer.
-     *
-     */
-    void registerChannelRepresentationFactory(RepresentationFactorySPtr factory);
-
-    /** \brief Registers a segmentation representation factory in the factory.
-     * \param[in] factory segmentation representation factory smart pointer.
-     *
-     */
-    void registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory);
 
     /** \brief Returns the list of channel extension types the factory can create.
      *
@@ -193,18 +180,6 @@ namespace ESPINA
      */
     SegmentationAdapterSPtr adaptSegmentation(SegmentationSPtr segmentation) const;
 
-    /** \brief Returns the channel representation factory smart pointer.
-     *
-     */
-    RepresentationFactorySPtr channelRepresentationFactory() const
-    { return m_channelRepresentationFactory; }
-
-    /** \brief Returns the segmentation representation factory smart pointer.
-     *
-     */
-    RepresentationFactorySPtr segmentationRepresentationFactory() const
-    { return m_segmentationRepresentationFactory; }
-
     /** \brief Returns the smart pointer of the scheduler used in the factory.
      *
      */
@@ -214,8 +189,6 @@ namespace ESPINA
   private:
     CoreFactorySPtr m_factory;
     SchedulerSPtr   m_scheduler;
-    RepresentationFactoryGroupSPtr m_channelRepresentationFactory;
-    RepresentationFactoryGroupSPtr m_segmentationRepresentationFactory;
 
     QMap<QString, AnalysisReaderList> m_readerExtensions;
     AnalysisReaderList m_readers;

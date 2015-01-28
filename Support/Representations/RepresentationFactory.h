@@ -30,7 +30,7 @@ namespace ESPINA
    *         an specific type of related items
    *
    */
-  struct RepresentationDriver
+  struct Representation
   {
     QString                    Group;
     RepresentationPoolSList    Pools;
@@ -41,20 +41,20 @@ namespace ESPINA
   /** \brief Create specific representation drivers
    *
    */
-  class RepresentationDriverFactory
+  class RepresentationFactory
   {
   public:
-    virtual ~RepresentationDriverFactory() {}
+    virtual ~RepresentationFactory() {}
 
     /** \brief Create a group of objects which are coordinated
      *         to display an specific type of related elements
      *
      */
-    virtual RepresentationDriver createRepresentationDriver() const = 0;
+    virtual Representation createRepresentationDriver() const = 0;
 
   };
 
-  using RepresentationDriverFactorySPtr  = std::shared_ptr<RepresentationDriverFactory>;
+  using RepresentationDriverFactorySPtr  = std::shared_ptr<RepresentationFactory>;
   using RepresentationDriverFactorySList = QList<RepresentationDriverFactorySPtr>;
 
 } // namespace ESPINA

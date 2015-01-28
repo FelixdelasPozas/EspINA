@@ -48,14 +48,6 @@
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
-#include <GUI/Representations/BasicRepresentationFactory.h>
-#include <GUI/Representations/Renderers/CachedSliceRenderer.h>
-#include <GUI/Representations/Renderers/ContourRenderer.h>
-#include <GUI/Representations/Renderers/CrosshairRenderer.h>
-#include <GUI/Representations/Renderers/MeshRenderer.h>
-#include <GUI/Representations/Renderers/SkeletonRenderer.h>
-#include <GUI/Representations/Renderers/SliceRenderer.h>
-#include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
@@ -63,7 +55,6 @@
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationDriver.h"
-#include "ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -129,8 +120,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
   m_factory->registerFilterFactory (m_channelReader);
-  m_factory->registerChannelRepresentationFactory(std::make_shared<BasicChannelRepresentationFactory>(m_scheduler));
-  m_factory->registerSegmentationRepresentationFactory(std::make_shared<BasicSegmentationRepresentationFactory>(m_scheduler));
 
   initRepresentations();
 

@@ -25,12 +25,12 @@
 namespace ESPINA {
 
   class ChannelSliceRepresentationDriver
-  : public RepresentationDriverFactory
+  : public RepresentationFactory
   {
   public:
     explicit ChannelSliceRepresentationDriver(SchedulerSPtr scheduler);
 
-    virtual RepresentationDriver createRepresentationDriver() const;
+    virtual Representation createRepresentationDriver() const;
 
   private:
     SchedulerSPtr m_scheduler;

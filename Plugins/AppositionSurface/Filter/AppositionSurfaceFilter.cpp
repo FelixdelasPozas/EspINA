@@ -26,8 +26,6 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.hxx>
-#include <GUI/Representations/SliceRepresentation.h>
-#include <GUI/Representations/MeshRepresentation.h>
 
 // Qt
 #include <QtGlobal>

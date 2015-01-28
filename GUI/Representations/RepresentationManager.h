@@ -38,6 +38,8 @@ namespace ESPINA
   using RepresentationManagerSPtr  = std::shared_ptr<RepresentationManager>;
   using RepresentationManagerSList = QList<RepresentationManagerSPtr>;
 
+  class RenderView;
+
   class EspinaGUI_EXPORT RepresentationManager
   : public QObject
   {
@@ -79,7 +81,7 @@ namespace ESPINA
     /** \brief Sets the view where representation are managed
      *
      */
-    void setView(RenderView* view)
+    void setView(RenderView *view)
     { m_view = view; }
 
     /** \brief Returns if managed representations are visible or not
@@ -143,7 +145,7 @@ namespace ESPINA
     bool    m_showPipelines;
 
   private:
-    RenderView* m_view;
+    RenderView *m_view;
 
     RepresentationManagerSList m_childs;
 

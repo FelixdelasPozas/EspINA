@@ -27,6 +27,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Factory/CoreFactory.h>
 
+using namespace std;
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
@@ -34,12 +35,10 @@ ModelFactory::ModelFactory(CoreFactorySPtr factory,
                            SchedulerSPtr scheduler)
 : m_factory(factory)
 , m_scheduler(scheduler)
-, m_channelRepresentationFactory(new RepresentationFactoryGroup(scheduler))
-, m_segmentationRepresentationFactory(new RepresentationFactoryGroup(scheduler))
 {
   if (!m_factory)
   {
-    m_factory = CoreFactorySPtr{new CoreFactory()};
+    m_factory = make_shared<CoreFactory>();
   }
 
 }
@@ -71,6 +70,7 @@ void ModelFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr fac
 void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
 {
   auto extensions = reader->supportedFileExtensions();
+
   for(auto description : extensions.keys())
   {
     for(auto fileExtension : extensions[description])
@@ -78,19 +78,8 @@ void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
       m_readerExtensions[fileExtension] << reader;
     }
   }
+
   m_readers << reader;
-}
-
-//------------------------------------------------------------------------
-void ModelFactory::registerChannelRepresentationFactory(RepresentationFactorySPtr factory)
-{
-  m_channelRepresentationFactory->addRepresentationFactory(factory);
-}
-
-//------------------------------------------------------------------------
-void ModelFactory::registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory)
-{
-  m_segmentationRepresentationFactory->addRepresentationFactory(factory);
 }
 
 //------------------------------------------------------------------------
@@ -134,7 +123,7 @@ AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 {
-  SampleSPtr sample{m_factory->createSample(name)};
+  auto sample = m_factory->createSample(name);
 
   return adaptSample(sample);
 }
@@ -176,19 +165,11 @@ SampleAdapterSPtr ModelFactory::adaptSample(SampleSPtr sample) const
 //------------------------------------------------------------------------
 ChannelAdapterSPtr ModelFactory::adaptChannel(ChannelSPtr channel) const
 {
-  ChannelAdapterSPtr adapter{new ChannelAdapter(channel)};
-
-  adapter->setRepresentationFactory(m_channelRepresentationFactory);
-
-  return adapter;
+  return ChannelAdapterSPtr{new ChannelAdapter(channel)};
 }
 
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelFactory::adaptSegmentation(SegmentationSPtr segmentation) const
 {
-  SegmentationAdapterSPtr adapter{new SegmentationAdapter(segmentation)};
-
-  adapter->setRepresentationFactory(m_segmentationRepresentationFactory);
-
-  return adapter;
+  return SegmentationAdapterSPtr{new SegmentationAdapter(segmentation)};
 }

@@ -25,7 +25,6 @@
 
 // ESPINA
 #include "GUI/Representations/Renderers/Renderer.h"
-#include "GUI/Representations/Representation.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -67,7 +66,7 @@ namespace ESPINA
     virtual ~View3D();
 
     /** \brief Sets the focal point of the camera in the given point.
-     * \param[in] center, focal point.
+     * \param[in] center focal point.
      *
      */
     void setCameraFocus(const NmVector3& center);
@@ -85,8 +84,8 @@ namespace ESPINA
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
     /** \brief Modifies the position of a specified plane of the crosshair to the given position.
-     * \param[in] plane, crosshair plane to move.
-     * \param[in] position, new position.
+     * \param[in] plane crosshair plane to move.
+     * \param[in] position new position.
      *
      */
     void changePlanePosition(Plane plane, Nm position);

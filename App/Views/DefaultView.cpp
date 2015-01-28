@@ -24,8 +24,6 @@
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
 #include <Support/Settings/EspinaSettings.h>
-#include <GUI/Representations/Renderers/SliceRenderer.h>
-#include <GUI/Representations/Renderers/ContourRenderer.h>
 
 // Qt
 #include <QApplication>

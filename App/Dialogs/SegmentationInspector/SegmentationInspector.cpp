@@ -25,7 +25,6 @@
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Representations/Renderers/MeshRenderer.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
 

@@ -137,7 +137,6 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
-  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )

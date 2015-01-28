@@ -509,8 +509,12 @@ void BrushSelector::startPreview(RenderView* view)
     Q_ASSERT(view2d);
     connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(updateSliceChange()));
 
-    for(auto prototype: m_item->representations())
-      prototype->setActive(false, m_previewView);
+    // TODO: use temporal pipeline?
+    {
+      Q_ASSERT(false);
+//     for(auto prototype: m_item->representations())
+//       prototype->setActive(false, m_previewView);
+    }
 
     m_preview = vtkImage<itkVolumeType>(volume, VolumeBounds(intersection(m_pBounds, volume->bounds()), spacing, m_origin).bounds());
   }
@@ -646,10 +650,12 @@ void BrushSelector::stopPreview(RenderView* view)
 
   if (isSegmentation(m_item))
   {
-    for(auto prototype: m_item->representations())
-    {
-      prototype->setActive(true, m_previewView);
-    }
+    // TODO: Restore representation
+    Q_ASSERT(false);
+//     for(auto prototype: m_item->representations())
+//     {
+//       prototype->setActive(true, m_previewView);
+//     }
   }
 
   m_previewView->updateView();

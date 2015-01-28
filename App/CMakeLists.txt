@@ -169,7 +169,7 @@ set (ESPINA_SOURCES
   ToolGroups/View/Representations/ChannelSlice/ChannelSliceSwitch.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSliceSettingsEditor.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSliceManager.cpp
-  ToolGroups/View/Representations/SegmentationSliceRepresentationDriver.cpp
+  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationDriver.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp
   ToolGroups/View/ToggleSegmentationsVisibility.cpp
