@@ -20,48 +20,52 @@
 #include "BasicRepresentationPool.h"
 
 //-----------------------------------------------------------------------------
-template<typename P, typename S>
-ESPINA::BasicRepresentationPool<P, S>::BasicRepresentationPool(S settings, SchedulerSPtr scheduler)
-: m_settings{settings}
-, m_updater{std::make_shared<RepresentationUpdater>(scheduler)}
+template<typename P>
+ESPINA::BasicRepresentationPool<P>::BasicRepresentationPool(SchedulerSPtr scheduler)
+: m_updater{std::make_shared<RepresentationUpdater>(scheduler)}
 {
   connect(m_updater.get(), SIGNAL(finished()),
           this,            SIGNAL(representationsReady()));
 }
 
 //-----------------------------------------------------------------------------
-template<typename P, typename S>
-void ESPINA::BasicRepresentationPool<P, S>::setCrosshair(const NmVector3 &point)
+template<typename P>
+void ESPINA::BasicRepresentationPool<P>::setCrosshair(const NmVector3 &point)
 {
   m_updater->setCroshair(point);
 }
 
 //-----------------------------------------------------------------------------
-template<typename P, typename S>
-bool ESPINA::BasicRepresentationPool<P, S>::isReady() const
+template<typename P>
+bool ESPINA::BasicRepresentationPool<P>::isReady() const
 {
   return m_updater->hasFinished() && !m_updater->needsRestart();
 }
 
 //-----------------------------------------------------------------------------
-template<typename P, typename S>
-ESPINA::RepresentationPipelineSList ESPINA::BasicRepresentationPool<P, S>::pipelines()
+template<typename P>
+ESPINA::RepresentationPipelineSList ESPINA::BasicRepresentationPool<P>::pipelines()
 {
   return m_updater->pipelines();
 }
 
 //-----------------------------------------------------------------------------
-template<typename P, typename S>
-void ESPINA::BasicRepresentationPool<P, S>::addRepresentationPipeline(ViewItemAdapterPtr source)
+template<typename P>
+void ESPINA::BasicRepresentationPool<P>::addRepresentationPipeline(ViewItemAdapterPtr source)
 {
   m_updater->addPipeline(source, std::make_shared<P>(source));
 }
 
 //-----------------------------------------------------------------------------
-template<typename P, typename S>
-void ESPINA::BasicRepresentationPool<P, S>::updateImplementation()
+template<typename P>
+void ESPINA::BasicRepresentationPool<P>::updateImplementation()
 {
-  m_updater->applySettings(m_settings->settings());
+  auto poolSettings = settings();
+
+  if (poolSettings)
+  {
+    m_updater->applySettings(poolSettings->pipelineSettings());
+  }
 
   Task::submit(m_updater);
 }

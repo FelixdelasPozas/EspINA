@@ -222,7 +222,8 @@ bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render) /
 //----------------------------------------------------------------------------
 bool ViewManager::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 {
-
+  Q_ASSERT(false);
+  return false;
 }
 
 //----------------------------------------------------------------------------

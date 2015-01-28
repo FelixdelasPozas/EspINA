@@ -17,24 +17,22 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_REPRESENTATION_H
-#define ESPINA_CHANNEL_SLICE_REPRESENTATION_H
+#ifndef ESPINA_CHANNEL_PIPELINE_H
+#define ESPINA_CHANNEL_PIPELINE_H
 
-#include <Support/Representations/RepresentationFactory.h>
+#include <GUI/Model/ChannelAdapter.h>
 
 namespace ESPINA {
 
-  class ChannelSliceRepresentationDriver
-  : public RepresentationFactory
+  class ChannelPipeline
   {
   public:
-    explicit ChannelSliceRepresentationDriver(SchedulerSPtr scheduler);
-
-    virtual Representation createRepresentation() const;
-
-  private:
-    SchedulerSPtr m_scheduler;
+    /** \brief Return pipeline settings for channel
+     *
+     */
+    static RepresentationPipeline::Settings Settings(ChannelAdapterPtr channel);
   };
+
 }
 
-#endif // ESPINA_CHANNEL_SLICE_REPRESENTATION_H
+#endif // ESPINA_CHANNEL_PIPELINE_H

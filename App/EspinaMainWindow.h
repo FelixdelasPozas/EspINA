@@ -38,7 +38,7 @@
 #include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
-#include <Support/Representations/RepresentationDriverFactory.h>
+#include <Support/Representations/RepresentationFactory.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
@@ -274,7 +274,7 @@ namespace ESPINA
     /** \brief Registers representation driver factory
      *
      */
-    void registerRepresentationDriverFactory(RepresentationDriverFactorySPtr factory);
+    void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
     /** \brief Loads a list of plugins in the application.
      * \param[in] plugins list of plugins to load.
@@ -340,7 +340,7 @@ namespace ESPINA
 
     QList<QPluginLoader *>    m_plugins;
 
-    RepresentationDriverFactorySList m_driverFactories;
+    RepresentationFactorySList m_representationFactories;
 
     MenuState m_menuState;
 

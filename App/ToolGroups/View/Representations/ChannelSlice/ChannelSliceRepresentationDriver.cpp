@@ -19,10 +19,11 @@
 
 #include "ChannelSliceRepresentationDriver.h"
 
-#include "ChannelSliceSwitch.h"
-#include "ChannelSliceSettingsEditor.h"
 #include "ChannelSlicePipeline.h"
-#include "ChannelSliceManager.h"
+
+#include <Support/Representations/BasicRepresentationSwitch.h>
+#include <Support/Representations/SliceManager.h>
+#include <Support/Representations/Slice3DManager.h>
 
 #include <ToolGroups/View/ViewToolGroup.h>
 #include <GUI/Representations/BasicRepresentationPool.h>
@@ -36,22 +37,28 @@ ChannelSliceRepresentationDriver::ChannelSliceRepresentationDriver(SchedulerSPtr
 }
 
 //----------------------------------------------------------------------------
-RepresentationDriver ChannelSliceRepresentationDriver::createRepresentationDriver() const
+Representation ChannelSliceRepresentationDriver::createRepresentation() const
 {
-  RepresentationDriver driver;
+  Representation representation;
 
+  auto poolXY         = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(m_scheduler);
+  auto poolXZ         = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(m_scheduler);
+  auto poolYZ         = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::YZ>>>(m_scheduler);
+  auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
+  auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
+  auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
+  auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
-  auto settings     = std::make_shared<ChannelSliceSettingsEditor>();
-  auto poolXY       = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::XY>, ChannelSliceSettingsEditorSPtr>>(settings, m_scheduler);
-  auto poolXZ       = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::XZ>, ChannelSliceSettingsEditorSPtr>>(settings, m_scheduler);
-  auto poolYZ       = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::YZ>, ChannelSliceSettingsEditorSPtr>>(settings, m_scheduler);
-  auto sliceManager = std::make_shared<ChannelSliceManager>(poolXY, poolXZ, poolYZ);
-  auto sliceSwitch  = std::make_shared<ChannelSliceSwitch>(sliceManager);
+  sliceManager->setName(QObject::tr("Slice Representation"));
+  sliceManager->setIcon(QIcon(":espina/slice.png"));
 
-  driver.Group  = ViewToolGroup::CHANNELS_GROUP;
-  driver.Pools    << poolXY << poolXZ << poolYZ;
-  driver.Managers << sliceManager;
-  driver.Switches << sliceSwitch;
+  slice3DManager->setName(QObject::tr("Slice Representation"));
+  slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
 
-  return driver;
+  representation.Group     = ViewToolGroup::CHANNELS_GROUP;
+  representation.Pools    << poolXY << poolXZ << poolYZ;
+  representation.Managers << sliceManager << slice3DManager;
+  representation.Switches << sliceSwitch << slice3DSwitch;
+
+  return representation;
 }

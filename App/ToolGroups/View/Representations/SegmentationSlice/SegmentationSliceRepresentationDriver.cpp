@@ -19,16 +19,52 @@
 
 #include "SegmentationSliceRepresentationDriver.h"
 
+#include "SegmentationSliceSettings.h"
+#include "SegmentationSlicePipeline.h"
+#include "SegmentationSliceSwitch.h"
+
 #include <ToolGroups/View/ViewToolGroup.h>
+#include <GUI/Representations/BasicRepresentationPool.h>
+#include <Support/Representations/SliceManager.h>
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RepresentationDriver SegmentationSliceRepresentationDriver::createRepresentationDriver() const
+SegmentationSliceRepresentationDriver::SegmentationSliceRepresentationDriver(SchedulerSPtr scheduler)
+: m_scheduler(scheduler)
 {
-  RepresentationDriver driver;
 
-  driver.Group = ViewToolGroup::SEGMENTATIONS_GROUP;
+}
 
-  return driver;
+//----------------------------------------------------------------------------
+Representation SegmentationSliceRepresentationDriver::createRepresentation() const
+{
+  Representation representation;
+
+  auto settings     = std::make_shared<SegmentationSliceSettings>();
+  auto poolXY       = std::make_shared<BasicRepresentationPool<SegmentationSlicePipeline<Plane::XY>>>(m_scheduler);
+  auto poolXZ       = std::make_shared<BasicRepresentationPool<SegmentationSlicePipeline<Plane::XZ>>>(m_scheduler);
+  auto poolYZ       = std::make_shared<BasicRepresentationPool<SegmentationSlicePipeline<Plane::YZ>>>(m_scheduler);
+  auto sliceManager = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
+  auto sliceSwitch  = std::make_shared<SegmentationSliceSwitch>(sliceManager);
+
+  configurePool(poolXY, settings);
+  configurePool(poolXZ, settings);
+  configurePool(poolYZ, settings);
+
+  sliceManager->setName(QObject::tr("Slice Representation"));
+
+  representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
+  representation.Pools    << poolXY << poolXZ << poolYZ;
+  representation.Managers << sliceManager;
+  representation.Switches << sliceSwitch;
+
+  return representation;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationSliceRepresentationDriver::configurePool(RepresentationPoolSPtr           pool,
+                                                          RepresentationPool::SettingsSPtr settings) const
+{
+  pool->setSettings(settings);
 }

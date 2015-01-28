@@ -10,11 +10,13 @@ include_directories(
 
 qt4_wrap_cpp(Support_MOC
   Plugin.h
+  Representations/BasicRepresentationSwitch.h
+  Representations/Slice3DManager.h
   ViewManager.h
   Widgets/DockWidget.h
-  Widgets/ToolGroup.h  
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
+  Widgets/ToolGroup.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -57,16 +59,19 @@ set (Support_SOURCES
   Factory/DefaultSegmentationExtensionFactory.cpp
   Factory/FilterDelegateFactory.cpp
   Readers/ChannelReader.cpp
+  Representations/BasicRepresentationSwitch.cpp
+  Representations/RepresentationSwitch.cpp
+  Representations/Slice3DManager.cpp
+  Representations/SliceManager.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
-  Widgets/ToolGroup.cpp
-  Widgets/Tool.cpp
+  ViewManager.cpp
   Widgets/ActionGroupWidget.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
-  Representations/RepresentationSwitch.cpp
-  ViewManager.cpp
+  Widgets/Tool.cpp
+  Widgets/ToolGroup.cpp
   )
 
 set(Support_EXTERNAL_LIBS

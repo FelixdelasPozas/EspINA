@@ -20,7 +20,7 @@
 #ifndef ESPINA_SEGMENTATION_SLICE_REPRESENTATION_DRIVER_H
 #define ESPINA_SEGMENTATION_SLICE_REPRESENTATION_DRIVER_H
 
-#include <Support/Representations/RepresentationDriverFactory.h>
+#include <Support/Representations/RepresentationFactory.h>
 
 namespace ESPINA
 {
@@ -28,7 +28,16 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
-    virtual Representation createRepresentationDriver() const;
+    explicit SegmentationSliceRepresentationDriver(SchedulerSPtr scheduler);
+
+    virtual Representation createRepresentation() const;
+
+  private:
+    void configurePool(RepresentationPoolSPtr           pool,
+                       RepresentationPool::SettingsSPtr settings) const;
+
+  private:
+    SchedulerSPtr m_scheduler;
   };
 }
 

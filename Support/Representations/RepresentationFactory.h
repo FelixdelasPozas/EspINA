@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_RENDERER_FACTORY_H
-#define ESPINA_RENDERER_FACTORY_H
+#ifndef ESPINA_REPRESENTATION_FACTORY_H
+#define ESPINA_REPRESENTATION_FACTORY_H
 
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
@@ -50,13 +50,13 @@ namespace ESPINA
      *         to display an specific type of related elements
      *
      */
-    virtual Representation createRepresentationDriver() const = 0;
+    virtual Representation createRepresentation() const = 0;
 
   };
 
-  using RepresentationDriverFactorySPtr  = std::shared_ptr<RepresentationFactory>;
-  using RepresentationDriverFactorySList = QList<RepresentationDriverFactorySPtr>;
+  using RepresentationFactorySPtr  = std::shared_ptr<RepresentationFactory>;
+  using RepresentationFactorySList = QList<RepresentationFactorySPtr>;
 
 } // namespace ESPINA
 
-#endif // ESPINA_RENDERER_FACTORY_H
+#endif // ESPINA_REPRESENTATION_FACTORY_H

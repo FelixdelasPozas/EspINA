@@ -61,6 +61,21 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
+{
+  m_settings = settings;
+
+  //updateImplementation();?
+}
+
+//-----------------------------------------------------------------------------
+RepresentationPool::SettingsSPtr RepresentationPool::settings() const
+{
+  return m_settings;
+}
+
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::update()
 {
   if (isBeingUsed())

@@ -17,50 +17,37 @@
  *
  */
 
-#include "ChannelSliceSwitch.h"
+#include "SegmentationSliceSettings.h"
 
-#include <Support/Widgets/Tool.h>
+#include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-ChannelSliceSwitch::ChannelSliceSwitch(RepresentationManagerSPtr manager)
-: m_manager(manager)
+SegmentationSliceSettings::SegmentationSliceSettings()
+: m_opacity(0)
 {
-
 }
 
 //----------------------------------------------------------------------------
-ESPINA::ViewTypeFlags ChannelSliceSwitch::supportedViews()
+void SegmentationSliceSettings::setOpacity(double value)
 {
-  return ViewType::VIEW_2D;
+  m_opacity = value;
 }
 
 //----------------------------------------------------------------------------
-QWidget* ChannelSliceSwitch::widget()
+double SegmentationSliceSettings::opacity() const
 {
-  auto icon    = QIcon(":espina/slice.png");
-  auto tooltip = tr("Show Channel Slices");
-
-  auto channelSliceSwitch = Tool::createToolButton(icon, tooltip);
-
-  channelSliceSwitch->setCheckable(true);
-
-  connect(channelSliceSwitch, SIGNAL(toggled(bool)),
-          this,               SLOT(changeVisibility(bool)));
-
-  return channelSliceSwitch;
+  return m_opacity;
 }
 
 //----------------------------------------------------------------------------
-void ChannelSliceSwitch::changeVisibility(bool visible)
+RepresentationPipeline::Settings SegmentationSliceSettings::pipelineSettings()
 {
-  if (visible)
-  {
-    m_manager->show();
-  }
-  else
-  {
-    m_manager->hide();
-  }
+  RepresentationPipeline::Settings settings;
+
+  settings.setValue<double>(OPACITY, m_opacity);
+
+  return settings;
 }

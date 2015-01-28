@@ -17,30 +17,22 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H
-#define ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H
+#include "SegmentationPipeline.h"
 
-#include <memory>
-#include <GUI/Representations/RepresentationPipeline.h>
+#include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
-namespace ESPINA
+#include <vtkType.h>
+#include <QColor>
+
+using namespace ESPINA;
+using namespace ESPINA::Representations;
+
+//----------------------------------------------------------------------------
+RepresentationPipeline::Settings SegmentationPipeline::Settings(SegmentationAdapterPtr segmentation)
 {
-  class ChannelSliceSettingsEditor
-  {
-  public:
-    explicit ChannelSliceSettingsEditor();
+  RepresentationPipeline::Settings settings;
 
-    void setOpacity(double value);
+  settings.setValue<double>(VISIBLE,    segmentation->isVisible());
 
-    double opacity() const;
-
-    RepresentationPipeline::Settings settings();
-
-  private:
-    double m_opacity;
-  };
-
-  using ChannelSliceSettingsEditorSPtr = std::shared_ptr<ChannelSliceSettingsEditor>;
+  return settings;
 }
-
-#endif // ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H

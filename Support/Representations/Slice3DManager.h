@@ -17,32 +17,46 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_SWITCH_H
-#define ESPINA_CHANNEL_SLICE_SWITCH_H
+#ifndef ESPINA_SLICE_3D_MANAGER_H
+#define ESPINA_SLICE_3D_MANAGER_H
 
-#include <Support/Representations/RepresentationSwitch.h>
 #include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA {
 
-  class ChannelSliceSwitch
-  : public RepresentationSwitch
+  class Slice3DManager
+  : public RepresentationManager
   {
     Q_OBJECT
-  
   public:
-    explicit ChannelSliceSwitch(RepresentationManagerSPtr manager);
+    Slice3DManager(RepresentationPoolSPtr xy,
+                   RepresentationPoolSPtr xz,
+                   RepresentationPoolSPtr yz);
 
-    virtual ViewTypeFlags supportedViews();
+    virtual ~Slice3DManager();
 
-    virtual QWidget* widget();
+    virtual bool isReady() const;
 
-  private slots:
-    void changeVisibility(bool visible);
+    virtual void onCrosshairChanged(NmVector3 crosshair);
 
   private:
-    RepresentationManagerSPtr m_manager;
+    virtual RepresentationPipelineSList pipelines();
+
+    virtual void updatePipelines();
+
+    virtual void notifyPoolUsed();
+
+    virtual void notifyPoolNotUsed();
+
+    virtual RepresentationManagerSPtr cloneImplementation();
+
+  private slots:
+    void onPoolReady();
+
+  private:
+    RepresentationPoolSList m_pools;
   };
 }
 
-#endif // ESPINA_CHANNEL_SLICE_SWITCH_H
+#endif // ESPINA_SLICE_3D_MANAGER_H

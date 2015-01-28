@@ -34,9 +34,24 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    class Settings
+    {
+    public:
+      virtual ~Settings() {}
+
+      virtual RepresentationPipeline::Settings pipelineSettings() = 0;
+    };
+
+    using SettingsSPtr = std::shared_ptr<Settings>;
+
+  public:
     virtual ~RepresentationPool();
 
     void setPipelineSources(PipelineSources *sources);
+
+    void setSettings(SettingsSPtr settings);
+
+    SettingsSPtr settings() const;
 
     /** \brief Updates pool representation pipelines to the given position
      *
@@ -98,6 +113,7 @@ namespace ESPINA
 
   private:
     PipelineSources *m_sources;
+    SettingsSPtr     m_settings;
 
     ViewItemAdapterList m_pendingSources;
 

@@ -17,16 +17,16 @@
  *
  */
 
-#include "ChannelSlicePipeline.h"
+#include "SegmentationSlicePipeline.h"
 
 template<ESPINA::Plane T>
-ESPINA::Plane ESPINA::ChannelSlicePipeline<T>::s_plane = T;
+ESPINA::Plane ESPINA::SegmentationSlicePipeline<T>::s_plane = T;
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline(ViewItemAdapterPtr item)
-: RepresentationPipeline("ChannelSliceRepresentation")
-, m_channel(dynamic_cast<ChannelAdapterPtr>(item))
+ESPINA::SegmentationSlicePipeline<T>::SegmentationSlicePipeline(ViewItemAdapterPtr item)
+: RepresentationPipeline("SegmentationSliceRepresentation")
+, m_segmentation(dynamic_cast<SegmentationAdapterPtr>(item))
 , m_planeIndex(normalCoordinateIndex(s_plane))
 {
   initPipeline();
@@ -34,24 +34,24 @@ ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline(ViewItemAdapterPtr item)
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-bool ChannelSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
+bool SegmentationSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
 {
   return false;
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ChannelSlicePipeline<T>::update()
+void SegmentationSlicePipeline<T>::update()
 {
   m_actors.clear();
 
   if (!m_state.getValue<bool>(VISIBLE)) return;
 
-  if (!hasVolumetricData(m_channel->output())) return;
+  if (!hasVolumetricData(m_segmentation->output())) return;
 
   Nm reslicePoint = crosshairPosition(s_plane);
 
-  auto data = volumetricData(m_channel->output());
+  auto data = volumetricData(m_segmentation->output());
 
   vtkSmartPointer<vtkImageData> slice;
 
@@ -70,7 +70,7 @@ void ChannelSlicePipeline<T>::update()
 
     slice = vtkImage(data, imageBounds);
 
-    m_shiftScaleFilter->SetInputData(slice);
+    m_mapToColors->SetInputData(slice);
 
     if (dataChanged)
     {
@@ -78,42 +78,24 @@ void ChannelSlicePipeline<T>::update()
     }
   }
 
-  bool brightnessChanged = m_state.isModified(BRIGHTNESS);
-  if (brightnessChanged)
+  bool colorChanged = m_state.isModified(COLOR);
+  if (colorChanged)
   {
-    updateBrightness();
+    updateColor();
   }
 
-  bool contrastChanged = m_state.isModified(CONTRAST);
-  if (contrastChanged)
+  // TODO: Simplify if conditions if no more changes are done
+  if (crosshairPositionChanged || colorChanged)
   {
-    updateContrast();
-  }
-
-  bool stainChanged = m_state.isModified(STAIN);
-  if (stainChanged)
-  {
-    updateStain();
-  }
-
-  if (crosshairPositionChanged || brightnessChanged || contrastChanged)
-  {
-    m_shiftScaleFilter->Update();
-  }
-
-  if (stainChanged)
-  {
-    m_lut->Build();
     m_mapToColors->Update();
   }
 
-  //m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
   if (crosshairPositionChanged)
   {
     m_actor->SetDisplayExtent(slice->GetExtent());
   }
 
-  if (crosshairPositionChanged || brightnessChanged || contrastChanged || stainChanged)
+  if (crosshairPositionChanged || colorChanged)
   {
     m_actor->Update();
     m_state.commit();
@@ -124,7 +106,7 @@ void ChannelSlicePipeline<T>::update()
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-QList<ESPINA::RepresentationPipeline::Actor> ESPINA::ChannelSlicePipeline<T>::getActors()
+QList<ESPINA::RepresentationPipeline::Actor> ESPINA::SegmentationSlicePipeline<T>::getActors()
 {
   return m_actors;
 }
@@ -132,25 +114,25 @@ QList<ESPINA::RepresentationPipeline::Actor> ESPINA::ChannelSlicePipeline<T>::ge
 #include <QDebug>
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::applySettings(const Settings &settings)
+void ESPINA::SegmentationSlicePipeline<T>::applySettings(const Settings &settings)
 {
-  m_state.apply(ChannelPipeline::Settings(m_channel));
+  m_state.apply(SegmentationPipeline::Settings(m_segmentation));
   m_state.apply(settings);
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::initPipeline()
+void ESPINA::SegmentationSlicePipeline<T>::initPipeline()
 {
-  if (!hasVolumetricData(m_channel->output())) return;
+  if (!hasVolumetricData(m_segmentation->output())) return;
 
   int idx = normalCoordinateIndex(s_plane);
 
   Nm reslicePoint = crosshairPosition(s_plane);
 
-  auto data = volumetricData(m_channel->output());
+  auto m_data = volumetricData(m_segmentation->output());
 
-  Bounds imageBounds = data->bounds();
+  Bounds imageBounds = m_data->bounds();
 
   bool valid = imageBounds[2*idx] <= reslicePoint && reslicePoint <= imageBounds[2*idx+1];
 
@@ -162,7 +144,7 @@ void ESPINA::ChannelSlicePipeline<T>::initPipeline()
     imageBounds.setUpperInclusion(toAxis(idx), true);
     imageBounds[2*idx] = imageBounds[(2*idx)+1] = reslicePoint;
 
-    slice = vtkImage(data, imageBounds);
+    slice = vtkImage(m_data, imageBounds);
   }
   else
   {
@@ -183,27 +165,9 @@ void ESPINA::ChannelSlicePipeline<T>::initPipeline()
     memset(imagePointer, SEG_BG_VALUE, slice->GetNumberOfPoints());
   }
 
-  m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_shiftScaleFilter->SetInputData(slice);
-  updateBrightness();
-  updateContrast();
-  m_shiftScaleFilter->SetClampOverflow(true);
-  m_shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
-  m_shiftScaleFilter->Update();
-
-  m_lut = vtkSmartPointer<vtkLookupTable>::New();
-  m_lut->Allocate();
-  m_lut->SetTableRange(0,255);
-  m_lut->SetValueRange(0.0, 1.0);
-  m_lut->SetAlphaRange(1.0,1.0);
-  m_lut->SetNumberOfColors(256);
-  m_lut->SetRampToLinear();
-  updateStain();
-  m_lut->Build();
-
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapToColors->SetInputConnection(m_shiftScaleFilter->GetOutputPort());
-  m_mapToColors->SetLookupTable(m_lut);
+  m_mapToColors->SetInputData(slice);
+  updateColor();
   m_mapToColors->SetNumberOfThreads(1);
   m_mapToColors->Update();
 
@@ -213,28 +177,21 @@ void ESPINA::ChannelSlicePipeline<T>::initPipeline()
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
   m_actor->SetDisplayExtent(slice->GetExtent());
   m_actor->Update();
+  // need to reposition the actor so it will always be over the channels actors'
+
+  // TODO
+//   double pos[3];
+//   m_actor->GetPosition(pos);
+//   pos[m_planeIndex] += view->segmentationDepth();
+//   m_actor->SetPosition(pos);
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateBrightness()
+void ESPINA::SegmentationSlicePipeline<T>::updateColor()
 {
-  m_shiftScaleFilter->SetShift(static_cast<int>(m_state.getValue<double>(BRIGHTNESS)*255));
-}
+  auto color = m_state.getValue<QColor>(COLOR);
 
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateContrast()
-{
-  m_shiftScaleFilter->SetScale(m_state.getValue<double>(CONTRAST));
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateStain()
-{
-  auto stain = m_state.getValue<QColor>(STAIN);
-
-  m_lut->SetHueRange(stain.hueF(), stain.hueF());
-  m_lut->SetSaturationRange(0.0, stain.saturationF());
+//   m_lut->SetHueRange(stain.hueF(), stain.hueF());
+//   m_lut->SetSaturationRange(0.0, stain.saturationF());
 }

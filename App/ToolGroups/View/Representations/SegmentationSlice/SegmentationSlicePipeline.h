@@ -17,35 +17,34 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_PIPELINE_H
-#define ESPINA_CHANNEL_SLICE_PIPELINE_H
+#ifndef ESPINA_SEGMENTATION_SLICE_PIPELINE_H
+#define ESPINA_SEGMENTATION_SLICE_PIPELINE_H
 
-#include <GUI/Model/ViewItemAdapter.h>
-#include <GUI/Representations/ChannelPipeline.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <GUI/Representations/SegmentationPipeline.h>
 #include "App/ToolGroups/View/Representations/RepresentationSettings.h"
+
+#include <QColor>
 
 // VTK
 #include <vtkSmartPointer.h>
 #include <vtkImageReslice.h>
 #include <vtkImageMapToColors.h>
-#include <vtkImageShiftScale.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageData.h>
-#include <vtkLookupTable.h>
 
 namespace ESPINA
 {
   using namespace Representations;
 
   template<Plane T>
-  class ChannelSlicePipeline
+  class SegmentationSlicePipeline
   : public RepresentationPipeline
   {
   public:
-    explicit ChannelSlicePipeline(ViewItemAdapterPtr item);
+    explicit SegmentationSlicePipeline(ViewItemAdapterPtr item);
 
     virtual bool pick(const NmVector3 &point, vtkProp *actor);
 
@@ -58,28 +57,24 @@ namespace ESPINA
   private:
     void initPipeline();
 
-    void updateBrightness();
-
-    void updateContrast();
-
-    void updateStain();
+    void updateColor();
 
   private:
     static Plane s_plane;
 
-    ChannelAdapterPtr m_channel;
+    SegmentationAdapterPtr m_segmentation;
 
     int m_planeIndex;
 
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
-    vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
     vtkSmartPointer<vtkImageActor>       m_actor;
-    vtkSmartPointer<vtkLookupTable>      m_lut;
 
     QList<Actor> m_actors;
+
+    //static TransparencySelectionHighlighter *s_highlighter;
   };
 
-#include "ChannelSlicePipeline.cpp"
+#include "SegmentationSlicePipeline.cpp"
 }
 
-#endif // ESPINA_CHANNEL_SLICE_PIPELINE_H
+#endif // ESPINA_SEGMENTATION_SLICE_PIPELINE_H

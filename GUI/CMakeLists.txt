@@ -93,13 +93,14 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
-  Representations/ChannelRepresentationSettingsEditor.cpp
+  Representations/ChannelPipeline.cpp
   Representations/PipelineMultiplexer.cpp
   Representations/PipelineSources.cpp
   Representations/RepresentationManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
   Representations/RepresentationUpdater.cpp
+  Representations/SegmentationPipeline.cpp
   Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp

@@ -55,6 +55,7 @@
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationDriver.h"
+#include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationDriver.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -568,19 +569,19 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr tools)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::registerRepresentationDriverFactory(RepresentationDriverFactorySPtr factory)
+void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
-  auto driver = factory->createRepresentationDriver();
+  auto representation = factory->createRepresentation();
 
-  for (auto repSwitch : driver.Switches)
+  for (auto repSwitch : representation.Switches)
   {
-    m_viewToolGroup->addRepresentationSwitch(driver.Group, repSwitch);
+    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
   }
 
-  m_viewManager->addRepresentationPools(driver.Group, driver.Pools);
-  m_viewManager->addRepresentationManagers(driver.Managers);
+  m_viewManager->addRepresentationPools(representation.Group, representation.Pools);
+  m_viewManager->addRepresentationManagers(representation.Managers);
 
-  m_driverFactories << factory;
+  m_representationFactories << factory;
 }
 
 //------------------------------------------------------------------------
@@ -1212,8 +1213,8 @@ void EspinaMainWindow::restoreRepresentationSwitchSettings()
 //------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
-  registerRepresentationDriverFactory(std::make_shared<ChannelSliceRepresentationDriver>(m_scheduler));
-  //registerRepresentationDriverFactory(std::make_shared<SegmentationSliceRepresentationDriver>());
+  registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationDriver>(m_scheduler));
+  registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationDriver>(m_scheduler));
 //   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
 //   registerRepresentationDriver(std::make_shared<MeshRenderer>());
 //   registerRepresentationDriver(std::make_shared<SmoothedMeshRenderer>());

@@ -17,30 +17,22 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_STATE_H
-#define ESPINA_CHANNEL_STATE_H
+#ifndef ESPINA_SEGMENTATION_PIPELINE_H
+#define ESPINA_SEGMENTATION_PIPELINE_H
 
-#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 namespace ESPINA {
 
-  class ChannelRepresentationSettingsEditor
+  class SegmentationPipeline
   {
   public:
-    explicit ChannelRepresentationSettingsEditor(ChannelAdapterPtr channel);
-
-    ChannelAdapterPtr channel() const
-    { return m_channel; }
-
-    /** \brief Sets state to current channel representation state
+    /** \brief Return pipeline settings for channel
      *
      */
-    RepresentationPipeline::Settings settings();
-
-  private:
-    ChannelAdapterPtr m_channel;
+    static RepresentationPipeline::Settings Settings(SegmentationAdapterPtr channel);
   };
 
 }
 
-#endif // ESPINA_CHANNELSTATE_H
+#endif // ESPINA_CHANNEL_PIPELINE_H

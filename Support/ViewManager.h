@@ -37,7 +37,6 @@
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/PipelineSources.h>
-#include <GUI/Representations/ChannelRepresentationSettingsEditor.h>
 #include "ROIProvider.h"
 
 // Qt

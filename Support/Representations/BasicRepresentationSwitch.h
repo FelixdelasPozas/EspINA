@@ -17,24 +17,34 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_REPRESENTATION_H
-#define ESPINA_CHANNEL_SLICE_REPRESENTATION_H
+#ifndef ESPINA_BASIC_REPRESENTATION_SWITCH_H
+#define ESPINA_BASIC_REPRESENTATION_SWITCH_H
 
-#include <Support/Representations/RepresentationFactory.h>
+#include <Support/Representations/RepresentationSwitch.h>
+#include <GUI/Representations/RepresentationManager.h>
 
 namespace ESPINA {
 
-  class ChannelSliceRepresentationDriver
-  : public RepresentationFactory
+  class BasicRepresentationSwitch
+  : public RepresentationSwitch
   {
+    Q_OBJECT
+  
   public:
-    explicit ChannelSliceRepresentationDriver(SchedulerSPtr scheduler);
+    explicit BasicRepresentationSwitch(RepresentationManagerSPtr manager, ViewTypeFlags supportedViews);
 
-    virtual Representation createRepresentation() const;
+    virtual ViewTypeFlags supportedViews();
+
+    virtual QWidget* widget();
+
+  private slots:
+    void changeVisibility(bool visible);
 
   private:
-    SchedulerSPtr m_scheduler;
+    RepresentationManagerSPtr m_manager;
+
+    ViewTypeFlags m_flags;
   };
 }
 
-#endif // ESPINA_CHANNEL_SLICE_REPRESENTATION_H
+#endif // ESPINA_BASIC_REPRESENTATION_SWITCH_H

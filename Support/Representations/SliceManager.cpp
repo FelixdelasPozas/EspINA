@@ -17,13 +17,13 @@
  *
  */
 
-#include "ChannelSliceManager.h"
+#include "SliceManager.h"
 #include <GUI/View/RenderView.h>
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ChannelSliceManager::ChannelSliceManager(RepresentationPoolSPtr xy, RepresentationPoolSPtr xz, RepresentationPoolSPtr yz)
+SliceManager::SliceManager(RepresentationPoolSPtr xy, RepresentationPoolSPtr xz, RepresentationPoolSPtr yz)
 : m_xy{xy}
 , m_xz{xz}
 , m_yz{yz}
@@ -33,13 +33,13 @@ ChannelSliceManager::ChannelSliceManager(RepresentationPoolSPtr xy, Representati
 }
 
 //----------------------------------------------------------------------------
-bool ChannelSliceManager::isReady() const
+bool SliceManager::isReady() const
 {
   return validPlane()?planePool()->isReady():true;
 }
 
 //----------------------------------------------------------------------------
-void ChannelSliceManager::onCrosshairChanged(NmVector3 crosshair)
+void SliceManager::onCrosshairChanged(NmVector3 crosshair)
 {
   if (validPlane())
   {
@@ -49,7 +49,7 @@ void ChannelSliceManager::onCrosshairChanged(NmVector3 crosshair)
 }
 
 //----------------------------------------------------------------------------
-void ChannelSliceManager::setPlane(Plane plane)
+void SliceManager::setPlane(Plane plane)
 {
   if (plane != m_plane)
   {
@@ -68,7 +68,7 @@ void ChannelSliceManager::setPlane(Plane plane)
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipelineSList ChannelSliceManager::pipelines()
+RepresentationPipelineSList SliceManager::pipelines()
 {
   RepresentationPipelineSList pipelines;
 
@@ -81,7 +81,7 @@ RepresentationPipelineSList ChannelSliceManager::pipelines()
 }
 
 //----------------------------------------------------------------------------
-void ChannelSliceManager::notifyPoolUsed()
+void SliceManager::notifyPoolUsed()
 {
   if (validPlane())
   {
@@ -90,7 +90,7 @@ void ChannelSliceManager::notifyPoolUsed()
 }
 
 //----------------------------------------------------------------------------
-void ChannelSliceManager::notifyPoolNotUsed()
+void SliceManager::notifyPoolNotUsed()
 {
   if (validPlane())
   {
@@ -99,7 +99,7 @@ void ChannelSliceManager::notifyPoolNotUsed()
 }
 
 //----------------------------------------------------------------------------
-void ChannelSliceManager::updatePipelines()
+void SliceManager::updatePipelines()
 {
   if (validPlane())
   {
@@ -108,9 +108,9 @@ void ChannelSliceManager::updatePipelines()
 }
 
 //----------------------------------------------------------------------------
-RepresentationManagerSPtr ChannelSliceManager::cloneImplementation()
+RepresentationManagerSPtr SliceManager::cloneImplementation()
 {
-  auto clone = std::make_shared<ChannelSliceManager>(m_xy, m_xz, m_yz);
+  auto clone = std::make_shared<SliceManager>(m_xy, m_xz, m_yz);
 
   clone->m_name          = m_name;
   clone->m_description   = m_description;
@@ -121,7 +121,7 @@ RepresentationManagerSPtr ChannelSliceManager::cloneImplementation()
 }
 
 //----------------------------------------------------------------------------
-RepresentationPoolSPtr ChannelSliceManager::planePool() const
+RepresentationPoolSPtr SliceManager::planePool() const
 {
   switch (m_plane)
   {
@@ -139,7 +139,7 @@ RepresentationPoolSPtr ChannelSliceManager::planePool() const
 }
 
 //----------------------------------------------------------------------------
-bool ChannelSliceManager::validPlane() const
+bool SliceManager::validPlane() const
 {
   return Plane::UNDEFINED != m_plane;
 }

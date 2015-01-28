@@ -17,24 +17,31 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_REPRESENTATION_H
-#define ESPINA_CHANNEL_SLICE_REPRESENTATION_H
+#ifndef ESPINA_SEGMENTATION_SLICE_SETTINGS_H
+#define ESPINA_SEGMENTATION_SLICE_SETTINGS_H
 
-#include <Support/Representations/RepresentationFactory.h>
+#include <memory>
+#include <GUI/Representations/RepresentationPool.h>
 
-namespace ESPINA {
-
-  class ChannelSliceRepresentationDriver
-  : public RepresentationFactory
+namespace ESPINA
+{
+  class SegmentationSliceSettings
+  : public RepresentationPool::Settings
   {
   public:
-    explicit ChannelSliceRepresentationDriver(SchedulerSPtr scheduler);
+    explicit SegmentationSliceSettings();
 
-    virtual Representation createRepresentation() const;
+    void setOpacity(double value);
+
+    double opacity() const;
+
+    virtual RepresentationPipeline::Settings pipelineSettings();
 
   private:
-    SchedulerSPtr m_scheduler;
+    double m_opacity;
   };
+
+  using SegmentationSliceSettingsSPtr = std::shared_ptr<SegmentationSliceSettings>;
 }
 
-#endif // ESPINA_CHANNEL_SLICE_REPRESENTATION_H
+#endif // ESPINA_CHANNEL_SLICE_SETTINGS_EDITOR_H

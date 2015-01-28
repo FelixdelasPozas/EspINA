@@ -17,22 +17,22 @@
  *
  */
 
-#ifndef ESPINA_CHANNEL_SLICE_MANAGER_H
-#define ESPINA_CHANNEL_SLICE_MANAGER_H
+#ifndef ESPINA_SLICE_MANAGER_H
+#define ESPINA_SLICE_MANAGER_H
 
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA
 {
-  class ChannelSliceManager
+  class SliceManager
   : public RepresentationManager
   , public RepresentationManager2D
   {
   public:
-    ChannelSliceManager(RepresentationPoolSPtr xy,
-                        RepresentationPoolSPtr xz,
-                        RepresentationPoolSPtr yz);
+    SliceManager(RepresentationPoolSPtr xy,
+                 RepresentationPoolSPtr xz,
+                 RepresentationPoolSPtr yz);
 
     virtual bool isReady() const;
 
@@ -62,4 +62,4 @@ namespace ESPINA
   };
 }
 
-#endif // ESPINA_CHANNELSLICEMANAGER_H
+#endif // ESPINA_SLICE_MANAGER_H

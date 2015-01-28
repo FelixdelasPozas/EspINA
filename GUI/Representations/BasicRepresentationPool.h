@@ -25,12 +25,12 @@
 
 namespace ESPINA {
 
-  template<typename P, typename S>
+  template<typename P>
   class BasicRepresentationPool
   : public RepresentationPool
   {
   public:
-    explicit BasicRepresentationPool(S settings, SchedulerSPtr scheduler);
+    explicit BasicRepresentationPool(SchedulerSPtr scheduler);
 
     virtual void setCrosshair(const NmVector3 &point);
 
@@ -44,8 +44,6 @@ namespace ESPINA {
     virtual void updateImplementation();
 
   private:
-    S m_settings;
-
     RepresentationUpdaterSPtr m_updater;
   };
 }
