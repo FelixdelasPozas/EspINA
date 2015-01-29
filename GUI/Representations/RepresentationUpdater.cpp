@@ -51,12 +51,16 @@ void RepresentationUpdater::setCroshair(const NmVector3 &point)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::applySettings(const RepresentationPipeline::Settings &state)
+bool RepresentationUpdater::applySettings(const RepresentationPipeline::Settings &state)
 {
+  bool modified = false;
+
   for (auto pipeline : pipelines())
   {
-    pipeline->applySettings(state);
+    modified |= pipeline->applySettings(state);
   }
+
+  return modified;
 }
 
 //----------------------------------------------------------------------------

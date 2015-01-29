@@ -161,10 +161,12 @@ bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane) con
 
 
 //----------------------------------------------------------------------------
-void RepresentationPipeline::applySettings(const RepresentationPipeline::Settings &settings)
+bool RepresentationPipeline::applySettings(const RepresentationPipeline::Settings &settings)
 {
   QWriteLocker lock(&m_stateLock);
   applySettingsImplementation(settings);
+
+  return m_state.hasPendingChanges();
 }
 
 //----------------------------------------------------------------------------

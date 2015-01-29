@@ -26,7 +26,7 @@
 #include <Support/Representations/Slice3DManager.h>
 
 #include <ToolGroups/View/ViewToolGroup.h>
-#include <GUI/Representations/BasicRepresentationPool.h>
+#include <GUI/Representations/BufferedRepresentationPool.h>
 
 using namespace ESPINA;
 
@@ -41,9 +41,11 @@ Representation ChannelSliceRepresentationDriver::createRepresentation() const
 {
   Representation representation;
 
-  auto poolXY         = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(m_scheduler);
-  auto poolXZ         = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(m_scheduler);
-  auto poolYZ         = std::make_shared<BasicRepresentationPool<ChannelSlicePipeline<Plane::YZ>>>(m_scheduler);
+  const unsigned WINDOW_SIZE = 4;
+
+  auto poolXY         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(m_scheduler, WINDOW_SIZE);
+  auto poolXZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(m_scheduler, WINDOW_SIZE);
+  auto poolYZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::YZ>>>(m_scheduler, WINDOW_SIZE);
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);

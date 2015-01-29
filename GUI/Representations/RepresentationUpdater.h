@@ -39,7 +39,7 @@ namespace ESPINA
 
     void setCroshair(const NmVector3 &point);
 
-    void applySettings(const RepresentationPipeline::Settings &state);
+    bool applySettings(const RepresentationPipeline::Settings &state);
 
     RepresentationPipelineSList pipelines();
 
@@ -50,7 +50,8 @@ namespace ESPINA
     QMap<ViewItemAdapterPtr, PipelineMultiplexerSPtr> m_multiplexers;
   };
 
-  using RepresentationUpdaterSPtr = std::shared_ptr<RepresentationUpdater>;
+  using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;
+  using RepresentationUpdaterSList = QList<RepresentationUpdaterSPtr>;
 }
 
 #endif // ESPINA_REPRESENTATIONUPDATER_H

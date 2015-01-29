@@ -99,7 +99,7 @@ namespace ESPINA {
      */
     void setCrosshairPoint(const NmVector3 &point);
 
-    void applySettings(const Settings& settings);
+    bool applySettings(const Settings& settings);
 
     /** \brief Updates the representation.
      *

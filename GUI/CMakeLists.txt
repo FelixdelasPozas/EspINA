@@ -100,6 +100,7 @@ set (GUI_SOURCES
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
   Representations/RepresentationUpdater.cpp
+  Representations/RepresentationWindow.cpp
   Representations/SegmentationPipeline.cpp
   Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
