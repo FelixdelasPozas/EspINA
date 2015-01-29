@@ -41,13 +41,29 @@ bool ChannelSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ChannelSlicePipeline<T>::update()
+QList<ESPINA::RepresentationPipeline::Actor> ESPINA::ChannelSlicePipeline<T>::getActors()
+{
+  return m_actors;
+}
+
+#include <QDebug>
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+void ESPINA::ChannelSlicePipeline<T>::applySettingsImplementation(const Settings &settings)
+{
+  updateState(ChannelPipeline::Settings(m_channel));
+  updateState(settings);
+}
+
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+bool ChannelSlicePipeline<T>::updateImplementation()
 {
   m_actors.clear();
 
-  if (!m_state.getValue<bool>(VISIBLE)) return;
+  if (!state<bool>(VISIBLE)) return false;
 
-  if (!hasVolumetricData(m_channel->output())) return;
+  if (!hasVolumetricData(m_channel->output())) return false;
 
   Nm reslicePoint = crosshairPosition(s_plane);
 
@@ -55,14 +71,19 @@ void ChannelSlicePipeline<T>::update()
 
   vtkSmartPointer<vtkImageData> slice;
 
-  bool dataChanged = data->lastModified() != m_state.getValue<TimeStamp>(TIME_STAMP);
+  bool dataChanged = data->lastModified() != state<TimeStamp>(TIME_STAMP);
   bool crosshairPositionChanged = isCrosshairPositionModified(s_plane);
   if (crosshairPositionChanged || dataChanged)
   {
     Bounds imageBounds = data->bounds();
 
+    if (dataChanged)
+    {
+      setState<TimeStamp>(TIME_STAMP, data->lastModified());
+    }
+
     if (reslicePoint < imageBounds[2*m_planeIndex]
-     || reslicePoint > imageBounds[2*m_planeIndex+1]) return;
+     || reslicePoint > imageBounds[2*m_planeIndex+1]) return true;
 
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
@@ -71,26 +92,21 @@ void ChannelSlicePipeline<T>::update()
     slice = vtkImage(data, imageBounds);
 
     m_shiftScaleFilter->SetInputData(slice);
-
-    if (dataChanged)
-    {
-      m_state.setValue<TimeStamp>(TIME_STAMP, data->lastModified());
-    }
   }
 
-  bool brightnessChanged = m_state.isModified(BRIGHTNESS);
+  bool brightnessChanged = isModified(BRIGHTNESS);
   if (brightnessChanged)
   {
     updateBrightness();
   }
 
-  bool contrastChanged = m_state.isModified(CONTRAST);
+  bool contrastChanged = isModified(CONTRAST);
   if (contrastChanged)
   {
     updateContrast();
   }
 
-  bool stainChanged = m_state.isModified(STAIN);
+  bool stainChanged = isModified(STAIN);
   if (stainChanged)
   {
     updateStain();
@@ -113,38 +129,22 @@ void ChannelSlicePipeline<T>::update()
     m_actor->SetDisplayExtent(slice->GetExtent());
   }
 
-  if (crosshairPositionChanged || brightnessChanged || contrastChanged || stainChanged)
+  bool changed = crosshairPositionChanged || brightnessChanged || contrastChanged || stainChanged;
+
+  if (changed)
   {
     m_actor->Update();
-    m_state.commit();
   }
 
   m_actors << m_actor;
-}
 
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-QList<ESPINA::RepresentationPipeline::Actor> ESPINA::ChannelSlicePipeline<T>::getActors()
-{
-  return m_actors;
+  return changed;
 }
-
-#include <QDebug>
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::applySettings(const Settings &settings)
-{
-  m_state.apply(ChannelPipeline::Settings(m_channel));
-  m_state.apply(settings);
-}
-
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::initPipeline()
 {
   if (!hasVolumetricData(m_channel->output())) return;
-
-  int idx = normalCoordinateIndex(s_plane);
 
   Nm reslicePoint = crosshairPosition(s_plane);
 
@@ -152,22 +152,22 @@ void ESPINA::ChannelSlicePipeline<T>::initPipeline()
 
   Bounds imageBounds = data->bounds();
 
-  bool valid = imageBounds[2*idx] <= reslicePoint && reslicePoint <= imageBounds[2*idx+1];
+  bool valid = imageBounds[2*m_planeIndex] <= reslicePoint && reslicePoint <= imageBounds[2*m_planeIndex +1];
 
   vtkSmartPointer<vtkImageData> slice;
 
   if (valid)
   {
     imageBounds.setLowerInclusion(true);
-    imageBounds.setUpperInclusion(toAxis(idx), true);
-    imageBounds[2*idx] = imageBounds[(2*idx)+1] = reslicePoint;
+    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = reslicePoint;
 
     slice = vtkImage(data, imageBounds);
   }
   else
   {
     int extent[6] = { 0,1,0,1,0,1 };
-    extent[2*idx + 1] = extent[2*idx];
+    extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
 
     slice = vtkSmartPointer<vtkImageData>::New();
     slice->SetExtent(extent);
@@ -219,21 +219,21 @@ void ESPINA::ChannelSlicePipeline<T>::initPipeline()
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::updateBrightness()
 {
-  m_shiftScaleFilter->SetShift(static_cast<int>(m_state.getValue<double>(BRIGHTNESS)*255));
+  m_shiftScaleFilter->SetShift(static_cast<int>(state<double>(BRIGHTNESS)*255));
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::updateContrast()
 {
-  m_shiftScaleFilter->SetScale(m_state.getValue<double>(CONTRAST));
+  m_shiftScaleFilter->SetScale(state<double>(CONTRAST));
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::updateStain()
 {
-  auto stain = m_state.getValue<QColor>(STAIN);
+  auto stain = state<QColor>(STAIN);
 
   m_lut->SetHueRange(stain.hueF(), stain.hueF());
   m_lut->SetSaturationRange(0.0, stain.saturationF());

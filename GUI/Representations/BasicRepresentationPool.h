@@ -34,14 +34,14 @@ namespace ESPINA {
 
     virtual void setCrosshair(const NmVector3 &point);
 
-    virtual bool isReady() const;
-
     virtual RepresentationPipelineSList pipelines();
 
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 
     virtual void updateImplementation();
+
+    virtual bool isReadyImplementation() const;
 
   private:
     RepresentationUpdaterSPtr m_updater;

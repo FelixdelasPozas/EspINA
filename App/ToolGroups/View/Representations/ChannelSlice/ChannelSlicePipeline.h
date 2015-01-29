@@ -49,13 +49,13 @@ namespace ESPINA
 
     virtual bool pick(const NmVector3 &point, vtkProp *actor);
 
-    virtual void update();
-
     virtual QList<Actor> getActors();
 
-    void applySettings(const Settings &settings);
-
   private:
+    virtual void applySettingsImplementation(const Settings &settings);
+
+    virtual bool updateImplementation();
+
     void initPipeline();
 
     void updateBrightness();

@@ -23,6 +23,7 @@
 #include <memory>
 #include <QString>
 #include <QList>
+#include <QReadWriteLock>
 #include <Core/Utils/NmVector3.h>
 
 #include <vtkSmartPointer.h>
@@ -31,12 +32,20 @@ class vtkProp;
 
 namespace ESPINA {
 
+  /** \class RepresentationPipeline
+   *
+   * This representation pipeline settings are ThreadSafe
+   */
   class RepresentationPipeline
   {
   public:
     using Type  = QString;
     using Actor = vtkSmartPointer<vtkProp>;
 
+    /** \class RepresentationPipeline::Settings
+     *
+     * This class is not ThreadSafe
+     */
     class Settings
     {
       using Pair = QPair<QVariant, bool>;
@@ -90,6 +99,21 @@ namespace ESPINA {
      */
     void setCrosshairPoint(const NmVector3 &point);
 
+    void applySettings(const Settings& settings);
+
+    /** \brief Updates the representation.
+     *
+     */
+    void update();
+
+    /** \brief Returns the list of actors that comprise this representation.
+     *
+     */
+    virtual QList<Actor> getActors() = 0;
+
+  protected:
+    explicit RepresentationPipeline(Type type);
+
     /** \brief Returns the crosshair point for this representation.
      *
      */
@@ -104,26 +128,27 @@ namespace ESPINA {
 
     bool isCrosshairPositionModified(const Plane &plane) const;
 
-    /** \brief Updates the representation.
-     *
-     */
-    virtual void update() = 0;
 
-    /** \brief Returns the list of actors that comprise this representation.
-     *
-     */
-    virtual QList<Actor> getActors() = 0;
+    void updateState(const Settings& settings);
 
-    virtual void applySettings(const Settings& settings) = 0;
+    template<typename T>
+    T state(const QString &tag) const;
 
-  protected:
-    explicit RepresentationPipeline(Type type);
+    template<typename T>
+    void setState(const QString &tag, T value);
 
-  protected:
-    Settings  m_state;
+    bool isModified(const QString &tag);
 
   private:
-    Type  m_type;
+    virtual void applySettingsImplementation(const Settings &settings) = 0;
+
+    virtual bool updateImplementation() = 0;
+
+  private:
+    Type           m_type;
+    Settings       m_state;
+
+    mutable QReadWriteLock m_stateLock;
   };
 
   /** \brief
@@ -141,6 +166,20 @@ namespace ESPINA {
       pair.first.setValue<T>(value);
       m_properties.insert(tag, pair);
     }
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  T RepresentationPipeline::state(const QString &tag) const
+  {
+    return m_state.getValue<T>(tag);
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  void RepresentationPipeline::setState(const QString &tag, T value)
+  {
+    m_state.setValue<T>(tag, value);
   }
 
   using RepresentationPipelineSPtr  = std::shared_ptr<RepresentationPipeline>;

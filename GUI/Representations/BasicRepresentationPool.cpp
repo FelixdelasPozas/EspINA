@@ -37,7 +37,7 @@ void ESPINA::BasicRepresentationPool<P>::setCrosshair(const NmVector3 &point)
 
 //-----------------------------------------------------------------------------
 template<typename P>
-bool ESPINA::BasicRepresentationPool<P>::isReady() const
+bool ESPINA::BasicRepresentationPool<P>::isReadyImplementation() const
 {
   return m_updater->hasFinished() && !m_updater->needsRestart();
 }
@@ -60,12 +60,8 @@ void ESPINA::BasicRepresentationPool<P>::addRepresentationPipeline(ViewItemAdapt
 template<typename P>
 void ESPINA::BasicRepresentationPool<P>::updateImplementation()
 {
-  auto poolSettings = settings();
+  m_updater->applySettings(settings());
 
-  if (poolSettings)
-  {
-    m_updater->applySettings(poolSettings->pipelineSettings());
-  }
 
   Task::submit(m_updater);
 }

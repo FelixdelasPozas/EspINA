@@ -71,6 +71,18 @@ RepresentationPipeline::RepresentationPipeline(Type type)
 }
 
 //----------------------------------------------------------------------------
+void RepresentationPipeline::updateState(const Settings &settings)
+{
+  m_state.apply(settings);
+}
+
+//----------------------------------------------------------------------------
+bool RepresentationPipeline::isModified(const QString &tag)
+{
+  return m_state.isModified(tag);
+}
+
+//----------------------------------------------------------------------------
 QString RepresentationPipeline::serializeSettings()
 {
   return QString();
@@ -93,7 +105,7 @@ void RepresentationPipeline::setCrosshairPoint(const NmVector3 &point)
 //----------------------------------------------------------------------------
 NmVector3 RepresentationPipeline::crosshairPoint() const
 {
-  NmVector3 crosshair;
+  NmVector3   crosshair;
 
   crosshair[0] = m_state.getValue<double>(CROSSHAIR_X);
   crosshair[1] = m_state.getValue<double>(CROSSHAIR_Y);
@@ -146,3 +158,20 @@ bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane) con
   return false;
 }
 
+
+//----------------------------------------------------------------------------
+void RepresentationPipeline::applySettings(const RepresentationPipeline::Settings &settings)
+{
+  QWriteLocker lock(&m_stateLock);
+  applySettingsImplementation(settings);
+}
+
+//----------------------------------------------------------------------------
+void RepresentationPipeline::update()
+{
+  QWriteLocker lock(&m_stateLock);
+  if (updateImplementation())
+  {
+    m_state.commit();
+  }
+}

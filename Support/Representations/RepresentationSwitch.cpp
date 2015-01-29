@@ -22,6 +22,13 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
+RepresentationSwitch::RepresentationSwitch()
+: m_settingsVisibility(false)
+{
+
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationSwitch::setSettingsVisibility(bool visible)
 {
   m_settingsVisibility = visible;

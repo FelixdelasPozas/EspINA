@@ -23,7 +23,9 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-SliceManager::SliceManager(RepresentationPoolSPtr xy, RepresentationPoolSPtr xz, RepresentationPoolSPtr yz)
+SliceManager::SliceManager(RepresentationPoolSPtr xy,
+                           RepresentationPoolSPtr xz,
+                           RepresentationPoolSPtr yz)
 : m_xy{xy}
 , m_xz{xz}
 , m_yz{yz}

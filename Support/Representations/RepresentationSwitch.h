@@ -41,6 +41,9 @@ namespace ESPINA
 
     virtual ViewTypeFlags supportedViews() = 0;
 
+  protected:
+    explicit RepresentationSwitch();
+
   private:
     virtual void onSettingsVisibilityChanged(bool visible) {}
 

@@ -51,7 +51,7 @@ namespace ESPINA
 
     void setSettings(SettingsSPtr settings);
 
-    SettingsSPtr settings() const;
+    RepresentationPipeline::Settings settings() const;
 
     /** \brief Updates pool representation pipelines to the given position
      *
@@ -64,7 +64,7 @@ namespace ESPINA
      *         current position or not
      *
      */
-    virtual bool isReady() const = 0;
+    bool isReady() const;
 
     /** \brief Returns all representation pipelines in the pool
      *
@@ -108,6 +108,8 @@ namespace ESPINA
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
     virtual void updateImplementation() = 0;
+
+    virtual bool isReadyImplementation() const = 0;
 
     void processPendingSources();
 

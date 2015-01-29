@@ -69,9 +69,16 @@ void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPool::SettingsSPtr RepresentationPool::settings() const
+RepresentationPipeline::Settings RepresentationPool::settings() const
 {
-  return m_settings;
+  RepresentationPipeline::Settings settings;
+
+  if (m_settings)
+  {
+    settings = m_settings->pipelineSettings();
+  }
+
+  return settings;
 }
 
 
@@ -84,6 +91,12 @@ void RepresentationPool::update()
 
     updateImplementation();
   }
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationPool::isReady() const
+{
+  return !isBeingUsed() || isReadyImplementation();
 }
 
 //-----------------------------------------------------------------------------

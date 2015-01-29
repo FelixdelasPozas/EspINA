@@ -41,11 +41,27 @@ bool SegmentationSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void SegmentationSlicePipeline<T>::update()
+QList<ESPINA::RepresentationPipeline::Actor> ESPINA::SegmentationSlicePipeline<T>::getActors()
+{
+  return m_actors;
+}
+
+#include <QDebug>
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+void ESPINA::SegmentationSlicePipeline<T>::applySettingsImplementation(const Settings &settings)
+{
+  updateState(SegmentationPipeline::Settings(m_segmentation));
+  updateState(settings);
+}
+
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+bool SegmentationSlicePipeline<T>::updateImplementation()
 {
   m_actors.clear();
 
-  if (!m_state.getValue<bool>(VISIBLE)) return;
+  if (!state<bool>(VISIBLE)) return;
 
   if (!hasVolumetricData(m_segmentation->output())) return;
 
@@ -55,7 +71,7 @@ void SegmentationSlicePipeline<T>::update()
 
   vtkSmartPointer<vtkImageData> slice;
 
-  bool dataChanged = data->lastModified() != m_state.getValue<TimeStamp>(TIME_STAMP);
+  bool dataChanged = data->lastModified() != state<TimeStamp>(TIME_STAMP);
   bool crosshairPositionChanged = isCrosshairPositionModified(s_plane);
   if (crosshairPositionChanged || dataChanged)
   {
@@ -74,11 +90,11 @@ void SegmentationSlicePipeline<T>::update()
 
     if (dataChanged)
     {
-      m_state.setValue<TimeStamp>(TIME_STAMP, data->lastModified());
+      setState<TimeStamp>(TIME_STAMP, data->lastModified());
     }
   }
 
-  bool colorChanged = m_state.isModified(COLOR);
+  bool colorChanged = isModified(COLOR);
   if (colorChanged)
   {
     updateColor();
@@ -95,29 +111,16 @@ void SegmentationSlicePipeline<T>::update()
     m_actor->SetDisplayExtent(slice->GetExtent());
   }
 
-  if (crosshairPositionChanged || colorChanged)
+  bool changed = crosshairPositionChanged || colorChanged;
+
+  if (changed)
   {
     m_actor->Update();
-    m_state.commit();
   }
 
   m_actors << m_actor;
-}
 
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-QList<ESPINA::RepresentationPipeline::Actor> ESPINA::SegmentationSlicePipeline<T>::getActors()
-{
-  return m_actors;
-}
-
-#include <QDebug>
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::SegmentationSlicePipeline<T>::applySettings(const Settings &settings)
-{
-  m_state.apply(SegmentationPipeline::Settings(m_segmentation));
-  m_state.apply(settings);
+  return changed;
 }
 
 //----------------------------------------------------------------------------
@@ -179,10 +182,10 @@ void ESPINA::SegmentationSlicePipeline<T>::initPipeline()
   m_actor->Update();
   // need to reposition the actor so it will always be over the channels actors'
 
-  // TODO
-//   double pos[3];
-//   m_actor->GetPosition(pos);
-//   pos[m_planeIndex] += view->segmentationDepth();
+  double pos[3];
+  m_actor->GetPosition(pos);
+  std::cout << "Pos: " << pos[m_planeIndex] << std::endl;
+//   pos[m_planeIndex] += m_view->segmentationDepth();
 //   m_actor->SetPosition(pos);
 }
 
@@ -190,7 +193,7 @@ void ESPINA::SegmentationSlicePipeline<T>::initPipeline()
 template<ESPINA::Plane T>
 void ESPINA::SegmentationSlicePipeline<T>::updateColor()
 {
-  auto color = m_state.getValue<QColor>(COLOR);
+  auto color = state<QColor>(COLOR);
 
 //   m_lut->SetHueRange(stain.hueF(), stain.hueF());
 //   m_lut->SetSaturationRange(0.0, stain.saturationF());
