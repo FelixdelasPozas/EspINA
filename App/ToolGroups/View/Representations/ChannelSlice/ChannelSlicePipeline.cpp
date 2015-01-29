@@ -29,7 +29,6 @@ ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline(ViewItemAdapterPtr item)
 , m_channel(dynamic_cast<ChannelAdapterPtr>(item))
 , m_planeIndex(normalCoordinateIndex(s_plane))
 {
-  initPipeline();
 }
 
 //----------------------------------------------------------------------------
@@ -67,121 +66,45 @@ bool ChannelSlicePipeline<T>::updateImplementation()
 
   Nm reslicePoint = crosshairPosition(s_plane);
 
-  auto data = volumetricData(m_channel->output());
+  auto volume = volumetricData(m_channel->output());
 
   vtkSmartPointer<vtkImageData> slice;
 
-  bool dataChanged = data->lastModified() != state<TimeStamp>(TIME_STAMP);
+  bool dataChanged = volume->lastModified() != state<TimeStamp>(TIME_STAMP);
   bool crosshairPositionChanged = isCrosshairPositionModified(s_plane);
   if (crosshairPositionChanged || dataChanged)
   {
-    Bounds imageBounds = data->bounds();
+    Bounds sliceBounds = volume->bounds();
 
     if (dataChanged)
     {
-      setState<TimeStamp>(TIME_STAMP, data->lastModified());
+      setState<TimeStamp>(TIME_STAMP, volume->lastModified());
     }
 
-    if (reslicePoint < imageBounds[2*m_planeIndex]
-     || reslicePoint > imageBounds[2*m_planeIndex+1]) return true;
+    if (reslicePoint < sliceBounds[2*m_planeIndex]
+     || reslicePoint > sliceBounds[2*m_planeIndex+1]) return true; // Not visible
 
-    imageBounds.setLowerInclusion(true);
-    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = reslicePoint;
+    sliceBounds.setLowerInclusion(true);
+    sliceBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+    sliceBounds[2*m_planeIndex] = sliceBounds[2*m_planeIndex+1] = reslicePoint;
 
-    slice = vtkImage(data, imageBounds);
-
-    m_shiftScaleFilter->SetInputData(slice);
+    createPipeline(volume, sliceBounds);
   }
-
-  bool brightnessChanged = isModified(BRIGHTNESS);
-  if (brightnessChanged)
+  else
   {
-    updateBrightness();
-  }
-
-  bool contrastChanged = isModified(CONTRAST);
-  if (contrastChanged)
-  {
-    updateContrast();
-  }
-
-  bool stainChanged = isModified(STAIN);
-  if (stainChanged)
-  {
-    updateStain();
-  }
-
-  if (crosshairPositionChanged || brightnessChanged || contrastChanged)
-  {
-    m_shiftScaleFilter->Update();
-  }
-
-  if (stainChanged)
-  {
-    m_lut->Build();
-    m_mapToColors->Update();
-  }
-
-  //m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
-  if (crosshairPositionChanged)
-  {
-    m_actor->SetDisplayExtent(slice->GetExtent());
-  }
-
-  bool changed = crosshairPositionChanged || brightnessChanged || contrastChanged || stainChanged;
-
-  if (changed)
-  {
-    m_actor->Update();
+    updatePipeline();
   }
 
   m_actors << m_actor;
 
-  return changed;
+  return true;
 }
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::initPipeline()
+void ESPINA::ChannelSlicePipeline<T>::createPipeline(DefaultVolumetricDataSPtr volume,
+                                                     const Bounds             &sliceBounds)
 {
-  if (!hasVolumetricData(m_channel->output())) return;
-
-  Nm reslicePoint = crosshairPosition(s_plane);
-
-  auto data = volumetricData(m_channel->output());
-
-  Bounds imageBounds = data->bounds();
-
-  bool valid = imageBounds[2*m_planeIndex] <= reslicePoint && reslicePoint <= imageBounds[2*m_planeIndex +1];
-
-  vtkSmartPointer<vtkImageData> slice;
-
-  if (valid)
-  {
-    imageBounds.setLowerInclusion(true);
-    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-    imageBounds[2*m_planeIndex] = imageBounds[(2*m_planeIndex)+1] = reslicePoint;
-
-    slice = vtkImage(data, imageBounds);
-  }
-  else
-  {
-    int extent[6] = { 0,1,0,1,0,1 };
-    extent[2*m_planeIndex + 1] = extent[2*m_planeIndex];
-
-    slice = vtkSmartPointer<vtkImageData>::New();
-    slice->SetExtent(extent);
-
-    auto info = slice->GetInformation();
-    vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
-    vtkImageData::SetNumberOfScalarComponents(1, info);
-    slice->SetInformation(info);
-    slice->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-    slice->Modified();
-
-    auto imagePointer = reinterpret_cast<unsigned char*>(slice->GetScalarPointer());
-    memset(imagePointer, SEG_BG_VALUE, slice->GetNumberOfPoints());
-  }
+  auto slice = vtkImage(volume, sliceBounds);
 
   m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
   m_shiftScaleFilter->SetInputData(slice);
@@ -215,6 +138,44 @@ void ESPINA::ChannelSlicePipeline<T>::initPipeline()
   m_actor->Update();
 }
 
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+void ESPINA::ChannelSlicePipeline<T>::updatePipeline()
+{
+  bool brightnessChanged = isModified(BRIGHTNESS);
+  if (brightnessChanged)
+  {
+    updateBrightness();
+  }
+
+  bool contrastChanged = isModified(CONTRAST);
+  if (contrastChanged)
+  {
+    updateContrast();
+  }
+
+  bool stainChanged = isModified(STAIN);
+  if (stainChanged)
+  {
+    updateStain();
+  }
+
+  if (brightnessChanged || contrastChanged)
+  {
+    m_shiftScaleFilter->Update();
+  }
+
+  if (stainChanged)
+  {
+    m_lut->Build();
+    m_mapToColors->Update();
+  }
+
+  if (brightnessChanged || contrastChanged || stainChanged)
+  {
+    m_actor->Update();
+  }
+}
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::updateBrightness()

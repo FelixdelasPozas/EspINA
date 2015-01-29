@@ -39,7 +39,7 @@ void ESPINA::BasicRepresentationPool<P>::setCrosshair(const NmVector3 &point)
 template<typename P>
 bool ESPINA::BasicRepresentationPool<P>::isReadyImplementation() const
 {
-  return m_updater->hasFinished() && !m_updater->needsRestart();
+  return m_updater->hasFinished();
 }
 
 //-----------------------------------------------------------------------------
@@ -61,7 +61,6 @@ template<typename P>
 void ESPINA::BasicRepresentationPool<P>::updateImplementation()
 {
   m_updater->applySettings(settings());
-
 
   Task::submit(m_updater);
 }

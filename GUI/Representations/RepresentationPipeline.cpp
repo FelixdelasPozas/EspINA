@@ -19,6 +19,7 @@
 
 #include "RepresentationPipeline.h"
 #include "App/ToolGroups/View/Representations/RepresentationSettings.h"
+#include <Core/EspinaTypes.h>
 
 #include <QDebug>
 
@@ -67,7 +68,7 @@ void RepresentationPipeline::Settings::commit()
 RepresentationPipeline::RepresentationPipeline(Type type)
 : m_type(type)
 {
-
+  setState<TimeStamp>(TIME_STAMP, VTK_UNSIGNED_LONG_LONG_MAX);
 }
 
 //----------------------------------------------------------------------------

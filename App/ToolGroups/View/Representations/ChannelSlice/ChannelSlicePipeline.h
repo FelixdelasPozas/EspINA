@@ -56,7 +56,9 @@ namespace ESPINA
 
     virtual bool updateImplementation();
 
-    void initPipeline();
+    void createPipeline(DefaultVolumetricDataSPtr volume, const Bounds &sliceBounds);
+
+    void updatePipeline();
 
     void updateBrightness();
 

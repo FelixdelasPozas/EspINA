@@ -33,7 +33,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QThread>
 
 using namespace ESPINA;
@@ -49,7 +49,7 @@ int scheduler_simple_task_abort( int argc, char** argv )
   int sleepTime = period/tasksPerPeriod;
   int taskTime  = 10*sleepTime;
 
-  QApplication app(argc, argv);
+  QCoreApplication app(argc, argv);
 
   auto scheduler  = make_shared<Scheduler>(period); //0.5sec
   auto sleepyTask = make_shared<SleepyTask>(sleepTime, scheduler);

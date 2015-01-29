@@ -28,7 +28,7 @@
 
 #include <Scheduler.h>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include "SleepyTask.h"
 #include <QThread>
 #include <QDebug>
@@ -43,7 +43,7 @@ int scheduler_simple_task_execution( int argc, char** argv )
 {
   int error = 0;
 
-  QApplication app(argc, argv);
+  QCoreApplication app(argc, argv);
 
   int period = 1000;
 

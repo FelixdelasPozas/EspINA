@@ -149,6 +149,7 @@ namespace ESPINA
 
     RepresentationManagerSList m_childs;
 
+    QList<vtkProp *> m_viewActors; // actors being rendered by its view
     RepresentationPipelineSList m_viewPipelines; // pipeline being rendered by its view
   };
 

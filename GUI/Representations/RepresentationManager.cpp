@@ -105,14 +105,12 @@ void RepresentationManager::updateRepresentationActors()
 {
   if (m_view != nullptr)
   {
-    for (auto pipeline : m_viewPipelines)
+    for (auto actor : m_viewActors)
     {
-      for (auto actor : pipeline->getActors())
-      {
-        m_view->removeActor(actor);
-      }
+      m_view->removeActor(actor);
     }
 
+    m_viewActors.clear();
     m_viewPipelines.clear();
 
     if (m_showPipelines)
@@ -122,6 +120,7 @@ void RepresentationManager::updateRepresentationActors()
         for (auto actor : pipeline->getActors())
         {
           m_view->addActor(actor);
+          m_viewActors << actor;
         }
 
         m_viewPipelines << pipeline;

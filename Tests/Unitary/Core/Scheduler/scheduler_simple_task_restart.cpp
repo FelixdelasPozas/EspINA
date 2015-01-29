@@ -33,7 +33,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QThread>
  
 using namespace ESPINA;
@@ -48,7 +48,10 @@ int scheduler_simple_task_restart( int argc, char** argv )
   int sleepTime = period;
   int taskTime  = SleepyTask::Iterations*sleepTime;
 
-  QApplication app(argc, argv);
+  int firstExecTime   = 6*period;
+  int restartExecTime = firstExecTime / 2;
+
+  QCoreApplication app(argc, argv);
   
   auto scheduler  = make_shared<Scheduler>(period);
   auto sleepyTask = make_shared<SleepyTask>(sleepTime, scheduler);
@@ -56,7 +59,7 @@ int scheduler_simple_task_restart( int argc, char** argv )
   
   Task::submit(sleepyTask);
   
-  usleep(4*period);
+  usleep(firstExecTime);
 
   if (!sleepyTask->isExecuting()) {
     error = 1;
@@ -67,7 +70,7 @@ int scheduler_simple_task_restart( int argc, char** argv )
 
   sleepyTask->restart();
 
-  usleep(period);
+  usleep(restartExecTime);
 
   auto currentResult = sleepyTask->Result;
   if (lastResult < currentResult)

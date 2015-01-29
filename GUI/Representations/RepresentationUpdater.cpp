@@ -24,7 +24,6 @@ using namespace ESPINA;
 //----------------------------------------------------------------------------
 RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler)
 : Task(scheduler)
-, m_needRestart(false)
 {
 
 }
@@ -71,12 +70,6 @@ RepresentationPipelineSList RepresentationUpdater::pipelines()
   }
 
   return pipelines;
-}
-
-//----------------------------------------------------------------------------
-bool RepresentationUpdater::needsRestart() const
-{
-  return m_needRestart;
 }
 
 //----------------------------------------------------------------------------

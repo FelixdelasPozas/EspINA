@@ -35,14 +35,14 @@
 #include <unistd.h>
 
 #include <QThreadPool>
-#include <QApplication>
+#include <QCoreApplication>
 
 using namespace ESPINA;
 using namespace std;
 
 int scheduler_waiting_tasks( int argc, char** argv )
 {
-  QApplication app(argc, argv);
+  QCoreApplication app(argc, argv);
 
   int error = 0;
   int schedulerPeriod = 5000;

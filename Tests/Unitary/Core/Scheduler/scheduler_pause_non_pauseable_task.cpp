@@ -31,7 +31,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QThread>
  
 using namespace ESPINA;
@@ -69,7 +69,7 @@ int scheduler_pause_non_pauseable_task(int argc, char** argv)
 
   int sleepTime = 3*period;
 
-  QApplication app(argc, argv);
+  QCoreApplication app(argc, argv);
 
   auto scheduler   = std::make_shared<Scheduler>(period);
   auto oneShotTask = std::make_shared<OneShotTask>(sleepTime, scheduler);

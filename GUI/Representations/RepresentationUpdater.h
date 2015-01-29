@@ -27,7 +27,6 @@
 
 namespace ESPINA
 {
-
   class RepresentationUpdater
   : public Task
   {
@@ -44,14 +43,10 @@ namespace ESPINA
 
     RepresentationPipelineSList pipelines();
 
-    bool needsRestart() const;
-
   protected:
     virtual void run();
 
   private:
-    std::atomic<bool> m_needRestart;
-
     QMap<ViewItemAdapterPtr, PipelineMultiplexerSPtr> m_multiplexers;
   };
 
