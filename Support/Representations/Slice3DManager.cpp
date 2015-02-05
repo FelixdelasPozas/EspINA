@@ -67,6 +67,15 @@ void Slice3DManager::onCrosshairChanged(NmVector3 crosshair)
 }
 
 //----------------------------------------------------------------------------
+void Slice3DManager::setResolution(const NmVector3 &resolution)
+{
+  for (auto pool : m_pools)
+  {
+    pool->setResolution(resolution);
+  }
+}
+
+//----------------------------------------------------------------------------
 RepresentationPipelineSList Slice3DManager::pipelines()
 {
   RepresentationPipelineSList pipelines;

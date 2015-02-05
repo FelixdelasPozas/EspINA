@@ -25,7 +25,7 @@ using namespace ESPINA;
 RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler)
 : Task(scheduler)
 {
-
+  setHidden(true);
 }
 
 //----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ void RepresentationUpdater::removePipeline(ViewItemAdapterPtr item)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::setCroshair(const NmVector3 &point)
+void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
   for (auto pipeline : pipelines())
   {
@@ -79,10 +79,17 @@ RepresentationPipelineSList RepresentationUpdater::pipelines()
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
+  //qDebug() << "Task" << description() << "running" << " - " << this;
+  bool taskExecuted = true;
   for (auto pipeline : pipelines())
   {
-    if (!canExecute()) break;
+    if (!canExecute())
+    {
+      taskExecuted = false;
+      break;
+    }
 
     pipeline->update();
   }
+  //qDebug() << "Task" << description() << "finished with status" << taskExecuted << " - " << this;
 }

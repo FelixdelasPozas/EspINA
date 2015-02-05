@@ -25,6 +25,7 @@
 #include <QList>
 #include <QReadWriteLock>
 #include <Core/Utils/NmVector3.h>
+#include <Core/EspinaTypes.h>
 
 #include <vtkSmartPointer.h>
 
@@ -117,38 +118,27 @@ namespace ESPINA {
     /** \brief Returns the crosshair point for this representation.
      *
      */
-    NmVector3 crosshairPoint() const;
+    NmVector3 crosshairPoint(const Settings &settings) const;
 
-    Nm crosshairPosition(const Plane &plane) const;
+    Nm crosshairPosition(const Plane &plane, const Settings &settings) const;
 
     /** \brief Returns if the crosshair point has been modified since last update
      *
      */
-    bool isCrosshairPointModified() const;
+    bool isCrosshairPointModified(const Settings &settings) const;
 
-    bool isCrosshairPositionModified(const Plane &plane) const;
-
+    bool isCrosshairPositionModified(const Plane &plane, const Settings &settings) const;
 
     void updateState(const Settings& settings);
-
-    template<typename T>
-    T state(const QString &tag) const;
-
-    template<typename T>
-    void setState(const QString &tag, T value);
-
-    bool isModified(const QString &tag);
 
   private:
     virtual void applySettingsImplementation(const Settings &settings) = 0;
 
-    virtual bool updateImplementation() = 0;
+    virtual bool updateImplementation(const Settings &settings) = 0;
 
   private:
     Type           m_type;
     Settings       m_state;
-
-    mutable QReadWriteLock m_stateLock;
   };
 
   /** \brief
@@ -166,20 +156,6 @@ namespace ESPINA {
       pair.first.setValue<T>(value);
       m_properties.insert(tag, pair);
     }
-  }
-
-  //----------------------------------------------------------------------------
-  template<typename T>
-  T RepresentationPipeline::state(const QString &tag) const
-  {
-    return m_state.getValue<T>(tag);
-  }
-
-  //----------------------------------------------------------------------------
-  template<typename T>
-  void RepresentationPipeline::setState(const QString &tag, T value)
-  {
-    m_state.setValue<T>(tag, value);
   }
 
   using RepresentationPipelineSPtr  = std::shared_ptr<RepresentationPipeline>;

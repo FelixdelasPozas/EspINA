@@ -19,6 +19,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
   Representations/RepresentationPool.h
+  Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
   Selectors/BrushSelector.h

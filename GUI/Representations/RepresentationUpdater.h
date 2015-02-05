@@ -37,7 +37,7 @@ namespace ESPINA
 
     void removePipeline(ViewItemAdapterPtr item);
 
-    void setCroshair(const NmVector3 &point);
+    void setCrosshair(const NmVector3 &point);
 
     bool applySettings(const RepresentationPipeline::Settings &state);
 

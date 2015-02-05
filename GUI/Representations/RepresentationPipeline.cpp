@@ -58,7 +58,7 @@ void RepresentationPipeline::Settings::apply(const Settings &settings)
 //----------------------------------------------------------------------------
 void RepresentationPipeline::Settings::commit()
 {
-  for (auto pair : m_properties)
+  for (auto &pair : m_properties)
   {
     pair.second = false;
   }
@@ -68,7 +68,6 @@ void RepresentationPipeline::Settings::commit()
 RepresentationPipeline::RepresentationPipeline(Type type)
 : m_type(type)
 {
-  setState<TimeStamp>(TIME_STAMP, VTK_UNSIGNED_LONG_LONG_MAX);
 }
 
 //----------------------------------------------------------------------------
@@ -77,11 +76,6 @@ void RepresentationPipeline::updateState(const Settings &settings)
   m_state.apply(settings);
 }
 
-//----------------------------------------------------------------------------
-bool RepresentationPipeline::isModified(const QString &tag)
-{
-  return m_state.isModified(tag);
-}
 
 //----------------------------------------------------------------------------
 QString RepresentationPipeline::serializeSettings()
@@ -104,28 +98,28 @@ void RepresentationPipeline::setCrosshairPoint(const NmVector3 &point)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RepresentationPipeline::crosshairPoint() const
+NmVector3 RepresentationPipeline::crosshairPoint(const Settings &settings) const
 {
   NmVector3   crosshair;
 
-  crosshair[0] = m_state.getValue<double>(CROSSHAIR_X);
-  crosshair[1] = m_state.getValue<double>(CROSSHAIR_Y);
-  crosshair[2] = m_state.getValue<double>(CROSSHAIR_Z);
+  crosshair[0] = settings.getValue<double>(CROSSHAIR_X);
+  crosshair[1] = settings.getValue<double>(CROSSHAIR_Y);
+  crosshair[2] = settings.getValue<double>(CROSSHAIR_Z);
 
   return crosshair;
 }
 
 //----------------------------------------------------------------------------
-Nm RepresentationPipeline::crosshairPosition(const Plane &plane) const
+Nm RepresentationPipeline::crosshairPosition(const Plane &plane, const Settings &settings) const
 {
   switch (plane)
   {
     case Plane::XY:
-      return m_state.getValue<double>(CROSSHAIR_Z);
+      return settings.getValue<double>(CROSSHAIR_Z);
     case Plane::XZ:
-      return m_state.getValue<double>(CROSSHAIR_Y);
+      return settings.getValue<double>(CROSSHAIR_Y);
     case Plane::YZ:
-      return m_state.getValue<double>(CROSSHAIR_X);
+      return settings.getValue<double>(CROSSHAIR_X);
     default:
       qWarning() << "Unexpected crosshair plane";
   }
@@ -134,24 +128,24 @@ Nm RepresentationPipeline::crosshairPosition(const Plane &plane) const
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationPipeline::isCrosshairPointModified() const
+bool RepresentationPipeline::isCrosshairPointModified(const Settings &settings) const
 {
-  return m_state.isModified(CROSSHAIR_X)
-      || m_state.isModified(CROSSHAIR_Y)
-      || m_state.isModified(CROSSHAIR_Z);
+  return settings.isModified(CROSSHAIR_X)
+      || settings.isModified(CROSSHAIR_Y)
+      || settings.isModified(CROSSHAIR_Z);
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane) const
+bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane, const Settings &settings) const
 {
   switch (plane)
   {
     case Plane::XY:
-      return m_state.isModified(CROSSHAIR_Z);
+      return settings.isModified(CROSSHAIR_Z);
     case Plane::XZ:
-      return m_state.isModified(CROSSHAIR_Y);
+      return settings.isModified(CROSSHAIR_Y);
     case Plane::YZ:
-      return m_state.isModified(CROSSHAIR_X);
+      return settings.isModified(CROSSHAIR_X);
     default:
       qWarning() << "Unexpected crosshair plane";
   }
@@ -163,7 +157,6 @@ bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane) con
 //----------------------------------------------------------------------------
 bool RepresentationPipeline::applySettings(const RepresentationPipeline::Settings &settings)
 {
-  QWriteLocker lock(&m_stateLock);
   applySettingsImplementation(settings);
 
   return m_state.hasPendingChanges();
@@ -172,9 +165,9 @@ bool RepresentationPipeline::applySettings(const RepresentationPipeline::Setting
 //----------------------------------------------------------------------------
 void RepresentationPipeline::update()
 {
-  QWriteLocker lock(&m_stateLock);
-  if (updateImplementation())
-  {
-    m_state.commit();
-  }
+  Settings settings = m_state;
+  m_state.commit();
+
+  updateImplementation(settings);
+
 }

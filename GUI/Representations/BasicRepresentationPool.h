@@ -34,6 +34,8 @@ namespace ESPINA {
 
     virtual void setCrosshair(const NmVector3 &point);
 
+    virtual void setResolution ( const NmVector3 &resolution );
+
     virtual RepresentationPipelineSList pipelines();
 
   private:

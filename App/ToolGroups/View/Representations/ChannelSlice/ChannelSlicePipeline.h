@@ -54,24 +54,25 @@ namespace ESPINA
   private:
     virtual void applySettingsImplementation(const Settings &settings);
 
-    virtual bool updateImplementation();
+    virtual bool updateImplementation(const Settings &settings);
 
-    void createPipeline(DefaultVolumetricDataSPtr volume, const Bounds &sliceBounds);
+    void createPipeline(DefaultVolumetricDataSPtr volume, const Bounds &sliceBounds, const Settings &settings);
 
-    void updatePipeline();
+    void updatePipeline(const Settings &settings);
 
-    void updateBrightness();
+    void updateBrightness(const Settings &settings);
 
-    void updateContrast();
+    void updateContrast(const Settings &settings);
 
-    void updateStain();
+    void updateStain(const Settings &settings);
 
   private:
     static Plane s_plane;
 
     ChannelAdapterPtr m_channel;
 
-    int m_planeIndex;
+    int       m_planeIndex;
+    TimeStamp m_timeStamp;
 
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;

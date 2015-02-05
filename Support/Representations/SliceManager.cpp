@@ -51,6 +51,15 @@ void SliceManager::onCrosshairChanged(NmVector3 crosshair)
 }
 
 //----------------------------------------------------------------------------
+void SliceManager::setResolution(const NmVector3 &resolution)
+{
+  if (validPlane())
+  {
+    planePool()->setResolution(resolution);
+  }
+}
+
+//----------------------------------------------------------------------------
 void SliceManager::setPlane(Plane plane)
 {
   if (plane != m_plane)

@@ -94,10 +94,10 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
           this, SLOT(setCrosshairPoint(NmVector3)));
 
-  m_viewManager->registerView(m_viewXY);
+//   m_viewManager->registerView(m_viewXY);
 //   m_viewManager->registerView(m_viewXZ); // UNCOMMENT!!
-//   m_viewManager->registerView(m_viewYZ);
-//   m_viewManager->registerView(m_view3D);
+  m_viewManager->registerView(m_viewYZ);
+  m_viewManager->registerView(m_view3D);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
@@ -111,10 +111,10 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
-  m_viewManager->unregisterView(m_viewXY);
+//   m_viewManager->unregisterView(m_viewXY);
 //   m_viewManager->unregisterView(m_viewXZ);
-//   m_viewManager->unregisterView(m_viewYZ);
-//   m_viewManager->unregisterView(m_view3D);
+  m_viewManager->unregisterView(m_viewYZ);
+  m_viewManager->unregisterView(m_view3D);
 
   delete m_viewXY;
   delete m_viewXZ;
@@ -378,19 +378,20 @@ void DefaultView::switchPreprocessing()
 //----------------------------------------------------------------------------
 void DefaultView::updateViews()
 {
- m_viewXY->updateView();
-//  m_viewYZ->updateView();
+//  m_viewXY->updateView();
 //  m_viewXZ->updateView();
-//  m_view3D->updateView();
+ m_viewYZ->updateView();
+ m_view3D->updateView();
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setCrosshairPoint(const NmVector3& point, bool force)
 {
-  m_viewXY->centerViewOn(point, force);
-//   m_viewYZ->centerViewOn(point, force);
+//   m_viewXY->centerViewOn(point, force);
 //   m_viewXZ->centerViewOn(point, force);
-//   m_view3D->centerViewOn(point, force);
+  //m_viewYZ->centerViewOn(point, force);
+  //m_view3D->centerViewOn(point, force);
+  //m_view3D->changePlanePosition(Plane::YZ, point[0]);
 }
 
 //-----------------------------------------------------------------------------

@@ -629,8 +629,9 @@ void View2D::updateView()
 {
   if (isVisible())
   {
-//     if (m_plane == Plane::XY) qDebug() << "Rendering XY";
-//     if (m_plane == Plane::XZ) qDebug() << "Rendering XZ";
+    if (m_plane == Plane::XY) qDebug() << "Rendering XY";
+    if (m_plane == Plane::XZ) qDebug() << "Rendering XZ";
+    if (m_plane == Plane::YZ) qDebug() << "Rendering YZ";
 
     updateRuler();
     updateThumbnail();

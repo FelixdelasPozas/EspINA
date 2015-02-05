@@ -61,9 +61,9 @@ bool SegmentationSlicePipeline<T>::updateImplementation()
 {
   m_actors.clear();
 
-  if (!state<bool>(VISIBLE)) return;
+  if (!state<bool>(VISIBLE)) return false;
 
-  if (!hasVolumetricData(m_segmentation->output())) return;
+  if (!hasVolumetricData(m_segmentation->output())) return false;
 
   Nm reslicePoint = crosshairPosition(s_plane);
 
@@ -78,7 +78,7 @@ bool SegmentationSlicePipeline<T>::updateImplementation()
     Bounds imageBounds = data->bounds();
 
     if (reslicePoint < imageBounds[2*m_planeIndex]
-     || reslicePoint > imageBounds[2*m_planeIndex+1]) return;
+     || reslicePoint > imageBounds[2*m_planeIndex+1]) return false;
 
     imageBounds.setLowerInclusion(true);
     imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);

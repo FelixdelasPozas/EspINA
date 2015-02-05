@@ -41,11 +41,11 @@ Representation ChannelSliceRepresentationDriver::createRepresentation() const
 {
   Representation representation;
 
-  const unsigned WINDOW_SIZE = 4;
+  const unsigned WINDOW_SIZE = 20;
 
-  auto poolXY         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(m_scheduler, WINDOW_SIZE);
-  auto poolXZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(m_scheduler, WINDOW_SIZE);
-  auto poolYZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::YZ>>>(m_scheduler, WINDOW_SIZE);
+  auto poolXY         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(Plane::XY, m_scheduler, WINDOW_SIZE);
+  auto poolXZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(Plane::XZ, m_scheduler, WINDOW_SIZE);
+  auto poolYZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::YZ>>>(Plane::YZ, m_scheduler, WINDOW_SIZE);
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
@@ -59,7 +59,7 @@ Representation ChannelSliceRepresentationDriver::createRepresentation() const
 
   representation.Group     = ViewToolGroup::CHANNELS_GROUP;
   representation.Pools    << poolXY << poolXZ << poolYZ;
-  representation.Managers << sliceManager << slice3DManager;
+  representation.Managers << sliceManager; //<< slice3DManager;
   representation.Switches << sliceSwitch << slice3DSwitch;
 
   return representation;

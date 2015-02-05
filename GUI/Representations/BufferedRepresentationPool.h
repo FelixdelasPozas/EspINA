@@ -20,9 +20,11 @@
 #ifndef ESPINA_BUFFERED_REPRESENTATION_POOL_H
 #define ESPINA_BUFFERED_REPRESENTATION_POOL_H
 
-  #include <GUI/Representations/RepresentationPool.h>
+#include <GUI/Representations/RepresentationPool.h>
 #include "RepresentationUpdater.h"
 #include "RepresentationWindow.h"
+
+#include <vtkMath.h>
 
 namespace ESPINA
 {
@@ -31,9 +33,13 @@ namespace ESPINA
   : public RepresentationPool
   {
   public:
-    explicit BufferedRepresentationPool(SchedulerSPtr scheduler, unsigned windowSize);
+    explicit BufferedRepresentationPool(const Plane   plane,
+                                        SchedulerSPtr scheduler,
+                                        unsigned      windowSize);
 
     virtual void setCrosshair(const NmVector3 &point);
+
+    virtual void setResolution(const NmVector3 &resolution);
 
     virtual RepresentationPipelineSList pipelines();
 
@@ -46,8 +52,23 @@ namespace ESPINA
 
     void updateWindowPosition(RepresentationUpdaterSPtr updater, Priority priority);
 
+    int distanceFromLastCrosshair(const NmVector3 &crosshair);
+
+    int normal(const NmVector3 &point) const;
+
+    NmVector3 representationCrosshair(const NmVector3 &point, int shift) const;
+
+    void invalidateBuffer();
+
+    void updateBuffer(const NmVector3 &point, int shift);
+
   private:
+    const int m_normalIdx;
+
     RepresentationWindow m_updateWindow;
+
+    Nm m_normalRes;
+    Nm m_lastCoordinate;
   };
 
 #include "BufferedRepresentationPool.cpp"

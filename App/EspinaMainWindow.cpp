@@ -1214,7 +1214,7 @@ void EspinaMainWindow::restoreRepresentationSwitchSettings()
 void EspinaMainWindow::initRepresentations()
 {
   registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationDriver>(m_scheduler));
-  registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationDriver>(m_scheduler));
+  //registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationDriver>(m_scheduler));
 //   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
 //   registerRepresentationDriver(std::make_shared<MeshRenderer>());
 //   registerRepresentationDriver(std::make_shared<SmoothedMeshRenderer>());

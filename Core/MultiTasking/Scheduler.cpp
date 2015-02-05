@@ -49,12 +49,14 @@ void TaskQueue::orderedInsert(TaskSPtr worker)
 {
   int w = 0;
   bool found = false;
+
   while (!found && w < size())
   {
     found = at(w)->id() > worker->id();
     if (!found)
       ++w;
   }
+
   insert(w, worker);
 }
 
@@ -63,7 +65,7 @@ Scheduler::Scheduler(int period, QObject* parent)
 : QObject               {parent}
 , m_period              {period}
 , m_lastId              {0}
-, m_maxNumRunningTasks{QThreadPool::globalInstance()->maxThreadCount() }
+, m_maxNumRunningTasks{QThreadPool::globalInstance()->maxThreadCount()}
 , m_abort               {false}
 {
   QThread *thread = new QThread();
@@ -81,15 +83,14 @@ Scheduler::~Scheduler()
 //-----------------------------------------------------------------------------
 void Scheduler::addTask(TaskSPtr task)
 {
-  m_mutex.lock();
+  QMutexLocker lock(&m_insertionMutex);
   task->setId(m_lastId++);
-  m_runningTasks[task->priority()].orderedInsert(task);
+  m_insertionBuffer << task;
 
   if (!task->isHidden())
   {
     emit taskAdded(task);
   }
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
@@ -120,15 +121,10 @@ void Scheduler::abortExecutingTasks()
 //-----------------------------------------------------------------------------
 void Scheduler::changePriority(TaskPtr task, Priority prevPriority)
 {
-  QMutexLocker lock(&m_mutex);
-
-  for (auto otherTask : m_runningTasks[prevPriority])
+  QMutexLocker lock(&m_priorityMutex);
+  if (!m_priorityBuffer.contains(task))
   {
-    if (otherTask.get() == task)
-    {
-      m_runningTasks[prevPriority].removeOne(otherTask);
-      m_runningTasks[task->priority()].orderedInsert(otherTask);
-    }
+    m_priorityBuffer[task] = prevPriority;
   }
 }
 
@@ -146,7 +142,7 @@ unsigned int Scheduler::numberOfTasks() const
   unsigned int result = 0;
   for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
   {
-    result += m_runningTasks.at(priority).size();
+    result += m_runningTasks[priority].size();
   }
 
   return result;
@@ -162,6 +158,7 @@ unsigned int Scheduler::maxRunningTasks() const
 void Scheduler::scheduleTasks()
 {
   high_resolution_clock::time_point start;
+  high_resolution_clock::time_point last;
   high_resolution_clock::time_point end;
 
   int lastSchedulingTime;
@@ -170,20 +167,24 @@ void Scheduler::scheduleTasks()
   {
     QApplication::processEvents();
 
+    proccessTaskInsertion();
+
+    proccessPriorityChanges();
+
     m_mutex.lock();
 
     start = high_resolution_clock::now();
 
-//     std::cout << "Start Scheduling" << std::endl;
+    std::cout << "Start Scheduling" << std::endl;
 //     std::cout << "\t Scheduler thread " << thread() << std::endl;
-//     int numTasks = 0;
-//     for (int priority = 4; priority >= 0; --priority)
-//     {
-//       int size = m_runningTasks[priority].size();
-//       numTasks += size;
-//       std::cout << "Priority " << priority << " has " << size << " tasks." << std::endl;
-//     }
-//    std::cout << "Scheduler has " << numTasks << " tasks:" << std::endl;
+    int numTasks = 0;
+    for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
+    {
+      int size = m_runningTasks[priority].size();
+      numTasks += size;
+      std::cout << "Priority " << (int)priority << " has " << size << " tasks." << std::endl;
+    }
+    std::cout << "Scheduler has " << numTasks << " tasks:" << std::endl;
 
     int num_running_threads = 0;
 
@@ -194,14 +195,6 @@ void Scheduler::scheduleTasks()
 
       for (auto task : m_runningTasks[priority])
       {
-        // TODO: this shouldn't be here?
-        if (task == nullptr)
-        {
-          Q_ASSERT(false);
-          deferredDeletionTaskList << task;
-          continue;
-        }
-
         bool is_thread_attached = task->isExecutingOnThread();
 
         if (num_running_threads < m_maxNumRunningTasks
@@ -300,10 +293,50 @@ void Scheduler::scheduleTasks()
 
     lastSchedulingTime = duration_cast<microseconds>(end - start).count();
 
+//     std::cout << "Inter Schedule time" << duration_cast<microseconds>(start - last).count() << std::endl;
 //     std::cout << "Scheduling End after " << lastSchedulingTime << std::endl;
+//
+//     last = start;
 
     usleep(std::max(0, m_period - lastSchedulingTime));
   }
+}
+
+//-----------------------------------------------------------------------------
+void Scheduler::proccessTaskInsertion()
+{
+  QMutexLocker insertionLock(&m_insertionMutex);
+  QMutexLocker priorityLock(&m_priorityMutex);
+  for (auto task : m_insertionBuffer)
+  {
+    m_runningTasks[task->priority()].orderedInsert(task);
+    m_priorityBuffer.remove(task.get());
+  }
+
+  m_insertionBuffer.clear();
+}
+
+//-----------------------------------------------------------------------------
+void Scheduler::proccessPriorityChanges()
+{
+  QMutexLocker priorityLock(&m_priorityMutex);
+
+  for (auto task : m_priorityBuffer.keys())
+  {
+    auto prevPriority = m_priorityBuffer[task];
+
+    for (auto prevPriorityTask : m_runningTasks[prevPriority])
+    {
+      if (prevPriorityTask.get() == task)
+      {
+        m_runningTasks[prevPriority].removeOne(prevPriorityTask);
+        m_runningTasks[task->priority()].orderedInsert(prevPriorityTask);
+        break;
+      }
+    }
+  }
+
+  m_priorityBuffer.clear();
 }
 
 //-----------------------------------------------------------------------------

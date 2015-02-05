@@ -28,7 +28,10 @@ namespace ESPINA
 {
 
   class RepresentationWindow
+  : public QObject
   {
+    Q_OBJECT
+
     using Cursor = QPair<RepresentationUpdaterSPtr, int>;
 
   public:
@@ -62,7 +65,10 @@ namespace ESPINA
 
     void decrementBuffer();
 
-    void size() const;
+    int size() const;
+
+  signals:
+    void currentUpdaterFinished();
 
   private:
     RepresentationUpdaterSList aheadFrom(int pos, int length) const;
@@ -78,6 +84,9 @@ namespace ESPINA
     unsigned prevPosition(int pos) const;
 
     unsigned innerPosition(int pos) const;
+
+  private slots:
+    void onTaskFinish();
 
   private:
     const unsigned BUFFER_INCREMENT = 4;

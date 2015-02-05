@@ -293,11 +293,13 @@ namespace ESPINA
      */
     unsigned int numberActiveRepresentationManagers(Data::Type type);
 
+  private slots:
+    void onRenderRequest();
+
   private:
     virtual void configureManager(RepresentationManagerSPtr manager) {}
 
-  private slots:
-    void onRenderRequest();
+    void notifyResolutionChange();
 
 
   protected:

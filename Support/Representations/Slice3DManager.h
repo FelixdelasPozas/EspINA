@@ -40,6 +40,8 @@ namespace ESPINA {
 
     virtual void onCrosshairChanged(NmVector3 crosshair);
 
+    virtual void setResolution(const NmVector3 &resolution);
+
   private:
     virtual RepresentationPipelineSList pipelines();
 

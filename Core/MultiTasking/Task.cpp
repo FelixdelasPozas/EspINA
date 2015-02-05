@@ -89,8 +89,13 @@ void Task::setPriority(Priority value)
   {
     m_priority = value;
 
-    if (m_scheduler != nullptr)
+    QMutexLocker lock(&m_submissionMutex);
+    if (m_submitted && m_scheduler)
     {
+      if (value == Priority::VERY_HIGH)
+      {
+        qDebug() << "CHANGING HIGH PRIORITY";
+      }
       m_scheduler->changePriority(this, previous);
     }
   }
@@ -158,11 +163,13 @@ void Task::submit(TaskSPtr task)
     {
       task->m_scheduler->addTask(task);
       task->m_submitted = true;
+//       qDebug() << "Task" <<  task->description() << "submitted";
     }
     else
     {
       // Submitting an already submitted task implies a restart
       task->restart();
+//       qDebug() << "Task" <<  task->description() << "restarted";
     }
   }
   else

@@ -95,6 +95,7 @@ void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
           this,          SLOT(onRenderRequest()));
 
   manager->setView(this);
+  manager->setResolution(m_sceneResolution);
 
   configureManager(manager);
 
@@ -270,8 +271,19 @@ void RenderView::updateSceneBounds()
 
   if (resolution != m_sceneResolution)
   {
-    emit sceneResolutionChanged();
+    notifyResolutionChange();
   }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::notifyResolutionChange()
+{
+  for (auto manager : m_managers)
+  {
+    manager->setResolution(m_sceneResolution);
+  }
+
+  emit sceneResolutionChanged();
 }
 
 
@@ -669,12 +681,12 @@ void RenderView::onRenderRequest()
   bool isReady = true;
   int  i       = 0;
 
-  while (isReady && i < m_managers.size())
-  {
-    isReady &= m_managers[i]->isReady();
-
-    ++i;
-  }
+//   while (isReady && i < m_managers.size())
+//   {
+//     isReady &= m_managers[i]->isReady();
+//
+//     ++i;
+//   }
 
   if (isReady)
   {

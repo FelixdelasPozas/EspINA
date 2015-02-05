@@ -32,7 +32,13 @@ ESPINA::BasicRepresentationPool<P>::BasicRepresentationPool(SchedulerSPtr schedu
 template<typename P>
 void ESPINA::BasicRepresentationPool<P>::setCrosshair(const NmVector3 &point)
 {
-  m_updater->setCroshair(point);
+  m_updater->setCrosshair(point);
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+void ESPINA::BasicRepresentationPool<P>::setResolution(const NmVector3 &resolution)
+{
 }
 
 //-----------------------------------------------------------------------------

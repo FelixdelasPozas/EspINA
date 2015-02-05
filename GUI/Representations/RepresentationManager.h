@@ -84,6 +84,11 @@ namespace ESPINA
     void setView(RenderView *view)
     { m_view = view; }
 
+    /** \brief Specify the resolution of the view
+     *
+     */
+    virtual void setResolution(const NmVector3 &resolution) = 0;
+
     /** \brief Returns if managed representations are visible or not
      *
      */

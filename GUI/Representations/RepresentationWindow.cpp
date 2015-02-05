@@ -19,6 +19,8 @@
 
 #include "RepresentationWindow.h"
 
+#include <cmath>
+
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
@@ -27,9 +29,14 @@ RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler, unsigned win
 , m_currentPos(windowSize)
 , m_witdh(windowSize)
 {
-  for (int i = 0; i < 2*windowSize +1; ++i)
+  for (unsigned int i = 0; i < 2*windowSize + 1; ++i)
   {
-    m_buffer << std::make_shared<RepresentationUpdater>(scheduler);
+    auto task = std::make_shared<RepresentationUpdater>(scheduler);
+
+    connect(task.get(), SIGNAL(finished()),
+            this,       SLOT(onTaskFinish()));
+
+    m_buffer << task;
   }
 }
 
@@ -38,48 +45,44 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
 {
   QList<Cursor> invalid;
 
-  if (distance > m_buffer.size())
+  if (abs(distance) > m_buffer.size())
   {
     m_currentPos = m_witdh;
 
+//     std::cout << "Invalidate buffer:" << std::endl;
     for (int i = 0, d = m_witdh; d > 0; ++i, --d)
     {
-      invalid << Cursor(m_buffer[i], d);
+      invalid << Cursor(m_buffer[i], -d);
+//       std::cout << "\tInvalidate (" << i << ", " << -d << ")\n";
       invalid << Cursor(m_buffer[m_witdh+i], i);
+//       std::cout << "\tInvalidate (" << m_witdh + i << ", " << i << ")\n";
     }
     invalid << Cursor(m_buffer.last(), m_witdh);
+//     std::cout << "\tInvalidate (" << m_buffer.size() - 1 << ", " << m_witdh << ")\n";
   }
   else
   {
-    if (distance > 0)
+    int n = abs(distance);
+    int s = copysign(1.0, distance);
+    int i = innerPosition(m_currentPos - s*m_witdh);
+
+//     std::cout << "Moving " << distance << ":" << std::endl;
+    while (n > 0)
     {
-      int d = m_witdh - distance;
-      int i = innerPosition(m_currentPos - m_witdh);
+      int d = s*(m_witdh - n + 1);
 
-      while (d > 0)
-      {
-        invalid << Cursor(m_buffer[i], d);
+      invalid << Cursor(m_buffer[i], d);
+//       std::cout << "\tInvalidate (" << i << ", " << d << ")\n";
 
-        i = nextPosition(i);
-        --d;
-      }
-    }
-    else if (distance < 0)
-    {
-      int d = m_witdh;
-      int i = innerPosition(m_currentPos + m_witdh - distance);
+      i = (s > 0)?nextPosition(i):prevPosition(i);
 
-      while (d > abs(distance))
-      {
-        invalid << Cursor(m_buffer[i], d);
-
-        i = nextPosition(i);
-        --d;
-      }
+      --n;
     }
 
-    m_currentPos += distance;
+    m_currentPos = innerPosition(m_currentPos + distance);
   }
+
+//   std::cout << "Current Position: " << m_currentPos << std::endl;
 
   return invalid;
 }
@@ -93,7 +96,11 @@ ESPINA::RepresentationUpdaterSPtr RepresentationWindow::current() const
 //-----------------------------------------------------------------------------
 ESPINA::RepresentationUpdaterSList RepresentationWindow::all() const
 {
-  return m_buffer;
+  RepresentationUpdaterSList all;
+
+  all << behind() << current() << ahead();
+
+  return all;
 }
 
 //-----------------------------------------------------------------------------
@@ -146,7 +153,7 @@ void RepresentationWindow::decrementBuffer()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationWindow::size() const
+int RepresentationWindow::size() const
 {
   return m_buffer.size();
 }
@@ -156,7 +163,7 @@ RepresentationUpdaterSList RepresentationWindow::aheadFrom(int pos, int length) 
 {
   RepresentationUpdaterSList result;
 
-  int i = pos;
+  int i = innerPosition(pos);
   int l = length;
 
   while (l > 0)
@@ -176,7 +183,7 @@ RepresentationUpdaterSList RepresentationWindow::behindOf(int pos, int length) c
 {
   RepresentationUpdaterSList result;
 
-  int i = pos;
+  int i = innerPosition(pos);
   int l = length;
 
   while (l > 0)
@@ -215,6 +222,7 @@ unsigned RepresentationWindow::prevPosition(int pos) const
   return (pos == 0)?m_buffer.size() - 1:pos - 1;
 }
 
+//-----------------------------------------------------------------------------
 unsigned int RepresentationWindow::innerPosition(int pos) const
 {
   int result = pos;
@@ -226,5 +234,16 @@ unsigned int RepresentationWindow::innerPosition(int pos) const
   else if (pos >= m_buffer.size())
   {
     result = pos - m_buffer.size();
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationWindow::onTaskFinish()
+{
+  if (sender() == current().get())
+  {
+    emit currentUpdaterFinished();
   }
 }

@@ -58,6 +58,11 @@ namespace ESPINA
      */
     virtual void setCrosshair(const NmVector3 &point) = 0;
 
+    /** \brief Sets the resolution to be used for its representations
+     *
+     */
+    virtual void setResolution(const NmVector3 &resolution) = 0;
+
     void update();
 
     /** \brief Returns whether all pipeline representations are set to the

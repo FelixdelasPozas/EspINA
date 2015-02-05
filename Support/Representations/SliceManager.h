@@ -38,6 +38,8 @@ namespace ESPINA
 
     virtual void onCrosshairChanged(NmVector3 crosshair);
 
+    virtual void setResolution(const NmVector3 &resolution);
+
     virtual void setPlane(Plane plane);
 
   private:
@@ -53,9 +55,9 @@ namespace ESPINA
 
     RepresentationPoolSPtr planePool() const;
 
-  private:
     bool validPlane() const;
 
+  private:
     RepresentationPoolSPtr m_xy, m_xz, m_yz;
 
     Plane m_plane;

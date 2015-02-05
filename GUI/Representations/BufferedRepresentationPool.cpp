@@ -22,29 +22,42 @@
 
 //-----------------------------------------------------------------------------
 template<typename P>
-ESPINA::BufferedRepresentationPool<P>::BufferedRepresentationPool(SchedulerSPtr scheduler, unsigned windowSize)
-: m_updateWindow{scheduler, windowSize}
+ESPINA::BufferedRepresentationPool<P>::BufferedRepresentationPool(const Plane   plane,
+                                                                  SchedulerSPtr scheduler,
+                                                                  unsigned      windowSize)
+: m_normalIdx{normalCoordinateIndex(plane)}
+, m_updateWindow{scheduler, windowSize}
+, m_normalRes{1}
+, m_lastCoordinate{0}
 {
-  connect(m_updateWindow.current().get(), SIGNAL(finished()),
-          this,                           SIGNAL(representationsReady()));
+  connect(&m_updateWindow, SIGNAL(currentUpdaterFinished()),
+          this,            SIGNAL(representationsReady()));
+
+  invalidateBuffer();
 }
 
 //-----------------------------------------------------------------------------
 template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::setCrosshair(const NmVector3 &point)
 {
-  //auto shift = shiftFromPoint(point);
-  int shift = 0;
-  for (auto updater : m_updateWindow.all())
+  if (isBeingUsed())
   {
-    updater->setCroshair(point);
-  }
+    auto shift = distanceFromLastCrosshair(point);
 
-//   for (auto cursor : m_updateWindow.moveCurrent(shift))
-//   {
-//     NmVector3 crosshair; // f(cursor.second)
-//     cursor.first->setCrosshair(crosshair);
-//   }
+    if (shift != 0)
+    {
+      updateBuffer(point, shift);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+void ESPINA::BufferedRepresentationPool<P>::setResolution(const NmVector3 &resolution)
+{
+  m_normalRes = resolution[m_normalIdx];
+
+  invalidateBuffer();
 }
 
 //-----------------------------------------------------------------------------
@@ -68,6 +81,7 @@ void ESPINA::BufferedRepresentationPool<P>::addRepresentationPipeline(ViewItemAd
 template<typename P>
 bool ESPINA::BufferedRepresentationPool<P>::isReadyImplementation() const
 {
+  qDebug() << "Ready Request: " << m_updateWindow.current()->description() << " ==> " << m_updateWindow.current()->hasFinished();
   return m_updateWindow.current()->hasFinished();
 }
 
@@ -75,17 +89,26 @@ bool ESPINA::BufferedRepresentationPool<P>::isReadyImplementation() const
 template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::updateImplementation()
 {
+//     std::cout << "Before Update Current:" << std::endl;
   updateWindowPosition(m_updateWindow.current(), Priority::VERY_HIGH);
+
+  if (m_updateWindow.current()->hasFinished())
+  {
+//     qDebug() << "Representation Ready: " << m_updateWindow.current()->description();
+    emit representationsReady();
+  }
+//   std::cout << "After Update Current" << std::endl;
 
   for (auto closest : m_updateWindow.closest())
   {
     updateWindowPosition(closest, Priority::HIGH);
   }
 
-  for (auto closest : m_updateWindow.further())
+  for (auto further : m_updateWindow.further())
   {
-    updateWindowPosition(closest, Priority::NORMAL);
+    updateWindowPosition(further, Priority::NORMAL);
   }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -100,3 +123,49 @@ void ESPINA::BufferedRepresentationPool<P>::updateWindowPosition(RepresentationU
   }
 }
 
+//-----------------------------------------------------------------------------
+template<typename P>
+int ESPINA::BufferedRepresentationPool<P>::distanceFromLastCrosshair(const NmVector3 &crosshair)
+{
+  return vtkMath::Round((normal(crosshair) - m_lastCoordinate)/m_normalRes);
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+int ESPINA::BufferedRepresentationPool<P>::normal(const NmVector3 &point) const
+{
+  return point[m_normalIdx];
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+ESPINA::NmVector3 ESPINA::BufferedRepresentationPool<P>::representationCrosshair(const NmVector3 &point, int shift) const
+{
+  NmVector3 crosshair = point;
+
+  crosshair[m_normalIdx] += shift*m_normalRes;
+
+  return crosshair;
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+void ESPINA::BufferedRepresentationPool<P>::invalidateBuffer()
+{
+  updateBuffer(NmVector3(), m_updateWindow.size() + 1);
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+void ESPINA::BufferedRepresentationPool<P>::updateBuffer(const NmVector3 &point, int shift)
+{
+  for (auto cursor : m_updateWindow.moveCurrent(shift))
+  {
+    NmVector3 crosshair = representationCrosshair(point, cursor.second);
+    cursor.first->setCrosshair(crosshair);
+    cursor.first->setDescription(QString("Slice %1").arg(normal(crosshair)));
+    //std::cout << "Updating " << cursor.second << " for slice " << normal(crosshair) << std::endl;
+  }
+
+  m_lastCoordinate = normal(point);
+}

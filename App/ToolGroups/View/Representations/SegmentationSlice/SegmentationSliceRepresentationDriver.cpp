@@ -20,11 +20,11 @@
 #include "SegmentationSliceRepresentationDriver.h"
 
 #include "SegmentationSliceSettings.h"
-#include "SegmentationSlicePipeline.h"
+//#include "SegmentationSlicePipeline.h"
 #include "SegmentationSliceSwitch.h"
 
 #include <ToolGroups/View/ViewToolGroup.h>
-#include <GUI/Representations/BasicRepresentationPool.h>
+#include <GUI/Representations/BufferedRepresentationPool.h>
 #include <Support/Representations/SliceManager.h>
 
 using namespace ESPINA;
@@ -39,25 +39,27 @@ SegmentationSliceRepresentationDriver::SegmentationSliceRepresentationDriver(Sch
 //----------------------------------------------------------------------------
 Representation SegmentationSliceRepresentationDriver::createRepresentation() const
 {
+  const unsigned WINDOW_SIZE = 4;
+
   Representation representation;
 
-  auto settings     = std::make_shared<SegmentationSliceSettings>();
-  auto poolXY       = std::make_shared<BasicRepresentationPool<SegmentationSlicePipeline<Plane::XY>>>(m_scheduler);
-  auto poolXZ       = std::make_shared<BasicRepresentationPool<SegmentationSlicePipeline<Plane::XZ>>>(m_scheduler);
-  auto poolYZ       = std::make_shared<BasicRepresentationPool<SegmentationSlicePipeline<Plane::YZ>>>(m_scheduler);
-  auto sliceManager = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
-  auto sliceSwitch  = std::make_shared<SegmentationSliceSwitch>(sliceManager);
-
-  configurePool(poolXY, settings);
-  configurePool(poolXZ, settings);
-  configurePool(poolYZ, settings);
-
-  sliceManager->setName(QObject::tr("Slice Representation"));
-
-  representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
-  representation.Pools    << poolXY << poolXZ << poolYZ;
-  representation.Managers << sliceManager;
-  representation.Switches << sliceSwitch;
+//   auto settings     = std::make_shared<SegmentationSliceSettings>();
+//   auto poolXY       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::XY>>>(Plane::XY, m_scheduler, WINDOW_SIZE);
+//   auto poolXZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::XZ>>>(Plane::XZ, m_scheduler, WINDOW_SIZE);
+//   auto poolYZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::YZ>>>(Plane::YZ, m_scheduler, WINDOW_SIZE);
+//   auto sliceManager = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
+//   auto sliceSwitch  = std::make_shared<SegmentationSliceSwitch>(sliceManager);
+//
+//   configurePool(poolXY, settings);
+//   configurePool(poolXZ, settings);
+//   configurePool(poolYZ, settings);
+//
+//   sliceManager->setName(QObject::tr("Slice Representation"));
+//
+//   representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
+//   representation.Pools    << poolXY << poolXZ << poolYZ;
+//   representation.Managers << sliceManager;
+//   representation.Switches << sliceSwitch;
 
   return representation;
 }

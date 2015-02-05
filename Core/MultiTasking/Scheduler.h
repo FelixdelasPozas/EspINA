@@ -33,6 +33,7 @@
 
 // ESPINA
 #include "Task.h"
+#include <QMap>
 
 namespace ESPINA {
 
@@ -83,11 +84,6 @@ namespace ESPINA {
      */
     void changePriority(TaskSPtr task, Priority prevPriority);
 
-    /** \brief Returns the number of task currently in the task list.
-     *
-     */
-    unsigned int numberOfTasks() const;
-
     unsigned int maxRunningTasks() const;
 
   public slots:
@@ -101,16 +97,32 @@ namespace ESPINA {
     void taskRemoved(TaskSPtr);
 
   private:
+    void proccessTaskInsertion();
+
+    void proccessPriorityChanges();
+
     /** \brief Removes a task from the task list.
      * \param[in] task task smart pointer.
      *
      */
     void removeTask(Priority priority, TaskSPtr task);
 
+    /** \brief Returns the number of task currently in the task list.
+     *
+     */
+    unsigned int numberOfTasks() const;
+
+
   private:
     int m_period;
 
-    std::map<Priority, TaskQueue> m_runningTasks;
+    QMutex          m_insertionMutex;
+    QList<TaskSPtr> m_insertionBuffer;
+
+    QMutex                  m_priorityMutex;
+    QMap<TaskPtr, Priority> m_priorityBuffer;
+
+    QMap<Priority, TaskQueue> m_runningTasks;
 
     Task::Id m_lastId;
 
