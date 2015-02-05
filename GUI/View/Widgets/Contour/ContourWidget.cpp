@@ -39,11 +39,13 @@ using namespace ESPINA;
 ContourWidget::ContourWidget()
 : m_color{Qt::black}
 {
+  qDebug() << "ContourWidget created";
 }
 
 //----------------------------------------------------------------------------
 ContourWidget::~ContourWidget()
 {
+  qDebug() << "ContourWidget destroyed";
   for(auto view: m_widgets.keys())
   {
     unregisterView(view);
@@ -90,10 +92,7 @@ void ContourWidget::unregisterView(RenderView *view)
   m_widgets[view2d] = nullptr;
   m_widgets.remove(view2d);
 
-  if(m_storedContours[view2d].polyData)
-  {
-    m_storedContours[view2d].polyData->Delete();
-  }
+  m_storedContours[view2d].polyData = nullptr;
   m_storedContours.remove(view2d);
 }
 
@@ -136,13 +135,14 @@ ContourWidget::ContourList ContourWidget::getContours()
     auto polyData = rep->GetContourRepresentationAsPolyData();
     if (polyData)
     {
-      auto contour = vtkPolyData::New();
+      auto contour = vtkSmartPointer<vtkPolyData>::New();
       contour->DeepCopy(polyData);
+      polyData->Delete();
 
       auto plane = view->plane();
       auto pos = view->crosshairPoint()[normalCoordinateIndex(plane)];
 
-      resultList << ContourData(0, pos, plane, m_widgets[view]->getContourMode(), contour);
+      resultList << ContourData(pos, pos, plane, m_widgets[view]->getContourMode(), contour);
     }
   }
 
@@ -152,7 +152,7 @@ ContourWidget::ContourList ContourWidget::getContours()
     {
       if(data.polyData)
       {
-        resultList << ContourData(0, data.contourPosition, data.plane, data.mode, data.polyData);
+        resultList << ContourData(data.contourPosition, data.contourPosition, data.plane, data.mode, data.polyData);
       }
     }
   }
@@ -168,23 +168,14 @@ void ContourWidget::startContourFromWidget()
   if (!resultList.empty())
   {
     emit rasterizeContours(resultList);
-
-    for(auto result: resultList)
-    {
-      if(result.polyData != nullptr)
-      {
-        result.polyData->Delete();
-      }
-    }
-
     initialize();
   }
 }
 
 //----------------------------------------------------------------------------
-void ContourWidget::endContourFromWidget()
+void ContourWidget::contourHasBeenModified()
 {
-  emit endContour();
+  emit contourModified();
 }
 
 //----------------------------------------------------------------------------

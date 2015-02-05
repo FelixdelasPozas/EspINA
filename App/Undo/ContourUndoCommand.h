@@ -22,89 +22,68 @@
 #define ESPINA_CONTOUR_UNDOCOMMAND_H_
 
 // ESPINA
-#include <Core/EspinaTypes.h>
-#include <Core/Utils/Bounds.h>
-#include <GUI/Model/SegmentationAdapter.h>
-#include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/Widgets/Contour/ContourWidget.h>
-#include <App/ToolGroups/Edition/ManualEditionTool.h>
 
 // Qt
 #include <QUndoStack>
 
-class vtkPolyData;
-
 namespace ESPINA
 {
-  class ViewManager;
-  
-  class ContourUndoCommand
+  class ManualEditionTool;
+  /** \class ContourModificationUndoCommand.
+   *
+   */
+  class ContourModificationUndoCommand
   : public QUndoCommand
   {
     public:
-      ContourUndoCommand(SegmentationAdapterPtr seg,
-                         ViewManagerSPtr        vm,
-                         ManualEditionToolSPtr  tool);
-
-      virtual ~ContourUndoCommand();
-
-      virtual void redo();
-      virtual void undo();
-
-      /** \brief Helper method to create the rasterized volume and assign values to internal variables.
-       *  \param[in] contour contour data to be rasterized.
+      /** \brief ContourModificationUndoCommand class constructor.
+       * \param[in] previousContour previous contour data.
+       * \param[in] actualContour actual contour data.
+       * \param[in] tool contour edition tool.
+       *
        */
-      void rasterizeContour(ContourWidget::ContourData) const;
+      explicit ContourModificationUndoCommand(ContourWidget::ContourData  previousContour,
+                                              ContourWidget::ContourData  actualContour,
+                                              ManualEditionTool          *tool);
+
+      virtual void redo() override final;
+      virtual void undo() override final;
+
+    private:
+      ContourWidget::ContourData  m_previousContour;
+      ContourWidget::ContourData  m_actualContour;
+      ManualEditionTool          *m_tool;
+  };
+
+  /** \class ContourRasterizeUndoCommand.
+   *
+   */
+  class ContourRasterizeUndoCommand
+  : public QUndoCommand
+  {
+    public:
+      /** \brief ContourRasterizeUndoCommand class constructor.
+       * \param[in] segmentation segmentation to modify.
+       * \param[in] contourVolume rasterized volume of the contour.
+       * \param[in] contour actual un-rasterized contour.
+       * \param[in] tool contour edition tool.
+       *
+       */
+      explicit ContourRasterizeUndoCommand(SegmentationAdapterPtr        segmentation,
+                                           BinaryMaskSPtr<unsigned char> contourVolume,
+                                           ContourWidget::ContourData    contour,
+                                           ManualEditionTool            *tool);
+
+      virtual void redo() override final;
+      virtual void undo() override final;
 
     private:
       SegmentationAdapterPtr         m_segmentation;
-      ViewManagerSPtr                m_viewManager;
-      ManualEditionToolSPtr          m_tool;
+      BinaryMaskSPtr<unsigned char>  m_contourVolume;
+      ContourWidget::ContourData     m_contour;
+      ManualEditionTool             *m_tool;
       bool                           m_createData;
-
-      mutable BinaryMaskSPtr<unsigned char> m_volume;
-      mutable bool                     m_rasterized;
-      mutable itkVolumeType::PixelType m_value;
-
-      mutable ContourWidget::ContourData m_contour;
-  };
-
-  class ContourAddSegmentation
-  : public QUndoCommand
-  {
-  public:
-    explicit ContourAddSegmentation(ChannelAdapterPtr     channel,
-                                    CategoryAdapterSPtr   category,
-                                    ModelAdapterSPtr      model,
-                                    ModelFactorySPtr      factory,
-                                    ViewManagerSPtr       vm,
-                                    ManualEditionToolSPtr tool);
-    virtual ~ContourAddSegmentation();
-
-    virtual void redo();
-    virtual void undo();
-
-    /** \brief Helper method to create the rasterized volume and assigns values to internal variables.
-     *  \param[in] contour contour data to be rasterized.
-     */
-    void rasterizeContour(ContourWidget::ContourData contour) const;
-
-    /** \brief Returns the segmentation adapter created by the action.
-     *
-     */
-    SegmentationAdapterSPtr getCreatedSegmentation() const;
-
-  private:
-    ModelAdapterSPtr                   m_model;
-    ModelFactorySPtr                   m_factory;
-    SampleAdapterSPtr                  m_sample;
-    ChannelAdapterPtr                  m_channel;
-    mutable SegmentationAdapterSPtr    m_segmentation;
-    CategoryAdapterSPtr                m_category;
-    ViewManagerSPtr                    m_viewManager;
-    ManualEditionToolSPtr              m_tool;
-    mutable bool                       m_rasterized;
-    mutable ContourWidget::ContourData m_contour;
   };
 
 } /* namespace ESPINA */

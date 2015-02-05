@@ -56,6 +56,7 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
   qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
   qRegisterMetaType<BinaryMaskSPtr<unsigned char>>("BinaryMaskSPtr<unsigned char>");
+  qRegisterMetaType<ContourWidget::ContourData>("ContourWidget::ContourData");
 
   // draw with a disc
   m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
@@ -345,6 +346,11 @@ void ManualEditionTool::drawStroke(Selector::Selection selection)
 //------------------------------------------------------------------------
 void ManualEditionTool::abortOperation()
 {
+  qDebug() << "abort operation";
+  if(m_contourWidget)
+  {
+    m_contourWidget->initialize();
+  }
   unsetSelector();
 }
 
@@ -556,8 +562,8 @@ void ManualEditionTool::initializeContourWidget(bool value)
     {
       m_contourWidget = std::make_shared<ContourWidget>();
 
-      connect(m_contourWidget.get(), SIGNAL(endContour()),
-              this,                   SLOT(contourEnded()));
+      connect(m_contourWidget.get(), SIGNAL(contourModified()),
+              this,                   SLOT(contourModification()));
       connect(m_contourWidget.get(), SIGNAL(rasterizeContours(ContourWidget::ContourList)),
               this,                   SLOT(rasterizeContour(ContourWidget::ContourList)));
     }
@@ -572,11 +578,18 @@ void ManualEditionTool::initializeContourWidget(bool value)
 
     if(!contours.empty())
     {
-      emit drawContours(contours);
+      for(auto contour: contours)
+      {
+        if(contour.polyData != nullptr)
+        {
+          emit drawContours(m_categorySelector->selectedCategory(), contour);
+          break;
+        }
+      }
     }
 
-    disconnect(m_contourWidget.get(), SIGNAL(endContour()),
-               this,                   SLOT(contourEnded()));
+    disconnect(m_contourWidget.get(), SIGNAL(contourModified()),
+               this,                   SLOT(contourModification()));
     disconnect(m_contourWidget.get(), SIGNAL(rasterizeContours(ContourWidget::ContourList)),
                this,                   SLOT(rasterizeContour(ContourWidget::ContourList)));
 
@@ -631,19 +644,32 @@ ContourWidget::ContourData ManualEditionTool::getContour()
 //------------------------------------------------------------------------
 void ManualEditionTool::setContour(ContourWidget::ContourData contour)
 {
-  if(m_contourWidget)
+  if(!m_contourWidget)
   {
-    m_contourWidget->initialize(contour);
+    initializeContourWidget(true);
   }
+
+  m_contourWidget->initialize(contour);
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::contourEnded()
+void ManualEditionTool::contourModification()
 {
-  qDebug() << "ManualEditionTools::contourEnded";
-  auto item = m_currentSelector->referenceItem();
-  auto seg = dynamic_cast<SegmentationAdapterPtr>(item);
+  auto contour = getContour();
+  if(!contour.polyData) return;
 
-  emit contourEnded(seg, m_categorySelector->selectedCategory());
+  emit contourModified(contour);
+}
 
+//------------------------------------------------------------------------
+void ManualEditionTool::rasterizeContour(ContourWidget::ContourList list)
+{
+  for(auto contour: list)
+  {
+    if(contour.polyData != nullptr)
+    {
+      emit drawContours(m_categorySelector->selectedCategory(), contour);
+      return;
+    }
+  }
 }

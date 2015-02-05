@@ -68,6 +68,7 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , m_contourMode          {BrushSelector::BrushMode::BRUSH}
 , m_actualBrushMode      {BrushSelector::BrushMode::BRUSH}
 , m_actorShift           {0}
+, m_slice                {0}
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -135,7 +136,7 @@ void vtkPlaneContourWidget::CloseLoop()
     rep->ClosedLoopOn();
     rep->UseContourPolygon(true);
     this->Render();
-    m_parent->endContourFromWidget();
+    m_parent->contourHasBeenModified();
   }
 }
 
@@ -222,14 +223,18 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
       self->AddNode();
 
       if (self->WidgetState == vtkPlaneContourWidget::Manipulate)
+      {
         break;
+      }
 
       // check if the cursor crosses the actual contour, if so then close the contour
       // and end defining
       if (rep->CheckAndCutContourIntersection())
       {
         if (self->ContinuousDraw)
+        {
           self->ContinuousActive = 0;
+        }
 
         // set the closed loop now
         rep->ClosedLoopOn();
@@ -238,12 +243,14 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         self->EventCallbackCommand->SetAbortFlag(1);
         self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
         self->m_contourMode = self->m_actualBrushMode;
-        self->m_parent->endContourFromWidget();
+        self->m_parent->contourHasBeenModified();
       }
       else
       {
         if (self->ContinuousDraw)
+        {
           self->ContinuousActive = 1;
+        }
       }
 
       break;
@@ -290,7 +297,9 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
         }
 
       if (!rep->GetNeedToRender())
+      {
         rep->SetRebuildLocator(true);
+      }
 
       // start a new contour
       self->m_parent->startContourFromWidget();
@@ -370,7 +379,7 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
   }
 
   self->m_contourMode = self->m_actualBrushMode;
-  self->m_parent->endContourFromWidget();
+  self->m_parent->contourHasBeenModified();
 }
 
 //----------------------------------------------------------------------------
@@ -409,7 +418,7 @@ void vtkPlaneContourWidget::AddNode()
       this->EventCallbackCommand->SetAbortFlag(1);
       this->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
       this->m_contourMode = this->m_actualBrushMode;
-      this->m_parent->endContourFromWidget();
+      this->m_parent->contourHasBeenModified();
 
       // change cursor
       int X = this->Interactor->GetEventPosition()[0];
@@ -525,20 +534,24 @@ void vtkPlaneContourWidget::DeleteAction(vtkAbstractWidget *w)
   if (self->WidgetState == vtkPlaneContourWidget::Define)
   {
     if (rep->DeleteLastNode())
+    {
       self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
+    }
   }
   else
   {
     // do not allow less than three nodes, i don't want to use the old solution of opening the contour
     // if we have less than three nodes and put the widget into ::Define state if we have just one node
-    if (rep->GetNumberOfNodes() <= 3)
-      return;
+    if (rep->GetNumberOfNodes() <= 3) return;
 
     int X = self->Interactor->GetEventPosition()[0];
     int Y = self->Interactor->GetEventPosition()[1];
     rep->ActivateNode(X, Y);
     if (rep->DeleteActiveNode())
+    {
       self->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
+      self->m_parent->contourHasBeenModified();
+    }
 
     rep->ActivateNode(X, Y);
   }
@@ -616,7 +629,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
               self->EventCallbackCommand->SetAbortFlag(1);
               self->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
               self->m_contourMode = self->m_actualBrushMode;
-              self->m_parent->endContourFromWidget();
+              self->m_parent->contourHasBeenModified();
               return;
             }
           }
@@ -630,7 +643,9 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
       }
     }
     else
+    {
       return;
+    }
   }
 
   if (rep->GetCurrentOperation() == vtkPlaneContourRepresentation::Inactive)
@@ -667,10 +682,18 @@ void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
   }
 
   // Do nothing if inactive
-  if (rep->GetCurrentOperation() == vtkPlaneContourRepresentation::Inactive)
+  switch(rep->GetCurrentOperation())
   {
-    rep->SetRebuildLocator(true);
-    return;
+    case vtkPlaneContourRepresentation::Inactive:
+      rep->SetRebuildLocator(true);
+      return;
+      break;
+    case vtkPlaneContourRepresentation::Shift:
+    case vtkPlaneContourRepresentation::Translate:
+      self->m_parent->contourHasBeenModified();
+      break;
+    default:
+      break;
   }
 
   rep->SetCurrentOperationToInactive();
@@ -702,7 +725,12 @@ void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
 void vtkPlaneContourWidget::ResetAction(vtkAbstractWidget *w)
 {
   auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
+  auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
+  auto hasContour = (rep && rep->GetClosedLoop());
+
   self->Initialize(nullptr);
+
+  if(hasContour) self->m_parent->contourHasBeenModified();
 }
 
 //----------------------------------------------------------------------------

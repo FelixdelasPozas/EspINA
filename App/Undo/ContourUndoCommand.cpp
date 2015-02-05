@@ -19,274 +19,102 @@
  */
 
 // ESPINA
+#include "ContourUndoCommand.h"
+#include <App/ToolGroups/Edition/ManualEditionTool.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Factory/FilterFactory.h>
-#include <Core/Analysis/Filter.h>
-#include <Core/Factory/CoreFactory.h>
-#include <Core/Utils/vtkPolyDataUtils.h>
-#include <Support/ViewManager.h>
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/SampleAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
-#include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Model/Utils/ModelAdapterUtils.h>
-#include <Filters/SourceFilter.h>
-#include <GUI/Representations/BasicRepresentationFactory.h>
-#include <Undo/ContourUndoCommand.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Output.h>
 
 // VTK
-#include <vtkMath.h>
 #include <vtkPolyData.h>
 
-#include "Core/Analysis/Sample.h"
 namespace ESPINA
 {
-  const Filter::Type SOURCE_FILTER    = "FreeFormSource";
-
-  //-----------------------------------------------------------------------------
-  ContourUndoCommand::ContourUndoCommand(SegmentationAdapterPtr seg,
-                                         ViewManagerSPtr        vm,
-                                         ManualEditionToolSPtr  tool)
-  : m_segmentation {seg}
-  , m_viewManager  {vm}
-  , m_tool         {tool}
-  , m_rasterized   {false}
-  , m_createData   {!hasVolumetricData(seg->output())}
-  , m_value        {SEG_VOXEL_VALUE}
+  //-------------------------------------------------------------------------------------
+  ContourModificationUndoCommand::ContourModificationUndoCommand(ContourWidget::ContourData  previousContour,
+                                                                 ContourWidget::ContourData  actualContour,
+                                                                 ManualEditionTool          *tool)
+  : m_previousContour{previousContour}
+  , m_actualContour  {actualContour}
+  , m_tool           {tool}
   {
+    qDebug() << "ContourModificationUndoCommand created";
   }
 
-  //-----------------------------------------------------------------------------
-  ContourUndoCommand::~ContourUndoCommand()
+  //-------------------------------------------------------------------------------------
+  void ContourModificationUndoCommand::redo()
   {
-    if (m_contour.polyData)
-    {
-      m_contour.polyData->Delete();
-    }
+    m_tool->setContour(m_actualContour);
   }
 
-  //-----------------------------------------------------------------------------
-  void ContourUndoCommand::redo()
+  //-------------------------------------------------------------------------------------
+  void ContourModificationUndoCommand::undo()
   {
-    if (m_rasterized)
-    {
-      if(m_createData)
-      {
-        auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_volume->bounds().bounds(), m_volume->spacing(), m_volume->origin());
-        volume->draw(m_volume);
-
-        m_segmentation->output()->setData(volume);
-      }
-      else
-      {
-        auto volume = volumetricData(m_segmentation->output());
-        auto bbox = boundingBox(m_volume->bounds().bounds(), volume->bounds());
-        volume->resize(bbox);
-        volume->draw(m_volume, m_value);
-
-        if (m_value == SEG_BG_VALUE)
-        {
-          fitToContents(volume, SEG_BG_VALUE);
-        }
-      }
-
-      m_viewManager->updateSegmentationRepresentations(m_segmentation);
-    }
-    else
-    {
-      if (m_contour.polyData)
-      {
-        m_tool->setContour(m_contour);
-      }
-    }
+    m_tool->setContour(m_previousContour);
   }
 
-  //-----------------------------------------------------------------------------
-  void ContourUndoCommand::undo()
+  //-------------------------------------------------------------------------------------
+  ContourRasterizeUndoCommand::ContourRasterizeUndoCommand(SegmentationAdapterPtr         segmentation,
+                                                           BinaryMaskSPtr<unsigned char>  contourVolume,
+                                                           ContourWidget::ContourData     contour,
+                                                           ManualEditionTool             *tool)
+  : m_segmentation{segmentation}
+  , m_contourVolume{contourVolume}
+  , m_contour{contour}
+  , m_tool{tool}
+  , m_createData{!hasVolumetricData(m_segmentation->output())}
   {
-    if (m_rasterized)
-    {
-      if(!m_createData)
-      {
-        auto volume = volumetricData(m_segmentation->output());
-        volume->undo();
-      }
-      else
-      {
-        m_segmentation->output()->removeData(SparseVolume<itkVolumeType>::TYPE);
-      }
-
-      m_viewManager->updateSegmentationRepresentations(m_segmentation);
-    }
-    else
-    {
-      ContourWidget::ContourData contour = m_tool->getContour();
-      Q_ASSERT(contour.polyData && contour.polyData->GetNumberOfPoints() != 0);
-      m_contour.polyData = vtkPolyData::New();
-      m_contour.polyData->DeepCopy(contour.polyData);
-      m_contour.plane = contour.plane;
-      m_contour.mode = contour.mode;
-
-      contour.polyData = nullptr;
-      m_tool->setContour(contour);
-    }
+    qDebug() << "ContourRasterizeUndoCommand created";
   }
 
-  //----------------------------------------------------------------------------
-  void ContourUndoCommand::rasterizeContour(ContourWidget::ContourData contour) const
+  //-------------------------------------------------------------------------------------
+  void ContourRasterizeUndoCommand::redo()
   {
-    if (m_contour.polyData)
-    {
-      m_contour.polyData->Delete();
-      m_contour.polyData = nullptr;
-    }
-
-    m_volume = PolyDataUtils::rasterizeContourToMask(contour.polyData, contour.plane, contour.contourPosition, m_segmentation->output()->spacing());
-    m_value = (contour.mode == BrushSelector::BrushMode::BRUSH ? SEG_VOXEL_VALUE : SEG_BG_VALUE);
-    m_rasterized = true;
+    auto output = m_segmentation->output();
+    auto value = m_contour.mode == BrushSelector::BrushMode::BRUSH ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
 
     if(m_createData)
     {
-      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_volume->bounds().bounds(), m_volume->spacing(), m_volume->origin());
-      volume->draw(m_volume);
+      Q_ASSERT(m_contourVolume);
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(m_contourVolume->bounds().bounds(), output->spacing(), NmVector3{});
+      volume->draw(m_contourVolume);
+      auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
 
       m_segmentation->output()->setData(volume);
+      m_segmentation->output()->setData(mesh);
     }
     else
     {
-      auto volume = volumetricData(m_segmentation->output());
-      auto bbox = boundingBox(m_volume->bounds().bounds(), volume->bounds());
-      volume->resize(bbox);
-      volume->draw(m_volume, m_value);
-
-      if (m_value == SEG_BG_VALUE)
+      if(m_contourVolume)
       {
-        fitToContents(volume, SEG_BG_VALUE);
-      }
-    }
-
-    m_viewManager->updateSegmentationRepresentations(m_segmentation);
-  }
-
-  //----------------------------------------------------------------------------
-  ContourAddSegmentation::ContourAddSegmentation(ChannelAdapterPtr     channel,
-                                                 CategoryAdapterSPtr   category,
-                                                 ModelAdapterSPtr      model,
-                                                 ModelFactorySPtr      factory,
-                                                 ViewManagerSPtr       vm,
-                                                 ManualEditionToolSPtr tool)
-  : m_model         {model}
-  , m_factory       {factory}
-  , m_channel       {channel}
-  , m_category      {category}
-  , m_viewManager   {vm}
-  , m_tool          {tool}
-  , m_rasterized    {false}
-  {
-    m_sample = QueryAdapter::sample(m_channel);
-    Q_ASSERT(m_sample);
-
-    m_contour.polyData = nullptr;
-  }
-
-  //----------------------------------------------------------------------------
-  ContourAddSegmentation::~ContourAddSegmentation()
-  {
-    if (m_contour.polyData)
-    {
-      m_contour.polyData->Delete();
-    }
-  }
-
-  //----------------------------------------------------------------------------
-  void ContourAddSegmentation::redo()
-  {
-    if (m_rasterized)
-    {
-      m_model->add(m_segmentation);
-      m_model->addRelation(m_sample, m_segmentation, Sample::CONTAINS);
-      m_model->emitSegmentationsAdded(m_segmentation);
-    }
-    else
-    {
-      if (m_contour.polyData)
-      {
-        m_tool->setContour(m_contour);
+        auto volume = volumetricData(output);
+        volume->resize(boundingBox(volume->bounds(), m_contourVolume->bounds().bounds()));
+        volume->draw(m_contourVolume, value);
       }
     }
   }
 
-  //----------------------------------------------------------------------------
-  void ContourAddSegmentation::undo()
+  //-------------------------------------------------------------------------------------
+  void ContourRasterizeUndoCommand::undo()
   {
-    if (m_rasterized)
+    auto output = m_segmentation->output();
+
+    if(m_createData)
     {
-      m_model->remove(m_segmentation);
+      output->removeData(SparseVolume<itkVolumeType>::TYPE);
+      output->removeData(MarchingCubesMesh<itkVolumeType>::TYPE);
     }
     else
     {
-      auto contour = m_tool->getContour();
-      Q_ASSERT(contour.polyData && contour.polyData->GetNumberOfPoints() != 0);
-      m_contour.polyData = vtkPolyData::New();
-      m_contour.polyData->DeepCopy(contour.polyData);
-      m_contour.plane = contour.plane;
-      m_contour.mode = contour.mode;
-
-      contour.polyData = nullptr;
-      m_tool->setContour(contour);
-    }
-  }
-
-  //----------------------------------------------------------------------------
-  void ContourAddSegmentation::rasterizeContour(ContourWidget::ContourData contour) const
-  {
-    if (m_contour.polyData)
-    {
-      m_contour.polyData->Delete();
-      m_contour.polyData = nullptr;
+      if(m_contourVolume)
+      {
+        auto volume = volumetricData(output);
+        volume->undo();
+      }
     }
 
-    auto output  = m_channel->output();
-    auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-
-    double bounds[6];
-    contour.polyData->GetBounds(bounds);
-    auto contourBounds = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
-    auto spacing = output->spacing();
-    auto origin  = m_channel->position();
-
-    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(contourBounds, spacing, origin);
-    auto mask = PolyDataUtils::rasterizeContourToMask(contour.polyData, contour.plane, contour.contourPosition, spacing);
-    volume->draw(mask);
-
-    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
-
-    filter->addOutputData(0, volume);
-    filter->addOutputData(0, mesh);
-
-    m_segmentation = m_factory->createSegmentation(filter, 0);
-    m_segmentation->setCategory(m_category);
-
-    unsigned int number = ModelAdapterUtils::firstUnusedSegmentationNumber(m_model);
-    m_segmentation->setNumber(number);
-
-    m_model->add(m_segmentation);
-    m_model->addRelation(m_sample, m_segmentation, Sample::CONTAINS);
-    m_model->emitSegmentationsAdded(m_segmentation);
-
-    ViewItemAdapterList selection;
-    selection << m_segmentation.get();
-    m_viewManager->setSelection(selection);
-
-    m_rasterized = true;
-  }
-
-  //----------------------------------------------------------------------------
-  SegmentationAdapterSPtr ContourAddSegmentation::getCreatedSegmentation() const
-  {
-    return m_segmentation;
+    m_tool->setContour(m_contour);
   }
 
 } /* namespace ESPINA */

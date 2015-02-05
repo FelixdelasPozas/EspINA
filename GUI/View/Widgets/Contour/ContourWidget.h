@@ -27,6 +27,7 @@
 
 // VTK
 #include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 // Qt
 #include <QMap>
@@ -34,7 +35,6 @@
 #include <QObject>
 #include <QColor>
 
-class vtkPolyData;
 class vtkRenderWindowInteractor;
 class vtkAbstractWidget;
 
@@ -51,14 +51,16 @@ namespace ESPINA
   public:
     struct ContourInternals
     {
-      Nm                       actualPosition;
-      Nm                       contourPosition;
-      Plane                    plane;
-      BrushSelector::BrushMode mode;
-      vtkPolyData             *polyData;
+      Nm                           actualPosition;
+      Nm                           contourPosition;
+      Plane                        plane;
+      BrushSelector::BrushMode     mode;
+      vtkSmartPointer<vtkPolyData> polyData;
 
-      ContourInternals(Nm actual, Nm position, Plane plane, BrushSelector::BrushMode mode, vtkPolyData *contour) : actualPosition{actual}, contourPosition{position}, plane{plane}, mode{mode}, polyData{contour} {};
-      ContourInternals() : actualPosition{0}, contourPosition{0}, plane{Plane::XY}, mode{BrushSelector::BrushMode::BRUSH}, polyData{nullptr} {};
+      ContourInternals(Nm actual, Nm position, Plane plane, BrushSelector::BrushMode mode, vtkSmartPointer<vtkPolyData> contour) : actualPosition{actual}, contourPosition{position}, plane{plane}, mode{mode}, polyData{contour} {};
+      ContourInternals() : actualPosition{0}, contourPosition{0}, plane{Plane::XY}, mode{BrushSelector::BrushMode::BRUSH}, polyData{} {};
+      ~ContourInternals() { polyData = nullptr; }
+
     };
 
     using ContourData = struct ContourInternals;
@@ -100,10 +102,10 @@ namespace ESPINA
      */
     void startContourFromWidget();
 
-    /** \brief Ends the widget interaction.
+    /** \brief Signals a contour modification.
      *
      */
-    void endContourFromWidget();
+    void contourHasBeenModified();
 
     /** \brief Sets the mode of the widget.
      * \param[in] mode Brush mode.
@@ -124,7 +126,7 @@ namespace ESPINA
 
   signals:
     void rasterizeContours(ContourWidget::ContourList);
-    void endContour();
+    void contourModified();
 
   protected slots:
     /** \brief Stored the finished contours if necessary and manages the change of slices in the widgets.

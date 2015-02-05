@@ -26,6 +26,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 #include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -97,10 +98,10 @@ EditionTools::EditionTools(ModelAdapterSPtr          model,
           this,                  SLOT(drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
   connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
           this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
-  connect(m_manualEdition.get(), SIGNAL(drawContours(ContourWidget::ContourList)),
-          this,                  SLOT(drawContours(ContourWidget::ContourList)));
-  connect(m_manualEdition.get(), SIGNAL(contourEnded(SegmentationAdapterPtr, CategoryAdapterSPtr)),
-          this,                  SLOT(endContour(SegmentationAdapterPtr, CategoryAdapterSPtr)));
+  connect(m_manualEdition.get(), SIGNAL(drawContours(CategoryAdapterSPtr, ContourWidget::ContourData)),
+          this,                  SLOT(drawContours(CategoryAdapterSPtr, ContourWidget::ContourData)));
+  connect(m_manualEdition.get(), SIGNAL(contourModified(ContourWidget::ContourData)),
+          this,                  SLOT(contourModified(ContourWidget::ContourData)));
 
   m_split = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
   m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
@@ -244,7 +245,10 @@ void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsig
     list << segmentation.get();
     m_viewManager->selection()->clear();
     m_viewManager->selection()->set(list);
-    tool->updateReferenceItem();
+    if(tool)
+    {
+      tool->updateReferenceItem();
+    }
   }
   else
   {
@@ -299,87 +303,113 @@ void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEnt
 }
 
 //-----------------------------------------------------------------------------
-void EditionTools::drawContours(ContourWidget::ContourList contours)
+void EditionTools::drawContours(CategoryAdapterSPtr category, ContourWidget::ContourData contourData)
 {
-  bool reduction = false;
+  qDebug() << "editionTools::drawContours";
 
-  ContourWidget::ContourData contour;
-  SegmentationAdapterSPtr segmentation;
+  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
+  auto selection = m_viewManager->selection();
 
-  for(auto contourData: contours)
+  if(!contourData.polyData) return;
+
+  if(selection->items().empty())
   {
-    if(contourData.polyData)
-    {
-      contour = contourData;
-      if(contour.mode == BrushSelector::BrushMode::ERASER)
-      {
-        reduction = true;
-      }
-    }
-
-    break;
+    ChannelAdapterList primaryChannel;
+    primaryChannel << m_viewManager->activeChannel();
+    selection->set(primaryChannel);
   }
 
-  if (!contour.polyData || contour.polyData->GetNumberOfPoints() == 0)
-    return;
-
-  Q_ASSERT(m_undoStack->index() >= 1);
-  const QUndoCommand *command = m_undoStack->command(m_undoStack->index()-1);
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  if (command->text() == QString("Draw segmentation using contours"))
+  SegmentationAdapterSPtr segmentation;
+  if(!selection->segmentations().empty())
   {
-    const ContourAddSegmentation *addCommand = dynamic_cast<const ContourAddSegmentation *>(command->child(0));
-    addCommand->rasterizeContour(contour);
+    auto item = selection->segmentations().first();
+    segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
+    auto spacing = segmentation->output()->spacing();
 
-    segmentation = addCommand->getCreatedSegmentation();
+    m_undoStack->beginMacro(tr("Modify Segmentation"));
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    auto contourVolume = PolyDataUtils::rasterizeContourToMask(contourData.polyData, contourData.plane, contourData.contourPosition, spacing);
+    m_undoStack->push(new ContourRasterizeUndoCommand(segmentation.get(), contourVolume, contourData, tool));
+
+    QApplication::restoreOverrideCursor();
+    m_undoStack->endMacro();
+  }
+  else if(!selection->channels().empty())
+  {
+    auto item    = selection->channels().first();
+    auto channel = static_cast<ChannelAdapterPtr>(item);
+    auto output  = channel->output();
+    auto spacing = output->spacing();
+
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    auto contourVolume = PolyDataUtils::rasterizeContourToMask(contourData.polyData, contourData.plane, contourData.contourPosition, spacing);
+    QApplication::restoreOverrideCursor();
+
+    auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+
+    auto strokeBounds  = contourVolume->bounds().bounds();
+    auto strokeSpacing = output->spacing();
+    auto strokeOrigin  = channel->position();
+
+    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(strokeBounds, strokeSpacing, strokeOrigin);
+    volume->draw(contourVolume);
+    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
+
+    filter->addOutputData(0, volume);
+    filter->addOutputData(0, mesh);
+
+    segmentation = m_factory->createSegmentation(filter, 0);
+    segmentation->setCategory(category);
+
+    SampleAdapterSList samples;
+    samples << QueryAdapter::sample(channel);
+    Q_ASSERT(channel && (samples.size() == 1));
+
+    m_undoStack->beginMacro(tr("Add Segmentation"));
+    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+    m_undoStack->push(new ContourRasterizeUndoCommand(segmentation.get(), nullptr, contourData, tool));
+    m_undoStack->endMacro();
+
+    SegmentationAdapterList list;
+    list << segmentation.get();
+    m_viewManager->selection()->clear();
+    m_viewManager->selection()->set(list);
+    if(tool)
+    {
+      tool->updateReferenceItem();
+    }
   }
   else
-    if (command->text() == QString("Modify segmentation using contours"))
-    {
-      const ContourUndoCommand *undoCommand = dynamic_cast<const ContourUndoCommand *>(command->child(0));
-      undoCommand->rasterizeContour(contour);
-    }
-    else
-      Q_ASSERT(false);
-
-  if (reduction)
   {
-    auto volume = volumetricData(segmentation->output());
-
-    if(!volume->isEmpty())
-    {
-      fitToContents(volume, SEG_BG_VALUE);
-    }
-    else
-    {
-      m_undoStack->push(new RemoveSegmentations(segmentation.get(), m_model));
-      m_manualEdition->resetContourTool();
-    }
+    Q_ASSERT(false);
   }
 
-  QApplication::restoreOverrideCursor();
+  if(m_previousContour.polyData)
+  {
+    m_previousContour.polyData->Delete();
+  }
+
+  m_viewManager->updateSegmentationRepresentations(segmentation.get());
+  m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
-void EditionTools::endContour(SegmentationAdapterPtr segmentation, CategoryAdapterSPtr category)
+void EditionTools::contourModified(ContourWidget::ContourData contour)
 {
-  qDebug() << "editionTools::endContour";
-  if(!segmentation)
-  {
-    m_undoStack->beginMacro("Draw segmentation using contours");
-    m_undoStack->push(new ContourAddSegmentation(m_viewManager->activeChannel(),
-                                                 category,
-                                                 m_model,
-                                                 m_factory,
-                                                 m_viewManager,
-                                                 m_manualEdition));
-  }
-  else
-  {
-    m_undoStack->beginMacro("Modify segmentation using contours");
-    m_undoStack->push(new ContourUndoCommand(segmentation, m_viewManager, m_manualEdition));
-  }
+  qDebug() << "editionTools::contourModified";
 
+  if(!contour.polyData) return;
+
+  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
+
+  m_undoStack->beginMacro(tr("Modify Segmentation"));
+  m_undoStack->push(new ContourModificationUndoCommand(m_previousContour, contour, tool));
   m_undoStack->endMacro();
+
+  m_previousContour.polyData = contour.polyData;
+  m_previousContour.contourPosition = contour.contourPosition;
+  m_previousContour.actualPosition = contour.actualPosition;
+  m_previousContour.mode = contour.mode;
+  m_previousContour.plane = contour.plane;
 }

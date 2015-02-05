@@ -203,7 +203,7 @@ void FilledContour::createUndoCommand()
   else
   {
     m_undoStack->beginMacro("Modify segmentation using contours");
-    m_undoStack->push(new ContourUndoCommand(m_currentSeg, m_viewManager, this));
+    m_undoStack->push(new ContourRasterizeUndoCommand(m_currentSeg, m_viewManager, this));
   }
 
   m_undoStack->endMacro();
@@ -244,7 +244,7 @@ void FilledContour::rasterize(ContourWidget::ContourList list)
   else
     if (command->text() == QString("Modify segmentation using contours"))
     {
-      const ContourUndoCommand *undoCommand = dynamic_cast<const ContourUndoCommand *>(command->child(0));
+      const ContourRasterizeUndoCommand *undoCommand = dynamic_cast<const ContourRasterizeUndoCommand *>(command->child(0));
       undoCommand->rasterizeContour(contour);
     }
     else

@@ -178,8 +178,8 @@ namespace ESPINA
     void brushModeChanged(BrushSelector::BrushMode);
     void stopDrawing(ViewItemAdapterPtr item, bool eraseModeEntered);
     void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
-    void contourEnded(SegmentationAdapterPtr, CategoryAdapterSPtr);
-    void drawContours(ContourWidget::ContourList);
+    void drawContours(CategoryAdapterSPtr, ContourWidget::ContourData);
+    void contourModified(ContourWidget::ContourData);
 
   public slots:
     /** \brief Emits a stroke signal with the mask and the selected category.
@@ -263,16 +263,15 @@ namespace ESPINA
      */
     void setEraserMode(bool value);
 
-    /** \brief Notifies the parent tool that the user has finished a contour. Used to create undoCommands.
+    /** \brief Notifies the parent tool that the user has finished a contour. Used to create undo commands.
      *
      */
-    void contourEnded();
+    void contourModification();
 
     /** \brief Notifies the parent tool that a contour needs to be rasterized.
      *
      */
-    void rasterizeContour(ContourWidget::ContourList list)
-    { emit drawContours(list); }
+    void rasterizeContour(ContourWidget::ContourList list);
 
   protected:
     ModelAdapterSPtr m_model;
