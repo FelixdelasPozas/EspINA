@@ -63,7 +63,7 @@ void PlanarSplitWidget::registerView(RenderView *view)
   {
     auto view2d = dynamic_cast<View2D *>(view);
     auto plane = view2d->plane();
-    auto slice = view2d->crosshairPoint()[normalCoordinateIndex(plane)];
+    auto slice = view2d->crosshair()[normalCoordinateIndex(plane)];
 
     auto widget = vtkPlanarSplitWidget::New();
     widget->SetCurrentRenderer(view->mainRenderer());
@@ -77,7 +77,7 @@ void PlanarSplitWidget::registerView(RenderView *view)
 
     m_widgets.insert(view, widget);
 
-    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
+    connect(view2d, SIGNAL(crosshairPlaneChanged(Plane,Nm)), this, SLOT(changeSlice(Plane, Nm)));
   }
   else
     if(isView3D(view))
@@ -102,7 +102,7 @@ void PlanarSplitWidget::unregisterView(RenderView *view)
   if(isView2D(view))
   {
     auto view2d = dynamic_cast<View2D *>(view);
-    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
+    disconnect(view2d, SIGNAL(crosshairPlaneChanged(Plane,Nm)), this, SLOT(changeSlice(Plane, Nm)));
   }
 
   m_widgets[view]->SetCurrentRenderer(nullptr);

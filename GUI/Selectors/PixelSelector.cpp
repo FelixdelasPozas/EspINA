@@ -128,7 +128,7 @@ void PixelSelector::transformDisplayToWorld(int x, int y, RenderView *view, NmVe
       Q_ASSERT(false);
 
     auto index = normalCoordinateIndex(view2d->plane());
-    point[index] = view2d->crosshairPoint()[index];
+    point[index] = view2d->crosshair()[index];
   }
 }
 

@@ -29,6 +29,7 @@ qt4_wrap_cpp(GUI_MOC
   View/RenderView.h
   View/Selection.h
   View/View2D.h
+  View/ViewState.h
   View/ViewRendererMenu.h
   View/View3D.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
@@ -116,6 +117,7 @@ set (GUI_SOURCES
   View/View2D.cpp
   View/ViewRendererMenu.cpp
   View/View2DState.cpp
+  View/ViewState.cpp
   View/View3D.cpp
   View/Widgets/Contour/vtkVoxelContour2D.cpp
   View/Widgets/Zoom/ZoomSelectionWidget.cpp

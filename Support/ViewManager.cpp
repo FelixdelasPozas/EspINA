@@ -41,7 +41,8 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_selection        {new Selection()}
+: m_viewState        {new ViewState()}
+, m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
@@ -89,10 +90,12 @@ void ViewManager::registerView(SelectableView* view)
 //----------------------------------------------------------------------------
 void ViewManager::registerView(RenderView* view)
 {
-  Q_ASSERT(!m_renderViews.contains(view));
-  m_renderViews << view;
   registerView(static_cast<SelectableView *>(view));
 
+  Q_ASSERT(!m_renderViews.contains(view));
+  m_renderViews << view;
+
+  view->setState(m_viewState);
   view->setEventHandler(m_eventHandler);
   //view->setColorEngine(m_colorEngine);
 
@@ -100,10 +103,13 @@ void ViewManager::registerView(RenderView* view)
 
   for (auto manager : m_repManagers)
   {
-    view->addRepresentationManager(manager->clone());
+    if (manager->supportedViews().testFlag(view->type()))
+    {
+      view->addRepresentationManager(manager->clone());
+    }
   }
 
-  for(auto widget: m_widgets)
+  for (auto widget : m_widgets)
   {
     view->addWidget(widget);
   }
@@ -120,11 +126,17 @@ void ViewManager::unregisterView(SelectableView* view)
 void ViewManager::unregisterView(RenderView* view)
 {
   Q_ASSERT(m_renderViews.contains(view));
+
   m_renderViews.removeAll(view);
   unregisterView(static_cast<SelectableView *>(view));
 
+  view->setEventHandler(EventHandlerSPtr());
+  view->setState(std::make_shared<ViewState>());
+
   for(auto widget: m_widgets)
+  {
     view->removeWidget(widget);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -161,7 +173,10 @@ void ViewManager::addRepresentationManagers(RepresentationManagerSList repManage
   {
     for (auto renderView : m_renderViews)
     {
-      renderView->addRepresentationManager(repManager->clone());
+      if (repManager->supportedViews().testFlag(renderView->type()))
+      {
+        renderView->addRepresentationManager(repManager->clone());
+      }
     }
     m_repManagers << repManager;
   }
@@ -513,8 +528,7 @@ void ViewManager::setColorEngine(ColorEngineSPtr engine)
 //----------------------------------------------------------------------------
 void ViewManager::focusViewsOn(const NmVector3& point)
 {
-  for(auto view: m_renderViews)
-    view->centerViewOn(point, true);
+  m_viewState->focusViewOn(point);
 }
 
 //----------------------------------------------------------------------------

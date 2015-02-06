@@ -87,7 +87,7 @@ using namespace ESPINA;
 // SLICE VIEW
 //-----------------------------------------------------------------------------
 View2D::View2D(Plane plane, QWidget* parent)
-: RenderView        {parent}
+: RenderView        {ViewType::VIEW_2D, parent}
 , m_mainLayout      {new QVBoxLayout()}
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
@@ -118,13 +118,13 @@ View2D::View2D(Plane plane, QWidget* parent)
   switch (m_plane)
   {
     case Plane::XY:
-      m_state = std::unique_ptr<State>(new AxialState());
+      m_state2D = std::unique_ptr<State>(new AxialState());
       break;
     case Plane::XZ:
-      m_state = std::unique_ptr<State>(new CoronalState());
+      m_state2D = std::unique_ptr<State>(new CoronalState());
       break;
     case Plane::YZ:
-      m_state = std::unique_ptr<State>(new SagittalState());
+      m_state2D = std::unique_ptr<State>(new SagittalState());
       break;
     default:
       break;
@@ -204,7 +204,7 @@ View2D::~View2D()
 
   m_renderer->RemoveViewProp(m_ruler);
 
-  m_state.reset();
+  m_state2D.reset();
 }
 
 //-----------------------------------------------------------------------------
@@ -344,7 +344,7 @@ void View2D::updateSceneBounds()
 
   if (m_spinBox->minimum() == 0 && m_spinBox->maximum() == 0)
   {
-    m_crosshairPoint[0] = m_crosshairPoint[1] = m_crosshairPoint[2] = 0;
+    emit crosshairChanged(NmVector3());
   }
 
   setSlicingStep(m_sceneResolution);
@@ -357,6 +357,7 @@ void View2D::updateSceneBounds()
   double sceneRight = m_sceneBounds[2*h+1];
   double sceneUpper = m_sceneBounds[2*v];
   double sceneLower = m_sceneBounds[2*v+1];
+
   updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
 
   // REVIEW
@@ -647,8 +648,8 @@ void View2D::resetCamera()
 {
   NmVector3 origin{ 0, 0, 0 };
 
-  m_state->updateCamera(m_renderer ->GetActiveCamera(), origin);
-  m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
+  m_state2D->updateCamera(m_renderer ->GetActiveCamera(), origin);
+  m_state2D->updateCamera(m_thumbnail->GetActiveCamera(), origin);
 
   m_thumbnail->RemoveViewProp(m_channelBorder);
   m_thumbnail->RemoveViewProp(m_viewportBorder);
@@ -729,23 +730,11 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::scrollValueChanged(int value /*slice index */)
+void View2D::scrollValueChanged(int value/*slice index */)
 {
-  // WARNING: Any modification to this method must be taken into account
-  // at the end block of setSlicingStep
-  m_crosshairPoint[m_normalCoord] = voxelCenter(value, m_plane);
+  auto position = voxelCenter(value, m_plane);
 
-  updateRepresentations();
-
-  m_spinBox->blockSignals(true);
-  m_spinBox->setValue(m_fitToSlices ? value + 1: slicingPosition());
-  m_spinBox->blockSignals(false);
-
-  emit centerChanged(m_crosshairPoint);
-//NOTE: Previoues implementation
-//   emit sliceChanged(m_plane, slicingPosition());
-//
-//   updateView();
+  emit crosshairPlaneChanged(m_plane, position);
 }
 
 //-----------------------------------------------------------------------------
@@ -753,20 +742,9 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
 {
   int sliceIndex = m_fitToSlices ? (value - 1) : voxelSlice(value, m_plane);
 
-  m_crosshairPoint[m_normalCoord] = voxelCenter(sliceIndex, m_plane);
+  auto position = voxelCenter(sliceIndex, m_plane);
 
-  updateRepresentations();
-
-  m_scrollBar->blockSignals(true);
-  m_scrollBar->setValue(m_fitToSlices? (value - 1) : vtkMath::Round(value/m_slicingStep[m_normalCoord]));
-  m_scrollBar->blockSignals(false);
-
-  emit centerChanged(m_crosshairPoint);
-//   {
-//     emit sliceChanged(m_plane, slicingPosition());
-//
-//     updateView();
-//   }
+  emit crosshairPlaneChanged(m_plane, position);
 }
 
 //-----------------------------------------------------------------------------
@@ -975,8 +953,9 @@ void View2D::centerCrosshairOnMousePosition()
   if (channelPicked)
   {
     center[m_normalCoord] = slicingPosition();
-    centerViewOn(center);
-    emit centerChanged(m_crosshairPoint);
+    emit crosshairChanged(center);
+//     onCrosshairChanged(center);
+//     emit centerChanged(m_crosshairPoint);
   }
 }
 
@@ -1105,9 +1084,6 @@ void View2D::configureManager(RepresentationManagerSPtr manager)
 {
   auto manager2D = dynamic_cast<RepresentationManager2D *>(manager.get());
 
-  connect(this,          SIGNAL(centerChanged(NmVector3)),
-          manager.get(), SLOT(onCrosshairChanged(NmVector3)));
-
   if (manager2D)
   {
     manager2D->setPlane(m_plane);
@@ -1216,34 +1192,13 @@ void View2D::setSlicingStep(const NmVector3& steps)
 
   setSlicingBounds(m_sceneBounds);
 
-  if(m_fitToSlices)
-    m_spinBox->setSingleStep(1);
-  else
-    m_spinBox->setSingleStep(m_slicingStep[m_normalCoord]);
-
   m_scrollBar->setValue(sliceIndex);
-
-  {
-    // We want to avoid the view update while loading channels
-    // on scrollValueChanged(sliceIndex)
-    m_crosshairPoint[m_normalCoord] = voxelCenter(sliceIndex, m_plane);
-
-    updateRepresentations();
-
-    m_spinBox->blockSignals(true);
-    m_spinBox->setValue(m_fitToSlices ? sliceIndex + 1: slicingPosition());
-    m_spinBox->blockSignals(false);
-
-    emit centerChanged(m_crosshairPoint);
-    // NOTE: previous implementation
-    //emit sliceChanged(m_plane, slicingPosition());
-  }
 }
 
 //-----------------------------------------------------------------------------
 Nm View2D::slicingPosition() const
 {
-  return m_crosshairPoint[m_normalCoord];
+  return crosshair()[m_normalCoord];
 }
 
 
@@ -1283,55 +1238,21 @@ void View2D::setSlicingBounds(const Bounds& bounds)
   //TODO 2012-11-14 m_fromSlice->setEnabled(enabled);
   //                m_toSlice->setEnabled(enabled);
 
-  // update crosshair
-  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
+//   // update crosshair
+//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
+//                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
 }
 
+
+
 //-----------------------------------------------------------------------------
-void View2D::centerViewOn(const NmVector3& point, bool force)
+bool View2D::isCrosshairVisible() const
 {
-  NmVector3 centerVoxel;
-  // Adjust crosshairs to fit slicing steps
-  for (int i = 0; i < 3; i++)
-    centerVoxel[i] = voxelCenter(point[i], toPlane(i));
-
-  if (!isVisible() ||
-     (m_crosshairPoint[0] == centerVoxel[0] &&
-      m_crosshairPoint[1] == centerVoxel[1] &&
-      m_crosshairPoint[2] == centerVoxel[2] &&
-      !force))
-    return;
-
-  // Adjust crosshairs to fit slicing steps
-  m_crosshairPoint = centerVoxel;
-
-  // Disable scrollbar signals to avoid calling setting slice
-  m_scrollBar->blockSignals(true);
-  m_spinBox->blockSignals(true);
-
-  int slicingPos = voxelSlice(point[m_normalCoord], m_plane);
-
-  m_scrollBar->setValue(slicingPos);
-
-  if (m_fitToSlices)
-    slicingPos++; // Correct 0 index
-  else
-    slicingPos = vtkMath::Round(centerVoxel[m_normalCoord]);
-
-  m_spinBox->setValue(slicingPos);
-
-  m_spinBox->blockSignals(false);
-  m_scrollBar->blockSignals(false);
-
-  updateRepresentations();
-  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
-
   // Only center camera if center is out of the display view
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetViewport(m_renderer);
   coords->SetCoordinateSystemToNormalizedViewport();
+
   double ll[3], ur[3];
   coords->SetValue(0, 0); //LL
   memcpy(ll,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
@@ -1340,31 +1261,71 @@ void View2D::centerViewOn(const NmVector3& point, bool force)
 
   int H = (Plane::YZ == m_plane)?2:0;
   int V = (Plane::XZ == m_plane)?2:1;
-  bool centerOutOfCamera = m_crosshairPoint[H] < ll[H] || m_crosshairPoint[H] > ur[H] // Horizontally out
-                        || m_crosshairPoint[V] > ll[V] || m_crosshairPoint[V] < ur[V];// Vertically out
 
-  if (centerOutOfCamera || force)
-  {
-    m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
-  }
+  auto current = crosshair();
 
-  emit centerChanged(m_crosshairPoint);
-
-  //NOTE: Before managers we emitted this: emit sliceChanged(m_plane, slicingPosition());
-  //updateView();
+  return  ll[H] <= current[H] && current[H] <= ur[H] // Horizontally in
+       && ll[V] <= current[V] && current[V] >= ur[V];// Vertically in
 }
 
 //-----------------------------------------------------------------------------
-void View2D::centerViewOnPosition(const NmVector3& center)
+void View2D::onCrosshairChanged(const NmVector3 &point)
 {
-  if (!isVisible() || m_crosshairPoint == center)
-    return;
+//   NmVector3 centerVoxel;
+//
+//   // Adjust crosshairs to fit slicing steps
+//   for (int i = 0; i < 3; i++)
+//   {
+//     centerVoxel[i] = voxelCenter(point[i], toPlane(i));
+//   }
 
-  m_state->updateCamera(m_renderer->GetActiveCamera(), center);
+//   if (!isVisible() ||
+//      (m_crosshairPoint[0] == centerVoxel[0] &&
+//       m_crosshairPoint[1] == centerVoxel[1] &&
+//       m_crosshairPoint[2] == centerVoxel[2] &&
+//       !force))
+//     return;
+
+  // Disable scrollbar signals to avoid calling setting slice
+  m_spinBox  ->blockSignals(true);
+  m_scrollBar->blockSignals(true);
+
+  int slicingPos = voxelSlice(point[m_normalCoord], m_plane);
+
+  m_scrollBar->setValue(slicingPos);
+
+  if (m_fitToSlices)
+  {
+    slicingPos++; // Correct 0 index
+  }
+  else
+  {
+    //slicingPos = vtkMath::Round(centerVoxel[m_normalCoord]);
+    slicingPos = vtkMath::Round(voxelCenter(point[m_normalCoord], toPlane(m_normalCoord)));
+  }
+
+  m_spinBox->setValue(slicingPos);
+
+  m_spinBox  ->blockSignals(false);
+  m_scrollBar->blockSignals(false);
+
+  // TODO
+//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
+//                            m_crosshairPoint, m_sceneBounds, m_slicingStep);
+
+  if (isCrosshairVisible())
+  {
+    moveCamera(crosshair());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void View2D::moveCamera(const NmVector3 &point)
+{
+  m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
 
   updateView();
 }
-
 //-----------------------------------------------------------------------------
 void View2D::addRepresentationManagerMenu(RepresentationManagerSPtr manager)
 {
@@ -1566,17 +1527,17 @@ void View2D::removeRepresentationManagerMenu(RepresentationManagerSPtr manager)
 //   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
 }
 
-//-----------------------------------------------------------------------------
-void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
-{
-  m_crosshairPoint[normalCoordinateIndex(plane)] = voxelCenter(slicePos, plane);
-  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-                         m_crosshairPoint, m_sceneBounds, m_slicingStep);
-
-  // render if present
-  if (this->m_renderer->HasViewProp(this->m_HCrossLine))
-    updateView();
-}
+// //-----------------------------------------------------------------------------
+// void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
+// {
+//   m_crosshairPoint[normalCoordinateIndex(plane)] = voxelCenter(slicePos, plane);
+//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
+//                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
+//
+//   // render if present
+//   if (this->m_renderer->HasViewProp(this->m_HCrossLine))
+//     updateView();
+// }
 
 //-----------------------------------------------------------------------------
 void View2D::setVisualState(struct RenderView::VisualState state)

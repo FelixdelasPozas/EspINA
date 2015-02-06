@@ -260,9 +260,11 @@ namespace ESPINA {
      */
     void startThreadExecution();
 
-    void finishThreadExecution();
+    void onTaskFinished();
 
   private:
+    void finishThreadExecution();
+
     bool isExecutingOnThread() const;
 
   signals:
@@ -295,6 +297,7 @@ namespace ESPINA {
     bool m_hidden;
 
     QMutex         m_mutex;
+    QMutex         m_restartMutex;
     mutable QReadWriteLock m_descriptionLock;
     QWaitCondition m_pauseCondition;
 

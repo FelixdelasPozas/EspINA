@@ -136,6 +136,16 @@ namespace ESPINA
      */
     void addRepresentationManagers(RepresentationManagerSList repManagers);
 
+  private:
+    ViewStateSPtr           m_viewState;
+    QList<SelectableView *> m_espinaViews;
+    QList<RenderView *>     m_renderViews;
+
+    RepresentationPoolSList    m_channelPools;
+    RepresentationPoolSList    m_segmentationPools;
+    RepresentationPoolSList    m_autonomousPools;
+    RepresentationManagerSList m_repManagers;
+
     //---------------------------------------------------------------------------
     /********************* ViewItem Management API *****************************/
     // Add, Update or Remove view items
@@ -230,14 +240,6 @@ namespace ESPINA
     void setFitToSlices(bool enabled);
 
   private:
-    QList<SelectableView *> m_espinaViews;
-    QList<RenderView *>     m_renderViews;
-
-    RepresentationPoolSList    m_channelPools;
-    RepresentationPoolSList    m_segmentationPools;
-    RepresentationPoolSList    m_autonomousPools;
-    RepresentationManagerSList m_repManagers;
-
     PipelineSources m_channelSources;
     PipelineSources m_segmentationSources;
 

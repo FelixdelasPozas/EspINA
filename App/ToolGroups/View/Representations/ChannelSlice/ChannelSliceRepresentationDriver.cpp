@@ -59,7 +59,7 @@ Representation ChannelSliceRepresentationDriver::createRepresentation() const
 
   representation.Group     = ViewToolGroup::CHANNELS_GROUP;
   representation.Pools    << poolXY << poolXZ << poolYZ;
-  representation.Managers << sliceManager; //<< slice3DManager;
+  representation.Managers << sliceManager << slice3DManager;
   representation.Switches << sliceSwitch << slice3DSwitch;
 
   return representation;

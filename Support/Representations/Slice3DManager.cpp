@@ -25,6 +25,7 @@ using namespace ESPINA;
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr xy,
                                RepresentationPoolSPtr xz,
                                RepresentationPoolSPtr yz)
+: RepresentationManager(ViewType::VIEW_3D)
 {
   m_pools << xy << xz << yz;
 
@@ -59,11 +60,11 @@ bool Slice3DManager::isReady() const
 //----------------------------------------------------------------------------
 void Slice3DManager::onCrosshairChanged(NmVector3 crosshair)
 {
-  for (auto pool : m_pools)
-  {
-    pool->setCrosshair(crosshair);
-    pool->update();
-  }
+//   for (auto pool : m_pools)
+//   {
+//     pool->setCrosshair(crosshair);
+//     pool->update();
+//   }
 }
 
 //----------------------------------------------------------------------------
@@ -130,10 +131,13 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 //----------------------------------------------------------------------------
 void Slice3DManager::onPoolReady()
 {
+  qDebug() << "Check Pools ";
   for (auto pool : m_pools)
   {
     if (!pool->isReady()) return;
   }
+
+  qDebug() << "Pools ready";
 
   updateRepresentationActors();
 }

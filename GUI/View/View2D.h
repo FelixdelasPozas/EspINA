@@ -153,15 +153,6 @@ namespace ESPINA
      */
     Nm slicingPosition() const;
 
-    virtual void centerViewOn(const NmVector3& point, bool force = false);
-
-    /** \brief Centers the view of the camera on the given point.
-     * \param[in] center point to center on.
-     *
-     * Does not change slice positions.
-     *
-     */
-    void centerViewOnPosition(const NmVector3& center);
 
     /** \brief Sets the crosshair colors.
      * \param[in] hColor color of the horizontal line.
@@ -187,13 +178,6 @@ namespace ESPINA
      *
      */
     virtual void setCrosshairVisibility(bool show);
-
-    /** \brief Updates the crosshair point moving the given plane to the given position.
-     * \param[in] plane plane to move.
-     * \param[in] slicePos new plane position.
-     *
-     */
-    void updateCrosshairPoint(const Plane plane, const Nm slicePos);
 
     virtual void setVisualState(struct RenderView::VisualState);
 
@@ -225,34 +209,13 @@ namespace ESPINA
     virtual void updateView() override;
 
   signals:
-    void centerChanged(NmVector3);
-    void focusChanged(NmVector3);
     void channelSelected(ChannelAdapterPtr);
     void segmentationSelected(SegmentationAdapterPtr, bool);
-    void sliceChanged(Plane, Nm);
 
   protected slots:
-    /** \brief Updates the view when the scroll widget changes its value.
-     * \param[in] value new value.
-     *
-     */
-    void scrollValueChanged(int value);
-
-    /** \brief Updates the view when the spinbox widget changes its value.
-     * \param[in] value new value.
-     *
-     */
-    void spinValueChanged(double value);
-  
     virtual void updateSceneBounds() override;
 
   protected:
-    /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
-     * \param[in] bounds new scene bounds.
-     *
-     */
-    void setSlicingBounds(const Bounds& bounds);
-
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
     virtual void keyPressEvent(QKeyEvent *e) override;
@@ -263,11 +226,6 @@ namespace ESPINA
      *
      */
     void centerCrosshairOnMousePosition();
-
-    /** \brief Centers the view of the camera on the mouse position.
-     *
-     */
-    void centerViewOnMousePosition();
 
     /** \brief Picks and returns the channels under given position.
      * \param[in] vx x display coordinate.
@@ -299,6 +257,8 @@ namespace ESPINA
 
     void removeRepresentationManagerMenu(RepresentationManagerSPtr manager);
 
+    virtual void configureManager(RepresentationManagerSPtr manager);
+
     /** \brief Updates the ruler widget.
      *
      */
@@ -308,6 +268,18 @@ namespace ESPINA
      *
      */
     void updateThumbnail();
+
+    /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
+     * \param[in] bounds new scene bounds.
+     *
+     */
+    void setSlicingBounds(const Bounds& bounds);
+
+    /** \brief Centers the view of the camera on the mouse position.
+     *
+     */
+    void centerViewOnMousePosition();
+
 
     /** \brief Returns the bottom value in Nm of the voxel in the given slice index and plane.
      * \param[in] sliceIndex integer slice index.
@@ -389,10 +361,29 @@ namespace ESPINA
      */
     double viewHeightLength();
 
-  private:
-    virtual void configureManager(RepresentationManagerSPtr manager);
+    bool isCrosshairVisible() const;
 
   private slots:
+    virtual void onCrosshairChanged(const NmVector3 &point);
+
+    /** \brief Centers view camera on the given point.
+     * \param[in] center point to center camera on.
+     *
+     */
+    virtual void moveCamera(const NmVector3 &point);
+
+    /** \brief Updates the view when the scroll widget changes its value.
+     * \param[in] value new value.
+     *
+     */
+    void scrollValueChanged(int value);
+
+    /** \brief Updates the view when the spinbox widget changes its value.
+     * \param[in] value new value.
+     *
+     */
+    void spinValueChanged(double value);
+
     /** \brief Takes an image of the view and saves it to disk.
      *
      */
@@ -417,7 +408,7 @@ namespace ESPINA
     // View State
     NmVector3 m_slicingStep;
 
-    std::unique_ptr<State> m_state;
+    std::unique_ptr<State> m_state2D;
 
     bool m_showThumbnail;
 

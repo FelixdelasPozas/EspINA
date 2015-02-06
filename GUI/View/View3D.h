@@ -65,30 +65,15 @@ namespace ESPINA
      */
     virtual ~View3D();
 
-    /** \brief Sets the focal point of the camera in the given point.
-     * \param[in] center focal point.
-     *
-     */
-    void setCameraFocus(const NmVector3& center);
-
     virtual void reset();
 
     virtual void resetCamera();
-
-    virtual void centerViewOn(const NmVector3& center, bool force = false);
 
     virtual void addWidget(EspinaWidgetSPtr widget) override;
 
     virtual void removeWidget(EspinaWidgetSPtr widget) override;
 
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
-
-    /** \brief Modifies the position of a specified plane of the crosshair to the given position.
-     * \param[in] plane crosshair plane to move.
-     * \param[in] position new position.
-     *
-     */
-    void changePlanePosition(Plane plane, Nm position);
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
@@ -100,9 +85,6 @@ namespace ESPINA
 
   public slots:
     virtual void updateView();
-
-  signals:
-    void centerChanged(NmVector3);
 
   protected:
     /** \brief Selects items under the given coordinates.
@@ -136,6 +118,12 @@ namespace ESPINA
     void updateViewActions();
 
   private:
+    virtual void onCrosshairChanged(const NmVector3 &point);
+
+    virtual void moveCamera(const NmVector3 &point);
+
+    bool isCrosshairVisible() const;
+
     /** \brief Helper method to setup the UI.
      *
      */
@@ -167,8 +155,6 @@ namespace ESPINA
     QScrollBar  *m_sagittalScrollBar;
 
     bool m_showCrosshairPlaneSelectors;
-
-    NmVector3 m_center;
 
     unsigned int m_numEnabledRenderers;
   };

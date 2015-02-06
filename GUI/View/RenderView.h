@@ -30,6 +30,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
+#include "ViewState.h"
 #include <GUI/Representations/PipelineSources.h>
 
 // Qt
@@ -51,16 +52,18 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    /** \brief RenderView class constructor.
-     * \param[in] parent raw pointer of the QWidget parent of this one.
-     *
-     */
-    explicit RenderView(QWidget* parent = nullptr);
-
     /** \brief RenderView class virtual destructor.
      *
      */
     virtual ~RenderView();
+
+    /** \brief View type (2D or 3D)
+     *
+     */
+    ViewType type() const
+    { return m_type; }
+
+    void setState(ViewStateSPtr state);
 
     /** \brief Sets the view event handler.
      * \param[in] eventHandler, event handler smart pointer.
@@ -184,21 +187,13 @@ namespace ESPINA
     /** \brief Returns the crosshair point.
      *
      */
-    const NmVector3 crosshairPoint() const
-    { return m_crosshairPoint; }
+    const NmVector3 crosshair() const;
 
     /** \brief Returns the resolution (spacing) of the view.
      *
      */
     const NmVector3 sceneResolution() const
     {return m_sceneResolution;}
-
-    /** \brief Centers the view on the given point.
-     * \param[in] point to center the view.
-     * \param[in] force if set to true, force render after setting the viewpoint.
-     *
-     */
-    virtual void centerViewOn(const NmVector3& point, bool force=false) = 0;
 
     /** \brief Sets the contextual menu of the view.
      * \param[in] contextMenu ContextualMenu smart pointer.
@@ -253,6 +248,10 @@ namespace ESPINA
   signals:
     void sceneResolutionChanged();
 
+    void crosshairChanged(NmVector3);
+
+    void crosshairPlaneChanged(Plane, Nm);
+
   protected slots:
     /** \brief Resets the view's camera and updates the bounds of the scene.
      *
@@ -271,6 +270,12 @@ namespace ESPINA
     virtual void updateSceneBounds();
 
   protected:
+    /** \brief RenderView class constructor.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
+     *
+     */
+    explicit RenderView(ViewType type, QWidget* parent = nullptr);
+
     /** \brief Updates the view when the selection changes.
      * \param[in] selection new selection.
      *
@@ -293,13 +298,17 @@ namespace ESPINA
      */
     unsigned int numberActiveRepresentationManagers(Data::Type type);
 
-  private slots:
-    void onRenderRequest();
-
   private:
     virtual void configureManager(RepresentationManagerSPtr manager) {}
 
     void notifyResolutionChange();
+
+  private slots:
+    virtual void onCrosshairChanged(const NmVector3 &point) = 0;
+
+    virtual void moveCamera(const NmVector3 &point) = 0;
+
+    void onRenderRequest();
 
 
   protected:
@@ -309,7 +318,6 @@ namespace ESPINA
     vtkSmartPointer<vtkRenderer> m_renderer;
 
     Bounds    m_sceneBounds;
-    NmVector3 m_crosshairPoint;
     NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis
 
     ContextualMenuSPtr m_contextMenu;
@@ -319,6 +327,10 @@ namespace ESPINA
     QList<EspinaWidgetSPtr>    m_widgets;
 
     bool m_sceneCameraInitialized;
+
+  private:
+    ViewType      m_type;
+    ViewStateSPtr m_state;
   };
 
 } // namespace ESPINA

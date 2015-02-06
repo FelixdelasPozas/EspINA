@@ -135,20 +135,6 @@ void Scheduler::changePriority(TaskSPtr task, Priority prevPriority)
 }
 
 //-----------------------------------------------------------------------------
-unsigned int Scheduler::numberOfTasks() const
-{
-  QMutexLocker lock(&m_mutex);
-
-  unsigned int result = 0;
-  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
-  {
-    result += m_runningTasks[priority].size();
-  }
-
-  return result;
-}
-
-//-----------------------------------------------------------------------------
 unsigned int Scheduler::maxRunningTasks() const
 {
   return m_maxNumRunningTasks;
@@ -175,16 +161,16 @@ void Scheduler::scheduleTasks()
 
     start = high_resolution_clock::now();
 
-    std::cout << "Start Scheduling" << std::endl;
-//     std::cout << "\t Scheduler thread " << thread() << std::endl;
-    int numTasks = 0;
-    for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
-    {
-      int size = m_runningTasks[priority].size();
-      numTasks += size;
-      std::cout << "Priority " << (int)priority << " has " << size << " tasks." << std::endl;
-    }
-    std::cout << "Scheduler has " << numTasks << " tasks:" << std::endl;
+//     std::cout << "Start Scheduling" << std::endl;
+// //     std::cout << "\t Scheduler thread " << thread() << std::endl;
+//     int numTasks = 0;
+//     for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
+//     {
+//       int size = m_runningTasks[priority].size();
+//       numTasks += size;
+//       std::cout << "Priority " << (int)priority << " has " << size << " tasks." << std::endl;
+//     }
+//     std::cout << "Scheduler has " << numTasks << " tasks:" << std::endl;
 
     int num_running_threads = 0;
 
@@ -197,8 +183,7 @@ void Scheduler::scheduleTasks()
       {
         bool is_thread_attached = task->isExecutingOnThread();
 
-        if (num_running_threads < m_maxNumRunningTasks
-            && !(task->isPendingPause() || task->isWaiting() || task->isAborted() || task->hasFinished()))
+        if (num_running_threads < m_maxNumRunningTasks && canExecute(task))
         {
           if (is_thread_attached)
           {
@@ -276,15 +261,7 @@ void Scheduler::scheduleTasks()
 
 //      for (auto task : m_runningTasks[priority])
 //      {
-//        std::cout << task->id() << " - " << task->description().toStdString() << " - ";
-//        std::cout << (task->isPaused() ? "paused " : "");
-//        std::cout << (task->isPendingPause() ? "paused " : "");
-//        std::cout << (task->isAborted() ? "aborted " : "");
-//        std::cout << (task->isDispatcherPaused() ? " dispacherPaused " : "");
-//        std::cout << (task->hasFinished() ? "finished " : "");
-//        std::cout << (task->isRunning() ? "running " : "");
-//        std::cout << (task->isHidden() ? "hidden " : "");
-//        std::cout << std::endl;
+//         printState(task);
 //      }
     }
     m_mutex.unlock();
@@ -354,4 +331,40 @@ void Scheduler::removeTask(Priority priority, TaskSPtr task)
       emit taskRemoved(task);
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+unsigned int Scheduler::numberOfTasks() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  unsigned int result = 0;
+  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
+  {
+    result += m_runningTasks[priority].size();
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+bool Scheduler::canExecute(TaskSPtr task) const
+{
+  return !(task->isPendingPause() || task->isWaiting() || task->isAborted() || task->hasFinished());
+}
+
+//-----------------------------------------------------------------------------
+void Scheduler::printState(TaskSPtr task) const
+{
+  std::cout << task->id() << " Priority[" << (int)task->priority() << "]" << " - " << task->description().toStdString() << " - ";
+  std::cout << (task->isExecutingOnThread() ? "Executing on thread " : "");
+  std::cout << (task->isPaused() ? "paused " : "");
+  std::cout << (task->isPendingPause() ? "pending pause " : "");
+  std::cout << (task->isAborted() ? "aborted " : "");
+  std::cout << (task->isDispatcherPaused() ? " dispacherPaused " : "");
+  std::cout << (task->needsRestart() ? "needsRestart " : "");
+  std::cout << (task->hasFinished() ? "finished " : "");
+  std::cout << (task->isRunning() ? "running " : "");
+  //std::cout << (task->isHidden() ? "hidden " : "");
+  std::cout << std::endl;
 }

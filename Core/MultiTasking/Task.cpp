@@ -65,6 +65,9 @@ Task::Task(SchedulerSPtr scheduler)
   {
     moveToThread(m_scheduler->thread());
   }
+
+  connect(this, SIGNAL(finished()),
+          this, SLOT(onTaskFinished()));
 }
 
 //-----------------------------------------------------------------------------
@@ -92,10 +95,6 @@ void Task::setPriority(Priority value)
     QMutexLocker lock(&m_submissionMutex);
     if (m_submitted && m_scheduler)
     {
-      if (value == Priority::VERY_HIGH)
-      {
-        qDebug() << "CHANGING HIGH PRIORITY";
-      }
       m_scheduler->changePriority(this, previous);
     }
   }
@@ -104,10 +103,7 @@ void Task::setPriority(Priority value)
 //-----------------------------------------------------------------------------
 void Task::pause()
 {
-  m_mutex.lock();
-//  std::cout << m_description.toStdString() << " has been paused by the user" << std::endl;
   m_pendingUserPause = true;
-  m_mutex.unlock();
 
   dispatcherPause();
 }
@@ -115,8 +111,6 @@ void Task::pause()
 //-----------------------------------------------------------------------------
 void Task::resume()
 {
-  QMutexLocker lock(&m_mutex);
-//  std::cout << m_description.toStdString() << " has been resumed by the user" << std::endl;
   m_pendingUserPause = false;
 }
 
@@ -153,7 +147,6 @@ bool Task::hasFinished() const
 //-----------------------------------------------------------------------------
 void Task::submit(TaskSPtr task)
 {
-  task->prepareToRun();
 
   if (task->m_scheduler != nullptr)
   {
@@ -161,15 +154,14 @@ void Task::submit(TaskSPtr task)
 
     if (!task->m_submitted)
     {
+      task->prepareToRun();
       task->m_scheduler->addTask(task);
       task->m_submitted = true;
-//       qDebug() << "Task" <<  task->description() << "submitted";
     }
     else
     {
       // Submitting an already submitted task implies a restart
       task->restart();
-//       qDebug() << "Task" <<  task->description() << "restarted";
     }
   }
   else
@@ -181,8 +173,6 @@ void Task::submit(TaskSPtr task)
 //-----------------------------------------------------------------------------
 void Task::abort()
 {
-  QMutexLocker lock(&m_mutex);
-//  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
   m_isAborted = true;
 
   onAbort();
@@ -252,8 +242,7 @@ void Task::runWrapper()
 //-----------------------------------------------------------------------------
 void Task::dispatcherPause()
 {
-  QMutexLocker lock(&m_mutex);
-  //std::cout << m_description.toStdString() << " has been paused" << std::endl;
+//   qDebug() << m_id << " paused by scheduler";
   m_pendingPause = true;
 }
 
@@ -262,8 +251,9 @@ void Task::dispatcherResume()
 {
   if (!m_pendingUserPause)
   {
-    //std::cout << m_description.toStdString() << " has been resumed" << std::endl;
+//     qDebug() << m_id << " resumed by scheduler";
     m_pauseCondition.wakeAll();
+    m_pendingPause = false;
   }
 }
 
@@ -313,17 +303,25 @@ void Task::startThreadExecution()
 
   moveToThread(m_executingThread);
 
-//   std::cout << description().toStdString() << " starting inside thread " << m_thread << std::endl;
-//   std::cout << description().toStdString() << " executing thread " << m_executingThread << std::endl;
-
   connect(m_executingThread, SIGNAL(started()),
-          this,     SLOT(runWrapper()));
+          this,              SLOT(runWrapper()));
   connect(m_executingThread, SIGNAL(finished()),
           m_executingThread, SLOT(deleteLater()));
-  connect(this,     SIGNAL(finished()),
-          this,     SLOT(finishThreadExecution()));
 
   m_executingThread->start();
+}
+
+//-----------------------------------------------------------------------------
+void Task::onTaskFinished()
+{
+  if (m_needsRestart)
+  {
+    runWrapper();
+  }
+  else
+  {
+    finishThreadExecution();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -336,8 +334,8 @@ void Task::finishThreadExecution()
 
   moveToThread(m_thread);
 
-  disconnect(this,     SIGNAL(finished()),
-             this,     SLOT(finishThreadExecution()));
+//   disconnect(this,     SIGNAL(finished()),
+//              this,     SLOT(finishThreadExecution()));
 
   m_executingThread->quit();
 

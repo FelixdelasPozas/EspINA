@@ -58,7 +58,7 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)
-: RenderView                   {parent}
+: RenderView                   {ViewType::VIEW_3D, parent}
 , m_mainLayout                 {new QVBoxLayout()}
 , m_controlLayout              {new QHBoxLayout()}
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
@@ -214,21 +214,31 @@ void View3D::buildViewActionsButtons()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::centerViewOn(const NmVector3& point, bool force)
+bool View3D::isCrosshairVisible() const
 {
-  if (!isVisible() ||
-      (m_center[0] == point[0] &&
-       m_center[1] == point[1] &&
-       m_center[2] == point[2]))
-    return;
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetViewport(m_renderer);
+  coords->SetCoordinateSystemToNormalizedViewport();
 
-  m_center = point;
+  double ll[3], ur[3], ch[3];
+  coords->SetValue(0, 0); //LL
+  memcpy(ll,coords->GetComputedDisplayValue(m_renderer),3*sizeof(double));
+  coords->SetValue(1, 1); //UR
+  memcpy(ur,coords->GetComputedDisplayValue(m_renderer),3*sizeof(double));
 
-  for (auto manager :m_managers)
-  {
-    manager->onCrosshairChanged(m_center);
-  }
+  auto current = crosshair();
 
+  coords->SetCoordinateSystemToWorld();
+  coords->SetValue(current[0], current[1], current[2]);
+  memcpy(ch,coords->GetComputedDisplayValue(m_renderer),3*sizeof(double));
+
+  return  current[0] < ll[0] || current[0] > ur[0] // Horizontally out
+       || current[1] > ll[1] || current[1] < ur[1];// Vertically out
+}
+
+//-----------------------------------------------------------------------------
+void View3D::onCrosshairChanged(const NmVector3 &point)
+{
   if (m_showCrosshairPlaneSelectors && !m_channelSources->isEmpty())
   {
     int iCenter[3] = {
@@ -250,13 +260,16 @@ void View3D::centerViewOn(const NmVector3& point, bool force)
     m_sagittalScrollBar->blockSignals(false);
   }
 
-  setCameraFocus(point); // NOTE: We used to do it only if
+//   if (!isCrosshairVisible())
+//   {
+//     moveCamera(point);
+//   }
 }
 
 //-----------------------------------------------------------------------------
-void View3D::setCameraFocus(const NmVector3& center)
+void View3D::moveCamera(const NmVector3 &point)
 {
-  m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
+  m_renderer->GetActiveCamera()->SetFocalPoint(point[0],point[1],point[2]);
   m_renderer->ResetCameraClippingRange();
 }
 
@@ -367,8 +380,9 @@ void View3D::updateView()
 {
   if(isVisible())
   {
-    this->m_view->GetRenderWindow()->Render();
-    this->m_view->update();
+    qDebug() << "Render 3D";
+    m_view->GetRenderWindow()->Render();
+    m_view->update();
   }
 }
 
@@ -567,17 +581,6 @@ void View3D::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::changePlanePosition(Plane plane, Nm position)
-{
-  bool needUpdate = false;
-
-  for(auto manager: m_managers)
-  {
-    manager->onCrosshairChanged(m_center); // REVIEW manage from single point
-  }
-}
-
-//-----------------------------------------------------------------------------
 void View3D::updateViewActions()
 {
   bool canTakeSnapshot = false;
@@ -638,7 +641,7 @@ void View3D::scrollBarMoved(int value)
   point[1] = m_coronalScrollBar ->value() * m_sceneResolution[1];
   point[2] = m_sagittalScrollBar->value() * m_sceneResolution[2];
 
-  centerViewOn(point);
+  emit crosshairChanged(point);
 }
 
 //-----------------------------------------------------------------------------

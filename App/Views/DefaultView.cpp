@@ -70,7 +70,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
   setObjectName("viewXY");
   m_viewXY->setCrosshairColors(m_xLine, m_yLine);
-  initView2D(m_viewXY);
   setLayout(new QVBoxLayout());
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
@@ -78,23 +77,19 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dockYZ = new QDockWidget(tr("ZY"), parent);
   dockYZ->setObjectName("DockZY");
   m_viewYZ->setCrosshairColors(m_zLine, m_yLine);
-  initView2D(m_viewYZ);
   dockYZ->setWidget(m_viewYZ);
 
   dockXZ = new QDockWidget(tr("XZ"), parent);
   dockXZ->setObjectName("xzDock");
   m_viewXZ->setCrosshairColors(m_xLine, m_zLine);
-  initView2D(m_viewXZ);
   dockXZ->setWidget(m_viewXZ);
 
   dock3D = new QDockWidget(tr("3D"), parent);
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
 
-  connect(m_view3D, SIGNAL(centerChanged(NmVector3)),
-          this, SLOT(setCrosshairPoint(NmVector3)));
 
-//   m_viewManager->registerView(m_viewXY);
+  m_viewManager->registerView(m_viewXY);
 //   m_viewManager->registerView(m_viewXZ); // UNCOMMENT!!
   m_viewManager->registerView(m_viewYZ);
   m_viewManager->registerView(m_view3D);
@@ -111,7 +106,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
-//   m_viewManager->unregisterView(m_viewXY);
+  m_viewManager->unregisterView(m_viewXY);
 //   m_viewManager->unregisterView(m_viewXZ);
   m_viewManager->unregisterView(m_viewYZ);
   m_viewManager->unregisterView(m_view3D);
@@ -123,15 +118,6 @@ DefaultView::~DefaultView()
 
   delete m_renderersMenu;
   delete m_camerasMenu;
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::initView2D(View2D *view)
-{
-  connect(view, SIGNAL(centerChanged(NmVector3)),
-          this, SLOT(setCrosshairPoint(NmVector3)));
-  connect(view, SIGNAL(sliceChanged(Plane, Nm)),
-          this, SLOT(changePlanePosition(Plane, Nm)));
 }
 
 //-----------------------------------------------------------------------------
@@ -271,30 +257,30 @@ void DefaultView::rowsInserted(const QModelIndex& parent, int start, int end)
   if (!parent.isValid())
     return;
 
-  for (int child = start; child <= end; child++)
+  if (parent == m_model->channelRoot())
   {
-    QModelIndex index = parent.child(child, 0);
-    ItemAdapterPtr item = itemAdapter(index);
-    switch (item->type())
+    for (int child = start; child <= end; child++)
     {
-      case ItemAdapter::Type::CHANNEL:
-      {
-        ChannelAdapterPtr channel = channelPtr(item);
-        //   qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
+      auto index = parent.child(child, 0);
+      auto item = itemAdapter(index);
+      Q_ASSERT(isChannel(item));
 
-        add(channel);
-        break;
-      }
-      case ItemAdapter::Type::SEGMENTATION:
-      {
-        SegmentationAdapterPtr seg = segmentationPtr(item);
-        //   qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
-        add(seg);
-        break;
-      }
-      default:
-        break;
-    };
+      auto channel = channelPtr(item);
+
+      add(channel);
+    }
+  } else if (parent == m_model->segmentationRoot())
+  {
+    for (int child = start; child <= end; child++)
+    {
+      auto index = parent.child(child, 0);
+      auto item = itemAdapter(index);
+      Q_ASSERT(isSegmentation(item));
+
+      auto segmentation = segmentationPtr(item);
+
+      add(segmentation);
+    }
   }
 }
 
@@ -378,47 +364,11 @@ void DefaultView::switchPreprocessing()
 //----------------------------------------------------------------------------
 void DefaultView::updateViews()
 {
-//  m_viewXY->updateView();
+ m_viewXY->updateView();
 //  m_viewXZ->updateView();
  m_viewYZ->updateView();
  m_view3D->updateView();
 }
-
-//-----------------------------------------------------------------------------
-void DefaultView::setCrosshairPoint(const NmVector3& point, bool force)
-{
-//   m_viewXY->centerViewOn(point, force);
-//   m_viewXZ->centerViewOn(point, force);
-  //m_viewYZ->centerViewOn(point, force);
-  //m_view3D->centerViewOn(point, force);
-  //m_view3D->changePlanePosition(Plane::YZ, point[0]);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::changePlanePosition(Plane plane, Nm dist)
-{
-  switch(plane)
-  {
-    case Plane::XY:
-      m_viewYZ->updateCrosshairPoint(plane, dist);
-      m_viewXZ->updateCrosshairPoint(plane, dist);
-      break;
-    case Plane::XZ:
-      m_viewXY->updateCrosshairPoint(plane, dist);
-      m_viewYZ->updateCrosshairPoint(plane, dist);
-      break;
-    case Plane::YZ:
-      m_viewXY->updateCrosshairPoint(plane, dist);
-      m_viewXZ->updateCrosshairPoint(plane, dist);
-      break;
-    default:
-      qWarning() << "Unexpected plane";
-      return;
-      break;
-  }
-  m_view3D->changePlanePosition(plane, dist);
-}
-
 
 //-----------------------------------------------------------------------------
 void DefaultView::setFitToSlices(bool unused)
@@ -483,17 +433,7 @@ void DefaultView::loadSessionSettings(TemporalStorageSPtr storage)
 //-----------------------------------------------------------------------------
 void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
 {
-  QSettings settings(storage->absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
-
-  settings.beginGroup("View2D");
-//   for(auto renderer: m_viewXY->renderers())
-//     settings.setValue(renderer->name(), !renderer->isHidden());
-  settings.endGroup();
-
-  settings.beginGroup("View3D");
-//   for(auto renderer: m_view3D->renderers())
-//     settings.setValue(renderer->name(), !renderer->isHidden());
-  settings.endGroup();
-
-  settings.sync();
+//   QSettings settings(storage->absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
+//
+//   settings.sync();
 }

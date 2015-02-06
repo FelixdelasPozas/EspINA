@@ -64,7 +64,7 @@ namespace ESPINA
     if (!view2d || m_widgets.keys().contains(view)) return;
 
     auto plane = view2d->plane();
-    auto slice = view2d->crosshairPoint()[normalCoordinateIndex(plane)];
+    auto slice = view2d->crosshair()[normalCoordinateIndex(plane)];
 
     connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)), Qt::QueuedConnection);
     m_widgets[view] = vtkSkeletonWidget::New();

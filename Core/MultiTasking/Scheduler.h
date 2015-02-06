@@ -112,6 +112,10 @@ namespace ESPINA {
      */
     unsigned int numberOfTasks() const;
 
+    bool canExecute(TaskSPtr task) const;
+
+    void printState(TaskSPtr task) const;
+
 
   private:
     int m_period;

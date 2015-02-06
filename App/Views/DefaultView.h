@@ -188,18 +188,6 @@ namespace ESPINA
      */
     void setFitToSlices(bool unused);
 
-    /** \brief Sets the crosshair point in the views.
-     * \param[in] point point to set the crosshair.
-     * \param[in] force force centering the view in the point.
-     */
-    virtual void setCrosshairPoint(const NmVector3& point, bool force = false);
-
-    /** \brief Changes a plane position.
-     * \param[in] plane plane to change.
-     * \param[in] pos position to set the plane.
-     */
-    virtual void changePlanePosition(Plane plane, Nm pos);
-
     // virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
   protected:
     virtual void rowsInserted(const QModelIndex& parent, int start, int end)  override;
@@ -210,11 +198,6 @@ namespace ESPINA
      *
      */
     void updateViews();
-
-    /** \brief Initializes a 2D view.
-     * \pararm[in] view, View2D raw pointer of the view to initialize.
-     */
-    void initView2D(View2D *view);
 
     // void selectFromSlice(double slice, PlaneType plane);
     // void selectToSlice(double slice, PlaneType plane);

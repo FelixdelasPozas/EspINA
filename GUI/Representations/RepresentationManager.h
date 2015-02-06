@@ -84,6 +84,9 @@ namespace ESPINA
     void setView(RenderView *view)
     { m_view = view; }
 
+    ViewTypeFlags supportedViews() const
+    { return m_supportedViews; }
+
     /** \brief Specify the resolution of the view
      *
      */
@@ -124,7 +127,7 @@ namespace ESPINA
     void renderRequested();
 
   protected:
-    explicit RepresentationManager();
+    explicit RepresentationManager(ViewTypeFlags supportedViews);
 
   protected slots:
     /** \brief Update all actors of the managed representations
@@ -150,7 +153,8 @@ namespace ESPINA
     bool    m_showPipelines;
 
   private:
-    RenderView *m_view;
+    RenderView   *m_view;
+    ViewTypeFlags m_supportedViews;
 
     RepresentationManagerSList m_childs;
 

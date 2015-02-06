@@ -56,7 +56,7 @@ void ROIWidget::updateActor(View2D *view)
 {
   auto bounds = m_ROI->bounds();
   auto index  = normalCoordinateIndex(view->plane());
-  auto pos    = view->crosshairPoint()[index];
+  auto pos    = view->crosshair()[index];
 
   bounds[2 * index] = bounds[(2 * index) + 1] = pos;
 

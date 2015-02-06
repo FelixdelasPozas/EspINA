@@ -758,7 +758,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       {
         if (!channel->hasExtension(ChannelEdges::TYPE))
         {
-          channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
+          //UNCOMMENT: channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
         }
       }
     }

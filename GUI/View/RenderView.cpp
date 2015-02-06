@@ -49,13 +49,15 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(QWidget* parent)
+RenderView::RenderView(ViewType type, QWidget* parent)
 : QWidget                 {parent}
 , m_view                  {new QVTKWidget()}
 , m_sceneResolution       {1, 1, 1}
 , m_channelSources        {nullptr}
 , m_sceneCameraInitialized{false}
+, m_type                  {type}
 {
+  setState(std::make_shared<ViewState>());
 }
 
 //-----------------------------------------------------------------------------
@@ -64,6 +66,42 @@ RenderView::~RenderView()
   // subclasses of this one should take care of removing elements
   // (channels, segmentations, widgets and renderers).
   delete m_view;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::setState(ViewStateSPtr state)
+{
+  if (m_state)
+  {
+    disconnect(this,          SIGNAL(crosshairChanged(NmVector3)),
+               m_state.get(), SLOT(setCrosshair(NmVector3)));
+
+    disconnect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
+               m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
+
+    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3)),
+               this,          SLOT(onCrosshairChanged(NmVector3)));
+
+    disconnect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
+               this,          SLOT(moveCamera(NmVector3)));
+  }
+
+  m_state = state;
+
+  if (m_state)
+  {
+    connect(this,          SIGNAL(crosshairChanged(NmVector3)),
+            m_state.get(), SLOT(setCrosshair(NmVector3)));
+
+    connect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
+            m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
+
+    connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3)),
+            this,          SLOT(onCrosshairChanged(NmVector3)));
+
+    connect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
+            this,          SLOT(moveCamera(NmVector3)));
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -91,6 +129,9 @@ void RenderView::setChannelSources(PipelineSources *channels)
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
+  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3)),
+          manager.get(), SLOT(onCrosshairChanged(NmVector3)));
+
   connect(manager.get(), SIGNAL(renderRequested()),
           this,          SLOT(onRenderRequest()));
 
@@ -286,7 +327,6 @@ void RenderView::notifyResolutionChange()
   emit sceneResolutionChanged();
 }
 
-
 //-----------------------------------------------------------------------------
 void RenderView::updateRepresentations(ChannelAdapterList list)
 {
@@ -440,6 +480,12 @@ vtkRenderWindow* RenderView::renderWindow() const
 vtkRenderer* RenderView::mainRenderer() const
 {
   return m_renderer;
+}
+
+//-----------------------------------------------------------------------------
+const NmVector3 RenderView::crosshair() const
+{
+  return m_state->crosshair();
 }
 
 //-----------------------------------------------------------------------------

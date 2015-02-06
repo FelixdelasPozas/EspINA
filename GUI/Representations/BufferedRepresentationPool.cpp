@@ -106,7 +106,7 @@ void ESPINA::BufferedRepresentationPool<P>::updateImplementation()
 
   for (auto further : m_updateWindow.further())
   {
-    updateWindowPosition(further, Priority::NORMAL);
+    updateWindowPosition(further, Priority::LOW);
   }
 
 }
@@ -115,9 +115,9 @@ void ESPINA::BufferedRepresentationPool<P>::updateImplementation()
 template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::updateWindowPosition(RepresentationUpdaterSPtr updater, Priority priority)
 {
+  updater->setPriority(priority);
   if (updater->applySettings(settings()))
   {
-    updater->setPriority(priority);
 
     Task::submit(updater);
   }

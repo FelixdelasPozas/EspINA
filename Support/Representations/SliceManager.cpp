@@ -26,7 +26,8 @@ using namespace ESPINA;
 SliceManager::SliceManager(RepresentationPoolSPtr xy,
                            RepresentationPoolSPtr xz,
                            RepresentationPoolSPtr yz)
-: m_xy{xy}
+: RepresentationManager(ViewType::VIEW_2D)
+, m_xy{xy}
 , m_xz{xz}
 , m_yz{yz}
 , m_plane{Plane::UNDEFINED}

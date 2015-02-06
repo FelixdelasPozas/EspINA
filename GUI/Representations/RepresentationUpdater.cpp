@@ -80,12 +80,10 @@ RepresentationPipelineSList RepresentationUpdater::pipelines()
 void RepresentationUpdater::run()
 {
   //qDebug() << "Task" << description() << "running" << " - " << this;
-  bool taskExecuted = true;
   for (auto pipeline : pipelines())
   {
     if (!canExecute())
     {
-      taskExecuted = false;
       break;
     }
 
