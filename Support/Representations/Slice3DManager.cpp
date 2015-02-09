@@ -47,24 +47,45 @@ Slice3DManager::~Slice3DManager()
 }
 
 //----------------------------------------------------------------------------
-bool Slice3DManager::isReady() const
+RepresentationManager::PipelineStatus Slice3DManager::pipelineStatus() const
 {
-  for (auto pool : m_pools)
-  {
-    if (!pool->isReady()) return false;
-  }
-
-  return true;
+  return PipelineStatus::RANGE_DEPENDENT;
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onCrosshairChanged(NmVector3 crosshair)
+TimeRange Slice3DManager::readyRange() const
 {
-//   for (auto pool : m_pools)
-//   {
-//     pool->setCrosshair(crosshair);
-//     pool->update();
-//   }
+  QMap<TimeStamp, int> count;
+
+  for (auto pool : m_pools)
+  {
+    for(auto timeStamp: pool->readyRange())
+    {
+      count[timeStamp] = count.value(timeStamp, 0) + 1;
+    }
+  }
+
+  TimeRange range;
+
+  for (auto timeStamp : count.keys())
+  {
+    if (count[timeStamp] == 3)
+    {
+      range << timeStamp;
+    }
+  }
+
+  return range;
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp time)
+{
+  for (auto pool : m_pools)
+  {
+    pool->setCrosshair(crosshair, time);
+    pool->update();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -77,13 +98,13 @@ void Slice3DManager::setResolution(const NmVector3 &resolution)
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipelineSList Slice3DManager::pipelines()
+RepresentationPipelineSList Slice3DManager::pipelines(TimeStamp time)
 {
   RepresentationPipelineSList pipelines;
 
   for (auto pool : m_pools)
   {
-    pipelines << pool->pipelines();
+    pipelines << pool->pipelines(time);
   }
 
   return pipelines;
@@ -131,13 +152,9 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 //----------------------------------------------------------------------------
 void Slice3DManager::onPoolReady()
 {
-  qDebug() << "Check Pools ";
-  for (auto pool : m_pools)
-  {
-    if (!pool->isReady()) return;
-  }
-
-  qDebug() << "Pools ready";
-
-  updateRepresentationActors();
+//   for (auto pool : m_pools)
+//   {
+//     qDebug() << pool->readyRange();
+//   }
+  emit renderRequested();
 }

@@ -56,7 +56,7 @@ namespace ESPINA
     /** \brief Updates pool representation pipelines to the given position
      *
      */
-    virtual void setCrosshair(const NmVector3 &point) = 0;
+    void setCrosshair(const NmVector3 &point, TimeStamp t);
 
     /** \brief Sets the resolution to be used for its representations
      *
@@ -69,12 +69,12 @@ namespace ESPINA
      *         current position or not
      *
      */
-    bool isReady() const;
+    TimeRange readyRange() const;
 
     /** \brief Returns all representation pipelines in the pool
      *
      */
-    virtual RepresentationPipelineSList pipelines() = 0;
+    RepresentationPipelineSList pipelines(TimeStamp time);
 
     /** \brief Increment the number of active managers using this pool
      *
@@ -99,6 +99,14 @@ namespace ESPINA
 
     ViewItemAdapterList sources() const;
 
+    void invalidatePipeline(TimeStamp time);
+
+    void invalidateRepresentations();
+
+  protected slots:
+    void pipelinesReady(TimeStamp time, RepresentationPipelineSList pipelines);
+    void pipelinesReady2(TimeStamp time, RepresentationPipelineSList pipelines);
+    
   private slots:
     void onSourceAdded (ViewItemAdapterPtr source);
     void onSourcesAdded(ViewItemAdapterList sources);
@@ -112,9 +120,11 @@ namespace ESPINA
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) = 0;
+
     virtual void updateImplementation() = 0;
 
-    virtual bool isReadyImplementation() const = 0;
+    bool hasPendingSources() const;
 
     void processPendingSources();
 
@@ -123,6 +133,12 @@ namespace ESPINA
     SettingsSPtr     m_settings;
 
     ViewItemAdapterList m_pendingSources;
+
+    NmVector3 m_crosshair;
+    TimeStamp m_requestedTimeStamp;
+    TimeStamp m_lastUpdateTimeStamp;
+
+    QMap<TimeStamp, RepresentationPipelineSList> m_frames;
 
     unsigned m_numObservers;
   };

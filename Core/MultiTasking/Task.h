@@ -201,6 +201,8 @@ namespace ESPINA {
      */
     bool canExecute();
 
+    bool needsRestart() const;
+
     /** \brief Change the waiting state of the task.
      *
      *  Usually a task should change its state before executing potentially blocking calls
@@ -234,8 +236,6 @@ namespace ESPINA {
      *
      */
     bool isDispatcherPaused();
-
-    bool needsRestart() const;
 
     /** \brief Helper method to set some values before execution.
      *

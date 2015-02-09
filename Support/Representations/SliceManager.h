@@ -34,16 +34,18 @@ namespace ESPINA
                  RepresentationPoolSPtr xz,
                  RepresentationPoolSPtr yz);
 
-    virtual bool isReady() const;
+    virtual PipelineStatus pipelineStatus() const;
 
-    virtual void onCrosshairChanged(NmVector3 crosshair);
+    virtual TimeRange readyRange() const;
+
+    virtual void onCrosshairChanged(NmVector3 crosshair, TimeStamp time);
 
     virtual void setResolution(const NmVector3 &resolution);
 
     virtual void setPlane(Plane plane);
 
   private:
-    virtual RepresentationPipelineSList pipelines();
+    virtual RepresentationPipelineSList pipelines(TimeStamp time);
 
     virtual void updatePipelines();
 

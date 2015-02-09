@@ -49,11 +49,11 @@ bool ESPINA::BasicRepresentationPool<P>::isReadyImplementation() const
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::RepresentationPipelineSList ESPINA::BasicRepresentationPool<P>::pipelines()
-{
-  return m_updater->pipelines();
-}
+// template<typename P>
+// ESPINA::RepresentationPipelineSList ESPINA::BasicRepresentationPool<P>::pipelines()
+// {
+//   return m_updater->pipelines();
+// }
 
 //-----------------------------------------------------------------------------
 template<typename P>

@@ -41,7 +41,7 @@ Representation ChannelSliceRepresentationDriver::createRepresentation() const
 {
   Representation representation;
 
-  const unsigned WINDOW_SIZE = 20;
+  const unsigned WINDOW_SIZE = 10;
 
   auto poolXY         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(Plane::XY, m_scheduler, WINDOW_SIZE);
   auto poolXZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(Plane::XZ, m_scheduler, WINDOW_SIZE);

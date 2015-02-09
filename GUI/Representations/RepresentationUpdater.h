@@ -30,6 +30,7 @@ namespace ESPINA
   class RepresentationUpdater
   : public Task
   {
+    Q_OBJECT
   public:
     explicit RepresentationUpdater(SchedulerSPtr scheduler);
 
@@ -43,11 +44,24 @@ namespace ESPINA
 
     RepresentationPipelineSList pipelines();
 
+    void setTimeStamp(TimeStamp time);
+
+    TimeStamp timeStamp() const;
+
+    void invalidateTimeStamp();
+
+    bool hasValidTimeStamp() const;
+
+  signals:
+    void pipelinesUpdated(TimeStamp time, RepresentationPipelineSList pipelines);
+
   protected:
     virtual void run();
 
   private:
     QMap<ViewItemAdapterPtr, PipelineMultiplexerSPtr> m_multiplexers;
+    TimeStamp m_timeStamp;
+    bool      m_timeStampValid;
   };
 
   using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;

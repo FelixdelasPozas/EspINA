@@ -59,6 +59,8 @@ void ESPINA::ChannelSlicePipeline<T>::applySettingsImplementation(const Settings
 template<ESPINA::Plane T>
 bool ChannelSlicePipeline<T>::updateImplementation(const Settings &settings)
 {
+  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
   m_actors.clear();
 
   if (!settings.getValue<bool>(VISIBLE)) return false;
@@ -98,6 +100,10 @@ bool ChannelSlicePipeline<T>::updateImplementation(const Settings &settings)
   }
 
   m_actors << m_actor;
+
+  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+  if (s_plane == Plane::YZ) qDebug() <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
   return true;
 }

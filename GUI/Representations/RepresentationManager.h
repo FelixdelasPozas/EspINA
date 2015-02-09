@@ -45,6 +45,9 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    enum class PipelineStatus: int8_t { NOT_READY = 1, READY = 2, RANGE_DEPENDENT = 3 };
+
+  public:
     virtual ~RepresentationManager()
     {}
 
@@ -108,7 +111,22 @@ namespace ESPINA
      */
     void hide();
 
-    virtual bool isReady() const = 0;
+    bool requiresRender() const;
+
+    /** \brief Returns the status of its pipelines.
+     *
+     */
+    virtual PipelineStatus pipelineStatus() const = 0;
+
+    /** \brief Returns the range of ready pipelines.
+     *
+     */
+    virtual TimeRange readyRange() const = 0;
+
+    /** \brief Updates view's actors with those available at the given time.
+     *
+     */
+    void display(TimeStamp time);
 
     /** \brief Returns a new instance of the class.
      *
@@ -116,7 +134,7 @@ namespace ESPINA
     RepresentationManagerSPtr clone();
 
   public slots:
-    virtual void onCrosshairChanged(NmVector3 crosshair) = 0;
+    virtual void onCrosshairChanged(NmVector3 crosshair, TimeStamp time) = 0;
 
     /** \brief Set representations visibility
      *
@@ -129,14 +147,8 @@ namespace ESPINA
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
-  protected slots:
-    /** \brief Update all actors of the managed representations
-     *
-     */
-    void updateRepresentationActors();
-
   private:
-    virtual RepresentationPipelineSList pipelines() = 0;
+    virtual RepresentationPipelineSList pipelines(TimeStamp time) = 0;
 
     virtual void updatePipelines() = 0;
 
@@ -151,6 +163,7 @@ namespace ESPINA
     QIcon   m_icon;
     QString m_description;
     bool    m_showPipelines;
+    bool    m_requiresRender;
 
   private:
     RenderView   *m_view;

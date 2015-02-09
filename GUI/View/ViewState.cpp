@@ -38,7 +38,7 @@ void ViewState::setCrosshair(const NmVector3 &point)
 
     ++m_timeStamp;
 
-    emit crosshairChanged(point);
+    emit crosshairChanged(point, m_timeStamp);
   }
 }
 

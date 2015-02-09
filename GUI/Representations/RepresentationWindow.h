@@ -68,7 +68,7 @@ namespace ESPINA
     int size() const;
 
   signals:
-    void currentUpdaterFinished();
+    void pipelinesUpdated(TimeStamp time, RepresentationPipelineSList pipelines);
 
   private:
     RepresentationUpdaterSList aheadFrom(int pos, int length) const;
@@ -84,9 +84,6 @@ namespace ESPINA
     unsigned prevPosition(int pos) const;
 
     unsigned innerPosition(int pos) const;
-
-  private slots:
-    void onTaskFinish();
 
   private:
     const unsigned BUFFER_INCREMENT = 4;

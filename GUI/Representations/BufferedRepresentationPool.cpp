@@ -30,25 +30,24 @@ ESPINA::BufferedRepresentationPool<P>::BufferedRepresentationPool(const Plane   
 , m_normalRes{1}
 , m_lastCoordinate{0}
 {
-  connect(&m_updateWindow, SIGNAL(currentUpdaterFinished()),
-          this,            SIGNAL(representationsReady()));
+  connect(&m_updateWindow, SIGNAL(pipelinesUpdated(TimeStamp,RepresentationPipelineSList)),
+          this,            SLOT(pipelinesReady2(TimeStamp,RepresentationPipelineSList)), Qt::DirectConnection);
 
   invalidateBuffer();
 }
 
 //-----------------------------------------------------------------------------
 template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::setCrosshair(const NmVector3 &point)
+void ESPINA::BufferedRepresentationPool<P>::setCrosshairImplementation(const NmVector3 &point, TimeStamp time)
 {
-  if (isBeingUsed())
-  {
-    auto shift = distanceFromLastCrosshair(point);
+  auto shift = distanceFromLastCrosshair(point);
 
-    if (shift != 0)
-    {
-      updateBuffer(point, shift);
-    }
+  if (shift != 0)
+  {
+    updateBuffer(point, shift);
   }
+
+  m_updateWindow.current()->setTimeStamp(time);
 }
 
 //-----------------------------------------------------------------------------
@@ -61,11 +60,11 @@ void ESPINA::BufferedRepresentationPool<P>::setResolution(const NmVector3 &resol
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::RepresentationPipelineSList ESPINA::BufferedRepresentationPool<P>::pipelines()
-{
-  return m_updateWindow.current()->pipelines();
-}
+// template<typename P>
+// ESPINA::RepresentationPipelineSList ESPINA::BufferedRepresentationPool<P>::pipelines()
+// {
+//   return m_updateWindow.current()->pipelines();
+// }
 
 //-----------------------------------------------------------------------------
 template<typename P>
@@ -79,23 +78,16 @@ void ESPINA::BufferedRepresentationPool<P>::addRepresentationPipeline(ViewItemAd
 
 //-----------------------------------------------------------------------------
 template<typename P>
-bool ESPINA::BufferedRepresentationPool<P>::isReadyImplementation() const
-{
-  qDebug() << "Ready Request: " << m_updateWindow.current()->description() << " ==> " << m_updateWindow.current()->hasFinished();
-  return m_updateWindow.current()->hasFinished();
-}
-
-//-----------------------------------------------------------------------------
-template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::updateImplementation()
 {
 //     std::cout << "Before Update Current:" << std::endl;
-  updateWindowPosition(m_updateWindow.current(), Priority::VERY_HIGH);
+  auto current = m_updateWindow.current();
 
-  if (m_updateWindow.current()->hasFinished())
+  updateWindowPosition(current, Priority::VERY_HIGH);
+
+  if (current->hasFinished())
   {
-//     qDebug() << "Representation Ready: " << m_updateWindow.current()->description();
-    emit representationsReady();
+    pipelinesReady(current->timeStamp(), current->pipelines());
   }
 //   std::cout << "After Update Current" << std::endl;
 
@@ -108,7 +100,6 @@ void ESPINA::BufferedRepresentationPool<P>::updateImplementation()
   {
     updateWindowPosition(further, Priority::LOW);
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -161,10 +152,16 @@ void ESPINA::BufferedRepresentationPool<P>::updateBuffer(const NmVector3 &point,
 {
   for (auto cursor : m_updateWindow.moveCurrent(shift))
   {
+    auto updateTask = cursor.first;
     NmVector3 crosshair = representationCrosshair(point, cursor.second);
-    cursor.first->setCrosshair(crosshair);
-    cursor.first->setDescription(QString("Slice %1").arg(normal(crosshair)));
+    updateTask->setCrosshair(crosshair);
+    //updateTask->setDescription(QString("Slice %1").arg(normal(crosshair)));
     //std::cout << "Updating " << cursor.second << " for slice " << normal(crosshair) << std::endl;
+    if (updateTask->hasValidTimeStamp())
+    {
+      invalidatePipeline(updateTask->timeStamp());
+      updateTask->invalidateTimeStamp();
+    }
   }
 
   m_lastCoordinate = normal(point);

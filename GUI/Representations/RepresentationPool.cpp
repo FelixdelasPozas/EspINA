@@ -18,13 +18,16 @@
  */
 
 #include "RepresentationPool.h"
+#include <QApplication>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationPool::RepresentationPool()
-: m_sources(nullptr)
-, m_numObservers{0}
+: m_sources            {nullptr}
+, m_numObservers       {0}
+, m_requestedTimeStamp {0}
+, m_lastUpdateTimeStamp{0}
 {
 }
 
@@ -81,34 +84,58 @@ RepresentationPipeline::Settings RepresentationPool::settings() const
   return settings;
 }
 
+//-----------------------------------------------------------------------------
+void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
+{
+  m_requestedTimeStamp = t;
+  m_crosshair          = point;
+
+  setCrosshairImplementation(point, t);
+}
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::update()
 {
   if (isBeingUsed())
   {
-    processPendingSources();
+    bool needUpdate = m_lastUpdateTimeStamp < m_requestedTimeStamp;
 
-    updateImplementation();
+    if (hasPendingSources())
+    {
+      processPendingSources();
+
+      needUpdate = true;
+    }
+
+    if (needUpdate)
+    {
+      updateImplementation();
+    }
+
+    QApplication::sendPostedEvents();
   }
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationPool::isReady() const
+TimeRange RepresentationPool::readyRange() const
 {
-  return !isBeingUsed() || isReadyImplementation();
+  return isBeingUsed()?m_frames.keys():TimeRange();
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationPool::isBeingUsed() const
+RepresentationPipelineSList RepresentationPool::pipelines(TimeStamp time)
 {
-  return m_numObservers > 0;
-}
+//   QList<TimeStamp> timeRange = m_frames.keys();
+//
+//   for (auto timeStamp : timeRange)
+//   {
+//     if (timeStamp < time)
+//     {
+//       m_frames.remove(timeStamp);
+//     }
+//   }
 
-//-----------------------------------------------------------------------------
-ViewItemAdapterList RepresentationPool::sources() const
-{
-  return m_sources->sources();
+  return m_frames.value(time, RepresentationPipelineSList());
 }
 
 //-----------------------------------------------------------------------------
@@ -126,18 +153,64 @@ void RepresentationPool::decrementObservers()
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationPool::isBeingUsed() const
+{
+  return m_numObservers > 0;
+}
+
+//-----------------------------------------------------------------------------
+ViewItemAdapterList RepresentationPool::sources() const
+{
+  return m_sources->sources();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::pipelinesReady(TimeStamp time, RepresentationPipelineSList pipelines)
+{
+  //qDebug() << "Representation ready" << time;
+  if (time > m_lastUpdateTimeStamp)
+  {
+    m_frames[time] = pipelines;
+
+    m_lastUpdateTimeStamp = time;
+
+    //qDebug() << "Representation ready emit" << time;
+    emit representationsReady();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::pipelinesReady2(TimeStamp time, RepresentationPipelineSList pipelines)
+{
+  if (time > m_lastUpdateTimeStamp)
+  {
+    m_frames[time] = pipelines;
+
+    m_lastUpdateTimeStamp = time;
+
+    qDebug() << "Representation ready emit" << time;
+    emit representationsReady();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::invalidatePipeline(TimeStamp time)
+{
+  m_frames.remove(time);
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::invalidateRepresentations()
+{
+  m_frames.clear();
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::onSourceAdded(ViewItemAdapterPtr source)
 {
-  if (isBeingUsed())
-  {
-    addRepresentationPipeline(source);
+    m_pendingSources << source;
 
     update();
-  }
-  else
-  {
-    m_pendingSources << source;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -171,12 +244,20 @@ void RepresentationPool::onSourcesUpdated(ViewItemAdapterList sources)
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationPool::hasPendingSources() const
+{
+  return !m_pendingSources.isEmpty();
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::processPendingSources()
 {
   for (auto source : m_pendingSources)
   {
     addRepresentationPipeline(source);
   }
+
+  setCrosshairImplementation(m_crosshair, m_requestedTimeStamp);
 
   m_pendingSources.clear();
 }

@@ -36,6 +36,8 @@
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 
+#include <chrono>
+
 namespace ESPINA
 {
   using namespace Representations;

@@ -53,7 +53,7 @@ namespace ESPINA
     void setCrosshairPlane(const Plane plane, const Nm position);
 
   signals:
-    void crosshairChanged(NmVector3);
+    void crosshairChanged(NmVector3 point, TimeStamp time);
 
     void viewFocusedOn(NmVector3);
 

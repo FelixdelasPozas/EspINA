@@ -73,6 +73,7 @@ namespace ESPINA
   using RelationName = QString;
 
   using TimeStamp = unsigned long long;
+  using TimeRange = QList<TimeStamp>;
 } // namespace ESPINA
 
 #endif// ESPINATYPES_H

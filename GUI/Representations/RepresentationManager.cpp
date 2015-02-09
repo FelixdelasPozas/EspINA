@@ -31,6 +31,7 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 : m_showPipelines{false}
 , m_view{nullptr}
 , m_supportedViews{supportedViews}
+, m_requiresRender{false}
 {
 }
 
@@ -78,7 +79,8 @@ void RepresentationManager::show()
     child->show();
   }
 
-  m_showPipelines = true;
+  m_showPipelines  = true;
+  m_requiresRender = true;
 
   notifyPoolUsed();
 
@@ -97,12 +99,17 @@ void RepresentationManager::hide()
 
   notifyPoolNotUsed();
 
-  updateRepresentationActors();
+  emit renderRequested();
 }
 
+//-----------------------------------------------------------------------------
+bool RepresentationManager::requiresRender() const
+{
+  return m_requiresRender;
+}
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::updateRepresentationActors()
+void RepresentationManager::display(TimeStamp time)
 {
   if (m_view != nullptr)
   {
@@ -116,7 +123,7 @@ void RepresentationManager::updateRepresentationActors()
 
     if (m_showPipelines)
     {
-      for (auto pipeline : pipelines())
+      for (auto pipeline : pipelines(time))
       {
         for (auto actor : pipeline->getActors())
         {
@@ -128,7 +135,7 @@ void RepresentationManager::updateRepresentationActors()
       }
     }
 
-    emit renderRequested();
+    m_requiresRender = m_showPipelines;
   }
 }
 

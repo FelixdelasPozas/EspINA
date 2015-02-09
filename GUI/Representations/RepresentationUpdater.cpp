@@ -18,14 +18,18 @@
  */
 
 #include "RepresentationUpdater.h"
+#include <QCoreApplication>
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler)
-: Task(scheduler)
+: Task            {scheduler}
+, m_timeStamp     {0}
+, m_timeStampValid{false}
 {
   setHidden(true);
+
 }
 
 //----------------------------------------------------------------------------
@@ -76,18 +80,44 @@ RepresentationPipelineSList RepresentationUpdater::pipelines()
   return pipelines;
 }
 
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::setTimeStamp(TimeStamp time)
+{
+  m_timeStamp = time;
+  m_timeStampValid = true;
+}
+
+//----------------------------------------------------------------------------
+TimeStamp RepresentationUpdater::timeStamp() const
+{
+  return m_timeStamp;
+}
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::invalidateTimeStamp()
+{
+  m_timeStampValid = false;
+}
+
+//----------------------------------------------------------------------------
+bool RepresentationUpdater::hasValidTimeStamp() const
+{
+  return m_timeStampValid;
+}
+
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
   //qDebug() << "Task" << description() << "running" << " - " << this;
   for (auto pipeline : pipelines())
   {
-    if (!canExecute())
-    {
-      break;
-    }
+    if (!canExecute()) break;
 
     pipeline->update();
   }
-  //qDebug() << "Task" << description() << "finished with status" << taskExecuted << " - " << this;
+  if (hasValidTimeStamp() && !needsRestart()) {
+    qDebug() << hasValidTimeStamp() << "Task" << timeStamp() << "has run. Need restart:" << needsRestart() << " - " << this;
+    emit pipelinesUpdated(timeStamp(), pipelines());
+  }
 }

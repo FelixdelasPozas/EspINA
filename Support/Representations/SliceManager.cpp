@@ -32,21 +32,33 @@ SliceManager::SliceManager(RepresentationPoolSPtr xy,
 , m_yz{yz}
 , m_plane{Plane::UNDEFINED}
 {
-
 }
 
 //----------------------------------------------------------------------------
-bool SliceManager::isReady() const
+RepresentationManager::PipelineStatus SliceManager::pipelineStatus() const
 {
-  return validPlane()?planePool()->isReady():true;
+  return PipelineStatus::RANGE_DEPENDENT;
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onCrosshairChanged(NmVector3 crosshair)
+TimeRange SliceManager::readyRange() const
+{
+  TimeRange range;
+
+  if(validPlane())
+  {
+    range = planePool()->readyRange();
+  }
+
+  return range;
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp time)
 {
   if (validPlane())
   {
-    planePool()->setCrosshair(crosshair);
+    planePool()->setCrosshair(crosshair, time);
     planePool()->update();
   }
 }
@@ -69,24 +81,24 @@ void SliceManager::setPlane(Plane plane)
     {
       qWarning() << "The DAY has come";
       disconnect(planePool().get(), SIGNAL(representationsReady()),
-                 this,              SLOT(updateRepresentationActors()));
+                 this,              SIGNAL(renderRequested()));
     }
 
     m_plane = plane;
 
     connect(planePool().get(), SIGNAL(representationsReady()),
-            this,              SLOT(updateRepresentationActors()));
+            this,              SIGNAL(renderRequested()));
   }
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipelineSList SliceManager::pipelines()
+RepresentationPipelineSList SliceManager::pipelines(TimeStamp time)
 {
   RepresentationPipelineSList pipelines;
 
   if (validPlane())
   {
-    pipelines = planePool()->pipelines();
+    pipelines = planePool()->pipelines(time);
   }
 
   return pipelines;

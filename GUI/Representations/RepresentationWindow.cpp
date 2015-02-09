@@ -29,12 +29,15 @@ RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler, unsigned win
 , m_currentPos(windowSize)
 , m_witdh(windowSize)
 {
+  qRegisterMetaType<TimeStamp>("TimeStamp");
+  qRegisterMetaType<RepresentationPipelineSList>("RepresentationPipelineSList");
+
   for (unsigned int i = 0; i < 2*windowSize + 1; ++i)
   {
     auto task = std::make_shared<RepresentationUpdater>(scheduler);
 
-    connect(task.get(), SIGNAL(finished()),
-            this,       SLOT(onTaskFinish()));
+    connect(task.get(), SIGNAL(pipelinesUpdated(TimeStamp, RepresentationPipelineSList)),
+            this,       SIGNAL(pipelinesUpdated(TimeStamp, RepresentationPipelineSList)), Qt::DirectConnection);
 
     m_buffer << task;
   }
@@ -237,13 +240,4 @@ unsigned int RepresentationWindow::innerPosition(int pos) const
   }
 
   return result;
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationWindow::onTaskFinish()
-{
-  if (sender() == current().get())
-  {
-    emit currentUpdaterFinished();
-  }
 }

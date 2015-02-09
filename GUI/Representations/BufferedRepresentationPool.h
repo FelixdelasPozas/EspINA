@@ -37,16 +37,14 @@ namespace ESPINA
                                         SchedulerSPtr scheduler,
                                         unsigned      windowSize);
 
-    virtual void setCrosshair(const NmVector3 &point);
-
     virtual void setResolution(const NmVector3 &resolution);
 
-    virtual RepresentationPipelineSList pipelines();
+//     virtual RepresentationPipelineSList pipelines(TimeStamp time);
 
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 
-    virtual bool isReadyImplementation() const;
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time);
 
     virtual void updateImplementation();
 

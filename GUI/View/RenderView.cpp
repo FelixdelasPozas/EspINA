@@ -79,11 +79,17 @@ void RenderView::setState(ViewStateSPtr state)
     disconnect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
                m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
 
-    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3)),
+    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
                this,          SLOT(onCrosshairChanged(NmVector3)));
 
     disconnect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
                this,          SLOT(moveCamera(NmVector3)));
+
+    for(auto manager: m_managers)
+    {
+      disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
+                 manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
+    }
   }
 
   m_state = state;
@@ -96,11 +102,17 @@ void RenderView::setState(ViewStateSPtr state)
     connect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
             m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
 
-    connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3)),
+    connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
             this,          SLOT(onCrosshairChanged(NmVector3)));
 
     connect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
             this,          SLOT(moveCamera(NmVector3)));
+
+    for(auto manager: m_managers)
+    {
+      connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
+              manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
+    }
   }
 }
 
@@ -129,8 +141,8 @@ void RenderView::setChannelSources(PipelineSources *channels)
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
-  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3)),
-          manager.get(), SLOT(onCrosshairChanged(NmVector3)));
+  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
+          manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
 
   connect(manager.get(), SIGNAL(renderRequested()),
           this,          SLOT(onRenderRequest()));
@@ -150,6 +162,9 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
   {
     disconnect(manager.get(), SIGNAL(renderRequested()),
                this,          SLOT(onRenderRequest()));
+
+    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
+               manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
   }
 }
 
@@ -724,23 +739,65 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-  bool isReady = true;
-  int  i       = 0;
+  QMap<TimeStamp, int> count;
 
-//   while (isReady && i < m_managers.size())
-//   {
-//     isReady &= m_managers[i]->isReady();
-//
-//     ++i;
-//   }
+  int readyManagers  = 0;
+  int renderRequests = 0;
 
-  if (isReady)
+  for(auto manager: m_managers)
   {
-    if (!m_sceneCameraInitialized)
+    if (manager->requiresRender()) renderRequests++;
+
+    switch(manager->pipelineStatus())
     {
-      m_sceneCameraInitialized = true;
-      resetCamera();
+      case RepresentationManager::PipelineStatus::NOT_READY:
+        return;
+      case RepresentationManager::PipelineStatus::READY:
+        readyManagers++;
+        break;
+      case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
+        for(auto timeStamp: manager->readyRange())
+        {
+          count[timeStamp] = count.value(timeStamp, 0) + 1;
+        }
+        break;
+      default:
+        break;
     }
-    updateView();
   }
+
+  TimeStamp latest;
+  if(readyManagers != renderRequests)
+  {
+    bool valid = false;
+    for(auto time: count.keys())
+    {
+      if(count[time]+readyManagers == renderRequests)
+      {
+        if(!valid || time > latest)
+        {
+          latest = time;
+          valid  = true;
+        }
+      }
+    }
+
+    if(!valid) return;
+  }
+
+  if (renderRequests == 0) return;
+
+  for(auto manager: m_managers)
+  {
+    manager->display(latest);
+  }
+
+  if (!m_sceneCameraInitialized)
+  {
+    m_sceneCameraInitialized = true;
+    resetCamera();
+  }
+
+  updateView();
+  qDebug() << "Latest frame:" << latest;
 }
