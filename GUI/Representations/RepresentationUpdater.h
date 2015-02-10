@@ -21,28 +21,26 @@
 #define ESPINA_REPRESENTATION_UPDATER_H
 
 #include <Core/MultiTasking/Task.h>
-#include <GUI/Representations/PipelineMultiplexer.h>
 
-#include <atomic>
+#include <GUI/Model/ViewItemAdapter.h>
 
 namespace ESPINA
 {
+
   class RepresentationUpdater
   : public Task
   {
     Q_OBJECT
   public:
-    explicit RepresentationUpdater(SchedulerSPtr scheduler);
+    explicit RepresentationUpdater(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
-    void addPipeline(ViewItemAdapterPtr item, RepresentationPipelineSPtr pipeline);
+    void addSource(ViewItemAdapterPtr item);
 
-    void removePipeline(ViewItemAdapterPtr item);
+    void removeSource(ViewItemAdapterPtr item);
 
     void setCrosshair(const NmVector3 &point);
 
-    bool applySettings(const RepresentationPipeline::Settings &state);
-
-    RepresentationPipelineSList pipelines();
+    bool applySettings(const RepresentationPipeline::State &state);
 
     void setTimeStamp(TimeStamp time);
 
@@ -52,16 +50,20 @@ namespace ESPINA
 
     bool hasValidTimeStamp() const;
 
+    RepresentationPipeline::ActorList actors() const;
+
   signals:
-    void pipelinesUpdated(TimeStamp time, RepresentationPipelineSList pipelines);
+    void actorsUpdated(TimeStamp time, RepresentationPipeline::ActorList pipelines);
 
   protected:
     virtual void run();
 
   private:
-    QMap<ViewItemAdapterPtr, PipelineMultiplexerSPtr> m_multiplexers;
+    RepresentationPipelineSPtr m_pipeline;
+    QMap<ViewItemAdapterPtr, RepresentationPipeline::State> m_states;
     TimeStamp m_timeStamp;
     bool      m_timeStampValid;
+    RepresentationPipeline::ActorList m_actors;
   };
 
   using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;

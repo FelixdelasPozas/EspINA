@@ -27,6 +27,7 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/ViewTypeFlags.h>
+#include <GUI/Representations/RepresentationPipeline.h>
 
 // Qt
 #include <QString>
@@ -148,7 +149,7 @@ namespace ESPINA
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
   private:
-    virtual RepresentationPipelineSList pipelines(TimeStamp time) = 0;
+    virtual RepresentationPipeline::ActorList actors(TimeStamp time) = 0;
 
     virtual void updatePipelines() = 0;
 
@@ -171,8 +172,7 @@ namespace ESPINA
 
     RepresentationManagerSList m_childs;
 
-    QList<vtkProp *> m_viewActors; // actors being rendered by its view
-    RepresentationPipelineSList m_viewPipelines; // pipeline being rendered by its view
+    RepresentationPipeline::ActorList m_viewActors; // actors being rendered by its view
   };
 
   class RepresentationManager2D

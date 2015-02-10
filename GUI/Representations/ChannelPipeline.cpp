@@ -28,9 +28,9 @@ using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Settings ChannelPipeline::Settings(ChannelAdapterPtr channel)
+RepresentationPipeline::State ChannelPipeline::Settings(ChannelAdapterPtr channel)
 {
-  RepresentationPipeline::Settings settings;
+  RepresentationPipeline::State settings;
 
   double hue   = -1.0 == channel->hue() ? 0 : channel->hue();
   double sat   = -1.0 == channel->hue() ? 0 : channel->saturation();

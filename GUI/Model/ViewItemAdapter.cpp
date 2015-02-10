@@ -40,7 +40,15 @@ ViewItemAdapter::ViewItemAdapter(ViewItemSPtr item)
 //------------------------------------------------------------------------
 void ViewItemAdapter::setTemporalRepresentation(RepresentationPipelineSPtr pipeline)
 {
+  m_temporalRepresentation = pipeline;
+
   emit activateTemporalPipeline(pipeline);
+}
+
+//------------------------------------------------------------------------
+RepresentationPipelineSPtr ViewItemAdapter::temporalRepresentation() const
+{
+  return m_temporalRepresentation;
 }
 
 //------------------------------------------------------------------------

@@ -30,7 +30,7 @@ namespace ESPINA {
     /** \brief Return pipeline settings for channel
      *
      */
-    static RepresentationPipeline::Settings Settings(ChannelAdapterPtr channel);
+    static RepresentationPipeline::State Settings(ChannelAdapterPtr channel);
   };
 
 }

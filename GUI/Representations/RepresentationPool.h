@@ -39,7 +39,7 @@ namespace ESPINA
     public:
       virtual ~Settings() {}
 
-      virtual RepresentationPipeline::Settings pipelineSettings() = 0;
+      virtual RepresentationPipeline::State pipelineSettings() = 0;
     };
 
     using SettingsSPtr = std::shared_ptr<Settings>;
@@ -51,7 +51,7 @@ namespace ESPINA
 
     void setSettings(SettingsSPtr settings);
 
-    RepresentationPipeline::Settings settings() const;
+    RepresentationPipeline::State settings() const;
 
     /** \brief Updates pool representation pipelines to the given position
      *
@@ -71,10 +71,10 @@ namespace ESPINA
      */
     TimeRange readyRange() const;
 
-    /** \brief Returns all representation pipelines in the pool
+    /** \brief Returns all valid actors for the given time
      *
      */
-    RepresentationPipelineSList pipelines(TimeStamp time);
+    RepresentationPipeline::ActorList actors(TimeStamp time);
 
     /** \brief Increment the number of active managers using this pool
      *
@@ -87,7 +87,7 @@ namespace ESPINA
     void decrementObservers();
 
   signals:
-    void representationsReady();
+    void actorsReady(TimeStamp time);
 
   protected:
     explicit RepresentationPool();
@@ -99,13 +99,12 @@ namespace ESPINA
 
     ViewItemAdapterList sources() const;
 
-    void invalidatePipeline(TimeStamp time);
+    void invalidateActors(TimeStamp time);
 
-    void invalidateRepresentations();
+    void invalidateActors();
 
   protected slots:
-    void pipelinesReady(TimeStamp time, RepresentationPipelineSList pipelines);
-    void pipelinesReady2(TimeStamp time, RepresentationPipelineSList pipelines);
+    void onActorsReady(TimeStamp time, RepresentationPipeline::ActorList actors);
     
   private slots:
     void onSourceAdded (ViewItemAdapterPtr source);
@@ -138,7 +137,7 @@ namespace ESPINA
     TimeStamp m_requestedTimeStamp;
     TimeStamp m_lastUpdateTimeStamp;
 
-    QMap<TimeStamp, RepresentationPipelineSList> m_frames;
+    QMap<TimeStamp, RepresentationPipeline::ActorList> m_actors;
 
     unsigned m_numObservers;
   };

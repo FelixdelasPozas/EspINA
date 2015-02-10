@@ -24,9 +24,8 @@ ESPINA::Plane ESPINA::ChannelSlicePipeline<T>::s_plane = T;
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline(ViewItemAdapterPtr item)
+ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline()
 : RepresentationPipeline("ChannelSliceRepresentation")
-, m_channel(dynamic_cast<ChannelAdapterPtr>(item))
 , m_planeIndex(normalCoordinateIndex(s_plane))
 , m_timeStamp(VTK_UNSIGNED_LONG_LONG_MAX)
 {
@@ -39,79 +38,81 @@ bool ChannelSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
   return false;
 }
 
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-QList<ESPINA::RepresentationPipeline::Actor> ESPINA::ChannelSlicePipeline<T>::getActors()
-{
-  return m_actors;
-}
-
 #include <QDebug>
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::applySettingsImplementation(const Settings &settings)
+void ESPINA::ChannelSlicePipeline<T>::applySettingsImplementation(const State &settings)
 {
-  updateState(ChannelPipeline::Settings(m_channel));
-  updateState(settings);
+  //updateState(ChannelPipeline::Settings(m_channel));
+  //updateState(settings);
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-bool ChannelSlicePipeline<T>::updateImplementation(const Settings &settings)
+ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(ViewItemAdapter *item, const State &state)
 {
-  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+  // TODO: modificación de updateImplementation con los métodos privados de update state que ya no
+  // hacen falta
+  return RepresentationPipeline::ActorList();
+}
 
-  m_actors.clear();
-
-  if (!settings.getValue<bool>(VISIBLE)) return false;
-
-  if (!hasVolumetricData(m_channel->output())) return false;
-
-  auto volume = volumetricData(m_channel->output());
-
-  bool dataChanged = volume->lastModified() != m_timeStamp;
-  bool crosshairPositionChanged = isCrosshairPositionModified(s_plane, settings);
-  if (crosshairPositionChanged || dataChanged)
-  {
-    Bounds sliceBounds = volume->bounds();
-
-    if (dataChanged)
-    {
-      m_timeStamp = volume->lastModified();
-    }
-
-    Nm reslicePoint = crosshairPosition(s_plane, settings);
-
-    if (reslicePoint < sliceBounds[2*m_planeIndex]
-     || reslicePoint > sliceBounds[2*m_planeIndex+1]) return true; // Not visible
-
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+bool ChannelSlicePipeline<T>::updateImplementation(const State &settings)
+{
+//  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+//
+//  m_actors.clear();
+//
+//  if (!settings.getValue<bool>(VISIBLE)) return false;
+//
+//  if (!hasVolumetricData(m_channel->output())) return false;
+//
+//  auto volume = volumetricData(m_channel->output());
+//
+//  bool dataChanged = volume->lastModified() != m_timeStamp;
+//  bool crosshairPositionChanged = isCrosshairPositionModified(s_plane, settings);
+//  if (crosshairPositionChanged || dataChanged)
+//  {
+//    Bounds sliceBounds = volume->bounds();
+//
+//    if (dataChanged)
+//    {
+//      m_timeStamp = volume->lastModified();
+//    }
+//
+//    Nm reslicePoint = crosshairPosition(s_plane, settings);
+//
+//    if (reslicePoint < sliceBounds[2*m_planeIndex]
+//     || reslicePoint > sliceBounds[2*m_planeIndex+1]) return true; // Not visible
+//
 //     qDebug() << "Slice" <<  reslicePoint << "running";
-    sliceBounds.setLowerInclusion(true);
-    sliceBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-    sliceBounds[2*m_planeIndex] = sliceBounds[2*m_planeIndex+1] = reslicePoint;
-
-    createPipeline(volume, sliceBounds, settings);
-
-//     qDebug() << "Slice" <<  reslicePoint << "finished";
-  }
-  else
-  {
-    updatePipeline(settings);
-  }
-
-  m_actors << m_actor;
-
-  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-
-  if (s_plane == Plane::YZ) qDebug() <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
+//    sliceBounds.setLowerInclusion(true);
+//    sliceBounds.setUpperInclusion(toAxis(m_planeIndex), true);
+//    sliceBounds[2*m_planeIndex] = sliceBounds[2*m_planeIndex+1] = reslicePoint;
+//
+//    createPipeline(volume, sliceBounds, settings);
+//
+// //     qDebug() << "Slice" <<  reslicePoint << "finished";
+//  }
+//  else
+//  {
+//    updatePipeline(settings);
+//  }
+//
+//  m_actors << m_actor;
+//
+//  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+//
+//  if (s_plane == Plane::YZ) qDebug() <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+//
   return true;
 }
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 void ESPINA::ChannelSlicePipeline<T>::createPipeline(DefaultVolumetricDataSPtr volume,
                                                      const Bounds             &sliceBounds,
-                                                     const Settings           &settings)
+                                                     const State              &settings)
 {
   auto slice = vtkImage(volume, sliceBounds);
 
@@ -149,7 +150,7 @@ void ESPINA::ChannelSlicePipeline<T>::createPipeline(DefaultVolumetricDataSPtr v
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updatePipeline(const Settings &settings)
+void ESPINA::ChannelSlicePipeline<T>::updatePipeline(const State &settings)
 {
   bool brightnessChanged = settings.isModified(BRIGHTNESS);
   if (brightnessChanged)
@@ -187,21 +188,21 @@ void ESPINA::ChannelSlicePipeline<T>::updatePipeline(const Settings &settings)
 }
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateBrightness(const Settings &settings)
+void ESPINA::ChannelSlicePipeline<T>::updateBrightness(const State &settings)
 {
   m_shiftScaleFilter->SetShift(static_cast<int>(settings.getValue<double>(BRIGHTNESS)*255));
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateContrast(const Settings &settings)
+void ESPINA::ChannelSlicePipeline<T>::updateContrast(const State &settings)
 {
   m_shiftScaleFilter->SetScale(settings.getValue<double>(CONTRAST));
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateStain(const Settings &settings)
+void ESPINA::ChannelSlicePipeline<T>::updateStain(const State &settings)
 {
   auto stain = settings.getValue<QColor>(STAIN);
 

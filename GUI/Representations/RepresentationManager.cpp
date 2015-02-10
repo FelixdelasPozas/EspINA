@@ -119,19 +119,13 @@ void RepresentationManager::display(TimeStamp time)
     }
 
     m_viewActors.clear();
-    m_viewPipelines.clear();
 
     if (m_showPipelines)
     {
-      for (auto pipeline : pipelines(time))
+      for (auto actor : actors(time))
       {
-        for (auto actor : pipeline->getActors())
-        {
           m_view->addActor(actor);
           m_viewActors << actor;
-        }
-
-        m_viewPipelines << pipeline;
       }
     }
 

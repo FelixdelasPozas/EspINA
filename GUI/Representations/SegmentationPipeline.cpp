@@ -28,9 +28,9 @@ using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Settings SegmentationPipeline::Settings(SegmentationAdapterPtr segmentation)
+RepresentationPipeline::State SegmentationPipeline::Settings(SegmentationAdapterPtr segmentation)
 {
-  RepresentationPipeline::Settings settings;
+  RepresentationPipeline::State settings;
 
   settings.setValue<double>(VISIBLE,    segmentation->isVisible());
 

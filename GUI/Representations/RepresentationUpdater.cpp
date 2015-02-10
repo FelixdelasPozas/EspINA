@@ -23,8 +23,10 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler)
+RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
+                                             RepresentationPipelineSPtr pipeline)
 : Task            {scheduler}
+, m_pipeline      {pipeline}
 , m_timeStamp     {0}
 , m_timeStampValid{false}
 {
@@ -33,58 +35,48 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::addPipeline(ViewItemAdapterPtr item, RepresentationPipelineSPtr pipeline)
+void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
-  Q_ASSERT(!m_multiplexers.contains(item));
+  Q_ASSERT(!m_states.contains(item));
 
-  m_multiplexers[item] = std::make_shared<PipelineMultiplexer>(item, pipeline);
+  m_states[item] = RepresentationPipeline::State();
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::removePipeline(ViewItemAdapterPtr item)
+void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
+  Q_ASSERT(m_states.contains(item));
+
+  m_states.remove(item);
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
-  for (auto pipeline : pipelines())
+  for (auto &state : m_states)
   {
-    pipeline->setCrosshairPoint(point);
+    setCrosshairPoint(point, state);
   }
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationUpdater::applySettings(const RepresentationPipeline::Settings &state)
+bool RepresentationUpdater::applySettings(const RepresentationPipeline::State &settings)
 {
   bool modified = false;
 
-  for (auto pipeline : pipelines())
+  for (auto &state : m_states)
   {
-    modified |= pipeline->applySettings(state);
+    state.apply(settings);
+    modified |= state.hasPendingChanges(); // TODO when to do the commit?
   }
 
   return modified;
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipelineSList RepresentationUpdater::pipelines()
-{
-  RepresentationPipelineSList pipelines;
-
-  for (auto multiplexer : m_multiplexers)
-  {
-    pipelines << multiplexer->active();
-  }
-
-  return pipelines;
-}
-
-
-//----------------------------------------------------------------------------
 void RepresentationUpdater::setTimeStamp(TimeStamp time)
 {
-  m_timeStamp = time;
+  m_timeStamp      = time;
   m_timeStampValid = true;
 }
 
@@ -107,17 +99,35 @@ bool RepresentationUpdater::hasValidTimeStamp() const
 }
 
 //----------------------------------------------------------------------------
+RepresentationPipeline::ActorList RepresentationUpdater::actors() const
+{
+  return m_actors;
+}
+
+//----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
+  m_actors.clear();
   //qDebug() << "Task" << description() << "running" << " - " << this;
-  for (auto pipeline : pipelines())
-  {
-    if (!canExecute()) break;
+  auto it = m_states.begin();
 
-    pipeline->update();
+  while (canExecute() && it != m_states.end())
+  {
+    auto tmpRep = it.key()->temporalRepresentation();
+
+    if (tmpRep && tmpRep->type() == m_pipeline->type())
+    {
+      m_actors << tmpRep->createActors(it.key(), it.value());
+    }
+    else
+    {
+      m_actors << m_pipeline->createActors(it.key(), it.value());
+    }
+
+    ++it;
   }
-  if (hasValidTimeStamp() && !needsRestart()) {
-    qDebug() << hasValidTimeStamp() << "Task" << timeStamp() << "has run. Need restart:" << needsRestart() << " - " << this;
-    emit pipelinesUpdated(timeStamp(), pipelines());
+
+  if (hasValidTimeStamp() && canExecute()) {
+    emit actorsUpdated(timeStamp(), m_actors);
   }
 }

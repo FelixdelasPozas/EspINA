@@ -51,7 +51,7 @@ namespace ESPINA
     virtual QList<Actor> getActors();
 
   private:
-    virtual void applySettingsImplementation(const Settings &settings);
+    virtual void applySettingsImplementation(const State &settings);
 
     virtual bool updateImplementation();
 

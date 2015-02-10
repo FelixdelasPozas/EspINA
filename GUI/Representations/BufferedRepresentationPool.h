@@ -39,14 +39,14 @@ namespace ESPINA
 
     virtual void setResolution(const NmVector3 &resolution);
 
-//     virtual RepresentationPipelineSList pipelines(TimeStamp time);
-
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 
     virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time);
 
     virtual void updateImplementation();
+
+    virtual bool changed() const;
 
     void updateWindowPosition(RepresentationUpdaterSPtr updater, Priority priority);
 
@@ -65,8 +65,9 @@ namespace ESPINA
 
     RepresentationWindow m_updateWindow;
 
-    Nm m_normalRes;
-    Nm m_lastCoordinate;
+    int m_shift;
+    Nm  m_normalRes;
+    Nm  m_lastCoordinate;
   };
 
 #include "BufferedRepresentationPool.cpp"

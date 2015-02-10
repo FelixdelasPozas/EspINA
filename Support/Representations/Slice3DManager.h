@@ -45,7 +45,7 @@ namespace ESPINA {
     virtual void setResolution(const NmVector3 &resolution);
 
   private:
-    virtual RepresentationPipelineSList pipelines(TimeStamp time);
+    virtual RepresentationPipeline::ActorList actors(TimeStamp time);
 
     virtual void updatePipelines();
 
@@ -60,6 +60,7 @@ namespace ESPINA {
 
   private:
     RepresentationPoolSList m_pools;
+    TimeStamp m_lastReady;
   };
 }
 

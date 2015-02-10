@@ -24,20 +24,23 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler, unsigned windowSize)
+RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler,
+                                           RepresentationPipelineSPtr pipeline,
+                                           unsigned windowSize)
 : m_scheduler(scheduler)
+, m_pipeline(pipeline)
 , m_currentPos(windowSize)
 , m_witdh(windowSize)
 {
   qRegisterMetaType<TimeStamp>("TimeStamp");
-  qRegisterMetaType<RepresentationPipelineSList>("RepresentationPipelineSList");
+  qRegisterMetaType<RepresentationPipeline::ActorList>("RepresentationPipelineActorList");
 
   for (unsigned int i = 0; i < 2*windowSize + 1; ++i)
   {
-    auto task = std::make_shared<RepresentationUpdater>(scheduler);
+    auto task = std::make_shared<RepresentationUpdater>(scheduler, pipeline);
 
-    connect(task.get(), SIGNAL(pipelinesUpdated(TimeStamp, RepresentationPipelineSList)),
-            this,       SIGNAL(pipelinesUpdated(TimeStamp, RepresentationPipelineSList)), Qt::DirectConnection);
+    connect(task.get(), SIGNAL(actorsUpdated(TimeStamp,RepresentationPipeline::ActorList)),
+            this,       SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::ActorList)), Qt::DirectConnection);
 
     m_buffer << task;
   }

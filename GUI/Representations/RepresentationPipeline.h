@@ -33,6 +33,8 @@ class vtkProp;
 
 namespace ESPINA {
 
+class ViewItemAdapter;
+
   /** \class RepresentationPipeline
    *
    * This representation pipeline settings are ThreadSafe
@@ -40,14 +42,15 @@ namespace ESPINA {
   class RepresentationPipeline
   {
   public:
-    using Type  = QString;
-    using Actor = vtkSmartPointer<vtkProp>;
+    using Type      = QString;
+    using Actor     = vtkSmartPointer<vtkProp>;
+    using ActorList = QList<Actor>;
 
     /** \class RepresentationPipeline::Settings
      *
      * This class is not ThreadSafe
      */
-    class Settings
+    class State
     {
       using Pair = QPair<QVariant, bool>;
     public:
@@ -63,7 +66,7 @@ namespace ESPINA {
 
       bool hasPendingChanges() const;
 
-      void apply(const Settings &settings);
+      void apply(const State &settings);
 
       void commit();
 
@@ -94,58 +97,29 @@ namespace ESPINA {
 
     virtual bool pick(const NmVector3 &point, vtkProp *actor) = 0;
 
-    /** \brief Sets the crosshair point position for this representation
-     * \param[in] point crosshair point
+    /** \brief Create the actors for the view item with the given state
      *
+     *  NOTE: Must be reentrant
      */
-    void setCrosshairPoint(const NmVector3 &point);
-
-    bool applySettings(const Settings& settings);
-
-    /** \brief Updates the representation.
-     *
-     */
-    void update();
-
-    /** \brief Returns the list of actors that comprise this representation.
-     *
-     */
-    virtual QList<Actor> getActors() = 0;
+    virtual RepresentationPipeline::ActorList createActors(ViewItemAdapter *item, const State &state) = 0;
 
   protected:
     explicit RepresentationPipeline(Type type);
 
-    /** \brief Returns the crosshair point for this representation.
-     *
-     */
-    NmVector3 crosshairPoint(const Settings &settings) const;
+  private:
+    virtual void applySettingsImplementation(const State &settings) = 0;
 
-    Nm crosshairPosition(const Plane &plane, const Settings &settings) const;
-
-    /** \brief Returns if the crosshair point has been modified since last update
-     *
-     */
-    bool isCrosshairPointModified(const Settings &settings) const;
-
-    bool isCrosshairPositionModified(const Plane &plane, const Settings &settings) const;
-
-    void updateState(const Settings& settings);
+    virtual bool updateImplementation(const State &settings) = 0;
 
   private:
-    virtual void applySettingsImplementation(const Settings &settings) = 0;
-
-    virtual bool updateImplementation(const Settings &settings) = 0;
-
-  private:
-    Type           m_type;
-    Settings       m_state;
+    Type m_type;
   };
 
   /** \brief
    *
    */
   template<typename T>
-  void RepresentationPipeline::Settings::setValue(const QString &tag, T value)
+  void RepresentationPipeline::State::setValue(const QString &tag, T value)
   {
     Pair pair = m_properties.value(tag, Pair(QVariant(), false));
 
@@ -157,6 +131,27 @@ namespace ESPINA {
       m_properties.insert(tag, pair);
     }
   }
+
+  /** \brief Sets the crosshair point position for this representation
+   * \param[in] point crosshair point
+   *
+   */
+  void setCrosshairPoint(const NmVector3 &point, RepresentationPipeline::State &state);
+
+  /** \brief Returns the crosshair point for this representation.
+   *
+   */
+  NmVector3 crosshairPoint(const RepresentationPipeline::State &settings);
+
+  Nm crosshairPosition(const Plane &plane, const RepresentationPipeline::State &settings);
+
+  /** \brief Returns if the crosshair point has been modified since last update
+   *
+   */
+  bool isCrosshairPointModified(const RepresentationPipeline::State &settings);
+
+  bool isCrosshairPositionModified(const Plane &plane, const RepresentationPipeline::State &settings);
+
 
   using RepresentationPipelineSPtr  = std::shared_ptr<RepresentationPipeline>;
   using RepresentationPipelineSList = QList<RepresentationPipelineSPtr>;

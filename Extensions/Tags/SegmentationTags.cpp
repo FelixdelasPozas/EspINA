@@ -27,6 +27,7 @@
 
 
 #include "SegmentationTags.h"
+
 #include <GUI/Utils/Conditions.h>
 #include <Core/Analysis/Segmentation.h>
 

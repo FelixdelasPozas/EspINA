@@ -80,28 +80,28 @@ void SliceManager::setPlane(Plane plane)
     if (Plane::UNDEFINED != m_plane)
     {
       qWarning() << "The DAY has come";
-      disconnect(planePool().get(), SIGNAL(representationsReady()),
+      disconnect(planePool().get(), SIGNAL(actorsReady()),
                  this,              SIGNAL(renderRequested()));
     }
 
     m_plane = plane;
 
-    connect(planePool().get(), SIGNAL(representationsReady()),
+    connect(planePool().get(), SIGNAL(actorsReady()),
             this,              SIGNAL(renderRequested()));
   }
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipelineSList SliceManager::pipelines(TimeStamp time)
+RepresentationPipeline::ActorList SliceManager::actors(TimeStamp time)
 {
-  RepresentationPipelineSList pipelines;
+  RepresentationPipeline::ActorList actors;
 
   if (validPlane())
   {
-    pipelines = planePool()->pipelines(time);
+    actors = planePool()->actors(time);
   }
 
-  return pipelines;
+  return actors;
 }
 
 //----------------------------------------------------------------------------

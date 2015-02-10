@@ -72,9 +72,9 @@ void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipeline::Settings RepresentationPool::settings() const
+RepresentationPipeline::State RepresentationPool::settings() const
 {
-  RepresentationPipeline::Settings settings;
+  RepresentationPipeline::State settings;
 
   if (m_settings)
   {
@@ -119,11 +119,11 @@ void RepresentationPool::update()
 //-----------------------------------------------------------------------------
 TimeRange RepresentationPool::readyRange() const
 {
-  return isBeingUsed()?m_frames.keys():TimeRange();
+  return isBeingUsed()?m_actors.keys():TimeRange();
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipelineSList RepresentationPool::pipelines(TimeStamp time)
+RepresentationPipeline::ActorList RepresentationPool::actors(TimeStamp time)
 {
 //   QList<TimeStamp> timeRange = m_frames.keys();
 //
@@ -135,7 +135,7 @@ RepresentationPipelineSList RepresentationPool::pipelines(TimeStamp time)
 //     }
 //   }
 
-  return m_frames.value(time, RepresentationPipelineSList());
+  return m_actors.value(time, RepresentationPipeline::ActorList());
 }
 
 //-----------------------------------------------------------------------------
@@ -165,44 +165,29 @@ ViewItemAdapterList RepresentationPool::sources() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::pipelinesReady(TimeStamp time, RepresentationPipelineSList pipelines)
+void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::ActorList actors)
 {
-  //qDebug() << "Representation ready" << time;
   if (time > m_lastUpdateTimeStamp)
   {
-    m_frames[time] = pipelines;
+    qDebug() << this << "Update TimeStamp:" << time;
+    m_actors[time] = actors;
 
     m_lastUpdateTimeStamp = time;
 
-    //qDebug() << "Representation ready emit" << time;
-    emit representationsReady();
+    emit actorsReady(time);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::pipelinesReady2(TimeStamp time, RepresentationPipelineSList pipelines)
+void RepresentationPool::invalidateActors(TimeStamp time)
 {
-  if (time > m_lastUpdateTimeStamp)
-  {
-    m_frames[time] = pipelines;
-
-    m_lastUpdateTimeStamp = time;
-
-    qDebug() << "Representation ready emit" << time;
-    emit representationsReady();
-  }
+  m_actors.remove(time);
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::invalidatePipeline(TimeStamp time)
+void RepresentationPool::invalidateActors()
 {
-  m_frames.remove(time);
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::invalidateRepresentations()
-{
-  m_frames.clear();
+  m_actors.clear();
 }
 
 //-----------------------------------------------------------------------------

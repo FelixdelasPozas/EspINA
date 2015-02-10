@@ -128,6 +128,7 @@ namespace ESPINA {
 
     void setTemporalRepresentation(RepresentationPipelineSPtr pipeline);
 
+    RepresentationPipelineSPtr temporalRepresentation() const;
 
   signals:
     void outputModified();
@@ -160,6 +161,7 @@ namespace ESPINA {
 
     bool m_isSelected;
     bool m_isVisible;
+    RepresentationPipelineSPtr m_temporalRepresentation;
   };
 
   ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);

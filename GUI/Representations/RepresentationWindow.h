@@ -35,7 +35,7 @@ namespace ESPINA
     using Cursor = QPair<RepresentationUpdaterSPtr, int>;
 
   public:
-    explicit RepresentationWindow(SchedulerSPtr scheduler, unsigned windowSize);
+    explicit RepresentationWindow(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline, unsigned windowSize);
 
     QList<Cursor> moveCurrent(int distance);
 
@@ -68,7 +68,7 @@ namespace ESPINA
     int size() const;
 
   signals:
-    void pipelinesUpdated(TimeStamp time, RepresentationPipelineSList pipelines);
+    void actorsReady(TimeStamp time, RepresentationPipeline::ActorList actor);
 
   private:
     RepresentationUpdaterSList aheadFrom(int pos, int length) const;
@@ -88,7 +88,8 @@ namespace ESPINA
   private:
     const unsigned BUFFER_INCREMENT = 4;
 
-    SchedulerSPtr m_scheduler;
+    SchedulerSPtr              m_scheduler;
+    RepresentationPipelineSPtr m_pipeline;
 
     int m_currentPos;
     int m_witdh;

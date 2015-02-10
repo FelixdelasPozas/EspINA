@@ -27,7 +27,7 @@ using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-bool RepresentationPipeline::Settings::hasPendingChanges() const
+bool RepresentationPipeline::State::hasPendingChanges() const
 {
   for (auto pair : m_properties)
   {
@@ -38,7 +38,7 @@ bool RepresentationPipeline::Settings::hasPendingChanges() const
 }
 
 //----------------------------------------------------------------------------
-void RepresentationPipeline::Settings::apply(const Settings &settings)
+void RepresentationPipeline::State::apply(const State &settings)
 {
   for (auto key : settings.m_properties.keys())
   {
@@ -56,7 +56,7 @@ void RepresentationPipeline::Settings::apply(const Settings &settings)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationPipeline::Settings::commit()
+void RepresentationPipeline::State::commit()
 {
   for (auto &pair : m_properties)
   {
@@ -71,13 +71,6 @@ RepresentationPipeline::RepresentationPipeline(Type type)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationPipeline::updateState(const Settings &settings)
-{
-  m_state.apply(settings);
-}
-
-
-//----------------------------------------------------------------------------
 QString RepresentationPipeline::serializeSettings()
 {
   return QString();
@@ -90,15 +83,16 @@ void RepresentationPipeline::restoreSettings(QString settings)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationPipeline::setCrosshairPoint(const NmVector3 &point)
+void ESPINA::setCrosshairPoint(const NmVector3 &point,
+                               RepresentationPipeline::State &state)
 {
-  m_state.setValue<double>(CROSSHAIR_X, point[0]);
-  m_state.setValue<double>(CROSSHAIR_Y, point[1]);
-  m_state.setValue<double>(CROSSHAIR_Z, point[2]);
+  state.setValue<double>(CROSSHAIR_X, point[0]);
+  state.setValue<double>(CROSSHAIR_Y, point[1]);
+  state.setValue<double>(CROSSHAIR_Z, point[2]);
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RepresentationPipeline::crosshairPoint(const Settings &settings) const
+NmVector3 ESPINA::crosshairPoint(const RepresentationPipeline::State &settings)
 {
   NmVector3   crosshair;
 
@@ -110,7 +104,7 @@ NmVector3 RepresentationPipeline::crosshairPoint(const Settings &settings) const
 }
 
 //----------------------------------------------------------------------------
-Nm RepresentationPipeline::crosshairPosition(const Plane &plane, const Settings &settings) const
+Nm ESPINA::crosshairPosition(const Plane &plane, const RepresentationPipeline::State &settings)
 {
   switch (plane)
   {
@@ -128,7 +122,7 @@ Nm RepresentationPipeline::crosshairPosition(const Plane &plane, const Settings 
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationPipeline::isCrosshairPointModified(const Settings &settings) const
+bool ESPINA::isCrosshairPointModified(const RepresentationPipeline::State &settings)
 {
   return settings.isModified(CROSSHAIR_X)
       || settings.isModified(CROSSHAIR_Y)
@@ -136,7 +130,8 @@ bool RepresentationPipeline::isCrosshairPointModified(const Settings &settings) 
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane, const Settings &settings) const
+bool ESPINA::isCrosshairPositionModified(const Plane &plane,
+                                         const RepresentationPipeline::State &settings)
 {
   switch (plane)
   {
@@ -151,23 +146,4 @@ bool RepresentationPipeline::isCrosshairPositionModified(const Plane &plane, con
   }
 
   return false;
-}
-
-
-//----------------------------------------------------------------------------
-bool RepresentationPipeline::applySettings(const RepresentationPipeline::Settings &settings)
-{
-  applySettingsImplementation(settings);
-
-  return m_state.hasPendingChanges();
-}
-
-//----------------------------------------------------------------------------
-void RepresentationPipeline::update()
-{
-  Settings settings = m_state;
-  m_state.commit();
-
-  updateImplementation(settings);
-
 }

@@ -31,7 +31,7 @@ Slice3DManager::Slice3DManager(RepresentationPoolSPtr xy,
 
   for (auto pool : m_pools)
   {
-    connect(pool.get(), SIGNAL(representationsReady()),
+    connect(pool.get(), SIGNAL(actorsReady()),
             this,       SLOT(onPoolReady()));
   }
 }
@@ -41,7 +41,7 @@ Slice3DManager::~Slice3DManager()
 {
   for (auto pool : m_pools)
   {
-    disconnect(pool.get(), SIGNAL(representationsReady()),
+    disconnect(pool.get(), SIGNAL(actorsReady()),
                this,       SLOT(onPoolReady()));
   }
 }
@@ -98,16 +98,16 @@ void Slice3DManager::setResolution(const NmVector3 &resolution)
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipelineSList Slice3DManager::pipelines(TimeStamp time)
+RepresentationPipeline::ActorList Slice3DManager::actors(TimeStamp time)
 {
-  RepresentationPipelineSList pipelines;
+  RepresentationPipeline::ActorList actors;
 
   for (auto pool : m_pools)
   {
-    pipelines << pool->pipelines(time);
+    actors << pool->actors(time);
   }
 
-  return pipelines;
+  return actors;
 }
 
 //----------------------------------------------------------------------------
@@ -152,9 +152,9 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 //----------------------------------------------------------------------------
 void Slice3DManager::onPoolReady()
 {
-//   for (auto pool : m_pools)
-//   {
-//     qDebug() << pool->readyRange();
-//   }
+  for (auto pool : m_pools)
+  {
+    qDebug() << pool->readyRange();
+  }
   emit renderRequested();
 }

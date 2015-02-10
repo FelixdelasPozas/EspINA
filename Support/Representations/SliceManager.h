@@ -45,7 +45,7 @@ namespace ESPINA
     virtual void setPlane(Plane plane);
 
   private:
-    virtual RepresentationPipelineSList pipelines(TimeStamp time);
+    virtual RepresentationPipeline::ActorList actors(TimeStamp time);
 
     virtual void updatePipelines();
 

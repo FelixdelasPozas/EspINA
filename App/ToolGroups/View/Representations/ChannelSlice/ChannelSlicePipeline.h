@@ -47,31 +47,28 @@ namespace ESPINA
   : public RepresentationPipeline
   {
   public:
-    explicit ChannelSlicePipeline(ViewItemAdapterPtr item);
+    explicit ChannelSlicePipeline();
 
     virtual bool pick(const NmVector3 &point, vtkProp *actor);
 
-    virtual QList<Actor> getActors();
-
+    RepresentationPipeline::ActorList createActors(ViewItemAdapter *item, const State &state);
   private:
-    virtual void applySettingsImplementation(const Settings &settings);
+    virtual void applySettingsImplementation(const State &settings);
 
-    virtual bool updateImplementation(const Settings &settings);
+    virtual bool updateImplementation(const State &settings);
 
-    void createPipeline(DefaultVolumetricDataSPtr volume, const Bounds &sliceBounds, const Settings &settings);
+    void createPipeline(DefaultVolumetricDataSPtr volume, const Bounds &sliceBounds, const State &settings);
 
-    void updatePipeline(const Settings &settings);
+    void updatePipeline(const State &settings);
 
-    void updateBrightness(const Settings &settings);
+    void updateBrightness(const State &settings);
 
-    void updateContrast(const Settings &settings);
+    void updateContrast(const State &settings);
 
-    void updateStain(const Settings &settings);
+    void updateStain(const State &settings);
 
   private:
     static Plane s_plane;
-
-    ChannelAdapterPtr m_channel;
 
     int       m_planeIndex;
     TimeStamp m_timeStamp;
