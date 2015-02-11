@@ -1087,6 +1087,7 @@ void View2D::configureManager(RepresentationManagerSPtr manager)
   if (manager2D)
   {
     manager2D->setPlane(m_plane);
+    manager2D->setRepresentationDepth(segmentationDepth());
   }
 }
 

@@ -21,6 +21,8 @@
 #define ESPINA_CHANNEL_PIPELINE_H
 
 #include <GUI/Model/ChannelAdapter.h>
+#include <QColor>
+#include <GUI/Representations/RepresentationState.h>
 
 namespace ESPINA {
 
@@ -30,9 +32,14 @@ namespace ESPINA {
     /** \brief Return pipeline settings for channel
      *
      */
-    static RepresentationPipeline::State Settings(ChannelAdapterPtr channel);
+    static RepresentationState Settings(ChannelAdapterPtr channel);
   };
 
+  double brightness(const RepresentationState &state);
+
+  double contrast(const RepresentationState &state);
+
+  QColor stain(const RepresentationState &state);
 }
 
 #endif // ESPINA_CHANNEL_PIPELINE_H

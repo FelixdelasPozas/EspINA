@@ -18,6 +18,7 @@
  */
 
 #include "SegmentationPipeline.h"
+#include <GUI/View/RenderView.h>
 
 #include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
@@ -28,11 +29,23 @@ using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::State SegmentationPipeline::Settings(SegmentationAdapterPtr segmentation)
+RepresentationState SegmentationPipeline::Settings(SegmentationAdapterPtr segmentation)
 {
-  RepresentationPipeline::State settings;
+  RepresentationState settings;
 
-  settings.setValue<double>(VISIBLE,    segmentation->isVisible());
+  settings.setValue<double>(VISIBLE, segmentation->isVisible());
 
   return settings;
+}
+
+//----------------------------------------------------------------------------
+QColor segmentationColor(const RepresentationState &state)
+{
+  return state.getValue<QColor>(COLOR);
+}
+
+//----------------------------------------------------------------------------
+Nm segmentationDepth(const RepresentationState &state)
+{
+  return state.getValue<Nm>(DEPTH);
 }

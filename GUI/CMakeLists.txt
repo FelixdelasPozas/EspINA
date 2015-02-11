@@ -15,7 +15,6 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
-  Representations/PipelineMultiplexer.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
   Representations/RepresentationPool.h
@@ -97,11 +96,11 @@ set (GUI_SOURCES
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
   Representations/ChannelPipeline.cpp
-  Representations/PipelineMultiplexer.cpp
   Representations/PipelineSources.cpp
   Representations/RepresentationManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
+  Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp
   Representations/SegmentationPipeline.cpp

@@ -60,14 +60,17 @@ namespace ESPINA
 
     void updateBuffer(const NmVector3 &point, int shift);
 
+    int invalidationShift() const;
+
   private:
     const int m_normalIdx;
 
     RepresentationWindow m_updateWindow;
 
-    int m_shift;
-    Nm  m_normalRes;
-    Nm  m_lastCoordinate;
+    bool m_init;
+    int  m_shift;
+    Nm   m_normalRes;
+    Nm   m_lastCoordinate;
   };
 
 #include "BufferedRepresentationPool.cpp"

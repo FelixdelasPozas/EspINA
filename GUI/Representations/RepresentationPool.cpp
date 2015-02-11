@@ -23,10 +23,27 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
+RepresentationState RepresentationPool::Settings::poolSettings()
+{
+  auto state = poolSettingsImplementation();
+
+  state.apply(m_state);
+
+  return state;
+}
+
+//-----------------------------------------------------------------------------
+RepresentationState RepresentationPool::Settings::poolSettingsImplementation()
+{
+  return RepresentationState();
+}
+
+//-----------------------------------------------------------------------------
 RepresentationPool::RepresentationPool()
 : m_sources            {nullptr}
+, m_settings           {new Settings()}
 , m_numObservers       {0}
-, m_requestedTimeStamp {0}
+, m_requestedTimeStamp {1}
 , m_lastUpdateTimeStamp{0}
 {
 }
@@ -72,16 +89,9 @@ void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipeline::State RepresentationPool::settings() const
+RepresentationState RepresentationPool::settings() const
 {
-  RepresentationPipeline::State settings;
-
-  if (m_settings)
-  {
-    settings = m_settings->pipelineSettings();
-  }
-
-  return settings;
+  return m_settings->poolSettings();
 }
 
 //-----------------------------------------------------------------------------
@@ -90,7 +100,10 @@ void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
   m_requestedTimeStamp = t;
   m_crosshair          = point;
 
-  setCrosshairImplementation(point, t);
+  if (isBeingUsed())
+  {
+    setCrosshairImplementation(point, t);
+  }
 }
 
 //-----------------------------------------------------------------------------

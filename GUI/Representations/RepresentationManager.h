@@ -85,8 +85,7 @@ namespace ESPINA
     /** \brief Sets the view where representation are managed
      *
      */
-    void setView(RenderView *view)
-    { m_view = view; }
+    void setView(RenderView *view);
 
     ViewTypeFlags supportedViews() const
     { return m_supportedViews; }
@@ -145,11 +144,18 @@ namespace ESPINA
   signals:
     void renderRequested();
 
+  protected slots:
+    void emitRenderRequest(TimeStamp time);
+
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
   private:
     virtual RepresentationPipeline::ActorList actors(TimeStamp time) = 0;
+
+    virtual void connectPools() = 0;
+
+    virtual void disconnectPools() = 0;
 
     virtual void updatePipelines() = 0;
 
@@ -169,6 +175,7 @@ namespace ESPINA
   private:
     RenderView   *m_view;
     ViewTypeFlags m_supportedViews;
+    TimeStamp     m_lastRenderRequestTime;
 
     RepresentationManagerSList m_childs;
 
@@ -179,6 +186,7 @@ namespace ESPINA
   {
   public:
     virtual void setPlane(Plane plane) = 0;
+    virtual void setRepresentationDepth(Nm depth) = 0;
   };
 
 }// namespace ESPINA

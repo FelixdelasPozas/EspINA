@@ -24,7 +24,6 @@
 #include <GUI/Representations/ChannelPipeline.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include "App/ToolGroups/View/Representations/RepresentationSettings.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -40,8 +39,6 @@
 
 namespace ESPINA
 {
-  using namespace Representations;
-
   template<Plane T>
   class ChannelSlicePipeline
   : public RepresentationPipeline
@@ -49,36 +46,17 @@ namespace ESPINA
   public:
     explicit ChannelSlicePipeline();
 
-    virtual bool pick(const NmVector3 &point, vtkProp *actor);
+    virtual bool applySettings(ViewItemAdapter           *item,
+                               const RepresentationState &settings,
+                               RepresentationState       &state) override;
 
-    RepresentationPipeline::ActorList createActors(ViewItemAdapter *item, const State &state);
-  private:
-    virtual void applySettingsImplementation(const State &settings);
+    virtual RepresentationPipeline::ActorList createActors(ViewItemAdapter           *item,
+                                                           const RepresentationState &state) override;
 
-    virtual bool updateImplementation(const State &settings);
-
-    void createPipeline(DefaultVolumetricDataSPtr volume, const Bounds &sliceBounds, const State &settings);
-
-    void updatePipeline(const State &settings);
-
-    void updateBrightness(const State &settings);
-
-    void updateContrast(const State &settings);
-
-    void updateStain(const State &settings);
+    virtual bool pick(const NmVector3 &point, vtkProp *actor) override;
 
   private:
     static Plane s_plane;
-
-    int       m_planeIndex;
-    TimeStamp m_timeStamp;
-
-    vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
-    vtkSmartPointer<vtkImageShiftScale>  m_shiftScaleFilter;
-    vtkSmartPointer<vtkImageActor>       m_actor;
-    vtkSmartPointer<vtkLookupTable>      m_lut;
-
-    QList<Actor> m_actors;
   };
 
 #include "ChannelSlicePipeline.cpp"

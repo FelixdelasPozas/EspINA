@@ -47,6 +47,10 @@ namespace ESPINA {
   private:
     virtual RepresentationPipeline::ActorList actors(TimeStamp time);
 
+    virtual void connectPools();
+
+    virtual void disconnectPools();
+    
     virtual void updatePipelines();
 
     virtual void notifyPoolUsed();
@@ -55,12 +59,18 @@ namespace ESPINA {
 
     virtual RepresentationManagerSPtr cloneImplementation();
 
+    void checkRenderRequest();
+
   private slots:
-    void onPoolReady();
+    void onPoolReadyXY(TimeStamp time);
+    void onPoolReadyXZ(TimeStamp time);
+    void onPoolReadyYZ(TimeStamp time);
 
   private:
     RepresentationPoolSList m_pools;
-    TimeStamp m_lastReady;
+    TimeStamp m_renderRequestTimeXY;
+    TimeStamp m_renderRequestTimeXZ;
+    TimeStamp m_renderRequestTimeYZ;
   };
 }
 

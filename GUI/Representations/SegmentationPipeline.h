@@ -21,6 +21,8 @@
 #define ESPINA_SEGMENTATION_PIPELINE_H
 
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Representations/RepresentationState.h>
+#include <QColor>
 
 namespace ESPINA {
 
@@ -30,9 +32,12 @@ namespace ESPINA {
     /** \brief Return pipeline settings for channel
      *
      */
-    static RepresentationPipeline::State Settings(SegmentationAdapterPtr channel);
+    static RepresentationState Settings(SegmentationAdapterPtr segmentation);
   };
 
+  QColor segmentationColor(const RepresentationState &state);
+
+  Nm segmentationDepth(const RepresentationState &state);
 }
 
 #endif // ESPINA_CHANNEL_PIPELINE_H

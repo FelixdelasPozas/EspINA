@@ -28,9 +28,9 @@ using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::State ChannelPipeline::Settings(ChannelAdapterPtr channel)
+RepresentationState ChannelPipeline::Settings(ChannelAdapterPtr channel)
 {
-  RepresentationPipeline::State settings;
+  RepresentationState settings;
 
   double hue   = -1.0 == channel->hue() ? 0 : channel->hue();
   double sat   = -1.0 == channel->hue() ? 0 : channel->saturation();
@@ -42,4 +42,22 @@ RepresentationPipeline::State ChannelPipeline::Settings(ChannelAdapterPtr channe
   settings.setValue<QColor>(STAIN,      QColor::fromHsvF(hue, sat, 1.0));
 
   return settings;
+}
+
+//----------------------------------------------------------------------------
+double ESPINA::brightness(const RepresentationState &state)
+{
+  return state.getValue<double>(BRIGHTNESS);
+}
+
+//----------------------------------------------------------------------------
+double ESPINA::contrast(const RepresentationState &state)
+{
+  return state.getValue<double>(CONTRAST);
+}
+
+//----------------------------------------------------------------------------
+QColor ESPINA::stain(const RepresentationState &state)
+{
+  return state.getValue<QColor>(STAIN);
 }

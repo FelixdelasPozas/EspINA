@@ -23,7 +23,6 @@
 #include <memory>
 #include <QString>
 #include <QList>
-#include <QReadWriteLock>
 #include <Core/Utils/NmVector3.h>
 #include <Core/EspinaTypes.h>
 
@@ -34,6 +33,7 @@ class vtkProp;
 namespace ESPINA {
 
 class ViewItemAdapter;
+class RepresentationState;
 
   /** \class RepresentationPipeline
    *
@@ -45,34 +45,6 @@ class ViewItemAdapter;
     using Type      = QString;
     using Actor     = vtkSmartPointer<vtkProp>;
     using ActorList = QList<Actor>;
-
-    /** \class RepresentationPipeline::Settings
-     *
-     * This class is not ThreadSafe
-     */
-    class State
-    {
-      using Pair = QPair<QVariant, bool>;
-    public:
-      template<typename T>
-      void setValue(const QString &tag, T value);
-
-      template<typename T>
-      T getValue(const QString &tag) const
-      { return m_properties[tag].first.value<T>(); }
-
-      bool isModified(const QString &tag) const
-      { return m_properties.value(tag, Pair(QVariant(), false)).second; }
-
-      bool hasPendingChanges() const;
-
-      void apply(const State &settings);
-
-      void commit();
-
-    private:
-      QMap<QString, Pair> m_properties;
-    };
 
   public:
     virtual ~RepresentationPipeline()
@@ -95,63 +67,24 @@ class ViewItemAdapter;
      */
     virtual void restoreSettings(QString settings);
 
-    virtual bool pick(const NmVector3 &point, vtkProp *actor) = 0;
+    virtual bool applySettings(ViewItemAdapter           *item,
+                               const RepresentationState &settings,
+                               RepresentationState       &state) = 0;
 
     /** \brief Create the actors for the view item with the given state
      *
      *  NOTE: Must be reentrant
      */
-    virtual RepresentationPipeline::ActorList createActors(ViewItemAdapter *item, const State &state) = 0;
+    virtual RepresentationPipeline::ActorList createActors(ViewItemAdapter *item, const RepresentationState &state) = 0;
+
+    virtual bool pick(const NmVector3 &point, vtkProp *actor) = 0;
 
   protected:
     explicit RepresentationPipeline(Type type);
 
   private:
-    virtual void applySettingsImplementation(const State &settings) = 0;
-
-    virtual bool updateImplementation(const State &settings) = 0;
-
-  private:
     Type m_type;
   };
-
-  /** \brief
-   *
-   */
-  template<typename T>
-  void RepresentationPipeline::State::setValue(const QString &tag, T value)
-  {
-    Pair pair = m_properties.value(tag, Pair(QVariant(), false));
-
-    pair.second |= pair.first.value<T>() != value;
-
-    if (pair.second)
-    {
-      pair.first.setValue<T>(value);
-      m_properties.insert(tag, pair);
-    }
-  }
-
-  /** \brief Sets the crosshair point position for this representation
-   * \param[in] point crosshair point
-   *
-   */
-  void setCrosshairPoint(const NmVector3 &point, RepresentationPipeline::State &state);
-
-  /** \brief Returns the crosshair point for this representation.
-   *
-   */
-  NmVector3 crosshairPoint(const RepresentationPipeline::State &settings);
-
-  Nm crosshairPosition(const Plane &plane, const RepresentationPipeline::State &settings);
-
-  /** \brief Returns if the crosshair point has been modified since last update
-   *
-   */
-  bool isCrosshairPointModified(const RepresentationPipeline::State &settings);
-
-  bool isCrosshairPositionModified(const Plane &plane, const RepresentationPipeline::State &settings);
-
 
   using RepresentationPipelineSPtr  = std::shared_ptr<RepresentationPipeline>;
   using RepresentationPipelineSList = QList<RepresentationPipelineSPtr>;

@@ -19,6 +19,7 @@
 
 #include "SliceManager.h"
 #include <GUI/View/RenderView.h>
+#include <App/ToolGroups/View/Representations/RepresentationSettings.h>
 
 using namespace ESPINA;
 
@@ -80,14 +81,22 @@ void SliceManager::setPlane(Plane plane)
     if (Plane::UNDEFINED != m_plane)
     {
       qWarning() << "The DAY has come";
-      disconnect(planePool().get(), SIGNAL(actorsReady()),
-                 this,              SIGNAL(renderRequested()));
+
+      disconnectPools();
     }
 
     m_plane = plane;
 
-    connect(planePool().get(), SIGNAL(actorsReady()),
-            this,              SIGNAL(renderRequested()));
+    connectPools();
+  }
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::setRepresentationDepth(Nm depth)
+{
+  if(validPlane())
+  {
+    planePool()->setSetting<Nm>(Representations::DEPTH, depth);
   }
 }
 
@@ -102,6 +111,26 @@ RepresentationPipeline::ActorList SliceManager::actors(TimeStamp time)
   }
 
   return actors;
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::connectPools()
+{
+  if (validPlane())
+  {
+    connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
+            this,              SLOT(emitRenderRequest(TimeStamp)));
+  }
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::disconnectPools()
+{
+  if (validPlane())
+  {
+    disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
+               this,              SLOT(emitRenderRequest(TimeStamp)));
+  }
 }
 
 //----------------------------------------------------------------------------

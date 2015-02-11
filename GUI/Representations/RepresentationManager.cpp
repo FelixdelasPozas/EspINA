@@ -32,6 +32,7 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 , m_view{nullptr}
 , m_supportedViews{supportedViews}
 , m_requiresRender{false}
+, m_lastRenderRequestTime{0}
 {
 }
 
@@ -69,6 +70,22 @@ void RepresentationManager::setIcon(const QIcon &icon)
 QIcon RepresentationManager::icon() const
 {
   return m_icon;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::setView(RenderView *view)
+{
+  if(m_view)
+  {
+    disconnectPools();
+  }
+
+  m_view = view;
+
+  if(m_view)
+  {
+    connectPools();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -124,8 +141,8 @@ void RepresentationManager::display(TimeStamp time)
     {
       for (auto actor : actors(time))
       {
-          m_view->addActor(actor);
-          m_viewActors << actor;
+        m_view->addActor(actor);
+        m_viewActors << actor;
       }
     }
 
@@ -156,5 +173,15 @@ void RepresentationManager::setRepresentationsVisibility(bool value)
     {
       hide();
     }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::emitRenderRequest(TimeStamp time)
+{
+  if(time > m_lastRenderRequestTime)
+  {
+    m_lastRenderRequestTime = time;
+    emit renderRequested();
   }
 }

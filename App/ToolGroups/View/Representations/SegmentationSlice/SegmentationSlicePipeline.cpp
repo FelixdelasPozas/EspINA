@@ -24,26 +24,9 @@ ESPINA::Plane ESPINA::SegmentationSlicePipeline<T>::s_plane = T;
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-ESPINA::SegmentationSlicePipeline<T>::SegmentationSlicePipeline(ViewItemAdapterPtr item)
+ESPINA::SegmentationSlicePipeline<T>::SegmentationSlicePipeline()
 : RepresentationPipeline("SegmentationSliceRepresentation")
-, m_segmentation(dynamic_cast<SegmentationAdapterPtr>(item))
-, m_planeIndex(normalCoordinateIndex(s_plane))
 {
-  initPipeline();
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-bool SegmentationSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
-{
-  return false;
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-QList<ESPINA::RepresentationPipeline::Actor> ESPINA::SegmentationSlicePipeline<T>::getActors()
-{
-  return m_actors;
 }
 
 #include <QDebug>
@@ -51,76 +34,69 @@ QList<ESPINA::RepresentationPipeline::Actor> ESPINA::SegmentationSlicePipeline<T
 template<ESPINA::Plane T>
 void ESPINA::SegmentationSlicePipeline<T>::applySettingsImplementation(const Settings &settings)
 {
-  updateState(SegmentationPipeline::Settings(m_segmentation));
-  updateState(settings);
+  auto segmentation = segmentationPtr(item);
+
+  state.apply(SegmentationPipeline::Settings(segmentation));
+  state.apply(settings);
+
+  return state.hasPendingChanges();
 }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-bool SegmentationSlicePipeline<T>::updateImplementation()
+ESPINA::RepresentationPipeline::ActorList ESPINA::SegmentationSlicePipeline::createActors(ESPINA::ViewItemAdapter *item, const ESPINA::RepresentationState &state)
 {
-  m_actors.clear();
+  auto segmentation = segmentationPtr(item);
+  auto planeIndex = normalCoordinateIndex(s_plane);
 
-  if (!state<bool>(VISIBLE)) return false;
+  ActorList actors;
+  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-  if (!hasVolumetricData(m_segmentation->output())) return false;
-
-  Nm reslicePoint = crosshairPosition(s_plane);
-
-  auto data = volumetricData(m_segmentation->output());
-
-  vtkSmartPointer<vtkImageData> slice;
-
-  bool dataChanged = data->lastModified() != state<TimeStamp>(TIME_STAMP);
-  bool crosshairPositionChanged = isCrosshairPositionModified(s_plane);
-  if (crosshairPositionChanged || dataChanged)
+  Nm sliceNumber = crosshairPosition(s_plane, state);
+  qDebug() << "Slice:" << sliceNumber << "Createing Actors";
+  if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    Bounds imageBounds = data->bounds();
+    qDebug() << "Slice:" << sliceNumber << "\t is visible";
+    auto volume = volumetricData(segmentation->output());
+      Bounds sliceBounds = volume->bounds();
 
-    if (reslicePoint < imageBounds[2*m_planeIndex]
-     || reslicePoint > imageBounds[2*m_planeIndex+1]) return false;
+      Nm reslicePoint = crosshairPosition(s_plane, state);
 
-    imageBounds.setLowerInclusion(true);
-    imageBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-    imageBounds[2*m_planeIndex] = imageBounds[2*m_planeIndex+1] = reslicePoint;
+      if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
+      {
+        qDebug() << "Slice:" << sliceNumber << "\t inside bounds";
+        sliceBounds.setLowerInclusion(true);
+        sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
+        sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-    slice = vtkImage(data, imageBounds);
+        auto slice = vtkImage(volume, sliceBounds);
 
-    m_mapToColors->SetInputData(slice);
+        auto color = segmentationColor(state);
+        auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+        mapToColors->SetInputData(slice);
+        mapToColors->SetLookupTable(s_highlighter->lut(color));
+        mapToColors->SetNumberOfThreads(1);
+        mapToColors->Update();
 
-    if (dataChanged)
-    {
-      setState<TimeStamp>(TIME_STAMP, data->lastModified());
-    }
+        auto actor = vtkSmartPointer<vtkImageActor>::New();
+        actor->SetInterpolate(false);
+        actor->GetMapper()->BorderOn();
+        actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+        actor->SetDisplayExtent(slice->GetExtent());
+        actor->Update();
+
+        // need to reposition the actor so it will always be over the channels actors'
+        double pos[3];
+        actor->GetPosition(pos);
+        qDebug() << "Pos: " << pos[planeIndex];
+        pos[planeIndex] += segmentationDepth(state);
+        actor->SetPosition(pos);
+
+        actors << actor;
+      }
   }
 
-  bool colorChanged = isModified(COLOR);
-  if (colorChanged)
-  {
-    updateColor();
-  }
-
-  // TODO: Simplify if conditions if no more changes are done
-  if (crosshairPositionChanged || colorChanged)
-  {
-    m_mapToColors->Update();
-  }
-
-  if (crosshairPositionChanged)
-  {
-    m_actor->SetDisplayExtent(slice->GetExtent());
-  }
-
-  bool changed = crosshairPositionChanged || colorChanged;
-
-  if (changed)
-  {
-    m_actor->Update();
-  }
-
-  m_actors << m_actor;
-
-  return changed;
+  return actors;
 }
 
 //----------------------------------------------------------------------------

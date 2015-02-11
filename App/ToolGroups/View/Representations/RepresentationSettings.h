@@ -34,6 +34,7 @@ namespace ESPINA {
     const QString BRIGHTNESS   = "Brightness";
     const QString STAIN        = "Stain";
     const QString COLOR        = "Color";
+    const QString DEPTH        = "Depth";
 
     const QString TIME_STAMP   = "TimeStamp";
   }

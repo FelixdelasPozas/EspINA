@@ -26,12 +26,11 @@ using namespace ESPINA;
 RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
                                              RepresentationPipelineSPtr pipeline)
 : Task            {scheduler}
-, m_pipeline      {pipeline}
 , m_timeStamp     {0}
 , m_timeStampValid{false}
+, m_pipeline      {pipeline}
 {
   setHidden(true);
-
 }
 
 //----------------------------------------------------------------------------
@@ -39,7 +38,7 @@ void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
   Q_ASSERT(!m_states.contains(item));
 
-  m_states[item] = RepresentationPipeline::State();
+  m_states[item] = RepresentationState();
 }
 
 //----------------------------------------------------------------------------
@@ -60,14 +59,21 @@ void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationUpdater::applySettings(const RepresentationPipeline::State &settings)
+bool RepresentationUpdater::applySettings(const RepresentationState &settings)
 {
   bool modified = false;
 
-  for (auto &state : m_states)
+  auto it = m_states.begin();
+
+  while (it != m_states.end())
   {
-    state.apply(settings);
-    modified |= state.hasPendingChanges(); // TODO when to do the commit?
+    auto  item     = it.key();
+    auto &state    = it.value();
+    auto  pipeline = sourcePipeline(item);
+
+    modified |= pipeline->applySettings(item, settings, state);
+
+    ++it;
   }
 
   return modified;
@@ -87,9 +93,14 @@ TimeStamp RepresentationUpdater::timeStamp() const
 }
 
 //----------------------------------------------------------------------------
-void RepresentationUpdater::invalidateTimeStamp()
+void RepresentationUpdater::invalidate()
 {
   m_timeStampValid = false;
+
+//   for (auto &state : m_states)
+//   {
+//     state.clear();
+//   }
 }
 
 //----------------------------------------------------------------------------
@@ -107,27 +118,41 @@ RepresentationPipeline::ActorList RepresentationUpdater::actors() const
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
+  qDebug() << "Task" << description() << "running" << " - " << this;
+
   m_actors.clear();
-  //qDebug() << "Task" << description() << "running" << " - " << this;
+
   auto it = m_states.begin();
 
   while (canExecute() && it != m_states.end())
   {
-    auto tmpRep = it.key()->temporalRepresentation();
+    auto  item     = it.key();
+    auto &state    = it.value();
+    auto  pipeline = sourcePipeline(item);
 
-    if (tmpRep && tmpRep->type() == m_pipeline->type())
-    {
-      m_actors << tmpRep->createActors(it.key(), it.value());
-    }
-    else
-    {
-      m_actors << m_pipeline->createActors(it.key(), it.value());
-    }
+    state.commit();
+
+    m_actors << pipeline->createActors(item, state);
 
     ++it;
   }
 
-  if (hasValidTimeStamp() && canExecute()) {
+  qDebug() << "Task:" << description() << "has" << m_actors.size() << "actors" << " - needsrestart" << needsRestart();
+  if (hasValidTimeStamp() && canExecute())
+  {
     emit actorsUpdated(timeStamp(), m_actors);
   }
+}
+
+//----------------------------------------------------------------------------
+RepresentationPipelineSPtr RepresentationUpdater::sourcePipeline(ViewItemAdapterPtr item) const
+{
+  auto pipeline = item->temporalRepresentation();
+
+  if (!pipeline || pipeline->type() != m_pipeline->type())
+  {
+    pipeline = m_pipeline;
+  }
+
+  return pipeline;
 }

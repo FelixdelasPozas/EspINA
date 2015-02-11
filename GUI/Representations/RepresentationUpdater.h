@@ -23,6 +23,7 @@
 #include <Core/MultiTasking/Task.h>
 
 #include <GUI/Model/ViewItemAdapter.h>
+#include "RepresentationState.h"
 
 namespace ESPINA
 {
@@ -40,13 +41,13 @@ namespace ESPINA
 
     void setCrosshair(const NmVector3 &point);
 
-    bool applySettings(const RepresentationPipeline::State &state);
+    bool applySettings(const RepresentationState &setting);
 
     void setTimeStamp(TimeStamp time);
 
     TimeStamp timeStamp() const;
 
-    void invalidateTimeStamp();
+    void invalidate();
 
     bool hasValidTimeStamp() const;
 
@@ -59,10 +60,15 @@ namespace ESPINA
     virtual void run();
 
   private:
-    RepresentationPipelineSPtr m_pipeline;
-    QMap<ViewItemAdapterPtr, RepresentationPipeline::State> m_states;
+    RepresentationPipelineSPtr sourcePipeline(ViewItemAdapterPtr item) const;
+
+  private:
     TimeStamp m_timeStamp;
     bool      m_timeStampValid;
+
+    RepresentationPipelineSPtr m_pipeline;
+    QMap<ViewItemAdapterPtr, RepresentationState> m_states;
+
     RepresentationPipeline::ActorList m_actors;
   };
 

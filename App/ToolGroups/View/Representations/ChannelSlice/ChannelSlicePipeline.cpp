@@ -19,6 +19,8 @@
 
 #include "ChannelSlicePipeline.h"
 
+#include <QDebug>
+
 template<ESPINA::Plane T>
 ESPINA::Plane ESPINA::ChannelSlicePipeline<T>::s_plane = T;
 
@@ -26,186 +28,103 @@ ESPINA::Plane ESPINA::ChannelSlicePipeline<T>::s_plane = T;
 template<ESPINA::Plane T>
 ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline()
 : RepresentationPipeline("ChannelSliceRepresentation")
-, m_planeIndex(normalCoordinateIndex(s_plane))
-, m_timeStamp(VTK_UNSIGNED_LONG_LONG_MAX)
 {
 }
+
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+bool ESPINA::ChannelSlicePipeline<T>::applySettings(ViewItemAdapter           *item,
+                                                 const RepresentationState &settings,
+                                                 RepresentationState       &state)
+{
+  auto channel = channelPtr(item);
+
+  state.apply(ChannelPipeline::Settings(channel));
+  state.apply(settings);
+
+  return state.hasPendingChanges();
+}
+
+
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(ViewItemAdapter           *item,
+                                                                                const RepresentationState &state)
+{
+  auto channel    = channelPtr(item);
+  auto planeIndex = normalCoordinateIndex(s_plane);
+
+  ActorList actors;
+  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+
+  Nm sliceNumber = crosshairPosition(s_plane, state);
+  qDebug() << "Slice:" << sliceNumber << "Createing Actors";
+  if (isVisible(state) && hasVolumetricData(channel->output()))
+  {
+    qDebug() << "Slice:" << sliceNumber << "\t is visible";
+    auto volume = volumetricData(channel->output());
+    Bounds sliceBounds = volume->bounds();
+
+    Nm reslicePoint = crosshairPosition(s_plane, state);
+
+    if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
+    {
+      qDebug() << "Slice:" << sliceNumber << "\t inside bounds";
+      sliceBounds.setLowerInclusion(true);
+      sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
+      sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
+
+      //    createPipeline(volume, sliceBounds, settings);
+      auto slice = vtkImage(volume, sliceBounds);
+
+      auto shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
+      shiftScaleFilter->SetInputData(slice);
+      shiftScaleFilter->SetShift(static_cast<int>(brightness(state)*255));
+      shiftScaleFilter->SetScale(contrast(state));
+      shiftScaleFilter->SetClampOverflow(true);
+      shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
+      shiftScaleFilter->Update();
+
+      auto color = stain(state);
+      auto lut = vtkSmartPointer<vtkLookupTable>::New();
+      lut->Allocate();
+      lut->SetTableRange(0,255);
+      lut->SetValueRange(0.0, 1.0);
+      lut->SetAlphaRange(1.0,1.0);
+      lut->SetNumberOfColors(256);
+      lut->SetRampToLinear();
+      lut->SetHueRange(color.hueF(), color.hueF());
+      lut->SetSaturationRange(0.0, color.saturationF());
+      lut->Build();
+
+      auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+      mapToColors->SetInputConnection(shiftScaleFilter->GetOutputPort());
+      mapToColors->SetLookupTable(lut);
+      mapToColors->SetNumberOfThreads(1);
+      mapToColors->Update();
+
+      auto actor = vtkSmartPointer<vtkImageActor>::New();
+      actor->SetInterpolate(false);
+      actor->GetMapper()->BorderOn();
+      actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+      actor->SetDisplayExtent(slice->GetExtent());
+      actor->Update();
+
+      actors << actor;
+    }
+  }
+  qDebug() << "Slice:" << sliceNumber << "\t has" << actors.size() <<"actors";
+
+  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+  if (s_plane == Plane::YZ) qDebug() <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+  return actors;
+ }
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
 bool ChannelSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
 {
   return false;
-}
-
-#include <QDebug>
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::applySettingsImplementation(const State &settings)
-{
-  //updateState(ChannelPipeline::Settings(m_channel));
-  //updateState(settings);
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(ViewItemAdapter *item, const State &state)
-{
-  // TODO: modificación de updateImplementation con los métodos privados de update state que ya no
-  // hacen falta
-  return RepresentationPipeline::ActorList();
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-bool ChannelSlicePipeline<T>::updateImplementation(const State &settings)
-{
-//  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-//
-//  m_actors.clear();
-//
-//  if (!settings.getValue<bool>(VISIBLE)) return false;
-//
-//  if (!hasVolumetricData(m_channel->output())) return false;
-//
-//  auto volume = volumetricData(m_channel->output());
-//
-//  bool dataChanged = volume->lastModified() != m_timeStamp;
-//  bool crosshairPositionChanged = isCrosshairPositionModified(s_plane, settings);
-//  if (crosshairPositionChanged || dataChanged)
-//  {
-//    Bounds sliceBounds = volume->bounds();
-//
-//    if (dataChanged)
-//    {
-//      m_timeStamp = volume->lastModified();
-//    }
-//
-//    Nm reslicePoint = crosshairPosition(s_plane, settings);
-//
-//    if (reslicePoint < sliceBounds[2*m_planeIndex]
-//     || reslicePoint > sliceBounds[2*m_planeIndex+1]) return true; // Not visible
-//
-//     qDebug() << "Slice" <<  reslicePoint << "running";
-//    sliceBounds.setLowerInclusion(true);
-//    sliceBounds.setUpperInclusion(toAxis(m_planeIndex), true);
-//    sliceBounds[2*m_planeIndex] = sliceBounds[2*m_planeIndex+1] = reslicePoint;
-//
-//    createPipeline(volume, sliceBounds, settings);
-//
-// //     qDebug() << "Slice" <<  reslicePoint << "finished";
-//  }
-//  else
-//  {
-//    updatePipeline(settings);
-//  }
-//
-//  m_actors << m_actor;
-//
-//  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-//
-//  if (s_plane == Plane::YZ) qDebug() <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-//
-  return true;
-}
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::createPipeline(DefaultVolumetricDataSPtr volume,
-                                                     const Bounds             &sliceBounds,
-                                                     const State              &settings)
-{
-  auto slice = vtkImage(volume, sliceBounds);
-
-  m_shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
-  m_shiftScaleFilter->SetInputData(slice);
-  updateBrightness(settings);
-  updateContrast(settings);
-  m_shiftScaleFilter->SetClampOverflow(true);
-  m_shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
-  m_shiftScaleFilter->Update();
-
-  m_lut = vtkSmartPointer<vtkLookupTable>::New();
-  m_lut->Allocate();
-  m_lut->SetTableRange(0,255);
-  m_lut->SetValueRange(0.0, 1.0);
-  m_lut->SetAlphaRange(1.0,1.0);
-  m_lut->SetNumberOfColors(256);
-  m_lut->SetRampToLinear();
-  updateStain(settings);
-  m_lut->Build();
-
-  m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapToColors->SetInputConnection(m_shiftScaleFilter->GetOutputPort());
-  m_mapToColors->SetLookupTable(m_lut);
-  m_mapToColors->SetNumberOfThreads(1);
-  m_mapToColors->Update();
-
-  m_actor = vtkSmartPointer<vtkImageActor>::New();
-  m_actor->SetInterpolate(false);
-  m_actor->GetMapper()->BorderOn();
-  m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
-  m_actor->SetDisplayExtent(slice->GetExtent());
-  m_actor->Update();
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updatePipeline(const State &settings)
-{
-  bool brightnessChanged = settings.isModified(BRIGHTNESS);
-  if (brightnessChanged)
-  {
-    updateBrightness(settings);
-  }
-
-  bool contrastChanged = settings.isModified(CONTRAST);
-  if (contrastChanged)
-  {
-    updateContrast(settings);
-  }
-
-  bool stainChanged = settings.isModified(STAIN);
-  if (stainChanged)
-  {
-    updateStain(settings);
-  }
-
-  if (brightnessChanged || contrastChanged)
-  {
-    m_shiftScaleFilter->Update();
-  }
-
-  if (stainChanged)
-  {
-    m_lut->Build();
-    m_mapToColors->Update();
-  }
-
-  if (brightnessChanged || contrastChanged || stainChanged)
-  {
-    m_actor->Update();
-  }
-}
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateBrightness(const State &settings)
-{
-  m_shiftScaleFilter->SetShift(static_cast<int>(settings.getValue<double>(BRIGHTNESS)*255));
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateContrast(const State &settings)
-{
-  m_shiftScaleFilter->SetScale(settings.getValue<double>(CONTRAST));
-}
-
-//----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-void ESPINA::ChannelSlicePipeline<T>::updateStain(const State &settings)
-{
-  auto stain = settings.getValue<QColor>(STAIN);
-
-  m_lut->SetHueRange(stain.hueF(), stain.hueF());
-  m_lut->SetSaturationRange(0.0, stain.saturationF());
 }

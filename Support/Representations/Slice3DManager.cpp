@@ -26,24 +26,16 @@ Slice3DManager::Slice3DManager(RepresentationPoolSPtr xy,
                                RepresentationPoolSPtr xz,
                                RepresentationPoolSPtr yz)
 : RepresentationManager(ViewType::VIEW_3D)
+, m_renderRequestTimeXY{MAX_TIMESTAMP}
+, m_renderRequestTimeXZ{MAX_TIMESTAMP}
+, m_renderRequestTimeYZ{MAX_TIMESTAMP}
 {
   m_pools << xy << xz << yz;
-
-  for (auto pool : m_pools)
-  {
-    connect(pool.get(), SIGNAL(actorsReady()),
-            this,       SLOT(onPoolReady()));
-  }
 }
 
 //----------------------------------------------------------------------------
 Slice3DManager::~Slice3DManager()
 {
-  for (auto pool : m_pools)
-  {
-    disconnect(pool.get(), SIGNAL(actorsReady()),
-               this,       SLOT(onPoolReady()));
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -111,6 +103,28 @@ RepresentationPipeline::ActorList Slice3DManager::actors(TimeStamp time)
 }
 
 //----------------------------------------------------------------------------
+void Slice3DManager::connectPools()
+{
+  connect(m_pools[0].get(), SIGNAL(actorsReady(TimeStamp)),
+          this,             SLOT(onPoolReadyXY(TimeStamp)));
+  connect(m_pools[1].get(), SIGNAL(actorsReady(TimeStamp)),
+          this,             SLOT(onPoolReadyXZ(TimeStamp)));
+  connect(m_pools[2].get(), SIGNAL(actorsReady(TimeStamp)),
+          this,             SLOT(onPoolReadyYZ(TimeStamp)));
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::disconnectPools()
+{
+  disconnect(m_pools[0].get(), SIGNAL(actorsReady(TimeStamp)),
+             this,             SLOT(onPoolReadyXY(TimeStamp)));
+  disconnect(m_pools[1].get(), SIGNAL(actorsReady(TimeStamp)),
+             this,             SLOT(onPoolReadyXZ(TimeStamp)));
+  disconnect(m_pools[2].get(), SIGNAL(actorsReady(TimeStamp)),
+             this,             SLOT(onPoolReadyYZ(TimeStamp)));
+}
+
+//----------------------------------------------------------------------------
 void Slice3DManager::notifyPoolUsed()
 {
   for (auto pool : m_pools)
@@ -150,11 +164,28 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onPoolReady()
+void Slice3DManager::checkRenderRequest()
 {
-  for (auto pool : m_pools)
-  {
-    qDebug() << pool->readyRange();
-  }
-  emit renderRequested();
+  emitRenderRequest(std::min(std::min(m_renderRequestTimeXY, m_renderRequestTimeXZ), m_renderRequestTimeYZ));
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::onPoolReadyXY(TimeStamp time)
+{
+  m_renderRequestTimeXY = time;
+  checkRenderRequest();
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::onPoolReadyXZ(TimeStamp time)
+{
+  m_renderRequestTimeXZ = time;
+  checkRenderRequest();
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::onPoolReadyYZ(TimeStamp time)
+{
+  m_renderRequestTimeYZ = time;
+  checkRenderRequest();
 }

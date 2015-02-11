@@ -22,6 +22,13 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
+ViewState::ViewState()
+: QObject()
+, m_timeStamp{2}
+{
+}
+
+//----------------------------------------------------------------------------
 void ViewState::focusViewOn(const NmVector3 &point)
 {
   setCrosshair(point);

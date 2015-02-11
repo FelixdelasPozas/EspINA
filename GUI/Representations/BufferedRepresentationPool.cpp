@@ -27,14 +27,13 @@ ESPINA::BufferedRepresentationPool<P>::BufferedRepresentationPool(const Plane   
                                                                   unsigned      windowSize)
 : m_normalIdx{normalCoordinateIndex(plane)}
 , m_updateWindow{scheduler, std::make_shared<P>(), windowSize}
+, m_init{false}
 , m_shift{0}
 , m_normalRes{1}
 , m_lastCoordinate{0}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::ActorList)),
           this,            SLOT(onActorsReady(TimeStamp, RepresentationPipeline::ActorList)), Qt::DirectConnection);
-
-  invalidateBuffer();
 }
 
 //-----------------------------------------------------------------------------
@@ -47,6 +46,11 @@ void ESPINA::BufferedRepresentationPool<P>::setCrosshairImplementation(const NmV
   {
     updateBuffer(point, m_shift);
   }
+  else if (!m_init)
+  {
+    m_init = true;
+    updateBuffer(point, invalidationShift());
+  }
 
   m_updateWindow.current()->setTimeStamp(time);
 }
@@ -57,15 +61,11 @@ void ESPINA::BufferedRepresentationPool<P>::setResolution(const NmVector3 &resol
 {
   m_normalRes = resolution[m_normalIdx];
 
-  invalidateBuffer();
+  if (m_init)
+  {
+    invalidateBuffer();
+  }
 }
-
-//-----------------------------------------------------------------------------
-// template<typename P>
-// ESPINA::RepresentationPipelineSList ESPINA::BufferedRepresentationPool<P>::pipelines()
-// {
-//   return m_updateWindow.current()->pipelines();
-// }
 
 //-----------------------------------------------------------------------------
 template<typename P>
@@ -81,14 +81,16 @@ void ESPINA::BufferedRepresentationPool<P>::addRepresentationPipeline(ViewItemAd
 template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::updateImplementation()
 {
-//     std::cout << "Before Update Current:" << std::endl;
   auto current = m_updateWindow.current();
+  qDebug() << "Update:" << current->description() << "with TimeStamp" << current->timeStamp();
 
   updateWindowPosition(current, Priority::VERY_HIGH);
 
   if (current->hasFinished())
   {
+    std::cout << current->timeStamp() << " Buffered Current Actors Size: " << current->actors().size() << std::endl;
     onActorsReady(current->timeStamp(), current->actors());
+    std::cout << current->timeStamp() << " Buffered Current Actors Size: " << current->actors().size() << " <After>"<< std::endl;
   }
 //   std::cout << "After Update Current" << std::endl;
 
@@ -118,7 +120,6 @@ void ESPINA::BufferedRepresentationPool<P>::updateWindowPosition(RepresentationU
   updater->setPriority(priority);
   if (updater->applySettings(settings()))
   {
-
     Task::submit(updater);
   }
 }
@@ -152,7 +153,7 @@ ESPINA::NmVector3 ESPINA::BufferedRepresentationPool<P>::representationCrosshair
 template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::invalidateBuffer()
 {
-  updateBuffer(NmVector3(), m_updateWindow.size() + 1);
+  updateBuffer(NmVector3(), invalidationShift());
 }
 
 //-----------------------------------------------------------------------------
@@ -163,14 +164,20 @@ void ESPINA::BufferedRepresentationPool<P>::updateBuffer(const NmVector3 &point,
   {
     auto updateTask = cursor.first;
     NmVector3 crosshair = representationCrosshair(point, cursor.second);
+    updateTask->invalidate();
     updateTask->setCrosshair(crosshair);
-    //updateTask->setDescription(QString("Slice %1").arg(normal(crosshair)));
+    auto old = updateTask->description();
+    updateTask->setDescription(QString("Slice %1").arg(normal(crosshair)));
+    qDebug() << "Invalidating:" << old << " to " << updateTask->description() ;
     //std::cout << "Updating " << cursor.second << " for slice " << normal(crosshair) << std::endl;
-    if (updateTask->hasValidTimeStamp())
-    {
-      updateTask->invalidateTimeStamp();
-    }
   }
 
   m_lastCoordinate = normal(point);
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
+int ESPINA::BufferedRepresentationPool<P>::invalidationShift() const
+{
+  return m_updateWindow.size() + 1;
 }

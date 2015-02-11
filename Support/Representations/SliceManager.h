@@ -44,8 +44,14 @@ namespace ESPINA
 
     virtual void setPlane(Plane plane);
 
+    virtual void setRepresentationDepth(Nm depth);
+
   private:
     virtual RepresentationPipeline::ActorList actors(TimeStamp time);
+
+    virtual void connectPools();
+
+    virtual void disconnectPools();
 
     virtual void updatePipelines();
 

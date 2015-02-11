@@ -32,6 +32,8 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    explicit ViewState();
+    
     /** \brief Ensure point position is visible
      *
      */

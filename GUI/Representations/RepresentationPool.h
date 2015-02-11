@@ -21,6 +21,7 @@
 #define ESPINA_REPRESENTATION_POOL_H
 
 #include <Core/Utils/NmVector3.h>
+#include "RepresentationState.h"
 #include "RepresentationPipeline.h"
 #include "PipelineSources.h"
 
@@ -39,7 +40,19 @@ namespace ESPINA
     public:
       virtual ~Settings() {}
 
-      virtual RepresentationPipeline::State pipelineSettings() = 0;
+      RepresentationState poolSettings();
+
+      template<typename T>
+      void set(const QString &tag, const T value)
+      {
+        m_state.setValue<T>(tag, value);
+      }
+
+    private:
+      virtual RepresentationState poolSettingsImplementation();
+
+    private:
+      RepresentationState m_state;
     };
 
     using SettingsSPtr = std::shared_ptr<Settings>;
@@ -51,7 +64,13 @@ namespace ESPINA
 
     void setSettings(SettingsSPtr settings);
 
-    RepresentationPipeline::State settings() const;
+    RepresentationState settings() const;
+
+    template<typename T>
+    void setSetting(const QString &tag, const T value)
+    {
+      m_settings->set<T>(tag, value);
+    }
 
     /** \brief Updates pool representation pipelines to the given position
      *
@@ -105,7 +124,7 @@ namespace ESPINA
 
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::ActorList actors);
-    
+
   private slots:
     void onSourceAdded (ViewItemAdapterPtr source);
     void onSourcesAdded(ViewItemAdapterList sources);

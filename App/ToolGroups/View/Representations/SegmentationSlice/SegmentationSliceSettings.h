@@ -35,7 +35,7 @@ namespace ESPINA
 
     double opacity() const;
 
-    virtual RepresentationPipeline::State pipelineState();
+    virtual RepresentationState pipelineState();
 
   private:
     double m_opacity;

@@ -43,9 +43,9 @@ double SegmentationSliceSettings::opacity() const
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::State SegmentationSliceSettings::pipelineState()
+RepresentationState SegmentationSliceSettings::pipelineState()
 {
-  RepresentationPipeline::State state;
+  RepresentationState state;
 
   state.setValue<double>(OPACITY, m_opacity);
 
