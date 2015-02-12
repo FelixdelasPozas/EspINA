@@ -54,6 +54,8 @@ namespace ESPINA
     bool isModified(const QString &tag) const
     { return m_properties.value(tag, Pair(QVariant(), false)).second; }
 
+    bool hasValue(const QString &tag) const;
+
     bool hasPendingChanges() const;
 
     void apply(const RepresentationState &state);
@@ -65,6 +67,9 @@ namespace ESPINA
     QMap<QString, Pair> m_properties;
   private:
   };
+
+
+  bool hasCrosshairPoint(const RepresentationState &state);
 
   /** \brief Sets the crosshair point position for this representation
    * \param[in] point crosshair point

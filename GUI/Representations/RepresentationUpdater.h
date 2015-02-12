@@ -33,28 +33,63 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
+    /** \brief Task to creates actors for sources using pipeline bounded to scheduler
+     *
+     */
     explicit RepresentationUpdater(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
+    /** \brief Start creating actors for item on execution
+     *
+     */
     void addSource(ViewItemAdapterPtr item);
 
+    /** \brief Stop creating actors for item on execution
+     *
+     */
     void removeSource(ViewItemAdapterPtr item);
 
+    /** \brief Changes the crosshair point to be used for this representation
+     *
+     */
     void setCrosshair(const NmVector3 &point);
 
-    bool applySettings(const RepresentationState &setting);
+    /** \brief Set the external settings to be used on actor creation
+     *
+     */
+    void setSettings(const RepresentationState &settings);
 
+    /** \brief Limits the number of sources to create actors on an execution
+     *
+     */
+    void setUpdateList(ViewItemAdapterList sources);
+
+    /** \brief Sets the execution TimeStamp of the task
+     *
+     */
     void setTimeStamp(TimeStamp time);
 
+    /** \brief Returns the execution TimeStamp of the task
+     *
+     */
     TimeStamp timeStamp() const;
 
+    /** \brief Invalidates the execution TimeStamp of the task
+     *
+     */
     void invalidate();
 
+    /** \brief Returns if task has a valid TimeStamp
+     *
+     */
     bool hasValidTimeStamp() const;
 
-    RepresentationPipeline::ActorList actors() const;
+    /** \brief Returns the latest actors computed by the task
+     *
+     */
+    RepresentationPipeline::Actors actors() const;
 
   signals:
-    void actorsUpdated(TimeStamp time, RepresentationPipeline::ActorList pipelines);
+    void actorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
   protected:
     virtual void run();
@@ -67,9 +102,13 @@ namespace ESPINA
     bool      m_timeStampValid;
 
     RepresentationPipelineSPtr m_pipeline;
-    QMap<ViewItemAdapterPtr, RepresentationState> m_states;
 
-    RepresentationPipeline::ActorList m_actors;
+    ViewItemAdapterList m_requestedSources;
+    ViewItemAdapterList m_sources;
+    ViewItemAdapterList *m_updateList;
+
+    RepresentationState            m_settings;
+    RepresentationPipeline::Actors m_actors;
   };
 
   using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;

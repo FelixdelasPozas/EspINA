@@ -40,7 +40,7 @@ namespace ESPINA
      * \param[in] timer state timer object.
      *
      */
-    explicit ViewState(TimerSPtr timer = nullptr);
+    explicit ViewState(TimerSPtr timer = TimerSPtr(new Timer()));
     
     /** \brief Ensure point position is visible
      *

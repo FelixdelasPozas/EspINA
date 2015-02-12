@@ -25,6 +25,7 @@
 #include <QList>
 #include <Core/Utils/NmVector3.h>
 #include <Core/EspinaTypes.h>
+#include "RepresentationState.h"
 
 #include <vtkSmartPointer.h>
 
@@ -33,7 +34,6 @@ class vtkProp;
 namespace ESPINA {
 
 class ViewItemAdapter;
-class RepresentationState;
 
   /** \class RepresentationPipeline
    *
@@ -42,9 +42,10 @@ class RepresentationState;
   class RepresentationPipeline
   {
   public:
-    using Type      = QString;
-    using Actor     = vtkSmartPointer<vtkProp>;
-    using ActorList = QList<Actor>;
+    using Type       = QString;
+    using VTKActor  = vtkSmartPointer<vtkProp>;
+    using ActorList = QList<VTKActor>;
+    using Actors    = QMap<ViewItemAdapter*, ActorList>;
 
   public:
     virtual ~RepresentationPipeline()
@@ -67,15 +68,15 @@ class RepresentationState;
      */
     virtual void restoreSettings(QString settings);
 
-    virtual bool applySettings(ViewItemAdapter           *item,
-                               const RepresentationState &settings,
-                               RepresentationState       &state) = 0;
+    virtual RepresentationState representationState(const ViewItemAdapter     *item,
+                                                    const RepresentationState &settings) = 0;
 
     /** \brief Create the actors for the view item with the given state
      *
      *  NOTE: Must be reentrant
      */
-    virtual RepresentationPipeline::ActorList createActors(ViewItemAdapter *item, const RepresentationState &state) = 0;
+    virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
+                                                           const RepresentationState &state) = 0;
 
     virtual bool pick(const NmVector3 &point, vtkProp *actor) = 0;
 

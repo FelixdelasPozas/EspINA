@@ -27,10 +27,6 @@ ViewState::ViewState(TimerSPtr timer)
 : QObject()
 , m_timer{timer}
 {
-  if(!m_timer)
-  {
-    m_timer = std::make_shared<Timer>();
-  }
 }
 
 //----------------------------------------------------------------------------

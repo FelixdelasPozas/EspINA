@@ -67,12 +67,9 @@ namespace ESPINA
     RepresentationState settings() const;
 
     template<typename T>
-    void setSetting(const QString &tag, const T value)
-    {
-      m_settings->set<T>(tag, value);
-    }
+    void setSetting(const QString &tag, const T value);
 
-    /** \brief Updates pool representation pipelines to the given position
+    /** \brief Updates pool representation actors to the given position
      *
      */
     void setCrosshair(const NmVector3 &point, TimeStamp t);
@@ -93,7 +90,11 @@ namespace ESPINA
     /** \brief Returns all valid actors for the given time
      *
      */
-    RepresentationPipeline::ActorList actors(TimeStamp time);
+    RepresentationPipeline::Actors actors(TimeStamp time);
+
+    void invalidatePreviousActors(TimeStamp time);
+
+    TimeStamp lastUpdateTimeStamp() const;
 
     /** \brief Increment the number of active managers using this pool
      *
@@ -106,7 +107,17 @@ namespace ESPINA
     void decrementObservers();
 
   signals:
+    /** \brief Some managers may be interested in changes in the actors of the pool
+     *
+     *   This signal is only emitted whenever two consecutive time stamps generate
+     *   different actors
+     */
     void actorsReady(TimeStamp time);
+
+    /** \brief Some managers may be interested in pool updates
+     *
+     */
+    void poolUpdated(TimeStamp time);
 
   protected:
     explicit RepresentationPool();
@@ -118,12 +129,10 @@ namespace ESPINA
 
     ViewItemAdapterList sources() const;
 
-    void invalidateActors(TimeStamp time);
-
     void invalidateActors();
 
   protected slots:
-    void onActorsReady(TimeStamp time, RepresentationPipeline::ActorList actors);
+    void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
   private slots:
     void onSourceAdded (ViewItemAdapterPtr source);
@@ -140,7 +149,9 @@ namespace ESPINA
 
     virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) = 0;
 
-    virtual void updateImplementation() = 0;
+    virtual void onSettingsChanged(const RepresentationState &settings) = 0;
+
+    virtual bool changed() const = 0;
 
     bool hasPendingSources() const;
 
@@ -156,10 +167,23 @@ namespace ESPINA
     TimeStamp m_requestedTimeStamp;
     TimeStamp m_lastUpdateTimeStamp;
 
-    QMap<TimeStamp, RepresentationPipeline::ActorList> m_actors;
+    TimeRange m_validActorsTimes;
+    QMap<TimeStamp, RepresentationPipeline::Actors> m_actors;
 
     unsigned m_numObservers;
   };
+
+  template<typename T>
+  void RepresentationPool::setSetting ( const QString &tag, const T value )
+  {
+    m_settings->set<T>(tag, value);
+
+    if (isBeingUsed())
+    {
+      onSettingsChanged(m_settings->poolSettings());
+    }
+  }
+
 
   using RepresentationPoolSPtr  = std::shared_ptr<RepresentationPool>;
   using RepresentationPoolSList = QList<RepresentationPoolSPtr>;

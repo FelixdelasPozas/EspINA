@@ -55,16 +55,6 @@ TimeRange SliceManager::readyRange() const
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp time)
-{
-  if (validPlane())
-  {
-    planePool()->setCrosshair(crosshair, time);
-    planePool()->update();
-  }
-}
-
-//----------------------------------------------------------------------------
 void SliceManager::setResolution(const NmVector3 &resolution)
 {
   if (validPlane())
@@ -76,19 +66,9 @@ void SliceManager::setResolution(const NmVector3 &resolution)
 //----------------------------------------------------------------------------
 void SliceManager::setPlane(Plane plane)
 {
-  if (plane != m_plane)
-  {
-    if (Plane::UNDEFINED != m_plane)
-    {
-      qWarning() << "The DAY has come";
+  Q_ASSERT(Plane::UNDEFINED == m_plane);
 
-      disconnectPools();
-    }
-
-    m_plane = plane;
-
-    connectPools();
-  }
+  m_plane = plane;
 }
 
 //----------------------------------------------------------------------------
@@ -101,9 +81,18 @@ void SliceManager::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList SliceManager::actors(TimeStamp time)
+void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
-  RepresentationPipeline::ActorList actors;
+  if (validPlane())
+  {
+    planePool()->setCrosshair(crosshair, time);
+  }
+}
+
+//----------------------------------------------------------------------------
+RepresentationPipeline::Actors SliceManager::actors(TimeStamp time)
+{
+  RepresentationPipeline::Actors actors;
 
   if (validPlane())
   {
@@ -114,12 +103,23 @@ RepresentationPipeline::ActorList SliceManager::actors(TimeStamp time)
 }
 
 //----------------------------------------------------------------------------
+void SliceManager::invalidatePreviousActors(TimeStamp time)
+{
+  if (validPlane())
+  {
+    planePool()->invalidatePreviousActors(time);
+  }
+}
+
+//----------------------------------------------------------------------------
 void SliceManager::connectPools()
 {
   if (validPlane())
   {
     connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
             this,              SLOT(emitRenderRequest(TimeStamp)));
+
+    planePool()->incrementObservers();
   }
 }
 
@@ -130,33 +130,8 @@ void SliceManager::disconnectPools()
   {
     disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
                this,              SLOT(emitRenderRequest(TimeStamp)));
-  }
-}
 
-//----------------------------------------------------------------------------
-void SliceManager::notifyPoolUsed()
-{
-  if (validPlane())
-  {
-    planePool()->incrementObservers();
-  }
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::notifyPoolNotUsed()
-{
-  if (validPlane())
-  {
     planePool()->decrementObservers();
-  }
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::updatePipelines()
-{
-  if (validPlane())
-  {
-    planePool()->update();
   }
 }
 

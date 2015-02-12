@@ -24,15 +24,17 @@ using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
+bool RepresentationState::hasValue(const QString &tag) const
+{
+  return m_properties.contains(tag);
+}
+
+//----------------------------------------------------------------------------
 bool RepresentationState::hasPendingChanges() const
 {
   for (auto pair : m_properties)
   {
-    if (pair.second)
-    {
-      qDebug() << "MODIFIED:" << m_properties.key(pair);
-      return true;
-    }
+    if (pair.second) return true;
   }
 
   return false;
@@ -69,6 +71,14 @@ void RepresentationState::commit()
 void RepresentationState::clear()
 {
   m_properties.clear();
+}
+
+//----------------------------------------------------------------------------
+bool ESPINA::hasCrosshairPoint(const RepresentationState &state)
+{
+  return state.hasValue(CROSSHAIR_X)
+      && state.hasValue(CROSSHAIR_Y)
+      && state.hasValue(CROSSHAIR_Z);
 }
 
 //----------------------------------------------------------------------------

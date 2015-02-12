@@ -33,14 +33,14 @@ RepresentationWindow::RepresentationWindow(SchedulerSPtr scheduler,
 , m_witdh(windowSize)
 {
   qRegisterMetaType<TimeStamp>("TimeStamp");
-  qRegisterMetaType<RepresentationPipeline::ActorList>("RepresentationPipelineActorList");
+  qRegisterMetaType<RepresentationPipeline::Actors>("RepresentationPipelineActors");
 
   for (unsigned int i = 0; i < 2*windowSize + 1; ++i)
   {
     auto task = std::make_shared<RepresentationUpdater>(scheduler, pipeline);
 
-    connect(task.get(), SIGNAL(actorsUpdated(TimeStamp,RepresentationPipeline::ActorList)),
-            this,       SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::ActorList)), Qt::DirectConnection);
+    connect(task.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
+            this,       SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
 
     m_buffer << task;
   }
@@ -51,41 +51,44 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
 {
   QList<Cursor> invalid;
 
-  if (abs(distance) > m_buffer.size())
+  if (distance != 0)
   {
-    m_currentPos = m_witdh;
-
-//     std::cout << "Invalidate buffer:" << std::endl;
-    for (int i = 0, d = m_witdh; d > 0; ++i, --d)
+    if (abs(distance) > m_buffer.size())
     {
-      invalid << Cursor(m_buffer[i], -d);
-//       std::cout << "\tInvalidate (" << i << ", " << -d << ")\n";
-      invalid << Cursor(m_buffer[m_witdh+i], i);
-//       std::cout << "\tInvalidate (" << m_witdh + i << ", " << i << ")\n";
-    }
-    invalid << Cursor(m_buffer.last(), m_witdh);
-//     std::cout << "\tInvalidate (" << m_buffer.size() - 1 << ", " << m_witdh << ")\n";
-  }
-  else
-  {
-    int n = abs(distance);
-    int s = copysign(1.0, distance);
-    int i = innerPosition(m_currentPos - s*m_witdh);
+      m_currentPos = m_witdh;
 
-//     std::cout << "Moving " << distance << ":" << std::endl;
-    while (n > 0)
+      //     std::cout << "Invalidate buffer:" << std::endl;
+      for (int i = 0, d = m_witdh; d > 0; ++i, --d)
+      {
+        invalid << Cursor(m_buffer[i], -d);
+        //       std::cout << "\tInvalidate (" << i << ", " << -d << ")\n";
+        invalid << Cursor(m_buffer[m_witdh+i], i);
+        //       std::cout << "\tInvalidate (" << m_witdh + i << ", " << i << ")\n";
+      }
+      invalid << Cursor(m_buffer.last(), m_witdh);
+      //     std::cout << "\tInvalidate (" << m_buffer.size() - 1 << ", " << m_witdh << ")\n";
+    }
+    else
     {
-      int d = s*(m_witdh - n + 1);
+      int n = abs(distance);
+      int s = copysign(1.0, distance);
+      int i = innerPosition(m_currentPos - s*m_witdh);
 
-      invalid << Cursor(m_buffer[i], d);
-//       std::cout << "\tInvalidate (" << i << ", " << d << ")\n";
+      //     std::cout << "Moving " << distance << ":" << std::endl;
+      while (n > 0)
+      {
+        int d = s*(m_witdh - n + 1);
 
-      i = (s > 0)?nextPosition(i):prevPosition(i);
+        invalid << Cursor(m_buffer[i], d);
+        //       std::cout << "\tInvalidate (" << i << ", " << d << ")\n";
 
-      --n;
+        i = (s > 0)?nextPosition(i):prevPosition(i);
+
+        --n;
+      }
+
+      m_currentPos = innerPosition(m_currentPos + distance);
     }
-
-    m_currentPos = innerPosition(m_currentPos + distance);
   }
 
 //   std::cout << "Current Position: " << m_currentPos << std::endl;

@@ -157,7 +157,6 @@ void Task::submit(TaskSPtr task)
       task->prepareToRun();
       task->m_scheduler->addTask(task);
       task->m_submitted = true;
-      qDebug() << "Submit task:" << task->description() << "m_submitted: " << task->m_submitted;
     }
     else
     {

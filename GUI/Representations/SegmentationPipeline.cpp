@@ -39,13 +39,13 @@ RepresentationState SegmentationPipeline::Settings(SegmentationAdapterPtr segmen
 }
 
 //----------------------------------------------------------------------------
-QColor segmentationColor(const RepresentationState &state)
+QColor ESPINA::segmentationColor(const RepresentationState &state)
 {
   return state.getValue<QColor>(COLOR);
 }
 
 //----------------------------------------------------------------------------
-Nm segmentationDepth(const RepresentationState &state)
+Nm ESPINA::segmentationDepth(const RepresentationState &state)
 {
   return state.getValue<Nm>(DEPTH);
 }

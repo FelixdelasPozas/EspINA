@@ -32,6 +32,7 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 , m_requiresRender{false}
 , m_view{nullptr}
 , m_supportedViews{supportedViews}
+, m_lastRequestTime{1}
 , m_lastRenderRequestTime{0}
 {
 }
@@ -75,17 +76,7 @@ QIcon RepresentationManager::icon() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::setView(RenderView *view)
 {
-  if(m_view)
-  {
-    disconnectPools();
-  }
-
   m_view = view;
-
-  if(m_view)
-  {
-    connectPools();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -99,9 +90,12 @@ void RepresentationManager::show()
   m_showPipelines  = true;
   m_requiresRender = true;
 
-  notifyPoolUsed();
+  if (m_view)
+  {
+    connectPools();
 
-  updatePipelines();
+    setCrosshair(m_crosshair, m_lastRequestTime);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -114,9 +108,12 @@ void RepresentationManager::hide()
 
   m_showPipelines = false;
 
-  notifyPoolNotUsed();
+  if (m_view)
+  {
+    emit renderRequested();
 
-  emit renderRequested();
+    disconnectPools();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -139,13 +136,17 @@ void RepresentationManager::display(TimeStamp time)
 
     if (m_showPipelines)
     {
-      for (auto actor : actors(time))
+      for (auto itemActors : actors(time))
       {
-        m_view->addActor(actor);
-        m_viewActors << actor;
+        for (auto actor : itemActors)
+        {
+          m_view->addActor(actor);
+          m_viewActors << actor;
+        }
       }
     }
 
+    invalidatePreviousActors(time);
     m_requiresRender = m_showPipelines;
   }
 }
@@ -158,6 +159,15 @@ RepresentationManagerSPtr RepresentationManager::clone()
   m_childs << child;
 
   return child;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp time)
+{
+  m_crosshair       = crosshair;
+  m_lastRequestTime = time;
+
+  setCrosshair(m_crosshair, time);
 }
 
 //-----------------------------------------------------------------------------

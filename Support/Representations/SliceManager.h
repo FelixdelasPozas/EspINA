@@ -38,8 +38,6 @@ namespace ESPINA
 
     virtual TimeRange readyRange() const;
 
-    virtual void onCrosshairChanged(NmVector3 crosshair, TimeStamp time);
-
     virtual void setResolution(const NmVector3 &resolution);
 
     virtual void setPlane(Plane plane);
@@ -47,17 +45,15 @@ namespace ESPINA
     virtual void setRepresentationDepth(Nm depth);
 
   private:
-    virtual RepresentationPipeline::ActorList actors(TimeStamp time);
+    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
 
-    virtual void connectPools();
+    virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
 
-    virtual void disconnectPools();
+    virtual void invalidatePreviousActors(TimeStamp time) override;
 
-    virtual void updatePipelines();
+    virtual void connectPools()      override;
 
-    virtual void notifyPoolUsed();
-
-    virtual void notifyPoolNotUsed();
+    virtual void disconnectPools()   override;
 
     virtual RepresentationManagerSPtr cloneImplementation();
 

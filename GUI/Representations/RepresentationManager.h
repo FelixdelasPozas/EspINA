@@ -134,7 +134,7 @@ namespace ESPINA
     RepresentationManagerSPtr clone();
 
   public slots:
-    virtual void onCrosshairChanged(NmVector3 crosshair, TimeStamp time) = 0;
+    void onCrosshairChanged(NmVector3 crosshair, TimeStamp time);
 
     /** \brief Set representations visibility
      *
@@ -151,17 +151,15 @@ namespace ESPINA
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
   private:
-    virtual RepresentationPipeline::ActorList actors(TimeStamp time) = 0;
+    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
+
+    virtual RepresentationPipeline::Actors actors(TimeStamp time) = 0;
+
+    virtual void invalidatePreviousActors(TimeStamp time) = 0;
 
     virtual void connectPools() = 0;
 
     virtual void disconnectPools() = 0;
-
-    virtual void updatePipelines() = 0;
-
-    virtual void notifyPoolUsed() = 0;
-
-    virtual void notifyPoolNotUsed() = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
@@ -175,6 +173,8 @@ namespace ESPINA
   private:
     RenderView   *m_view;
     ViewTypeFlags m_supportedViews;
+    NmVector3     m_crosshair;
+    TimeStamp     m_lastRequestTime;
     TimeStamp     m_lastRenderRequestTime;
 
     RepresentationManagerSList m_childs;

@@ -23,6 +23,7 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Representations/SegmentationPipeline.h>
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
 #include <QColor>
 
@@ -36,8 +37,6 @@
 
 namespace ESPINA
 {
-  class TransparencySelectionHighlighter;
-
   template<Plane T>
   class SegmentationSlicePipeline
   : public RepresentationPipeline
@@ -45,19 +44,18 @@ namespace ESPINA
   public:
     explicit SegmentationSlicePipeline();
 
-    virtual bool applySettings(ViewItemAdapter           *item,
-                               const RepresentationState &settings,
-                               RepresentationState       &state) override;
+    virtual RepresentationState representationState(const ViewItemAdapter     *item,
+                                                    const RepresentationState &settings) override;
 
-    virtual RepresentationPipeline::ActorList createActors(ViewItemAdapter           *item,
+    virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
                                                            const RepresentationState &state) override;
 
-    virtual bool pick(const NmVector3 &point, vtkProp *actor) override;
+    virtual bool pick(const NmVector3 &point, vtkProp *actor) override {};
 
   private:
     static Plane s_plane;
 
-    static TransparencySelectionHighlighter *s_highlighter;
+    static TransparencySelectionHighlighter s_highlighter;
   };
 
 #include "SegmentationSlicePipeline.cpp"

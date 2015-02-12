@@ -40,37 +40,27 @@ namespace ESPINA {
 
     virtual TimeRange readyRange() const;
 
-    virtual void onCrosshairChanged(NmVector3 crosshair, TimeStamp time);
-
     virtual void setResolution(const NmVector3 &resolution);
 
   private:
-    virtual RepresentationPipeline::ActorList actors(TimeStamp time);
+    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
 
-    virtual void connectPools();
+    virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
 
-    virtual void disconnectPools();
-    
-    virtual void updatePipelines();
+    virtual void invalidatePreviousActors(TimeStamp time) override;
 
-    virtual void notifyPoolUsed();
+    virtual void connectPools()      override;
 
-    virtual void notifyPoolNotUsed();
+    virtual void disconnectPools()   override;
 
     virtual RepresentationManagerSPtr cloneImplementation();
 
-    void checkRenderRequest();
 
   private slots:
-    void onPoolReadyXY(TimeStamp time);
-    void onPoolReadyXZ(TimeStamp time);
-    void onPoolReadyYZ(TimeStamp time);
+    void checkRenderRequest();
 
   private:
     RepresentationPoolSList m_pools;
-    TimeStamp m_renderRequestTimeXY;
-    TimeStamp m_renderRequestTimeXZ;
-    TimeStamp m_renderRequestTimeYZ;
   };
 }
 

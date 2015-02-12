@@ -68,7 +68,7 @@ namespace ESPINA
     int size() const;
 
   signals:
-    void actorsReady(TimeStamp time, RepresentationPipeline::ActorList actor);
+    void actorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
   private:
     RepresentationUpdaterSList aheadFrom(int pos, int length) const;

@@ -326,7 +326,6 @@ void Scheduler::removeTask(Priority priority, TaskSPtr task)
     m_runningTasks[priority].removeOne(task);
 
     task->m_submitted = false;
-    qDebug() << "Removed task:" << task->description() << "m_submitted: " << task->m_submitted;
 
     if (!task->isHidden())
     {

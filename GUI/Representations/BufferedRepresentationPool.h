@@ -44,11 +44,11 @@ namespace ESPINA
 
     virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time);
 
-    virtual void updateImplementation();
+    virtual void onSettingsChanged(const RepresentationState &settings);
 
     virtual bool changed() const;
 
-    void updateWindowPosition(RepresentationUpdaterSPtr updater, Priority priority);
+    void updatePriorities();
 
     int distanceFromLastCrosshair(const NmVector3 &crosshair);
 
@@ -56,9 +56,15 @@ namespace ESPINA
 
     NmVector3 representationCrosshair(const NmVector3 &point, int shift) const;
 
-    void invalidateBuffer();
+    /** \brief Configures and return a list of invalid updaters ready to be executed
+     *
+     */
+    RepresentationUpdaterSList updateBuffer(const NmVector3 &point, int shift, const TimeStamp time);
 
-    void updateBuffer(const NmVector3 &point, int shift);
+    void updatePipelines(RepresentationUpdaterSList updaters);
+
+    void checkCurrentActors();
+
 
     int invalidationShift() const;
 

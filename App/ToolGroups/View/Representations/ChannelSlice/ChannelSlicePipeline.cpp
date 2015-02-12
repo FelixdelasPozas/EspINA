@@ -33,48 +33,43 @@ ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline()
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-bool ESPINA::ChannelSlicePipeline<T>::applySettings(ViewItemAdapter           *item,
-                                                 const RepresentationState &settings,
-                                                 RepresentationState       &state)
+ESPINA::RepresentationState ESPINA::ChannelSlicePipeline<T>::representationState(const ViewItemAdapter     *item,
+                                                                                 const RepresentationState &settings)
 {
+  RepresentationState state;
+
   auto channel = channelPtr(item);
 
   state.apply(ChannelPipeline::Settings(channel));
   state.apply(settings);
 
-  return state.hasPendingChanges();
+  return state;
 }
 
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(ViewItemAdapter           *item,
+ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(const ViewItemAdapter     *item,
                                                                                 const RepresentationState &state)
 {
   auto channel    = channelPtr(item);
   auto planeIndex = normalCoordinateIndex(s_plane);
 
   ActorList actors;
-  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+  //  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-  Nm sliceNumber = crosshairPosition(s_plane, state);
-  qDebug() << "Slice:" << sliceNumber << "Createing Actors";
   if (isVisible(state) && hasVolumetricData(channel->output()))
   {
-    qDebug() << "Slice:" << sliceNumber << "\t is visible";
-    auto volume = volumetricData(channel->output());
-    Bounds sliceBounds = volume->bounds();
-
-    Nm reslicePoint = crosshairPosition(s_plane, state);
+    auto volume       = volumetricData(channel->output());
+    auto sliceBounds  = volume->bounds();
+    auto reslicePoint = crosshairPosition(s_plane, state);
 
     if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
     {
-      qDebug() << "Slice:" << sliceNumber << "\t inside bounds";
       sliceBounds.setLowerInclusion(true);
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-      //    createPipeline(volume, sliceBounds, settings);
       auto slice = vtkImage(volume, sliceBounds);
 
       auto shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();
@@ -113,11 +108,10 @@ ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(
       actors << actor;
     }
   }
-  qDebug() << "Slice:" << sliceNumber << "\t has" << actors.size() <<"actors";
 
-  std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-
-  if (s_plane == Plane::YZ) qDebug() <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+//   std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+//
+//   qDebug() << type() << s_plane << "Execution Time" <<  std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
   return actors;
  }

@@ -42,9 +42,9 @@ RepresentationState RepresentationPool::Settings::poolSettingsImplementation()
 RepresentationPool::RepresentationPool()
 : m_sources            {nullptr}
 , m_settings           {new Settings()}
-, m_numObservers       {0}
 , m_requestedTimeStamp {1}
 , m_lastUpdateTimeStamp{0}
+, m_numObservers       {0}
 {
 }
 
@@ -102,6 +102,11 @@ void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
 
   if (isBeingUsed())
   {
+    if (hasPendingSources())
+    {
+      processPendingSources();
+    }
+
     setCrosshairImplementation(point, t);
   }
 }
@@ -109,46 +114,100 @@ void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
 //-----------------------------------------------------------------------------
 void RepresentationPool::update()
 {
-  if (isBeingUsed())
+  if (isBeingUsed() && hasPendingSources())
   {
-    bool needUpdate = m_lastUpdateTimeStamp < m_requestedTimeStamp;
+    processPendingSources();
 
-    if (hasPendingSources())
-    {
-      processPendingSources();
-
-      needUpdate = true;
-    }
-
-    if (needUpdate)
-    {
-      updateImplementation();
-    }
-
-    QApplication::sendPostedEvents();
+    setCrosshairImplementation(m_crosshair, m_requestedTimeStamp);
   }
 }
 
 //-----------------------------------------------------------------------------
 TimeRange RepresentationPool::readyRange() const
 {
-  return isBeingUsed()?m_actors.keys():TimeRange();
+  TimeRange range;
+
+  if (isBeingUsed())
+  {
+    for (TimeStamp i = m_validActorsTimes.first(); i <= m_lastUpdateTimeStamp; ++i)
+    {
+      range << i;
+    }
+  }
+
+  return range;
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipeline::ActorList RepresentationPool::actors(TimeStamp time)
+RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp time)
 {
-//   QList<TimeStamp> timeRange = m_frames.keys();
-//
-//   for (auto timeStamp : timeRange)
-//   {
-//     if (timeStamp < time)
-//     {
-//       m_frames.remove(timeStamp);
-//     }
-//   }
+  int  i     = 1;
+  bool found = false;
 
-  return m_actors.value(time, RepresentationPipeline::ActorList());
+  Q_ASSERT(!m_validActorsTimes.isEmpty());
+
+  TimeStamp validTime = m_validActorsTimes.first();
+
+  while (!found && i < m_validActorsTimes.size())
+  {
+    auto nextTime = m_validActorsTimes[i];
+
+    found = nextTime > time;
+
+    if (!found)
+    {
+      validTime = nextTime;
+    }
+
+    ++i;
+  }
+
+  return m_actors.value(validTime, RepresentationPipeline::Actors());
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::invalidatePreviousActors(TimeStamp time)
+{
+  int  i     = 1;
+  bool found = false;
+
+  Q_ASSERT(!m_validActorsTimes.isEmpty());
+
+  auto validTime   = m_validActorsTimes.first();
+  auto validActors = m_actors[validTime];
+
+  while (!found && i < m_validActorsTimes.size())
+  {
+    auto nextTime = m_validActorsTimes[i];
+
+    found = nextTime > time;
+
+    if (!found)
+    {
+      m_actors.remove(validTime);
+
+      validTime   = nextTime;
+      validActors = m_actors[nextTime];
+
+      ++i;
+    }
+  }
+
+  while (i > 1) // remove invalid timestamps except one to be replaced
+  {
+    m_validActorsTimes.removeFirst();
+    --i;
+  }
+
+  m_actors[time]        = validActors;
+  m_validActorsTimes[0] = time;
+}
+
+
+//-----------------------------------------------------------------------------
+TimeStamp RepresentationPool::lastUpdateTimeStamp() const
+{
+  return m_lastUpdateTimeStamp;
 }
 
 //-----------------------------------------------------------------------------
@@ -178,23 +237,22 @@ ViewItemAdapterList RepresentationPool::sources() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::ActorList actors)
+void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors)
 {
   if (time > m_lastUpdateTimeStamp)
   {
-    qDebug() << this << "Update TimeStamp:" << time;
-    m_actors[time] = actors;
-
     m_lastUpdateTimeStamp = time;
 
-    emit actorsReady(time);
-  }
-}
+    if (changed())
+    {
+      m_actors[time] = actors;
+      m_validActorsTimes << time;
 
-//-----------------------------------------------------------------------------
-void RepresentationPool::invalidateActors(TimeStamp time)
-{
-  m_actors.remove(time);
+      emit actorsReady(time);
+    }
+
+    emit poolUpdated(time);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -206,9 +264,9 @@ void RepresentationPool::invalidateActors()
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourceAdded(ViewItemAdapterPtr source)
 {
-    m_pendingSources << source;
+  m_pendingSources << source;
 
-    update();
+  update();
 }
 
 //-----------------------------------------------------------------------------
@@ -254,8 +312,6 @@ void RepresentationPool::processPendingSources()
   {
     addRepresentationPipeline(source);
   }
-
-  setCrosshairImplementation(m_crosshair, m_requestedTimeStamp);
 
   m_pendingSources.clear();
 }

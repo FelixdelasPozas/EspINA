@@ -29,6 +29,7 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
 , m_timeStamp     {0}
 , m_timeStampValid{false}
 , m_pipeline      {pipeline}
+, m_updateList    {&m_sources}
 {
   setHidden(true);
 }
@@ -36,47 +37,50 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
 //----------------------------------------------------------------------------
 void RepresentationUpdater::addSource(ViewItemAdapterPtr item)
 {
-  Q_ASSERT(!m_states.contains(item));
+  Q_ASSERT(!m_sources.contains(item));
 
-  m_states[item] = RepresentationState();
+  m_sources << item;
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
-  Q_ASSERT(m_states.contains(item));
+  Q_ASSERT(m_sources.contains(item));
 
-  m_states.remove(item);
+  m_sources.removeOne(item);
 }
 
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
-  for (auto &state : m_states)
-  {
-    setCrosshairPoint(point, state);
-  }
+  setCrosshairPoint(point, m_settings);
 }
 
 //----------------------------------------------------------------------------
-bool RepresentationUpdater::applySettings(const RepresentationState &settings)
+void RepresentationUpdater::setSettings(const RepresentationState &settings)
 {
-  bool modified = false;
-
-  auto it = m_states.begin();
-
-  while (it != m_states.end())
+  if (hasCrosshairPoint(m_settings))
   {
-    auto  item     = it.key();
-    auto &state    = it.value();
-    auto  pipeline = sourcePipeline(item);
+    auto point = crosshairPoint(m_settings);
 
-    modified |= pipeline->applySettings(item, settings, state);
+    m_settings = settings;
 
-    ++it;
+    setCrosshairPoint(point, m_settings);
+  }
+  else
+  {
+    m_settings = settings;
   }
 
-  return modified;
+  restart();
+}
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::setUpdateList(ViewItemAdapterList sources)
+{
+  m_requestedSources = sources;
+
+  m_updateList = &m_requestedSources;
 }
 
 //----------------------------------------------------------------------------
@@ -96,11 +100,6 @@ TimeStamp RepresentationUpdater::timeStamp() const
 void RepresentationUpdater::invalidate()
 {
   m_timeStampValid = false;
-
-//   for (auto &state : m_states)
-//   {
-//     state.clear();
-//   }
 }
 
 //----------------------------------------------------------------------------
@@ -110,7 +109,7 @@ bool RepresentationUpdater::hasValidTimeStamp() const
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::ActorList RepresentationUpdater::actors() const
+RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
   return m_actors;
 }
@@ -118,29 +117,28 @@ RepresentationPipeline::ActorList RepresentationUpdater::actors() const
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
-  qDebug() << "Task" << description() << "running" << " - " << this;
-
+  //qDebug() << "Task" << description() << "running" << " - " << this;
   m_actors.clear();
 
-  auto it = m_states.begin();
-
-  while (canExecute() && it != m_states.end())
+  auto it = m_updateList->begin();
+  while (canExecute() && it != m_updateList->end())
   {
-    auto  item     = it.key();
-    auto &state    = it.value();
+    auto  item     = *it;
     auto  pipeline = sourcePipeline(item);
 
-    state.commit();
+    auto state  = pipeline->representationState(item, m_settings);
+    auto actors = pipeline->createActors(item, state);
 
-    m_actors << pipeline->createActors(item, state);
+    m_actors[item]  = actors;
 
     ++it;
   }
 
-  qDebug() << "Task:" << description() << "has" << m_actors.size() << "actors" << " - needsrestart" << needsRestart();
+  m_updateList = &m_sources;
+
   if (hasValidTimeStamp() && canExecute())
   {
-    emit actorsUpdated(timeStamp(), m_actors);
+    emit actorsReady(timeStamp(), m_actors);
   }
 }
 
