@@ -90,7 +90,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
 
   m_viewManager->registerView(m_viewXY);
-//   m_viewManager->registerView(m_viewXZ); // UNCOMMENT!!
+  m_viewManager->registerView(m_viewXZ);
   m_viewManager->registerView(m_viewYZ);
   m_viewManager->registerView(m_view3D);
 
@@ -107,7 +107,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 DefaultView::~DefaultView()
 {
   m_viewManager->unregisterView(m_viewXY);
-//   m_viewManager->unregisterView(m_viewXZ);
+  m_viewManager->unregisterView(m_viewXZ);
   m_viewManager->unregisterView(m_viewYZ);
   m_viewManager->unregisterView(m_view3D);
 

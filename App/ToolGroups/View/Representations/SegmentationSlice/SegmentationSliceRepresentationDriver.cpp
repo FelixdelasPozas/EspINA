@@ -26,6 +26,8 @@
 #include <ToolGroups/View/ViewToolGroup.h>
 #include <GUI/Representations/BufferedRepresentationPool.h>
 #include <Support/Representations/SliceManager.h>
+#include <Support/Representations/Slice3DManager.h>
+#include <Support/Representations/BasicRepresentationSwitch.h>
 
 using namespace ESPINA;
 
@@ -49,6 +51,8 @@ Representation SegmentationSliceRepresentationDriver::createRepresentation() con
   auto poolYZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::YZ>>>(Plane::YZ, m_scheduler, WINDOW_SIZE);
   auto sliceManager = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch  = std::make_shared<SegmentationSliceSwitch>(sliceManager);
+  auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
+  auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
   configurePool(poolXY, settings);
   configurePool(poolXZ, settings);
@@ -56,10 +60,13 @@ Representation SegmentationSliceRepresentationDriver::createRepresentation() con
 
   sliceManager->setName(QObject::tr("Slice Representation"));
 
-//   representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
-//   representation.Pools    << poolXY << poolXZ << poolYZ;
-//   representation.Managers << sliceManager;
-//   representation.Switches << sliceSwitch;
+  slice3DManager->setName(QObject::tr("Slice Representation"));
+  slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
+
+  representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
+  representation.Pools    << poolXY << poolXZ << poolYZ;
+  representation.Managers << sliceManager << slice3DManager;
+  representation.Switches << sliceSwitch << slice3DSwitch;
 
   return representation;
 }

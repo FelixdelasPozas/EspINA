@@ -60,10 +60,10 @@ ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createAc
 //   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
   Nm sliceNumber = crosshairPosition(s_plane, state);
-  qDebug() << "Slice:" << sliceNumber << "Createing Actors";
+//   qDebug() << "Slice:" << sliceNumber << "Createing Actors";
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    qDebug() << "Slice:" << sliceNumber << "\t is visible";
+//     qDebug() << "Slice:" << sliceNumber << "\t is visible";
     auto volume = volumetricData(segmentation->output());
       Bounds sliceBounds = volume->bounds();
 
@@ -71,7 +71,7 @@ ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createAc
 
       if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
       {
-        qDebug() << "Slice:" << sliceNumber << "\t inside bounds";
+//         qDebug() << "Slice:" << sliceNumber << "\t inside bounds";
         sliceBounds.setLowerInclusion(true);
         sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
         sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
@@ -79,6 +79,7 @@ ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createAc
         auto slice = vtkImage(volume, sliceBounds);
 
         auto color = segmentationColor(state);
+        color.setRgb(255,0,0);
         auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
         mapToColors->SetInputData(slice);
         mapToColors->SetLookupTable(s_highlighter.lut(color));
@@ -95,7 +96,7 @@ ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createAc
         // need to reposition the actor so it will always be over the channels actors'
         double pos[3];
         actor->GetPosition(pos);
-        qDebug() << "Pos: " << pos[planeIndex];
+//         qDebug() << "Pos: " << pos[planeIndex];
         pos[planeIndex] += segmentationDepth(state);
         actor->SetPosition(pos);
 

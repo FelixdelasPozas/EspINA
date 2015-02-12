@@ -31,7 +31,7 @@ using namespace ESPINA;
 CoreFactory::CoreFactory(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 {
-  m_defaultStorage = TemporalStorageSPtr{new TemporalStorage()};
+  m_defaultStorage = std::make_shared<TemporalStorage>();
 }
 
 
@@ -56,7 +56,7 @@ throw (Factory_Already_Registered_Exception)
 //-----------------------------------------------------------------------------
 SampleSPtr CoreFactory::createSample(const QString& name) const
 {
-  return SampleSPtr{new Sample(name)};
+  return std::make_shared<Sample>(name);
 }
 
 //-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id)
 {
   auto input = getInput(filter, id);
 
-  ChannelSPtr channel{new Channel(input)};
+  auto channel = std::make_shared<Channel>(input);
 
   channel->setStorage(m_defaultStorage);
 
@@ -131,7 +131,7 @@ SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id i
 {
   auto input = getInput(filter, id);
 
-  SegmentationSPtr segmentation{new Segmentation(input)};
+  auto segmentation = std::make_shared<Segmentation>(input);
 
   segmentation->setStorage(m_defaultStorage);
 

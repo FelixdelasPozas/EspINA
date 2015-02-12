@@ -144,9 +144,10 @@ void RepresentationManager::display(TimeStamp time)
           m_viewActors << actor;
         }
       }
+
+      invalidatePreviousActors(time);
     }
 
-    invalidatePreviousActors(time);
     m_requiresRender = m_showPipelines;
   }
 }

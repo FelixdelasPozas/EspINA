@@ -182,12 +182,6 @@ QList<DockWidget *> AppositionSurfacePlugin::dockWidgets() const
 }
 
 //-----------------------------------------------------------------------------
-RendererSList AppositionSurfacePlugin::renderers() const
-{
-  return RendererSList();
-}
-
-//-----------------------------------------------------------------------------
 SettingsPanelSList AppositionSurfacePlugin::settingsPanels() const
 {
   SettingsPanelSList settingsPanels;

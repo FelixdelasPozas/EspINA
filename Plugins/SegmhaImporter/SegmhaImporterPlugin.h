@@ -22,11 +22,9 @@
 
 #include "SegmhaImporterPlugin_Export.h"
 
-// Plugin
-#include "SegmhaReader.h"
-
 // ESPINA
 #include <Support/Plugin.h>
+#include "SegmhaReader.h"
 
 // Qt
 #include <QUndoCommand>
@@ -39,6 +37,18 @@ namespace ESPINA
     Q_OBJECT
     Q_INTERFACES(ESPINA::Plugin)
 
+    class SegmhaFilterFactory
+    : public FilterFactory
+    {
+    public:
+      virtual ~SegmhaFilterFactory()
+      {};
+
+      virtual FilterTypeList providedFilters() const;
+
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+    };
+
   public:
     explicit SegmhaImporterPlugin();
     virtual ~SegmhaImporterPlugin();
@@ -49,12 +59,6 @@ namespace ESPINA
                       SchedulerSPtr    scheduler,
                       QUndoStack*      undoStack);
 
-    virtual NamedColorEngineSList colorEngines() const;
-
-    virtual QList< ToolGroup* > toolGroups() const;
-
-    virtual QList<DockWidget *> dockWidgets() const;
-
     virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
     virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
@@ -63,7 +67,11 @@ namespace ESPINA
 
     virtual AnalysisReaderSList analysisReaders() const;
 
-    virtual RendererSList renderers() const;
+    virtual NamedColorEngineSList colorEngines() const;
+
+    virtual QList<ToolGroup* > toolGroups() const;
+
+    virtual QList<DockWidget *> dockWidgets() const;
 
     virtual SettingsPanelSList settingsPanels() const;
 
@@ -79,21 +87,6 @@ namespace ESPINA
     SegmhaReaderSPtr  m_reader;
     FilterFactorySPtr m_filterFactory;
   };
-
-  class SegmhaFilterFactory
-  : public FilterFactory
-  {
-    public:
-      virtual ~SegmhaFilterFactory()
-      {};
-
-      virtual FilterSPtr createFilter(InputSList          inputs,
-                                      const Filter::Type& filter,
-                                      SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception);
-
-      virtual FilterTypeList providedFilters() const;
-  };
-
 } // namespace ESPINA
 
 #endif// SEGMHAIMPORTER_H

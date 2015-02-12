@@ -44,6 +44,9 @@ set (PLUGIN_SOURCES
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  EspinaGUI
+  EspinaUndo
+  EspinaSupport
   CountingFramePlugin
   )
 

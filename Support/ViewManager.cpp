@@ -169,6 +169,14 @@ void ViewManager::addRepresentationPools(const QString& group, RepresentationPoo
       m_channelPools << pool;
     }
   }
+  else if (ViewToolGroup::SEGMENTATIONS_GROUP == group)
+  {
+    for (auto pool : pools)
+    {
+      pool->setPipelineSources(&m_segmentationSources);
+      m_segmentationPools << pool;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

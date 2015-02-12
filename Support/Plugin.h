@@ -25,7 +25,6 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Representations/Renderers/Renderer.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Widgets/ToolGroup.h>
@@ -41,7 +40,7 @@ namespace ESPINA
 {
   using NamedColorEngine      = QPair<QString, ColorEngineSPtr>;
   using NamedColorEngineSList = QList<NamedColorEngine>;
-  using MenuEntry              = QPair<QStringList, QAction *>;
+  using MenuEntry             = QPair<QStringList, QAction *>;
 
   class EspinaSupport_EXPORT Plugin
   : public QObject
@@ -111,11 +110,6 @@ namespace ESPINA
      */
     virtual QList<DockWidget *> dockWidgets() const = 0;
 
-    /** \brief Returns a list of Renderers provided by the plugin.
-     *
-     */
-    virtual RendererSList renderers() const = 0;
-
     /** \brief Returns a list of settings panels provided by the plugin.
      *
      */
@@ -146,6 +140,6 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.0")
+Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.1")
 
 #endif // ESPINA_PLUGIN_H
