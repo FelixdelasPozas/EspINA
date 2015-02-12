@@ -30,6 +30,7 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
+#include <GUI/Utils/PipelineSourcesState.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/View2D.h>
@@ -37,6 +38,7 @@
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/PipelineSources.h>
+#include <GUI/Utils/Timer.h>
 #include "ROIProvider.h"
 
 // Qt
@@ -137,6 +139,7 @@ namespace ESPINA
     void addRepresentationManagers(RepresentationManagerSList repManagers);
 
   private:
+    TimerSPtr               m_timer;
     ViewStateSPtr           m_viewState;
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
@@ -242,6 +245,7 @@ namespace ESPINA
   private:
     PipelineSources m_channelSources;
     PipelineSources m_segmentationSources;
+    PipelineSourcesStateSPtr m_sourcesState;
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/

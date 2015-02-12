@@ -185,6 +185,12 @@ namespace ESPINA
   class RepresentationManager2D
   {
   public:
+    /** \brief Class RepresentationManager2D virtual destructor.
+     *
+     */
+    virtual ~RepresentationManager2D()
+    {};
+
     virtual void setPlane(Plane plane) = 0;
     virtual void setRepresentationDepth(Nm depth) = 0;
   };

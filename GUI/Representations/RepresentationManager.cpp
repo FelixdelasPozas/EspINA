@@ -29,9 +29,9 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 : m_showPipelines{false}
+, m_requiresRender{false}
 , m_view{nullptr}
 , m_supportedViews{supportedViews}
-, m_requiresRender{false}
 , m_lastRenderRequestTime{0}
 {
 }

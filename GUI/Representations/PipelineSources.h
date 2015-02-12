@@ -59,10 +59,19 @@ namespace ESPINA
 
   signals:
     void sourceAdded(ViewItemAdapterPtr);
-
     void sourceUpdated(ViewItemAdapterPtr);
-
     void sourceRemoved(ViewItemAdapterPtr);
+
+    void sourceAdded(ViewItemAdapterPtr, TimeStamp time);
+    void sourceUpdated(ViewItemAdapterPtr, TimeStamp time);
+    void sourceRemoved(ViewItemAdapterPtr, TimeStamp time);
+
+    void updateTimeStamp(TimeStamp time);
+
+  public slots:
+    void onSourceAdded(ViewItemAdapterPtr item, PipelineSources *source, TimeStamp time) const;
+    void onSourceUpdated(ViewItemAdapterPtr item, PipelineSources *source, TimeStamp time) const;
+    void onSourceRemoved(ViewItemAdapterPtr item, PipelineSources *source, TimeStamp time) const;
 
   private:
     void insert(ViewItemAdapterPtr source)

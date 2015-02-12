@@ -20,9 +20,13 @@
 #ifndef ESPINA_VIEW_STATE_H
 #define ESPINA_VIEW_STATE_H
 
-#include <QObject>
+// ESPINA
 #include <Core/Utils/NmVector3.h>
 #include <Core/EspinaTypes.h>
+#include <GUI/Utils/Timer.h>
+
+// Qt
+#include <QObject>
 
 namespace ESPINA
 {
@@ -32,7 +36,11 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit ViewState();
+    /** \brief Class ViewState class constructor.
+     * \param[in] timer state timer object.
+     *
+     */
+    explicit ViewState(TimerSPtr timer = nullptr);
     
     /** \brief Ensure point position is visible
      *
@@ -60,7 +68,7 @@ namespace ESPINA
     void viewFocusedOn(NmVector3);
 
   private:
-    TimeStamp m_timeStamp;
+    TimerSPtr m_timer;
     NmVector3 m_crosshair;
   };
 

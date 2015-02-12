@@ -74,3 +74,43 @@ ViewItemAdapterList PipelineSources::sources() const
 {
   return m_sources;
 }
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onSourceAdded(ViewItemAdapterPtr item, PipelineSources* source, TimeStamp time) const
+{
+  if(source == this)
+  {
+    emit sourceAdded(item, time);
+  }
+  else
+  {
+    emit updateTimeStamp(time);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onSourceUpdated(ViewItemAdapterPtr item, PipelineSources* source, TimeStamp time) const
+{
+  if(source == this)
+  {
+    emit sourceUpdated(item, time);
+  }
+  else
+  {
+    emit updateTimeStamp(time);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onSourceRemoved(ViewItemAdapterPtr item, PipelineSources* source, TimeStamp time) const
+{
+  if(source == this)
+  {
+    emit sourceRemoved(item, time);
+  }
+  else
+  {
+    emit updateTimeStamp(time);
+  }
+}
+

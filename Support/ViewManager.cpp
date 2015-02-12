@@ -41,7 +41,9 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_viewState        {new ViewState()}
+: m_timer            {new Timer{1}}
+, m_viewState        {new ViewState{m_timer}}
+, m_sourcesState     {new PipelineSourcesState{m_timer}}
 , m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
@@ -69,6 +71,9 @@ ViewManager::ViewManager()
 
   connect(m_fitToSlices, SIGNAL(toggled(bool)),
           this,          SLOT(setFitToSlices(bool)));
+
+  m_sourcesState->addSource(&m_segmentationSources);
+  m_sourcesState->addSource(&m_channelSources);
 }
 
 //----------------------------------------------------------------------------

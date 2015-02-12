@@ -17,15 +17,20 @@
  *
  */
 
+// ESPINA
 #include "ViewState.h"
 
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ViewState::ViewState()
+ViewState::ViewState(TimerSPtr timer)
 : QObject()
-, m_timeStamp{2}
+, m_timer{timer}
 {
+  if(!m_timer)
+  {
+    m_timer = std::make_shared<Timer>();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -43,9 +48,9 @@ void ViewState::setCrosshair(const NmVector3 &point)
   {
     m_crosshair = point;
 
-    ++m_timeStamp;
+    auto time = m_timer->increment();
 
-    emit crosshairChanged(point, m_timeStamp);
+    emit crosshairChanged(point, time);
   }
 }
 
@@ -62,7 +67,7 @@ void ViewState::setCrosshairPlane(const Plane plane, const Nm position)
 //----------------------------------------------------------------------------
 ESPINA::TimeStamp ViewState::timeStamp() const
 {
-  return m_timeStamp;
+  return m_timer->timeStamp();
 }
 
 //----------------------------------------------------------------------------
