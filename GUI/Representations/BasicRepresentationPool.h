@@ -36,8 +36,6 @@ namespace ESPINA {
 
     virtual void setResolution ( const NmVector3 &resolution );
 
-//     virtual RepresentationPipelineSList pipelines(TimeStamp time);
-
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 

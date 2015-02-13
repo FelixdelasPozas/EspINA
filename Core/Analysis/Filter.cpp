@@ -258,7 +258,7 @@ bool Filter::restorePreviousOutputs() const
     //qDebug() << " - Accepted";
     QByteArray buffer = storage()->snapshot(outputFile());
 
-    qDebug() << buffer;
+    //qDebug() << buffer;
 
     if (!buffer.isEmpty())
     {

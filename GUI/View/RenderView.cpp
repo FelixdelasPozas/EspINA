@@ -169,6 +169,25 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 }
 
 //-----------------------------------------------------------------------------
+NmVector3 RenderView::toWorldCoordinates(int x, int y, int z) const
+{
+  NmVector3 result;
+
+  if (m_renderer)
+  {
+    m_renderer->SetDisplayPoint(x, y, z);
+    m_renderer->DisplayToWorld();
+
+    double worldPoint[4];
+    m_renderer->GetWorldPoint(worldPoint);
+
+    result = NmVector3(worldPoint);
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
 void RenderView::onSelectionSet(SelectionSPtr selection)
 {
   connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
@@ -578,18 +597,18 @@ unsigned int RenderView::numberActiveRepresentationManagers(Data::Type type)
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
 {
   Selector::Selection selectedItems;
-
+//
 //   if(flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE))
 //   {
-//     for(auto channelAdapter: m_channelStates.keys())
+//     for(auto channelAdapter: m_channelSources.keys())
 //     {
 //       if (intersect(channelAdapter->bounds(), mask->bounds().bounds()))
 //       {
 //         auto intersectionBounds = intersection(channelAdapter->bounds(), mask->bounds().bounds());
-//         auto selectionMask = BinaryMaskSPtr<unsigned char>(new BinaryMask<unsigned char>(intersectionBounds, channelAdapter->output()->spacing(), channelAdapter->position()));
+//         auto selectionMask      = std::make_shared<BinaryMask<unsigned char>>(intersectionBounds, channelAdapter->output()->spacing(), channelAdapter->position());
 //
 //         BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
 //         crit.goToBegin();
@@ -597,12 +616,14 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 //         if(channelAdapter->output()->spacing() == mask->spacing())
 //         {
 //           BinaryMask<unsigned char>::iterator it(selectionMask.get());
-//           it.goToBegin();
 //
+//           it.goToBegin();
 //           while(!crit.isAtEnd())
 //           {
 //             if(crit.isSet())
+//             {
 //               it.Set();
+//             }
 //
 //             ++crit;
 //           }
@@ -620,56 +641,54 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 //                                         center[1]-spacing[1]/2, center[1]+spacing[1]/2,
 //                                         center[2]-spacing[2]/2, center[2]+spacing[2]/2};
 //
-//               BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
-//               rit.goToBegin();
+//                 BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
+//                 rit.goToBegin();
 //
-//               while(!rit.isAtEnd())
-//               {
-//                 rit.Set();
-//                 ++rit;
-//               }
+//                 while(!rit.isAtEnd())
+//                 {
+//                   rit.Set();
+//                   ++rit;
+//                 }
 //             }
 //
 //             ++crit;
 //           }
 //         }
 //
-//         if(flags.contains(Selector::CHANNEL))
-//           selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, channelAdapter);
+//         auto selectedItem = channelAdapter;
 //
 //         if(flags.contains(Selector::SAMPLE))
 //         {
-//           auto sampleAdapter = QueryAdapter::sample(channelAdapter);
-//           selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, sampleAdapter.get());
+//            selectedItem = QueryAdapter::sample(channelAdapter);
 //         }
+//
+//         selectedItems << Selector::SelectionItem(selectionMask, selectedItem.get());
 //       }
 //
-//       if(!multiselection && selectedItems.size() == 1)
-//         break;
+//       if(!multiselection && selectedItems.size() == 1) break;
 //     }
 //   }
-//
-//   if(flags.contains(Selector::SEGMENTATION))
+//   else if(flags.contains(Selector::SEGMENTATION))
 //   {
-//     for(auto segAdapter: m_segmentationStates.keys())
+//     for(auto segmentation: m_segmentationStates.keys())
 //     {
-//       if(intersect(segAdapter->bounds(), mask->bounds().bounds()))
+//       if(intersect(segmentation->bounds(), mask->bounds().bounds()))
 //       {
-//         auto intersectionBounds = intersection(segAdapter->bounds(), mask->bounds().bounds());
+//         auto intersectionBounds = intersection(segmentation->bounds(), mask->bounds().bounds());
 //         BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
 //         crit.goToBegin();
 //
-//         if(!hasVolumetricData(segAdapter->output()))
+//         if(!hasVolumetricData(segmentation->output()))
 //         {
 //           continue;
 //         }
 //
-//         auto volume = volumetricData(segAdapter->output());
+//         auto volume = volumetricData(segmentation->output());
 //         auto itkVolume = volume->itkImage(intersectionBounds);
 //         auto value = itkVolume->GetBufferPointer();
-//         auto selectionMask = BinaryMaskSPtr<unsigned char>(new BinaryMask<unsigned char>(intersectionBounds, volume->spacing(), volume->origin()));
+//         auto selectionMask = std::make_shared<BinaryMask<unsigned char>>(intersectionBounds, volume->spacing(), volume->origin());
 //
-//         if(segAdapter->output()->spacing() == mask->spacing())
+//         if(segmentation->output()->spacing() == mask->spacing())
 //         {
 //           BinaryMask<unsigned char>::iterator it(selectionMask.get());
 //           it.goToBegin();
@@ -694,17 +713,17 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 //             {
 //               auto center = crit.getCenter();
 //               auto voxelBounds = Bounds{center[0]-spacing[0]/2, center[0]+spacing[0]/2,
-//                                         center[1]-spacing[1]/2, center[1]+spacing[1]/2,
-//                                         center[2]-spacing[2]/2, center[2]+spacing[2]/2};
+//                 center[1]-spacing[1]/2, center[1]+spacing[1]/2,
+//                 center[2]-spacing[2]/2, center[2]+spacing[2]/2};
 //
-//               BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
-//               rit.goToBegin();
+//                 BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
+//                 rit.goToBegin();
 //
-//               while(!rit.isAtEnd())
-//               {
-//                 rit.Set();
-//                 ++rit;
-//               }
+//                 while(!rit.isAtEnd())
+//                 {
+//                   rit.Set();
+//                   ++rit;
+//                 }
 //             }
 //
 //             ++value;
@@ -712,19 +731,18 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 //           }
 //         }
 //
-//         selectedItems << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectionMask, segAdapter);
+//         selectedItems << Selector::SelectionItem(selectionMask, segmentation);
 //       }
 //
-//       if(!multiselection && selectedItems.size() == 1)
-//         break;
+//       if(!multiselection && selectedItems.size() == 1) break;
 //     }
 //   }
-
+//
   return selectedItems;
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection RenderView::select(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const
 {
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
 
@@ -733,7 +751,13 @@ Selector::Selection RenderView::select(const Selector::SelectionFlags flags, con
 
   int *displayCoords = coords->GetComputedDisplayValue(m_renderer);
 
-  return select(flags, displayCoords[0], displayCoords[1], multiselection);
+  return pick(flags, displayCoords[0], displayCoords[1], multiselection);
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
+{
+  return pickImplementation(flags, x, y, multiselection);
 }
 
 //-----------------------------------------------------------------------------

@@ -138,30 +138,30 @@ namespace ESPINA
      */
     virtual void eventPosition(int &x, int &y);
 
-    /** \brief Selects the NeuroItems specified in flags parameter whose voxels intersect the ones
-     * in the mask given as parameter.
-     * \param[in] flags NeuroItems selection flags.
+    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
+     * \param[in] flags view item types to be selected.
      * \param[in] mask  Area selected to intersect with the items in the view.
+     * \param[in] multiselection if true several view items may be returned.
      *
      */
-    virtual Selector::Selection select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
+    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
 
-    /** \brief Selects the NeuroIntems specified in flags parameter that has a voxel in the WORLD position
-     * specified in the point parameter.
-     * \param[in] flags NeuroItems selection flags.
-     * \param[in] point Point in WORLD coordinates (not necessarily in the slice position of the view).
+    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
+     * \param[in] flags view item types to be selected.
+     * \param[in] point position in WORLD coordinates.
+     * \param[in] multiselection if true several view items may be returned.
      *
      */
-    virtual Selector::Selection select(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection = true) const;
+    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection = true) const;
 
-    /** \brief Selects the NeuroItems specified in the flags parameter that has a voxel in the DISPLAY
-     * position specified by the x and y parameters.
-     * \param[in] flags, NeuroItems selection flags.
-     * \param[in] x position in display coordinates.
-     * \param[in] y position in display coordinates.
+    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
+     * \param[in] flags view item types to be selected.
+     * \param[in] x position in DISPLAY coordinates.
+     * \param[in] y position in DISPLAY coordinates.
+     * \param[in] multiselection if true several view items may be returned.
      *
      */
-    virtual Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
+    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
     /** \brief Returns the raw pointer of the vtkRenderWindow of the view.
      *
@@ -276,6 +276,8 @@ namespace ESPINA
      */
     explicit RenderView(ViewType type, QWidget* parent = nullptr);
 
+    NmVector3 toWorldCoordinates(int x, int y, int z) const;
+
     /** \brief Updates the view when the selection changes.
      * \param[in] selection new selection.
      *
@@ -299,6 +301,8 @@ namespace ESPINA
     unsigned int numberActiveRepresentationManagers(Data::Type type);
 
   private:
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
+
     virtual void configureManager(RepresentationManagerSPtr manager) {}
 
     void notifyResolutionChange();

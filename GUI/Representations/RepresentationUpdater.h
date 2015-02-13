@@ -83,6 +83,8 @@ namespace ESPINA
      */
     bool hasValidTimeStamp() const;
 
+    ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+
     /** \brief Returns the latest actors computed by the task
      *
      */
@@ -96,6 +98,8 @@ namespace ESPINA
 
   private:
     RepresentationPipelineSPtr sourcePipeline(ViewItemAdapterPtr item) const;
+
+    ViewItemAdapterPtr findActorItem(vtkProp *actor) const;
 
   private:
     TimeStamp m_timeStamp;

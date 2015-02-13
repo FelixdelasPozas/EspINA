@@ -78,6 +78,22 @@ void Slice3DManager::setResolution(const NmVector3 &resolution)
 }
 
 //----------------------------------------------------------------------------
+ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) const
+{
+  ViewItemAdapterPtr pickedItem = nullptr;
+
+  for (auto pool : m_pools)
+  {
+    auto pickedItem = pool->pick(point, actor);
+
+    if (pickedItem) break;
+  }
+
+  return pickedItem;
+
+}
+
+//----------------------------------------------------------------------------
 void Slice3DManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   for (auto pool : m_pools)

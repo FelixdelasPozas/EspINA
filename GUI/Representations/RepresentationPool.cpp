@@ -171,7 +171,7 @@ void RepresentationPool::invalidatePreviousActors(TimeStamp time)
   int  i     = 1;
   bool found = false;
 
-  Q_ASSERT(!m_validActorsTimes.isEmpty());
+  if (m_validActorsTimes.isEmpty()) return;
 
   auto validTime   = m_validActorsTimes.first();
   auto validActors = m_actors[validTime];

@@ -78,7 +78,7 @@ class ViewItemAdapter;
     virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
                                                            const RepresentationState &state) = 0;
 
-    virtual bool pick(const NmVector3 &point, vtkProp *actor) = 0;
+    virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const = 0;
 
   protected:
     explicit RepresentationPipeline(Type type);

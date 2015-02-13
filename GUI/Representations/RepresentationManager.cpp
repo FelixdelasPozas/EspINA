@@ -1,5 +1,4 @@
 /*
-    
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -127,26 +126,34 @@ void RepresentationManager::display(TimeStamp time)
 {
   if (m_view != nullptr)
   {
-    for (auto actor : m_viewActors)
+    for (auto itemActors : m_viewActors)
     {
-      m_view->removeActor(actor);
+      for (auto actor : itemActors)
+      {
+        m_view->removeActor(actor);
+      }
     }
 
     m_viewActors.clear();
 
     if (m_showPipelines)
     {
-      for (auto itemActors : actors(time))
+      auto currentActors = actors(time);
+
+      auto it = currentActors.begin();
+      while (it != currentActors.end())
       {
-        for (auto actor : itemActors)
+        for (auto actor : it.value())
         {
           m_view->addActor(actor);
-          m_viewActors << actor;
+          m_viewActors[it.key()] << actor;
         }
-      }
 
-      invalidatePreviousActors(time);
+        ++it;
+      }
     }
+
+    invalidatePreviousActors(time);
 
     m_requiresRender = m_showPipelines;
   }

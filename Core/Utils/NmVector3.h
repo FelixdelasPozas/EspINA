@@ -73,6 +73,12 @@ namespace ESPINA {
      */
     explicit NmVector3(const QString& string);
 
+    /** \brief NmVector3 class constructor.
+     * \param[in] point coordinates given by a dim 3 array.
+     *
+     */
+    explicit NmVector3(Nm *point);
+
     /** \brief NmVector3 operator[int]
      *
      */

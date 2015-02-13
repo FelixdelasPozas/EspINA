@@ -607,14 +607,6 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT isCategory(ItemAdapterPtr item);
-
-  /** \brief Returns true if the given item is a sample item.
-   * \param[in] item item adapter raw pointer.
-   *
-   */
-  bool EspinaGUI_EXPORT isSample(ItemAdapterPtr item);
-
-
 } // namespace ESPINA
 
 #endif // ESPINA_MODEL_ADAPTER_H

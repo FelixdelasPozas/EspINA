@@ -79,7 +79,7 @@ namespace ESPINA
      */
     virtual void setResolution(const NmVector3 &resolution) = 0;
 
-    void update();
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
     /** \brief Returns whether all pipeline representations are set to the
      *         current position or not
@@ -156,6 +156,8 @@ namespace ESPINA
     bool hasPendingSources() const;
 
     void processPendingSources();
+
+    void update();
 
   private:
     PipelineSources *m_sources;

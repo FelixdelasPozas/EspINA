@@ -63,9 +63,16 @@ NmVector3::NmVector3(std::initializer_list<Nm> values)
   int i = 0;
   if (values.size() != 3) throw Wrong_number_initial_values();
 
-  for (auto v=values.begin(); v!=values.end(); ++v, ++i) {
+  for (auto v=values.begin(); v!=values.end(); ++v, ++i)
+  {
         m_values[i] = *v;
   }
+}
+
+//-----------------------------------------------------------------------------
+NmVector3::NmVector3(Nm *point)
+: NmVector3{point[0], point[1], point[2]}
+{
 }
 
 //-----------------------------------------------------------------------------

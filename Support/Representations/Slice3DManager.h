@@ -42,6 +42,8 @@ namespace ESPINA {
 
     virtual void setResolution(const NmVector3 &resolution);
 
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+
   private:
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
 

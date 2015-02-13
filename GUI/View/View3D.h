@@ -81,8 +81,6 @@ namespace ESPINA
 
     virtual struct RenderView::VisualState visualState();
 
-    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
-
   public slots:
     virtual void updateView();
 
@@ -121,6 +119,8 @@ namespace ESPINA
     virtual void onCrosshairChanged(const NmVector3 &point);
 
     virtual void moveCamera(const NmVector3 &point);
+
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
     bool isCrosshairVisible() const;
 

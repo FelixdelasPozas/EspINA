@@ -106,3 +106,21 @@ ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createAc
 
   return actors;
 }
+
+//----------------------------------------------------------------------------
+template<ESPINA::Plane T>
+bool ESPINA::SegmentationSlicePipeline<T>::pick(ViewItemAdapter *item, const NmVector3 &point) const
+{
+  bool result = false;
+
+  auto output = item->output();
+  if (hasVolumetricData(output) && contains(output->bounds(), point))
+  {
+    auto volume = volumetricData(output);
+    auto voxel  = volume->itkImage(Bounds(point));
+
+    result = *static_cast<unsigned char *>(voxel->GetBufferPointer()) == SEG_VOXEL_VALUE;
+  }
+
+  return result;
+}

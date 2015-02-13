@@ -183,8 +183,6 @@ namespace ESPINA
 
     virtual struct RenderView::VisualState visualState();
 
-    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
-
   public slots:
     /** \brief Alternate the visibility between the processed and unprocessed channels.
      * \param[in] visible true to show the first channel and not the second, false to reverse situation.
@@ -227,22 +225,6 @@ namespace ESPINA
      */
     void centerCrosshairOnMousePosition();
 
-    /** \brief Picks and returns the channels under given position.
-     * \param[in] vx x display coordinate.
-     * \param[in] vy y display coordinate.
-     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
-     *
-     */
-    ViewItemAdapterList pickChannels(double vx, double vy, bool repeatable = true);
-
-    /** \brief Picks and returns the segmentations under given position.
-     * \param[in] vx x display coordinate.
-     * \param[in] vy y display coordinate.
-     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
-     *
-     */
-    ViewItemAdapterList pickSegmentations(double vx, double vy, bool repeatable = true);
-
     /** \brief Updates the selection of items.
      * \param[in] append if true the elements picked will be merged with the ones currently
      *  selected, if false the elements picked will be the new selection.
@@ -250,14 +232,23 @@ namespace ESPINA
      *  If an item is selected and also is on the picked list the merge will deselect the item.
      *
      */
-    void selectPickedItems(bool append);
+    void selectPickedItems(int x, int y, bool append);
 
   private:
     void addRepresentationManagerMenu(RepresentationManagerSPtr manager);
 
     void removeRepresentationManagerMenu(RepresentationManagerSPtr manager);
 
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
+
     virtual void configureManager(RepresentationManagerSPtr manager);
+
+    /** \brief Shows tool tip for segmentations at position (x, y)
+     * \param[in] x DISPLAY coordinate.
+     * \param[in] y DISPLAY coordinate.
+     *
+     */
+    void showSegmentationTooltip(double x, double y);
 
     /** \brief Updates the ruler widget.
      *

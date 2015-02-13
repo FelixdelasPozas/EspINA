@@ -118,7 +118,7 @@ ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(
 
 //----------------------------------------------------------------------------
 template<ESPINA::Plane T>
-bool ChannelSlicePipeline<T>::pick(const NmVector3 &point, vtkProp *actor)
+bool ESPINA::ChannelSlicePipeline<T>::pick(ESPINA::ViewItemAdapter *item, const ESPINA::NmVector3 &point) const
 {
-  return false;
+  return contains(item->output()->bounds(), point);
 }

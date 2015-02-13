@@ -770,14 +770,12 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
   switch (e->type())
   {
     case QEvent::Resize:
-      {
-        updateView();
-        e->accept();
-      }
+      updateView();
+      e->accept();
       break;
     case QEvent::Wheel:
       {
-        QWheelEvent *we = static_cast<QWheelEvent *>(e);
+        auto we = static_cast<QWheelEvent *>(e);
         int numSteps = we->delta() / 8 / 15 * (m_invertWheel ? -1 : 1);  //Refer to QWheelEvent doc.
         m_scrollBar->setValue(m_scrollBar->value() - numSteps);
         e->ignore();
@@ -786,28 +784,28 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       }
       break;
     case QEvent::Enter:
+      QWidget::enterEvent(e);
+
+      // get the focus this very moment
+      setFocus(Qt::OtherFocusReason);
+
+      if (m_eventHandler && !m_inThumbnail)
       {
-        QWidget::enterEvent(e);
-
-        // get the focus this very moment
-        this->setFocus(Qt::OtherFocusReason);
-
-        if (m_eventHandler && !m_inThumbnail)
-          m_view->setCursor(m_eventHandler->cursor());
-        else
-          m_view->setCursor(Qt::ArrowCursor);
-
-        e->accept();
+        m_view->setCursor(m_eventHandler->cursor());
       }
+      else
+      {
+        m_view->setCursor(Qt::ArrowCursor);
+      }
+
+      e->accept();
       break;
     case QEvent::Leave:
-      {
-        m_inThumbnail = false;
-      }
+      m_inThumbnail = false;
       break;
     case QEvent::ContextMenu:
       {
-        QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
+        auto cme = dynamic_cast<QContextMenuEvent*>(e);
         if (cme->modifiers() == Qt::CTRL && m_contextMenu.get() && selectionEnabled())
         {
           m_contextMenu->setSelection(currentSelection());
@@ -816,21 +814,13 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       }
       break;
     case QEvent::ToolTip:
-      {
-        auto selection = pickSegmentations(xPos, yPos, m_renderer);
-        QString toopTip;
-
-        for (auto pick : selection)
-          toopTip = toopTip.append(pick->data(Qt::ToolTipRole).toString());
-
-        m_view->setToolTip(toopTip);
-      }
+      showSegmentationTooltip(xPos, yPos);
       break;
     case QEvent::MouseMove:
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
       {
-        QMouseEvent* me = static_cast<QMouseEvent*>(e);
+        auto me = static_cast<QMouseEvent*>(e);
 
         if (m_inThumbnail)
         {
@@ -841,9 +831,10 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
             m_inThumbnailClick = true;
             centerViewOnMousePosition();
           }
-          else
-            if ((e->type() == QEvent::MouseButtonRelease) && (me->button() == Qt::LeftButton))
-              m_inThumbnailClick = false;
+          else if ((e->type() == QEvent::MouseButtonRelease) && (me->button() == Qt::LeftButton))
+          {
+            m_inThumbnailClick = false;
+          }
         }
         else
         {
@@ -858,16 +849,25 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
             if ((e->type() == QEvent::MouseButtonPress) && (me->button() == Qt::LeftButton))
             {
               if (me->modifiers() == Qt::CTRL)
+              {
                 centerCrosshairOnMousePosition();
+              }
               else
+              {
                 if (selectionEnabled() && !m_eventHandler)
-                  selectPickedItems(me->modifiers() == Qt::SHIFT);
+                {
+                  bool appendSelectedItems = me->modifiers() == Qt::SHIFT;
+                  selectPickedItems(xPos, yPos, appendSelectedItems);
+                }
+              }
             }
 
             m_view->setCursor(Qt::ArrowCursor);
           }
           else
+          {
             m_view->setCursor(m_eventHandler->cursor());
+          }
         }
 
         updateRuler();
@@ -983,86 +983,49 @@ void View2D::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList View2D::pickChannels(double vx, double vy, bool repeatable)
+void View2D::selectPickedItems(int x, int y, bool append)
 {
   ViewItemAdapterList selection;
 
-  //TODO
-//   for(auto renderer: m_renderers)
-//   {
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (canRender(repRenderer, RenderableType::CHANNEL))
-//       {
-//         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL), repeatable))
-//         {
-//           if (!selection.contains(item)) selection << item;
-//         }
-//       }
-//     }
-//   }
-
-  return selection;
-}
-
-//-----------------------------------------------------------------------------
-ViewItemAdapterList View2D::pickSegmentations(double vx, double vy, bool repeatable)
-{
-  ViewItemAdapterList selection;
-
-  // TODO
-//   for(auto renderer: m_renderers)
-//   {
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (canRender(repRenderer, RenderableType::SEGMENTATION))
-//       {
-//         for(auto item: repRenderer->pick(vx,vy, slicingPosition(), m_renderer, RenderableItems(RenderableType::SEGMENTATION), repeatable))
-//         {
-//           if (!selection.contains(item)) selection << item;
-//         }
-//       }
-//     }
-//   }
-
-  return selection;
-}
-
-//-----------------------------------------------------------------------------
-void View2D::selectPickedItems(bool append)
-{
-  int vx, vy;
-  eventPosition(vx, vy);
-
-  ViewItemAdapterList selection;
   if (append)
+  {
     selection = currentSelection()->items();
+  }
 
-  // segmentations have priority over channels
-  for(auto item: pickSegmentations(vx, vy, append))
+  auto flags       = Selector::SelectionFlags(Selector::CHANNEL|Selector::SEGMENTATION);
+  auto pickedItems = pick(flags, x, y);
+
+  ViewItemAdapterList channels;
+  ViewItemAdapterList segmentations;
+
+  for (auto selectionItem : pickedItems)
+  {
+    auto pickedItem = selectionItem.second;
+
+    if (isSegmentation(pickedItem))
+    {
+      segmentations << pickedItem;
+    }
+    else if (isChannel(pickedItem))
+    {
+      channels << pickedItem;
+    }
+  }
+
+  for (auto item : segmentations + channels)
   {
     if (selection.contains(item))
+    {
       selection.removeAll(item);
+    }
     else
+    {
       selection << item;
+    }
 
     if (!append)
       break;
   }
-
-  if (selection.isEmpty() || append)
-    for(auto item: pickChannels(vx, vy, append))
-    {
-      if (selection.contains(item))
-        selection.removeAll(item);
-      else
-        selection << item;
-
-      if (!append)
-        break;
-    }
 
   currentSelection()->set(selection);
 }
@@ -1089,6 +1052,12 @@ void View2D::configureManager(RepresentationManagerSPtr manager)
     manager2D->setPlane(m_plane);
     manager2D->setRepresentationDepth(segmentationDepth());
   }
+}
+
+//-----------------------------------------------------------------------------
+void View2D::showSegmentationTooltip(double x, double y)
+{
+
 }
 
 //-----------------------------------------------------------------------------
@@ -1601,64 +1570,59 @@ double View2D::viewHeightLength()
 }
 
 //-----------------------------------------------------------------------------
-Selector::Selection View2D::select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
+Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
 
-//   for(auto renderer: m_renderers)
-//   {
-//     if(renderer->type() != Renderer::Type::Representation)
-//       continue;
-//
-//     auto repRenderer = representationRenderer(renderer);
-//
-//     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
-//     {
-//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
-//       {
-//         auto rendererPoint = repRenderer->pickCoordinates();
-//         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
-//         BinaryMask<unsigned char>::iterator bmit(bm.get());
-//         bmit.goToBegin();
-//         bmit.Set();
-//
-//         selectedItems[item] = bm;
-//       }
-//     }
-//
-//     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
-//     {
-//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
-//       {
-//         if(flags.contains(Selector::CHANNEL))
-//         {
-//           auto rendererPoint = repRenderer->pickCoordinates();
-//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
-//           BinaryMask<unsigned char>::iterator bmit(bm.get());
-//           bmit.goToBegin();
-//           bmit.Set();
-//
-//           selectedItems[item] = bm;
-//         }
-//
-//         if(flags.contains(Selector::SAMPLE))
-//         {
-//           auto rendererPoint = repRenderer->pickCoordinates();
-//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(rendererPoint), item->output()->spacing() } };
-//           BinaryMask<unsigned char>::iterator bmit(bm.get());
-//           bmit.goToBegin();
-//           bmit.Set();
-//
-//           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
-//           selectedItems[item] = bm;
-//         }
-//       }
-//     }
-//   }
-//
-//   for(auto item: selectedItems.keys())
-//     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+  auto picker      = vtkSmartPointer<vtkPropPicker>::New();
+  auto sceneActors = m_renderer->GetViewProps();
+
+  vtkProp *pickedProp;
+  auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
+
+  bool finished = false;
+  bool picked   = false;
+
+  do
+  {
+    picked     = picker->PickProp(x,y, m_renderer, sceneActors);
+    pickedProp = picker->GetViewProp();
+
+    sceneActors->RemoveItem(pickedProp);
+
+    auto worldPoint = toWorldCoordinates(x, y, 0);
+    worldPoint[normalCoordinateIndex(m_plane)] = slicingPosition();
+
+    for(auto manager: m_managers)
+    {
+      auto pickedItem = manager->pick(worldPoint, pickedProp);
+
+      NeuroItemAdapterPtr neuroItem = pickedItem;
+      if(pickedItem)
+      {
+        pickedProps->AddItem(pickedProp);
+
+        if (Selector::IsValid(pickedItem, flags))
+        {
+          if(flags.testFlag(Selector::SAMPLE) && isChannel(pickedItem))
+          {
+            neuroItem = QueryAdapter::sample(pickedItem).get();
+          }
+          finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, pickedItem->output()->spacing()), neuroItem);
+          finished = !multiselection;
+        }
+      }
+    }
+  }
+  while(picked && !finished);
+
+  pickedProps->InitTraversal();
+
+  while (pickedProp = pickedProps->GetNextProp())
+  {
+    sceneActors->AddItem(pickedProp);
+  }
+  sceneActors->Modified();
 
   return finalSelection;
 }

@@ -81,6 +81,19 @@ void SliceManager::setRepresentationDepth(Nm depth)
 }
 
 //----------------------------------------------------------------------------
+ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) const
+{
+  ViewItemAdapterPtr pickedItem = nullptr;
+
+  if (validPlane())
+  {
+    pickedItem = planePool()->pick(point, actor);
+  }
+
+  return pickedItem;
+}
+
+//----------------------------------------------------------------------------
 void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   if (validPlane())

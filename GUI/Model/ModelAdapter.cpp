@@ -1160,12 +1160,6 @@ bool ESPINA::isCategory(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
-bool ESPINA::isSample(ItemAdapterPtr item)
-{
-  return ItemAdapter::Type::SAMPLE == item->type();
-}
-
-//------------------------------------------------------------------------
 // Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 // {
 //   if (!index.isValid())

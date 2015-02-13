@@ -47,18 +47,13 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 bool PixelSelector::validSelection(Selector::Selection selectedItems)
 {
-  for(auto item: selectedItems)
-  {
-    if((item.second->type() == ItemAdapter::Type::SEGMENTATION) && (!m_flags.contains(Selector::SEGMENTATION)))
-      return false;
-
-    if((item.second->type() == ItemAdapter::Type::CHANNEL) && (!m_flags.contains(Selector::CHANNEL)))
-      return false;
-
-    if((item.second->type() == ItemAdapter::Type::SAMPLE) && (!m_flags.contains(Selector::SAMPLE)))
-      return false;
-  }
-
+//   for(auto item: selectedItems)
+//   {
+//     if(isChannel(item.second) && !m_flags.contains(Selector::CHANNEL))           return false;
+//
+//     if(isSegmentation(item.second) && !m_flags.contains(Selector::SEGMENTATION)) return false;
+//   }
+//
   return true;
 }
 
@@ -67,7 +62,7 @@ void PixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
 {
   if (!isEnabled()) return;
 
-  Selection selectedItems = generateSelection(view);
+  auto selectedItems = generateSelection(view);
 
   if (selectedItems.empty()) return;
 
@@ -101,21 +96,25 @@ bool PixelSelector::filterEvent(QEvent *e, RenderView *view)
 //-----------------------------------------------------------------------------
 NmVector3 PixelSelector::getPickPoint(RenderView *view)
 {
-  Selection selectedItems = generateSelection(view);
+  auto selectedItems = generateSelection(view);
 
   if (selectedItems.empty())
+  {
     Q_ASSERT(false);
+  }
 
   auto voxelBounds = selectedItems.first().first->bounds();
+
   return NmVector3{(voxelBounds[0]+voxelBounds[1])/2, (voxelBounds[2]+voxelBounds[3])/2, (voxelBounds[4]+voxelBounds[5])/2};
 }
 
 //-----------------------------------------------------------------------------
 void PixelSelector::transformDisplayToWorld(int x, int y, RenderView *view, NmVector3 &point, bool inSlice) const
 {
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToDisplay();
   coords->SetValue(x, y);
+
   auto displayCoords = coords->GetComputedWorldValue(view->mainRenderer());
   point[0] = displayCoords[0];
   point[1] = displayCoords[1];
@@ -123,11 +122,11 @@ void PixelSelector::transformDisplayToWorld(int x, int y, RenderView *view, NmVe
 
   if(inSlice)
   {
-    auto view2d = dynamic_cast<View2D *>(view);
-    if(view2d == nullptr)
-      Q_ASSERT(false);
+    auto view2d = view2D_cast(view);
 
-    auto index = normalCoordinateIndex(view2d->plane());
+    Q_ASSERT(view2d);
+
+    auto index   = normalCoordinateIndex(view2d->plane());
     point[index] = view2d->crosshair()[index];
   }
 }
@@ -135,21 +134,23 @@ void PixelSelector::transformDisplayToWorld(int x, int y, RenderView *view, NmVe
 //-----------------------------------------------------------------------------
 Selector::Selection PixelSelector::generateSelection(RenderView *view)
 {
-  // View3D cannot select with this method.
-  View3D* view3d = dynamic_cast<View3D*>(view);
-  View2D *view2d = dynamic_cast<View2D*>(view);
-  if(view3d != nullptr || view2d == nullptr)
-    return Selector::Selection();
+  Selector::Selection selection;
 
-  int xPos, yPos;
-  view->eventPosition(xPos, yPos);
+  if (ViewType::VIEW_2D == view->type())
+  {
+    int xPos, yPos;
 
-  auto selectedItems = view->select(m_flags, xPos, yPos, m_multiSelection);
+    view->eventPosition(xPos, yPos);
 
-  if(!validSelection(selectedItems))
-    return Selector::Selection();
+    auto selectedItems = view->pick(m_flags, xPos, yPos, m_multiSelection);
 
-  return selectedItems;
+    if(validSelection(selectedItems))
+    {
+      selection = selectedItems;
+    }
+  }
+
+  return selection;
 }
 
 //-----------------------------------------------------------------------------
@@ -273,12 +274,9 @@ void BestPixelSelector::onMouseDown(const QPoint &pos, RenderView* view)
   Q_ASSERT(channelAdapter);
   auto spacing = channelAdapter->output()->spacing();
 
-  BinaryMaskSPtr<unsigned char> bm{ new BinaryMask<unsigned char>{Bounds(NmVector3{point[0], point[1], point[2]}), spacing}};
-  BinaryMask<unsigned char>::iterator bmit(bm.get());
-  bmit.goToBegin();
-  bmit.Set();
+  auto mask = pointToMask<unsigned char>(point, spacing);
 
-  selectedItems.first().first = bm;
+  selectedItems.first().first = mask;
 
   emit itemsSelected(selectedItems);
 }

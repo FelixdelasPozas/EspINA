@@ -91,6 +91,14 @@ namespace ESPINA
 
 
       /** \brief Bounds class constructor.
+       * \param[in] bounds values in a dim 6 array.
+       *
+       * Constructs the bounds of a point.
+       *
+       */
+      explicit Bounds(Nm *bounds);
+
+      /** \brief Bounds class constructor.
        * \param[in] strimg bounds serialization
        *
        * Constructs the bounds from its serialization

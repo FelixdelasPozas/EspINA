@@ -50,7 +50,7 @@ namespace ESPINA
     virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
                                                            const RepresentationState &state) override;
 
-    virtual bool pick(const NmVector3 &point, vtkProp *actor) override {};
+    virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
   private:
     static Plane s_plane;

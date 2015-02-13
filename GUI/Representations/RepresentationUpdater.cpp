@@ -18,6 +18,7 @@
  */
 
 #include "RepresentationUpdater.h"
+#include <vtkProp.h>
 #include <QCoreApplication>
 
 using namespace ESPINA;
@@ -109,6 +110,35 @@ bool RepresentationUpdater::hasValidTimeStamp() const
 }
 
 //----------------------------------------------------------------------------
+ViewItemAdapterPtr RepresentationUpdater::pick(const NmVector3 &point, vtkProp *actor) const
+{
+  ViewItemAdapterPtr pickedItem = nullptr;
+
+  if (actor)
+  {
+    auto foundItem = findActorItem(actor);
+
+    if (foundItem && m_pipeline->pick(foundItem, point))
+    {
+      pickedItem = foundItem;
+    }
+  }
+  else
+  {
+    for (auto item : m_actors.keys())
+    {
+      if (m_pipeline->pick(item, point))
+      {
+        pickedItem = item;
+        break;
+      }
+    }
+  }
+
+  return pickedItem;
+}
+
+//----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationUpdater::actors() const
 {
   return m_actors;
@@ -153,4 +183,27 @@ RepresentationPipelineSPtr RepresentationUpdater::sourcePipeline(ViewItemAdapter
   }
 
   return pipeline;
+}
+
+//----------------------------------------------------------------------------
+ViewItemAdapterPtr RepresentationUpdater::findActorItem(vtkProp *actor) const
+{
+  ViewItemAdapterPtr item = nullptr;
+
+  auto it = m_actors.begin();
+  while (it != m_actors.end() && !item)
+  {
+    for (auto itemActor : it.value())
+    {
+      if (itemActor.GetPointer() == actor)
+      {
+        item = it.key();
+        break;
+      }
+    }
+
+    ++it;
+  }
+
+  return item;
 }

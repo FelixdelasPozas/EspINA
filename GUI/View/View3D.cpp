@@ -274,6 +274,67 @@ void View3D::moveCamera(const NmVector3 &point)
 }
 
 //-----------------------------------------------------------------------------
+Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
+{
+  QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
+  Selector::Selection finalSelection;
+
+//   for(auto renderer: m_renderers)
+//   {
+//     if(renderer->type() != Renderer::Type::Representation)
+//       continue;
+//
+//     auto repRenderer = representationRenderer(renderer);
+//
+//     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
+//     {
+//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
+//       {
+//         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+//         BinaryMask<unsigned char>::iterator bmit(bm.get());
+//         bmit.goToBegin();
+//         bmit.Set();
+//
+//         selectedItems[item] = bm;
+//       }
+//     }
+//
+//     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
+//     {
+//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
+//       {
+//         if(flags.contains(Selector::CHANNEL))
+//         {
+//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+//           BinaryMask<unsigned char>::iterator bmit(bm.get());
+//           bmit.goToBegin();
+//           bmit.Set();
+//
+//           selectedItems[item] = bm;
+//         }
+//
+//
+//         if(flags.contains(Selector::SAMPLE))
+//         {
+//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
+//           BinaryMask<unsigned char>::iterator bmit(bm.get());
+//           bmit.goToBegin();
+//           bmit.Set();
+//
+//           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
+//           selectedItems[item] = bm;
+//         }
+//       }
+//     }
+//   }
+//
+//   for(auto item: selectedItems.keys())
+//     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
+
+  return finalSelection;
+}
+
+//-----------------------------------------------------------------------------
 void View3D::resetCamera()
 {
   m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
@@ -457,13 +518,13 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
   int newX, newY;
   eventPosition(newX, newY);
 
-//   if (e->type() == QEvent::MouseButtonPress)
-//   {
-//     QMouseEvent *me = static_cast<QMouseEvent*>(e);
-//     if (me->button() == Qt::LeftButton)
-//     {
-//       if (me->modifiers() == Qt::CTRL)
-//       {
+  if (e->type() == QEvent::MouseButtonPress)
+  {
+    auto me = static_cast<QMouseEvent*>(e);
+    if (me->button() == Qt::LeftButton)
+    {
+      if (me->modifiers() == Qt::CTRL)
+      {
 //         for(auto renderer: m_renderers)
 //         {
 //           if(renderer->type() == Renderer::Type::Representation)
@@ -482,22 +543,27 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
 //             }
 //           }
 //         }
-//       }
-//       else
-//       {
-//         x = newX;
-//         y = newY;
-//       }
-//     }
-//   }
-//
-//   if (e->type() == QEvent::MouseButtonRelease)
-//   {
-//     QMouseEvent *me = static_cast<QMouseEvent*>(e);
-//     if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
-//       if ((newX == x) && (newY == y))
-//         selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
-//   }
+      }
+      else
+      {
+        x = newX;
+        y = newY;
+      }
+    }
+  }
+
+  if (e->type() == QEvent::MouseButtonRelease)
+  {
+    auto me = static_cast<QMouseEvent*>(e);
+
+    if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
+    {
+      if ((newX == x) && (newY == y))
+      {
+        selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
+      }
+    }
+  }
 
   return QObject::eventFilter(caller, e);
 }
@@ -699,65 +765,4 @@ struct RenderView::VisualState View3D::visualState()
   state.heightLength = -1;
 
   return state;
-}
-
-//-----------------------------------------------------------------------------
-Selector::Selection View3D::select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
-{
-  QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
-  Selector::Selection finalSelection;
-
-//   for(auto renderer: m_renderers)
-//   {
-//     if(renderer->type() != Renderer::Type::Representation)
-//       continue;
-//
-//     auto repRenderer = representationRenderer(renderer);
-//
-//     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
-//     {
-//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
-//       {
-//         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-//         BinaryMask<unsigned char>::iterator bmit(bm.get());
-//         bmit.goToBegin();
-//         bmit.Set();
-//
-//         selectedItems[item] = bm;
-//       }
-//     }
-//
-//     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
-//     {
-//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
-//       {
-//         if(flags.contains(Selector::CHANNEL))
-//         {
-//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-//           BinaryMask<unsigned char>::iterator bmit(bm.get());
-//           bmit.goToBegin();
-//           bmit.Set();
-//
-//           selectedItems[item] = bm;
-//         }
-//
-//
-//         if(flags.contains(Selector::SAMPLE))
-//         {
-//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-//           BinaryMask<unsigned char>::iterator bmit(bm.get());
-//           bmit.goToBegin();
-//           bmit.Set();
-//
-//           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
-//           selectedItems[item] = bm;
-//         }
-//       }
-//     }
-//   }
-//
-//   for(auto item: selectedItems.keys())
-//     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
-
-  return finalSelection;
 }

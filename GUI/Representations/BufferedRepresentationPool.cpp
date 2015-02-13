@@ -165,6 +165,21 @@ ESPINA::RepresentationUpdaterSList ESPINA::BufferedRepresentationPool<P>::update
 
 //-----------------------------------------------------------------------------
 template<typename P>
+ESPINA::ViewItemAdapterPtr ESPINA::BufferedRepresentationPool<P>::pick(const NmVector3 &point,
+                                                                       vtkProp *actor) const
+{
+  ViewItemAdapterPtr pickedItem = nullptr;
+
+  if (m_updateWindow.current()->hasFinished())
+  {
+    pickedItem = m_updateWindow.current()->pick(point, actor);
+  }
+
+  return pickedItem;
+}
+
+//-----------------------------------------------------------------------------
+template<typename P>
 void ESPINA::BufferedRepresentationPool<P>::updatePipelines(RepresentationUpdaterSList updaters)
 {
   updatePriorities();

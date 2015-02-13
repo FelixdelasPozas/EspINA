@@ -1053,6 +1053,17 @@ namespace ESPINA
   template<class T> using BinaryMaskPtr  = BinaryMask<T> *;
   template<class T> using BinaryMaskSPtr = std::shared_ptr<BinaryMask<T>>;
 
+  //-----------------------------------------------------------------------------
+  template<class T>
+  BinaryMaskSPtr<T> pointToMask(const NmVector3 &point, const NmVector3 &spacing)
+  {
+    auto mask = std::make_shared<BinaryMask<T>>(Bounds(point), spacing);
+    typename BinaryMask<T>::iterator it(mask.get());
+    it.goToBegin();
+    it.Set();
+
+    return mask;
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_BINARY_MASK_H

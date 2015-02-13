@@ -128,6 +128,11 @@ namespace ESPINA
      */
     void display(TimeStamp time);
 
+    /** \brief Returns the item picked
+     *
+     */
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
+
     /** \brief Returns a new instance of the class.
      *
      */
@@ -179,7 +184,7 @@ namespace ESPINA
 
     RepresentationManagerSList m_childs;
 
-    RepresentationPipeline::ActorList m_viewActors; // actors being rendered by its view
+    RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view
   };
 
   class RepresentationManager2D

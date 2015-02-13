@@ -139,4 +139,6 @@ void VolumetricStreamReader::execute()
   {
     volume->setSpacing(m_outputs[0]->spacing());
   }
+
+  qDebug() << "Loading Channel with Spacing" << volume->spacing();
 }
