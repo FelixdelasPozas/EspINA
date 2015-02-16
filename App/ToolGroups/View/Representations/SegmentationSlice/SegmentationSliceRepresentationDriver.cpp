@@ -50,7 +50,7 @@ Representation SegmentationSliceRepresentationDriver::createRepresentation() con
   auto poolXZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::XZ>>>(Plane::XZ, m_scheduler, WINDOW_SIZE);
   auto poolYZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::YZ>>>(Plane::YZ, m_scheduler, WINDOW_SIZE);
   auto sliceManager = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
-  auto sliceSwitch  = std::make_shared<SegmentationSliceSwitch>(sliceManager);
+  auto sliceSwitch  = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
@@ -59,6 +59,7 @@ Representation SegmentationSliceRepresentationDriver::createRepresentation() con
   configurePool(poolYZ, settings);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
+  //sliceSwitch->showRepresentations();
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
   slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));

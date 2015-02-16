@@ -320,7 +320,7 @@ void Task::onTaskFinished()
   {
     runWrapper();
   }
-  else
+  else if (isExecutingOnThread())
   {
     finishThreadExecution();
   }

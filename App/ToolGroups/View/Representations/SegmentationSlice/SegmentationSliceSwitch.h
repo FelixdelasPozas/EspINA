@@ -37,6 +37,12 @@ namespace ESPINA {
 
     virtual QWidget* widget();
 
+    virtual void showRepresentations() {}
+
+    virtual void hideRepresentations() {}
+
+    virtual bool isActive() const { return false; }
+
   private slots:
     void changeVisibility(bool visible);
 

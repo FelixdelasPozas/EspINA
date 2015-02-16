@@ -54,10 +54,10 @@ namespace ESPINA
   : public RenderView
   {
     Q_OBJECT
-    class State;
-    class AxialState;
-    class SagittalState;
-    class CoronalState;
+    class PlanarBehaviour;
+    class AxialBehaviour;
+    class SagittalBehaviour;
+    class CoronalBehaviour;
 
   public:
     enum SliceSelectionTypes
@@ -179,9 +179,9 @@ namespace ESPINA
      */
     virtual void setCrosshairVisibility(bool show);
 
-    virtual void setVisualState(struct RenderView::VisualState);
+    virtual void setCameraState(struct RenderView::CameraState);
 
-    virtual struct RenderView::VisualState visualState();
+    virtual struct RenderView::CameraState cameraState();
 
   public slots:
     /** \brief Alternate the visibility between the processed and unprocessed channels.
@@ -399,7 +399,7 @@ namespace ESPINA
     // View State
     NmVector3 m_slicingStep;
 
-    std::unique_ptr<State> m_state2D;
+    std::unique_ptr<PlanarBehaviour> m_state2D;
 
     bool m_showThumbnail;
 

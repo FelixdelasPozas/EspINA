@@ -70,11 +70,45 @@ QList<QAction *> RepresentationsGroupTool::actions() const
 }
 
 //----------------------------------------------------------------------------
-void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr renderSwitch)
+void RepresentationsGroupTool::showActiveRepresentations()
 {
-  m_contentWidget->layout()->addWidget(renderSwitch->widget());
+  m_globalSwitch->setChecked(true);
 
-  m_switches << renderSwitch;
+  for (auto repSwitch : m_switches)
+  {
+    if (repSwitch->isActive())
+    {
+      repSwitch->showRepresentations();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void RepresentationsGroupTool::hideActiveRepresentations()
+{
+  m_globalSwitch->setChecked(false);
+
+  for (auto repSwitch : m_switches)
+  {
+    if (repSwitch->isActive())
+    {
+      repSwitch->hideRepresentations();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr representationSwitch)
+{
+  m_contentWidget->layout()->addWidget(representationSwitch->widget());
+
+  m_switches << representationSwitch;
+}
+
+//----------------------------------------------------------------------------
+void RepresentationsGroupTool::showRepresentationSwitchs(ViewTypeFlags views)
+{
+
 }
 
 //----------------------------------------------------------------------------

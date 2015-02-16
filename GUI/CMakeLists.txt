@@ -120,7 +120,7 @@ set (GUI_SOURCES
   View/Selection.cpp
   View/View2D.cpp
   View/ViewRendererMenu.cpp
-  View/View2DState.cpp
+  View/PlanarBehaviour.cpp
   View/ViewState.cpp
   View/View3D.cpp
   View/Widgets/Contour/vtkVoxelContour2D.cpp

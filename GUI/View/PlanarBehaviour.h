@@ -30,13 +30,13 @@ class vtkProp3D;
 
 namespace ESPINA
 {
-  class View2D::State
+  class View2D::PlanarBehaviour
   {
   public:
-  	/** \brief State class constructor.
-  	 *
-  	 */
-    virtual ~State()
+    /** \brief State class constructor.
+     *
+     */
+    virtual ~PlanarBehaviour()
     {}
 
     /** \brief Sets the crosshairs of the view.
@@ -60,80 +60,62 @@ namespace ESPINA
                               const NmVector3 &center) = 0;
   };
 
-  class View2D::AxialState
-  : public View2D::State
+  class View2D::AxialBehaviour
+  : public View2D::PlanarBehaviour
   {
   public:
-  	/** \brief AxialState class constructor.
-  	 *
-  	 */
-    explicit AxialState()
-    {}
-
-    /** \brief Implements State::setCrosshairs().
+    /** \brief AxialState class constructor.
      *
      */
+    explicit AxialBehaviour()
+    {}
+
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep);
 
-    /** \brief Implements State::updateCamera().
-     *
-     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };
 
-  class View2D::SagittalState
-  : public View2D::State
+  class View2D::SagittalBehaviour
+  : public View2D::PlanarBehaviour
   {
   public:
-  	/** \brief SagittalState class constructor.
-  	 *
-  	 */
-    explicit SagittalState()
-    {}
-
-    /** \brief Implements State::setCrosshairs().
+    /** \brief SagittalState class constructor.
      *
      */
+    explicit SagittalBehaviour()
+    {}
+
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep);
 
-    /** \brief Implements State::updateCamera().
-     *
-     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };
 
-  class View2D::CoronalState
-  : public View2D::State
+  class View2D::CoronalBehaviour
+  : public View2D::PlanarBehaviour
   {
   public:
-  	/** \brief CoronalState class constructor.
-  	 *
-  	 */
-    explicit CoronalState()
-    {}
-
-    /** \brief Implements State::setCrosshairs().
+    /** \brief CoronalState class constructor.
      *
      */
+    explicit CoronalBehaviour()
+    {}
+
     virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
                                const NmVector3              &slicingStep);
 
-    /** \brief Implements State::updateCamera().
-     *
-     */
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center);
   };

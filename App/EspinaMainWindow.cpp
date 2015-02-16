@@ -787,15 +787,15 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
-    if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
-    {
-      auto problemList = checkAnalysisConsistency();
-      if(!problemList.empty())
-      {
-        auto problemDialog = new ProblemListDialog(problemList);
-        problemDialog->exec();
-      }
-    }
+//     if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
+//     {
+//       auto problemList = checkAnalysisConsistency();
+//       if(!problemList.empty())
+//       {
+//         auto problemDialog = new ProblemListDialog(problemList);
+//         problemDialog->exec();
+//       }
+//     }
   }
 
   emit analysisChanged();

@@ -37,12 +37,19 @@ namespace ESPINA {
 
     virtual QWidget* widget();
 
+    virtual void showRepresentations();
+
+    virtual void hideRepresentations();
+
+    virtual bool isActive() const;
+
   private slots:
-    void changeVisibility(bool visible);
+    void onActivationToggled(bool active);
 
   private:
     RepresentationManagerSPtr m_manager;
 
+    bool          m_isActive;
     ViewTypeFlags m_flags;
   };
 }

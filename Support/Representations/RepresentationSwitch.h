@@ -41,6 +41,12 @@ namespace ESPINA
 
     virtual ViewTypeFlags supportedViews() = 0;
 
+    virtual void showRepresentations() = 0;
+
+    virtual void hideRepresentations() = 0;
+
+    virtual bool isActive() const = 0;
+
   protected:
     explicit RepresentationSwitch();
 

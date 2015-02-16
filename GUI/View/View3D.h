@@ -77,9 +77,9 @@ namespace ESPINA
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    virtual void setVisualState(struct RenderView::VisualState);
+    virtual void setCameraState(struct RenderView::CameraState);
 
-    virtual struct RenderView::VisualState visualState();
+    virtual struct RenderView::CameraState cameraState();
 
   public slots:
     virtual void updateView();

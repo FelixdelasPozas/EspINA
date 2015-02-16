@@ -28,6 +28,7 @@ BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr m
                                                      ViewTypeFlags             supportedViews)
 : m_manager(manager)
 , m_flags(supportedViews)
+, m_isActive(false)
 {
 
 }
@@ -46,20 +47,40 @@ QWidget* BasicRepresentationSwitch::widget()
   widget->setCheckable(true);
 
   connect(widget, SIGNAL(toggled(bool)),
-          this,   SLOT(changeVisibility(bool)));
+          this,   SLOT(onActivationToggled(bool)));
 
   return widget;
 }
 
 //----------------------------------------------------------------------------
-void BasicRepresentationSwitch::changeVisibility(bool visible)
+void BasicRepresentationSwitch::showRepresentations()
 {
-  if (visible)
+  m_manager->show();
+}
+
+//----------------------------------------------------------------------------
+void BasicRepresentationSwitch::hideRepresentations()
+{
+  m_manager->hide();
+}
+
+//----------------------------------------------------------------------------
+bool BasicRepresentationSwitch::isActive() const
+{
+  return m_isActive;
+}
+
+//----------------------------------------------------------------------------
+void BasicRepresentationSwitch::onActivationToggled(bool active)
+{
+  m_isActive = active;
+
+  if (active)
   {
-    m_manager->show();
+    showRepresentations();
   }
   else
   {
-    m_manager->hide();
+    hideRepresentations();
   }
 }

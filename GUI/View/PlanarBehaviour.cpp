@@ -19,7 +19,7 @@
 */
 
 // ESPINA
-#include "View2DState.h"
+#include "PlanarBehaviour.h"
 
 // VTK
 #include <vtkCamera.h>
@@ -38,7 +38,7 @@ using namespace ESPINA;
 const double ACTORS_SHIFT = 0.1;
 
 //-----------------------------------------------------------------------------
-void View2D::AxialState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+void View2D::AxialBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                        vtkSmartPointer<vtkPolyData> &vline,
                                        const NmVector3              &center,
                                        const Bounds                 &bounds,
@@ -58,7 +58,7 @@ void View2D::AxialState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::AxialState::updateCamera(vtkCamera       *camera,
+void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
                                       const NmVector3 &center)
 {
   double oldPos[3];
@@ -72,7 +72,7 @@ void View2D::AxialState::updateCamera(vtkCamera       *camera,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::SagittalState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+void View2D::SagittalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                           vtkSmartPointer<vtkPolyData> &vline,
                                           const NmVector3              &center,
                                           const Bounds                 &bounds,
@@ -92,7 +92,7 @@ void View2D::SagittalState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::SagittalState::updateCamera(vtkCamera       *camera,
+void View2D::SagittalBehaviour::updateCamera(vtkCamera       *camera,
                                          const NmVector3 &center)
 {
   double *camPos = camera->GetPosition();
@@ -105,7 +105,7 @@ void View2D::SagittalState::updateCamera(vtkCamera       *camera,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::CoronalState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
+void View2D::CoronalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
                                          vtkSmartPointer<vtkPolyData> &vline,
                                          const NmVector3              &center,
                                          const Bounds                 &bounds,
@@ -125,7 +125,7 @@ void View2D::CoronalState::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
 }
 
 //-----------------------------------------------------------------------------
-void View2D::CoronalState::updateCamera(vtkCamera       *camera,
+void View2D::CoronalBehaviour::updateCamera(vtkCamera       *camera,
                                         const NmVector3 &center)
 {
   double *camPos = camera->GetPosition();

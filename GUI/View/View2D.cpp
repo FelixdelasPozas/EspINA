@@ -22,7 +22,7 @@
 // ESPINA
 #include "View2D.h"
 
-#include "View2DState.h"
+#include "PlanarBehaviour.h"
 #include "ViewRendererMenu.h"
 #include "Widgets/EspinaWidget.h"
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
@@ -118,13 +118,13 @@ View2D::View2D(Plane plane, QWidget* parent)
   switch (m_plane)
   {
     case Plane::XY:
-      m_state2D = std::unique_ptr<State>(new AxialState());
+      m_state2D = std::unique_ptr<PlanarBehaviour>(new AxialBehaviour());
       break;
     case Plane::XZ:
-      m_state2D = std::unique_ptr<State>(new CoronalState());
+      m_state2D = std::unique_ptr<PlanarBehaviour>(new CoronalBehaviour());
       break;
     case Plane::YZ:
-      m_state2D = std::unique_ptr<State>(new SagittalState());
+      m_state2D = std::unique_ptr<PlanarBehaviour>(new SagittalBehaviour());
       break;
     default:
       break;
@@ -1510,7 +1510,7 @@ void View2D::removeRepresentationManagerMenu(RepresentationManagerSPtr manager)
 // }
 
 //-----------------------------------------------------------------------------
-void View2D::setVisualState(struct RenderView::VisualState state)
+void View2D::setCameraState(struct RenderView::CameraState state)
 {
   if (state.plane != m_plane)
     return;
@@ -1525,9 +1525,9 @@ void View2D::setVisualState(struct RenderView::VisualState state)
 }
 
 //-----------------------------------------------------------------------------
-struct RenderView::VisualState View2D::visualState()
+struct RenderView::CameraState View2D::cameraState()
 {
-  struct RenderView::VisualState state;
+  struct RenderView::CameraState state;
   auto camera = m_renderer->GetActiveCamera();
   double cameraPos[3], focalPoint[3];
   camera->GetFocalPoint(focalPoint);

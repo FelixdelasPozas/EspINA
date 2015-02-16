@@ -282,12 +282,28 @@ Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueTyp
 
 //-----------------------------------------------------------------------------
 template<typename T>
+typename T::PointType ItkPoint(const NmVector3& point)
+{
+  typename T::PointType itkPoint;
+
+  for(int i = 0; i < 3; ++i)
+  {
+    itkPoint[i] = point[i];
+  }
+
+  return itkPoint;
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
 typename T::SpacingType ItkSpacing(const NmVector3& spacing)
 {
   typename T::SpacingType itkSpacing;
 
   for(int i = 0; i < 3; ++i)
+  {
     itkSpacing[i] = spacing[i];
+  }
 
   return itkSpacing;
 }
@@ -300,7 +316,9 @@ NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
   NmVector3 vector;
 
   for(int i = 0; i < 3; ++i)
+  {
     vector[i] = itkSpacing[i];
+  }
 
   return vector;
 }
@@ -312,7 +330,9 @@ NmVector3 ToNmVector3(typename T::PointType itkPoint)
   NmVector3 vector;
 
   for(int i = 0; i < 3; ++i)
+  {
     vector[i] = itkPoint[i];
+  }
 
   return vector;
 }

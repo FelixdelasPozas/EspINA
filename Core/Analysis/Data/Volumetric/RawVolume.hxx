@@ -249,7 +249,10 @@ namespace ESPINA
     //QWriteLocker lock(&m_mutex);
     //TODO
     //NmVector3 shift = m_origin - origin;
+    m_image->SetOrigin(ItkPoint<T>(origin));
+
     m_origin = origin;
+    m_bounds = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
   }
 
   //-----------------------------------------------------------------------------
@@ -270,6 +273,7 @@ namespace ESPINA
       m_image->SetSpacing(ItkSpacing<T>(spacing));
 
       m_spacing = spacing;
+      m_bounds  = volumeBounds<T>(m_image, m_image->GetLargestPossibleRegion());
     }
   }
 

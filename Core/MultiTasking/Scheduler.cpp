@@ -147,8 +147,6 @@ void Scheduler::scheduleTasks()
   high_resolution_clock::time_point last;
   high_resolution_clock::time_point end;
 
-  int lastSchedulingTime;
-
   while (!m_abort)
   {
     QApplication::processEvents();
@@ -268,7 +266,7 @@ void Scheduler::scheduleTasks()
 
     end  = high_resolution_clock::now();
 
-    lastSchedulingTime = duration_cast<microseconds>(end - start).count();
+    int lastSchedulingTime = duration_cast<microseconds>(end - start).count();
 
 //     std::cout << "Inter Schedule time" << duration_cast<microseconds>(start - last).count() << std::endl;
 //     std::cout << "Scheduling End after " << lastSchedulingTime << std::endl;

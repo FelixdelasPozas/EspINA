@@ -35,13 +35,23 @@ namespace ESPINA
   public:
     explicit RepresentationsGroupTool(QIcon icon, QString description);
 
-    virtual void setEnabled ( bool value ) override;
+    virtual void setEnabled(bool value) override;
 
     virtual bool enabled() const override;
 
     virtual QList<QAction *> actions() const override;
 
-    /** \brief Add render switch to this render tool group
+    /** \brief Shows all active representations of the group
+     *
+     */
+    void showActiveRepresentations();
+
+    /** \brief Hides all active representations of the group
+     *
+     */
+    void hideActiveRepresentations();
+
+    /** \brief Add representation switch to this representation tool group
      *
      */
     void addRepresentationSwitch(RepresentationSwitchSPtr renderSwitch);

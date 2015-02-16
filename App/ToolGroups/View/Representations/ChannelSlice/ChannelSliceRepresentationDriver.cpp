@@ -53,6 +53,7 @@ Representation ChannelSliceRepresentationDriver::createRepresentation() const
 
   sliceManager->setName(QObject::tr("Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/slice.png"));
+  //sliceManager->show();
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
   slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));

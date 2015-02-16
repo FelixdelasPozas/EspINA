@@ -206,7 +206,7 @@ namespace ESPINA
      * "view state" snapshots.
      *
      */
-    struct VisualState // RENAME
+    struct CameraState
     {
       Plane     plane;
       int       slice;           // Only used in View2D
@@ -214,19 +214,19 @@ namespace ESPINA
       NmVector3 focalPoint;
       double    heightLength;      // Only used in View2D
 
-      VisualState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
+      CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
     };
 
     /** \brief Restores camera position and zoom.
      * \param[in] state VisualState struct with camera values.
      *
      */
-    virtual void setVisualState(struct VisualState) = 0;
+    virtual void setCameraState(struct CameraState) = 0;
 
     /** \brief Returns the visual state of the view.
      *
      */
-    virtual struct VisualState visualState() = 0;
+    virtual struct CameraState cameraState() = 0;
 
     virtual void updateRepresentations(SegmentationAdapterList list);
     virtual void updateRepresentations(ChannelAdapterList list);

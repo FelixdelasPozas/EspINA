@@ -736,7 +736,7 @@ void View3D::updateScrollBarsLimits()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::setVisualState(struct RenderView::VisualState state)
+void View3D::setCameraState(struct RenderView::CameraState state)
 {
   if (state.plane != Plane::UNDEFINED)
     return;
@@ -750,9 +750,9 @@ void View3D::setVisualState(struct RenderView::VisualState state)
 }
 
 //-----------------------------------------------------------------------------
-struct RenderView::VisualState View3D::visualState()
+struct RenderView::CameraState View3D::cameraState()
 {
-  struct RenderView::VisualState state;
+  struct RenderView::CameraState state;
   double cameraPos[3], focalPoint[3];
   auto camera = m_renderer->GetActiveCamera();
   camera->GetFocalPoint(focalPoint);
