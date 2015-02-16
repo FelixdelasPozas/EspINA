@@ -349,7 +349,7 @@ unsigned int Scheduler::numberOfTasks() const
 //-----------------------------------------------------------------------------
 bool Scheduler::canExecute(TaskSPtr task) const
 {
-  return !(task->isPendingPause() || task->isWaiting() || task->isAborted() || task->hasFinished());
+  return !(task->isPendingPause() || task->isAborted() || task->hasFinished());
 }
 
 //-----------------------------------------------------------------------------

@@ -111,9 +111,8 @@ namespace ESPINA
           {
             if (!Segmentation->isInformationReady(tag))
             {
-              setWaiting(true);
               Segmentation->information(tag);
-              setWaiting(false);
+
               if (!canExecute()) break;
             }
           }
@@ -242,19 +241,19 @@ namespace ESPINA
     void informationProgress();
 
   protected slots:
-		/** \brief Perform operations before and after the insertion of rows in the model.
-		 * \param[in] sourceParent, index of the parent to add elements.
-		 * \param[in] start, start row.
-		 * \param[in] end, end row.
-		 *
-		 */
+    /** \brief Perform operations before and after the insertion of rows in the model.
+     * \param[in] sourceParent index of the parent to add elements.
+     * \param[in] start start row.
+     * \param[in] end end row.
+     *
+     */
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 
-		/** \brief Perform operations before and after the deletion of rows in the model.
-		 * \param[in] sourceParent, index of the parent to add elements.
-		 * \param[in] start, start row.
-		 * \param[in] end, end row.
-		 *
+    /** \brief Perform operations before and after the deletion of rows in the model.
+     * \param[in] sourceParent index of the parent to add elements.
+     * \param[in] start start row.
+     * \param[in] end end row.
+     *
      */
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
 

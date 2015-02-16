@@ -163,11 +163,6 @@ namespace ESPINA {
     bool isPaused() const
     { return m_isPaused; }
 
-    /** \brief The task is waiting waiting to another process to finish.
-     *
-     */
-    bool isWaiting() const {return m_isWaiting; }
-
     /** \brief Emits progress signal.
      *
      * NOTE: Need to be public so we can reuse itkProgressReporters.
@@ -202,14 +197,6 @@ namespace ESPINA {
     bool canExecute();
 
     bool needsRestart() const;
-
-    /** \brief Change the waiting state of the task.
-     *
-     *  Usually a task should change its state before executing potentially blocking calls
-     *  and restore it after the call itself so the scheduler may execute other pending tasks
-     */
-    void setWaiting(bool value)
-    { m_isWaiting = value; }
 
     /** \brief Sets the task as finished.
      * \param[in] value finished value.
@@ -290,7 +277,6 @@ namespace ESPINA {
     bool m_isAborted;
     bool m_hasFinished;
     bool m_isPaused;
-    bool m_isWaiting;
     bool m_needsRestart;
 
     Id   m_id;

@@ -54,7 +54,6 @@ Task::Task(SchedulerSPtr scheduler)
 , m_isAborted       {false}
 , m_hasFinished     {false}
 , m_isPaused        {false}
-, m_isWaiting       {false}
 , m_needsRestart    {false}
 , m_id              {0}
 , m_hidden          {false}
@@ -212,8 +211,6 @@ void Task::setFinished(bool value)
   m_hasFinished = value;
 
   emit finished();
-
-  QCoreApplication::sendPostedEvents();
 }
 
 //-----------------------------------------------------------------------------
@@ -290,7 +287,6 @@ void Task::prepareToRun()
   m_isAborted        = false;
   m_hasFinished      = false;
   m_isPaused         = false;
-  m_isWaiting        = false;
 }
 
 //-----------------------------------------------------------------------------

@@ -60,7 +60,9 @@ public:
         ready &= m_sas->isInformationReady(sasTag);
       }
       else
+      {
         ready &= Segmentation->isInformationReady(tag);
+      }
 
       if (!ready) break;
     }
@@ -85,9 +87,7 @@ protected:
           auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
           if(!m_sas->isInformationReady(sasTag))
           {
-            setWaiting(true);
             m_sas->information(sasTag);
-            setWaiting(false);
             if (!canExecute()) break;
           }
         }
@@ -95,9 +95,7 @@ protected:
         {
           if (!Segmentation->isInformationReady(tag))
           {
-            setWaiting(true);
             Segmentation->information(tag);
-            setWaiting(false);
             if (!canExecute()) break;
           }
         }
