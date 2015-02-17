@@ -19,26 +19,26 @@
 
 #include "BufferedRepresentationPool.h"
 
+using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::BufferedRepresentationPool<P>::BufferedRepresentationPool(const Plane   plane,
-                                                                  SchedulerSPtr scheduler,
-                                                                  unsigned      windowSize)
+BufferedRepresentationPool::BufferedRepresentationPool(const Plane                plane,
+                                                       RepresentationPipelineSPtr pipeline,
+                                                       SchedulerSPtr              scheduler,
+                                                       unsigned                   windowSize)
 : m_normalIdx{normalCoordinateIndex(plane)}
-, m_updateWindow{scheduler, std::make_shared<P>(), windowSize}
+, m_updateWindow{scheduler, pipeline, windowSize}
 , m_init{false}
-, m_shift{0}
 , m_normalRes{1}
 , m_lastCoordinate{0}
+, m_hasChanged{false}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::setResolution(const NmVector3 &resolution)
+void BufferedRepresentationPool::setResolution(const NmVector3 &resolution)
 {
   m_normalRes = resolution[m_normalIdx];
 
@@ -49,8 +49,7 @@ void ESPINA::BufferedRepresentationPool<P>::setResolution(const NmVector3 &resol
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::addRepresentationPipeline(ViewItemAdapterPtr source)
+void BufferedRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr source)
 {
   for (auto updater : m_updateWindow.all())
   {
@@ -59,21 +58,20 @@ void ESPINA::BufferedRepresentationPool<P>::addRepresentationPipeline(ViewItemAd
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::setCrosshairImplementation(const NmVector3 &point, TimeStamp time)
+void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp time)
 {
-  m_shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
+  auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
-  m_init  = true;
+  m_init       = true;
+  m_hasChanged = shift != 0;
 
-  auto invalidated = updateBuffer(point, m_shift, time);
+  auto invalidated = updateBuffer(point, shift, time);
 
   updatePipelines(invalidated);
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::onSettingsChanged(const RepresentationState &settings)
+void BufferedRepresentationPool::onSettingsChanged(const RepresentationState &settings)
 {
   auto invalidated =  m_updateWindow.all();
 
@@ -86,15 +84,27 @@ void ESPINA::BufferedRepresentationPool<P>::onSettingsChanged(const Representati
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-bool ESPINA::BufferedRepresentationPool<P>::changed() const
+bool BufferedRepresentationPool::changed() const
 {
-  return m_shift != 0;
+  return m_hasChanged;
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::updatePriorities()
+void BufferedRepresentationPool::invalidateImplementation()
+{
+  if (m_init)
+  {
+    m_hasChanged = true;
+
+    for (auto task : m_updateWindow.all())
+    {
+      Task::submit(task);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void BufferedRepresentationPool::updatePriorities()
 {
   m_updateWindow.current()->setPriority(Priority::VERY_HIGH);
 
@@ -110,22 +120,19 @@ void ESPINA::BufferedRepresentationPool<P>::updatePriorities()
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-int ESPINA::BufferedRepresentationPool<P>::distanceFromLastCrosshair(const NmVector3 &crosshair)
+int BufferedRepresentationPool::distanceFromLastCrosshair(const NmVector3 &crosshair)
 {
   return vtkMath::Round((normal(crosshair) - m_lastCoordinate)/m_normalRes);
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-int ESPINA::BufferedRepresentationPool<P>::normal(const NmVector3 &point) const
+int BufferedRepresentationPool::normal(const NmVector3 &point) const
 {
   return point[m_normalIdx];
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::NmVector3 ESPINA::BufferedRepresentationPool<P>::representationCrosshair(const NmVector3 &point, int shift) const
+NmVector3 BufferedRepresentationPool::representationCrosshair(const NmVector3 &point, int shift) const
 {
   NmVector3 crosshair = point;
 
@@ -135,10 +142,9 @@ ESPINA::NmVector3 ESPINA::BufferedRepresentationPool<P>::representationCrosshair
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::RepresentationUpdaterSList ESPINA::BufferedRepresentationPool<P>::updateBuffer(const NmVector3 &point,
-                                                                                       int   shift,
-                                                                                       const TimeStamp time)
+RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVector3 &point,
+                                                                    int   shift,
+                                                                    const TimeStamp time)
 {
   RepresentationUpdaterSList invalidated;
 
@@ -164,9 +170,8 @@ ESPINA::RepresentationUpdaterSList ESPINA::BufferedRepresentationPool<P>::update
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::ViewItemAdapterPtr ESPINA::BufferedRepresentationPool<P>::pick(const NmVector3 &point,
-                                                                       vtkProp *actor) const
+ViewItemAdapterPtr BufferedRepresentationPool::pick(const NmVector3 &point,
+                                                    vtkProp *actor) const
 {
   ViewItemAdapterPtr pickedItem = nullptr;
 
@@ -179,8 +184,7 @@ ESPINA::ViewItemAdapterPtr ESPINA::BufferedRepresentationPool<P>::pick(const NmV
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::updatePipelines(RepresentationUpdaterSList updaters)
+void BufferedRepresentationPool::updatePipelines(RepresentationUpdaterSList updaters)
 {
   updatePriorities();
 
@@ -193,8 +197,7 @@ void ESPINA::BufferedRepresentationPool<P>::updatePipelines(RepresentationUpdate
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BufferedRepresentationPool<P>::checkCurrentActors()
+void BufferedRepresentationPool::checkCurrentActors()
 {
   auto current = m_updateWindow.current();
 
@@ -205,8 +208,7 @@ void ESPINA::BufferedRepresentationPool<P>::checkCurrentActors()
 }
 
 //-----------------------------------------------------------------------------
-template<typename P>
-int ESPINA::BufferedRepresentationPool<P>::invalidationShift() const
+int BufferedRepresentationPool::invalidationShift() const
 {
   return m_updateWindow.size() + 1;
 }

@@ -17,7 +17,7 @@
  *
  */
 
-#include "ChannelSliceRepresentationDriver.h"
+#include "ChannelSliceRepresentationFactory.h"
 
 #include "ChannelSlicePipeline.h"
 
@@ -31,21 +31,24 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ChannelSliceRepresentationDriver::ChannelSliceRepresentationDriver(SchedulerSPtr scheduler)
+ChannelSliceRepresentationFactory::ChannelSliceRepresentationFactory(SchedulerSPtr scheduler)
 : m_scheduler{scheduler}
 {
 }
 
 //----------------------------------------------------------------------------
-Representation ChannelSliceRepresentationDriver::createRepresentation() const
+Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngineSPtr colorEngine) const
 {
   Representation representation;
 
   const unsigned WINDOW_SIZE = 10;
 
-  auto poolXY         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XY>>>(Plane::XY, m_scheduler, WINDOW_SIZE);
-  auto poolXZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::XZ>>>(Plane::XZ, m_scheduler, WINDOW_SIZE);
-  auto poolYZ         = std::make_shared<BufferedRepresentationPool<ChannelSlicePipeline<Plane::YZ>>>(Plane::YZ, m_scheduler, WINDOW_SIZE);
+  auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
+  auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
+  auto pipelineYZ     = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
+  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
+  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
+  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);

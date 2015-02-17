@@ -35,6 +35,7 @@ namespace ESPINA
     ++m_timeStamp;
 
     // TODO: manage overflow and emit resetTimer(TimeStamp) when needed.
+    //       we must avoid using 0 because it is used as invalidation value on Representation Managers/Pools
 
     emit tic(m_timeStamp);
 

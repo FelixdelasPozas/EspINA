@@ -225,6 +225,14 @@ void RepresentationPool::decrementObservers()
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationPool::invalidate()
+{
+  invalidateActors();
+
+  invalidateImplementation();
+}
+
+//-----------------------------------------------------------------------------
 bool RepresentationPool::isBeingUsed() const
 {
   return m_numObservers > 0;
@@ -253,12 +261,6 @@ void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::A
 
     emit poolUpdated(time);
   }
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::invalidateActors()
-{
-  m_actors.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -297,6 +299,16 @@ void RepresentationPool::onSourceUpdated(ViewItemAdapterPtr source)
 void RepresentationPool::onSourcesUpdated(ViewItemAdapterList sources)
 {
 
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::invalidateActors()
+{
+  m_actors.clear();
+  m_validActorsTimes.clear();
+  m_lastUpdateTimeStamp = 0;
+
+  emit actorsInvalidated();
 }
 
 //-----------------------------------------------------------------------------

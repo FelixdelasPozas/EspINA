@@ -140,6 +140,8 @@ void Slice3DManager::connectPools()
   {
     connect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
             this,       SLOT(checkRenderRequest()));
+    connect(pool.get(), SIGNAL(actorsInvalidated()),
+            this,       SLOT(invalidateActors()));
 
     pool->incrementObservers();
   }
@@ -152,6 +154,9 @@ void Slice3DManager::disconnectPools()
   {
     disconnect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
                this,       SLOT(checkRenderRequest()));
+    disconnect(pool.get(), SIGNAL(actorsInvalidated()),
+               this,       SLOT(invalidateActors()));
+
     pool->decrementObservers();
   }
 }

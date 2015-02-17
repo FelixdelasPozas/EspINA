@@ -152,6 +152,8 @@ namespace ESPINA
   protected slots:
     void emitRenderRequest(TimeStamp time);
 
+    void invalidateActors();
+
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 

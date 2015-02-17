@@ -37,12 +37,11 @@
 
 namespace ESPINA
 {
-  template<Plane T>
   class SegmentationSlicePipeline
   : public RepresentationPipeline
   {
   public:
-    explicit SegmentationSlicePipeline();
+    explicit SegmentationSlicePipeline(const Plane plane, ColorEngineSPtr colorEngine);
 
     virtual RepresentationState representationState(const ViewItemAdapter     *item,
                                                     const RepresentationState &settings) override;
@@ -53,12 +52,11 @@ namespace ESPINA
     virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
   private:
-    static Plane s_plane;
+    Plane m_plane;
+    ColorEngineSPtr m_colorEngine;
 
     static TransparencySelectionHighlighter s_highlighter;
   };
-
-#include "SegmentationSlicePipeline.cpp"
 }
 
 #endif // ESPINA_SEGMENTATION_SLICE_PIPELINE_H

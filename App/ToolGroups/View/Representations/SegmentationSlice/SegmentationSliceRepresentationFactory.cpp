@@ -17,7 +17,7 @@
  *
  */
 
-#include "SegmentationSliceRepresentationDriver.h"
+#include "SegmentationSliceRepresentationFactory.h"
 
 #include "SegmentationSliceSettings.h"
 #include "SegmentationSlicePipeline.h"
@@ -32,31 +32,34 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-SegmentationSliceRepresentationDriver::SegmentationSliceRepresentationDriver(SchedulerSPtr scheduler)
+SegmentationSliceRepresentationFactory::SegmentationSliceRepresentationFactory(SchedulerSPtr scheduler)
 : m_scheduler(scheduler)
 {
 
 }
 
 //----------------------------------------------------------------------------
-Representation SegmentationSliceRepresentationDriver::createRepresentation() const
+Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentation(ColorEngineSPtr colorEngine) const
 {
   const unsigned WINDOW_SIZE = 10;
 
   Representation representation;
 
-  auto settings     = std::make_shared<SegmentationSliceSettings>();
-  auto poolXY       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::XY>>>(Plane::XY, m_scheduler, WINDOW_SIZE);
-  auto poolXZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::XZ>>>(Plane::XZ, m_scheduler, WINDOW_SIZE);
-  auto poolYZ       = std::make_shared<BufferedRepresentationPool<SegmentationSlicePipeline<Plane::YZ>>>(Plane::YZ, m_scheduler, WINDOW_SIZE);
-  auto sliceManager = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
-  auto sliceSwitch  = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
+  auto settings       = std::make_shared<SegmentationSliceSettings>();
+  auto pipelineXY     = std::make_shared<SegmentationSlicePipeline>(Plane::XY, colorEngine);
+  auto pipelineXZ     = std::make_shared<SegmentationSlicePipeline>(Plane::XZ, colorEngine);
+  auto pipelineYZ     = std::make_shared<SegmentationSlicePipeline>(Plane::YZ, colorEngine);
+  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
+  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
+  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
+  auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
+  auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
-  configurePool(poolXY, settings);
-  configurePool(poolXZ, settings);
-  configurePool(poolYZ, settings);
+  configurePool(poolXY, colorEngine, settings);
+  configurePool(poolXZ, colorEngine, settings);
+  configurePool(poolYZ, colorEngine, settings);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
   //sliceSwitch->showRepresentations();
@@ -73,8 +76,12 @@ Representation SegmentationSliceRepresentationDriver::createRepresentation() con
 }
 
 //----------------------------------------------------------------------------
-void SegmentationSliceRepresentationDriver::configurePool(RepresentationPoolSPtr           pool,
-                                                          RepresentationPool::SettingsSPtr settings) const
+void SegmentationSliceRepresentationFactory::configurePool(RepresentationPoolSPtr           pool,
+                                                           ColorEngineSPtr                  colorEngine,
+                                                           RepresentationPool::SettingsSPtr settings) const
 {
+  QObject::connect(colorEngine.get(), SIGNAL(modified()),
+                   pool.get(),        SLOT(invalidate()));
+
   pool->setSettings(settings);
 }

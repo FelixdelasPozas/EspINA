@@ -54,8 +54,8 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
-#include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationDriver.h"
-#include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationDriver.h"
+#include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
+#include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -121,8 +121,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
   m_factory->registerFilterFactory (m_channelReader);
-
-  initRepresentations();
 
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
@@ -238,15 +236,12 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
 
-  m_colorEngines = new ColorEngineMenu(m_viewManager, tr("Color By"));
-  m_colorEngines->addColorEngine(tr("Number"),  ColorEngineSPtr{new NumberColorEngine()});
-  m_colorEngines->addColorEngine(tr("Category"),ColorEngineSPtr{new CategoryColorEngine()});
-  m_colorEngines->addColorEngine(tr("User"),    ColorEngineSPtr{new UserColorEngine()});
 
   m_dockMenu = new QMenu(tr("Pannels"));
 
   menuBar()->addMenu(m_viewMenu);
-  m_viewMenu->addMenu(m_colorEngines);
+
+  initColorEngines(m_viewMenu);
 
   /*** Settings MENU ***/
   QMenu *settingsMenu = new QMenu(tr("&Settings"));
@@ -272,6 +267,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_contextualBar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_viewManager->setContextualBar(m_contextualBar);
+
+  initRepresentations();
 
   /*** TOOLS ***/
   registerToolGroup(m_viewToolGroup);
@@ -315,7 +312,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   loadPlugins(plugins);
 
-  m_colorEngines->restoreUserSettings();
+  m_colorEngineMenu->restoreUserSettings();
   m_viewMenu->addMenu(m_dockMenu);
   m_viewMenu->addSeparator();
 
@@ -358,7 +355,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
   delete m_roiSettings;
-  delete m_colorEngines;
+  delete m_colorEngineMenu;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
 }
@@ -381,7 +378,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       for (auto colorEngine : validPlugin->colorEngines())
       {
 //        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
-        m_colorEngines->addColorEngine(colorEngine.first,  colorEngine.second);
+        registerColorEngine(colorEngine.first,  colorEngine.second);
       }
 
       for (auto extensionFactory : validPlugin->channelExtensionFactories())
@@ -566,22 +563,6 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* d
 void EspinaMainWindow::registerToolGroup(ToolGroupPtr tools)
 {
   m_mainBar->addAction(tools);
-}
-
-//------------------------------------------------------------------------
-void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
-{
-  auto representation = factory->createRepresentation();
-
-  for (auto repSwitch : representation.Switches)
-  {
-    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
-  }
-
-  m_viewManager->addRepresentationPools(representation.Group, representation.Pools);
-  m_viewManager->addRepresentationManagers(representation.Managers);
-
-  m_representationFactories << factory;
 }
 
 //------------------------------------------------------------------------
@@ -1211,10 +1192,32 @@ void EspinaMainWindow::restoreRepresentationSwitchSettings()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
+{
+  m_colorEngineMenu = new ColorEngineMenu(tr("Color By"));
+
+  parentMenu->addMenu(m_colorEngineMenu);
+
+  registerColorEngine(tr("Number"), std::make_shared<NumberColorEngine>());
+  registerColorEngine(tr("Category"), std::make_shared<CategoryColorEngine>());
+  //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
+
+  m_viewManager->setColorEngine(m_colorEngineMenu->engine());
+}
+
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerColorEngine(const QString   &title,
+                                           ColorEngineSPtr colorEngine)
+{
+  m_colorEngineMenu->addColorEngine(title, colorEngine);
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
-  registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationDriver>(m_scheduler));
-  registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationDriver>(m_scheduler));
+  registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationFactory>(m_scheduler));
+  registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationFactory>(m_scheduler));
 
 //   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
 //   registerRepresentationDriver(std::make_shared<MeshRenderer>());
@@ -1228,6 +1231,23 @@ void EspinaMainWindow::initRepresentations()
 //   registerRepresentationDriver(std::make_shared<SkeletonRenderer3D>());
 
 }
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
+{
+  auto representation = factory->createRepresentation(m_colorEngineMenu->engine());
+
+  for (auto repSwitch : representation.Switches)
+  {
+    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+  }
+
+  m_viewManager->addRepresentationPools(representation.Group, representation.Pools);
+  m_viewManager->addRepresentationManagers(representation.Managers);
+
+  m_representationFactories << factory;
+}
+
 
 //------------------------------------------------------------------------
 ProblemList EspinaMainWindow::checkAnalysisConsistency()

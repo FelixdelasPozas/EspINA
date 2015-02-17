@@ -21,20 +21,18 @@
 
 #include <QDebug>
 
-template<ESPINA::Plane T>
-ESPINA::Plane ESPINA::ChannelSlicePipeline<T>::s_plane = T;
+using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::ChannelSlicePipeline<T>::ChannelSlicePipeline()
+ChannelSlicePipeline::ChannelSlicePipeline(const Plane plane)
 : RepresentationPipeline("ChannelSliceRepresentation")
+, m_plane{plane}
 {
 }
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::RepresentationState ESPINA::ChannelSlicePipeline<T>::representationState(const ViewItemAdapter     *item,
-                                                                                 const RepresentationState &settings)
+RepresentationState ChannelSlicePipeline::representationState(const ViewItemAdapter     *item,
+                                                              const RepresentationState &settings)
 {
   RepresentationState state;
 
@@ -48,12 +46,11 @@ ESPINA::RepresentationState ESPINA::ChannelSlicePipeline<T>::representationState
 
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(const ViewItemAdapter     *item,
-                                                                                const RepresentationState &state)
+RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewItemAdapter     *item,
+                                                                     const RepresentationState &state)
 {
   auto channel    = channelPtr(item);
-  auto planeIndex = normalCoordinateIndex(s_plane);
+  auto planeIndex = normalCoordinateIndex(m_plane);
 
   ActorList actors;
   //  std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -62,7 +59,7 @@ ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(
   {
     auto volume       = volumetricData(channel->output());
     auto sliceBounds  = volume->bounds();
-    auto reslicePoint = crosshairPosition(s_plane, state);
+    auto reslicePoint = crosshairPosition(m_plane, state);
 
     if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
     {
@@ -117,8 +114,13 @@ ESPINA::RepresentationPipeline::ActorList ChannelSlicePipeline<T>::createActors(
  }
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-bool ESPINA::ChannelSlicePipeline<T>::pick(ESPINA::ViewItemAdapter *item, const ESPINA::NmVector3 &point) const
+bool ChannelSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
 {
   return contains(item->output()->bounds(), point);
+}
+
+//----------------------------------------------------------------------------
+void ChannelSlicePipeline::setPlane(const Plane plane)
+{
+  m_plane = plane;
 }

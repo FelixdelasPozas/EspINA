@@ -203,3 +203,9 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
     emit renderRequested();
   }
 }
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::invalidateActors()
+{
+  m_lastRenderRequestTime = 0;
+}

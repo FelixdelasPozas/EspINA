@@ -106,6 +106,9 @@ namespace ESPINA
      */
     void decrementObservers();
 
+  public slots:
+    void invalidate();
+
   signals:
     /** \brief Some managers may be interested in changes in the actors of the pool
      *
@@ -119,6 +122,8 @@ namespace ESPINA
      */
     void poolUpdated(TimeStamp time);
 
+    void actorsInvalidated();
+
   protected:
     explicit RepresentationPool();
 
@@ -128,8 +133,6 @@ namespace ESPINA
     bool isBeingUsed() const;
 
     ViewItemAdapterList sources() const;
-
-    void invalidateActors();
 
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
@@ -152,6 +155,10 @@ namespace ESPINA
     virtual void onSettingsChanged(const RepresentationState &settings) = 0;
 
     virtual bool changed() const = 0;
+
+    virtual void invalidateImplementation() = 0;
+
+    void invalidateActors();
 
     bool hasPendingSources() const;
 

@@ -24,16 +24,17 @@
 
 namespace ESPINA
 {
-  class SegmentationSliceRepresentationDriver
+  class SegmentationSliceRepresentationFactory
   : public RepresentationFactory
   {
   public:
-    explicit SegmentationSliceRepresentationDriver(SchedulerSPtr scheduler);
+    explicit SegmentationSliceRepresentationFactory(SchedulerSPtr scheduler);
 
-    virtual Representation createRepresentation() const;
+    virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
 
   private:
     void configurePool(RepresentationPoolSPtr           pool,
+                       ColorEngineSPtr                  colorEngine,
                        RepresentationPool::SettingsSPtr settings) const;
 
   private:

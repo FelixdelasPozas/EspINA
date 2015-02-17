@@ -97,6 +97,7 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
+  Representations/BufferedRepresentationPool.cpp
   Representations/ChannelPipeline.cpp
   Representations/PipelineSources.cpp
   Representations/RepresentationManager.cpp

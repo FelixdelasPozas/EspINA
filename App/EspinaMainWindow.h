@@ -235,7 +235,17 @@ namespace ESPINA
   private:
     void restoreRepresentationSwitchSettings();
 
+    void initColorEngines(QMenu *parentMenu);
+
+    void registerColorEngine(const QString   &title,
+                             ColorEngineSPtr  colorEngine);
+
     void initRepresentations();
+
+    /** \brief Registers representation factory
+     *
+     */
+    void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
     /** \brief Runs a series of test on the analysis to check for errors.
      *
@@ -271,10 +281,6 @@ namespace ESPINA
      */
     void registerToolGroup(ToolGroupPtr tools);
 
-    /** \brief Registers representation driver factory
-     *
-     */
-    void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
     /** \brief Loads a list of plugins in the application.
      * \param[in] plugins list of plugins to load.
@@ -317,7 +323,7 @@ namespace ESPINA
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
-    ColorEngineMenu *m_colorEngines;
+    ColorEngineMenu *m_colorEngineMenu;
     QMenu           *m_dockMenu;
 
     QToolBar *m_mainBar;

@@ -314,7 +314,6 @@ namespace ESPINA
 
     void onRenderRequest();
 
-
   protected:
     EventHandlerSPtr m_eventHandler;
 

@@ -55,13 +55,13 @@ namespace ESPINA
 
   public:
     /** \brief Returns the color associated with the given segmentation.
-     * \param[in] seg, segmentation adapter raw pointer.
+     * \param[in] seg segmentation adapter raw pointer.
      *
      */
     virtual QColor color(SegmentationAdapterPtr seg) = 0;
 
     /** \brief Returns the lut associated with the given segmentation.
-     * \param[in] seg, segmentation adapter raw pointer.
+     * \param[in] seg segmentation adapter raw pointer.
      *
      */
     virtual LUTSPtr lut (SegmentationAdapterPtr seg) = 0;
@@ -72,6 +72,7 @@ namespace ESPINA
     virtual Composition supportedComposition() const = 0;
 
   signals:
+    void modified();
     void lutModified();
   };
 

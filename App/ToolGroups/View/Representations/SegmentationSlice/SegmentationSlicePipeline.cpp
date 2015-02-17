@@ -19,24 +19,24 @@
 
 #include "SegmentationSlicePipeline.h"
 
-template<ESPINA::Plane T>
-ESPINA::Plane ESPINA::SegmentationSlicePipeline<T>::s_plane = T;
+#include <QDebug>
 
-template<ESPINA::Plane T>
-ESPINA::TransparencySelectionHighlighter ESPINA::SegmentationSlicePipeline<T>::s_highlighter;
+using namespace ESPINA;
+
+TransparencySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::SegmentationSlicePipeline<T>::SegmentationSlicePipeline()
+SegmentationSlicePipeline::SegmentationSlicePipeline(const Plane plane,
+                                                     ColorEngineSPtr colorEngine)
 : RepresentationPipeline("SegmentationSliceRepresentation")
+, m_plane{plane}
+, m_colorEngine{colorEngine}
 {
 }
 
-#include <QDebug>
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::RepresentationState SegmentationSlicePipeline<T>::representationState(const ViewItemAdapter *item,
-                                                                           const RepresentationState &settings)
+RepresentationState SegmentationSlicePipeline::representationState(const ViewItemAdapter *item,
+                                                                   const RepresentationState &settings)
 {
   auto segmentation = segmentationPtr(item);
 
@@ -49,12 +49,11 @@ ESPINA::RepresentationState SegmentationSlicePipeline<T>::representationState(co
 }
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createActors(const ViewItemAdapter     *item,
-                                                                                     const RepresentationState &state)
+RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const ViewItemAdapter     *item,
+                                                                          const RepresentationState &state)
 {
   auto segmentation = segmentationPtr(item);
-  auto planeIndex = normalCoordinateIndex(s_plane);
+  auto planeIndex = normalCoordinateIndex(m_plane);
 
   ActorList actors;
 //   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
@@ -62,49 +61,47 @@ ESPINA::RepresentationPipeline::ActorList SegmentationSlicePipeline<T>::createAc
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
     auto volume = volumetricData(segmentation->output());
-      Bounds sliceBounds = volume->bounds();
+    Bounds sliceBounds = volume->bounds();
 
-      Nm reslicePoint = crosshairPosition(s_plane, state);
+    Nm reslicePoint = crosshairPosition(m_plane, state);
 
-      if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
-      {
-        sliceBounds.setLowerInclusion(true);
-        sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
-        sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
+    if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
+    {
+      sliceBounds.setLowerInclusion(true);
+      sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
+      sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-        auto slice = vtkImage(volume, sliceBounds);
+      auto slice = vtkImage(volume, sliceBounds);
 
-        auto color = segmentationColor(state);
-        color.setRgb(255,0,0);
-        auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-        mapToColors->SetInputData(slice);
-        mapToColors->SetLookupTable(s_highlighter.lut(color));
-        mapToColors->SetNumberOfThreads(1);
-        mapToColors->Update();
+      auto color       = m_colorEngine->color(segmentation);
+      auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+      mapToColors->SetInputData(slice);
+      mapToColors->SetLookupTable(s_highlighter.lut(color));
+      mapToColors->SetNumberOfThreads(1);
+      mapToColors->Update();
 
-        auto actor = vtkSmartPointer<vtkImageActor>::New();
-        actor->SetInterpolate(false);
-        actor->GetMapper()->BorderOn();
-        actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-        actor->SetDisplayExtent(slice->GetExtent());
-        actor->Update();
+      auto actor = vtkSmartPointer<vtkImageActor>::New();
+      actor->SetInterpolate(false);
+      actor->GetMapper()->BorderOn();
+      actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+      actor->SetDisplayExtent(slice->GetExtent());
+      actor->Update();
 
-        // need to reposition the actor so it will always be over the channels actors'
-        double pos[3];
-        actor->GetPosition(pos);
-        pos[planeIndex] += segmentationDepth(state);
-        actor->SetPosition(pos);
+      // need to reposition the actor so it will always be over the channels actors'
+      double pos[3];
+      actor->GetPosition(pos);
+      pos[planeIndex] += segmentationDepth(state);
+      actor->SetPosition(pos);
 
-        actors << actor;
-      }
+      actors << actor;
+    }
   }
 
   return actors;
 }
 
 //----------------------------------------------------------------------------
-template<ESPINA::Plane T>
-bool ESPINA::SegmentationSlicePipeline<T>::pick(ViewItemAdapter *item, const NmVector3 &point) const
+bool SegmentationSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
 {
   bool result = false;
 

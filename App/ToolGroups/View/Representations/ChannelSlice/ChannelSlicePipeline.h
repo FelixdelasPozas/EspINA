@@ -40,12 +40,11 @@
 
 namespace ESPINA
 {
-  template<Plane T>
   class ChannelSlicePipeline
   : public RepresentationPipeline
   {
   public:
-    explicit ChannelSlicePipeline();
+    explicit ChannelSlicePipeline(const Plane plane);
 
     virtual RepresentationState representationState(const ViewItemAdapter     *item,
                                                     const RepresentationState &settings) override;
@@ -56,11 +55,11 @@ namespace ESPINA
 
     virtual bool pick( ViewItemAdapter *item, const NmVector3 &point) const;
 
-  private:
-    static Plane s_plane;
-  };
+    void setPlane(const Plane plane);
 
-#include "ChannelSlicePipeline.cpp"
+  private:
+    Plane m_plane;
+  };
 }
 
 #endif // ESPINA_CHANNEL_SLICE_PIPELINE_H

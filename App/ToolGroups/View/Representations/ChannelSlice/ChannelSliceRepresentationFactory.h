@@ -24,13 +24,13 @@
 
 namespace ESPINA {
 
-  class ChannelSliceRepresentationDriver
+  class ChannelSliceRepresentationFactory
   : public RepresentationFactory
   {
   public:
-    explicit ChannelSliceRepresentationDriver(SchedulerSPtr scheduler);
+    explicit ChannelSliceRepresentationFactory(SchedulerSPtr scheduler);
 
-    virtual Representation createRepresentation() const;
+    virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
 
   private:
     SchedulerSPtr m_scheduler;

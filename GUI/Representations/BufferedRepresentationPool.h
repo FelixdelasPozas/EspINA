@@ -28,14 +28,14 @@
 
 namespace ESPINA
 {
-  template<typename P>
   class BufferedRepresentationPool
   : public RepresentationPool
   {
   public:
-    explicit BufferedRepresentationPool(const Plane   plane,
-                                        SchedulerSPtr scheduler,
-                                        unsigned      windowSize);
+    explicit BufferedRepresentationPool(const Plane                plane,
+                                        RepresentationPipelineSPtr pipeline,
+                                        SchedulerSPtr              scheduler,
+                                        unsigned                   windowSize);
 
     virtual void setResolution(const NmVector3 &resolution) override;
 
@@ -49,6 +49,8 @@ namespace ESPINA
     virtual void onSettingsChanged(const RepresentationState &settings) override;
 
     virtual bool changed() const override;
+
+    virtual void invalidateImplementation() override;
 
     void updatePriorities();
 
@@ -67,7 +69,6 @@ namespace ESPINA
 
     void checkCurrentActors();
 
-
     int invalidationShift() const;
 
   private:
@@ -76,12 +77,10 @@ namespace ESPINA
     RepresentationWindow m_updateWindow;
 
     bool m_init;
-    int  m_shift;
     Nm   m_normalRes;
     Nm   m_lastCoordinate;
+    bool m_hasChanged;
   };
-
-#include "BufferedRepresentationPool.cpp"
 }
 
 #endif // ESPINA_BUFFERED_REPRESENTATION_POOL_H

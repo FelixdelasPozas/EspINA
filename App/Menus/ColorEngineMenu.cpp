@@ -29,11 +29,9 @@ using namespace ESPINA;
 const QString COLOR_ENGINE("ColorEngine");
 
 //-----------------------------------------------------------------------------
-ColorEngineMenu::ColorEngineMenu(ViewManagerSPtr vm,
-                                 const QString& title,
-                                 QWidget* parent)
+ColorEngineMenu::ColorEngineMenu(const QString &title,
+                                 QWidget       *parent)
 : QMenu        {title, parent}
-, m_viewManager{vm}
 , m_engine     {new MultiColorEngine()}
 {
   connect(this, SIGNAL(triggered(QAction*)),
@@ -48,7 +46,7 @@ ColorEngineMenu::~ColorEngineMenu()
 //-----------------------------------------------------------------------------
 void ColorEngineMenu::addColorEngine(const QString& title, ColorEngineSPtr engine)
 {
-  QAction *action = addAction(title);
+  auto action = addAction(title);
   action->setCheckable(true);
   m_availableEngines[action] = engine;
 }
@@ -62,20 +60,24 @@ void ColorEngineMenu::restoreUserSettings()
 
   bool validColorEngine = false;
 
-  for(QAction *action : m_availableEngines.keys())
+  for(auto action : m_availableEngines.keys())
   {
     if (activeActions.contains(action->text()))
     {
       action->setChecked(true);
+
       setColorEngine(action);
+
       validColorEngine = true;
     }
   }
 
   if (!validColorEngine && !m_availableEngines.isEmpty())
   {
-    QAction *action = m_availableEngines.keys().first();
+    auto action = m_availableEngines.keys().first();
+
     setColorEngine(action);
+
     action->setChecked(true);
   }
 }
@@ -84,11 +86,13 @@ void ColorEngineMenu::restoreUserSettings()
 void ColorEngineMenu::setColorEngine(QAction* action)
 {
   if (action->isChecked())
+  {
     m_engine->add(m_availableEngines[action]);
+  }
   else
+  {
     m_engine->remove(m_availableEngines[action]);
-
-  m_viewManager->setColorEngine(m_engine);
+  }
 
   // Save user preferences
   ESPINA_SETTINGS(settings);
@@ -97,7 +101,9 @@ void ColorEngineMenu::setColorEngine(QAction* action)
   for(auto action: m_availableEngines.keys())
   {
     if (action->isChecked())
+    {
       activeActions << action->text();
+    }
   }
 
   settings.setValue(COLOR_ENGINE, activeActions);

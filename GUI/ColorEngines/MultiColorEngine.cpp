@@ -101,10 +101,14 @@ ColorEngine::Composition MultiColorEngine::supportedComposition() const
 void MultiColorEngine::add(ColorEngineSPtr engine)
 {
   m_engines << engine;
+
+  emit modified();
 }
 
 //-----------------------------------------------------------------------------
 void MultiColorEngine::remove(ColorEngineSPtr engine)
 {
   m_engines.removeAll(engine);
+
+  emit modified();
 }

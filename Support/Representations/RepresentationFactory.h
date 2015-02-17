@@ -22,6 +22,7 @@
 
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 #include "RepresentationSwitch.h"
 
 namespace ESPINA
@@ -50,7 +51,7 @@ namespace ESPINA
      *         to display an specific type of related elements
      *
      */
-    virtual Representation createRepresentation() const = 0;
+    virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const = 0;
 
   };
 
