@@ -535,6 +535,34 @@ void RenderView::eventPosition(int& x, int& y)
   }
 }
 
+//----------------------------------------------------------------------------
+NmVector3 RenderView::worldEventPosition()
+{
+  int x,y;
+  eventPosition(x,y);
+
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  coords->SetCoordinateSystemToDisplay();
+  coords->SetValue(x, y, 0);
+
+  double *displayCoords = coords->GetComputedWorldValue(m_renderer);
+
+  NmVector3 position{displayCoords[0], displayCoords[1], displayCoords[2]};
+
+  normalizeWorldPosition(position);
+
+  return position;
+}
+
+//-----------------------------------------------------------------------------
+NmVector3 RenderView::worldEventPosition(const QPoint &pos)
+{
+  renderWindow()->GetInteractor()->SetEventPositionFlipY(pos.x(), pos.y());
+
+  return worldEventPosition();
+}
+
 //-----------------------------------------------------------------------------
 void RenderView::updateSelection(SegmentationAdapterList selection)
 {

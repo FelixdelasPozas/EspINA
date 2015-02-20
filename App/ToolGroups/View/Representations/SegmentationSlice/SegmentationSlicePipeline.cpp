@@ -116,3 +116,9 @@ bool SegmentationSlicePipeline::pick(ViewItemAdapter *item, const NmVector3 &poi
 
   return result;
 }
+
+//----------------------------------------------------------------------------
+void SegmentationSlicePipeline::setPlane(const Plane plane)
+{
+  m_plane = plane;
+}

@@ -97,14 +97,7 @@ namespace ESPINA
       ~RulerEventHandler()
       {}
 
-      /** \brief Overrides EventHandler::setInUse().
-       *
-       */
-      virtual void setInUse(bool value) override;
 
-      /** \brief Overrides EventHandler::filterEvent().
-       *
-       */
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
   };
 

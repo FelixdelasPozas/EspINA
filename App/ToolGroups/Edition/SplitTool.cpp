@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "SplitTool.h"
+
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Filters/SplitFilter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
@@ -291,6 +292,13 @@ namespace ESPINA
 
     QApplication::restoreOverrideCursor();
     m_executingTasks.remove(filter);
+  }
+
+
+  //-----------------------------------------------------------------------------
+  SplitToolEventHandler::SplitToolEventHandler()
+  {
+    setCursor(Qt::CrossCursor);
   }
 
   //------------------------------------------------------------------------

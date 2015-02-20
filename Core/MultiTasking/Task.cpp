@@ -211,6 +211,11 @@ void Task::setFinished(bool value)
   m_hasFinished = value;
 
   emit finished();
+
+  if (isExecutingOnThread())
+  {
+    QCoreApplication::sendPostedEvents();
+  }
 }
 
 //-----------------------------------------------------------------------------

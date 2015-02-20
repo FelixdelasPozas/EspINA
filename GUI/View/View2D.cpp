@@ -103,6 +103,7 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_inThumbnail     {false}
 , m_sceneReady      {false}
 , m_plane           {plane}
+, m_scale           {1.0}
 , m_normalCoord     {normalCoordinateIndex(plane)}
 , m_fitToSlices     {true}
 , m_invertSliceOrder{false}
@@ -663,6 +664,8 @@ void View2D::resetCamera()
   m_thumbnail->AddViewProp(m_viewportBorder);
 
   m_sceneReady = !m_channelSources->isEmpty();
+
+  updateScale();
 }
 
 //-----------------------------------------------------------------------------
@@ -842,6 +845,11 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           // assign false directly and avoid conditional code. Getting out of the thumbnail while in a drag breaks
           // the drag movement though.
           m_inThumbnailClick = false;
+
+          if (me->button() == Qt::RightButton)
+          {
+            updateScale();
+          }
 
           // to avoid interfering with ctrl use in the event handler/selector
           if (!m_eventHandler)
@@ -1055,6 +1063,12 @@ void View2D::configureManager(RepresentationManagerSPtr manager)
 }
 
 //-----------------------------------------------------------------------------
+void View2D::normalizeWorldPosition(NmVector3 &point) const
+{
+  point[normalCoordinateIndex(m_plane)] = slicingPosition();
+}
+
+//-----------------------------------------------------------------------------
 void View2D::showSegmentationTooltip(double x, double y)
 {
 
@@ -1236,6 +1250,30 @@ bool View2D::isCrosshairVisible() const
 
   return  ll[H] <= current[H] && current[H] <= ur[H] // Horizontally in
        && ll[V] <= current[V] && current[V] >= ur[V];// Vertically in
+}
+
+//-----------------------------------------------------------------------------
+void View2D::updateScale()
+{
+  double *world,   worldWidth;
+  int    *display, displayWidth;
+
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  coords->SetValue(0, 0); //Viewport Lower Left Corner
+  world = coords->GetComputedWorldValue(m_renderer);
+  worldWidth = world[0];
+  display = coords->GetComputedDisplayValue(m_renderer);
+  displayWidth = display[0];
+
+  coords->SetValue(1, 0); // Viewport Lower Right Corner
+  world = coords->GetComputedWorldValue(m_renderer);
+  worldWidth = fabs(worldWidth - world[0]);
+  display = coords->GetComputedDisplayValue(m_renderer);
+  displayWidth = fabs(displayWidth - display[0]);
+
+  m_scale = worldWidth/displayWidth;
 }
 
 //-----------------------------------------------------------------------------
@@ -1577,6 +1615,8 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   auto picker      = vtkSmartPointer<vtkPropPicker>::New();
   auto sceneActors = m_renderer->GetViewProps();
 
+  NeuroItemAdapterList pickedItems;
+
   vtkProp *pickedProp;
   auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
 
@@ -1588,7 +1628,11 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
     picked     = picker->PickProp(x,y, m_renderer, sceneActors);
     pickedProp = picker->GetViewProp();
 
-    sceneActors->RemoveItem(pickedProp);
+    if(pickedProp)
+    {
+      sceneActors->RemoveItem(pickedProp);
+      pickedProps->AddItem(pickedProp);
+    }
 
     auto worldPoint = toWorldCoordinates(x, y, 0);
     worldPoint[normalCoordinateIndex(m_plane)] = slicingPosition();
@@ -1598,10 +1642,8 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
       auto pickedItem = manager->pick(worldPoint, pickedProp);
 
       NeuroItemAdapterPtr neuroItem = pickedItem;
-      if(pickedItem)
+      if(pickedItem && !pickedItems.contains(pickedItem))
       {
-        pickedProps->AddItem(pickedProp);
-
         if (Selector::IsValid(pickedItem, flags))
         {
           if(flags.testFlag(Selector::SAMPLE) && isChannel(pickedItem))
@@ -1611,7 +1653,11 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
           finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, pickedItem->output()->spacing()), neuroItem);
           finished = !multiselection;
         }
+
+        pickedItems << pickedItem;
+        picked |= pickedItem != nullptr;
       }
+
     }
   }
   while(picked && !finished);

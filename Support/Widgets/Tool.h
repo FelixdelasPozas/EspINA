@@ -30,8 +30,8 @@
 #include <QPushButton>
 #include <QCursor>
 
-class QEvent;
 class QAction;
+class QEvent;
 
 namespace ESPINA
 {

@@ -47,15 +47,9 @@ namespace ESPINA
     class SplitFilterFactory
     : public FilterFactory
     {
-    		/** \brief Implements FilterFactory::providedFilters().
-    		 *
-    		 */
-        virtual FilterTypeList providedFilters() const;
+      virtual FilterTypeList providedFilters() const;
 
-        /** \brief Implements FilterFactory::createFilter(...).
-         *
-         */
-        virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
 
       private:
         mutable DataFactorySPtr m_dataFactory;
@@ -63,13 +57,13 @@ namespace ESPINA
 
 
     public:
-    	/** \brief SplitTool class constructor.
-    	 * \param[in] model, model adapter smart pointer.
-    	 * \param[in] factory, factory smart pointer.
-    	 * \param[in] viewManager, view manager smart pointer.
-    	 * \param[in] undoStack, QUndoStack object raw pointer.
-    	 *
-    	 */
+      /** \brief SplitTool class constructor.
+       * \param[in] model model adapter smart pointer.
+       * \param[in] factory factory smart pointer.
+       * \param[in] viewManager view manager smart pointer.
+       * \param[in] undoStack QUndoStack object raw pointer.
+       *
+       */
       SplitTool(ModelAdapterSPtr model,
                 ModelFactorySPtr factory,
                 ViewManagerSPtr  viewManager,
@@ -80,19 +74,10 @@ namespace ESPINA
        */
       virtual ~SplitTool();
 
-      /** \brief Implements Tool::setEnabled().
-       *
-       */
       virtual void setEnabled(bool value);
 
-      /** \brief Implements Tool::enabled().
-       *
-       */
       virtual bool enabled() const;
 
-      /** \brief Implements Tool::actions().
-       *
-       */
       virtual QList<QAction *> actions() const;
 
       /** \brief Aborts current operation.
@@ -164,8 +149,7 @@ namespace ESPINA
       /** \brief SplitToolEventHandler class constructor.
        *
        */
-      SplitToolEventHandler()
-      {}
+      explicit SplitToolEventHandler();
 
       /** \brief SplitToolEventHandler class destructor.
        *
@@ -173,16 +157,6 @@ namespace ESPINA
       ~SplitToolEventHandler()
       {}
 
-      /** \brief Overrides EventHandler::cursor().
-       *
-       */
-      QCursor cursor() const override
-      { return QCursor(Qt::CrossCursor); }
-
-
-      /** \brief Overrides EventHandler::filterEvent.
-       *
-       */
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
   };
 

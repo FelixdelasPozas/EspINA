@@ -46,7 +46,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edition/SplitTool.h
   ToolGroups/Measures/MeasuresTools.h
   ToolGroups/ROI/CleanROITool.h
-  ToolGroups/ROI/ManualROITool.h
+#   ToolGroups/ROI/ManualROITool.h
   ToolGroups/ROI/OrthogonalROITool.h
   ToolGroups/ROI/ROITools.h
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.h
@@ -66,8 +66,8 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/View/ToggleSegmentationsVisibility.h
   ToolGroups/View/ViewToolGroup.h
   ToolGroups/View/ZoomAreaTool.h
-  Tools/Brushes/CircularBrushROISelector.h
-  Tools/Brushes/SphericalBrushROISelector.h
+#   Tools/Brushes/CircularBrushROISelector.h
+#   Tools/Brushes/SphericalBrushROISelector.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
   Undo/BrushUndoCommand.h
@@ -150,7 +150,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edition/SplitTool.cpp
   ToolGroups/Measures/MeasuresTools.cpp
   ToolGroups/ROI/CleanROITool.cpp
-  ToolGroups/ROI/ManualROITool.cpp
+#   ToolGroups/ROI/ManualROITool.cpp
   ToolGroups/ROI/OrthogonalROITool.cpp
   ToolGroups/ROI/ROITools.cpp
   ToolGroups/Segmentation/CustomROIWidget.cpp
@@ -176,9 +176,9 @@ set (ESPINA_SOURCES
   ToolGroups/View/ToggleSegmentationsVisibility.cpp
   ToolGroups/View/ViewToolGroup.cpp
   ToolGroups/View/ZoomAreaTool.cpp
-  Tools/Brushes/CircularBrushROISelector.cpp
-  Tools/Brushes/ROISelectorBase.cpp
-  Tools/Brushes/SphericalBrushROISelector.cpp
+#   Tools/Brushes/CircularBrushROISelector.cpp
+#   Tools/Brushes/ROISelectorBase.cpp
+#   Tools/Brushes/SphericalBrushROISelector.cpp
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
   Undo/BrushUndoCommand.cpp

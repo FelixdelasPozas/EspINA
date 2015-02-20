@@ -134,6 +134,8 @@ namespace ESPINA
 
     ViewItemAdapterList sources() const;
 
+    bool notHasBeenProcessed(const TimeStamp time) const;
+
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
@@ -154,7 +156,7 @@ namespace ESPINA
 
     virtual void onSettingsChanged(const RepresentationState &settings) = 0;
 
-    virtual bool changed() const = 0;
+    virtual bool actorsChanged() const = 0;
 
     virtual void invalidateImplementation() = 0;
 

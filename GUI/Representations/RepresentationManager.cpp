@@ -94,6 +94,8 @@ void RepresentationManager::show()
     connectPools();
 
     setCrosshair(m_crosshair, m_lastRequestTime);
+
+    emit renderRequested();
   }
 }
 
@@ -175,7 +177,10 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp ti
   m_crosshair       = crosshair;
   m_lastRequestTime = time;
 
-  setCrosshair(m_crosshair, time);
+  if (m_showPipelines)
+  {
+    setCrosshair(m_crosshair, time);
+  }
 }
 
 //-----------------------------------------------------------------------------

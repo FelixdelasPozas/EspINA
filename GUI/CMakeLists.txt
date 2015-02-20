@@ -22,12 +22,17 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
-  Selectors/BrushSelector.h
-  Selectors/CircularBrushSelector.h
-  Selectors/SphericalBrushSelector.h
+#   Selectors/BrushSelector.h
+#   Selectors/CircularBrushSelector.h
+#   Selectors/SphericalBrushSelector.h
   Utils/Timer.h
   Utils/PipelineSourcesState.h
   View/EventHandler.h
+  EventHandlers/PointTracker.h
+  EventHandlers/Brush.h
+  EventHandlers/MaskPainter.h
+  EventHandlers/BrushPainter.h
+  EventHandlers/StrokePainter.h
   View/RenderView.h
   View/Selection.h
   View/View2D.h
@@ -45,6 +50,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
+  Widgets/DrawingWidget.h
   Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
@@ -107,15 +113,21 @@ set (GUI_SOURCES
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp
   Representations/SegmentationPipeline.cpp
-  Selectors/BrushSelector.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
-  Selectors/CircularBrushSelector.cpp
-  Selectors/SphericalBrushSelector.cpp
+#   Selectors/BrushSelector.cpp
+#   Selectors/CircularBrushSelector.cpp
+#   Selectors/SphericalBrushSelector.cpp
   Utils/DefaultIcons.cpp
   Utils/PipelineSourcesState.cpp
   Utils/QtModelUtils.cpp
   Utils/Timer.cpp
+  EventHandlers/Brush.cpp
+  EventHandlers/CircularBrush.cpp
+  EventHandlers/MaskPainter.cpp
+  EventHandlers/PointTracker.cpp
+  EventHandlers/BrushPainter.cpp
+  EventHandlers/StrokePainter.cpp
   View/EventHandler.cpp
   View/RenderView.cpp
   View/Selection.cpp
@@ -149,6 +161,7 @@ set (GUI_SOURCES
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
+  Widgets/DrawingWidget.cpp
   Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp

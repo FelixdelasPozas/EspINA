@@ -20,265 +20,103 @@
 
  // ESPINA
 #include "ManualEditionTool.h"
+#include <Undo/BrushUndoCommand.h>
+
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/SliderAction.h>
+#include <GUI/Widgets/DrawingWidget.h>
 #include <Support/Settings/EspinaSettings.h>
+#include <Filters/SourceFilter.h>
+#include <Undo/AddSegmentations.h>
 
 // Qt
 #include <QAction>
-#include <QSettings>
+#include <QUndoStack>
 
-const QString BRUSH_RADIUS("ManualEditionTools::BrushRadius");
-const QString BRUSH_OPACITY("ManualEditionTools::BrushOpacity");
+using ESPINA::Filter;
+
+const Filter::Type SOURCE_FILTER    = "FreeFormSource";
+const Filter::Type SOURCE_FILTER_V4 = "EditorToolBar::FreeFormSource";
 
 using namespace ESPINA;
 
+//-----------------------------------------------------------------------------
+FilterTypeList ManualEditionTool::ManualFilterFactory::providedFilters() const
+{
+  FilterTypeList filters;
+
+  filters << SOURCE_FILTER << SOURCE_FILTER_V4;
+
+  return filters;
+}
+
+//-----------------------------------------------------------------------------
+FilterSPtr ManualEditionTool::ManualFilterFactory::createFilter(InputSList          inputs,
+                                                           const Filter::Type& filter,
+                                                           SchedulerSPtr       scheduler) const
+throw(Unknown_Filter_Exception)
+{
+  if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
+
+  auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
+
+  if (!m_dataFactory)
+  {
+    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
+  }
+
+  ffsFilter->setDataFactory(m_dataFactory);
+
+  return ffsFilter;
+}
 
 //------------------------------------------------------------------------
 ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
+                                     ModelFactorySPtr factory,
+                                     QUndoStack      *undoStack,
                                      ViewManagerSPtr  viewManager)
 : m_model               {model}
+, m_factory             {factory}
+, m_undoStack           {undoStack}
 , m_viewManager         {viewManager}
-, m_drawToolSelector    {new ActionSelector()}
-, m_categorySelector    {new CategorySelector(model)}
-, m_radiusWidget        {new SliderAction()}
-, m_opacityWidget       {new SliderAction()}
-, m_eraserWidget        {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
-, m_showCategoryControls{true}
-, m_showRadiusControls  {true}
-, m_showOpacityControls {true}
-, m_showEraserControls  {true}
+, m_filterFactory       {new ManualFilterFactory()}
+, m_drawingWidget       {model, viewManager}
+, m_mode                {Mode::CREATION}
+, m_referenceItem       {nullptr}
 , m_enabled             {false}
-, m_hasEnteredEraserMode{false}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
-  qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
-  qRegisterMetaType<BinaryMaskSPtr<unsigned char>>("BinaryMaskSPtr<unsigned char>");
+  //qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
+  //qRegisterMetaType<BinaryMaskSPtr<unsigned char>>("BinaryMaskSPtr<unsigned char>");
 
-  // draw with a disc
-  m_discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                           tr("Modify segmentation drawing 2D discs"),
-                           m_drawToolSelector);
-
-  m_circularBrushSelector = CircularBrushSelectorSPtr(new CircularBrushSelector());
-  connect(m_circularBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
-          this,                          SLOT(  drawStroke(Selector::Selection)));
-  connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-          m_drawToolSelector,            SLOT(         setChecked(bool)));
-  connect(m_circularBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-          this,                          SLOT(      selectorInUse(bool)));
-  connect(m_circularBrushSelector.get(), SIGNAL(radiusChanged(int)),
-          this,                          SLOT(  radiusChanged(int)));
-  connect(m_circularBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
-          this,                          SLOT(  drawingModeChanged(bool)));
-
-  m_drawTools[m_discTool] = m_circularBrushSelector;
-  m_drawToolSelector->addAction(m_discTool);
-
-
-  // draw with a sphere
-  m_sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
-                             tr("Modify segmentation drawing 3D spheres"),
-                             m_drawToolSelector);
-
-  m_sphericalBrushSelector = SphericalBrushSelectorSPtr(new SphericalBrushSelector());
-  connect(m_sphericalBrushSelector.get(), SIGNAL(itemsSelected(Selector::Selection)),
-          this,                           SLOT(  drawStroke(Selector::Selection)));
-  connect(m_sphericalBrushSelector.get(), SIGNAL(eventHandlerInUse(bool)),
-          m_drawToolSelector,             SLOT(         setChecked(bool)));
-  connect(m_sphericalBrushSelector.get(), SIGNAL(radiusChanged(int)),
-          this,                           SLOT(  radiusChanged(int)));
-  connect(m_sphericalBrushSelector.get(), SIGNAL(drawingModeChanged(bool)),
-          this,                           SLOT(  drawingModeChanged(bool)));
-
-  m_drawTools[m_sphereTool] = m_sphericalBrushSelector;
-  m_drawToolSelector->addAction(m_sphereTool);
-
-  // TODO: contour filter, tool y selector.
-
-  // draw with contour
-  //    QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
-  //                                       tr("Modify segmentation drawing contour"),
-  //                                       m_drawToolSelector);
-  //    FilledContourSPtr contour(new FilledContour(m_model,
-  //                                                m_undoStack,
-  //                                                m_viewManager));
-  //
-  //    connect(contour.get(), SIGNAL(changeMode(Brush::BrushMode)),
-  //            this, SLOT(changeContourMode(Brush::BrushMode)));
-  //    connect(contour.get(), SIGNAL(stopDrawing()),
-  //            this, SLOT(cancelDrawOperation()));
-  //    connect(contour.get(), SIGNAL(startDrawing()),
-  //            this, SLOT(startContourOperation()));
-  //
-  //    m_drawTools[contourTool] = contour;
-  //    m_drawTools[contourTool] = SelectorSPtr(this);
-  //    m_drawToolSelector->addAction(contourTool);
-
-  m_drawToolSelector->setDefaultAction(m_discTool);
-  connect(m_drawToolSelector, SIGNAL(   triggered(QAction*)),
-          this,               SLOT(changeSelector(QAction*)));
-  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
-          this,               SLOT(   unsetSelector()));
-
-  ESPINA_SETTINGS(settings);
-  int radius  = settings.value(BRUSH_RADIUS,  20).toInt();
-  int opacity = settings.value(BRUSH_OPACITY, 50).toInt();
-
-  m_radiusWidget->setValue(radius);
-  m_radiusWidget->setLabelText(tr("Radius Size"));
-
-  connect(m_radiusWidget, SIGNAL(valueChanged(int)),
-          this, SLOT(changeRadius(int)));
-
-  m_opacityWidget->setSliderMinimum(1);
-  m_opacityWidget->setSliderMaximum(100);
-  m_opacityWidget->setValue(opacity);
-  m_opacityWidget->setLabelText(tr("Opacity"));
-
-  connect(m_opacityWidget, SIGNAL(valueChanged(int)),
-          this, SLOT(changeOpacity(int)));
-
-  m_eraserWidget->setCheckable(true);
-
-  connect(m_eraserWidget, SIGNAL(toggled(bool)),
-          this, SLOT(setEraserMode(bool)));
-
-  setControlVisibility(false);
+  m_factory->registerFilterFactory(m_filterFactory);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this, SLOT(updateReferenceItem()));
+          this,                             SLOT(updateReferenceItem()));
+
+  connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushSPtr, RenderView*)),
+          this,             SLOT(onStrokeStarted(BrushSPtr, RenderView*)));
+
+  connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
+          this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
 }
 
 //------------------------------------------------------------------------
 ManualEditionTool::~ManualEditionTool()
 {
-  ESPINA_SETTINGS(settings);
-  settings.setValue(BRUSH_RADIUS, m_radiusWidget->value());
-  settings.setValue(BRUSH_OPACITY, m_opacityWidget->value());
-  settings.sync();
-
-  if (m_currentSelector)
-  {
-    m_viewManager->unsetEventHandler(m_currentSelector);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void ManualEditionTool::changeSelector(QAction* action)
-{
-  Q_ASSERT(m_drawTools.keys().contains(action));
-
-  setControlVisibility(true);
-
-  updateReferenceItem();
-
-  //     SelectionSPtr selection      = m_viewManager->selection();
-  //     SegmentationAdapterList segs = selection->segmentations();
-  //
-  //     QColor color = m_categorySelector->selectedCategory()->color();
-  //     if (segs.size() == 1)
-  //     {
-  //       color = segs.first()->category()->color();
-  //     }
-
-  m_currentSelector = m_drawTools[action];
-  //m_currentSelector->setBrushColor(color);
-  m_currentSelector->setRadius(m_radiusWidget->value());
-
-  m_viewManager->setEventHandler(m_currentSelector);
-}
-
-//-----------------------------------------------------------------------------
-void ManualEditionTool::unsetSelector()
-{
-  if (m_currentSelector != nullptr)
-  {
-    setControlVisibility(false);
-
-    m_drawToolSelector->blockSignals(true);
-    m_drawToolSelector->setChecked(false);
-    m_drawToolSelector->blockSignals(false);
-
-    auto referenceItem = m_currentSelector->referenceItem();
-    m_circularBrushSelector->setReferenceItem(nullptr);
-    m_circularBrushSelector->setReferenceItem(nullptr);
-
-    emit stopDrawing(referenceItem, m_hasEnteredEraserMode);
-
-    setEraserMode(false);
-
-    auto selector = m_currentSelector; //avoid re-entering this function on unset event
-    m_currentSelector.reset();
-
-    // This tool can be unset either by the tool itself or by other
-    // event handler through the view manager
-    m_viewManager->unsetEventHandler(selector);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void ManualEditionTool::categoryChanged(CategoryAdapterSPtr unused)
-{
-  if (m_categorySelector)
-  {
-    m_eraserWidget->setChecked(false);
-
-    if(m_viewManager->activeChannel() == nullptr)
-      return;
-
-    ChannelAdapterList channels;
-    channels << m_viewManager->activeChannel();
-
-    if(!channels.empty())
-    {
-      auto selection = m_viewManager->selection();
-      selection->clear();
-      selection->set(channels);
-    }
-  }
-
-  updateReferenceItem();
-}
-
-//-----------------------------------------------------------------------------
-void ManualEditionTool::changeRadius(int value)
-{
-  if (m_currentSelector != nullptr)
-  {
-    m_currentSelector->setRadius(m_radiusWidget->value());
-  }
-}
-
-//-----------------------------------------------------------------------------
-void ManualEditionTool::changeOpacity(int value)
-{
-  if (m_currentSelector != nullptr)
-    m_currentSelector->setBrushOpacity(m_opacityWidget->value());
-}
-
-//-----------------------------------------------------------------------------
-void ManualEditionTool::selectorInUse(bool value)
-{
-  if (value)
-  {
-    updateReferenceItem();
-    m_hasEnteredEraserMode = false;
-  }
-  else
-  {
-    unsetSelector();
-  }
 }
 
 //------------------------------------------------------------------------
 void ManualEditionTool::setEnabled(bool value)
 {
   m_enabled = value;
-  m_categorySelector->setEnabled(value);
-  m_drawToolSelector->setEnabled(value);
-  m_radiusWidget->setEnabled(value);
+//   m_categorySelector->setEnabled(value);
+//   m_drawToolSelector->setEnabled(value);
+//   m_radiusWidget->setEnabled(value);
 }
 
 //------------------------------------------------------------------------
@@ -290,204 +128,224 @@ bool ManualEditionTool::enabled() const
 //------------------------------------------------------------------------
 QList<QAction *> ManualEditionTool::actions() const
 {
-  QList<QAction *> actions;
+  updateReferenceItem();
 
-  if (m_currentSelector != nullptr)
-  {
-    m_drawToolSelector->setChecked(m_viewManager->eventHandler() == m_currentSelector);
-  } else {
-    m_drawToolSelector->setChecked(false);
-  }
-
-  actions << m_drawToolSelector;
-  actions << m_categorySelector;
-  actions << m_eraserWidget;
-  actions << m_radiusWidget;
-  actions << m_opacityWidget;
-
-  return actions;
+  return m_drawingWidget.actions();
 }
 
 //------------------------------------------------------------------------
 void ManualEditionTool::drawStroke(Selector::Selection selection)
 {
-  auto mask = selection.first().first;
-  auto category = m_categorySelector->selectedCategory();
-  emit stroke(category, mask);
+//   auto mask = selection.first().first;
+//   auto category = m_categorySelector->selectedCategory();
+//   emit stroke(category, mask);
 }
 
 //------------------------------------------------------------------------
 void ManualEditionTool::abortOperation()
 {
-  unsetSelector();
+ // unsetSelector();
 }
 
-//------------------------------------------------------------------------
-void ManualEditionTool::radiusChanged(int value)
-{
-  m_radiusWidget->blockSignals(true);
-  m_radiusWidget->setValue(value);
-  m_radiusWidget->blockSignals(false);
-}
-
-//------------------------------------------------------------------------
-void ManualEditionTool::drawingModeChanged(bool isDrawing)
-{
-  QAction *actualAction = m_drawToolSelector->getCurrentAction();
-  QIcon icon;
-
-  m_hasEnteredEraserMode |= !isDrawing; //sticky
-
-  if (m_discTool == actualAction)
-  {
-    if (isDrawing)
-      icon = QIcon(":/espina/pencil2D.png");
-    else
-      icon = QIcon(":/espina/eraser2D.png");
-  }
-  else
-  {
-    if (m_sphereTool == actualAction)
-    {
-      if (isDrawing)
-        icon = QIcon(":/espina/pencil3D.png");
-      else
-        icon = QIcon(":/espina/eraser3D.png");
-    }
-  }
-
-  m_drawToolSelector->setIcon(icon);
-}
 
 //------------------------------------------------------------------------
 void ManualEditionTool::updateReferenceItem()
 {
-  QImage image;
-  QColor borderColor {Qt::blue};
-  QColor fillColor   {Qt::gray};
-  bool   enableEraser{true};
+  ViewItemAdapterPtr currentItem = m_referenceItem;
 
-  ViewItemAdapterPtr currentItem = nullptr;
-  ViewItemAdapterPtr item = nullptr;
-
-  if (m_currentSelector)
-  {
-    currentItem = m_currentSelector->referenceItem();
-  }
+  m_mode          = Mode::CREATION;
+  m_referenceItem = nullptr;
 
   auto selection     = m_viewManager->selection();
   auto segmentations = selection->segmentations();
 
-  if (segmentations.empty() || !hasVolumetricData(segmentations.first()->output()))
-  {
-    image = QImage(":/espina/brush_new.svg");
-    enableEraser = false;
+  if (segmentations.size() > 1) return;
 
-    if (m_currentSelector)
-    {
-      setEraserMode(false);
-    }
+  if (segmentations.size() == 1)
+  {
+    auto segmentation = segmentations.first();
+    auto category     = segmentation->category();
+
+    m_drawingWidget.setCategory(category);
+    m_drawingWidget.clearBrushImage();
+
+    m_mode          = Mode::CREATION;
+    m_referenceItem = segmentation;
   }
 
-  if(selection->items().empty())
+  auto validVolume = !segmentations.isEmpty() && hasVolumetricData(m_referenceItem->output());
+
+  if (!validVolume)
   {
-    item = m_viewManager->activeChannel();
-  }
-  else
-  {
-    if(selection->segmentations().empty())
+    if(!m_referenceItem)
     {
-      item = selection->channels().first();
-    }
-    else
-    {
-      auto segmentation = segmentations.first();
-      auto category     = segmentation->category();
+      auto channels = selection->channels();
 
-      m_categorySelector->blockSignals(true);
-      if (m_categorySelector->selectedCategory() != category)
-      {
-        m_categorySelector->selectCategory(category);
-      }
-      m_categorySelector->blockSignals(false);
-
-      item = segmentation;
-    }
-  }
-
-  auto category = m_categorySelector->selectedCategory();
-
-  m_circularBrushSelector ->setBrushColor(category->color());
-  m_sphericalBrushSelector->setBrushColor(category->color());
-
-
-  m_circularBrushSelector ->setReferenceItem(item);
-  m_sphericalBrushSelector->setReferenceItem(item);
-
-  if (currentItem && currentItem != item)
-  {
-    emit stopDrawing(currentItem, m_hasEnteredEraserMode);
-  }
-
-  m_circularBrushSelector ->setBrushImage(image);
-  m_sphericalBrushSelector->setBrushImage(image);
-
-  m_eraserWidget->setEnabled(enableEraser);
-}
-
-//------------------------------------------------------------------------
-void ManualEditionTool::setControlVisibility(bool visible)
-{
-  if(m_showCategoryControls) m_categorySelector->setVisible(visible);
-  if(m_showRadiusControls)   m_radiusWidget    ->setVisible(visible);
-  if(m_showOpacityControls)  m_opacityWidget   ->setVisible(visible);
-  if(m_showEraserControls)   m_eraserWidget    ->setVisible(visible);
-
-  if (visible)
-  {
-    auto currentCategory = currentReferenceCategory();
-
-    if (currentCategory)
-    {
-      m_categorySelector->blockSignals(true);
-      m_categorySelector->selectCategory(currentCategory);
-      m_categorySelector->blockSignals(false);
+      m_referenceItem = channels.isEmpty()?m_viewManager->activeChannel():channels.first();
     }
 
-    connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-            this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
-  } else {
-    disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-               this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
+    m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
   }
+
+  if (currentItem && currentItem != m_referenceItem)
+  {
+    m_drawingWidget.stopDrawing();
+  }
+
+  m_drawingWidget.setCanErase(validVolume);
+
+
+  auto output  = m_referenceItem->output();
+  auto origin  = volumetricData(output)->origin();
+  auto spacing = output->spacing();
+
+  m_drawingWidget.setMaskProperties(spacing, origin);
 }
 
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ManualEditionTool::currentReferenceCategory()
 {
-  CategoryAdapterSPtr currentCategory{nullptr};
+  CategoryAdapterSPtr currentCategory;
 
-  if (m_currentSelector)
-  {
-    auto item = m_currentSelector->referenceItem();
-
-    if (item && isSegmentation(item))
-    {
-      auto segmentation = segmentationPtr(item);
-
-      currentCategory = segmentation->category();
-    }
-  }
+//   if (m_currentSelector)
+//   {
+//     auto item = m_currentSelector->referenceItem();
+//
+//     if (item && isSegmentation(item))
+//     {
+//       auto segmentation = segmentationPtr(item);
+//
+//       currentCategory = segmentation->category();
+//     }
+//   }
 
   return currentCategory;
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::setEraserMode(bool value)
+bool ManualEditionTool::isCreationMode() const
 {
-  m_currentSelector->setEraseMode(value);
-  drawingModeChanged(!value);
-  m_eraserWidget->blockSignals(true);
-  m_eraserWidget->setChecked(value);
-  m_eraserWidget->blockSignals(false);
+  return Mode::CREATION == m_mode;
+}
+
+// //------------------------------------------------------------------------
+// ViewItemAdapterPtr ManualEditionTool::referenceItem()
+// {
+//   ViewItemAdapterPtr item;
+//
+//   auto selection     = m_viewManager->selection();
+//   auto channels      = selection->channels();
+//   auto segmentations = selection->segmentations();
+//
+//   if(segmentations.isEmpty())
+//   {
+//     if (channels.isEmpty())
+//     {
+//       item = m_viewManager->activeChannel();
+//     }
+//     else
+//     {
+//       item = selection->channels().first();
+//     }
+//   }
+//   else
+//   {
+//     auto segmentation = segmentations.first();
+//     // TODO
+// //     auto category     = segmentation->category();
+// //
+// //     if (m_categorySelector->selectedCategory() != category)
+// //     {
+// //       m_categorySelector->blockSignals(true);
+// //       m_categorySelector->selectCategory(category);
+// //       m_categorySelector->blockSignals(false);
+// //     }
+//
+//     item = segmentation;
+//   }
+//
+//   return item;
+// }
+
+//------------------------------------------------------------------------
+void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
+{
+  auto channel = channelPtr(m_referenceItem);
+  auto output  = channel->output();
+
+  auto spacing = output->spacing();
+  auto origin  = channel->position();
+
+  auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+
+  auto volume = std::make_shared<SparseVolume<itkVolumeType>>(mask->bounds().bounds(), spacing, origin);
+  volume->draw(mask);
+
+  auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
+
+  filter->addOutputData(0, volume);
+  filter->addOutputData(0, mesh);
+
+  auto segmentation = m_factory->createSegmentation(filter, 0);
+  segmentation->setCategory(m_drawingWidget.selectedCategory());
+
+  SampleAdapterSList samples;
+  samples << QueryAdapter::sample(channel);
+  Q_ASSERT(channel && (samples.size() == 1));
+
+  m_undoStack->beginMacro(tr("Add Segmentation"));
+  m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+  m_undoStack->endMacro();
+
+  SegmentationAdapterList list;
+  list << segmentation.get();
+  m_viewManager->selection()->clear();
+  m_viewManager->selection()->set(list);
+
+  m_referenceItem = segmentation.get();
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
+{
+    auto segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem));
+    m_undoStack->beginMacro(tr("Modify Segmentation"));
+    m_undoStack->push(new DrawUndoCommand(segmentation, mask));
+    m_undoStack->endMacro();
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onStrokeStarted(BrushSPtr brush, RenderView *view)
+{
+//   m_strokePainter = std::make_shared<StrokePainter>(m_referenceItem, view, m_selectedBrush);
+//
+//   auto actor = m_strokePainter->strokeActor();
+//
+  auto showStroke = isCreationMode();
+  brush->setStrokeVisibility(showStroke);
+
+  if (!showStroke)
+  {
+//     m_temporalPipeline = std::make_shared<ManualEditionPipeline>();
+//     m_temporalPipeline->setTemporalActor(actor);
+//     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
+//     m_referenceItem->invalidateRepresentations();
+  }
+
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
+{
+  if (isCreationMode())
+  {
+    createSegmentation(mask);
+  }
+  else
+  {
+    m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
+    modifySegmentation(mask);
+  }
+
+  m_strokePainter.reset();
 }

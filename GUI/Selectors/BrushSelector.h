@@ -99,7 +99,7 @@ namespace ESPINA
     /** \brief Overrides EventHandler::cursor() const.
      *
      */
-    QCursor cursor() const override
+    QCursor cursor() const
     { return m_cursor; }
 
     /** \brief Sets the border of the cursor for the paint mode.
@@ -292,13 +292,13 @@ namespace ESPINA
     Bounds         m_lastUpdateBounds;
     bool           m_tracking;
 
-    vtkSmartPointer<vtkImageData>   m_preview; // DEPRECATED
+    vtkSmartPointer<vtkImageData>   m_preview;
     RenderView*    m_previewView;
     Bounds         m_previewBounds;
 
   private:
-    //class BrushPipeline;
-//     std::shared_ptr<BrushPipeline>  m_brushPipeline;
+    class BrushPipeline;
+    std::shared_ptr<BrushPipeline>  m_brushPipeline;
 
     static const int MAX_RADIUS = 30;
   };

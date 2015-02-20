@@ -69,8 +69,6 @@ namespace ESPINA
 
       bool filterEvent(QEvent *e, RenderView *view) override;
 
-      void setInUse(bool value) override;
-
       /** \brief Sets the minimum distance between points.
        * \param[in] value minimum distance between points.
        */

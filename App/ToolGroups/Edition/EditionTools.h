@@ -38,22 +38,11 @@ namespace ESPINA
   class EditionTools
   : public ToolGroup
   {
-    class ManualFilterFactory
-    : public FilterFactory
-    {
-      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
-
-      virtual FilterTypeList providedFilters() const;
-
-    private:
-      mutable DataFactorySPtr m_dataFactory;
-    };
-
     Q_OBJECT
   public:
     /** \brief EditionTools class constructor.
      * \param[in] model model adapter smart pointer.
-     * \param[in] dactory factory smart pointer.
+     * \param[in] factory factory smart pointer.
      * \param[in] viewManager view manager smart pointer.
      * \param[in] undoStack QUndoStack object raw pointer.
      * \param[in] parent QWidget raw pointer of the parent of this object.
@@ -61,7 +50,7 @@ namespace ESPINA
      */
     explicit EditionTools(ModelAdapterSPtr model,
                           ModelFactorySPtr factory,
-                          FilterDelegateFactorySPtr     filterDelegateFactory,
+                          FilterDelegateFactorySPtr filterDelegateFactory,
                           ViewManagerSPtr  viewManager,
                           QUndoStack      *undoStack,
                           QWidget         *parent = nullptr);
@@ -85,16 +74,11 @@ namespace ESPINA
      */
     void abortOperation();
 
-    /** \brief Adds/Modifies a segmentation with the stroke.
-     *
-     */
-    void drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char> mask);
-
   private slots:
     /** \brief Deletes a segmentation from the model if all its voxels have been erased.
      *
      */
-    void onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEntered);
+    void onVoxelDeletion(ViewItemAdapterPtr item);
 
   private:
     ManualEditionToolSPtr        m_manualEdition;
@@ -103,7 +87,6 @@ namespace ESPINA
     ModelFactorySPtr             m_factory;
     QUndoStack                  *m_undoStack;
     ModelAdapterSPtr             m_model;
-    FilterFactorySPtr            m_filterFactory;
 
     bool                         m_enabled;
   };

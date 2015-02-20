@@ -130,14 +130,14 @@ namespace ESPINA {
 
     RepresentationPipelineSPtr temporalRepresentation() const;
 
+    void invalidateRepresentations();
+
   signals:
     void outputModified();
 
     void outputChanged(ViewItemAdapterPtr);
 
-    void activateTemporalPipeline(RepresentationPipelineSPtr);
-
-    void deactivateTemporalPipeline(RepresentationPipelineSPtr);
+    void representationsInvalidated();
 
   protected:
     /** \brief ViewItemAdapter class constructor.

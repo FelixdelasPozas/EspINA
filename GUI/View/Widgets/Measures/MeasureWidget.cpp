@@ -147,17 +147,6 @@ double MeasureWidget::ComputeRulerTickDistance(double distance)
 }
 
 //----------------------------------------------------------------------------
-void MeasureWidget::setInUse(bool value)
-{
-  if(m_inUse == value)
-    return;
-
-  m_inUse = value;
-
-  emit eventHandlerInUse(value);
-}
-
-//----------------------------------------------------------------------------
 void vtkDistanceCommand::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
 {
   MeasureWidget *eWidget = dynamic_cast<MeasureWidget *>(m_widget);

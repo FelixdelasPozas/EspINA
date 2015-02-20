@@ -127,7 +127,7 @@ TimeRange RepresentationPool::readyRange() const
 {
   TimeRange range;
 
-  if (isBeingUsed())
+  if (isBeingUsed() && !m_validActorsTimes.isEmpty())
   {
     for (TimeStamp i = m_validActorsTimes.first(); i <= m_lastUpdateTimeStamp; ++i)
     {
@@ -245,13 +245,19 @@ ViewItemAdapterList RepresentationPool::sources() const
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationPool::notHasBeenProcessed(const TimeStamp time) const
+{
+  return time > m_lastUpdateTimeStamp;
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors)
 {
-  if (time > m_lastUpdateTimeStamp)
+  if (notHasBeenProcessed(time))
   {
     m_lastUpdateTimeStamp = time;
 
-    if (changed())
+    if (actorsChanged())
     {
       m_actors[time] = actors;
       m_validActorsTimes << time;

@@ -30,7 +30,7 @@
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include "ToolGroups/Edition/EditionTools.h"
-#include "ToolGroups/ROI/ROITools.h"
+// #include "ToolGroups/ROI/ROITools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Skeleton/SkeletonToolGroup.h"
@@ -273,9 +273,9 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   /*** TOOLS ***/
   registerToolGroup(m_viewToolGroup);
 
-  auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
-  registerToolGroup(roiTools);
-  m_viewManager->setROIProvider(roiTools);
+//   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
+//   registerToolGroup(roiTools);
+//   m_viewManager->setROIProvider(roiTools);
 
   auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);

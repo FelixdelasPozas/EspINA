@@ -1,0 +1,116 @@
+/*
+ * <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+#include "BrushPainter.h"
+#include <vtkImplicitFunction.h>
+
+using namespace ESPINA;
+
+//-----------------------------------------------------------------------------
+BrushPainter::BrushPainter(BrushSPtr brush)
+: MaskPainter{brush}
+, m_brush    {brush}
+{
+  setCursor(m_brush->cursor());
+
+  connect(m_brush.get(), SIGNAL(strokeStarted(Brush::Stroke,RenderView*)),
+          this,          SLOT(onStrokeStarted(Brush::Stroke,RenderView*)));
+  
+  connect(m_brush.get(), SIGNAL(strokeFinished(Brush::Stroke,RenderView*)),
+          this,          SLOT(onStrokeFinished(Brush::Stroke,RenderView*)));
+}
+
+//-----------------------------------------------------------------------------
+BrushSPtr BrushPainter::brush()
+{
+  return m_brush;
+}
+
+//-----------------------------------------------------------------------------
+void BrushPainter::onStrokeFinished(Brush::Stroke stroke, RenderView *view)
+{
+  emit stopPaining(strokeMask(stroke, m_brush->spacing(), m_brush->origin()));
+}
+
+//-----------------------------------------------------------------------------
+void BrushPainter::onStrokeStarted(Brush::Stroke stroke, RenderView *view)
+{
+  emit strokeStarted(m_brush, view);
+}
+
+//-----------------------------------------------------------------------------
+void BrushPainter::updateCursor(MaskPainter::DrawingMode mode)
+{
+
+  setCursor(m_brush->cursor());
+}
+
+//-----------------------------------------------------------------------------
+void BrushPainter::onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin)
+{
+  m_brush->setOrigin(origin);
+  m_brush->setSpacing(spacing);
+}
+
+//------------------------------------------------------------------------
+BinaryMaskSPtr<unsigned char> BrushPainter::strokeMask(const Brush::Stroke &stroke,
+                                                      const NmVector3 &spacing,
+                                                      const NmVector3 &origin) const
+{
+  Q_ASSERT(!stroke.isEmpty());
+
+  Bounds strokeBounds;
+
+  for (auto strokePoint : stroke)
+  {
+    auto strokePointBounds = strokePoint.second;
+
+    if (!strokeBounds.areValid())
+    {
+      strokeBounds = strokePointBounds;
+    }
+    else
+    {
+      strokeBounds = boundingBox(strokeBounds, strokePointBounds);
+    }
+  }
+
+  VolumeBounds maskBounds(strokeBounds, spacing, origin);
+
+  auto mask = std::make_shared<BinaryMask<unsigned char>>(maskBounds.bounds(), spacing, origin);
+
+  for (auto strokePoint : stroke)
+  {
+    BinaryMask<unsigned char>::region_iterator it(mask.get(), strokePoint.second);
+    while (!it.isAtEnd())
+    {
+      auto index = it.getIndex();
+      if (strokePoint.first->FunctionValue(index.x * spacing[0], index.y * spacing[1], index.z * spacing[2]) <= 0)
+      {
+        it.Set();
+      }
+      ++it;
+    }
+  }
+
+  auto value = (currentMode() == DrawingMode::ERASING) ? SEG_BG_VALUE : SEG_VOXEL_VALUE;
+  mask->setForegroundValue(value);
+
+  return mask;
+}

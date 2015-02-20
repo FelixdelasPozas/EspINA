@@ -51,6 +51,8 @@ namespace ESPINA
 
     virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
+    void setPlane(const Plane plane);
+
   private:
     Plane m_plane;
     ColorEngineSPtr m_colorEngine;

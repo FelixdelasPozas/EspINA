@@ -41,7 +41,8 @@
 
 namespace ESPINA
 {
-  template<typename T > class EspinaCore_EXPORT BinaryMask
+  template<typename T >
+  class EspinaCore_EXPORT BinaryMask
   {
     public:
 

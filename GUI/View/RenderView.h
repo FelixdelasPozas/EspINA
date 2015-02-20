@@ -136,7 +136,17 @@ namespace ESPINA
      * \param[out] y coordinate.
      *
      */
-    virtual void eventPosition(int &x, int &y);
+    void eventPosition(int &x, int &y);
+
+    /** \brief Returns the world coordinates of the last mouse event.
+     *
+     */
+    NmVector3 worldEventPosition();
+
+    /** \brief Returns the world coordinates of the last mouse event.
+     *
+     */
+    NmVector3 worldEventPosition(const QPoint &pos);
 
     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
      * \param[in] flags view item types to be selected.
@@ -304,6 +314,8 @@ namespace ESPINA
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
 
     virtual void configureManager(RepresentationManagerSPtr manager) {}
+
+    virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
     void notifyResolutionChange();
 

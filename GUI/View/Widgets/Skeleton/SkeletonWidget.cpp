@@ -263,16 +263,6 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void SkeletonWidget::setInUse(bool value)
-  {
-    if(m_inUse == value) return;
-
-    m_inUse = value;
-
-    emit eventHandlerInUse(value);
-  }
-
-  //-----------------------------------------------------------------------------
   void SkeletonWidget::setTolerance(const double value)
   {
     if(this->m_tolerance == value) return;

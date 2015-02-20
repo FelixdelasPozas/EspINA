@@ -32,6 +32,7 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 , m_normalRes{1}
 , m_lastCoordinate{0}
 , m_hasChanged{false}
+, m_changedTimeStamp{0}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -63,7 +64,12 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &poi
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
   m_init       = true;
-  m_hasChanged = shift != 0;
+
+  if (time > m_changedTimeStamp)
+  {
+    m_hasChanged       = shift != 0;
+    m_changedTimeStamp = time;
+  }
 
   auto invalidated = updateBuffer(point, shift, time);
 
@@ -84,7 +90,7 @@ void BufferedRepresentationPool::onSettingsChanged(const RepresentationState &se
 }
 
 //-----------------------------------------------------------------------------
-bool BufferedRepresentationPool::changed() const
+bool BufferedRepresentationPool::actorsChanged() const
 {
   return m_hasChanged;
 }
@@ -96,10 +102,7 @@ void BufferedRepresentationPool::invalidateImplementation()
   {
     m_hasChanged = true;
 
-    for (auto task : m_updateWindow.all())
-    {
-      Task::submit(task);
-    }
+    updatePipelines(m_updateWindow.all());
   }
 }
 

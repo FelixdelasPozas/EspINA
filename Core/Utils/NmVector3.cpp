@@ -65,7 +65,7 @@ NmVector3::NmVector3(std::initializer_list<Nm> values)
 
   for (auto v=values.begin(); v!=values.end(); ++v, ++i)
   {
-        m_values[i] = *v;
+    m_values[i] = *v;
   }
 }
 

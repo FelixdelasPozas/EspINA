@@ -18,6 +18,7 @@
  */
 
 #include "SliceManager.h"
+#include "RepresentationUtils.h"
 #include <GUI/View/RenderView.h>
 #include <App/ToolGroups/View/Representations/RepresentationSettings.h>
 
@@ -69,6 +70,11 @@ void SliceManager::setPlane(Plane plane)
   Q_ASSERT(Plane::UNDEFINED == m_plane);
 
   m_plane = plane;
+
+  if(validPlane())
+  {
+    RepresentationUtils::setPlane(planePool(), plane);
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -63,6 +63,7 @@ set (Support_SOURCES
   Representations/RepresentationSwitch.cpp
   Representations/Slice3DManager.cpp
   Representations/SliceManager.cpp
+  Representations/RepresentationUtils.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp

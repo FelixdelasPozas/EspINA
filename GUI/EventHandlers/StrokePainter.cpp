@@ -1,0 +1,173 @@
+/*
+ * <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+#include "StrokePainter.h"
+
+#include <GUI/View/RenderView.h>
+#include "GUI/View/View2D.h"
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+
+#include <vtkLookupTable.h>
+#include <vtkImplicitFunction.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapper3D.h>
+#include <chrono>
+using namespace ESPINA;
+
+//------------------------------------------------------------------------
+StrokePainter::StrokePainter(const NmVector3 &spacing,
+                             const NmVector3 &origin,
+                             RenderView      *view,
+                             Brush           *brush)
+: m_view   {view}
+, m_origin {origin}
+, m_spacing{spacing}
+{
+  m_previewBounds = view->previewBounds(false);
+
+  auto brushColor = brush->color();
+
+  m_lut = vtkSmartPointer<vtkLookupTable>::New();
+  m_lut->Allocate();
+  m_lut->SetNumberOfTableValues(2);
+  m_lut->Build();
+  m_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  m_lut->SetTableValue(1, brushColor.redF(), brushColor.greenF(), brushColor.blueF(), brushColor.alphaF());
+  m_lut->Modified();
+
+  int extent[6];
+
+  auto view2d = view2D_cast(view);
+  Q_ASSERT(view2d);
+
+  for (int i = 0; i < 3; ++i)
+  {
+    // TODO adjust origin
+    extent[2*i]     = m_previewBounds[2*i]     / spacing[i];
+    extent[2*i + 1] = m_previewBounds[2*i + 1] / spacing[i];
+  }
+
+  m_preview = vtkSmartPointer<vtkImageData>::New();
+  m_preview->SetOrigin(0, 0, 0);
+  m_preview->SetExtent(extent);
+  m_preview->SetSpacing(spacing[0], spacing[1], spacing[2]);
+
+  auto info = m_preview->GetInformation();
+  vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
+  vtkImageData::SetNumberOfScalarComponents(1, info);
+  m_preview->SetInformation(info);
+  m_preview->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  m_preview->Modified();
+
+  auto imagePointer = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer());
+  memset(imagePointer, 0, m_preview->GetNumberOfPoints());
+
+  m_preview->Modified();
+  m_preview->GetExtent(extent);
+
+  m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
+  m_mapToColors->SetInputData(m_preview);
+  m_mapToColors->SetUpdateExtent(extent);
+  m_mapToColors->SetLookupTable(m_lut);
+  m_mapToColors->SetNumberOfThreads(1);
+  m_mapToColors->Update();
+
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
+  m_actor->SetPickable(false);
+  m_actor->SetDisplayExtent(extent);
+  m_actor->SetInterpolate(false);
+  m_actor->GetMapper()->SetNumberOfThreads(1);
+  m_actor->GetMapper()->BorderOn();
+  m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
+  m_actor->GetMapper()->SetUpdateExtent(extent);
+  m_actor->Update();
+
+  // preview actor must be above others or it will be occluded
+  double pos[3];
+  m_actor->GetPosition(pos);
+  pos[normalCoordinateIndex(view2d->plane())] += 2 * view2d->segmentationDepth();
+  m_actor->SetPosition(pos);
+
+  connect(brush, SIGNAL(strokeStarted(Brush::Stroke,RenderView*)),
+          this,  SLOT(onStroke(Brush::Stroke)));
+
+  connect(brush, SIGNAL(strokeUpdated(Brush::Stroke)),
+          this,  SLOT(onStroke(Brush::Stroke)));
+
+  connect(brush, SIGNAL(strokeFinished(Brush::Stroke,RenderView*)),
+          this,  SLOT(onStroke(Brush::Stroke)));
+}
+
+//------------------------------------------------------------------------
+vtkSmartPointer<vtkProp> StrokePainter::strokeActor() const
+{
+  return m_actor;
+}
+
+//------------------------------------------------------------------------
+void StrokePainter::onStroke(Brush::Stroke stroke)
+{
+  qDebug() << "Updating brush stroke:" << stroke.size();
+
+  int extent[6];
+  m_preview->GetExtent(extent);
+
+  std::chrono::high_resolution_clock::time_point start;
+  unsigned long total = 0;
+  unsigned long voxels = 0;
+  for (auto brush: stroke)
+  {
+    start = std::chrono::high_resolution_clock::now();
+
+    auto pointBounds = intersection(m_previewBounds, brush.second);
+    auto region      = equivalentRegion<itkVolumeType>(m_origin, m_spacing, pointBounds);
+    auto tempImage   = define_itkImage<itkVolumeType>(m_origin, m_spacing);
+    tempImage->SetRegions(region);
+
+    auto size = region.GetSize();
+    voxels = size[0]*size[1]*size[2];
+
+    itk::ImageRegionIteratorWithIndex<itkVolumeType> it(tempImage, region);
+    it.GoToBegin();
+    while(!it.IsAtEnd())
+    {
+      auto index = it.GetIndex();
+
+      if (!(index[0] < extent[0] || index[0] > extent[1] || index[1] < extent[2] || index[1] > extent[3] || index[2] < extent[4] || index[2] > extent[5])
+        && (brush.first->FunctionValue(index[0] * m_spacing[0], index[1] * m_spacing[1], index[2] * m_spacing[2]) <= 0))
+      {
+        auto pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(index[0],index[1], index[2]));
+        *pixel     = 1;
+      }
+
+      ++it;
+    }
+
+    total += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+  }
+
+  qDebug() << "voxels" << voxels << "total time (ms)" << total << "time per point:" << total/stroke.size() << "time per voxel:"<< total/stroke.size()/voxels;
+
+  m_preview->Modified();
+  m_mapToColors->Update();
+  m_actor->Update();
+  m_view->updateView();
+}
+

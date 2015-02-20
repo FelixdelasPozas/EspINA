@@ -123,6 +123,12 @@ namespace ESPINA
     Plane plane() const
     { return m_plane; }
 
+    /** \brief Returns scale of the view given by world position / display pixels
+     *
+     */
+    double scale() const
+    { return m_scale; }
+
     virtual void reset();
 
     virtual void resetCamera();
@@ -243,6 +249,8 @@ namespace ESPINA
 
     virtual void configureManager(RepresentationManagerSPtr manager);
 
+    virtual void normalizeWorldPosition(NmVector3 &point) const;
+
     /** \brief Shows tool tip for segmentations at position (x, y)
      * \param[in] x DISPLAY coordinate.
      * \param[in] y DISPLAY coordinate.
@@ -354,6 +362,8 @@ namespace ESPINA
 
     bool isCrosshairVisible() const;
 
+    void updateScale();
+
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point);
 
@@ -418,9 +428,10 @@ namespace ESPINA
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool  m_sceneReady;
-    Plane m_plane;
-    int   m_normalCoord;
+    bool   m_sceneReady;
+    Plane  m_plane;
+    double m_scale;
+    int    m_normalCoord;
 
     bool  m_fitToSlices;
     bool  m_invertSliceOrder;

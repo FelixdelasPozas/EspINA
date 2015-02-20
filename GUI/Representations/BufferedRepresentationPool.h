@@ -48,7 +48,7 @@ namespace ESPINA
 
     virtual void onSettingsChanged(const RepresentationState &settings) override;
 
-    virtual bool changed() const override;
+    virtual bool actorsChanged() const override;
 
     virtual void invalidateImplementation() override;
 
@@ -79,7 +79,9 @@ namespace ESPINA
     bool m_init;
     Nm   m_normalRes;
     Nm   m_lastCoordinate;
-    bool m_hasChanged;
+
+    bool      m_hasChanged;
+    TimeStamp m_changedTimeStamp;
   };
 }
 

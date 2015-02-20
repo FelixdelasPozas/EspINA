@@ -61,30 +61,13 @@ namespace ESPINA
      */
     virtual ~ZoomSelectionWidget();
 
-    /** \brief Implements EspinaWidget::registerView().
-     *
-     */
     virtual void registerView(RenderView *);
 
-    /** \brief Implements EspinaWidget::unregisterView().
-     *
-     */
     virtual void unregisterView(RenderView *);
 
-    /** \brief Implements EspinaWidget::setEnabled()
-     *
-     */
     virtual void setEnabled(bool enable);
 
-    /** \brief Overrides EventHandler::filterEvent
-     *
-     */
     bool filterEvent(QEvent *e, RenderView *view) override;
-
-    /** \brief Overrides EventHandler::setInUse().
-     *
-     */
-    void setInUse(bool value) override;
 
   private:
     friend class vtkZoomCommand;

@@ -42,7 +42,7 @@ class ViewItemAdapter;
   class RepresentationPipeline
   {
   public:
-    using Type       = QString;
+    using Type      = QString;
     using VTKActor  = vtkSmartPointer<vtkProp>;
     using ActorList = QList<VTKActor>;
     using Actors    = QMap<ViewItemAdapter*, ActorList>;
@@ -82,6 +82,9 @@ class ViewItemAdapter;
 
   protected:
     explicit RepresentationPipeline(Type type);
+
+    void setType(const Type &type)
+    { m_type = type; }
 
   private:
     Type m_type;
