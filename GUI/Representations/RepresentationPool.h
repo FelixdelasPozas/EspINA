@@ -149,6 +149,8 @@ namespace ESPINA
     void onSourceUpdated (ViewItemAdapterPtr source);
     void onSourcesUpdated(ViewItemAdapterList sources);
 
+    void onRepresentationsInvalidated(ViewItemAdapterPtr item);
+
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
@@ -159,6 +161,10 @@ namespace ESPINA
     virtual bool actorsChanged() const = 0;
 
     virtual void invalidateImplementation() = 0;
+
+    virtual void invalidateRepresentations(ViewItemAdapterPtr item) = 0;
+
+//     virtual void invalidateRepresentations(ViewItemAdapterList items) = 0;
 
     void invalidateActors();
 

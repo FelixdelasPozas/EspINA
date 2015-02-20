@@ -35,16 +35,20 @@ namespace ESPINA
 
     BrushSPtr brush();
 
+    void setStrokeVisibility(bool value);
+
+    StrokePainterSPtr strokePainter();
+
   signals:
-    void strokeStarted(BrushSPtr brush, RenderView *view);
+    void strokeStarted(BrushPainter *painter, RenderView *view);
 
   private slots:
-    void onStrokeStarted(Brush::Stroke stroke, RenderView *view);
+    void onStrokeStarted(RenderView *view);
 
     void onStrokeFinished(Brush::Stroke stroke, RenderView *view);
 
   private:
-    virtual void updateCursor(MaskPainter::DrawingMode mode) override;
+    virtual void updateCursor(DrawingMode mode) override;
 
     virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin = NmVector3());
 
@@ -54,8 +58,9 @@ namespace ESPINA
                                              const NmVector3     &origin) const;
 
   private:
-    BrushSPtr m_brush;
-
+    BrushSPtr         m_brush;
+    StrokePainterSPtr m_strokePainter;
+    bool              m_showStroke;
   };
 
   using BrushPainterSPtr = std::shared_ptr<BrushPainter>;

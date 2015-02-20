@@ -35,7 +35,6 @@ MaskPainter::MaskPainter(PointTrackerSPtr handler)
 bool MaskPainter::filterEvent(QEvent *e, RenderView *view)
 {
   QKeyEvent   *ke = nullptr;
-  QMouseEvent *me = nullptr;
 
   switch(e->type())
   {
@@ -77,6 +76,22 @@ void MaskPainter::setCanErase(bool value)
 }
 
 //------------------------------------------------------------------------
+void MaskPainter::setDrawingMode(const DrawingMode mode)
+{
+  m_mode = mode;
+
+  updateCursor(m_mode);
+}
+
+//------------------------------------------------------------------------
+void MaskPainter::setColor(const QColor &color)
+{
+  m_color = color;
+
+  updateCursor(m_mode);
+}
+
+//------------------------------------------------------------------------
 void MaskPainter::updateDrawingMode()
 {
   auto mode = currentMode();
@@ -93,7 +108,7 @@ bool MaskPainter::ShiftKeyIsDown() const
 }
 
 //------------------------------------------------------------------------
-MaskPainter::DrawingMode MaskPainter::currentMode() const
+DrawingMode MaskPainter::currentMode() const
 {
   DrawingMode mode = m_mode;
 

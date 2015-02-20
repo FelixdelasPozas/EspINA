@@ -145,6 +145,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edition/CODEHistoryWidget.cpp
   ToolGroups/Edition/CODETool.cpp
   ToolGroups/Edition/EditionTools.cpp
+  ToolGroups/Edition/SliceEditionPipeline.cpp
   ToolGroups/Edition/ManualEditionTool.cpp
   ToolGroups/Edition/MorphologicalEditionTool.cpp
   ToolGroups/Edition/SplitTool.cpp

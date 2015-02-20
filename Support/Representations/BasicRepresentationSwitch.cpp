@@ -27,8 +27,8 @@ using namespace ESPINA;
 BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr manager,
                                                      ViewTypeFlags             supportedViews)
 : m_manager(manager)
-, m_flags(supportedViews)
 , m_isActive(false)
+, m_flags(supportedViews)
 {
 
 }

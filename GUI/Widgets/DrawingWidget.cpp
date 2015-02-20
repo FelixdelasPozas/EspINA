@@ -23,7 +23,6 @@
 #include "CategorySelector.h"
 #include "SliderAction.h"
 
-#include <GUI/EventHandlers/CircularPainter.h>
 #include <GUI/EventHandlers/CircularBrush.h>
 #include <Support/Settings/EspinaSettings.h>
 
@@ -92,7 +91,10 @@ DrawingWidget::~DrawingWidget()
 //------------------------------------------------------------------------
 void DrawingWidget::setDrawingColor(const QColor &color)
 {
-
+  for (auto painter : m_painters)
+  {
+    painter->setColor(color);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -133,9 +135,7 @@ void DrawingWidget::setCategory(CategoryAdapterSPtr category)
 {
   if (m_categorySelector->selectedCategory() != category)
   {
-    m_categorySelector->blockSignals(true);
     m_categorySelector->selectCategory(category);
-    m_categorySelector->blockSignals(false);
   }
 }
 
@@ -231,6 +231,7 @@ void DrawingWidget::initPainters()
                                            m_sphericalPainter);
 
 
+  m_currentPainter = m_circularPainter;
   m_painterSelector->setDefaultAction(m_circularPainterAction);
 
   connect(m_painterSelector, SIGNAL(triggered(QAction*)),
@@ -275,8 +276,8 @@ QAction *DrawingWidget::registerBrush(const QIcon     &icon,
 //   connect(painter.get(), SIGNAL(radiusChanged(int)),
 //           this,          SLOT(  radiusChanged(int)));
 
-  connect(painter.get(), SIGNAL(strokeStarted(BrushSPtr, RenderView*)),
-          this,          SIGNAL(strokeStarted(BrushSPtr, RenderView *)));
+  connect(painter.get(), SIGNAL(strokeStarted(BrushPainter *, RenderView*)),
+          this,          SIGNAL(strokeStarted(BrushPainter *, RenderView *)));
 
   return action;
 }
@@ -301,8 +302,8 @@ void DrawingWidget::setControlVisibility(bool visible)
 //       m_categorySelector->blockSignals(false);
 //     }
 //
-//     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-//             this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
+    connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+            this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
 //   } else {
 //     disconnect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
 //                this,               SLOT(  categoryChanged(CategoryAdapterSPtr)));
@@ -350,8 +351,13 @@ void DrawingWidget::setCanErase(bool value)
 //------------------------------------------------------------------------
 void DrawingWidget::setEraserMode(bool value)
 {
-  // TODO  m_currentPainter->setEraseMode(value);
+  if (m_currentPainter)
+  {
+    m_currentPainter->setDrawingMode(value?DrawingMode::ERASING:DrawingMode::PAINTING);
+  }
+
   drawingModeChanged(!value);
+
   m_eraserWidget->blockSignals(true);
   m_eraserWidget->setChecked(value);
   m_eraserWidget->blockSignals(false);
@@ -404,27 +410,25 @@ void DrawingWidget::selectorInUse(bool value)
 //-----------------------------------------------------------------------------
 void DrawingWidget::categoryChanged(CategoryAdapterSPtr unused)
 {
-// // // //   if (m_categorySelector)
-// // // //   {
-// // // //     m_eraserWidget->setChecked(false);
-// // // //
-// // // //     if(m_viewManager->activeChannel() == nullptr)
-// // // //       return;
-// // // //
-// // // //     ChannelAdapterList channels;
-// // // //     channels << m_viewManager->activeChannel();
-// // // //
-// // // //     if(!channels.empty())
-// // // //     {
-// // // //       auto selection = m_viewManager->selection();
-// // // //       selection->clear();
-// // // //       selection->set(channels);
-// // // //     }
-// // // //   }
+// // //   if (m_categorySelector)
+// // //   {
+// // //     m_eraserWidget->setChecked(false);
+// // //
+// // //     if(m_viewManager->activeChannel() == nullptr)
+// // //       return;
+// // //
+// // //     ChannelAdapterList channels;
+// // //     channels << m_viewManager->activeChannel();
+// // //
+// // //     if(!channels.empty())
+// // //     {
+// // //       auto selection = m_viewManager->selection();
+// // //       selection->clear();
+// // //       selection->set(channels);
+// // //     }
+// // //   }
 
-//   auto category = m_categorySelector->selectedCategory();
-//
-//   m_circularBrushSelector ->setBrushColor(category->color());
-//   m_sphericalBrushSelector->setBrushColor(category->color());
-  //TODO updateReferenceItem();
+  auto category = m_categorySelector->selectedCategory();
+
+  setDrawingColor(category->color());
 }

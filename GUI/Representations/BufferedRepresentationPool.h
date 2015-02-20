@@ -52,6 +52,8 @@ namespace ESPINA
 
     virtual void invalidateImplementation() override;
 
+    virtual void invalidateRepresentations(ViewItemAdapterPtr item) override;
+
     void updatePriorities();
 
     int distanceFromLastCrosshair(const NmVector3 &crosshair);

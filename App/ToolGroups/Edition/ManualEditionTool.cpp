@@ -87,6 +87,7 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
 , m_drawingWidget       {model, viewManager}
 , m_mode                {Mode::CREATION}
 , m_referenceItem       {nullptr}
+, m_validStroke         {true}
 , m_enabled             {false}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
@@ -98,8 +99,8 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
           this,                             SLOT(updateReferenceItem()));
 
-  connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushSPtr, RenderView*)),
-          this,             SLOT(onStrokeStarted(BrushSPtr, RenderView*)));
+  connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
+          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
 
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
@@ -169,7 +170,7 @@ void ManualEditionTool::updateReferenceItem()
     m_drawingWidget.setCategory(category);
     m_drawingWidget.clearBrushImage();
 
-    m_mode          = Mode::CREATION;
+    m_mode          = Mode::EDITION;
     m_referenceItem = segmentation;
   }
 
@@ -302,34 +303,67 @@ void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   m_viewManager->selection()->clear();
   m_viewManager->selection()->set(list);
 
+  m_mode          = Mode::EDITION;
   m_referenceItem = segmentation.get();
 }
 
 //------------------------------------------------------------------------
 void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
+    m_referenceItem->clearTemporalRepresentation();
+
     auto segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem));
     m_undoStack->beginMacro(tr("Modify Segmentation"));
     m_undoStack->push(new DrawUndoCommand(segmentation, mask));
     m_undoStack->endMacro();
+
+    m_referenceItem->invalidateRepresentations();
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::onStrokeStarted(BrushSPtr brush, RenderView *view)
+void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
 {
-//   m_strokePainter = std::make_shared<StrokePainter>(m_referenceItem, view, m_selectedBrush);
-//
-//   auto actor = m_strokePainter->strokeActor();
-//
   auto showStroke = isCreationMode();
-  brush->setStrokeVisibility(showStroke);
+
+  painter->setStrokeVisibility(showStroke);
 
   if (!showStroke)
   {
-//     m_temporalPipeline = std::make_shared<ManualEditionPipeline>();
-//     m_temporalPipeline->setTemporalActor(actor);
-//     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
-//     m_referenceItem->invalidateRepresentations();
+    auto volume = volumetricData(m_referenceItem->output());
+    auto bounds = intersection(volume->bounds(), view->previewBounds(false), volume->spacing());
+
+    auto strokePainter = painter->strokePainter();
+
+    auto canvas = strokePainter->strokeCanvas();
+    auto actor  = strokePainter->strokeActor();
+
+    m_validStroke = bounds.areValid();
+
+    if (m_validStroke)
+    {
+      auto slice = volume->itkImage(bounds);
+
+      itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
+      it.GoToBegin();
+
+      while(!it.IsAtEnd())
+      {
+        auto index = it.GetIndex();
+
+        if(it.Value() == SEG_VOXEL_VALUE)
+        {
+          auto pixel = static_cast<unsigned char*>(canvas->GetScalarPointer(index[0],index[1], index[2]));
+          *pixel     = 1;
+        }
+        ++it;
+      }
+    }
+
+    m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_viewManager->colorEngine());
+
+    m_temporalPipeline->setTemporalActor(actor, view);
+    m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
+    m_referenceItem->invalidateRepresentations();
   }
 
 }
@@ -343,9 +377,6 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
   }
   else
   {
-    m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
     modifySegmentation(mask);
   }
-
-  m_strokePainter.reset();
 }

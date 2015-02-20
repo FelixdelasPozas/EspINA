@@ -128,6 +128,8 @@ namespace ESPINA {
 
     void setTemporalRepresentation(RepresentationPipelineSPtr pipeline);
 
+    void clearTemporalRepresentation();
+
     RepresentationPipelineSPtr temporalRepresentation() const;
 
     void invalidateRepresentations();
@@ -135,9 +137,9 @@ namespace ESPINA {
   signals:
     void outputModified();
 
-    void outputChanged(ViewItemAdapterPtr);
+    void outputChanged(ViewItemAdapterPtr item);
 
-    void representationsInvalidated();
+    void representationsInvalidated(ViewItemAdapterPtr item);
 
   protected:
     /** \brief ViewItemAdapter class constructor.

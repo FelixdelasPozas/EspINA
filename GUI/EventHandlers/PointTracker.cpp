@@ -113,6 +113,7 @@ void PointTracker::startTrack(const QPoint &pos, RenderView *view)
 void PointTracker::updateTrack(const QPoint &pos)
 {
   m_updatedTrack.clear();
+
   m_updatedTrack << interpolate(m_track.last(), m_view->worldEventPosition(pos));
 
   // TODO: filter some signals emissions.
@@ -125,7 +126,7 @@ void PointTracker::updateTrack(const QPoint &pos)
 //------------------------------------------------------------------------
 void PointTracker::stopTrack(const QPoint &pos)
 {
-  m_track << m_view->worldEventPosition(pos);
+  updateTrack(pos);
 
   emit trackStopped(m_track, m_view);
 }

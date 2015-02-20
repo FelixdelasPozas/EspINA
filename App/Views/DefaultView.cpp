@@ -90,9 +90,9 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 
 
   m_viewManager->registerView(m_viewXY);
-  m_viewManager->registerView(m_viewXZ);
-  m_viewManager->registerView(m_viewYZ);
-  m_viewManager->registerView(m_view3D);
+//   m_viewManager->registerView(m_viewXZ);
+//   m_viewManager->registerView(m_viewYZ);
+//   m_viewManager->registerView(m_view3D);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);

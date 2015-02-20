@@ -22,6 +22,7 @@
 
 #include <GUI/EventHandlers/PointTracker.h>
 #include <Core/Utils/BinaryMask.hxx>
+#include "StrokePainter.h"
 
 namespace ESPINA
 {
@@ -30,16 +31,15 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    enum class DrawingMode : int8_t
-    {
-      PAINTING,
-      ERASING
-    };
 
   public:
     virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
 
     void setCanErase(bool value);
+
+    void setDrawingMode(const DrawingMode mode);
+
+    void setColor(const QColor &color);
 
     PointTrackerSPtr pointTracker() const;
 
@@ -68,7 +68,7 @@ namespace ESPINA
      */
     inline bool ShiftKeyIsDown() const;
 
-    virtual void updateCursor(MaskPainter::DrawingMode mode) = 0;
+    virtual void updateCursor(DrawingMode mode) = 0;
 
     virtual void onMaskPropertiesChanged(const NmVector3 &spacing, const NmVector3 &origin=NmVector3()) = 0;
 
@@ -76,10 +76,12 @@ namespace ESPINA
     NmVector3 m_origin;
     NmVector3 m_spacing;
 
+    QColor    m_color;
+
   private:
     PointTrackerSPtr m_tracker;
 
-    bool m_canErase;
+    bool        m_canErase;
     DrawingMode m_mode;
   };
 

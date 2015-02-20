@@ -148,7 +148,7 @@ namespace ESPINA
     void stopDrawing();
 
   signals:
-    void strokeStarted(BrushSPtr brush, RenderView *view);
+    void strokeStarted(BrushPainter *painter, RenderView *view);
 
     void maskPainted(BinaryMaskSPtr<unsigned char> mask);
 

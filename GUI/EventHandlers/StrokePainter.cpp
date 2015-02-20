@@ -35,10 +35,12 @@ using namespace ESPINA;
 StrokePainter::StrokePainter(const NmVector3 &spacing,
                              const NmVector3 &origin,
                              RenderView      *view,
+                             DrawingMode      mode,
                              Brush           *brush)
 : m_view   {view}
 , m_origin {origin}
 , m_spacing{spacing}
+, m_strokeValue(DrawingMode::PAINTING==mode?1:0)
 {
   m_previewBounds = view->previewBounds(false);
 
@@ -64,26 +66,26 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
     extent[2*i + 1] = m_previewBounds[2*i + 1] / spacing[i];
   }
 
-  m_preview = vtkSmartPointer<vtkImageData>::New();
-  m_preview->SetOrigin(0, 0, 0);
-  m_preview->SetExtent(extent);
-  m_preview->SetSpacing(spacing[0], spacing[1], spacing[2]);
+  m_strokeCanvas = vtkSmartPointer<vtkImageData>::New();
+  m_strokeCanvas->SetOrigin(0, 0, 0);
+  m_strokeCanvas->SetExtent(extent);
+  m_strokeCanvas->SetSpacing(spacing[0], spacing[1], spacing[2]);
 
-  auto info = m_preview->GetInformation();
+  auto info = m_strokeCanvas->GetInformation();
   vtkImageData::SetScalarType(VTK_UNSIGNED_CHAR, info);
   vtkImageData::SetNumberOfScalarComponents(1, info);
-  m_preview->SetInformation(info);
-  m_preview->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  m_preview->Modified();
+  m_strokeCanvas->SetInformation(info);
+  m_strokeCanvas->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+  m_strokeCanvas->Modified();
 
-  auto imagePointer = reinterpret_cast<unsigned char *>(m_preview->GetScalarPointer());
-  memset(imagePointer, 0, m_preview->GetNumberOfPoints());
+  auto imagePointer = reinterpret_cast<unsigned char *>(m_strokeCanvas->GetScalarPointer());
+  memset(imagePointer, 0, m_strokeCanvas->GetNumberOfPoints());
 
-  m_preview->Modified();
-  m_preview->GetExtent(extent);
+  m_strokeCanvas->Modified();
+  m_strokeCanvas->GetExtent(extent);
 
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
-  m_mapToColors->SetInputData(m_preview);
+  m_mapToColors->SetInputData(m_strokeCanvas);
   m_mapToColors->SetUpdateExtent(extent);
   m_mapToColors->SetLookupTable(m_lut);
   m_mapToColors->SetNumberOfThreads(1);
@@ -105,14 +107,14 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
   pos[normalCoordinateIndex(view2d->plane())] += 2 * view2d->segmentationDepth();
   m_actor->SetPosition(pos);
 
-  connect(brush, SIGNAL(strokeStarted(Brush::Stroke,RenderView*)),
-          this,  SLOT(onStroke(Brush::Stroke)));
-
   connect(brush, SIGNAL(strokeUpdated(Brush::Stroke)),
           this,  SLOT(onStroke(Brush::Stroke)));
+}
 
-  connect(brush, SIGNAL(strokeFinished(Brush::Stroke,RenderView*)),
-          this,  SLOT(onStroke(Brush::Stroke)));
+//------------------------------------------------------------------------
+vtkSmartPointer<vtkImageData> StrokePainter::strokeCanvas() const
+{
+  return m_strokeCanvas;
 }
 
 //------------------------------------------------------------------------
@@ -127,22 +129,22 @@ void StrokePainter::onStroke(Brush::Stroke stroke)
   qDebug() << "Updating brush stroke:" << stroke.size();
 
   int extent[6];
-  m_preview->GetExtent(extent);
+  m_strokeCanvas->GetExtent(extent);
 
-  std::chrono::high_resolution_clock::time_point start;
-  unsigned long total = 0;
-  unsigned long voxels = 0;
+//   std::chrono::high_resolution_clock::time_point start;
+//   unsigned long total = 0;
+//   unsigned long voxels = 0;
   for (auto brush: stroke)
   {
-    start = std::chrono::high_resolution_clock::now();
+//     start = std::chrono::high_resolution_clock::now();
 
     auto pointBounds = intersection(m_previewBounds, brush.second);
     auto region      = equivalentRegion<itkVolumeType>(m_origin, m_spacing, pointBounds);
     auto tempImage   = define_itkImage<itkVolumeType>(m_origin, m_spacing);
     tempImage->SetRegions(region);
 
-    auto size = region.GetSize();
-    voxels = size[0]*size[1]*size[2];
+//     auto size = region.GetSize();
+//     voxels = size[0]*size[1]*size[2];
 
     itk::ImageRegionIteratorWithIndex<itkVolumeType> it(tempImage, region);
     it.GoToBegin();
@@ -153,19 +155,19 @@ void StrokePainter::onStroke(Brush::Stroke stroke)
       if (!(index[0] < extent[0] || index[0] > extent[1] || index[1] < extent[2] || index[1] > extent[3] || index[2] < extent[4] || index[2] > extent[5])
         && (brush.first->FunctionValue(index[0] * m_spacing[0], index[1] * m_spacing[1], index[2] * m_spacing[2]) <= 0))
       {
-        auto pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(index[0],index[1], index[2]));
-        *pixel     = 1;
+        auto pixel = static_cast<unsigned char*>(m_strokeCanvas->GetScalarPointer(index[0],index[1], index[2]));
+        *pixel     = m_strokeValue;
       }
 
       ++it;
     }
 
-    total += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+//     total += std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
   }
 
-  qDebug() << "voxels" << voxels << "total time (ms)" << total << "time per point:" << total/stroke.size() << "time per voxel:"<< total/stroke.size()/voxels;
+//   qDebug() << "voxels" << voxels << "total time (ms)" << total << "time per point:" << total/stroke.size() << "time per voxel:"<< total/stroke.size()/voxels;
 
-  m_preview->Modified();
+  m_strokeCanvas->Modified();
   m_mapToColors->Update();
   m_actor->Update();
   m_view->updateView();

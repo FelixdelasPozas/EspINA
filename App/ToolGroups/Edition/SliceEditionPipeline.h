@@ -19,16 +19,19 @@
 
 #ifndef ESPINA_MANUALEDITIONPIPELINE_H
 #define ESPINA_MANUALEDITIONPIPELINE_H
+
 #include <GUI/Representations/RepresentationPipeline.h>
 #include <ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.h>
 
 namespace ESPINA
 {
-  class ManualEditionPipeline
+
+class RenderView;
+  class SliceEditionPipeline
   : public RepresentationPipeline
   {
   public:
-    explicit ManualEditionPipeline(ColorEngineSPtr colorEngine);
+    explicit SliceEditionPipeline(ColorEngineSPtr colorEngine);
 
     virtual RepresentationState representationState(const ViewItemAdapter *item, const RepresentationState &settings);
 
@@ -36,14 +39,16 @@ namespace ESPINA
 
     virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
-    void setTemporalActor(VTKActor actor);
+    void setTemporalActor(VTKActor actor, RenderView *view);
 
   private:
-    VTKActor m_actor;
+    Plane     m_plane;
+    NmVector3 m_crosshair;
+    VTKActor  m_actor;
     SegmentationSlicePipeline m_slicePipeline;
   };
 
-  using ManualEditionPipelineSPtr = std::shared_ptr<ManualEditionPipeline>;
+  using SliceEditionPipelineSPtr = std::shared_ptr<SliceEditionPipeline>;
 }
 
 #endif // ESPINA_MANUALEDITIONPIPELINE_H

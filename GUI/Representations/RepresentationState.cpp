@@ -92,7 +92,7 @@ void ESPINA::setCrosshairPoint(const NmVector3 &point, RepresentationState &stat
 //----------------------------------------------------------------------------
 NmVector3 ESPINA::crosshairPoint(const RepresentationState &state)
 {
-  NmVector3   crosshair;
+  NmVector3 crosshair;
 
   crosshair[0] = state.getValue<double>(CROSSHAIR_X);
   crosshair[1] = state.getValue<double>(CROSSHAIR_Y);

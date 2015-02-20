@@ -41,7 +41,7 @@ SegmentationSliceRepresentationFactory::SegmentationSliceRepresentationFactory(S
 //----------------------------------------------------------------------------
 Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentation(ColorEngineSPtr colorEngine) const
 {
-  const unsigned WINDOW_SIZE = 10;
+  const unsigned WINDOW_SIZE = 1;
 
   Representation representation;
 

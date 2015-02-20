@@ -18,19 +18,21 @@
  */
 
 #include "BrushPainter.h"
+#include <GUI/View/RenderView.h>
 #include <vtkImplicitFunction.h>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 BrushPainter::BrushPainter(BrushSPtr brush)
-: MaskPainter{brush}
-, m_brush    {brush}
+: MaskPainter {brush}
+, m_brush     {brush}
+, m_showStroke{true}
 {
   setCursor(m_brush->cursor());
 
-  connect(m_brush.get(), SIGNAL(strokeStarted(Brush::Stroke,RenderView*)),
-          this,          SLOT(onStrokeStarted(Brush::Stroke,RenderView*)));
+  connect(m_brush.get(), SIGNAL(strokeStarted(RenderView*)),
+          this,          SLOT(onStrokeStarted(RenderView*)));
   
   connect(m_brush.get(), SIGNAL(strokeFinished(Brush::Stroke,RenderView*)),
           this,          SLOT(onStrokeFinished(Brush::Stroke,RenderView*)));
@@ -43,20 +45,58 @@ BrushSPtr BrushPainter::brush()
 }
 
 //-----------------------------------------------------------------------------
+void BrushPainter::setStrokeVisibility(bool value)
+{
+  m_showStroke = value;
+}
+
+//-----------------------------------------------------------------------------
+StrokePainterSPtr BrushPainter::strokePainter()
+{
+  return m_strokePainter;
+}
+
+//-----------------------------------------------------------------------------
 void BrushPainter::onStrokeFinished(Brush::Stroke stroke, RenderView *view)
 {
+  if (m_showStroke)
+  {
+    view->removeActor(m_strokePainter->strokeActor());
+  }
+
+  m_strokePainter.reset();
+
   emit stopPaining(strokeMask(stroke, m_brush->spacing(), m_brush->origin()));
 }
 
 //-----------------------------------------------------------------------------
-void BrushPainter::onStrokeStarted(Brush::Stroke stroke, RenderView *view)
+void BrushPainter::onStrokeStarted(RenderView *view)
 {
-  emit strokeStarted(m_brush, view);
+
+  m_strokePainter = std::make_shared<StrokePainter>(m_spacing, m_origin, view,
+                                                    currentMode(), m_brush.get());
+
+  emit strokeStarted(this, view);
+
+  if (m_showStroke)
+  {
+    view->addActor(m_strokePainter->strokeActor());
+  }
 }
 
 //-----------------------------------------------------------------------------
-void BrushPainter::updateCursor(MaskPainter::DrawingMode mode)
+void BrushPainter::updateCursor(DrawingMode mode)
 {
+  m_brush->setColor(m_color);
+
+  if (DrawingMode::PAINTING == mode)
+  {
+    m_brush->setBorderColor(Qt::blue);
+  }
+  else
+  {
+    m_brush->setBorderColor(Qt::red);
+  }
 
   setCursor(m_brush->cursor());
 }

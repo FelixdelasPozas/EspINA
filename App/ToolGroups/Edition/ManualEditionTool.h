@@ -29,7 +29,7 @@
 #include <GUI/EventHandlers/Brush.h>
 #include <GUI/EventHandlers/StrokePainter.h>
 #include <GUI/Widgets/DrawingWidget.h>
-#include "ManualEditionPipeline.h"
+#include "SliceEditionPipeline.h"
 
 class QUndoStack;
 
@@ -113,7 +113,7 @@ namespace ESPINA
     bool isCreationMode() const;
 
   private slots:
-    void onStrokeStarted(BrushSPtr brush, RenderView *view);
+    void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
     void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
@@ -129,9 +129,8 @@ namespace ESPINA
     Mode                      m_mode;
     ViewItemAdapterPtr        m_referenceItem;
 
-    ManualEditionPipelineSPtr m_temporalPipeline;
-    BrushSPtr                 m_selectedBrush;
-    StrokePainterSPtr         m_strokePainter;
+    bool                      m_validStroke;
+    SliceEditionPipelineSPtr  m_temporalPipeline;
 
     bool m_enabled;
   };

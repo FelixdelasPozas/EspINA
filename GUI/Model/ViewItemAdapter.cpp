@@ -44,6 +44,12 @@ void ViewItemAdapter::setTemporalRepresentation(RepresentationPipelineSPtr pipel
 }
 
 //------------------------------------------------------------------------
+void ViewItemAdapter::clearTemporalRepresentation()
+{
+  m_temporalRepresentation.reset();
+}
+
+//------------------------------------------------------------------------
 RepresentationPipelineSPtr ViewItemAdapter::temporalRepresentation() const
 {
   return m_temporalRepresentation;
@@ -52,7 +58,7 @@ RepresentationPipelineSPtr ViewItemAdapter::temporalRepresentation() const
 //------------------------------------------------------------------------
 void ViewItemAdapter::invalidateRepresentations()
 {
-  emit representationsInvalidated();
+  emit representationsInvalidated(this);
 }
 
 //------------------------------------------------------------------------

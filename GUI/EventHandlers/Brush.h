@@ -31,8 +31,6 @@ class vtkImplicitFunction;
 
 namespace ESPINA
 {
-  class StrokePainter;
-
   class Brush
   : public PointTracker
   {
@@ -60,23 +58,18 @@ namespace ESPINA
 
     int radius() const;
 
-
-//     void showStroke(spacing, origin);
-//     void hideStroke();
-    void setSpacing(const NmVector3 &spacing);
-
-    NmVector3 spacing() const;
-
     void setOrigin(const NmVector3 &origin);
 
     NmVector3 origin() const;
 
-    void setStrokeVisibility(bool visible);
+    void setSpacing(const NmVector3 &spacing);
+
+    NmVector3 spacing() const;
 
   signals:
-    void strokeStarted(Brush::Stroke stroke, RenderView *view);
+    void strokeStarted(RenderView *view);
     void strokeUpdated(Brush::Stroke stroke);
-    void strokeFinished(Brush::Stroke stroke, RenderView *view);
+    void strokeFinished(Brush::Stroke, RenderView *view);
 
   private slots:
     void onTrackStarted(Track track, RenderView *view);
@@ -109,9 +102,7 @@ namespace ESPINA
 
     NmVector3 m_spacing;
     NmVector3 m_origin;
-    bool      m_showStroke;
-
-    std::shared_ptr<StrokePainter> m_strokePainter;
+    Stroke    m_stroke;
   };
 
   using BrushSPtr = std::shared_ptr<Brush>;

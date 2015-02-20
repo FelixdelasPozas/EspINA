@@ -35,7 +35,6 @@ Brush::Brush()
 , m_radius     {20}
 , m_spacing    {1,1,1}
 , m_origin     {0,0,0}
-, m_showStroke {true}
 {
   qRegisterMetaType<Stroke>("BrushStroke");
 
@@ -134,44 +133,32 @@ NmVector3 Brush::spacing() const
 }
 
 //-----------------------------------------------------------------------------
-void Brush::setStrokeVisibility(bool visible)
-{
-  m_showStroke = visible;
-}
-
-//-----------------------------------------------------------------------------
 void Brush::onTrackStarted(PointTracker::Track track, RenderView *view)
 {
   configureBrush(view);
 
-  emit strokeStarted(createStroke(track), view);
+  m_stroke.clear();
 
-  if (m_showStroke)
-  {
-    m_strokePainter = std::make_shared<StrokePainter>(m_spacing, m_origin, view, this);
+  emit strokeStarted(view);
 
-    view->addActor(m_strokePainter->strokeActor());
-  }
+  emit strokeUpdated(createStroke(track));
 
 }
 
 //-----------------------------------------------------------------------------
 void Brush::onTrackUpdated(PointTracker::Track track)
 {
-  emit strokeUpdated(createStroke(track));
+  auto stroke = createStroke(track);
+
+  m_stroke << stroke;
+
+  emit strokeUpdated(stroke);
 }
 
 //-----------------------------------------------------------------------------
 void Brush::onTrackStopped(PointTracker::Track track, RenderView *view)
 {
-  if(m_showStroke)
-  {
-    view->removeActor(m_strokePainter->strokeActor());
-
-    m_strokePainter.reset();
-  }
-
-  emit strokeFinished(createStroke(track), view);
+  emit strokeFinished(m_stroke, view);
 }
 
 //-----------------------------------------------------------------------------

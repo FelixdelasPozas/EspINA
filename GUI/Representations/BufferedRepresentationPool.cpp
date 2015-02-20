@@ -107,6 +107,26 @@ void BufferedRepresentationPool::invalidateImplementation()
 }
 
 //-----------------------------------------------------------------------------
+void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterPtr item)
+{
+  if(m_init)
+  {
+    m_hasChanged = true;
+
+    auto updaters = m_updateWindow.all();
+
+    ViewItemAdapterList updateList;
+    updateList << item;
+    for(auto updater: updaters)
+    {
+      updater->setUpdateList(updateList);
+    }
+
+    updatePipelines(updaters);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void BufferedRepresentationPool::updatePriorities()
 {
   m_updateWindow.current()->setPriority(Priority::VERY_HIGH);

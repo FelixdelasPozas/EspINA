@@ -35,6 +35,12 @@ namespace ESPINA
 {
   class RenderView;
 
+  enum class DrawingMode : int8_t
+  {
+    PAINTING,
+    ERASING
+  };
+
   class StrokePainter
   : public QObject
   {
@@ -44,7 +50,10 @@ namespace ESPINA
     StrokePainter(const NmVector3 &spacing,
                   const NmVector3 &origin,
                   RenderView      *view,
+                  DrawingMode      mode,
                   Brush           *brush);
+
+    vtkSmartPointer<vtkImageData> strokeCanvas() const;
 
     vtkSmartPointer<vtkProp> strokeActor() const;
 
@@ -56,7 +65,10 @@ namespace ESPINA
     NmVector3   m_origin;
     NmVector3   m_spacing;
     Bounds      m_previewBounds;
-    vtkSmartPointer<vtkImageData>        m_preview;
+
+
+    unsigned char m_strokeValue;
+    vtkSmartPointer<vtkImageData>        m_strokeCanvas;
     vtkSmartPointer<vtkLookupTable>      m_lut;
     vtkSmartPointer<vtkImageMapToColors> m_mapToColors;
     vtkSmartPointer<vtkImageActor>       m_actor;

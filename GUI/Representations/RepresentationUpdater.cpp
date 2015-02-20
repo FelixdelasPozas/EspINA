@@ -48,6 +48,7 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 {
   Q_ASSERT(m_sources.contains(item));
 
+  m_actors.remove(item);
   m_sources.removeOne(item);
 }
 
@@ -148,8 +149,6 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 void RepresentationUpdater::run()
 {
   //qDebug() << "Task" << description() << "running" << " - " << this;
-  m_actors.clear();
-
   auto it = m_updateList->begin();
   while (canExecute() && it != m_updateList->end())
   {
