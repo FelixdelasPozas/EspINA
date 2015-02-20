@@ -55,11 +55,11 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
-  sliceManager->setIcon(QIcon(":espina/slice.png"));
+  sliceManager->setIcon(QIcon(":espina/channels_slice_switch.png"));
   //sliceManager->show();
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
-  slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
+  slice3DManager->setIcon(QIcon(":espina/channels_slice3D_switch.svg"));
 
   representation.Group     = ViewToolGroup::CHANNELS_GROUP;
   representation.Pools    << poolXY << poolXZ << poolYZ;

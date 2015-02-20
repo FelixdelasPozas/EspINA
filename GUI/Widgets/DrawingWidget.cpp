@@ -179,11 +179,10 @@ void DrawingWidget::changePainter(QAction *action)
   //     }
 
   m_currentPainter = m_painters[action];
-  //m_currentPainter->setBrushColor(color);
+
   //TODO m_currentPainter->setRadius(m_radiusWidget->value());
 
   m_viewManager->setEventHandler(m_currentPainter);
-
 }
 
 
@@ -398,7 +397,6 @@ void DrawingWidget::selectorInUse(bool value)
 {
   if (value)
   {
-    //TODO updateReferenceItem();
     m_hasEnteredEraserMode = false;
   }
   else
@@ -410,24 +408,6 @@ void DrawingWidget::selectorInUse(bool value)
 //-----------------------------------------------------------------------------
 void DrawingWidget::categoryChanged(CategoryAdapterSPtr unused)
 {
-// // //   if (m_categorySelector)
-// // //   {
-// // //     m_eraserWidget->setChecked(false);
-// // //
-// // //     if(m_viewManager->activeChannel() == nullptr)
-// // //       return;
-// // //
-// // //     ChannelAdapterList channels;
-// // //     channels << m_viewManager->activeChannel();
-// // //
-// // //     if(!channels.empty())
-// // //     {
-// // //       auto selection = m_viewManager->selection();
-// // //       selection->clear();
-// // //       selection->set(channels);
-// // //     }
-// // //   }
-
   auto category = m_categorySelector->selectedCategory();
 
   setDrawingColor(category->color());

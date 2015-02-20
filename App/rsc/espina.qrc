@@ -87,6 +87,11 @@
     <file>roi_out.svg</file>
     <file>voi.svg</file>
     <file>zoom_cursor.png</file>
+    <file>segmentations_switch.svg</file>
+    <file>segmentations_slice_switch.svg</file>
+    <file>channels_switch.png</file>
+    <file>channels_slice_switch.png</file>
+    <file>channels_slice3D_switch.svg</file>
     <file>zoom_tools.png</file>
     <file>zoom_reset.png</file>
     <file>zoom_selection.png</file>

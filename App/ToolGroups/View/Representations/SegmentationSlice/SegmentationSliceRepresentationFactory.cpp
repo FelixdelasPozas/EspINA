@@ -62,6 +62,7 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
   configurePool(poolYZ, colorEngine, settings);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
+  sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
   //sliceSwitch->showRepresentations();
 
   slice3DManager->setName(QObject::tr("Slice Representation"));

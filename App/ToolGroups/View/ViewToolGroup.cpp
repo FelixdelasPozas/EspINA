@@ -70,8 +70,8 @@ ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
 , m_resetZoom               {new ResetZoom(viewManager)}
 , m_zoomArea                {new ZoomAreaTool(viewManager)}
 , m_renderSettings          {new SettingsTool()}
-, m_channelsRenderGroup     {new RepresentationsGroupTool(QIcon(":/espina/show_channels.png"), tr("Show Channels"))}
-, m_segmentationsRenderGroup{new RepresentationsGroupTool(QIcon(":/espina/show_segmentations.svg"), tr("Show Segmentations"))}
+, m_channelsRenderGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"), tr("Show Channels"))}
+, m_segmentationsRenderGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"))}
 , m_segmentationsShortcut   {new QShortcut(parent)}
 , m_crosshairShortcut       {new QShortcut(parent)}
 {

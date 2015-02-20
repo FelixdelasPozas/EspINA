@@ -157,6 +157,8 @@ void ManualEditionTool::updateReferenceItem()
   m_mode          = Mode::CREATION;
   m_referenceItem = nullptr;
 
+  auto brushColor = m_drawingWidget.selectedCategory()->color();
+
   auto selection     = m_viewManager->selection();
   auto segmentations = selection->segmentations();
 
@@ -166,6 +168,8 @@ void ManualEditionTool::updateReferenceItem()
   {
     auto segmentation = segmentations.first();
     auto category     = segmentation->category();
+
+    brushColor        = m_viewManager->colorEngine()->color(segmentation);
 
     m_drawingWidget.setCategory(category);
     m_drawingWidget.clearBrushImage();
@@ -193,6 +197,7 @@ void ManualEditionTool::updateReferenceItem()
     m_drawingWidget.stopDrawing();
   }
 
+  m_drawingWidget.setDrawingColor(brushColor);
   m_drawingWidget.setCanErase(validVolume);
 
 
