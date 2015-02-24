@@ -30,7 +30,6 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
-#include <GUI/Utils/PipelineSourcesState.h>
 #include <GUI/View/Selection.h>
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/View2D.h>
@@ -245,7 +244,6 @@ namespace ESPINA
   private:
     PipelineSources m_channelSources;
     PipelineSources m_segmentationSources;
-    PipelineSourcesStateSPtr m_sourcesState;
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/

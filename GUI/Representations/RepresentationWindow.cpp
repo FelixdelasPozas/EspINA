@@ -53,7 +53,7 @@ QList<RepresentationWindow::Cursor> RepresentationWindow::moveCurrent(int distan
 
   if (distance != 0)
   {
-    if (abs(distance) > m_buffer.size())
+    if (abs(distance) >= m_buffer.size())
     {
       m_currentPos = m_witdh;
 

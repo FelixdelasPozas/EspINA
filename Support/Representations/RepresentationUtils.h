@@ -32,6 +32,12 @@ namespace ESPINA
     void setPlane(RepresentationState &state, const Plane plane);
 
     void setPlane(RepresentationPoolSPtr pool, const Plane plane);
+
+    Nm segmentationDepth(const RepresentationState &state);
+
+    void setSegmentationDepth(RepresentationState &state, const Nm depth);
+
+    void setSegmentationDepth(RepresentationPoolSPtr pool, const Nm depth);
   }
 }
 

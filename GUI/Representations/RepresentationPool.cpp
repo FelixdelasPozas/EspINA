@@ -51,7 +51,6 @@ RepresentationPool::RepresentationPool()
 //-----------------------------------------------------------------------------
 RepresentationPool::~RepresentationPool()
 {
-  qDebug() << "Destroyed";
 }
 
 //-----------------------------------------------------------------------------
@@ -59,24 +58,24 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
 {
   if (m_sources)
   {
-    disconnect(m_sources, SIGNAL(sourceAdded(ViewItemAdapterPtr)),
-               this,      SLOT(onSourceAdded(ViewItemAdapterPtr)));
-    disconnect(m_sources, SIGNAL(sourceRemoved(ViewItemAdapterPtr)),
-               this,      SLOT(onSourceRemoved(ViewItemAdapterPtr)));
-    disconnect(m_sources, SIGNAL(sourceUpdated(ViewItemAdapterPtr)),
-               this,      SLOT(onSourceUpdated(ViewItemAdapterPtr)));
+    disconnect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
+               this,      SLOT(onSourcesAdded(ViewItemAdapterList)));
+    disconnect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
+               this,      SLOT(onSourcesRemoved(ViewItemAdapterList)));
+    disconnect(m_sources, SIGNAL(sourcesUpdated(ViewItemAdapterList)),
+               this,      SLOT(onSourcesUpdated(ViewItemAdapterList)));
   }
 
   m_sources = sources;
 
   if (m_sources)
   {
-    connect(m_sources, SIGNAL(sourceAdded(ViewItemAdapterPtr)),
-            this,      SLOT(onSourceAdded(ViewItemAdapterPtr)));
-    connect(m_sources, SIGNAL(sourceRemoved(ViewItemAdapterPtr)),
-            this,      SLOT(onSourceRemoved(ViewItemAdapterPtr)));
-    connect(m_sources, SIGNAL(sourceUpdated(ViewItemAdapterPtr)),
-            this,      SLOT(onSourceUpdated(ViewItemAdapterPtr)));
+    connect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
+            this,      SLOT(onSourcesAdded(ViewItemAdapterList)));
+    connect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
+            this,      SLOT(onSourcesRemoved(ViewItemAdapterList)));
+    connect(m_sources, SIGNAL(sourcesUpdated(ViewItemAdapterList)),
+            this,      SLOT(onSourcesUpdated(ViewItemAdapterList)));
   }
 }
 
@@ -85,7 +84,12 @@ void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
 {
   m_settings = settings;
 
-  //updateImplementation();?
+  m_poolState.apply(settings->poolSettings());
+
+  if (isBeingUsed())
+  {
+    onSettingsChanged(m_poolState);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -215,7 +219,7 @@ void RepresentationPool::incrementObservers()
 {
   if(m_numObservers == 0)
   {
-    onSettingsChanged(m_settings->poolSettings());
+    onSettingsChanged(m_poolState);
   }
 
   ++m_numObservers;
@@ -276,51 +280,57 @@ void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::A
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onSourceAdded(ViewItemAdapterPtr source)
+void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources)
 {
-  m_pendingSources << source;
+  m_pendingSources << sources;
 
   update();
 
-  invalidateRepresentations(source);
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::onSourceRemoved(ViewItemAdapterPtr source)
-{
-
+  invalidateRepresentations(sources);
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources)
 {
+  bool invalidate = false;
 
-}
+  for (auto source : sources)
+  {
+    if (m_pendingSources.contains(source))
+    {
+      m_pendingSources.removeOne(source);
+    }
+    else
+    {
+      removeRepresentationPipeline(source);
+      invalidate = true;
+    }
+  }
 
-//-----------------------------------------------------------------------------
-void RepresentationPool::onSourceUpdated(ViewItemAdapterPtr source)
-{
+  if (invalidate)
+  {
+    invalidateActors();
 
+    invalidateRepresentations(ViewItemAdapterList());
+  }
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourcesUpdated(ViewItemAdapterList sources)
 {
+  invalidateActors();
 
+  invalidateRepresentations(sources);
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterPtr item)
 {
-  invalidateActors();
+  ViewItemAdapterList sources;
 
-  invalidateRepresentations(item);
+  sources << item;
+
+  onSourcesUpdated(sources);
 }
 
 //-----------------------------------------------------------------------------

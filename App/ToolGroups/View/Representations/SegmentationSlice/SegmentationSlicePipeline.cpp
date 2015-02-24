@@ -18,10 +18,12 @@
  */
 
 #include "SegmentationSlicePipeline.h"
+#include "Support/Representations/RepresentationUtils.h"
 
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::RepresentationUtils;
 
 TransparencySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 
@@ -52,8 +54,8 @@ RepresentationState SegmentationSlicePipeline::representationState(const ViewIte
 RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const ViewItemAdapter     *item,
                                                                           const RepresentationState &state)
 {
-  auto segmentation = segmentationPtr(item);
-  auto planeIndex = normalCoordinateIndex(m_plane);
+  auto segmentation = dynamic_cast<const SegmentationAdapter *>(item);
+  auto planeIndex   = normalCoordinateIndex(m_plane);
 
   ActorList actors;
 //   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();

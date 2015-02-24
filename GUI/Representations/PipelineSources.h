@@ -52,36 +52,30 @@ namespace ESPINA
      */
     void removeSource(ViewItemAdapterPtr source);
 
+    /** \brief Removes all source view items from the pipeline sources
+     *
+     */
+    void clear();
+
     ViewItemAdapterList sources() const;
 
     bool isEmpty() const
     { return m_sources.isEmpty(); }
 
   signals:
-    void sourceAdded(ViewItemAdapterPtr);
-    void sourceUpdated(ViewItemAdapterPtr);
-    void sourceRemoved(ViewItemAdapterPtr);
-
-    void sourceAdded(ViewItemAdapterPtr, TimeStamp time);
-    void sourceUpdated(ViewItemAdapterPtr, TimeStamp time);
-    void sourceRemoved(ViewItemAdapterPtr, TimeStamp time);
-
-    void updateTimeStamp(TimeStamp time);
-
-  public slots:
-    void onSourceAdded(ViewItemAdapterPtr item, PipelineSources *source, TimeStamp time) const;
-    void onSourceUpdated(ViewItemAdapterPtr item, PipelineSources *source, TimeStamp time) const;
-    void onSourceRemoved(ViewItemAdapterPtr item, PipelineSources *source, TimeStamp time) const;
+    void sourcesAdded  (ViewItemAdapterList);
+    void sourcesUpdated(ViewItemAdapterList);
+    void sourcesRemoved(ViewItemAdapterList);
 
   private:
-    void insert(ViewItemAdapterPtr source)
-    { m_sources.append(source); }
+    void insert(ViewItemAdapterPtr source);
 
     bool contains(ViewItemAdapterPtr source) const
     { return m_sources.contains(source); }
 
-    void remove(ViewItemAdapterPtr source)
-    { m_sources.removeOne(source); }
+    void remove(ViewItemAdapterPtr source);
+
+    ViewItemAdapterList createList(ViewItemAdapterPtr item) const;
 
   private:
     ViewItemAdapterList m_sources;

@@ -43,7 +43,6 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 ViewManager::ViewManager()
 : m_timer            {new Timer{1}}
 , m_viewState        {new ViewState{m_timer}}
-, m_sourcesState     {new PipelineSourcesState{m_timer}}
 , m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
@@ -71,9 +70,6 @@ ViewManager::ViewManager()
 
   connect(m_fitToSlices, SIGNAL(toggled(bool)),
           this,          SLOT(setFitToSlices(bool)));
-
-  m_sourcesState->addSource(&m_segmentationSources);
-  m_sourcesState->addSource(&m_channelSources);
 }
 
 //----------------------------------------------------------------------------
@@ -257,7 +253,8 @@ bool ViewManager::updateRepresentation(SegmentationAdapterPtr seg, bool render)
 //----------------------------------------------------------------------------
 void ViewManager::removeAllViewItems()
 {
-
+  m_segmentationSources.clear();
+  m_channelSources.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -529,11 +526,6 @@ void ViewManager::removeSliceSelectors(SliceSelectorSPtr widget)
 void ViewManager::setColorEngine(ColorEngineSPtr engine)
 {
   m_colorEngine = engine;
-
-  for(auto view: m_renderViews)
-  {
-   // TODO view->setColorEngine(engine);
-  }
 
   updateSegmentationRepresentations();
 }

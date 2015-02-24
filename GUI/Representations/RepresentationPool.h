@@ -140,19 +140,18 @@ namespace ESPINA
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
   private slots:
-    void onSourceAdded (ViewItemAdapterPtr source);
     void onSourcesAdded(ViewItemAdapterList sources);
 
-    void onSourceRemoved (ViewItemAdapterPtr source);
     void onSourcesRemoved(ViewItemAdapterList sources);
 
-    void onSourceUpdated (ViewItemAdapterPtr source);
     void onSourcesUpdated(ViewItemAdapterList sources);
 
     void onRepresentationsInvalidated(ViewItemAdapterPtr item);
 
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) = 0;
+
+    virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
     virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) = 0;
 
@@ -162,9 +161,7 @@ namespace ESPINA
 
     virtual void invalidateImplementation() = 0;
 
-    virtual void invalidateRepresentations(ViewItemAdapterPtr item) = 0;
-
-//     virtual void invalidateRepresentations(ViewItemAdapterList items) = 0;
+    virtual void invalidateRepresentations(ViewItemAdapterList items) = 0;
 
     void invalidateActors();
 
@@ -176,7 +173,9 @@ namespace ESPINA
 
   private:
     PipelineSources *m_sources;
-    SettingsSPtr     m_settings;
+
+    SettingsSPtr        m_settings;
+    RepresentationState m_poolState;
 
     ViewItemAdapterList m_pendingSources;
 
@@ -191,13 +190,13 @@ namespace ESPINA
   };
 
   template<typename T>
-  void RepresentationPool::setSetting ( const QString &tag, const T value )
+  void RepresentationPool::setSetting(const QString &tag, const T value)
   {
-    m_settings->set<T>(tag, value);
+    m_poolState.setValue<T>(tag, value);
 
     if (isBeingUsed())
     {
-      onSettingsChanged(m_settings->poolSettings());
+      onSettingsChanged(m_poolState);
     }
   }
 

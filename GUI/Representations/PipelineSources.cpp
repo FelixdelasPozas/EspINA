@@ -36,11 +36,7 @@ void PipelineSources::addSource(ViewItemAdapterPtr source)
 
   insert(source);
 
-  //NOTE: We could propagate it using the Qt Model instead
-  connect(source, SIGNAL(outputChanged(ViewItemAdapterPtr)),
-          this,   SIGNAL(sourceUpdated(ViewItemAdapterPtr)));
-
-  emit sourceAdded(source);
+  emit sourcesAdded(createList(source));
 }
 
 //-----------------------------------------------------------------------------
@@ -48,25 +44,33 @@ void PipelineSources::onSourceUpdated(ViewItemAdapterPtr source)
 {
   if (contains(source))
   {
-    emit sourceUpdated(source);
+    emit sourcesUpdated(createList(source));
   }
   else
   {
-    qWarning() << "Update Source on non-registered source";
+    qWarning() << "Updating Source on non-registered source";
   }
 }
 
 //-----------------------------------------------------------------------------
 void PipelineSources::removeSource(ViewItemAdapterPtr source)
 {
-  Q_ASSERT(contains(source));
-
-  disconnect(source, SIGNAL(outputChanged(ViewItemAdapterPtr)),
-             this,   SIGNAL(sourceUpdated(ViewItemAdapterPtr)));
-
   remove(source);
 
-  emit sourceRemoved(source);
+  emit sourcesRemoved(createList(source));
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::clear()
+{
+  ViewItemAdapterList sources = m_sources;
+
+  for (auto source : m_sources)
+  {
+    remove(source);
+  }
+
+  emit sourcesRemoved(sources);
 }
 
 //-----------------------------------------------------------------------------
@@ -76,41 +80,32 @@ ViewItemAdapterList PipelineSources::sources() const
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onSourceAdded(ViewItemAdapterPtr item, PipelineSources* source, TimeStamp time) const
+void PipelineSources::insert(ViewItemAdapterPtr source)
 {
-  if(source == this)
-  {
-    emit sourceAdded(item, time);
-  }
-  else
-  {
-    emit updateTimeStamp(time);
-  }
+  //NOTE: We could propagate it using the Qt Model instead
+//   connect(source, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+//           this,   SIGNAL(sourceUpdated(ViewItemAdapterPtr)));
+
+  m_sources.append(source);
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onSourceUpdated(ViewItemAdapterPtr item, PipelineSources* source, TimeStamp time) const
+void PipelineSources::remove(ViewItemAdapterPtr source)
 {
-  if(source == this)
-  {
-    emit sourceUpdated(item, time);
-  }
-  else
-  {
-    emit updateTimeStamp(time);
-  }
+  Q_ASSERT(contains(source));
+
+//   disconnect(source, SIGNAL(outputChanged(ViewItemAdapterPtr)),
+//              this,   SIGNAL(sourceUpdated(ViewItemAdapterPtr)));
+
+  m_sources.removeOne(source);
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onSourceRemoved(ViewItemAdapterPtr item, PipelineSources* source, TimeStamp time) const
+ViewItemAdapterList PipelineSources::createList(ViewItemAdapterPtr item) const
 {
-  if(source == this)
-  {
-    emit sourceRemoved(item, time);
-  }
-  else
-  {
-    emit updateTimeStamp(time);
-  }
-}
+  ViewItemAdapterList list;
 
+  list << item;
+
+  return list;
+}

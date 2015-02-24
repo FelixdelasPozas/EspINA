@@ -44,6 +44,8 @@ namespace ESPINA
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
 
+    virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
+
     virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) override;
 
     virtual void onSettingsChanged(const RepresentationState &settings) override;
@@ -52,7 +54,7 @@ namespace ESPINA
 
     virtual void invalidateImplementation() override;
 
-    virtual void invalidateRepresentations(ViewItemAdapterPtr item) override;
+    virtual void invalidateRepresentations(ViewItemAdapterList items) override;
 
     void updatePriorities();
 

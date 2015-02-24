@@ -82,7 +82,7 @@ void SliceManager::setRepresentationDepth(Nm depth)
 {
   if(validPlane())
   {
-    planePool()->setSetting<Nm>(Representations::DEPTH, depth);
+    RepresentationUtils::setSegmentationDepth(planePool(), depth);
   }
 }
 

@@ -43,9 +43,3 @@ QColor ESPINA::segmentationColor(const RepresentationState &state)
 {
   return state.getValue<QColor>(COLOR);
 }
-
-//----------------------------------------------------------------------------
-Nm ESPINA::segmentationDepth(const RepresentationState &state)
-{
-  return state.getValue<Nm>(DEPTH);
-}

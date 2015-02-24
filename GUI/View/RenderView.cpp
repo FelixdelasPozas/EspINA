@@ -121,9 +121,9 @@ void RenderView::setChannelSources(PipelineSources *channels)
 {
   if (m_channelSources)
   {
-    disconnect(m_channelSources, SIGNAL(sourceAdded(ViewItemAdapterPtr)),
+    disconnect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
                this,             SLOT(updateSceneBounds()));
-    disconnect(m_channelSources, SIGNAL(sourceRemoved(ViewItemAdapterPtr)),
+    disconnect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
                this,             SLOT(updateSceneBounds()));
   }
 
@@ -131,9 +131,9 @@ void RenderView::setChannelSources(PipelineSources *channels)
 
   if (m_channelSources)
   {
-    connect(m_channelSources, SIGNAL(sourceAdded(ViewItemAdapterPtr)),
+    connect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
             this,             SLOT(updateSceneBounds()));
-    connect(m_channelSources, SIGNAL(sourceRemoved(ViewItemAdapterPtr)),
+    connect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
             this,             SLOT(updateSceneBounds()));
   }
 }

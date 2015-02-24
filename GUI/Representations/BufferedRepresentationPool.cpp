@@ -59,6 +59,15 @@ void BufferedRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr so
 }
 
 //-----------------------------------------------------------------------------
+void BufferedRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr source)
+{
+  for (auto updater : m_updateWindow.all())
+  {
+    updater->removeSource(source);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp time)
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
@@ -107,7 +116,7 @@ void BufferedRepresentationPool::invalidateImplementation()
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterPtr item)
+void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterList items)
 {
   if(m_init)
   {
@@ -115,11 +124,9 @@ void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterPtr it
 
     auto updaters = m_updateWindow.all();
 
-    ViewItemAdapterList updateList;
-    updateList << item;
     for(auto updater: updaters)
     {
-      updater->setUpdateList(updateList);
+      updater->setUpdateList(items);
     }
 
     updatePipelines(updaters);

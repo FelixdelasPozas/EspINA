@@ -25,20 +25,43 @@ namespace ESPINA {
   namespace RepresentationUtils
   {
     const QString PLANE = "Plane";
+    const QString DEPTH = "Depth";
 
+    //----------------------------------------------------------------------------
     Plane plane(const RepresentationState &state)
     {
       return toPlane(state.getValue<int>(PLANE));
     }
 
+    //----------------------------------------------------------------------------
     void setPlane(RepresentationState &state, const Plane plane)
     {
       state.setValue<int>(PLANE,  idx(plane));
     }
 
+    //----------------------------------------------------------------------------
     void setPlane(RepresentationPoolSPtr pool, const Plane plane)
     {
       pool->setSetting<int>(PLANE, idx(plane));
+    }
+
+    //----------------------------------------------------------------------------
+    Nm segmentationDepth(const RepresentationState &state)
+    {
+      return state.getValue<Nm>(DEPTH);
+    }
+
+    //----------------------------------------------------------------------------
+    void setSegmentationDepth(RepresentationState &state, const Nm depth)
+    {
+      state.setValue<Nm>(DEPTH, depth);
+    }
+
+    //----------------------------------------------------------------------------
+    void setSegmentationDepth(RepresentationPoolSPtr pool, const Nm depth)
+    {
+      pool->setSetting<Nm>(DEPTH, depth);
+
     }
   }
 }

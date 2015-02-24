@@ -26,7 +26,6 @@ qt4_wrap_cpp(GUI_MOC
 #   Selectors/CircularBrushSelector.h
 #   Selectors/SphericalBrushSelector.h
   Utils/Timer.h
-  Utils/PipelineSourcesState.h
   View/EventHandler.h
   EventHandlers/PointTracker.h
   EventHandlers/Brush.h
@@ -119,7 +118,6 @@ set (GUI_SOURCES
 #   Selectors/CircularBrushSelector.cpp
 #   Selectors/SphericalBrushSelector.cpp
   Utils/DefaultIcons.cpp
-  Utils/PipelineSourcesState.cpp
   Utils/QtModelUtils.cpp
   Utils/Timer.cpp
   EventHandlers/Brush.cpp

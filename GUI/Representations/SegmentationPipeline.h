@@ -36,8 +36,6 @@ namespace ESPINA {
   };
 
   QColor segmentationColor(const RepresentationState &state);
-
-  Nm segmentationDepth(const RepresentationState &state);
 }
 
 #endif // ESPINA_CHANNEL_PIPELINE_H

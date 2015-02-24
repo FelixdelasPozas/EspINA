@@ -53,6 +53,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 , m_model(model)
 , m_viewManager(viewManager)
 , m_showProcessing(false)
+, m_camerasMenu(nullptr)
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
@@ -88,11 +89,10 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
 
-
   m_viewManager->registerView(m_viewXY);
-//   m_viewManager->registerView(m_viewXZ);
-//   m_viewManager->registerView(m_viewYZ);
-//   m_viewManager->registerView(m_view3D);
+  m_viewManager->registerView(m_viewXZ);
+  m_viewManager->registerView(m_viewYZ);
+  m_viewManager->registerView(m_view3D);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
@@ -117,7 +117,10 @@ DefaultView::~DefaultView()
   delete m_view3D;
 
   delete m_renderersMenu;
-  delete m_camerasMenu;
+  if (m_camerasMenu)
+  {
+    delete m_camerasMenu;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -311,10 +314,10 @@ void DefaultView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int
 void DefaultView::sourceModelReset()
 {
   m_viewManager->removeAllViewItems();
-//   m_viewXY->reset();
-//   m_viewYZ->reset();
-//   m_viewXZ->reset();
-//   m_view3D->reset();
+  m_viewXY->reset();
+  m_viewYZ->reset();
+  m_viewXZ->reset();
+  m_view3D->reset();
 }
 
 //----------------------------------------------------------------------------
@@ -365,7 +368,7 @@ void DefaultView::switchPreprocessing()
 void DefaultView::updateViews()
 {
  m_viewXY->updateView();
-//  m_viewXZ->updateView();
+ m_viewXZ->updateView();
  m_viewYZ->updateView();
  m_view3D->updateView();
 }
