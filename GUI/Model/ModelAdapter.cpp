@@ -845,6 +845,8 @@ void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapte
 //------------------------------------------------------------------------
 void ModelAdapter::clear()
 {
+  Q_ASSERT(!m_isBatchMode);
+
   beginResetModel();
   {
     m_analysis->clear();

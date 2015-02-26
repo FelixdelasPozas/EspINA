@@ -33,6 +33,7 @@
 #include <GUI/Model/Proxies/ClassificationProxy.h>
 #include "ModelTest.h"
 #include "ModelProfiler.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -55,22 +56,12 @@ int classification_proxy_set_classification( int argc, char** argv )
 
   modelAdapter->setClassification(classification);
 
-  if (proxy.rowCount() != 2) {
-    cerr << "Unexpected number of root categories" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 2);
 
   auto level1 = proxy.index(0, 0);
-  if (level1.data(Qt::DisplayRole) != "Level 1") {
-    cerr << "Unexpected display role value: " << level1.data(Qt::DisplayRole).toString().toStdString() << endl;
-    error = true;
-  }
 
-  if (proxy.rowCount(level1) != 1) {
-    cerr << "Unexpected number of level 1 sub-categories" << endl;
-    error = true;
-  }
-
+  error |= checkDisplayRole(level1, "Level 1");
+  error |= checkRowCount(level1, 1);
   error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
 
   return error;

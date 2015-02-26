@@ -20,13 +20,21 @@
 #ifndef ESPINA_TESTING_MODEL_TEST_UTILS_H
 #define ESPINA_TESTING_MODEL_TEST_UTILS_H
 
+class QAbstractItemModel;
 class QModelIndex;
+class QString;
 
 namespace ESPINA
 {
   namespace Testing
   {
+    bool checkRowCount(const QAbstractItemModel &index, int expectedRowCount);
+
     bool checkRowCount(const QModelIndex &index, int expectedRowCount);
+
+    bool checkDisplayRole(const QModelIndex &index, const QString &value);
+
+    bool checkDisplayRoleContains(const QModelIndex &index, const QString &value);
   }
 }
 

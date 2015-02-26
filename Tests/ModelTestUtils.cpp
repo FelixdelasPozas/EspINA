@@ -23,9 +23,26 @@
 #include <iostream>
 
 using namespace std;
+using namespace ESPINA;
 
+//------------------------------------------------------------------------
+bool Testing::checkRowCount(const QAbstractItemModel &model, int expectedRowCount)
+{
+  bool error = false;
 
-bool ESPINA::Testing::checkRowCount(const QModelIndex &index, int expectedRowCount)
+  int rowCount = model.rowCount();
+
+  if (rowCount != expectedRowCount)
+  {
+    cerr << "Wrong number of rows in model: Expected " << expectedRowCount << " instead of " << rowCount << " rows" << endl;
+    error = true;
+  }
+
+  return error;
+}
+
+//------------------------------------------------------------------------
+bool Testing::checkRowCount(const QModelIndex &index, int expectedRowCount)
 {
   bool error = false;
 
@@ -36,6 +53,36 @@ bool ESPINA::Testing::checkRowCount(const QModelIndex &index, int expectedRowCou
   if (rowCount != expectedRowCount)
   {
     cerr << index.data().toString().toStdString() <<  ": Expected " << expectedRowCount << " instead of " << rowCount << " rows" << endl;
+    error = true;
+  }
+
+  return error;
+}
+
+//------------------------------------------------------------------------
+bool Testing::checkDisplayRole(const QModelIndex& index, const QString& value)
+{
+  bool error = false;
+
+  auto name  = index.data(Qt::DisplayRole).toString();
+  if (name != value)
+  {
+    cerr << "Unexpected display role value: " << name.toStdString() << endl;
+    error = true;
+  }
+
+  return error;
+}
+
+//------------------------------------------------------------------------
+bool Testing::checkDisplayRoleContains(const QModelIndex& index, const QString& value)
+{
+  bool error = false;
+
+  auto name  = index.data(Qt::DisplayRole).toString();
+  if (!name.contains(value))
+  {
+    cerr << "Unexpected display role value: " << name.toStdString() << endl;
     error = true;
   }
 
