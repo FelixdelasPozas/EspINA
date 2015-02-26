@@ -56,7 +56,8 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
 
   sliceManager->setName(QObject::tr("Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/channels_slice_switch.png"));
-  //sliceManager->show();
+
+  sliceSwitch->setActive(true);
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
   slice3DManager->setIcon(QIcon(":espina/channels_slice3D_switch.svg"));

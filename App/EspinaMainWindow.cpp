@@ -639,10 +639,6 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_model  ->reset();
   m_analysis.reset();
 
-  // resets slice views matrices to avoid an esthetic bug
-  NmVector3 origin;
-  m_viewManager->focusViewsOn(origin);
-
   enableWidgets(false);
 
   m_sessionFile = QFileInfo();
@@ -754,9 +750,6 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_mainBar->setEnabled(true);
     m_contextualBar->setEnabled(true);
-
-    m_viewManager->updateSegmentationRepresentations();
-    m_viewManager->updateViews();
 
     m_model->emitChannelAdded(m_model->channels());
     m_model->emitSegmentationsAdded(m_model->segmentations());

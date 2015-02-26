@@ -62,6 +62,9 @@ namespace ESPINA
     bool isEmpty() const
     { return m_sources.isEmpty(); }
 
+    int size() const
+    { return m_sources.size(); }
+
   signals:
     void sourcesAdded  (ViewItemAdapterList);
     void sourcesUpdated(ViewItemAdapterList);

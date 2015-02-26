@@ -36,46 +36,36 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
-		public:
-			/** \brief ToggleCrosshairVisibility class constructor.
-			 * \param[in] viewManager, view manager smart pointer.
-			 *
-			 */
-			ToggleCrosshairVisibility(ViewManagerSPtr viewManager);
+  public:
+    /** \brief ToggleCrosshairVisibility class constructor.
+     * \param[in] viewManager, view manager smart pointer.
+     *
+     */
+    ToggleCrosshairVisibility(ViewManagerSPtr viewManager);
 
-			/** \brief Implements Tool::actions().
-			 *
-			 */
-			virtual QList<QAction *> actions() const;
+    virtual QList<QAction *> actions() const;
 
-			/** \brief Implements Tool::enabled().
-			 *
-			 */
-			virtual bool enabled() const;
+  public slots:
+    /** \brief Toggles the visibility action.
+     *
+     */
+    void shortcut();
 
-			/** \brief Implements Tool::setEnabled().
-			 *
-			 */
-			virtual void setEnabled(bool value);
+  private:
+    virtual void onToolEnabled(bool enabled);
 
-		public slots:
-			/** \brief Toggles the visibility action.
-			 *
-			 */
-			void shortcut();
+  private slots:
+    /** \brief Modifies the GUI and shows/hides the crosshair based on parameter value.
+     * \param[in] visible, true to set the crosshair to visible, false otherwise.
+     *
+     */
+    void toggleVisibility(bool visible);
 
-		private slots:
-			/** \brief Modifies the GUI and shows/hides the crosshair based on parameter value.
-			 * \param[in] visible, true to set the crosshair to visible, false otherwise.
-			 *
-			 */
-			void toggleVisibility(bool visible);
+  private:
+    ViewManagerSPtr m_viewManager;
 
-		private:
-			ViewManagerSPtr m_viewManager;
-
-			QAction m_toggle;
-	};
+    QAction m_toggle;
+  };
 
   using ToggleCrosshairVisibilitySPtr = std::shared_ptr<ToggleCrosshairVisibility>;
 }

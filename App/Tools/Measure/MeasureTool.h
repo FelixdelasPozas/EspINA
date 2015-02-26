@@ -47,33 +47,24 @@ namespace ESPINA
      */
     virtual ~MeasureTool();
 
-    /** \brief Implements Tool::setEnabled().
-     *
-     */
-    virtual void setEnabled(bool value);
-
-    /** \brief Implements Tool::enabled().
-     *
-     */
-    virtual bool enabled() const
-    { return m_enabled; }
-
     /** \brief Implements Tool::actions().
      *
      */
     virtual QList<QAction *> actions() const;
 
   public slots:
-  	/** \brief Initializes/De-initializes tool.
-  	 * \param[in] value true to initialize tool, false to de-initialize.
-  	 */
+    /** \brief Initializes/De-initializes tool.
+     * \param[in] value true to initialize tool, false to de-initialize.
+     */
     void initTool(bool value);
 
   signals:
     void stopMeasuring();
 
   private:
-    bool             m_enabled;
+    virtual void onToolEnabled(bool enabled);
+
+  private:
     EspinaWidgetSPtr m_widget;
     EventHandlerSPtr m_handler;
     ViewManagerSPtr  m_viewManager;

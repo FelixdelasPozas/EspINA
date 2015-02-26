@@ -147,10 +147,13 @@ void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
   connect(manager.get(), SIGNAL(renderRequested()),
           this,          SLOT(onRenderRequest()));
 
-  manager->setView(this);
+  configureManager(manager);
+
   manager->setResolution(m_sceneResolution);
 
-  configureManager(manager);
+  manager->setView(this);
+
+
 
   m_managers << manager;
 }
@@ -344,14 +347,19 @@ void RenderView::updateSceneBounds()
     resetSceneBounds();
   }
 
+  if (m_channelSources->size() <= 1)
+  {
+    m_sceneCameraInitialized = false;
+  }
+
   if (resolution != m_sceneResolution)
   {
-    notifyResolutionChange();
+    changeSceneResolution();
   }
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::notifyResolutionChange()
+void RenderView::changeSceneResolution()
 {
   for (auto manager : m_managers)
   {
@@ -798,7 +806,10 @@ void RenderView::onRenderRequest()
 
   for(auto manager: m_managers)
   {
-    if (manager->requiresRender()) renderRequests++;
+    if (manager->requiresRender())
+    {
+      renderRequests++;
+    }
 
     switch(manager->pipelineStatus())
     {
@@ -808,9 +819,12 @@ void RenderView::onRenderRequest()
         readyManagers++;
         break;
       case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
-        for(auto timeStamp: manager->readyRange())
+        if (manager->requiresRender())
         {
-          count[timeStamp] = count.value(timeStamp, 0) + 1;
+          for(auto timeStamp: manager->readyRange())
+          {
+            count[timeStamp] = count.value(timeStamp, 0) + 1;
+          }
         }
         break;
       default:
@@ -818,38 +832,47 @@ void RenderView::onRenderRequest()
     }
   }
 
+//   qDebug() << count;
+//   qDebug() << "Ready Managers:" << readyManagers << "Render Requests" << renderRequests;
+
   TimeStamp latest;
+  bool validTimeStamp = false;
+
   if(readyManagers != renderRequests)
   {
-    bool valid = false;
     for(auto time: count.keys())
     {
       if(count[time]+readyManagers == renderRequests)
       {
-        if(!valid || time > latest)
+        if(!validTimeStamp || time > latest)
         {
           latest = time;
-          valid  = true;
+          validTimeStamp  = true;
         }
       }
     }
-
-    if(!valid) return;
   }
 
   if (renderRequests == 0) return;
 
-  for(auto manager: m_managers)
+  if (validTimeStamp)
   {
-    manager->display(latest);
+    for(auto manager: m_managers)
+    {
+      if (manager->requiresRender())
+      {
+        manager->display(latest);
+      }
+    }
+    qDebug() << "Latest frame:" << latest;
   }
 
   if (!m_sceneCameraInitialized)
   {
-    m_sceneCameraInitialized = true;
     resetCamera();
+
+    m_sceneCameraInitialized = true;
   }
 
   updateView();
-  qDebug() << "Latest frame:" << latest;
 }

@@ -45,6 +45,8 @@ namespace ESPINA {
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
   private:
+    virtual bool hasSources() const override;
+
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
 
     virtual RepresentationPipeline::Actors actors(TimeStamp time) override;

@@ -111,6 +111,11 @@ namespace ESPINA
      */
     void hide();
 
+    /** \brief Returns if the manager has been requested to display its actors
+     *
+     */
+    bool isActive();
+
     bool requiresRender() const;
 
     /** \brief Returns the status of its pipelines.
@@ -158,6 +163,8 @@ namespace ESPINA
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
   private:
+    virtual bool hasSources() const = 0;
+
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
 
     virtual RepresentationPipeline::Actors actors(TimeStamp time) = 0;
@@ -169,6 +176,14 @@ namespace ESPINA
     virtual void disconnectPools() = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
+
+    void enableRepresentations();
+
+    void disableRepresentations();
+
+    void removeCurrentActors();
+
+    void displayActors(const TimeStamp time);
 
   protected:
     QString m_name;

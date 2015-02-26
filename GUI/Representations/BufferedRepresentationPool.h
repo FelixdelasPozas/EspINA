@@ -80,9 +80,9 @@ namespace ESPINA
 
     RepresentationWindow m_updateWindow;
 
-    bool m_init;
-    Nm   m_normalRes;
-    Nm   m_lastCoordinate;
+    bool      m_init;
+    Nm        m_normalRes;
+    NmVector3 m_crosshair;
 
     bool      m_hasChanged;
     TimeStamp m_changedTimeStamp;

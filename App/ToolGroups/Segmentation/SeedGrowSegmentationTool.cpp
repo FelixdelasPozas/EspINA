@@ -106,7 +106,6 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_factory         {factory}
 , m_viewManager     {viewManager}
 , m_undoStack       {undoStack}
-, m_enabled         {false}
 , m_categorySelector{new CategorySelector(m_model)}
 , m_selectorSwitch  {new ActionSelector()}
 , m_seedThreshold   {new SeedThreshold()}
@@ -197,15 +196,8 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSegmentationTool::enabled() const
+void SeedGrowSegmentationTool::onToolEnabled(bool enabled)
 {
-  return m_enabled;
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::setEnabled(bool value)
-{
-  m_enabled = value;
 }
 
 //-----------------------------------------------------------------------------

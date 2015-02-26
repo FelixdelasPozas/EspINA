@@ -53,6 +53,7 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 , m_model(model)
 , m_viewManager(viewManager)
 , m_showProcessing(false)
+, m_renderersMenu(nullptr)
 , m_camerasMenu(nullptr)
 {
   ESPINA_SETTINGS(settings);
@@ -116,7 +117,11 @@ DefaultView::~DefaultView()
   delete m_viewYZ;
   delete m_view3D;
 
-  delete m_renderersMenu;
+  if (m_renderersMenu)
+  {
+    delete m_renderersMenu;
+  }
+
   if (m_camerasMenu)
   {
     delete m_camerasMenu;

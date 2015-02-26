@@ -100,6 +100,19 @@ ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) co
 }
 
 //----------------------------------------------------------------------------
+bool SliceManager::hasSources() const
+{
+  bool result = false;
+
+  if (validPlane())
+  {
+    result = planePool()->hasSources();
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
 void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   if (validPlane())

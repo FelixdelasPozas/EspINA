@@ -39,7 +39,6 @@ CleanROITool::CleanROITool(ModelAdapterSPtr  model,
 , m_undoStack  {undoStack}
 , m_toolGroup  {toolGroup}
 , m_cleanROI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
-, m_enabled    {true}
 {
   m_cleanROI->setEnabled(false);
 
@@ -63,23 +62,6 @@ CleanROITool::~CleanROITool()
 }
 
 //-----------------------------------------------------------------------------
-void CleanROITool::setEnabled(bool value)
-{
-  if (m_enabled == value)
-    return;
-
-  m_enabled = value;
-
-  onROIChanged();
-}
-
-//-----------------------------------------------------------------------------
-bool CleanROITool::enabled() const
-{
-  return m_enabled;
-}
-
-//-----------------------------------------------------------------------------
 QList<QAction *> CleanROITool::actions() const
 {
   QList<QAction *> actions;
@@ -100,5 +82,11 @@ void CleanROITool::cancelROI()
 //-----------------------------------------------------------------------------
 void CleanROITool::onROIChanged()
 {
-  m_cleanROI->setEnabled(m_enabled && m_toolGroup->hasValidROI());
+  m_cleanROI->setEnabled(isEnabled() && m_toolGroup->hasValidROI());
+}
+
+//-----------------------------------------------------------------------------
+void CleanROITool::onToolEnabled(bool enabled)
+{
+  onROIChanged();
 }

@@ -54,19 +54,6 @@ namespace ESPINA
      */
     virtual ~CleanROITool();
 
-    /** \brief Implements Tool::setEnabled(bool).
-     *
-     */
-    virtual void setEnabled(bool value);
-
-    /** \brief Implements Tool::enabled().
-     *
-     */
-    virtual bool enabled() const;
-
-    /* \implements Tool::actions().
-     *
-     */
     virtual QList<QAction *> actions() const;
 
   protected slots:
@@ -74,12 +61,14 @@ namespace ESPINA
     void cancelROI();
 
   private:
+    virtual void onToolEnabled(bool enabled);
+
+  private:
     ModelAdapterSPtr  m_model;
     ViewManagerSPtr   m_viewManager;
     QUndoStack       *m_undoStack;
     ROIToolsGroup    *m_toolGroup;
     QAction          *m_cleanROI;
-    bool              m_enabled;
   };
 
   using CleanROIToolSPtr = std::shared_ptr<CleanROITool>;

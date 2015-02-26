@@ -87,6 +87,11 @@ namespace ESPINA
      */
     TimeRange readyRange() const;
 
+    /** \brief Returns if the pool has sources to generate pipelines from
+     *
+     */
+    bool hasSources() const;
+
     /** \brief Returns all valid actors for the given time
      *
      */
@@ -127,14 +132,14 @@ namespace ESPINA
   protected:
     explicit RepresentationPool();
 
-    /** \brief Returns whether the pool representations are displayed by
-     *         at least one representation manager
-     */
-    bool isBeingUsed() const;
-
     ViewItemAdapterList sources() const;
 
     bool notHasBeenProcessed(const TimeStamp time) const;
+
+    /** \brief Returns
+     */
+    bool hasActorsDisplayed() const;
+
 
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
@@ -169,8 +174,6 @@ namespace ESPINA
 
     void processPendingSources();
 
-    void update();
-
   private:
     PipelineSources *m_sources;
 
@@ -187,6 +190,7 @@ namespace ESPINA
     QMap<TimeStamp, RepresentationPipeline::Actors> m_actors;
 
     unsigned m_numObservers;
+    unsigned m_sourcesCount;
   };
 
   template<typename T>
@@ -194,7 +198,7 @@ namespace ESPINA
   {
     m_poolState.setValue<T>(tag, value);
 
-    if (isBeingUsed())
+    if (hasActorsDisplayed())
     {
       onSettingsChanged(m_poolState);
     }

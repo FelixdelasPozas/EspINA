@@ -317,7 +317,7 @@ namespace ESPINA
 
     virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
-    void notifyResolutionChange();
+    void changeSceneResolution();
 
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;

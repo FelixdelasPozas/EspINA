@@ -31,7 +31,6 @@ namespace ESPINA
   ResetZoom::ResetZoom(ViewManagerSPtr vm)
   : m_viewManager{vm}
   , m_action     {new QAction(QIcon(":/espina/zoom_reset.png"),tr("Reset Zoom"),this)}
-  , m_enabled    {true}
   {
     connect(m_action, SIGNAL(triggered(bool)), this, SLOT(resetViews()), Qt::QueuedConnection);
   }
@@ -52,32 +51,29 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  bool ResetZoom::enabled() const
-  {
-    return m_enabled;
-  }
-
-  //----------------------------------------------------------------------------
-  void ResetZoom::setEnabled(bool value)
-  {
-    if (m_enabled == value)
-      return;
-
-    m_enabled = value;
-    m_action->setEnabled(m_enabled);
-
-    if (!m_enabled)
-      disconnect(m_action, SIGNAL(triggered(bool)), this, SLOT(resetViews()));
-    else
-      connect(m_action, SIGNAL(triggered(bool)), this, SLOT(resetViews()), Qt::QueuedConnection);
-
-  }
-
-  //----------------------------------------------------------------------------
   void ResetZoom::resetViews()
   {
     m_viewManager->resetViewCameras();
     m_viewManager->updateViews();
   }
+
+  //----------------------------------------------------------------------------
+  void ResetZoom::onToolEnabled(bool enabled)
+  {
+    m_action->setEnabled(enabled);
+
+    if (enabled)
+    {
+      connect(m_action, SIGNAL(triggered(bool)),
+              this,     SLOT(resetViews()));
+    }
+    else
+    {
+      disconnect(m_action, SIGNAL(triggered(bool)),
+                 this,     SLOT(resetViews()));
+    }
+
+  }
+
 }
 

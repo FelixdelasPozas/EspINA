@@ -30,7 +30,6 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 , m_updateWindow{scheduler, pipeline, windowSize}
 , m_init{false}
 , m_normalRes{1}
-, m_lastCoordinate{0}
 , m_hasChanged{false}
 , m_changedTimeStamp{0}
 {
@@ -41,11 +40,20 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::setResolution(const NmVector3 &resolution)
 {
-  m_normalRes = resolution[m_normalIdx];
+  auto normalRes = resolution[m_normalIdx];
 
-  if (m_init)
+  if (m_normalRes != normalRes)
   {
-    //TODO
+    m_normalRes = normalRes;
+
+    if (m_init)
+    {
+      m_hasChanged = true;
+
+      auto invalidated = updateBuffer(m_crosshair, invalidationShift(), m_changedTimeStamp);
+
+      updatePipelines(invalidated);
+    }
   }
 }
 
@@ -72,7 +80,7 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &poi
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
-  m_init       = true;
+  m_init     = true;
 
   if (time > m_changedTimeStamp)
   {
@@ -152,7 +160,7 @@ void BufferedRepresentationPool::updatePriorities()
 //-----------------------------------------------------------------------------
 int BufferedRepresentationPool::distanceFromLastCrosshair(const NmVector3 &crosshair)
 {
-  return vtkMath::Round((normal(crosshair) - m_lastCoordinate)/m_normalRes);
+  return vtkMath::Round((normal(crosshair) - normal(m_crosshair))/m_normalRes);
 }
 
 //-----------------------------------------------------------------------------
@@ -188,13 +196,13 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
     updateTask->invalidate();
     updateTask->setCrosshair(crosshair);
     updateTask->setDescription(QString("Slice %1").arg(normal(crosshair)));
-    qDebug() << "Invalidating:" << old << " to " << updateTask->description() ;
+    //qDebug() << this << "Invalidating:" << old << " to " << updateTask->description() ;
 
     invalidated << updateTask;
   }
 
   m_updateWindow.current()->setTimeStamp(time);
-  m_lastCoordinate = normal(point);
+  m_crosshair = point;
 
   return invalidated;
 }

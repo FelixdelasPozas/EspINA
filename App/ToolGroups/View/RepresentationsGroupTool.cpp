@@ -34,28 +34,17 @@ RepresentationsGroupTool::RepresentationsGroupTool(QIcon icon, QString descripti
 , m_content{new QWidgetAction(this)}
 , m_contentWidget{new QWidget()}
 , m_viewFlags{ViewType::VIEW_2D|ViewType::VIEW_3D}
+, m_representationsVisibility{false}
 {
   m_globalSwitch->setCheckable(true);
 
   connect(m_globalSwitch, SIGNAL(toggled(bool)),
-          this,           SLOT(onToolToggled(bool)));
+          this,           SLOT(setActiveRepresentationsVisibility(bool)));
 
   m_contentWidget->setLayout(new QHBoxLayout());
 
   m_content->setDefaultWidget(m_contentWidget);
   m_content->setVisible(m_globalSwitch->isChecked());
-}
-
-//----------------------------------------------------------------------------
-void RepresentationsGroupTool::setEnabled(bool value)
-{
-
-}
-
-//----------------------------------------------------------------------------
-bool RepresentationsGroupTool::enabled() const
-{
-  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -73,28 +62,12 @@ QList<QAction *> RepresentationsGroupTool::actions() const
 void RepresentationsGroupTool::showActiveRepresentations()
 {
   m_globalSwitch->setChecked(true);
-
-  for (auto repSwitch : m_switches)
-  {
-    if (repSwitch->isActive())
-    {
-      repSwitch->showRepresentations();
-    }
-  }
 }
 
 //----------------------------------------------------------------------------
 void RepresentationsGroupTool::hideActiveRepresentations()
 {
   m_globalSwitch->setChecked(false);
-
-  for (auto repSwitch : m_switches)
-  {
-    if (repSwitch->isActive())
-    {
-      repSwitch->hideRepresentations();
-    }
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -112,7 +85,39 @@ void RepresentationsGroupTool::showRepresentationSwitchs(ViewTypeFlags views)
 }
 
 //----------------------------------------------------------------------------
-void RepresentationsGroupTool::onToolToggled(bool toggled)
+void RepresentationsGroupTool::toggleRepresentationsVisibility()
 {
-  m_content->setVisible(toggled);
+  m_globalSwitch->setChecked(!m_representationsVisibility);
+}
+
+//----------------------------------------------------------------------------
+void RepresentationsGroupTool::onToolEnabled(bool enabled)
+{
+  m_content->setEnabled(enabled);
+}
+
+//----------------------------------------------------------------------------
+void RepresentationsGroupTool::setActiveRepresentationsVisibility(bool value)
+{
+  if (m_representationsVisibility != value)
+  {
+    for (auto repSwitch : m_switches)
+    {
+      if (repSwitch->isActive())
+      {
+        if (value)
+        {
+          repSwitch->showRepresentations();
+        }
+        else
+        {
+          repSwitch->hideRepresentations();
+        }
+      }
+    }
+    m_content->setVisible(value);
+
+  }
+
+  m_representationsVisibility = value;
 }

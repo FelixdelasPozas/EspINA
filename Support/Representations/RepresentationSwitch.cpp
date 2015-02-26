@@ -35,3 +35,24 @@ void RepresentationSwitch::setSettingsVisibility(bool visible)
 
   onSettingsVisibilityChanged(visible);
 }
+
+//-----------------------------------------------------------------------------
+void RepresentationSwitch::setActive(bool value)
+{
+  m_active = value;
+
+  if (m_active)
+  {
+    showRepresentations();
+  }
+  else
+  {
+    hideRepresentations();
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationSwitch::isActive() const
+{
+  return m_active;
+}

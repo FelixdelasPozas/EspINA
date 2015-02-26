@@ -29,7 +29,7 @@ namespace ESPINA {
   : public RepresentationSwitch
   {
     Q_OBJECT
-  
+
   public:
     explicit BasicRepresentationSwitch(RepresentationManagerSPtr manager, ViewTypeFlags supportedViews);
 
@@ -37,19 +37,16 @@ namespace ESPINA {
 
     virtual QWidget* widget();
 
-    virtual void showRepresentations();
+    virtual void showRepresentations() override;
 
-    virtual void hideRepresentations();
-
-    virtual bool isActive() const;
+    virtual void hideRepresentations() override;
 
   private slots:
-    void onActivationToggled(bool active);
+    void onButtonToggled(bool active);
 
   private:
     RepresentationManagerSPtr m_manager;
 
-    bool          m_isActive;
     ViewTypeFlags m_flags;
   };
 }

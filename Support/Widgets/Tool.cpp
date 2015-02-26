@@ -22,6 +22,14 @@
 
 using namespace ESPINA;
 
+//----------------------------------------------------------------------------
+Tool::Tool()
+: m_enabled{false}
+{
+
+}
+
+//----------------------------------------------------------------------------
 QPushButton *Tool::createToolButton(const QIcon &icon, const QString &tooltip)
 {
   auto button = new QPushButton();
@@ -33,4 +41,21 @@ QPushButton *Tool::createToolButton(const QIcon &icon, const QString &tooltip)
   button->setToolTip(tooltip);
 
   return button;
+}
+
+//----------------------------------------------------------------------------
+void Tool::setEnabled(bool value)
+{
+  if (m_enabled != value)
+  {
+    onToolEnabled(value);
+  }
+
+  m_enabled = value;
+}
+
+//----------------------------------------------------------------------------
+bool Tool::isEnabled() const
+{
+  return m_enabled;
 }

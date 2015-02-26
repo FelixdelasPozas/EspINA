@@ -63,7 +63,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/View/Representations/CrosshairsSwitch2D.h
   ToolGroups/View/ResetZoom.h
   ToolGroups/View/ToggleCrosshairVisibility.h
-  ToolGroups/View/ToggleSegmentationsVisibility.h
   ToolGroups/View/ViewToolGroup.h
   ToolGroups/View/ZoomAreaTool.h
 #   Tools/Brushes/CircularBrushROISelector.h
@@ -174,7 +173,6 @@ set (ESPINA_SOURCES
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp
-  ToolGroups/View/ToggleSegmentationsVisibility.cpp
   ToolGroups/View/ViewToolGroup.cpp
   ToolGroups/View/ZoomAreaTool.cpp
 #   Tools/Brushes/CircularBrushROISelector.cpp

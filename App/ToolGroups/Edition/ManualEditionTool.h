@@ -73,10 +73,6 @@ namespace ESPINA
      */
     virtual ~ManualEditionTool();
 
-    virtual void setEnabled(bool value);
-
-    virtual bool enabled() const;
-
     virtual QList<QAction *> actions() const;
 
     /** \brief Aborts current operation.
@@ -100,6 +96,7 @@ namespace ESPINA
     void updateReferenceItem();
 
   private:
+    virtual void onToolEnabled(bool enabled);
 
     /** \brief Returns the category of the current item.
      *
@@ -131,8 +128,6 @@ namespace ESPINA
 
     bool                      m_validStroke;
     SliceEditionPipelineSPtr  m_temporalPipeline;
-
-    bool m_enabled;
   };
 
   using ManualEditionToolPtr  = ManualEditionTool *;

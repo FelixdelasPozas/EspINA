@@ -37,6 +37,10 @@ namespace ESPINA
     bool settingsVisible() const
     { return m_settingsVisibility; }
 
+    void setActive(bool value);
+
+    bool isActive() const;
+
     virtual QWidget *widget() = 0;
 
     virtual ViewTypeFlags supportedViews() = 0;
@@ -45,8 +49,6 @@ namespace ESPINA
 
     virtual void hideRepresentations() = 0;
 
-    virtual bool isActive() const = 0;
-
   protected:
     explicit RepresentationSwitch();
 
@@ -54,6 +56,7 @@ namespace ESPINA
     virtual void onSettingsVisibilityChanged(bool visible) {}
 
   private:
+    bool m_active;
     bool m_settingsVisibility;
   };
 

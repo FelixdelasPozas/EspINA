@@ -37,40 +37,38 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
-    public:
-      /** \brief ZoomArea class constructor.
-       * \param[in] viewManager, view manager smart pointer.
-       */
-      explicit ZoomAreaTool(ViewManagerSPtr viewManager);
+  public:
+    /** \brief ZoomArea class constructor.
+     * \param[in] viewManager, view manager smart pointer.
+     */
+    explicit ZoomAreaTool(ViewManagerSPtr viewManager);
 
-      /** \brief ZoomArea class destructor.
-       *
-       */
-      virtual ~ZoomAreaTool();
+    /** \brief ZoomArea class destructor.
+     *
+     */
+    virtual ~ZoomAreaTool();
 
-      virtual bool enabled() const;
+    virtual QList<QAction *> actions() const;
 
-      virtual void setEnabled(bool value);
+    /** \brief Cancels current operation.
+     *
+     */
+    void abortOperation();
 
-      virtual QList<QAction *> actions() const;
+  public slots:
+    /** \brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
+     *
+     */
+    void activateTool(bool value);
 
-      /** \brief Cancels current operation.
-       *
-       */
-      void abortOperation();
+  private:
+    virtual void onToolEnabled(bool enabled) override;
 
-    public slots:
-      /** \brief Initializes the tool (inserts the widget in the view manager and sets the event handler).
-       *
-       */
-      void activateTool(bool value);
-
-    private:
-      bool                 m_enabled;
-      ViewManagerSPtr      m_viewManager;
-      QAction             *m_zoomArea;
-      EspinaWidgetSPtr     m_widget;
-      EventHandlerSPtr     m_zoomHandler;
+  private:
+    ViewManagerSPtr      m_viewManager;
+    QAction             *m_zoomArea;
+    EspinaWidgetSPtr     m_widget;
+    EventHandlerSPtr     m_zoomHandler;
   };
 
   using ZoomAreaToolSPtr = std::shared_ptr<ZoomAreaTool>;

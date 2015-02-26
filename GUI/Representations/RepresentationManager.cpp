@@ -76,6 +76,11 @@ QIcon RepresentationManager::icon() const
 void RepresentationManager::setView(RenderView *view)
 {
   m_view = view;
+
+  if (m_showPipelines)
+  {
+    enableRepresentations();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -87,15 +92,10 @@ void RepresentationManager::show()
   }
 
   m_showPipelines  = true;
-  m_requiresRender = true;
 
   if (m_view)
   {
-    connectPools();
-
-    setCrosshair(m_crosshair, m_lastRequestTime);
-
-    emit renderRequested();
+    enableRepresentations();
   }
 }
 
@@ -111,10 +111,14 @@ void RepresentationManager::hide()
 
   if (m_view)
   {
-    emit renderRequested();
-
-    disconnectPools();
+    disableRepresentations();
   }
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::isActive()
+{
+  return m_showPipelines;
 }
 
 //-----------------------------------------------------------------------------
@@ -126,38 +130,20 @@ bool RepresentationManager::requiresRender() const
 //-----------------------------------------------------------------------------
 void RepresentationManager::display(TimeStamp time)
 {
-  if (m_view != nullptr)
+  if (m_view)
   {
-    for (auto itemActors : m_viewActors)
-    {
-      for (auto actor : itemActors)
-      {
-        m_view->removeActor(actor);
-      }
-    }
+    removeCurrentActors();
 
     m_viewActors.clear();
 
     if (m_showPipelines)
     {
-      auto currentActors = actors(time);
-
-      auto it = currentActors.begin();
-      while (it != currentActors.end())
-      {
-        for (auto actor : it.value())
-        {
-          m_view->addActor(actor);
-          m_viewActors[it.key()] << actor;
-        }
-
-        ++it;
-      }
+      displayActors(time);
     }
 
     invalidatePreviousActors(time);
 
-    m_requiresRender = m_showPipelines;
+    m_requiresRender = m_showPipelines && hasSources();
   }
 }
 
@@ -204,7 +190,9 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
 {
   if(time > m_lastRenderRequestTime)
   {
+    m_requiresRender        = true;
     m_lastRenderRequestTime = time;
+
     emit renderRequested();
   }
 }
@@ -213,4 +201,54 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
 void RepresentationManager::invalidateActors()
 {
   m_lastRenderRequestTime = 0;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::enableRepresentations()
+{
+  m_requiresRender = hasSources();
+
+  connectPools();
+
+  setCrosshair(m_crosshair, m_lastRequestTime);
+
+  emit renderRequested();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::disableRepresentations()
+{
+  emit renderRequested();
+
+  disconnectPools();
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::removeCurrentActors()
+{
+  for (auto itemActors : m_viewActors)
+  {
+    for (auto actor : itemActors)
+    {
+      m_view->removeActor(actor);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::displayActors(const TimeStamp time)
+{
+  auto currentActors = actors(time);
+
+  auto it = currentActors.begin();
+  while (it != currentActors.end())
+  {
+    for (auto actor : it.value())
+    {
+      m_view->addActor(actor);
+      m_viewActors[it.key()] << actor;
+    }
+
+    ++it;
+  }
 }

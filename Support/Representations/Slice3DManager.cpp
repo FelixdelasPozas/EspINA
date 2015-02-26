@@ -94,6 +94,19 @@ ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) 
 }
 
 //----------------------------------------------------------------------------
+bool Slice3DManager::hasSources() const
+{
+  bool result = true;
+
+  for (auto pool : m_pools)
+  {
+    result &= pool->hasSources();
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
 void Slice3DManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   for (auto pool : m_pools)

@@ -135,31 +135,6 @@ OrthogonalROITool::~OrthogonalROITool()
 }
 
 //-----------------------------------------------------------------------------
-void OrthogonalROITool::setEnabled(bool value)
-{
-  if(m_enabled == value) return;
-
-  setDefinitionMode(value);
-
-  if (!value)
-  {
-    setResizable(false);
-  }
-
-  m_activeTool->setEnabled(value);
-  m_resizeROI ->setEnabled(value && m_roi);
-  m_applyROI  ->setEnabled(value);
-
-  m_enabled = value;
-}
-
-//-----------------------------------------------------------------------------
-bool OrthogonalROITool::enabled() const
-{
-  return m_enabled;
-}
-
-//-----------------------------------------------------------------------------
 QList<QAction *> OrthogonalROITool::actions() const
 {
   QList<QAction *> actions;
@@ -217,6 +192,21 @@ void OrthogonalROITool::setColor(const QColor& color)
   {
     updateRepresentationColor();
   }
+}
+
+//-----------------------------------------------------------------------------
+void OrthogonalROITool::onToolEnabled(bool enabled)
+{
+  setDefinitionMode(enabled);
+
+  if (!enabled)
+  {
+    setResizable(false);
+  }
+
+  m_activeTool->setEnabled(enabled);
+  m_resizeROI ->setEnabled(enabled && m_roi);
+  m_applyROI  ->setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------

@@ -40,21 +40,7 @@ namespace ESPINA {
      */
     CODETool(const QString&icon, const QString& tooltip);
 
-    /** \brief Implements Tool::actions().
-     *
-     */
     QList<QAction *> actions() const;
-
-    /** \brief Implements Tool::setEnabled().
-     *
-     */
-    void setEnabled(bool enabled);
-
-    /** \brief Implements Tool::enabled().
-     *
-     */
-    bool enabled() const
-    { return m_enabled; }
 
     /** \brief Sets the radius value.
      * \param[in] value value of the radius.
@@ -79,10 +65,12 @@ namespace ESPINA {
     void applyClicked();
 
   private:
+    virtual void onToolEnabled(bool enabled);
+
+  private:
     QAction*       m_toggle;
     SpinBoxAction* m_radius;
     QAction*       m_apply;
-    bool           m_enabled;
   };
 
 } // namespace ESPINA

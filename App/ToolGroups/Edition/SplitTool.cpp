@@ -87,7 +87,6 @@ namespace ESPINA
   , m_factory          {factory}
   , m_viewManager      {viewManager}
   , m_undoStack        {undoStack}
-  , m_enabled          {false}
   , m_widget           {nullptr}
   , m_handler          {new SplitToolEventHandler()}
   {
@@ -116,19 +115,6 @@ namespace ESPINA
 
     if(m_viewManager->eventHandler() == m_handler)
       m_viewManager->setEventHandler(nullptr);
-  }
-
-  //------------------------------------------------------------------------
-  void SplitTool::setEnabled(bool value)
-  {
-    m_enabled = value;
-    m_planarSplitAction->setEnabled(value);
-  }
-
-  //------------------------------------------------------------------------
-  bool SplitTool::enabled() const
-  {
-    return m_enabled;
   }
 
   //------------------------------------------------------------------------
@@ -292,6 +278,12 @@ namespace ESPINA
 
     QApplication::restoreOverrideCursor();
     m_executingTasks.remove(filter);
+  }
+
+  //------------------------------------------------------------------------
+  void SplitTool::onToolEnabled(bool enabled)
+  {
+    m_planarSplitAction->setEnabled(enabled);
   }
 
 

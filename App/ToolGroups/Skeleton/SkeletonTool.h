@@ -75,11 +75,6 @@ namespace ESPINA
        */
       virtual ~SkeletonTool();
 
-      virtual void setEnabled(bool value);
-
-      virtual bool enabled() const
-      { return m_enabled; }
-
       virtual QList<QAction *> actions() const;
 
       /** \brief Returns the category of the category selector of the tool.
@@ -150,6 +145,8 @@ namespace ESPINA
       void checkItemRemoval(SegmentationAdapterSList segmentations);
 
     private:
+      virtual void onToolEnabled(bool enabled);
+
       /** \brief Helper method to manage the visibility of widgets.
        * \param[in] value true to set visible false otherwise.
        *
@@ -165,7 +162,7 @@ namespace ESPINA
       ModelAdapterSPtr          m_model;
       ModelFactorySPtr          m_factory;
       QUndoStack               *m_undoStack;
-      bool                      m_enabled;
+
       CategorySelector         *m_categorySelector;
       DoubleSpinBoxAction      *m_toleranceWidget;
       SkeletonToolStatusAction *m_toolStatus;

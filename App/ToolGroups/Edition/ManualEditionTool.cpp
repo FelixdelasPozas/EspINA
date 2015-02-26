@@ -88,7 +88,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
 , m_mode                {Mode::CREATION}
 , m_referenceItem       {nullptr}
 , m_validStroke         {true}
-, m_enabled             {false}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
   //qRegisterMetaType<CategoryAdapterSPtr>("CategoryAdapterSPtr");
@@ -109,21 +108,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
 //------------------------------------------------------------------------
 ManualEditionTool::~ManualEditionTool()
 {
-}
-
-//------------------------------------------------------------------------
-void ManualEditionTool::setEnabled(bool value)
-{
-  m_enabled = value;
-//   m_categorySelector->setEnabled(value);
-//   m_drawToolSelector->setEnabled(value);
-//   m_radiusWidget->setEnabled(value);
-}
-
-//------------------------------------------------------------------------
-bool ManualEditionTool::enabled() const
-{
-  return m_enabled;
 }
 
 //------------------------------------------------------------------------
@@ -206,6 +190,12 @@ void ManualEditionTool::updateReferenceItem()
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onToolEnabled(bool enabled)
+{
+
 }
 
 //------------------------------------------------------------------------

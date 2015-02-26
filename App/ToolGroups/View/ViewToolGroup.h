@@ -23,7 +23,6 @@
 
 // ESPINA
 #include <Support/Widgets/ToolGroup.h>
-#include "ToggleSegmentationsVisibility.h"
 #include "ResetZoom.h"
 #include "ZoomAreaTool.h"
 #include "RepresentationsGroupTool.h"
@@ -83,7 +82,6 @@ namespace ESPINA
 
     using RenderGroupTools = QMap<RenderGroup, RenderGroupToolSPtr>;
 
-    ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
     ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
     ResetZoomSPtr                     m_resetZoom;
     ZoomAreaToolSPtr                  m_zoomArea;
