@@ -172,22 +172,17 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 RenderView::toWorldCoordinates(int x, int y, int z) const
+NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const
 {
-  NmVector3 result;
+  Q_ASSERT(renderer);
 
-  if (m_renderer)
-  {
-    m_renderer->SetDisplayPoint(x, y, z);
-    m_renderer->DisplayToWorld();
+  renderer->SetDisplayPoint(x, y, z);
+  renderer->DisplayToWorld();
 
-    double worldPoint[4];
-    m_renderer->GetWorldPoint(worldPoint);
+  double worldPoint[4];
+  renderer->GetWorldPoint(worldPoint);
 
-    result = NmVector3(worldPoint);
-  }
-
-  return result;
+  return NmVector3(worldPoint);
 }
 
 //-----------------------------------------------------------------------------
@@ -632,10 +627,10 @@ unsigned int RenderView::numberActiveRepresentationManagers(Data::Type type)
   return count;
 }
 
-//-----------------------------------------------------------------------------
-Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
-{
-  Selector::Selection selectedItems;
+// //-----------------------------------------------------------------------------
+// Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
+// {
+//   Selector::Selection selectedItems;
 //
 //   if(flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE))
 //   {
@@ -774,8 +769,8 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const
 //     }
 //   }
 //
-  return selectedItems;
-}
+//   return selectedItems;
+// }
 
 //-----------------------------------------------------------------------------
 Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const

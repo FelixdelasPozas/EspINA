@@ -184,3 +184,8 @@ QList<QAction *> AppositionSurfaceTool::actions() const
   return actions;
 }
 
+//-----------------------------------------------------------------------------
+void AppositionSurfaceTool::onToolEnabled(bool enabled)
+{
+  m_action->setEnabled(enabled);
+}

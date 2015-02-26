@@ -148,13 +148,13 @@ namespace ESPINA
      */
     NmVector3 worldEventPosition(const QPoint &pos);
 
-    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
-     * \param[in] flags view item types to be selected.
-     * \param[in] mask  Area selected to intersect with the items in the view.
-     * \param[in] multiselection if true several view items may be returned.
-     *
-     */
-    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
+//     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
+//      * \param[in] flags view item types to be selected.
+//      * \param[in] mask  Area selected to intersect with the items in the view.
+//      * \param[in] multiselection if true several view items may be returned.
+//      *
+//      */
+//     virtual Selector::Selection pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
 
     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
      * \param[in] flags view item types to be selected.
@@ -286,7 +286,7 @@ namespace ESPINA
      */
     explicit RenderView(ViewType type, QWidget* parent = nullptr);
 
-    NmVector3 toWorldCoordinates(int x, int y, int z) const;
+    NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
 
     /** \brief Updates the view when the selection changes.
      * \param[in] selection new selection.
