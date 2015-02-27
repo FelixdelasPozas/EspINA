@@ -37,7 +37,13 @@ Analysis::Analysis()
 }
 
 //------------------------------------------------------------------------
-void Analysis::reset()
+Analysis::~Analysis()
+{
+//   qDebug() << "Destroying Analysis";
+}
+
+//------------------------------------------------------------------------
+void Analysis::clear()
 {
   m_classification.reset();
   m_content   = DirectedGraphSPtr{new DirectedGraph()};
@@ -152,8 +158,7 @@ void Analysis::add(SegmentationSList segmentations)
 //------------------------------------------------------------------------
 void Analysis::remove(SampleSPtr sample) throw (Item_Not_Found_Exception)
 {
-  if (!m_samples.contains(sample))
-  	throw (Item_Not_Found_Exception());
+  if (!m_samples.contains(sample)) throw (Item_Not_Found_Exception());
 
   sample->setAnalysis(nullptr);
   m_samples.removeOne(sample);

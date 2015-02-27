@@ -27,52 +27,58 @@
  */
 
 #include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/MultiTasking/Scheduler.h>
+
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
 #include <GUI/ModelFactory.h>
+
+#include "testing_support_dummy_filter.h"
 #include "ModelTest.h"
 
 using namespace std;
 using namespace ESPINA;
+using namespace Testing;
 
-int channel_proxy_add_existing_relation( int argc, char** argv )
+int model_adapter_clear( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ModelAdapter modelAdapter;
+  ModelTest    modelTester(&modelAdapter);
 
   SchedulerSPtr sch;
   CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactorySPtr factory{new ModelFactory(coreFactory)};
 
-  modelAdapter->setAnalysis(analysis, factory);
+  modelAdapter.setAnalysis(analysis, factory);
 
-  SampleAdapterSPtr sample1 = factory->createSample("Sample 1");
-  SampleAdapterSPtr sample2 = factory->createSample("Sample 2");
+  SampleAdapterSPtr sample = factory->createSample("sample");
+  modelAdapter.add(sample);
 
-  modelAdapter->add(sample1);
-  modelAdapter->add(sample2);
+  InputSList inputs;
+  Filter::Type type{"DummyFilter"};
 
-  RelationName relation{"link"};
-  modelAdapter->addRelation(sample1, sample2, relation);
+  auto  filter  = factory->createFilter<DummyFilter>(inputs, type);
 
-  try {
-    modelAdapter->addRelation(sample1, sample2, relation);
-    cerr << "Adding already existing relation" << endl;
-  } catch (ModelAdapter::Existing_Relation_Exception &e) {
-      error = false;
-  }
+  auto channel = factory->createChannel(filter, 0);
+  modelAdapter.add(channel);
+
+  auto segmentation = factory->createSegmentation(filter, 0);
+  modelAdapter.add(segmentation);
+
+  modelAdapter.clear();
 
   if (analysis->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
     error = true;
   }
 
-  if (analysis->samples().size() != 2) {
+  if (!analysis->samples().isEmpty()) {
     cerr << "Unexpected number of samples in analysis" << endl;
     error = true;
   }
@@ -87,7 +93,7 @@ int channel_proxy_add_existing_relation( int argc, char** argv )
     error = true;
   }
 
-  if (analysis->content()->vertices().size() != 2) {
+  if (!analysis->content()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
@@ -97,12 +103,12 @@ int channel_proxy_add_existing_relation( int argc, char** argv )
     error = true;
   }
 
-  if (analysis->relationships()->vertices().size() != 2) {
+  if (!analysis->relationships()->vertices().isEmpty()) {
     cerr << "Unexpected number of vertices in analysis relationships" << endl;
     error = true;
   }
 
-  if (analysis->relationships()->edges().size() != 1) {
+  if (!analysis->relationships()->edges().isEmpty()) {
     cerr << "Unexpected number of edges in analysis relationships" << endl;
     error = true;
   }

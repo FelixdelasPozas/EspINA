@@ -48,7 +48,7 @@ int classification_proxy_set_default_classification( int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto analysis = make_shared<Analysis>();
 
   QFileInfo defaultClassification(":/espina/defaultClassification.xml");
   auto classification = IO::ClassificationXML::load(defaultClassification);
@@ -59,29 +59,15 @@ int classification_proxy_set_default_classification( int argc, char** argv )
   ClassificationProxy proxy(modelAdapter);
   ModelTest           modelTester(&proxy);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  auto coreFactory = make_shared<CoreFactory>();
+  auto factory     = make_shared<ModelFactory>(coreFactory);
 
   modelAdapter->setAnalysis(analysis, factory);
 
-//  modelAdapter->setClassification(classification);
-//
-//   auto l1   = modelAdapter->createRootCategory("Level 1");
-//   auto l1_1 = modelAdapter->createCategory("Level 1-1", l1);
-//   auto l2   = modelAdapter->createRootCategory("Level 2");
-//
-//   if (proxy.rowCount() != 2) {
-//     cerr << "Unexpected number of root categories" << endl;
-//     error = true;
-//   }
-//
-//   modelAdapter->removeRootCategory(l2);
-//
-//   if (proxy.rowCount() != 1) {
-//     cerr << "Unexpected number of root categories" << endl;
-//     error = true;
-//   }
+  if (proxy.rowCount() != 4) {
+    cerr << "Unexpected number of root categories" << endl;
+    error = true;
+  }
 
   return error;
 }

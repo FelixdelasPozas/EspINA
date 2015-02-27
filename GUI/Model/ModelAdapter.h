@@ -38,7 +38,7 @@ namespace ESPINA
   struct Relation
   {
     ItemAdapterSPtr ancestor;
-    ItemAdapterSPtr succesor;
+    ItemAdapterSPtr successor;
     RelationName    relation;
   };
   typedef QList<Relation> RelationList;
@@ -80,6 +80,28 @@ namespace ESPINA
     struct Item_Not_Found_Exception {};
     struct Relation_Not_Found_Exception {};
 
+  private:
+    class BatchCommand;
+    using BatchCommandSPtr = std::shared_ptr<BatchCommand>;
+    using CommandQueue     = QList<BatchCommandSPtr>;
+    using CommandQueueList = QList<CommandQueue>;
+
+    struct ItemCommands
+    {
+      ItemAdapterSPtr Item;
+      CommandQueue    Commands;
+    };
+    using ItemCommandsList = QList<ItemCommands>;
+
+    struct ConsecutiveQueues
+    {
+      QModelIndex  StartIndex;
+      QModelIndex  EndIndex;
+      CommandQueue Commands;
+    };
+
+    using ConsecutiveQueuesList = QList<ConsecutiveQueues>;
+
   public:
     /** \brief ModelAdapter class constructor.
      *
@@ -92,19 +114,21 @@ namespace ESPINA
     virtual ~ModelAdapter();
 
     /** \brief Sets the analysis this model adapts and a model factory.
-     * \param[in] analysis, analysis smart pointer.
-     * \param[in] factory, model factory smart pointer.
+     * \param[in] analysis analysis smart pointer.
+     * \param[in] factory model factory smart pointer.
      *
+     * NOTE: Doesn't support Batch Mode
      */
     void setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory);
 
-    /** \brief Shadows QAbstractItemModel::reset().
+    /** \brief Clears current analysis items and reset views
      *
+     * NOTE: Doesn't support Batch Mode
      */
-    void reset();
+    void clear();
 
     /** \brief Sets the model temporal storage.
-     * \param[in] storage, temporal storage smart pointer.
+     * \param[in] storage temporal storage smart pointer.
      *
      */
     void setStorage(TemporalStorageSPtr storage);
@@ -114,59 +138,35 @@ namespace ESPINA
      */
     TemporalStorageSPtr storage() const;
 
-    /** \brief Implements QAbstractItemModel::data().
-     *
-     */
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
 
-    /** \brief Overrides QAbstractItemModel::setData().
-     *
-     */
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole) override;
 
-    /** \brief Overrides QAbstractItemModel::itemData().
-     *
-     */
     virtual QMap<int, QVariant> itemData(const QModelIndex &index) const override;
 
-    /** \brief Overrides QAbstractItemModel::flags().
-     *
-     */
     virtual Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    /** \brief Implements QAbstractItemModel::columnCount().
-     *
-     */
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
 
-    /** \brief Implements QAbstractItemModel::rowCount().
-     *
-     */
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
-    /** \brief Implements QAbstractItemModel::parent().
-     *
-     */
     virtual QModelIndex parent(const QModelIndex& child) const;
 
-    /** \brief Implements QAbstractItemModel::index().
-     *
-     */
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
 
     /** \brief Returns the model index of the given item.
-     * \param[in] item, item adapter raw pointer.
+     * \param[in] item item adapter raw pointer.
      *
      */
     QModelIndex index(ItemAdapterPtr item) const;
 
     /** \brief Returns the model index of the given item.
-     * \param[in] item, item adapter smart pointer.
+     * \param[in] item item adapter smart pointer.
      *
      */
     QModelIndex index(ItemAdapterSPtr item) const;
 
-    /** \brief Returna the model index of the classification root node.
+    /** \brief Returns the model index of the classification root node.
      *
      * Special Nodes of the model to refer different roots.
      *
@@ -174,13 +174,13 @@ namespace ESPINA
     QModelIndex classificationRoot() const;
 
     /** \brief Returns the model index of the given category.
-     * \param[in] category, category adapter raw pointer.
+     * \param[in] category category adapter raw pointer.
      *
      */
     QModelIndex categoryIndex(CategoryAdapterPtr category) const;
 
     /** \brief Returns the model index of the given category.
-     * \param[in] category, category adapter smart pointer.
+     * \param[in] category category adapter smart pointer.
      *
      */
     QModelIndex categoryIndex(CategoryAdapterSPtr category) const;
@@ -193,13 +193,13 @@ namespace ESPINA
     QModelIndex sampleRoot() const;
 
     /** \brief Returns the model index of the given sample.
-     * \param[in] sample, sample adapter raw pointer.
+     * \param[in] sample sample adapter raw pointer.
      *
      */
     QModelIndex sampleIndex(SampleAdapterPtr sample) const;
 
     /** \brief Returns the model index of the given sample.
-     * \param[in] sample, sample adapter smart pointer.
+     * \param[in] sample sample adapter smart pointer.
      *
      */
     QModelIndex sampleIndex(SampleAdapterSPtr sample) const;
@@ -212,13 +212,13 @@ namespace ESPINA
     QModelIndex channelRoot() const;
 
     /** \brief Returns the model index of the given channel.
-     * \param[in] channel, channel adapter raw pointer.
+     * \param[in] channel channel adapter raw pointer.
      *
      */
     QModelIndex channelIndex(ChannelAdapterPtr  channel) const;
 
     /** \brief Returns the model index of the given channel.
-     * \param[in] channel, channel adapter smart pointer.
+     * \param[in] channel channel adapter smart pointer.
      *
      */
     QModelIndex channelIndex(ChannelAdapterSPtr channel) const;
@@ -231,20 +231,30 @@ namespace ESPINA
     QModelIndex segmentationRoot() const;
 
     /** \brief Returns the model index of the given segmentation.
-     * \param[in] segmentation, segmentation adapter raw pointer.
+     * \param[in] segmentation segmentation adapter raw pointer.
      *
      */
     QModelIndex segmentationIndex(SegmentationAdapterPtr  segmentation) const;
 
     /** \brief Returns the model index of the given segmentation.
-     * \param[in] segmentation, segmentation adapter smart pointer.
+     * \param[in] segmentation segmentation adapter smart pointer.
      *
      */
     QModelIndex segmentationIndex(SegmentationAdapterSPtr segmentation) const;
 
+
+    /** \brief Switch the behaviour of the model to group operations until batch mode is finished
+     */
+    void beginBatchMode();
+
+    /** \brief Switch the behaviour of the model to execute operations when they are invoked
+     */
+    void endBatchMode();
+
     /** \brief Sets the classification of the model.
-     * \param[in] classification, classification adapter smart pointer.
+     * \param[in] classification classification adapter smart pointer.
      *
+     * NOTE: Doesn't support Batch Mode
      */
     void setClassification(ClassificationAdapterSPtr classification);
 
@@ -254,7 +264,7 @@ namespace ESPINA
     const ClassificationAdapterSPtr classification() const;
 
     /** \brief Creates the root node of the categories.
-     * \param[in] name, name of the root category.
+     * \param[in] name name of the root category.
      *
      * Special Nodes of the model to refer different roots.
      *
@@ -262,8 +272,8 @@ namespace ESPINA
     CategoryAdapterSPtr createRootCategory(const QString& name);
 
      /** \brief Creates a category and returns it's category adapter smart pointer.
-      * \param[in] name, name of the category.
-      * \param[in] parent, raw pointer category adapter of the parent of the new category.
+     * \param[in] name name of the category.
+     * \param[in] parent raw pointer category adapter of the parent of the new category.
      *
      */
     CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterPtr  parent);
@@ -340,32 +350,55 @@ namespace ESPINA
      */
     void add(SegmentationAdapterSList segmentations);
 
+    /** \brief Adds a relation between two item adapters in the model.
+     * \param[in] ancestor item adapter smart pointer origin of the relation.
+     * \param[in] successor item adapter smart pointer destination of the relation.
+     * \param[in] relation text string that specifies the relation.
+     *
+     */
+    void addRelation(ItemAdapterSPtr     ancestor,
+                     ItemAdapterSPtr     successor,
+                     const RelationName& relation);
+
+    /** \brief Adds a relation to the model.
+     * \param[in] relation valid relation object.
+     *
+     */
+    void addRelation(const Relation& relation);
+
+    /** \brief Adds a list of relations to the model.
+     * \param[in] relationList list of Relation objects.
+     *
+     */
+    void addRelations(const RelationList &relations);
+
+
     /** \brief Removes a sample from the model.
-     * \param[in] sample, smart pointer of the sample adapter to remove.
+     * \param[in] sample smart pointer of the sample adapter to remove.
      *
      */
     void remove(SampleAdapterSPtr sample);
 
     /** \brief Removes a list of samples from the model.
-     * \param[in] samples, list of smart pointers of the sample adapters to remove.
+     * \param[in] samples list of smart pointers of the sample adapters to remove.
      *
      */
     void remove(SampleAdapterSList samples);
 
     /** \brief Removes a channel from the model.
-     * \param[in] channel, smart pointer of the channel adapter to remove.
+     * \param[in] channel smart pointer of the channel adapter to remove.
      *
      */
     void remove(ChannelAdapterSPtr channel);
 
     /** \brief Removes a list of channels from the model.
-     * \param[in] channels, list of smart pointers of the channel adapters to remove.
+     * \param[in] channels list of smart pointers of the channel adapters to remove.
      *
      */
     void remove(ChannelAdapterSList channels);
 
     /** \brief Removes a segmentation from the model.
-     * \param[in] segmentation, smart pointer of the segmentation adapter to remove.
+     * \param[in] segmentation smart pointer of the segmentation adapter to remove.
      *
      */
     void remove(SegmentationAdapterSPtr segmentation);
@@ -395,77 +428,55 @@ namespace ESPINA
     { return m_segmentations; }
 
     /** \brief Sets the category of a segmentation.
-     * \param[in] segmentation, smart pointer of the segmentation adapter to change.
-     * \param[in] category, smart pointer of the new category adapter.
+     * \param[in] segmentation smart pointer of the segmentation adapter to change.
+     * \param[in] category smart pointer of the new category adapter.
      *
      */
     void setSegmentationCategory(SegmentationAdapterSPtr segmentation,
                                  CategoryAdapterSPtr     category);
 
 
-    /** \brief Adds a relation between two item adapters in the model.
-     * \param[in] ancestor, item adapter smart pointer origin of the relation.
-     * \param[in] succesor, item adapter smart pointer destination of the relation.
-     * \param[in] relation, text string that specifies the relation.
-     *
-     */
-    void addRelation(ItemAdapterSPtr     ancestor,
-                     ItemAdapterSPtr     succesor,
-                     const RelationName& relation);
-
-    /** \brief Adds a relation to the model.
-     * \param[in] relation, valid relation object.
-     *
-     */
-    void addRelation(const Relation& relation);
-
-    /** \brief Adds a list of relations to the model.
-     * \param[in] relationList, list of Relation objects.
-     *
-     */
-    void addRelations(const RelationList &relations);
-
 
     /** \brief Removes a relation between two item adapters from the model.
-     * \param[in] ancestor, item adapter smart pointer origin of the relation.
-     * \param[in] succesor, item adapter smart pointer destination of the relation.
-     * \param[in] relation, text string that specifies the relation.
+     * \param[in] ancestor item adapter smart pointer origin of the relation.
+     * \param[in] successor item adapter smart pointer destination of the relation.
+     * \param[in] relation text string that specifies the relation.
      *
      */
     void deleteRelation(ItemAdapterSPtr     ancestor,
-                        ItemAdapterSPtr     succesor,
+                        ItemAdapterSPtr     successor,
                         const RelationName& relation);
 
     /** \brief Deletes a relation from the model.
-     * \param[in] relation, valid relation object.
+     * \param[in] relation valid relation object.
      *
      */
     void deleteRelation(const Relation& relation);
 
     /** \brief Deletes a list of relations to the model.
-     * \param[in] relationList, list of Relation objects.
+     * \param[in] relationList list of Relation objects.
      *
      */
     void deleteRelations(const RelationList &relations);
 
     /** \brief Returns the list of item adapters related to the specified one.
-     * \param[in] item, item adapter raw pointer.
-     * \param[in] type, type of the relation.
-     * \param[in] filter, relations filter.
+     * \param[in] item item adapter raw pointer.
+     * \param[in] type type of the relation.
+     * \param[in] filter relations filter.
      *
      */
     ItemAdapterSList relatedItems(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
     /** \brief Returns the list of relations that an item have that comply with the specified type and filter.
-     * \param[in] item, item adapter raw pointer.
-     * \param[in] type, relation type.
-     * \param[in] filter, relations filter.
+     * \param[in] item item adapter raw pointer.
+     * \param[in] type relation type.
+     * \param[in] filter relations filter.
      *
      */
     RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
     /** \brief Emits the added segmentation signal for the given segmentation.
-     * \param[in] segmentation, segmentation adapter smart pointer.
+     * \param[in] segmentation segmentation adapter smart pointer.
      *
      * Used by undo commands to signal finished operations.
      *
@@ -473,7 +484,7 @@ namespace ESPINA
     void emitSegmentationsAdded(SegmentationAdapterSPtr segmentation);
 
     /** \brief Emits the added segmentation signal for the given list of segmentation adapters.
-     * \param[in] segmentations, list of segmentation adapters.
+     * \param[in] segmentations list of segmentation adapters.
      *
      * Used by undo commands to signal finished operations.
      *
@@ -481,7 +492,7 @@ namespace ESPINA
     void emitSegmentationsAdded(SegmentationAdapterSList segmentations);
 
     /** \brief Emits the added channel signal for the given list of channel adapters.
-     * \param[in] channels, list of channel adapters.
+     * \param[in] channels list of channel adapters.
      *
      * Used by undo commands to signal finished operations.
      *
@@ -493,31 +504,31 @@ namespace ESPINA
     //---------------------------------------------------------------------------
 
     /** \brief Returns the item adapter smart pointer of the item specified by it persistent smart pointer.
-     * \param[in] item, persistent smart pointer.
+     * \param[in] item persistent smart pointer.
      *
      */
     ItemAdapterSPtr find(PersistentSPtr item);
 
     /** \brief Returns the smart pointer of a category adapter given its raw pointer.
-     * \param[in] category, category adapter raw pointer.
+     * \param[in] category category adapter raw pointer.
      *
      */
     CategoryAdapterSPtr smartPointer(CategoryAdapterPtr category);
 
     /** \brief Returns the smart pointer of a sample adapter given its raw pointer.
-     * \param[in] sample, sample adapter raw pointer.
+     * \param[in] sample sample adapter raw pointer.
      *
      */
     virtual SampleAdapterSPtr smartPointer(SampleAdapterPtr sample);
 
     /** \brief Returns the smart pointer of a channel adapter given its raw pointer.
-     * \param[in] channel, channel adapter raw pointer.
+     * \param[in] channel channel adapter raw pointer.
      *
      */
     virtual ChannelAdapterSPtr smartPointer(ChannelAdapterPtr channel);
 
     /** \brief Returns the smart pointer of a segmentation adapter given its raw pointer.
-     * \param[in] segmentation, segmentation adapter raw pointer.
+     * \param[in] segmentation segmentation adapter raw pointer.
      *
      */
     virtual SegmentationAdapterSPtr smartPointer(SegmentationAdapterPtr segmentation);
@@ -536,48 +547,128 @@ namespace ESPINA
     void segmentationsRemoved(SegmentationAdapterSList segmentations);
 
   private slots:
-		/** \brief Perform operations when a item has been modified.
-		 * \param[in] item, item adapter smart pointer.
-		 *
-		 */
+    /** \brief Perform operations when a item has been modified.
+     * \param[in] item, item adapter smart pointer.
+     *
+     */
     void itemModified(ItemAdapterSPtr item);
 
+    void resetInternalData();
+
   private:
-    /** \brief Adds an initialized sample adapter to the model, and its correspondent sample to the analysis.
-     * \param[in] sample, sample adapter smart pointer.
-     *
-     */
-    void addImplementation(SampleAdapterSPtr sample) throw(Existing_Item_Exception);
+    bool contains(ItemAdapterSPtr &item, const ItemCommandsList &list) const;
 
-    /** \brief Adds an initialized channel adapter to the model, and its correspondent channel to the analysis.
-     * \param[in] channel, channel adapter smart pointer.
-     *
-     */
-    void addImplementation(ChannelAdapterSPtr channel) throw(Existing_Item_Exception);
+    int find(ItemAdapterSPtr &item, const ItemCommandsList &list) const;
 
-    /** \brief Adds an initialized segmentation adapter to the model, and its correspondent segmentation to the analysis.
-     * \param[in] segmentation, segmentation adapter smart pointer.
+    void remove(ItemAdapterSPtr &item, ItemCommandsList &list);
+
+    void classifyQueues(const ItemCommandsList &queues,
+                        ItemCommandsList       &samplesQueues,
+                        ItemCommandsList       &channelQueues,
+                        ItemCommandsList       &segmentationQueues);
+
+    /** \brief Updates batch queues for both ancestor and successor
      *
      */
-    void addImplementation(SegmentationAdapterSPtr segmentation) throw(Existing_Item_Exception);
+    void queueAddRelationCommand(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const QString &relation);
+
+    void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
+
+    void queueUpdateCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
+
+    void queueRemoveCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
+
+    void executeCommandsIfNoBatchMode();
+
+    void executeAddCommands();
+
+    void executeUpdateCommands();
+
+    void executeRemoveCommands();
+
+    void executeAddQueues(QModelIndex parent,
+                          ItemCommandsList &queueList);
+
+
+    void executeUpdateQueues(ItemCommandsList &queueList);
+
+    void executeRemoveQueues(QModelIndex parent,
+                             ItemCommandsList &queueList);
+
+    ConsecutiveQueuesList groupConsecutiveQueues(ItemCommandsList &queueList);
+
+    /** \brief Creates a command to add sample to the model
+     * \param[in] sample to be added to the model
+     *
+     */
+    BatchCommandSPtr addSampleCommand(SampleAdapterSPtr sample) throw(Existing_Item_Exception);
+
+    /** \brief Creates a command to add channel to the model
+     * \param[in] channel to be added to the model
+     *
+     */
+    BatchCommandSPtr addChannelCommand(ChannelAdapterSPtr channel) throw(Existing_Item_Exception);
+
+   /** \brief Creates a command to add segmentation to the model
+     * \param[in] segmentation to be added to the model
+     *
+     */
+    BatchCommandSPtr addSegmentationCommand(SegmentationAdapterSPtr segmentation) throw(Existing_Item_Exception);
+
+   /** \brief Creates a command to add the relation to the model
+     * \param[in] ancestor of the relation
+     * \param[in] successor of the relation
+     * \param[in] relation description name
+     *
+     */
+    BatchCommandSPtr addRelationCommand(ItemAdapterSPtr     ancestor,
+                                        ItemAdapterSPtr     successor,
+                                        const RelationName& relation);
+
 
     /** \brief Removes a sample adapter from the model and its adapted sample from the analysis.
-     * \param[in] sample, sample adapter smart pointer.
+     * \param[in] sample sample adapter smart pointer.
      *
      */
-    void removeImplementation(SampleAdapterSPtr sample);
+    BatchCommandSPtr removeSampleCommand(SampleAdapterSPtr sample);
 
     /** \brief Removes a channel adapter from the model and its adapted channel from the analysis.
-     * \param[in] channel, channel adapter smart pointer.
+     * \param[in] channel channel adapter smart pointer.
      *
      */
-    void removeImplementation(ChannelAdapterSPtr channel);
+    BatchCommandSPtr removeChannelCommand(ChannelAdapterSPtr channel);
 
     /** \brief Removes a segmentation adapter from the model and its adapted segmentation from the analysis.
-     * \param[in] segmentation, segmentation adapter smart pointer.
+     * \param[in] segmentation segmentation adapter smart pointer.
      *
      */
-    void removeImplementation(SegmentationAdapterSPtr segmentation);
+    BatchCommandSPtr removeSegmentationCommand(SegmentationAdapterSPtr segmentation);
+
+  private:
+    class BatchCommand
+    {
+    public:
+      explicit BatchCommand() {}
+
+      virtual ~BatchCommand() {}
+
+      virtual void execute() = 0;
+    };
+
+    template <typename T>
+    class Command
+    : public BatchCommand
+    {
+    public:
+      explicit Command(T expression)
+      : m_lambda(expression) {}
+
+      virtual void execute()
+      { m_lambda();}
+
+    private:
+      T m_lambda;
+    };
 
   private:
     AnalysisSPtr              m_analysis;
@@ -585,6 +676,11 @@ namespace ESPINA
     ChannelAdapterSList       m_channels;
     SegmentationAdapterSList  m_segmentations;
     ClassificationAdapterSPtr m_classification;
+
+    bool m_isBatchMode;
+    ItemCommandsList m_addCommands;
+    ItemCommandsList m_updateCommands;
+    ItemCommandsList m_removeCommands;
   };
 
   using ModelAdapterPtr  = ModelAdapter *;
@@ -607,12 +703,6 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT isCategory(ItemAdapterPtr item);
-
-  /** \brief Returns true if the given item is a sample item.
-   * \param[in] item item adapter raw pointer.
-   *
-   */
-  bool EspinaGUI_EXPORT isSample(ItemAdapterPtr item);
 
 
 } // namespace ESPINA

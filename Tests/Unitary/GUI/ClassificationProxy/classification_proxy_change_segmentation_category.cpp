@@ -37,7 +37,9 @@
 #include <GUI/ModelFactory.h>
 
 #include "classification_proxy_testing_support.h"
+#include "ModelProfiler.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -51,8 +53,7 @@ int classification_proxy_change_segmentation_category( int argc, char** argv )
   ClassificationProxy proxy(modelAdapter);
   ModelTest           modelTester(&proxy);
 
-  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
-  classification->setName("Test");
+  auto classification = make_shared<ClassificationAdapter>();
   auto category1   = classification->createCategory("Level 1");
   auto category1_1 = classification->createCategory("Level 1/Level 1-1");
 
@@ -63,68 +64,43 @@ int classification_proxy_change_segmentation_category( int argc, char** argv )
     error = true;
   }
 
-  auto level1 = proxy.index(0, 0);
-  if (proxy.rowCount(level1) != 1) {
-    cerr << "Unexpected number of level 1 row count" << endl;
-    error = true;
-  }
-
+  auto level1   = proxy .index(0, 0);
   auto level1_1 = level1.child(0, 0);
-  if (proxy.rowCount(level1_1) != 0) {
-    cerr << "Unexpected number of level 1-1 row count" << endl;
-    error = true;
-  }
 
-  SchedulerSPtr sch;
-  ModelFactory factory(CoreFactorySPtr{new CoreFactory(sch)});
+  error |= checkRowCount(level1,   1);
+  error |= checkRowCount(level1_1, 0);
+
+  ModelFactory factory(make_shared<CoreFactory>());
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter          = factory.createFilter<DummyFilter>(inputs, type);
-  auto segmentation1   = factory.createSegmentation(filter, 0);
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
+
+  auto segmentation1 = factory.createSegmentation(filter, 0);
 
   segmentation1->setCategory(category1);
 
   modelAdapter->add(segmentation1);
 
-  if (proxy.rowCount(level1) != 2) {
-    cerr << "Unexpected number of level 1 row count" << endl;
-    error = true;
-  }
+  error |= checkRowCount(level1,   2);
+  error |= checkRowCount(level1_1, 0);
 
-  if (proxy.rowCount(level1_1) != 0) {
-    cerr << "Unexpected number of level 1-1 row count" << endl;
-    error = true;
-  }
+  ModelProfiler proxyProfiler(proxy);
 
-  SegmentationAdapterSPtr segmentation1_1 = factory.createSegmentation(filter, 0);
+  modelAdapter->setSegmentationCategory(segmentation1, category1_1);
 
-  segmentation1_1->setCategory(category1_1);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, 0, 0, 1, 0);
+  error |= checkRowCount(level1,   1);
+  error |= checkRowCount(level1_1, 1);
 
-  modelAdapter->add(segmentation1_1);
+  proxyProfiler.reset();
 
-  if (proxy.rowCount(level1) != 2) {
-    cerr << "Unexpected number of level 1 row count" << endl;
-    error = true;
-  }
+  modelAdapter->setSegmentationCategory(segmentation1, category1_1);
 
-  if (proxy.rowCount(level1_1) != 1) {
-    cerr << "Unexpected number of level 1-1 row count" << endl;
-    error = true;
-  }
-
-  modelAdapter->setSegmentationCategory(segmentation1_1, category1);
-
-  if (proxy.rowCount(level1) != 3) {
-    cerr << "Unexpected number of level 1 row count" << endl;
-    error = true;
-  }
-
-  if (proxy.rowCount(level1_1) != 0) {
-    cerr << "Unexpected number of level 1-1 row count" << endl;
-    error = true;
-  }
+  error |= checkRowCount(level1,   1);
+  error |= checkRowCount(level1_1, 1);
+  error |= checkExpectedNumberOfSignals(proxyProfiler, 0, 1, 0, 0);
 
   return error;
 }

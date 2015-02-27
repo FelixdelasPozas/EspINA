@@ -657,7 +657,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_undoStack->clear();
   m_undoStackSavedIndex = m_undoStack->index();
 
-  m_model  ->reset();
+  m_model  ->clear();
   m_analysis.reset();
 
   // resets slice views matrices to avoid an esthetic bug

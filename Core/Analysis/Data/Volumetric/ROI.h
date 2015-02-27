@@ -109,8 +109,8 @@ namespace ESPINA
       /** \brief Overrides SparseVolume::draw(T::IndexType, T::ValueType)
        *
        */
-      void draw(const typename itkVolumeType::IndexType index,
-                const typename itkVolumeType::ValueType value = SEG_VOXEL_VALUE) override;
+      void draw(const typename itkVolumeType::IndexType &index,
+                const typename itkVolumeType::ValueType  value = SEG_VOXEL_VALUE) override;
 
 
       virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override;

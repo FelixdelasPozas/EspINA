@@ -33,51 +33,50 @@
 #include <Core/MultiTasking/Scheduler.h>
 
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
 #include <GUI/ModelFactory.h>
 
-#include "channel_proxy_testing_support.h"
+#include "testing_support_dummy_filter.h"
 #include "ModelTest.h"
+#include "ModelProfiler.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int channel_proxy_add_existing_segmentation( int argc, char** argv )
+int model_adapter_remove_non_consecutive_segmentations( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto analysis    = make_shared<Analysis>();
+  auto coreFactory = make_shared<CoreFactory>();
+  auto factory     = make_shared<ModelFactory>(coreFactory);
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ModelAdapter modelAdapter;
+  ModelTest    modelTester(&modelAdapter);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
-
-  modelAdapter->setAnalysis(analysis, factory);
+  modelAdapter.setAnalysis(analysis, factory);
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter       = factory->createFilter<DummyFilter>(inputs, type);
-  auto segmentation = factory->createSegmentation(filter, 0);
+  auto filter = factory->createFilter<DummyFilter>(inputs, type);
 
-  modelAdapter->add(segmentation);
+  SegmentationAdapterSList segmentations;
+  segmentations << factory->createSegmentation(filter, 0)
+                << factory->createSegmentation(filter, 0)
+                << factory->createSegmentation(filter, 0);
 
-  try {
-    modelAdapter->add(segmentation);
-    cerr << "Adding already existing segmentation" << endl;
-  } catch (ModelAdapter::Existing_Item_Exception &e) {
-      error = false;
-  }
+  ModelProfiler modelProfiler(modelAdapter);
 
-  if (analysis->segmentations().first() != segmentation) {
-    cerr << "Unexpected segmentation retrieved from analysis" << endl;
-    error = true;
-  }
+  modelAdapter.add(segmentations);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
+
+  segmentations.removeAt(1);
+  modelProfiler.reset();
+
+  modelAdapter.remove(segmentations);
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 0, 0, 2);
+
 
   if (analysis->classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;
@@ -103,11 +102,6 @@ int channel_proxy_add_existing_segmentation( int argc, char** argv )
     cerr << "Unexpected number of vertices in analysis content" << endl;
     error = true;
   }
-
-//   if (analysis->content()->vertices().first().item != segmentation) {
-//     cerr << "Unexpected segmentation retrieved from analysis content" << endl;
-//     error = true;
-//   }
 
   if (analysis->content()->edges().size() != 1) {
     cerr << "Unexpected number of edges in analysis content" << endl;

@@ -47,13 +47,15 @@
 #include <QtTest/QtTest>
 #include <iostream>
 
-// #undef Q_ASSERT
-// #undef QVERIFY
-// #define QVERIFY(statement) \
-//     if (!(statement)) \
-//     {std::cout << "ERROR: " << #statement << " " << __FILE__ << " "<< __LINE__ << std::endl;\
-//     return;}
-// #define Q_ASSERT  QVERIFY
+/*
+#undef Q_ASSERT
+#undef QVERIFY
+#define QVERIFY(statement) \
+    if (!(statement)) \
+    {std::cout << "ERROR: " << #statement << " " << __FILE__ << " "<< __LINE__ << std::endl;\
+    return;}
+#define Q_ASSERT  QVERIFY
+*/
 
 Q_DECLARE_METATYPE ( QModelIndex )
 
@@ -104,7 +106,6 @@ ModelTest::ModelTest ( QAbstractItemModel *_model, QObject *parent ) : QObject (
               this, SLOT ( rowsRemoved ( const QModelIndex &, int, int ) ) );
 
     runAllTests();
-    qDebug() << "Using Model Tester";
 }
 
 void ModelTest::runAllTests()
@@ -600,7 +601,10 @@ void ModelTest::rowsRemoved ( const QModelIndex & parent, int start, int end )
 //     qDebug() << "rr" << parent << start << end;
     Changing c = remove.pop();
     Q_ASSERT ( c.parent == parent );
-//     qDebug() << c.oldSize << parent.data(Qt::DisplayRole).toString() << model->rowCount(parent);
+    if ( c.oldSize - ( end - start + 1 ) != model->rowCount ( parent ) )
+    {
+      qDebug() << c.oldSize << start << end << c.oldSize - ( end - start + 1 ) << parent.data(Qt::DisplayRole).toString() << model->rowCount(parent);
+    }
     Q_ASSERT ( c.oldSize - ( end - start + 1 ) == model->rowCount ( parent ) );
     Q_ASSERT ( c.last == model->data ( model->index ( start - 1, 0, c.parent ) ) );
     Q_ASSERT ( c.next == model->data ( model->index ( start, 0, c.parent ) ) );

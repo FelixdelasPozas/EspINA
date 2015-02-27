@@ -38,6 +38,7 @@
 
 #include "channel_proxy_testing_support.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -47,56 +48,41 @@ int channel_proxy_add_channel( int argc, char** argv )
 {
   bool error = false;
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  auto modelAdapter = make_shared<ModelAdapter>();
+  auto coreFactory  = make_shared<CoreFactory>();
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
 
-  QString name = "Sample";
+  ChannelProxy proxy(modelAdapter);
+  ModelTest    modelTester(&proxy);
 
-  SampleAdapterSPtr sample = factory.createSample(name);
+  QString sampleName = "Sample";
+
+  auto sample = factory.createSample(sampleName);
   modelAdapter->add(sample);
+
+  QString channelName = "Channel";
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
   auto filter  = factory.createFilter<DummyFilter>(inputs, type);
   auto channel = factory.createChannel(filter, 0);
+  channel->setData(channelName, Qt::EditRole);
 
   modelAdapter->add(channel);
 
   modelAdapter->addRelation(sample, channel, Channel::STAIN_LINK);
 
-  if (proxy.rowCount() != 1)
-  {
-    cerr << "Unexpected number of items displayed" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 1);
 
-  QModelIndex sampleIndex = proxy.index(0,0);
-  QString     sampleName  = sampleIndex.data(Qt::DisplayRole).toString();
-  if (!sampleName.contains(name))
-  {
-    cerr << "Unexpected display role value: " << sampleName.toStdString() << endl;
-    error = true;
-  }
+  auto sampleIndex = proxy.index(0,0);
 
-  if (proxy.rowCount(sampleIndex) != 1)
-  {
-    cerr << "Unexpected number of items displayed" << endl;
-    error = true;
-  }
+  error |= checkDisplayRoleContains(sampleIndex, sampleName);
+  error |= checkRowCount(sampleIndex, 1);
 
-//   QModelIndex channelIndex = proxy.index(0,0, sampleIndex);
-//   QString     channelName  = channelIndex.data(Qt::DisplayRole).toString();
-//   if (channelName != name)
-//   {
-//     cerr << "Unexpected display role value: " << channelName.toStdString() << endl;
-//     error = true;
-//   }
+  auto channelIndex = proxy.index(0,0, sampleIndex);
+  error |= checkDisplayRole(channelIndex, channelName);
 
   return error;
 }

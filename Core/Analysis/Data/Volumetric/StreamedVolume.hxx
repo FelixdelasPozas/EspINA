@@ -112,8 +112,8 @@ namespace ESPINA {
                       const Bounds&             bounds)                    override
     {}
 
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::PixelType  value = SEG_VOXEL_VALUE) override
     {}
 
     virtual void draw(const Bounds               &bounds,

@@ -143,8 +143,8 @@ namespace ESPINA
      * \param[in] value new value.
      *
      */
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::ValueType  value = SEG_VOXEL_VALUE) = 0;
 
      /** \brief Set all voxels inside bounds to given value
      * \param[in] value new value.

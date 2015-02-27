@@ -81,7 +81,8 @@ void ROI::draw(const typename itkVolumeType::Pointer volume, const Bounds& bound
 }
 
 //-----------------------------------------------------------------------------
-void ROI::draw(const typename itkVolumeType::IndexType index, const itkVolumeType::ValueType value)
+void ROI::draw(const typename itkVolumeType::IndexType &index,
+               const itkVolumeType::ValueType           value)
 {
   m_isRectangular = false;
   SparseVolume::draw(index, value);
