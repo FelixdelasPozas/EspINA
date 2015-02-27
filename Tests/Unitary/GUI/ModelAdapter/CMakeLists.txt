@@ -11,6 +11,7 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_add_samples.cpp
   model_adapter_add_segmentation.cpp
   model_adapter_add_segmentations.cpp
+  model_adapter_change_segmentation_category.cpp
   model_adapter_remove_sample.cpp
   model_adapter_remove_samples.cpp
   model_adapter_remove_channel.cpp
@@ -19,6 +20,7 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_remove_segmentations.cpp
   model_adapter_delete_relation.cpp
   model_adapter_delete_non_existing_relation.cpp
+  model_adapter_remove_non_consecutive_segmentations.cpp
   model_adapter_remove_non_existing_sample.cpp
   model_adapter_remove_non_existing_channel.cpp
   model_adapter_remove_non_existing_segmentation.cpp
@@ -26,34 +28,13 @@ create_test_sourcelist(ModelAdapter_Tests ModelAdapter_Tests.cpp # this file is 
   model_adapter_replace_classification.cpp
   model_adapter_set_classification.cpp
   model_adapter_set_empty_classification.cpp
-  model_adapter_reset.cpp
+  model_adapter_clear.cpp
+  model_adapter_batch_mode.cpp
+  model_adapter_profile_batch_mode.cpp
 )
 
-set(LIB_DEPENDECIES
-  ${QT_LIBRARIES}
-  ${VTK_LIBRARIES}
-  ${ITK_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${LIB_DEPENDECIES}
-)
-
-if (UNIX)
-  set (LIB_DEPENDECIES
-     ${GUI_DEPENDECIES}
-     QtTest
-    )
-endif (UNIX)
-
-qt4_wrap_cpp(SUBJECT_MOCS
-  ModelTest.h
-)
-
-add_executable(ModelAdapter_Tests
-  ${ModelAdapter_Tests}
-  ${SUBJECT_MOCS}
-  ModelTest.cpp
-  )
-target_link_libraries(ModelAdapter_Tests ${LIB_DEPENDECIES} )
+add_executable(ModelAdapter_Tests "" ${ModelAdapter_Tests})
+target_link_libraries(ModelAdapter_Tests ${GUI_DEPENDECIES} ${TESTING_DEPENDECIES})
 
 add_test("\"Model Adapter: Empty Analysis Constructor\""              ModelAdapter_Tests model_adapter_empty_analysis_constructor)
 add_test("\"Model Adapter: Add Sample\""                              ModelAdapter_Tests model_adapter_add_sample)
@@ -62,6 +43,7 @@ add_test("\"Model Adapter: Add Channel\""                             ModelAdapt
 add_test("\"Model Adapter: Add Channels\""                            ModelAdapter_Tests model_adapter_add_channels)
 add_test("\"Model Adapter: Add Segmentation\""                        ModelAdapter_Tests model_adapter_add_segmentation)
 add_test("\"Model Adapter: Add Segmentations\""                       ModelAdapter_Tests model_adapter_add_segmentations)
+add_test("\"Model Adapter: Change Segmentation Category\""            ModelAdapter_Tests model_adapter_change_segmentation_category)
 add_test("\"Model Adapter: Add Relation\""                            ModelAdapter_Tests model_adapter_add_relation)
 # add_test("\"Model Adapter: Add Relation Between Non Existing Items\"" ModelAdapter_Tests model_adapter_add_relation)
 add_test("\"Model Adapter: Add Existing Sample\""                     ModelAdapter_Tests model_adapter_add_existing_sample)
@@ -74,6 +56,7 @@ add_test("\"Model Adapter: Remove Channel\""                          ModelAdapt
 add_test("\"Model Adapter: Remove Channels\""                         ModelAdapter_Tests model_adapter_remove_channels)
 add_test("\"Model Adapter: Remove Segmentation\""                     ModelAdapter_Tests model_adapter_remove_segmentation)
 add_test("\"Model Adapter: Remove Segmentations\""                    ModelAdapter_Tests model_adapter_remove_segmentations)
+add_test("\"Model Adapter: Remove Non Consecutive Segmentations\""    ModelAdapter_Tests model_adapter_remove_non_consecutive_segmentations)
 add_test("\"Model Adapter: Delete Relation\""                         ModelAdapter_Tests model_adapter_delete_relation)
 add_test("\"Model Adapter: Remove Non Existing Sample\""              ModelAdapter_Tests model_adapter_remove_non_existing_sample)
 add_test("\"Model Adapter: Remove Non Existing Channel\""             ModelAdapter_Tests model_adapter_remove_non_existing_channel)
@@ -82,4 +65,6 @@ add_test("\"Model Adapter: Delete Non Existing Relation\""            ModelAdapt
 add_test("\"Model Adapter: Set Empty Classification\""                ModelAdapter_Tests model_adapter_set_empty_classification)
 add_test("\"Model Adapter: Set Classification\""                      ModelAdapter_Tests model_adapter_set_classification)
 add_test("\"Model Adapter: Replace Classification\""                  ModelAdapter_Tests model_adapter_replace_classification)
-add_test("\"Model Adapter: Reset\""                                   ModelAdapter_Tests model_adapter_reset)
+add_test("\"Model Adapter: Clear\""                                   ModelAdapter_Tests model_adapter_clear)
+add_test("\"Model Adapter: Batch Mode\""                              ModelAdapter_Tests model_adapter_batch_mode)
+add_test("\"Model Adapter: Profile Batch Mode\""                      ModelAdapter_Tests model_adapter_profile_batch_mode)

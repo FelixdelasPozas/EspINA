@@ -417,7 +417,7 @@ void AppositionSurfacePlugin::finishedTask()
 
     Relation relation;
     relation.ancestor = m_finishedTasks[filter].segmentation;
-    relation.succesor = segmentation;
+    relation.successor = segmentation;
     relation.relation = SAS;
 
     createdRelations << relation;

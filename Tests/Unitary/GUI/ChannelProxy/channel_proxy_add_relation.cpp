@@ -31,29 +31,29 @@
 #include <GUI/Model/Proxies/ChannelProxy.h>
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
+using namespace Testing;
 
 int channel_proxy_add_relation( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto modelAdapter = make_shared<ModelAdapter>();
+  auto coreFactory  = make_shared<CoreFactory>();
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ModelFactory factory(coreFactory);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
-  
-  modelAdapter->setAnalysis(analysis, factory);
+  ChannelProxy proxy(modelAdapter);
+  ModelTest    modelTester(&proxy);
 
+  QString name1{"Sample 1"};
+  QString name2{"Sample 2"};
 
-  SampleAdapterSPtr sample1 = factory->createSample("Sample 1");
-  SampleAdapterSPtr sample2 = factory->createSample("Sample 2");
+  auto sample1 = factory.createSample(name1);
+  auto sample2 = factory.createSample(name2);
 
   modelAdapter->add(sample1);
   modelAdapter->add(sample2);
@@ -61,45 +61,17 @@ int channel_proxy_add_relation( int argc, char** argv )
   RelationName relation{"link"};
   modelAdapter->addRelation(sample1, sample2, relation);
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 2);
 
-  if (analysis->samples().size() != 2) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-  
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-  
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
+  auto sampleIndex1 = proxy.index(0,0);
 
-  if (analysis->content()->vertices().size() != 2) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-  
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-  
-  if (analysis->relationships()->vertices().size() != 2) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-  
-  if (analysis->relationships()->edges().size() != 1) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
-  
+  error |= checkDisplayRoleContains(sampleIndex1, name1);
+  error |= checkRowCount(sampleIndex1, 0);
+
+  auto sampleIndex2 = proxy.index(1,0);
+
+  error |= checkDisplayRoleContains(sampleIndex2, name2);
+  error |= checkRowCount(sampleIndex2, 0);
+
   return error;
 }

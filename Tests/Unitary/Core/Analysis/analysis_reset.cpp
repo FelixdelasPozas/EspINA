@@ -55,7 +55,7 @@ int analysis_reset( int argc, char** argv )
   analysis.add(channel);
   analysis.add(segmentation);
   
-  analysis.reset();
+  analysis.clear();
 
   if (analysis.classification().get() != nullptr) {
     cerr << "Unexpected classification in analysis" << endl;

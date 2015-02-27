@@ -38,6 +38,7 @@
 
 #include "channel_proxy_testing_support.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -47,31 +48,23 @@ int channel_proxy_add_segmentation( int argc, char** argv )
 {
   bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto modelAdapter = make_shared<ModelAdapter>();
+  auto coreFactory  = make_shared<CoreFactory>();
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ModelFactory factory(coreFactory);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
-
-  modelAdapter->setAnalysis(analysis, factory);
+  ChannelProxy proxy(modelAdapter);
+  ModelTest    modelTester(&proxy);
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter       = factory->createFilter<DummyFilter>(inputs, type);
-  auto segmentation = factory->createSegmentation(filter, 0);
+  auto filter       = factory.createFilter<DummyFilter>(inputs, type);
+  auto segmentation = factory.createSegmentation(filter, 0);
 
   modelAdapter->add(segmentation);
 
-  if (proxy.rowCount() != 0)
-  {
-    cerr << "Unexpected number of items displayed" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 0);
 
   return error;
 }

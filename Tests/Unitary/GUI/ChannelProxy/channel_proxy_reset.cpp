@@ -38,6 +38,7 @@
 
 #include "channel_proxy_testing_support.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace std;
 using namespace ESPINA;
@@ -45,75 +46,43 @@ using namespace Testing;
 
 int channel_proxy_reset( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto modelAdapter = make_shared<ModelAdapter>();
+  auto coreFactory  = make_shared<CoreFactory>();
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ModelFactory factory(coreFactory);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  ChannelProxy proxy(modelAdapter);
+  ModelTest    modelTester(&proxy);
 
-  modelAdapter->setAnalysis(analysis, factory);
+  QString sampleName = "Sample";
 
-  SampleAdapterSPtr sample = factory->createSample("sample");
+  auto sample = factory.createSample(sampleName);
   modelAdapter->add(sample);
+
+  QString channelName = "Channel";
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
 
-  auto filter  = factory->createFilter<DummyFilter>(inputs, type);
+  auto filter  = factory.createFilter<DummyFilter>(inputs, type);
+  auto channel = factory.createChannel(filter, 0);
+  channel->setData(channelName, Qt::EditRole);
 
-  auto channel = factory->createChannel(filter, 0);
   modelAdapter->add(channel);
 
-  auto segmentation = factory->createSegmentation(filter, 0);
+  modelAdapter->addRelation(sample, channel, Channel::STAIN_LINK);
+
+  auto segmentation = factory.createSegmentation(filter, 0);
+
   modelAdapter->add(segmentation);
 
-  modelAdapter->reset();
+  error |= checkRowCount(proxy, 1);
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
+  modelAdapter->clear();
 
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 0);
 
   return error;
 }

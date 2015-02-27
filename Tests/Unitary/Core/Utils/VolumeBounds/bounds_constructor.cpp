@@ -110,7 +110,7 @@ bool Test_Bounds_Constructor(NmVector3 origin, NmVector3 spacing)
 
 int bounds_constructor( int argc, char** argv )
 {
-  bool error = false;
+  bool error;
 
   error  = Test_Bounds_Constructor(NmVector3{0, 0, 0},       NmVector3{1, 1, 1});
   error |= Test_Bounds_Constructor(NmVector3{0, 0, 0},       NmVector3{1.5, 3.7, 2.421});

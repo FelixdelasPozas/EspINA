@@ -85,8 +85,8 @@ namespace ESPINA
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds) override;
 
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE) override;
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::PixelType  value = SEG_VOXEL_VALUE) override;
 
     virtual void resize(const Bounds &bounds) override;
 
@@ -195,8 +195,8 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   template<typename T>
-  void RasterizedVolume<T>::draw(const typename T::IndexType index,
-                                 const typename T::PixelType value)
+  void RasterizedVolume<T>::draw(const typename T::IndexType &index,
+                                 const typename T::PixelType  value)
   {
     if(this->m_blocks.empty())
       rasterize();

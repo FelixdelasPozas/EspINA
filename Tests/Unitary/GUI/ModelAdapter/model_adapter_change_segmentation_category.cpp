@@ -26,53 +26,57 @@
  *
  */
 
-#include "Core/Analysis/Analysis.h"
-#include <GUI/Model/ClassificationAdapter.h>
+#include <Core/Analysis/Analysis.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Output.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/MultiTasking/Scheduler.h>
 
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/Model/Proxies/ChannelProxy.h>
+#include <GUI/Model/Proxies/ClassificationProxy.h>
+#include <GUI/ModelFactory.h>
+
+#include "ModelProfiler.h"
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
+#include <testing_support_dummy_filter.h>
 
-using namespace ESPINA;
+
 using namespace std;
+using namespace ESPINA;
+using namespace Testing;
 
-int channel_proxy_replace_classification( int argc, char** argv )
+int model_adapter_change_segmentation_category( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ModelTest           modelTester(modelAdapter.get());
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
-
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
-
-  modelAdapter->setAnalysis(analysis, factory);
-
-  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
-  classification->setName("Test");
-  classification->createCategory("Level 1/Level 2");
+  auto classification = make_shared<ClassificationAdapter>();
+  auto category1   = classification->createCategory("Level 1");
+  auto category1_1 = classification->createCategory("Level 1/Level 1-1");
 
   modelAdapter->setClassification(classification);
 
-  if (analysis->classification()->name() != classification->name()) {
-    cerr << "Unexpected classification name in analysis" << endl;
-    error = true;
-  }
+  ModelFactory factory(make_shared<CoreFactory>());
 
-  ClassificationAdapterSPtr classification2{new ClassificationAdapter()};
-  classification->setName("Test2");
-  classification->createCategory("Level 21/Level 22");
+  InputSList inputs;
+  Filter::Type type{"DummyFilter"};
 
-  modelAdapter->setClassification(classification2);
+  auto filter = factory.createFilter<DummyFilter>(inputs, type);
 
-  if (analysis->classification()->name() != classification2->name()) {
-    cerr << "Unexpected classification name in analysis" << endl;
-    error = true;
-  }
+  auto segmentation = factory.createSegmentation(filter, 0);
+
+  segmentation->setCategory(category1);
+
+  modelAdapter->add(segmentation);
+
+  ModelProfiler modelProfiler(*modelAdapter);
+
+  modelAdapter->setSegmentationCategory(segmentation, category1_1);
+
+  error |= checkExpectedNumberOfSignals(modelProfiler, 0, 1, 0, 0);
 
   return error;
 }

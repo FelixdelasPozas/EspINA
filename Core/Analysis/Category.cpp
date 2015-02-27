@@ -26,7 +26,7 @@ Category::Category(CategoryPtr parent,
 //------------------------------------------------------------------------
 Category::~Category()
 {
-   //qDebug() << "Destroy node " << m_name;
+//    qDebug() << "Destroy category " << m_name;
 }
 
 //------------------------------------------------------------------------

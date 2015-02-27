@@ -31,72 +31,35 @@
 #include <GUI/Model/Proxies/ChannelProxy.h>
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace ESPINA;
 using namespace std;
+using namespace Testing;
 
 int channel_proxy_remove_samples( int argc, char** argv )
 {
-  bool error = true;
+  bool error = false;
 
-  AnalysisSPtr analysis{new Analysis()};
+  auto modelAdapter = make_shared<ModelAdapter>();
+  auto coreFactory  = make_shared<CoreFactory>();
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  ModelFactory factory(coreFactory);
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
-  ModelFactorySPtr factory{new ModelFactory(coreFactory)};
+  ChannelProxy proxy(modelAdapter);
+  ModelTest    modelTester(&proxy);
+
+  QString names[3] = {"A", "B", "C"};
 
   SampleAdapterSList samples;
-  samples << factory->createSample()
-          << factory->createSample()
-          << factory->createSample();
+  samples << factory.createSample(names[0])
+          << factory.createSample(names[1])
+          << factory.createSample(names[2]);
 
   modelAdapter->add(samples);
-
   modelAdapter->remove(samples);
 
-  if (analysis->classification().get() != nullptr) {
-    cerr << "Unexpected classification in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->samples().isEmpty()) {
-    cerr << "Unexpected number of samples in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->channels().isEmpty()) {
-    cerr << "Unexpected number of channels in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->segmentations().isEmpty()) {
-    cerr << "Unexpected number of segmentations in analysis" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->content()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis content" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->vertices().isEmpty()) {
-    cerr << "Unexpected number of vertices in analysis relationships" << endl;
-    error = true;
-  }
-
-  if (!analysis->relationships()->edges().isEmpty()) {
-    cerr << "Unexpected number of edges in analysis relationships" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 0);
 
   return error;
 }

@@ -93,8 +93,8 @@ namespace ESPINA
     }
   }
 
-	//------------------------------------------------------------------------
-	std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
+  //------------------------------------------------------------------------
+  std::istream& operator>> (std::istream& in, DirectedGraph::Vertex& v)
   {
     const int MAX = 10000;
     char buff[MAX];
@@ -120,7 +120,7 @@ namespace ESPINA
     return in;
   }
 
-	//------------------------------------------------------------------------
+  //------------------------------------------------------------------------
   std::ostream& operator<<(std::ostream& out, const DirectedGraph::EdgeProperty& e)
   {
     out << e.relationship << " ";

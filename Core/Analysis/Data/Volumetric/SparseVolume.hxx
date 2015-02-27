@@ -135,7 +135,7 @@ namespace ESPINA
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds)                    override;
 
-    virtual void draw(const typename T::IndexType index,
+    virtual void draw(const typename T::IndexType &index,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
     virtual void draw(const Bounds               &bounds,
@@ -683,8 +683,8 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   template<class T>
-  void SparseVolume<T>::draw(const typename T::IndexType index,
-                             const typename T::ValueType value)
+  void SparseVolume<T>::draw(const typename T::IndexType &index,
+                             const typename T::ValueType  value)
   {
     Bounds bounds { index[0] * m_spacing[0], index[0] * m_spacing[0],
                     index[1] * m_spacing[1], index[1] * m_spacing[1],
