@@ -164,7 +164,7 @@ int BufferedRepresentationPool::distanceFromLastCrosshair(const NmVector3 &cross
 }
 
 //-----------------------------------------------------------------------------
-int BufferedRepresentationPool::normal(const NmVector3 &point) const
+Nm BufferedRepresentationPool::normal(const NmVector3 &point) const
 {
   return point[m_normalIdx];
 }

@@ -60,7 +60,7 @@ namespace ESPINA
 
     int distanceFromLastCrosshair(const NmVector3 &crosshair);
 
-    int normal(const NmVector3 &point) const;
+    Nm normal(const NmVector3 &point) const;
 
     NmVector3 representationCrosshair(const NmVector3 &point, int shift) const;
 

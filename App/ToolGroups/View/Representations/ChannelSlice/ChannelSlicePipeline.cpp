@@ -61,7 +61,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
     auto sliceBounds  = volume->bounds();
     auto reslicePoint = crosshairPosition(m_plane, state);
 
-    if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
+    if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
     {
       sliceBounds.setLowerInclusion(true);
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
