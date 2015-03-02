@@ -423,11 +423,11 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         m_availableSettingsPanels << settings;
       }
 
-//       for (auto renderer : validPlugin->renderers())
-//       {
+      for (auto factory : validPlugin->representationFactories())
+      {
 //        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
-       //TODO: change Plugin API registerRepresentationDriverFactory(renderer);
-//       }
+        registerRepresentationFactory(factory);
+      }
 
       for(auto entry: validPlugin->menuEntries())
       {

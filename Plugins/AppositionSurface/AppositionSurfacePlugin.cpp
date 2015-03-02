@@ -166,6 +166,12 @@ NamedColorEngineSList AppositionSurfacePlugin::colorEngines() const
 }
 
 //-----------------------------------------------------------------------------
+RepresentationFactorySList AppositionSurfacePlugin::representationFactories() const
+{
+  return RepresentationFactorySList();
+}
+
+//-----------------------------------------------------------------------------
 QList<ToolGroup *> AppositionSurfacePlugin::toolGroups() const
 {
   QList<ToolGroup *> tools;

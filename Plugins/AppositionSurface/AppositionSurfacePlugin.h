@@ -65,6 +65,8 @@ namespace ESPINA
 
     virtual NamedColorEngineSList colorEngines() const;
 
+    virtual RepresentationFactorySList representationFactories() const;
+
     virtual QList<ToolGroup *> toolGroups() const;
 
     virtual QList<DockWidget *> dockWidgets() const;

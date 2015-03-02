@@ -157,6 +157,8 @@ void ViewToolGroup::addRepresentationSwitch(RenderGroup              group,
     auto renderGroup = m_dynamicRenderGroups.value(group, std::make_shared<RepresentationsGroupTool>(groupIcon, groupDescription));
 
     renderGroup->addRepresentationSwitch(repSwitch);
+
+    m_dynamicRenderGroups[group] = renderGroup;
   }
 }
 

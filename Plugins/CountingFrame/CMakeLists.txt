@@ -72,6 +72,8 @@ set (LOCAL_SOURCES
   Extensions/CountingFrameExtension.cpp
   Extensions/CountingFrameFactories.cpp
   Extensions/StereologicalInclusion.cpp
+  Representations/RepresentationManager2D.cpp
+  Representations/RepresentationFactory.cpp
   Tasks/ApplyCountingFrame.cpp
   Panel.cpp
   )
