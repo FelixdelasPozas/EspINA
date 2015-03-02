@@ -29,6 +29,7 @@
 #include "GUI/Model/ClassificationAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
 #include <GUI/ModelFactory.h>
+#include <GUI/Utils/Timer.h>
 
 // Qt
 #include <QAbstractItemModel>
@@ -106,7 +107,7 @@ namespace ESPINA
     /** \brief ModelAdapter class constructor.
      *
      */
-    explicit ModelAdapter();
+    explicit ModelAdapter(TimerSPtr timer);
 
     /** \brief ModelAdapter class destructor.
      *
@@ -248,6 +249,8 @@ namespace ESPINA
     void beginBatchMode();
 
     /** \brief Switch the behaviour of the model to execute operations when they are invoked
+     *
+     *   Note: This method increments the model time stamp before executing the queued operations
      */
     void endBatchMode();
 
@@ -279,35 +282,35 @@ namespace ESPINA
     CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterPtr  parent);
 
     /** \brief Creates a category and returns it's category adapter smart pointer.
-     * \param[in] name, name of the category.
-     * \param[in] parent, smart pointer category adapter of the parent of the new category.
+     * \param[in] name name of the category.
+     * \param[in] parent smart pointer category adapter of the parent of the new category.
     *
     */
     CategoryAdapterSPtr createCategory(const QString& name, CategoryAdapterSPtr parent);
 
     /** \brief Adds a category to the model.
-     * \param[in] category, smart pointer of the category adapter to add.
-     * \param[in] parent, smart pointer of the category adapter parent of the added category.
+     * \param[in] category smart pointer of the category adapter to add.
+     * \param[in] parent smart pointer of the category adapter parent of the added category.
      *
      */
     void addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
 
     /** \brief Removes a category to the model.
-     * \param[in] category, smart pointer of the category adapter to remove.
-     * \param[in] parent, smart pointer of the category adapter parent of the added category.
+     * \param[in] category smart pointer of the category adapter to remove.
+     * \param[in] parent smart pointer of the category adapter parent of the added category.
      *
      */
     void removeCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
 
     /** \brief Removes a category whose parent is the root node.
-     * \param[in] category, smart pointer of the category adapter to remove.
+     * \param[in] category smart pointer of the category adapter to remove.
      *
      */
     void removeRootCategory(CategoryAdapterSPtr category);
 
     /** \brief Changes the parent of an existing category.
-     * \param[in] category, smart pointer of the category to change parent.
-     * \param[in] parent, smart pointer of the category that is the new parent.
+     * \param[in] category smart pointer of the category to change parent.
+     * \param[in] parent smart pointer of the category that is the new parent.
      *
      * TODO 2013-10-21: Throw exception if they don't belong to the same classification
      *
@@ -315,37 +318,37 @@ namespace ESPINA
     void reparentCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent);
 
     /** \brief Adds a sample to the model.
-     * \param[in] sample, smart pointer of the sample adapter to add.
+     * \param[in] sample smart pointer of the sample adapter to add.
      *
      */
     void add(SampleAdapterSPtr sample);
 
     /** \brief Adds a list of samples to the model.
-     * \param[in] samples, list of smart pointers of the sample adapters to add.
+     * \param[in] samples list of smart pointers of the sample adapters to add.
      *
      */
     void add(SampleAdapterSList samples);
 
     /** \brief Adds a channel to the model.
-     * \param[in] channel, smart pointer of the channel adapter to add.
+     * \param[in] channel smart pointer of the channel adapter to add.
      *
      */
     void add(ChannelAdapterSPtr channel);
 
     /** \brief Adds a list of channels to the model.
-     * \param[in] channels, list of smart pointers of the channels adapters to add.
+     * \param[in] channels list of smart pointers of the channels adapters to add.
      *
      */
     void add(ChannelAdapterSList channels);
 
     /** \brief Adds a segmentation to the model.
-     * \param[in] segmentation, smart pointer of the segmentation adapter to add.
+     * \param[in] segmentation smart pointer of the segmentation adapter to add.
      *
      */
     void add(SegmentationAdapterSPtr segmentation);
 
     /** \brief Adds a list of segmentations to the model.
-     * \param[in] segmentations, list of smart pointers of the segmentations adapters to add.
+     * \param[in] segmentations list of smart pointers of the segmentations adapters to add.
      *
      */
     void add(SegmentationAdapterSList segmentations);
@@ -404,7 +407,7 @@ namespace ESPINA
     void remove(SegmentationAdapterSPtr segmentation);
 
     /** \brief Removes a list of segmentations from the model.
-     * \param[in] segmentations, list of smart pointers of the segmentation adapters to remove.
+     * \param[in] segmentations list of smart pointers of the segmentation adapters to remove.
      *
      */
     void remove(SegmentationAdapterSList segmentations);
@@ -475,29 +478,18 @@ namespace ESPINA
      */
     RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
-    /** \brief Emits the added segmentation signal for the given segmentation.
-     * \param[in] segmentation segmentation adapter smart pointer.
+    /** \brief Emits representationsModified signal for given items
      *
-     * Used by undo commands to signal finished operations.
-     *
+     *   Note: This method increments the model time stamp before emitting the signal
      */
-    void emitSegmentationsAdded(SegmentationAdapterSPtr segmentation);
+    void notifyRepresentationsModified(ViewItemAdapterSList items);
 
-    /** \brief Emits the added segmentation signal for the given list of segmentation adapters.
-     * \param[in] segmentations list of segmentation adapters.
+    /** \brief Emits representationsModified signal for given items and for
+     *         those which depend on them
      *
-     * Used by undo commands to signal finished operations.
-     *
+     *   Note: This method increments the model time stamp before emitting the signal
      */
-    void emitSegmentationsAdded(SegmentationAdapterSList segmentations);
-
-    /** \brief Emits the added channel signal for the given list of channel adapters.
-     * \param[in] channels list of channel adapters.
-     *
-     * Used by undo commands to signal finished operations.
-     *
-     */
-    void emitChannelAdded(ChannelAdapterSList channels);
+    void notifyDependentRepresentationsModified(ViewItemAdapterSList items);
 
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
@@ -525,34 +517,33 @@ namespace ESPINA
      * \param[in] channel channel adapter raw pointer.
      *
      */
-    virtual ChannelAdapterSPtr smartPointer(ChannelAdapterPtr channel);
+    ChannelAdapterSPtr smartPointer(ChannelAdapterPtr channel);
 
     /** \brief Returns the smart pointer of a segmentation adapter given its raw pointer.
      * \param[in] segmentation segmentation adapter raw pointer.
      *
      */
-    virtual SegmentationAdapterSPtr smartPointer(SegmentationAdapterPtr segmentation);
+    SegmentationAdapterSPtr smartPointer(SegmentationAdapterPtr segmentation);
 
   signals:
     void classificationAdded  (ClassificationAdapterSPtr classification);
     void classificationRemoved(ClassificationAdapterSPtr classification);
 
-    void sampleAdded  (SampleAdapterSPtr samples);
-    void sampleRemoved(SampleAdapterSPtr samples);
+    void samplesAdded  (SampleAdapterSList samples);
+    void samplesRemoved(SampleAdapterSList samples);
+    void samplesAboutToBeRemoved(SampleAdapterSList samples);
 
-    void channelAdded  (ChannelAdapterSPtr channel);
-    void channelRemoved(ChannelAdapterSPtr channel);
+    void channelsAdded  (ChannelAdapterSList channesl, TimeStamp t);
+    void channelsRemoved(ChannelAdapterSList channels, TimeStamp t);
+    void channelsAboutToBeRemoved(ChannelAdapterSList channels, TimeStamp t);
 
-    void segmentationsAdded  (SegmentationAdapterSList segmentations);
-    void segmentationsRemoved(SegmentationAdapterSList segmentations);
+    void segmentationsAdded  (SegmentationAdapterSList segmentations, TimeStamp t);
+    void segmentationsRemoved(SegmentationAdapterSList segmentations, TimeStamp t);
+    void segmentationsAboutToBeRemoved(SegmentationAdapterSList segmentations, TimeStamp t);
+
+    void representationsModified(ViewItemAdapterSList items, TimeStamp t);
 
   private slots:
-    /** \brief Perform operations when a item has been modified.
-     * \param[in] item, item adapter smart pointer.
-     *
-     */
-    void itemModified(ItemAdapterSPtr item);
-
     void resetInternalData();
 
   private:
@@ -566,6 +557,12 @@ namespace ESPINA
                         ItemCommandsList       &samplesQueues,
                         ItemCommandsList       &channelQueues,
                         ItemCommandsList       &segmentationQueues);
+
+    SampleAdapterSList queuedSamples(const ItemCommandsList &queue) const;
+
+    ChannelAdapterSList queuedChannels(const ItemCommandsList &queue) const;
+
+    SegmentationAdapterSList queuedSegmentations(const ItemCommandsList &queue) const;
 
     /** \brief Updates batch queues for both ancestor and successor
      *
@@ -671,6 +668,7 @@ namespace ESPINA
     };
 
   private:
+    TimerSPtr                 m_timer;
     AnalysisSPtr              m_analysis;
     SampleAdapterSList        m_samples;
     ChannelAdapterSList       m_channels;
@@ -687,7 +685,7 @@ namespace ESPINA
   using ModelAdapterSPtr = std::shared_ptr<ModelAdapter>;
 
   /** \brief Returns true if the given index is an item adapter.
-   * \param[in] index, model index.
+   * \param[in] index model index.
    *
    */
   ItemAdapterPtr EspinaGUI_EXPORT itemAdapter(const QModelIndex &index);

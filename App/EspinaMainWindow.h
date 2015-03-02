@@ -304,6 +304,7 @@ namespace ESPINA
     ModelFactorySPtr          m_factory;
     FilterDelegateFactorySPtr m_filterDelegateFactory;
     AnalysisSPtr              m_analysis;
+    TimerSPtr                 m_timer;
     ModelAdapterSPtr          m_model;
     ViewManagerSPtr           m_viewManager;
     QUndoStack               *m_undoStack;

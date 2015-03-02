@@ -96,7 +96,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 , m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
-, m_model(new ModelAdapter())
+, m_timer(new Timer())
+, m_model(new ModelAdapter(m_timer))
 , m_viewManager(new ViewManager())
 , m_undoStack(new QUndoStack())
 , m_channelReader{new ChannelReader()}
@@ -751,8 +752,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_mainBar->setEnabled(true);
     m_contextualBar->setEnabled(true);
 
-    m_model->emitChannelAdded(m_model->channels());
-    m_model->emitSegmentationsAdded(m_model->segmentations());
+    //sm_model->emitChannelAdded(m_model->channels());
+    //m_model->emitSegmentationsAdded(m_model->segmentations());
 
     if (!m_model->channels().isEmpty())
     {

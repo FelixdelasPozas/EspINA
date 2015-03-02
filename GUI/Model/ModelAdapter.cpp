@@ -31,8 +31,9 @@ using namespace ESPINA;
 
 
 //------------------------------------------------------------------------
-ModelAdapter::ModelAdapter()
-: m_analysis   {new Analysis()}
+ModelAdapter::ModelAdapter(TimerSPtr timer)
+: m_timer      {timer}
+, m_analysis   {new Analysis()}
 , m_isBatchMode{false}
 {
 }
@@ -260,10 +261,6 @@ void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
   queueRemoveCommand(segmentation, removeSegmentationCommand(segmentation));
 
   executeCommandsIfNoBatchMode();
-
-  SegmentationAdapterSList segmentationList; // TODO: Discuss about signals neeeded by ESPINA
-  segmentationList << segmentation;
-  emit segmentationsRemoved(segmentationList);
 }
 
 //------------------------------------------------------------------------
@@ -275,8 +272,6 @@ void ModelAdapter::remove(SegmentationAdapterSList segmentations)
   }
 
   executeCommandsIfNoBatchMode();
-
-  emit segmentationsRemoved(segmentations);
 }
 
 //------------------------------------------------------------------------
@@ -468,26 +463,6 @@ void ModelAdapter::deleteRelations(const RelationList& relations)
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::emitChannelAdded(ChannelAdapterSList )
-{
-
-}
-
-//------------------------------------------------------------------------
-void ModelAdapter::emitSegmentationsAdded(SegmentationAdapterSPtr segmentation)
-{
-  SegmentationAdapterSList segmentations{segmentation};
-
-  emitSegmentationsAdded(segmentations);
-}
-
-//------------------------------------------------------------------------
-void ModelAdapter::emitSegmentationsAdded(SegmentationAdapterSList segmentations)
-{
-  emit segmentationsAdded(segmentations);
-}
-
-//------------------------------------------------------------------------
 Qt::ItemFlags ModelAdapter::flags(const QModelIndex& index) const
 {
   auto flags = QAbstractItemModel::flags(index);
@@ -608,11 +583,6 @@ QMap< int, QVariant > ModelAdapter::itemData(const QModelIndex& index) const
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::itemModified(ItemAdapterSPtr item)
-{
-}
-
-//------------------------------------------------------------------------
 QModelIndex ModelAdapter::parent(const QModelIndex& child) const
 {
   if (!child.isValid())
@@ -697,88 +667,6 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
   return relations;
 }
 
-//------------------------------------------------------------------------
-ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
-{
-  for(auto sample : m_samples)
-  {
-    PersistentSPtr base = sample->m_sample;
-    if (base == item) return sample;
-  }
-
-  for(auto channel : m_channels)
-  {
-    PersistentSPtr base = channel->m_channel;
-    if (base == item) return channel;
-  }
-
-  for(auto segmentation : m_segmentations)
-  {
-    PersistentSPtr base = segmentation->m_segmentation;
-    if (base == item) return segmentation;
-  }
-
-  return ItemAdapterSPtr();
-}
-
-//------------------------------------------------------------------------
-CategoryAdapterSPtr ModelAdapter::smartPointer(CategoryAdapterPtr category)
-{
-  if (category == m_classification->root().get())
-    return m_classification->root();
-
-  auto parent = category->parent();
-
-  return parent->subCategory(category->name());
-}
-
-//------------------------------------------------------------------------
-SampleAdapterSPtr ModelAdapter::smartPointer(SampleAdapterPtr sample)
-{
-  SampleAdapterSPtr pointer;
-
-  int i=0;
-  while (!pointer && i < m_samples.size())
-  {
-    if (m_samples[i].get() == sample)
-      pointer = m_samples[i];
-    i++;
-  }
-
-  return pointer;
-}
-
-//------------------------------------------------------------------------
-ChannelAdapterSPtr ModelAdapter::smartPointer(ChannelAdapterPtr channel)
-{
-  ChannelAdapterSPtr pointer;
-
-  int i=0;
-  while (!pointer && i < m_channels.size())
-  {
-    if (m_channels[i].get() == channel)
-      pointer = m_channels[i];
-    i++;
-  }
-
-  return pointer;
-}
-
-//------------------------------------------------------------------------
-SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmentation)
-{
-  SegmentationAdapterSPtr pointer;
-
-  int i=0;
-  while (!pointer && i < m_segmentations.size())
-  {
-    if (m_segmentations[i].get() == segmentation)
-      pointer = m_segmentations[i];
-    i++;
-  }
-
-  return pointer;
-}
 
 //------------------------------------------------------------------------
 void ModelAdapter::addCategory(CategoryAdapterSPtr category, CategoryAdapterSPtr parent)
@@ -854,15 +742,6 @@ void ModelAdapter::clear()
     resetInternalData();
   }
   endResetModel();
-}
-
-//------------------------------------------------------------------------
-void ModelAdapter::resetInternalData()
-{
-  m_segmentations.clear();
-  m_channels.clear();
-  m_samples.clear();
-  m_classification.reset();
 }
 
 //------------------------------------------------------------------------
@@ -978,16 +857,13 @@ void ModelAdapter::endBatchMode()
 {
   m_isBatchMode = false;
 
+  m_timer->increment();
+
   executeAddCommands();
 
   executeUpdateCommands();
 
   executeRemoveCommands();
-  // This are ESPINA signals - not used by QtModel
-//   for(auto sample : samples)
-//   {
-//     emit sampleAdded(sample);
-//   }
 }
 
 //------------------------------------------------------------------------
@@ -1056,6 +932,117 @@ void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation,
 }
 
 //------------------------------------------------------------------------
+void ModelAdapter::notifyRepresentationsModified(ViewItemAdapterSList items)
+{
+  m_timer->increment();
+
+  emit representationsModified(items, m_timer->timeStamp());
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::notifyDependentRepresentationsModified(ViewItemAdapterSList items)
+{
+  m_timer->increment();
+
+  auto notificationItems = items;
+  // TODO: add dependent items
+
+  emit representationsModified(notificationItems, m_timer->timeStamp());
+}
+
+//------------------------------------------------------------------------
+ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
+{
+  for(auto sample : m_samples)
+  {
+    PersistentSPtr base = sample->m_sample;
+    if (base == item) return sample;
+  }
+
+  for(auto channel : m_channels)
+  {
+    PersistentSPtr base = channel->m_channel;
+    if (base == item) return channel;
+  }
+
+  for(auto segmentation : m_segmentations)
+  {
+    PersistentSPtr base = segmentation->m_segmentation;
+    if (base == item) return segmentation;
+  }
+
+  return ItemAdapterSPtr();
+}
+
+//------------------------------------------------------------------------
+CategoryAdapterSPtr ModelAdapter::smartPointer(CategoryAdapterPtr category)
+{
+  if (category == m_classification->root().get())
+    return m_classification->root();
+
+  auto parent = category->parent();
+
+  return parent->subCategory(category->name());
+}
+
+//------------------------------------------------------------------------
+SampleAdapterSPtr ModelAdapter::smartPointer(SampleAdapterPtr sample)
+{
+  SampleAdapterSPtr pointer;
+
+  int i=0;
+  while (!pointer && i < m_samples.size())
+  {
+    if (m_samples[i].get() == sample)
+      pointer = m_samples[i];
+    i++;
+  }
+
+  return pointer;
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterSPtr ModelAdapter::smartPointer(ChannelAdapterPtr channel)
+{
+  ChannelAdapterSPtr pointer;
+
+  int i=0;
+  while (!pointer && i < m_channels.size())
+  {
+    if (m_channels[i].get() == channel)
+      pointer = m_channels[i];
+    i++;
+  }
+
+  return pointer;
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSPtr ModelAdapter::smartPointer(SegmentationAdapterPtr segmentation)
+{
+  SegmentationAdapterSPtr pointer;
+
+  int i=0;
+  while (!pointer && i < m_segmentations.size())
+  {
+    if (m_segmentations[i].get() == segmentation)
+      pointer = m_segmentations[i];
+    i++;
+  }
+
+  return pointer;
+}
+
+//------------------------------------------------------------------------
+void ModelAdapter::resetInternalData()
+{
+  m_segmentations.clear();
+  m_channels.clear();
+  m_samples.clear();
+  m_classification.reset();
+}
+
+//------------------------------------------------------------------------
 bool ModelAdapter::contains(ItemAdapterSPtr &item, const ItemCommandsList &list) const
 {
   for (auto itemCommands : list) {
@@ -1116,6 +1103,45 @@ void ModelAdapter::classifyQueues(const ItemCommandsList &queues,
         qWarning() << "Unexpected item commands";
     };
   }
+}
+
+//------------------------------------------------------------------------
+SampleAdapterSList ModelAdapter::queuedSamples(const ModelAdapter::ItemCommandsList& queue) const
+{
+  SampleAdapterSList samples;
+
+  for (auto command : queue)
+  {
+    samples << std::dynamic_pointer_cast<SampleAdapter>(command.Item);
+  }
+
+  return samples;
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterSList ModelAdapter::queuedChannels(const ModelAdapter::ItemCommandsList& queue) const
+{
+  ChannelAdapterSList channels;
+
+  for (auto command : queue)
+  {
+    channels << std::dynamic_pointer_cast<ChannelAdapter>(command.Item);
+  }
+
+  return channels;
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSList ModelAdapter::queuedSegmentations(const ModelAdapter::ItemCommandsList& queue) const
+{
+  SegmentationAdapterSList segmentations;
+
+  for (auto command : queue)
+  {
+    segmentations << std::dynamic_pointer_cast<SegmentationAdapter>(command.Item);
+  }
+
+  return segmentations;
 }
 
 //------------------------------------------------------------------------
@@ -1255,6 +1281,24 @@ void ModelAdapter::executeAddCommands()
   executeAddQueues(channelRoot(),      channelQueues);
   executeAddQueues(segmentationRoot(), segmentationQueues);
 
+  auto samples = queuedSamples(sampleQueues);
+  if (!samples.isEmpty())
+  {
+    emit samplesAdded(samples);
+  }
+
+  auto channels = queuedChannels(channelQueues);
+  if (!channels.isEmpty())
+  {
+    emit channelsAdded(channels, m_timer->timeStamp());
+  }
+
+  auto segmentations = queuedSegmentations(segmentationQueues);
+  if (!segmentations.isEmpty())
+  {
+    emit segmentationsAdded(segmentations, m_timer->timeStamp());
+  }
+
   m_addCommands.clear();
 }
 
@@ -1265,6 +1309,7 @@ void ModelAdapter::executeUpdateCommands()
 
   // Data Changed Signals are grouped by consecutive indices
   classifyQueues(m_updateCommands, sampleQueues, channelQueues, segmentationQueues);
+
   executeUpdateQueues(sampleQueues);
   executeUpdateQueues(channelQueues);
   executeUpdateQueues(segmentationQueues);
@@ -1279,10 +1324,42 @@ void ModelAdapter::executeRemoveCommands()
 
   classifyQueues(m_removeCommands, sampleQueues, channelQueues, segmentationQueues);
 
-  // Insert Row Signals are grouped by parent node
+  auto samples = queuedSamples(sampleQueues);
+  if (!samples.isEmpty())
+  {
+    emit samplesAboutToBeRemoved(samples);
+  }
+
+  auto channels = queuedChannels(channelQueues);
+  if (!channels.isEmpty())
+  {
+    emit channelsAboutToBeRemoved(channels, m_timer->timeStamp());
+  }
+
+  auto segmentations = queuedSegmentations(segmentationQueues);
+  if (!segmentations.isEmpty())
+  {
+    emit segmentationsAboutToBeRemoved(segmentations, m_timer->timeStamp());
+  }
+  // Remove Row Signals are grouped by parent node
   executeRemoveQueues(sampleRoot(),       sampleQueues);
   executeRemoveQueues(channelRoot(),      channelQueues);
   executeRemoveQueues(segmentationRoot(), segmentationQueues);
+
+  if (!samples.isEmpty())
+  {
+    emit samplesRemoved(samples);
+  }
+
+  if (!channels.isEmpty())
+  {
+    emit channelsRemoved(channels, m_timer->timeStamp());
+  }
+
+  if (!segmentations.isEmpty())
+  {
+    emit segmentationsRemoved(segmentations, m_timer->timeStamp());
+  }
 
   m_removeCommands.clear();
 }

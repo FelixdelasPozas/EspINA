@@ -32,9 +32,10 @@
 namespace ESPINA {
 
   class ViewItemAdapter;
-  using ViewItemAdapterPtr  = ViewItemAdapter *;
-  using ViewItemAdapterList = QList<ViewItemAdapterPtr>;
-  using ViewItemAdapterSPtr = std::shared_ptr<ViewItemAdapter>;
+  using ViewItemAdapterPtr   = ViewItemAdapter *;
+  using ViewItemAdapterList  = QList<ViewItemAdapterPtr>;
+  using ViewItemAdapterSPtr  = std::shared_ptr<ViewItemAdapter>;
+  using ViewItemAdapterSList = QList<ViewItemAdapterSPtr>;
 
   class EspinaGUI_EXPORT ViewItemAdapter
   : public NeuroItemAdapter
