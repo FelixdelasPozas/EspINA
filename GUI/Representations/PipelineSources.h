@@ -21,6 +21,7 @@
 #define ESPINA_PIPELINE_SOURCES_H
 
 #include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/Model/ModelAdapter.h>
 
 namespace ESPINA
 {
@@ -35,6 +36,8 @@ namespace ESPINA
     Q_OBJECT
 
   public:
+    explicit PipelineSources(ModelAdapterSPtr model, const ItemAdapter::Type type);
+
     virtual ~PipelineSources();
 
     /** \brief Adds source view item to the pipeline sources
@@ -70,6 +73,10 @@ namespace ESPINA
     void sourcesUpdated(ViewItemAdapterList);
     void sourcesRemoved(ViewItemAdapterList);
 
+  private slots:
+    void onSourcesAdded  (ViewItemAdapterSList sources, TimeStamp t);
+    void onSourcesRemoved(ViewItemAdapterSList sources, TimeStamp t);
+
   private:
     void insert(ViewItemAdapterPtr source);
 
@@ -81,6 +88,9 @@ namespace ESPINA
     ViewItemAdapterList createList(ViewItemAdapterPtr item) const;
 
   private:
+    ModelAdapterSPtr    m_model;
+    ItemAdapter::Type   m_type;
+
     ViewItemAdapterList m_sources;
   };
 }

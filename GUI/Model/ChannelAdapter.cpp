@@ -230,3 +230,16 @@ bool ESPINA::isChannel(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::CHANNEL == item->type();
 }
+
+//------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSList channels)
+{
+  ViewItemAdapterSList result;
+
+  for (auto channel : channels)
+  {
+    result << channel;
+  }
+
+  return result;
+}

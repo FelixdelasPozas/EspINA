@@ -114,6 +114,8 @@ namespace ESPINA
      */
     virtual ~ModelAdapter();
 
+    TimerSPtr timer() const;
+
     /** \brief Sets the analysis this model adapts and a model factory.
      * \param[in] analysis analysis smart pointer.
      * \param[in] factory model factory smart pointer.
@@ -533,8 +535,9 @@ namespace ESPINA
     void samplesRemoved(SampleAdapterSList samples);
     void samplesAboutToBeRemoved(SampleAdapterSList samples);
 
-    void channelsAdded  (ChannelAdapterSList channesl, TimeStamp t);
-    void channelsRemoved(ChannelAdapterSList channels, TimeStamp t);
+    void channelsAdded  (ViewItemAdapterSList channesl, TimeStamp t);
+    void channelsAdded  (ChannelAdapterSList  channesl, TimeStamp t);
+    void channelsRemoved(ChannelAdapterSList  channels, TimeStamp t);
     void channelsAboutToBeRemoved(ChannelAdapterSList channels, TimeStamp t);
 
     void segmentationsAdded  (SegmentationAdapterSList segmentations, TimeStamp t);

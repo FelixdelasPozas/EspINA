@@ -913,7 +913,6 @@ void View2D::centerCrosshairOnMousePosition(int x, int y)
   {
     auto point = toNormalizeWorldPosition(rendererUnderCuror(), x, y);
 
-    qDebug() << "crosshair point" << point;
     emit crosshairChanged(point);
   }
 }

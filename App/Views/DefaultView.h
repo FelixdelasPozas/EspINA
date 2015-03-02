@@ -28,6 +28,7 @@
 #include <GUI/View/View3D.h>
 #include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
+#include <Support/Representations/RepresentationFactory.h>
 
 // Qt
 #include <QAbstractItemView>
@@ -42,7 +43,7 @@ namespace ESPINA
   class CamerasMenu;
 
   class DefaultView
-  : public QAbstractItemView
+  : QWidget
   {
     Q_OBJECT
   public:
@@ -62,6 +63,8 @@ namespace ESPINA
      */
     virtual ~DefaultView();
 
+    void addRepresentation(const Representation &representation);
+
     /** \brief Sets the crosshair colors of the view.
      * \param[in] plane of the crosshair line.
      * \param[in] color of the crosshair line.
@@ -75,99 +78,22 @@ namespace ESPINA
      */
     void createViewMenu(QMenu *menu);
 
-    virtual QModelIndex indexAt(const QPoint& point) const override
-    { return QModelIndex(); }
-
-    virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) override
-    {}
-
-    virtual QRect visualRect(const QModelIndex& index) const override
-    { return QRect(); }
-
-    virtual void setModel(QAbstractItemModel *model) override;
-
     /** \brief Returns the view's settings panel.
      *
      */
     SettingsPanelSPtr settingsPanel();
 
     /** \brief Loads view settings from storage.
-     * \param[in] storate temporal storage containing the settings file.
+     * \param[in] storage temporal storage containing the settings file.
      */
     void loadSessionSettings(TemporalStorageSPtr storage);
 
     /** \brief Saves view settings from storage.
-     * \param[in] storate temporal storage to save settings file.
+     * \param[in] storage temporal storage to save settings file.
      */
     void saveSessionSettings(TemporalStorageSPtr storage);
 
-  protected:
-    virtual QRegion visualRegionForSelection(const QItemSelection& selection) const override
-    {return QRegion();}
-
-    virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) override
-    {}
-
-    virtual bool isIndexHidden(const QModelIndex& index) const override
-    {return true;}
-
-    virtual int verticalOffset() const override
-    {return 0;}
-
-    virtual int horizontalOffset() const override
-    {return 0;}
-
-    virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers) override
-    {return QModelIndex();}
-
-  private:
-    /** \brief Adds a channel to the view.
-     * \param[in] channel to add.
-     *
-     */
-    void add(ChannelAdapterPtr channel);
-
-    /** \brief Adds a segmentation to the view.
-     * \param[in] segmentation to add.
-     *
-     */
-    void add(SegmentationAdapterPtr segmentation);
-
-    /** \brief Removes a channel from the view.
-     * \param[in] channel to remove.
-     *
-     */
-    void remove(ChannelAdapterPtr channel);
-
-    /** \brief Removes a segmentation from the view.
-     * \param[in] segmentation to remove.
-     *
-     */
-    void remove(SegmentationAdapterPtr segmentation);
-
-    /** \brief Updates the representation of the given channel.
-     * \param[in] channel to update representations.
-     *
-     */
-    bool updateRepresentation(ChannelAdapterPtr channel);
-
-    /** \brief Updates the representation of the given segmentation.
-     * \param[in] segmentationto update representations.
-     *
-     */
-    bool updateRepresentation(SegmentationAdapterPtr segmentation);
-
   private slots:
-    /** \brief Resets all the views.
-     *
-     */
-    void sourceModelReset();
-
-    /** \brief Shows/hides the view's crosshair.
-     * \param[in] visible, true to show the crosshair, false to hide.
-     */
-    void showCrosshair(bool visible);
-
     /** \brief Shows/hides the view's ruler.
      * \param[in] visible, true to show the ruler, false to hide.
      */
@@ -178,32 +104,32 @@ namespace ESPINA
      */
     void showThumbnail(bool visible);
 
-    /** \brief Switches visibility between channels.
-     *
-     */
-    void switchPreprocessing();
-
     /** \brief Toggles "fit to slices" boolean value.
      * \param[in] unused unused value.
      */
     void setFitToSlices(bool unused);
 
-    // virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
-  protected:
-    virtual void rowsInserted(const QModelIndex& parent, int start, int end)  override;
+  private:
+    void initView(RenderView *view);
 
-    virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end) override;
+    void deleteView(RenderView *view);
 
-    /** \brief Updates XY, YZ, XZ and 3D views.
-     *
-     */
-    void updateViews();
+    void addRepresentationManager(RepresentationManagerSPtr manager);
 
-    // void selectFromSlice(double slice, PlaneType plane);
-    // void selectToSlice(double slice, PlaneType plane);
+    void addRepresentationPool(RepresentationPoolSPtr pool, const QString &group);
+
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
+
+    PipelineSources m_channelSources;
+    PipelineSources m_segmentationSources;
+
+    ViewStateSPtr              m_viewState;
+    RepresentationPoolSList    m_channelPools;
+    RepresentationPoolSList    m_segmentationPools;
+    RepresentationPoolSList    m_autonomousPools;
+    RepresentationManagerSList m_repManagers;
 
     bool m_showProcessing;
 
@@ -213,6 +139,8 @@ namespace ESPINA
 
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
     View3D *m_view3D;
+
+    QList<RenderView *> m_views;
 
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;

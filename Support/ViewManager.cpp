@@ -41,9 +41,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_timer            {new Timer{1}}
-, m_viewState        {new ViewState{m_timer}}
-, m_selection        {new Selection()}
+: m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
@@ -96,19 +94,7 @@ void ViewManager::registerView(RenderView* view)
   Q_ASSERT(!m_renderViews.contains(view));
   m_renderViews << view;
 
-  view->setState(m_viewState);
   view->setEventHandler(m_eventHandler);
-  //view->setColorEngine(m_colorEngine);
-
-  view->setChannelSources(&m_channelSources);
-
-  for (auto manager : m_repManagers)
-  {
-    if (manager->supportedViews().testFlag(view->type()))
-    {
-      view->addRepresentationManager(manager->clone());
-    }
-  }
 
   for (auto widget : m_widgets)
   {
@@ -154,107 +140,12 @@ QList<View2D *> ViewManager::sliceViews()
   return views;
 }
 
-//----------------------------------------------------------------------------
-void ViewManager::addRepresentationPools(const QString& group, RepresentationPoolSList pools)
-{
-  if (ViewToolGroup::CHANNELS_GROUP == group)
-  {
-    for (auto pool : pools)
-    {
-      pool->setPipelineSources(&m_channelSources);
-      m_channelPools << pool;
-    }
-  }
-  else if (ViewToolGroup::SEGMENTATIONS_GROUP == group)
-  {
-    for (auto pool : pools)
-    {
-      pool->setPipelineSources(&m_segmentationSources);
-      m_segmentationPools << pool;
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::addRepresentationManagers(RepresentationManagerSList repManagers)
-{
-  for (auto repManager : repManagers)
-  {
-    for (auto renderView : m_renderViews)
-    {
-      if (repManager->supportedViews().testFlag(renderView->type()))
-      {
-        renderView->addRepresentationManager(repManager->clone());
-      }
-    }
-    m_repManagers << repManager;
-  }
-}
-
 //---------------------------------------------------------------------------
 /********************* ViewItem Management API *****************************/
 //---------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
-void ViewManager::add(ChannelAdapterPtr channel)
-{
-  m_channelSources.addSource(channel);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::add(SegmentationAdapterPtr segmentation)
-{
-  m_segmentationSources.addSource(segmentation);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::remove(ChannelAdapterPtr channel)
-{
-  m_channelSources.removeSource(channel);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::remove(SegmentationAdapterPtr segmentation)
-{
-  m_segmentationSources.removeSource(segmentation);
-}
-
-//----------------------------------------------------------------------------
-bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render) // TODO: Remove render flag
-{
-  m_channelSources.onSourceUpdated(channel);
-
-  return true; // TODO Void
-
-
-  // TODO: Seguramente como parte del nuevo algoritmo de render de la vista
-//   if (!m_sceneCameraInitialized && state.visible)
-//   {
-//     m_sceneCameraInitialized = true;
-//     resetCamera();
-//   }
-//
-//   m_renderer->ResetCameraClippingRange();
-//
-//   if (render && isVisible())
-//   {
-//     m_view->GetRenderWindow()->Render();
-//     m_view->update();
-//   }
-}
-
-//----------------------------------------------------------------------------
-bool ViewManager::updateRepresentation(SegmentationAdapterPtr seg, bool render)
-{
-  Q_ASSERT(false);
-  return false;
-}
-
 //----------------------------------------------------------------------------
 void ViewManager::removeAllViewItems()
 {
-  m_segmentationSources.clear();
-  m_channelSources.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -415,7 +306,9 @@ void ViewManager::removeWidget(EspinaWidgetSPtr widget)
 void ViewManager::resetViewCameras()
 {
   for(auto view: m_renderViews)
+  {
     view->resetCamera();
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -23,6 +23,7 @@
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
+#include <ToolGroups/View/ViewToolGroup.h>
 #include <Support/Settings/EspinaSettings.h>
 
 // Qt
@@ -49,9 +50,11 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
                          ViewManagerSPtr      viewManager,
                          QUndoStack          *undoStack,
                          QMainWindow         *parent)
-: QAbstractItemView(parent)
-, m_model(model)
+: m_model(model)
+, m_viewState{new ViewState{m_model->timer()}}
 , m_viewManager(viewManager)
+, m_channelSources(m_model, ItemAdapter::Type::CHANNEL)
+, m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION)
 , m_showProcessing(false)
 , m_renderersMenu(nullptr)
 , m_camerasMenu(nullptr)
@@ -90,23 +93,22 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   dock3D->setObjectName("Dock3D");
   dock3D->setWidget(m_view3D);
 
-  m_viewManager->registerView(m_viewXY);
-  m_viewManager->registerView(m_viewXZ);
-  m_viewManager->registerView(m_viewYZ);
-  m_viewManager->registerView(m_view3D);
-
   parent->addDockWidget(Qt::RightDockWidgetArea, dock3D);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockXZ);
 
-  parent->setCentralWidget(this);
+  initView(m_viewXY);
+  initView(m_viewXZ);
+  initView(m_viewYZ);
+  initView(m_view3D);
 
-  setModel(m_model.get());
+  parent->setCentralWidget(this);
 }
 
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
+  deleteView(m_viewXY);
   m_viewManager->unregisterView(m_viewXY);
   m_viewManager->unregisterView(m_viewXZ);
   m_viewManager->unregisterView(m_viewYZ);
@@ -125,6 +127,29 @@ DefaultView::~DefaultView()
   if (m_camerasMenu)
   {
     delete m_camerasMenu;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void DefaultView::addRepresentation(const Representation& representation)
+{
+  for (auto manager : representation.Managers)
+  {
+    addRepresentationManager(manager);
+  }
+
+  for (auto pool : representation.Pools)
+  {
+    if (ViewToolGroup::CHANNELS_GROUP == representation.Group)
+    {
+      pool->setPipelineSources(&m_channelSources);
+      m_channelPools << pool;
+    }
+    else if (ViewToolGroup::SEGMENTATIONS_GROUP == representation.Group)
+    {
+      pool->setPipelineSources(&m_segmentationSources);
+      m_segmentationPools << pool;
+    }
   }
 }
 
@@ -159,13 +184,14 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
   m_viewYZ->setCrosshairColors(m_zLine, m_yLine);
 }
 
+
 //-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
   m_camerasMenu = new CamerasMenu(m_viewManager, this);
   menu->addMenu(m_camerasMenu);
 
-  QMenu *renderMenu = new QMenu(tr("Views"), this);
+  auto renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(dockYZ->toggleViewAction());
   renderMenu->addAction(dockXZ->toggleViewAction());
   renderMenu->addAction(dock3D->toggleViewAction());
@@ -193,26 +219,13 @@ void DefaultView::createViewMenu(QMenu* menu)
   connect(m_showThumbnail, SIGNAL(toggled(bool)),
           this, SLOT(showThumbnail(bool)));
 
-  QAction *togglePreprocessingVisibility = new QAction(tr("Switch Channel"), menu);
-  togglePreprocessingVisibility->setShortcut(QString("Ctrl+Space"));
-  connect(togglePreprocessingVisibility, SIGNAL(triggered(bool)), this, SLOT(switchPreprocessing()));
-  menu->addAction(togglePreprocessingVisibility);
-
-  QAction *fitToSlices = m_viewManager->fitToSlices();
+  auto fitToSlices = m_viewManager->fitToSlices();
   menu->addAction(fitToSlices);
   connect(fitToSlices, SIGNAL(toggled(bool)),
           this, SLOT(setFitToSlices(bool)));
 
   setRulerVisibility(sr);
   showThumbnail(st);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::setModel(QAbstractItemModel* model)
-{
-  QAbstractItemView::setModel(model);
-  connect(model, SIGNAL(modelAboutToBeReset()),
-          this, SLOT(sourceModelReset()));
 }
 
 //-----------------------------------------------------------------------------
@@ -223,115 +236,23 @@ SettingsPanelSPtr DefaultView::settingsPanel()
   return std::make_shared<DefaultViewSettingsPanel>(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu);
 }
 
-//-----------------------------------------------------------------------------
-void DefaultView::add(ChannelAdapterPtr channel)
-{
-  m_viewManager->add(channel);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::remove(ChannelAdapterPtr channel)
-{
-  m_viewManager->remove(channel);
-}
-
-//-----------------------------------------------------------------------------
-bool DefaultView::updateRepresentation(ChannelAdapterPtr channel)
-{
-  return m_viewManager->updateRepresentation(channel);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::add(SegmentationAdapterPtr segmentation)
-{
-  m_viewManager->add(segmentation);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::remove(SegmentationAdapterPtr segmentation)
-{
-  m_viewManager->remove(segmentation);
-}
-
-//-----------------------------------------------------------------------------
-bool DefaultView::updateRepresentation(SegmentationAdapterPtr segmentation)
-{
-  return m_viewManager->updateRepresentation(segmentation);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::rowsInserted(const QModelIndex& parent, int start, int end)
-{
-  if (!parent.isValid())
-    return;
-
-  if (parent == m_model->channelRoot())
-  {
-    for (int child = start; child <= end; child++)
-    {
-      auto index = parent.child(child, 0);
-      auto item = itemAdapter(index);
-      Q_ASSERT(isChannel(item));
-
-      auto channel = channelPtr(item);
-
-      add(channel);
-    }
-  } else if (parent == m_model->segmentationRoot())
-  {
-    for (int child = start; child <= end; child++)
-    {
-      auto index = parent.child(child, 0);
-      auto item = itemAdapter(index);
-      Q_ASSERT(isSegmentation(item));
-
-      auto segmentation = segmentationPtr(item);
-
-      add(segmentation);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
-{
-  if (!parent.isValid()) return;
-
-  for (int child = start; child <= end; child++)
-  {
-    auto index = parent.child(child, 0);
-    auto item  = itemAdapter(index);
-
-    if (isChannel(item))
-    {
-      auto channel = channelPtr(item);
-      remove(channel);
-    }
-    else if (isSegmentation(item))
-    {
-      auto segmentation = segmentationPtr(item);
-      remove(segmentation);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void DefaultView::sourceModelReset()
-{
-  m_viewManager->removeAllViewItems();
-  m_viewXY->reset();
-  m_viewYZ->reset();
-  m_viewXZ->reset();
-  m_view3D->reset();
-}
-
-//----------------------------------------------------------------------------
-void DefaultView::showCrosshair(bool visible)
-{
-  m_viewXY->setCrosshairVisibility(visible);
-  m_viewYZ->setCrosshairVisibility(visible);
-  m_viewXZ->setCrosshairVisibility(visible);
-}
+// //----------------------------------------------------------------------------
+// void DefaultView::sourceModelReset()
+// {
+//   m_viewManager->removeAllViewItems();
+//   m_viewXY->reset();
+//   m_viewYZ->reset();
+//   m_viewXZ->reset();
+//   m_view3D->reset();
+// }
+//
+// //----------------------------------------------------------------------------
+// void DefaultView::showCrosshair(bool visible)
+// {
+//   m_viewXY->setCrosshairVisibility(visible);
+//   m_viewYZ->setCrosshairVisibility(visible);
+//   m_viewXZ->setCrosshairVisibility(visible);
+// }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setRulerVisibility(bool visible)
@@ -358,25 +279,25 @@ void DefaultView::showThumbnail(bool visible)
   m_viewXZ->setThumbnailVisibility(visible);
 }
 
-//----------------------------------------------------------------------------
-void DefaultView::switchPreprocessing()
-{
-  // Current implementation changes channel visibility and then
-  // notifies it's been updated to other views
-  m_showProcessing = !m_showProcessing;
-  m_viewXY->setShowPreprocessing(m_showProcessing);
-  m_viewYZ->setShowPreprocessing(m_showProcessing);
-  m_viewXZ->setShowPreprocessing(m_showProcessing);
-}
+// //----------------------------------------------------------------------------
+// void DefaultView::switchPreprocessing()
+// {
+//   // Current implementation changes channel visibility and then
+//   // notifies it's been updated to other views
+//   m_showProcessing = !m_showProcessing;
+//   m_viewXY->setShowPreprocessing(m_showProcessing);
+//   m_viewYZ->setShowPreprocessing(m_showProcessing);
+//   m_viewXZ->setShowPreprocessing(m_showProcessing);
+// }
 
-//----------------------------------------------------------------------------
-void DefaultView::updateViews()
-{
- m_viewXY->updateView();
- m_viewXZ->updateView();
- m_viewYZ->updateView();
- m_view3D->updateView();
-}
+// //----------------------------------------------------------------------------
+// void DefaultView::updateViews()
+// {
+//  m_viewXY->updateView();
+//  m_viewXZ->updateView();
+//  m_viewYZ->updateView();
+//  m_view3D->updateView();
+// }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setFitToSlices(bool unused)
@@ -444,4 +365,35 @@ void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
 //   QSettings settings(storage->absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
 //
 //   settings.sync();
+}
+
+//-----------------------------------------------------------------------------
+void DefaultView::initView(RenderView* view)
+{
+  view->setState(m_viewState);
+  view->setChannelSources(&m_channelSources);
+
+  m_viewManager->registerView(view);
+
+  m_views << view;
+}
+
+//-----------------------------------------------------------------------------
+void DefaultView::deleteView(RenderView* view)
+{
+  m_viewManager->unregisterView(view);
+
+  delete view;
+}
+
+//-----------------------------------------------------------------------------
+void DefaultView::addRepresentationManager(RepresentationManagerSPtr manager)
+{
+  for (auto view : m_views)
+  {
+    if (manager->supportedViews().testFlag(view->type()))
+    {
+      view->addRepresentationManager(manager->clone());
+    }
+  }
 }

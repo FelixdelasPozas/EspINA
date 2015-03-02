@@ -22,6 +22,23 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
+PipelineSources::PipelineSources(ModelAdapterSPtr model, const ItemAdapter::Type type)
+: m_model{model}
+, m_type{type}
+{
+  if (ItemAdapter::Type::CHANNEL == type)
+  {
+    connect(m_model.get(), SIGNAL(channelsAdded(ViewItemAdapterSList,TimeStamp)),
+            this,          SLOT(onSourcesAdded(ViewItemAdapterSList,TimeStamp)));
+  }
+  else if (ItemAdapter::Type::SEGMENTATION == type)
+  {
+    connect(m_model.get(), SIGNAL(segmentationsAdded(SegmentationAdapterSList,TimeStamp)),
+            this,          SLOT(onSourcesAdded(ViewItemAdapterSList,TimeStamp)));
+  }
+}
+
+//-----------------------------------------------------------------------------
 PipelineSources::~PipelineSources()
 {
   qDebug() << "Destroy";
@@ -77,6 +94,27 @@ void PipelineSources::clear()
 ViewItemAdapterList PipelineSources::sources() const
 {
   return m_sources;
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onSourcesAdded(ViewItemAdapterSList sources, TimeStamp t)
+{
+  ViewItemAdapterList result;
+
+  for (auto source : sources)
+  {
+    result << source.get();
+  }
+
+  m_sources << result;
+
+  emit sourcesAdded(result);
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onSourcesRemoved(ViewItemAdapterSList sources, TimeStamp t)
+{
+
 }
 
 //-----------------------------------------------------------------------------

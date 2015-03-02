@@ -39,6 +39,8 @@ namespace ESPINA
     RepresentationSwitchSList  Switches;
   };
 
+  using RepresentationList = QList<Representation>;
+
   /** \brief Create specific representation drivers
    *
    */

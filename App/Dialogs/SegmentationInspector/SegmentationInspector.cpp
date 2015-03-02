@@ -264,7 +264,7 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
 
   m_channels << channel;
 
-  m_viewManager->add(channel);
+  //TODO m_viewManager->add(channel);
   m_view->updateView();
 
   generateWindowTitle();
@@ -278,7 +278,7 @@ void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
 
   m_channels.removeOne(channel);
 
-  m_viewManager->remove(channel);
+  //TODO m_viewManager->remove(channel);
   m_view->updateView();
 
   generateWindowTitle();

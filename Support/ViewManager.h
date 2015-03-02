@@ -126,89 +126,20 @@ namespace ESPINA
      */
     QList<View2D *> sliceViews();
 
-    /** \brief Adds a representation pools to view manager
-     *
-     */
-    void addRepresentationPools(const QString &group, RepresentationPoolSList pools);
-
-    /** \brief Adds a representation managers to the views registered at the
-     *         view manager
-     *
-     */
-    void addRepresentationManagers(RepresentationManagerSList repManagers);
-
   private:
-    TimerSPtr               m_timer;
-    ViewStateSPtr           m_viewState;
     QList<SelectableView *> m_espinaViews;
     QList<RenderView *>     m_renderViews;
 
-    RepresentationPoolSList    m_channelPools;
-    RepresentationPoolSList    m_segmentationPools;
-    RepresentationPoolSList    m_autonomousPools;
-    RepresentationManagerSList m_repManagers;
-
-    //---------------------------------------------------------------------------
-    /********************* ViewItem Management API *****************************/
-    // Add, Update or Remove view items
-    //---------------------------------------------------------------------------
   public:
-    /** \brief Adds channel to registered views
-     * \param[in] channel to be added
-     *
-     */
-    void add(ChannelAdapterPtr channel);
-
-    /** \brief Adds segmentation to registered views
-     * \param[in] segmentation to be added
-     *
-     */
-    void add(SegmentationAdapterPtr segmentation);
-
-    /** \brief Removes channel from registered views
-     * \param[in] channel to be removed
-     *
-     */
-    void remove(ChannelAdapterPtr channel);
-
-    /** \brief Removes segmentation from registered views
-     * \param[in] segmentation to be removed
-     *
-     */
-    void remove(SegmentationAdapterPtr segmentation);
-
-    /** \brief Update the representations of the given channel.
-     * \param[in] channel channel adapter raw pointer.
-     * \param[in] render true to force a render after updating, false otherwise.
-     *
-     */
-    bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
-
-    /** \brief Update the representations of the given segmentation.
-     * \param[in] channel segmentation adapter raw pointer.
-     * \param[in] render true to force a render after updating, false otherwise.
-     *
-     */
-    bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
-
     /** \brief Removes all view items from the registered views
      *
      */
     void removeAllViewItems();
 
-    /** \brief Implements SelectableView::updateRepresentations(ChannelAdapterList).
-     *
-     */
     virtual void updateRepresentations(ChannelAdapterList list){}
 
-    /** \brief Implements SelectableView::updateRepresentations(SegmentationAdapterList).
-     *
-     */
     virtual void updateRepresentations(SegmentationAdapterList list){}
 
-    /** \brief Implements SelectableView::updateRepresentations().
-     *
-     */
     virtual void updateRepresentations(){}
 
   public slots:
@@ -240,10 +171,6 @@ namespace ESPINA
      *
      */
     void setFitToSlices(bool enabled);
-
-  private:
-    PipelineSources m_channelSources;
-    PipelineSources m_segmentationSources;
 
     //---------------------------------------------------------------------------
     /*************************** Selection API *********************************/
@@ -418,6 +345,7 @@ private:
   QAction*  m_fitToSlices;
   NmVector3 m_viewResolution;
   QString   m_resolutionUnits;
+  ViewStateSPtr m_viewState;
 
     //---------------------------------------------------------------------------
     /*********************** Active Elements API *******************************/
