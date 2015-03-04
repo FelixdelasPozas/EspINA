@@ -44,14 +44,16 @@ namespace ESPINA {
       auto switch3D  = std::make_shared<BasicRepresentationSwitch>(manager3D, ViewType::VIEW_3D);
 
       manager2D->setName(QObject::tr("Counting Frame"));
-      manager2D->setIcon(QIcon(":cf-representation.svg"));
+      manager2D->setIcon(QIcon(":cf-switch2D.svg"));
 
       manager3D->setName(QObject::tr("Counting Frame"));
-      manager3D->setIcon(QIcon(":cf-representation.svg"));
+      manager3D->setIcon(QIcon(":cf-switch3D.svg"));
 
       representation.Group = "CountingFrame";
       representation.Managers << manager2D << manager3D;
       representation.Switches << switch2D << switch3D;
+      representation.Icon = QIcon(":cf-representation.svg");
+      representation.Description = "Show Counting Frames";
 
       return representation;
     }

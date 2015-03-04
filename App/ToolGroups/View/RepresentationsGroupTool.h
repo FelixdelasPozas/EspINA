@@ -33,8 +33,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit RepresentationsGroupTool(QIcon icon, QString description);
-
+    explicit RepresentationsGroupTool(const QIcon &icon, QString description);
 
     /** \brief Returns a list of QActions provided by the tool.
      *

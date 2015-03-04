@@ -1309,7 +1309,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 
   for (auto repSwitch : representation.Switches)
   {
-    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
   }
 
   m_view->addRepresentation(representation);

@@ -37,6 +37,8 @@ namespace ESPINA
     RepresentationPoolSList    Pools;
     RepresentationManagerSList Managers;
     RepresentationSwitchSList  Switches;
+    QIcon                      Icon;
+    QString                    Description;
   };
 
   using RepresentationList = QList<Representation>;

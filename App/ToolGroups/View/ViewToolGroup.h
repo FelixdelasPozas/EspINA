@@ -67,7 +67,7 @@ namespace ESPINA
      */
     void addRepresentationSwitch(RenderGroup              group,
                                  RepresentationSwitchSPtr repSwitch,
-                                 QIcon                    groupIcon        = QIcon(),
+                                 const QIcon             &groupIcon        = QIcon(),
                                  const QString           &groupDescription = QString());
 
   public slots:

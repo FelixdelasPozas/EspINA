@@ -141,7 +141,7 @@ ToolSList ViewToolGroup::tools()
 //----------------------------------------------------------------------------
 void ViewToolGroup::addRepresentationSwitch(RenderGroup              group,
                                             RepresentationSwitchSPtr repSwitch,
-                                            QIcon                    groupIcon,
+                                            const QIcon             &groupIcon,
                                             const QString           &groupDescription)
 {
   if (CHANNELS_GROUP == group)

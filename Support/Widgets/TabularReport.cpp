@@ -23,6 +23,7 @@
 #include "TabularReportEntry.h"
 #include <GUI/Widgets/CheckableTableView.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Utils/xlsUtils.h>
 
 // Qt
@@ -35,6 +36,7 @@
 #include <QTableView>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
@@ -48,15 +50,20 @@ public:
 protected:
   virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
   {
-    int role = left.column()>0?Qt::DisplayRole:TypeRole+1;
     bool ok1, ok2;
+
+    int role  = left.column()>0?Qt::DisplayRole:TypeRole+1;
     double lv = left.data(role).toDouble(&ok1);
     double rv = right.data(role).toDouble(&ok2);
 
     if (ok1 && ok2)
+    {
       return lv < rv;
+    }
     else
+    {
       return left.data(role).toString() < right.data(role).toString();
+    }
   }
 };
 
@@ -392,10 +399,12 @@ void TabularReport::rowsRemoved(const QModelIndex &parent, int start, int end)
 void TabularReport::exportInformation()
 {
   QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-  QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export Raw Data"),
-                                                  QString("raw information.xls"),
-                                                  filter);
+
+  auto title      = tr("Export Raw Data");
+  auto suggestion = tr("raw information.xls");
+  auto formats    = SupportedFiles(tr("Excel Sheet"), "xls")
+                        .addFormat(tr("CSV Text File"), "csv");
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, "", ".xls", suggestion);
 
   if (fileName.isEmpty())
     return;

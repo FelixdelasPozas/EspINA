@@ -24,9 +24,47 @@
 
 // Qt
 #include <QMessageBox>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+
+//------------------------------------------------------------------------
+SupportedFiles::SupportedFiles()
+{
+
+}
+
+//------------------------------------------------------------------------
+SupportedFiles::SupportedFiles(const QString &name, const QString &extension)
+{
+  addFilter(name, extension);
+}
+
+//------------------------------------------------------------------------
+SupportedFiles &SupportedFiles::addFormat(const QString &name, const QString &extension)
+{
+  addFilter(name, extension);
+
+  return *this;
+}
+
+//------------------------------------------------------------------------
+SupportedFiles::operator QString() const
+{
+  return m_filter;
+}
+
+//------------------------------------------------------------------------
+void SupportedFiles::addFilter(const QString &name, const QString &extension)
+{
+  if (!m_filter.isEmpty())
+  {
+    m_filter += ";;";
+  }
+
+  m_filter += QString("%1 (.%2)").arg(name).arg(extension);
+}
 
 //------------------------------------------------------------------------
 QString DefaultDialogs::OpenFile(const QString& title, const QString& filters, const QString& path)
@@ -66,7 +104,7 @@ QStringList DefaultDialogs::OpenFiles(const QString& title, const QString& filte
 
 //------------------------------------------------------------------------
 QString DefaultDialogs::SaveFile(const QString& title,
-                                 const QString& filters,
+                                 const SupportedFiles& filters,
                                  const QString& path,
                                  const QString& suffix,
                                  const QString& suggestion)
@@ -84,7 +122,7 @@ QString DefaultDialogs::SaveFile(const QString& title,
 
 //------------------------------------------------------------------------
 QStringList DefaultDialogs::SaveFiles(const QString& title,
-                                      const QString& filters,
+                                      const SupportedFiles& filters,
                                       const QString& path,
                                       const QString& suffix,
                                       const QString& suggestion)
@@ -106,6 +144,17 @@ QStringList DefaultDialogs::SaveFiles(const QString& title,
   if (fileDialog.exec() == QDialog::Accepted)
   {
     fileNames = fileDialog.selectedFiles();
+
+    auto extension = fileDialog.selectedFilter();
+    extension      = extension.mid(extension.indexOf("(.")+1,4);
+
+    for (auto &fileName : fileNames)
+    {
+      if (!fileName.endsWith(extension))
+      {
+        fileName += extension;
+      }
+    }
   }
 
   return fileNames;

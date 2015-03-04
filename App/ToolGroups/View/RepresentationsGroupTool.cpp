@@ -29,7 +29,7 @@ using namespace ESPINA;
 #include <QDebug>
 
 //----------------------------------------------------------------------------
-RepresentationsGroupTool::RepresentationsGroupTool(QIcon icon, QString description)
+RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString description)
 : m_globalSwitch{new QAction(icon, description, this)}
 , m_content{new QWidgetAction(this)}
 , m_contentWidget{new QWidget()}

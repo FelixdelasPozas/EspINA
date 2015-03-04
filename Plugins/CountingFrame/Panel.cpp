@@ -30,6 +30,7 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/ExtensionUtils.h>
@@ -40,6 +41,7 @@
 #include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
@@ -689,9 +691,10 @@ void Panel::updateSegmentations()
 //------------------------------------------------------------------------
 void Panel::saveActiveCountingFrameDescription()
 {
-  QString title    = tr("Save Counting Frame Description");
-  QString fileExt  = tr("Text File (*.txt); Excel Sheet (*.xls)");
-  QString fileName = QFileDialog::getSaveFileName(this, title, "", fileExt);
+  auto title    = tr("Save Counting Frame Description");
+  auto formats  = SupportedFiles(tr("Text File"), "txt");
+//                       .addFormat(tr("Excel Sheet"), "xls");
+  auto fileName = DefaultDialogs::SaveFile(title, formats);
 
   if (!fileName.isEmpty())
   {
