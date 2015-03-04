@@ -243,8 +243,9 @@ void TabularReport::updateRepresentation(const QModelIndex &index)
 {
   auto sItem = itemAdapter(mapToSource(index));
 
-  m_viewManager->updateSegmentationRepresentations(segmentationPtr(sItem));
-  m_viewManager->updateViews();
+  auto segmentation = segmentationPtr(sItem);
+
+  segmentation->invalidateRepresentations();
 }
 
 //------------------------------------------------------------------------

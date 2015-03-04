@@ -304,8 +304,8 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(onCountingFrameCreated(CountingFrame*)));
 
-  connect(m_model.get(), SIGNAL(segmentationsAdded(SegmentationAdapterSList)),
-          this, SLOT(onSegmentationsAdded(SegmentationAdapterSList)));
+  connect(m_model.get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
+          this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
   connect(m_viewManager.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
           this, SLOT(onChannelChanged(ChannelAdapterPtr)));
@@ -661,7 +661,6 @@ void Panel::showInfo(CountingFrame* activeCF)
     cf->setHighlighted(cf == activeCF);
   }
 
-  m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
 }
 
@@ -676,8 +675,14 @@ QModelIndex Panel::findCategoryIndex(const QString& classificationName)
 //------------------------------------------------------------------------
 void Panel::updateSegmentations()
 {
-  m_viewManager->updateSegmentationRepresentations();
-  m_viewManager->updateViews();
+  ViewItemAdapterSList segmentations;
+
+  for (auto segmentation : m_model->segmentations())
+  {
+    segmentations << segmentation;
+  }
+
+  m_model->notifyRepresentationsModified(segmentations);
 }
 
 
@@ -921,8 +926,14 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 }
 
 //------------------------------------------------------------------------
-void Panel::onSegmentationsAdded(SegmentationAdapterSList segmentations)
+void Panel::onSegmentationsAdded(ViewItemAdapterSList items)
 {
+  SegmentationAdapterSList segmentations;
+  for (auto item : items)
+  {
+    segmentations << std::dynamic_pointer_cast<SegmentationAdapter>(item);
+  }
+
   if (!m_manager->countingFrames().isEmpty())
   {
     applyCountingFrames(segmentations);

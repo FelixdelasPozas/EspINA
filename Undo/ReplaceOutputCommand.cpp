@@ -54,5 +54,7 @@ void ReplaceOutputCommand::swapInputs()
   m_segmentation->changeOutput(m_input);
 
   m_input = swap;
+
+  m_segmentation->invalidateRepresentations();
 }
 

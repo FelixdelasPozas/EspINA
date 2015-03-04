@@ -43,7 +43,8 @@ TimeStamp Output::s_tick = 0;
 
 //----------------------------------------------------------------------------
 Output::Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing)
-: m_filter{filter}
+: m_mutex{QMutex::Recursive}
+, m_filter{filter}
 , m_id{id}
 , m_spacing{spacing}
 , m_timeStamp{s_tick++}
@@ -289,6 +290,8 @@ void Output::update(const Data::Type &type)
 
   if (!requestedData->isValid())
   {
+    QMutexLocker lock(&m_mutex);
+
     BoundsList editedRegions = requestedData->editedRegions();
 
     if (requestedData->fetchData())

@@ -347,8 +347,8 @@ namespace ESPINA
           SegmentationAdapterList selection;
           selection << m_item;
 
+          m_item->invalidateRepresentations();
           m_vm->selection()->set(selection);
-          m_vm->updateSegmentationRepresentations(m_item);
           m_vm->updateViews();
         }
       }
@@ -531,7 +531,7 @@ namespace ESPINA
       selection << m_item;
 
       m_vm->selection()->set(selection);
-      m_vm->updateSegmentationRepresentations(m_item);
+      m_item->invalidateRepresentations();
     }
 
     m_vm->updateViews();

@@ -129,8 +129,8 @@ void AppositionSurfacePlugin::init(ModelAdapterSPtr model,
   m_toolGroup = new AppositionSurfaceToolGroup{m_model, m_undoStack, m_factory, m_viewManager, this};
 
   // for automatic computation of SAS
-  connect(m_model.get(), SIGNAL(segmentationsAdded(SegmentationAdapterSList)),
-          this, SLOT(segmentationsAdded(SegmentationAdapterSList)));
+  connect(m_model.get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
+          this,          SLOT(segmentationsAdded(ViewItemAdapterSList)));
 }
 
 //-----------------------------------------------------------------------------
@@ -299,11 +299,12 @@ bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation
 {
   bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
   bool hasRequiredData = segmentation->output()->hasData(VolumetricData<itkVolumeType>::TYPE);
+
   return (isValidCategory && hasRequiredData);
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmentations)
+void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentations)
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup("Apposition Surface");
@@ -311,28 +312,28 @@ void AppositionSurfacePlugin::segmentationsAdded(SegmentationAdapterSList segmen
     return;
 
   SegmentationAdapterList validSegmentations;
-  for(auto segmentation: segmentations)
+  for(auto item : segmentations)
   {
-    if(isValidSynapse(segmentation.get()) && segmentation->filter()->hasFinished())
+    auto segmentation = segmentationPtr(item.get());
+
+    if(isValidSynapse(segmentation) && segmentation->filter()->hasFinished())
     {
       bool valid = true;
       // must check if the segmentation already has a SAS, as this call
       // could be the result of a redo() in a UndoCommand
-      for(auto item: m_model->relatedItems(segmentation.get(), RELATION_OUT))
-        if (item->type() == ItemAdapter::Type::SEGMENTATION)
+      for(auto relatedItem : m_model->relatedItems(segmentation, RELATION_OUT))
+      {
+        if (isSegmentation(relatedItem.get()) && isSAS(relatedItem))
         {
-          SegmentationAdapterSPtr segmentation = std::dynamic_pointer_cast<SegmentationAdapter>(item);
-          if (segmentation->category()->classificationName().startsWith("SAS/") || segmentation->category()->classificationName().compare("SAS") == 0)
-          {
-            valid = false;
-            break;
-          }
+          valid = false;
+          break;
         }
+      }
 
-      if (!valid)
-        continue;
-      else
-        validSegmentations << segmentation.get();
+      if (valid)
+      {
+        validSegmentations << segmentation;
+      }
     }
   }
 
@@ -392,7 +393,7 @@ void AppositionSurfacePlugin::finishedTask()
   int index = 0;
 
   RelationList createdRelations;
-  SegmentationAdapterList segmentationsToUpdate;
+  ViewItemAdapterSList segmentationsToUpdate;
 
   for(auto filter: m_finishedTasks.keys())
   {
@@ -419,7 +420,9 @@ void AppositionSurfacePlugin::finishedTask()
       createdSegmentations.push_back(list);
     }
     else
+    {
       createdSegmentations[index] << segmentation;
+    }
 
     Relation relation;
     relation.ancestor = m_finishedTasks[filter].segmentation;
@@ -428,7 +431,7 @@ void AppositionSurfacePlugin::finishedTask()
 
     createdRelations << relation;
 
-    segmentationsToUpdate << segmentation.get();
+    segmentationsToUpdate << segmentation;
   }
 
   // add segmentations by their related sample list
@@ -442,22 +445,29 @@ void AppositionSurfacePlugin::finishedTask()
 
   m_undoStack->endMacro();
 
-  m_viewManager->updateSegmentationRepresentations(segmentationsToUpdate);
-  m_viewManager->updateViews();
+  m_model->notifyRepresentationsModified(segmentationsToUpdate);
 
   m_finishedTasks.clear();
 
   if(m_delayedAnalysis)
   {
     QApplication::restoreOverrideCursor();
-    SASAnalysisDialog *analysis = new SASAnalysisDialog(m_analysisSynapses, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
-    analysis->exec();
-
-    delete analysis;
+    SASAnalysisDialog dialog(m_analysisSynapses, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
+    dialog.exec();
 
     m_delayedAnalysis = false;
     m_analysisSynapses.clear();
   }
+}
+
+//-----------------------------------------------------------------------------
+bool AppositionSurfacePlugin::isSAS(ItemAdapterSPtr item) const
+{
+  auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(item);
+
+  auto category = sas->category()->classificationName();
+
+  return category.startsWith("SAS/") || category.compare("SAS") == 0;
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)

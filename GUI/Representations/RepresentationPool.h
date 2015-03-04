@@ -23,7 +23,7 @@
 #include <Core/Utils/NmVector3.h>
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"
-#include "PipelineSources.h"
+#include "PipelineSourcesFilter.h"
 
 #include <memory>
 
@@ -60,7 +60,7 @@ namespace ESPINA
   public:
     virtual ~RepresentationPool();
 
-    void setPipelineSources(PipelineSources *sources);
+    void setPipelineSources(PipelineSourcesFilter *sources);
 
     void setSettings(SettingsSPtr settings);
 
@@ -95,9 +95,9 @@ namespace ESPINA
     /** \brief Returns all valid actors for the given time
      *
      */
-    RepresentationPipeline::Actors actors(TimeStamp time);
+    RepresentationPipeline::Actors actors(TimeStamp t);
 
-    void invalidatePreviousActors(TimeStamp time);
+    void invalidatePreviousActors(TimeStamp t);
 
     TimeStamp lastUpdateTimeStamp() const;
 
@@ -120,12 +120,12 @@ namespace ESPINA
      *   This signal is only emitted whenever two consecutive time stamps generate
      *   different actors
      */
-    void actorsReady(TimeStamp time);
+    void actorsReady(TimeStamp t);
 
     /** \brief Some managers may be interested in pool updates
      *
      */
-    void poolUpdated(TimeStamp time);
+    void poolUpdated(TimeStamp t);
 
     void actorsInvalidated();
 
@@ -134,7 +134,7 @@ namespace ESPINA
 
     ViewItemAdapterList sources() const;
 
-    bool notHasBeenProcessed(const TimeStamp time) const;
+    bool notHasBeenProcessed(const TimeStamp t) const;
 
     /** \brief Returns
      */
@@ -145,11 +145,13 @@ namespace ESPINA
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
   private slots:
-    void onSourcesAdded(ViewItemAdapterList sources);
+    void onSourcesAdded(ViewItemAdapterList sources, TimeStamp t);
 
-    void onSourcesRemoved(ViewItemAdapterList sources);
+    void onSourcesRemoved(ViewItemAdapterList sources, TimeStamp t);
 
-    void onSourcesUpdated(ViewItemAdapterList sources);
+    void onRepresentationModified(ViewItemAdapterList sources, TimeStamp t);
+
+    void onTimeStampUpdated(TimeStamp t);
 
     void onRepresentationsInvalidated(ViewItemAdapterPtr item);
 
@@ -158,7 +160,7 @@ namespace ESPINA
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) = 0;
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) = 0;
 
     virtual void onSettingsChanged(const RepresentationState &settings) = 0;
 
@@ -166,7 +168,7 @@ namespace ESPINA
 
     virtual void invalidateImplementation() = 0;
 
-    virtual void invalidateRepresentations(ViewItemAdapterList items) = 0;
+    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t) = 0;
 
     void invalidateActors();
 
@@ -175,7 +177,7 @@ namespace ESPINA
     void processPendingSources();
 
   private:
-    PipelineSources *m_sources;
+    PipelineSourcesFilter *m_sources;
 
     SettingsSPtr        m_settings;
     RepresentationState m_poolState;

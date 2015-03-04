@@ -250,25 +250,18 @@ void ChannelInspector::changeSpacing()
   m_channel->output()->setSpacing(spacing);
 
   auto relatedItems = m_model->relatedItems(m_channel, RelationType::RELATION_OUT);
-  for(auto item: relatedItems)
+  for(auto item : relatedItems)
   {
-    switch(item->type())
+    if (isSegmentation(item.get()))
     {
-      case ItemAdapter::Type::SEGMENTATION:
-        {
-          auto segAdapter = std::dynamic_pointer_cast<ViewItemAdapter>(item);
-          Q_ASSERT(segAdapter);
-          segAdapter->output()->setSpacing(spacing);
-        }
-        break;
-      default:
-        continue;
-        break;
+      auto segmentation = segmentationPtr(item.get());
+
+      segmentation->output()->setSpacing(spacing);
     }
   }
 
   // TODO m_view->updateSceneBounds();
-  m_view->updateRepresentations();
+  //m_view->updateRepresentations();
   m_view->resetCamera();
   m_spacingModified = false;
   applyModifications();
@@ -402,10 +395,7 @@ void ChannelInspector::applyModifications()
   if (!this->isVisible())
     return;
 
-  ChannelAdapterList channels;
-  channels << m_channel;
-  m_view->updateRepresentations(channels);
-  m_view->updateView();
+  m_channel->invalidateRepresentations();
 }
 
 //------------------------------------------------------------------------
@@ -440,18 +430,11 @@ void ChannelInspector::rejectedChanges()
     auto relatedItems = m_model->relatedItems(m_channel, RelationType::RELATION_OUT);
     for(auto item: relatedItems)
     {
-      switch(item->type())
+      if (isSegmentation(item.get()))
       {
-        case ItemAdapter::Type::SEGMENTATION:
-          {
-            auto segAdapter = std::dynamic_pointer_cast<ViewItemAdapter>(item);
-            Q_ASSERT(segAdapter);
-            segAdapter->output()->setSpacing(m_spacing);
-          }
-          break;
-        default:
-          continue;
-          break;
+        auto segmentation = segmentationPtr(item.get());
+
+        segmentation->output()->setSpacing(m_spacing);
       }
     }
   }
@@ -489,7 +472,7 @@ void ChannelInspector::rejectedChanges()
   if (modified)
   {
     //TODO m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
-    m_view->updateRepresentations();
+    //m_view->updateRepresentations();
   }
 }
 
@@ -497,6 +480,7 @@ void ChannelInspector::rejectedChanges()
 void ChannelInspector::closeEvent(QCloseEvent *event)
 {
   rejectedChanges();
+
   QDialog::closeEvent(event);
 }
 
@@ -504,9 +488,13 @@ void ChannelInspector::closeEvent(QCloseEvent *event)
 void ChannelInspector::radioEdgesChanged(bool value)
 {
   if (sender() == radioStackEdges)
+  {
     radioImageEdges->setChecked(!value);
+  }
   else
+  {
     radioStackEdges->setChecked(!value);
+  }
 
   colorLabel->setEnabled(radioImageEdges->isChecked());
   colorBox->setEnabled(radioImageEdges->isChecked());
@@ -542,6 +530,7 @@ void ChannelInspector::changeEdgeDetectorBgColor(int value)
   QPixmap bg(image.size());
   bg.fill(color);
   image.setMask(image.createMaskFromColor(Qt::black, Qt::MaskInColor));
+
   QPainter painter(&bg);
   painter.drawPixmap(0,0, image);
 

@@ -46,7 +46,7 @@ namespace ESPINA
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) override;
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
 
     virtual void onSettingsChanged(const RepresentationState &settings) override;
 
@@ -54,7 +54,7 @@ namespace ESPINA
 
     virtual void invalidateImplementation() override;
 
-    virtual void invalidateRepresentations(ViewItemAdapterList items) override;
+    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t) override;
 
     void updatePriorities();
 
@@ -67,7 +67,7 @@ namespace ESPINA
     /** \brief Configures and return a list of invalid updaters ready to be executed
      *
      */
-    RepresentationUpdaterSList updateBuffer(const NmVector3 &point, int shift, const TimeStamp time);
+    RepresentationUpdaterSList updateBuffer(const NmVector3 &point, int shift, const TimeStamp t);
 
     void updatePipelines(RepresentationUpdaterSList updaters);
 

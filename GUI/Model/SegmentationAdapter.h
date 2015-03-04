@@ -235,5 +235,7 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT isSegmentation(ItemAdapterPtr item);
+
+  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSList segmentations);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

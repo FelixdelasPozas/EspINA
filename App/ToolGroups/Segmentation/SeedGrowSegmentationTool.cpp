@@ -367,8 +367,8 @@ void SeedGrowSegmentationTool::createSegmentation()
     m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
     m_undoStack->endMacro();
 
-    m_viewManager->updateSegmentationRepresentations(segmentation.get());
-    m_viewManager->updateViews();
+//     m_viewManager->updateSegmentationRepresentations(segmentation.get());
+//     m_viewManager->updateViews();
 
     auto sgsFilter = m_executingFilters[filter];
     if(sgsFilter->isTouchingROI())

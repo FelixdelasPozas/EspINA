@@ -15,7 +15,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
-  Representations/PipelineSources.h
+  Representations/PipelineSourcesFilter.h
   Representations/RepresentationManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
@@ -104,7 +104,7 @@ set (GUI_SOURCES
   ModelFactory.cpp
   Representations/BufferedRepresentationPool.cpp
   Representations/ChannelPipeline.cpp
-  Representations/PipelineSources.cpp
+  Representations/PipelineSourcesFilter.cpp
   Representations/RepresentationManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp

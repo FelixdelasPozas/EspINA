@@ -107,6 +107,11 @@ namespace ESPINA
     /** \brief ModelAdapter class constructor.
      *
      */
+    explicit ModelAdapter();
+
+    /** \brief ModelAdapter class constructor.
+     *
+     */
     explicit ModelAdapter(TimerSPtr timer);
 
     /** \brief ModelAdapter class destructor.
@@ -536,15 +541,19 @@ namespace ESPINA
     void samplesAboutToBeRemoved(SampleAdapterSList samples);
 
     void channelsAdded  (ViewItemAdapterSList channesl, TimeStamp t);
-    void channelsAdded  (ChannelAdapterSList  channesl, TimeStamp t);
-    void channelsRemoved(ChannelAdapterSList  channels, TimeStamp t);
-    void channelsAboutToBeRemoved(ChannelAdapterSList channels, TimeStamp t);
+    void channelsRemoved(ViewItemAdapterSList  channels, TimeStamp t);
+    void channelsAboutToBeRemoved(ViewItemAdapterSList channels, TimeStamp t);
 
-    void segmentationsAdded  (SegmentationAdapterSList segmentations, TimeStamp t);
-    void segmentationsRemoved(SegmentationAdapterSList segmentations, TimeStamp t);
-    void segmentationsAboutToBeRemoved(SegmentationAdapterSList segmentations, TimeStamp t);
+    void segmentationsAdded  (ViewItemAdapterSList segmentations, TimeStamp t);
+    void segmentationsRemoved(ViewItemAdapterSList segmentations, TimeStamp t);
+    void segmentationsAboutToBeRemoved(ViewItemAdapterSList segmentations, TimeStamp t);
 
+    void viewItemsAdded(ViewItemAdapterSList channesl, TimeStamp t);
+    void viewItemsRemoved(ViewItemAdapterSList channesl, TimeStamp t);
+    void viewItemsAboutToBeRemoved(ViewItemAdapterSList channesl, TimeStamp t);
     void representationsModified(ViewItemAdapterSList items, TimeStamp t);
+
+    void aboutToBeReset(TimeStamp t);
 
   private slots:
     void resetInternalData();
@@ -561,15 +570,10 @@ namespace ESPINA
                         ItemCommandsList       &channelQueues,
                         ItemCommandsList       &segmentationQueues);
 
+    ViewItemAdapterSList queuedViewItems(const ItemCommandsList &queue) const;
+
     SampleAdapterSList queuedSamples(const ItemCommandsList &queue) const;
 
-    ChannelAdapterSList queuedChannels(const ItemCommandsList &queue) const;
-
-    SegmentationAdapterSList queuedSegmentations(const ItemCommandsList &queue) const;
-
-    /** \brief Updates batch queues for both ancestor and successor
-     *
-     */
     void queueAddRelationCommand(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const QString &relation);
 
     void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
@@ -586,15 +590,15 @@ namespace ESPINA
 
     void executeRemoveCommands();
 
-    void executeAddQueues(QModelIndex parent,
-                          ItemCommandsList &queueList);
-
+    void executeAddQueues(QModelIndex parent, ItemCommandsList &queueList);
 
     void executeUpdateQueues(ItemCommandsList &queueList);
 
-    void executeRemoveQueues(QModelIndex parent,
-                             ItemCommandsList &queueList);
+    void executeRemoveQueues(QModelIndex parent, ItemCommandsList &queueList);
 
+    /** \brief Group queue commands by consecutive indices
+     *
+     */
     ConsecutiveQueuesList groupConsecutiveQueues(ItemCommandsList &queueList);
 
     /** \brief Creates a command to add sample to the model

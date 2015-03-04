@@ -31,7 +31,7 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
 #include "ViewState.h"
-#include <GUI/Representations/PipelineSources.h>
+#include <GUI/Representations/PipelineSourcesFilter.h>
 
 // Qt
 #include <QWidget>
@@ -78,7 +78,7 @@ namespace ESPINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setChannelSources(PipelineSources *channels);
+    void setChannelSources(PipelineSourcesFilter *channels);
 
     /** \brief Adds a representation manager to the view
      *
@@ -238,10 +238,6 @@ namespace ESPINA
      */
     virtual struct CameraState cameraState() = 0;
 
-    virtual void updateRepresentations(SegmentationAdapterList list);
-    virtual void updateRepresentations(ChannelAdapterList list);
-    virtual void updateRepresentations();
-
     /** \brief Helper method to create a QPushButton.
      * \param[in] icon of the button.
      * \param[in] tooltip of the button.
@@ -337,7 +333,7 @@ namespace ESPINA
 
     ContextualMenuSPtr m_contextMenu;
 
-    PipelineSources           *m_channelSources;
+    PipelineSourcesFilter     *m_channelSources;
     RepresentationManagerSList m_managers;
     QList<EspinaWidgetSPtr>    m_widgets;
 

@@ -75,22 +75,22 @@ namespace ESPINA
     SelectionSPtr currentSelection() const
     { return m_selection; }
 
-    /** \brief Updates all the representations of the view.
-     *
-     */
-    virtual void updateRepresentations() = 0;
-
-    /** \brief Updates the representations of the channels in the given list.
-     * \param[in] list, list of channel adapter raw pointers.
-     *
-     */
-    virtual void updateRepresentations(ChannelAdapterList list) = 0;
-
-    /** \brief Updates the representations of the segmentations in the given list.
-     * \param[in] list, list of segmentation adapter raw pointers.
-     *
-     */
-    virtual void updateRepresentations(SegmentationAdapterList list) = 0;
+//     /** \brief Updates all the representations of the view.
+//      *
+//      */
+//     virtual void updateRepresentations() = 0;
+//
+//     /** \brief Updates the representations of the channels in the given list.
+//      * \param[in] list, list of channel adapter raw pointers.
+//      *
+//      */
+//     virtual void updateRepresentations(ChannelAdapterList list) = 0;
+//
+//     /** \brief Updates the representations of the segmentations in the given list.
+//      * \param[in] list, list of segmentation adapter raw pointers.
+//      *
+//      */
+//     virtual void updateRepresentations(SegmentationAdapterList list) = 0;
 
   protected:
     /** \brief Updates the view when the selection changes.

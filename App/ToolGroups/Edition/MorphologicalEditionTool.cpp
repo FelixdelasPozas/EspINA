@@ -542,8 +542,6 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
         m_undoStack->beginMacro(context.Operation);
         m_undoStack->push(new RemoveSegmentations(context.Segmentation, m_model));
         m_undoStack->endMacro();
-
-        m_viewManager->updateViews();
       }
     }
     else
@@ -553,9 +551,6 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
       m_undoStack->beginMacro(context.Operation);
       m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
       m_undoStack->endMacro();
-
-      m_viewManager->updateSegmentationRepresentations(context.Segmentation);
-      m_viewManager->updateViews();
     }
   }
 
@@ -576,9 +571,6 @@ void MorphologicalEditionTool::onFillHolesFinished()
     m_undoStack->beginMacro(context.Operation);
     m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
     m_undoStack->endMacro();
-
-    m_viewManager->updateSegmentationRepresentations(context.Segmentation);
-    m_viewManager->updateViews();
   }
 
   m_executingFillHolesTasks.remove(filter);

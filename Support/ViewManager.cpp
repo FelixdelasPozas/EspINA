@@ -254,7 +254,9 @@ void ViewManager::unsetEventHandler(EventHandlerSPtr eventHandler)
 void ViewManager::updateViews()
 {
   for(auto view: m_renderViews)
+  {
     view->updateView();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -312,81 +314,6 @@ void ViewManager::resetViewCameras()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::updateSegmentationRepresentations(SegmentationAdapterPtr segmentation)
-{
-  QStack<SegmentationAdapterPtr> stack;
-  SegmentationAdapterList segmentations;
-
-  stack.push_front(segmentation);
-  segmentations << segmentation;
-
-//   while (!stack.isEmpty())
-//   {
-//     SegmentationPtr seg = stack.pop();
-//     for(auto item : seg->relatedItems(ESPINA::RELATION_OUT))
-//     {
-//       if (item->type() == SEGMENTATION)
-//       {
-//         SegmentationPtr relatedSeg = segmentationPtr(item.get());
-//         if (relatedSeg->isInputSegmentationDependent() && !segmentations.contains(relatedSeg))
-//         {
-//           stack.push_front(relatedSeg);
-//           segmentations << relatedSeg;
-//         }
-//       }
-//     }
-//   }
-
-  for(auto view: m_espinaViews)
-  {
-    view->updateRepresentations(segmentations);
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::updateSegmentationRepresentations(SegmentationAdapterList list)
-{
-  QStack<SegmentationAdapterPtr> itemsStack;
-  SegmentationAdapterList segList;
-
-  for(auto seg: list)
-  {
-    if (segList.contains(seg))
-      continue;
-
-    itemsStack.push_front(seg);
-    segList << seg;
-
-//     while (!itemsStack.isEmpty())
-//     {
-//       SegmentationPtr segmentation = itemsStack.pop();
-//       foreach(ModelItemSPtr item, segmentation->relatedItems(ESPINA::RELATION_OUT))
-//         if (item->type() == SEGMENTATION)
-//         {
-//           SegmentationPtr relatedSeg = segmentationPtr(item.get());
-//           if (relatedSeg->isInputSegmentationDependent() && !segList.contains(relatedSeg))
-//           {
-//             itemsStack.push_front(relatedSeg);
-//             segList << relatedSeg;
-//           }
-//         }
-//     }
-  }
-
-  for(auto view: m_espinaViews)
-  {
-    view->updateRepresentations(segList);
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::updateChannelRepresentations(ChannelAdapterList list)
-{
-  for(auto view: m_espinaViews)
-    view->updateRepresentations(list);
-}
-
-//----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
   for(auto view: sliceViews())
@@ -419,8 +346,6 @@ void ViewManager::removeSliceSelectors(SliceSelectorSPtr widget)
 void ViewManager::setColorEngine(ColorEngineSPtr engine)
 {
   m_colorEngine = engine;
-
-  updateSegmentationRepresentations();
 }
 
 //----------------------------------------------------------------------------

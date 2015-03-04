@@ -93,8 +93,8 @@ ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
           this, SLOT(channelSelected()));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnChannel()));
-  connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-          m_viewManager.get(), SLOT(updateChannelRepresentations()));
+//   connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
+//           m_viewManager.get(), SLOT(updateChannelRepresentations()));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)),
           this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)),
@@ -492,22 +492,24 @@ void ChannelExplorer::activateChannel()
 void ChannelExplorer::dialogClosed(QObject *object)
 {
   auto dialog = static_cast<ChannelInspector *>(object);
-	auto channel = m_informationDialogs.key(dialog);
-	Q_ASSERT(channel);
+  auto channel = m_informationDialogs.key(dialog);
+  Q_ASSERT(channel);
   channel->output()->update();
 
   ChannelAdapterList channels;
   channels << channel;
 
-  m_viewManager->updateChannelRepresentations(channels);
+  //TODO: update representations m_viewManager->updateChannelRepresentations(channels);
 
   SegmentationAdapterList segmentations;
   for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
   {
     segmentations << segmentation.get();
   }
-  m_viewManager->updateSegmentationRepresentations(segmentations);
-  m_viewManager->updateViews();
+
+  //TODO: update representations
+  //m_viewManager->updateSegmentationRepresentations(segmentations);
+  //m_viewManager->updateViews();
 
   m_informationDialogs.remove(channel);
 }
@@ -521,7 +523,8 @@ void ChannelExplorer::inspectorChangedSpacing()
 //------------------------------------------------------------------------
 void ChannelExplorer::channelsDragged(ChannelAdapterList channels, SampleAdapterPtr sample)
 {
-  auto smartSample  = m_model->smartPointer(sample);
+  auto smartSample = m_model->smartPointer(sample);
+
   for (auto channel : channels)
   {
     auto prevSample   = QueryAdapter::sample(channel);
@@ -540,15 +543,10 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
   for(auto index : m_gui->view->selectionModel()->selectedIndexes())
   {
     auto item = itemAdapter(m_sort->mapToSource(index));
-    switch (item->type())
+
+    if (isChannel(item))
     {
-      case ItemAdapter::Type::CHANNEL:
-        channels << channelPtr(item);
-        break;
-      case ItemAdapter::Type::SAMPLE:
-      default:
-        return;
-        break;
+      channels << channelPtr(item);
     }
   }
 
@@ -557,7 +555,7 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   QMenu contextMenu;
 
-  QAction *setActive = contextMenu.addAction(tr("Set as the active channel"));
+  auto setActive = contextMenu.addAction(tr("Set as the active channel"));
   setActive->setCheckable(true);
   setActive->setChecked(channels.first() == m_viewManager->activeChannel());
   connect(setActive, SIGNAL(triggered(bool)),
@@ -565,7 +563,7 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   contextMenu.addSeparator();
 
-  QAction *properties = contextMenu.addAction(tr("Channel properties..."));
+  auto properties = contextMenu.addAction(tr("Channel properties..."));
   connect(properties, SIGNAL(triggered(bool)),
           this,       SLOT(showInformation()));
 

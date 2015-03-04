@@ -556,8 +556,8 @@ void View2D::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
-  m_repManagerMenu = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
-  m_repManagerMenu->setStyleSheet("QPushButton::menu-indicator {image: "";}");
+//   m_repManagerMenu = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
+//   m_repManagerMenu->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
   connect(m_spinBox,   SIGNAL(valueChanged(double)),
           this,        SLOT(spinValueChanged(double)));
@@ -569,7 +569,7 @@ void View2D::setupUI()
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
-  m_controlLayout->addWidget(m_repManagerMenu);
+//   m_controlLayout->addWidget(m_repManagerMenu);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
   m_controlLayout->addLayout(m_toLayout);

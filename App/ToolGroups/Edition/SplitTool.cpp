@@ -240,8 +240,8 @@ namespace ESPINA
         auto sample = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
         auto category = m_executingTasks.value(filter).segmentation->category();
 
+        SegmentationAdapterList  segmentations;
         SegmentationAdapterSList segmentationsList;
-        SegmentationAdapterList segmentations;
 
         for(auto i: {0, 1})
         {
@@ -252,15 +252,14 @@ namespace ESPINA
           segmentations << segmentation.get();
         }
 
+        m_viewManager->selection()->set(segmentations);
+
         m_undoStack->beginMacro("Split Segmentation");
         m_undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_model));
         m_undoStack->push(new AddSegmentations(segmentationsList, sample, m_model));
         m_undoStack->endMacro();
 
         initTool(false);
-        m_viewManager->updateSegmentationRepresentations(segmentations);
-        m_viewManager->selection()->set(segmentations);
-        m_viewManager->updateViews();
       }
       else
       {

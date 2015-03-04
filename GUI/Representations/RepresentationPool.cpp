@@ -55,28 +55,32 @@ RepresentationPool::~RepresentationPool()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setPipelineSources(PipelineSources *sources)
+void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
 {
   if (m_sources)
   {
-    disconnect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
-               this,      SLOT(onSourcesAdded(ViewItemAdapterList)));
-    disconnect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
-               this,      SLOT(onSourcesRemoved(ViewItemAdapterList)));
-    disconnect(m_sources, SIGNAL(sourcesUpdated(ViewItemAdapterList)),
-               this,      SLOT(onSourcesUpdated(ViewItemAdapterList)));
+    disconnect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
+               this,      SLOT(onSourcesAdded(ViewItemAdapterList,TimeStamp)));
+    disconnect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
+               this,      SLOT(onSourcesRemoved(ViewItemAdapterList, TimeStamp)));
+    disconnect(m_sources, SIGNAL(representationsModified(ViewItemAdapterList,TimeStamp)),
+               this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
+    disconnect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
+               this,      SLOT(onTimeStampUpdated(TimeStamp)));
   }
 
   m_sources = sources;
 
   if (m_sources)
   {
-    connect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
-            this,      SLOT(onSourcesAdded(ViewItemAdapterList)));
-    connect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
-            this,      SLOT(onSourcesRemoved(ViewItemAdapterList)));
-    connect(m_sources, SIGNAL(sourcesUpdated(ViewItemAdapterList)),
-            this,      SLOT(onSourcesUpdated(ViewItemAdapterList)));
+    connect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList, TimeStamp)),
+            this,      SLOT(onSourcesAdded(ViewItemAdapterList, TimeStamp)));
+    connect(m_sources, SIGNAL(sourcesRemoved(ViewItemAdapterList, TimeStamp)),
+            this,      SLOT(onSourcesRemoved(ViewItemAdapterList, TimeStamp)));
+    connect(m_sources, SIGNAL(representationsModified(ViewItemAdapterList,TimeStamp)),
+            this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
+    connect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
+            this,      SLOT(onTimeStampUpdated(TimeStamp)));
   }
 }
 
@@ -139,7 +143,7 @@ bool RepresentationPool::hasSources() const
 }
 
 //-----------------------------------------------------------------------------
-RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp time)
+RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t)
 {
   int  i     = 1;
   bool found = false;
@@ -152,7 +156,7 @@ RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp time)
   {
     auto nextTime = m_validActorsTimes[i];
 
-    found = nextTime > time;
+    found = nextTime > t;
 
     if (!found)
     {
@@ -166,7 +170,7 @@ RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp time)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::invalidatePreviousActors(TimeStamp time)
+void RepresentationPool::invalidatePreviousActors(TimeStamp t)
 {
   int  i     = 1;
   bool found = false;
@@ -180,7 +184,7 @@ void RepresentationPool::invalidatePreviousActors(TimeStamp time)
   {
     auto nextTime = m_validActorsTimes[i];
 
-    found = nextTime > time;
+    found = nextTime > t;
 
     if (!found)
     {
@@ -199,8 +203,8 @@ void RepresentationPool::invalidatePreviousActors(TimeStamp time)
     --i;
   }
 
-  m_actors[time]        = validActors;
-  m_validActorsTimes[0] = time;
+  m_actors[t]           = validActors;
+  m_validActorsTimes[0] = t;
 }
 
 
@@ -248,32 +252,32 @@ ViewItemAdapterList RepresentationPool::sources() const
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationPool::notHasBeenProcessed(const TimeStamp time) const
+bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 {
-  return time > m_lastUpdateTimeStamp;
+  return t > m_lastUpdateTimeStamp;
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors)
+void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Actors actors)
 {
-  if (notHasBeenProcessed(time))
+  if (notHasBeenProcessed(t))
   {
-    m_lastUpdateTimeStamp = time;
+    onTimeStampUpdated(t);
 
     if (actorsChanged())
     {
-      m_actors[time] = actors;
-      m_validActorsTimes << time;
+      m_actors[t] = actors;
+      m_validActorsTimes << t;
 
-      emit actorsReady(time);
+      emit actorsReady(t);
     }
 
-    emit poolUpdated(time);
+    emit poolUpdated(t);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources)
+void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources, TimeStamp t)
 {
   m_sourcesCount += sources.size();
 
@@ -285,12 +289,12 @@ void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources)
 
     invalidateActors();
 
-    invalidateRepresentations(sources);
+    invalidateRepresentations(sources, t);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources)
+void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp t)
 {
   bool invalidate = false;
 
@@ -311,7 +315,7 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources)
   {
     invalidateActors();
 
-    invalidateRepresentations(ViewItemAdapterList());
+    invalidateRepresentations(ViewItemAdapterList(), t);
   }
 
   m_sourcesCount -= sources.size();
@@ -320,11 +324,17 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::onSourcesUpdated(ViewItemAdapterList sources)
+void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, TimeStamp t)
 {
   invalidateActors();
 
-  invalidateRepresentations(sources);
+  invalidateRepresentations(sources, t);
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::onTimeStampUpdated(TimeStamp t)
+{
+  m_lastUpdateTimeStamp = t;
 }
 
 //-----------------------------------------------------------------------------
@@ -334,7 +344,7 @@ void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterPtr item)
 
   sources << item;
 
-  onSourcesUpdated(sources);
+  onRepresentationModified(sources, m_lastUpdateTimeStamp);
 }
 
 //-----------------------------------------------------------------------------

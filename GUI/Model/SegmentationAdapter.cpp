@@ -313,3 +313,16 @@ bool ESPINA::isSegmentation(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::SEGMENTATION == item->type();
 }
+
+//------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemList(SegmentationAdapterSList segmentations)
+{
+  ViewItemAdapterSList result;
+
+  for (auto segmentation : segmentations)
+  {
+    result << segmentation;
+  }
+
+  return result;
+}

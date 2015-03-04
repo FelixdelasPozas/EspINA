@@ -121,11 +121,11 @@ namespace ESPINA
   private:
     ModelAdapterSPtr m_model;
     ViewManagerSPtr  m_viewManager;
+    ViewStateSPtr    m_viewState;
 
-    PipelineSources m_channelSources;
-    PipelineSources m_segmentationSources;
+    PipelineSourcesFilter m_channelSources;
+    PipelineSourcesFilter m_segmentationSources;
 
-    ViewStateSPtr              m_viewState;
     RepresentationPoolSList    m_channelPools;
     RepresentationPoolSList    m_segmentationPools;
     RepresentationPoolSList    m_autonomousPools;

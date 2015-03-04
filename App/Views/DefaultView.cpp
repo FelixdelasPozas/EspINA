@@ -51,8 +51,8 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
                          QUndoStack          *undoStack,
                          QMainWindow         *parent)
 : m_model(model)
-, m_viewState{new ViewState{m_model->timer()}}
 , m_viewManager(viewManager)
+, m_viewState{new ViewState{m_model->timer()}}
 , m_channelSources(m_model, ItemAdapter::Type::CHANNEL)
 , m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION)
 , m_showProcessing(false)
@@ -109,15 +109,9 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 DefaultView::~DefaultView()
 {
   deleteView(m_viewXY);
-  m_viewManager->unregisterView(m_viewXY);
-  m_viewManager->unregisterView(m_viewXZ);
-  m_viewManager->unregisterView(m_viewYZ);
-  m_viewManager->unregisterView(m_view3D);
-
-  delete m_viewXY;
-  delete m_viewXZ;
-  delete m_viewYZ;
-  delete m_view3D;
+  deleteView(m_viewXZ);
+  deleteView(m_viewYZ);
+  deleteView(m_view3D);
 
   if (m_renderersMenu)
   {

@@ -76,19 +76,19 @@ void BufferedRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp time)
+void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp t)
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
   m_init     = true;
 
-  if (time > m_changedTimeStamp)
+  if (t > m_changedTimeStamp)
   {
     m_hasChanged       = shift != 0;
-    m_changedTimeStamp = time;
+    m_changedTimeStamp = t;
   }
 
-  auto invalidated = updateBuffer(point, shift, time);
+  auto invalidated = updateBuffer(point, shift, t);
 
   updatePipelines(invalidated);
 }
@@ -124,11 +124,13 @@ void BufferedRepresentationPool::invalidateImplementation()
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterList items)
+void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
 {
   if(m_init)
   {
     m_hasChanged = true;
+
+    m_updateWindow.current()->setTimeStamp(t);
 
     auto updaters = m_updateWindow.all();
 
@@ -182,7 +184,7 @@ NmVector3 BufferedRepresentationPool::representationCrosshair(const NmVector3 &p
 //-----------------------------------------------------------------------------
 RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVector3 &point,
                                                                     int   shift,
-                                                                    const TimeStamp time)
+                                                                    const TimeStamp t)
 {
   RepresentationUpdaterSList invalidated;
 
@@ -201,7 +203,7 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
     invalidated << updateTask;
   }
 
-  m_updateWindow.current()->setTimeStamp(time);
+  m_updateWindow.current()->setTimeStamp(t);
   m_crosshair = point;
 
   return invalidated;

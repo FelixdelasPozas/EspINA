@@ -311,7 +311,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
     m_roiTools->setCurrentROI(currentFilterROI->clone());
   }
 
-  m_viewManager->updateSegmentationRepresentations();
+  // TODO: Update Representations
 }
 
 //----------------------------------------------------------------------------

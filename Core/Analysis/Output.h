@@ -200,6 +200,7 @@ namespace ESPINA
     static TimeStamp s_tick;
     static const int INVALID_OUTPUT_ID;
 
+    QMutex    m_mutex;
     FilterPtr m_filter;
     Id        m_id;
     NmVector3 m_spacing;

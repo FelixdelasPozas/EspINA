@@ -63,34 +63,10 @@ namespace ESPINA
      */
     virtual ~SegmentationExplorer();
 
-    /** \brief Overrides SelectableView::updateRepresentations(ChannelAdapterList).
-     *
-     */
-    virtual void updateRepresentations(ChannelAdapterList list) override
-    {}
-
-    /** \brief Overrides SelectableView::updateRepresentations(SegmentationAdapterList).
-     *
-     */
-    virtual void updateRepresentations(SegmentationAdapterList list) override
-    {}
-
-    /** \brief Overrides SelectableView::updateRepresentations().
-     *
-     */
-    virtual void updateRepresentations() override
-    {}
-
   public slots:
-    /** \brief Overrides DockWidget::reset().
-     *
-     */
     virtual void reset() override;
 
   protected:
-    /** \brief Overrides SelectableView::onSelectionSet(SelectionSPtr).
-     *
-     */
     virtual void onSelectionSet(SelectionSPtr selection);
 
     /** \brief Adds a layout to the view.
@@ -100,9 +76,6 @@ namespace ESPINA
      */
     void addLayout(const QString id, Layout *proxy);
 
-    /** \brief Overrides QObject::eventFilter(QObject*, QEvent*).
-     *
-     */
     virtual bool eventFilter(QObject *sender, QEvent* e);
 
     /** \brief Updates segmentation explorer gui depending on selected indexes.

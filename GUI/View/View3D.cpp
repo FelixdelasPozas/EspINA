@@ -195,20 +195,16 @@ void View3D::buildViewActionsButtons()
   m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
   connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
-  m_renderConfig = createButton(QString(":/espina/settings.png"), tr("Configure this view's renderers"));
-  m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
+  //m_renderConfig = createButton(QString(":/espina/settings.png"), tr("Configure this view's renderers"));
+  //m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
-  QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+  auto horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(m_zoom);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_export);
   m_controlLayout->addItem(horizontalSpacer);
-  m_controlLayout->addWidget(m_renderConfig);
-
-//   for(auto renderer : m_renderers)
-//     if (canRender(renderer, RendererType::RENDERER_VIEW3D))
-//       this->addRendererControls(renderer->clone());
+  //m_controlLayout->addWidget(m_renderConfig);
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -386,19 +382,22 @@ void View3D::setupUI()
     m_axialScrollBar->setEnabled(false);
     m_axialScrollBar->setFixedHeight(15);
     m_axialScrollBar->setToolTip("Axial scroll bar");
-    connect(m_axialScrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollBarMoved(int)));
+    connect(m_axialScrollBar, SIGNAL(valueChanged(int)),
+            this,             SLOT(scrollBarMoved(int)));
 
     m_coronalScrollBar = new QScrollBar(Qt::Vertical);
     m_coronalScrollBar->setEnabled(false);
     m_coronalScrollBar->setFixedWidth(15);
     m_coronalScrollBar->setToolTip("Coronal scroll bar");
-    connect(m_coronalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollBarMoved(int)));
+    connect(m_coronalScrollBar, SIGNAL(valueChanged(int)),
+            this,               SLOT(scrollBarMoved(int)));
 
     m_sagittalScrollBar = new QScrollBar(Qt::Vertical);
     m_sagittalScrollBar->setEnabled(false);
     m_sagittalScrollBar->setFixedWidth(15);
     m_sagittalScrollBar->setToolTip("Sagittal scroll bar");
-    connect(m_sagittalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollBarMoved(int)));
+    connect(m_sagittalScrollBar, SIGNAL(valueChanged(int)),
+            this,                SLOT(scrollBarMoved(int)));
 
     updateScrollBarsLimits();
 
@@ -418,9 +417,11 @@ void View3D::setupUI()
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->LightFollowCameraOn();
   m_renderer->BackingStoreOff();
+
   auto interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactorstyle->AutoAdjustCameraClippingRangeOn();
   interactorstyle->KeyPressActivationOff();
+
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
   m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
   m_view->GetRenderWindow()->Render();

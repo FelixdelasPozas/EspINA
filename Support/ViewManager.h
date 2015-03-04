@@ -34,9 +34,6 @@
 #include <GUI/View/EventHandler.h>
 #include <GUI/View/View2D.h>
 #include <GUI/Widgets/SliceSelector.h>
-#include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Representations/RepresentationManager.h>
-#include <GUI/Representations/PipelineSources.h>
 #include <GUI/Utils/Timer.h>
 #include "ROIProvider.h"
 
@@ -143,28 +140,10 @@ namespace ESPINA
     virtual void updateRepresentations(){}
 
   public slots:
-    /** \brief Updates the representations of a segmentation.
-     * \param[in] segmentation raw pointer of the segmentation adapter to update.
-     *
-     */
-    void updateSegmentationRepresentations(SegmentationAdapterPtr segmentation);
-
-    /** \brief Update segmentation representations.
-     * \param[in] list list of segmentation raw pointers to update.
-     *
-     */
-    void updateSegmentationRepresentations(SegmentationAdapterList list = SegmentationAdapterList());
-
-    /** \brief Update channel representations.
-     * \param[in] list list of channel adapter raw pointer to update.
-     *
-     */
-    void updateChannelRepresentations(ChannelAdapterList list = ChannelAdapterList());
-
     /** \brief Request all registered views to update themselves.
      *
      */
-    void updateViews();
+    void updateViews(); // NOTE: It would be interesting to deprecate it
 
     /** \brief Change "fit to slice" flag.
      * \param[in] enabled true to enable "fit to slices" false otherwise.

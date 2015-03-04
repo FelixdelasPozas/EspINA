@@ -114,8 +114,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 {
   m_dynamicMenuRoot->menu = nullptr;
 
-  connect(m_undoStack,         SIGNAL(indexChanged(int)),
-          m_viewManager.get(), SLOT  (updateViews()));
+//   connect(m_undoStack,         SIGNAL(indexChanged(int)),
+//           m_viewManager.get(), SLOT  (updateViews()));
 
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
@@ -493,7 +493,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
   closeCurrentAnalysis();
 
-  AnalysisSPtr mergedAnalysis = loadedAnalysis(files);
+  auto mergedAnalysis = loadedAnalysis(files);
 
   if (mergedAnalysis)
   {
@@ -566,10 +566,12 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 //     if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
 //     {
 //       auto problemList = checkAnalysisConsistency();
+//
 //       if(!problemList.empty())
 //       {
-//         auto problemDialog = new ProblemListDialog(problemList);
-//         problemDialog->exec();
+//         ProblemListDialog dialog(problemList);
+//
+//         dialog.exec();
 //       }
 //     }
   }
@@ -938,16 +940,16 @@ void EspinaMainWindow::canUndoChanged(bool value)
 void EspinaMainWindow::undoAction(bool unused)
 {
   emit abortOperation();
+
   m_undoStack->undo();
-  m_viewManager->updateSegmentationRepresentations();
 }
 
 //------------------------------------------------------------------------
 void EspinaMainWindow::redoAction(bool unused)
 {
   emit abortOperation();
+
   m_undoStack->redo();
-  m_viewManager->updateSegmentationRepresentations();
 }
 
 //------------------------------------------------------------------------
@@ -1318,11 +1320,8 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 //------------------------------------------------------------------------
 ProblemList EspinaMainWindow::checkAnalysisConsistency()
 {
-  auto check = new CheckAnalysis(m_scheduler, m_model);
-  check->exec();
+  CheckAnalysis checker(m_scheduler, m_model);
+  checker.exec();
 
-  ProblemList problems = check->getProblems();
-  delete check;
-
-  return problems;
+  return checker.getProblems();
 }
