@@ -19,8 +19,9 @@
 */
 
 // ESPINA
+#include "ROIToolsGroup.h"
+
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
-#include "ROITools.h"
 #include "CleanROITool.h"
 // #include "ManualROITool.h"
 #include "OrthogonalROITool.h"
@@ -157,14 +158,19 @@ ROIToolsGroup::~ROIToolsGroup()
 //-----------------------------------------------------------------------------
 void ROIToolsGroup::setEnabled(bool value)
 {
-  if(m_enabled == value)
-    return;
+  if(m_enabled != value)
+  {
+    //   m_manualROITool   ->setEnabled(value);
+    m_ortogonalROITool->setEnabled(value);
+    m_cleanROITool    ->setEnabled(value);
 
-//   m_manualROITool   ->setEnabled(value);
-  m_ortogonalROITool->setEnabled(value);
-  m_cleanROITool    ->setEnabled(value);
-
-  m_enabled = value;
+    if (!value)
+    {
+      setCurrentROI(nullptr);
+    }
+    
+    m_enabled = value;
+  }
 }
 
 //-----------------------------------------------------------------------------

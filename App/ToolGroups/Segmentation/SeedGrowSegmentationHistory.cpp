@@ -19,7 +19,7 @@
 #include "SeedGrowSegmentationHistory.h"
 #include "SeedGrowSegmentationHistoryWidget.h"
 
-#include <ToolGroups/ROI/ROITools.h>
+#include <ToolGroups/ROI/ROIToolsGroup.h>
 #include <Settings/ROI/ROISettings.h>
 
 using namespace ESPINA;

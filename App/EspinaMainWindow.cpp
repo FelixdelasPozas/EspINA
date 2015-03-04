@@ -56,6 +56,7 @@
 #include <ToolGroups/Measures/MeasuresTools.h>
 #include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
 #include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
+#include "ToolGroups/ROI/ROIToolsGroup.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -1225,9 +1226,9 @@ void EspinaMainWindow::createDefaultTools()
 {
   registerToolGroup(m_viewToolGroup);
 
-//   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
-//   registerToolGroup(roiTools);
-//   m_viewManager->setROIProvider(roiTools);
+  auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
+  registerToolGroup(roiTools);
+  m_viewManager->setROIProvider(roiTools);
 
   auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);

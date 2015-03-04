@@ -19,7 +19,7 @@
 #include "SeedGrowSegmentationHistoryWidget.h"
 #include "ui_SeedGrowSegmentationHistoryWidget.h"
 
-#include <ToolGroups/ROI/ROITools.h>
+#include <ToolGroups/ROI/ROIToolsGroup.h>
 #include <Settings/ROI/ROISettings.h>
 
 #include <QMessageBox>

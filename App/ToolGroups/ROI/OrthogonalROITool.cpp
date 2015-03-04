@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "OrthogonalROITool.h"
-#include "ROITools.h"
+#include "ROIToolsGroup.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegion.h>

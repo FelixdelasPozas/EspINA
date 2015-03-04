@@ -24,7 +24,7 @@
 #include "SeedGrowSegmentationSettings.h"
 #include "SeedGrowSegmentationHistoryWidget.h"
 #include "SeedGrowSegmentationHistory.h"
-#include <ToolGroups/ROI/ROITools.h>
+#include <ToolGroups/ROI/ROIToolsGroup.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>

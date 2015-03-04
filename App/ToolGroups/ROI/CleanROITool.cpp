@@ -20,7 +20,8 @@
 
 // ESPINA
 #include "CleanROITool.h"
-#include "ROITools.h"
+
+#include "ROIToolsGroup.h"
 #include <Undo/ROIUndoCommand.h>
 
 // Qt
@@ -82,7 +83,7 @@ void CleanROITool::cancelROI()
 //-----------------------------------------------------------------------------
 void CleanROITool::onROIChanged()
 {
-  m_cleanROI->setEnabled(isEnabled() && m_toolGroup->hasValidROI());
+  m_cleanROI->setEnabled(m_toolGroup->hasValidROI());
 }
 
 //-----------------------------------------------------------------------------
