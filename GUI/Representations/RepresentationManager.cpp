@@ -27,7 +27,7 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
-: m_showPipelines{false}
+: m_showRepresentations{false}
 , m_requiresRender{false}
 , m_view{nullptr}
 , m_supportedViews{supportedViews}
@@ -77,9 +77,13 @@ void RepresentationManager::setView(RenderView *view)
 {
   m_view = view;
 
-  if (m_showPipelines)
+  if (m_showRepresentations)
   {
-    enableRepresentations();
+    onShow();
+
+    setCrosshair(m_crosshair, m_lastRequestTime);
+
+    emit renderRequested();
   }
 }
 
@@ -91,11 +95,15 @@ void RepresentationManager::show()
     child->show();
   }
 
-  m_showPipelines  = true;
+  m_showRepresentations  = true;
 
   if (m_view)
   {
-    enableRepresentations();
+    onShow();
+
+    setCrosshair(m_crosshair, m_lastRequestTime);
+
+    emit renderRequested();
   }
 }
 
@@ -107,44 +115,26 @@ void RepresentationManager::hide()
     child->hide();
   }
 
-  m_showPipelines = false;
+  m_showRepresentations = false;
 
   if (m_view)
   {
-    disableRepresentations();
+    emit renderRequested();
+
+    onHide();
   }
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::isActive()
 {
-  return m_showPipelines;
+  return m_showRepresentations;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::requiresRender() const
 {
   return m_requiresRender;
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::display(TimeStamp time)
-{
-  if (m_view)
-  {
-    removeCurrentActors();
-
-    m_viewActors.clear();
-
-    if (m_showPipelines)
-    {
-      displayActors(time);
-    }
-
-    invalidatePreviousActors(time);
-
-    m_requiresRender = m_showPipelines && hasSources();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -163,7 +153,7 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp ti
   m_crosshair       = crosshair;
   m_lastRequestTime = time;
 
-  if (m_showPipelines)
+  if (m_showRepresentations)
   {
     setCrosshair(m_crosshair, time);
   }
@@ -172,7 +162,7 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp ti
 //-----------------------------------------------------------------------------
 void RepresentationManager::setRepresentationsVisibility(bool value)
 {
-  if (m_showPipelines != value)
+  if (m_showRepresentations != value)
   {
     if (value)
     {
@@ -198,57 +188,7 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::invalidateActors()
+void RepresentationManager::invalidateRepresentations()
 {
   m_lastRenderRequestTime = 0;
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::enableRepresentations()
-{
-  m_requiresRender = hasSources();
-
-  connectPools();
-
-  setCrosshair(m_crosshair, m_lastRequestTime);
-
-  emit renderRequested();
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::disableRepresentations()
-{
-  emit renderRequested();
-
-  disconnectPools();
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::removeCurrentActors()
-{
-  for (auto itemActors : m_viewActors)
-  {
-    for (auto actor : itemActors)
-    {
-      m_view->removeActor(actor);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::displayActors(const TimeStamp time)
-{
-  auto currentActors = actors(time);
-
-  auto it = currentActors.begin();
-  while (it != currentActors.end())
-  {
-    for (auto actor : it.value())
-    {
-      m_view->addActor(actor);
-      m_viewActors[it.key()] << actor;
-    }
-
-    ++it;
-  }
 }

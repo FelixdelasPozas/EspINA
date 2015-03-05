@@ -99,7 +99,7 @@ namespace ESPINA
      *
      */
     bool representationsVisibility() const
-    { return m_showPipelines; }
+    { return m_showRepresentations; }
 
     /** \brief Shows all representations
      *
@@ -131,7 +131,7 @@ namespace ESPINA
     /** \brief Updates view's actors with those available at the given time.
      *
      */
-    void display(TimeStamp time);
+    virtual void display(TimeStamp time) = 0;
 
     /** \brief Returns the item picked
      *
@@ -157,51 +157,35 @@ namespace ESPINA
   protected slots:
     void emitRenderRequest(TimeStamp time);
 
-    void invalidateActors();
+    void invalidateRepresentations();
 
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
   private:
-    virtual bool hasSources() const = 0;
-
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp time) = 0;
+    virtual void onShow() = 0;
 
-    virtual void invalidatePreviousActors(TimeStamp time) = 0;
-
-    virtual void connectPools() = 0;
-
-    virtual void disconnectPools() = 0;
+    virtual void onHide() = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
-
-    void enableRepresentations();
-
-    void disableRepresentations();
-
-    void removeCurrentActors();
-
-    void displayActors(const TimeStamp time);
 
   protected:
     QString m_name;
     QIcon   m_icon;
     QString m_description;
-    bool    m_showPipelines;
+    bool    m_showRepresentations;
     bool    m_requiresRender;
+    RenderView   *m_view;
 
   private:
-    RenderView   *m_view;
     ViewTypeFlags m_supportedViews;
     NmVector3     m_crosshair;
     TimeStamp     m_lastRequestTime;
     TimeStamp     m_lastRenderRequestTime;
 
     RepresentationManagerSList m_childs;
-
-    RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view
   };
 
   class RepresentationManager2D

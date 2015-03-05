@@ -26,7 +26,7 @@ using namespace std;
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr xy,
                                RepresentationPoolSPtr xz,
                                RepresentationPoolSPtr yz)
-: RepresentationManager(ViewType::VIEW_3D)
+: ActorManager(ViewType::VIEW_3D)
 {
   m_pools << xy << xz << yz;
 }
@@ -154,7 +154,7 @@ void Slice3DManager::connectPools()
     connect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
             this,       SLOT(checkRenderRequest()));
     connect(pool.get(), SIGNAL(actorsInvalidated()),
-            this,       SLOT(invalidateActors()));
+            this,       SLOT(invalidateRepresentations()));
 
     pool->incrementObservers();
   }
@@ -168,7 +168,7 @@ void Slice3DManager::disconnectPools()
     disconnect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
                this,       SLOT(checkRenderRequest()));
     disconnect(pool.get(), SIGNAL(actorsInvalidated()),
-               this,       SLOT(invalidateActors()));
+               this,       SLOT(invalidateRepresentations()));
 
     pool->decrementObservers();
   }
@@ -181,7 +181,7 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 
   clone->m_name          = m_name;
   clone->m_description   = m_description;
-  clone->m_showPipelines = m_showPipelines;
+  clone->m_showRepresentations = m_showRepresentations;
 
   return clone;
 }

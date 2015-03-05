@@ -28,7 +28,7 @@ using namespace ESPINA;
 SliceManager::SliceManager(RepresentationPoolSPtr xy,
                            RepresentationPoolSPtr xz,
                            RepresentationPoolSPtr yz)
-: RepresentationManager(ViewType::VIEW_2D)
+: ActorManager(ViewType::VIEW_2D)
 , m_xy{xy}
 , m_xz{xz}
 , m_yz{yz}
@@ -152,7 +152,7 @@ void SliceManager::connectPools()
             this,              SLOT(emitRenderRequest(TimeStamp)));
 
     connect(planePool().get(), SIGNAL(actorsInvalidated()),
-            this,              SLOT(invalidateActors()));
+            this,              SLOT(invalidateRepresentations()));
 
     planePool()->incrementObservers();
   }
@@ -166,7 +166,7 @@ void SliceManager::disconnectPools()
     disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
                this,              SLOT(emitRenderRequest(TimeStamp)));
     disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
-               this,              SLOT(invalidateActors()));
+               this,              SLOT(invalidateRepresentations()));
 
     planePool()->decrementObservers();
   }
@@ -180,7 +180,7 @@ RepresentationManagerSPtr SliceManager::cloneImplementation()
   clone->m_name          = m_name;
   clone->m_description   = m_description;
   clone->m_plane         = m_plane;
-  clone->m_showPipelines = m_showPipelines;
+  clone->m_showRepresentations = m_showRepresentations;
 
   return clone;
 }

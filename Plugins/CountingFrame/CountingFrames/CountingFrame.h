@@ -155,11 +155,12 @@ namespace CF {
 
     QString categoryConstraint() const { return m_categoryConstraint; }
 
-    virtual void registerView(RenderView *) = 0;
-    virtual void unregisterView(RenderView *) = 0;
+    vtkCountingFrameSliceWidget *createSliceWidget(RenderView *view);
 
-    // needed for the renderers
-    virtual vtkAbstractWidget *getWidget(RenderView *);
+    void destroySliceWidget(vtkCountingFrameSliceWidget *widget);
+
+    virtual void registerView(RenderView *) {};
+    virtual void unregisterView(RenderView *) {};
 
     void apply();
 
@@ -196,7 +197,10 @@ namespace CF {
 
   protected slots:
     void onCountingFrameApplied();
-    void sliceChanged(Plane, Nm);
+//     void sliceChanged(Plane, Nm);
+
+  private:
+    virtual vtkCountingFrameSliceWidget *createSliceWidgetImplementation(View2D *view) = 0;
 
   protected:
     SchedulerSPtr m_scheduler;
@@ -223,8 +227,6 @@ namespace CF {
 
     // TODO: Change to private (may need some changes in the API)
     mutable QMutex m_widgetMutex;
-    QMap<View2D *, vtkCountingFrameSliceWidget *> m_widgets2D;
-    QMap<View3D *, vtkCountingFrame3DWidget *> m_widgets3D;
     vtkSmartPointer<vtkCountingFrameCommand> m_command;
 
   private:
@@ -235,9 +237,11 @@ namespace CF {
     bool m_enable;
     bool m_highlight;
 
-
     mutable QMutex m_applyMutex;
     ApplyCountingFrameSPtr m_applyCountingFrame;
+
+    QList<vtkCountingFrameSliceWidget *> m_widgets2D;
+    QMap<View3D *, vtkCountingFrame3DWidget    *> m_widgets3D;
   };
 
   using CountingFrameList = QList<CountingFrame *>;
@@ -254,15 +258,9 @@ namespace CF {
       static vtkCountingFrameCommand *New()
       { return new vtkCountingFrameCommand(); }
 
-      /** \brief Implements vtkEspinaCommand::Execute.
-       *
-       */
-      void Execute(vtkObject *, unsigned long int, void*);
+      virtual void Execute(vtkObject *, unsigned long int, void*) override;
 
-      /** \brief Implements vtkEspinaCommand::setWidget();
-       *
-       */
-      void setWidget(EspinaWidgetPtr widget)
+      virtual void setWidget(EspinaWidgetPtr widget) override
       { m_widget = dynamic_cast<CountingFrame *>(widget); }
 
     private:

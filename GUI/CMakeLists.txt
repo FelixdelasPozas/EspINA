@@ -17,6 +17,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/ViewItemAdapter.h
   Representations/PipelineSourcesFilter.h
   Representations/RepresentationManager.h
+  Representations/ActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
   Representations/RepresentationWindow.h
@@ -106,6 +107,8 @@ set (GUI_SOURCES
   Representations/ChannelPipeline.cpp
   Representations/PipelineSourcesFilter.cpp
   Representations/RepresentationManager.cpp
+  Representations/ActorManager.cpp
+  Representations/WidgetManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
   Representations/RepresentationState.cpp

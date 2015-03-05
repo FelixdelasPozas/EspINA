@@ -20,7 +20,8 @@
 #ifndef ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 #define ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 
-#include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/RepresentationsRange.h>
 #include "CountingFrameManager.h"
 
 namespace ESPINA
@@ -31,8 +32,11 @@ namespace ESPINA
     : public RepresentationManager
     , public ESPINA::RepresentationManager2D
     {
+      Q_OBJECT
     public:
       explicit RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
+
+      virtual ~RepresentationManager2D();
 
       virtual void setResolution(const NmVector3 &resolution);
 
@@ -40,30 +44,43 @@ namespace ESPINA
 
       virtual TimeRange readyRange() const;
 
+      virtual void display(TimeStamp t);
+
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
-      virtual void setPlane(Plane plane) {}
+      virtual void setPlane(Plane plane);
 
       virtual void setRepresentationDepth(Nm depth) {}
 
+    private slots:
+      /** \brief Helper method to update internal data when a CF is created.
+       *
+       */
+      void onCountingFrameCreated(CountingFrame *cf);
+
+      /** \brief Helper method to update internal data when a CF is removed.
+       *
+       */
+      void onCountingFrameDeleted(CountingFrame *cf);
+
     private:
-      virtual bool hasSources() const { true; }
+      virtual void onShow();
 
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) {}
+      virtual void onHide();
 
-      virtual RepresentationPipeline::Actors actors(TimeStamp time)
-      { return RepresentationPipeline::Actors(); }
-
-      virtual void invalidatePreviousActors(TimeStamp time){}
-
-      virtual void connectPools(){}
-
-      virtual void disconnectPools(){}
+      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
 
       virtual RepresentationManagerSPtr cloneImplementation();
 
+      Nm slicingPosition(TimeStamp t) const;
+
     private:
+      Plane     m_plane;
+      NmVector3 m_resolution;
+      RepresentationsRange<NmVector3> m_crosshairs;
+
       CountingFrameManager &m_manager;
+      QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_insertedCFs;
     };
   }
 }

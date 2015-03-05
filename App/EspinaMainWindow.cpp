@@ -538,7 +538,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       {
         if (!channel->hasExtension(ChannelEdges::TYPE))
         {
-          //UNCOMMENT: channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
+          channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
         }
       }
     }
@@ -1212,6 +1212,7 @@ void EspinaMainWindow::createToolbars()
   m_mainBar = addToolBar("Main ToolBar");
   m_mainBar->setMovable(false);
   m_mainBar->setObjectName("Main ToolBar");
+  m_mainBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_contextualBar = addToolBar("Contextual ToolBar");
   m_contextualBar->setMovable(false);

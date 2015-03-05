@@ -24,6 +24,7 @@
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"
 #include "PipelineSourcesFilter.h"
+#include "RepresentationsRange.h"
 
 #include <memory>
 
@@ -186,10 +187,8 @@ namespace ESPINA
 
     NmVector3 m_crosshair;
     TimeStamp m_requestedTimeStamp;
-    TimeStamp m_lastUpdateTimeStamp;
 
-    TimeRange m_validActorsTimes;
-    QMap<TimeStamp, RepresentationPipeline::Actors> m_actors;
+    RepresentationsRange<RepresentationPipeline::Actors> m_validActors;
 
     unsigned m_numObservers;
     unsigned m_sourcesCount;

@@ -527,26 +527,23 @@ void RenderView::onRenderRequest()
     if (manager->requiresRender())
     {
       renderRequests++;
-    }
 
-    switch(manager->pipelineStatus())
-    {
-      case RepresentationManager::PipelineStatus::NOT_READY:
-        return;
-      case RepresentationManager::PipelineStatus::READY:
-        readyManagers++;
-        break;
-      case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
-        if (manager->requiresRender())
-        {
+      switch(manager->pipelineStatus())
+      {
+        case RepresentationManager::PipelineStatus::NOT_READY:
+          return;
+        case RepresentationManager::PipelineStatus::READY:
+          readyManagers++;
+          break;
+        case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
           for(auto timeStamp: manager->readyRange())
           {
             count[timeStamp] = count.value(timeStamp, 0) + 1;
           }
-        }
-        break;
-      default:
-        break;
+          break;
+        default:
+          break;
+      }
     }
   }
 

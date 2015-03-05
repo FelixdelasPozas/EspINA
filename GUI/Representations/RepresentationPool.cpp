@@ -43,7 +43,6 @@ RepresentationPool::RepresentationPool()
 : m_sources            {nullptr}
 , m_settings           {new Settings()}
 , m_requestedTimeStamp {1}
-, m_lastUpdateTimeStamp{0}
 , m_numObservers       {0}
 , m_sourcesCount       {0}
 {
@@ -123,17 +122,7 @@ void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
 //-----------------------------------------------------------------------------
 TimeRange RepresentationPool::readyRange() const
 {
-  TimeRange range;
-
-  if (!m_validActorsTimes.isEmpty())
-  {
-    for (TimeStamp i = m_validActorsTimes.first(); i <= m_lastUpdateTimeStamp; ++i)
-    {
-      range << i;
-    }
-  }
-
-  return range;
+  return m_validActors.timeRange();
 }
 
 //-----------------------------------------------------------------------------
@@ -145,73 +134,20 @@ bool RepresentationPool::hasSources() const
 //-----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t)
 {
-  int  i     = 1;
-  bool found = false;
-
-  Q_ASSERT(!m_validActorsTimes.isEmpty());
-
-  TimeStamp validTime = m_validActorsTimes.first();
-
-  while (!found && i < m_validActorsTimes.size())
-  {
-    auto nextTime = m_validActorsTimes[i];
-
-    found = nextTime > t;
-
-    if (!found)
-    {
-      validTime = nextTime;
-    }
-
-    ++i;
-  }
-
-  return m_actors.value(validTime, RepresentationPipeline::Actors());
+  return m_validActors.representation(t, RepresentationPipeline::Actors());
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::invalidatePreviousActors(TimeStamp t)
 {
-  int  i     = 1;
-  bool found = false;
-
-  if (m_validActorsTimes.isEmpty()) return;
-
-  auto validTime   = m_validActorsTimes.first();
-  auto validActors = m_actors[validTime];
-
-  while (!found && i < m_validActorsTimes.size())
-  {
-    auto nextTime = m_validActorsTimes[i];
-
-    found = nextTime > t;
-
-    if (!found)
-    {
-      m_actors.remove(validTime);
-
-      validTime   = nextTime;
-      validActors = m_actors[nextTime];
-
-      ++i;
-    }
-  }
-
-  while (i > 1) // remove invalid timestamps except one to be replaced
-  {
-    m_validActorsTimes.removeFirst();
-    --i;
-  }
-
-  m_actors[t]           = validActors;
-  m_validActorsTimes[0] = t;
+  m_validActors.invalidatePreviouesRepresentations(t);
 }
 
 
 //-----------------------------------------------------------------------------
 TimeStamp RepresentationPool::lastUpdateTimeStamp() const
 {
-  return m_lastUpdateTimeStamp;
+  return m_validActors.lastTime();
 }
 
 //-----------------------------------------------------------------------------
@@ -254,7 +190,7 @@ ViewItemAdapterList RepresentationPool::sources() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 {
-  return t > m_lastUpdateTimeStamp;
+  return t > m_validActors.lastTime();
 }
 
 //-----------------------------------------------------------------------------
@@ -262,14 +198,15 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
 {
   if (notHasBeenProcessed(t))
   {
-    onTimeStampUpdated(t);
-
     if (actorsChanged())
     {
-      m_actors[t] = actors;
-      m_validActorsTimes << t;
+      m_validActors.addRepresentation(actors, t);
 
       emit actorsReady(t);
+    }
+    else
+    {
+      m_validActors.usePreviousRepresentation(t);
     }
 
     emit poolUpdated(t);
@@ -334,7 +271,7 @@ void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, T
 //-----------------------------------------------------------------------------
 void RepresentationPool::onTimeStampUpdated(TimeStamp t)
 {
-  m_lastUpdateTimeStamp = t;
+  m_validActors.usePreviousRepresentation(t);
 }
 
 //-----------------------------------------------------------------------------
@@ -344,7 +281,7 @@ void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterPtr item)
 
   sources << item;
 
-  onRepresentationModified(sources, m_lastUpdateTimeStamp);
+  onRepresentationModified(sources, m_validActors.lastTime());
 }
 
 //-----------------------------------------------------------------------------
@@ -356,9 +293,7 @@ bool RepresentationPool::hasActorsDisplayed() const
 //-----------------------------------------------------------------------------
 void RepresentationPool::invalidateActors()
 {
-  m_actors.clear();
-  m_validActorsTimes.clear();
-  m_lastUpdateTimeStamp = 0;
+  m_validActors.invalidate();
 
   emit actorsInvalidated();
 }
@@ -380,7 +315,7 @@ void RepresentationPool::processPendingSources()
             this,   SLOT(onRepresentationsInvalidated(ViewItemAdapterPtr)));
   }
 
-  if (m_validActorsTimes.isEmpty())
+  if (m_validActors.isEmpty())
   {
     setCrosshairImplementation(m_crosshair, m_requestedTimeStamp);
   }

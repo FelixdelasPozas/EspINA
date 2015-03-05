@@ -53,10 +53,6 @@ namespace ESPINA
 
     virtual QString typeName() const { return ORTOGONAL_CF; }
 
-    // Implements EspinaWidget interface
-    virtual void registerView(RenderView *);
-    virtual void unregisterView(RenderView *);
-
     virtual void updateCountingFrameImplementation();
 
   protected:
@@ -72,6 +68,9 @@ namespace ESPINA
                                                          Nm right,
                                                          Nm bottom,
                                                          Nm back);
+
+  private:
+    virtual vtkCountingFrameSliceWidget *createSliceWidgetImplementation(View2D *view);
 
   private:
     Bounds m_bounds;
