@@ -134,10 +134,10 @@ namespace ESPINA
     void updateSelection(SegmentationAdapterList selection);
 
   protected slots:
-		/** \brief Perform actions when the user double-click a cell in the view.
-		 * \param[in] index model index that has been double-clicked.
-		 *
-		 */
+    /** \brief Perform actions when the user double-click a cell in the view.
+     * \param[in] index model index that has been double-clicked.
+     *
+     */
     void indexDoubleClicked(QModelIndex index);
 
     /** \brief Updates the data of the specified index.

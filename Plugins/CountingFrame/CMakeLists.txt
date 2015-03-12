@@ -42,8 +42,8 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS
   CountingFrameManager.h
   CountingFramePlugin.h
-  CountingFrameRenderer2D.h
-  CountingFrameRenderer3D.h
+#   CountingFrameRenderer2D.h
+#   CountingFrameRenderer3D.h
   CountingFrames/CountingFrame.h
   Dialogs/CFTypeSelectorDialog.h
   Extensions/CountingFrameExtension.h
@@ -56,8 +56,8 @@ set (LOCAL_SOURCES
   ColorEngines/CountingFrameColorEngine.cpp
   CountingFrameManager.cpp
   CountingFramePlugin.cpp
-  CountingFrameRenderer2D.cpp
-  CountingFrameRenderer3D.cpp
+#   CountingFrameRenderer2D.cpp
+#   CountingFrameRenderer3D.cpp
   CountingFrames/AdaptiveCountingFrame.cpp
   CountingFrames/CountingFrame.cpp
   CountingFrames/OrtogonalCountingFrame.cpp
@@ -86,8 +86,8 @@ set (PLUGIN_SOURCES
 set (PLUGIN_LIBRARIES
   EspinaCore
   EspinaGUI
+  EspinaUndo
   EspinaSupport
-  EspinaExtensions
   )
 
 if(DEFINED MINGW OR DEFINED MSVC)

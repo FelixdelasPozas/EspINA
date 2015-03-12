@@ -22,7 +22,7 @@
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include "ROITools.h"
 #include "CleanROITool.h"
-#include "ManualROITool.h"
+// #include "ManualROITool.h"
 #include "OrthogonalROITool.h"
 #include <Undo/ROIUndoCommand.h>
 
@@ -131,7 +131,7 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 : ToolGroup          {viewManager, QIcon(":/espina/voi.svg"), tr("Volume Of Interest Tools"), parent}
 , m_viewManager      {viewManager}
 , m_undoStack        {undoStack}
-, m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
+// , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
 , m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
 , m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
 , m_enabled          {true}
@@ -142,8 +142,8 @@ ROIToolsGroup::ROIToolsGroup(ROISettings*     settings,
 {
   setColor(m_color);
 
-  connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
-          this,                     SLOT(onManualROIDefined(Selector::Selection)));
+//   connect(m_manualROITool.get(),    SIGNAL(roiDefined(Selector::Selection)),
+//           this,                     SLOT(onManualROIDefined(Selector::Selection)));
   connect(m_ortogonalROITool.get(), SIGNAL(roiDefined(ROISPtr)),
           this,                     SLOT(onOrthogonalROIDefined(ROISPtr)));
 }
@@ -160,7 +160,7 @@ void ROIToolsGroup::setEnabled(bool value)
   if(m_enabled == value)
     return;
 
-  m_manualROITool   ->setEnabled(value);
+//   m_manualROITool   ->setEnabled(value);
   m_ortogonalROITool->setEnabled(value);
   m_cleanROITool    ->setEnabled(value);
 
@@ -178,7 +178,7 @@ ToolSList ROIToolsGroup::tools()
 {
   ToolSList availableTools;
 
-  availableTools << m_manualROITool;
+//   availableTools << m_manualROITool;
   availableTools << m_ortogonalROITool;
   availableTools << m_cleanROITool;
 
@@ -249,7 +249,7 @@ void ROIToolsGroup::setColor(const QColor& color)
 {
   m_color = color;
 
-  m_manualROITool->setColor(color);
+//   m_manualROITool->setColor(color)
   m_ortogonalROITool->setColor(color);
 }
 

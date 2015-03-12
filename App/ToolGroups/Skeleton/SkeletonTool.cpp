@@ -26,7 +26,7 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/ModelFactory.h>
-#include <GUI/Representations/SkeletonRepresentation.h>
+//#include <GUI/Representations/SkeletonRepresentation.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/DoubleSpinBoxAction.h>
@@ -296,11 +296,12 @@ namespace ESPINA
       {
         if(hasSkeletonData(m_item->output()))
         {
-          auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-          if(rep)
-          {
-            rep->setVisible(false);
-          }
+          Q_ASSERT(false);//TODO
+//           auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+//           if(rep)
+//           {
+//             rep->setVisible(false);
+//           }
 
           widget->initialize(skeletonData(m_item->output())->skeleton());
         }
@@ -347,11 +348,12 @@ namespace ESPINA
       {
         if(hasSkeletonData(m_item->output()))
         {
-          auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-          if(rep)
-          {
-            rep->setVisible(true);
-          }
+          Q_ASSERT(false);
+//           auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+//           if(rep)
+//           {
+//             rep->setVisible(true);
+//           }
 
           auto skeleton = skeletonData(m_item->output());
           disconnect(skeleton.get(), SIGNAL(dataChanged()),
@@ -398,11 +400,12 @@ namespace ESPINA
       if(seg.get() == m_item)
       {
         // need to activate the representation because the removal can be undoed.
-        auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-        if(rep)
-        {
-          rep->setVisible(true);
-        }
+        Q_ASSERT(false);//TODO
+//         auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+//         if(rep)
+//         {
+//           rep->setVisible(true);
+//         }
 
         auto skeleton = skeletonData(m_item->output());
         disconnect(skeleton.get(), SIGNAL(dataChanged()),
@@ -510,10 +513,15 @@ namespace ESPINA
       connect(skeleton.get(), SIGNAL(dataChanged()),
               this          , SLOT(updateWidgetRepresentation()));
 
-      auto rep = m_item->representation(SkeletonRepresentation::TYPE);
-      if(rep)
+      //TODO:
       {
-        rep->setVisible(false);
+      Q_ASSERT(false);
+
+//       auto rep = m_item->representation(SkeletonRepresentation::TYPE);
+//       if(rep)
+//       {
+//         rep->setVisible(false);
+//       }
       }
     }
 

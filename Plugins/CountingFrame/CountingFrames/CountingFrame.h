@@ -38,6 +38,8 @@
 
 namespace ESPINA
 {
+  class View2D;
+  class View3D;
 namespace CF {
 
   enum CFType

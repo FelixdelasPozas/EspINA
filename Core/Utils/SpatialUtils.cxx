@@ -61,6 +61,18 @@ typename T::RegionType equivalentRegion(const T* image, const Bounds& bounds)
   image->TransformPhysicalPointToIndex(p0, i0);
   image->TransformPhysicalPointToIndex(p1, i1);
 
+  // TODO: as stupid as it sounds this happens on some coordinates when
+  // using the brush and painting outside the view. Investigate and fix.
+  for(auto i: {0,1,2})
+  {
+    if(i0[i] > i1[i])
+    {
+      auto temp = i0[i];
+      i0[i] = i1[i];
+      i1[i] = temp;
+    }
+  }
+
   typename T::RegionType region;
   region.SetIndex(i0);
   region.SetUpperIndex(i1);
@@ -80,8 +92,6 @@ typename T::RegionType equivalentRegion(const NmVector3& origin, const NmVector3
 
   return equivalentRegion<T>(image, bounds);
 }
-
-
 
 //-----------------------------------------------------------------------------
 template<typename T>
@@ -282,12 +292,28 @@ Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueTyp
 
 //-----------------------------------------------------------------------------
 template<typename T>
+typename T::PointType ItkPoint(const NmVector3& point)
+{
+  typename T::PointType itkPoint;
+
+  for(int i = 0; i < 3; ++i)
+  {
+    itkPoint[i] = point[i];
+  }
+
+  return itkPoint;
+}
+
+//-----------------------------------------------------------------------------
+template<typename T>
 typename T::SpacingType ItkSpacing(const NmVector3& spacing)
 {
   typename T::SpacingType itkSpacing;
 
   for(int i = 0; i < 3; ++i)
+  {
     itkSpacing[i] = spacing[i];
+  }
 
   return itkSpacing;
 }
@@ -300,7 +326,9 @@ NmVector3 ToNmVector3(typename T::SpacingType itkSpacing)
   NmVector3 vector;
 
   for(int i = 0; i < 3; ++i)
+  {
     vector[i] = itkSpacing[i];
+  }
 
   return vector;
 }
@@ -312,7 +340,9 @@ NmVector3 ToNmVector3(typename T::PointType itkPoint)
   NmVector3 vector;
 
   for(int i = 0; i < 3; ++i)
+  {
     vector[i] = itkPoint[i];
+  }
 
   return vector;
 }

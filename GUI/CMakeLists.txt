@@ -15,23 +15,27 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
-  Representations/MeshRepresentation.h
-  Representations/MeshRepresentationBase.h
-  Representations/Renderers/Renderer.h
-  Representations/SmoothedMeshRepresentation.h
-  Representations/SliceCachedRepresentation.h
-  Representations/Renderers/CachedSliceRenderer.h
-  Representations/Renderers/CachedSliceRendererTask.h
+  Representations/PipelineSources.h
+  Representations/RepresentationManager.h
+  Representations/RepresentationPool.h
+  Representations/RepresentationUpdater.h
+  Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
-  Selectors/BrushSelector.h
-  Selectors/CircularBrushSelector.h
-  Selectors/SphericalBrushSelector.h
-  Selectors/ContourSelector.h
+#   Selectors/BrushSelector.h
+#   Selectors/CircularBrushSelector.h
+#   Selectors/SphericalBrushSelector.h
+  Utils/Timer.h
   View/EventHandler.h
+  EventHandlers/PointTracker.h
+  EventHandlers/Brush.h
+  EventHandlers/MaskPainter.h
+  EventHandlers/BrushPainter.h
+  EventHandlers/StrokePainter.h
   View/RenderView.h
   View/Selection.h
   View/View2D.h
+  View/ViewState.h
   View/ViewRendererMenu.h
   View/View3D.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
@@ -46,6 +50,7 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/CategorySelector.h
   Widgets/CheckableTableView.h
   Widgets/CheckableTreeView.h
+  Widgets/DrawingWidget.h
   Widgets/DoubleSpinBoxAction.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
@@ -98,44 +103,39 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
-  Representations/BasicRepresentationFactory.cpp
-  Representations/ContourRepresentation.cpp
-  Representations/ContourRepresentationSettings.cpp
-  Representations/MeshRepresentation.cpp 
-  Representations/MeshRepresentationBase.cpp
-  Representations/CrosshairRepresentation.cpp
-  Representations/SkeletonRepresentation.cpp
-  Representations/Renderers/ContourRenderer.cpp
-  Representations/Renderers/MeshRenderer.cpp
-  Representations/Renderers/SmoothedMeshRenderer.cpp
-  Representations/Renderers/Renderer.cpp
-  Representations/Renderers/RepresentationRenderer.cpp
-  Representations/Renderers/SliceRenderer.cpp
-  Representations/Renderers/CrosshairRenderer.cpp
-  Representations/Renderers/CachedSliceRenderer.cpp
-  Representations/Renderers/CachedSliceRendererTask.cpp
-  Representations/Renderers/SkeletonRenderer.cpp
-  Representations/Representation.cpp
-  Representations/RepresentationEmptySettings.cpp
-  Representations/RepresentationFactoryGroup.cpp 
-  Representations/SliceRepresentation.cpp
-  Representations/SliceRepresentationSettings.cpp 
-  Representations/SmoothedMeshRepresentation.cpp
-  Representations/SliceCachedRepresentation.cpp
-  Selectors/BrushSelector.cpp
+  Representations/BufferedRepresentationPool.cpp
+  Representations/ChannelPipeline.cpp
+  Representations/PipelineSources.cpp
+  Representations/RepresentationManager.cpp
+  Representations/RepresentationPipeline.cpp
+  Representations/RepresentationPool.cpp
+  Representations/RepresentationState.cpp
+  Representations/RepresentationUpdater.cpp
+  Representations/RepresentationWindow.cpp
+  Representations/SegmentationPipeline.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
-  Selectors/CircularBrushSelector.cpp
-  Selectors/SphericalBrushSelector.cpp
-  Selectors/ContourSelector.cpp
+#   Selectors/BrushSelector.cpp
+#   Selectors/CircularBrushSelector.cpp
+#   Selectors/SphericalBrushSelector.cpp
   Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
+  Utils/Timer.cpp
+  EventHandlers/Brush.cpp
+  EventHandlers/CircularBrush.cpp
+  EventHandlers/SphericalBrush.cpp
+  EventHandlers/MaskPainter.cpp
+  EventHandlers/PointTracker.cpp
+  EventHandlers/BrushPainter.cpp
+  EventHandlers/StrokePainter.cpp
+  EventHandlers/ContourPainter.cpp
   View/EventHandler.cpp
   View/RenderView.cpp
   View/Selection.cpp
   View/View2D.cpp
   View/ViewRendererMenu.cpp
-  View/View2DState.cpp
+  View/PlanarBehaviour.cpp
+  View/ViewState.cpp
   View/View3D.cpp
   View/Widgets/Contour/ContourWidget.cpp
   View/Widgets/Contour/SliceContourWidget.cpp
@@ -168,6 +168,7 @@ set (GUI_SOURCES
   Widgets/CategorySelector.cpp
   Widgets/CheckableTableView.cpp
   Widgets/CheckableTreeView.cpp
+  Widgets/DrawingWidget.cpp
   Widgets/DoubleSpinBoxAction.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
@@ -220,8 +221,8 @@ GENERATE_EXPORT_HEADER(
   BASE_NAME         EspinaGUI
   EXPORT_MACRO_NAME EspinaGUI_EXPORT
   EXPORT_FILE_NAME  EspinaGUI_Export.h
-	)
- 
+  )
+
 install(TARGETS EspinaGUI
   # IMPORTANT: Add the EspinaGUI library to the "export-set"
   EXPORT        ESPINATargets
@@ -235,4 +236,3 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
-

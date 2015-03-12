@@ -35,21 +35,23 @@
 #include <unistd.h>
 
 #include <QThreadPool>
-#include <QApplication>
+#include <QCoreApplication>
 
 using namespace ESPINA;
 using namespace std;
 
 int scheduler_waiting_tasks( int argc, char** argv )
 {
+  QCoreApplication app(argc, argv);
+
   int error = 0;
   int schedulerPeriod = 5000;
   int taskSleepTime   = 4*schedulerPeriod;
   int taskTime        = 10*taskSleepTime;
 
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(schedulerPeriod));
+  auto scheduler = make_shared<Scheduler>(schedulerPeriod);
 
-  int numThreads = QThreadPool::globalInstance()->maxThreadCount();
+  int numThreads = scheduler->maxRunningTasks();
   int numTasks   = numThreads + 1;
 
   std::vector<std::shared_ptr<SleepyTask>> tasks;
@@ -63,7 +65,7 @@ int scheduler_waiting_tasks( int argc, char** argv )
   usleep(numTasks*schedulerPeriod);
 
   for (int i = 0; i < numThreads; ++i) {
-    if (tasks.at(i)->Result != 0) {
+    if (tasks.at(i)->Result == -1 || tasks.at(i)->Result == SleepyTask::Iterations) {
       error = 1;
       std::cerr << "Task " << i << " should be running" << std::endl;
     }
@@ -77,7 +79,7 @@ int scheduler_waiting_tasks( int argc, char** argv )
   usleep(numTasks * taskTime);
 
   for (int i = 0; i < numTasks; ++i) {
-    if (tasks.at(i)->Result != 1) {
+    if (tasks.at(i)->Result != SleepyTask::Iterations) {
       error = 1;
       std::cerr << "Task " << i << " should have finished" << std::endl;
     }

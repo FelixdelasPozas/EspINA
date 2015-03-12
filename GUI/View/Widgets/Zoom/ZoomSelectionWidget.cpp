@@ -47,7 +47,7 @@ ZoomSelectionWidget::ZoomSelectionWidget()
 
   QPixmap cursorBitmap;
   cursorBitmap.load(":/espina/zoom_cursor.png", "PNG", Qt::ColorOnly);
-  m_cursor = QCursor(cursorBitmap, 0, 0);
+  setCursor(QCursor(cursorBitmap, 0, 0));
 }
 
 //----------------------------------------------------------------------------
@@ -104,8 +104,7 @@ void ZoomSelectionWidget::registerView(RenderView *view)
 //----------------------------------------------------------------------------
 void ZoomSelectionWidget::unregisterView(RenderView *view)
 {
-  if (!m_views.keys().contains(view))
-    return;
+  if (!m_views.keys().contains(view)) return;
 
   m_views[view]->SetEnabled(false);
   m_views[view]->SetCurrentRenderer(nullptr);
@@ -128,21 +127,10 @@ bool ZoomSelectionWidget::filterEvent(QEvent *e, RenderView *view)
   if (e->type() != QEvent::MouseMove && e->type() != QEvent::MouseButtonPress && e->type() != QEvent::MouseButtonRelease)
     return false;
 
-  if (m_inUse && m_views.contains(view))
+  if (isInUse() && m_views.contains(view))
     return m_views[view]->ProcessBasicQtEvent(e);
 
   return false;
-}
-
-//----------------------------------------------------------------------------
-void ZoomSelectionWidget::setInUse(bool value)
-{
-  if(m_inUse == value)
-    return;
-
-  m_inUse = value;
-
-  emit eventHandlerInUse(value);
 }
 
 //----------------------------------------------------------------------------

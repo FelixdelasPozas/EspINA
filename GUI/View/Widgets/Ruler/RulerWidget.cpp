@@ -155,7 +155,7 @@ namespace ESPINA
           widget2d->setBounds(bounds);
           auto view = dynamic_cast<View2D *>(m_views.key(widget));
           auto index = normalCoordinateIndex(view->plane());
-          auto pos = view->crosshairPoint()[index];
+          auto pos = view->crosshair()[index];
           bool valid = bounds[2*index] <= pos && bounds[2*index+1] > pos;
           widget2d->SetEnabled(valid);
         }

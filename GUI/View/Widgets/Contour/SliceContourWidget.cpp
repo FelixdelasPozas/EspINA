@@ -37,7 +37,7 @@ SliceContourWidget::SliceContourWidget(vtkPlaneContourWidget* widget)
 , m_contourWidget        {widget}
 , m_storedContour        {nullptr}
 , m_storedContourPosition{-1}
-, m_storedContourMode    {BrushSelector::BrushMode::BRUSH}
+, m_storedContourMode    {DrawingMode::PAINTING}
 {
 }
 
@@ -70,7 +70,7 @@ void SliceContourWidget::setSlice(Nm pos, Plane plane)
 
     if ((m_storedContour) && (m_storedContourPosition == pos))
     {
-      m_contourWidget->setActualContourMode(m_storedContourMode);
+      m_contourWidget->setContourMode(m_storedContourMode);
       m_contourWidget->Initialize(m_storedContour);
 
       m_storedContour->Delete();
@@ -88,7 +88,7 @@ void SliceContourWidget::setSlice(Nm pos, Plane plane)
         m_storedContour = vtkPolyData::New();
         m_storedContour->DeepCopy(polyData);
         m_storedContourPosition = m_pos;
-        m_storedContourMode = m_contourWidget->getContourMode();
+        m_storedContourMode = m_contourWidget->contourMode();
       }
 
       m_contourWidget->Initialize(nullptr);
@@ -99,11 +99,11 @@ void SliceContourWidget::setSlice(Nm pos, Plane plane)
 }
 
 //-----------------------------------------------------------------------------
-QPair<BrushSelector::BrushMode, vtkPolyData *> SliceContourWidget::getContour()
+QPair<DrawingMode, vtkPolyData *> SliceContourWidget::contour()
 {
   if (!m_initialized) Q_ASSERT(false);
 
-  QPair<BrushSelector::BrushMode, vtkPolyData *> result(BrushSelector::BrushMode::BRUSH, nullptr);
+  QPair<DrawingMode, vtkPolyData *> result(DrawingMode::PAINTING, nullptr);
 
   auto rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->m_contourWidget->GetRepresentation());
   auto polyData = rep->GetContourRepresentationAsPolyData();
@@ -122,7 +122,7 @@ QPair<BrushSelector::BrushMode, vtkPolyData *> SliceContourWidget::getContour()
       contourPoints->SetPoint(ndx, coords);
     }
 
-    result.first = m_contourWidget->getContourMode();
+    result.first = m_contourWidget->contourMode();
     result.second = contour;
   }
   else
@@ -156,7 +156,7 @@ void SliceContourWidget::SetEnabled(int value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceContourWidget::setMode(BrushSelector::BrushMode mode)
+void SliceContourWidget::setDrawingMode(DrawingMode mode)
 {
    this->m_contourWidget->setContourMode(mode);
 }
@@ -187,7 +187,7 @@ void SliceContourWidget::Initialize(ContourWidget::ContourData contour)
 
   if (m_pos == contourPos)
   {
-    m_contourWidget->setActualContourMode(contour.mode);
+    m_contourWidget->setContourMode(contour.mode);
     m_contourWidget->Initialize(contour.polyData);
   }
   else

@@ -33,7 +33,7 @@
 #include <iostream>
 #include <unistd.h>
 
-#include <QApplication>
+#include <QCoreApplication>
 #include <QThread>
 
 using namespace ESPINA;
@@ -41,44 +41,42 @@ using namespace std;
 
 int scheduler_simple_task_abort( int argc, char** argv )
 {
-  
   int error = 0;
-  
-  int period = 50000;//0.05 sec
+
+  int period = 1000;// 1ms
 
   int tasksPerPeriod = 2;
   int sleepTime = period/tasksPerPeriod;
   int taskTime  = 10*sleepTime;
 
-  QApplication app(argc, argv);
-  
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(period)); //0.5sec
-  std::shared_ptr<SleepyTask> sleepyTask{new SleepyTask(sleepTime, scheduler)};
+  QCoreApplication app(argc, argv);
+
+  auto scheduler  = make_shared<Scheduler>(period); //0.5sec
+  auto sleepyTask = make_shared<SleepyTask>(sleepTime, scheduler);
   sleepyTask->setDescription("Simple Task");
-  
+
   if (sleepyTask->Result != -1) {
     error = 1;
     std::cerr << "Unexpected initial sleepy task value" << std::endl;
-  }    
+  }
 
   Task::submit(sleepyTask);
-  
+
   usleep(taskTime/2);
-  
+
+  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
+                   &app, SLOT(quit()));
+
   sleepyTask->abort();
-  
+
   usleep(taskTime/2);
-  
-  if (sleepyTask->Result != 0) {
+
+  if (sleepyTask->Result == -1 || sleepyTask->Result == SleepyTask::Iterations) {
     error = 1;
     std::cerr << "Unexpected final sleepy task value" << sleepyTask->Result << std::endl;
   }
-  QObject::connect(sleepyTask->thread(), SIGNAL(destroyed(QObject*)),
-                   &app, SLOT(quit()));
-  
-  sleepyTask.reset();
-  
+
   app.exec();
-  
+
   return error;
 }

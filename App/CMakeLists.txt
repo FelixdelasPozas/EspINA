@@ -46,9 +46,10 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edition/SplitTool.h
   ToolGroups/Measures/MeasuresTools.h
   ToolGroups/ROI/CleanROITool.h
-  ToolGroups/ROI/ManualROITool.h
+#   ToolGroups/ROI/ManualROITool.h
   ToolGroups/ROI/OrthogonalROITool.h
   ToolGroups/ROI/ROITools.h
+  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.h
   ToolGroups/Segmentation/CustomROIWidget.h
   ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
   ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
@@ -58,13 +59,15 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Skeleton/SkeletonToolGroup.h
   ToolGroups/Skeleton/SkeletonTool.h
   ToolGroups/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/ViewState/ResetZoom.h
-  ToolGroups/ViewState/ToggleCrosshairVisibility.h
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.h
-  ToolGroups/ViewState/ViewTools.h
-  ToolGroups/ViewState/ZoomArea.h
-  Tools/Brushes/CircularBrushROISelector.h
-  Tools/Brushes/SphericalBrushROISelector.h
+  ToolGroups/View/RepresentationsGroupTool.h
+  ToolGroups/View/Representations/CrosshairsSwitch2D.h
+  ToolGroups/View/ResetZoom.h
+  ToolGroups/View/ToggleCrosshairVisibility.h
+  ToolGroups/View/ToggleSegmentationsVisibility.h
+  ToolGroups/View/ViewToolGroup.h
+  ToolGroups/View/ZoomAreaTool.h
+#   Tools/Brushes/CircularBrushROISelector.h
+#   Tools/Brushes/SphericalBrushROISelector.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
   Undo/BrushUndoCommand.h
@@ -142,12 +145,13 @@ set (ESPINA_SOURCES
   ToolGroups/Edition/CODEHistoryWidget.cpp
   ToolGroups/Edition/CODETool.cpp
   ToolGroups/Edition/EditionTools.cpp
+  ToolGroups/Edition/SliceEditionPipeline.cpp
   ToolGroups/Edition/ManualEditionTool.cpp
   ToolGroups/Edition/MorphologicalEditionTool.cpp
   ToolGroups/Edition/SplitTool.cpp
   ToolGroups/Measures/MeasuresTools.cpp
   ToolGroups/ROI/CleanROITool.cpp
-  ToolGroups/ROI/ManualROITool.cpp
+#   ToolGroups/ROI/ManualROITool.cpp
   ToolGroups/ROI/OrthogonalROITool.cpp
   ToolGroups/ROI/ROITools.cpp
   ToolGroups/Segmentation/CustomROIWidget.cpp
@@ -160,18 +164,25 @@ set (ESPINA_SOURCES
   ToolGroups/Skeleton/SkeletonToolGroup.cpp
   ToolGroups/Skeleton/SkeletonTool.cpp
   ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
-  ToolGroups/ViewState/ResetZoom.cpp
-  ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp
-  ToolGroups/ViewState/ViewTools.cpp
-  ToolGroups/ViewState/ZoomArea.cpp
-  Tools/Brushes/CircularBrushROISelector.cpp
-  Tools/Brushes/ROISelectorBase.cpp
-  Tools/Brushes/SphericalBrushROISelector.cpp
+  ToolGroups/View/RepresentationsGroupTool.cpp
+  ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
+  ToolGroups/View/Representations/ChannelSlice/ChannelSlicePipeline.cpp
+  ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
+  ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
+  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
+  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
+  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
+  ToolGroups/View/ResetZoom.cpp
+  ToolGroups/View/ToggleCrosshairVisibility.cpp
+  ToolGroups/View/ToggleSegmentationsVisibility.cpp
+  ToolGroups/View/ViewToolGroup.cpp
+  ToolGroups/View/ZoomAreaTool.cpp
+#   Tools/Brushes/CircularBrushROISelector.cpp
+#   Tools/Brushes/ROISelectorBase.cpp
+#   Tools/Brushes/SphericalBrushROISelector.cpp
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
   Undo/BrushUndoCommand.cpp
-  Undo/ContourUndoCommand.cpp
   Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp

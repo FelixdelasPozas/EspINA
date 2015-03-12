@@ -75,7 +75,7 @@ void OrthogonalRegion::registerView(RenderView *view)
     wi->AddObserver(vtkCommand::EndInteractionEvent, m_command);
     wi->SetView(view2d);
     wi->SetPlane(view2d->plane());
-    wi->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
+    wi->SetSlice(view2d->crosshair()[normalCoordinateIndex(view2d->plane())]);
     wi->SetBounds(m_bounds);
     wi->setRepresentationColor(m_color);
     wi->setRepresentationPattern(m_pattern);

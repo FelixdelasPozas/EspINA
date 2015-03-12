@@ -26,6 +26,7 @@
 #include "EspinaErrorHandler.h"
 #include "RecentDocuments.h"
 #include "Settings/GeneralSettings/GeneralSettings.h"
+#include "ToolGroups/View/ViewToolGroup.h"
 #include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
@@ -33,15 +34,14 @@
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
-#include <GUI/Representations/Renderers/VolumetricRenderer.h>
-#include <GUI/Representations/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Widgets/SchedulerProgress.h>
-#include <Support/Widgets/DockWidget.h>
+#include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
+#include <Support/Representations/RepresentationFactory.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Widgets/DockWidget.h>
 
 // Qt
 #include <QMainWindow>
@@ -63,8 +63,6 @@ namespace ESPINA
   class ROISettings;
   class MainToolBar;
   class ColorEngineMenu;
-  template class VolumetricRenderer<itkVolumeType>;
-  template class VolumetricGPURenderer<itkVolumeType>;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -235,6 +233,20 @@ namespace ESPINA
     virtual void closeEvent(QCloseEvent *event) override;
 
   private:
+    void restoreRepresentationSwitchSettings();
+
+    void initColorEngines(QMenu *parentMenu);
+
+    void registerColorEngine(const QString   &title,
+                             ColorEngineSPtr  colorEngine);
+
+    void initRepresentations();
+
+    /** \brief Registers representation factory
+     *
+     */
+    void registerRepresentationFactory(RepresentationFactorySPtr factory);
+
     /** \brief Runs a series of test on the analysis to check for errors.
      *
      */
@@ -268,6 +280,7 @@ namespace ESPINA
      *
      */
     void registerToolGroup(ToolGroupPtr tools);
+
 
     /** \brief Loads a list of plugins in the application.
      * \param[in] plugins list of plugins to load.
@@ -310,7 +323,7 @@ namespace ESPINA
     QAction         *m_closeAnalysis;
     QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
-    ColorEngineMenu *m_colorEngines;
+    ColorEngineMenu *m_colorEngineMenu;
     QMenu           *m_dockMenu;
 
     QToolBar *m_mainBar;
@@ -323,7 +336,8 @@ namespace ESPINA
     ExtensionFactorySList m_extensionFactories;
     SettingsPanelSList    m_availableSettingsPanels;
 
-    MainToolBar*          m_mainToolBar;
+    MainToolBar          *m_mainToolBar;
+    ViewToolGroup        *m_viewToolGroup;
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 
@@ -331,6 +345,8 @@ namespace ESPINA
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
     QList<QPluginLoader *>    m_plugins;
+
+    RepresentationFactorySList m_representationFactories;
 
     MenuState m_menuState;
 

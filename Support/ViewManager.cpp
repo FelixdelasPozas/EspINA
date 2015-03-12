@@ -23,6 +23,7 @@
 #include "Widgets/ToolGroup.h"
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
+#include <App/ToolGroups/View/ViewToolGroup.h>
 
 // VTK
 #include <vtkMath.h>
@@ -40,7 +41,9 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_selection        {new Selection()}
+: m_timer            {new Timer{1}}
+, m_viewState        {new ViewState{m_timer}}
+, m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
 , m_contextualToolBar{nullptr}
 , m_toolGroup        {nullptr}
@@ -78,6 +81,66 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::registerView(SelectableView* view)
+{
+  Q_ASSERT(!m_espinaViews.contains(view));
+  view->setSharedSelection(m_selection);
+  m_espinaViews << view;
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::registerView(RenderView* view)
+{
+  registerView(static_cast<SelectableView *>(view));
+
+  Q_ASSERT(!m_renderViews.contains(view));
+  m_renderViews << view;
+
+  view->setState(m_viewState);
+  view->setEventHandler(m_eventHandler);
+  //view->setColorEngine(m_colorEngine);
+
+  view->setChannelSources(&m_channelSources);
+
+  for (auto manager : m_repManagers)
+  {
+    if (manager->supportedViews().testFlag(view->type()))
+    {
+      view->addRepresentationManager(manager->clone());
+    }
+  }
+
+  for (auto widget : m_widgets)
+  {
+    view->addWidget(widget);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(SelectableView* view)
+{
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(RenderView* view)
+{
+  Q_ASSERT(m_renderViews.contains(view));
+
+  m_renderViews.removeAll(view);
+  unregisterView(static_cast<SelectableView *>(view));
+
+  view->setEventHandler(EventHandlerSPtr());
+  view->setState(std::make_shared<ViewState>());
+
+  for(auto widget: m_widgets)
+  {
+    view->removeWidget(widget);
+  }
+}
+
+//----------------------------------------------------------------------------
 QList<View2D *> ViewManager::sliceViews()
 {
   QList<View2D *> views;
@@ -92,86 +155,106 @@ QList<View2D *> ViewManager::sliceViews()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::registerView(SelectableView* view)
+void ViewManager::addRepresentationPools(const QString& group, RepresentationPoolSList pools)
 {
-  Q_ASSERT(!m_espinaViews.contains(view));
-  view->setSharedSelection(m_selection);
-  m_espinaViews << view;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::registerView(RenderView* view)
-{
-  Q_ASSERT(!m_renderViews.contains(view));
-  m_renderViews << view;
-  registerView(static_cast<SelectableView *>(view));
-
-  view->setEventHandler(m_eventHandler);
-  view->setColorEngine(m_colorEngine);
-
-  for(auto widget: m_widgets)
-    view->addWidget(widget);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterView(SelectableView* view)
-{
-  Q_ASSERT(m_espinaViews.contains(view));
-  m_espinaViews.removeAll(view);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterView(RenderView* view)
-{
-  Q_ASSERT(m_renderViews.contains(view));
-  m_renderViews.removeAll(view);
-  unregisterView(static_cast<SelectableView *>(view));
-
-  for(auto widget: m_widgets)
-    view->removeWidget(widget);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::registerRenderer(RendererSPtr newRenderer)
-{
-  for(auto renderer: m_availableRenderers)
-    if(renderer->name() == newRenderer->name())
-      return;
-
-  m_availableRenderers << newRenderer;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterRenderer(const QString &name)
-{
-  for (auto renderer: m_availableRenderers)
-    if(renderer->name() == name)
+  if (ViewToolGroup::CHANNELS_GROUP == group)
+  {
+    for (auto pool : pools)
     {
-      m_availableRenderers.removeOne(renderer);
-      return;
+      pool->setPipelineSources(&m_channelSources);
+      m_channelPools << pool;
     }
+  }
+  else if (ViewToolGroup::SEGMENTATIONS_GROUP == group)
+  {
+    for (auto pool : pools)
+    {
+      pool->setPipelineSources(&m_segmentationSources);
+      m_segmentationPools << pool;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-QStringList ViewManager::renderers(const RendererType type) const
+void ViewManager::addRepresentationManagers(RepresentationManagerSList repManagers)
 {
-  QStringList rendererNames;
+  for (auto repManager : repManagers)
+  {
+    for (auto renderView : m_renderViews)
+    {
+      if (repManager->supportedViews().testFlag(renderView->type()))
+      {
+        renderView->addRepresentationManager(repManager->clone());
+      }
+    }
+    m_repManagers << repManager;
+  }
+}
 
-  for(auto renderer: m_availableRenderers)
-    if(renderer->renderType().testFlag(type) && !rendererNames.contains(renderer->name()))
-      rendererNames << renderer->name();
+//---------------------------------------------------------------------------
+/********************* ViewItem Management API *****************************/
+//---------------------------------------------------------------------------
 
-  return rendererNames;
+//----------------------------------------------------------------------------
+void ViewManager::add(ChannelAdapterPtr channel)
+{
+  m_channelSources.addSource(channel);
 }
 
 //----------------------------------------------------------------------------
-RendererSPtr ViewManager::cloneRenderer(const QString &name) const
+void ViewManager::add(SegmentationAdapterPtr segmentation)
 {
-  for(auto renderer: m_availableRenderers)
-    if(renderer->name() == name)
-      return renderer->clone();
+  m_segmentationSources.addSource(segmentation);
+}
 
-  return RendererSPtr{};
+//----------------------------------------------------------------------------
+void ViewManager::remove(ChannelAdapterPtr channel)
+{
+  m_channelSources.removeSource(channel);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::remove(SegmentationAdapterPtr segmentation)
+{
+  m_segmentationSources.removeSource(segmentation);
+}
+
+//----------------------------------------------------------------------------
+bool ViewManager::updateRepresentation(ChannelAdapterPtr channel, bool render) // TODO: Remove render flag
+{
+  m_channelSources.onSourceUpdated(channel);
+
+  return true; // TODO Void
+
+
+  // TODO: Seguramente como parte del nuevo algoritmo de render de la vista
+//   if (!m_sceneCameraInitialized && state.visible)
+//   {
+//     m_sceneCameraInitialized = true;
+//     resetCamera();
+//   }
+//
+//   m_renderer->ResetCameraClippingRange();
+//
+//   if (render && isVisible())
+//   {
+//     m_view->GetRenderWindow()->Render();
+//     m_view->update();
+//   }
+}
+
+//----------------------------------------------------------------------------
+bool ViewManager::updateRepresentation(SegmentationAdapterPtr seg, bool render)
+{
+  Q_ASSERT(false);
+  return false;
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::removeAllViewItems()
+{
+  m_segmentationSources.clear();
+  m_channelSources.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -411,15 +494,6 @@ void ViewManager::updateChannelRepresentations(ChannelAdapterList list)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setSegmentationVisibility(bool visible)
-{
-  for(auto view: m_renderViews)
-  {
-    view->setSegmentationsVisibility(visible);
-  }
-}
-
-//----------------------------------------------------------------------------
 void ViewManager::setCrosshairVisibility(bool value)
 {
   for(auto view: sliceViews())
@@ -453,17 +527,13 @@ void ViewManager::setColorEngine(ColorEngineSPtr engine)
 {
   m_colorEngine = engine;
 
-  for(auto view: m_renderViews)
-    view->setColorEngine(engine);
-
   updateSegmentationRepresentations();
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::focusViewsOn(const NmVector3& point)
 {
-  for(auto view: m_renderViews)
-    view->centerViewOn(point, true);
+  m_viewState->focusViewOn(point);
 }
 
 //----------------------------------------------------------------------------

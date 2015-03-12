@@ -47,3 +47,9 @@ QIcon DefaultIcons::File()
 {
   return qApp->style()->standardIcon(QStyle::SP_FileIcon);
 }
+
+//------------------------------------------------------------------------
+QIcon DefaultIcons::Settings()
+{
+  return QIcon(":/espina/settings.png");
+}

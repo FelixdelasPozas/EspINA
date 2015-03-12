@@ -21,61 +21,17 @@
 // ESPINA
 #include "EditionTools.h"
 #include <App/Undo/BrushUndoCommand.h>
-#include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Output.h>
-#include <Core/Analysis/Data/VolumetricData.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
-#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
-#include <Core/Utils/vtkPolyDataUtils.h>
-#include <Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
-#include <GUI/Model/Utils/QueryAdapter.h>
-#include <Support/Utils/SelectionUtils.h>
-#include <Undo/AddSegmentations.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
-#include <Undo/ContourUndoCommand.h>
 
 // Qt
 #include <QApplication>
 
-using ESPINA::Filter;
-
-const Filter::Type SOURCE_FILTER    = "FreeFormSource";
-const Filter::Type SOURCE_FILTER_V4 = "EditorToolBar::FreeFormSource";
-
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 
-//-----------------------------------------------------------------------------
-FilterTypeList EditionTools::ManualFilterFactory::providedFilters() const
-{
-  FilterTypeList filters;
-
-  filters << SOURCE_FILTER << SOURCE_FILTER_V4;
-
-  return filters;
-}
-
-//-----------------------------------------------------------------------------
-FilterSPtr EditionTools::ManualFilterFactory::createFilter(InputSList          inputs,
-                                                           const Filter::Type& filter,
-                                                           SchedulerSPtr       scheduler) const
-throw(Unknown_Filter_Exception)
-{
-  if (!providedFilters().contains(filter)) throw Unknown_Filter_Exception();
-
-  auto ffsFilter = std::make_shared<SourceFilter>(inputs, SOURCE_FILTER, scheduler);
-
-  if (!m_dataFactory)
-  {
-    m_dataFactory = std::make_shared<MarchingCubesFromFetchedVolumetricData>();
-  }
-
-  ffsFilter->setDataFactory(m_dataFactory);
-
-  return ffsFilter;
-}
 
 //-----------------------------------------------------------------------------
 EditionTools::EditionTools(ModelAdapterSPtr          model,
@@ -88,23 +44,14 @@ EditionTools::EditionTools(ModelAdapterSPtr          model,
 , m_factory      {factory}
 , m_undoStack    {undoStack}
 , m_model        {model}
-, m_filterFactory{new ManualFilterFactory()}
 {
-  m_factory->registerFilterFactory(m_filterFactory);
 
-  m_manualEdition = std::make_shared<ManualEditionTool>(model, viewManager);
-
-  connect(m_manualEdition.get(), SIGNAL(stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)),
-          this,                  SLOT(drawStroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>)), Qt::DirectConnection);
-  connect(m_manualEdition.get(), SIGNAL(stopDrawing(ViewItemAdapterPtr, bool)),
-          this,                  SLOT(onEditionFinished(ViewItemAdapterPtr,bool)));
-  connect(m_manualEdition.get(), SIGNAL(drawContours(CategoryAdapterSPtr, ContourWidget::ContourData)),
-          this,                  SLOT(drawContours(CategoryAdapterSPtr, ContourWidget::ContourData)));
-  connect(m_manualEdition.get(), SIGNAL(contourModified(ContourWidget::ContourData)),
-          this,                  SLOT(contourModified(ContourWidget::ContourData)));
-
-  m_split = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
+  m_manualEdition = std::make_shared<ManualEditionTool>(model, factory, undoStack, viewManager);
+  m_split         = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
   m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
+
+  connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
+          this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
           this,                             SLOT(selectionChanged()));
@@ -164,9 +111,9 @@ void EditionTools::selectionChanged()
   auto selectionSize = selection.size();
 
   SegmentationAdapterSPtr selectedSeg;
-  auto noSegmentation      = (selectionSize == 0);
-  auto onlyOneSegmentation = (selectionSize == 1);
-  auto hasRequiredData     = false;
+  auto noSegmentation       = (selectionSize == 0);
+  auto onlyOneSegmentation  = (selectionSize == 1);
+  auto hasRequiredData      = false;
 
   if(onlyOneSegmentation)
   {
@@ -188,228 +135,43 @@ void EditionTools::abortOperation()
 }
 
 //-----------------------------------------------------------------------------
-void EditionTools::drawStroke(CategoryAdapterSPtr category, BinaryMaskSPtr<unsigned char> mask)
+void EditionTools::onVoxelDeletion(ViewItemAdapterPtr item)
 {
-  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
-  auto selection = m_viewManager->selection();
+  Q_ASSERT(item && isSegmentation(item) && hasVolumetricData(item->output()));
 
-  if(selection->items().empty())
+  auto segmentation = segmentationPtr(item);
+
+  auto volume = volumetricData(segmentation->output());
+
+  if (volume->isEmpty())
   {
-    ChannelAdapterList primaryChannel;
-    primaryChannel << m_viewManager->activeChannel();
-    selection->set(primaryChannel);
-  }
-
-  SegmentationAdapterSPtr segmentation;
-  if(!selection->segmentations().empty())
-  {
-    auto item = selection->segmentations().first();
-    segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
-    m_undoStack->beginMacro(tr("Modify Segmentation"));
-    m_undoStack->push(new DrawUndoCommand(segmentation, mask));
-    m_undoStack->endMacro();
-  }
-  else if(!selection->channels().empty())
-  {
-    auto item    = selection->channels().first();
-    auto channel = static_cast<ChannelAdapterPtr>(item);
-    auto output  = channel->output();
-
-    auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-
-    auto strokeBounds  = mask->bounds().bounds();
-    auto strokeSpacing = output->spacing();
-    auto strokeOrigin  = channel->position();
-
-    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(strokeBounds, strokeSpacing, strokeOrigin);
-    volume->draw(mask);
-
-    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
-
-    filter->addOutputData(0, volume);
-    filter->addOutputData(0, mesh);
-
-    segmentation = m_factory->createSegmentation(filter, 0);
-    segmentation->setCategory(category);
-
-
-    SampleAdapterSList samples;
-    samples << QueryAdapter::sample(channel);
-    Q_ASSERT(channel && (samples.size() == 1));
-
-    m_undoStack->beginMacro(tr("Add Segmentation"));
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-    m_undoStack->endMacro();
-
-    SegmentationAdapterList list;
-    list << segmentation.get();
-    m_viewManager->selection()->clear();
-    m_viewManager->selection()->set(list);
-    if(tool)
+    m_undoStack->blockSignals(true);
+    do
     {
-      tool->updateReferenceItem();
+      m_undoStack->undo();
     }
-  }
-  else
-  {
-    Q_ASSERT(false);
-  }
+    while(volume->isEmpty());
+    m_undoStack->blockSignals(false);
 
-  m_viewManager->updateSegmentationRepresentations(segmentation.get());
-  m_viewManager->updateViews();
-}
-
-//-----------------------------------------------------------------------------
-void EditionTools::onEditionFinished(ViewItemAdapterPtr item, bool eraserModeEntered)
-{
-  if (eraserModeEntered && item && isSegmentation(item))
-  {
-    auto segmentation = segmentationPtr(item);
-
-    auto volume = volumetricData(segmentation->output());
-
-    if (volume->isEmpty())
+    if(segmentation->output()->numberOfDatas() == 1)
     {
-      m_undoStack->blockSignals(true);
-      do
-      {
-        m_undoStack->undo();
-      }
-      while(volume->isEmpty());
-      m_undoStack->blockSignals(false);
+      auto name = segmentation->data(Qt::DisplayRole).toString();
+      DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
+                                         tr("%1 will be deleted because all its voxels were erased.").arg(name));
 
-      if(segmentation->output()->numberOfDatas() == 1)
-      {
-        auto name = segmentation->data(Qt::DisplayRole).toString();
-        DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
-                                           tr("%1 will be deleted because all its voxels were erased.").arg(name));
-
-        m_undoStack->beginMacro("Remove Segmentation");
-        m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
-      }
-      else
-      {
-        auto output = segmentation->output();
-        m_undoStack->beginMacro("Remove Segmentation's volume");
-        m_undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
-      }
-      m_undoStack->endMacro();
+      m_undoStack->beginMacro("Remove Segmentation");
+      m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
     }
     else
     {
-      fitToContents(volume, SEG_BG_VALUE);
+      auto output = segmentation->output();
+      m_undoStack->beginMacro("Remove Segmentation's volume");
+      m_undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
     }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void EditionTools::drawContours(CategoryAdapterSPtr category, ContourWidget::ContourData contourData)
-{
-  qDebug() << "editionTools::drawContours";
-
-  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
-  auto selection = m_viewManager->selection();
-
-  if(!contourData.polyData) return;
-
-  if(selection->items().empty())
-  {
-    ChannelAdapterList primaryChannel;
-    primaryChannel << m_viewManager->activeChannel();
-    selection->set(primaryChannel);
-  }
-
-  SegmentationAdapterSPtr segmentation;
-  if(!selection->segmentations().empty())
-  {
-    auto item = selection->segmentations().first();
-    segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(item));
-    auto spacing = segmentation->output()->spacing();
-
-    m_undoStack->beginMacro(tr("Modify Segmentation"));
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    auto contourVolume = PolyDataUtils::rasterizeContourToMask(contourData.polyData, contourData.plane, contourData.contourPosition, spacing);
-    m_undoStack->push(new ContourRasterizeUndoCommand(segmentation.get(), contourVolume, contourData, tool));
-
-    QApplication::restoreOverrideCursor();
     m_undoStack->endMacro();
-  }
-  else if(!selection->channels().empty())
-  {
-    auto item    = selection->channels().first();
-    auto channel = static_cast<ChannelAdapterPtr>(item);
-    auto output  = channel->output();
-    auto spacing = output->spacing();
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    auto contourVolume = PolyDataUtils::rasterizeContourToMask(contourData.polyData, contourData.plane, contourData.contourPosition, spacing);
-    QApplication::restoreOverrideCursor();
-
-    auto filter = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
-
-    auto strokeBounds  = contourVolume->bounds().bounds();
-    auto strokeSpacing = output->spacing();
-    auto strokeOrigin  = channel->position();
-
-    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(strokeBounds, strokeSpacing, strokeOrigin);
-    volume->draw(contourVolume);
-    auto mesh = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
-
-    filter->addOutputData(0, volume);
-    filter->addOutputData(0, mesh);
-
-    segmentation = m_factory->createSegmentation(filter, 0);
-    segmentation->setCategory(category);
-
-    SampleAdapterSList samples;
-    samples << QueryAdapter::sample(channel);
-    Q_ASSERT(channel && (samples.size() == 1));
-
-    m_undoStack->beginMacro(tr("Add Segmentation"));
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-    m_undoStack->push(new ContourRasterizeUndoCommand(segmentation.get(), nullptr, contourData, tool));
-    m_undoStack->endMacro();
-
-    SegmentationAdapterList list;
-    list << segmentation.get();
-    m_viewManager->selection()->clear();
-    m_viewManager->selection()->set(list);
-    if(tool)
-    {
-      tool->updateReferenceItem();
-    }
   }
   else
   {
-    Q_ASSERT(false);
+    fitToContents(volume, SEG_BG_VALUE);
   }
-
-  if(m_previousContour.polyData)
-  {
-    m_previousContour.polyData->Delete();
-  }
-
-  m_viewManager->updateSegmentationRepresentations(segmentation.get());
-  m_viewManager->updateViews();
-}
-
-//-----------------------------------------------------------------------------
-void EditionTools::contourModified(ContourWidget::ContourData contour)
-{
-  qDebug() << "editionTools::contourModified";
-
-  if(!contour.polyData) return;
-
-  auto tool      = qobject_cast<ManualEditionToolPtr>(sender());
-
-  m_undoStack->beginMacro(tr("Modify Segmentation"));
-  m_undoStack->push(new ContourModificationUndoCommand(m_previousContour, contour, tool));
-  m_undoStack->endMacro();
-
-  m_previousContour.polyData = contour.polyData;
-  m_previousContour.contourPosition = contour.contourPosition;
-  m_previousContour.actualPosition = contour.actualPosition;
-  m_previousContour.mode = contour.mode;
-  m_previousContour.plane = contour.plane;
 }

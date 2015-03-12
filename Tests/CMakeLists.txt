@@ -2,8 +2,6 @@ enable_testing()
 
 set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build ESPINA Unit Tests")
 
-set (BUILD_CI_TESTS   OFF  CACHE BOOL "Build ESPINA Continous Integration Tests")
-
 set (USE_DASHBOARD    OFF  CACHE BOOL "Use ESPINA Unitary Tests Dashboard")
 
 if (${USE_DASHBOARD})
@@ -137,7 +135,6 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
-  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )
@@ -185,11 +182,6 @@ set(TESTING_DEPENDECIES
 if (BUILD_UNIT_TESTS)
 
   add_subdirectory(Unitary)
-
-endif(BUILD_UNIT_TESTS)
-
-if (BUILD_CI_TESTS)
-
   add_subdirectory(Integration)
 
-endif(BUILD_CI_TESTS)
+endif(BUILD_UNIT_TESTS)

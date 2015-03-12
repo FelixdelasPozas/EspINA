@@ -32,82 +32,82 @@
 class EspinaGUI_EXPORT vtkInteractorStyleEspinaSlice
 : public vtkInteractorStyleImage
 {
-	public:
-		static vtkInteractorStyleEspinaSlice *New();
-		vtkTypeMacro(vtkInteractorStyleEspinaSlice, vtkInteractorStyleImage);
+public:
+  static vtkInteractorStyleEspinaSlice *New();
+  vtkTypeMacro(vtkInteractorStyleEspinaSlice, vtkInteractorStyleImage);
 
-		/** \brief Disable mouse wheel.
-		 *
-		 */
-		virtual void OnMouseWheelForward() override
-		{}
+  /** \brief Disable mouse wheel.
+   *
+   */
+  virtual void OnMouseWheelForward() override
+  {}
 
-		/** \brief Disable mouse wheel.
-		 *
-		 */
-		virtual void OnMouseWheelBackward() override
-		{}
+  /** \brief Disable mouse wheel.
+   *
+   */
+  virtual void OnMouseWheelBackward() override
+  {}
 
-		/** \brief Disable keyboard.
-		 *
-		 */
-		virtual void OnKeyPress() override
-		{}
+  /** \brief Disable keyboard.
+   *
+   */
+  virtual void OnKeyPress() override
+  {}
 
-		/** \brief Disable keyboard.
-		 *
-		 */
-		virtual void OnKeyRelease() override
-		{}
+  /** \brief Disable keyboard.
+   *
+   */
+  virtual void OnKeyRelease() override
+  {}
 
-		/** \brief Disable keyboard.
-		 *
-		 */
-		virtual void OnKeyUp() override
-		{}
+  /** \brief Disable keyboard.
+   *
+   */
+  virtual void OnKeyUp() override
+  {}
 
-		/** \brief Disable keyboard.
-		 *
-		 */
-		virtual void OnKeyDown() override
-		{}
+  /** \brief Disable keyboard.
+   *
+   */
+  virtual void OnKeyDown() override
+  {}
 
-		/** \brief Disable mdifications of brightness and saturation.
-		 *
-		 */
-		virtual void OnLeftButtonDown() override
-		{}
+  /** \brief Disable mdifications of brightness and saturation.
+   *
+   */
+  virtual void OnLeftButtonDown() override
+  {}
 
-		/** \brief Disable mdifications of brightness and saturation.
-		 *
-		 */
-		virtual void OnLeftButtonUp() override
-		{}
+  /** \brief Disable mdifications of brightness and saturation.
+   *
+   */
+  virtual void OnLeftButtonUp() override
+  {}
 
-		/** \brief Disable zoom if ctrl is pressed.
-		 *
-		 */
-		virtual void OnRightButtonDown();
+  /** \brief Disable zoom if ctrl is pressed.
+   *
+   */
+  virtual void OnRightButtonDown();
 
-	protected:
-		/** \brief vtkInteractorStyleEspinaSlice class constructor.
-		 *
-		 */
-		explicit vtkInteractorStyleEspinaSlice()
-		{
-			AutoAdjustCameraClippingRangeOn();
-			KeyPressActivationOff();
-		}
+protected:
+  /** \brief vtkInteractorStyleEspinaSlice class constructor.
+   *
+   */
+  explicit vtkInteractorStyleEspinaSlice()
+  {
+    AutoAdjustCameraClippingRangeOn();
+    KeyPressActivationOff();
+  }
 
-		/** \brief vtkInteractorStyleEspinaSlice class destructor.
-		 *
-		 */
-		virtual ~vtkInteractorStyleEspinaSlice()
-		{}
+  /** \brief vtkInteractorStyleEspinaSlice class destructor.
+   *
+   */
+  virtual ~vtkInteractorStyleEspinaSlice()
+  {}
 
-	private:
-		vtkInteractorStyleEspinaSlice(const vtkInteractorStyleEspinaSlice&); // Not implemented
-		void operator=(const vtkInteractorStyleEspinaSlice&);// Not implemented
+private:
+  vtkInteractorStyleEspinaSlice(const vtkInteractorStyleEspinaSlice&); // Not implemented
+  void operator=(const vtkInteractorStyleEspinaSlice&);// Not implemented
 };
 
 using View2DInteractor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>;

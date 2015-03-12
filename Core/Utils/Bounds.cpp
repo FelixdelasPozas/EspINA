@@ -122,10 +122,17 @@ Bounds::Bounds(const NmVector3& point)
   {
     m_bounds[i] = point[i/2];
   }
-  for (Axis dir : {Axis::X, Axis::Y, Axis::Z}) {
+  for (Axis dir : {Axis::X, Axis::Y, Axis::Z})
+  {
     m_lowerInclusion[idx(dir)] = true;
     m_upperInclusion[idx(dir)] = true;
   }
+}
+
+//-----------------------------------------------------------------------------
+Bounds::Bounds(Nm *bounds)
+: Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]}
+{
 }
 
 //-----------------------------------------------------------------------------

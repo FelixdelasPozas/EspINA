@@ -25,7 +25,7 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <GUI/Selectors/BrushSelector.h>
+#include <GUI/EventHandlers/MaskPainter.h>
 
 // VTK
 #include <vtkAbstractWidget.h>
@@ -155,7 +155,7 @@ namespace ESPINA
     /** \brief Sets the contour polygon color.
      *
      */
-    virtual void setPolygonColor(QColor);
+    virtual void setPolygonColor(const QColor &color);
 
     /** \brief Returns the contour polygon color.
      *
@@ -175,17 +175,12 @@ namespace ESPINA
      * \param[in] mode, brush erase/draw mode.
      *
      */
-    void setContourMode(BrushSelector::BrushMode mode);
+    void setContourMode(DrawingMode mode);
 
     /** \brief Returns the contour mode.
      *
      */
-    BrushSelector::BrushMode getContourMode();
-
-    /** \brief Used by the slice widget to set the mode of a previously stored contour.
-     *
-     */
-    void setActualContourMode(BrushSelector::BrushMode mode);
+    DrawingMode contourMode();
 
     /** \brief Sets the shift in the orientation of the representation of the widget.
      * \param[in] value representation shift value in Nm.
@@ -248,7 +243,7 @@ namespace ESPINA
      */
     virtual void SetCursor(int State) override;
 
-    /** \brief Helper method to avoid creating too many points in continuos drawing.
+    /** \brief Helper method to avoid creating too many points in continuous drawing.
      * \param[in] x, x coordinante.
      * \param[in] y, y coordinate.
      *
@@ -275,8 +270,8 @@ namespace ESPINA
     bool mouseButtonDown; /// to create almost equally spaced points when using continuous drawing
     QColor m_polygonColor;
     ContourWidget *m_parent;
-    BrushSelector::BrushMode m_contourMode;
-    BrushSelector::BrushMode m_actualBrushMode;
+    DrawingMode m_contourMode;
+    DrawingMode m_actualContourMode;
     Nm m_actorShift;
     Nm m_slice;
   };

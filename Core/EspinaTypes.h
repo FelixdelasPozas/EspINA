@@ -73,6 +73,8 @@ namespace ESPINA
   using RelationName = QString;
 
   using TimeStamp = unsigned long long;
+  using TimeRange = QList<TimeStamp>;
+  const TimeStamp MAX_TIMESTAMP = std::numeric_limits<TimeStamp>::max();
 } // namespace ESPINA
 
 #endif// ESPINATYPES_H

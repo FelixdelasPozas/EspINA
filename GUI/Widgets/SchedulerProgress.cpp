@@ -65,10 +65,11 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 
   qRegisterMetaType<TaskSPtr>("TaskSPtr");
 
+  // NOTE: Need to be queued to prevent signal reordering
   connect(m_scheduler.get(), SIGNAL(taskAdded(TaskSPtr)),
-          this, SLOT(onTaskAdded(TaskSPtr)));
+          this, SLOT(onTaskAdded(TaskSPtr)), Qt::QueuedConnection);
   connect(m_scheduler.get(), SIGNAL(taskRemoved(TaskSPtr)),
-          this, SLOT(onTaskRemoved(TaskSPtr)));
+          this, SLOT(onTaskRemoved(TaskSPtr)), Qt::QueuedConnection);
   connect(m_showTasks, SIGNAL(toggled(bool)),
           this, SLOT(showTaskProgress(bool)));
 }
@@ -87,13 +88,16 @@ SchedulerProgress::~SchedulerProgress()
 void SchedulerProgress::onTaskAdded(TaskSPtr task)
 throw (Duplicated_Task_Exception)
 {
+  m_mutex.lock();
   if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
 
   ++m_taskTotal;
 
-  TaskProgressSPtr taskProgress{new TaskProgress(task)};
+  auto taskProgress = std::make_shared<TaskProgress>(task);
 
   m_tasks[task] = taskProgress;
+  m_mutex.unlock();
+
   connect(taskProgress.get(), SIGNAL(aborted()),
           this, SLOT(onProgressAborted()));
 
@@ -108,25 +112,28 @@ throw (Duplicated_Task_Exception)
 //------------------------------------------------------------------------
 void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 {
-  if (m_tasks.contains(task))
+  m_mutex.lock();
+  Q_ASSERT(m_tasks.contains(task));
+
+  m_notification->layout()->removeWidget(m_tasks[task].get());
+
+  m_tasks[task]->setParent(0); // In case the notification are is open
+  m_tasks.remove(task);
+
+  if (m_tasks.isEmpty())
   {
-    disconnect(task.get(), SIGNAL(progress(int)),
-               this, SLOT(updateProgress()));
-
-    m_notification->layout()->removeWidget(m_tasks[task].get());
-    m_tasks[task]->setParent(0); // In case the notification are is open
-    m_tasks.remove(task);
-
-    if (m_tasks.isEmpty())
-    {
-      m_taskProgress = 0;
-      m_taskTotal    = 0;
-    }
-    else
-    {
-      m_taskProgress += 100;
-    }
+    m_taskProgress = 0;
+    m_taskTotal    = 0;
   }
+  else
+  {
+    m_taskProgress += 100;
+  }
+
+  m_mutex.unlock();
+
+  disconnect(task.get(), SIGNAL(progress(int)),
+             this, SLOT(updateProgress()));
 
   updateNotificationWidget();
   updateProgress();
@@ -150,6 +157,8 @@ void SchedulerProgress::showTaskProgress(bool visible)
 //------------------------------------------------------------------------
 void SchedulerProgress::updateProgress()
 {
+  QMutexLocker lock(&m_mutex);
+
   int total = m_taskProgress;
 
   for(TaskProgressSPtr task : m_tasks)
@@ -184,6 +193,7 @@ void SchedulerProgress::onProgressAborted()
 void SchedulerProgress::updateNotificationWidget()
 {
   m_notification->adjustSize();
+
   auto wHeight = m_notification->height();
 
   if (wHeight < m_notificationArea->height())

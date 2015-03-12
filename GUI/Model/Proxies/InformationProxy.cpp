@@ -264,12 +264,12 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
         }
       } else if (m_pendingInformation[segmentation]->hasFinished())
       {
-          auto info = segmentation->information(tag);
-          if (!info.isValid())
-          {
-            info = tr("Unavailable");
-          }
-          return info;
+        auto info = segmentation->information(tag);
+        if (!info.isValid())
+        {
+          info = tr("Unavailable");
+        }
+        return info;
       }
 
       return "";

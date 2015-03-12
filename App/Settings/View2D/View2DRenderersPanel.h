@@ -29,6 +29,8 @@
 namespace ESPINA
 {
 
+  class View2D;
+
   class View2DRenderersPanel
   : public SettingsPanel
   {

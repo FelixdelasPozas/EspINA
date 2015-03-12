@@ -90,7 +90,7 @@ void OrtogonalCountingFrame::registerView(RenderView *view)
       wa->SetPlane(view2d->plane());
       wa->SetSlicingStep(m_extension->extendedItem()->output()->spacing());
       wa->SetCountingFrame(m_channelEdges, m_inclusion, m_exclusion);
-      wa->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
+      wa->SetSlice(view2d->crosshair()[normalCoordinateIndex(view2d->plane())]);
       wa->SetCurrentRenderer(view->mainRenderer());
       wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
       wa->SetEnabled(true);

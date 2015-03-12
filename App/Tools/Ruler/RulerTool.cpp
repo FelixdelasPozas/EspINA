@@ -189,15 +189,4 @@ namespace ESPINA
     // this is a passive tool
     return false;
   }
-
-  //----------------------------------------------------------------------------
-  void RulerEventHandler::setInUse(bool value)
-  {
-    if (m_inUse == value)
-      return;
-
-    m_inUse = value;
-    emit eventHandlerInUse(value);
-  }
-
 } /* namespace ESPINA */

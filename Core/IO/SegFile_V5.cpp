@@ -237,7 +237,7 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
   //filter->update(outputId); // No tiene que hacer falta ya que ahora todos los filtros
                               // van a restaurar su outputs
 
-  ChannelSPtr channel = m_factory->createChannel(filter, outputId);
+  auto channel = m_factory->createChannel(filter, outputId);
 
   channel->setName(roVertex->name());
   channel->setUuid(roVertex->uuid());
@@ -536,7 +536,9 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
   }
 
   if (xml.hasError())
+  {
     qDebug() << "segmentation loadExtensions error:" << xml.errorString();
+  }
 }
 
 //-----------------------------------------------------------------------------

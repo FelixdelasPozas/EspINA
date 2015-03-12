@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <GUI/Selectors/BrushSelector.h>
+#include <GUI/EventHandlers/MaskPainter.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/Widgets/Contour/ContourWidget.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
@@ -62,12 +62,12 @@ class EspinaGUI_EXPORT SliceContourWidget
     /** \brief Returns the contour data of the widget.
      *
      */
-    QPair<BrushSelector::BrushMode, vtkPolyData *> getContour();
+    QPair<DrawingMode, vtkPolyData *> contour();
 
     /** \brief Sets the operation mode of the widget.
      * \param[in] mode Brush drawing mode.
      */
-    void setMode(BrushSelector::BrushMode mode);
+    void setDrawingMode(DrawingMode mode);
 
     /** \brief Deletes any contour in the widget and resets it's state.
      *
@@ -85,9 +85,9 @@ class EspinaGUI_EXPORT SliceContourWidget
     Nm                     m_pos;
     vtkPlaneContourWidget *m_contourWidget;
 
-    vtkPolyData             *m_storedContour;
-    Nm                       m_storedContourPosition;
-    BrushSelector::BrushMode m_storedContourMode;
+    vtkPolyData *m_storedContour;
+    Nm           m_storedContourPosition;
+    DrawingMode  m_storedContourMode;
 };
 
 }// namespace ESPINA

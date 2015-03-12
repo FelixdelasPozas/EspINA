@@ -23,6 +23,7 @@
 #include <GUI/View/Widgets/Contour/vtkPlaneContourWidget.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.h>
 #include <GUI/View/View2D.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 
 // C++
 #include <iostream>
@@ -37,15 +38,14 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ContourWidget::ContourWidget()
-: m_color{Qt::black}
+: m_tolerance  {40}
+, m_color      {Qt::black}
 {
-  qDebug() << "ContourWidget created";
 }
 
 //----------------------------------------------------------------------------
 ContourWidget::~ContourWidget()
 {
-  qDebug() << "ContourWidget destroyed";
   for(auto view: m_widgets.keys())
   {
     unregisterView(view);
@@ -62,20 +62,21 @@ void ContourWidget::registerView(RenderView *view)
   if (!view2d || m_widgets.keys().contains(view2d)) return;
 
   auto plane = view2d->plane();
-  auto position = view2d->crosshairPoint()[normalCoordinateIndex(plane)];
+  auto position = view2d->slicingPosition();
 
-  connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)), Qt::QueuedConnection);
+  connect(view, SIGNAL(crosshairPlaneChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)), Qt::QueuedConnection);
   m_widgets[view2d] = vtkSmartPointer<vtkPlaneContourWidget>::New();
   m_widgets[view2d]->setContourWidget(this);
   m_widgets[view2d]->SetOrientation(plane);
-  m_widgets[view2d]->setPolygonColor(this->m_color);
+  m_widgets[view2d]->setPolygonColor(m_color);
   m_widgets[view2d]->setActorsShift(view2d->widgetDepth());
   m_widgets[view2d]->setSlice(position);
+  m_widgets[view2d]->SetContinuousDrawTolerance(m_tolerance);
   m_widgets[view2d]->SetCurrentRenderer(view->mainRenderer());
   m_widgets[view2d]->SetInteractor(view->renderWindow()->GetInteractor());
   m_widgets[view2d]->EnabledOn();
 
-  m_storedContours[view2d] = ContourData(position, position, plane, BrushSelector::BrushMode::BRUSH, nullptr);
+  m_storedContours[view2d] = ContourData(position, position, plane, DrawingMode::PAINTING, nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -85,7 +86,9 @@ void ContourWidget::unregisterView(RenderView *view)
 
   if (!m_widgets.keys().contains(view2d)) return;
 
-  disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
+  startContourFromWidget(); // to rasterize any pending contour in the view.
+
+  disconnect(view, SIGNAL(crosshairPlaneChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
   m_widgets[view2d]->EnabledOff();
   m_widgets[view2d]->SetInteractor(nullptr);
   m_widgets[view2d]->SetCurrentRenderer(nullptr);
@@ -119,13 +122,13 @@ void ContourWidget::setPolygonColor(QColor color)
 }
 
 //----------------------------------------------------------------------------
-QColor ContourWidget::getPolygonColor()
+QColor ContourWidget::polygonColor()
 {
   return m_color;
 }
 
 //----------------------------------------------------------------------------
-ContourWidget::ContourList ContourWidget::getContours()
+ContourWidget::ContourList ContourWidget::contours()
 {
   ContourList resultList;
 
@@ -140,9 +143,9 @@ ContourWidget::ContourList ContourWidget::getContours()
       polyData->Delete();
 
       auto plane = view->plane();
-      auto pos = view->crosshairPoint()[normalCoordinateIndex(plane)];
+      auto position = view->slicingPosition();
 
-      resultList << ContourData(pos, pos, plane, m_widgets[view]->getContourMode(), contour);
+      resultList << ContourData(position, position, plane, m_widgets[view]->contourMode(), contour);
     }
   }
 
@@ -163,23 +166,28 @@ ContourWidget::ContourList ContourWidget::getContours()
 //----------------------------------------------------------------------------
 void ContourWidget::startContourFromWidget()
 {
-  ContourList resultList = getContours();
+  ContourList resultList = contours();
 
-  if (!resultList.empty())
+  if(!resultList.empty())
   {
-    emit rasterizeContours(resultList);
+    for(auto data: resultList)
+    {
+      if(data.polyData)
+      {
+        auto mask = PolyDataUtils::rasterizeContourToMask(data.polyData, data.plane, data.contourPosition, m_spacing);
+        auto value = data.mode == DrawingMode::PAINTING ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
+        mask->setForegroundValue(value);
+
+        emit contour(mask);
+      }
+    }
+
     initialize();
   }
 }
 
 //----------------------------------------------------------------------------
-void ContourWidget::contourHasBeenModified()
-{
-  emit contourModified();
-}
-
-//----------------------------------------------------------------------------
-void ContourWidget::setMode(BrushSelector::BrushMode mode)
+void ContourWidget::setDrawingMode(DrawingMode mode)
 {
   for(auto widget: m_widgets.values())
   {
@@ -247,7 +255,7 @@ void ContourWidget::changeSlice(Plane plane, Nm pos)
       m_storedContours[view].polyData = vtkPolyData::New();
       m_storedContours[view].polyData->DeepCopy(polyData);
       m_storedContours[view].contourPosition = m_storedContours[view].actualPosition;
-      m_storedContours[view].mode = widget->getContourMode();
+      m_storedContours[view].mode = widget->contourMode();
     }
 
     widget->setSlice(pos);
@@ -255,4 +263,15 @@ void ContourWidget::changeSlice(Plane plane, Nm pos)
   }
 
   m_storedContours[view].actualPosition = pos;
+}
+
+//----------------------------------------------------------------------------
+void ContourWidget::setMinimumPointDistance(const Nm distance)
+{
+  m_tolerance = distance;
+
+  for(auto widget: m_widgets.values())
+  {
+    widget->SetContinuousDrawTolerance(m_tolerance);
+  }
 }

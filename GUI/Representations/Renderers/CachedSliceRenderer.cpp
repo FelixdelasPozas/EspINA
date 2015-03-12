@@ -122,7 +122,7 @@ namespace ESPINA
       {
         connect(view, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(setPosition(Plane, Nm)), Qt::DirectConnection);
         connect(view, SIGNAL(sceneResolutionChanged()), this, SLOT(resolutionChanged()), Qt::DirectConnection);
-        setPosition(view->plane(), view->crosshairPoint()[normalCoordinateIndex(view->plane())]);
+        setPosition(view->plane(), view->crosshair()[normalCoordinateIndex(view->plane())]);
       }
       else
       {
@@ -310,7 +310,7 @@ namespace ESPINA
     if (!renderer || !renderer.GetPointer() || (!itemType.testFlag(RenderableType::CHANNEL) && !itemType.testFlag(RenderableType::SEGMENTATION)))
       return selection;
 
-    auto realZ = m_view->crosshairPoint()[m_planeIndex];
+    auto realZ = m_view->crosshair()[m_planeIndex];
     auto repList = validRepresentationsForPosition(realZ);
 
     for (auto rep : repList)
@@ -374,7 +374,7 @@ namespace ESPINA
       m_windowSpacing = spacing;
 
       // adjust to actual position;
-      fillCache(m_view->crosshairPoint()[m_planeIndex]);
+      fillCache(m_view->crosshair()[m_planeIndex]);
     }
   }
 
@@ -817,7 +817,7 @@ namespace ESPINA
   void CachedSliceRenderer::initCache()
   {
     auto view = dynamic_cast<View2D *>(m_view);
-    auto point = view->crosshairPoint();
+    auto point = view->crosshair();
     auto position = point[m_planeIndex];
 
     m_actualPos = new CacheNode();

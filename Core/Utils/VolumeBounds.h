@@ -48,9 +48,9 @@ namespace ESPINA
   {
     public:
       /** \brief VolumeBounds class constructor.
-       * \param[in] bounds, bounds of the volume.
-       * \param[in] spacing, spacing of the volume.
-       * \param[in] origin, origin of the volume.
+       * \param[in] bounds bounds of the volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
        *
        */
       explicit VolumeBounds(const Bounds &bounds = Bounds(), const NmVector3 &spacing = NmVector3{1,1,1}, const NmVector3 &origin = NmVector3());

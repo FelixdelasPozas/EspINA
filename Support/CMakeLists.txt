@@ -10,11 +10,13 @@ include_directories(
 
 qt4_wrap_cpp(Support_MOC
   Plugin.h
+  Representations/BasicRepresentationSwitch.h
+  Representations/Slice3DManager.h
   ViewManager.h
   Widgets/DockWidget.h
-  Widgets/ToolGroup.h  
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
+  Widgets/ToolGroup.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -57,14 +59,20 @@ set (Support_SOURCES
   Factory/DefaultSegmentationExtensionFactory.cpp
   Factory/FilterDelegateFactory.cpp
   Readers/ChannelReader.cpp
+  Representations/BasicRepresentationSwitch.cpp
+  Representations/RepresentationSwitch.cpp
+  Representations/Slice3DManager.cpp
+  Representations/SliceManager.cpp
+  Representations/RepresentationUtils.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
-  Widgets/ToolGroup.cpp  
-  Widgets/ActionGroupWidget.cpp  
+  ViewManager.cpp
+  Widgets/ActionGroupWidget.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
-  ViewManager.cpp
+  Widgets/Tool.cpp
+  Widgets/ToolGroup.cpp
   )
 
 set(Support_EXTERNAL_LIBS
@@ -122,4 +130,3 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
-

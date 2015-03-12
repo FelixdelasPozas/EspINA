@@ -35,13 +35,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief SeedThreshold class constructor.
-     * \param[in] parent, raw pointer of the parent of this object.
+     * \param[in] parent raw pointer of the parent of this object.
      */
     explicit SeedThreshold(QObject* parent = nullptr);
 
-    /** \brief Overrides QWidgetAction::createWidget().
-     *
-     */
     virtual QWidget* createWidget(QWidget* parent) override;
 
     /** \brief Returns lower threshold value.
@@ -57,7 +54,7 @@ namespace ESPINA
     {return m_threshold[m_symmetrical?1:0];}
 
     /** \brief Set if the threshold is symmetric.
-     * \param[in] symmetrical, true if symmetrical, false otherwise.
+     * \param[in] symmetrical true if symmetrical, false otherwise.
      *
      */
     void setSymmetricalThreshold(bool symmetrical);
@@ -70,12 +67,12 @@ namespace ESPINA
 
   public slots:
     /** \brief Sets the lower threshold value.
-     * \param[in] th, lower threshold value.
+     * \param[in] th lower threshold value.
      */
     void setLowerThreshold(int th);
 
     /** \brief Sets the upper threshold value.
-     * \param[in] th, upper threshold value.
+     * \param[in] th upper threshold value.
      */
     void setUpperThreshold(int th);
 

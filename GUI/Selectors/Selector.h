@@ -49,15 +49,13 @@ namespace ESPINA
   {
   Q_OBJECT
   public:
-    using SelectionTag      = QString;
     using SelectionMask     = BinaryMaskSPtr<unsigned char>;
     using SelectionMaskSPtr = std::shared_ptr<BinaryMask<unsigned char>>;
 
-    static const SelectionTag SAMPLE;
-    static const SelectionTag CHANNEL;
-    static const SelectionTag SEGMENTATION;
+    enum SelectionTag { SAMPLE = 1, CHANNEL = 2, SEGMENTATION = 4 };
 
-    using SelectionFlags = QSet<SelectionTag>;
+    Q_DECLARE_FLAGS(SelectionFlags, SelectionTag);
+
     using SelectionItem  = QPair<SelectionMask, NeuroItemAdapterPtr>;
     using Selection      = QList<SelectionItem>;
 
@@ -76,9 +74,16 @@ namespace ESPINA
     virtual ~Selector()
     {};
 
+    /** \brief Returns true if the item is from one of the specified selection types.
+     * \param[in] item to check.
+     * \param[in] flags selection flags.
+     *
+     */
+    static bool IsValid(NeuroItemAdapterPtr item, SelectionFlags flags);
+
     /** \brief Enables/Disables the specified selection tag.
-     * \param[in] tag, tag to modify.
-     * \param[in] selectable, true to select false otherwise.
+     * \param[in] tag tag to modify.
+     * \param[in] selectable true to select false otherwise.
      *
      */
     void setSelectionTag(const SelectionTag tag, bool selectable=true);
@@ -122,5 +127,7 @@ namespace ESPINA
 
   using SelectorSPtr = std::shared_ptr<Selector>;
 } // namespace ESPINA
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ESPINA::Selector::SelectionFlags)
 
 #endif // ESPINA_SELECTOR_H

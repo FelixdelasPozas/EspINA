@@ -55,77 +55,77 @@ namespace ESPINA
     class InformationFetcher
     : public Task
     {
-			public:
-    		/** \brief InformationFetcher class constructor.
-    		 * \param[in] segmentation, adapter smart pointer of the segmentation to get information from.
-    		 * \param[in] tags, information tags to fetch.
-    		 * \param[in] scheduler, scheduler smart pointer.
-    		 *
-    		 */
-				InformationFetcher(SegmentationAdapterPtr segmentation,
-													 const SegmentationExtension::InfoTagList &tags,
-													 SchedulerSPtr scheduler)
-				: Task        {scheduler}
-				, Segmentation{segmentation}
-				, m_tags      {tags}
-				, m_progress  {0}
-				{
-					auto id = Segmentation->data(Qt::DisplayRole).toString();
-					setDescription(tr("%1 information").arg(id));
-					setHidden(true);
+    public:
+      /** \brief InformationFetcher class constructor.
+       * \param[in] segmentation, adapter smart pointer of the segmentation to get information from.
+       * \param[in] tags, information tags to fetch.
+       * \param[in] scheduler, scheduler smart pointer.
+       *
+       */
+      InformationFetcher(SegmentationAdapterPtr segmentation,
+                         const SegmentationExtension::InfoTagList &tags,
+                         SchedulerSPtr scheduler)
+      : Task        {scheduler}
+      , Segmentation{segmentation}
+      , m_tags      {tags}
+      , m_progress  {0}
+      {
+        auto id = Segmentation->data(Qt::DisplayRole).toString();
+        setDescription(tr("%1 information").arg(id));
+        setHidden(true);
 
-					m_tags.removeOne(NameTag());
-					m_tags.removeOne(CategoryTag());
+        m_tags.removeOne(NameTag());
+        m_tags.removeOne(CategoryTag());
 
-					bool ready = true;
-					for (auto tag : m_tags)
-					{
-						ready &= Segmentation->isInformationReady(tag);
+        bool ready = true;
 
-						if (!ready) break;
-					}
+        for (auto tag : m_tags)
+        {
+          ready &= Segmentation->isInformationReady(tag);
 
-					setFinished(ready);
-				}
+          if (!ready) break;
+        }
 
-			public:
-				/** \brief Returns current progress.
-				 *
-				 */
-				int currentProgress() const
-				{ return m_progress; }
+        setFinished(ready);
+      }
 
-			protected:
-				/** \brief Implements Task::run().
-				 *
-				 */
-				virtual void run()
-				{
-					for (int i = 0; i < m_tags.size(); ++i)
-					{
-						if (!canExecute()) break;
+    public:
+      /** \brief Returns current progress.
+       *
+       */
+      int currentProgress() const
+      { return m_progress; }
 
-						auto tag = m_tags[i];
-						if (tag != NameTag() && tag != CategoryTag())
-						{
-							if (!Segmentation->isInformationReady(tag))
-							{
-								setWaiting(true);
-								Segmentation->information(tag);
-								setWaiting(false);
-								if (!canExecute()) break;
-							}
-						}
+    protected:
+      /** \brief Implements Task::run().
+       *
+       */
+      virtual void run()
+      {
+        for (int i = 0; i < m_tags.size(); ++i)
+        {
+          if (!canExecute()) break;
 
-						m_progress = (100.0*i)/m_tags.size();
-						emit progress(m_progress);
-					}
-				}
+          auto tag = m_tags[i];
+          if (tag != NameTag() && tag != CategoryTag())
+          {
+            if (!Segmentation->isInformationReady(tag))
+            {
+              Segmentation->information(tag);
 
-			protected:
-				SegmentationAdapterPtr Segmentation;
-				SegmentationExtension::InfoTagList m_tags;
-				int   m_progress;
+              if (!canExecute()) break;
+            }
+          }
+
+          m_progress = (100.0*i)/m_tags.size();
+          emit progress(m_progress);
+        }
+      }
+
+    protected:
+      SegmentationAdapterPtr Segmentation;
+      SegmentationExtension::InfoTagList m_tags;
+      int   m_progress;
     };
 
     using InformationFetcherSPtr = std::shared_ptr<InformationFetcher>;
@@ -241,19 +241,19 @@ namespace ESPINA
     void informationProgress();
 
   protected slots:
-		/** \brief Perform operations before and after the insertion of rows in the model.
-		 * \param[in] sourceParent, index of the parent to add elements.
-		 * \param[in] start, start row.
-		 * \param[in] end, end row.
-		 *
-		 */
+    /** \brief Perform operations before and after the insertion of rows in the model.
+     * \param[in] sourceParent index of the parent to add elements.
+     * \param[in] start start row.
+     * \param[in] end end row.
+     *
+     */
     void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
 
-		/** \brief Perform operations before and after the deletion of rows in the model.
-		 * \param[in] sourceParent, index of the parent to add elements.
-		 * \param[in] start, start row.
-		 * \param[in] end, end row.
-		 *
+    /** \brief Perform operations before and after the deletion of rows in the model.
+     * \param[in] sourceParent index of the parent to add elements.
+     * \param[in] start start row.
+     * \param[in] end end row.
+     *
      */
     void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
 

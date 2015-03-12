@@ -34,20 +34,25 @@ namespace ESPINA
     class EspinaGUI_EXPORT DefaultIcons
     {
     public:
-    	/** \brief Return the system default save icon.
-    	 *
-    	 */
+      /** \brief Returns the system default save icon.
+       *
+       */
       static QIcon Save();
 
-    	/** \brief Return the system default load icon.
-    	 *
-    	 */
+      /** \brief Returns the system default load icon.
+       *
+       */
       static QIcon Load();
 
-    	/** \brief Return the system default file icon.
-    	 *
-    	 */
+      /** \brief Returns the system default file icon.
+       *
+       */
       static QIcon File();
+
+      /** \brief Returns the settings icon
+       *
+       */
+      static QIcon Settings();
     };
 
   } // namespace GUI

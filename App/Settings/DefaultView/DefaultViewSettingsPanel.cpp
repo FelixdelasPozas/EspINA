@@ -46,20 +46,20 @@ DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
   QGroupBox *group;
   QVBoxLayout *groupLayout;
 
-  QStringList activeRenderers;
-  for(auto renderer: m_viewXY->renderers())
-    activeRenderers << renderer->name();
+//   QStringList activeRenderers;
+//   for(auto renderer: m_viewXY->renderers())
+//     activeRenderers << renderer->name();
 
   QList<View2D*> view2dList;
   view2dList << viewXY << viewXZ << viewYZ;
 
-  // 2D Renderers selector
-  m_panel2D = new View2DRenderersPanel(m_renderers, activeRenderers, RendererTypes(RendererType::RENDERER_VIEW2D), view2dList);
-  group = new QGroupBox(m_panel2D->shortDescription());
-  groupLayout = new QVBoxLayout();
-  groupLayout->addWidget(m_panel2D);
-  group->setLayout(groupLayout);
-  layout->addWidget(group);
+//   // 2D Renderers selector
+//   m_panel2D = new View2DRenderersPanel(m_renderers, activeRenderers, RendererTypes(RendererType::RENDERER_VIEW2D), view2dList);
+//   group = new QGroupBox(m_panel2D->shortDescription());
+//   groupLayout = new QVBoxLayout();
+//   groupLayout->addWidget(m_panel2D);
+//   group->setLayout(groupLayout);
+//   layout->addWidget(group);
 
   // Axial View
   m_panelXY = new View2DSettingsPanel(m_viewXY);
@@ -100,10 +100,10 @@ DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
 void DefaultViewSettingsPanel::acceptChanges()
 {
   QStringList active3DRenderers, active2DRenderers;
-  for(auto renderer: m_view3D->renderers())
-    active3DRenderers << renderer->name();
-  for(auto renderer: m_viewXY->renderers())
-    active2DRenderers << renderer->name();
+//   for(auto renderer: m_view3D->renderers())
+//     active3DRenderers << renderer->name();
+//   for(auto renderer: m_viewXY->renderers())
+//     active2DRenderers << renderer->name();
 
   m_panelXY->acceptChanges();
   m_panelXZ->acceptChanges();
@@ -112,22 +112,22 @@ void DefaultViewSettingsPanel::acceptChanges()
   m_panel2D->acceptChanges();
 
   m_menu->clear();
-  for(auto renderer: m_view3D->renderers())
-  {
-    m_menu->addRenderer(renderer);
-    if(!active3DRenderers.contains(renderer->name()))
-      m_view3D->deactivateRender(renderer->name());
-  }
-  for(auto renderer: m_viewXY->renderers())
-  {
-    m_menu->addRenderer(renderer);
-    if(!active2DRenderers.contains(renderer->name()))
-    {
-      m_viewXY->activateRender(renderer->name());
-      m_viewXZ->activateRender(renderer->name());
-      m_viewYZ->activateRender(renderer->name());
-    }
-  }
+//   for(auto renderer: m_view3D->renderers())
+//   {
+//     m_menu->addRenderer(renderer);
+//     if(!active3DRenderers.contains(renderer->name()))
+//       m_view3D->deactivateRender(renderer->name());
+//   }
+//   for(auto renderer: m_viewXY->renderers())
+//   {
+//     m_menu->addRenderer(renderer);
+//     if(!active2DRenderers.contains(renderer->name()))
+//     {
+//       m_viewXY->activateRender(renderer->name());
+//       m_viewXZ->activateRender(renderer->name());
+//       m_viewYZ->activateRender(renderer->name());
+//     }
+//   }
 }
 
 //-----------------------------------------------------------------------------

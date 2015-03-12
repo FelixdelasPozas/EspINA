@@ -24,8 +24,7 @@
 
 // ESPINA
 #include "GUI/Model/NeuroItemAdapter.h"
-#include <GUI/Representations/Representation.h>
-#include <GUI/Representations/RepresentationFactory.h>
+#include <GUI/Representations/RepresentationPipeline.h>
 #include <Core/Analysis/Data.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/ViewItem.h>
@@ -127,33 +126,20 @@ namespace ESPINA {
     const DataSPtr outputData(Data::Type type) const
     { return m_viewItem->data(type); }
 
-    /** \brief Returns the representation smart pointer of the specified type of the item.
-     * \param[in] type representation type.
-     *
-     */
-    RepresentationSPtr representation(Representation::Type type) const;
+    void setTemporalRepresentation(RepresentationPipelineSPtr pipeline);
 
-    /** \brief Returns the list of representations of the item.
-     *
-     */
-    RepresentationSList representations() const
-    { return m_representations.values(); }
+    void clearTemporalRepresentation();
 
-    /** \brief Returns the list of types the item has.
-     *
-     */
-    RepresentationTypeList representationTypes() const;
+    RepresentationPipelineSPtr temporalRepresentation() const;
 
-    /** \brief Sets the representation factory of the item.
-     * \param[in] factory representation factory smart pointer.
-     *
-     */
-    void setRepresentationFactory(RepresentationFactorySPtr factory)
-    { m_factory = factory; }
+    void invalidateRepresentations();
 
   signals:
     void outputModified();
-    void outputChanged(ViewItemAdapterPtr);
+
+    void outputChanged(ViewItemAdapterPtr item);
+
+    void representationsInvalidated(ViewItemAdapterPtr item);
 
   protected:
     /** \brief ViewItemAdapter class constructor.
@@ -175,11 +161,9 @@ namespace ESPINA {
   protected:
     ViewItemSPtr      m_viewItem;
 
-    RepresentationFactorySPtr m_factory;
-    mutable QMap<Representation::Type, RepresentationSPtr> m_representations;
-
     bool m_isSelected;
     bool m_isVisible;
+    RepresentationPipelineSPtr m_temporalRepresentation;
   };
 
   ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);

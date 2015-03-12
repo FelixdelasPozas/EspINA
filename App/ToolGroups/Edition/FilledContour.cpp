@@ -153,7 +153,7 @@ void FilledContour::setInUse(bool enable)
   else
   {
     if (m_widgetHasContour)
-      rasterize(m_contourWidget->getContours());
+      rasterize(m_contourWidget->contours());
 
     disconnect(m_contourWidget, SIGNAL(endContour()),
                this, SLOT(createUndoCommand()));
@@ -287,7 +287,7 @@ void FilledContour::setContour(ContourWidget::ContourData contour)
 //-----------------------------------------------------------------------------
 ContourWidget::ContourData FilledContour::getContour()
 {
-  ContourWidget::ContourList list = m_contourWidget->getContours();
+  ContourWidget::ContourList list = m_contourWidget->contours();
 
   foreach(ContourWidget::ContourData contour, list)
     if (contour.PolyData != NULL)

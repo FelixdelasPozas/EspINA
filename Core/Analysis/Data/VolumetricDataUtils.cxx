@@ -30,9 +30,8 @@
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 
-namespace ESPINA {
-
-
+namespace ESPINA
+{
   //-----------------------------------------------------------------------------
   template<typename T>
   vtkSmartPointer<vtkImageData> vtkImage(const typename T::Pointer volume, const Bounds &inputBounds)
@@ -60,7 +59,9 @@ namespace ESPINA {
       itkImage = extractor->GetOutput();
     }
     else
+    {
       itkImage = volume;
+    }
 
     itkImage->DisconnectPipeline();
 
@@ -107,8 +108,6 @@ namespace ESPINA {
 
     return result;
   }
-
-
 
   //-----------------------------------------------------------------------------
   template<typename T>

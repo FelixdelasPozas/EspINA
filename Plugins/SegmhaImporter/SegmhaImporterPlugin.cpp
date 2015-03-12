@@ -34,7 +34,10 @@ static const Filter::Type SEGMHA_FILTER_V4 = "Segmha Importer";
 static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
 
 //-----------------------------------------------------------------------------
-FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception)
+FilterSPtr SegmhaImporterPlugin::SegmhaFilterFactory::createFilter(InputSList inputs,
+                                                                   const Filter::Type &type,
+                                                                   SchedulerSPtr scheduler) const
+throw (Unknown_Filter_Exception)
 {
   FilterSPtr filter;
 
@@ -57,7 +60,7 @@ FilterSPtr SegmhaFilterFactory::createFilter(InputSList inputs, const Filter::Ty
 }
 
 //-----------------------------------------------------------------------------
-FilterTypeList SegmhaFilterFactory::providedFilters() const
+FilterTypeList SegmhaImporterPlugin::SegmhaFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -147,12 +150,6 @@ FilterFactorySList SegmhaImporterPlugin::filterFactories() const
   factories << m_filterFactory;
 
   return factories;
-}
-
-//------------------------------------------------------------------------
-RendererSList SegmhaImporterPlugin::renderers() const
-{
-  return RendererSList();
 }
 
 //------------------------------------------------------------------------

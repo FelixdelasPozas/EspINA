@@ -58,8 +58,9 @@ int main(int argc, char **argv)
   qDebug() << "Loading Plugins: ";
   for(QString fileName : pluginsDir.entryList(QDir::Files))
   {
-    QPluginLoader *loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
-    QObject *plugin = loader->instance();
+    auto loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
+    auto plugin = loader->instance();
+
     if (plugin)
     {
       qDebug() << "Found plugin " << fileName;
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
     else
     {
       // DO NOT DELETE, THIS IS TO DEBUG PLUGINS
-//      qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
+     qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
       delete loader;
     }
   }

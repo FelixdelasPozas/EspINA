@@ -43,14 +43,14 @@ int scheduler_change_task_priority( int argc, char** argv )
 {
   int error = 0;
 
-  int schedulerPeriod = 5000;
+  int schedulerPeriod = 2000;
   int taskSleepTime   = 4*schedulerPeriod;
   int taskTime        = 10*taskSleepTime;
 
-  SchedulerSPtr scheduler = SchedulerSPtr(new Scheduler(schedulerPeriod));
+  auto scheduler = make_shared<Scheduler>(schedulerPeriod);
 
-  int numThreads = QThreadPool::globalInstance()->maxThreadCount();
-  int numTasks   = numThreads + 5;
+  int maxTasks = scheduler->maxRunningTasks();
+  int numTasks = maxTasks + 5;
 
   std::vector<shared_ptr<SleepyTask>> tasks;
 
@@ -62,10 +62,10 @@ int scheduler_change_task_priority( int argc, char** argv )
 
   usleep(numTasks*schedulerPeriod);
 
-  for (int i = 0; i < numThreads; ++i) {
-    if (tasks.at(i)->Result != 0) {
+  for (int i = 0; i < maxTasks; ++i) {
+    if (tasks.at(i)->Result == -1 || tasks.at(i)->Result == SleepyTask::Iterations) {
       error = 1;
-      std::cerr << "Task " << i << " should be running" << std::endl;
+      std::cerr << "Task " << i << " should be running: " << tasks.at(i)->Result << std::endl;
     }
   }
 
@@ -76,25 +76,25 @@ int scheduler_change_task_priority( int argc, char** argv )
 
   tasks.at(numTasks-1)->setPriority(Priority::VERY_HIGH);
 
-  usleep(schedulerPeriod);
+  usleep(2*schedulerPeriod);
 
-  for (int i = 0; i < numThreads - 1; ++i) {
-    if (tasks.at(i)->Result != 0) {
-      error = 1;      
+  for (int i = 0; i < maxTasks - 1; ++i) {
+    if (tasks.at(i)->Result == -1 || tasks.at(i)->Result == SleepyTask::Iterations) {
+      error = 1;
       std::cerr << "Task " << i << " should be running" << std::endl;
     }
   }
 
-  if (tasks.at(numTasks-1)->Result != 0) {
-    error = 1;      
-    std::cerr << "Last Task should be paused by the dispatcher" << std::endl;
+  if (tasks.at(numTasks -1)->Result == -1 || tasks.at(numTasks - 1)->Result == SleepyTask::Iterations) {
+    error = 1;
+    std::cerr << "Last Task should be running: " << tasks.at(numTasks-1)->Result  << std::endl;
   }
 
   usleep((numTasks + 1) * taskTime);
   
   for (int i = 0; i < numTasks; ++i) {
-    if (tasks.at(i)->Result != 1) {
-      error = 1;      
+    if (tasks.at(i)->Result != SleepyTask::Iterations) {
+      error = 1;
       std::cerr << "Task " << i << " should have finished" << std::endl;
     }
   }

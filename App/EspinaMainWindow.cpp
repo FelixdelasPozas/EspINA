@@ -30,11 +30,10 @@
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
 #include "ToolGroups/Edition/EditionTools.h"
-#include "ToolGroups/ROI/ROITools.h"
+// #include "ToolGroups/ROI/ROITools.h"
 #include "ToolGroups/Segmentation/SegmentationTools.h"
 #include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Skeleton/SkeletonToolGroup.h"
-#include "ToolGroups/ViewState/ViewTools.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
 #include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
@@ -49,20 +48,14 @@
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
-#include <GUI/Representations/BasicRepresentationFactory.h>
-#include <GUI/Representations/Renderers/CachedSliceRenderer.h>
-#include <GUI/Representations/Renderers/ContourRenderer.h>
-#include <GUI/Representations/Renderers/CrosshairRenderer.h>
-#include <GUI/Representations/Renderers/MeshRenderer.h>
-#include <GUI/Representations/Renderers/SkeletonRenderer.h>
-#include <GUI/Representations/Renderers/SliceRenderer.h>
-#include <GUI/Representations/Renderers/SmoothedMeshRenderer.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
+#include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
+#include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -77,8 +70,8 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 
-const QString AUTOSAVE_FILE = "espina-autosave.seg";
-const int PERIOD_NS = 250000;
+const QString AUTOSAVE_FILE     = "espina-autosave.seg";
+const int PERIOD_uSEC           = 16000; // 16ms
 const int CONTEXTUAL_BAR_HEIGHT = 44;
 
 //------------------------------------------------------------------------
@@ -99,7 +92,7 @@ EspinaMainWindow::DynamicMenuNode::~DynamicMenuNode()
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow()
-, m_scheduler(new Scheduler(PERIOD_NS))
+, m_scheduler(new Scheduler(PERIOD_uSEC))
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 , m_filterDelegateFactory(new FilterDelegateFactory())
 , m_analysis(new Analysis())
@@ -111,6 +104,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     {new GeneralSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
+, m_viewToolGroup{new ViewToolGroup(m_viewManager, this)}
 , m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy{false}
 , m_undoStackSavedIndex{m_undoStack->index()}
@@ -127,19 +121,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
   m_factory->registerFilterFactory (m_channelReader);
-  m_factory->registerChannelRepresentationFactory(std::make_shared<BasicChannelRepresentationFactory>(m_scheduler));
-  m_factory->registerSegmentationRepresentationFactory(std::make_shared<BasicSegmentationRepresentationFactory>(m_scheduler));
-
-  m_viewManager->registerRenderer(std::make_shared<CrosshairRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<MeshRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<SmoothedMeshRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<SliceRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<VolumetricRenderer<itkVolumeType>>());
-  m_viewManager->registerRenderer(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
-  m_viewManager->registerRenderer(std::make_shared<ContourRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<CachedSliceRenderer>(m_scheduler));
-  m_viewManager->registerRenderer(std::make_shared<SkeletonRenderer>());
-  m_viewManager->registerRenderer(std::make_shared<SkeletonRenderer3D>());
 
   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
@@ -255,15 +236,12 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
 
-  m_colorEngines = new ColorEngineMenu(m_viewManager, tr("Color By"));
-  m_colorEngines->addColorEngine(tr("Number"),  ColorEngineSPtr{new NumberColorEngine()});
-  m_colorEngines->addColorEngine(tr("Category"),ColorEngineSPtr{new CategoryColorEngine()});
-  m_colorEngines->addColorEngine(tr("User"),    ColorEngineSPtr{new UserColorEngine()});
 
   m_dockMenu = new QMenu(tr("Pannels"));
 
   menuBar()->addMenu(m_viewMenu);
-  m_viewMenu->addMenu(m_colorEngines);
+
+  initColorEngines(m_viewMenu);
 
   /*** Settings MENU ***/
   QMenu *settingsMenu = new QMenu(tr("&Settings"));
@@ -290,13 +268,14 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_viewManager->setContextualBar(m_contextualBar);
 
-  auto defaultActiveTool = new ViewTools(m_viewManager, this);
-  registerToolGroup(defaultActiveTool);
+  initRepresentations();
 
   /*** TOOLS ***/
-  auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
-  registerToolGroup(roiTools);
-  m_viewManager->setROIProvider(roiTools);
+  registerToolGroup(m_viewToolGroup);
+
+//   auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
+//   registerToolGroup(roiTools);
+//   m_viewManager->setROIProvider(roiTools);
 
   auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(segmentationTools);
@@ -321,7 +300,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto segmentationHistory = new HistoryDock(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationHistory);
 
-  defaultActiveTool->showTools(true);
+  m_viewToolGroup->showTools(true);
 
   /*** MENU ACTIONS ***/
   QAction *rawInformationAction = m_dynamicMenuRoot->submenus[0]->menu->addAction(tr("Raw Information"));
@@ -333,7 +312,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   loadPlugins(plugins);
 
-  m_colorEngines->restoreUserSettings();
+  m_colorEngineMenu->restoreUserSettings();
   m_viewMenu->addMenu(m_dockMenu);
   m_viewMenu->addSeparator();
 
@@ -376,7 +355,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
   delete m_roiSettings;
-  delete m_colorEngines;
+  delete m_colorEngineMenu;
   delete m_undoStack;
   delete m_dynamicMenuRoot;
 }
@@ -399,7 +378,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       for (auto colorEngine : validPlugin->colorEngines())
       {
 //        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
-        m_colorEngines->addColorEngine(colorEngine.first,  colorEngine.second);
+        registerColorEngine(colorEngine.first,  colorEngine.second);
       }
 
       for (auto extensionFactory : validPlugin->channelExtensionFactories())
@@ -444,11 +423,11 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         m_availableSettingsPanels << settings;
       }
 
-      for (auto renderer : validPlugin->renderers())
-      {
+//       for (auto renderer : validPlugin->renderers())
+//       {
 //        qDebug() << plugin << "- Renderers " << renderer->name() << " ...... OK";
-        m_viewManager->registerRenderer(renderer);
-      }
+       //TODO: change Plugin API registerRepresentationDriverFactory(renderer);
+//       }
 
       for(auto entry: validPlugin->menuEntries())
       {
@@ -760,7 +739,7 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
       {
         if (!channel->hasExtension(ChannelEdges::TYPE))
         {
-          channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
+          //UNCOMMENT: channel->addExtension(std::make_shared<ChannelEdges>(m_scheduler));
         }
       }
     }
@@ -789,15 +768,15 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
-    if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
-    {
-      auto problemList = checkAnalysisConsistency();
-      if(!problemList.empty())
-      {
-        auto problemDialog = new ProblemListDialog(problemList);
-        problemDialog->exec();
-      }
-    }
+//     if((m_model->channels().size()+m_model->segmentations().size()+m_model->samples().size()) > 0)
+//     {
+//       auto problemList = checkAnalysisConsistency();
+//       if(!problemList.empty())
+//       {
+//         auto problemDialog = new ProblemListDialog(problemList);
+//         problemDialog->exec();
+//       }
+//     }
   }
 
   emit analysisChanged();
@@ -1096,8 +1075,7 @@ void EspinaMainWindow::showAboutDialog()
 //------------------------------------------------------------------------
 void EspinaMainWindow::autosave()
 {
-  if (!isModelModified())
-  	return;
+  if (!isModelModified()) return;
 
   m_busy = true;
 
@@ -1176,6 +1154,100 @@ void EspinaMainWindow::redoAction(bool unused)
   m_undoStack->redo();
   m_viewManager->updateSegmentationRepresentations();
 }
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::restoreRepresentationSwitchSettings()
+{
+  const QString REP_MANAGERS = "ActiveRepresentationManagers";
+//TODO: recordar el estado del usuario
+//   QMap<QString, bool> viewSettings;
+//
+//   QStringList storedRenderers;
+//   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
+//   if(settings.contains(RENDERERS) && settings.value(RENDERERS).isValid())
+//   {
+//     storedRenderers = settings.value(RENDERERS).toStringList();
+//     storedRenderers.removeDuplicates();
+//
+//     for(auto name: storedRenderers)
+//       viewSettings[name] = settings.value(name).toBool();
+//   }
+//   else
+//   {
+//     // default init state: (can be overridden by seg file settings).
+//     // 2D -> cached slice renderer active, and the rest not included in XY view.
+//     // 3D -> all renderers included but initially inactive.
+//     storedRenderers << QString("Slice (Cached)");
+//     storedRenderers << QString("Contour");
+//     storedRenderers << QString("Skeleton");
+//     viewSettings[QString("Slice (Cached)")] = true;
+//     viewSettings[QString("Contour")] = false;
+//     viewSettings[QString("Skeleton")] = true;
+//     storedRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
+//     storedRenderers.removeDuplicates();
+//
+//     settings.setValue(RENDERERS, storedRenderers);
+//   }
+//   settings.endGroup();
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
+{
+  m_colorEngineMenu = new ColorEngineMenu(tr("Color By"));
+
+  parentMenu->addMenu(m_colorEngineMenu);
+
+  registerColorEngine(tr("Number"), std::make_shared<NumberColorEngine>());
+  registerColorEngine(tr("Category"), std::make_shared<CategoryColorEngine>());
+  //registerColorEngine(tr("User"), std::make_shared<UserColorEngine>());
+
+  m_viewManager->setColorEngine(m_colorEngineMenu->engine());
+}
+
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerColorEngine(const QString   &title,
+                                           ColorEngineSPtr colorEngine)
+{
+  m_colorEngineMenu->addColorEngine(title, colorEngine);
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::initRepresentations()
+{
+  registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationFactory>(m_scheduler));
+  registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationFactory>(m_scheduler));
+
+//   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
+//   registerRepresentationDriver(std::make_shared<MeshRenderer>());
+//   registerRepresentationDriver(std::make_shared<SmoothedMeshRenderer>());
+//   registerRepresentationDriver(std::make_shared<SliceRenderer>());
+//   registerRepresentationDriver(std::make_shared<VolumetricRenderer<itkVolumeType>>());
+//   registerRepresentationDriver(std::make_shared<VolumetricGPURenderer<itkVolumeType>>());
+//   registerRepresentationDriver(std::make_shared<ContourRenderer>());
+//   registerRepresentationDriver(std::make_shared<CachedSliceRenderer>(m_scheduler));
+//   registerRepresentationDriver(std::make_shared<SkeletonRenderer>());
+//   registerRepresentationDriver(std::make_shared<SkeletonRenderer3D>());
+
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
+{
+  auto representation = factory->createRepresentation(m_colorEngineMenu->engine());
+
+  for (auto repSwitch : representation.Switches)
+  {
+    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch);
+  }
+
+  m_viewManager->addRepresentationPools(representation.Group, representation.Pools);
+  m_viewManager->addRepresentationManagers(representation.Managers);
+
+  m_representationFactories << factory;
+}
+
 
 //------------------------------------------------------------------------
 ProblemList EspinaMainWindow::checkAnalysisConsistency()

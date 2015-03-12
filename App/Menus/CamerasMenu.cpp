@@ -96,16 +96,18 @@ namespace ESPINA
                                          tr("Name:"),
                                          QLineEdit::Normal,
                                          state.id, &ok);
-    if (ok && !text.isEmpty())
-      state.id = text;
-    else
-      return;
+
+    if (!(ok && !text.isEmpty())) return;
+
+    state.id = text;
 
     for(auto view: m_viewManager->renderViews())
-      state.states << view->visualState();
+    {
+      state.states << view->cameraState();
+    }
+
 
     m_cameraPositions << state;
-    auto action = new QAction(state.id, this);
 
     if (m_load->isEnabled() == false)
     {
@@ -113,27 +115,35 @@ namespace ESPINA
       m_clear->setEnabled(true);
     }
 
-    m_load->addAction(action);
+    m_load->addAction(new QAction(state.id, this));
   }
 
   //-----------------------------------------------------------------------------
   void CamerasMenu::activate(QAction *action)
   {
     if (action == m_clear)
+    {
       clearPositions();
+    }
+    else if(action == m_save)
+    {
+      save();
+    }
     else
-      if(action == m_save)
-        save();
-      else
+    {
+      if (m_load->actions().contains(action))
       {
-        if (m_load->actions().contains(action))
+        auto snapshot = m_cameraPositions.at(m_load->actions().indexOf(action));
+
+        for(auto state: snapshot.states)
         {
-          struct CameraPositions snapshot = m_cameraPositions.at(m_load->actions().indexOf(action));
-          for(auto state: snapshot.states)
-            for(auto view: m_viewManager->renderViews())
-              view->setVisualState(state);
+          for(auto view: m_viewManager->renderViews())
+          {
+            view->setCameraState(state);
+          }
         }
       }
+    }
   }
 
 } /* namespace ESPINA */

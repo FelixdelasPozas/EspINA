@@ -23,7 +23,9 @@
 
 // ESPINA
 #include <GUI/View/Widgets/EspinaWidget.h>
-#include <GUI/Selectors/BrushSelector.h>
+#include <GUI/EventHandlers/ContourPainter.h>
+#include <GUI/EventHandlers/StrokePainter.h>
+
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -42,6 +44,7 @@ namespace ESPINA
 {
   class RenderView;
   class vtkPlaneContourWidget;
+  class View2D;
 
   class EspinaGUI_EXPORT ContourWidget
   : public QObject
@@ -54,11 +57,11 @@ namespace ESPINA
       Nm                           actualPosition;
       Nm                           contourPosition;
       Plane                        plane;
-      BrushSelector::BrushMode     mode;
+      DrawingMode                  mode;
       vtkSmartPointer<vtkPolyData> polyData;
 
-      ContourInternals(Nm actual, Nm position, Plane plane, BrushSelector::BrushMode mode, vtkSmartPointer<vtkPolyData> contour) : actualPosition{actual}, contourPosition{position}, plane{plane}, mode{mode}, polyData{contour} {};
-      ContourInternals() : actualPosition{0}, contourPosition{0}, plane{Plane::XY}, mode{BrushSelector::BrushMode::BRUSH}, polyData{} {};
+      ContourInternals(Nm actual, Nm position, Plane plane, DrawingMode mode, vtkSmartPointer<vtkPolyData> contour) : actualPosition{actual}, contourPosition{position}, plane{plane}, mode{mode}, polyData{contour} {};
+      ContourInternals() : actualPosition{0}, contourPosition{0}, plane{Plane::XY}, mode{DrawingMode::PAINTING}, polyData{} {};
       ~ContourInternals() { polyData = nullptr; }
 
     };
@@ -90,27 +93,22 @@ namespace ESPINA
     /** \brief Returs the actual color of the polygon defined by the contour.
      *
      */
-    virtual QColor getPolygonColor();
+    virtual QColor polygonColor();
 
     /** \brief Returns the list of defined contours.
      *
      */
-    ContourList getContours();
+    ContourList contours();
 
     /** \brief Starts the interaction.
      *
      */
     void startContourFromWidget();
 
-    /** \brief Signals a contour modification.
-     *
-     */
-    void contourHasBeenModified();
-
     /** \brief Sets the mode of the widget.
      * \param[in] mode Brush mode.
      */
-    void setMode(BrushSelector::BrushMode mode);
+    void setDrawingMode(DrawingMode mode);
 
     // reset all contours in all planes without rasterize
     /** \brief Resets all contours in all planes without rasterizing.
@@ -124,9 +122,14 @@ namespace ESPINA
      */
     void initialize(ContourData contour);
 
+    void setSpacing(const NmVector3 &spacing)
+    { m_spacing = spacing; }
+
+    void setMinimumPointDistance(const Nm distance);
+
   signals:
-    void rasterizeContours(ContourWidget::ContourList);
-    void contourModified();
+    void contour(BinaryMaskSPtr<unsigned char> mask);
+    void fuck();
 
   protected slots:
     /** \brief Stored the finished contours if necessary and manages the change of slices in the widgets.
@@ -137,12 +140,12 @@ namespace ESPINA
     void changeSlice(Plane plane, Nm pos);
 
   private:
-    friend class ContourSelector;
-
     QMap<View2D*, vtkSmartPointer<vtkPlaneContourWidget>> m_widgets;
     QMap<View2D*, ContourData> m_storedContours;
 
-    QColor m_color;
+    NmVector3 m_spacing;
+    Nm        m_tolerance;
+    QColor    m_color;
   };
 
   using ContourWidgetPtr  = ContourWidget *;

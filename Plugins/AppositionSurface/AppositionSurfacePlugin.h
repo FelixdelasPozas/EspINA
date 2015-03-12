@@ -69,8 +69,6 @@ namespace ESPINA
 
     virtual QList<DockWidget *> dockWidgets() const;
 
-    virtual RendererSList renderers() const;
-
     virtual SettingsPanelSList settingsPanels() const;
 
     virtual QList<MenuEntry> menuEntries() const;

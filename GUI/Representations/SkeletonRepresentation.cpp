@@ -140,7 +140,7 @@ namespace ESPINA
       auto newLines = vtkSmartPointer<vtkCellArray>::New();
 
       auto planeIndex = normalCoordinateIndex(view2d->plane());
-      auto slice = view2d->crosshairPoint()[planeIndex];
+      auto slice = view2d->crosshair()[planeIndex];
       auto data = m_data->skeleton();
       auto planeSpacing = m_data->spacing()[planeIndex];
 

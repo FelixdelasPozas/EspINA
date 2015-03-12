@@ -32,7 +32,6 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/ExtensionUtils.h>
-#include <GUI/Representations/Renderers/SliceRenderer.h>
 
 #if USE_METADONA
   #include <Producer.h>
@@ -86,10 +85,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
 
   connect(unitsBox, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged(int)));
 
-  RendererSList renderers;
-  renderers << RendererSPtr{new SliceRenderer()};
-  m_view->setRenderers(renderers);
-  m_view->add(channel);
+  //TODO: m_view->add(channel);
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
 
@@ -271,7 +267,7 @@ void ChannelInspector::changeSpacing()
     }
   }
 
-  m_view->updateSceneBounds();
+  // TODO m_view->updateSceneBounds();
   m_view->updateRepresentations();
   m_view->resetCamera();
   m_spacingModified = false;
@@ -492,7 +488,7 @@ void ChannelInspector::rejectedChanges()
 
   if (modified)
   {
-    m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
+    //TODO m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
     m_view->updateRepresentations();
   }
 }

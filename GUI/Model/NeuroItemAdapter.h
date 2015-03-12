@@ -23,7 +23,6 @@
 #define ESPINA_NEURO_ITEM_ADAPTER_H
 
 // ESPINA
-#include <GUI/Representations/Representation.h>
 #include "GUI/Model/ItemAdapter.h"
 #include <Core/Analysis/NeuroItem.h>
 
@@ -36,14 +35,14 @@ namespace ESPINA
   : public ItemAdapter
   {
   public:
-  	/** \brief NeuroItemAdapter class virtual destructor.
-  	 *
-  	 */
+    /** \brief NeuroItemAdapter class virtual destructor.
+     *
+     */
     virtual ~NeuroItemAdapter()
     {}
 
     /** \brief Sets the model of the item.
-     * \param[in] model, model adapter raw pointer.
+     * \param[in] model model adapter raw pointer.
      *
      */
     void setModel(ModelAdapterPtr model)
@@ -57,7 +56,7 @@ namespace ESPINA
 
   protected:
     /** \brief NeuroItemAdapter class constructor.
-     * \param[in] item, smart pointer of the NeuroItem to adapt.
+     * \param[in] item smart pointer of the NeuroItem to adapt.
      *
      */
     explicit NeuroItemAdapter(NeuroItemSPtr item);
@@ -71,7 +70,7 @@ namespace ESPINA
   using NeuroItemAdapterSPtr = std::shared_ptr<NeuroItemAdapter>;
 
   /** \brief Returns the NeuroItemAdapter raw pointer from the ItemAdapter raw pointer.
-   * \param[in] item, ItemAdapter raw pointer.
+   * \param[in] item ItemAdapter raw pointer.
    *
    */
   NeuroItemAdapterPtr EspinaGUI_EXPORT neuroItemAdapter(ItemAdapterPtr item);

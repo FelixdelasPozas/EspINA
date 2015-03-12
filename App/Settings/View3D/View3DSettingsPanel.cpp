@@ -36,8 +36,8 @@ View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& rend
   showAxis->setVisible(false);
 
   QStringList activeRenderersList;
-  for(auto renderer: m_view->renderers())
-    activeRenderersList << renderer->name();
+//   for(auto renderer: m_view->renderers())
+//     activeRenderersList << renderer->name();
 
   m_rendererSelector = new RenderersSelector(m_renderers, activeRenderersList, RendererTypes(RendererType::RENDERER_VIEW3D));
 
@@ -47,7 +47,7 @@ View3DSettingsPanel::View3DSettingsPanel(View3D* view, const RendererSList& rend
 //-----------------------------------------------------------------------------
 void View3DSettingsPanel::acceptChanges()
 {
-  m_view->setRenderers(m_rendererSelector->getActiveRenderers());
+  //TODO m_view->setRenderers(m_rendererSelector->getActiveRenderers());
 }
 
 //-----------------------------------------------------------------------------
@@ -60,11 +60,11 @@ bool View3DSettingsPanel::modified() const
 {
   QSet<QString> current, previous;
 
-  for(auto renderer: m_view->renderers())
-    previous << renderer->name();
-
-  for(auto renderer: m_rendererSelector->getActiveRenderers())
-    current << renderer->name();
+//   for(auto renderer: m_view->renderers())
+//     previous << renderer->name();
+//
+//   for(auto renderer: m_rendererSelector->getActiveRenderers())
+//     current << renderer->name();
 
   return current != previous;
 }

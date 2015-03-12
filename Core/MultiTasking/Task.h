@@ -59,7 +59,7 @@ namespace ESPINA {
     typedef unsigned int Id;
   public:
     /** \brief Task class constructor.
-     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] scheduler scheduler smart pointer.
      *
      */
     explicit Task(SchedulerSPtr scheduler);
@@ -70,7 +70,7 @@ namespace ESPINA {
     virtual ~Task();
 
     /** \brief Sets task id.
-     * \param[in] id.
+     * \param[in] id of the task
      *
      */
     void setId(Id id)
@@ -83,7 +83,7 @@ namespace ESPINA {
     { return m_id;}
 
     /** \brief Sets task description.
-     * \param[in] description.
+     * \param[in] description of the task
      *
      */
     void setDescription(const QString& description)
@@ -119,23 +119,22 @@ namespace ESPINA {
      */
     virtual bool isPendingPause() const;
 
+    void restart();
+
     /** \brief Returns true if the task is running.
      *
      */
-    bool isRunning() const
-    {return m_isThreadAttached && !isPendingPause();}
+    bool isRunning() const;
 
     /** \brief Returns true if the task has been aborted.
      *
      */
-    bool isAborted() const
-    { return m_isAborted; }
+    bool isAborted() const;
 
     /** \brief Returns true if the task has finished its execution.
      *
      */
-    bool hasFinished() const
-    { return m_hasFinished; }
+    bool hasFinished() const;
 
     /** \brief Returns task priority.
      *
@@ -144,7 +143,7 @@ namespace ESPINA {
     { return m_priority; }
 
     /** \brief Sets the task as hidden.
-     * \param[in] hidden, true to set as hidden, false otherwise.
+     * \param[in] hidden true to set as hidden, false otherwise.
      *
      * Scheduler won't signal any action regarding hidden tasks.
      *
@@ -164,11 +163,6 @@ namespace ESPINA {
     bool isPaused() const
     { return m_isPaused; }
 
-    /** \brief The task is waiting waiting to another process to finish.
-     *
-     */
-    bool isWaiting() const {return m_isWaiting; }
-
     /** \brief Emits progress signal.
      *
      * NOTE: Need to be public so we can reuse itkProgressReporters.
@@ -178,10 +172,10 @@ namespace ESPINA {
 
 
   public slots:
-		/** \brief Sets task priority.
-		 * \param[in] value, priority level.
-		 *
-		 */
+    /** \brief Sets task priority.
+     * \param[in] value priority level.
+     *
+     */
     void setPriority(Priority value);
 
     /** \brief Notify the scheduler this task is ready to be executed.
@@ -202,42 +196,19 @@ namespace ESPINA {
      */
     bool canExecute();
 
+    bool needsRestart() const;
+
+    /** \brief Sets the task as finished.
+     * \param[in] value finished value.
+     */
+    void setFinished(bool value);
+
+  private:
     /** \brief Executes the task.
      *
      */
     virtual void run() = 0;
 
-    /** \brief Change the waiting state of the task.
-     *
-     *  Usually a task should change its state before executing potentially blocking calls
-     *  and restore it after the call itself so the scheduler may execute other pending tasks
-     */
-    void setWaiting(bool value)
-    { m_isWaiting = value; }
-
-    /** \brief Sets the task as finished.
-     * \param[in] value, finished value.
-     */
-    void setFinished(bool value)
-    {
-      m_hasFinished = value;
-      emit finished();
-    }
-
-    /** \brief Method to be executed when a task is aborted
-     *
-     *  Overload this method when your task needs to do some processing when it is aborted
-     */
-    virtual void onAbort()
-    {}
-
-  protected slots:
-		/** \brief Helper method to set some values after execution.
-		 *
-		 */
-    void runWrapper();
-
-  protected:
     /** \brief Pauses the task from the scheduler.
      *
      */
@@ -258,11 +229,30 @@ namespace ESPINA {
      */
     void prepareToRun();
 
+    /** \brief Method to be executed when a task is aborted
+     *
+     *  Overload this method when your task needs to do some processing when it is aborted
+     */
+    virtual void onAbort()
+    {}
+
   private slots:
-		/** \brief Starts the thread.
-		 *
-		 */
-    void start();
+    /** \brief Helper method to set some values after execution.
+     *
+     */
+    void runWrapper();
+
+    /** \brief Starts the thread.
+     *
+     */
+    void startThreadExecution();
+
+    void onTaskFinished();
+
+  private:
+    void finishThreadExecution();
+
+    bool isExecutingOnThread() const;
 
   signals:
     void progress(int);
@@ -274,23 +264,30 @@ namespace ESPINA {
     SchedulerSPtr m_scheduler;
 
   private:
+    QThread *m_thread;
+    QThread *m_executingThread;
+    bool     m_submitted;
+    QMutex   m_submissionMutex;
+
     Priority m_priority;
 
+    bool m_isRunning;
     bool m_pendingPause;
     bool m_pendingUserPause;
     bool m_isAborted;
     bool m_hasFinished;
     bool m_isPaused;
-    bool m_isWaiting;
+    bool m_needsRestart;
+
+    Id   m_id;
+    bool m_hidden;
 
     QMutex         m_mutex;
+    QMutex         m_restartMutex;
     mutable QReadWriteLock m_descriptionLock;
     QWaitCondition m_pauseCondition;
 
     QString  m_description;
-    Id m_id;
-    bool m_isThreadAttached;
-    bool m_hidden;
 
     friend class Scheduler;
   };

@@ -42,8 +42,8 @@ namespace ESPINA
 
     for(auto renderer : m_renderers)
     {
-      if (!canRender(renderer, filter))
-        continue;
+//       if (!canRender(renderer, filter))
+//         continue;
 
       QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
       item->setDropEnabled(false);

@@ -176,6 +176,13 @@ namespace ESPINA
   template<typename T>
   Bounds minimalBounds(const typename T::Pointer image, const typename T::ValueType value);
 
+  /** \brief Transform NmVector to ItkPointType
+   * \param[in] point given as a NmVector3
+   *
+   */
+  template<typename T>
+  typename T::PointType ItkPoint(const NmVector3& point);
+
   /** \brief Transform NmVector to ItkSpacing.
    * \param[in] spacing NmVector3 to translate.
    *

@@ -26,6 +26,9 @@ namespace ESPINA {
   : public Task
   {
   public:
+    static const int Iterations = 10;
+
+  public:
     explicit SleepyTask(int sleepTime, SchedulerSPtr scheduler);
     virtual ~SleepyTask();
 
@@ -33,11 +36,13 @@ namespace ESPINA {
     virtual void run();
 
   public:
+    bool isFinished();
+    bool isExecuting();
+
     int Result;
 
   private:
     int    m_sleepTime;
-    QMutex m_mutex;
   };
 }
 

@@ -21,6 +21,7 @@
 // ESPINA
 #include "VolumetricStreamReader.h"
 #include <Core/IO/ErrorHandler.h>
+#include <Core/Analysis/Data/Volumetric/RawVolume.hxx>
 
 // Qt
 #include <QFileDialog>
@@ -88,36 +89,40 @@ void VolumetricStreamReader::execute()
     }
   }
 
-  QFileInfo mhdFile = m_fileName;
+  using VolumeReader = itk::ImageFileReader<itkVolumeType>;
+  using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+
+  QFileInfo mhdFile   = m_fileName;
   QString mhdFileName = m_fileName.baseName() + QString(".mhd");
 
-  QString fileInAnotherStorage = storage()->findFile(mhdFileName);
-  if(fileInAnotherStorage != QString())
-  {
-    mhdFile = QFileInfo(fileInAnotherStorage);
-  }
-  else
-  {
-    if (mhdFile.fileName().endsWith(".tif"))
-    {
-      using VolumeReader = itk::ImageFileReader<itkVolumeType>;
-      using VolumeWriter = itk::ImageFileWriter<itkVolumeType>;
+//   QString fileInAnotherStorage = storage()->findFile(mhdFileName);
+//   if(fileInAnotherStorage != QString())
+//   {
+//     mhdFile = QFileInfo(fileInAnotherStorage);
+//   }
+//   else
+//   {
+//     if (mhdFile.fileName().endsWith(".tif"))
+//     {
+//
+//       VolumeReader::Pointer reader = VolumeReader::New();
+//       reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+//       reader->Update();
+//
+//       mhdFile = QFileInfo(storage()->absoluteFilePath(mhdFile.baseName() + ".mhd"));
+//
+//       VolumeWriter::Pointer writer = VolumeWriter::New();
+//       writer->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+//       writer->SetInput(reader->GetOutput());
+//       writer->Write();
+//     }
+//   }
 
-      VolumeReader::Pointer reader = VolumeReader::New();
-      reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-      reader->Update();
+  VolumeReader::Pointer reader = VolumeReader::New();
+  reader->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
+  reader->Update();
 
-      mhdFile = QFileInfo(storage()->absoluteFilePath(mhdFile.baseName() + ".mhd"));
-
-      VolumeWriter::Pointer writer = VolumeWriter::New();
-      writer->SetFileName(mhdFile.absoluteFilePath().toUtf8().data());
-      writer->SetInput(reader->GetOutput());
-      writer->Write();
-    }
-  }
-
-
-  auto volume = std::make_shared<StreamedVolume<itkVolumeType>>(mhdFile);
+  auto volume = std::make_shared<RawVolume<itkVolumeType>>(reader->GetOutput());
 
   if (!m_outputs.contains(0))
   {
@@ -134,4 +139,6 @@ void VolumetricStreamReader::execute()
   {
     volume->setSpacing(m_outputs[0]->spacing());
   }
+
+  qDebug() << "Loading Channel with Spacing" << volume->spacing();
 }

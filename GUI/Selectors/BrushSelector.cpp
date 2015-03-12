@@ -31,6 +31,8 @@
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/Selection.h>
+#include <App/ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.h>
+#include <Support/Representations/RepresentationUtils.h>
 
 // Qt
 #include <QApplication>
@@ -50,8 +52,106 @@
 #include <vtkImageData.h>
 #include <vtkInformation.h>
 #include <vtkPoints.h>
+#include <vtkLookupTable.h>
 
 using namespace ESPINA;
+
+class BrushSelector::BrushPipeline
+: RepresentationPipeline
+{
+public:
+  BrushPipeline()
+  : RepresentationPipeline("Algo")
+  , m_slice{Plane::XY, ColorEngineSPtr()}{}
+
+  virtual RepresentationState representationState(const ViewItemAdapter *item, const RepresentationState &settings);
+
+  virtual ActorList createActors(const ViewItemAdapter *item, const RepresentationState &state);
+
+  virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
+
+  VTKActor createTemporalActor(ViewItemAdapter *referenceItem);
+
+
+
+  void setDrawMode();
+
+  void setEraseMode();
+
+  void setPreviewView(View2D* view)
+  { m_view = view; Q_ASSERT(view); }
+
+private:
+  void setTransparency(double value);
+  bool isTemporalActor(const RepresentationState &state);
+
+  double    m_transparency;
+
+  View2D*   m_view;
+
+  SegmentationSlicePipeline m_slice;
+};
+
+//-----------------------------------------------------------------------------
+RepresentationState BrushSelector::BrushPipeline::representationState(const ViewItemAdapter *item,
+                                                                      const RepresentationState &settings)
+{
+  auto state = m_slice.representationState(item, settings);
+
+  state.setValue<double>("Transparency", m_transparency);
+
+  return state;
+}
+
+//-----------------------------------------------------------------------------
+RepresentationPipeline::ActorList BrushSelector::BrushPipeline::createActors(const ViewItemAdapter *item,
+                                                                             const RepresentationState &state)
+{
+  ActorList actors;
+
+  if (isTemporalActor(state))
+  {
+    //actors << m_actor;
+  }
+  else
+  {
+    m_slice.setPlane(RepresentationUtils::plane(state));
+    actors = m_slice.createActors(item, state);
+  }
+
+  return actors;
+}
+
+//-----------------------------------------------------------------------------
+bool BrushSelector::BrushPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
+{
+  return m_slice.pick(item, point);
+}
+
+//-----------------------------------------------------------------------------
+bool BrushSelector::BrushPipeline::isTemporalActor(const RepresentationState &state)
+{
+  return m_view->plane() == RepresentationUtils::plane(state)
+      && m_view->crosshair() == crosshairPoint(state);
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::BrushPipeline::setDrawMode()
+{
+  setTransparency(1);
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::BrushPipeline::setEraseMode()
+{
+  setTransparency(0.5);
+}
+
+//-----------------------------------------------------------------------------
+void BrushSelector::BrushPipeline::setTransparency(double value)
+{
+  m_transparency = value;
+}
 
 //-----------------------------------------------------------------------------
 BrushSelector::BrushSelector()
@@ -116,7 +216,9 @@ bool BrushSelector::filterEvent(QEvent* e, RenderView* view)
         m_drawing = !m_eraseMode;
 
         if (m_previewView != nullptr)
+        {
           stopPreview(view);
+        }
 
         emit drawingModeChanged(m_drawing);
       }
@@ -343,7 +445,7 @@ void BrushSelector::getBrushPosition(NmVector3 &center, QPoint const pos)
 
   double wPos[3];
   int planeIndex = normalCoordinateIndex(m_plane);
-  wPos[planeIndex] = m_pBounds[2*planeIndex];
+  wPos[planeIndex] = m_previewBounds[2*planeIndex];
   wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_viewSize[0];
   wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_viewSize[1];
 
@@ -352,7 +454,6 @@ void BrushSelector::getBrushPosition(NmVector3 &center, QPoint const pos)
     center[i] = wPos[i];
   }
 }
-
 
 //-----------------------------------------------------------------------------
 bool BrushSelector::validStroke(NmVector3 &center)
@@ -364,13 +465,13 @@ bool BrushSelector::validStroke(NmVector3 &center)
   if(hasVolumetricData(m_item->output()))
   {
     auto volume = volumetricData(m_item->output());
-    if(!m_drawing && !intersect(m_pBounds, volume->bounds()))
+    if(!m_drawing && !intersect(m_previewBounds, volume->bounds()))
     {
       return false;
     }
   }
 
-  return intersect(m_pBounds, brushBounds);
+  return intersect(m_previewBounds, brushBounds);
 }
 
 //-----------------------------------------------------------------------------
@@ -378,9 +479,9 @@ void BrushSelector::startStroke(QPoint pos, RenderView* view)
 {
   if (!m_item) return;
 
-  View2D *previewView = static_cast<View2D*>(view);
+  auto previewView = view2D_cast(view);
   m_plane = previewView->plane();
-  m_pBounds = view->previewBounds(false);
+  m_previewBounds = view->previewBounds(false);
 
   memcpy(m_viewSize, view->renderWindow()->GetSize(), 2*sizeof(int));
 
@@ -457,12 +558,15 @@ void BrushSelector::stopStroke(RenderView* view)
 //-----------------------------------------------------------------------------
 void BrushSelector::startPreview(RenderView* view)
 {
-  if (m_previewView != nullptr || !m_item || !hasVolumetricData(m_item->output())) return;
+  if (m_preview) return;
+  if (!m_item)   return;
+  if (!hasVolumetricData(m_item->output())) return;
 
-  m_pBounds = view->previewBounds(false);
-  NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
-  VolumeBounds previewBounds{ m_pBounds, spacing, m_origin};
-  m_previewView = view;
+  m_previewView   = view;
+  m_previewBounds = view->previewBounds(false);
+
+  auto spacing       = ToNmVector3<itkVolumeType>(m_spacing);
+  auto previewBounds = VolumeBounds{m_previewBounds, spacing, m_origin};
 
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
   m_lut->Allocate();
@@ -473,13 +577,23 @@ void BrushSelector::startPreview(RenderView* view)
   m_lut->Modified();
 
   int extent[6];
+
+  auto view2d = view2D_cast(view);
+  Q_ASSERT(view2d);
+
+  m_brushPipeline = std::make_shared<BrushPipeline>();
+  m_brushPipeline->setPreviewView(view2d);
+
   if (m_drawing)
   {
     for (int i = 0; i < 3; ++i)
     {
-      extent[2 * i]       = m_pBounds[2 * i]       / m_spacing[i];
-      extent[(2 * i) + 1] = m_pBounds[(2 * i) + 1] / m_spacing[i];
+      extent[2 * i]       = m_previewBounds[2 * i]       / m_spacing[i];
+      extent[(2 * i) + 1] = m_previewBounds[(2 * i) + 1] / m_spacing[i];
     }
+
+    m_brushPipeline->setDrawMode();
+
     m_preview = vtkSmartPointer<vtkImageData>::New();
     m_preview->SetOrigin(0, 0, 0);
     m_preview->SetExtent(extent);
@@ -496,6 +610,8 @@ void BrushSelector::startPreview(RenderView* view)
   }
   else
   {
+    m_brushPipeline->setEraseMode();
+
     auto volume = volumetricData(m_item->output());
     if (!intersect(previewBounds.bounds(), volume->bounds()))
     {
@@ -504,14 +620,8 @@ void BrushSelector::startPreview(RenderView* view)
 
       return;
     }
-    View2D* view2d = qobject_cast<View2D *>(m_previewView);
-    Q_ASSERT(view2d);
-    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(updateSliceChange()));
 
-    for(auto prototype: m_item->representations())
-      prototype->setActive(false, m_previewView);
-
-    m_preview = vtkImage<itkVolumeType>(volume, VolumeBounds(intersection(m_pBounds, volume->bounds()), spacing, m_origin).bounds());
+    m_preview = vtkImage<itkVolumeType>(volume, VolumeBounds(intersection(m_previewBounds, volume->bounds()), spacing, m_origin).bounds());
   }
   m_preview->Modified();
   m_preview->GetExtent(extent);
@@ -534,7 +644,6 @@ void BrushSelector::startPreview(RenderView* view)
   m_actor->Update();
 
   // preview actor must be above others or it will be occluded
-  auto view2d = qobject_cast<View2D *>(m_previewView);
   double pos[3];
   m_actor->GetPosition(pos);
   pos[normalCoordinateIndex(view2d->plane())] += 2 * view2d->segmentationDepth();
@@ -555,7 +664,7 @@ void BrushSelector::updatePreview(BrushShape shape, RenderView* view)
   {
     startPreview(view);
 
-    if (!intersect(VolumeBounds(m_pBounds, nmSpacing, m_origin).bounds(), m_item->output()->bounds())) return;
+    if (!intersect(VolumeBounds(m_previewBounds, nmSpacing, m_origin).bounds(), m_item->output()->bounds())) return;
   }
 
   Bounds brushBounds = shape.second;
@@ -563,7 +672,7 @@ void BrushSelector::updatePreview(BrushShape shape, RenderView* view)
 
   auto r2 = m_radius * m_radius;
 
-  if (intersect(brushBounds, m_pBounds))
+  if (intersect(brushBounds, m_previewBounds))
   {
     double point1[3] = { static_cast<double>(m_lastUdpdatePoint[0]), static_cast<double>(m_lastUdpdatePoint[1]), static_cast<double>(m_lastUdpdatePoint[2])};
     double point2[3] = { center[0], center[1], center[2] };
@@ -594,13 +703,13 @@ void BrushSelector::updatePreview(BrushShape shape, RenderView* view)
     m_preview->GetExtent(extent);
     for (auto brush: brushes)
     {
-      if (!intersect(m_pBounds, brush.second))
+      if (!intersect(m_previewBounds, brush.second))
       {
         brushes.removeOne(brush);
         continue;
       }
 
-      Bounds pointBounds = intersection(m_pBounds, brush.second);
+      Bounds pointBounds = intersection(m_previewBounds, brush.second);
       auto region = equivalentRegion<itkVolumeType>(m_origin, nmSpacing, pointBounds);
       auto tempImage = create_itkImage<itkVolumeType>(pointBounds, SEG_BG_VALUE, nmSpacing, m_origin);
 
@@ -641,14 +750,16 @@ void BrushSelector::stopPreview(RenderView* view)
   m_preview = nullptr;
   m_mapToColors = nullptr;
   m_actor = nullptr;
-  m_pBounds = m_lastUpdateBounds = Bounds();
+  m_previewBounds = m_lastUpdateBounds = Bounds();
 
   if (isSegmentation(m_item))
   {
-    for(auto prototype: m_item->representations())
-    {
-      prototype->setActive(true, m_previewView);
-    }
+    // TODO: Restore representation
+    Q_ASSERT(false);
+//     for(auto prototype: m_item->representations())
+//     {
+//       prototype->setActive(true, m_previewView);
+//     }
   }
 
   m_previewView->updateView();
@@ -707,8 +818,8 @@ Bounds BrushSelector::buildBrushBounds(NmVector3 center)
                     '[', center[2] - m_radius, center[2] + m_radius, ')' };
 
   int index = normalCoordinateIndex(m_plane);
-  bounds[2*index] = m_pBounds[2*index];
-  bounds[2*index+1] = m_pBounds[2*index+1];
+  bounds[2*index] = m_previewBounds[2*index];
+  bounds[2*index+1] = m_previewBounds[2*index+1];
   bounds.setUpperInclusion(toAxis(index), true);
 
   NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
@@ -740,11 +851,11 @@ void BrushSelector::updateSliceChange()
 
   NmVector3 nmSpacing { m_spacing[0], m_spacing[1], m_spacing[2] };
   auto volume = volumetricData(m_item->output());
-  m_pBounds = m_previewView->previewBounds(false);
-  if(!intersect(volume->bounds(), m_pBounds))
+  m_previewBounds = m_previewView->previewBounds(false);
+  if(!intersect(volume->bounds(), m_previewBounds))
     return;
 
-  m_preview = vtkImage<itkVolumeType>(volume, VolumeBounds(intersection(m_pBounds, volume->bounds()), nmSpacing, m_origin).bounds());
+  m_preview = vtkImage<itkVolumeType>(volume, VolumeBounds(intersection(m_previewBounds, volume->bounds()), nmSpacing, m_origin).bounds());
   m_preview->Modified();
   int extent[6];
   m_preview->GetExtent(extent);

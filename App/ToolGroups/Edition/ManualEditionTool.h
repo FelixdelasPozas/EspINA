@@ -22,27 +22,41 @@
 #define ESPINA_MANUAL_EDITION_TOOL_H_
 
 // ESPINA
-#include <GUI/Selectors/CircularBrushSelector.h>
-#include <GUI/Selectors/SphericalBrushSelector.h>
-#include <GUI/Selectors/ContourSelector.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <GUI/Widgets/ActionSelector.h>
-#include <GUI/Widgets/CategorySelector.h>
 #include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
-#include <GUI/View/Widgets/Contour/ContourWidget.h>
+#include <Core/Factory/FilterFactory.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <GUI/EventHandlers/Brush.h>
+#include <GUI/EventHandlers/StrokePainter.h>
+#include <GUI/Widgets/DrawingWidget.h>
+#include "SliceEditionPipeline.h"
 
-class QAction;
+class QUndoStack;
 
 namespace ESPINA
 {
-  class SliderAction;
-  class CountourWidget;
-
   class ManualEditionTool
   : public Tool
   {
     Q_OBJECT
+
+    enum class Mode
+    {
+      CREATION,
+      EDITION
+    };
+
+    class ManualFilterFactory
+    : public FilterFactory
+    {
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
+
+      virtual FilterTypeList providedFilters() const;
+
+    private:
+      mutable DataFactorySPtr m_dataFactory;
+    };
+
   public:
     /** \brief ManualEditionTool class constructor.
      * \param[in] model model adapter smart pointer.
@@ -50,6 +64,8 @@ namespace ESPINA
      *
      */
     ManualEditionTool(ModelAdapterSPtr model,
+                      ModelFactorySPtr factory,
+                      QUndoStack      *undoStack,
                       ViewManagerSPtr  viewManager);
 
     /** \brief ManualEditionTool class virtual destructor.
@@ -57,19 +73,10 @@ namespace ESPINA
      */
     virtual ~ManualEditionTool();
 
-    /** \brief Implements Tool::setEnabled().
-     *
-     */
     virtual void setEnabled(bool value);
 
-    /** \brief Implements Tool::enabled().
-     *
-     */
     virtual bool enabled() const;
 
-    /** \brief Implements Tool::actions().
-     *
-     */
     virtual QList<QAction *> actions() const;
 
     /** \brief Aborts current operation.
@@ -77,235 +84,48 @@ namespace ESPINA
      */
     virtual void abortOperation();
 
-    /** \brief Shows/hides category controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showCategoryControls(bool value)
-    { m_showCategoryControls = value; }
-
-    /** \brief Shows/hides radius controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showRadiusControls(bool value)
-    { m_showRadiusControls = value; }
-
-    /** \brief Shows/hides opacity controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showOpacityControls(bool value)
-    { m_showOpacityControls = value; }
-
-    /** \brief Shows/hides eraser controls.
-     * \param[in] value true for show.
-     *
-     */
-    void showEraserControls(bool value)
-    { m_showEraserControls = value; }
-
-    /** \brief Returns true if the category controls are visible, false otherwise.
-     *
-     */
-    bool categoryControlsVisibility()
-    { return m_showCategoryControls; }
-
-    /** \brief Returns true if the radius controls are visible, false otherwise.
-     *
-     */
-    bool radiusControlsVisibility()
-    { return m_showRadiusControls; }
-
-    /** \brief Returns true if the opacity controls are visible, false otherwise.
-     *
-     */
-    bool opacityControlsVisibility()
-    { return m_showOpacityControls; }
-
-    /** \brief Returns true if the eraser controls are visible, false otherwise.
-     *
-     */
-    bool eraserControlsVisibility()
-    { return m_showEraserControls; }
-
-    /** \brief Sets pencil 2d icon.
-     * \param[in] icon QIcon object.
-     *
-     */
-    void setPencil2DIcon(QIcon icon)
-    { m_discTool->setIcon(icon); }
-
-    /** \brief Sets pencil 3d icon.
-     * \param[in] icon QIcon object.
-     *
-     */
-    void setPencil3DIcon(QIcon icon)
-    { m_sphereTool->setIcon(icon); }
-
-    /** \brief Sets pencil 2d text,
-     * \param[in] text text for the control.
-     *
-     */
-    void setPencil2DText(QString text)
-    { m_discTool->setText(text); }
-
-    /** \brief Sets pencil 3d text.
-     * \param[in] text text for the control.
-     *
-     */
-    void setPencil3DText(QString text)
-    { m_sphereTool->setText(text); }
-
-    /** \brief Reinitializes the contour tool.
-     *
-     */
-    void resetContourTool();
-
-    /** \brief Returs the contour actually stored in the contour tool.
-     *  Required for working undo/redo commands.
-     *
-     */
-    ContourWidget::ContourData getContour();
-
-    /** \brief Sets the contour to be used/edited in the contour tool.
-     *  Required for working undo/redo commands.
-     *
-     */
-    void setContour(ContourWidget::ContourData contours);
-
   signals:
-    void brushModeChanged(BrushSelector::BrushMode);
-    void stopDrawing(ViewItemAdapterPtr item, bool eraseModeEntered);
-    void stroke(CategoryAdapterSPtr, BinaryMaskSPtr<unsigned char>);
-    void drawContours(CategoryAdapterSPtr, ContourWidget::ContourData);
-    void contourModified(ContourWidget::ContourData);
+    void voxelsDeleted(ViewItemAdapterPtr item);
 
   public slots:
-    /** \brief Emits a stroke signal with the mask and the selected category.
-     * \param[in] selection list of SelectionItem <mask, neuroitemadapter> pairs.
-     *
-     */
-    virtual void drawStroke(Selector::Selection selection);
-
-    /** \brief Modifies the GUI when the radius changes.
-     *
-     */
-    virtual void radiusChanged(int);
-
-    /** \brief Modifies the GUI when the drawing mode changes.
-     * \param[in] value true if drawing.
-     */
-    virtual void drawingModeChanged(bool value);
-
     /** \brief Updates the reference item for the tool.
      *
      */
-    virtual void updateReferenceItem();
-
-  protected slots:
-    /** \brief Changes the selector for the operation.
-     *
-     */
-    virtual void changeSelector(QAction *);
-
-    /** \brief Changes the radius for the operation.
-     * \param[in] value radius value.
-     *
-     */
-    virtual void changeRadius(int value);
-
-    /** \brief Changes the opacity for the operation.
-     * \param[in] value opacity slider value.
-     */
-    virtual void changeOpacity(int value);
-
-    /** \brief Updates the reference item if the selector is in use. Disables the selector otherwise.
-     * \param[in] inUse true if selector is in use.
-     */
-    virtual void selectorInUse(bool inUse);
-
-    /** \brief Unsets the selector and disables the tool.
-     *
-     */
-    virtual void unsetSelector();
-
-    /** \brief Updates the tool when the category selector changes.
-     * \param[in] unused unused value.
-     */
-    virtual void categoryChanged(CategoryAdapterSPtr unused);
+    void updateReferenceItem() const;
 
   private:
-    /** \brief Helper method to hide/show the controls of the tool.
-     *
-     */
-    void setControlVisibility(bool visible);
+    void createSegmentation(BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Returns the category of the current item.
-     *
-     */
-    CategoryAdapterSPtr currentReferenceCategory();
+    void modifySegmentation(BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Helper method that returns the reference item of the current selector.
-     *
-     */
-    ViewItemAdapterPtr getSelectorReferenceItem();
-
-    /** \brief Helper method to initialize/de-initialize the contour widget.
-     * \param[in] value boolean value to indicate initialization/de-initialization.
-     *
-     */
-    void initializeContourWidget(bool value);
+    bool isCreationMode() const;
 
   private slots:
-    /** \brief Modifies the GUI when the eraser mode changes.
-     *
-     */
-    void setEraserMode(bool value);
+    void onStrokeStarted(BrushPainter *painter, RenderView *view);
 
-    /** \brief Notifies the parent tool that the user has finished a contour. Used to create undo commands.
-     *
-     */
-    void contourModification();
+    void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
-    /** \brief Notifies the parent tool that a contour needs to be rasterized.
-     *
-     */
-    void rasterizeContour(ContourWidget::ContourList list);
+    void onCategoryChanged(CategoryAdapterSPtr category);
 
   protected:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
+    ModelAdapterSPtr  m_model;
+    ModelFactorySPtr  m_factory;
+    QUndoStack       *m_undoStack;
+    ViewManagerSPtr   m_viewManager;
+    FilterFactorySPtr m_filterFactory;
 
-    BrushSelectorSPtr m_circularBrushSelector;
-    BrushSelectorSPtr m_sphericalBrushSelector;
-    BrushSelectorSPtr m_contourSelector;
-    BrushSelectorSPtr m_currentSelector;
+    // mutable needed by updateReferenceItem() const
+    mutable DrawingWidget      m_drawingWidget;
+    mutable Mode               m_mode;
+    mutable ViewItemAdapterPtr m_referenceItem;
 
-    ActionSelector   *m_drawToolSelector;
-    CategorySelector *m_categorySelector;
-    QMap<QAction *, BrushSelectorSPtr> m_drawTools;
-
-    SliderAction *m_radiusWidget;
-    SliderAction *m_opacityWidget;
-    QAction      *m_eraserWidget;
-
-    QAction *m_discTool;
-    QAction *m_sphereTool;
-    QAction *m_contourTool;
-
-    bool m_showCategoryControls;
-    bool m_showRadiusControls;
-    bool m_showOpacityControls;
-    bool m_showEraserControls;
+    bool                      m_validStroke;
+    SliceEditionPipelineSPtr  m_temporalPipeline;
 
     bool m_enabled;
-    bool m_hasEnteredEraserMode;
-
-    ContourWidgetSPtr m_contourWidget;
   };
 
-  using ManualEditionToolPtr = ManualEditionTool *;
+  using ManualEditionToolPtr  = ManualEditionTool *;
   using ManualEditionToolSPtr = std::shared_ptr<ManualEditionTool>;
 
 } // namespace ESPINA

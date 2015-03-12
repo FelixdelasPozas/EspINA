@@ -49,8 +49,8 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void ESPINA::View2DRenderersPanel::acceptChanges()
   {
-    for(auto view: m_views)
-      view->setRenderers(m_selector->getActiveRenderers());
+//     for(auto view: m_views)
+//       view->setRenderers(m_selector->getActiveRenderers());
   }
 
   //-----------------------------------------------------------------------------

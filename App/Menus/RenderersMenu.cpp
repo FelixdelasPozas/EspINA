@@ -92,12 +92,12 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void RenderersMenu::removeRenderer(RendererSPtr renderer)
   {
-    for (auto menu: { m_menu2D, m_menu3D })
-      for(auto action: menu->actions())
-        if (action->text() == renderer->name())
-        {
-          menu->removeAction(action);
-        }
+//     for (auto menu: { m_menu2D, m_menu3D })
+//       for(auto action: menu->actions())
+//         if (action->text() == renderer->name())
+//         {
+//           menu->removeAction(action);
+//         }
   }
 
   //-----------------------------------------------------------------------------
@@ -110,11 +110,11 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void RenderersMenu::activate(QAction *action)
   {
-    for (auto view: m_viewManager->renderViews())
-      if (action->isChecked())
-        view->activateRender(action->text());
-      else
-        view->deactivateRender(action->text());
+//     for (auto view: m_viewManager->renderViews())
+//       if (action->isChecked())
+//         view->activateRender(action->text());
+//       else
+//         view->deactivateRender(action->text());
   }
 
 } /* namespace ESPINA */

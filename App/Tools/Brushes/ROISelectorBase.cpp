@@ -27,6 +27,7 @@
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
 #include <vtkSmartPointer.h>
+#include <vtkLookupTable.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImplicitFunction.h>
@@ -82,7 +83,7 @@ namespace ESPINA
     if (m_previewView != nullptr)
       return;
 
-    m_pBounds = view->previewBounds(false);
+    m_previewBounds = view->previewBounds(false);
     NmVector3 spacing{m_spacing[0], m_spacing[1], m_spacing[2]};
     VolumeBounds previewBounds{ view->previewBounds(false), spacing, m_origin};
     m_previewView = view;
@@ -98,8 +99,8 @@ namespace ESPINA
     int extent[6];
     for (int i = 0; i < 3; ++i)
     {
-      extent[2 * i]       = m_pBounds[2 * i]       / m_spacing[i];
-      extent[(2 * i) + 1] = m_pBounds[(2 * i) + 1] / m_spacing[i];
+      extent[2 * i]       = m_previewBounds[2 * i]       / m_spacing[i];
+      extent[(2 * i) + 1] = m_previewBounds[(2 * i) + 1] / m_spacing[i];
     }
     m_preview = vtkSmartPointer<vtkImageData>::New();
     m_preview->SetOrigin(0, 0, 0);
@@ -155,7 +156,7 @@ namespace ESPINA
     NmVector3 center{(brushBounds[0]+brushBounds[1])/2, (brushBounds[2]+brushBounds[3])/2, (brushBounds[4]+brushBounds[5])/2};
     double r2 = m_radius*m_radius;
 
-    if (intersect(brushBounds, m_pBounds))
+    if (intersect(brushBounds, m_previewBounds))
     {
       double point1[3] = { static_cast<double>(m_lastUdpdatePoint[0]), static_cast<double>(m_lastUdpdatePoint[1]), static_cast<double>(m_lastUdpdatePoint[2])};
       double point2[3] = { center[0], center[1], center[2] };
@@ -187,13 +188,13 @@ namespace ESPINA
       NmVector3 nmSpacing{m_spacing[0], m_spacing[1], m_spacing[2]};
       for (auto brush: brushes)
       {
-        if (!intersect(m_pBounds, brush.second))
+        if (!intersect(m_previewBounds, brush.second))
         {
           brushes.removeOne(brush);
           continue;
         }
 
-        Bounds pointBounds = intersection(m_pBounds, brush.second);
+        Bounds pointBounds = intersection(m_previewBounds, brush.second);
         auto region = equivalentRegion<itkVolumeType>(m_origin, nmSpacing, pointBounds);
         auto tempImage = create_itkImage<itkVolumeType>(pointBounds, SEG_BG_VALUE, nmSpacing, m_origin);
 

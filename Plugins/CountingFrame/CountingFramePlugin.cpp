@@ -1,8 +1,6 @@
 #include "CountingFramePlugin.h"
 
 #include "Panel.h"
-#include "CountingFrameRenderer3D.h"
-#include "CountingFrameRenderer2D.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
 #include "Extensions/CountingFrameFactories.h"
 
@@ -16,8 +14,8 @@ CountingFramePlugin::CountingFramePlugin()
 , m_dockWidget                  {nullptr}
 , m_channelExtensionFactory     {nullptr}
 , m_segmentationExtensionFactory{nullptr}
-, m_renderer3d                  {nullptr}
-, m_renderer2d                  {nullptr}
+// , m_renderer3d                  {nullptr}
+// , m_renderer2d                  {nullptr}
 {
 }
 
@@ -42,9 +40,8 @@ void CountingFramePlugin::init(ModelAdapterSPtr model,
   m_dockWidget = new Panel(&m_manager, m_model, m_viewManager, m_scheduler);
   m_channelExtensionFactory = ChannelExtensionFactorySPtr{new ChannelExtensionFactoryCF(const_cast<CountingFrameManager *>(&m_manager), m_scheduler)};
   m_segmentationExtensionFactory = SegmentationExtensionFactorySPtr{new SegmentationExtensionFactoryCF()};
-  m_renderer3d = RendererSPtr(new CountingFrameRenderer3D(m_manager));
-  m_renderer2d = RendererSPtr(new CountingFrameRenderer2D(m_manager));
-
+//   m_renderer3d = RendererSPtr(new CountingFrameRenderer3D(m_manager));
+//   m_renderer2d = RendererSPtr(new CountingFrameRenderer2D(m_manager));
 }
 
 //------------------------------------------------------------------------
@@ -97,17 +94,6 @@ SegmentationExtensionFactorySList CountingFramePlugin::segmentationExtensionFact
   factories << m_segmentationExtensionFactory;
 
   return factories;
-}
-
-//------------------------------------------------------------------------
-RendererSList CountingFramePlugin::renderers() const
-{
-  RendererSList renderers;
-
-  renderers << m_renderer2d;
-  renderers << m_renderer3d;
-
-  return renderers;
 }
 
 //------------------------------------------------------------------------

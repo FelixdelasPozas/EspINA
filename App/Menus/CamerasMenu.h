@@ -41,8 +41,8 @@ namespace ESPINA
        */
       struct CameraPositions
       {
-          QString id;
-          QList<struct RenderView::VisualState> states;
+        QString id;
+        QList<struct RenderView::CameraState> states;
       };
 
       /** \brief List of CameraPositions.

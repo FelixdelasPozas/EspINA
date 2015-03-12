@@ -145,6 +145,12 @@ namespace ESPINA
    */
   SampleAdapterPtr EspinaGUI_EXPORT samplePtr(ItemAdapterPtr item);
 
+  /** \brief Returns true if the given item is a sample item.
+   * \param[in] item item adapter raw pointer.
+   *
+   */
+  bool EspinaGUI_EXPORT isSample(ItemAdapterPtr item);
+
 }// namespace ESPINA
 
 #endif // ESPINA_SAMPLE_ADAPTER_H

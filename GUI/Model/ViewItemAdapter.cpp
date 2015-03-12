@@ -23,7 +23,6 @@
 #include "ViewItemAdapter.h"
 #include "ModelAdapter.h"
 #include <Core/Analysis/NeuroItem.h>
-#include <GUI/Representations/RepresentationFactory.h>
 
 using namespace ESPINA;
 
@@ -39,6 +38,30 @@ ViewItemAdapter::ViewItemAdapter(ViewItemSPtr item)
 }
 
 //------------------------------------------------------------------------
+void ViewItemAdapter::setTemporalRepresentation(RepresentationPipelineSPtr pipeline)
+{
+  m_temporalRepresentation = pipeline;
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::clearTemporalRepresentation()
+{
+  m_temporalRepresentation.reset();
+}
+
+//------------------------------------------------------------------------
+RepresentationPipelineSPtr ViewItemAdapter::temporalRepresentation() const
+{
+  return m_temporalRepresentation;
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::invalidateRepresentations()
+{
+  emit representationsInvalidated(this);
+}
+
+//------------------------------------------------------------------------
 void ViewItemAdapter::changeOutput(InputSPtr input)
 {
   disconnect(output().get(), SIGNAL(modified()),
@@ -49,25 +72,8 @@ void ViewItemAdapter::changeOutput(InputSPtr input)
   connect(output().get(), SIGNAL(modified()),
           this,           SLOT(onOutputModified()));
 
-  m_representations.clear();
+  // TODO: shall we deactivate the temporal representation if any?
   onOutputModified();
-}
-
-//------------------------------------------------------------------------
-RepresentationSPtr ViewItemAdapter::representation(Representation::Type representation) const
-{
-  if (!m_representations.contains(representation))
-  {
-    m_representations[representation] = m_factory->createRepresentation(m_viewItem->output(), representation);
-  }
-
-  return m_representations[representation];
-}
-
-//------------------------------------------------------------------------
-RepresentationTypeList ViewItemAdapter::representationTypes() const
-{
-  return m_factory->representations();
 }
 
 //------------------------------------------------------------------------

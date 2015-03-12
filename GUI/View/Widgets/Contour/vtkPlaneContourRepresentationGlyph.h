@@ -112,8 +112,8 @@ namespace ESPINA
     double Distance2BetweenPoints(int displayPosX, int displayPosY, int node);
 
     // get/set polygon color
-    virtual void setPolygonColor(QColor);
-    virtual QColor getPolygonColor();
+    virtual void setPolygonColor(const QColor &color);
+    virtual QColor getPolygonColor() const;
 
   protected:
     vtkPlaneContourRepresentationGlyph();

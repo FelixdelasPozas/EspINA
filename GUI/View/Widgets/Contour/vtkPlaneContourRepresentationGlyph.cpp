@@ -736,6 +736,11 @@ void vtkPlaneContourRepresentationGlyph::SetLineColor(double r, double g, double
   {
     this->GetLinesProperty()->SetColor(r, g, b);
   }
+
+  if(this->GetNumberOfNodes() != 0)
+  {
+    NeedToRenderOn();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -807,7 +812,7 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
       this->m_polygon->SetMapper(this->m_polygonMapper);
 
       this->m_polygon->GetProperty()->SetColor(m_polygonColor.redF(), m_polygonColor.greenF(), m_polygonColor.blueF());
-      this->m_polygon->GetProperty()->SetOpacity(0.5);
+      this->m_polygon->GetProperty()->SetOpacity(m_polygonColor.alphaF());
 
       double position[3];
       this->m_polygon->GetPosition(position);
@@ -834,42 +839,40 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 //----------------------------------------------------------------------------
 double vtkPlaneContourRepresentationGlyph::Distance2BetweenPoints(int displayPosX, int displayPosY, int node)
 {
-  double displayPos[2];
+  double displayPos[2], nodePos[3], pointPos[3];
   displayPos[0] = displayPosX;
   displayPos[1] = displayPosY;
 
-  double nodePos[3];
   this->GetNthNodeWorldPosition(node, nodePos);
 
-  double pointPos[3];
-  double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
+  this->Renderer->SetDisplayPoint(displayPos);
+  this->Renderer->DisplayToWorld();
+  this->Renderer->GetWorldPoint(pointPos);
 
-  // Compute the world position from the display position based on the concrete representation's constraints
-  // If this is not a valid display location return 0
-  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, pointPos, worldOrient))
-  {
-    return 0;
-  }
+  // we're computing on a plane, duh!
+  auto idx = normalCoordinateIndex(this->Orientation);
+  nodePos[idx] = pointPos[idx] = 0;
 
-  pointPos[normalCoordinateIndex(this->Orientation)] += this->PlaneShift;
-
-  return ((pointPos[0] - nodePos[0]) * (pointPos[0] - nodePos[0])) + ((pointPos[1] - nodePos[1]) * (pointPos[1] - nodePos[1])) + ((pointPos[2] - nodePos[2]) * (pointPos[2] - nodePos[2]));
+  return vtkMath::Distance2BetweenPoints(pointPos, nodePos);
 }
 
 //----------------------------------------------------------------------------
-void vtkPlaneContourRepresentationGlyph::setPolygonColor(QColor color)
+void vtkPlaneContourRepresentationGlyph::setPolygonColor(const QColor &color)
 {
   this->m_polygonColor = color;
+
   if (this->m_polygon)
   {
-    this->m_polygon->GetProperty()->SetColor(m_polygonColor.redF(), m_polygonColor.greenF(), m_polygonColor.greenF());
-    this->m_polygon->GetProperty()->SetOpacity(0.5);
+    this->m_polygon->GetProperty()->SetColor(m_polygonColor.redF(), m_polygonColor.greenF(), m_polygonColor.blueF());
+    this->m_polygon->GetProperty()->SetOpacity(m_polygonColor.alphaF());
     this->m_polygon->Modified();
   }
+
+  NeedToRenderOn();
 }
 
 //----------------------------------------------------------------------------
-QColor vtkPlaneContourRepresentationGlyph::getPolygonColor()
+QColor vtkPlaneContourRepresentationGlyph::getPolygonColor() const
 {
   return this->m_polygonColor;
 }

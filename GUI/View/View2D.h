@@ -23,14 +23,13 @@
 
 // ESPINA
 #include "GUI/View/RenderView.h"
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Widgets/SliceSelector.h>
 
 // VTK
 #include <vtkSmartPointer.h>
 
 //Forward declaration
+class vtkActor;
 class vtkPolyData;
 class vtkAxisActor2D;
 class vtkPropPicker;
@@ -55,10 +54,10 @@ namespace ESPINA
   : public RenderView
   {
     Q_OBJECT
-    class State;
-    class AxialState;
-    class SagittalState;
-    class CoronalState;
+    class PlanarBehaviour;
+    class AxialBehaviour;
+    class SagittalBehaviour;
+    class CoronalBehaviour;
 
   public:
     enum SliceSelectionTypes
@@ -124,6 +123,12 @@ namespace ESPINA
     Plane plane() const
     { return m_plane; }
 
+    /** \brief Returns scale of the view given by world position / display pixels
+     *
+     */
+    double scale() const
+    { return m_scale; }
+
     virtual void reset();
 
     virtual void resetCamera();
@@ -139,7 +144,7 @@ namespace ESPINA
     double widgetDepth() const;
 
     /** \brief Set the distance between two consecutive slices when displacement is set to SLICES.
-     * \param[in] steps.
+     * \param[in] steps
      *
      */
     void setSlicingStep(const NmVector3& steps);
@@ -154,15 +159,6 @@ namespace ESPINA
      */
     Nm slicingPosition() const;
 
-    virtual void centerViewOn(const NmVector3& point, bool force = false);
-
-    /** \brief Centers the view of the camera on the given point.
-     * \param[in] center point to center on.
-     *
-     * Does not change slice positions.
-     *
-     */
-    void centerViewOnPosition(const NmVector3& center);
 
     /** \brief Sets the crosshair colors.
      * \param[in] hColor color of the horizontal line.
@@ -189,26 +185,9 @@ namespace ESPINA
      */
     virtual void setCrosshairVisibility(bool show);
 
-    /** \brief Updates the crosshair point moving the given plane to the given position.
-     * \param[in] plane plane to move.
-     * \param[in] slicePos new plane position.
-     *
-     */
-    void updateCrosshairPoint(const Plane plane, const Nm slicePos);
+    virtual void setCameraState(struct RenderView::CameraState);
 
-    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
-
-    void setRenderers(RendererSList renderers);
-
-    void activateRender(const QString &rendererName);
-
-    void deactivateRender(const QString &rendererName);
-
-    virtual void setVisualState(struct RenderView::VisualState);
-
-    virtual struct RenderView::VisualState visualState();
-
-    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
+    virtual struct RenderView::CameraState cameraState();
 
   public slots:
     /** \brief Alternate the visibility between the processed and unprocessed channels.
@@ -230,39 +209,17 @@ namespace ESPINA
     /// Unset Slice Selection flags to all registered Slice Views
     void removeSliceSelectors(SliceSelectorSPtr widget);
 
-    virtual void updateSceneBounds() override;
 
-    virtual void updateView();
+    virtual void updateView() override;
 
   signals:
-    void centerChanged(NmVector3);
-    void focusChanged(NmVector3);
     void channelSelected(ChannelAdapterPtr);
     void segmentationSelected(SegmentationAdapterPtr, bool);
-    void sliceChanged(Plane, Nm);
 
   protected slots:
-    /** \brief Updates the view when the scroll widget changes its value.
-     * \param[in] value new value.
-     *
-     */
-    void scrollValueChanged(int value);
-
-    /** \brief Updates the view when the spinbox widget changes its value.
-     * \param[in] value new value.
-     *
-     */
-    void spinValueChanged(double value);
-
-    virtual void updateChannelsOpacity();
+    virtual void updateSceneBounds() override;
 
   protected:
-    /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
-     * \param[in] bounds new scene bounds.
-     *
-     */
-    void setSlicingBounds(const Bounds& bounds);
-
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
     virtual void keyPressEvent(QKeyEvent *e) override;
@@ -274,27 +231,6 @@ namespace ESPINA
      */
     void centerCrosshairOnMousePosition();
 
-    /** \brief Centers the view of the camera on the mouse position.
-     *
-     */
-    void centerViewOnMousePosition();
-
-    /** \brief Picks and returns the channels under given position.
-     * \param[in] vx x display coordinate.
-     * \param[in] vy y display coordinate.
-     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
-     *
-     */
-    ViewItemAdapterList pickChannels(double vx, double vy, bool repeatable = true);
-
-    /** \brief Picks and returns the segmentations under given position.
-     * \param[in] vx x display coordinate.
-     * \param[in] vy y display coordinate.
-     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
-     *
-     */
-    ViewItemAdapterList pickSegmentations(double vx, double vy, bool repeatable = true);
-
     /** \brief Updates the selection of items.
      * \param[in] append if true the elements picked will be merged with the ones currently
      *  selected, if false the elements picked will be the new selection.
@@ -302,12 +238,25 @@ namespace ESPINA
      *  If an item is selected and also is on the picked list the merge will deselect the item.
      *
      */
-    void selectPickedItems(bool append);
+    void selectPickedItems(int x, int y, bool append);
 
   private:
-    void addRendererControls(RendererSPtr renderer);
+    void addRepresentationManagerMenu(RepresentationManagerSPtr manager);
 
-    void removeRendererControls(const QString name);
+    void removeRepresentationManagerMenu(RepresentationManagerSPtr manager);
+
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
+
+    virtual void configureManager(RepresentationManagerSPtr manager);
+
+    virtual void normalizeWorldPosition(NmVector3 &point) const;
+
+    /** \brief Shows tool tip for segmentations at position (x, y)
+     * \param[in] x DISPLAY coordinate.
+     * \param[in] y DISPLAY coordinate.
+     *
+     */
+    void showSegmentationTooltip(double x, double y);
 
     /** \brief Updates the ruler widget.
      *
@@ -318,6 +267,18 @@ namespace ESPINA
      *
      */
     void updateThumbnail();
+
+    /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
+     * \param[in] bounds new scene bounds.
+     *
+     */
+    void setSlicingBounds(const Bounds& bounds);
+
+    /** \brief Centers the view of the camera on the mouse position.
+     *
+     */
+    void centerViewOnMousePosition();
+
 
     /** \brief Returns the bottom value in Nm of the voxel in the given slice index and plane.
      * \param[in] sliceIndex integer slice index.
@@ -399,7 +360,31 @@ namespace ESPINA
      */
     double viewHeightLength();
 
+    bool isCrosshairVisible() const;
+
+    void updateScale();
+
   private slots:
+    virtual void onCrosshairChanged(const NmVector3 &point);
+
+    /** \brief Centers view camera on the given point.
+     * \param[in] center point to center camera on.
+     *
+     */
+    virtual void moveCamera(const NmVector3 &point);
+
+    /** \brief Updates the view when the scroll widget changes its value.
+     * \param[in] value new value.
+     *
+     */
+    void scrollValueChanged(int value);
+
+    /** \brief Updates the view when the spinbox widget changes its value.
+     * \param[in] value new value.
+     *
+     */
+    void spinValueChanged(double value);
+
     /** \brief Takes an image of the view and saves it to disk.
      *
      */
@@ -415,7 +400,7 @@ namespace ESPINA
     QDoubleSpinBox *m_spinBox;
     QPushButton    *m_zoomButton;
     QPushButton    *m_snapshot;
-    QPushButton    *m_renderConfig;
+    QPushButton    *m_repManagerMenu;
 
     // VTK View
     vtkSmartPointer<vtkRenderer>    m_thumbnail;
@@ -424,7 +409,7 @@ namespace ESPINA
     // View State
     NmVector3 m_slicingStep;
 
-    std::unique_ptr<State> m_state;
+    std::unique_ptr<PlanarBehaviour> m_state2D;
 
     bool m_showThumbnail;
 
@@ -443,32 +428,32 @@ namespace ESPINA
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool  m_sceneReady;
-    Plane m_plane;
-    int   m_normalCoord;
+    bool   m_sceneReady;
+    Plane  m_plane;
+    double m_scale;
+    int    m_normalCoord;
 
     bool  m_fitToSlices;
     bool  m_invertSliceOrder;
     bool  m_invertWheel;
     bool  m_rulerVisibility;
     bool  m_inThumbnailClick;
-
-    friend class Representation;
   };
 
-  /** \brief Returns true if the view is a 2D view.
-   * \param[in] view, RenderView raw pointer.
-   *
-   */
-  inline bool isView2D(RenderView* view)
-  { return dynamic_cast<View2D *>(view) != nullptr; }
-
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.
-   * \param[in] view, RenderView raw pointer.
+   * \param[in] view RenderView raw pointer.
    *
    */
   inline View2D * view2D_cast(RenderView* view)
   { return dynamic_cast<View2D *>(view); }
+
+  /** \brief Returns true if the view is a 2D view.
+   * \param[in] view RenderView raw pointer.
+   *
+   */
+  inline bool isView2D(RenderView* view)
+  { return view2D_cast(view) != nullptr; }
+
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectionType)
 
