@@ -117,13 +117,13 @@ void RenderView::setState(ViewStateSPtr state)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::setChannelSources(PipelineSources *channels)
+void RenderView::setChannelSources(PipelineSourcesFilter *channels)
 {
   if (m_channelSources)
   {
-    disconnect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
+    disconnect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
                this,             SLOT(updateSceneBounds()));
-    disconnect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
+    disconnect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
                this,             SLOT(updateSceneBounds()));
   }
 
@@ -131,9 +131,9 @@ void RenderView::setChannelSources(PipelineSources *channels)
 
   if (m_channelSources)
   {
-    connect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList)),
+    connect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
             this,             SLOT(updateSceneBounds()));
-    connect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList)),
+    connect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
             this,             SLOT(updateSceneBounds()));
   }
 }
@@ -147,10 +147,13 @@ void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
   connect(manager.get(), SIGNAL(renderRequested()),
           this,          SLOT(onRenderRequest()));
 
-  manager->setView(this);
+  configureManager(manager);
+
   manager->setResolution(m_sceneResolution);
 
-  configureManager(manager);
+  manager->setView(this);
+
+
 
   m_managers << manager;
 }
@@ -169,22 +172,17 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 }
 
 //-----------------------------------------------------------------------------
-NmVector3 RenderView::toWorldCoordinates(int x, int y, int z) const
+NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const
 {
-  NmVector3 result;
+  Q_ASSERT(renderer);
 
-  if (m_renderer)
-  {
-    m_renderer->SetDisplayPoint(x, y, z);
-    m_renderer->DisplayToWorld();
+  renderer->SetDisplayPoint(x, y, z);
+  renderer->DisplayToWorld();
 
-    double worldPoint[4];
-    m_renderer->GetWorldPoint(worldPoint);
+  double worldPoint[4];
+  renderer->GetWorldPoint(worldPoint);
 
-    result = NmVector3(worldPoint);
-  }
-
-  return result;
+  return NmVector3(worldPoint);
 }
 
 //-----------------------------------------------------------------------------
@@ -344,14 +342,19 @@ void RenderView::updateSceneBounds()
     resetSceneBounds();
   }
 
+  if (m_channelSources->size() <= 1)
+  {
+    m_sceneCameraInitialized = false;
+  }
+
   if (resolution != m_sceneResolution)
   {
-    notifyResolutionChange();
+    changeSceneResolution();
   }
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::notifyResolutionChange()
+void RenderView::changeSceneResolution()
 {
   for (auto manager : m_managers)
   {
@@ -359,143 +362,6 @@ void RenderView::notifyResolutionChange()
   }
 
   emit sceneResolutionChanged();
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::updateRepresentations(ChannelAdapterList list)
-{
-//   if (isVisible())
-//   {
-//     ChannelAdapterList updateChannels;
-//
-//     if (list.empty())
-//     {
-//       updateChannels = m_channelStates.keys();
-//     }
-//     else
-//     {
-//       updateChannels = list;
-//     }
-//
-//     bool updated = false;
-// //     for(ChannelAdapterPtr channel : updateChannels)
-// //     {
-// //       updated |= updateRepresentation(channel, false);
-// //     }
-//
-//     if (updated)
-//       updateView();
-//   }
-}
-
-// //-----------------------------------------------------------------------------
-// bool RenderView::updateRepresentation(SegmentationAdapterPtr seg, bool render)
-// {
-//   if (!isVisible()) return false;
-//
-//   if (!m_segmentationStates.contains(seg))
-//   {
-//     qWarning() << "Update Graphical Representation on non-registered segmentation";
-//     return false;
-//   }
-//   Q_ASSERT(m_segmentationStates.contains(seg));
-//
-//   SegmentationState &state = m_segmentationStates[seg];
-//
-//   bool requestedVisibility = seg->isVisible() && m_showSegmentations;
-//
-//   bool visibilityChanged = state.visible != requestedVisibility;
-//   state.visible = requestedVisibility;
-//
-//   bool colorChanged     = false;
-//   bool outputChanged    = false;
-//   bool highlightChanged = false;
-//
-//   if (state.visible)
-//   {
-//     QColor    requestedColor       = m_colorEngine->color(seg);
-//     bool      requestedHighlighted = seg->isSelected();
-//     TimeStamp requestedTimeStamp   = seg->output()->lastModified();
-//
-//     Q_ASSERT(seg->output());
-//     if (!state.output)
-//     {
-//       state.timeStamp = requestedTimeStamp;
-//     }
-//
-//     outputChanged    = state.output    != seg->output()        || state.timeStamp != requestedTimeStamp;
-//     colorChanged     = state.color     != requestedColor       || outputChanged;
-//     highlightChanged = state.highlited != requestedHighlighted || outputChanged;
-//
-//     state.color     = requestedColor;
-//     state.highlited = requestedHighlighted;
-//     state.output    = seg->output();
-//     state.timeStamp = requestedTimeStamp;
-//   }
-//
-//   if (outputChanged)
-//   {
-//     removeRepresentations(state);
-//     createRepresentations(seg);
-//   }
-//
-//   bool hasChanged = visibilityChanged || colorChanged || highlightChanged;
-//   for(auto representation : state.representations)
-//   {
-//     bool crosshairChanged = representation->crosshairDependent() && representation->crosshairPoint() != crosshairPoint();
-//     if (hasChanged || crosshairChanged || representation->needUpdate())
-//     {
-//       if (colorChanged)      representation->setColor(m_colorEngine->color(seg));
-//       if (highlightChanged)  representation->setHighlighted(state.highlited);
-//       if (visibilityChanged) representation->setVisible(state.visible);
-//
-//       representation->updateRepresentation();
-//     }
-//   }
-//
-//   if (render && isVisible())
-//   {
-//     m_view->GetRenderWindow()->Render();
-//     m_view->update();
-//   }
-//
-//   return hasChanged;
-// }
-
-//-----------------------------------------------------------------------------
-void RenderView::updateRepresentations(SegmentationAdapterList list)
-{
-//   if (isVisible())
-//   {
-//     SegmentationAdapterList updateSegmentations;
-//
-//     if (list.empty())
-//     {
-//       updateSegmentations = m_segmentationStates.keys();
-//     }
-//     else
-//     {
-//       updateSegmentations = list;
-//     }
-//
-//     bool updated = false;
-//     for(auto seg : updateSegmentations)
-//     {
-//       updated |= updateRepresentation(seg, false);
-//     }
-//
-//     if (updated)
-//     {
-//       updateView();
-//     }
-//   }
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::updateRepresentations()
-{
-  updateRepresentations(ChannelAdapterList());
-  updateRepresentations(SegmentationAdapterList());
 }
 
 //-----------------------------------------------------------------------------
@@ -566,7 +432,7 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 //-----------------------------------------------------------------------------
 void RenderView::updateSelection(SegmentationAdapterList selection)
 {
-  updateRepresentations(selection);
+  //TODO updateRepresentations(selection);
 }
 
 //-----------------------------------------------------------------------------
@@ -624,150 +490,10 @@ unsigned int RenderView::numberActiveRepresentationManagers(Data::Type type)
   return count;
 }
 
-//-----------------------------------------------------------------------------
-Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
-{
-  Selector::Selection selectedItems;
-//
-//   if(flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE))
-//   {
-//     for(auto channelAdapter: m_channelSources.keys())
-//     {
-//       if (intersect(channelAdapter->bounds(), mask->bounds().bounds()))
-//       {
-//         auto intersectionBounds = intersection(channelAdapter->bounds(), mask->bounds().bounds());
-//         auto selectionMask      = std::make_shared<BinaryMask<unsigned char>>(intersectionBounds, channelAdapter->output()->spacing(), channelAdapter->position());
-//
-//         BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
-//         crit.goToBegin();
-//
-//         if(channelAdapter->output()->spacing() == mask->spacing())
-//         {
-//           BinaryMask<unsigned char>::iterator it(selectionMask.get());
-//
-//           it.goToBegin();
-//           while(!crit.isAtEnd())
-//           {
-//             if(crit.isSet())
-//             {
-//               it.Set();
-//             }
-//
-//             ++crit;
-//           }
-//         }
-//         else
-//         {
-//           // mask interpolation needed, more costly
-//           auto spacing = mask->spacing();
-//           while(!crit.isAtEnd())
-//           {
-//             if(crit.isSet())
-//             {
-//               auto center = crit.getCenter();
-//               auto voxelBounds = Bounds{center[0]-spacing[0]/2, center[0]+spacing[0]/2,
-//                                         center[1]-spacing[1]/2, center[1]+spacing[1]/2,
-//                                         center[2]-spacing[2]/2, center[2]+spacing[2]/2};
-//
-//                 BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
-//                 rit.goToBegin();
-//
-//                 while(!rit.isAtEnd())
-//                 {
-//                   rit.Set();
-//                   ++rit;
-//                 }
-//             }
-//
-//             ++crit;
-//           }
-//         }
-//
-//         auto selectedItem = channelAdapter;
-//
-//         if(flags.contains(Selector::SAMPLE))
-//         {
-//            selectedItem = QueryAdapter::sample(channelAdapter);
-//         }
-//
-//         selectedItems << Selector::SelectionItem(selectionMask, selectedItem.get());
-//       }
-//
-//       if(!multiselection && selectedItems.size() == 1) break;
-//     }
-//   }
-//   else if(flags.contains(Selector::SEGMENTATION))
-//   {
-//     for(auto segmentation: m_segmentationStates.keys())
-//     {
-//       if(intersect(segmentation->bounds(), mask->bounds().bounds()))
-//       {
-//         auto intersectionBounds = intersection(segmentation->bounds(), mask->bounds().bounds());
-//         BinaryMask<unsigned char>::const_region_iterator crit(mask.get(), intersectionBounds);
-//         crit.goToBegin();
-//
-//         if(!hasVolumetricData(segmentation->output()))
-//         {
-//           continue;
-//         }
-//
-//         auto volume = volumetricData(segmentation->output());
-//         auto itkVolume = volume->itkImage(intersectionBounds);
-//         auto value = itkVolume->GetBufferPointer();
-//         auto selectionMask = std::make_shared<BinaryMask<unsigned char>>(intersectionBounds, volume->spacing(), volume->origin());
-//
-//         if(segmentation->output()->spacing() == mask->spacing())
-//         {
-//           BinaryMask<unsigned char>::iterator it(selectionMask.get());
-//           it.goToBegin();
-//
-//           while(!crit.isAtEnd())
-//           {
-//             if (SEG_VOXEL_VALUE == *value && crit.isSet())
-//               it.Set();
-//
-//             ++value;
-//             ++crit;
-//             ++it;
-//           }
-//         }
-//         else
-//         {
-//           // mask interpolation needed, more costly
-//           auto spacing = mask->spacing();
-//           while(!crit.isAtEnd())
-//           {
-//             if(crit.isSet() && SEG_VOXEL_VALUE == *value)
-//             {
-//               auto center = crit.getCenter();
-//               auto voxelBounds = Bounds{center[0]-spacing[0]/2, center[0]+spacing[0]/2,
-//                 center[1]-spacing[1]/2, center[1]+spacing[1]/2,
-//                 center[2]-spacing[2]/2, center[2]+spacing[2]/2};
-//
-//                 BinaryMask<unsigned char>::region_iterator rit(selectionMask.get(), voxelBounds);
-//                 rit.goToBegin();
-//
-//                 while(!rit.isAtEnd())
-//                 {
-//                   rit.Set();
-//                   ++rit;
-//                 }
-//             }
-//
-//             ++value;
-//             ++crit;
-//           }
-//         }
-//
-//         selectedItems << Selector::SelectionItem(selectionMask, segmentation);
-//       }
-//
-//       if(!multiselection && selectedItems.size() == 1) break;
-//     }
-//   }
-//
-  return selectedItems;
-}
+// //-----------------------------------------------------------------------------
+// Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
+// {
+// }
 
 //-----------------------------------------------------------------------------
 Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const
@@ -798,58 +524,70 @@ void RenderView::onRenderRequest()
 
   for(auto manager: m_managers)
   {
-    if (manager->requiresRender()) renderRequests++;
-
-    switch(manager->pipelineStatus())
+    if (manager->requiresRender())
     {
-      case RepresentationManager::PipelineStatus::NOT_READY:
-        return;
-      case RepresentationManager::PipelineStatus::READY:
-        readyManagers++;
-        break;
-      case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
-        for(auto timeStamp: manager->readyRange())
-        {
-          count[timeStamp] = count.value(timeStamp, 0) + 1;
-        }
-        break;
-      default:
-        break;
+      renderRequests++;
+
+      switch(manager->pipelineStatus())
+      {
+        case RepresentationManager::PipelineStatus::NOT_READY:
+          return;
+        case RepresentationManager::PipelineStatus::READY:
+          readyManagers++;
+          break;
+        case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
+          for(auto timeStamp: manager->readyRange())
+          {
+            count[timeStamp] = count.value(timeStamp, 0) + 1;
+          }
+          break;
+        default:
+          break;
+      }
     }
   }
 
+//   qDebug() << count;
+//   qDebug() << "Ready Managers:" << readyManagers << "Render Requests" << renderRequests;
+
   TimeStamp latest;
+  bool validTimeStamp = false;
+
   if(readyManagers != renderRequests)
   {
-    bool valid = false;
     for(auto time: count.keys())
     {
       if(count[time]+readyManagers == renderRequests)
       {
-        if(!valid || time > latest)
+        if(!validTimeStamp || time > latest)
         {
           latest = time;
-          valid  = true;
+          validTimeStamp  = true;
         }
       }
     }
-
-    if(!valid) return;
   }
 
   if (renderRequests == 0) return;
 
-  for(auto manager: m_managers)
+  if (validTimeStamp)
   {
-    manager->display(latest);
+    for(auto manager: m_managers)
+    {
+      if (manager->requiresRender())
+      {
+        manager->display(latest);
+      }
+    }
+    qDebug() << "Latest frame:" << latest;
   }
 
   if (!m_sceneCameraInitialized)
   {
-    m_sceneCameraInitialized = true;
     resetCamera();
+
+    m_sceneCameraInitialized = true;
   }
 
   updateView();
-  qDebug() << "Latest frame:" << latest;
 }

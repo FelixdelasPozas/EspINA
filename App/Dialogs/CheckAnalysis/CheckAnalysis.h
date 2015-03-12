@@ -39,8 +39,8 @@ namespace ESPINA
     Q_OBJECT
     public:
       /** \brief CheckAnalysis class constructor.
-       * \param[in] scheduler, scheduler smart pointer.
-       * \param[in] mode, model adapter smart pointer.
+       * \param[in] scheduler scheduler smart pointer.
+       * \param[in] mode model adapter smart pointer.
        *
        */
       explicit CheckAnalysis(SchedulerSPtr scheduler, ModelAdapterSPtr model);

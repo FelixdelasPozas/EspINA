@@ -3,6 +3,7 @@
 #include "Panel.h"
 #include "ColorEngines/CountingFrameColorEngine.h"
 #include "Extensions/CountingFrameFactories.h"
+#include "Representations/RepresentationFactory.h"
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -12,10 +13,6 @@ CountingFramePlugin::CountingFramePlugin()
 : m_undoStack                   {nullptr}
 , m_colorEngine                 {NamedColorEngine()}
 , m_dockWidget                  {nullptr}
-, m_channelExtensionFactory     {nullptr}
-, m_segmentationExtensionFactory{nullptr}
-// , m_renderer3d                  {nullptr}
-// , m_renderer2d                  {nullptr}
 {
 }
 
@@ -36,12 +33,33 @@ void CountingFramePlugin::init(ModelAdapterSPtr model,
   m_scheduler   = scheduler;
   m_undoStack   = undoStack;
 
-  m_colorEngine = NamedColorEngine("Counting Frame", ColorEngineSPtr(new CountingFrameColorEngine()));
+  m_colorEngine = NamedColorEngine("Counting Frame", std::make_shared<CountingFrameColorEngine>());
+  m_representationFactory = std::make_shared<RepresentationFactory>(m_manager);
+
   m_dockWidget = new Panel(&m_manager, m_model, m_viewManager, m_scheduler);
-  m_channelExtensionFactory = ChannelExtensionFactorySPtr{new ChannelExtensionFactoryCF(const_cast<CountingFrameManager *>(&m_manager), m_scheduler)};
-  m_segmentationExtensionFactory = SegmentationExtensionFactorySPtr{new SegmentationExtensionFactoryCF()};
-//   m_renderer3d = RendererSPtr(new CountingFrameRenderer3D(m_manager));
-//   m_renderer2d = RendererSPtr(new CountingFrameRenderer2D(m_manager));
+
+  m_channelExtensionFactory      = std::make_shared<ChannelExtensionFactoryCF>(const_cast<CountingFrameManager *>(&m_manager), m_scheduler);
+  m_segmentationExtensionFactory = std::make_shared<SegmentationExtensionFactoryCF>();
+}
+
+//------------------------------------------------------------------------
+ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() const
+{
+  ChannelExtensionFactorySList factories;
+
+  factories << m_channelExtensionFactory;
+
+  return factories;
+}
+
+//------------------------------------------------------------------------
+SegmentationExtensionFactorySList CountingFramePlugin::segmentationExtensionFactories() const
+{
+  SegmentationExtensionFactorySList factories;
+
+  factories << m_segmentationExtensionFactory;
+
+  return factories;
 }
 
 //------------------------------------------------------------------------
@@ -52,6 +70,16 @@ NamedColorEngineSList CountingFramePlugin::colorEngines() const
   engines << m_colorEngine;
 
   return engines;
+}
+
+//------------------------------------------------------------------------
+RepresentationFactorySList CountingFramePlugin::representationFactories() const
+{
+  RepresentationFactorySList factories;
+
+  factories << m_representationFactory;
+
+  return factories;
 }
 
 //------------------------------------------------------------------------
@@ -74,26 +102,6 @@ QList<DockWidget *> CountingFramePlugin::dockWidgets() const
   docks << m_dockWidget;
 
   return docks;
-}
-
-//------------------------------------------------------------------------
-ChannelExtensionFactorySList CountingFramePlugin::channelExtensionFactories() const
-{
-  ChannelExtensionFactorySList factories;
-
-  factories << m_channelExtensionFactory;
-
-  return factories;
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionFactorySList CountingFramePlugin::segmentationExtensionFactories() const
-{
-  SegmentationExtensionFactorySList factories;
-
-  factories << m_segmentationExtensionFactory;
-
-  return factories;
 }
 
 //------------------------------------------------------------------------

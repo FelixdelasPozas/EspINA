@@ -20,13 +20,13 @@
 #ifndef ESPINA_SLICE_MANAGER_H
 #define ESPINA_SLICE_MANAGER_H
 
-#include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/RepresentationPool.h>
+#include <GUI/Representations/ActorManager.h>
 
 namespace ESPINA
 {
   class SliceManager
-  : public RepresentationManager
+  : public ActorManager
   , public RepresentationManager2D
   {
   public:
@@ -47,6 +47,8 @@ namespace ESPINA
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
   private:
+    virtual bool hasSources() const override;
+
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
 
     virtual RepresentationPipeline::Actors actors(TimeStamp time) override;

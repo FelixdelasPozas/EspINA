@@ -28,7 +28,7 @@
 #include "Core/Analysis/Output.h"
 #include <Core/Analysis/Filter.h>
 #include <Core/MultiTasking/Scheduler.h>
-#include "testing_support_dummy_filter.h"
+#include "testing_support_dummy_filter"
 
 using namespace std;
 using namespace ESPINA;

@@ -57,6 +57,7 @@ bool ChannelAdapter::setData(const QVariant& value, int role)
   switch (role)
   {
     case Qt::EditRole:
+      m_channel->setName(value.toString());
       return true;
     case Qt::CheckStateRole:
       setVisible(value.toBool());
@@ -228,4 +229,17 @@ ChannelAdapterPtr ESPINA::channelPtr(ItemAdapterPtr item)
 bool ESPINA::isChannel(ItemAdapterPtr item)
 {
   return ItemAdapter::Type::CHANNEL == item->type();
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSList channels)
+{
+  ViewItemAdapterSList result;
+
+  for (auto channel : channels)
+  {
+    result << channel;
+  }
+
+  return result;
 }

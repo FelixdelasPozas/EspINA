@@ -29,8 +29,7 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   MeasureTool::MeasureTool(ViewManagerSPtr vm)
-  : m_enabled    {false}
-  , m_widget     {nullptr}
+  : m_widget     {nullptr}
   , m_handler    {nullptr}
   , m_viewManager{vm}
   , m_action     {new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
@@ -59,15 +58,6 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  void MeasureTool::setEnabled(bool value)
-  {
-    m_enabled = value;
-
-    if (m_widget)
-      m_widget->setEnabled(value);
-  }
-
-  //----------------------------------------------------------------------------
   void MeasureTool::initTool(bool value)
   {
     if (value)
@@ -90,4 +80,14 @@ namespace ESPINA
       emit stopMeasuring();
     }
   }
+
+ //----------------------------------------------------------------------------
+  void MeasureTool::onToolEnabled(bool enabled)
+  {
+    if (m_widget)
+    {
+      m_widget->setEnabled(enabled);
+    }
+  }
 }
+

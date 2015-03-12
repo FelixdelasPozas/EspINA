@@ -38,12 +38,13 @@
 
 #include "classification_proxy_testing_support.h"
 #include "ModelTest.h"
+#include "ModelProfiler.h"
 
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
 
-int classification_proxy_add_segmentation( int argc, char** argv )
+int classification_proxy_add_segmentation(int argc, char** argv)
 {
   bool error = false;
 
@@ -51,7 +52,7 @@ int classification_proxy_add_segmentation( int argc, char** argv )
   ClassificationProxy proxy(modelAdapter);
   ModelTest           modelTester(&proxy);
 
-  ClassificationAdapterSPtr classification{new ClassificationAdapter()};
+  auto classification = make_shared<ClassificationAdapter>();
   classification->setName("Test");
   auto category = classification->createCategory("Level 1");
 
@@ -68,8 +69,7 @@ int classification_proxy_add_segmentation( int argc, char** argv )
     error = true;
   }
 
-  SchedulerSPtr sch;
-  ModelFactory factory(CoreFactorySPtr{new CoreFactory(sch)});
+  ModelFactory factory(make_shared<CoreFactory>());
 
   InputSList inputs;
   Filter::Type type{"DummyFilter"};
@@ -79,12 +79,16 @@ int classification_proxy_add_segmentation( int argc, char** argv )
 
   segmentation->setCategory(category);
 
+  ModelProfiler modelProfiler(proxy);
+
   modelAdapter->add(segmentation);
 
   if (proxy.rowCount(level1) != 1) {
     cerr << "Unexpected number of level 1 row count" << endl;
     error = true;
   }
+
+  error |= checkExpectedNumberOfSignals(modelProfiler, 1, 0, 0, 0);
 
   return error;
 }

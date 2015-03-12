@@ -65,6 +65,8 @@ namespace ESPINA
 
     virtual NamedColorEngineSList colorEngines() const;
 
+    virtual RepresentationFactorySList representationFactories() const;
+
     virtual QList<ToolGroup *> toolGroups() const;
 
     virtual QList<DockWidget *> dockWidgets() const;
@@ -79,8 +81,11 @@ namespace ESPINA
 
   public slots:
     void createSASAnalysis();
-    void segmentationsAdded(SegmentationAdapterSList segmentations);
+    void segmentationsAdded(ViewItemAdapterSList segmentations);
     void finishedTask();
+
+  private:
+    bool isSAS(ItemAdapterSPtr item) const;
 
   private:
     struct Data

@@ -43,7 +43,7 @@ RepresentationState SliceEditionPipeline::representationState(const ViewItemAdap
 RepresentationPipeline::ActorList SliceEditionPipeline::createActors(const ViewItemAdapter *item, const RepresentationState &state)
 {
   ActorList actors;
-qDebug() << "plane" << normalCoordinateIndex(m_plane) << "stateplane" << normalCoordinateIndex(plane(state))<< "state ch" << crosshairPoint(state) << "param ch" << m_crosshair << "evaluate" << ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane));
+  //qDebug() << "plane" << normalCoordinateIndex(m_plane) << "stateplane" << normalCoordinateIndex(plane(state))<< "state ch" << crosshairPoint(state) << "param ch" << m_crosshair << "evaluate" << ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane));
 
   if ((crosshairPoint(state) == m_crosshair) && (plane(state) == m_plane))
   {

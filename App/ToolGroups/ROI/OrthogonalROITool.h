@@ -64,10 +64,6 @@ namespace ESPINA
      */
     virtual ~OrthogonalROITool();
 
-    virtual void setEnabled(bool value);
-
-    virtual bool enabled() const;
-
     virtual QList<QAction *> actions() const;
 
     /** \brief Sets ROI to be resized by this tool
@@ -127,6 +123,8 @@ namespace ESPINA
     void updateOrthogonalRegion();
 
   private:
+    virtual void onToolEnabled(bool enabled);
+
     /** \brief Creates the rectangular region widget for the current roi
      *
      */

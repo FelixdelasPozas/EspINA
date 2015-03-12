@@ -50,23 +50,27 @@ ChangeCategoryCommand::~ChangeCategoryCommand()
 //------------------------------------------------------------------------
 void ChangeCategoryCommand::redo()
 {
-  SegmentationAdapterList segmentations;
+  ViewItemAdapterSList segmentations;
+
   for(auto segmentation: m_oldCategories.keys())
   {
     m_model->setSegmentationCategory(segmentation, m_category);
-    segmentations << segmentation.get();
+    segmentations << segmentation;
   }
-  m_viewManager->updateSegmentationRepresentations(segmentations);
+
+  m_model->notifyRepresentationsModified(segmentations);
 }
 
 //------------------------------------------------------------------------
 void ChangeCategoryCommand::undo()
 {
-  SegmentationAdapterList segmentations;
+  ViewItemAdapterSList segmentations;
+
   for(auto segmentation: m_oldCategories.keys())
   {
     m_model->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
-    segmentations << segmentation.get();
+    segmentations << segmentation;
   }
-  m_viewManager->updateSegmentationRepresentations(segmentations);
+
+  m_model->notifyRepresentationsModified(segmentations);
 }

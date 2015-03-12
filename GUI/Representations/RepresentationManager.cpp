@@ -27,7 +27,7 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
-: m_showPipelines{false}
+: m_showRepresentations{false}
 , m_requiresRender{false}
 , m_view{nullptr}
 , m_supportedViews{supportedViews}
@@ -76,6 +76,15 @@ QIcon RepresentationManager::icon() const
 void RepresentationManager::setView(RenderView *view)
 {
   m_view = view;
+
+  if (m_showRepresentations)
+  {
+    onShow();
+
+    setCrosshair(m_crosshair, m_lastRequestTime);
+
+    emit renderRequested();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -86,12 +95,11 @@ void RepresentationManager::show()
     child->show();
   }
 
-  m_showPipelines  = true;
-  m_requiresRender = true;
+  m_showRepresentations  = true;
 
   if (m_view)
   {
-    connectPools();
+    onShow();
 
     setCrosshair(m_crosshair, m_lastRequestTime);
 
@@ -107,58 +115,26 @@ void RepresentationManager::hide()
     child->hide();
   }
 
-  m_showPipelines = false;
+  m_showRepresentations = false;
 
   if (m_view)
   {
     emit renderRequested();
 
-    disconnectPools();
+    onHide();
   }
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::isActive()
+{
+  return m_showRepresentations;
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::requiresRender() const
 {
   return m_requiresRender;
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationManager::display(TimeStamp time)
-{
-  if (m_view != nullptr)
-  {
-    for (auto itemActors : m_viewActors)
-    {
-      for (auto actor : itemActors)
-      {
-        m_view->removeActor(actor);
-      }
-    }
-
-    m_viewActors.clear();
-
-    if (m_showPipelines)
-    {
-      auto currentActors = actors(time);
-
-      auto it = currentActors.begin();
-      while (it != currentActors.end())
-      {
-        for (auto actor : it.value())
-        {
-          m_view->addActor(actor);
-          m_viewActors[it.key()] << actor;
-        }
-
-        ++it;
-      }
-    }
-
-    invalidatePreviousActors(time);
-
-    m_requiresRender = m_showPipelines;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +153,7 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp ti
   m_crosshair       = crosshair;
   m_lastRequestTime = time;
 
-  if (m_showPipelines)
+  if (m_showRepresentations)
   {
     setCrosshair(m_crosshair, time);
   }
@@ -186,7 +162,7 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp ti
 //-----------------------------------------------------------------------------
 void RepresentationManager::setRepresentationsVisibility(bool value)
 {
-  if (m_showPipelines != value)
+  if (m_showRepresentations != value)
   {
     if (value)
     {
@@ -204,13 +180,15 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
 {
   if(time > m_lastRenderRequestTime)
   {
+    m_requiresRender        = true;
     m_lastRenderRequestTime = time;
+
     emit renderRequested();
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::invalidateActors()
+void RepresentationManager::invalidateRepresentations()
 {
   m_lastRenderRequestTime = 0;
 }

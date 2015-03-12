@@ -33,12 +33,11 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit RepresentationsGroupTool(QIcon icon, QString description);
+    explicit RepresentationsGroupTool(const QIcon &icon, QString description);
 
-    virtual void setEnabled(bool value) override;
-
-    virtual bool enabled() const override;
-
+    /** \brief Returns a list of QActions provided by the tool.
+     *
+     */
     virtual QList<QAction *> actions() const override;
 
     /** \brief Shows all active representations of the group
@@ -58,8 +57,14 @@ namespace ESPINA
 
     void showRepresentationSwitchs(ViewTypeFlags views);
 
+  public slots:
+    void toggleRepresentationsVisibility();
+
+  private:
+    virtual void onToolEnabled(bool enabled) override;
+
   private slots:
-    void onToolToggled(bool toggled);
+    void setActiveRepresentationsVisibility(bool value);
 
   private:
     QAction                  *m_globalSwitch;
@@ -68,6 +73,8 @@ namespace ESPINA
     RepresentationSwitchSList m_switches;
 
     ViewTypeFlags m_viewFlags;
+
+    bool m_representationsVisibility;
   };
 
   using RenderGroupToolSPtr  = std::shared_ptr<RepresentationsGroupTool>;

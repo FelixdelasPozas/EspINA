@@ -86,7 +86,6 @@ namespace ESPINA
   , m_model           {model}
   , m_factory         {factory}
   , m_undoStack       {undoStack}
-  , m_enabled         {false}
   , m_categorySelector{new CategorySelector(model)}
   , m_toleranceWidget {new DoubleSpinBoxAction(this)}
   , m_toolStatus      {new SkeletonToolStatusAction(this)}
@@ -129,23 +128,9 @@ namespace ESPINA
   }
   
   //-----------------------------------------------------------------------------
-  void SkeletonTool::setEnabled(bool value)
-  {
-    m_enabled = value;
-
-    if (m_widget)
-      m_widget->setEnabled(value);
-
-    m_action->setEnabled(value);
-    m_categorySelector->setEnabled(value);
-    m_toleranceWidget->setEnabled(value);
-    m_toolStatus->setEnabled(value);
-  }
-  
-  //-----------------------------------------------------------------------------
   void SkeletonTool::updateState()
   {
-    if(!enabled()) return;
+    if(!isEnabled()) return;
 
     auto selection = m_vm->selection()->segmentations();
     auto validItem = (selection.size() <= 1);
@@ -362,14 +347,29 @@ namespace ESPINA
           SegmentationAdapterList selection;
           selection << m_item;
 
+          m_item->invalidateRepresentations();
           m_vm->selection()->set(selection);
-          m_vm->updateSegmentationRepresentations(m_item);
           m_vm->updateViews();
         }
       }
     }
 
     setControlsVisibility(value);
+  }
+
+
+  //-----------------------------------------------------------------------------
+  void SkeletonTool::onToolEnabled(bool enabled)
+  {
+    if (m_widget)
+    {
+      m_widget->setEnabled(enabled);
+    }
+
+    m_action->setEnabled(enabled);
+    m_categorySelector->setEnabled(enabled);
+    m_toleranceWidget->setEnabled(enabled);
+    m_toolStatus->setEnabled(enabled);
   }
 
   //-----------------------------------------------------------------------------
@@ -531,7 +531,7 @@ namespace ESPINA
       selection << m_item;
 
       m_vm->selection()->set(selection);
-      m_vm->updateSegmentationRepresentations(m_item);
+      m_item->invalidateRepresentations();
     }
 
     m_vm->updateViews();

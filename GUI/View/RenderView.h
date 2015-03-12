@@ -31,7 +31,7 @@
 #include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
 #include "ViewState.h"
-#include <GUI/Representations/PipelineSources.h>
+#include <GUI/Representations/PipelineSourcesFilter.h>
 
 // Qt
 #include <QWidget>
@@ -78,7 +78,7 @@ namespace ESPINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setChannelSources(PipelineSources *channels);
+    void setChannelSources(PipelineSourcesFilter *channels);
 
     /** \brief Adds a representation manager to the view
      *
@@ -148,13 +148,13 @@ namespace ESPINA
      */
     NmVector3 worldEventPosition(const QPoint &pos);
 
-    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
-     * \param[in] flags view item types to be selected.
-     * \param[in] mask  Area selected to intersect with the items in the view.
-     * \param[in] multiselection if true several view items may be returned.
-     *
-     */
-    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
+//     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection area
+//      * \param[in] flags view item types to be selected.
+//      * \param[in] mask  Area selected to intersect with the items in the view.
+//      * \param[in] multiselection if true several view items may be returned.
+//      *
+//      */
+//     virtual Selector::Selection pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
 
     /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
      * \param[in] flags view item types to be selected.
@@ -238,10 +238,6 @@ namespace ESPINA
      */
     virtual struct CameraState cameraState() = 0;
 
-    virtual void updateRepresentations(SegmentationAdapterList list);
-    virtual void updateRepresentations(ChannelAdapterList list);
-    virtual void updateRepresentations();
-
     /** \brief Helper method to create a QPushButton.
      * \param[in] icon of the button.
      * \param[in] tooltip of the button.
@@ -286,7 +282,7 @@ namespace ESPINA
      */
     explicit RenderView(ViewType type, QWidget* parent = nullptr);
 
-    NmVector3 toWorldCoordinates(int x, int y, int z) const;
+    NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
 
     /** \brief Updates the view when the selection changes.
      * \param[in] selection new selection.
@@ -317,7 +313,7 @@ namespace ESPINA
 
     virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
-    void notifyResolutionChange();
+    void changeSceneResolution();
 
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;
@@ -337,7 +333,7 @@ namespace ESPINA
 
     ContextualMenuSPtr m_contextMenu;
 
-    PipelineSources           *m_channelSources;
+    PipelineSourcesFilter     *m_channelSources;
     RepresentationManagerSList m_managers;
     QList<EspinaWidgetSPtr>    m_widgets;
 

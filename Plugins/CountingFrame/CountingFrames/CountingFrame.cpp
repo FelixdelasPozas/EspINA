@@ -130,7 +130,7 @@ void CountingFrame::setVisible(bool visible)
   m_visible = visible;
 
   QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D.values())
+  for (auto wa : m_widgets2D)
   {
     wa->SetEnabled(m_visible && m_enable);
   }
@@ -145,7 +145,7 @@ void CountingFrame::setEnabled(bool enable)
   m_enable = enable;
 
   QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D.values())
+  for (auto wa : m_widgets2D)
   {
     wa->SetEnabled(m_visible && m_enable);
   }
@@ -160,7 +160,7 @@ void CountingFrame::setHighlighted(bool highlight)
   m_highlight = highlight;
 
   QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D.values())
+  for (auto wa : m_widgets2D)
   {
     wa->SetHighlighted(m_highlight);
   }
@@ -175,6 +175,27 @@ void CountingFrame::setCategoryConstraint(const QString& category)
 }
 
 //-----------------------------------------------------------------------------
+vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
+{
+  QMutexLocker lock(&m_widgetMutex);
+
+  auto view2D = view2D_cast(view);
+  Q_ASSERT(view2D);
+
+  auto widget = createSliceWidgetImplementation(view2D);
+
+  m_widgets2D << widget;
+
+  return widget;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::destroySliceWidget(vtkCountingFrameSliceWidget *widget)
+{
+
+}
+
+//-----------------------------------------------------------------------------
 void CountingFrame::updateCountingFrame()
 {
   {
@@ -186,7 +207,7 @@ void CountingFrame::updateCountingFrame()
     QMutexLocker lockWidgets(&m_widgetMutex);
     QReadLocker  lockMargins(&m_marginsMutex);
     {
-      for(auto wa : m_widgets2D.values())
+      for(auto wa : m_widgets2D)
       {
         wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
       }
@@ -261,27 +282,27 @@ vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
   return cf;
 }
 
-//-----------------------------------------------------------------------------
-void CountingFrame::sliceChanged(Plane plane, Nm pos)
-{
-  auto view = qobject_cast<View2D *>(sender());
-  Q_ASSERT(m_widgets2D.keys().contains(view));
-  m_widgets2D[view]->SetSlice(pos);
-}
+// //-----------------------------------------------------------------------------
+// void CountingFrame::sliceChanged(Plane plane, Nm pos)
+// {
+//   auto view = qobject_cast<View2D *>(sender());
+//   Q_ASSERT(m_widgets2D.keys().contains(view));
+//   m_widgets2D[view]->SetSlice(pos);
+// }
 
-//-----------------------------------------------------------------------------
-vtkAbstractWidget *CountingFrame::getWidget(RenderView *view)
-{
-  auto view3d = dynamic_cast<View3D *>(view);
-  if(view3d && m_widgets3D.keys().contains(view3d))
-    return m_widgets3D[view3d];
-
-  auto view2d = dynamic_cast<View2D *>(view);
-  if(view2d && m_widgets2D.keys().contains(view2d))
-    return m_widgets2D[view2d];
-
-  return nullptr;
-}
+// //-----------------------------------------------------------------------------
+// vtkAbstractWidget *CountingFrame::getWidget(RenderView *view)
+// {
+//   auto view3d = dynamic_cast<View3D *>(view);
+//   if(view3d && m_widgets3D.keys().contains(view3d))
+//     return m_widgets3D[view3d];
+//
+//   auto view2d = dynamic_cast<View2D *>(view);
+//   if(view2d && m_widgets2D.keys().contains(view2d))
+//     return m_widgets2D[view2d];
+//
+//   return nullptr;
+// }
 
 //-----------------------------------------------------------------------------
 void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)

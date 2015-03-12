@@ -46,10 +46,12 @@ namespace ESPINA
      */
     explicit Analysis();
 
+    ~Analysis();
+
     /** \brief Empties the analysis.
      *
      */
-    void reset();
+    void clear();
 
     /** \brief Sets the storage for the analysis.
      * \param[in] storage, temporal storage object smart pointer.
@@ -112,13 +114,13 @@ namespace ESPINA
     void add(SegmentationSList segmentations);
 
     /** \brief Removes a sample from the analysis.
-     * \param[in] sample, sample smart pointer.
+     * \param[in] sample sample smart pointer.
      *
      */
     void remove(SampleSPtr sample) throw (Item_Not_Found_Exception);
 
     /** \brief Removes a list of samples from the analysis.
-     * \param[in] samples, list of sample smart pointers.
+     * \param[in] samples list of sample smart pointers.
      *
      */
     void remove(SampleSList samples);

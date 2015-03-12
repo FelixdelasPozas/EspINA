@@ -19,9 +19,6 @@
 */
 
 #include "FilledContour.h"
-#include <Undo/BrushUndoCommand.h>
-
-// ESPINA
 #include <GUI/Selectors/ContourSelector.h>
 #include <GUI/View/Widgets/Contour/ContourWidget.h>
 #include <Support/ViewManager.h>
@@ -33,6 +30,7 @@
 #include <Filters/FreeFormSource.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/ContourUndoCommand.h>
+#include <Undo/DrawUndoCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
 // GUI

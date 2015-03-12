@@ -88,19 +88,7 @@ namespace ESPINA
      */
     virtual ~MorphologicalEditionTool();
 
-    /** \brief Implements Tool::setEnabled().
-     *
-     */
-    virtual void setEnabled(bool value);
 
-    /** \brief Implements Tool::enabled().
-     *
-     */
-    virtual bool enabled() const;
-
-    /** \brief Implements Tool::actions().
-     *
-     */
     virtual QList<QAction *> actions() const;
 
   private slots:
@@ -184,6 +172,8 @@ namespace ESPINA
     void onImageLogicFilterFinished();
 
   private:
+    virtual void onToolEnabled(bool enabled) override;
+
     /** \brief Launches the CODE filter (Morphological filter).
      * \param[in] type, type of the morphological operation.
      * \param[in] name, name of the operation.
@@ -268,8 +258,6 @@ namespace ESPINA
     QMap<MorphologicalEditionFilterPtr, MorphologicalContext> m_executingMorpholocialTasks;
     QMap<FillHolesFilterPtr, FillHolesContext>                m_executingFillHolesTasks;
     QMap<ImageLogicFilterPtr, ImageLogicContext>              m_executingImageLogicTasks;
-
-    bool m_enabled;
   };
 
   using MorphologicalEditionToolPtr  = MorphologicalEditionTool *;

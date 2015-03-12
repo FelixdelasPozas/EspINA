@@ -67,7 +67,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
 
-    if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint <= sliceBounds[2*planeIndex+1])
+    if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
     {
       sliceBounds.setLowerInclusion(true);
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);

@@ -22,7 +22,7 @@
 #define ESPINA_ROI_UNDO_COMMAND_H_
 
 // ESPINA
-#include <App/ToolGroups/ROI/ROITools.h>
+#include <App/ToolGroups/ROI/ROIToolsGroup.h>
 #include <Support/ViewManager.h>
 
 // Qt

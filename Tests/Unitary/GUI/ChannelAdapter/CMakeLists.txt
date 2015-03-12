@@ -11,7 +11,6 @@ create_test_sourcelist(TEST_SOURCES ChannelAdapter_Tests.cpp # this file is crea
   channel_adapter_set_invalid_brightness.cpp
 )
 
-
 add_executable(ChannelAdapter_Tests ${TEST_SOURCES} ../gui_testing_support.cpp)
 
 target_link_libraries(ChannelAdapter_Tests ${GUI_DEPENDECIES} )

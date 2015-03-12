@@ -24,12 +24,13 @@
 #include "Support/EspinaSupport_Export.h"
 
 // ESPINA
-#include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <GUI/Model/ModelAdapter.h>
+#include <Support/Settings/SettingsPanel.h>
+#include <Support/Representations/RepresentationFactory.h>
+#include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Widgets/ToolGroup.h>
-#include <Support/Settings/SettingsPanel.h>
-#include <Support/ViewManager.h>
 
 // Qt
 #include <QtPlugin>
@@ -100,6 +101,10 @@ namespace ESPINA
      */
     virtual NamedColorEngineSList colorEngines() const = 0;
 
+    /** \brief Returns a list of ToolGroups provided by the plugin.
+     *
+     */
+    virtual RepresentationFactorySList representationFactories() const = 0;
     /** \brief Returns a list of ToolGroups provided by the plugin.
      *
      */

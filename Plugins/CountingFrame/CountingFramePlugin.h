@@ -47,18 +47,19 @@ namespace ESPINA
                         SchedulerSPtr    scheduler,
                         QUndoStack      *undoStack);
 
+      virtual ChannelExtensionFactorySList channelExtensionFactories() const;
+
+      virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
+
       virtual NamedColorEngineSList colorEngines() const;
+
+      virtual RepresentationFactorySList representationFactories() const;
 
       virtual QList<ToolGroup *> toolGroups() const;
 
       virtual QList<DockWidget *> dockWidgets() const;
 
-      virtual ChannelExtensionFactorySList channelExtensionFactories() const;
-
-      virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
-
       virtual FilterFactorySList filterFactories() const;
-
 
       virtual SettingsPanelSList settingsPanels() const;
 
@@ -78,10 +79,10 @@ namespace ESPINA
 
       NamedColorEngine     m_colorEngine;
       DockWidget *         m_dockWidget;
-      ChannelExtensionFactorySPtr m_channelExtensionFactory;
+
+      RepresentationFactorySPtr        m_representationFactory;
+      ChannelExtensionFactorySPtr      m_channelExtensionFactory;
       SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;
-//       RendererSPtr m_renderer3d;
-//       RendererSPtr m_renderer2d;
     };
   }
 } // namespace ESPINA

@@ -119,6 +119,12 @@ NamedColorEngineSList SegmhaImporterPlugin::colorEngines() const
 }
 
 //------------------------------------------------------------------------
+RepresentationFactorySList SegmhaImporterPlugin::representationFactories() const
+{
+  return RepresentationFactorySList();
+}
+
+//------------------------------------------------------------------------
 QList<ToolGroup* > SegmhaImporterPlugin::toolGroups() const
 {
   return QList<ToolGroup *>();

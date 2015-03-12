@@ -87,7 +87,6 @@ namespace ESPINA
   , m_factory          {factory}
   , m_viewManager      {viewManager}
   , m_undoStack        {undoStack}
-  , m_enabled          {false}
   , m_widget           {nullptr}
   , m_handler          {new SplitToolEventHandler()}
   {
@@ -116,19 +115,6 @@ namespace ESPINA
 
     if(m_viewManager->eventHandler() == m_handler)
       m_viewManager->setEventHandler(nullptr);
-  }
-
-  //------------------------------------------------------------------------
-  void SplitTool::setEnabled(bool value)
-  {
-    m_enabled = value;
-    m_planarSplitAction->setEnabled(value);
-  }
-
-  //------------------------------------------------------------------------
-  bool SplitTool::enabled() const
-  {
-    return m_enabled;
   }
 
   //------------------------------------------------------------------------
@@ -254,8 +240,8 @@ namespace ESPINA
         auto sample = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
         auto category = m_executingTasks.value(filter).segmentation->category();
 
+        SegmentationAdapterList  segmentations;
         SegmentationAdapterSList segmentationsList;
-        SegmentationAdapterList segmentations;
 
         for(auto i: {0, 1})
         {
@@ -266,15 +252,14 @@ namespace ESPINA
           segmentations << segmentation.get();
         }
 
+        m_viewManager->selection()->set(segmentations);
+
         m_undoStack->beginMacro("Split Segmentation");
         m_undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_model));
         m_undoStack->push(new AddSegmentations(segmentationsList, sample, m_model));
         m_undoStack->endMacro();
 
         initTool(false);
-        m_viewManager->updateSegmentationRepresentations(segmentations);
-        m_viewManager->selection()->set(segmentations);
-        m_viewManager->updateViews();
       }
       else
       {
@@ -292,6 +277,12 @@ namespace ESPINA
 
     QApplication::restoreOverrideCursor();
     m_executingTasks.remove(filter);
+  }
+
+  //------------------------------------------------------------------------
+  void SplitTool::onToolEnabled(bool enabled)
+  {
+    m_planarSplitAction->setEnabled(enabled);
   }
 
 

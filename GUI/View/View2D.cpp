@@ -556,8 +556,8 @@ void View2D::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
-  m_repManagerMenu = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
-  m_repManagerMenu->setStyleSheet("QPushButton::menu-indicator {image: "";}");
+//   m_repManagerMenu = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
+//   m_repManagerMenu->setStyleSheet("QPushButton::menu-indicator {image: "";}");
 
   connect(m_spinBox,   SIGNAL(valueChanged(double)),
           this,        SLOT(spinValueChanged(double)));
@@ -569,7 +569,7 @@ void View2D::setupUI()
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
-  m_controlLayout->addWidget(m_repManagerMenu);
+//   m_controlLayout->addWidget(m_repManagerMenu);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
   m_controlLayout->addLayout(m_toLayout);
@@ -754,16 +754,10 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
   int xPos, yPos;
+
   eventPosition(xPos, yPos);
 
-  if (m_thumbnail != nullptr)
-  {
-    m_inThumbnail = m_thumbnail->GetDraw() && (m_thumbnail->PickProp(xPos, yPos) != nullptr);
-  }
-  else
-  {
-    m_inThumbnail = false;
-  }
+  m_inThumbnail = m_thumbnail && m_thumbnail->GetDraw() && m_thumbnail->PickProp(xPos, yPos);
 
   if (!m_inThumbnail && m_eventHandler && m_eventHandler->filterEvent(e, this))
   {
@@ -832,7 +826,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           if (((e->type() == QEvent::MouseButtonPress) && me->button() == Qt::LeftButton) || (e->type() == QEvent::MouseMove && m_inThumbnailClick))
           {
             m_inThumbnailClick = true;
-            centerViewOnMousePosition();
+            centerViewOnMousePosition(xPos, yPos);
           }
           else if ((e->type() == QEvent::MouseButtonRelease) && (me->button() == Qt::LeftButton))
           {
@@ -858,7 +852,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
             {
               if (me->modifiers() == Qt::CTRL)
               {
-                centerCrosshairOnMousePosition();
+                centerCrosshairOnMousePosition(xPos, yPos);
               }
               else
               {
@@ -911,83 +905,29 @@ void View2D::keyReleaseEvent(QKeyEvent *e)
 };
 
 //-----------------------------------------------------------------------------
-void View2D::centerCrosshairOnMousePosition()
+void View2D::centerCrosshairOnMousePosition(int x, int y)
 {
-  int xPos, yPos;
-  eventPosition(xPos, yPos);
+  auto pickedChannels = pick(Selector::CHANNEL, x, y);
 
-  NmVector3 center;  //World coordinates
-  bool channelPicked = false;
-  // TODO
-//   if (m_inThumbnail)
-//   {
-//     for(auto renderer: m_renderers)
-//     {
-//       if(renderer->type() == Renderer::Type::Representation)
-//       {
-//         auto repRenderer = representationRenderer(renderer);
-//         if (canRender(repRenderer, RenderableType::CHANNEL))
-//         {
-//           auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL));
-//           if (!selection.isEmpty())
-//           {
-//             channelPicked = true;
-//             center = repRenderer->pickCoordinates();
-//             break;
-//           }
-//         }
-//       }
-//     }
-//   }
-//   else
-//   {
-//     for(auto renderer: m_renderers)
-//       if(renderer->type() == Renderer::Type::Representation)
-//         {
-//           auto repRenderer = representationRenderer(renderer);
-//           if (canRender(repRenderer, RenderableType::CHANNEL))
-//           {
-//           auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_renderer, RenderableItems(RenderableType::CHANNEL));
-//           if (!selection.isEmpty())
-//           {
-//             channelPicked = true;
-//             center = repRenderer->pickCoordinates();
-//             break;
-//           }
-//         }
-//       }
-//   }
-
-  if (channelPicked)
+  if (!pickedChannels.isEmpty())
   {
-    center[m_normalCoord] = slicingPosition();
-    emit crosshairChanged(center);
-//     onCrosshairChanged(center);
-//     emit centerChanged(m_crosshairPoint);
+    auto point = toNormalizeWorldPosition(rendererUnderCuror(), x, y);
+
+    emit crosshairChanged(point);
   }
 }
 
 //-----------------------------------------------------------------------------
-void View2D::centerViewOnMousePosition()
+void View2D::centerViewOnMousePosition(int x, int y)
 {
-  int xPos, yPos;
-  eventPosition(xPos, yPos);
+  auto pickedItems = pick(Selector::CHANNEL, x, y);
 
-  // TODO
-//   for(auto renderer: m_renderers)
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (canRender(repRenderer, RenderableType::CHANNEL))
-//       {
-//         auto selection = repRenderer->pick(xPos, yPos, slicingPosition(), m_thumbnail, RenderableItems(RenderableType::CHANNEL), false);
-//         if (!selection.isEmpty())
-//         {
-//           centerViewOnPosition(repRenderer->pickCoordinates());
-//           return;
-//         }
-//       }
-//     }
+  if (!pickedItems.isEmpty())
+  {
+    auto point = toNormalizeWorldPosition(rendererUnderCuror(), x, y);
+
+    moveCamera(point);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1069,9 +1009,34 @@ void View2D::normalizeWorldPosition(NmVector3 &point) const
 }
 
 //-----------------------------------------------------------------------------
+NmVector3 View2D::toNormalizeWorldPosition(vtkRenderer* renderer, int x, int y) const
+{
+  auto point = toWorldCoordinates(renderer, x, y, 0);
+
+  normalizeWorldPosition(point);
+
+  return point;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer< vtkRenderer > View2D::rendererUnderCuror() const
+{
+  return m_inThumbnail?m_thumbnail:m_renderer;
+}
+
+//-----------------------------------------------------------------------------
 void View2D::showSegmentationTooltip(double x, double y)
 {
+  auto segmentations = pick(Selector::SEGMENTATION, x, y);
 
+  QString toopTip;
+
+  for (auto segmentation : segmentations)
+  {
+    toopTip = toopTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
+  }
+
+  m_view->setToolTip(toopTip);
 }
 
 //-----------------------------------------------------------------------------
@@ -1612,8 +1577,9 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 {
   Selector::Selection finalSelection;
 
+  auto renderer    = rendererUnderCuror();
   auto picker      = vtkSmartPointer<vtkPropPicker>::New();
-  auto sceneActors = m_renderer->GetViewProps();
+  auto sceneActors = renderer->GetViewProps();
 
   NeuroItemAdapterList pickedItems;
 
@@ -1625,7 +1591,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
   do
   {
-    picked     = picker->PickProp(x,y, m_renderer, sceneActors);
+    picked     = picker->PickProp(x,y, renderer, sceneActors);
     pickedProp = picker->GetViewProp();
 
     if(pickedProp)
@@ -1634,8 +1600,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
       pickedProps->AddItem(pickedProp);
     }
 
-    auto worldPoint = toWorldCoordinates(x, y, 0);
-    worldPoint[normalCoordinateIndex(m_plane)] = slicingPosition();
+    auto worldPoint = toNormalizeWorldPosition(renderer, x, y);
 
     for(auto manager: m_managers)
     {
@@ -1664,7 +1629,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
   pickedProps->InitTraversal();
 
-  while (pickedProp = pickedProps->GetNextProp())
+  while ((pickedProp = pickedProps->GetNextProp()))
   {
     sceneActors->AddItem(pickedProp);
   }

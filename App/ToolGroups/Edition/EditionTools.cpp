@@ -20,9 +20,9 @@
 
 // ESPINA
 #include "EditionTools.h"
-#include <App/Undo/BrushUndoCommand.h>
 #include <Core/Analysis/Output.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <Undo/DrawUndoCommand.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
 

@@ -97,8 +97,8 @@ namespace ESPINA
     Q_OBJECT
     public:
       /** \brief AppositionSurfaceTool class constructor.
-       * \param[in] icon, icon for the QAction.
-       * \param[in] text, text to use as the QAction tooltip.
+       * \param[in] icon icon for the QAction.
+       * \param[in] text text to use as the QAction tooltip.
        *
        */
       explicit AppositionSurfaceTool(const QIcon& icon, const QString& text);
@@ -108,13 +108,7 @@ namespace ESPINA
        */
       virtual ~AppositionSurfaceTool();
 
-      virtual void setEnabled(bool value)
-      { m_action->setEnabled(value); }
-
-      virtual bool enabled() const
-      { return m_action->isEnabled(); }
-
-      virtual QList<QAction *> actions() const;
+      virtual QList<QAction *> actions() const override;
 
       /** \brief Sets the tooltip of the action.
        * \param[in] tooltip tooltip text.
@@ -128,6 +122,9 @@ namespace ESPINA
        *
        */
       void triggered();
+
+  private:
+    virtual void onToolEnabled(bool enabled);
 
     private slots:
       /** \brief Emits the triggered signal for the toolgroup.

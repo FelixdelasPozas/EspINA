@@ -23,7 +23,6 @@
 
 // ESPINA
 #include <Support/Widgets/ToolGroup.h>
-#include "ToggleSegmentationsVisibility.h"
 #include "ResetZoom.h"
 #include "ZoomAreaTool.h"
 #include "RepresentationsGroupTool.h"
@@ -68,7 +67,7 @@ namespace ESPINA
      */
     void addRepresentationSwitch(RenderGroup              group,
                                  RepresentationSwitchSPtr repSwitch,
-                                 QIcon                    groupIcon        = QIcon(),
+                                 const QIcon             &groupIcon        = QIcon(),
                                  const QString           &groupDescription = QString());
 
   public slots:
@@ -83,7 +82,6 @@ namespace ESPINA
 
     using RenderGroupTools = QMap<RenderGroup, RenderGroupToolSPtr>;
 
-    ToggleSegmentationsVisibilitySPtr m_toggleSegmentations;
     ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
     ResetZoomSPtr                     m_resetZoom;
     ZoomAreaToolSPtr                  m_zoomArea;

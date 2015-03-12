@@ -31,6 +31,12 @@ DummyFilter::DummyFilter()
   m_outputs[0] = OutputSPtr(new Output(this, 0, NmVector3{1,1,1}));
 }
 
+//------------------------------------------------------------------------
+DummyFilter::DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr scheduler)
+: Filter(input, type, scheduler)
+{
+  m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});
+}
 
 //------------------------------------------------------------------------
 DataSPtr DummyData::createProxy() const

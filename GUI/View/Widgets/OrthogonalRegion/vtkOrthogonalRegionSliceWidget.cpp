@@ -208,8 +208,8 @@ void vtkOrthogonalRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
-    if (vtkOrthogonalRegionSliceRepresentation::Inside < stateAfter
-     || stateAfter == vtkOrthogonalRegionSliceRepresentation::Translating)
+    if (stateAfter == vtkOrthogonalRegionSliceRepresentation::Translating
+     || vtkOrthogonalRegionSliceRepresentation::Inside < stateAfter)
       self->EventCallbackCommand->SetAbortFlag(1);
     return;
   }

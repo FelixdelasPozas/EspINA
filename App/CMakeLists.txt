@@ -48,7 +48,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/ROI/CleanROITool.h
 #   ToolGroups/ROI/ManualROITool.h
   ToolGroups/ROI/OrthogonalROITool.h
-  ToolGroups/ROI/ROITools.h
+  ToolGroups/ROI/ROIToolsGroup.h
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.h
   ToolGroups/Segmentation/CustomROIWidget.h
   ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
@@ -63,14 +63,13 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/View/Representations/CrosshairsSwitch2D.h
   ToolGroups/View/ResetZoom.h
   ToolGroups/View/ToggleCrosshairVisibility.h
-  ToolGroups/View/ToggleSegmentationsVisibility.h
   ToolGroups/View/ViewToolGroup.h
   ToolGroups/View/ZoomAreaTool.h
 #   Tools/Brushes/CircularBrushROISelector.h
 #   Tools/Brushes/SphericalBrushROISelector.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
-  Undo/BrushUndoCommand.h
+  Undo/DrawUndoCommand.h
   Views/DefaultView.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -153,7 +152,7 @@ set (ESPINA_SOURCES
   ToolGroups/ROI/CleanROITool.cpp
 #   ToolGroups/ROI/ManualROITool.cpp
   ToolGroups/ROI/OrthogonalROITool.cpp
-  ToolGroups/ROI/ROITools.cpp
+  ToolGroups/ROI/ROIToolsGroup.cpp
   ToolGroups/Segmentation/CustomROIWidget.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationHistory.cpp
   ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.cpp
@@ -174,7 +173,6 @@ set (ESPINA_SOURCES
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp
-  ToolGroups/View/ToggleSegmentationsVisibility.cpp
   ToolGroups/View/ViewToolGroup.cpp
   ToolGroups/View/ZoomAreaTool.cpp
 #   Tools/Brushes/CircularBrushROISelector.cpp
@@ -182,7 +180,7 @@ set (ESPINA_SOURCES
 #   Tools/Brushes/SphericalBrushROISelector.cpp
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
-  Undo/BrushUndoCommand.cpp
+  Undo/DrawUndoCommand.cpp
   Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp

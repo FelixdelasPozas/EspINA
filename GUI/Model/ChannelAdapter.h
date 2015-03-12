@@ -43,25 +43,13 @@ namespace ESPINA
      */
     virtual ~ChannelAdapter();
 
-    /** \brief Implements ItemAdapter::data() const.
-     *
-     */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /** \brief Implements ItemAdapter::setData().
-     *
-     */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    /** \brief Implements ItemAdapter::type() const.
-     *
-     */
     virtual ItemAdapter::Type type() const
     { return Type::CHANNEL; }
 
-    /** \brief Implements ViewItemAdapter::asInput().
-     *
-     */
     virtual InputSPtr asInput() const;
 
     /** \brief Sets the position of the channel (origin).
@@ -252,6 +240,8 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT isChannel(ItemAdapterPtr item);
+
+  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(ChannelAdapterSList channels);
 
 }// namespace ESPINA
 

@@ -63,7 +63,8 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
 
   sliceManager->setName(QObject::tr("Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
-  //sliceSwitch->showRepresentations();
+
+  sliceSwitch->setActive(true);
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
   slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));

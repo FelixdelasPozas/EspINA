@@ -38,8 +38,7 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   RulerTool::RulerTool(ViewManagerSPtr vm)
-  : m_enabled    {false}
-  , m_action     {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
+  : m_action     {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
   , m_widget     {nullptr}
   , m_viewManager{vm}
   , m_selection  {new Selection()}
@@ -76,18 +75,6 @@ namespace ESPINA
                  this,                             SLOT(selectionChanged()));
       m_widget = nullptr;
     }
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerTool::setEnabled(bool value)
-  {
-    m_enabled = value;
-  }
-
-  //----------------------------------------------------------------------------
-  bool RulerTool::enabled() const
-  {
-    return m_enabled;
   }
 
   //----------------------------------------------------------------------------
@@ -189,4 +176,12 @@ namespace ESPINA
     // this is a passive tool
     return false;
   }
+
+  //----------------------------------------------------------------------------
+  void RulerTool::onToolEnabled(bool enabled)
+  {
+
+  }
+
+
 } /* namespace ESPINA */

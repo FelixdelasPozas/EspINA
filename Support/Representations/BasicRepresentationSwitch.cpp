@@ -27,10 +27,9 @@ using namespace ESPINA;
 BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr manager,
                                                      ViewTypeFlags             supportedViews)
 : m_manager(manager)
-, m_isActive(false)
 , m_flags(supportedViews)
 {
-
+  setActive(m_manager->isActive());
 }
 
 //----------------------------------------------------------------------------
@@ -45,9 +44,10 @@ QWidget* BasicRepresentationSwitch::widget()
   auto widget = Tool::createToolButton(m_manager->icon(), m_manager->description());
 
   widget->setCheckable(true);
+  widget->setChecked(isActive());
 
   connect(widget, SIGNAL(toggled(bool)),
-          this,   SLOT(onActivationToggled(bool)));
+          this,   SLOT(onButtonToggled(bool)));
 
   return widget;
 }
@@ -65,22 +65,7 @@ void BasicRepresentationSwitch::hideRepresentations()
 }
 
 //----------------------------------------------------------------------------
-bool BasicRepresentationSwitch::isActive() const
+void BasicRepresentationSwitch::onButtonToggled(bool active)
 {
-  return m_isActive;
-}
-
-//----------------------------------------------------------------------------
-void BasicRepresentationSwitch::onActivationToggled(bool active)
-{
-  m_isActive = active;
-
-  if (active)
-  {
-    showRepresentations();
-  }
-  else
-  {
-    hideRepresentations();
-  }
+  setActive(active);
 }

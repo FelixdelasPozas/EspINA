@@ -242,6 +242,30 @@ namespace ESPINA
 
     void initRepresentations();
 
+    void createMenus();
+
+    void createFileMenu();
+
+    void createReportsMenu();
+
+    void createEditMenu();
+
+    void createViewMenu();
+
+    void createSettingsMenu();
+
+    void createToolbars();
+
+    void createDefaultTools();
+
+    void createDefaultPanels();
+
+    void saveGeometry();
+
+    void restoreGeometry();
+
+    void configureAutoSave();
+
     /** \brief Registers representation factory
      *
      */
@@ -304,6 +328,7 @@ namespace ESPINA
     ModelFactorySPtr          m_factory;
     FilterDelegateFactorySPtr m_filterDelegateFactory;
     AnalysisSPtr              m_analysis;
+    TimerSPtr                 m_timer;
     ModelAdapterSPtr          m_model;
     ViewManagerSPtr           m_viewManager;
     QUndoStack               *m_undoStack;
@@ -324,7 +349,7 @@ namespace ESPINA
     QMenu           *m_editMenu;
     QMenu           *m_viewMenu;
     ColorEngineMenu *m_colorEngineMenu;
-    QMenu           *m_dockMenu;
+    QMenu           *m_panelsMenu;
 
     QToolBar *m_mainBar;
     QToolBar *m_contextualBar;

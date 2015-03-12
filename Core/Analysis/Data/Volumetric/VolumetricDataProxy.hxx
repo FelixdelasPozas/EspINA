@@ -144,8 +144,8 @@ namespace ESPINA
       m_data->draw(volume, bounds);
     }
 
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::PixelType  value = SEG_VOXEL_VALUE) override
     {
       //QWriteLocker lock(&m_lock);
       m_data->draw(index, value);

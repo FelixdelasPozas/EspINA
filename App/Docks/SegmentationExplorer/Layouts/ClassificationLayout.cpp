@@ -633,7 +633,7 @@ void ClassificationLayout::changeCategoryColor()
   if (indexList.size() != 1)
     return;
 
-  ItemAdapterPtr item = ClassificationLayout::item(indexList.first());
+  auto item = ClassificationLayout::item(indexList.first());
 
   if (!isCategory(item))
     return;
@@ -648,8 +648,7 @@ void ClassificationLayout::changeCategoryColor()
     category->setData(colorSelector.selectedColor(),
                       Qt::DecorationRole);
 
-    m_viewManager->updateSegmentationRepresentations();
-    m_viewManager->updateViews();
+    // TODO: invalidate representations of seletected categories
   }
 }
 

@@ -1,5 +1,5 @@
 # Analysis tests
-create_test_sourcelist(Analysis_Tests Analysis_Tests.cpp # this file is created by this command
+create_test_sourcelist(TEST_SOURCES Analysis_Tests.cpp # this file is created by this command
   analysis_add_channel.cpp
   analysis_add_channels.cpp
   analysis_add_basic_pipeline.cpp
@@ -30,12 +30,9 @@ create_test_sourcelist(Analysis_Tests Analysis_Tests.cpp # this file is created 
   analysis_reset.cpp
 )
 
-add_executable(Analysis_Tests
-  analysis_testing_support.cpp
-  ${Analysis_Tests}
-  )
+add_executable(Analysis_Tests analysis_testing_support.cpp ${TEST_SOURCES})
 
-target_link_libraries(Analysis_Tests ${CORE_DEPENDECIES} )
+target_link_libraries(Analysis_Tests ${CORE_DEPENDECIES})
 
 add_test("\"Analysis: Add Sample\""                              Analysis_Tests analysis_add_sample)
 add_test("\"Analysis: Add Samples\""                             Analysis_Tests analysis_add_samples)

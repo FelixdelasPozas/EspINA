@@ -454,14 +454,16 @@ void ChannelProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, i
 
   if (sourceParent == m_model->sampleRoot())
   {
-    auto sourceIndex = m_model->index(start, 0, sourceParent);
-    auto proxyIndex  = mapFromSource(sourceIndex);
-    auto item        = itemAdapter(sourceIndex);
+    beginRemoveRows(QModelIndex(), start, end);
+    for (int row = start; row <= end; ++row)
+    {
+      auto sourceIndex = m_model->index(row, 0, sourceParent);
+      auto item        = itemAdapter(sourceIndex);
+      auto sample      = samplePtr(item);
 
-    beginRemoveRows(proxyIndex.parent(), start,end);
-    SampleAdapterPtr sample = samplePtr(item);
-    m_samples.removeOne(sample);
-    m_channels.remove(sample);
+      m_samples.removeOne(sample);
+      m_channels.remove(sample);
+    }
     endRemoveRows();
   }
   else if (sourceParent == m_model->channelRoot())
@@ -557,7 +559,7 @@ bool ChannelProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottom
   }
 
   for (int r = topLeft.row(); r < m_model->rowCount(topLeft.parent()); r++)
-    if (indices(topLeft.sibling(r,0), bottomRight, result))
+    if (indices(topLeft.sibling(r+1,0), bottomRight, result))
       return true;
 
   return false;

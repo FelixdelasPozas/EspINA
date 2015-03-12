@@ -49,6 +49,7 @@ qt4_wrap_cpp(MOC_SRCS
   Extensions/CountingFrameExtension.h
   Extensions/StereologicalInclusion.h
   Panel.h
+  Representations/RepresentationManager2D.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -72,6 +73,8 @@ set (LOCAL_SOURCES
   Extensions/CountingFrameExtension.cpp
   Extensions/CountingFrameFactories.cpp
   Extensions/StereologicalInclusion.cpp
+  Representations/RepresentationFactory.cpp
+  Representations/RepresentationManager2D.cpp
   Tasks/ApplyCountingFrame.cpp
   Panel.cpp
   )

@@ -48,18 +48,6 @@ QList<QAction *> ToggleCrosshairVisibility::actions() const
 }
 
 //----------------------------------------------------------------------------
-bool ToggleCrosshairVisibility::enabled() const
-{
-  return m_toggle.isEnabled();
-}
-
-//----------------------------------------------------------------------------
-void ToggleCrosshairVisibility::setEnabled(bool value)
-{
-  m_toggle.setEnabled(value);
-}
-
-//----------------------------------------------------------------------------
 void ToggleCrosshairVisibility::toggleVisibility(bool visible)
 {
   if (visible)
@@ -71,6 +59,12 @@ void ToggleCrosshairVisibility::toggleVisibility(bool visible)
   }
 
   m_viewManager->setCrosshairVisibility(visible);
+}
+
+//----------------------------------------------------------------------------
+void ToggleCrosshairVisibility::onToolEnabled(bool enabled)
+{
+  m_toggle.setEnabled(enabled);
 }
 
 //----------------------------------------------------------------------------

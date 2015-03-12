@@ -579,7 +579,7 @@ namespace ESPINA
       auto polyData = vtkPolyData::SafeDownCast(m_pointer->GetInput());
       polyData->GetPoints()->Reset();
       polyData->GetPoints()->SetNumberOfPoints(1);
-      polyData->GetPoints()->SetPoint(0,s_currentVertex->worldPosition);
+      polyData->GetPoints()->SetPoint(0, pos);
       polyData->GetPoints()->Modified();
       polyData->Modified();
       m_pointer->Update();

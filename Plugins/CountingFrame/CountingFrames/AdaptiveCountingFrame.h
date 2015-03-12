@@ -52,10 +52,6 @@ namespace ESPINA
 
       virtual QString typeName() const { return ADAPTIVE_CF; }
 
-      // Implements EspinaWidget itnerface
-      virtual void registerView(RenderView *);
-      virtual void unregisterView(RenderView *);
-
       virtual void updateCountingFrameImplementation();
 
     protected:
@@ -75,6 +71,8 @@ namespace ESPINA
 
 //       void applyOffset(double &var, double offset)
 //       {var = floor(var + offset + 0.5);}
+    private:
+      virtual vtkCountingFrameSliceWidget *createSliceWidgetImplementation(View2D *view);
 
     private:
       Channel *m_channel;

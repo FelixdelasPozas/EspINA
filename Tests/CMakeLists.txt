@@ -119,6 +119,7 @@ qt4_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
   ${GUI_DIR}/Model/ViewItemAdapter.h
+  ${GUI_DIR}/Utils/Timer.h
 )
 
 set (GUI_SOURCES
@@ -135,6 +136,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/Utils/Timer.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )
@@ -152,10 +154,19 @@ add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
 target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Testing
+qt4_wrap_cpp(TESTING_MOCS
+  ModelProfiler.h
+  ModelTest.h
+)
+
 set (TESTING_SOURCES
+  ${TESTING_MOCS}
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
   MeshTestingUtils.cpp
+  ModelProfiler.cpp
+  ModelTest.cpp
+  ModelTestUtils.cpp
   SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )
@@ -170,14 +181,13 @@ set(TESTING_DEPENDECIES
   ${EXTERNAL_LIBS_DEPENDENCIES}
   )
 
-set(TESTING_DEPENDECIES
-  EspinaCoreTesting
-  EspinaExtensionsTesting
-  EspinaFiltersTesting
-  EspinaGUITesting
-  EspinaTesting
-  ${EXTERNAL_LIBS_DEPENDENCIES}
+if (UNIX)
+  set (TESTING_DEPENDECIES
+    ${TESTING_DEPENDECIES}
+    QtTest
   )
+endif (UNIX)
+
 
 if (BUILD_UNIT_TESTS)
 

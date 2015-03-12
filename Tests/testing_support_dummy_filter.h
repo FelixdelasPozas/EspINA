@@ -33,6 +33,7 @@ namespace ESPINA {
     {
     public:
       explicit DummyFilter();
+      explicit DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr scheduler);
 
       virtual void restoreState(const State& state) override {}
       virtual State state() const                   override {return State();}

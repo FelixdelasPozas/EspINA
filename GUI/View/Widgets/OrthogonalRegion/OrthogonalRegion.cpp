@@ -85,7 +85,7 @@ void OrthogonalRegion::registerView(RenderView *view)
 
     m_widgets[view] = wi;
 
-    connect(view2d, SIGNAL(sliceChanged(Plane, Nm)),
+    connect(view2d, SIGNAL(crosshairPlaneChanged(Plane,Nm)),
             this,   SLOT(sliceChanged(Plane, Nm)));
   }
 }
@@ -97,7 +97,7 @@ void OrthogonalRegion::unregisterView(RenderView *view)
 
   if(view2d && m_widgets.contains(view))
   {
-    disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)),
+    disconnect(view2d, SIGNAL(crosshairPlaneChanged(Plane,Nm)),
                this,   SLOT(sliceChanged(Plane, Nm)));
 
     m_widgets[view]->EnabledOff();

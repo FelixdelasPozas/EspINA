@@ -46,7 +46,7 @@ namespace ESPINA
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp time) override;
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
 
     virtual void onSettingsChanged(const RepresentationState &settings) override;
 
@@ -54,20 +54,20 @@ namespace ESPINA
 
     virtual void invalidateImplementation() override;
 
-    virtual void invalidateRepresentations(ViewItemAdapterList items) override;
+    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t) override;
 
     void updatePriorities();
 
     int distanceFromLastCrosshair(const NmVector3 &crosshair);
 
-    int normal(const NmVector3 &point) const;
+    Nm normal(const NmVector3 &point) const;
 
     NmVector3 representationCrosshair(const NmVector3 &point, int shift) const;
 
     /** \brief Configures and return a list of invalid updaters ready to be executed
      *
      */
-    RepresentationUpdaterSList updateBuffer(const NmVector3 &point, int shift, const TimeStamp time);
+    RepresentationUpdaterSList updateBuffer(const NmVector3 &point, int shift, const TimeStamp t);
 
     void updatePipelines(RepresentationUpdaterSList updaters);
 
@@ -80,9 +80,9 @@ namespace ESPINA
 
     RepresentationWindow m_updateWindow;
 
-    bool m_init;
-    Nm   m_normalRes;
-    Nm   m_lastCoordinate;
+    bool      m_init;
+    Nm        m_normalRes;
+    NmVector3 m_crosshair;
 
     bool      m_hasChanged;
     TimeStamp m_changedTimeStamp;

@@ -30,7 +30,6 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 , m_updateWindow{scheduler, pipeline, windowSize}
 , m_init{false}
 , m_normalRes{1}
-, m_lastCoordinate{0}
 , m_hasChanged{false}
 , m_changedTimeStamp{0}
 {
@@ -41,11 +40,20 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::setResolution(const NmVector3 &resolution)
 {
-  m_normalRes = resolution[m_normalIdx];
+  auto normalRes = resolution[m_normalIdx];
 
-  if (m_init)
+  if (m_normalRes != normalRes)
   {
-    //TODO
+    m_normalRes = normalRes;
+
+    if (m_init)
+    {
+      m_hasChanged = true;
+
+      auto invalidated = updateBuffer(m_crosshair, invalidationShift(), m_changedTimeStamp);
+
+      updatePipelines(invalidated);
+    }
   }
 }
 
@@ -68,19 +76,19 @@ void BufferedRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp time)
+void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp t)
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
-  m_init       = true;
+  m_init     = true;
 
-  if (time > m_changedTimeStamp)
+  if (t > m_changedTimeStamp)
   {
     m_hasChanged       = shift != 0;
-    m_changedTimeStamp = time;
+    m_changedTimeStamp = t;
   }
 
-  auto invalidated = updateBuffer(point, shift, time);
+  auto invalidated = updateBuffer(point, shift, t);
 
   updatePipelines(invalidated);
 }
@@ -116,11 +124,13 @@ void BufferedRepresentationPool::invalidateImplementation()
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterList items)
+void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
 {
   if(m_init)
   {
     m_hasChanged = true;
+
+    m_updateWindow.current()->setTimeStamp(t);
 
     auto updaters = m_updateWindow.all();
 
@@ -152,11 +162,11 @@ void BufferedRepresentationPool::updatePriorities()
 //-----------------------------------------------------------------------------
 int BufferedRepresentationPool::distanceFromLastCrosshair(const NmVector3 &crosshair)
 {
-  return vtkMath::Round((normal(crosshair) - m_lastCoordinate)/m_normalRes);
+  return vtkMath::Round((normal(crosshair) - normal(m_crosshair))/m_normalRes);
 }
 
 //-----------------------------------------------------------------------------
-int BufferedRepresentationPool::normal(const NmVector3 &point) const
+Nm BufferedRepresentationPool::normal(const NmVector3 &point) const
 {
   return point[m_normalIdx];
 }
@@ -174,7 +184,7 @@ NmVector3 BufferedRepresentationPool::representationCrosshair(const NmVector3 &p
 //-----------------------------------------------------------------------------
 RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVector3 &point,
                                                                     int   shift,
-                                                                    const TimeStamp time)
+                                                                    const TimeStamp t)
 {
   RepresentationUpdaterSList invalidated;
 
@@ -188,13 +198,13 @@ RepresentationUpdaterSList BufferedRepresentationPool::updateBuffer(const NmVect
     updateTask->invalidate();
     updateTask->setCrosshair(crosshair);
     updateTask->setDescription(QString("Slice %1").arg(normal(crosshair)));
-    qDebug() << "Invalidating:" << old << " to " << updateTask->description() ;
+    //qDebug() << this << "Invalidating:" << old << " to " << updateTask->description() ;
 
     invalidated << updateTask;
   }
 
-  m_updateWindow.current()->setTimeStamp(time);
-  m_lastCoordinate = normal(point);
+  m_updateWindow.current()->setTimeStamp(t);
+  m_crosshair = point;
 
   return invalidated;
 }

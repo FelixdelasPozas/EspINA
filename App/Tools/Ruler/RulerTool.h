@@ -35,70 +35,59 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
-    public:
-			/** \brief RulerTool class constructor.
-			 * \param[in] viewManager, view manager smart pointer.
-			 */
-      explicit RulerTool(ViewManagerSPtr viewManager);
+  public:
+    /** \brief RulerTool class constructor.
+     * \param[in] viewManager, view manager smart pointer.
+     */
+    explicit RulerTool(ViewManagerSPtr viewManager);
 
-      /** \brief RulerTool class destructor.
-       *
-       */
-      virtual ~RulerTool();
+    /** \brief RulerTool class destructor.
+     *
+     */
+    virtual ~RulerTool();
 
-      /** \brief Implements Tool::setEnabled().
-       *
-       */
-      virtual void setEnabled(bool value);
+    virtual QList<QAction *> actions() const;
 
-      /** \brief Implements Tool::enabled().
-       *
-       */
-      virtual bool enabled() const;
+  public slots:
+    /** \brief Initializes/De-initializes tool.
+     * \param[in] value true to initialize tool, false to de-initialize.
+     */
+    void initTool(bool value);
 
-      /** \brief Implements Tool::actions().
-       *
-       */
-      virtual QList<QAction *> actions() const;
+    /** \brief Updates the ruler widget.
+     *
+     */
+    void selectionChanged();
 
-    public slots:
-			/** \brief Initializes/De-initializes tool.
-			 * \param[in] value, true to initialize tool, false to de-initialize.
-			 */
-      void initTool(bool value);
+  private:
+    virtual void onToolEnabled ( bool enabled );
 
-      /** \brief Updates the ruler widget.
-       *
-       */
-      void selectionChanged();
-
-    private:
-      bool             m_enabled;
-      QAction         *m_action;
-      EspinaWidgetSPtr m_widget;
-      ViewManagerSPtr  m_viewManager;
-      SelectionSPtr    m_selection;
-      EventHandlerSPtr m_handler;
+  private:
+    QAction         *m_action;
+    EspinaWidgetSPtr m_widget;
+    ViewManagerSPtr  m_viewManager;
+    SelectionSPtr    m_selection;
+    EventHandlerSPtr m_handler;
   };
 
   class RulerEventHandler
   : public EventHandler
   {
-    public:
-      /** \brief RulerEventHandler class constructor.
-       *
-       */
-      RulerEventHandler()
-      {}
+  public:
+    /** \brief RulerEventHandler class constructor.
+     *
+     */
+    RulerEventHandler()
+    {}
 
-      /** \brief RulerEventHadler class destructor.
-       *
-       */
-      ~RulerEventHandler()
-      {}
+    /** \brief RulerEventHadler class destructor.
+     *
+     */
+    ~RulerEventHandler()
+    {}
 
 
-      virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
+    virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
   };
 
   using RulerToolPtr  = RulerTool *;

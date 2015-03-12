@@ -40,27 +40,32 @@ namespace ESPINA
   class EspinaSupport_EXPORT Tool
   : public QObject
   {
-    public:
-      /** \brief Enables/Disables the tool.
-       * \param[in] value true to enable false otherwise.
-       *
-       */
-      virtual void setEnabled(bool value) = 0;
+  public:
+    explicit Tool();
 
-      /** \brief Returns true if the tool is enabled, false otherwise.
-       *
-       */
-      virtual bool enabled() const = 0;
+    /** \brief Enables/Disables the tool.
+     * \param[in] value true to enable false otherwise.
+     *
+     */
+    void setEnabled(bool value);
 
-      /** \brief Returns a list of QActions provided by the tool.
-       *
-       */
-      virtual QList<QAction *> actions() const = 0;
+    /** \brief Returns true if the tool is enabled, false otherwise.
+     *
+     */
+    bool isEnabled() const;
 
-      static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
+    virtual QList<QAction *> actions() const = 0;
 
-    signals:
-      void changedActions();
+    static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
+
+  private:
+    virtual void onToolEnabled(bool enabled) = 0;
+
+  signals:
+    void changedActions();
+
+  private:
+    bool m_enabled;
   };
 
   using ToolSPtr  = std::shared_ptr<Tool>;

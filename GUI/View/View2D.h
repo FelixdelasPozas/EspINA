@@ -229,7 +229,7 @@ namespace ESPINA
     /** \brief Updates the value of the crosshair to the mouse position and signals the change().
      *
      */
-    void centerCrosshairOnMousePosition();
+    void centerCrosshairOnMousePosition(int x, int y);
 
     /** \brief Updates the selection of items.
      * \param[in] append if true the elements picked will be merged with the ones currently
@@ -250,6 +250,10 @@ namespace ESPINA
     virtual void configureManager(RepresentationManagerSPtr manager);
 
     virtual void normalizeWorldPosition(NmVector3 &point) const;
+
+    NmVector3 toNormalizeWorldPosition(vtkRenderer *renderer, int x, int y) const;
+
+    vtkSmartPointer<vtkRenderer> rendererUnderCuror() const;
 
     /** \brief Shows tool tip for segmentations at position (x, y)
      * \param[in] x DISPLAY coordinate.
@@ -277,7 +281,7 @@ namespace ESPINA
     /** \brief Centers the view of the camera on the mouse position.
      *
      */
-    void centerViewOnMousePosition();
+    void centerViewOnMousePosition(int x, int y);
 
 
     /** \brief Returns the bottom value in Nm of the voxel in the given slice index and plane.

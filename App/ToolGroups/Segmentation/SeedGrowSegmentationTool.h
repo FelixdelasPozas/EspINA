@@ -65,11 +65,11 @@ namespace ESPINA
 
   public:
     /** \brief SeedGrowSegmentationTool class constructor.
-     * \param[in] settings, raw pointer to a SeedGrowSegmentationSettings object.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, raw pointer to a QUndoStack object.
+     * \param[in] settings raw pointer to a SeedGrowSegmentationSettings object.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] factory factory smart pointer.
+     * \param[in] viewManager view manager smart pointer.
+     * \param[in] undoStack raw pointer to a QUndoStack object.
      */
     explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                       ModelAdapterSPtr              model,
@@ -83,32 +83,21 @@ namespace ESPINA
      */
     virtual ~SeedGrowSegmentationTool();
 
-    /** \brief Implements Tool::setEnabled().
-     *
-     */
-    virtual void setEnabled(bool value);
-
-    /** \brief Implements Tool::enabled().
-     *
-     */
-    virtual bool enabled() const;
-
-    /** \brief Implements Tool::actions().
-     *
-     */
     virtual QList<QAction *> actions() const;
 
   private:
+    virtual void onToolEnabled(bool enabled);
+
     /** \brief Adds a selector to the list of selectors.
-     * \param[in] action, QAction object raw pointer to add as selector action.
-     * \param[in] selector, selector smart pointer to add.
+     * \param[in] action QAction object raw pointer to add as selector action.
+     * \param[in] selector selector smart pointer to add.
      *
      */
     void addVoxelSelector(QAction *action, SelectorSPtr selector);
 
   private slots:
   /** \brief Changes the current selector.
-   * \param[in] action, action associated to the selector.
+   * \param[in] action action associated to the selector.
    *
    */
     void changeSelector(QAction *action);
@@ -130,7 +119,7 @@ namespace ESPINA
     void createSegmentation();
 
     /** \brief Updates the ROI values when the category changes.
-     * \param[in] category, current category.
+     * \param[in] category current category.
      *
      */
     void onCategoryChanged(CategoryAdapterSPtr category);
@@ -141,7 +130,7 @@ namespace ESPINA
     void onCategorySelectorWidgetCreation();
 
     /** \brief Updates ROI values.
-     * \param[in] update, true if category ROI values have to be applied.
+     * \param[in] update true if category ROI values have to be applied.
      *
      */
     void updateCurrentCategoryROIValues(bool update);
@@ -151,8 +140,6 @@ namespace ESPINA
     ModelFactorySPtr m_factory;
     ViewManagerSPtr  m_viewManager;
     QUndoStack      *m_undoStack;
-
-    bool             m_enabled;
 
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;

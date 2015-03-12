@@ -46,20 +46,7 @@ namespace ESPINA
        */
       virtual ~ResetZoom();
 
-      /** \brief Implements Tool::actions().
-       *
-       */
       virtual QList<QAction *> actions() const;
-
-      /** \brief Implements Tool::enabled().
-       *
-       */
-      virtual bool enabled() const;
-
-      /** \brief Implements Tool::setEnabled().
-       *
-       */
-      virtual void setEnabled(bool value);
 
     public slots:
       /** \brief Slot to activate when the action gets triggered. Resets the views
@@ -68,10 +55,12 @@ namespace ESPINA
        */
       void resetViews();
 
+  private:
+    virtual void onToolEnabled(bool enabled) override;
+
     private:
       ViewManagerSPtr m_viewManager;
       QAction        *m_action;
-      bool            m_enabled;
   };
 
   using ResetZoomSPtr = std::shared_ptr<ResetZoom>;

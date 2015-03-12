@@ -179,7 +179,7 @@ void CODEHistoryWidget::modifyFilter()
   }
   m_undoStack->endMacro();
 
-  m_viewManager->updateSegmentationRepresentations();
+  //TODO: update segmentation
 }
 
 //----------------------------------------------------------------------------

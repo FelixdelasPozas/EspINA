@@ -20,8 +20,6 @@
 
  // ESPINA
 #include "ManualEditionTool.h"
-#include <Undo/BrushUndoCommand.h>
-
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
@@ -32,6 +30,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>
 #include <Undo/AddSegmentations.h>
+#include <Undo/DrawUndoCommand.h>
 
 // Qt
 #include <QAction>
@@ -88,7 +87,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
 , m_mode                {Mode::CREATION}
 , m_referenceItem       {nullptr}
 , m_validStroke         {true}
-, m_enabled             {false}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 
@@ -110,18 +108,6 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
 //------------------------------------------------------------------------
 ManualEditionTool::~ManualEditionTool()
 {
-}
-
-//------------------------------------------------------------------------
-void ManualEditionTool::setEnabled(bool value)
-{
-  m_enabled = value;
-}
-
-//------------------------------------------------------------------------
-bool ManualEditionTool::enabled() const
-{
-  return m_enabled;
 }
 
 //------------------------------------------------------------------------
@@ -195,6 +181,12 @@ void ManualEditionTool::updateReferenceItem() const
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);
+}
+
+//------------------------------------------------------------------------
+void ManualEditionTool::onToolEnabled(bool enabled)
+{
+
 }
 
 //------------------------------------------------------------------------

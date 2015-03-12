@@ -55,7 +55,6 @@ namespace ESPINA
         mutable DataFactorySPtr m_dataFactory;
     };
 
-
     public:
       /** \brief SplitTool class constructor.
        * \param[in] model model adapter smart pointer.
@@ -73,10 +72,6 @@ namespace ESPINA
        *
        */
       virtual ~SplitTool();
-
-      virtual void setEnabled(bool value);
-
-      virtual bool enabled() const;
 
       virtual QList<QAction *> actions() const;
 
@@ -111,6 +106,9 @@ namespace ESPINA
       void stopSplitting()
       { initTool(false); }
 
+  private:
+    virtual void onToolEnabled(bool enabled);
+
     private:
       struct Data
       {
@@ -133,7 +131,6 @@ namespace ESPINA
       ViewManagerSPtr  m_viewManager;
       QUndoStack      *m_undoStack;
 
-      bool m_enabled;
       EspinaWidgetSPtr m_widget;
       SplitToolEventHandlerSPtr m_handler;
       QMap<FilterPtr, struct Data> m_executingTasks;

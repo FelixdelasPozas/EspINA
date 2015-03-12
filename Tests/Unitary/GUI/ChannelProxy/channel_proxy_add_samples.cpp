@@ -32,21 +32,23 @@
 #include <GUI/Model/Proxies/ChannelProxy.h>
 #include <GUI/ModelFactory.h>
 #include "ModelTest.h"
+#include "ModelTestUtils.h"
 
 using namespace ESPINA;
 using namespace std;
+using namespace Testing;
 
 int channel_proxy_add_samples( int argc, char** argv )
 {
   bool error = false;
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ChannelProxy     proxy(modelAdapter);
-  ModelTest        modelTester(&proxy);
+  auto modelAdapter = make_shared<ModelAdapter>();
+  auto coreFactory  = make_shared<CoreFactory>();
 
-  SchedulerSPtr sch;
-  CoreFactorySPtr  coreFactory{new CoreFactory(sch)};
   ModelFactory factory(coreFactory);
+
+  ChannelProxy proxy(modelAdapter);
+  ModelTest    modelTester(&proxy);
 
   QString names[3] = {"A", "B", "C"};
 
@@ -57,17 +59,13 @@ int channel_proxy_add_samples( int argc, char** argv )
 
   modelAdapter->add(samples);
 
-  if (proxy.rowCount() != 3) {
-    cerr << "Unexpected number of items displayed" << endl;
-    error = true;
-  }
+  error |= checkRowCount(proxy, 3);
 
-  for(int i = 0; i < 3; ++i) {
-    if (proxy.index(i,0).data(Qt::DisplayRole).toString() != names[i])
-    {
-      cerr << "Unexpected display role value" << endl;
-      error = true;
-    }
+  for (int i = 0; i < 3; ++i)
+  {
+    auto sampleIndex = proxy.index(i,0);
+    error |= checkDisplayRoleContains(sampleIndex, names[i]);
+    error |= checkRowCount(sampleIndex, 0);
   }
 
   return error;

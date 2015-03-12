@@ -329,7 +329,5 @@ void SegmentationExplorer::onSelectionChanged()
 //------------------------------------------------------------------------
 void SegmentationExplorer::onItemModified()
 {
-  m_viewManager->updateChannelRepresentations();
-  m_viewManager->updateSegmentationRepresentations();
-  m_viewManager->updateViews();
+  // TODO: invalidate representations?
 }

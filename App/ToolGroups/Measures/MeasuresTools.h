@@ -46,19 +46,10 @@ namespace ESPINA
        */
       virtual ~MeasuresTools();
 
-      /** \brief Implements ToolGroup::setEnabled.
-       *
-       */
       virtual void setEnabled(bool value);
 
-      /** \brief Implements ToolGroup::enabled.
-       *
-       */
       virtual bool enabled() const;
 
-      /** \brief Implements ToolGroup::tools.
-       *
-       */
       virtual ToolSList tools();
 
     private:

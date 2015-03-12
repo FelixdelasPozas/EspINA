@@ -237,7 +237,6 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr          mod
 , m_open         {":/espina/open.png"  , tr("Open selected segmentations"  )}
 , m_dilate       {":/espina/dilate.png", tr("Dilate selected segmentations")}
 , m_erode        {":/espina/erode.png" , tr("Erode selected segmentations" )}
-, m_enabled(false)
 {
   m_factory->registerFilterFactory(m_filterFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_filterFactory);
@@ -296,16 +295,9 @@ MorphologicalEditionTool::~MorphologicalEditionTool()
 }
 
 //------------------------------------------------------------------------
-void MorphologicalEditionTool::setEnabled(bool value)
+void MorphologicalEditionTool::onToolEnabled(bool enabled)
 {
-  m_enabled = value;
   updateAvailableActionsForSelection();
-}
-
-//------------------------------------------------------------------------
-bool MorphologicalEditionTool::enabled() const
-{
-  return m_enabled;
 }
 
 //------------------------------------------------------------------------
@@ -517,8 +509,8 @@ void MorphologicalEditionTool::updateAvailableActionsForSelection()
     hasRequiredData &= hasVolumetricData(seg->output());
   }
 
-  auto morphologicalEnabled = m_enabled && (selection.size() >  0) && hasRequiredData;
-  auto logicalEnabled       = m_enabled && (selection.size() >= 2) && hasRequiredData;
+  auto morphologicalEnabled = isEnabled() && (selection.size() >  0) && hasRequiredData;
+  auto logicalEnabled       = isEnabled() && (selection.size() >= 2) && hasRequiredData;
 
   m_addition->setEnabled(logicalEnabled);
   m_subtract->setEnabled(logicalEnabled);
@@ -550,8 +542,6 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
         m_undoStack->beginMacro(context.Operation);
         m_undoStack->push(new RemoveSegmentations(context.Segmentation, m_model));
         m_undoStack->endMacro();
-
-        m_viewManager->updateViews();
       }
     }
     else
@@ -561,9 +551,6 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
       m_undoStack->beginMacro(context.Operation);
       m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
       m_undoStack->endMacro();
-
-      m_viewManager->updateSegmentationRepresentations(context.Segmentation);
-      m_viewManager->updateViews();
     }
   }
 
@@ -584,9 +571,6 @@ void MorphologicalEditionTool::onFillHolesFinished()
     m_undoStack->beginMacro(context.Operation);
     m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
     m_undoStack->endMacro();
-
-    m_viewManager->updateSegmentationRepresentations(context.Segmentation);
-    m_viewManager->updateViews();
   }
 
   m_executingFillHolesTasks.remove(filter);

@@ -40,12 +40,6 @@ public:
   {
   }
 
-  virtual bool enabled() const
-  { return true; }
-
-  virtual void setEnabled(bool value)
-  { }
-
   virtual QList<QAction *> actions() const
   {
     QList<QAction *> settingsActions;
@@ -53,6 +47,11 @@ public:
     settingsActions << m_showSettings;
 
     return settingsActions;
+  }
+
+private:
+  virtual void onToolEnabled(bool enabled) override
+  {
   }
 
 private:
@@ -65,7 +64,6 @@ ViewToolGroup::RenderGroup ViewToolGroup::SEGMENTATIONS_GROUP = "SegmentationsRe
 //----------------------------------------------------------------------------
 ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
 : ToolGroup                 {viewManager, QIcon(":/espina/show_all.svg"), tr("View Tools"), parent}
-, m_toggleSegmentations     {new ToggleSegmentationsVisibility(viewManager)}
 , m_toggleCrosshair         {new ToggleCrosshairVisibility(viewManager)}
 , m_resetZoom               {new ResetZoom(viewManager)}
 , m_zoomArea                {new ZoomAreaTool(viewManager)}
@@ -77,7 +75,8 @@ ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
 {
   m_segmentationsShortcut->setKey(Qt::Key_Space);
   m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);
-  connect(m_segmentationsShortcut,SIGNAL(activated()),m_toggleSegmentations.get(),SLOT(shortcut()));
+  connect(m_segmentationsShortcut,          SIGNAL(activated()),
+          m_segmentationsRenderGroup.get(), SLOT(toggleRepresentationsVisibility()));
 
   m_crosshairShortcut->setKey(Qt::Key_C);
   m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
@@ -90,8 +89,8 @@ ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
   connect(parent, SIGNAL(analysisClosed()),
           this,   SLOT(abortOperation()), Qt::QueuedConnection);
 
-  m_channelsRenderGroup->setEnabled(true);
-  m_segmentationsRenderGroup->setEnabled(true);
+  m_channelsRenderGroup->showActiveRepresentations();
+  m_segmentationsRenderGroup->showActiveRepresentations();
 }
 
 //----------------------------------------------------------------------------
@@ -107,7 +106,6 @@ void ViewToolGroup::setEnabled(bool value)
   m_enabled = value;
 
   m_toggleCrosshair->setEnabled(value);
-  m_toggleSegmentations->setEnabled(value);
   m_zoomArea->setEnabled(value);
   m_resetZoom->setEnabled(value);
 
@@ -143,7 +141,7 @@ ToolSList ViewToolGroup::tools()
 //----------------------------------------------------------------------------
 void ViewToolGroup::addRepresentationSwitch(RenderGroup              group,
                                             RepresentationSwitchSPtr repSwitch,
-                                            QIcon                    groupIcon,
+                                            const QIcon             &groupIcon,
                                             const QString           &groupDescription)
 {
   if (CHANNELS_GROUP == group)
@@ -159,6 +157,8 @@ void ViewToolGroup::addRepresentationSwitch(RenderGroup              group,
     auto renderGroup = m_dynamicRenderGroups.value(group, std::make_shared<RepresentationsGroupTool>(groupIcon, groupDescription));
 
     renderGroup->addRepresentationSwitch(repSwitch);
+
+    m_dynamicRenderGroups[group] = renderGroup;
   }
 }
 
