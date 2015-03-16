@@ -27,7 +27,6 @@ using namespace ESPINA;
 SegmentationSliceSwitch::SegmentationSliceSwitch(RepresentationManagerSPtr manager)
 : m_manager(manager)
 {
-
 }
 
 //----------------------------------------------------------------------------

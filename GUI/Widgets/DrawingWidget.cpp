@@ -70,7 +70,7 @@ DrawingWidget::DrawingWidget(ModelAdapterSPtr model, ViewManagerSPtr viewManager
           this,            SLOT(changeOpacity(int)));
 
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
-          this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
+          this,               SLOT(onCategoryChange(CategoryAdapterSPtr)));
 
   m_eraserWidget->setCheckable(true);
 
@@ -523,14 +523,14 @@ void DrawingWidget::selectorInUse(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void DrawingWidget::categoryChanged(CategoryAdapterSPtr category)
+void DrawingWidget::onCategoryChange(CategoryAdapterSPtr category)
 {
   auto color = category->color();
   color.setAlphaF(m_opacityWidget->value()/100.0);
 
   setDrawingColor(color);
 
-  emit categorySelected(category);
+  emit categoryChanged(category);
 }
 
 //-----------------------------------------------------------------------------

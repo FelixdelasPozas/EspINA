@@ -61,6 +61,8 @@ void DrawUndoCommand::redo()
     m_output->setData(volume);
     m_output->setData(mesh);
   }
+
+  m_segmentation->invalidateRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -78,4 +80,6 @@ void DrawUndoCommand::undo()
   {
     m_output->removeData(VolumetricData<itkVolumeType>::TYPE);
   }
+
+  m_segmentation->invalidateRepresentations();
 }

@@ -26,7 +26,9 @@
 #include <Support/Representations/Slice3DManager.h>
 
 #include <ToolGroups/View/ViewToolGroup.h>
+#include <ToolGroups/View/Representations/ChannelSlice/ChannelLinesPipeline.h>
 #include <GUI/Representations/BufferedRepresentationPool.h>
+#include <GUI/Representations/BasicRepresentationPool.h>
 
 using namespace ESPINA;
 
@@ -49,9 +51,17 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
   auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
   auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
   auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
-  auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
+  auto poolLines      = std::make_shared<BasicRepresentationPool<ChannelLinesPipeline>>(m_scheduler);
+  auto sliceManager   = std::make_shared<SliceManager>();
+  sliceManager->addPool(poolXY, Plane::XY);
+  sliceManager->addPool(poolXZ, Plane::XZ);
+  sliceManager->addPool(poolYZ, Plane::YZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
-  auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
+  auto slice3DManager = std::make_shared<Slice3DManager>();
+  slice3DManager->addPool(poolXY);
+  slice3DManager->addPool(poolXZ);
+  slice3DManager->addPool(poolYZ);
+  slice3DManager->addPool(poolLines);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
@@ -63,7 +73,7 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
   slice3DManager->setIcon(QIcon(":espina/channels_slice3D_switch.svg"));
 
   representation.Group     = ViewToolGroup::CHANNELS_GROUP;
-  representation.Pools    << poolXY << poolXZ << poolYZ;
+  representation.Pools    << poolXY << poolXZ << poolYZ << poolLines;
   representation.Managers << sliceManager << slice3DManager;
   representation.Switches << sliceSwitch << slice3DSwitch;
 

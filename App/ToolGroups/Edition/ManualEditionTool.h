@@ -103,7 +103,7 @@ namespace ESPINA
 
     void onMaskCreated(BinaryMaskSPtr<unsigned char> mask);
 
-    void onCategoryChanged(CategoryAdapterSPtr category);
+    void onCategoryChange(CategoryAdapterSPtr category);
 
   protected:
     ModelAdapterSPtr  m_model;

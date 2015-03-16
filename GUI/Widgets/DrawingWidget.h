@@ -160,7 +160,7 @@ namespace ESPINA
 
     void maskPainted(BinaryMaskSPtr<unsigned char> mask);
 
-    void categorySelected(CategoryAdapterSPtr category);
+    void categoryChanged(CategoryAdapterSPtr category);
 
   private slots:
     /** \brief Changes the selector for the operation.
@@ -207,7 +207,7 @@ namespace ESPINA
     /** \brief Updates the tool when the category selector changes.
      * \param[in] unused unused value.
      */
-    void categoryChanged(CategoryAdapterSPtr unused);
+    void onCategoryChange(CategoryAdapterSPtr unused);
 
     /** \brief Updates the UI when the drawing mode gets changed.
      *

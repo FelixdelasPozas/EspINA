@@ -19,55 +19,106 @@
 
 #include "BasicRepresentationPool.h"
 
-//-----------------------------------------------------------------------------
-template<typename P>
-ESPINA::BasicRepresentationPool<P>::BasicRepresentationPool(SchedulerSPtr scheduler)
-: m_updater{std::make_shared<RepresentationUpdater>(scheduler)}
+namespace ESPINA
 {
-  connect(m_updater.get(), SIGNAL(finished()),
-          this,            SIGNAL(representationsReady()));
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  BasicRepresentationPool<P>::BasicRepresentationPool(SchedulerSPtr scheduler)
+  : m_updater      {std::make_shared<RepresentationUpdater>(scheduler, std::make_shared<P>())}
+  , m_init         {false}
+  , m_hasChanged   {false}
+  {
+    connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
+            this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
+
+    m_updater->setDescription(QString("Channel 3D Lines"));
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::setResolution(const NmVector3 &resolution)
+  {
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  ViewItemAdapterPtr BasicRepresentationPool<P>::pick(const NmVector3 &point, vtkProp *actor) const
+  {
+    return m_updater->pick(point, actor);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::addRepresentationPipeline(ViewItemAdapterPtr source)
+  {
+    m_updater->addSource(source);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::removeRepresentationPipeline(ViewItemAdapterPtr source)
+  {
+    m_updater->removeSource(source);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::setCrosshairImplementation(const NmVector3 &point, TimeStamp t)
+  {
+    m_init = true;
+
+    if (t > lastUpdateTimeStamp())
+    {
+      m_hasChanged = true;
+
+      m_updater->invalidate();
+      m_updater->setCrosshair(point);
+      m_updater->setTimeStamp(t);
+
+      Task::submit(m_updater);
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::onSettingsChanged(const RepresentationState &settings)
+  {
+    m_updater->setSettings(settings);
+
+    Task::submit(m_updater);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  bool BasicRepresentationPool<P>::actorsChanged() const
+  {
+    return m_hasChanged;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::invalidateImplementation()
+  {
+    if (m_init)
+    {
+      m_hasChanged = true;
+
+      Task::submit(m_updater);
+    }
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename P>
+  void BasicRepresentationPool<P>::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
+  {
+    if(m_init)
+    {
+      m_hasChanged = true;
+
+      m_updater->setTimeStamp(t);
+      m_updater->setUpdateList(items);
+
+      Task::submit(m_updater);
+    }
+  }
 }
-
-//-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BasicRepresentationPool<P>::setCrosshair(const NmVector3 &point)
-{
-  m_updater->setCrosshair(point);
-}
-
-//-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BasicRepresentationPool<P>::setResolution(const NmVector3 &resolution)
-{
-}
-
-//-----------------------------------------------------------------------------
-template<typename P>
-bool ESPINA::BasicRepresentationPool<P>::isReadyImplementation() const
-{
-  return m_updater->hasFinished();
-}
-
-//-----------------------------------------------------------------------------
-// template<typename P>
-// ESPINA::RepresentationPipelineSList ESPINA::BasicRepresentationPool<P>::pipelines()
-// {
-//   return m_updater->pipelines();
-// }
-
-//-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BasicRepresentationPool<P>::addRepresentationPipeline(ViewItemAdapterPtr source)
-{
-  m_updater->addPipeline(source, std::make_shared<P>(source));
-}
-
-//-----------------------------------------------------------------------------
-template<typename P>
-void ESPINA::BasicRepresentationPool<P>::updateImplementation()
-{
-  m_updater->applySettings(settings());
-
-  Task::submit(m_updater);
-}
-

@@ -51,13 +51,13 @@ namespace ESPINA
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
-                               const NmVector3              &slicingStep) = 0;
+                               const NmVector3              &slicingStep) const = 0;
 
     /** \brief Updates the camera of the view.
      *
      */
     virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center) = 0;
+                              const NmVector3 &center) const = 0;
   };
 
   class View2D::AxialBehaviour
@@ -74,10 +74,10 @@ namespace ESPINA
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
-                               const NmVector3              &slicingStep);
+                               const NmVector3              &slicingStep) const;
 
     virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center);
+                              const NmVector3 &center) const;
   };
 
   class View2D::SagittalBehaviour
@@ -94,10 +94,10 @@ namespace ESPINA
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
-                               const NmVector3              &slicingStep);
+                               const NmVector3              &slicingStep) const;
 
     virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center);
+                              const NmVector3 &center) const;
   };
 
   class View2D::CoronalBehaviour
@@ -114,10 +114,10 @@ namespace ESPINA
                                vtkSmartPointer<vtkPolyData> &vline,
                                const NmVector3              &center,
                                const Bounds                 &bounds,
-                               const NmVector3              &slicingStep);
+                               const NmVector3              &slicingStep) const;
 
     virtual void updateCamera(vtkCamera       *camera,
-                              const NmVector3 &center);
+                              const NmVector3 &center) const;
   };
 } // namespace ESPINA
 

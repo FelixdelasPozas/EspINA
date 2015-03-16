@@ -20,23 +20,12 @@
 #ifndef ESPINA_CHANNEL_SLICE_PIPELINE_H
 #define ESPINA_CHANNEL_SLICE_PIPELINE_H
 
+// ESPINA
 #include <GUI/Model/ViewItemAdapter.h>
 #include <GUI/Representations/ChannelPipeline.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Output.h>
-
-// VTK
-#include <vtkSmartPointer.h>
-#include <vtkImageReslice.h>
-#include <vtkImageMapToColors.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageActor.h>
-#include <vtkImageMapper3D.h>
-#include <vtkImageData.h>
-#include <vtkLookupTable.h>
-
-#include <chrono>
 
 namespace ESPINA
 {
@@ -53,7 +42,7 @@ namespace ESPINA
     virtual RepresentationPipeline::ActorList createActors(const ViewItemAdapter     *item,
                                                            const RepresentationState &state) override;
 
-    virtual bool pick( ViewItemAdapter *item, const NmVector3 &point) const;
+    virtual bool pick(ViewItemAdapter *item, const NmVector3 &point) const;
 
     void setPlane(const Plane plane);
 

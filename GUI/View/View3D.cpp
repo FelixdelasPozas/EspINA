@@ -195,16 +195,12 @@ void View3D::buildViewActionsButtons()
   m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
   connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
 
-  //m_renderConfig = createButton(QString(":/espina/settings.png"), tr("Configure this view's renderers"));
-  //m_renderConfig->setStyleSheet("QPushButton::menu-indicator {image: "";}");
-
   auto horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(m_zoom);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_export);
   m_controlLayout->addItem(horizontalSpacer);
-  //m_controlLayout->addWidget(m_renderConfig);
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -650,53 +646,34 @@ void View3D::onTakeSnapshot()
 //-----------------------------------------------------------------------------
 void View3D::updateViewActions()
 {
-  bool canTakeSnapshot = false;
-  bool canBeExported = false;
+  // TODO: incomplete
+  bool active = false;
 
-//   for(auto renderer: m_renderers)
-//   {
-//     if(renderer->isHidden())
-//       continue;
-//
-//     canTakeSnapshot |= (renderer->numberOfRenderedItems() != 0);
-//     canBeExported |= canTakeSnapshot && (renderer->numberOfvtkActors() != 0);
-//   }
-//
-//   m_zoom->setEnabled(canTakeSnapshot);
-//   m_snapshot->setEnabled(canTakeSnapshot);
-//   m_export->setEnabled(canBeExported);
-//
-//   if (0 != numEnabledRenderersForViewItem(RenderableType::SEGMENTATION))
-//   {
-//     for(auto widget: m_widgets)
-//       if (widget->manipulatesSegmentations())
-//         widget->setEnabled(true);
-//   }
-//
-//   if(m_numEnabledRenderers == 0)
-//     resetCamera();
-//
-//   m_numEnabledRenderers = 0;
-//   bool channelRendererIsEnabled = false;
-//
-//   for(RendererSPtr render: m_renderers)
-//   {
-//     if(!render->isHidden())
-//       ++m_numEnabledRenderers;
-//
-//     if(m_showCrosshairPlaneSelectors)
-//     {
-//       auto channelRenderer = std::dynamic_pointer_cast<ChannelRenderer>(render);
-//       if(channelRenderer != nullptr)
-//       {
-//         channelRendererIsEnabled |= !channelRenderer->isHidden();
-//         m_axialScrollBar->setEnabled(channelRendererIsEnabled);
-//         m_coronalScrollBar->setEnabled(channelRendererIsEnabled);
-//         m_sagittalScrollBar->setEnabled(channelRendererIsEnabled);
-//         updateScrollBarsLimits();
-//       }
-//     }
-//   }
+  for(auto manager: m_managers)
+  {
+    if(manager->isActive())
+    {
+      active = true;
+      break;
+    }
+  }
+
+  m_zoom->setEnabled(active);
+  m_snapshot->setEnabled(active);
+  m_export->setEnabled(active);
+
+  for(auto widget: m_widgets)
+  {
+    widget->setEnabled(active);
+  }
+
+  if(m_showCrosshairPlaneSelectors)
+  {
+    m_axialScrollBar->setEnabled(active);
+    m_coronalScrollBar->setEnabled(active);
+    m_sagittalScrollBar->setEnabled(active);
+    updateScrollBarsLimits();
+  }
 }
 
 //-----------------------------------------------------------------------------

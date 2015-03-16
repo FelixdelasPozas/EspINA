@@ -143,7 +143,6 @@ void RepresentationPool::invalidatePreviousActors(TimeStamp t)
   m_validActors.invalidatePreviouesRepresentations(t);
 }
 
-
 //-----------------------------------------------------------------------------
 TimeStamp RepresentationPool::lastUpdateTimeStamp() const
 {
@@ -159,7 +158,6 @@ void RepresentationPool::incrementObservers()
   }
 
   ++m_numObservers;
-
 }
 
 //-----------------------------------------------------------------------------

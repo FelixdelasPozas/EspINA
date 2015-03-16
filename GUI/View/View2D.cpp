@@ -597,7 +597,9 @@ void View2D::setCrosshairColors(const QColor& vColor, const QColor& hColor)
 void View2D::setCrosshairVisibility(bool visible)
 {
   if(visible == this->m_renderer->HasViewProp(this->m_HCrossLine))
+  {
     return;
+  }
 
   if (visible)
   {
@@ -1284,7 +1286,7 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
 
   // TODO
 //   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-//                            m_crosshairPoint, m_sceneBounds, m_slicingStep);
+//                            point, m_sceneBounds, m_slicingStep);
 
   if (isCrosshairVisible())
   {

@@ -30,9 +30,7 @@ namespace ESPINA
   , public RepresentationManager2D
   {
   public:
-    SliceManager(RepresentationPoolSPtr xy,
-                 RepresentationPoolSPtr xz,
-                 RepresentationPoolSPtr yz);
+    SliceManager();
 
     virtual PipelineStatus pipelineStatus() const;
 
@@ -45,6 +43,11 @@ namespace ESPINA
     virtual void setRepresentationDepth(Nm depth);
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+
+    /** \brief Adds a pool to the managed pools list of the specified plane.
+     *
+     */
+    void addPool(RepresentationPoolSPtr pool, Plane plane);
 
   private:
     virtual bool hasSources() const override;
@@ -61,14 +64,15 @@ namespace ESPINA
 
     virtual RepresentationManagerSPtr cloneImplementation();
 
-    RepresentationPoolSPtr planePool() const;
+    RepresentationPoolSList planePools() const;
 
     bool validPlane() const;
 
   private:
-    RepresentationPoolSPtr m_xy, m_xz, m_yz;
-
     Plane m_plane;
+    RepresentationPoolSList m_poolsXY;
+    RepresentationPoolSList m_poolsXZ;
+    RepresentationPoolSList m_poolsYZ;
   };
 }
 

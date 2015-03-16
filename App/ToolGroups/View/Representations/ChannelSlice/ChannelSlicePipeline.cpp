@@ -17,8 +17,23 @@
  *
  */
 
+// ESPINA
 #include "ChannelSlicePipeline.h"
 
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkImageReslice.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageShiftScale.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapper3D.h>
+#include <vtkImageData.h>
+#include <vtkLookupTable.h>
+
+// C++
+#include <chrono>
+
+// Qt
 #include <QDebug>
 
 using namespace ESPINA;
@@ -44,7 +59,6 @@ RepresentationState ChannelSlicePipeline::representationState(const ViewItemAdap
   return state;
 }
 
-
 //----------------------------------------------------------------------------
 RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewItemAdapter     *item,
                                                                      const RepresentationState &state)
@@ -67,6 +81,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
+      // solid slice
       auto slice = vtkImage(volume, sliceBounds);
 
       auto shiftScaleFilter = vtkSmartPointer<vtkImageShiftScale>::New();

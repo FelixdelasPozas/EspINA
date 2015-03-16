@@ -32,19 +32,29 @@ namespace ESPINA {
   public:
     explicit BasicRepresentationPool(SchedulerSPtr scheduler);
 
-    virtual void setCrosshair(const NmVector3 &point);
+    virtual void setResolution(const NmVector3 &resolution);
 
-    virtual void setResolution ( const NmVector3 &resolution );
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 
-    virtual void updateImplementation();
+    virtual void removeRepresentationPipeline(ViewItemAdapterPtr source);
 
-    virtual bool isReadyImplementation() const;
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t);
+
+    virtual void onSettingsChanged(const RepresentationState &settings);
+
+    virtual bool actorsChanged() const;
+
+    virtual void invalidateImplementation();
+
+    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t);
 
   private:
     RepresentationUpdaterSPtr m_updater;
+    bool m_init;
+    bool m_hasChanged;
   };
 }
 

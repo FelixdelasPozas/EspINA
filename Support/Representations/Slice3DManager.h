@@ -30,9 +30,7 @@ namespace ESPINA {
   {
     Q_OBJECT
   public:
-    Slice3DManager(RepresentationPoolSPtr xy,
-                   RepresentationPoolSPtr xz,
-                   RepresentationPoolSPtr yz);
+    Slice3DManager();
 
     virtual ~Slice3DManager();
 
@@ -59,12 +57,8 @@ namespace ESPINA {
 
     virtual RepresentationManagerSPtr cloneImplementation();
 
-
   private slots:
     void checkRenderRequest();
-
-  private:
-    RepresentationPoolSList m_pools;
   };
 }
 

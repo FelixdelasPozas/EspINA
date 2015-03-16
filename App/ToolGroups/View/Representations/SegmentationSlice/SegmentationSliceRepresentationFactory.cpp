@@ -52,9 +52,15 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
   auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
   auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
   auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
-  auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
+  auto sliceManager   = std::make_shared<SliceManager>();
+  sliceManager->addPool(poolXY, Plane::XY);
+  sliceManager->addPool(poolXZ, Plane::XZ);
+  sliceManager->addPool(poolYZ, Plane::YZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
-  auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
+  auto slice3DManager = std::make_shared<Slice3DManager>();
+  slice3DManager->addPool(poolXY);
+  slice3DManager->addPool(poolXZ);
+  slice3DManager->addPool(poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
   configurePool(poolXY, colorEngine, settings);
@@ -71,8 +77,8 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
 
   representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
   representation.Pools    << poolXY << poolXZ << poolYZ;
-  representation.Managers << sliceManager << slice3DManager;
-  representation.Switches << sliceSwitch << slice3DSwitch;
+  representation.Managers << sliceManager; // << slice3DManager;
+  representation.Switches << sliceSwitch; // << slice3DSwitch;
 
   return representation;
 }

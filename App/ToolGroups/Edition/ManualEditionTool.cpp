@@ -101,8 +101,8 @@ ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
 
-  connect(&m_drawingWidget, SIGNAL(categorySelected(CategoryAdapterSPtr)),
-          this,             SLOT(onCategoryChanged(CategoryAdapterSPtr)));
+  connect(&m_drawingWidget, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
+          this,             SLOT(onCategoryChange(CategoryAdapterSPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -246,8 +246,6 @@ void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
     m_undoStack->push(new DrawUndoCommand(segmentation, mask));
     m_undoStack->endMacro();
 
-    m_referenceItem->invalidateRepresentations();
-
     if(mask->foregroundValue() == SEG_BG_VALUE)
     {
       emit voxelsDeleted(m_referenceItem);
@@ -303,7 +301,6 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
     m_referenceItem->invalidateRepresentations();
   }
-
 }
 
 //------------------------------------------------------------------------
@@ -316,13 +313,12 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
   else
   {
     modifySegmentation(mask);
+    updateReferenceItem();
   }
-
-  updateReferenceItem();
 }
 
 //------------------------------------------------------------------------
-void ManualEditionTool::onCategoryChanged(CategoryAdapterSPtr category)
+void ManualEditionTool::onCategoryChange(CategoryAdapterSPtr category)
 {
   m_viewManager->selection()->clear();
 }

@@ -138,6 +138,12 @@ bool RepresentationManager::requiresRender() const
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationManager::addPool(RepresentationPoolSPtr pool)
+{
+  m_pools << pool;
+}
+
+//-----------------------------------------------------------------------------
 RepresentationManagerSPtr RepresentationManager::clone()
 {
   auto child = cloneImplementation();
@@ -173,6 +179,12 @@ void RepresentationManager::setRepresentationsVisibility(bool value)
       hide();
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+RepresentationPoolSList RepresentationManager::managedPools() const
+{
+  return m_pools;
 }
 
 //-----------------------------------------------------------------------------

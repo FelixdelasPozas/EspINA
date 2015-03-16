@@ -39,14 +39,14 @@ const double ACTORS_SHIFT = 0.1;
 
 //-----------------------------------------------------------------------------
 void View2D::AxialBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                                       vtkSmartPointer<vtkPolyData> &vline,
-                                       const NmVector3              &center,
-                                       const Bounds                 &bounds,
-                                       const NmVector3              &slicingStep)
+                                           vtkSmartPointer<vtkPolyData> &vline,
+                                           const NmVector3              &center,
+                                           const Bounds                 &bounds,
+                                           const NmVector3              &slicingStep) const
 {
   Nm hShift = 0.5*slicingStep[0];
   Nm vShift = 0.5*slicingStep[1];
-  Nm zShift = bounds[4]-ACTORS_SHIFT;
+  Nm zShift = center[2]-ACTORS_SHIFT;
 
   hline->GetPoints()->SetPoint(0, bounds[0]-hShift, center[1], zShift);
   hline->GetPoints()->SetPoint(1, bounds[1]+hShift, center[1], zShift);
@@ -59,7 +59,7 @@ void View2D::AxialBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
 
 //-----------------------------------------------------------------------------
 void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
-                                      const NmVector3 &center)
+                                          const NmVector3 &center) const
 {
   double oldPos[3];
   camera->GetPosition(oldPos);
@@ -73,14 +73,14 @@ void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
 
 //-----------------------------------------------------------------------------
 void View2D::SagittalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                                          vtkSmartPointer<vtkPolyData> &vline,
-                                          const NmVector3              &center,
-                                          const Bounds                 &bounds,
-                                          const NmVector3              &slicingStep)
+                                              vtkSmartPointer<vtkPolyData> &vline,
+                                              const NmVector3              &center,
+                                              const Bounds                 &bounds,
+                                              const NmVector3              &slicingStep) const
 {
   Nm hShift = 0.5*slicingStep[2];
   Nm vShift = 0.5*slicingStep[1];
-  Nm zShift = bounds[1]+ACTORS_SHIFT;
+  Nm zShift = center[0]+ACTORS_SHIFT;
 
   hline->GetPoints()->SetPoint(0, zShift, center[1], bounds[4]-hShift);
   hline->GetPoints()->SetPoint(1, zShift, center[1], bounds[5]+hShift);
@@ -93,11 +93,13 @@ void View2D::SagittalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hlin
 
 //-----------------------------------------------------------------------------
 void View2D::SagittalBehaviour::updateCamera(vtkCamera       *camera,
-                                         const NmVector3 &center)
+                                             const NmVector3 &center) const
 {
   double *camPos = camera->GetPosition();
   if (camPos[0] == center[0])
+  {
     ++camPos[0];
+  }
 
   camera->SetPosition(camPos[0],center[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
@@ -106,14 +108,14 @@ void View2D::SagittalBehaviour::updateCamera(vtkCamera       *camera,
 
 //-----------------------------------------------------------------------------
 void View2D::CoronalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                                         vtkSmartPointer<vtkPolyData> &vline,
-                                         const NmVector3              &center,
-                                         const Bounds                 &bounds,
-                                         const NmVector3              &slicingStep)
+                                             vtkSmartPointer<vtkPolyData> &vline,
+                                             const NmVector3              &center,
+                                             const Bounds                 &bounds,
+                                             const NmVector3              &slicingStep) const
 {
   Nm hShift = 0.5*slicingStep[0];
   Nm vShift = 0.5*slicingStep[2];
-  Nm zShift = bounds[3]+ACTORS_SHIFT;
+  Nm zShift = center[1]+ACTORS_SHIFT;
 
   hline->GetPoints()->SetPoint(0, bounds[0]-hShift, zShift, center[2]);
   hline->GetPoints()->SetPoint(1, bounds[1]+hShift, zShift, center[2]);
@@ -126,7 +128,7 @@ void View2D::CoronalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline
 
 //-----------------------------------------------------------------------------
 void View2D::CoronalBehaviour::updateCamera(vtkCamera       *camera,
-                                        const NmVector3 &center)
+                                            const NmVector3 &center) const
 {
   double *camPos = camera->GetPosition();
   if (camPos[1] == center[1])

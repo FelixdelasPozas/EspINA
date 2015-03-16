@@ -28,6 +28,7 @@
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/ViewTypeFlags.h>
 #include <GUI/Representations/RepresentationPipeline.h>
+#include <GUI/Representations/RepresentationPool.h>
 
 // Qt
 #include <QString>
@@ -133,6 +134,12 @@ namespace ESPINA
      */
     virtual void display(TimeStamp time) = 0;
 
+    /** \brief Adds a pool to be managed.
+     * \param[in] pool pool smart pointer.
+     *
+     */
+    virtual void addPool(RepresentationPoolSPtr pool);
+
     /** \brief Returns the item picked
      *
      */
@@ -162,6 +169,8 @@ namespace ESPINA
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
+    RepresentationPoolSList managedPools() const;
+
   private:
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
 
@@ -186,6 +195,7 @@ namespace ESPINA
     TimeStamp     m_lastRenderRequestTime;
 
     RepresentationManagerSList m_childs;
+    RepresentationPoolSList    m_pools;
   };
 
   class RepresentationManager2D
