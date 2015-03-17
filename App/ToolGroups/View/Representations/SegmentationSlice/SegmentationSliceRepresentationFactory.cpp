@@ -24,10 +24,13 @@
 #include "SegmentationSliceSwitch.h"
 
 #include <ToolGroups/View/ViewToolGroup.h>
+#include <GUI/Representations/BasicRepresentationPool.h>
 #include <GUI/Representations/BufferedRepresentationPool.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
+#include <ToolGroups/View/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.h>
+#include <ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.h>
 
 using namespace ESPINA;
 
@@ -63,6 +66,18 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
   slice3DManager->addPool(poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
+  // Volume
+  auto pipelineVolume = std::make_shared<SegmentationVolumetricPipeline>(colorEngine);
+  auto poolVolumetric = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolume);
+  configurePool(poolVolumetric, colorEngine, settings);
+
+  auto volumetricManager = std::make_shared<VolumetricManager>();
+  volumetricManager->setName(QObject::tr("Volumetric Representation"));
+  volumetricManager->setIcon(QIcon(":espina/voxel.png"));
+  volumetricManager->addPool(poolVolumetric);
+  auto volumetricSwitch = std::make_shared<BasicRepresentationSwitch>(volumetricManager, ViewType::VIEW_3D);
+  // ** end volume
+
   configurePool(poolXY, colorEngine, settings);
   configurePool(poolXZ, colorEngine, settings);
   configurePool(poolYZ, colorEngine, settings);
@@ -76,9 +91,9 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
   slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
 
   representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
-  representation.Pools    << poolXY << poolXZ << poolYZ;
-  representation.Managers << sliceManager; // << slice3DManager;
-  representation.Switches << sliceSwitch; // << slice3DSwitch;
+  representation.Pools    << poolXY << poolXZ << poolYZ << poolVolumetric;
+  representation.Managers << sliceManager << slice3DManager << volumetricManager;
+  representation.Switches << sliceSwitch << slice3DSwitch << volumetricSwitch;
 
   return representation;
 }

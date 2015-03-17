@@ -26,7 +26,7 @@
 #include <Support/Representations/Slice3DManager.h>
 
 #include <ToolGroups/View/ViewToolGroup.h>
-#include <ToolGroups/View/Representations/ChannelSlice/ChannelLinesPipeline.h>
+#include <ToolGroups/View/Representations/ChannelLines/ChannelLinesPipeline.h>
 #include <GUI/Representations/BufferedRepresentationPool.h>
 #include <GUI/Representations/BasicRepresentationPool.h>
 
@@ -48,10 +48,11 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
   auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
   auto pipelineYZ     = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
+  auto pipelineLines  = std::make_shared<ChannelLinesPipeline>();
   auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
   auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
   auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
-  auto poolLines      = std::make_shared<BasicRepresentationPool<ChannelLinesPipeline>>(m_scheduler);
+  auto poolLines      = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineLines);
   auto sliceManager   = std::make_shared<SliceManager>();
   sliceManager->addPool(poolXY, Plane::XY);
   sliceManager->addPool(poolXZ, Plane::XZ);

@@ -112,6 +112,7 @@ set (GUI_SOURCES
   Representations/WidgetManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
+  Representations/BasicRepresentationPool.cpp
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp

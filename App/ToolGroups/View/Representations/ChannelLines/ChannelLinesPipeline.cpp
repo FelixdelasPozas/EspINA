@@ -20,7 +20,7 @@
 
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
-#include <ToolGroups/View/Representations/ChannelSlice/ChannelLinesPipeline.h>
+#include <ToolGroups/View/Representations/ChannelLines/ChannelLinesPipeline.h>
 #include <ToolGroups/View/Representations/RepresentationSettings.h>
 #include <GUI/Model/ChannelAdapter.h>
 

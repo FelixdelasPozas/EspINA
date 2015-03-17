@@ -61,6 +61,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/View/RepresentationsGroupTool.h
   ToolGroups/View/Representations/CrosshairsSwitch2D.h
+  ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.h
   ToolGroups/View/ResetZoom.h
   ToolGroups/View/ToggleCrosshairVisibility.h
   ToolGroups/View/ViewToolGroup.h
@@ -166,19 +167,18 @@ set (ESPINA_SOURCES
   ToolGroups/View/RepresentationsGroupTool.cpp
   ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSlicePipeline.cpp
-  ToolGroups/View/Representations/ChannelSlice/ChannelLinesPipeline.cpp
+  ToolGroups/View/Representations/ChannelLines/ChannelLinesPipeline.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
+  ToolGroups/View/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
+  ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.cpp
   ToolGroups/View/ResetZoom.cpp
   ToolGroups/View/ToggleCrosshairVisibility.cpp
   ToolGroups/View/ViewToolGroup.cpp
   ToolGroups/View/ZoomAreaTool.cpp
-#   Tools/Brushes/CircularBrushROISelector.cpp
-#   Tools/Brushes/ROISelectorBase.cpp
-#   Tools/Brushes/SphericalBrushROISelector.cpp
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
   Undo/DrawUndoCommand.cpp

@@ -23,14 +23,13 @@
 #include <GUI/Representations/RepresentationPool.h>
 #include "RepresentationUpdater.h"
 
-namespace ESPINA {
-
-  template<typename P>
+namespace ESPINA
+{
   class BasicRepresentationPool
   : public RepresentationPool
   {
   public:
-    explicit BasicRepresentationPool(SchedulerSPtr scheduler);
+    explicit BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
     virtual void setResolution(const NmVector3 &resolution);
 
@@ -57,7 +56,5 @@ namespace ESPINA {
     bool m_hasChanged;
   };
 }
-
-#include "BasicRepresentationPool.cpp"
 
 #endif // ESPINA_BASIC_REPRESENTATION_POOL_H

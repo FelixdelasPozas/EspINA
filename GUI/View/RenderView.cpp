@@ -153,8 +153,6 @@ void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 
   manager->setView(this);
 
-
-
   m_managers << manager;
 }
 

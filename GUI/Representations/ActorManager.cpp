@@ -94,15 +94,12 @@ void ActorManager::displayActors(const TimeStamp time)
 {
   auto currentActors = actors(time);
 
-  auto it = currentActors.begin();
-  while (it != currentActors.end())
+  for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
   {
     for (auto actor : it.value())
     {
       m_view->addActor(actor);
       m_viewActors[it.key()] << actor;
     }
-
-    ++it;
   }
 }

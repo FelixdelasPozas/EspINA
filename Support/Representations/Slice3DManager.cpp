@@ -18,6 +18,7 @@
  */
 
 #include "Slice3DManager.h"
+#include <vtkProp.h>
 
 using namespace ESPINA;
 using namespace std;
@@ -122,11 +123,9 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
   {
     auto poolActors = pool->actors(time);
 
-    auto it = poolActors.begin();
-    while (it != poolActors.end())
+    for(auto it = poolActors.begin(); it != poolActors.end(); ++it)
     {
       actors[it.key()] << it.value();
-      ++it;
     }
   }
 
