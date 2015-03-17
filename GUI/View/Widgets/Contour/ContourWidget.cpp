@@ -64,7 +64,7 @@ void ContourWidget::registerView(RenderView *view)
   auto plane = view2d->plane();
   auto position = view2d->slicingPosition();
 
-  connect(view, SIGNAL(crosshairPlaneChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)), Qt::QueuedConnection);
+  connect(view, SIGNAL(crosshairPlaneChanged(Plane, Nm)), this, SLOT(changeSlice(Plane, Nm)));
   m_widgets[view2d] = vtkSmartPointer<vtkPlaneContourWidget>::New();
   m_widgets[view2d]->setContourWidget(this);
   m_widgets[view2d]->SetOrientation(plane);
@@ -179,6 +179,11 @@ void ContourWidget::startContourFromWidget()
         mask->setForegroundValue(value);
 
         emit contour(mask);
+
+        for(auto view: m_storedContours.keys())
+        {
+          m_storedContours[view].polyData = nullptr;
+        }
       }
     }
 
@@ -240,9 +245,8 @@ void ContourWidget::changeSlice(Plane plane, Nm pos)
     {
       widget->setSlice(pos);
       widget->setContourMode(m_storedContours[view].mode);
-      widget->Initialize(m_storedContours[view].polyData);
+      widget->Initialize(m_storedContours[view].polyData.GetPointer());
 
-      m_storedContours[view].polyData->Delete();
       m_storedContours[view].polyData = nullptr;
     }
   }
@@ -252,10 +256,11 @@ void ContourWidget::changeSlice(Plane plane, Nm pos)
     auto polyData = rep->GetContourRepresentationAsPolyData();
     if (polyData)
     {
-      m_storedContours[view].polyData = vtkPolyData::New();
+      m_storedContours[view].polyData = vtkSmartPointer<vtkPolyData>::New();
       m_storedContours[view].polyData->DeepCopy(polyData);
       m_storedContours[view].contourPosition = m_storedContours[view].actualPosition;
       m_storedContours[view].mode = widget->contourMode();
+      polyData->Delete();
     }
 
     widget->setSlice(pos);

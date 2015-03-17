@@ -350,6 +350,8 @@ void DrawingWidget::changeRadius(int value)
 
     m_contourDistance = value;
 
+
+
     std::dynamic_pointer_cast<ContourPainter>(m_contourPainter)->setMinimumPointDistance(m_contourDistance);
   }
   else

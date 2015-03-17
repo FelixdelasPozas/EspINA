@@ -309,11 +309,11 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
   if (isCreationMode())
   {
     createSegmentation(mask);
+    updateReferenceItem();
   }
   else
   {
     modifySegmentation(mask);
-    updateReferenceItem();
   }
 }
 
