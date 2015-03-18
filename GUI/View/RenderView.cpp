@@ -117,6 +117,12 @@ void RenderView::setState(ViewStateSPtr state)
 }
 
 //-----------------------------------------------------------------------------
+TimeStamp RenderView::timeStamp() const
+{
+  return m_state->timeStamp();
+}
+
+//-----------------------------------------------------------------------------
 void RenderView::setChannelSources(PipelineSourcesFilter *channels)
 {
   if (m_channelSources)

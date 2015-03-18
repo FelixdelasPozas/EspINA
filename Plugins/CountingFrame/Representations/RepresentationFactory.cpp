@@ -46,6 +46,8 @@ namespace ESPINA {
       manager2D->setName(QObject::tr("Counting Frame"));
       manager2D->setIcon(QIcon(":cf-switch2D.svg"));
 
+      switch2D->setActive(true);
+
 //       manager3D->setName(QObject::tr("Counting Frame"));
 //       manager3D->setIcon(QIcon(":cf-switch3D.svg"));
 

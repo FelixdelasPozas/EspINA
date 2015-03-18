@@ -64,6 +64,7 @@ void AddSegmentations::redo()
     segmentation->setNumber(number++);
   }
 
+  m_model->beginBatchMode();
   m_model->add(m_segmentations);
 
   for(auto segmentation : m_segmentations)
@@ -73,6 +74,7 @@ void AddSegmentations::redo()
       m_model->addRelation(sample, segmentation, Sample::CONTAINS);
     }
   }
+  m_model->endBatchMode();
 }
 
 //----------------------------------------------------------------------------

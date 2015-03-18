@@ -27,7 +27,8 @@ namespace ESPINA {
     : RepresentationManager(supportedViews)
     , m_manager(manager)
     {
-      m_requiresRender = false;
+      setRenderRequired(false);
+
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
               this,       SLOT(onCountingFrameCreated(CountingFrame*)));
       connect(&m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
@@ -37,9 +38,9 @@ namespace ESPINA {
     //-----------------------------------------------------------------------------
     RepresentationManager2D::~RepresentationManager2D()
     {
-      for(auto cf : m_insertedCFs.keys())
+      for(auto widget : m_widgets)
       {
-        onCountingFrameDeleted(cf);
+        deleteWidget(widget);
       }
     }
 
@@ -64,12 +65,24 @@ namespace ESPINA {
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::display(TimeStamp t)
     {
-      for (auto widget : m_insertedCFs)
+      if (representationsShown())
       {
-        widget->SetSlice(slicingPosition(t));
+        for (auto widget : m_widgets)
+        {
+          showWidget(widget);
+        }
+      }
+      else
+      {
+        for (auto widget : m_widgets)
+        {
+          hideWidget(widget);
+        }
       }
 
-      m_crosshairs.invalidatePreviouesRepresentations(t);
+      m_crosshairs.invalidatePreviousValues(t);
+
+      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
@@ -88,54 +101,71 @@ namespace ESPINA {
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onCountingFrameCreated(CountingFrame *cf)
     {
-      if (m_view)
+      if (isActive())
       {
-        auto widget = cf->createSliceWidget(m_view);
-        Q_ASSERT(widget);
+        auto widget = createWidget(cf);
 
-        widget->SetSlice(slicingPosition(m_crosshairs.lastTime()));
-        widget->SetEnabled(isActive());
+        m_widgets.insert(cf, widget);
 
-        m_insertedCFs.insert(cf, widget);
+        updateRenderRequestValue();
 
-        m_requiresRender = true;
-
-        if (isActive())
-        {
-          emit renderRequested();
-        }
+        emit renderRequested();
+      }
+      else
+      {
+        m_pendingCFs << cf;
       }
     }
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onCountingFrameDeleted(CountingFrame *cf)
     {
+      if (m_pendingCFs.contains(cf))
+      {
+        m_pendingCFs.removeOne(cf);
+      }
+      else
+      {
+        Q_ASSERT(m_widgets.keys().contains(cf));
 
+        deleteWidget(m_widgets[cf]);
+
+        m_widgets.remove(cf);
+
+        emit renderRequested();
+      }
     }
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onShow()
     {
+      for (auto cf : m_pendingCFs)
+      {
+        m_widgets[cf] = createWidget(cf);
+      }
 
+      m_pendingCFs.clear();
+
+      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onHide()
     {
-
     }
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
     {
-      if (m_crosshairs.isEmpty() || m_crosshairs.last() != crosshair)
+      if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
       {
-        m_crosshairs.addRepresentation(crosshair, t);
+        m_crosshairs.addValue(crosshair, t);
+
         emit renderRequested();
       }
       else
       {
-        m_crosshairs.usePreviousRepresentation(t);
+        m_crosshairs.reusePreviousValue(t);
       }
     }
 
@@ -148,9 +178,53 @@ namespace ESPINA {
     //-----------------------------------------------------------------------------
     Nm RepresentationManager2D::slicingPosition(TimeStamp t) const
     {
-      auto crosshair = m_crosshairs.representation(t, NmVector3());
+      auto crosshair = m_crosshairs.value(t, NmVector3());
 
       return crosshair[normalCoordinateIndex(m_plane)];
+    }
+
+    //-----------------------------------------------------------------------------
+    vtkCountingFrameSliceWidget *RepresentationManager2D::createWidget(CountingFrame *cf)
+    {
+      auto widget = cf->createSliceWidget(m_view);
+      Q_ASSERT(widget);
+
+      return widget;
+    }
+
+    //-----------------------------------------------------------------------------
+    void RepresentationManager2D::showWidget(vtkCountingFrameSliceWidget *widget)
+    {
+      widget->SetEnabled(true);
+      widget->SetSlice(slicingPosition(m_crosshairs.lastTime()));
+    }
+
+    //-----------------------------------------------------------------------------
+    void RepresentationManager2D::hideWidget(vtkCountingFrameSliceWidget *widget)
+    {
+      widget->SetEnabled(false);
+    }
+
+    //-----------------------------------------------------------------------------
+    void RepresentationManager2D::deleteWidget(vtkCountingFrameSliceWidget *widget)
+    {
+      hideWidget(widget);
+
+      widget->Delete();
+    }
+
+    //-----------------------------------------------------------------------------
+    void RepresentationManager2D::updateRenderRequestValue()
+    {
+      setRenderRequired(representationsShown() && !m_widgets.isEmpty());
+    }
+
+    //-----------------------------------------------------------------------------
+    bool RepresentationManager2D::isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const
+    {
+      auto normal = normalCoordinateIndex(m_plane);
+
+      return p1[normal] != p2[normal];
     }
 
   }

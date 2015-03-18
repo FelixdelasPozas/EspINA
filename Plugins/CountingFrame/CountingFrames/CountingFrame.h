@@ -166,6 +166,9 @@ namespace CF {
 
   signals:
     void modified(CountingFrame *);
+
+    void applied(CountingFrame *);
+
     void changedVisibility();
 
   protected:

@@ -38,19 +38,20 @@ namespace ESPINA
 
       virtual ~RepresentationManager2D();
 
-      virtual void setResolution(const NmVector3 &resolution);
+      virtual void setResolution(const NmVector3 &resolution) override;
 
-      virtual PipelineStatus pipelineStatus() const;
+      virtual PipelineStatus pipelineStatus() const override;
 
-      virtual TimeRange readyRange() const;
+      virtual TimeRange readyRange() const override;
 
-      virtual void display(TimeStamp t);
+      virtual void display(TimeStamp t) override;
 
-      virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+      virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
-      virtual void setPlane(Plane plane);
+      virtual void setPlane(Plane plane) override;
 
-      virtual void setRepresentationDepth(Nm depth) {}
+      virtual void setRepresentationDepth(Nm depth) override
+      {}
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -74,13 +75,26 @@ namespace ESPINA
 
       Nm slicingPosition(TimeStamp t) const;
 
+      vtkCountingFrameSliceWidget *createWidget(CountingFrame *cf);
+
+      void showWidget(vtkCountingFrameSliceWidget *widget);
+
+      void hideWidget(vtkCountingFrameSliceWidget *widget);
+
+      void deleteWidget(vtkCountingFrameSliceWidget *widget);
+
+      void updateRenderRequestValue();
+
+      bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
+
     private:
       Plane     m_plane;
       NmVector3 m_resolution;
       RepresentationsRange<NmVector3> m_crosshairs;
 
-      CountingFrameManager &m_manager;
-      QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_insertedCFs;
+      CountingFrameManager  &m_manager;
+      QList<CountingFrame *> m_pendingCFs;
+      QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_widgets;
     };
   }
 }

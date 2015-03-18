@@ -71,13 +71,11 @@ namespace ESPINA
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
-    void enableRepresentations();
-
-    void disableRepresentations();
-
-    void removeCurrentActors();
+    void updateRenderRequestValue();
 
     void displayActors(const TimeStamp time);
+
+    void removeCurrentActors();
 
   private:
     RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view

@@ -233,16 +233,18 @@ void CountingFrame::apply()
     m_applyCountingFrame->abort();
   }
 
-  m_applyCountingFrame = ApplyCountingFrameSPtr{new ApplyCountingFrame(this, m_scheduler)};
+  m_applyCountingFrame = std::make_shared<ApplyCountingFrame>(this, m_scheduler);
+
   connect(m_applyCountingFrame.get(), SIGNAL(finished()),
           this,                       SLOT(onCountingFrameApplied()));
+
   Task::submit(m_applyCountingFrame);
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrame::onCountingFrameApplied()
 {
-  emit modified(this);
+  emit applied(this);
 }
 
 //-----------------------------------------------------------------------------

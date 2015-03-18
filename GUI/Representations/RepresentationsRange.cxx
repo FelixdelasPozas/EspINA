@@ -60,7 +60,7 @@ TimeStamp RepresentationsRange<R>::lastTime() const
 }
 
 template<typename R>
-void RepresentationsRange<R>::addRepresentation(R representation, TimeStamp t)
+void RepresentationsRange<R>::addValue(R representation, TimeStamp t)
 {
   m_lastTime = t;
   m_times << t;
@@ -68,14 +68,14 @@ void RepresentationsRange<R>::addRepresentation(R representation, TimeStamp t)
 }
 
 template<typename R>
-void RepresentationsRange<R>::usePreviousRepresentation(TimeStamp t)
+void RepresentationsRange<R>::reusePreviousValue(TimeStamp t)
 {
   m_lastTime = t;
 }
 
 
 template<typename R>
-R RepresentationsRange<R>::representation(TimeStamp t, R invalid) const
+R RepresentationsRange<R>::value(TimeStamp t, R invalid) const
 {
   int  i     = 1;
   bool found = false;
@@ -111,7 +111,7 @@ void RepresentationsRange<R>::invalidate()
 }
 
 template<typename R>
-void RepresentationsRange<R>::invalidatePreviouesRepresentations(TimeStamp t)
+void RepresentationsRange<R>::invalidatePreviousValues(TimeStamp t)
 {
   int  i     = 1;
   bool found = false;

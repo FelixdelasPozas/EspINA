@@ -250,10 +250,7 @@ RepresentationManagerSPtr SliceManager::cloneImplementation()
 {
   auto clone = std::make_shared<SliceManager>();
 
-  clone->m_name          = m_name;
-  clone->m_description   = m_description;
-  clone->m_plane         = m_plane;
-  clone->m_showRepresentations = m_showRepresentations;
+  clone->m_plane = m_plane;
 
   for(auto pool: m_poolsXY)
   {
