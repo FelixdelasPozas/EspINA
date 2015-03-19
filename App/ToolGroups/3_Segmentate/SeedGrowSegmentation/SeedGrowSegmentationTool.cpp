@@ -113,13 +113,15 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 , m_settings        {settings}
 , m_sgsFactory      {new SGSFactory()}
 {
+  hideSettings();
+
   m_factory->registerFilterFactory(m_sgsFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
 
   { // Pixel Selector
-    QAction *action = new QAction(QIcon(":/espina/pixelSelector.svg"),
-                                  tr("Create segmentation based on selected pixel (Ctrl +)"),
-                                  m_selectorSwitch);
+    auto action = new QAction(QIcon(":/espina/pixelSelector.svg"),
+                              tr("Create segmentation based on selected pixel (Ctrl +)"),
+                              m_selectorSwitch);
 
     auto selector = std::make_shared<PixelSelector>();
     selector->setMultiSelection(false);
@@ -129,9 +131,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 
 
   { // Best Pixel Selector
-    QAction *action = new QAction(QIcon(":/espina/bestPixelSelector.svg"),
-                                  tr("Create segmentation based on best pixel (Ctrl +)"),
-                                  m_selectorSwitch);
+    auto action = new QAction(QIcon(":/espina/bestPixelSelector.svg"),
+                              tr("Create segmentation based on best pixel (Ctrl +)"),
+                              m_selectorSwitch);
 
     auto selector = std::make_shared<BestPixelSelector>();
     selector->setMultiSelection(false);
@@ -142,7 +144,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 
     selector->setBestPixelValue(m_settings->bestPixelValue());
 
-    connect(m_settings, SIGNAL(bestValueChanged(int)),
+    connect(m_settings,     SIGNAL(bestValueChanged(int)),
             selector.get(), SLOT(setBestPixelValue(int)));
 
     addVoxelSelector(action, selector);
@@ -158,10 +160,10 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
           this,       SLOT(updateCurrentCategoryROIValues(bool)));
 
   connect(m_selectorSwitch, SIGNAL(triggered(QAction*)),
-          this, SLOT(changeSelector(QAction*)));
+          this,             SLOT(changeSelector(QAction*)));
 
   connect(m_selectorSwitch, SIGNAL(actionCanceled()),
-          this, SLOT(unsetSelector()));
+          this,             SLOT(unsetSelector()));
   connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
           this,               SLOT(onCategoryChanged(CategoryAdapterSPtr)));
   connect(m_categorySelector, SIGNAL(widgetCreated()),
@@ -184,7 +186,9 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
 
   if (m_currentSelector)
   {
-    m_selectorSwitch->setChecked(m_viewManager->eventHandler() == m_currentSelector);
+    bool active = m_viewManager->eventHandler() == m_currentSelector;
+
+    m_selectorSwitch->setChecked(active);
   }
 
   actions << m_selectorSwitch;
@@ -221,6 +225,8 @@ void SeedGrowSegmentationTool::changeSelector(QAction* action)
   m_currentSelector = m_voxelSelectors[action];
 
   m_viewManager->setEventHandler(m_currentSelector);
+
+  displaySettings();
 }
 
 //-----------------------------------------------------------------------------
@@ -228,6 +234,7 @@ void SeedGrowSegmentationTool::unsetSelector()
 {
   m_viewManager->unsetEventHandler(m_currentSelector);
   m_currentSelector.reset();
+  hideSettings();
 }
 
 //-----------------------------------------------------------------------------
@@ -430,4 +437,24 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
     m_roi->setValue(Axis::Y, m_settings->ySize());
     m_roi->setValue(Axis::Z, m_settings->zSize());
   }
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::setSettingsVisibility(bool value)
+{
+  m_categorySelector->setVisible(value);
+  m_seedThreshold->setVisible(value);
+  m_roi->setVisible(value);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::displaySettings()
+{
+  setSettingsVisibility(true);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::hideSettings()
+{
+  setSettingsVisibility(false);
 }

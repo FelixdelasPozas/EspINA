@@ -95,6 +95,8 @@ namespace ESPINA
      */
     void addVoxelSelector(QAction *action, SelectorSPtr selector);
 
+    void setSettingsVisibility(bool value);
+
   private slots:
   /** \brief Changes the current selector.
    * \param[in] action action associated to the selector.
@@ -134,6 +136,10 @@ namespace ESPINA
      *
      */
     void updateCurrentCategoryROIValues(bool update);
+
+    void displaySettings();
+
+    void hideSettings();
 
   private:
     ModelAdapterSPtr m_model;
