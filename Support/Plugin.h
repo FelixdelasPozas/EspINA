@@ -30,7 +30,7 @@
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
-#include <Support/Widgets/ToolGroup.h>
+#include "Widgets/Tool.h"
 
 // Qt
 #include <QtPlugin>
@@ -42,6 +42,17 @@ namespace ESPINA
   using NamedColorEngine      = QPair<QString, ColorEngineSPtr>;
   using NamedColorEngineSList = QList<NamedColorEngine>;
   using MenuEntry             = QPair<QStringList, QAction *>;
+
+  enum class ToolCategory
+  {
+    EXPLORE,
+    RESTRICT,
+    SEGMENTATE,
+    REFINE,
+    ANALYZE
+  };
+
+  using CategorizedTool = QPair<ToolCategory, ToolSPtr>;
 
   class EspinaSupport_EXPORT Plugin
   : public QObject
@@ -105,10 +116,12 @@ namespace ESPINA
      *
      */
     virtual RepresentationFactorySList representationFactories() const = 0;
-    /** \brief Returns a list of ToolGroups provided by the plugin.
+
+    /** \brief Returns a list of tools provided by the plugin.
      *
+     *  Each tool is asigned to one of the available categories
      */
-    virtual QList<ToolGroup *> toolGroups() const = 0;
+    virtual QList<CategorizedTool> tools() const = 0;
 
     /** \brief Returns a list of Dock Widgets provided by the plugin.
      *

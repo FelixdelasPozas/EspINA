@@ -22,7 +22,7 @@
 #define ESPINA_ROI_UNDO_COMMAND_H_
 
 // ESPINA
-#include <App/ToolGroups/ROI/ROIToolsGroup.h>
+#include <App/ToolGroups/2_Restrict/RestrictToolGroup.h>
 #include <Support/ViewManager.h>
 
 // Qt
@@ -38,7 +38,7 @@ namespace ESPINA
        * \param[in] toolgroup, raw pointer of the ROIToolsGroup that has the ROI accumulator.
        * \param[in] mask, Mask to create/modify ROI.
        */
-      explicit AddROIUndoCommand(ROIToolsGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
+      explicit AddROIUndoCommand(RestrictToolGroup *toolgroup, const BinaryMaskSPtr<unsigned char> mask);
 
       /** \brief AddROIUndoCommand class virtual destructor.
        *
@@ -51,7 +51,7 @@ namespace ESPINA
 
     private:
       ROISPtr                       m_newROI;
-      ROIToolsGroup                *m_toolGroup;
+      RestrictToolGroup            *m_toolGroup;
       BinaryMaskSPtr<unsigned char> m_mask;
   };
 
@@ -63,7 +63,7 @@ namespace ESPINA
        * \param[in] toolgroup, raw pointer of the ROIToolGroup that has the ROI accumulator.
        *
        */
-      explicit ClearROIUndoCommand(ROIToolsGroup *toolgroup);
+      explicit ClearROIUndoCommand(RestrictToolGroup *toolgroup);
 
       /** \brief ClearROIUndoCommand class virtual destructor.
        *
@@ -81,8 +81,8 @@ namespace ESPINA
       virtual void undo() override;
 
     private:
-      ROIToolsGroup *m_toolGroup;
-      ROISPtr        m_roi;
+      RestrictToolGroup *m_toolGroup;
+      ROISPtr            m_roi;
   };
 
 } // namespace ESPINA

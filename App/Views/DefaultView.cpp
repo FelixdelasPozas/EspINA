@@ -23,7 +23,7 @@
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
-#include <ToolGroups/View/ViewToolGroup.h>
+#include <ToolGroups/1_Explore/ExploreToolGroup.h>
 #include <Support/Settings/EspinaSettings.h>
 
 // Qt
@@ -57,7 +57,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 , m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION)
 , m_showProcessing(false)
 , m_renderersMenu(nullptr)
-, m_camerasMenu(nullptr)
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup(DEFAULT_VIEW_SETTINGS);
@@ -117,11 +116,6 @@ DefaultView::~DefaultView()
   {
     delete m_renderersMenu;
   }
-
-  if (m_camerasMenu)
-  {
-    delete m_camerasMenu;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -134,12 +128,12 @@ void DefaultView::addRepresentation(const Representation& representation)
 
   for (auto pool : representation.Pools)
   {
-    if (ViewToolGroup::CHANNELS_GROUP == representation.Group)
+    if (ExploreToolGroup::CHANNELS_GROUP == representation.Group)
     {
       pool->setPipelineSources(&m_channelSources);
       m_channelPools << pool;
     }
-    else if (ViewToolGroup::SEGMENTATIONS_GROUP == representation.Group)
+    else if (ExploreToolGroup::SEGMENTATIONS_GROUP == representation.Group)
     {
       pool->setPipelineSources(&m_segmentationSources);
       m_segmentationPools << pool;
@@ -182,8 +176,7 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
 //-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
-  m_camerasMenu = new CamerasMenu(m_viewManager, this);
-  menu->addMenu(m_camerasMenu);
+  menu->addMenu(new CamerasMenu(m_viewManager, this));
 
   auto renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(dockYZ->toggleViewAction());

@@ -35,39 +35,36 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/View2D/View2DRenderersPanel.h
   Settings/View2D/View2DSettingsPanel.h
   Settings/View3D/View3DSettingsPanel.h
-  ToolGroups/Edition/CODEHistory.h
-  ToolGroups/Edition/CODEHistoryWidget.h
-  ToolGroups/Edition/CODETool.h
-  ToolGroups/Edition/EditionTools.h
-  ToolGroups/Edition/EditionTools.h
-  ToolGroups/Edition/ManualEditionTool.h
-  ToolGroups/Edition/MorphologicalEditionTool.h
-  ToolGroups/Edition/MorphologicalEditionTool.h
-  ToolGroups/Edition/SplitTool.h
-  ToolGroups/Measures/MeasuresTools.h
-  ToolGroups/ROI/CleanROITool.h
-#   ToolGroups/ROI/ManualROITool.h
-  ToolGroups/ROI/OrthogonalROITool.h
-  ToolGroups/ROI/ROIToolsGroup.h
-  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.h
-  ToolGroups/Segmentation/CustomROIWidget.h
-  ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
-  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
-  ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
-  ToolGroups/Segmentation/SeedGrowSegmentationTool.h
-  ToolGroups/Segmentation/SeedThreshold.h
-  ToolGroups/Skeleton/SkeletonToolGroup.h
-  ToolGroups/Skeleton/SkeletonTool.h
-  ToolGroups/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/View/RepresentationsGroupTool.h
-  ToolGroups/View/Representations/CrosshairsSwitch2D.h
-  ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.h
-  ToolGroups/View/ResetZoom.h
-  ToolGroups/View/ToggleCrosshairVisibility.h
-  ToolGroups/View/ViewToolGroup.h
-  ToolGroups/View/ZoomAreaTool.h
-#   Tools/Brushes/CircularBrushROISelector.h
-#   Tools/Brushes/SphericalBrushROISelector.h
+  ToolGroups/1_Explore/Representations/CrosshairsSwitch2D.h
+  ToolGroups/1_Explore/Representations/SegmentationSlice/SegmentationSliceSwitch.h
+  ToolGroups/1_Explore/Representations/SegmentationVolumetric/VolumetricManager.h
+  ToolGroups/1_Explore/RepresentationsGroupTool.h
+  ToolGroups/1_Explore/ResetZoom.h
+  ToolGroups/1_Explore/ToggleCrosshairVisibility.h
+  ToolGroups/1_Explore/ExploreToolGroup.h
+  ToolGroups/1_Explore/ZoomAreaTool.h
+  ToolGroups/2_Restrict/CleanROITool.h
+  ToolGroups/2_Restrict/OrthogonalROITool.h
+  ToolGroups/2_Restrict/RestrictToolGroup.h
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/CustomROIWidget.h
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistory.h
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedThreshold.h
+  ToolGroups/3_Segmentate/Skeleton/SkeletonTool.h
+  ToolGroups/3_Segmentate/Skeleton/SkeletonToolGroup.h
+  ToolGroups/3_Segmentate/Skeleton/SkeletonToolStatusAction.h
+  ToolGroups/4_Refine/CODEHistory.h
+  ToolGroups/4_Refine/CODEHistoryWidget.h
+  ToolGroups/4_Refine/CODETool.h
+  ToolGroups/4_Refine/RefineToolGroup.h
+  ToolGroups/4_Refine/ManualEditionTool.h
+  ToolGroups/4_Refine/MorphologicalEditionTool.h
+  ToolGroups/4_Refine/MorphologicalEditionTool.h
+  ToolGroups/4_Refine/SplitTool.h
+  ToolGroups/5_Analyze/AnalyzeToolGroup.h
+  ToolGroups/ToolGroup.h
   Tools/Measure/MeasureTool.h
   Tools/Ruler/RulerTool.h
   Undo/DrawUndoCommand.h
@@ -93,8 +90,8 @@ qt4_wrap_ui (ESPINA_UI
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   Settings/View3D/View3DSettingsPanel.ui
-  ToolGroups/Edition/CODEHistoryWidget.ui
-  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.ui
+  ToolGroups/4_Refine/CODEHistoryWidget.ui
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -141,44 +138,44 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DRenderersPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
-  ToolGroups/Edition/CODEHistory.cpp
-  ToolGroups/Edition/CODEHistoryWidget.cpp
-  ToolGroups/Edition/CODETool.cpp
-  ToolGroups/Edition/EditionTools.cpp
-  ToolGroups/Edition/SliceEditionPipeline.cpp
-  ToolGroups/Edition/ManualEditionTool.cpp
-  ToolGroups/Edition/MorphologicalEditionTool.cpp
-  ToolGroups/Edition/SplitTool.cpp
-  ToolGroups/Measures/MeasuresTools.cpp
-  ToolGroups/ROI/CleanROITool.cpp
-#   ToolGroups/ROI/ManualROITool.cpp
-  ToolGroups/ROI/OrthogonalROITool.cpp
-  ToolGroups/ROI/ROIToolsGroup.cpp
-  ToolGroups/Segmentation/CustomROIWidget.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationHistory.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
-  ToolGroups/Segmentation/SeedThreshold.cpp
-  ToolGroups/Segmentation/SegmentationTools.cpp
-  ToolGroups/Skeleton/SkeletonToolGroup.cpp
-  ToolGroups/Skeleton/SkeletonTool.cpp
-  ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
-  ToolGroups/View/RepresentationsGroupTool.cpp
-  ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
-  ToolGroups/View/Representations/ChannelSlice/ChannelSlicePipeline.cpp
-  ToolGroups/View/Representations/ChannelLines/ChannelLinesPipeline.cpp
-  ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
-  ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
-  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
-  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
-  ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
-  ToolGroups/View/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
-  ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.cpp
-  ToolGroups/View/ResetZoom.cpp
-  ToolGroups/View/ToggleCrosshairVisibility.cpp
-  ToolGroups/View/ViewToolGroup.cpp
-  ToolGroups/View/ZoomAreaTool.cpp
+  ToolGroups/1_Explore/Representations/ChannelLines/ChannelLinesPipeline.cpp
+  ToolGroups/1_Explore/Representations/ChannelSlice/ChannelSlicePipeline.cpp
+  ToolGroups/1_Explore/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
+  ToolGroups/1_Explore/Representations/CrosshairsSwitch2D.cpp
+  ToolGroups/1_Explore/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
+  ToolGroups/1_Explore/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
+  ToolGroups/1_Explore/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
+  ToolGroups/1_Explore/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
+  ToolGroups/1_Explore/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
+  ToolGroups/1_Explore/Representations/SegmentationVolumetric/VolumetricManager.cpp
+  ToolGroups/1_Explore/RepresentationsGroupTool.cpp
+  ToolGroups/1_Explore/ResetZoom.cpp
+  ToolGroups/1_Explore/ToggleCrosshairVisibility.cpp
+  ToolGroups/1_Explore/ExploreToolGroup.cpp
+  ToolGroups/1_Explore/ZoomAreaTool.cpp
+  ToolGroups/2_Restrict/CleanROITool.cpp
+  ToolGroups/2_Restrict/OrthogonalROITool.cpp
+  ToolGroups/2_Restrict/RestrictToolGroup.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/CustomROIWidget.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistory.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedThreshold.cpp
+  ToolGroups/3_Segmentate/SeedGrowSegmentation/SegmentationTools.cpp
+  ToolGroups/3_Segmentate/Skeleton/SkeletonTool.cpp
+  ToolGroups/3_Segmentate/Skeleton/SkeletonToolGroup.cpp
+  ToolGroups/3_Segmentate/Skeleton/SkeletonToolStatusAction.cpp
+  ToolGroups/4_Refine/CODEHistory.cpp
+  ToolGroups/4_Refine/CODEHistoryWidget.cpp
+  ToolGroups/4_Refine/CODETool.cpp
+  ToolGroups/4_Refine/RefineToolGroup.cpp
+  ToolGroups/4_Refine/ManualEditionTool.cpp
+  ToolGroups/4_Refine/MorphologicalEditionTool.cpp
+  ToolGroups/4_Refine/SliceEditionPipeline.cpp
+  ToolGroups/4_Refine/SplitTool.cpp
+  ToolGroups/5_Analyze/AnalyzeToolGroup.cpp
+  ToolGroups/ToolGroup.cpp
   Tools/Measure/MeasureTool.cpp
   Tools/Ruler/RulerTool.cpp
   Undo/DrawUndoCommand.cpp

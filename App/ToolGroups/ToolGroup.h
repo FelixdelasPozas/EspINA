@@ -18,60 +18,64 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_TOOL_H
-#define ESPINA_TOOL_H
+#ifndef ESPINA_TOOL_GROUP_H
+#define ESPINA_TOOL_GROUP_H
 
-#include "Support/EspinaSupport_Export.h"
+// ESPINA
+#include <Support/Widgets/Tool.h>
 
 // C++
 #include <memory>
 
 // Qt
-#include <QPushButton>
-#include <QCursor>
-
-class QAction;
-class QEvent;
+#include <QAction>
 
 namespace ESPINA
 {
   class RenderView;
 
-  class EspinaSupport_EXPORT Tool
-  : public QObject
+  class ToolGroup
+  : public QAction
   {
+    Q_OBJECT
+
   public:
-    explicit Tool();
-
-    /** \brief Enables/Disables the tool.
-     * \param[in] value true to enable false otherwise.
+    /** \brief ToolGroup class constructor.
+     * \param[in] icon of the tool group.
+     * \param[in] text of the tool group
+     * \param[in] parent of the tool group
      *
      */
-    void setEnabled(bool value);
+    ToolGroup(const QIcon& icon, const QString& text, QObject* parent = nullptr);
 
-    /** \brief Returns true if the tool is enabled, false otherwise.
+    /** \brief Returns the tools contained by the tool group
      *
      */
-    bool isEnabled() const;
+    ToolSList tools() const;
 
-    virtual QList<QAction *> actions() const = 0;
+    /** \brief Adds a tool to the tool group
+     *
+     *  \param[in] tool to be added
+     */
+    void addTool(ToolSPtr tool);
 
-    static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
-
-    virtual void abort() {};
-
-  private:
-    virtual void onToolEnabled(bool enabled) = 0;
+  public slots:
+    void abort();
 
   signals:
-    void changedActions();
+    void activated(ToolGroup *tool);
+
+  private slots:
+    void activate(bool value);
 
   private:
-    bool m_enabled;
+    virtual void onToolAdded(ToolSPtr tool) {}
+
+  private:
+    ToolSList m_tools;
   };
 
-  using ToolSPtr  = std::shared_ptr<Tool>;
-  using ToolSList = QList<ToolSPtr>;
+  using ToolGroupPtr = ToolGroup *;
 } // namespace ESPINA
 
-#endif // ESPINA_TOOL_H
+#endif // ESPINA_TOOL_GROUP_H

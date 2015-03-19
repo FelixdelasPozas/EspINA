@@ -1,5 +1,10 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>toolgroup_explore.svg</file>
+    <file>toolgroup_restrict.svg</file>
+    <file>toolgroup_segmentate.svg</file>
+    <file>toolgroup_refine.svg</file>
+    <file>toolgroup_analyze.svg</file>
     <file>roi_orthogonal.svg</file>
     <file>resize_roi.svg</file>
     <file>refresh.png</file>

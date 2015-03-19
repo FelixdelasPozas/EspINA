@@ -26,11 +26,14 @@
 #include "EspinaErrorHandler.h"
 #include "RecentDocuments.h"
 #include "Settings/GeneralSettings/GeneralSettings.h"
-#include "ToolGroups/View/ViewToolGroup.h"
 #include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/ProblemList/ProblemListDialog.h>
+#include "ToolGroups/1_Explore/ExploreToolGroup.h"
+#include "ToolGroups/2_Restrict/RestrictToolGroup.h"
+#include "ToolGroups/4_Refine/RefineToolGroup.h"
+#include "ToolGroups/5_Analyze/AnalyzeToolGroup.h"
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
@@ -61,7 +64,6 @@ namespace ESPINA
 {
   class SeedGrowSegmentationSettings;
   class ROISettings;
-  class MainToolBar;
   class ColorEngineMenu;
 
   class EspinaMainWindow
@@ -84,49 +86,35 @@ namespace ESPINA
      */
     virtual ~EspinaMainWindow();
 
-  public slots:
-    /** \brief Close current analysis.
-     *
-     */
-    bool closeCurrentAnalysis();
-
-    /** \brief Opens an analysis from the recent list.
-     *
-     */
-    void openRecentAnalysis();
-
-    /** \brief Close current analysis and load a new one.
-     *
-     */
-    void openAnalysis();
-
     /** \brief Opens a list of analyses.
      * \param[in] files list of files to open.
      *
      */
     void openAnalysis(const QStringList files);
 
+  signals:
+    void analysisChanged();
+    void analysisClosed();
+    void abortOperation();
+
+  protected:
+    virtual void closeEvent(QCloseEvent *event) override;
+
+  private slots:
+    /** \brief Close current analysis and load a new one.
+     *
+     */
+    void openAnalysis();
+
+    /** \brief Opens an analysis from the recent list.
+     *
+     */
+    void openRecentAnalysis();
+
     /** \brief Add new data from file to current analysis.
      *
      */
     void addToAnalysis();
-
-    /** \brief Adds data from a file from the recent list to current analysis.
-     *
-     */
-    void addRecentToAnalysis();
-
-    /** \brief Adds a list of analysis to the current analysis.
-     *      \param[in] files list of files to add.
-     *
-     */
-    void addToAnalysis(const QStringList files);
-
-    /** \brief Merges a list of analysis into a sigle analysis.
-     * \param[in] files list of files to merge.
-     *
-     */
-    AnalysisSPtr loadedAnalysis(const QStringList files);
 
     /** \brief Save current analysis.
      *
@@ -138,33 +126,15 @@ namespace ESPINA
      */
     void saveSessionAnalysis();
 
-  private slots:
-    /** \brief Updates application status bar.
-     * \param[in] msg message to show.
+    /** \brief Close current analysis.
      *
      */
-    void updateStatus(QString msg);
+    bool closeCurrentAnalysis();
 
-    /** \brief Updates the tooltip of the menu.
-     * \param[in] action action that contains the tooltip.
+    /** \brief Change context bar to display tools of the selected group
      *
      */
-    void updateTooltip(QAction *action);
-
-    /** \brief Shows the preferences dialog.
-     *
-     */
-    void showPreferencesDialog();
-
-    /** \brief Shows the about dialog.
-     *
-     */
-    void showAboutDialog();
-
-    /** \brief Shows the raw information dialog.
-     *
-     */
-    void showRawInformation();
+    void activateToolGroup(ToolGroup *toolGroup);
 
     /** \brief Sets the menu state as "open".
      *
@@ -187,6 +157,27 @@ namespace ESPINA
      *
      */
     void cancelOperation();
+
+    /** \brief Updates the tooltip of the menu.
+     * \param[in] action action that contains the tooltip.
+     *
+     */
+    void updateTooltip(QAction *action);
+
+    /** \brief Shows the preferences dialog.
+     *
+     */
+    void showPreferencesDialog();
+
+    /** \brief Shows the about dialog.
+     *
+     */
+    void showAboutDialog();
+
+    /** \brief Shows the raw information dialog.
+     *
+     */
+    void showRawInformation();
 
     /** \brief Updates the undo action text in the menu.
      * \param[in] text text of the operation to update.
@@ -220,18 +211,6 @@ namespace ESPINA
      */
     void redoAction(bool);
 
-  signals:
-    void analysisChanged();
-    void analysisClosed();
-    void abortOperation();
-
-  protected:
-    /** \brief Overrides QWidget::closeEvent.
-     * \param[in] event close event to manage.
-     *
-     */
-    virtual void closeEvent(QCloseEvent *event) override;
-
   private:
     void restoreRepresentationSwitchSettings();
 
@@ -256,7 +235,7 @@ namespace ESPINA
 
     void createToolbars();
 
-    void createDefaultTools();
+    void createToolGroups();
 
     void createDefaultPanels();
 
@@ -282,7 +261,7 @@ namespace ESPINA
     void createActivityMenu();
 
     /** \brief Creates dynamic menu.
-     * \param[in] entry pair of <QStringList, Action *> object to add.
+     * \param[in] entry pair of (QStringList, Action *) object to add.
      *
      */
     void createDynamicMenu(MenuEntry entry);
@@ -322,6 +301,30 @@ namespace ESPINA
      */
     void enableWidgets(bool value);
 
+    /** \brief Adds data from a file from the recent list to current analysis.
+     *
+     */
+    void addRecentToAnalysis();
+
+    /** \brief Adds a list of analysis to the current analysis.
+     *      \param[in] files list of files to add.
+     *
+     */
+    void addToAnalysis(const QStringList files);
+
+    /** \brief Merges a list of analysis into a sigle analysis.
+     * \param[in] files list of files to merge.
+     *
+     */
+    AnalysisSPtr loadedAnalysis(const QStringList files);
+
+    /** \brief Updates application status bar.
+     * \param[in] msg message to show.
+     *
+     */
+    void updateStatus(QString msg);
+
+
   private:
     // ESPINA
     SchedulerSPtr             m_scheduler;
@@ -341,7 +344,7 @@ namespace ESPINA
     ROISettings*                  m_roiSettings;
     SeedGrowSegmentationSettings *m_sgsSettings;
 
-    // GUI
+    // Menus
     QMenu           *m_addMenu;
     QAction         *m_saveAnalysis;
     QAction         *m_saveSessionAnalysis;
@@ -351,8 +354,15 @@ namespace ESPINA
     ColorEngineMenu *m_colorEngineMenu;
     QMenu           *m_panelsMenu;
 
-    QToolBar *m_mainBar;
-    QToolBar *m_contextualBar;
+    // ToolBars
+    QToolBar          *m_mainBar;
+    QToolBar          *m_contextualBar;
+    ToolGroupPtr       m_activeToolGroup;
+    ExploreToolGroup  *m_exploreToolGroup;
+    RestrictToolGroup *m_restrictToolGroup;
+    ToolGroup         *m_segmentateToolGroup;
+    RefineToolGroup   *m_refineToolGroup;
+    AnalyzeToolGroup  *m_analyzeToolGroup;
 
     // UNDO
     QAction         *m_undoAction;
@@ -361,8 +371,6 @@ namespace ESPINA
     ExtensionFactorySList m_extensionFactories;
     SettingsPanelSList    m_availableSettingsPanels;
 
-    MainToolBar          *m_mainToolBar;
-    ViewToolGroup        *m_viewToolGroup;
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 

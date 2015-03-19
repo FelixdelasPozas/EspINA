@@ -17,29 +17,37 @@
  *
  */
 
-#include "SegmentationPipeline.h"
-#include <GUI/View/RenderView.h>
+#include "SegmentationSliceSettings.h"
 
 #include "App/ToolGroups/1_Explore/Representations/RepresentationSettings.h"
-
-#include <vtkType.h>
-#include <QColor>
 
 using namespace ESPINA;
 using namespace ESPINA::Representations;
 
 //----------------------------------------------------------------------------
-RepresentationState SegmentationPipeline::Settings(SegmentationAdapterPtr segmentation)
+SegmentationSliceSettings::SegmentationSliceSettings()
+: m_opacity(0)
 {
-  RepresentationState settings;
-
-  settings.setValue<double>(VISIBLE, segmentation->isVisible());
-
-  return settings;
 }
 
 //----------------------------------------------------------------------------
-QColor ESPINA::segmentationColor(const RepresentationState &state)
+void SegmentationSliceSettings::setOpacity(double value)
 {
-  return state.getValue<QColor>(COLOR);
+  m_opacity = value;
+}
+
+//----------------------------------------------------------------------------
+double SegmentationSliceSettings::opacity() const
+{
+  return m_opacity;
+}
+
+//----------------------------------------------------------------------------
+RepresentationState SegmentationSliceSettings::pipelineState()
+{
+  RepresentationState state;
+
+  state.setValue<double>(OPACITY, m_opacity);
+
+  return state;
 }
