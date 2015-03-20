@@ -18,8 +18,10 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef APPOSITIONSURFACETOOLBAR_H
-#define APPOSITIONSURFACETOOLBAR_H
+#ifndef APPOSITION_SURFACE_TOOL_H
+#define APPOSITION_SURFACE_TOOL_H
+
+#include <Support/Widgets/Tool.h>
 
 // Plugin
 #include <Core/MultiTasking/Task.h>
@@ -29,7 +31,6 @@
 
 // ESPINA
 #include <Support/ViewManager.h>
-#include <Support/Widgets/ToolGroup.h>
 
 class QUndoStack;
 class QIcon;
@@ -40,37 +41,40 @@ namespace ESPINA
 {
   class AppositionSurfacePlugin;
 
-  class AppositionSurfaceTool;
-  using SASToolPtr   = AppositionSurfaceTool *;
-  using SASToolSPtr  = std::shared_ptr<AppositionSurfaceTool>;
-
   //-----------------------------------------------------------------------------
-  class AppositionSurfacePlugin_EXPORT AppositionSurfaceToolGroup
-  : public ToolGroup
+  class AppositionSurfacePlugin_EXPORT AppositionSurfaceTool
+  : public Tool
   {
     Q_OBJECT
+
   public:
-    /** \brief AppositionSurfaceToolGroup class constructor.
+    /** \brief AppositionSurfaceTool class constructor.
+     * \param[in] viewManager
      *
      */
-    explicit AppositionSurfaceToolGroup(ModelAdapterSPtr model,
-                                        QUndoStack *undoStack,
-                                        ModelFactorySPtr factory,
-                                        ViewManagerSPtr viewManager,
-                                        AppositionSurfacePlugin *plugin);
+    explicit AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
+                                   ModelAdapterSPtr         model,
+                                   ModelFactorySPtr         factory,
+                                   ViewManagerSPtr          viewManager);
 
-    /** \brief AppositionSurfaceToolGroup class virtual destructor.
+    /** \brief AppositionSurfaceTool class virtual destructor.
      *
      */
-    virtual ~AppositionSurfaceToolGroup();
+    virtual ~AppositionSurfaceTool();
 
-    virtual void setEnabled(bool value);
+    virtual QList<QAction *> actions() const override;
 
-    virtual bool enabled() const;
+    /** \brief Sets the tooltip of the action.
+     * \param[in] tooltip tooltip text.
+     *
+     */
+    void setToolTip(const QString &tooltip)
+    { m_action->setToolTip(tooltip); }
 
-    virtual ToolSList tools();
+  private:
+    virtual void onToolEnabled(bool enabled);
 
-  public slots:
+  private slots:
     /** \brief Changes action enabled/disabled depending on the actual selection.
      *
      */
@@ -82,61 +86,17 @@ namespace ESPINA
     void createSAS();
 
   private:
+    AppositionSurfacePlugin *m_plugin;
     ModelAdapterSPtr         m_model;
     ModelFactorySPtr         m_factory;
-    QUndoStack              *m_undoStack;
-    SASToolSPtr              m_tool;
-    bool                     m_enabled;
-    AppositionSurfacePlugin *m_plugin;
+    ViewManagerSPtr          m_viewManager;
+
+    QAction *m_action;
   };
 
-  //-----------------------------------------------------------------------------
-  class AppositionSurfacePlugin_EXPORT AppositionSurfaceTool
-  : public Tool
-  {
-    Q_OBJECT
-    public:
-      /** \brief AppositionSurfaceTool class constructor.
-       * \param[in] icon icon for the QAction.
-       * \param[in] text text to use as the QAction tooltip.
-       *
-       */
-      explicit AppositionSurfaceTool(const QIcon& icon, const QString& text);
-
-      /** \brief AppositionSurfaceTool class virtual destructor.
-       *
-       */
-      virtual ~AppositionSurfaceTool();
-
-      virtual QList<QAction *> actions() const override;
-
-      /** \brief Sets the tooltip of the action.
-       * \param[in] tooltip tooltip text.
-       *
-       */
-      void setToolTip(const QString &tooltip)
-      { m_action->setToolTip(tooltip); }
-
-    signals:
-      /** \brief Signal emmited when the QAction has been triggered.
-       *
-       */
-      void triggered();
-
-  private:
-    virtual void onToolEnabled(bool enabled);
-
-    private slots:
-      /** \brief Emits the triggered signal for the toolgroup.
-       *
-       */
-      void activated()
-      { emit triggered(); }
-
-    private:
-      QAction *m_action;
-  };
+  using SASToolPtr   = AppositionSurfaceTool *;
+  using SASToolSPtr  = std::shared_ptr<AppositionSurfaceTool>;
 
 } // namespace ESPINA
 
-#endif// APPOSITIONSURFACETOOLBAR_H
+#endif// APPOSITION_SURFACE_TOOL_H

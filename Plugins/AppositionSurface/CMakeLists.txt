@@ -51,7 +51,7 @@ QT4_WRAP_CPP(MOC_SOURCES
   AppositionSurfacePlugin.h
   Filter/AppositionSurfaceFilter.h
   GUI/Settings/AppositionSurfaceSettings.h
-  GUI/AppositionSurfaceToolGroup.h
+  GUI/AppositionSurfaceTool.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
 )
@@ -68,7 +68,7 @@ set (PLUGIN_SOURCES
   GUI/Analysis/SASAnalysisDialog.cpp
   GUI/Analysis/SASTabularReport.cpp
   GUI/Analysis/SASInformationProxy.cpp
-  GUI/AppositionSurfaceToolGroup.cpp
+  GUI/AppositionSurfaceTool.cpp
   GUI/Settings/AppositionSurfaceSettings.cpp
 )
 
