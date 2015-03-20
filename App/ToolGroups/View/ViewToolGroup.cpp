@@ -64,7 +64,6 @@ ViewToolGroup::RenderGroup ViewToolGroup::SEGMENTATIONS_GROUP = "SegmentationsRe
 //----------------------------------------------------------------------------
 ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
 : ToolGroup                 {viewManager, QIcon(":/espina/show_all.svg"), tr("View Tools"), parent}
-, m_toggleCrosshair         {new ToggleCrosshairVisibility(viewManager)}
 , m_resetZoom               {new ResetZoom(viewManager)}
 , m_zoomArea                {new ZoomAreaTool(viewManager)}
 , m_renderSettings          {new SettingsTool()}
@@ -80,9 +79,6 @@ ViewToolGroup::ViewToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
 
   m_crosshairShortcut->setKey(Qt::Key_C);
   m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
-
-  connect(m_crosshairShortcut,     SIGNAL(activated()),
-          m_toggleCrosshair.get(), SLOT(shortcut()));
 
   connect(parent, SIGNAL(abortOperation()),
           this,   SLOT(abortOperation()), Qt::QueuedConnection);
@@ -105,7 +101,6 @@ void ViewToolGroup::setEnabled(bool value)
 {
   m_enabled = value;
 
-  m_toggleCrosshair->setEnabled(value);
   m_zoomArea->setEnabled(value);
   m_resetZoom->setEnabled(value);
 

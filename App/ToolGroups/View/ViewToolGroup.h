@@ -26,7 +26,6 @@
 #include "ResetZoom.h"
 #include "ZoomAreaTool.h"
 #include "RepresentationsGroupTool.h"
-#include "ToggleCrosshairVisibility.h"
 
 // Qt
 #include <QShortcut>
@@ -82,7 +81,6 @@ namespace ESPINA
 
     using RenderGroupTools = QMap<RenderGroup, RenderGroupToolSPtr>;
 
-    ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
     ResetZoomSPtr                     m_resetZoom;
     ZoomAreaToolSPtr                  m_zoomArea;
     SettingsToolSPtr                  m_renderSettings;

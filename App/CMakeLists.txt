@@ -60,9 +60,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Skeleton/SkeletonTool.h
   ToolGroups/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/View/RepresentationsGroupTool.h
-  ToolGroups/View/Representations/CrosshairsSwitch2D.h
   ToolGroups/View/ResetZoom.h
-  ToolGroups/View/ToggleCrosshairVisibility.h
   ToolGroups/View/ViewToolGroup.h
   ToolGroups/View/ZoomAreaTool.h
 #   Tools/Brushes/CircularBrushROISelector.h
@@ -164,7 +162,6 @@ set (ESPINA_SOURCES
   ToolGroups/Skeleton/SkeletonTool.cpp
   ToolGroups/Skeleton/SkeletonToolStatusAction.cpp
   ToolGroups/View/RepresentationsGroupTool.cpp
-  ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSlicePipeline.cpp
   ToolGroups/View/Representations/Crosshair/CrosshairRepresentationFactory.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
@@ -175,7 +172,6 @@ set (ESPINA_SOURCES
   ToolGroups/View/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
   ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.cpp
   ToolGroups/View/ResetZoom.cpp
-  ToolGroups/View/ToggleCrosshairVisibility.cpp
   ToolGroups/View/ViewToolGroup.cpp
   ToolGroups/View/ZoomAreaTool.cpp
   Tools/Measure/MeasureTool.cpp

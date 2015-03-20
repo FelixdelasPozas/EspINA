@@ -159,14 +159,6 @@ namespace ESPINA
      */
     Nm slicingPosition() const;
 
-
-    /** \brief Sets the crosshair colors.
-     * \param[in] hColor color of the horizontal line.
-     * \param[in] vColor color of the vertical line.
-     *
-     */
-    void setCrosshairColors(const QColor& hColor, const QColor& vColor);
-
     /** \brief Enables/disables the visibility of the thumbnail.
      * \param[in] visible true to make the thumbnail visible, false otherwise.
      *
@@ -178,12 +170,6 @@ namespace ESPINA
     virtual void removeActor(vtkProp *actor) override;
 
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
-
-    /** \brief Sets the visibility of the crosshair lines.
-     * \param[in] show true to set visible, false otherwise.
-     *
-     */
-    virtual void setCrosshairVisibility(bool show);
 
     virtual void setCameraState(struct RenderView::CameraState);
 
@@ -333,11 +319,6 @@ namespace ESPINA
      */
     int voxelSlice (const Nm position, const Plane plane) const;
 
-    /** \brief Helper method to build the crosshairs actors.
-     *
-     */
-    void buildCrosshairs();
-
     /** \brief Helper method to setup the UI elements.
      *
      */
@@ -364,7 +345,7 @@ namespace ESPINA
      */
     double viewHeightLength();
 
-    bool isCrosshairVisible() const;
+    bool isCrosshairPointVisible() const;
 
     void updateScale();
 
@@ -420,12 +401,6 @@ namespace ESPINA
     // Slice Selectors
     using SliceSelectorPair = QPair<SliceSelectorSPtr, SliceSelectorSPtr>;
     QList<SliceSelectorPair> m_sliceSelectors;
-
-    // Crosshairs
-    vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
-    vtkSmartPointer<vtkActor>    m_HCrossLine, m_VCrossLine;
-    double                       m_HCrossLineColor[3];
-    double                       m_VCrossLineColor[3];
 
     // Thumbnail
     bool m_inThumbnail;

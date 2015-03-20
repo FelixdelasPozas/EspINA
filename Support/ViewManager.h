@@ -288,12 +288,6 @@ namespace ESPINA
      */
     void focusViewsOn(const NmVector3& point);
 
-    /** \brief Toggles crosshair visibility.
-     * \param[in] visible true to make the crosshair visible false otherwise.
-     *
-     */
-    void setCrosshairVisibility(bool visible);
-
     /** \brief
      *
      */

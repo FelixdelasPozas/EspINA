@@ -314,15 +314,6 @@ void ViewManager::resetViewCameras()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setCrosshairVisibility(bool value)
-{
-  for(auto view: sliceViews())
-  {
-    view->setCrosshairVisibility(value);
-  }
-}
-
-//----------------------------------------------------------------------------
 void ViewManager::addSliceSelectors(SliceSelectorSPtr widget,
                                     View2D::SliceSelectionType selectors)
 {

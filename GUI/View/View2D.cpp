@@ -18,7 +18,6 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 // ESPINA
 #include "View2D.h"
 
@@ -181,8 +180,6 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_viewportBorderData = vtkSmartPointer<vtkPolyData>::New();
   m_viewportBorder     = vtkSmartPointer<vtkActor>::New();
   initBorders(m_viewportBorderData, m_viewportBorder);
-
-  buildCrosshairs();
 
   this->setAutoFillBackground(true);
   this->setLayout(m_mainLayout);
@@ -483,58 +480,6 @@ int View2D::voxelSlice(const Nm position, const Plane plane) const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::buildCrosshairs()
-{
-  auto HPoints = vtkPoints::New();
-  HPoints->InsertNextPoint(-0.5, 0, 0);
-  HPoints->InsertNextPoint(0.5, 0, 0);
-  auto HLine = vtkCellArray::New();
-  HLine->EstimateSize(1, 2);
-  HLine->InsertNextCell (2);
-  HLine->InsertCellPoint(0);
-  HLine->InsertCellPoint(1);
-
-  m_HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-  m_HCrossLineData->SetPoints(HPoints);
-  m_HCrossLineData->SetLines (HLine);
-
-  HPoints->Delete();
-  HLine->Delete();
-
-  auto HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  HMapper->SetInputData(m_HCrossLineData);
-
-  m_HCrossLine = vtkSmartPointer<vtkActor>::New();
-  m_HCrossLine->SetMapper(HMapper);
-  m_HCrossLine->GetProperty()->SetLineWidth(2);
-  m_HCrossLine->SetPickable(false);
-
-  auto VPoints = vtkPoints::New();
-  VPoints->InsertNextPoint(0, -0.5, 0);
-  VPoints->InsertNextPoint(0, 0.5, 0);
-  auto VLine = vtkCellArray::New();
-  VLine->EstimateSize(1, 2);
-  VLine->InsertNextCell (2);
-  VLine->InsertCellPoint(0);
-  VLine->InsertCellPoint(1);
-
-  m_VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-  m_VCrossLineData->SetPoints(VPoints);
-  m_VCrossLineData->SetLines(VLine);
-
-  VPoints->Delete();
-  VLine->Delete();
-
-  auto VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  VMapper->SetInputData(m_VCrossLineData);
-
-  m_VCrossLine = vtkSmartPointer<vtkActor>::New();
-  m_VCrossLine->SetMapper(VMapper);
-  m_VCrossLine->GetProperty()->SetLineWidth(2);
-  m_VCrossLine->SetPickable(false);
-}
-
-//-----------------------------------------------------------------------------
 void View2D::setupUI()
 {
   m_view->installEventFilter(this);
@@ -581,38 +526,6 @@ void View2D::setupUI()
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
-}
-
-//-----------------------------------------------------------------------------
-void View2D::setCrosshairColors(const QColor& vColor, const QColor& hColor)
-{
-  double hc[3] = {hColor.redF(), hColor.greenF(), hColor.blueF()};
-  double vc[3] = {vColor.redF(), vColor.greenF(), vColor.blueF()};
-
-  m_HCrossLine->GetProperty()->SetColor(hc);
-  m_VCrossLine->GetProperty()->SetColor(vc);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::setCrosshairVisibility(bool visible)
-{
-  if(visible == this->m_renderer->HasViewProp(this->m_HCrossLine))
-  {
-    return;
-  }
-
-  if (visible)
-  {
-    m_renderer->AddViewProp(m_HCrossLine);
-    m_renderer->AddViewProp(m_VCrossLine);
-  }
-  else
-  {
-    m_renderer->RemoveViewProp(m_HCrossLine);
-    m_renderer->RemoveViewProp(m_VCrossLine);
-  }
-
-  updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -1197,7 +1110,7 @@ void View2D::setSlicingBounds(const Bounds& bounds)
 
 
 //-----------------------------------------------------------------------------
-bool View2D::isCrosshairVisible() const
+bool View2D::isCrosshairPointVisible() const
 {
   // Only center camera if center is out of the display view
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -1284,11 +1197,7 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
   m_spinBox  ->blockSignals(false);
   m_scrollBar->blockSignals(false);
 
-  // TODO
-//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-//                            point, m_sceneBounds, m_slicingStep);
-
-  if (isCrosshairVisible())
+  if (isCrosshairPointVisible())
   {
     moveCamera(crosshair());
   }
@@ -1501,18 +1410,6 @@ void View2D::removeRepresentationManagerMenu(RepresentationManagerSPtr manager)
 //
 //   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
 }
-
-// //-----------------------------------------------------------------------------
-// void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
-// {
-//   m_crosshairPoint[normalCoordinateIndex(plane)] = voxelCenter(slicePos, plane);
-//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-//                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
-//
-//   // render if present
-//   if (this->m_renderer->HasViewProp(this->m_HCrossLine))
-//     updateView();
-// }
 
 //-----------------------------------------------------------------------------
 void View2D::setCameraState(struct RenderView::CameraState state)

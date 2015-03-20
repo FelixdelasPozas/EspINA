@@ -206,7 +206,7 @@ void View3D::buildViewActionsButtons()
 }
 
 //-----------------------------------------------------------------------------
-bool View3D::isCrosshairVisible() const
+bool View3D::isCrosshairPointVisible() const
 {
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetViewport(m_renderer);

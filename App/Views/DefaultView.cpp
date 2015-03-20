@@ -74,19 +74,16 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
   m_view3D = new View3D(false);
 
   setObjectName("viewXY");
-  m_viewXY->setCrosshairColors(m_xLine, m_yLine);
   setLayout(new QVBoxLayout());
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
 
   dockYZ = new QDockWidget(tr("ZY"), parent);
   dockYZ->setObjectName("DockZY");
-  m_viewYZ->setCrosshairColors(m_zLine, m_yLine);
   dockYZ->setWidget(m_viewYZ);
 
   dockXZ = new QDockWidget(tr("XZ"), parent);
   dockXZ->setObjectName("xzDock");
-  m_viewXZ->setCrosshairColors(m_xLine, m_zLine);
   dockXZ->setWidget(m_viewXZ);
 
   dock3D = new QDockWidget(tr("3D"), parent);
@@ -172,10 +169,6 @@ void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
   };
   settings.endGroup();
   settings.sync();
-
-  m_viewXY->setCrosshairColors(m_xLine, m_yLine);
-  m_viewXZ->setCrosshairColors(m_xLine, m_zLine);
-  m_viewYZ->setCrosshairColors(m_zLine, m_yLine);
 }
 
 

@@ -122,7 +122,7 @@ namespace ESPINA
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
-    bool isCrosshairVisible() const;
+    bool isCrosshairPointVisible() const;
 
     /** \brief Helper method to setup the UI.
      *
