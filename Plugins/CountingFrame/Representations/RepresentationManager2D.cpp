@@ -53,7 +53,7 @@ namespace ESPINA {
     //-----------------------------------------------------------------------------
     RepresentationManager::PipelineStatus RepresentationManager2D::pipelineStatus() const
     {
-      return PipelineStatus::RANGE_DEPENDENT;
+      return PipelineStatus::READY;
     }
 
     //-----------------------------------------------------------------------------
