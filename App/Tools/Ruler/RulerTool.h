@@ -46,7 +46,9 @@ namespace ESPINA
      */
     virtual ~RulerTool();
 
-    virtual QList<QAction *> actions() const;
+    virtual QList<QAction *> actions() const override;
+
+    virtual void abortOperation() override;
 
   public slots:
     /** \brief Initializes/De-initializes tool.

@@ -33,64 +33,8 @@ using namespace ESPINA::CF;
 CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,
                                                                  const State& state) const
 {
-  return CountingFrameExtensionSPtr{new CountingFrameExtension(const_cast<CountingFrameManager *>(this), scheduler, state)};
+  return std::make_shared<CountingFrameExtension>(const_cast<CountingFrameManager *>(this), scheduler, state);
 }
-
-// //------------------------------------------------------------------------
-// void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
-//                                             Nm inclusion[3],
-//                                             Nm exclusion[3],
-//                                             const QString &constraint)
-// {
-//   auto extension = retrieveOrCreateCFExtension(channel);
-//
-//   auto cf = AdaptiveCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
-//
-//   cf->setCategoryConstraint(constraint);
-//
-//   registerCountingFrame(cf, extension);
-// }
-//
-// //------------------------------------------------------------------------
-// void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
-//                                                Nm inclusion[3],
-//                                                Nm exclusion[3],
-//                                             const QString &constraint)
-// {
-//   auto extension = retrieveOrCreateCFExtension(channel);
-//
-//   auto cf = OrtogonalCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
-//
-//   cf->setCategoryConstraint(constraint);
-//
-//   registerCountingFrame(cf, extension);
-// }
-
-// //-----------------------------------------------------------------------------
-// void CountingFrameManager::deleteCountingFrame(CountingFrame* cf)
-// {
-//   Q_ASSERT(m_countingFrames.contains(cf));
-//
-//
-//
-// //   while (!cfExtension && i < m_countingFramesExtensions.size())
-// //   {
-// //     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
-// //     {
-// //       cfExtension = m_countingFramesExtensions[i];
-// //       cfExtension->deleteCountingFrame(cf);
-// //     }
-// //     else
-// //       ++i;
-// //   }
-// //   m_countingFramesExtensions.removeAt(i);
-// //   m_countingFrames.removeOne(cf);
-//
-//   m_countingFrames.remove(cf);
-//   Q_ASSERT(!m_countingFrames.contains(cf));
-//
-//   cf->Delete();
-// }
 
 //-----------------------------------------------------------------------------
 void CountingFrameManager::registerCountingFrame(CountingFrame* cf)

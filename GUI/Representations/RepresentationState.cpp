@@ -18,7 +18,7 @@
  */
 
 #include "RepresentationState.h"
-#include <App/ToolGroups/View/Representations/RepresentationSettings.h>
+#include <App/ToolGroups/Visualize/Representations/RepresentationSettings.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Representations;

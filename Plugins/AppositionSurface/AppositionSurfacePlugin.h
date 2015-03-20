@@ -18,8 +18,8 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef APPOSITIONSURFACE_H
-#define APPOSITIONSURFACE_H
+#ifndef APPOSITION_SURFACE_PLUGIN_H
+#define APPOSITION_SURFACE_PLUGIN_H
 
 #include "AppositionSurfacePlugin_Export.h"
 
@@ -67,7 +67,7 @@ namespace ESPINA
 
     virtual RepresentationFactorySList representationFactories() const;
 
-    virtual QList<ToolGroup *> toolGroups() const;
+    virtual QList<CategorizedTool> tools() const;
 
     virtual QList<DockWidget *> dockWidgets() const;
 
@@ -85,7 +85,7 @@ namespace ESPINA
     void finishedTask();
 
   private:
-    bool isSAS(ItemAdapterSPtr item) const;
+    static bool isSAS(ItemAdapterSPtr item);
 
   private:
     struct Data
@@ -111,7 +111,6 @@ namespace ESPINA
     QUndoStack                      *m_undoStack;
     SettingsPanelSPtr                m_settings;
     SegmentationExtensionFactorySPtr m_extensionFactory;
-    ToolGroupPtr                     m_toolGroup;
     MenuEntry                        m_menuEntry;
     FilterFactorySPtr                m_filterFactory;
     bool                             m_delayedAnalysis;
@@ -120,9 +119,9 @@ namespace ESPINA
     QMap<FilterPtr, struct Data> m_executingTasks;
     QMap<FilterPtr, struct Data> m_finishedTasks;
 
-    friend class AppositionSurfaceToolGroup;
+    friend class AppositionSurfaceTool;
   };
 
 } // namespace ESPINA
 
-#endif// APPOSITIONSURFACE_H
+#endif// APPOSITION_SURFACE_PLUGIN_H

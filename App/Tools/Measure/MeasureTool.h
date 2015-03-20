@@ -47,10 +47,9 @@ namespace ESPINA
      */
     virtual ~MeasureTool();
 
-    /** \brief Implements Tool::actions().
-     *
-     */
-    virtual QList<QAction *> actions() const;
+    virtual QList<QAction *> actions() const override;
+
+    virtual void abortOperation() override;
 
   public slots:
     /** \brief Initializes/De-initializes tool.

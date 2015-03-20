@@ -58,6 +58,11 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
+  void MeasureTool::abortOperation()
+  {
+  }
+
+  //----------------------------------------------------------------------------
   void MeasureTool::initTool(bool value)
   {
     if (value)

@@ -29,11 +29,6 @@
 #include "IO/SegFileReader.h"
 #include "Menus/ColorEngineMenu.h"
 #include "Settings/GeneralSettings/GeneralSettingsPanel.h"
-#include "ToolGroups/Edition/EditionTools.h"
-// #include "ToolGroups/ROI/ROITools.h"
-#include "ToolGroups/Segmentation/SegmentationTools.h"
-#include "ToolGroups/Segmentation/SeedGrowSegmentationSettings.h"
-#include "ToolGroups/Skeleton/SkeletonToolGroup.h"
 #include <App/Settings/ROI/ROISettings.h>
 #include <App/Settings/ROI/ROISettingsPanel.h>
 #include <App/Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h>
@@ -43,6 +38,13 @@
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Dialogs/CheckAnalysis/CheckAnalysis.h>
+#include "ToolGroups/ToolGroup.h"
+#include "ToolGroups/Visualize/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
+#include "ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
+#include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
+#include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
+#include "ToolGroups/Explore/ResetZoom.h"
+#include "ToolGroups/Explore/ZoomAreaTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -53,10 +55,6 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
-#include <ToolGroups/Measures/MeasuresTools.h>
-#include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
-#include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
-#include "ToolGroups/ROI/ROIToolsGroup.h"
 
 #if USE_METADONA
   #include <App/Settings/MetaData/MetaDataSettingsPanel.h>
@@ -106,7 +104,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_settings     {new GeneralSettings()}
 , m_roiSettings  {new ROISettings()}
 , m_sgsSettings  {new SeedGrowSegmentationSettings()}
-, m_viewToolGroup{new ViewToolGroup(m_viewManager, this)}
+, m_activeToolGroup{nullptr}
 , m_schedulerProgress{new SchedulerProgress(m_scheduler, this)}
 , m_busy{false}
 , m_dynamicMenuRoot{new DynamicMenuNode()}
@@ -114,9 +112,6 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 , m_errorHandler(new EspinaErrorHandler(this))
 {
   m_dynamicMenuRoot->menu = nullptr;
-
-//   connect(m_undoStack,         SIGNAL(indexChanged(int)),
-//           m_viewManager.get(), SLOT  (updateViews()));
 
   m_factory->registerAnalysisReader(m_channelReader.get());
   m_factory->registerAnalysisReader(m_segFileReader.get());
@@ -136,7 +131,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   createToolbars();
 
-  createDefaultTools();
+  createToolGroups();
 
   createDefaultPanels();
 
@@ -157,7 +152,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   statusBar()->addPermanentWidget(m_schedulerProgress.get());
   statusBar()->clearMessage();
 
-  m_viewToolGroup->showTools(true);
+  activateToolGroup(m_exploreToolGroup);
 }
 
 //------------------------------------------------------------------------
@@ -199,10 +194,31 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         m_factory->registerExtensionFactory(extensionFactory);
       }
 
-      for (auto toolGroup : validPlugin->toolGroups())
+      for (auto tool : validPlugin->tools())
       {
 //        qDebug() << plugin << "- ToolGroup " << toolGroup->toolTip() << " ...... OK";
-        registerToolGroup(toolGroup);
+        switch (tool.first)
+        {
+          case ToolCategory::EXPLORE:
+            m_exploreToolGroup->addTool(tool.second);
+            break;
+          case ToolCategory::RESTRICT:
+            m_restrictToolGroup->addTool(tool.second);
+            break;
+          case ToolCategory::SEGMENTATE:
+            m_segmentateToolGroup->addTool(tool.second);
+            break;
+          case ToolCategory::REFINE:
+            m_refineToolGroup->addTool(tool.second);
+            break;
+          case ToolCategory::VISUALIZE:
+            m_visualizeToolGroup->addTool(tool.second);
+            break;
+          case ToolCategory::ANALYZE:
+            m_analyzeToolGroup->addTool(tool.second);
+            break;
+        }
+        //registerToolGroup(toolGroup);
       }
 
       for (auto dock : validPlugin->dockWidgets())
@@ -372,9 +388,15 @@ void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* d
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::registerToolGroup(ToolGroupPtr tools)
+void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
 {
-  m_mainBar->addAction(tools);
+  m_mainBar->addAction(toolGroup);
+
+  connect(toolGroup, SIGNAL(activated(ToolGroup*)),
+          this,      SLOT(activateToolGroup(ToolGroup *)));
+
+  connect(this,      SIGNAL(analysisClosed()),
+          toolGroup, SLOT(abortOperations()));
 }
 
 //------------------------------------------------------------------------
@@ -954,6 +976,33 @@ void EspinaMainWindow::redoAction(bool unused)
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
+{
+  if (m_activeToolGroup != toolGroup)
+  {
+    if (m_activeToolGroup)
+    {
+      m_activeToolGroup->setChecked(false);
+    }
+
+    m_contextualBar->clear();
+
+    if (toolGroup)
+    {
+      for(auto tool : toolGroup->tools())
+      {
+        for(auto action : tool->actions())
+        {
+          m_contextualBar->addAction(action);
+        }
+      }
+    }
+
+    m_activeToolGroup = toolGroup;
+  }
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::restoreRepresentationSwitchSettings()
 {
   const QString REP_MANAGERS = "ActiveRepresentationManagers";
@@ -1219,29 +1268,39 @@ void EspinaMainWindow::createToolbars()
   m_contextualBar->setObjectName("Contextual ToolBar");
   m_contextualBar->setMinimumHeight(CONTEXTUAL_BAR_HEIGHT);
   m_contextualBar->setMaximumHeight(CONTEXTUAL_BAR_HEIGHT);
-  m_viewManager->setContextualBar(m_contextualBar);
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::createDefaultTools()
+void EspinaMainWindow::createToolGroups()
 {
-  registerToolGroup(m_viewToolGroup);
+  m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
+  registerToolGroup(m_exploreToolGroup);
+  m_exploreToolGroup->addTool(std::make_shared<ZoomAreaTool>(m_viewManager));
+  m_exploreToolGroup->addTool(std::make_shared<ResetZoom>(m_viewManager));
 
-  auto roiTools = new ROIToolsGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
-  registerToolGroup(roiTools);
-  m_viewManager->setROIProvider(roiTools);
+  m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
+  m_viewManager->setROIProvider(m_restrictToolGroup);
+  registerToolGroup(m_restrictToolGroup);
 
-  auto segmentationTools = new SegmentationTools(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
-  registerToolGroup(segmentationTools);
+  m_segmentateToolGroup = createToolGroup(":/espina/toolgroup_segmentate.svg", tr("Segmentate"));
+  registerToolGroup(m_segmentateToolGroup);
+  auto sgsTool = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack);
+  m_segmentateToolGroup->addTool(sgsTool);
 
-  auto editionTools = new EditionTools(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
-  registerToolGroup(editionTools);
+  m_refineToolGroup = new RefineToolGroup(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
+  registerToolGroup(m_refineToolGroup);
 
-  auto skeletonTools = new SkeletonToolGroup(m_model, m_factory, m_viewManager, m_undoStack, this);
-  registerToolGroup(skeletonTools);
+  m_visualizeToolGroup = new VisualizeToolGroup(this);
+  registerToolGroup(m_visualizeToolGroup);
 
-  auto measuresTools = new MeasuresTools(m_viewManager, this);
-  registerToolGroup(measuresTools);
+  m_analyzeToolGroup = new AnalyzeToolGroup(m_viewManager, this);
+  registerToolGroup(m_analyzeToolGroup);
+}
+
+//------------------------------------------------------------------------
+ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QString &title)
+{
+  return new ToolGroup(QIcon(icon), title, this);
 }
 
 //------------------------------------------------------------------------
@@ -1310,7 +1369,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 
   for (auto repSwitch : representation.Switches)
   {
-    m_viewToolGroup->addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+    m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
   }
 
   m_view->addRepresentation(representation);

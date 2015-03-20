@@ -83,15 +83,15 @@ RepresentationFactorySList CountingFramePlugin::representationFactories() const
 }
 
 //------------------------------------------------------------------------
-QList<ToolGroup* > CountingFramePlugin::toolGroups() const
-{
-  return QList<ToolGroup *>();
-}
-
-//------------------------------------------------------------------------
 FilterFactorySList CountingFramePlugin::filterFactories() const
 {
   return FilterFactorySList();
+}
+
+//------------------------------------------------------------------------
+QList<CategorizedTool> CountingFramePlugin::tools() const
+{
+  return QList<CategorizedTool>();
 }
 
 //------------------------------------------------------------------------

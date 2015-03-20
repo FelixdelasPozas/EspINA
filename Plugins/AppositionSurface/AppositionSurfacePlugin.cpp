@@ -23,8 +23,9 @@
 #include <Filter/AppositionSurfaceFilter.h>
 #include <Filter/SASDataFactory.h>
 #include <GUI/Analysis/SASAnalysisDialog.h>
-#include <GUI/AppositionSurfaceToolGroup.h>
+#include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
+#include "GUI/AppositionSurfaceTool.h"
 #include <Core/Extensions/ExtensionFactory.h>
 
 // ESPINA
@@ -87,7 +88,6 @@ AppositionSurfacePlugin::AppositionSurfacePlugin()
 , m_undoStack       {nullptr}
 , m_settings        {new AppositionSurfaceSettings()}
 , m_extensionFactory{new ASExtensionFactory()}
-, m_toolGroup       {nullptr}
 , m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
 , m_delayedAnalysis {false}
 {
@@ -125,8 +125,6 @@ void AppositionSurfacePlugin::init(ModelAdapterSPtr model,
   m_factory = factory;
   m_scheduler = scheduler;
   m_undoStack = undoStack;
-
-  m_toolGroup = new AppositionSurfaceToolGroup{m_model, m_undoStack, m_factory, m_viewManager, this};
 
   // for automatic computation of SAS
   connect(m_model.get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
@@ -172,11 +170,11 @@ RepresentationFactorySList AppositionSurfacePlugin::representationFactories() co
 }
 
 //-----------------------------------------------------------------------------
-QList<ToolGroup *> AppositionSurfacePlugin::toolGroups() const
+QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 {
-  QList<ToolGroup *> tools;
+  QList<CategorizedTool> tools;
 
-  tools << m_toolGroup;
+  tools << CategorizedTool(ToolCategory::SEGMENTATE, std::make_shared<AppositionSurfaceTool>(this, m_model, m_factory, m_viewManager));
 
   return tools;
 }
@@ -461,13 +459,20 @@ void AppositionSurfacePlugin::finishedTask()
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionSurfacePlugin::isSAS(ItemAdapterSPtr item) const
+bool AppositionSurfacePlugin::isSAS(ItemAdapterSPtr item)
 {
-  auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(item);
+  bool result = false;
 
-  auto category = sas->category()->classificationName();
+  auto sas = segmentationPtr(item.get());
 
-  return category.startsWith("SAS/") || category.compare("SAS") == 0;
+  if (sas)
+  {
+    auto category = sas->category()->classificationName();
+
+    result = category.startsWith("SAS/") || category.compare("SAS") == 0;
+  }
+
+  return result;
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)
