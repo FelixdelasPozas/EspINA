@@ -30,10 +30,10 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/ProblemList/ProblemListDialog.h>
-#include "ToolGroups/1_Explore/ExploreToolGroup.h"
-#include "ToolGroups/2_Restrict/RestrictToolGroup.h"
-#include "ToolGroups/4_Refine/RefineToolGroup.h"
-#include "ToolGroups/5_Analyze/AnalyzeToolGroup.h"
+#include "ToolGroups/Explore/ExploreToolGroup.h"
+#include "ToolGroups/Restrict/RestrictToolGroup.h"
+#include "ToolGroups/Refine/RefineToolGroup.h"
+#include "ToolGroups/Analyze/AnalyzeToolGroup.h"
 #include <Extensions/ExtensionFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>

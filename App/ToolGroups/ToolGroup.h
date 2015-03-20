@@ -48,6 +48,8 @@ namespace ESPINA
      */
     ToolGroup(const QIcon& icon, const QString& text, QObject* parent = nullptr);
 
+    virtual ~ToolGroup();
+
     /** \brief Returns the tools contained by the tool group
      *
      */
@@ -60,7 +62,7 @@ namespace ESPINA
     void addTool(ToolSPtr tool);
 
   public slots:
-    void abort();
+    void abortOperations();
 
   signals:
     void activated(ToolGroup *tool);

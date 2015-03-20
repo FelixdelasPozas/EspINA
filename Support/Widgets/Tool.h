@@ -58,7 +58,7 @@ namespace ESPINA
 
     static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
 
-    virtual void abort() {};
+    virtual void abortOperation() = 0;
 
   private:
     virtual void onToolEnabled(bool enabled) = 0;

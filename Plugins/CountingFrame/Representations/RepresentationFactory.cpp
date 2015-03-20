@@ -21,8 +21,6 @@
 
 #include "Representations/RepresentationManager2D.h"
 #include <Support/Representations/BasicRepresentationSwitch.h>
-#include <App/ToolGroups/View/ViewToolGroup.h>
-
 
 namespace ESPINA {
   namespace CF {

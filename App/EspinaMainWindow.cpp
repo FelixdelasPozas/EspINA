@@ -39,10 +39,10 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Dialogs/CheckAnalysis/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
-#include "ToolGroups/1_Explore/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
-#include "ToolGroups/1_Explore/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
-#include "ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
-#include "ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
+#include "ToolGroups/Explore/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
+#include "ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
+#include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
+#include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -391,7 +391,7 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
           this,      SLOT(activateToolGroup(ToolGroup *)));
 
   connect(this,      SIGNAL(analysisClosed()),
-          toolGroup, SLOT(abort()));
+          toolGroup, SLOT(abortOperations()));
 }
 
 //------------------------------------------------------------------------

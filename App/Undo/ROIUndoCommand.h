@@ -22,7 +22,7 @@
 #define ESPINA_ROI_UNDO_COMMAND_H_
 
 // ESPINA
-#include <App/ToolGroups/2_Restrict/RestrictToolGroup.h>
+#include <App/ToolGroups/Restrict/RestrictToolGroup.h>
 #include <Support/ViewManager.h>
 
 // Qt

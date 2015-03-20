@@ -22,7 +22,7 @@
 #include "SeedGrowSegmentationSettingsPanel.h"
 
 #include <Support/Settings/EspinaSettings.h>
-#include <ToolGroups/3_Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
+#include <ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 
 // Qt
 #include <QSettings>

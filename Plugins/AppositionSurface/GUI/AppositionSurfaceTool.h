@@ -64,6 +64,8 @@ namespace ESPINA
 
     virtual QList<QAction *> actions() const override;
 
+    virtual void abortOperation() override;
+
     /** \brief Sets the tooltip of the action.
      * \param[in] tooltip tooltip text.
      *

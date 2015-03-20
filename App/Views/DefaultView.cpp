@@ -20,11 +20,14 @@
 
 // ESPINA
 #include "DefaultView.h"
+
+#include <Support/Settings/EspinaSettings.h>
+#include <Support/Representations/RepresentationUtils.h>
+
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
-#include <ToolGroups/1_Explore/ExploreToolGroup.h>
-#include <Support/Settings/EspinaSettings.h>
+#include <ToolGroups/Explore/ExploreToolGroup.h>
 
 // Qt
 #include <QApplication>
@@ -37,6 +40,7 @@
 #include <QMenu>
 
 using namespace ESPINA;
+using namespace ESPINA::Support::Representations::Utils;
 
 const QString DEFAULT_VIEW_SETTINGS = "DefaultView";
 
@@ -128,12 +132,12 @@ void DefaultView::addRepresentation(const Representation& representation)
 
   for (auto pool : representation.Pools)
   {
-    if (ExploreToolGroup::CHANNELS_GROUP == representation.Group)
+    if (CHANNELS_GROUP == representation.Group)
     {
       pool->setPipelineSources(&m_channelSources);
       m_channelPools << pool;
     }
-    else if (ExploreToolGroup::SEGMENTATIONS_GROUP == representation.Group)
+    else if (SEGMENTATIONS_GROUP == representation.Group)
     {
       pool->setPipelineSources(&m_segmentationSources);
       m_segmentationPools << pool;

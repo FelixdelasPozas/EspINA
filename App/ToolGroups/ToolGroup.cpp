@@ -34,6 +34,15 @@ ToolGroup::ToolGroup(const QIcon    &icon, const QString  &text, QObject *parent
 }
 
 //-----------------------------------------------------------------------------
+ToolGroup::~ToolGroup()
+{
+  for (auto tool : m_tools)
+  {
+    tool->abortOperation();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void ToolGroup::addTool(ToolSPtr tool)
 {
   onToolAdded(tool);
@@ -42,11 +51,11 @@ void ToolGroup::addTool(ToolSPtr tool)
 }
 
 //-----------------------------------------------------------------------------
-void ToolGroup::abort()
+void ToolGroup::abortOperations()
 {
   for (auto tool : m_tools)
   {
-    tool->abort();
+    tool->abortOperation();
   }
 }
 

@@ -81,6 +81,12 @@ QList<QAction *> AppositionSurfaceTool::actions() const
 }
 
 //-----------------------------------------------------------------------------
+void AppositionSurfaceTool::abortOperation()
+{
+
+}
+
+//-----------------------------------------------------------------------------
 void AppositionSurfaceTool::selectionChanged()
 {
   QString toolTip("Create a synaptic apposition surface from selected segmentations.");
