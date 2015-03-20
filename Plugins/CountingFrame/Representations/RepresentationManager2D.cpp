@@ -24,7 +24,8 @@ namespace ESPINA {
   namespace CF {
     //-----------------------------------------------------------------------------
     RepresentationManager2D::RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
-    : RepresentationManager(supportedViews)
+    : RepresentationManager{supportedViews}
+    , m_plane{Plane::UNDEFINED}
     , m_manager(manager)
     {
       m_requiresRender = false;
@@ -78,7 +79,6 @@ namespace ESPINA {
       return nullptr;
     }
 
-
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::setPlane(Plane plane)
     {
@@ -110,19 +110,16 @@ namespace ESPINA {
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onCountingFrameDeleted(CountingFrame *cf)
     {
-
     }
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onShow()
     {
-
     }
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::onHide()
     {
-
     }
 
     //-----------------------------------------------------------------------------
@@ -150,9 +147,9 @@ namespace ESPINA {
     {
       auto crosshair = m_crosshairs.representation(t, NmVector3());
 
+      Q_ASSERT(m_plane != Plane::UNDEFINED);
       return crosshair[normalCoordinateIndex(m_plane)];
     }
-
   }
 }
 

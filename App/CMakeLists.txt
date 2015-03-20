@@ -61,7 +61,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/View/RepresentationsGroupTool.h
   ToolGroups/View/Representations/CrosshairsSwitch2D.h
-  ToolGroups/View/Representations/SegmentationVolumetric/VolumetricManager.h
   ToolGroups/View/ResetZoom.h
   ToolGroups/View/ToggleCrosshairVisibility.h
   ToolGroups/View/ViewToolGroup.h

@@ -25,41 +25,22 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   VolumetricManager::VolumetricManager()
-  : ActorManager(ViewType::VIEW_3D)
-  , m_lastTime{0}
+  : ActorManager{ViewType::VIEW_3D}
   {
   }
 
   //----------------------------------------------------------------------------
   RepresentationManager::PipelineStatus VolumetricManager::pipelineStatus() const
   {
-    // TODO: this is Ready, BasicRepresentationPool needs to be changed or derived.
-    return PipelineStatus::RANGE_DEPENDENT;
+    return PipelineStatus::READY;
   }
 
   //----------------------------------------------------------------------------
   TimeRange VolumetricManager::readyRange() const
   {
-    QMap<TimeStamp, int> count;
-
-    for (auto pool : managedPools())
-    {
-      for(auto timeStamp: pool->readyRange())
-      {
-        count[timeStamp] = count.value(timeStamp, 0) + 1;
-      }
-    }
-
     TimeRange range;
-    auto poolsNum = managedPools().size();
 
-    for (auto timeStamp : count.keys())
-    {
-      if (count[timeStamp] == poolsNum)
-      {
-        range << timeStamp;
-      }
-    }
+    // TODO
 
     return range;
   }
@@ -74,12 +55,7 @@ namespace ESPINA
   {
     ViewItemAdapterPtr pickedItem = nullptr;
 
-    for (auto pool : managedPools())
-    {
-      auto pickedItem = pool->pick(point, actor);
-
-      if (pickedItem) break;
-    }
+    // TODO
 
     return pickedItem;
 
@@ -88,23 +64,13 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   bool VolumetricManager::hasSources() const
   {
-    bool result = true;
-
-    for (auto pool : managedPools())
-    {
-      result &= pool->hasSources();
-    }
-
-    return result;
+    return true;
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
   {
-    for(auto pool: managedPools())
-    {
-      pool->setCrosshair(crosshair, time);
-    }
+    // TODO: use
   }
 
   //----------------------------------------------------------------------------
@@ -112,15 +78,7 @@ namespace ESPINA
   {
     RepresentationPipeline::Actors actors;
 
-    for (auto pool : managedPools())
-    {
-      auto poolActors = pool->actors(time);
-
-      for(auto it = poolActors.begin(); it != poolActors.end(); ++it)
-      {
-        actors[it.key()] << it.value();
-      }
-    }
+    // TODO
 
     return actors;
   }
@@ -128,38 +86,17 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   void VolumetricManager::invalidatePreviousActors(TimeStamp time)
   {
-    for (auto pool : managedPools())
-    {
-      pool->invalidatePreviousActors(time);
-    }
+    // TODO
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::connectPools()
   {
-    for (auto pool : managedPools())
-    {
-      connect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
-              this,       SLOT(checkRenderRequest()));
-      connect(pool.get(), SIGNAL(actorsInvalidated()),
-              this,       SLOT(invalidateRepresentations()));
-
-      pool->incrementObservers();
-    }
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::disconnectPools()
   {
-    for (auto pool : managedPools())
-    {
-      disconnect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
-                 this,       SLOT(checkRenderRequest()));
-      disconnect(pool.get(), SIGNAL(actorsInvalidated()),
-                 this,       SLOT(invalidateRepresentations()));
-
-      pool->decrementObservers();
-    }
   }
 
   //----------------------------------------------------------------------------
@@ -170,29 +107,7 @@ namespace ESPINA
     clone->m_description   = m_description;
     clone->m_showRepresentations = m_showRepresentations;
 
-    for(auto pool: managedPools())
-    {
-      clone->addPool(pool);
-    }
-
     return clone;
-  }
-
-  //----------------------------------------------------------------------------
-  void VolumetricManager::checkRenderRequest()
-  {
-    TimeStamp lastTime = std::numeric_limits<unsigned long long>::max();
-
-    for(auto pool: managedPools())
-    {
-      auto poolTime = pool->lastUpdateTimeStamp();
-      if(poolTime < lastTime)
-      {
-        lastTime = poolTime;
-      }
-    }
-
-    emitRenderRequest(lastTime);
   }
 
 } // namespace ESPINA

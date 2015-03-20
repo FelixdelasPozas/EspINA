@@ -111,5 +111,6 @@
     <file>database.png</file>
     <file>skelCreate.png</file>
     <file>skelModify.png</file>
+    <file>crosshair_planes.svg</file>
   </qresource>
 </RCC>

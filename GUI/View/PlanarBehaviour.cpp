@@ -32,31 +32,6 @@
 
 using namespace ESPINA;
 
-// the +0.1 is needed to draw the crosshair over the actors, right now the
-// segmentation's actors are been drawn View2D::SEGMENTATION_SHIFT over the
-// channel's actors at the view
-const double ACTORS_SHIFT = 0.1;
-
-//-----------------------------------------------------------------------------
-void View2D::AxialBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                                           vtkSmartPointer<vtkPolyData> &vline,
-                                           const NmVector3              &center,
-                                           const Bounds                 &bounds,
-                                           const NmVector3              &slicingStep) const
-{
-  Nm hShift = 0.5*slicingStep[0];
-  Nm vShift = 0.5*slicingStep[1];
-  Nm zShift = center[2]-ACTORS_SHIFT;
-
-  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, center[1], zShift);
-  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, center[1], zShift);
-  hline->Modified();
-
-  vline->GetPoints()->SetPoint(0, center[0], bounds[2]-vShift, zShift);
-  vline->GetPoints()->SetPoint(1, center[0], bounds[3]+vShift, zShift);
-  vline->Modified();
-}
-
 //-----------------------------------------------------------------------------
 void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
                                           const NmVector3 &center) const
@@ -71,25 +46,6 @@ void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
   camera->SetRoll(180);
 }
 
-//-----------------------------------------------------------------------------
-void View2D::SagittalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                                              vtkSmartPointer<vtkPolyData> &vline,
-                                              const NmVector3              &center,
-                                              const Bounds                 &bounds,
-                                              const NmVector3              &slicingStep) const
-{
-  Nm hShift = 0.5*slicingStep[2];
-  Nm vShift = 0.5*slicingStep[1];
-  Nm zShift = center[0]+ACTORS_SHIFT;
-
-  hline->GetPoints()->SetPoint(0, zShift, center[1], bounds[4]-hShift);
-  hline->GetPoints()->SetPoint(1, zShift, center[1], bounds[5]+hShift);
-  hline->Modified();
-
-  vline->GetPoints()->SetPoint(0, zShift, bounds[2]-vShift, center[2]);
-  vline->GetPoints()->SetPoint(1, zShift, bounds[3]+vShift, center[2]);
-  vline->Modified();
-}
 
 //-----------------------------------------------------------------------------
 void View2D::SagittalBehaviour::updateCamera(vtkCamera       *camera,
@@ -104,26 +60,6 @@ void View2D::SagittalBehaviour::updateCamera(vtkCamera       *camera,
   camera->SetPosition(camPos[0],center[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetRoll(180);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::CoronalBehaviour::setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                                             vtkSmartPointer<vtkPolyData> &vline,
-                                             const NmVector3              &center,
-                                             const Bounds                 &bounds,
-                                             const NmVector3              &slicingStep) const
-{
-  Nm hShift = 0.5*slicingStep[0];
-  Nm vShift = 0.5*slicingStep[2];
-  Nm zShift = center[1]+ACTORS_SHIFT;
-
-  hline->GetPoints()->SetPoint(0, bounds[0]-hShift, zShift, center[2]);
-  hline->GetPoints()->SetPoint(1, bounds[1]+hShift, zShift, center[2]);
-  hline->Modified();
-
-  vline->GetPoints()->SetPoint(0, center[0], zShift, bounds[4]-vShift);
-  vline->GetPoints()->SetPoint(1, center[0], zShift, bounds[5]+vShift);
-  vline->Modified();
 }
 
 //-----------------------------------------------------------------------------

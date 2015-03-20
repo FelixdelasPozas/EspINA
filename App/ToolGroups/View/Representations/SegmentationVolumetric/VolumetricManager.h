@@ -36,8 +36,6 @@ namespace ESPINA
   class VolumetricManager
   : public ActorManager
   {
-    Q_OBJECT
-
     public:
       /** \brief Volumetric Manager class constructor.
        *
@@ -72,13 +70,6 @@ namespace ESPINA
       virtual void disconnectPools() override;
 
       virtual RepresentationManagerSPtr cloneImplementation();
-
-    private slots:
-      void checkRenderRequest();
-
-    private:
-      NmVector3 m_lastCrosshair;
-      TimeStamp m_lastTime;
   };
 
 } // namespace ESPINA

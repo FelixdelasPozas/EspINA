@@ -106,6 +106,7 @@ set (GUI_SOURCES
   ModelFactory.cpp
   Representations/BufferedRepresentationPool.cpp
   Representations/ChannelPipeline.cpp
+  Representations/CrosshairManager.cpp 
   Representations/PipelineSourcesFilter.cpp
   Representations/RepresentationManager.cpp
   Representations/ActorManager.cpp
