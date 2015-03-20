@@ -16,7 +16,6 @@ qt4_wrap_cpp(Support_MOC
   Widgets/DockWidget.h
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
-  Widgets/ToolGroup.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -72,7 +71,6 @@ set (Support_SOURCES
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
   Widgets/Tool.cpp
-  Widgets/ToolGroup.cpp
   )
 
 set(Support_EXTERNAL_LIBS

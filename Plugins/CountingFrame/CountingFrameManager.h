@@ -39,18 +39,6 @@ namespace ESPINA {
       CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler,
                                                  const State& state = State()) const;
 
-//       void createAdaptiveCF(ChannelAdapterPtr channel,
-//                             Nm inclusion[3],
-//                             Nm exclusion[3],
-//                             const QString &constraint = QString());
-//
-//       void createRectangularCF(ChannelAdapterPtr channel,
-//                                Nm inclusion[3],
-//                                Nm exclusion[3],
-//                                const QString &constraint = QString());
-
-//       void deleteCountingFrame(CountingFrame *cf);
-
       CountingFrameList countingFrames() const
       { return m_countingFrames.keys(); }
 

@@ -27,13 +27,15 @@
 
 namespace ESPINA
 {
+  using RepresentationGroup = QString;
+
   /** \brief Group of objects which are coordinated to render
    *         an specific type of related items
    *
    */
   struct Representation
   {
-    QString                    Group;
+    RepresentationGroup        Group;
     RepresentationPoolSList    Pools;
     RepresentationManagerSList Managers;
     RepresentationSwitchSList  Switches;

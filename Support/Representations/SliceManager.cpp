@@ -20,7 +20,6 @@
 #include "SliceManager.h"
 #include "RepresentationUtils.h"
 #include <GUI/View/RenderView.h>
-#include <App/ToolGroups/View/Representations/RepresentationSettings.h>
 
 using namespace ESPINA;
 

@@ -61,7 +61,7 @@ void OrthogonalRegionSliceSelector::setView(View2D* view)
   SliceSelector::setView(view);
   if (m_view)
   {
-    connect(m_view, SIGNAL(sliceChanged(Plane,Nm)),
+    connect(m_view, SIGNAL(crosshairPlaneChanged(Plane,Nm)),
             this,   SLOT(update()));
 
     update();

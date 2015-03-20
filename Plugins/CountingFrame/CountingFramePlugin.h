@@ -55,7 +55,7 @@ namespace ESPINA
 
       virtual RepresentationFactorySList representationFactories() const;
 
-      virtual QList<ToolGroup *> toolGroups() const;
+      virtual QList<CategorizedTool> tools() const;
 
       virtual QList<DockWidget *> dockWidgets() const;
 
