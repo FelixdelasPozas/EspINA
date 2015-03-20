@@ -166,7 +166,7 @@ set (ESPINA_SOURCES
   ToolGroups/View/RepresentationsGroupTool.cpp
   ToolGroups/View/Representations/CrosshairsSwitch2D.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSlicePipeline.cpp
-  ToolGroups/View/Representations/ChannelLines/ChannelLinesPipeline.cpp
+  ToolGroups/View/Representations/Crosshair/CrosshairRepresentationFactory.cpp
   ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
   ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp

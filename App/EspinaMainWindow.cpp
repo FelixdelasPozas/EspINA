@@ -54,6 +54,7 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <ToolGroups/Measures/MeasuresTools.h>
+#include <ToolGroups/View/Representations/Crosshair/CrosshairRepresentationFactory.h>
 #include "ToolGroups/View/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
 #include "ToolGroups/View/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
 #include "ToolGroups/ROI/ROIToolsGroup.h"
@@ -1014,6 +1015,7 @@ void EspinaMainWindow::registerColorEngine(const QString   &title,
 //------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
+  registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationFactory>(m_scheduler));
   registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationFactory>(m_scheduler));
 
