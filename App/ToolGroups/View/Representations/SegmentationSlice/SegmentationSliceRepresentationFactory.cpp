@@ -38,7 +38,6 @@ using namespace ESPINA;
 SegmentationSliceRepresentationFactory::SegmentationSliceRepresentationFactory(SchedulerSPtr scheduler)
 : m_scheduler(scheduler)
 {
-
 }
 
 //----------------------------------------------------------------------------
@@ -55,27 +54,21 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
   auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
   auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
   auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
-  auto sliceManager   = std::make_shared<SliceManager>();
-  sliceManager->addPool(poolXY, Plane::XY);
-  sliceManager->addPool(poolXZ, Plane::XZ);
-  sliceManager->addPool(poolYZ, Plane::YZ);
+  auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
-  auto slice3DManager = std::make_shared<Slice3DManager>();
-  slice3DManager->addPool(poolXY);
-  slice3DManager->addPool(poolXZ);
-  slice3DManager->addPool(poolYZ);
+  auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
-  // Volume
-  auto pipelineVolume = std::make_shared<SegmentationVolumetricPipeline>(colorEngine);
-  auto poolVolumetric = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolume);
-  configurePool(poolVolumetric, colorEngine, settings);
-
-  auto volumetricManager = std::make_shared<VolumetricManager>();
-  volumetricManager->setName(QObject::tr("Volumetric Representation"));
-  volumetricManager->setIcon(QIcon(":espina/voxel.png"));
-  volumetricManager->addPool(poolVolumetric);
-  auto volumetricSwitch = std::make_shared<BasicRepresentationSwitch>(volumetricManager, ViewType::VIEW_3D);
+  // Volume // TODO: disabled for now, pending static managers.
+//  auto pipelineVolume = std::make_shared<SegmentationVolumetricPipeline>(colorEngine);
+//  auto poolVolumetric = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolume);
+//  configurePool(poolVolumetric, colorEngine, settings);
+//
+//  auto volumetricManager = std::make_shared<VolumetricManager>();
+//  volumetricManager->setName(QObject::tr("Volumetric Representation"));
+//  volumetricManager->setIcon(QIcon(":espina/voxel.png"));
+//  volumetricManager->addPool(poolVolumetric);
+//  auto volumetricSwitch = std::make_shared<BasicRepresentationSwitch>(volumetricManager, ViewType::VIEW_3D);
   // ** end volume
 
   configurePool(poolXY, colorEngine, settings);
@@ -91,9 +84,9 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
   slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
 
   representation.Group     = ViewToolGroup::SEGMENTATIONS_GROUP;
-  representation.Pools    << poolXY << poolXZ << poolYZ << poolVolumetric;
-  representation.Managers << sliceManager << slice3DManager << volumetricManager;
-  representation.Switches << sliceSwitch << slice3DSwitch << volumetricSwitch;
+  representation.Pools    << poolXY << poolXZ << poolYZ;
+  representation.Managers << sliceManager << slice3DManager;
+  representation.Switches << sliceSwitch << slice3DSwitch;
 
   return representation;
 }

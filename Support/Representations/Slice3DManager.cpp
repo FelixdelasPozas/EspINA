@@ -24,9 +24,12 @@ using namespace ESPINA;
 using namespace std;
 
 //----------------------------------------------------------------------------
-Slice3DManager::Slice3DManager()
+Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
+                               RepresentationPoolSPtr poolXZ,
+                               RepresentationPoolSPtr poolYZ)
 : ActorManager(ViewType::VIEW_3D)
 {
+  m_pools << poolXY << poolXZ << poolYZ;
 }
 
 //----------------------------------------------------------------------------
@@ -45,7 +48,7 @@ TimeRange Slice3DManager::readyRange() const
 {
   QMap<TimeStamp, int> count;
 
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     for(auto timeStamp: pool->readyRange())
     {
@@ -54,11 +57,9 @@ TimeRange Slice3DManager::readyRange() const
   }
 
   TimeRange range;
-  auto poolsNum = managedPools().size();
-
   for (auto timeStamp : count.keys())
   {
-    if (count[timeStamp] == poolsNum)
+    if (count[timeStamp] == m_pools.size())
     {
       range << timeStamp;
     }
@@ -70,7 +71,7 @@ TimeRange Slice3DManager::readyRange() const
 //----------------------------------------------------------------------------
 void Slice3DManager::setResolution(const NmVector3 &resolution)
 {
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     pool->setResolution(resolution);
   }
@@ -81,7 +82,7 @@ ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) 
 {
   ViewItemAdapterPtr pickedItem = nullptr;
 
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     auto pickedItem = pool->pick(point, actor);
 
@@ -97,7 +98,7 @@ bool Slice3DManager::hasSources() const
 {
   bool result = true;
 
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     result &= pool->hasSources();
   }
@@ -108,7 +109,7 @@ bool Slice3DManager::hasSources() const
 //----------------------------------------------------------------------------
 void Slice3DManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     pool->setCrosshair(crosshair, time);
   }
@@ -119,7 +120,7 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
 {
   RepresentationPipeline::Actors actors;
 
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     auto poolActors = pool->actors(time);
 
@@ -135,7 +136,7 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
 //----------------------------------------------------------------------------
 void Slice3DManager::invalidatePreviousActors(TimeStamp time)
 {
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     pool->invalidatePreviousActors(time);
   }
@@ -144,7 +145,7 @@ void Slice3DManager::invalidatePreviousActors(TimeStamp time)
 //----------------------------------------------------------------------------
 void Slice3DManager::connectPools()
 {
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     connect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
             this,       SLOT(checkRenderRequest()));
@@ -158,7 +159,7 @@ void Slice3DManager::connectPools()
 //----------------------------------------------------------------------------
 void Slice3DManager::disconnectPools()
 {
-  for (auto pool : managedPools())
+  for (auto pool : m_pools)
   {
     disconnect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
                this,       SLOT(checkRenderRequest()));
@@ -172,15 +173,10 @@ void Slice3DManager::disconnectPools()
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 {
-  auto clone = std::make_shared<Slice3DManager>();
+  auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2]);
   clone->m_name          = m_name;
   clone->m_description   = m_description;
   clone->m_showRepresentations = m_showRepresentations;
-
-  for(auto pool: managedPools())
-  {
-    clone->addPool(pool);
-  }
 
   return clone;
 }
@@ -188,16 +184,11 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 //----------------------------------------------------------------------------
 void Slice3DManager::checkRenderRequest()
 {
-  TimeStamp lastTime = std::numeric_limits<unsigned long long>::max();
+  auto lastXY = m_pools[0]->lastUpdateTimeStamp();
+  auto lastXZ = m_pools[1]->lastUpdateTimeStamp();
+  auto lastYZ = m_pools[2]->lastUpdateTimeStamp();
 
-  for(auto pool: managedPools())
-  {
-    auto poolTime = pool->lastUpdateTimeStamp();
-    if(poolTime < lastTime)
-    {
-      lastTime = poolTime;
-    }
-  }
+  auto lastTime = std::min(lastXY, std::min(lastXZ, lastYZ));
 
   emitRenderRequest(lastTime);
 }

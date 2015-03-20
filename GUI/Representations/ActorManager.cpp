@@ -27,7 +27,7 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 ActorManager::ActorManager(ViewTypeFlags supportedViews)
-: RepresentationManager(supportedViews)
+: RepresentationManager{supportedViews}
 {
 }
 

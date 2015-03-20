@@ -134,12 +134,6 @@ namespace ESPINA
      */
     virtual void display(TimeStamp time) = 0;
 
-    /** \brief Adds a pool to be managed.
-     * \param[in] pool pool smart pointer.
-     *
-     */
-    virtual void addPool(RepresentationPoolSPtr pool);
-
     /** \brief Returns the item picked
      *
      */
@@ -168,8 +162,6 @@ namespace ESPINA
 
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
-
-    RepresentationPoolSList managedPools() const;
 
   private:
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;

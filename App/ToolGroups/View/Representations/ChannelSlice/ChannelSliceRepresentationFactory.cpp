@@ -17,18 +17,14 @@
  *
  */
 
+// ESPINA
 #include "ChannelSliceRepresentationFactory.h"
-
 #include "ChannelSlicePipeline.h"
-
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
-
 #include <ToolGroups/View/ViewToolGroup.h>
-#include <ToolGroups/View/Representations/ChannelLines/ChannelLinesPipeline.h>
 #include <GUI/Representations/BufferedRepresentationPool.h>
-#include <GUI/Representations/BasicRepresentationPool.h>
 
 using namespace ESPINA;
 
@@ -48,21 +44,12 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
   auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
   auto pipelineYZ     = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
-  auto pipelineLines  = std::make_shared<ChannelLinesPipeline>();
   auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
   auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
   auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
-  auto poolLines      = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineLines);
-  auto sliceManager   = std::make_shared<SliceManager>();
-  sliceManager->addPool(poolXY, Plane::XY);
-  sliceManager->addPool(poolXZ, Plane::XZ);
-  sliceManager->addPool(poolYZ, Plane::YZ);
+  auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
-  auto slice3DManager = std::make_shared<Slice3DManager>();
-  slice3DManager->addPool(poolXY);
-  slice3DManager->addPool(poolXZ);
-  slice3DManager->addPool(poolYZ);
-  slice3DManager->addPool(poolLines);
+  auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
@@ -74,7 +61,7 @@ Representation ChannelSliceRepresentationFactory::createRepresentation(ColorEngi
   slice3DManager->setIcon(QIcon(":espina/channels_slice3D_switch.svg"));
 
   representation.Group     = ViewToolGroup::CHANNELS_GROUP;
-  representation.Pools    << poolXY << poolXZ << poolYZ << poolLines;
+  representation.Pools    << poolXY << poolXZ << poolYZ;
   representation.Managers << sliceManager << slice3DManager;
   representation.Switches << sliceSwitch << slice3DSwitch;
 

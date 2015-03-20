@@ -25,9 +25,14 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-SliceManager::SliceManager()
+SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
+                           RepresentationPoolSPtr poolXZ,
+                           RepresentationPoolSPtr poolYZ)
 : ActorManager(ViewType::VIEW_2D)
 , m_plane{Plane::UNDEFINED}
+, m_XY{poolXY}
+, m_XZ{poolXZ}
+, m_YZ{poolYZ}
 {
 }
 
@@ -40,33 +45,14 @@ RepresentationManager::PipelineStatus SliceManager::pipelineStatus() const
 //----------------------------------------------------------------------------
 TimeRange SliceManager::readyRange() const
 {
-  QMap<TimeStamp, unsigned int> range;
+  TimeRange range;
 
   if(validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      auto timeRange = planePool->readyRange();
-
-      for(auto time: timeRange)
-      {
-        range[time] += 1;
-      }
-    }
+    range = planePool()->readyRange();
   }
 
-  TimeRange finalRange;
-  unsigned int poolsNum = planePools().size();
-
-  for(auto time: range.keys())
-  {
-    if(range[time] == poolsNum)
-    {
-      finalRange << time;
-    }
-  }
-
-  return finalRange;
+  return range;
 }
 
 //----------------------------------------------------------------------------
@@ -74,10 +60,7 @@ void SliceManager::setResolution(const NmVector3 &resolution)
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      planePool->setResolution(resolution);
-    }
+    planePool()->setResolution(resolution);
   }
 }
 
@@ -90,10 +73,7 @@ void SliceManager::setPlane(Plane plane)
 
   if(validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      RepresentationUtils::setPlane(planePool, plane);
-    }
+    RepresentationUtils::setPlane(planePool(), plane);
   }
 }
 
@@ -102,10 +82,7 @@ void SliceManager::setRepresentationDepth(Nm depth)
 {
   if(validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      RepresentationUtils::setSegmentationDepth(planePool, depth);
-    }
+    RepresentationUtils::setSegmentationDepth(planePool(), depth);
   }
 }
 
@@ -116,37 +93,10 @@ ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) co
 
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      pickedItem = planePool->pick(point, actor);
-
-      if(pickedItem) break;
-    }
+    pickedItem = planePool()->pick(point, actor);
   }
 
   return pickedItem;
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::addPool(RepresentationPoolSPtr pool, Plane plane)
-{
-  RepresentationManager::addPool(pool);
-
-  switch(plane)
-  {
-    case Plane::XY:
-      m_poolsXY << pool;
-      break;
-    case Plane::XZ:
-      m_poolsXZ << pool;
-      break;
-    case Plane::YZ:
-      m_poolsYZ << pool;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -156,10 +106,7 @@ bool SliceManager::hasSources() const
 
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      result |= planePool->hasSources();
-    }
+    result = planePool()->hasSources();
   }
 
   return result;
@@ -170,10 +117,7 @@ void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      planePool->setCrosshair(crosshair, time);
-    }
+    planePool()->setCrosshair(crosshair, time);
   }
 }
 
@@ -184,15 +128,7 @@ RepresentationPipeline::Actors SliceManager::actors(TimeStamp time)
 
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      auto poolActors = planePool->actors(time);
-
-      for(auto item: poolActors.keys())
-      {
-        actors[item] << poolActors[item];
-      }
-    }
+    actors = planePool()->actors(time);
   }
 
   return actors;
@@ -203,10 +139,7 @@ void SliceManager::invalidatePreviousActors(TimeStamp time)
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      planePool->invalidatePreviousActors(time);
-    }
+    planePool()->invalidatePreviousActors(time);
   }
 }
 
@@ -215,16 +148,13 @@ void SliceManager::connectPools()
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      connect(planePool.get(), SIGNAL(actorsReady(TimeStamp)),
-              this,              SLOT(emitRenderRequest(TimeStamp)));
+    connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
+            this,              SLOT(emitRenderRequest(TimeStamp)));
 
-      connect(planePool.get(), SIGNAL(actorsInvalidated()),
-              this,              SLOT(invalidateRepresentations()));
+    connect(planePool().get(), SIGNAL(actorsInvalidated()),
+            this,              SLOT(invalidateRepresentations()));
 
-      planePool->incrementObservers();
-    }
+    planePool()->incrementObservers();
   }
 }
 
@@ -233,63 +163,45 @@ void SliceManager::disconnectPools()
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      disconnect(planePool.get(), SIGNAL(actorsReady(TimeStamp)),
-                 this,              SLOT(emitRenderRequest(TimeStamp)));
-      disconnect(planePool.get(), SIGNAL(actorsInvalidated()),
-                 this,              SLOT(invalidateRepresentations()));
+    disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
+               this,              SLOT(emitRenderRequest(TimeStamp)));
+    disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
+               this,              SLOT(invalidateRepresentations()));
 
-      planePool->decrementObservers();
-    }
+    planePool()->decrementObservers();
   }
 }
 
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr SliceManager::cloneImplementation()
 {
-  auto clone = std::make_shared<SliceManager>();
+  auto clone = std::make_shared<SliceManager>(m_XY, m_XZ, m_YZ);
 
   clone->m_name          = m_name;
   clone->m_description   = m_description;
   clone->m_plane         = m_plane;
   clone->m_showRepresentations = m_showRepresentations;
 
-  for(auto pool: m_poolsXY)
-  {
-    clone->addPool(pool, Plane::XY);
-  }
-
-  for(auto pool: m_poolsXZ)
-  {
-    clone->addPool(pool, Plane::XZ);
-  }
-
-  for(auto pool: m_poolsYZ)
-  {
-    clone->addPool(pool, Plane::YZ);
-  }
-
   return clone;
 }
 
 //----------------------------------------------------------------------------
-RepresentationPoolSList SliceManager::planePools() const
+RepresentationPoolSPtr SliceManager::planePool() const
 {
   switch (m_plane)
   {
     case Plane::XY:
-      return m_poolsXY;
+      return m_XY;
     case Plane::XZ:
-      return m_poolsXZ;
+      return m_XZ;
     case Plane::YZ:
-      return m_poolsYZ;
+      return m_YZ;
     case Plane::UNDEFINED:
       Q_ASSERT(false);
       break;
   };
 
-  return RepresentationPoolSList();
+  return RepresentationPoolSPtr();
 }
 
 //----------------------------------------------------------------------------

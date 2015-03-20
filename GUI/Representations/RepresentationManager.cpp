@@ -27,11 +27,11 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
-: m_showRepresentations{false}
-, m_requiresRender{false}
-, m_view{nullptr}
-, m_supportedViews{supportedViews}
-, m_lastRequestTime{1}
+: m_showRepresentations  {false}
+, m_requiresRender       {false}
+, m_view                 {nullptr}
+, m_supportedViews       {supportedViews}
+, m_lastRequestTime      {1}
 , m_lastRenderRequestTime{0}
 {
 }
@@ -138,12 +138,6 @@ bool RepresentationManager::requiresRender() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::addPool(RepresentationPoolSPtr pool)
-{
-  m_pools << pool;
-}
-
-//-----------------------------------------------------------------------------
 RepresentationManagerSPtr RepresentationManager::clone()
 {
   auto child = cloneImplementation();
@@ -179,12 +173,6 @@ void RepresentationManager::setRepresentationsVisibility(bool value)
       hide();
     }
   }
-}
-
-//-----------------------------------------------------------------------------
-RepresentationPoolSList RepresentationManager::managedPools() const
-{
-  return m_pools;
 }
 
 //-----------------------------------------------------------------------------

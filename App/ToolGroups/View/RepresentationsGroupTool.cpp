@@ -81,7 +81,6 @@ void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr 
 //----------------------------------------------------------------------------
 void RepresentationsGroupTool::showRepresentationSwitchs(ViewTypeFlags views)
 {
-
 }
 
 //----------------------------------------------------------------------------
