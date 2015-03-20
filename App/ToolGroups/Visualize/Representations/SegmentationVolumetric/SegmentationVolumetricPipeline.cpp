@@ -21,8 +21,8 @@
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <ToolGroups/Explore/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.h>
-#include <ToolGroups/Explore/Representations/RepresentationSettings.h>
+#include <ToolGroups/Visualize/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.h>
+#include <ToolGroups/Visualize/Representations/RepresentationSettings.h>
 #include <GUI/Representations/SegmentationPipeline.h>
 
 // VTK

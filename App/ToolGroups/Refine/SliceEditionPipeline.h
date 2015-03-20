@@ -21,7 +21,7 @@
 #define ESPINA_MANUALEDITIONPIPELINE_H
 
 #include <GUI/Representations/RepresentationPipeline.h>
-#include <ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSlicePipeline.h>
+#include <ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSlicePipeline.h>
 
 namespace ESPINA
 {

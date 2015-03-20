@@ -19,7 +19,7 @@
 
 #include "ChannelPipeline.h"
 
-#include "App/ToolGroups/Explore/Representations/RepresentationSettings.h"
+#include "App/ToolGroups/Visualize/Representations/RepresentationSettings.h"
 
 #include <vtkType.h>
 #include <QColor>

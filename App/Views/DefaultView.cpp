@@ -27,7 +27,7 @@
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 #include <Menus/CamerasMenu.h>
 #include <Menus/RenderersMenu.h>
-#include <ToolGroups/Explore/ExploreToolGroup.h>
+#include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt
 #include <QApplication>

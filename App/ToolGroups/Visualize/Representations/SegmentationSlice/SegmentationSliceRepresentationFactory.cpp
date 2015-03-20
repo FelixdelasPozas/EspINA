@@ -30,9 +30,9 @@
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/RepresentationUtils.h>
 
-#include "ToolGroups/Explore//Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.h"
-#include "ToolGroups/Explore//Representations/SegmentationVolumetric/VolumetricManager.h"
-#include "ToolGroups/Explore/ExploreToolGroup.h"
+#include "ToolGroups/Visualize/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.h"
+#include "ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h"
+#include "ToolGroups/Visualize/VisualizeToolGroup.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Support::Representations::Utils;

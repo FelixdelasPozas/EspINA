@@ -20,8 +20,8 @@
 
 // ESPINA
 #include <Core/Analysis/Data/VolumetricData.hxx>
-#include <ToolGroups/Explore/Representations/ChannelLines/ChannelLinesPipeline.h>
-#include <ToolGroups/Explore/Representations/RepresentationSettings.h>
+#include <ToolGroups/Visualize/Representations/ChannelLines/ChannelLinesPipeline.h>
+#include <ToolGroups/Visualize/Representations/RepresentationSettings.h>
 #include <GUI/Model/ChannelAdapter.h>
 
 // VTK

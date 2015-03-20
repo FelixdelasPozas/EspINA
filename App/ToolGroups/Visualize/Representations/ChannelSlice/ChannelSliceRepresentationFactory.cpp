@@ -28,8 +28,8 @@
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/RepresentationUtils.h>
 
-#include "ToolGroups/Explore/ExploreToolGroup.h"
-#include "ToolGroups/Explore/Representations/ChannelLines/ChannelLinesPipeline.h"
+#include "ToolGroups/Visualize/VisualizeToolGroup.h"
+#include "ToolGroups/Visualize/Representations/ChannelLines/ChannelLinesPipeline.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Support::Representations::Utils;

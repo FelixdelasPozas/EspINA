@@ -30,7 +30,7 @@
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
 #include <Dialogs/ProblemList/ProblemListDialog.h>
-#include "ToolGroups/Explore/ExploreToolGroup.h"
+#include "ToolGroups/Visualize/VisualizeToolGroup.h"
 #include "ToolGroups/Restrict/RestrictToolGroup.h"
 #include "ToolGroups/Refine/RefineToolGroup.h"
 #include "ToolGroups/Analyze/AnalyzeToolGroup.h"
@@ -237,6 +237,8 @@ namespace ESPINA
 
     void createToolGroups();
 
+    ToolGroupPtr createToolGroup(const QString &icon, const QString &title);
+
     void createDefaultPanels();
 
     void saveGeometry();
@@ -358,11 +360,12 @@ namespace ESPINA
     QToolBar          *m_mainBar;
     QToolBar          *m_contextualBar;
     ToolGroupPtr       m_activeToolGroup;
-    ExploreToolGroup  *m_exploreToolGroup;
-    RestrictToolGroup *m_restrictToolGroup;
-    ToolGroup         *m_segmentateToolGroup;
-    RefineToolGroup   *m_refineToolGroup;
-    AnalyzeToolGroup  *m_analyzeToolGroup;
+    ToolGroup          *m_exploreToolGroup;
+    RestrictToolGroup  *m_restrictToolGroup;
+    ToolGroup          *m_segmentateToolGroup;
+    RefineToolGroup    *m_refineToolGroup;
+    VisualizeToolGroup *m_visualizeToolGroup;
+    AnalyzeToolGroup   *m_analyzeToolGroup;
 
     // UNDO
     QAction         *m_undoAction;

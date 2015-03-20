@@ -24,7 +24,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 Tool::Tool()
-: m_enabled{false}
+: m_enabled{true}
 {
 
 }

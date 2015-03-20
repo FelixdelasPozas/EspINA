@@ -19,7 +19,7 @@
 */
 
 // ESPINA
-#include "ExploreToolGroup.h"
+#include "VisualizeToolGroup.h"
 
 #include <GUI/Utils/DefaultIcons.h>
 #include <Support/Representations/RepresentationUtils.h>
@@ -34,7 +34,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::Support::Representations::Utils;
 
-class ExploreToolGroup::SettingsTool
+class VisualizeToolGroup::SettingsTool
 : public Tool
 {
 public:
@@ -62,17 +62,13 @@ private:
 };
 
 //----------------------------------------------------------------------------
-ExploreToolGroup::ExploreToolGroup(ViewManagerSPtr viewManager, QWidget *parent)
-: ToolGroup              {QIcon(":/espina/toolgroup_explore.svg"), tr("Explore"), parent}
-, m_toggleCrosshair      {new ToggleCrosshairVisibility(viewManager)}
-// , m_renderSettings    {new SettingsTool()}
+VisualizeToolGroup::VisualizeToolGroup(QWidget *parent)
+: ToolGroup              {QIcon(":/espina/toolgroup_visualize.svg"), tr("Visualize"), parent}
 , m_channelsRepGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"), tr("Show Channels"))}
 , m_segmentationsRepGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"))}
 , m_segmentationsShortcut{new QShortcut(parent)}
 , m_crosshairShortcut    {new QShortcut(parent)}
 {
-  addTool(std::make_shared<ZoomAreaTool>(viewManager));
-  addTool(std::make_shared<ResetZoom>(viewManager));
   addTool(m_channelsRepGroup);
   addTool(m_segmentationsRepGroup);
 
@@ -81,24 +77,24 @@ ExploreToolGroup::ExploreToolGroup(ViewManagerSPtr viewManager, QWidget *parent)
   connect(m_segmentationsShortcut,       SIGNAL(activated()),
           m_segmentationsRepGroup.get(), SLOT(toggleRepresentationsVisibility()));
 
-  m_crosshairShortcut->setKey(Qt::Key_C);
-  m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
-  connect(m_crosshairShortcut,     SIGNAL(activated()),
-          m_toggleCrosshair.get(), SLOT(shortcut()));
+//   m_crosshairShortcut->setKey(Qt::Key_C);
+//   m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
+//   connect(m_crosshairShortcut,     SIGNAL(activated()),
+//           m_toggleCrosshair.get(), SLOT(shortcut()));
 
   m_channelsRepGroup->showActiveRepresentations();
   m_segmentationsRepGroup->showActiveRepresentations();
 }
 
 //----------------------------------------------------------------------------
-ExploreToolGroup::~ExploreToolGroup()
+VisualizeToolGroup::~VisualizeToolGroup()
 {
   delete m_segmentationsShortcut;
   delete m_crosshairShortcut;
 }
 
 //----------------------------------------------------------------------------
-void ExploreToolGroup::addRepresentationSwitch(RepresentationGroup      group,
+void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
                                                RepresentationSwitchSPtr repSwitch,
                                                const QIcon             &groupIcon,
                                                const QString           &groupDescription)

@@ -60,8 +60,9 @@ RefineToolGroup::RefineToolGroup(ModelAdapterSPtr          model,
           this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(selectionChanged()));
+          this,                             SLOT(enableCurrentSelectionActions()));
 
+  enableCurrentSelectionActions();
 }
 
 //-----------------------------------------------------------------------------
@@ -71,30 +72,12 @@ RefineToolGroup::~RefineToolGroup()
   disconnect(this->parent());
 }
 
-// //-----------------------------------------------------------------------------
-// ToolSList EditionTools::tools()
-// {
-//   m_manualEdition->setEnabled(true);
-//   m_split        ->setEnabled(true);
-//   m_morphological->setEnabled(true);
-//
-//   selectionChanged();
-//
-//   ToolSList availableTools;
-//   availableTools << m_manualEdition;
-//   availableTools << m_split;
-//   availableTools << m_morphological;
-//
-//   return availableTools;
-// }
-
 //-----------------------------------------------------------------------------
-void RefineToolGroup::selectionChanged()
+void RefineToolGroup::enableCurrentSelectionActions()
 {
   auto selection     = m_viewManager->selection()->segmentations();
   auto selectionSize = selection.size();
 
-  SegmentationAdapterSPtr selectedSeg;
   auto noSegmentation       = (selectionSize == 0);
   auto onlyOneSegmentation  = (selectionSize == 1);
   auto hasRequiredData      = false;

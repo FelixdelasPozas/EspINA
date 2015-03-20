@@ -35,14 +35,17 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/View2D/View2DRenderersPanel.h
   Settings/View2D/View2DSettingsPanel.h
   Settings/View3D/View3DSettingsPanel.h
-  ToolGroups/Explore/Representations/CrosshairsSwitch2D.h
-  ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSliceSwitch.h
-  ToolGroups/Explore/Representations/SegmentationVolumetric/VolumetricManager.h
-  ToolGroups/Explore/RepresentationsGroupTool.h
   ToolGroups/Explore/ResetZoom.h
   ToolGroups/Explore/ToggleCrosshairVisibility.h
-  ToolGroups/Explore/ExploreToolGroup.h
   ToolGroups/Explore/ZoomAreaTool.h
+  ToolGroups/Refine/CODEHistory.h
+  ToolGroups/Refine/CODEHistoryWidget.h
+  ToolGroups/Refine/CODETool.h
+  ToolGroups/Refine/ManualEditionTool.h
+  ToolGroups/Refine/MorphologicalEditionTool.h
+  ToolGroups/Refine/MorphologicalEditionTool.h
+  ToolGroups/Refine/RefineToolGroup.h
+  ToolGroups/Refine/SplitTool.h
   ToolGroups/Restrict/CleanROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
   ToolGroups/Restrict/RestrictToolGroup.h
@@ -55,14 +58,11 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentate/Skeleton/SkeletonTool.h
   ToolGroups/Segmentate/Skeleton/SkeletonToolGroup.h
   ToolGroups/Segmentate/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/Refine/CODEHistory.h
-  ToolGroups/Refine/CODEHistoryWidget.h
-  ToolGroups/Refine/CODETool.h
-  ToolGroups/Refine/RefineToolGroup.h
-  ToolGroups/Refine/ManualEditionTool.h
-  ToolGroups/Refine/MorphologicalEditionTool.h
-  ToolGroups/Refine/MorphologicalEditionTool.h
-  ToolGroups/Refine/SplitTool.h
+  ToolGroups/Visualize/Representations/CrosshairsSwitch2D.h
+  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSwitch.h
+  ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h
+  ToolGroups/Visualize/RepresentationsGroupTool.h
+  ToolGroups/Visualize/VisualizeToolGroup.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
   ToolGroups/ToolGroup.h
   Tools/Measure/MeasureTool.h
@@ -138,20 +138,20 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DRenderersPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
-  ToolGroups/Explore/Representations/ChannelLines/ChannelLinesPipeline.cpp
-  ToolGroups/Explore/Representations/ChannelSlice/ChannelSlicePipeline.cpp
-  ToolGroups/Explore/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
-  ToolGroups/Explore/Representations/CrosshairsSwitch2D.cpp
-  ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
-  ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
-  ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
-  ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
-  ToolGroups/Explore/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
-  ToolGroups/Explore/Representations/SegmentationVolumetric/VolumetricManager.cpp
-  ToolGroups/Explore/RepresentationsGroupTool.cpp
+  ToolGroups/Visualize/Representations/ChannelLines/ChannelLinesPipeline.cpp
+  ToolGroups/Visualize/Representations/ChannelSlice/ChannelSlicePipeline.cpp
+  ToolGroups/Visualize/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/CrosshairsSwitch2D.cpp
+  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
+  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
+  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
+  ToolGroups/Visualize/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
+  ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.cpp
+  ToolGroups/Visualize/RepresentationsGroupTool.cpp
   ToolGroups/Explore/ResetZoom.cpp
   ToolGroups/Explore/ToggleCrosshairVisibility.cpp
-  ToolGroups/Explore/ExploreToolGroup.cpp
+  ToolGroups/Visualize/VisualizeToolGroup.cpp
   ToolGroups/Explore/ZoomAreaTool.cpp
   ToolGroups/Restrict/CleanROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp

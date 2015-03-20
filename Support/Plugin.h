@@ -49,6 +49,7 @@ namespace ESPINA
     RESTRICT,
     SEGMENTATE,
     REFINE,
+    VISUALIZE,
     ANALYZE
   };
 

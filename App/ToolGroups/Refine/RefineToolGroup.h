@@ -62,7 +62,7 @@ namespace ESPINA
     /** \brief Updates the tools based on current selection.
      *
      */
-    void selectionChanged();
+    void enableCurrentSelectionActions();
 
   private slots:
     /** \brief Deletes a segmentation from the model if all its voxels have been erased.

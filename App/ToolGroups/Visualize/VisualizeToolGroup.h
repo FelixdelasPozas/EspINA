@@ -24,10 +24,7 @@
 #include <ToolGroups/ToolGroup.h>
 
 // ESPINA
-#include "ResetZoom.h"
-#include "ZoomAreaTool.h"
 #include "RepresentationsGroupTool.h"
-#include "ToggleCrosshairVisibility.h"
 #include <Support/Representations/RepresentationUtils.h>
 
 // Qt
@@ -35,7 +32,7 @@
 
 namespace ESPINA
 {
-  class ExploreToolGroup
+  class VisualizeToolGroup
   : public ToolGroup
   {
     Q_OBJECT
@@ -45,12 +42,12 @@ namespace ESPINA
      * \param[in] viewManager view manager smart pointer.
      * \param[in] parent raw pointer to the QWidget parent of this object.
      */
-    explicit ExploreToolGroup(ViewManagerSPtr viewManager, QWidget *parent = 0);
+    explicit VisualizeToolGroup(QWidget *parent = 0);
 
     /** \brief ViewTools class virtual destructor.
      *
      */
-    virtual ~ExploreToolGroup();
+    virtual ~VisualizeToolGroup();
 
     /** \brief Add render switch to group render group tool
      *
@@ -66,7 +63,6 @@ namespace ESPINA
 
     using RenderGroupTools = QMap<RepresentationGroup, RenderGroupToolSPtr>;
 
-    ToggleCrosshairVisibilitySPtr     m_toggleCrosshair;
     RenderGroupToolSPtr               m_channelsRepGroup;
     RenderGroupToolSPtr               m_segmentationsRepGroup;
     RenderGroupTools                  m_dynamicRepresentationGroups;

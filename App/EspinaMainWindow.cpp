@@ -39,10 +39,12 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Dialogs/CheckAnalysis/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
-#include "ToolGroups/Explore/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
-#include "ToolGroups/Explore/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
+#include "ToolGroups/Visualize/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
+#include "ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
 #include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
+#include "ToolGroups/Explore/ResetZoom.h"
+#include "ToolGroups/Explore/ZoomAreaTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -208,6 +210,9 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
             break;
           case ToolCategory::REFINE:
             m_refineToolGroup->addTool(tool.second);
+            break;
+          case ToolCategory::VISUALIZE:
+            m_visualizeToolGroup->addTool(tool.second);
             break;
           case ToolCategory::ANALYZE:
             m_analyzeToolGroup->addTool(tool.second);
@@ -1268,14 +1273,16 @@ void EspinaMainWindow::createToolbars()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolGroups()
 {
-  m_exploreToolGroup = new ExploreToolGroup(m_viewManager, this);
+  m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
   registerToolGroup(m_exploreToolGroup);
+  m_exploreToolGroup->addTool(std::make_shared<ZoomAreaTool>(m_viewManager));
+  m_exploreToolGroup->addTool(std::make_shared<ResetZoom>(m_viewManager));
 
   m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_model, m_factory, m_viewManager, m_undoStack, this);
   m_viewManager->setROIProvider(m_restrictToolGroup);
   registerToolGroup(m_restrictToolGroup);
 
-  m_segmentateToolGroup = new ToolGroup(QIcon(":/espina/toolgroup_segmentate.svg"), tr("Segmentate"), this);
+  m_segmentateToolGroup = createToolGroup(":/espina/toolgroup_segmentate.svg", tr("Segmentate"));
   registerToolGroup(m_segmentateToolGroup);
   auto sgsTool = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack);
   m_segmentateToolGroup->addTool(sgsTool);
@@ -1283,8 +1290,17 @@ void EspinaMainWindow::createToolGroups()
   m_refineToolGroup = new RefineToolGroup(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   registerToolGroup(m_refineToolGroup);
 
+  m_visualizeToolGroup = new VisualizeToolGroup(this);
+  registerToolGroup(m_visualizeToolGroup);
+
   m_analyzeToolGroup = new AnalyzeToolGroup(m_viewManager, this);
   registerToolGroup(m_analyzeToolGroup);
+}
+
+//------------------------------------------------------------------------
+ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QString &title)
+{
+  return new ToolGroup(QIcon(icon), title, this);
 }
 
 //------------------------------------------------------------------------
@@ -1353,7 +1369,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 
   for (auto repSwitch : representation.Switches)
   {
-    m_exploreToolGroup->addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+    m_visualizeToolGroup->addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
   }
 
   m_view->addRepresentation(representation);

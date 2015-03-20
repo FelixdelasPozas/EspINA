@@ -19,7 +19,7 @@
 
 #include "SegmentationSliceSettings.h"
 
-#include "App/ToolGroups/Explore/Representations/RepresentationSettings.h"
+#include "App/ToolGroups/Visualize/Representations/RepresentationSettings.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Representations;

@@ -19,7 +19,7 @@
  */
 
 // ESPINA
-#include <ToolGroups/Explore/Representations/SegmentationVolumetric/VolumetricManager.h>
+#include <ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h>
 
 namespace ESPINA
 {
