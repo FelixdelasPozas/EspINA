@@ -80,8 +80,9 @@ void RepresentationUpdater::setSettings(const RepresentationState &settings)
 //----------------------------------------------------------------------------
 void RepresentationUpdater::setUpdateList(ViewItemAdapterList sources)
 {
-  m_requestedSources = sources;
+  QMutexLocker lock(&m_mutex);
 
+  m_requestedSources = sources;
   m_updateList = &m_requestedSources;
 }
 
@@ -149,8 +150,16 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 void RepresentationUpdater::run()
 {
   //qDebug() << "Task" << description() << "running" << " - " << this;
-  auto it = m_updateList->begin();
-  while (canExecute() && it != m_updateList->end())
+
+  // Local copy needed to prevent condition race on same TimeStamp
+  // (usually due to invalidation view item representations)
+  m_mutex.lock();
+  auto updateList = *m_updateList;
+  m_updateList    = &m_sources;
+  m_mutex.unlock();
+
+  auto it = updateList.begin();
+  while (canExecute() && it != updateList.end())
   {
     auto  item     = *it;
     auto  pipeline = sourcePipeline(item);
@@ -163,7 +172,6 @@ void RepresentationUpdater::run()
     ++it;
   }
 
-  m_updateList = &m_sources;
 
   if (hasValidTimeStamp() && canExecute())
   {

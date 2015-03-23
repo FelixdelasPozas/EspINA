@@ -20,7 +20,8 @@
 #ifndef ESPINA_PIPELINE_SOURCES_FILTER_H
 #define ESPINA_PIPELINE_SOURCES_FILTER_H
 
-#include <GUI/Model/ViewItemAdapter.h>
+#include "PipelineSources.h"
+
 #include <GUI/Model/ModelAdapter.h>
 
 namespace ESPINA
@@ -31,7 +32,7 @@ namespace ESPINA
    *
    */
   class PipelineSourcesFilter
-  : public QObject
+  : public PipelineSources
   {
     Q_OBJECT
 
@@ -40,19 +41,7 @@ namespace ESPINA
 
     virtual ~PipelineSourcesFilter();
 
-    ViewItemAdapterList sources() const;
-
-    bool isEmpty() const
-    { return m_sources.isEmpty(); }
-
-    int size() const
-    { return m_sources.size(); }
-
-  signals:
-    void sourcesAdded  (ViewItemAdapterList sources, TimeStamp t);
-    void sourcesRemoved(ViewItemAdapterList sources, TimeStamp t);
-    void representationsModified(ViewItemAdapterList sources, TimeStamp t);
-    void updateTimeStamp(TimeStamp t);
+    void setSelectedSources(ViewItemAdapterSList sources);
 
   private slots:
     void onSourcesAdded  (ViewItemAdapterSList sources,  TimeStamp t);
@@ -61,12 +50,6 @@ namespace ESPINA
     void onReset(TimeStamp t);
 
   private:
-    inline void insert(ViewItemAdapterList sources);
-
-    inline bool contains(ViewItemAdapterPtr source) const;
-
-    inline void remove(ViewItemAdapterList sources);
-
     ViewItemAdapterList filter(ViewItemAdapterSList sources);
 
     inline bool acceptedType(ViewItemAdapterSPtr source) const;
@@ -77,7 +60,6 @@ namespace ESPINA
     ModelAdapterSPtr    m_model;
     ItemAdapter::Type   m_type;
 
-    ViewItemAdapterList m_sources;
     ViewItemAdapterList m_selectedSources;
   };
 }

@@ -16,6 +16,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
   Representations/PipelineSourcesFilter.h
+  Representations/PipelineSources.h
   Representations/RepresentationManager.h
   Representations/ActorManager.h
   Representations/RepresentationPool.h
@@ -23,9 +24,6 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
-#   Selectors/BrushSelector.h
-#   Selectors/CircularBrushSelector.h
-#   Selectors/SphericalBrushSelector.h
   Utils/Timer.h
   View/EventHandler.h
   EventHandlers/PointTracker.h
@@ -107,6 +105,8 @@ set (GUI_SOURCES
   Representations/BufferedRepresentationPool.cpp
   Representations/ChannelPipeline.cpp
   Representations/PipelineSourcesFilter.cpp
+  Representations/PipelineSources.cpp
+  Representations/ManualPipelineSources.cpp
   Representations/RepresentationManager.cpp
   Representations/ActorManager.cpp
   Representations/WidgetManager.cpp
@@ -119,9 +119,6 @@ set (GUI_SOURCES
   Representations/SegmentationPipeline.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
-#   Selectors/BrushSelector.cpp
-#   Selectors/CircularBrushSelector.cpp
-#   Selectors/SphericalBrushSelector.cpp
   Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
   Utils/Timer.cpp

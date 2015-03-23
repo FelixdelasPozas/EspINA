@@ -169,6 +169,9 @@ namespace ESPINA {
 
   ViewItemAdapterPtr EspinaGUI_EXPORT viewItemAdapter(ItemAdapterPtr item);
 
+  ViewItemAdapterList EspinaGUI_EXPORT toViewItemList(ItemAdapterPtr item);
+
+
 } // namespace ESPINA
 
 #endif // ESPINA_VIEW_ITEM_ADAPTER_H

@@ -121,7 +121,7 @@ TimeStamp RenderView::timeStamp() const
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::setChannelSources(PipelineSourcesFilter *channels)
+void RenderView::setChannelSources(PipelineSources *channels)
 {
   if (m_channelSources)
   {
@@ -301,6 +301,12 @@ void RenderView::takeSnapshot()
 //
 //   return 1.0 / numVisibleRep;
 // }
+
+//-----------------------------------------------------------------------------
+void RenderView::render()
+{
+  onRenderRequest();
+}
 
 //-----------------------------------------------------------------------------
 void RenderView::resetSceneBounds()

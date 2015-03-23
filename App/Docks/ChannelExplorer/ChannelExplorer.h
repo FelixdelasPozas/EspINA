@@ -62,15 +62,12 @@ namespace ESPINA
     virtual ~ChannelExplorer();
 
   public slots:
-    /** \brief Implements DockWidget::reset().
-     *
-     */
     virtual void reset();
 
   protected slots:
 
-  	/******************************************************/
-  	/* TODO: TILING/UNLOAD CHANNEL PENDING IMPLEMENTATION */
+    /******************************************************/
+    /* TODO: TILING/UNLOAD CHANNEL PENDING IMPLEMENTATION */
     void channelSelected();
     void alignLeft();
     void alignCenter();
@@ -82,32 +79,18 @@ namespace ESPINA
     void focusOnChannel();
     void updateTooltips(int index);
     void activateChannel();
-  	/******************************************************/
+    /******************************************************/
 
     /** \brief Opens a channel inspector dialog.
      *
      */
     void showInformation();
 
-    /** \brief Deletes the closed dialog from the opened dialog lists and updates representations.
-     * \param[in] object, raw pointer of the closed dialog.
-     *
-     */
-    void dialogClosed(QObject *);
-
-    /** \brief Resets the views.
-     *
-     */
-    void inspectorChangedSpacing();
-
     /** \brief Changes the sample association of a channel that has been dragged onto a sample.
      *
      */
     void channelsDragged(ChannelAdapterList channel, SampleAdapterPtr sample);
 
-    /** \brief Overrides QWidget::contextMenuEvent();
-     *
-     */
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
@@ -120,7 +103,6 @@ namespace ESPINA
     std::shared_ptr<QSortFilterProxyModel> m_sort;
 
     CentralWidget *m_gui;
-    QMap<ChannelAdapterPtr, ChannelInspector *> m_informationDialogs;
   };
 
 } // namespace ESPINA

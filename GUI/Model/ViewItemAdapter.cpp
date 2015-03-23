@@ -85,5 +85,15 @@ void ViewItemAdapter::onOutputModified()
 //------------------------------------------------------------------------
 ViewItemAdapterPtr ESPINA::viewItemAdapter(ItemAdapterPtr item)
 {
-  return static_cast<ViewItemAdapterPtr>(item);
+  return dynamic_cast<ViewItemAdapterPtr>(item);
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterList ESPINA::toViewItemList(ItemAdapterPtr item)
+{
+  ViewItemAdapterList list;
+
+  list << viewItemAdapter(item);
+
+  return list;
 }

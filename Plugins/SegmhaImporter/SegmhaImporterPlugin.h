@@ -70,7 +70,7 @@ namespace ESPINA
     virtual NamedColorEngineSList colorEngines() const;
 
     virtual RepresentationFactorySList representationFactories() const;
-    
+
     virtual QList<CategorizedTool> tools() const;
 
     virtual QList<DockWidget *> dockWidgets() const;
@@ -85,9 +85,6 @@ namespace ESPINA
     ModelFactorySPtr m_factory;
     SchedulerSPtr    m_scheduler;
     QUndoStack*      m_undoStack;
-
-    SegmhaReaderSPtr  m_reader;
-    FilterFactorySPtr m_filterFactory;
   };
 } // namespace ESPINA
 

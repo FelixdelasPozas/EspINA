@@ -54,7 +54,7 @@ RepresentationPool::~RepresentationPool()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
+void RepresentationPool::setPipelineSources(PipelineSources *sources)
 {
   if (m_sources)
   {
@@ -66,6 +66,8 @@ void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
                this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
     disconnect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
                this,      SLOT(onTimeStampUpdated(TimeStamp)));
+
+    onSourcesRemoved(m_sources->sources(), m_requestedTimeStamp);
   }
 
   m_sources = sources;
@@ -80,6 +82,8 @@ void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
             this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
     connect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
             this,      SLOT(onTimeStampUpdated(TimeStamp)));
+
+    onSourcesAdded(m_sources->sources(), m_requestedTimeStamp);
   }
 }
 
@@ -253,9 +257,9 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
     invalidateRepresentations(ViewItemAdapterList(), t);
   }
 
-  m_sourcesCount -= sources.size();
+  Q_ASSERT(m_sourcesCount - sources.size() >= 0);
 
-  Q_ASSERT(m_sourcesCount >= 0);
+  m_sourcesCount -= sources.size();
 }
 
 //-----------------------------------------------------------------------------
