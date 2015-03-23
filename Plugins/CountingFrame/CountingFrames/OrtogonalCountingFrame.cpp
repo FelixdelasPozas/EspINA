@@ -55,45 +55,6 @@ OrtogonalCountingFrame::~OrtogonalCountingFrame()
 {
 }
 
-// //-----------------------------------------------------------------------------
-// void OrtogonalCountingFrame::unregisterView(RenderView *view)
-// {
-//   View3D *view3d = dynamic_cast<View3D *>(view);
-//   if(view3d)
-//   {
-//     if(!m_widgets3D.keys().contains(view3d))
-//       return;
-//
-//     m_widgets3D[view3d]->SetEnabled(false);
-//     view3d->mainRenderer()->RemoveActor(m_widgets3D[view3d]->GetRepresentation());
-//     m_widgets3D[view3d]->SetCurrentRenderer(nullptr);
-//     m_widgets3D[view3d]->SetInteractor(nullptr);
-//     m_widgets3D[view3d]->Delete();
-//
-//     m_widgets3D.remove(view3d);
-//   }
-//   else
-//   {
-//     View2D *view2d = dynamic_cast<View2D *>(view);
-//     if(view2d)
-//     {
-//       if(!m_widgets2D.keys().contains(view2d))
-//         return;
-//
-//       m_widgets2D[view2d]->SetEnabled(false);
-//       view2d->mainRenderer()->RemoveActor(m_widgets2D[view2d]->GetRepresentation());
-//       m_widgets2D[view2d]->RemoveObserver(m_command);
-//       m_widgets2D[view2d]->SetCurrentRenderer(nullptr);
-//       m_widgets2D[view2d]->SetInteractor(nullptr);
-//       m_widgets2D[view2d]->Delete();
-//
-//       m_widgets2D.remove(view2d);
-//
-//       disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
-//     }
-//   }
-// }
-
 //-----------------------------------------------------------------------------
 void OrtogonalCountingFrame::updateCountingFrameImplementation()
 {
