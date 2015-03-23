@@ -20,10 +20,8 @@
 
 // ESPINA
 #include "ViewManager.h"
-#include "Widgets/ToolGroup.h"
 #include <Core/Utils/Measure.h>
 #include <GUI/View/RenderView.h>
-#include <App/ToolGroups/View/ViewToolGroup.h>
 
 // VTK
 #include <vtkMath.h>
@@ -43,8 +41,6 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 ViewManager::ViewManager()
 : m_selection        {new Selection()}
 , m_roiProvider      {nullptr}
-, m_contextualToolBar{nullptr}
-, m_toolGroup        {nullptr}
 , m_eventHandler     {nullptr}
 , m_viewResolution   {1., 1., 1.}
 , m_resolutionUnits  {QString("nm")}
@@ -163,44 +159,6 @@ void ViewManager::setSelection(ViewItemAdapterList selection)
   m_selection->set(selection);
 
   emit selectionChanged(m_selection);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::displayTools(ToolGroupPtr group)
-{
-  if (m_toolGroup)
-  {
-    m_toolGroup->showTools(false);
-  }
-
-  hideTools(m_toolGroup);
-
-  m_toolGroup = group;
-
-  if (m_contextualToolBar)
-  {
-    for(auto tool : group->tools())
-    {
-      for(auto action : tool->actions())
-      {
-        m_contextualToolBar->addAction(action);
-      }
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::hideTools(ToolGroupPtr group)
-{
-  if (m_toolGroup == group)
-  {
-    m_toolGroup = nullptr;
-
-    if (m_contextualToolBar)
-    {
-      m_contextualToolBar->clear();
-    }
-  }
 }
 
 //----------------------------------------------------------------------------

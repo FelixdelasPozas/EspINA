@@ -146,7 +146,6 @@ namespace ESPINA
     QAction     *m_showRuler, *m_showThumbnail;
 
     RenderersMenu      *m_renderersMenu;
-    CamerasMenu        *m_camerasMenu;
   };
 
 

@@ -183,25 +183,6 @@ namespace ESPINA
     /************************* Tool Group API ********************************/
     //---------------------------------------------------------------------------
   public:
-    /** \brief Sets the contextual tool bar.
-     * \param[in] toolbar QToolBar raw pointer.
-     *
-     */
-    void setContextualBar(QToolBar *toolbar)
-    { m_contextualToolBar = toolbar; }
-
-    /** \brief Shows the tools of the specified tool group.
-     * \param[in] group ToolGroup smart pointer.
-     *
-     */
-    void displayTools(ToolGroupPtr group);
-
-    /** \brief Hides the tools of the specified tool group.
-     * \param[in] group ToolGroup smart pointer.
-     *
-     */
-    void hideTools(ToolGroupPtr group);
-
     /** \brief Sets the event handler as the active one.
      * \param[in] eventHandler event handler smart pointer.
      *
@@ -250,8 +231,6 @@ namespace ESPINA
 
   private:
     ROIProviderPtr   m_roiProvider;
-    QToolBar        *m_contextualToolBar;
-    ToolGroupPtr     m_toolGroup;
     EventHandlerSPtr m_eventHandler;
 
     //---------------------------------------------------------------------------

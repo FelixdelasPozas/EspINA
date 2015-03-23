@@ -22,6 +22,7 @@
 
 #include <GUI/Representations/RepresentationState.h>
 #include <GUI/Representations/RepresentationPool.h>
+#include <Support/Representations/RepresentationFactory.h>
 
 namespace ESPINA
 {
@@ -39,6 +40,18 @@ namespace ESPINA
 
     void setSegmentationDepth(RepresentationPoolSPtr pool, const Nm depth);
   }
-}
+
+  namespace Support
+  {
+    namespace Representations
+    {
+      namespace Utils
+      {
+        const RepresentationGroup CHANNELS_GROUP      = "Channel";
+        const RepresentationGroup SEGMENTATIONS_GROUP = "Segmentation";
+      }
+    }
+  } // namespace Support
+} // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_UTILS_H

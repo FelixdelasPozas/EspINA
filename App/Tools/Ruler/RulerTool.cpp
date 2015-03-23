@@ -44,7 +44,8 @@ namespace ESPINA
   , m_selection  {new Selection()}
   {
     m_action->setCheckable(true);
-    connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
+    connect(m_action, SIGNAL(triggered(bool)),
+            this,     SLOT(initTool(bool)));
   }
 
   //----------------------------------------------------------------------------
@@ -62,7 +63,7 @@ namespace ESPINA
   {
     if (value)
     {
-      m_widget = EspinaWidgetSPtr(new RulerWidget());
+      m_widget = std::make_shared<RulerWidget>();
       m_viewManager->addWidget(m_widget);
       connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
               this,                             SLOT(selectionChanged()));
@@ -165,9 +166,19 @@ namespace ESPINA
   QList<QAction*> RulerTool::actions() const
   {
     QList<QAction *> actionList;
+
     actionList << m_action;
 
     return actionList;
+  }
+
+  //----------------------------------------------------------------------------
+  void RulerTool::abortOperation()
+  {
+    if (m_widget)
+    {
+      initTool(false);
+    }
   }
 
   //----------------------------------------------------------------------------
@@ -180,7 +191,6 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   void RulerTool::onToolEnabled(bool enabled)
   {
-
   }
 
 
