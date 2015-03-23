@@ -134,13 +134,13 @@ bool RepresentationPool::hasSources() const
 //-----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t)
 {
-  return m_validActors.representation(t, RepresentationPipeline::Actors());
+  return m_validActors.value(t, RepresentationPipeline::Actors());
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::invalidatePreviousActors(TimeStamp t)
 {
-  m_validActors.invalidatePreviouesRepresentations(t);
+  m_validActors.invalidatePreviousValues(t);
 }
 
 //-----------------------------------------------------------------------------
@@ -198,13 +198,13 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
   {
     if (actorsChanged())
     {
-      m_validActors.addRepresentation(actors, t);
+      m_validActors.addValue(actors, t);
 
       emit actorsReady(t);
     }
     else
     {
-      m_validActors.usePreviousRepresentation(t);
+      m_validActors.reusePreviousValue(t);
     }
 
     emit poolUpdated(t);
@@ -269,7 +269,7 @@ void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, T
 //-----------------------------------------------------------------------------
 void RepresentationPool::onTimeStampUpdated(TimeStamp t)
 {
-  m_validActors.usePreviousRepresentation(t);
+  m_validActors.reusePreviousValue(t);
 }
 
 //-----------------------------------------------------------------------------

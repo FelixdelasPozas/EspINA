@@ -373,23 +373,33 @@ void Panel::reset()
 //------------------------------------------------------------------------
 void Panel::deleteCountingFrame(CountingFrame *cf)
 {
-  if (cf == m_activeCF) m_activeCF = nullptr;
+  if (cf == m_activeCF)
+  {
+    m_activeCF = nullptr;
+  }
 
-  // TODO
-//   PendingCF toDelete;
-//
-//   for(auto pendingCF : m_pendingCFs)
-//   {
-//     if (pendingCF.CF == cf)
-//     {
-//       pendingCF.Task->abort();
-//       toDelete = pendingCF;
-//       break;
-//     }
-//   }
-//   m_pendingCFs.removeOne(toDelete);
+  int i = 0;
+
+  while (i < m_pendingCFs.size())
+  {
+    auto pendingCF = m_pendingCFs[i];
+
+    if (pendingCF.CF == cf)
+    {
+      pendingCF.Task->abort();
+
+      m_pendingCFs.at(i);
+
+      i = m_pendingCFs.size();
+    }
+  }
 
   m_countingFrames.removeOne(cf);
+
+  disconnect(cf,   SIGNAL(modified(CountingFrame*)),
+             this, SLOT(showInfo(CountingFrame*)));
+  disconnect(cf,   SIGNAL(applied(CountingFrame*)),
+             this, SLOT(onCountingFrameApplied(CountingFrame*)));
 
   cf->deleteFromExtension();
 
@@ -662,8 +672,6 @@ void Panel::showInfo(CountingFrame* activeCF)
   {
     cf->setHighlighted(cf == activeCF);
   }
-
-  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------
@@ -914,6 +922,8 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 {
   connect(cf,   SIGNAL(modified(CountingFrame*)),
           this, SLOT(showInfo(CountingFrame*)));
+  connect(cf,   SIGNAL(applied(CountingFrame*)),
+          this, SLOT(onCountingFrameApplied(CountingFrame*)));
 
   cf->apply();
 
@@ -926,6 +936,14 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
   m_activeCF = cf; // To make applyCategoryConstraint work
 
   updateUI(m_cfModel->index(m_cfModel->rowCount() - 1, 0));
+}
+
+//------------------------------------------------------------------------
+void Panel::onCountingFrameApplied(CountingFrame *cf)
+{
+  auto segmentations = toViewItemList(m_model->segmentations());
+
+  m_model->notifyRepresentationsModified(segmentations);
 }
 
 //------------------------------------------------------------------------
@@ -998,5 +1016,7 @@ void Panel::applyCountingFrames(SegmentationAdapterSList segmentations)
 void Panel::deleteCountingFrames()
 {
   for(auto cf: m_countingFrames)
+  {
     deleteCountingFrame(cf);
+  }
 }

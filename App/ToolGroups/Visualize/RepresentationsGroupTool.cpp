@@ -80,13 +80,9 @@ void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr 
 {
   m_contentWidget->layout()->addWidget(representationSwitch->widget());
 
+  changeSwitchStatus(representationSwitch, m_representationsVisibility);
+
   m_switches << representationSwitch;
-}
-
-//----------------------------------------------------------------------------
-void RepresentationsGroupTool::showRepresentationSwitchs(ViewTypeFlags views)
-{
-
 }
 
 //----------------------------------------------------------------------------
@@ -102,23 +98,29 @@ void RepresentationsGroupTool::onToolEnabled(bool enabled)
 }
 
 //----------------------------------------------------------------------------
+void RepresentationsGroupTool::changeSwitchStatus(RepresentationSwitchSPtr representationSwitch, bool showRepresentations)
+{
+  if (representationSwitch->isActive())
+  {
+    if (showRepresentations)
+    {
+      representationSwitch->showRepresentations();
+    }
+    else
+    {
+      representationSwitch->hideRepresentations();
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
 void RepresentationsGroupTool::setActiveRepresentationsVisibility(bool value)
 {
   if (m_representationsVisibility != value)
   {
     for (auto repSwitch : m_switches)
     {
-      if (repSwitch->isActive())
-      {
-        if (value)
-        {
-          repSwitch->showRepresentations();
-        }
-        else
-        {
-          repSwitch->hideRepresentations();
-        }
-      }
+      changeSwitchStatus(repSwitch, value);
     }
     m_content->setVisible(value);
 

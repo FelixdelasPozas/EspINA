@@ -3,7 +3,7 @@ project (COUNTING_REGION_PLUGIN)
 # Version Number
 set (PLUGIN_VERSION_MAJOR 2)
 set (PLUGIN_VERSION_MINOR 0)
-set (PLUGIN_VERSION_PATCH 0)
+set (PLUGIN_VERSION_PATCH 1)
 
 include (GenerateExportHeader)
 
@@ -42,14 +42,13 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS
   CountingFrameManager.h
   CountingFramePlugin.h
-#   CountingFrameRenderer2D.h
-#   CountingFrameRenderer3D.h
   CountingFrames/CountingFrame.h
   Dialogs/CFTypeSelectorDialog.h
   Extensions/CountingFrameExtension.h
   Extensions/StereologicalInclusion.h
   Panel.h
   Representations/RepresentationManager2D.h
+  Representations/RepresentationManager3D.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -57,8 +56,6 @@ set (LOCAL_SOURCES
   ColorEngines/CountingFrameColorEngine.cpp
   CountingFrameManager.cpp
   CountingFramePlugin.cpp
-#   CountingFrameRenderer2D.cpp
-#   CountingFrameRenderer3D.cpp
   CountingFrames/AdaptiveCountingFrame.cpp
   CountingFrames/CountingFrame.cpp
   CountingFrames/OrtogonalCountingFrame.cpp
@@ -75,6 +72,7 @@ set (LOCAL_SOURCES
   Extensions/StereologicalInclusion.cpp
   Representations/RepresentationFactory.cpp
   Representations/RepresentationManager2D.cpp
+  Representations/RepresentationManager3D.cpp
   Tasks/ApplyCountingFrame.cpp
   Panel.cpp
   )

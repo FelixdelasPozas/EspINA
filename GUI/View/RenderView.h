@@ -65,6 +65,8 @@ namespace ESPINA
 
     void setState(ViewStateSPtr state);
 
+    TimeStamp timeStamp() const;
+
     /** \brief Sets the view event handler.
      * \param[in] eventHandler, event handler smart pointer.
      *

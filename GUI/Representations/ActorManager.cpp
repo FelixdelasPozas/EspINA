@@ -40,53 +40,35 @@ void ActorManager::display(TimeStamp time)
 
     m_viewActors.clear();
 
-    if (m_showRepresentations)
+    if (representationsShown())
     {
       displayActors(time);
     }
 
     invalidatePreviousActors(time);
 
-    m_requiresRender = m_showRepresentations && hasSources();
+    updateRenderRequestValue();
   }
 }
 
 //-----------------------------------------------------------------------------
 void ActorManager::onShow()
 {
-  enableRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void ActorManager::onHide()
-{
-  disableRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void ActorManager::enableRepresentations()
-{
-  m_requiresRender = hasSources();
+  updateRenderRequestValue();
 
   connectPools();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::disableRepresentations()
+void ActorManager::onHide()
 {
   disconnectPools();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::removeCurrentActors()
+void ActorManager::updateRenderRequestValue()
 {
-  for (auto itemActors : m_viewActors)
-  {
-    for (auto actor : itemActors)
-    {
-      m_view->removeActor(actor);
-    }
-  }
+  setRenderRequired(representationsShown() && hasSources());
 }
 
 //-----------------------------------------------------------------------------
@@ -100,6 +82,18 @@ void ActorManager::displayActors(const TimeStamp time)
     {
       m_view->addActor(actor);
       m_viewActors[it.key()] << actor;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ActorManager::removeCurrentActors()
+{
+  for (auto itemActors : m_viewActors)
+  {
+    for (auto actor : itemActors)
+    {
+      m_view->removeActor(actor);
     }
   }
 }

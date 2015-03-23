@@ -29,7 +29,7 @@ BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr m
 : m_manager(manager)
 , m_flags(supportedViews)
 {
-  setActive(m_manager->isActive());
+  setActive(m_manager->representationsVisibility());
 }
 
 //----------------------------------------------------------------------------

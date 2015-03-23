@@ -166,9 +166,6 @@ namespace ESPINA
   RepresentationManagerSPtr VolumetricManager::cloneImplementation()
   {
     auto clone = std::make_shared<VolumetricManager>();
-    clone->m_name          = m_name;
-    clone->m_description   = m_description;
-    clone->m_showRepresentations = m_showRepresentations;
 
     for(auto pool: managedPools())
     {

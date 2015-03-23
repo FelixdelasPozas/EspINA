@@ -79,6 +79,8 @@ namespace ESPINA
 
     void onCountingFrameCreated(CountingFrame *cf);
 
+    void onCountingFrameApplied(CountingFrame *cf);
+
     void onSegmentationsAdded(ViewItemAdapterSList items);
 
     void createCountingFrame();

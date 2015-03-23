@@ -247,8 +247,7 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
   for (int number = 0; number < NumSlices; number++)
   {
     this->Region->GetPoints()->GetPoint(4*number, point);
-//     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
-//     if (point[Plane] <= pos && pos < next[Plane])
+
     if (pos <= point[2])
       return (NumSlices == 2 || number == 0)?number : number - 1;
   }
@@ -256,43 +255,11 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
   return NumSlices-1;
 }
 
-// double slope(double p1[2], double p2[2])
-// {
-//   return (p2[1] - p1[1])/(p2[0] - p1[0]);
-// }
-// double interpolate(double p1[2], double p2[2], double x)
-// {
-//   double m = slope(p1, p2);
-//   return m*x + p1[1] - m*p1[0];
-// }
-// 
-// void intersection(double A1[2], double A2[2], double B1[2], double B2[2], double p[2])
-// {
-//   double mA = slope(A1, A2);
-//   double bA = A1[1] / (A1[0]*mA);
-//   double mB = slope(B1, B2);
-//   double bB = B1[1] / (B1[0]*mB);
-//   p[0] = (bB - bA)/(mA - mB);
-//   p[1] = mA*A1[0] + bA;
-// }
-
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::SetSlice(ESPINA::Nm pos)
 {
   Slice = pos;
-//   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
-//   if (pos < InclusionOffset[Plane])// || NumSlices <= Slice)
-//   {
-//     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
-//       this->EdgeActor[i]->SetProperty(InvisibleProperty);
-//     return;
-//   } else
-//   {
-//     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
-//       this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
-//     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
-//       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
-//   }
+
   CreateRegion();
 }
 

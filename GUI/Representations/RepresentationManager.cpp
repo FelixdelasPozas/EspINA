@@ -27,9 +27,9 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
-: m_showRepresentations{false}
+: m_view{nullptr}
+, m_showRepresentations{false}
 , m_requiresRender{false}
-, m_view{nullptr}
 , m_supportedViews{supportedViews}
 , m_lastRequestTime{1}
 , m_lastRenderRequestTime{0}
@@ -81,6 +81,8 @@ void RepresentationManager::setView(RenderView *view)
   {
     onShow();
 
+    m_lastRequestTime = m_view->timeStamp();
+
     setCrosshair(m_crosshair, m_lastRequestTime);
 
     emit renderRequested();
@@ -101,6 +103,8 @@ void RepresentationManager::show()
   {
     onShow();
 
+    m_lastRequestTime = m_view->timeStamp();
+   
     setCrosshair(m_crosshair, m_lastRequestTime);
 
     emit renderRequested();
@@ -119,16 +123,16 @@ void RepresentationManager::hide()
 
   if (m_view)
   {
-    emit renderRequested();
-
     onHide();
+
+    emit renderRequested();
   }
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::isActive()
 {
-  return m_showRepresentations;
+  return m_showRepresentations && m_view;
 }
 
 //-----------------------------------------------------------------------------
@@ -147,6 +151,10 @@ void RepresentationManager::addPool(RepresentationPoolSPtr pool)
 RepresentationManagerSPtr RepresentationManager::clone()
 {
   auto child = cloneImplementation();
+
+  child->m_name                = m_name;
+  child->m_description         = m_description;
+  child->m_showRepresentations = m_showRepresentations;
 
   m_childs << child;
 
@@ -185,6 +193,18 @@ void RepresentationManager::setRepresentationsVisibility(bool value)
 RepresentationPoolSList RepresentationManager::managedPools() const
 {
   return m_pools;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::setRenderRequired(bool value)
+{
+  m_requiresRender = value;
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::representationsShown() const
+{
+  return m_showRepresentations;
 }
 
 //-----------------------------------------------------------------------------

@@ -70,9 +70,6 @@ namespace ESPINA
                                                          Nm back);
 
   private:
-    virtual vtkCountingFrameSliceWidget *createSliceWidgetImplementation(View2D *view);
-
-  private:
     Bounds m_bounds;
 
     friend class vtkCountingFrameCommand;
