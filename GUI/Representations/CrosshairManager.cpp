@@ -38,6 +38,8 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   CrosshairManager::CrosshairManager()
   : RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D}
+  , m_init               {false}
+  , m_actorsInUse        {false}
   {
     double colors[3][3]{ { 0, 1, 1 }, { 0, 0, 1 },  { 1, 0, 1 } };
 
@@ -87,24 +89,39 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CrosshairManager::display(TimeStamp time)
   {
+    bool requiresRender = (m_showRepresentations && !m_actorsInUse) || (!m_showRepresentations && m_actorsInUse);
+
     if (m_showRepresentations)
     {
-      for(auto i: {0,1,2})
+      if(m_view->crosshair() != m_crosshair || !m_init)
       {
-        m_view->addActor(m_actors[i]);
+        setCrosshair(m_view->crosshair(), time);
       }
 
-      setCrosshair(m_view->crosshair(), time);
+      if (!m_actorsInUse)
+      {
+        for (auto i : { 0, 1, 2 })
+        {
+          m_view->addActor(m_actors[i]);
+        }
+
+        m_actorsInUse = true;
+      }
     }
     else
     {
-      for(auto i: {0,1,2})
+      if (m_actorsInUse)
       {
-        m_view->removeActor(m_actors[i]);
+        for (auto i : { 0, 1, 2 })
+        {
+          m_view->removeActor(m_actors[i]);
+        }
+
+        m_actorsInUse = false;
       }
     }
 
-    m_requiresRender = m_showRepresentations;
+    m_requiresRender |= requiresRender;
   }
 
   //-----------------------------------------------------------------------------
@@ -116,6 +133,10 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CrosshairManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
   {
+    if(crosshair == m_crosshair && m_init) return;
+
+    m_init = true;
+
     if(m_view)
     {
       if(view3D_cast(m_view))
@@ -134,7 +155,6 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CrosshairManager::onShow()
   {
-    m_requiresRender = true;
   }
 
   //-----------------------------------------------------------------------------

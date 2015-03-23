@@ -18,8 +18,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_POOLESS_MANAGER_H_
-#define ESPINA_POOLESS_MANAGER_H_
+#ifndef ESPINA_CROSSHAIR_MANAGER_H_
+#define ESPINA_CROSSHAIR_MANAGER_H_
 
 // ESPINA
 #include <GUI/Representations/RepresentationManager.h>
@@ -90,6 +90,9 @@ namespace ESPINA
       void setPointInternal(int index, double *point1, double *point2);
 
     private:
+      bool                               m_init;
+      bool                               m_actorsInUse;
+      NmVector3                          m_crosshair;
       vtkSmartPointer<vtkPoints>         m_points[3];
       vtkSmartPointer<vtkCellArray>      m_cells[3];
       vtkSmartPointer<vtkPolyData>       m_datas[3];
@@ -99,4 +102,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif // GUI_REPRESENTATIONS_POOLESSMANAGER_H_
+#endif // ESPINA_CROSSHAIR_MANAGER_H_
