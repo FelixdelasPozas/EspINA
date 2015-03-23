@@ -57,31 +57,6 @@ AdaptiveCountingFrame::~AdaptiveCountingFrame()
 {
 }
 
-//-----------------------------------------------------------------------------
-// void AdaptiveCountingFrame::registerView(RenderView *view)
-// {
-//   QMutexLocker lock(&m_widgetMutex);
-//
-//   View3D *view3d = dynamic_cast<View3D *>(view);
-//   if (view3d)
-//   {
-//     if (m_widgets3D.keys().contains(view3d))
-//       return;
-//
-//     QReadLocker lockMargins(&m_marginsMutex);
-//     auto wa = CountingFrame3DWidgetAdapter::New();
-//     wa->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
-//     wa->SetCurrentRenderer(view->mainRenderer());
-//     wa->SetInteractor(view3d->renderWindow()->GetInteractor());
-//     wa->SetEnabled(true);
-//
-//     m_widgets3D[view3d] = wa;
-//   }
-//   else
-//   {
-//   }
-// }
-
 // //-----------------------------------------------------------------------------
 // void AdaptiveCountingFrame::unregisterView(RenderView *view)
 // {
@@ -301,22 +276,4 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   data->GetScalars()->SetName("Type");
 
   //qDebug() << "CountingFrame Implementation Updated";
-}
-
-//-----------------------------------------------------------------------------
-vtkCountingFrameSliceWidget *AdaptiveCountingFrame::createSliceWidgetImplementation(View2D *view)
-{
-  QReadLocker lockMargins(&m_marginsMutex);
-
-  auto wa = CountingFrame2DWidgetAdapter::New();
-
-  wa->AddObserver(vtkCommand::EndInteractionEvent, m_command);
-  wa->SetPlane(view->plane());
-  wa->SetSlicingStep(view->slicingStep());
-  wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
-  wa->SetCurrentRenderer(view->mainRenderer());
-  wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
-  wa->SetEnabled(true);
-
-  return wa;
 }

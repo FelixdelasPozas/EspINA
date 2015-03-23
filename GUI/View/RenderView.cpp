@@ -63,8 +63,6 @@ RenderView::RenderView(ViewType type, QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
-  // subclasses of this one should take care of removing elements
-  // (channels, segmentations, widgets and renderers).
   delete m_view;
 }
 
@@ -551,13 +549,11 @@ void RenderView::onRenderRequest()
     }
   }
 
-//   qDebug() << count;
-//   qDebug() << "Ready Managers:" << readyManagers << "Render Requests" << renderRequests;
+  TimeStamp latest       = 0;
+  bool validTimeStamp    = false;
+  bool onlyReadyManagers = readyManagers == renderRequests;
 
-  TimeStamp latest;
-  bool validTimeStamp = false;
-
-  if(readyManagers != renderRequests)
+  if(!onlyReadyManagers)
   {
     for(auto time: count.keys())
     {
@@ -574,7 +570,7 @@ void RenderView::onRenderRequest()
 
   if (renderRequests == 0) return;
 
-  if (validTimeStamp)
+  if (validTimeStamp || onlyReadyManagers)
   {
     for(auto manager: m_managers)
     {

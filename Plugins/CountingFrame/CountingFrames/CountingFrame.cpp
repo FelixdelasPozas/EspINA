@@ -27,6 +27,7 @@
 #include <Core/Utils/VolumeBounds.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
+#include <vtkRenderWindow.h>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
@@ -182,7 +183,15 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
   auto view2D = view2D_cast(view);
   Q_ASSERT(view2D);
 
-  auto widget = createSliceWidgetImplementation(view2D);
+  auto widget = CountingFrame2DWidgetAdapter::New();
+
+  widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+  widget->SetPlane(view2D->plane());
+  widget->SetSlicingStep(view2D->slicingStep());
+  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
+  widget->SetCurrentRenderer(view2D->mainRenderer());
+  widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
+  widget->SetEnabled(true);
 
   m_widgets2D << widget;
 
@@ -190,9 +199,41 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::destroySliceWidget(vtkCountingFrameSliceWidget *widget)
+vtkCountingFrame3DWidget *CountingFrame::createWidget(RenderView *view)
 {
+  QMutexLocker lock(&m_widgetMutex);
 
+  QReadLocker lockMargins(&m_marginsMutex);
+
+  Q_ASSERT(view3D_cast(view));
+
+  auto widget = CountingFrame3DWidgetAdapter::New();
+
+  widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
+  widget->SetCurrentRenderer(view->mainRenderer());
+  widget->SetInteractor(view->renderWindow()->GetInteractor());
+  widget->SetEnabled(true);
+
+  m_widgets3D << widget;
+
+  return widget;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::deleteSliceWidget(vtkCountingFrameSliceWidget *widget)
+{
+  m_widgets2D.removeOne(widget);
+
+  widget->Delete();
+}
+
+
+//-----------------------------------------------------------------------------
+void CountingFrame::deleteWidget(vtkCountingFrame3DWidget *widget)
+{
+  m_widgets3D.removeOne(widget);
+
+  widget->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -206,18 +247,15 @@ void CountingFrame::updateCountingFrame()
   { // We need to unlock m_widgetMutex before emiting the signal
     QMutexLocker lockWidgets(&m_widgetMutex);
     QReadLocker  lockMargins(&m_marginsMutex);
+
+    for(auto widget : m_widgets2D)
     {
-      for(auto wa : m_widgets2D)
-      {
-        wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
-      }
+      widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
     }
 
+    for(auto widget : m_widgets3D)
     {
-      for(vtkCountingFrameWidget *widget : m_widgets3D.values())
-      {
-        widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
-      }
+      widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
     }
   }
 
@@ -283,28 +321,6 @@ vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 
   return cf;
 }
-
-// //-----------------------------------------------------------------------------
-// void CountingFrame::sliceChanged(Plane plane, Nm pos)
-// {
-//   auto view = qobject_cast<View2D *>(sender());
-//   Q_ASSERT(m_widgets2D.keys().contains(view));
-//   m_widgets2D[view]->SetSlice(pos);
-// }
-
-// //-----------------------------------------------------------------------------
-// vtkAbstractWidget *CountingFrame::getWidget(RenderView *view)
-// {
-//   auto view3d = dynamic_cast<View3D *>(view);
-//   if(view3d && m_widgets3D.keys().contains(view3d))
-//     return m_widgets3D[view3d];
-//
-//   auto view2d = dynamic_cast<View2D *>(view);
-//   if(view2d && m_widgets2D.keys().contains(view2d))
-//     return m_widgets2D[view2d];
-//
-//   return nullptr;
-// }
 
 //-----------------------------------------------------------------------------
 void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
