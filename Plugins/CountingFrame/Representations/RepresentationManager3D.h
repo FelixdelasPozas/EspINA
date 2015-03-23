@@ -82,7 +82,7 @@ namespace ESPINA
     private:
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;
-      QMap<CountingFrame *, vtkCountingFrameWidget *> m_widgets;
+      QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;
     };
   }
 }
