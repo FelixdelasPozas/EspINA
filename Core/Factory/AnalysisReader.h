@@ -73,9 +73,9 @@ namespace ESPINA
       virtual ExtensionList supportedFileExtensions() const = 0;
 
       /** \brief Reads an analysis data file.
-       * \param[in] file, analysis data file.
-       * \param[in] factory, core factory smart pointer.
-       * \param[in] hander, error handler smart pointer.
+       * \param[in] file analysis data file.
+       * \param[in] factory core factory smart pointer.
+       * \param[in] hander error handler smart pointer.
        *
        */
       virtual AnalysisSPtr read(const QFileInfo& file,

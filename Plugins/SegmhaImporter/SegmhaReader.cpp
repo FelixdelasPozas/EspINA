@@ -102,6 +102,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 
   qDebug() << "Reading segmentation's meta data from file:";
+
   QList<SegmentationObject> segmentationObjects;
   CategorySList categories;
 
@@ -117,13 +118,13 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
 
     if (infoType == "Object")
     {
-      SegmentationObject seg(line);
-      segmentationObjects << seg;
+      segmentationObjects << SegmentationObject(line);
     }
     else if (infoType == "Segment")
     {
       CategoryObject info(line);
-      CategorySPtr category = classification->createNode(info.name);
+
+      auto category = classification->createNode(info.name);
       category->setColor(info.color);
       categories << category;
     }
@@ -148,9 +149,8 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   analysis->setClassification(classification);
 
   int numSegmentations = segmentationObjects.size();
-  //this->SetSegCategories(segTaxonomies.toUtf8());
   std::cout << "  Total Number of Segmentations: " << numSegmentations << std::endl;
-////   std::cout << "Total Number of Categories: " << taxonomies.split(";").size() << std::endl;
+  //std::cout << "Total Number of Categories: " << categories.size() << std::endl;
 
   //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
@@ -292,29 +292,3 @@ SegmhaReader::CategoryObject::CategoryObject(const QString& line)
 
   color = QColor(r, g, b);
 }
-
-// //-----------------------------------------------------------------------------
-// QString SegmhaImporterReader::serialize() const
-// {
-//   QStringList blockList;
-//   foreach(FilterOutputId outputId, m_outputs.keys())
-//     blockList << QString::number(outputId);
-//
-//   m_args[BLOCKS] = blockList.join(",");
-//   return Filter::serialize();
-// }
-//
-//
-// //-----------------------------------------------------------------------------
-// TaxonomyElementSPtr SegmhaImporterReader::taxonomy(FilterOutputId i)
-// {
-//   return m_taxonomies.value(i, TaxonomyElementSPtr());
-// }
-//
-// //-----------------------------------------------------------------------------
-// void SegmhaImporterReader::initSegmentation(SegmentationSPtr seg, FilterOutputId i)
-// {
-//   seg->setTaxonomy(taxonomy(i));
-//
-//   seg->setNumber(m_labels.value(i,-1));
-// }

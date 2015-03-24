@@ -313,7 +313,13 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
       }
       case VertexType::CHANNEL:
       {
-        vertex = createChannel(roVertex);
+        try
+        {
+          vertex = createChannel(roVertex);
+        } catch (...)
+        {
+          qDebug() << "Failed to create Channel: " << roVertex->uuid() << roVertex->name() << roVertex->state();
+        }
         break;
       }
       case VertexType::FILTER:

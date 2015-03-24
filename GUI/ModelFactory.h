@@ -63,10 +63,10 @@ namespace ESPINA
     ~ModelFactory();
 
     /** \brief Registers an analysis reader in the factory.
-     * \param[in] reader analysis reader raw pointer.
+     * \param[in] reader to be registered
      *
      */
-    void registerAnalysisReader(AnalysisReaderPtr reader);
+    void registerAnalysisReader(AnalysisReaderSPtr reader);
 
     /** \brief Registers a filter factory in the factory.
      * \param[in] factory filter factory smart pointer.
@@ -106,7 +106,7 @@ namespace ESPINA
      * \param[in] file QFileInfo object.
      *
      */
-    AnalysisReaderList readers(const QFileInfo& file);
+    AnalysisReaderSList readers(const QFileInfo& file);
 
     /** \brief Reads a data file and returns an analysis.
      * \param[in] reader analysis reader raw pointer.
@@ -114,7 +114,7 @@ namespace ESPINA
      * \param[in] handler smart pointer of the error handler to use.
      *
      */
-    AnalysisSPtr read(AnalysisReaderPtr reader, const QFileInfo& file, ErrorHandlerSPtr handler = ErrorHandlerSPtr())
+    AnalysisSPtr read(AnalysisReaderSPtr reader, const QFileInfo& file, ErrorHandlerSPtr handler = ErrorHandlerSPtr())
     { return reader->read(file, m_factory, handler); }
 
     /** \brief Creates and returns a new sample adapter.
@@ -190,8 +190,8 @@ namespace ESPINA
     CoreFactorySPtr m_factory;
     SchedulerSPtr   m_scheduler;
 
-    QMap<QString, AnalysisReaderList> m_readerExtensions;
-    AnalysisReaderList m_readers;
+    AnalysisReaderSList                m_readers;
+    QMap<QString, AnalysisReaderSList> m_readerExtensions;
   };
 
   using ModelFactorySPtr = std::shared_ptr<ModelFactory>;

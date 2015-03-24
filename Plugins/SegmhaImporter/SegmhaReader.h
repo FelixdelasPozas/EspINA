@@ -31,47 +31,6 @@ namespace ESPINA
   : public IO::AnalysisReader
   {
   public:
-//     static const ArgumentId FILE;
-//     static const ArgumentId BLOCKS;
-//     static const ArgumentId SPACING; //Some segmha files have wrong
-//     // spacing, we need to keep real one
-//
-//     class Parameters
-//     {
-//     public:
-//       explicit Parameters(Arguments &args) : m_args(args) {}
-//
-//       void setBlocks(QStringList blockList)
-//       {
-//         m_args[BLOCKS] = blockList.join(",");
-//       }
-//       QStringList blocks() const
-//       {
-//         return m_args[BLOCKS].split(",");
-//       }
-//
-//       void setSpacing(itkVolumeType::SpacingType spacing)
-//       {
-//         m_args[SPACING] = QString("%1,%2,%3")
-//         .arg(spacing[0])
-//         .arg(spacing[1])
-//         .arg(spacing[2]);
-//       }
-//       itkVolumeType::SpacingType spacing()
-//       {
-//         itkVolumeType::SpacingType res;
-//         QStringList values = m_args[SPACING].split(",");
-//
-//         for(int i=0; i<3; i++)
-//           res[i] = values[i].toDouble();
-//
-//         return res;
-//       }
-//     private:
-//       Arguments &m_args;
-//     };
-
-  public:
     virtual QString type() const
     { return "SegmharReader"; }
 

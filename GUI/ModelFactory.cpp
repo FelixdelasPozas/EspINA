@@ -67,7 +67,7 @@ void ModelFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr fac
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
+void ModelFactory::registerAnalysisReader(AnalysisReaderSPtr reader)
 {
   auto extensions = reader->supportedFileExtensions();
 
@@ -115,7 +115,7 @@ FileExtensions ModelFactory::supportedFileExtensions()
 }
 
 //------------------------------------------------------------------------
-AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
+AnalysisReaderSList ModelFactory::readers(const QFileInfo& file)
 {
   return m_readerExtensions[file.suffix()];
 }
