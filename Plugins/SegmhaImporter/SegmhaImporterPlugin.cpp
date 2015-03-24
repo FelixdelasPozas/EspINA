@@ -74,8 +74,6 @@ FilterTypeList SegmhaImporterPlugin::SegmhaFilterFactory::providedFilters() cons
 //-----------------------------------------------------------------------------
 SegmhaImporterPlugin::SegmhaImporterPlugin()
 : m_undoStack    {nullptr}
-, m_reader       {new SegmhaReader()}
-, m_filterFactory{new SegmhaFilterFactory()}
 {
 }
 
@@ -107,7 +105,7 @@ AnalysisReaderSList SegmhaImporterPlugin::analysisReaders() const
 {
   AnalysisReaderSList readers;
 
-  readers << m_reader;
+  readers << std::make_shared<SegmhaReader>();
 
   return readers;
 }
@@ -153,7 +151,7 @@ FilterFactorySList SegmhaImporterPlugin::filterFactories() const
 {
   FilterFactorySList factories;
 
-  factories << m_filterFactory;
+  factories << std::make_shared<SegmhaFilterFactory>();
 
   return factories;
 }

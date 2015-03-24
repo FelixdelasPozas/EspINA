@@ -32,7 +32,7 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ModelAdapter::ModelAdapter()
-: ModelAdapter(std::make_shared<Timer>())
+: ModelAdapter{std::make_shared<Timer>()}
 {
 
 }

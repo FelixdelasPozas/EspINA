@@ -35,61 +35,56 @@ namespace ESPINA
   : public QMenu
   {
     Q_OBJECT
-    private:
-      /** \brief Struct to store all view's VisualState.
-       *
-       */
-      struct CameraPositions
-      {
-        QString id;
-        QList<struct RenderView::CameraState> states;
-      };
+  public:
+    explicit CamerasMenu(ViewManagerSPtr vm, QWidget *parent = 0);
 
-      /** \brief List of CameraPositions.
-       *
-       */
-      using CameraPositionsList = QList<struct CameraPositions>;
+    virtual ~CamerasMenu();
 
-    public:
-      /** \brief ViewCamerasPositionMenu class constructor.
-       *
-       */
-      explicit CamerasMenu(ViewManagerSPtr vm, QWidget *parent = nullptr);
+  private:
+    /** \brief Struct to store all view's VisualState.
+     *
+     */
+    struct CameraPositions
+    {
+      QString id;
+      QList<struct RenderView::CameraState> states;
+    };
 
-      /** \brief ViewCamerasPositionMenu class destructor.
-       *
-       */
-      virtual ~CamerasMenu();
+    /** \brief List of CameraPositions.
+     *
+     */
+    using CameraPositionsList = QList<struct CameraPositions>;
 
-      /** \brief Loads Camera positions.
-       *
-       */
-      void loadPositions(CameraPositionsList list);
+  public:
+    /** \brief Loads Camera positions.
+     *
+     */
+    void loadPositions(CameraPositionsList list);
 
-    public slots:
-      /** \brief Deletes stored camera positions.
-       *
-       */
-      void clearPositions();
+  public slots:
+    /** \brief Deletes stored camera positions.
+     *
+     */
+    void clearPositions();
 
-    private slots:
-      /** \brief Activates the action passed as parameter.
-       *
-       */
-      void activate(QAction *action);
+  private slots:
+    /** \brief Activates the action passed as parameter.
+     *
+     */
+    void activate(QAction *action);
 
-    private:
-      /** \brief Stores current VisualStates to a CameraPositionsList entry.
-       *
-       */
-      void save();
+  private:
+    /** \brief Stores current VisualStates to a CameraPositionsList entry.
+     *
+     */
+    void save();
 
-    private:
-      ViewManagerSPtr     m_viewManager;
-      QAction            *m_save;
-      QAction            *m_clear;
-      QMenu              *m_load;
-      CameraPositionsList m_cameraPositions;
+  private:
+    ViewManagerSPtr     m_viewManager;
+    QAction            *m_save;
+    QAction            *m_clear;
+    QMenu              *m_load;
+    CameraPositionsList m_cameraPositions;
   };
 
 } // namespace ESPINA

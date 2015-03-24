@@ -61,8 +61,10 @@ class BrushSelector::BrushPipeline
 {
 public:
   BrushPipeline()
-  : RepresentationPipeline("Algo")
-  , m_slice{Plane::XY, ColorEngineSPtr()}{}
+  : RepresentationPipeline("BrushPipeline")
+  , m_transparency{1.0}
+  , m_view        {nullptr}
+  , m_slice       {Plane::XY, ColorEngineSPtr()}{}
 
   virtual RepresentationState representationState(const ViewItemAdapter *item, const RepresentationState &settings);
 

@@ -107,6 +107,7 @@ namespace ESPINA
 
     RepresentationPipelineSPtr m_pipeline;
 
+    QMutex m_mutex;
     ViewItemAdapterList m_requestedSources;
     ViewItemAdapterList m_sources;
     ViewItemAdapterList *m_updateList;

@@ -241,6 +241,8 @@ namespace ESPINA
    */
   bool EspinaGUI_EXPORT isChannel(ItemAdapterPtr item);
 
+  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(ChannelAdapterSPtr channel);
+
   ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(ChannelAdapterSList channels);
 
 }// namespace ESPINA

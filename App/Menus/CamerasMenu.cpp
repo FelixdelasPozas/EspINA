@@ -30,7 +30,7 @@ namespace ESPINA
 {
   //-----------------------------------------------------------------------------
   CamerasMenu::CamerasMenu(ViewManagerSPtr vm, QWidget *parent)
-  : QMenu{parent}
+  : QMenu(parent)
   , m_viewManager(vm)
   {
     m_save = new QAction(QString("Save..."), this);
