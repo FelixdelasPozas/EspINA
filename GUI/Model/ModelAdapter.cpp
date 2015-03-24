@@ -765,6 +765,12 @@ void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapte
 }
 
 //------------------------------------------------------------------------
+bool ModelAdapter::isEmpty() const
+{
+  return m_samples.isEmpty() && m_channels.isEmpty() && m_segmentations.isEmpty();
+}
+
+//------------------------------------------------------------------------
 void ModelAdapter::clear()
 {
   Q_ASSERT(!m_isBatchMode);
