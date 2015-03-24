@@ -76,32 +76,6 @@ namespace ESPINA
 
     virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
 
-    /** \brief Returns the number of segmentation contained in a category.
-     * \param[in] categoryIndex model index of the category.
-     * \param[in] recursive true to count also segmentations in sub-categories, false otherwise.
-     *
-     */
-    int numSegmentations(QModelIndex categoryIndex, bool recursive = false) const;
-
-    /** \brief Returns the number of segmentation contained in a category.
-     * \param[in] category category adapter raw pointer.
-     * \param[in] recursive true to count also segmentations in sub-categories, false otherwise.
-     *
-     */
-    int numSegmentations(CategoryAdapterPtr category, bool recursive = false) const;
-
-    /** \brief Returns the number of sub-categories contained in a category.
-     * \param[in] categoryIndex model index of the category.
-     *
-     */
-    int numSubCategories(QModelIndex categoryIndex) const;
-
-    /** \brief Returns the number of sub-categories contained in a category.
-     * \param[in] category, category adapter raw pointer.
-     *
-     */
-    int numSubCategories(CategoryAdapterPtr category) const;
-
     /** \brief Returns the list of indexes of the model for the segmentations contained in a category.
      * \param[in] categoryIndex, model index of the category.
      * \param[in] recursive, true to count also segmentations in sub-categories, false otherwise.
@@ -298,11 +272,52 @@ namespace ESPINA
      */
     CategoryAdapterSPtr toSourceSPtr(CategoryAdapterPtr proxyCategory) const;
 
+    SegmentationAdapterSPtr toSourceSPtr(SegmentationAdapterPtr segmentation) const;
+
     /** \brief Returns if index is a category index
      *
      */
     bool isCategoryIndex(const QModelIndex &index) const;
 
+    /** \brief Returns the number of segmentation contained in a category.
+     * \param[in] categoryIndex model index of the category.
+     * \param[in] recursive true to count also segmentations in sub-categories, false otherwise.
+     *
+     */
+    int numSegmentations(QModelIndex categoryIndex, bool recursive = false) const;
+
+    /** \brief Returns the number of segmentation contained in a category.
+     * \param[in] category category adapter raw pointer.
+     * \param[in] recursive true to count also segmentations in sub-categories, false otherwise.
+     *
+     */
+    int numSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
+
+    ViewItemAdapterSList childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
+
+    /** \brief Returns the number of sub-categories contained in a category.
+     * \param[in] categoryIndex model index of the category.
+     *
+     */
+    int numSubCategories(QModelIndex categoryIndex) const;
+
+    /** \brief Returns the number of sub-categories contained in a category.
+     * \param[in] proxyCategory category adapter raw pointer.
+     *
+     */
+    int numSubCategories(CategoryAdapterPtr proxyCategory) const;
+
+    QString categorySuffix(const int numSegmentations) const;
+
+    void changeIndexVisibility(const QModelIndex &index, bool value);
+
+    void changeCategoryVisibility(CategoryAdapterPtr category, bool value);
+
+    void changeChildrenVisibility(const QModelIndex &index, bool value);
+
+    void changeParentCheckStateRole(const QModelIndex &index, bool value);
+
+    void notifyModifiedRepresentations(const QModelIndex &index);
   private:
     ModelAdapterSPtr m_model;
     // Keep a reference to the categories which belong to the classification root

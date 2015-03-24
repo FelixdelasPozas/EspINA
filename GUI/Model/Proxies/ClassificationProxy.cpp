@@ -112,33 +112,29 @@ QVariant ClassificationProxy::data(const QModelIndex& proxyIndex, int role) cons
     return QVariant();
 
   auto item = itemAdapter(proxyIndex);
-  switch (item->type())
+
+  if (isSegmentation(item)) return item->data(role);
+
+  if (isCategory(item))
   {
-    case ItemAdapter::Type::CATEGORY:
+    auto category = toProxyPtr(categoryPtr(item));
+
+    if (Qt::DisplayRole == role)
     {
-      auto category = toProxyPtr(categoryPtr(item));
-      if (Qt::DisplayRole == role)
-      {
-        //int numSegs   = numSegmentations(category, false);
-        int totalSegs = numSegmentations(category, true);
-        QString suffix;
-        if (totalSegs > 0)
-          suffix += QString(" (%1)").arg(totalSegs);
+      const int totalSegs = numSegmentations(category, true);
 
-        return item->data(role).toString() + suffix;
-      }
-      else if (Qt::CheckStateRole == role)
-        return m_categoryVisibility[category];
-      else
-        return item->data(role);
+      return item->data(role).toString() + categorySuffix(totalSegs);
     }
-    case ItemAdapter::Type::SEGMENTATION:
-        return item->data(role);
-
-    default:
-      Q_ASSERT(false);
-      break;
+    else if (Qt::CheckStateRole == role)
+    {
+      return m_categoryVisibility[category];
+    }
+    else
+    {
+      return item->data(role);
+    }
   }
+
 
   return QAbstractProxyModel::data(proxyIndex, role);
 }
@@ -150,59 +146,22 @@ bool ClassificationProxy::setData(const QModelIndex &index, const QVariant &valu
 
   if (index.isValid())
   {
-    ItemAdapterPtr item = itemAdapter(index);
     if (Qt::CheckStateRole == role)
     {
-      if (isCategory(item))
-      {
-        auto proxyCategory = toProxyPtr(categoryPtr(item));
-        m_categoryVisibility[proxyCategory] = value.toBool()?Qt::Checked:Qt::Unchecked;
+      const auto visibility = value.toBool();
 
-        int rows = rowCount(index);
-        for (int r=0; r<rows; r++)
-        {
-          setData(index.child(r,0), value, role);
-        }
-        emit dataChanged(index, index);
+      changeIndexVisibility(index, visibility);
 
-        result = true;
-      } else if (isSegmentation(item))
-      {
-        result = m_model->setData(mapToSource(index), value, role);
-      }
+      changeParentCheckStateRole(index, visibility);
 
-      QModelIndex parentIndex = parent(index);
-      while (parentIndex.isValid())
-      {
-        if (parentIndex.isValid())
-        {
-          auto parentItem          = itemAdapter(parentIndex);
-          auto proxyParentCategory = toProxyPtr(categoryPtr(parentItem));
+      notifyModifiedRepresentations(index);
 
-          int parentRows = rowCount(parentIndex);
-          Qt::CheckState checkState = Qt::Unchecked;
-          for(int r=0; r < parentRows; r++)
-          {
-            Qt::CheckState rowState = parentIndex.child(r, 0).data(Qt::CheckStateRole).toBool()?Qt::Checked:Qt::Unchecked;
-            if (0 == r)
-            {
-              checkState = rowState;
-            }
-            else if (checkState != rowState)
-            {
-              checkState = Qt::PartiallyChecked;
-              break;
-            }
-          }
-          m_categoryVisibility[proxyParentCategory] = checkState;
-          emit dataChanged(parentIndex, parentIndex);
-        }
-
-        parentIndex = parent(parentIndex);
-      }
+      result = true;
     }
     else
+    {
       result = m_model->setData(mapToSource(index), value, role);
+    }
   }
 
   return result;
@@ -270,8 +229,7 @@ QModelIndex ClassificationProxy::index(int row, int column, const QModelIndex& p
 //------------------------------------------------------------------------
 QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
 {
-  if (!child.isValid())
-    return QModelIndex();
+  if (!child.isValid()) return QModelIndex();
 
   auto childItem = itemAdapter(child);
 
@@ -1208,6 +1166,15 @@ CategoryAdapterSPtr ClassificationProxy::toSourceSPtr(CategoryAdapterPtr proxyCa
 }
 
 //------------------------------------------------------------------------
+SegmentationAdapterSPtr ClassificationProxy::toSourceSPtr(SegmentationAdapterPtr segmentation) const
+{
+  Q_ASSERT(segmentation);
+
+  return m_model->smartPointer(segmentation);
+}
+
+
+//------------------------------------------------------------------------
 bool ClassificationProxy::isCategoryIndex(const QModelIndex &index) const
 {
   return !index.parent().isValid()
@@ -1218,21 +1185,148 @@ bool ClassificationProxy::isCategoryIndex(const QModelIndex &index) const
 }
 
 //------------------------------------------------------------------------
-int ClassificationProxy::numSegmentations(CategoryAdapterPtr category, bool recursive) const
+int ClassificationProxy::numSegmentations(CategoryAdapterPtr proxyCategory, bool recursive) const
 {
-  int total = m_categorySegmentations[category].size();
+  int total = m_categorySegmentations[proxyCategory].size();
 
   if (recursive)
-    for(auto subCat : category->subCategories())
+  {
+    for(auto subCategory : proxyCategory->subCategories())
     {
-      total += numSegmentations(subCat.get(), recursive);
+      total += numSegmentations(subCategory.get(), recursive);
     }
+  }
 
   return total;
 }
+
 //------------------------------------------------------------------------
-int ClassificationProxy::numSubCategories(CategoryAdapterPtr category) const
+ViewItemAdapterSList ClassificationProxy::childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive) const
+{
+  ViewItemAdapterSList children;
+
+  for (auto item : m_categorySegmentations[proxyCategory])
+  {
+    children << toSourceSPtr(segmentationPtr(item));
+  }
+
+  if (recursive)
+  {
+    for(auto subCategory : proxyCategory->subCategories())
+    {
+      children << childrenSegmentations(subCategory.get(), recursive);
+    }
+  }
+
+  return children;
+}
+
+
+//------------------------------------------------------------------------
+int ClassificationProxy::numSubCategories(CategoryAdapterPtr proxyCategory) const
 {
   // We can't rely on source's model to deal with row counting
-  return m_numCategories[category];
+  return m_numCategories[proxyCategory];
+}
+
+//------------------------------------------------------------------------
+QString ClassificationProxy::categorySuffix(const int numSegmentations) const
+{
+  return numSegmentations>0?"":QString(" (%1)").arg(numSegmentations);
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::changeIndexVisibility(const QModelIndex &index, bool value)
+{
+  auto item = itemAdapter(index);
+
+  if (isCategory(item))
+  {
+    auto category = toProxyPtr(categoryPtr(item));
+
+    changeCategoryVisibility(category, value);
+
+    changeChildrenVisibility(index, value);
+  }
+  else if (isSegmentation(item))
+  {
+    m_model->setData(mapToSource(index), value, Qt::CheckStateRole);
+  }
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::changeCategoryVisibility(CategoryAdapterPtr category, bool value)
+{
+  m_categoryVisibility[category] = value?Qt::Checked:Qt::Unchecked;
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::changeChildrenVisibility(const QModelIndex &index, bool value)
+{
+  for (int r=0; r < rowCount(index); r++)
+  {
+    changeIndexVisibility(index.child(r,0), value);
+  }
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::changeParentCheckStateRole(const QModelIndex &index, bool value)
+{
+  auto parentIndex = parent(index);
+
+  while (parentIndex.isValid())
+  {
+    if (parentIndex.isValid())
+    {
+      auto parentItem          = itemAdapter(parentIndex);
+      auto proxyParentCategory = toProxyPtr(categoryPtr(parentItem));
+
+      int  parentRows = rowCount(parentIndex);
+      auto checkState = Qt::Unchecked;
+
+      for(int row = 0; row < parentRows; row++)
+      {
+        auto rowState = parentIndex.child(row, 0).data(Qt::CheckStateRole).toBool()?Qt::Checked:Qt::Unchecked;
+        if (0 == row)
+        {
+          checkState = rowState;
+        }
+        else if (checkState != rowState)
+        {
+          checkState = Qt::PartiallyChecked;
+          break;
+        }
+      }
+
+      m_categoryVisibility[proxyParentCategory] = checkState;
+    }
+
+    parentIndex = parent(parentIndex);
+  }
+
+  emit dataChanged(parentIndex, parentIndex);
+}
+
+//------------------------------------------------------------------------
+void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index)
+{
+  auto item = itemAdapter(index);
+
+  ViewItemAdapterSList modifiedItems;
+
+  if (isCategory(item))
+  {
+    auto category = toProxyPtr(categoryPtr(item));
+    modifiedItems = childrenSegmentations(category, true);
+  }
+  else if (isSegmentation(item))
+  {
+    modifiedItems << toSourceSPtr(segmentationPtr(item));
+  }
+  else
+  {
+    Q_ASSERT(false);
+  }
+
+  m_model->notifyRepresentationsModified(modifiedItems);
 }
