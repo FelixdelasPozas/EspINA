@@ -28,6 +28,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
@@ -40,6 +41,7 @@
 #include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::CF;
 
@@ -681,14 +683,8 @@ QModelIndex Panel::findCategoryIndex(const QString& classificationName)
 //------------------------------------------------------------------------
 void Panel::updateSegmentations()
 {
-  auto model = m_context.model();
-
-  ViewItemAdapterSList segmentations;
-
-  for (auto segmentation : model->segmentations())
-  {
-    segmentations << segmentation;
-  }
+  auto model         = m_context.model();
+  auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
 
   m_context.representationInvalidator().invalidateRepresentations(segmentations);
 }
@@ -939,10 +935,7 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 //------------------------------------------------------------------------
 void Panel::onCountingFrameApplied(CountingFrame *cf)
 {
-  auto model         = m_context.model();
-  auto segmentations = toViewItemList(model->segmentations());
-
-  m_context.representationInvalidator().invalidateRepresentations(segmentations);
+  updateSegmentations();
 }
 
 //------------------------------------------------------------------------

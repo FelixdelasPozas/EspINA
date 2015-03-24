@@ -109,8 +109,8 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   updateUndoStackIndex();
   auto factory = m_context.factory();
-  factory->registerAnalysisReader(m_channelReader.get());
-  factory->registerAnalysisReader(m_segFileReader.get());
+  factory->registerAnalysisReader(m_channelReader);
+  factory->registerAnalysisReader(m_segFileReader);
   factory->registerFilterFactory (m_channelReader);
 
   auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
@@ -189,19 +189,19 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       for (auto colorEngine : validPlugin->colorEngines())
       {
-//        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
+        qDebug() << plugin << "- Color Engine " << colorEngine.first << " ...... OK";
         registerColorEngine(colorEngine.first,  colorEngine.second);
       }
 
       for (auto extensionFactory : validPlugin->channelExtensionFactories())
       {
-//        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
+        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
         factory->registerExtensionFactory(extensionFactory);
       }
 
       for (auto tool : validPlugin->tools())
       {
-//        qDebug() << plugin << "- ToolGroup " << toolGroup->toolTip() << " ...... OK";
+        qDebug() << plugin << "- Tool " /*<< tool.second->toolTip()*/ << " ...... OK";
         switch (tool.first)
         {
           case ToolCategory::EXPLORE:
@@ -223,24 +223,23 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
             m_analyzeToolGroup->addTool(tool.second);
             break;
         }
-        //registerToolGroup(toolGroup);
       }
 
       for (auto dock : validPlugin->dockWidgets())
       {
-//        qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
+        qDebug() << plugin << "- Dock " << dock->windowTitle() << " ...... OK";
         registerDockWidget(Qt::LeftDockWidgetArea, dock);
       }
 
       for(auto filterFactory: validPlugin->filterFactories())
       {
-//        qDebug() << plugin << "- Filter Factory  ...... OK";
+        qDebug() << plugin << "- Filter Factory  ...... OK";
         factory->registerFilterFactory(filterFactory);
       }
 
       for(auto reader: validPlugin->analysisReaders())
       {
-//        qDebug() << plugin << "- Analysis Reader  ...... OK";
+        qDebug() << plugin << "- Analysis Reader  ...... OK";
         factory->registerAnalysisReader(reader.get());
       }
 
@@ -685,7 +684,8 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
   for(auto file : files)
   {
     m_errorHandler->setDefaultDir(QFileInfo(file).dir());
-    AnalysisReaderList readers = factory->readers(file);
+
+    auto readers = factory->readers(file);
 
     if (readers.isEmpty())
     {
@@ -695,7 +695,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
       continue;
     }
 
-    AnalysisReaderPtr reader = readers.first();
+    auto reader = readers.first();
 
     if (readers.size() > 1)
     {

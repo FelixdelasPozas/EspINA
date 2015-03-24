@@ -388,7 +388,7 @@ void AppositionSurfacePlugin::finishedTask()
   int index = 0;
 
   RelationList createdRelations;
-  ViewItemAdapterSList segmentationsToUpdate;
+  ViewItemAdapterList segmentationsToUpdate;
 
   for(auto filter: m_finishedTasks.keys())
   {
@@ -426,7 +426,7 @@ void AppositionSurfacePlugin::finishedTask()
 
     createdRelations << relation;
 
-    segmentationsToUpdate << segmentation;
+    segmentationsToUpdate << segmentation.get();
   }
 
   // add segmentations by their related sample list

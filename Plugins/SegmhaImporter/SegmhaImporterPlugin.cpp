@@ -70,7 +70,6 @@ FilterTypeList SegmhaImporterPlugin::SegmhaFilterFactory::providedFilters() cons
   return filters;
 }
 
-
 //-----------------------------------------------------------------------------
 SegmhaImporterPlugin::SegmhaImporterPlugin()
 : m_undoStack    {nullptr}
