@@ -21,10 +21,10 @@
 #ifndef ESPINA_RENDERERS_SELECTOR_H_
 #define ESPINA_RENDERERS_SELECTOR_H_
 
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/Representations/Renderers/Renderer.h>
 #include "ui_RenderersSelector.h"
 
 namespace ESPINA

@@ -22,12 +22,10 @@
 #define ESPINA_COUNTING_FRAME_2D_RENDERER_H
 
 // Plugin
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include "CountingFramePlugin_Export.h"
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"
-#include <GUI/Representations/Renderers/Renderer.h>
-
-// Qt
 #include <QList>
 
 class vtkCountingFrameSliceWidget;

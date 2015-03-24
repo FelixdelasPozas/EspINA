@@ -38,9 +38,10 @@ namespace ESPINA
   {
     public:
       /** \brief Volumetric Manager class constructor.
+       * \param[in] pool managed pool smart pointer.
        *
        */
-      VolumetricManager();
+      VolumetricManager(RepresentationPoolSPtr pool);
 
       /** \brief VolumetricManager class virtual destructor.
        *
@@ -70,6 +71,9 @@ namespace ESPINA
       virtual void disconnectPools() override;
 
       virtual RepresentationManagerSPtr cloneImplementation();
+
+    private:
+      RepresentationPoolSPtr m_pool;
   };
 
 } // namespace ESPINA

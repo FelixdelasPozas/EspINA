@@ -22,7 +22,7 @@
 #define RENDERERSMENU_H_
 
 // ESPINA
-#include <GUI/Representations/Renderers/Renderer.h>
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include <Support/ViewManager.h>
 
 // Qt

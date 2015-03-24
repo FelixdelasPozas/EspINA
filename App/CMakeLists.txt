@@ -57,7 +57,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentate/Skeleton/SkeletonTool.h
   ToolGroups/Segmentate/Skeleton/SkeletonToolGroup.h
   ToolGroups/Segmentate/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSwitch.h
   ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h
   ToolGroups/Visualize/RepresentationsGroupTool.h
   ToolGroups/Visualize/VisualizeToolGroup.h
@@ -136,14 +135,9 @@ set (ESPINA_SOURCES
   Settings/View2D/View2DRenderersPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
   Settings/View3D/View3DSettingsPanel.cpp
-  ToolGroups/Visualize/Representations/Crosshair/CrosshairRepresentationFactory.cpp
-  ToolGroups/Visualize/Representations/ChannelSlice/ChannelSlicePipeline.cpp
-  ToolGroups/Visualize/Representations/ChannelSlice/ChannelSliceRepresentationFactory.cpp
-  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSlicePipeline.cpp
-  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.cpp
-  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSettings.cpp
-  ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
-  ToolGroups/Visualize/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
+  ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.cpp
   ToolGroups/Visualize/RepresentationsGroupTool.cpp
   ToolGroups/Explore/ResetZoom.cpp

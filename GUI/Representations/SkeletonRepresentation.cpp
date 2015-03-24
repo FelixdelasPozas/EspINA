@@ -19,8 +19,8 @@
  */
 
 // ESPINA
+#include <Deprecated/GUI/Representations/RepresentationEmptySettings.h>
 #include "SkeletonRepresentation.h"
-#include "RepresentationEmptySettings.h"
 #include <GUI/View/View2D.h>
 
 // VTK

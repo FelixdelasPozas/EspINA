@@ -22,8 +22,8 @@
 #define ESPINA_COUNTING_FRAME_3D_RENDERER_H
 
 // Plugin
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include "CountingFramePlugin_Export.h"
-#include <GUI/Representations/Renderers/Renderer.h>
 #include "CountingFrameManager.h"
 
 // Qt

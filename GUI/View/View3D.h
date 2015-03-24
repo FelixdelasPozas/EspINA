@@ -21,12 +21,10 @@
 #ifndef ESPINA_VIEW_3D_H
 #define ESPINA_VIEW_3D_H
 
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include <GUI/View/RenderView.h>
 
 // ESPINA
-#include "GUI/Representations/Renderers/Renderer.h"
-
-// VTK
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 

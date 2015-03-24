@@ -35,6 +35,20 @@ namespace ESPINA
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
+    /** \brief Returns true if the pool doesn't update the representations when the
+     *   crosshair changes.
+     *
+     */
+    bool isStatic() const;
+
+    /** \brief Indicates the pool that the representation managed is not
+     *   dependent of the crosshair so it doesn't need to be updated on crosshair
+     *   changes.
+     *  \param[in] value true for a static representation and false otherwise.
+     *
+     */
+    void setStaticRepresentation(bool value);
+
   private:
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 
@@ -54,6 +68,7 @@ namespace ESPINA
     RepresentationUpdaterSPtr m_updater;
     bool m_init;
     bool m_hasChanged;
+    bool m_static;
   };
 }
 

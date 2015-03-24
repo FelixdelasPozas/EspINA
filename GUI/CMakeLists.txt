@@ -23,9 +23,6 @@ qt4_wrap_cpp(GUI_MOC
   Representations/RepresentationWindow.h
   Selectors/Selector.h
   Selectors/PixelSelector.h
-#   Selectors/BrushSelector.h
-#   Selectors/CircularBrushSelector.h
-#   Selectors/SphericalBrushSelector.h
   Utils/Timer.h
   View/EventHandler.h
   EventHandlers/PointTracker.h
@@ -104,8 +101,19 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
+  Representations/Pipelines/ChannelSlicePipeline.cpp
+  Representations/Pipelines/SegmentationSlicePipeline.cpp
+  Representations/Pipelines/SegmentationMeshPipeline.cpp
+  Representations/Pipelines/SegmentationSmoothedMeshPipeline.cpp
+  Representations/Pipelines/SegmentationContourPipeline.cpp
+  Representations/Pipelines/SegmentationSkeleton2DPipeline.cpp
+  Representations/Pipelines/SegmentationSkeleton3DPipeline.cpp
+  Representations/Pipelines/SegmentationVolumetricCPUPipeline.cpp
+  Representations/Pipelines/SegmentationVolumetricGPUPipeline.cpp
+  Representations/Settings/PipelineStateUtils.cpp
+  Representations/Settings/SegmentationSlicePoolSettings.cpp
+  Representations/Settings/SegmentationContourPoolSettings.cpp
   Representations/BufferedRepresentationPool.cpp
-  Representations/ChannelPipeline.cpp
   Representations/CrosshairManager.cpp 
   Representations/PipelineSourcesFilter.cpp
   Representations/RepresentationManager.cpp
@@ -117,12 +125,8 @@ set (GUI_SOURCES
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp
-  Representations/SegmentationPipeline.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
-#   Selectors/BrushSelector.cpp
-#   Selectors/CircularBrushSelector.cpp
-#   Selectors/SphericalBrushSelector.cpp
   Utils/DefaultIcons.cpp
   Utils/QtModelUtils.cpp
   Utils/Timer.cpp

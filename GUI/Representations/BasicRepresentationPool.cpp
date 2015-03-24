@@ -26,11 +26,10 @@ namespace ESPINA
   : m_updater      {std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
   , m_init         {false}
   , m_hasChanged   {false}
+  , m_static       {false}
   {
     connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
             this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
-
-    m_updater->setDescription(QString("Channel 3D Lines"));
   }
 
   //-----------------------------------------------------------------------------
@@ -42,6 +41,18 @@ namespace ESPINA
   ViewItemAdapterPtr BasicRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
   {
     return m_updater->pick(point, actor);
+  }
+
+  //-----------------------------------------------------------------------------
+  bool BasicRepresentationPool::isStatic() const
+  {
+    return m_static;
+  }
+
+  //-----------------------------------------------------------------------------
+  void BasicRepresentationPool::setStaticRepresentation(bool value)
+  {
+    m_static = value;
   }
 
   //-----------------------------------------------------------------------------
@@ -59,7 +70,14 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp t)
   {
+    if(m_static && !m_init)
+    {
+
+      Task::submit(m_updater);
+    }
+
     m_init = true;
+
 
     if (t > lastUpdateTimeStamp())
     {

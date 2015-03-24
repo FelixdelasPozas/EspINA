@@ -24,8 +24,9 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  VolumetricManager::VolumetricManager()
+  VolumetricManager::VolumetricManager(RepresentationPoolSPtr pool)
   : ActorManager{ViewType::VIEW_3D}
+  , m_pool      {pool}
   {
   }
 
@@ -38,11 +39,8 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   TimeRange VolumetricManager::readyRange() const
   {
-    TimeRange range;
-
-    // TODO
-
-    return range;
+    Q_ASSERT(false);
+    return TimeRange();
   }
 
   //----------------------------------------------------------------------------
@@ -53,56 +51,62 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   ViewItemAdapterPtr VolumetricManager::pick(const NmVector3 &point, vtkProp *actor) const
   {
-    ViewItemAdapterPtr pickedItem = nullptr;
-
-    // TODO
-
-    return pickedItem;
-
+    return m_pool->pick(point, actor);
   }
 
   //----------------------------------------------------------------------------
   bool VolumetricManager::hasSources() const
   {
-    return true;
+    return m_pool->hasSources();
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
   {
-    // TODO: use
+    qDebug() << "volumetric manager set crosshair";
+    m_pool->setCrosshair(crosshair, time);
   }
 
   //----------------------------------------------------------------------------
   RepresentationPipeline::Actors VolumetricManager::actors(TimeStamp time)
   {
-    RepresentationPipeline::Actors actors;
-
-    // TODO
-
-    return actors;
+    return m_pool->actors(time);
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::invalidatePreviousActors(TimeStamp time)
   {
-    // TODO
+    m_pool->invalidatePreviousActors(time);
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::connectPools()
   {
+    connect(m_pool.get(), SIGNAL(actorsReady(TimeStamp)),
+            this,         SLOT(emitRenderRequest(TimeStamp)));
+
+    connect(m_pool.get(), SIGNAL(actorsInvalidated()),
+            this,         SLOT(invalidateRepresentations()));
+
+    m_pool->incrementObservers();
   }
 
   //----------------------------------------------------------------------------
   void VolumetricManager::disconnectPools()
   {
+    disconnect(m_pool.get(), SIGNAL(actorsReady(TimeStamp)),
+               this,         SLOT(emitRenderRequest(TimeStamp)));
+
+    disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
+              this,         SLOT(invalidateRepresentations()));
+
+    m_pool->decrementObservers();
   }
 
   //----------------------------------------------------------------------------
   RepresentationManagerSPtr VolumetricManager::cloneImplementation()
   {
-    auto clone = std::make_shared<VolumetricManager>();
+    auto clone = std::make_shared<VolumetricManager>(m_pool);
     clone->m_name          = m_name;
     clone->m_description   = m_description;
     clone->m_showRepresentations = m_showRepresentations;

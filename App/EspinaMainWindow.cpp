@@ -39,9 +39,9 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Dialogs/CheckAnalysis/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
-#include "ToolGroups/Visualize/Representations/ChannelSlice/ChannelSliceRepresentationFactory.h"
-#include <ToolGroups/Visualize/Representations/Crosshair/CrosshairRepresentationFactory.h>
-#include "ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceRepresentationFactory.h"
+#include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
+#include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
+#include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
 #include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
 #include "ToolGroups/Explore/ResetZoom.h"
@@ -1065,8 +1065,8 @@ void EspinaMainWindow::registerColorEngine(const QString   &title,
 void EspinaMainWindow::initRepresentations()
 {
   registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
-  registerRepresentationFactory(std::make_shared<ChannelSliceRepresentationFactory>(m_scheduler));
-  registerRepresentationFactory(std::make_shared<SegmentationSliceRepresentationFactory>(m_scheduler));
+  registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>(m_scheduler));
+  registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>(m_scheduler));
 
 //   registerRepresentationDriver(std::make_shared<CrosshairRenderer>());
 //   registerRepresentationDriver(std::make_shared<MeshRenderer>());
