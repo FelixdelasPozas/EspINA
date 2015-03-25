@@ -24,6 +24,7 @@
 #include <ToolGroups/Visualize/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.h>
 #include <ToolGroups/Visualize/Representations/RepresentationSettings.h>
 #include <GUI/Representations/SegmentationPipeline.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // VTK
 #include <vtkColorTransferFunction.h>
@@ -33,6 +34,8 @@
 #include <vtkVolumeProperty.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
 #include <vtkVolumeRayCastMapper.h>
+
+using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {

@@ -21,12 +21,15 @@
 // ESPINA
 #include "ClassificationProxy.h"
 
+#include <GUI/Model/Utils/SegmentationUtils.h>
+
 // Qt
 #include <QMimeData>
 #include <QPixmap>
 #include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 typedef QSet<ItemAdapterPtr > SegmentationSet;
 
@@ -1232,7 +1235,7 @@ int ClassificationProxy::numSubCategories(CategoryAdapterPtr proxyCategory) cons
 //------------------------------------------------------------------------
 QString ClassificationProxy::categorySuffix(const int numSegmentations) const
 {
-  return numSegmentations>0?"":QString(" (%1)").arg(numSegmentations);
+  return numSegmentations>0?QString(" (%1)").arg(numSegmentations):"";
 }
 
 //------------------------------------------------------------------------

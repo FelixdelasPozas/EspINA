@@ -30,10 +30,10 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
-#include <Extensions/ExtensionUtils.h>
 #include <Extensions/ExtensionUtils.h>
 
 #include <QFileDialog>
@@ -42,6 +42,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
@@ -941,7 +942,7 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 //------------------------------------------------------------------------
 void Panel::onCountingFrameApplied(CountingFrame *cf)
 {
-  auto segmentations = toViewItemList(m_model->segmentations());
+  auto segmentations = toViewItemSList(m_model->segmentations());
 
   m_model->notifyRepresentationsModified(segmentations);
 }

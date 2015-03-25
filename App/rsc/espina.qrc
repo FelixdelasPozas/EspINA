@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>representation_group_2D_separator.svg</file>
+    <file>representation_group_3D_separator.svg</file>
     <file>toolgroup_explore.svg</file>
     <file>toolgroup_restrict.svg</file>
     <file>toolgroup_segmentate.svg</file>

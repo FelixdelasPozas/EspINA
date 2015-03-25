@@ -49,8 +49,8 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
-#include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Utils/DefaultIcons.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -68,6 +68,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
 const int PERIOD_uSEC           = 16000; // 16ms
@@ -1309,7 +1310,7 @@ void EspinaMainWindow::createDefaultPanels()
   auto channelExplorer = new ChannelExplorer(m_model, m_viewManager, m_scheduler, m_undoStack, this);
   registerDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
-  auto segmentationExplorer = new SegmentationExplorer(m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
+  auto segmentationExplorer = new SegmentationExplorer(m_representationFactories, m_model, m_factory, m_filterDelegateFactory, m_viewManager, m_undoStack, this);
   m_viewManager->registerView(segmentationExplorer);
   registerDockWidget(Qt::LeftDockWidgetArea, segmentationExplorer);
 

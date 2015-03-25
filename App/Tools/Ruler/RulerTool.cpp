@@ -27,6 +27,7 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include "GUI/Model/ItemAdapter.h"
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // VTK
 #include <vtkMath.h>
@@ -34,164 +35,162 @@
 // Qt
 #include <QAction>
 
-namespace ESPINA
-{
-  //----------------------------------------------------------------------------
-  RulerTool::RulerTool(ViewManagerSPtr vm)
-  : m_action     {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
-  , m_widget     {nullptr}
-  , m_viewManager{vm}
-  , m_selection  {new Selection()}
-  {
-    m_action->setCheckable(true);
-    connect(m_action, SIGNAL(triggered(bool)),
-            this,     SLOT(initTool(bool)));
-  }
+using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
-  //----------------------------------------------------------------------------
-  RulerTool::~RulerTool()
+//----------------------------------------------------------------------------
+RulerTool::RulerTool(ViewManagerSPtr vm)
+: m_action     {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
+, m_widget     {nullptr}
+, m_viewManager{vm}
+, m_selection  {new Selection()}
+{
+  m_action->setCheckable(true);
+  connect(m_action, SIGNAL(triggered(bool)),
+          this,     SLOT(initTool(bool)));
+}
+
+//----------------------------------------------------------------------------
+RulerTool::~RulerTool()
+{
+  if(m_widget)
   {
-    if(m_widget)
+    m_widget->setEnabled(false);
+    m_widget = nullptr;
+  }
+}
+
+//----------------------------------------------------------------------------
+void RulerTool::initTool(bool value)
+{
+  if (value)
+  {
+    m_widget = std::make_shared<RulerWidget>();
+    m_viewManager->addWidget(m_widget);
+    connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
+            this,                             SLOT(selectionChanged()));
+    selectionChanged();
+  }
+  else
+  {
+    m_viewManager->removeWidget(m_widget);
+    disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
+               this,                             SLOT(selectionChanged()));
+    m_widget = nullptr;
+  }
+}
+
+//----------------------------------------------------------------------------
+void RulerTool::selectionChanged()
+{
+  if (!m_widget) return;
+
+  auto selection = m_viewManager->selection();
+  if (!m_selection->items().empty())
+  {
+    for(auto item: m_selection->items())
     {
-      m_widget->setEnabled(false);
-      m_widget = nullptr;
+      if (isSegmentation(item))
+      {
+        disconnect(item->output().get(), SIGNAL(modified()),
+                   this,                 SLOT(selectionChanged()));
+      }
     }
   }
 
-  //----------------------------------------------------------------------------
-  void RulerTool::initTool(bool value)
+  Bounds segmentationBounds, channelBounds;
+
+  if (!selection->items().empty())
   {
-    if (value)
+    for(auto item: selection->items())
     {
-      m_widget = std::make_shared<RulerWidget>();
-      m_viewManager->addWidget(m_widget);
-      connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
-              this,                             SLOT(selectionChanged()));
-      selectionChanged();
+      if (isSegmentation(item))
+      {
+        connect(item->output().get(), SIGNAL(modified()),
+                this,                 SLOT(selectionChanged()));
+        if (segmentationBounds.areValid())
+        {
+          Bounds bounds = segmentationPtr(item)->bounds();
+          for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+          {
+            segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
+            segmentationBounds[j] = std::max(bounds[j], segmentationBounds[j]);
+          }
+        }
+        else
+        {
+          segmentationBounds = segmentationPtr(item)->bounds();
+        }
+      }
+      else if (isChannel(item))
+      {
+        if (channelBounds.areValid())
+        {
+          Bounds bounds = channelPtr(item)->bounds();
+
+          for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+          {
+            channelBounds[i] = std::min(bounds[i], channelBounds[i]);
+            channelBounds[j] = std::max(bounds[j], channelBounds[j]);
+          }
+        }
+        else
+        {
+          channelBounds = channelPtr(item)->bounds();
+        }
+      }
+    }
+  }
+
+  auto widget = dynamic_cast<RulerWidget *>(m_widget.get());
+  Q_ASSERT(widget);
+
+  if (segmentationBounds.areValid())
+  {
+    widget->setBounds(segmentationBounds);
+  }
+  else
+  {
+    if (channelBounds.areValid())
+    {
+      widget->setBounds(channelBounds);
     }
     else
-    {
-      m_viewManager->removeWidget(m_widget);
-      disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
-                 this,                             SLOT(selectionChanged()));
-      m_widget = nullptr;
-    }
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerTool::selectionChanged()
-  {
-    if (!m_widget) return;
-
-    auto selection = m_viewManager->selection();
-    if (!m_selection->items().empty())
-    {
-      for(auto item: m_selection->items())
-      {
-        if (isSegmentation(item))
-        {
-          disconnect(item->output().get(), SIGNAL(modified()),
-                     this,                 SLOT(selectionChanged()));
-        }
-      }
-    }
-
-    Bounds segmentationBounds, channelBounds;
-
-    if (!selection->items().empty())
-    {
-      for(auto item: selection->items())
-      {
-        if (isSegmentation(item))
-        {
-          connect(item->output().get(), SIGNAL(modified()),
-                  this,                 SLOT(selectionChanged()));
-          if (segmentationBounds.areValid())
-          {
-            Bounds bounds = segmentationPtr(item)->bounds();
-            for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-            {
-              segmentationBounds[i] = std::min(bounds[i], segmentationBounds[i]);
-              segmentationBounds[j] = std::max(bounds[j], segmentationBounds[j]);
-            }
-          }
-          else
-          {
-            segmentationBounds = segmentationPtr(item)->bounds();
-          }
-        }
-        else if (isChannel(item))
-        {
-          if (channelBounds.areValid())
-          {
-            Bounds bounds = channelPtr(item)->bounds();
-
-            for (int i = 0, j = 1; i < 6; i += 2, j += 2)
-            {
-              channelBounds[i] = std::min(bounds[i], channelBounds[i]);
-              channelBounds[j] = std::max(bounds[j], channelBounds[j]);
-            }
-          }
-          else
-          {
-            channelBounds = channelPtr(item)->bounds();
-          }
-        }
-      }
-    }
-
-    auto widget = dynamic_cast<RulerWidget *>(m_widget.get());
-    Q_ASSERT(widget);
-
-    if (segmentationBounds.areValid())
     {
       widget->setBounds(segmentationBounds);
     }
-    else
-    {
-      if (channelBounds.areValid())
-      {
-        widget->setBounds(channelBounds);
-      }
-      else
-      {
-        widget->setBounds(segmentationBounds);
-      }
-    }
-
-    m_selection = selection;
   }
 
-  //----------------------------------------------------------------------------
-  QList<QAction*> RulerTool::actions() const
+  m_selection = selection;
+}
+
+//----------------------------------------------------------------------------
+QList<QAction*> RulerTool::actions() const
+{
+  QList<QAction *> actionList;
+
+  actionList << m_action;
+
+  return actionList;
+}
+
+//----------------------------------------------------------------------------
+void RulerTool::abortOperation()
+{
+  if (m_widget)
   {
-    QList<QAction *> actionList;
-
-    actionList << m_action;
-
-    return actionList;
+    initTool(false);
   }
+}
 
-  //----------------------------------------------------------------------------
-  void RulerTool::abortOperation()
-  {
-    if (m_widget)
-    {
-      initTool(false);
-    }
-  }
+//----------------------------------------------------------------------------
+bool RulerEventHandler::filterEvent(QEvent *e, RenderView *view)
+{
+  // this is a passive tool
+  return false;
+}
 
-  //----------------------------------------------------------------------------
-  bool RulerEventHandler::filterEvent(QEvent *e, RenderView *view)
-  {
-    // this is a passive tool
-    return false;
-  }
-
-  //----------------------------------------------------------------------------
-  void RulerTool::onToolEnabled(bool enabled)
-  {
-  }
-
-
-} /* namespace ESPINA */
+//----------------------------------------------------------------------------
+void RulerTool::onToolEnabled(bool enabled)
+{
+}

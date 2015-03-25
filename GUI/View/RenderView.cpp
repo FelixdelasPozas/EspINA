@@ -140,6 +140,8 @@ void RenderView::setChannelSources(PipelineSources *channels)
     connect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
             this,             SLOT(updateSceneBounds()));
   }
+
+  updateSceneBounds();
 }
 
 //-----------------------------------------------------------------------------
@@ -321,7 +323,7 @@ void RenderView::updateSceneBounds()
 {
   NmVector3 resolution = m_sceneResolution;
 
-  if (!m_channelSources->isEmpty())
+  if (hasChannelSources())
   {
     auto channels      = m_channelSources->sources();
     auto channelOutput = channels.first()->output();
@@ -350,7 +352,7 @@ void RenderView::updateSceneBounds()
     resetSceneBounds();
   }
 
-  if (m_channelSources->size() <= 1)
+  if (!m_channelSources || m_channelSources->size() <= 1)
   {
     m_sceneCameraInitialized = false;
   }
@@ -370,6 +372,12 @@ void RenderView::changeSceneResolution()
   }
 
   emit sceneResolutionChanged();
+}
+
+//-----------------------------------------------------------------------------
+bool RenderView::hasChannelSources() const
+{
+  return m_channelSources && !m_channelSources->isEmpty();
 }
 
 //-----------------------------------------------------------------------------

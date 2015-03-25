@@ -21,7 +21,10 @@
 // ESPINA
 #include "InformationProxy.h"
 
+#include <GUI/Model/Utils/SegmentationUtils.h>
+
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 InformationProxy::InformationProxy(SchedulerSPtr scheduler)

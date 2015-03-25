@@ -18,12 +18,15 @@
  */
 
 #include "SegmentationSlicePipeline.h"
+
 #include "Support/Representations/RepresentationUtils.h"
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 #include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::RepresentationUtils;
+using namespace ESPINA::GUI::Model::Utils;
 
 TransparencySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 

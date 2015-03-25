@@ -61,7 +61,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/Representations/CrosshairsSwitch2D.h
   ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSwitch.h
   ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h
-  ToolGroups/Visualize/RepresentationsGroupTool.h
   ToolGroups/Visualize/VisualizeToolGroup.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
   ToolGroups/ToolGroup.h
@@ -148,7 +147,6 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSliceSwitch.cpp
   ToolGroups/Visualize/Representations/SegmentationVolumetric/SegmentationVolumetricPipeline.cpp
   ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.cpp
-  ToolGroups/Visualize/RepresentationsGroupTool.cpp
   ToolGroups/Explore/ResetZoom.cpp
   ToolGroups/Explore/ToggleCrosshairVisibility.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp

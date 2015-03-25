@@ -26,7 +26,6 @@
 #include "SeedGrowSegmentationHistory.h"
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <GUI/Selectors/PixelSelector.h>
-#include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>

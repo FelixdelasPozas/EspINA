@@ -693,7 +693,7 @@ void View3D::updateScrollBarsLimits()
 {
   if(!m_showCrosshairPlaneSelectors) return;
 
-  if (m_channelSources->isEmpty())
+  if (!hasChannelSources())
   {
     m_axialScrollBar   ->setMinimum(0);
     m_axialScrollBar   ->setMaximum(0);

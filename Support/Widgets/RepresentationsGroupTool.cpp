@@ -23,6 +23,7 @@
 #include <QWidgetAction>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <QLabel>
 
 using namespace ESPINA;
 
@@ -33,6 +34,8 @@ RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString de
 : m_globalSwitch{new QAction(icon, description, this)}
 , m_content{new QWidgetAction(this)}
 , m_contentWidget{new QWidget()}
+, m_layout2D{new QHBoxLayout()}
+, m_layout3D{new QHBoxLayout()}
 , m_viewFlags{ViewType::VIEW_2D|ViewType::VIEW_3D}
 , m_representationsVisibility{false}
 {
@@ -41,7 +44,14 @@ RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString de
   connect(m_globalSwitch, SIGNAL(toggled(bool)),
           this,           SLOT(setActiveRepresentationsVisibility(bool)));
 
-  m_contentWidget->setLayout(new QHBoxLayout());
+  m_layout2D->addWidget(createSeparator(":/espina/representation_group_2D_separator.svg"));
+  m_layout3D->addWidget(createSeparator(":/espina/representation_group_3D_separator.svg"));
+
+  auto layout = new QHBoxLayout();
+  layout->addLayout(m_layout2D);
+  layout->addLayout(m_layout3D);
+
+  m_contentWidget->setLayout(layout);
 
   m_content->setDefaultWidget(m_contentWidget);
   m_content->setVisible(m_globalSwitch->isChecked());
@@ -78,7 +88,16 @@ void RepresentationsGroupTool::hideActiveRepresentations()
 //----------------------------------------------------------------------------
 void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr representationSwitch)
 {
-  m_contentWidget->layout()->addWidget(representationSwitch->widget());
+  auto widget = representationSwitch->widget();
+
+  if (representationSwitch->supportedViews().testFlag(ESPINA::VIEW_2D))
+  {
+    m_layout2D->addWidget(widget);
+  }
+  else if (representationSwitch->supportedViews().testFlag(ESPINA::VIEW_3D))
+  {
+    m_layout3D->addWidget(widget);
+  }
 
   changeSwitchStatus(representationSwitch, m_representationsVisibility);
 
@@ -111,6 +130,18 @@ void RepresentationsGroupTool::changeSwitchStatus(RepresentationSwitchSPtr repre
       representationSwitch->hideRepresentations();
     }
   }
+}
+
+//----------------------------------------------------------------------------
+QWidget *RepresentationsGroupTool::createSeparator(const QString &icon) const
+{
+  auto separator = new QLabel();
+
+  separator->setPixmap(QPixmap(icon));
+  separator->setScaledContents(true);
+  separator->setMaximumSize(8, 30);
+
+  return separator;
 }
 
 //----------------------------------------------------------------------------

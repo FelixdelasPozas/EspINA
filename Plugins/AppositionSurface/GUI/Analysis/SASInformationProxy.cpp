@@ -24,11 +24,13 @@
 // ESPINA
 #include <Core/Analysis/Extension.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QString>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 const QString SAS = QObject::tr("SAS");
 const QString SASTAG_PREPEND = QObject::tr("SAS ");
@@ -110,8 +112,7 @@ protected:
 //----------------------------------------------------------------------------
 QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) const
 {
-  if (!proxyIndex.isValid())
-    return QVariant();
+  if (!proxyIndex.isValid()) return QVariant();
 
   auto proxyItem = itemAdapter(proxyIndex);
   if (!isSegmentation(proxyItem))

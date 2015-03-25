@@ -25,6 +25,7 @@
 #include "SegmentationExplorer.h"
 #include <GUI/Widgets/CheckableTreeView.h>
 #include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Representations/RepresentationFactory.h>
 
 // Qt
 #include <QItemDelegate>
@@ -39,16 +40,13 @@ namespace ESPINA
   : public QSortFilterProxyModel
   {
   public:
-  	/** \brief SegmentationFilterProxyModel class cosntructor.
-  	 * \param[in] parent, parent qobject raw pointer.
-  	 *
-  	 */
+    /** \brief SegmentationFilterProxyModel class cosntructor.
+     * \param[in] parent parent qobject raw pointer.
+     *
+     */
     SegmentationFilterProxyModel(QObject *parent = nullptr);
 
   protected:
-    /** \brief Overrides QSortFilterProxyModel::filterAcceptsRow().
-     *
-     */
     virtual bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
   };
 
@@ -70,12 +68,13 @@ namespace ESPINA
      * \param[in] undoStack, QUndoStack object raw pointer.
      *
      */
-    explicit Layout(CheckableTreeView        *view,
-                    ModelAdapterSPtr          model,
-                    ModelFactorySPtr          factory,
-                    FilterDelegateFactorySPtr delegateFactory,
-                    ViewManagerSPtr           viewManager,
-                    QUndoStack               *undoStack);
+    explicit Layout(CheckableTreeView          *view,
+                    RepresentationFactorySList &representations,
+                    ModelAdapterSPtr           model,
+                    ModelFactorySPtr           factory,
+                    FilterDelegateFactorySPtr  delegateFactory,
+                    ViewManagerSPtr            viewManager,
+                    QUndoStack                *undoStack);
 
     /** \brief Layout class virtual destructor.
      *
@@ -187,11 +186,12 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    ModelAdapterSPtr          m_model;
-    ModelFactorySPtr          m_factory;
-    FilterDelegateFactorySPtr m_delegateFactory;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack               *m_undoStack;
+    RepresentationFactorySList &m_representations;
+    ModelAdapterSPtr           m_model;
+    ModelFactorySPtr           m_factory;
+    FilterDelegateFactorySPtr  m_delegateFactory;
+    ViewManagerSPtr            m_viewManager;
+    QUndoStack                *m_undoStack;
 
     CheckableTreeView *m_view;
 

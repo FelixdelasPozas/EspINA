@@ -32,7 +32,7 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
-    
+
   public:
     explicit RepresentationsGroupTool(const QIcon &icon, QString description);
 
@@ -63,6 +63,8 @@ namespace ESPINA
 
     void changeSwitchStatus(RepresentationSwitchSPtr representationSwitch, bool showRepresentations);
 
+    QWidget *createSeparator(const QString &icon) const;
+
   private slots:
     void setActiveRepresentationsVisibility(bool value);
 
@@ -70,6 +72,8 @@ namespace ESPINA
     QAction                  *m_globalSwitch;
     QWidgetAction            *m_content;
     QWidget                  *m_contentWidget;
+    QLayout                  *m_layout2D;
+    QLayout                  *m_layout3D;
     RepresentationSwitchSList m_switches;
 
     ViewTypeFlags m_viewFlags;
@@ -77,8 +81,8 @@ namespace ESPINA
     bool m_representationsVisibility;
   };
 
-  using RenderGroupToolSPtr  = std::shared_ptr<RepresentationsGroupTool>;
-  using RenderGroupToolSList = QList<RenderGroupToolSPtr>;
+  using RepresentationGroupToolSPtr  = std::shared_ptr<RepresentationsGroupTool>;
+  using RepresentationGroupToolSList = QList<RepresentationGroupToolSPtr>;
 }
 
 #endif // ESPINA_REPRESENTATIONS_GROUP_TOOL_H

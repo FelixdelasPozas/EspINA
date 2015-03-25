@@ -25,6 +25,7 @@
 #include "Layouts/ClassificationLayout.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QContextMenuEvent>
@@ -36,6 +37,7 @@
 #include <QWidgetAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -43,26 +45,27 @@ class SegmentationExplorer::GUI
 , public Ui::SegmentationExplorer
 {
 public:
-	/** \brief GUI class constructor.
-	 *
-	 */
+  /** \brief GUI class constructor.
+   *
+   */
   GUI()
   {
-		setupUi(this);
-		view->setSortingEnabled(true);
-		view->sortByColumn(0, Qt::AscendingOrder);
+    setupUi(this);
+    view->setSortingEnabled(true);
+    view->sortByColumn(0, Qt::AscendingOrder);
 
-		showInformationButton->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
-	}
+    showInformationButton->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
+  }
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr          model,
-                                           ModelFactorySPtr          factory,
-                                           FilterDelegateFactorySPtr delegateFactory,
-                                           ViewManagerSPtr           viewManager,
-                                           QUndoStack               *undoStack,
-                                           QWidget                  *parent)
+SegmentationExplorer::SegmentationExplorer(RepresentationFactorySList &representations,
+                                           ModelAdapterSPtr           model,
+                                           ModelFactorySPtr           factory,
+                                           FilterDelegateFactorySPtr  delegateFactory,
+                                           ViewManagerSPtr            viewManager,
+                                           QUndoStack                *undoStack,
+                                           QWidget                   *parent)
 : DockWidget   {parent}
 , m_baseModel  {model}
 , m_viewManager{viewManager}
@@ -75,7 +78,7 @@ SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr          model,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, delegateFactory, m_viewManager, m_undoStack));
+  addLayout("Category", new ClassificationLayout(m_gui->view, representations, m_baseModel, factory, delegateFactory, m_viewManager, m_undoStack));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -253,13 +256,16 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
   auto item = m_layout->item(index);
 
-  if (ItemAdapter::Type::SEGMENTATION != item->type())
-    return;
+  if (isSegmentation(item))
+  {
+    auto segmentation = segmentationPtr(item);
 
-  auto segmentation = segmentationPtr(item);
-  Bounds bounds = segmentation->output()->bounds();
-  NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
-  m_viewManager->focusViewsOn(center);
+    Bounds bounds = segmentation->output()->bounds();
+
+    NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
+   
+    m_viewManager->focusViewsOn(center);
+  }
 }
 
 //------------------------------------------------------------------------

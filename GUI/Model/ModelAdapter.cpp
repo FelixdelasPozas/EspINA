@@ -20,15 +20,16 @@
 
 // ESPINA
 #include "ModelAdapter.h"
+
 #include <Core/Analysis/Analysis.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
-#include "GUI/Model/SegmentationAdapter.h"
+
+#include "Utils/SegmentationUtils.h"
 
 using namespace ESPINA;
-
-
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 ModelAdapter::ModelAdapter()
@@ -131,8 +132,11 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
       adapted->setModel(this);
     }
     endInsertRows();
-    auto addedSegmentations = toViewItemList(m_segmentations);
+
+    auto addedSegmentations = toViewItemSList(m_segmentations);
+
     addedItems << addedSegmentations;
+
     emit segmentationsAdded(addedSegmentations, t);
   }
 

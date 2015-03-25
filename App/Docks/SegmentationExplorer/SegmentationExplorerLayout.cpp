@@ -25,6 +25,7 @@
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // #include <Core/Model/Segmentation.h>
 // #include <Core/Extensions/Tags/TagExtension.h>
@@ -32,6 +33,7 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
   = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
@@ -53,7 +55,7 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 {
   bool acceptRows = QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
-  QModelIndex rowIndex = sourceModel()->index(source_row, 0, source_parent);
+  auto rowIndex = sourceModel()->index(source_row, 0, source_parent);
 
   if (!acceptRows)
   {
@@ -89,12 +91,14 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
+                                     RepresentationFactorySList &representations,
                                      ModelAdapterSPtr          model,
                                      ModelFactorySPtr          factory,
                                      FilterDelegateFactorySPtr delegateFactory,
                                      ViewManagerSPtr           viewManager,
                                      QUndoStack                *undoStack)
-: m_model          {model}
+: m_representations{representations}
+, m_model          {model}
 , m_factory        {factory}
 , m_delegateFactory{delegateFactory}
 , m_viewManager    {viewManager}
@@ -102,7 +106,7 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
 , m_view           {view}
 {
   connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
+          this,          SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 }
 
 //------------------------------------------------------------------------
@@ -125,9 +129,9 @@ void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapt
   auto inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_model, m_factory, m_delegateFactory, m_viewManager, m_undoStack);
+    inspector = new SegmentationInspector(segmentations, m_representations, m_model, m_factory, m_delegateFactory, m_viewManager, m_undoStack);
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-    		    this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
+            this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
     m_inspectors.insert(toKey(segmentations), inspector);
   }
   inspector->show();

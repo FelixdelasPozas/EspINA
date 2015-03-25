@@ -313,6 +313,8 @@ namespace ESPINA
      */
     unsigned int numberActiveRepresentationManagers(Data::Type type);
 
+    bool hasChannelSources() const;
+
   private:
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
 

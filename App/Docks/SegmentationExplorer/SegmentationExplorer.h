@@ -23,6 +23,7 @@
 // ESPINA
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Representations/RepresentationFactory.h>
 
 // Qt
 #include <ui_SegmentationExplorer.h>
@@ -51,12 +52,13 @@ namespace ESPINA
      * \param[in] undoStack QUndoStack object raw pointer.
      * \param[in] parent parent widget raw pointer.
      */
-    explicit SegmentationExplorer(ModelAdapterSPtr          model,
-                                  ModelFactorySPtr          factory,
-                                  FilterDelegateFactorySPtr delegateFactory,
-                                  ViewManagerSPtr           viewManager,
-                                  QUndoStack               *undoStack,
-                                  QWidget                  *parent = nullptr);
+    explicit SegmentationExplorer(RepresentationFactorySList &representations,
+                                  ModelAdapterSPtr           model,
+                                  ModelFactorySPtr           factory,
+                                  FilterDelegateFactorySPtr  delegateFactory,
+                                  ViewManagerSPtr            viewManager,
+                                  QUndoStack                *undoStack,
+                                  QWidget                   *parent = nullptr);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *

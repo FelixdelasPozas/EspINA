@@ -25,8 +25,11 @@
 #include <Support/Widgets/TabularReport.h>
 #include <GUI/View/View3D.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
+#include <Support/Representations/RepresentationUtils.h>
 
 // Qt
 #include <QSettings>
@@ -37,30 +40,35 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector Window Geometry");
-const QString SegmentationInspectorSplitterKey = QString("Segmentation Inspector Splitter State");
-const QString RENDERERS                        = QString("DefaultView::renderers");
+namespace ESPINA
+{
+  const QString SegmentationInspectorSettingsKey = QString("Segmentation Inspector Window Geometry");
+  const QString SegmentationInspectorSplitterKey = QString("Segmentation Inspector Splitter State");
+}
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::Support::Representations::Utils;
 
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
-                                             ModelAdapterSPtr          model,
-                                             ModelFactorySPtr          factory,
-                                             FilterDelegateFactorySPtr delegateFactory,
-                                             ViewManagerSPtr           viewManager,
-                                             QUndoStack*               undoStack,
-                                             QWidget*                  parent,
-                                             Qt::WindowFlags           flags)
-: QWidget          {parent, flags|Qt::WindowStaysOnTopHint}
+SegmentationInspector::SegmentationInspector(SegmentationAdapterList     segmentations,
+                                             RepresentationFactorySList &representation,
+                                             ModelAdapterSPtr            model,
+                                             ModelFactorySPtr            factory,
+                                             FilterDelegateFactorySPtr   delegateFactory,
+                                             ViewManagerSPtr             viewManager,
+                                             QUndoStack*                 undoStack,
+                                             QWidget*                    parent)
+: QWidget          {parent, Qt::WindowStaysOnTopHint}
 , m_model          {model}
 , m_factory        {factory}
 , m_delegateFactory{delegateFactory}
 , m_viewManager    {viewManager}
 , m_undoStack      {undoStack}
 , m_selectedSegmentation{nullptr}
-, m_view           {new View3D(true)}
-, m_tabularReport  {new TabularReport(factory, viewManager)}
+, m_colorEngine    {new CategoryColorEngine()}
+, m_view           {true}
+, m_tabularReport  {factory, viewManager}
 {
   setupUi(this);
 
@@ -70,77 +78,22 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
   for(auto segmentation : segmentations)
   {
     addSegmentation(segmentation);
-    connect(segmentation, SIGNAL(modified(ItemAdapterPtr)),
-            this,         SLOT(updateScene(ItemAdapterPtr)));
   }
 
-  ESPINA_SETTINGS(settings);
-// TODO: Usar los RepresentationsDrivers
-//   QStringList defaultRenderers;
-//   if (!settings.contains(RENDERERS) || !settings.value(RENDERERS).isValid())
-//   {
-//     defaultRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-//
-//     settings.setValue(RENDERERS, defaultRenderers);
-//   }
-//
-//   defaultRenderers = settings.value(RENDERERS).toStringList();
-//   RendererSList renderers;
-//
-//   for(auto name: defaultRenderers)
-//   {
-//     if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
-//     {
-//       renderers << m_viewManager->cloneRenderer(name);
-//     }
-//   }
-//
-//   m_view->setRenderers(renderers);
-  //TODO m_view->setColorEngine(m_viewManager->colorEngine());
-  m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  m_view->setMinimumWidth(250);
-  m_view->resetCamera();
-  m_view->updateView();
+  initView3D(representation);
 
-  auto viewportLayout = new QVBoxLayout();
-  viewportLayout->addWidget(m_view);
-  viewportLayout->setSizeConstraint(QLayout::SetMinimumSize);
+  initReport();
 
-//   m_historyScrollArea->widget()->setMinimumWidth(250);
-//   m_historyScrollArea->setMinimumWidth(150);
+  configureLayout();
 
-//   QVBoxLayout *historyLayout = new QVBoxLayout();
-//   historyLayout->addWidget(m_historyScrollArea);
+  restoreGeometryState();
 
-  m_tabularReport->setModel(m_model);
-  m_tabularReport->setFilter(m_segmentations);
-  m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_tabularReport->setMinimumHeight(0);
-
-  auto informationLayout = new QHBoxLayout();
-  informationLayout->addWidget(m_tabularReport);
-
-  m_viewport         ->setLayout(viewportLayout);
-  m_historyScrollArea->setWidget(new EmptyHistory());
-  m_information      ->setLayout(informationLayout);
-
-  QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
-  if (!geometry.isEmpty())
-    restoreGeometry(geometry);
-
-  QByteArray state = settings.value(SegmentationInspectorSplitterKey, QByteArray()).toByteArray();
-  if (!state.isEmpty())
-    m_splitter->restoreState(state);
-
-  SegmentationExtension::InfoTagList tags;
-  tags << tr("Name") << tr("Category");
-
-  m_viewManager->registerView(m_view);
+  m_viewManager->registerView(&m_view);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
           this,                             SLOT(updateSelection()));
 
-  generateWindowTitle();
+  updateWindowTitle();
 
   updateSelection();
 }
@@ -148,10 +101,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 //------------------------------------------------------------------------
 void SegmentationInspector::closeEvent(QCloseEvent *e)
 {
-  ESPINA_SETTINGS(settings);
-  settings.setValue(SegmentationInspectorSettingsKey, this->saveGeometry());
-  settings.setValue(SegmentationInspectorSplitterKey, m_splitter->saveState());
-  settings.sync();
+  saveGeometry();
 
   emit inspectorClosed(this);
 
@@ -161,9 +111,7 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-	m_viewManager->unregisterView(m_view);
-  delete m_view;
-  delete m_tabularReport;
+  m_viewManager->unregisterView(&m_view);
 }
 
 //------------------------------------------------------------------------
@@ -171,33 +119,32 @@ void SegmentationInspector::updateScene(ItemAdapterPtr item)
 {
   auto segmentation = segmentationPtr(item);
   //TODO m_view->updateRepresentation(segmentation);
-  m_view->updateView();
+//   m_view.updateView();
 }
 
 //------------------------------------------------------------------------
 void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
 {
-  if (m_segmentations.contains(segmentation))
-    return;
-
-  m_segmentations << segmentation;
-  //TODO use sources and pools m_view->add(segmentation);
-
-  auto channels = QueryAdapter::channels(segmentation);
-
-  if(channels.isEmpty())
+  if (!m_segmentations.contains(segmentation))
   {
-    qWarning() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
-    return;
-  }
+    m_segmentations << segmentation;
+    m_segmentationSources.addSource(toViewItemList(segmentation), m_view.timeStamp());
 
-  if (channels.size() > 1)
-  {
-    qWarning() << "Channel tiling is not supported.";
-  }
-  else
-  {
-    addChannel(channels.first().get());
+    auto channels = QueryAdapter::channels(segmentation);
+
+    if(channels.isEmpty())
+    {
+      qWarning() << "FIXME: Channels shouldn't be empty" << __FILE__ << __LINE__;
+    }
+    else
+    {
+      if (channels.size() > 1)
+      {
+        qWarning() << "Channel tiling is not supported.";
+      }
+
+      addChannel(channels.first().get());
+    }
   }
 }
 
@@ -251,23 +198,21 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     }
   }
 
-  m_view->updateView();
+  m_view.updateView();
 
-  generateWindowTitle();
+  updateWindowTitle();
 }
 
 //------------------------------------------------------------------------
 void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
 {
-  if (m_channels.contains(channel))
-    return;
+  if (!m_channels.contains(channel))
+  {
+    m_channels << channel;
+    m_channelSources.addSource(toViewItemList(channel), m_view.timeStamp());
 
-  m_channels << channel;
-
-  //TODO m_viewManager->add(channel);
-  m_view->updateView();
-
-  generateWindowTitle();
+    updateWindowTitle();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -279,13 +224,13 @@ void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
   m_channels.removeOne(channel);
 
   //TODO m_viewManager->remove(channel);
-  m_view->updateView();
+  m_view.updateView();
 
-  generateWindowTitle();
+  updateWindowTitle();
 }
 
 //------------------------------------------------------------------------
-void SegmentationInspector::generateWindowTitle()
+void SegmentationInspector::updateWindowTitle()
 {
   QString title(tr("Segmentation Inspector - "));
 
@@ -314,7 +259,7 @@ void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
 
-  m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
+  m_tabularReport.updateSelection(m_viewManager->selection()->segmentations());
 }
 
 //------------------------------------------------------------------------
@@ -403,11 +348,11 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
     addSegmentation(segmentation);
   }
 
-  m_tabularReport->setFilter(m_segmentations);
-  m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
+  m_tabularReport.setFilter(m_segmentations);
+  m_tabularReport.updateSelection(m_viewManager->selection()->segmentations());
 
-  m_view->updateView();
-  m_view->resetCamera();
+  m_view.updateView();
+  m_view.resetCamera();
 
   event->acceptProposedAction();
 }
@@ -461,4 +406,124 @@ void SegmentationInspector::updateSelection()
   }
 
   m_historyScrollArea->setWidget(activeHistory);
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::configureLayout()
+{
+  layout()->setMenuBar(&m_toolbar);
+//   m_historyScrollArea->widget()->setMinimumWidth(250);
+//   m_historyScrollArea->setMinimumWidth(150);
+
+//   QVBoxLayout *historyLayout = new QVBoxLayout();
+//   historyLayout->addWidget(m_historyScrollArea);
+
+  m_viewport         ->setLayout(createViewLayout());
+  m_historyScrollArea->setWidget(new EmptyHistory());
+  m_information      ->setLayout(createReportLayout());
+}
+
+//------------------------------------------------------------------------
+QVBoxLayout *SegmentationInspector::createViewLayout()
+{
+  auto layout = new QVBoxLayout();
+
+  layout->addWidget(&m_view);
+  layout->setSizeConstraint(QLayout::SetMinimumSize);
+
+  return layout;
+}
+
+//------------------------------------------------------------------------
+QHBoxLayout *SegmentationInspector::createReportLayout()
+{
+  auto layout = new QHBoxLayout();
+
+  layout->addWidget(&m_tabularReport);
+
+  return layout;
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::initView3D(RepresentationFactorySList representations)
+{
+  m_view.setChannelSources(&m_channelSources);
+  m_view.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  m_view.setMinimumWidth(250);
+
+  for (auto factory : representations)
+  {
+    auto representation = factory->createRepresentation(m_colorEngine);
+
+    for (auto repSwitch : representation.Switches)
+    {
+      tools.addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+    }
+
+    for (auto manager : representation.Managers)
+    {
+      m_view.addRepresentationManager(manager);
+    }
+
+    for (auto pool : representation.Pools)
+    {
+      if (CHANNELS_GROUP == representation.Group)
+      {
+        pool->setPipelineSources(&m_channelSources);
+      }
+      else if (SEGMENTATIONS_GROUP == representation.Group)
+      {
+        pool->setPipelineSources(&m_segmentationSources);
+      }
+    }
+  }
+
+  for (auto tool : tools.representationTools())
+  {
+    for (auto action : tool->actions())
+    {
+      m_toolbar.addAction(action);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::initReport()
+{
+  SegmentationExtension::InfoTagList tags;
+  tags << tr("Name") << tr("Category");
+
+  m_tabularReport.setModel(m_model);
+  m_tabularReport.setFilter(m_segmentations);
+  m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_tabularReport.setMinimumHeight(0);
+}
+
+
+//------------------------------------------------------------------------
+void SegmentationInspector::restoreGeometryState()
+{
+  ESPINA_SETTINGS(settings);
+
+  QByteArray geometry = settings.value(SegmentationInspectorSettingsKey, QByteArray()).toByteArray();
+  if (!geometry.isEmpty())
+  {
+    restoreGeometry(geometry);
+  }
+
+  QByteArray state = settings.value(SegmentationInspectorSplitterKey, QByteArray()).toByteArray();
+  if (!state.isEmpty())
+  {
+    m_splitter->restoreState(state);
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::saveGeometryState()
+{
+  ESPINA_SETTINGS(settings);
+
+  settings.setValue(SegmentationInspectorSettingsKey, this->saveGeometry());
+  settings.setValue(SegmentationInspectorSplitterKey, m_splitter->saveState());
+  settings.sync();
 }
