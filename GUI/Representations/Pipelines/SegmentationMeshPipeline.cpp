@@ -76,14 +76,14 @@ namespace ESPINA
       mapper->Update();
 
       auto color = m_colorEngine->color(segmentation);
-      double rgba[4], rgb[3];
+      double rgba[4];
       s_highlighter.lut(color)->GetTableValue(1,rgba);
 
       auto actor = vtkSmartPointer<vtkActor>::New();
       actor->SetMapper(mapper);
       actor->GetProperty()->SetSpecular(0.2);
       actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actor->GetProperty()->SetOpacity(opacity(state));
+      actor->GetProperty()->SetOpacity(rgba[3]);
       actor->Modified();
 
       actors << actor;

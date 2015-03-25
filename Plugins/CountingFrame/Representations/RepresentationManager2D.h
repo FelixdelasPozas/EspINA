@@ -20,8 +20,9 @@
 #ifndef ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 #define ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 
-#include <GUI/Representations/ActorManager.h>
-#include <GUI/Representations/RepresentationsRange.h>
+// ESPINA
+#include <GUI/Representations/RangedActorManager.h>
+#include <GUI/Representations/RepresentationsRange.hxx>
 #include "CountingFrameManager.h"
 
 namespace ESPINA

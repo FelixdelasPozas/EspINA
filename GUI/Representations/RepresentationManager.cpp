@@ -30,8 +30,8 @@ RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 : m_showRepresentations  {false}
 , m_requiresRender       {false}
 , m_view                 {nullptr}
-, m_supportedViews       {supportedViews}
 , m_lastRequestTime      {1}
+, m_supportedViews       {supportedViews}
 , m_lastRenderRequestTime{0}
 {
 }

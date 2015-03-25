@@ -18,7 +18,7 @@
 */
 
 // ESPINA
-#include "ActorManager.h"
+#include <GUI/Representations/RangedActorManager.h>
 #include <GUI/View/RenderView.h>
 
 #include <vtkProp.h>
@@ -26,19 +26,17 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-ActorManager::ActorManager(ViewTypeFlags supportedViews)
+RangedActorManager::RangedActorManager(ViewTypeFlags supportedViews)
 : RepresentationManager{supportedViews}
 {
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::display(TimeStamp time)
+void RangedActorManager::display(TimeStamp time)
 {
   if (m_view)
   {
     removeCurrentActors();
-
-    m_viewActors.clear();
 
     if (m_showRepresentations)
     {
@@ -52,19 +50,19 @@ void ActorManager::display(TimeStamp time)
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::onShow()
+void RangedActorManager::onShow()
 {
   enableRepresentations();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::onHide()
+void RangedActorManager::onHide()
 {
   disableRepresentations();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::enableRepresentations()
+void RangedActorManager::enableRepresentations()
 {
   m_requiresRender = hasSources();
 
@@ -72,13 +70,13 @@ void ActorManager::enableRepresentations()
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::disableRepresentations()
+void RangedActorManager::disableRepresentations()
 {
   disconnectPools();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::removeCurrentActors()
+void RangedActorManager::removeCurrentActors()
 {
   for (auto itemActors : m_viewActors)
   {
@@ -87,11 +85,15 @@ void ActorManager::removeCurrentActors()
       m_view->removeActor(actor);
     }
   }
+
+  m_viewActors.clear();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::displayActors(const TimeStamp time)
+void RangedActorManager::displayActors(const TimeStamp time)
 {
+  if(readyRange().empty()) return;
+
   auto currentActors = actors(time);
 
   for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
@@ -102,4 +104,10 @@ void ActorManager::displayActors(const TimeStamp time)
       m_viewActors[it.key()] << actor;
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+bool RangedActorManager::hasActorsInDisplay() const
+{
+  return !m_viewActors.empty();
 }

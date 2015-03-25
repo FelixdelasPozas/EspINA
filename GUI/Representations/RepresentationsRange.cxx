@@ -15,7 +15,7 @@
  *
  */
 
-#include "RepresentationsRange.h"
+#include <GUI/Representations/RepresentationsRange.hxx>
 
 template<typename R>
 RepresentationsRange<R>::RepresentationsRange()

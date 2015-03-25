@@ -20,13 +20,14 @@
 #ifndef ESPINA_SLICE_MANAGER_H
 #define ESPINA_SLICE_MANAGER_H
 
+// ESPINA
 #include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/RangedActorManager.h>
 
 namespace ESPINA
 {
   class SliceManager
-  : public ActorManager
+  : public RangedActorManager
   , public RepresentationManager2D
   {
   public:

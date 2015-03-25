@@ -110,7 +110,7 @@ namespace ESPINA
       actor->SetMapper(mapper);
       actor->GetProperty()->SetSpecular(0.2);
       actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actor->GetProperty()->SetOpacity(opacity(state));
+      actor->GetProperty()->SetOpacity(rgba[3]);
       actor->Modified();
 
       actors << actor;

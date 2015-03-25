@@ -340,11 +340,6 @@ void RenderView::updateSceneBounds()
     resetSceneBounds();
   }
 
-  if (m_channelSources->size() <= 1)
-  {
-    m_sceneCameraInitialized = false;
-  }
-
   if (resolution != m_sceneResolution)
   {
     changeSceneResolution();
@@ -518,20 +513,22 @@ void RenderView::onRenderRequest()
   QMap<TimeStamp, int> count;
 
   int readyManagers  = 0;
-  int renderRequests = 0;
+  int activeManagers = 0;
+
+  RepresentationManagerSList pendingRenderManagers;
 
   for(auto manager: m_managers)
   {
     if (manager->requiresRender())
     {
-      renderRequests++;
+      pendingRenderManagers << manager;
 
       switch(manager->pipelineStatus())
       {
         case RepresentationManager::PipelineStatus::NOT_READY:
           return;
         case RepresentationManager::PipelineStatus::READY:
-          readyManagers++;
+          ++readyManagers;
           break;
         case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
           for(auto timeStamp: manager->readyRange())
@@ -543,10 +540,16 @@ void RenderView::onRenderRequest()
           break;
       }
     }
+
+    if(manager->isActive())
+    {
+      ++activeManagers;
+    }
   }
 
-//   qDebug() << count;
-//   qDebug() << "Ready Managers:" << readyManagers << "Render Requests" << renderRequests;
+  auto renderRequests = pendingRenderManagers.size();
+
+  if(renderRequests == 0) return;
 
   TimeStamp latest;
   bool validTimeStamp = false;
@@ -564,28 +567,33 @@ void RenderView::onRenderRequest()
         }
       }
     }
-  }
 
-  if (renderRequests == 0) return;
-
-  if (validTimeStamp)
-  {
-    for(auto manager: m_managers)
+    if(!validTimeStamp) // happens
     {
-      if (manager->requiresRender())
-      {
-        manager->display(latest);
-      }
+      latest = m_state->timeStamp();
     }
-    qDebug() << "Latest frame:" << latest;
+  }
+  else
+  {
+    latest = m_state->timeStamp();
   }
 
-  if (!m_sceneCameraInitialized)
+  for(auto manager: pendingRenderManagers)
+  {
+    if(manager->pipelineStatus() == RepresentationManager::PipelineStatus::READY || manager->readyRange().contains(latest))
+    {
+      manager->display(latest);
+    }
+  }
+
+  qDebug() << "Latest frame:" << latest;
+
+  if (activeManagers > 0 && !m_sceneCameraInitialized)
   {
     resetCamera();
-
-    m_sceneCameraInitialized = true;
   }
+
+  m_sceneCameraInitialized = (activeManagers != 0);
 
   updateView();
 }

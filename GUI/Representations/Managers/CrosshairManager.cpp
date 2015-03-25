@@ -20,7 +20,7 @@
 
 // ESPINA
 #include <Core/Utils/Spatial.h>
-#include <GUI/Representations/CrosshairManager.h>
+#include <GUI/Representations/Managers/CrosshairManager.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 

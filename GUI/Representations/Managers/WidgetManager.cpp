@@ -15,7 +15,7 @@
  *
  */
 
-#include "WidgetManager.h"
+#include <GUI/Representations/Managers/WidgetManager.h>
 
 using namespace ESPINA;
 

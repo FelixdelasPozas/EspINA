@@ -20,7 +20,7 @@
 
 // ESPINA
 #include <Deprecated/GUI/Representations/RepresentationEmptySettings.h>
-#include "SkeletonRepresentation.h"
+#include <Deprecated/GUI/Representations/SkeletonRepresentation.h>
 #include <GUI/View/View2D.h>
 
 // VTK

@@ -27,7 +27,7 @@ using namespace ESPINA;
 SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
                            RepresentationPoolSPtr poolXZ,
                            RepresentationPoolSPtr poolYZ)
-: ActorManager(ViewType::VIEW_2D)
+: RangedActorManager(ViewType::VIEW_2D)
 , m_plane{Plane::UNDEFINED}
 , m_XY{poolXY}
 , m_XZ{poolXZ}

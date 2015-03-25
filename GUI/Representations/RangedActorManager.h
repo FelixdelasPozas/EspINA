@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_ACTOR_MANAGER_H
-#define ESPINA_ACTOR_MANAGER_H
+#ifndef ESPINA_RANGED_ACTOR_MANAGER_H
+#define ESPINA_RANGED_ACTOR_MANAGER_H
 
 #include "RepresentationManager.h"
 #include "GUI/EspinaGUI_Export.h"
@@ -38,21 +38,33 @@ namespace ESPINA
 {
   class RenderView;
 
-  class EspinaGUI_EXPORT ActorManager
+  class EspinaGUI_EXPORT RangedActorManager
   : public RepresentationManager
   {
     Q_OBJECT
   public:
-    virtual ~ActorManager()
+    /** \brief RangedActorManager class virtual destructor.
+     *
+     */
+    virtual ~RangedActorManager()
     {}
 
     /** \brief Updates view's actors with those available at the given time.
      *
      */
-    void display(TimeStamp time);
+    virtual void display(TimeStamp time);
 
   protected:
-    explicit ActorManager(ViewTypeFlags supportedViews);
+    /** \brief RangedActorManager class protected constructor.
+     * \param[in] supportedViews flags of the views supported by the manager.
+     */
+    explicit RangedActorManager(ViewTypeFlags supportedViews);
+
+    void removeCurrentActors();
+
+    void displayActors(const TimeStamp time);
+
+    bool hasActorsInDisplay() const;
 
   private:
     virtual bool hasSources() const = 0;
@@ -75,14 +87,10 @@ namespace ESPINA
 
     void disableRepresentations();
 
-    void removeCurrentActors();
-
-    void displayActors(const TimeStamp time);
-
   private:
     RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view
   };
 
 }// namespace ESPINA
 
-#endif // ESPINA_REPRESENTATION_MANAGER_H
+#endif // ESPINA_RANGED_ACTOR_MANAGER_H

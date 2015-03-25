@@ -17,7 +17,8 @@
  *
  */
 
-#include "BufferedRepresentationPool.h"
+// ESPINA
+#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 
 using namespace ESPINA;
 
@@ -80,7 +81,7 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &poi
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
-  m_init     = true;
+  m_init = true;
 
   if (t > m_changedTimeStamp)
   {

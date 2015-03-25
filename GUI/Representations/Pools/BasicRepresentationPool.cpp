@@ -17,7 +17,8 @@
  *
  */
 
-#include "BasicRepresentationPool.h"
+// ESPINA
+#include <GUI/Representations/Pools/BasicRepresentationPool.h>
 
 namespace ESPINA
 {
@@ -26,7 +27,6 @@ namespace ESPINA
   : m_updater      {std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
   , m_init         {false}
   , m_hasChanged   {false}
-  , m_static       {false}
   {
     connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
             this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -44,18 +44,6 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  bool BasicRepresentationPool::isStatic() const
-  {
-    return m_static;
-  }
-
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::setStaticRepresentation(bool value)
-  {
-    m_static = value;
-  }
-
-  //-----------------------------------------------------------------------------
   void BasicRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr source)
   {
     m_updater->addSource(source);
@@ -70,14 +58,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp t)
   {
-    if(m_static && !m_init)
-    {
-
-      Task::submit(m_updater);
-    }
-
     m_init = true;
-
 
     if (t > lastUpdateTimeStamp())
     {

@@ -57,7 +57,6 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segmentate/Skeleton/SkeletonTool.h
   ToolGroups/Segmentate/Skeleton/SkeletonToolGroup.h
   ToolGroups/Segmentate/Skeleton/SkeletonToolStatusAction.h
-  ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h
   ToolGroups/Visualize/RepresentationsGroupTool.h
   ToolGroups/Visualize/VisualizeToolGroup.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
@@ -138,7 +137,6 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
-  ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.cpp
   ToolGroups/Visualize/RepresentationsGroupTool.cpp
   ToolGroups/Explore/ResetZoom.cpp
   ToolGroups/Visualize/VisualizeToolGroup.cpp

@@ -17,7 +17,8 @@ qt4_wrap_cpp(GUI_MOC
   Model/ViewItemAdapter.h
   Representations/PipelineSourcesFilter.h
   Representations/RepresentationManager.h
-  Representations/ActorManager.h
+  Representations/RangedActorManager.h
+  Representations/ReadyActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
   Representations/RepresentationWindow.h
@@ -113,15 +114,16 @@ set (GUI_SOURCES
   Representations/Settings/PipelineStateUtils.cpp
   Representations/Settings/SegmentationSlicePoolSettings.cpp
   Representations/Settings/SegmentationContourPoolSettings.cpp
-  Representations/BufferedRepresentationPool.cpp
-  Representations/CrosshairManager.cpp 
+  Representations/Pools/BufferedRepresentationPool.cpp
+  Representations/Pools/BasicRepresentationPool.cpp
+  Representations/Managers/CrosshairManager.cpp 
+  Representations/Managers/WidgetManager.cpp
   Representations/PipelineSourcesFilter.cpp
   Representations/RepresentationManager.cpp
-  Representations/ActorManager.cpp
-  Representations/WidgetManager.cpp
+  Representations/RangedActorManager.cpp
+  Representations/ReadyActorManager.cpp  
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
-  Representations/BasicRepresentationPool.cpp
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp

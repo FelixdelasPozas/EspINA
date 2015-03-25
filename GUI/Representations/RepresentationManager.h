@@ -179,11 +179,11 @@ namespace ESPINA
     bool    m_showRepresentations;
     bool    m_requiresRender;
     RenderView   *m_view;
+    TimeStamp     m_lastRequestTime;
 
   private:
     ViewTypeFlags m_supportedViews;
     NmVector3     m_crosshair;
-    TimeStamp     m_lastRequestTime;
     TimeStamp     m_lastRenderRequestTime;
 
     RepresentationManagerSList m_childs;

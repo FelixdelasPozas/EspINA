@@ -21,11 +21,10 @@
 #define ESPINA_REPRESENTATION_POOL_H
 
 #include <Core/Utils/NmVector3.h>
+#include <GUI/Representations/RepresentationsRange.hxx>
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"
 #include "PipelineSourcesFilter.h"
-#include "RepresentationsRange.h"
-
 #include <memory>
 
 namespace ESPINA

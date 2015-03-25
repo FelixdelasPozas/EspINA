@@ -27,7 +27,7 @@ using namespace std;
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
                                RepresentationPoolSPtr poolXZ,
                                RepresentationPoolSPtr poolYZ)
-: ActorManager(ViewType::VIEW_3D)
+: RangedActorManager(ViewType::VIEW_3D)
 {
   m_pools << poolXY << poolXZ << poolYZ;
 }

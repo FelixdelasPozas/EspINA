@@ -20,9 +20,8 @@
 // ESPINA
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
 #include <App/ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
-#include <GUI/Representations/BufferedRepresentationPool.h>
-#include <GUI/Representations/BasicRepresentationPool.h>
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
+#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>

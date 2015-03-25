@@ -83,7 +83,6 @@ QList<QAction *> AppositionSurfaceTool::actions() const
 //-----------------------------------------------------------------------------
 void AppositionSurfaceTool::abortOperation()
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -140,7 +139,7 @@ void AppositionSurfaceTool::createSAS()
 
   if(validSegmentations.empty())
   {
-    DefaultDialogs::InformationMessage(tr("ESPINA"), tr("Selected Synapses already have an associated Apposittion Surface."));
+    DefaultDialogs::InformationMessage(tr("ESPINA"), tr("Selected Synapses already have an associated Apposition Surface."));
   }
   else
   {
@@ -160,7 +159,6 @@ void AppositionSurfaceTool::createSAS()
       Task::submit(filter);
     }
   }
-
 }
 
 

@@ -20,10 +20,12 @@
 #ifndef ESPINA_BUFFERED_REPRESENTATION_POOL_H
 #define ESPINA_BUFFERED_REPRESENTATION_POOL_H
 
+// ESPINA
 #include <GUI/Representations/RepresentationPool.h>
-#include "RepresentationUpdater.h"
-#include "RepresentationWindow.h"
+#include <GUI/Representations/RepresentationUpdater.h>
+#include <GUI/Representations/RepresentationWindow.h>
 
+// VTK
 #include <vtkMath.h>
 
 namespace ESPINA

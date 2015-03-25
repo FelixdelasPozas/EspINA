@@ -20,13 +20,14 @@
 #ifndef ESPINA_SLICE_3D_MANAGER_H
 #define ESPINA_SLICE_3D_MANAGER_H
 
-#include <GUI/Representations/ActorManager.h>
+// ESPINA
+#include <GUI/Representations/RangedActorManager.h>
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA {
 
   class Slice3DManager
-  : public ActorManager
+  : public RangedActorManager
   {
     Q_OBJECT
   public:

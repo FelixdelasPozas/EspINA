@@ -24,10 +24,10 @@
 #include <Support/Widgets/Tool.h>
 
 // Plugin
+#include "AppositionSurfacePlugin_Export.h"
 #include <Core/MultiTasking/Task.h>
 #include <GUI/Model/ModelAdapter.h>
-#include "AppositionSurfacePlugin_Export.h"
-#include "Core/Extensions/AppositionSurfaceExtension.h"
+#include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // ESPINA
 #include <Support/ViewManager.h>

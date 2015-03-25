@@ -19,7 +19,7 @@
  */
 
 // ESPINA
-#include <GUI/Representations/CrosshairManager.h>
+#include <GUI/Representations/Managers/CrosshairManager.h>
 #include <GUI/View/ViewTypeFlags.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>

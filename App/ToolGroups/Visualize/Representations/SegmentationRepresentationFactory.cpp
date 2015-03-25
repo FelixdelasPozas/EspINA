@@ -19,10 +19,8 @@
 
 // ESPINA
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
-#include <App/ToolGroups/Visualize/Representations/SegmentationVolumetric/VolumetricManager.h>
 #include <App/ToolGroups/Visualize/VisualizeToolGroup.h>
-#include <GUI/Representations/BasicRepresentationPool.h>
-#include <GUI/Representations/BufferedRepresentationPool.h>
+#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationMeshPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton2DPipeline.h>
@@ -31,8 +29,10 @@
 #include <GUI/Representations/Pipelines/SegmentationSmoothedMeshPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationVolumetricCPUPipeline.h>
 #include <GUI/Representations/Pipelines/SegmentationVolumetricGPUPipeline.h>
+#include <GUI/Representations/Pools/BasicRepresentationPool.h>
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
+#include <GUI/Representations/ReadyActorManager.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -123,7 +123,7 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
 
   auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
   auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineSkeleton3D);
-  auto skeletonManager3D    = std::make_shared<VolumetricManager>(poolSkeleton3D);
+  auto skeletonManager3D    = std::make_shared<ReadyActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
   auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>(skeletonManager3D, ViewType::VIEW_3D);
 
   configurePool(poolSkeleton2DXY, colorEngine, skeletonSettings);
@@ -134,7 +134,6 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   skeletonManager2D->setIcon(QIcon(":espina/tubular.svg"));
 
   configurePool(poolSkeleton3D, colorEngine, skeletonSettings);
-  poolSkeleton3D->setStaticRepresentation(true);
 
   skeletonManager3D->setName(QObject::tr("Skeleton 3D Representation"));
   skeletonManager3D->setIcon(QIcon(":espina/tubular.svg"));
@@ -148,22 +147,20 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   auto volumetricSettings   = std::make_shared<RepresentationPool::Settings>();
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
   auto poolVolumetricCPU    = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolumeCPU);
-  auto volumetricCPUManager = std::make_shared<VolumetricManager>(poolVolumetricCPU);
+  auto volumetricCPUManager = std::make_shared<ReadyActorManager>(poolVolumetricCPU, ViewType::VIEW_3D);
   auto volumetricCPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricCPUManager, ViewType::VIEW_3D);
 
   auto pipelineVolumeGPU    = std::make_shared<SegmentationVolumetricGPUPipeline>(colorEngine);
   auto poolVolumetricGPU    = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolumeGPU);
-  auto volumetricGPUManager = std::make_shared<VolumetricManager>(poolVolumetricGPU);
+  auto volumetricGPUManager = std::make_shared<ReadyActorManager>(poolVolumetricGPU, ViewType::VIEW_3D);
   auto volumetricGPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricGPUManager, ViewType::VIEW_3D);
 
   configurePool(poolVolumetricCPU, colorEngine, volumetricSettings);
-  poolVolumetricCPU->setStaticRepresentation(true);
   
   volumetricCPUManager->setName(QObject::tr("Volumetric Representation"));
   volumetricCPUManager->setIcon(QIcon(":espina/voxel.png"));
 
   configurePool(poolVolumetricGPU, colorEngine, volumetricSettings);
-  poolVolumetricGPU->setStaticRepresentation(true);
 
   volumetricGPUManager->setName(QObject::tr("Volumetric GPU Representation"));
   volumetricGPUManager->setIcon(QIcon(":espina/voxelGPU.png"));
@@ -177,22 +174,20 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineMesh);
-  auto meshManager    = std::make_shared<VolumetricManager>(poolMesh);
+  auto meshManager    = std::make_shared<ReadyActorManager>(poolMesh, ViewType::VIEW_3D);
   auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>(meshManager, ViewType::VIEW_3D);
 
   auto pipelineSmoothedMesh = std::make_shared<SegmentationSmoothedMeshPipeline>(colorEngine);
   auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineSmoothedMesh);
-  auto smoothedMeshManager  = std::make_shared<VolumetricManager>(poolSmoothedMesh);
+  auto smoothedMeshManager  = std::make_shared<ReadyActorManager>(poolSmoothedMesh, ViewType::VIEW_3D);
   auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>(smoothedMeshManager, ViewType::VIEW_3D);
 
   configurePool(poolMesh, colorEngine, meshesSettings);
-  poolMesh->setStaticRepresentation(true);
 
   meshManager->setName(QObject::tr("Mesh Representation"));
   meshManager->setIcon(QIcon(":espina/mesh.png"));
 
   configurePool(poolSmoothedMesh, colorEngine, meshesSettings);
-  poolSmoothedMesh->setStaticRepresentation(true);
 
   smoothedMeshManager->setName(QObject::tr("Smoothed Mesh Representation"));
   smoothedMeshManager->setIcon(QIcon(":espina/smoothedmesh.png"));

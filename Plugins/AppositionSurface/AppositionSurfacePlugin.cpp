@@ -25,7 +25,7 @@
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
-#include "GUI/AppositionSurfaceTool.h"
+#include <GUI/AppositionSurfaceTool.h>
 #include <Core/Extensions/ExtensionFactory.h>
 
 // ESPINA
@@ -174,7 +174,9 @@ QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 {
   QList<CategorizedTool> tools;
 
-  tools << CategorizedTool(ToolCategory::SEGMENTATE, std::make_shared<AppositionSurfaceTool>(this, m_model, m_factory, m_viewManager));
+  auto plugin = const_cast<AppositionSurfacePlugin *>(this);
+
+  tools << CategorizedTool(ToolCategory::SEGMENTATE, std::make_shared<AppositionSurfaceTool>(plugin, m_model, m_factory, m_viewManager));
 
   return tools;
 }
