@@ -867,7 +867,6 @@ void vtkPlaneContourRepresentation::SetClosedLoop(int val)
 //----------------------------------------------------------------------------
 void vtkPlaneContourRepresentation::UpdateLines(int index)
 {
-  int indices[2];
 
   if (this->LineInterpolator)
   {
@@ -877,6 +876,8 @@ void vtkPlaneContourRepresentation::UpdateLines(int index)
     int nNodes = arr->GetNumberOfTuples();
     for (int i = 0; i < nNodes; i++)
     {
+      int indices[2];
+
       arr->GetTupleValue(i, indices);
       this->UpdateLine(indices[0], indices[1]);
     }
@@ -1166,14 +1167,15 @@ void vtkPlaneContourRepresentation::BuildLocator()
 
   //viewport info
   double viewPortRatio[2];
-  int sizex, sizey;
 
   /* get physical window dimensions */
   if (this->Renderer->GetVTKWindow())
   {
     double *viewPort = this->Renderer->GetViewport();
-    sizex = this->Renderer->GetVTKWindow()->GetSize()[0];
-    sizey = this->Renderer->GetVTKWindow()->GetSize()[1];
+
+    int sizex = this->Renderer->GetVTKWindow()->GetSize()[0];
+    int sizey = this->Renderer->GetVTKWindow()->GetSize()[1];
+
     viewPortRatio[0] = (sizex * (viewPort[2] - viewPort[0])) / 2.0 + sizex * viewPort[0];
     viewPortRatio[1] = (sizey * (viewPort[3] - viewPort[1])) / 2.0 + sizey * viewPort[1];
   }
@@ -1889,7 +1891,6 @@ double vtkPlaneContourRepresentation::FindClosestDistanceToContour(int x, int y)
 {
   double displayPos_i[3], displayPos_j[3];
   double result = 10000.0; // just use a big enough constant to boot operations
-  double tempN, tempD;
 
   for (int i = 0; i < this->GetNumberOfNodes(); i++)
   {
@@ -1902,45 +1903,43 @@ double vtkPlaneContourRepresentation::FindClosestDistanceToContour(int x, int y)
     //dist(P,L) = ---------------------------------
     //              sqrt( (x2-x1)^2 + (y2-y1)^2 )
 
-    tempN = ((displayPos_i[1] - displayPos_j[1]) * static_cast<double>(x))
-        + ((displayPos_j[0] - displayPos_i[0]) * static_cast<double>(y))
-        + ((displayPos_i[0] * displayPos_j[1]) - (displayPos_j[0] * displayPos_i[1]));
+    int tempN = ((displayPos_i[1] - displayPos_j[1]) * static_cast<double>(x))
+              + ((displayPos_j[0] - displayPos_i[0]) * static_cast<double>(y))
+              + ((displayPos_i[0] * displayPos_j[1]) - (displayPos_j[0] * displayPos_i[1]));
 
-    tempD = sqrt(pow(displayPos_j[0] - displayPos_i[0], 2)
-        + pow(displayPos_j[1] - displayPos_i[1], 2));
+    int tempD = sqrt(pow(displayPos_j[0] - displayPos_i[0], 2)
+                   + pow(displayPos_j[1] - displayPos_i[1], 2));
 
-    if (tempD == 0.0)
+    if (tempD != 0.0)
     {
-      continue;
-    }
+      double distance = fabs(tempN) / tempD;
 
-    double distance = fabs(tempN) / tempD;
+      // if the distance is to a point outside the segment i,i+1, then the real distance to the segment is
+      // the distance to one of the nodes
+      double r = ((static_cast<double>(x) - displayPos_i[0]) * (displayPos_j[0] - displayPos_i[0])
+                + (static_cast<double>(y) - displayPos_i[1]) * (displayPos_j[1] - displayPos_i[1]))
+                / (tempD * tempD);
 
-    // if the distance is to a point outside the segment i,i+1, then the real distance to the segment is
-    // the distance to one of the nodes
-    double r = ((static_cast<double>(x) - displayPos_i[0]) * (displayPos_j[0] - displayPos_i[0])
-        + (static_cast<double>(y) - displayPos_i[1]) * (displayPos_j[1] - displayPos_i[1]))
-        / (tempD * tempD);
-
-    if ((r < 0.0) || (r > 1.0))
-    {
-
-      double dist1 = fabs(sqrt(pow(displayPos_i[0] - static_cast<double>(x), 2) + pow(displayPos_i[1] - static_cast<double>(y), 2)));
-      double dist2 = fabs(sqrt(pow(displayPos_j[0] - static_cast<double>(x), 2) + pow(displayPos_j[1] - static_cast<double>(y), 2)));
-
-      if (dist1 <= dist2)
+      if ((r < 0.0) || (r > 1.0))
       {
-        distance = dist1;
-      }
-      else
-      {
-        distance = dist2;
-      }
-    }
 
-    if (distance < result)
-    {
-      result = distance;
+        double dist1 = fabs(sqrt(pow(displayPos_i[0] - static_cast<double>(x), 2) + pow(displayPos_i[1] - static_cast<double>(y), 2)));
+        double dist2 = fabs(sqrt(pow(displayPos_j[0] - static_cast<double>(x), 2) + pow(displayPos_j[1] - static_cast<double>(y), 2)));
+
+        if (dist1 <= dist2)
+        {
+          distance = dist1;
+        }
+        else
+        {
+          distance = dist2;
+        }
+      }
+
+      if (distance < result)
+      {
+        result = distance;
+      }
     }
   }
 

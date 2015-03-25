@@ -60,10 +60,6 @@ namespace ESPINA
      */
     explicit RangedActorManager(ViewTypeFlags supportedViews);
 
-    void removeCurrentActors();
-
-    void displayActors(const TimeStamp time);
-
     bool hasActorsInDisplay() const;
 
   private:
@@ -83,9 +79,11 @@ namespace ESPINA
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
-    void enableRepresentations();
+    void updateRenderRequestValue();
 
-    void disableRepresentations();
+    void displayActors(const TimeStamp time);
+
+    void removeCurrentActors();
 
   private:
     RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view

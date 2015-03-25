@@ -95,7 +95,7 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_spinBox         {new QDoubleSpinBox()}
 , m_zoomButton      {nullptr}
 , m_snapshot        {nullptr}
-, m_repManagerMenu    {nullptr}
+, m_repManagerMenu  {nullptr}
 , m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_slicingStep     {1, 1, 1}
 , m_showThumbnail   {true}

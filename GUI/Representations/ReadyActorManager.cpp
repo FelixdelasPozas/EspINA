@@ -80,7 +80,7 @@ namespace ESPINA
   {
     if (m_view)
     {
-      if(m_showRepresentations)
+      if(representationsShown())
       {
         displayActors();
       }
@@ -89,7 +89,7 @@ namespace ESPINA
         removeActors();
       }
 
-      m_requiresRender = m_showRepresentations && hasSources();
+      setRenderRequired(representationsShown() && hasSources());
     }
   }
 
@@ -179,7 +179,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   void ReadyActorManager::onShow()
   {
-    m_requiresRender = hasSources();
+    setRenderRequired(hasSources());
 
     connectPools();
 

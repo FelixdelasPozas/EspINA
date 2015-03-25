@@ -60,7 +60,7 @@ namespace ESPINA
   public:
     virtual ~RepresentationPool();
 
-    void setPipelineSources(PipelineSourcesFilter *sources);
+    void setPipelineSources(PipelineSources *sources);
 
     void setSettings(SettingsSPtr settings);
 
@@ -177,7 +177,7 @@ namespace ESPINA
     void processPendingSources();
 
   private:
-    PipelineSourcesFilter *m_sources;
+    PipelineSources    *m_sources;
 
     SettingsSPtr        m_settings;
     RepresentationState m_poolState;

@@ -35,15 +35,15 @@ namespace ESPINA
 
     TimeStamp lastTime() const;
 
-    void addRepresentation(R representation, TimeStamp t);
+    void addValue(R representation, TimeStamp t);
 
-    void usePreviousRepresentation(TimeStamp t);
+    void reusePreviousValue(TimeStamp t);
 
-    R representation(TimeStamp t, R invalid) const;
+    R value(TimeStamp t, R invalid) const;
 
     void invalidate();
 
-    void invalidatePreviouesRepresentations(TimeStamp t);
+    void invalidatePreviousValues(TimeStamp t);
 
     bool isEmpty() const;
 

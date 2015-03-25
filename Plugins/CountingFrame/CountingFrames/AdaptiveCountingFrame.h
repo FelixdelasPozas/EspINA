@@ -69,11 +69,6 @@ namespace ESPINA
       Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
       Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
 
-//       void applyOffset(double &var, double offset)
-//       {var = floor(var + offset + 0.5);}
-    private:
-      virtual vtkCountingFrameSliceWidget *createSliceWidgetImplementation(View2D *view);
-
     private:
       Channel *m_channel;
 

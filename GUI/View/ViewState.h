@@ -40,8 +40,8 @@ namespace ESPINA
      * \param[in] timer state timer object.
      *
      */
-    explicit ViewState(TimerSPtr timer = TimerSPtr(new Timer()));
-    
+    explicit ViewState(TimerSPtr timer = std::make_shared<Timer>(1));
+
     /** \brief Ensure point position is visible
      *
      */

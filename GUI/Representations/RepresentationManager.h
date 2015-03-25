@@ -163,6 +163,10 @@ namespace ESPINA
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
+    void setRenderRequired(bool value);
+
+    bool representationsShown() const;
+
   private:
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
 
@@ -173,17 +177,18 @@ namespace ESPINA
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
   protected:
+    RenderView *m_view;
+
+  private:
     QString m_name;
     QIcon   m_icon;
     QString m_description;
     bool    m_showRepresentations;
     bool    m_requiresRender;
-    RenderView   *m_view;
-    TimeStamp     m_lastRequestTime;
 
-  private:
     ViewTypeFlags m_supportedViews;
     NmVector3     m_crosshair;
+    TimeStamp     m_lastRequestTime;
     TimeStamp     m_lastRenderRequestTime;
 
     RepresentationManagerSList m_childs;

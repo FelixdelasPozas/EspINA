@@ -38,55 +38,37 @@ void RangedActorManager::display(TimeStamp time)
   {
     removeCurrentActors();
 
-    if (m_showRepresentations)
+    m_viewActors.clear();
+
+    if (representationsShown())
     {
       displayActors(time);
     }
 
     invalidatePreviousActors(time);
 
-    m_requiresRender = m_showRepresentations && hasSources();
+    updateRenderRequestValue();
   }
 }
 
 //-----------------------------------------------------------------------------
 void RangedActorManager::onShow()
 {
-  enableRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void RangedActorManager::onHide()
-{
-  disableRepresentations();
-}
-
-//-----------------------------------------------------------------------------
-void RangedActorManager::enableRepresentations()
-{
-  m_requiresRender = hasSources();
+  updateRenderRequestValue();
 
   connectPools();
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::disableRepresentations()
+void RangedActorManager::onHide()
 {
   disconnectPools();
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::removeCurrentActors()
+void RangedActorManager::updateRenderRequestValue()
 {
-  for (auto itemActors : m_viewActors)
-  {
-    for (auto actor : itemActors)
-    {
-      m_view->removeActor(actor);
-    }
-  }
-
-  m_viewActors.clear();
+  setRenderRequired(representationsShown() && hasSources());
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +89,13 @@ void RangedActorManager::displayActors(const TimeStamp time)
 }
 
 //-----------------------------------------------------------------------------
-bool RangedActorManager::hasActorsInDisplay() const
+void RangedActorManager::removeCurrentActors()
 {
-  return !m_viewActors.empty();
+  for (auto itemActors : m_viewActors)
+  {
+    for (auto actor : itemActors)
+    {
+      m_view->removeActor(actor);
+    }
+  }
 }

@@ -17,27 +17,27 @@
  *
  */
 
-#include "RepresentationManager2D.h"
+#include "RepresentationManager3D.h"
 
 namespace ESPINA {
 
   namespace CF {
     //-----------------------------------------------------------------------------
-    RepresentationManager2D::RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
-    : RepresentationManager{supportedViews}
-    , m_plane{Plane::UNDEFINED}
+    RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
+    : RepresentationManager(supportedViews)
     , m_manager(manager)
     {
       setRenderRequired(false);
 
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
               this,       SLOT(onCountingFrameCreated(CountingFrame*)));
+
       connect(&m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
               this,       SLOT(onCountingFrameDeleted(CountingFrame*)));
     }
 
     //-----------------------------------------------------------------------------
-    RepresentationManager2D::~RepresentationManager2D()
+    RepresentationManager3D::~RepresentationManager3D()
     {
       for(auto cf : m_widgets.keys())
       {
@@ -46,25 +46,24 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setResolution(const NmVector3 &resolution)
+    void RepresentationManager3D::setResolution(const NmVector3 &resolution)
     {
-      m_resolution = resolution;
     }
 
     //-----------------------------------------------------------------------------
-    RepresentationManager::PipelineStatus RepresentationManager2D::pipelineStatus() const
+    RepresentationManager::PipelineStatus RepresentationManager3D::pipelineStatus() const
     {
       return PipelineStatus::READY;
     }
 
     //-----------------------------------------------------------------------------
-    TimeRange RepresentationManager2D::readyRange() const
+    TimeRange RepresentationManager3D::readyRange() const
     {
-      return m_crosshairs.timeRange();
+      return TimeRange();
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::display(TimeStamp t)
+    void RepresentationManager3D::display(TimeStamp t)
     {
       if (representationsShown())
       {
@@ -81,25 +80,17 @@ namespace ESPINA {
         }
       }
 
-      m_crosshairs.invalidatePreviousValues(t);
-
       updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
-    ViewItemAdapterPtr RepresentationManager2D::pick(const NmVector3 &point, vtkProp *actor) const
+    ViewItemAdapterPtr RepresentationManager3D::pick(const NmVector3 &point, vtkProp *actor) const
     {
       return nullptr;
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setPlane(Plane plane)
-    {
-      m_plane = plane;
-    }
-
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onCountingFrameCreated(CountingFrame *cf)
+    void RepresentationManager3D::onCountingFrameCreated(CountingFrame *cf)
     {
       if (isActive())
       {
@@ -118,7 +109,7 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onCountingFrameDeleted(CountingFrame *cf)
+    void RepresentationManager3D::onCountingFrameDeleted(CountingFrame *cf)
     {
       if (m_pendingCFs.contains(cf))
       {
@@ -135,7 +126,7 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onShow()
+    void RepresentationManager3D::onShow()
     {
       for (auto cf : m_pendingCFs)
       {
@@ -148,86 +139,53 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onHide()
+    void RepresentationManager3D::onHide()
     {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
+    RepresentationManagerSPtr RepresentationManager3D::cloneImplementation()
     {
-      if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
-      {
-        m_crosshairs.addValue(crosshair, t);
-
-        emit renderRequested();
-      }
-      else
-      {
-        m_crosshairs.reusePreviousValue(t);
-      }
+      return std::make_shared<RepresentationManager3D>(m_manager, supportedViews());
     }
 
     //-----------------------------------------------------------------------------
-    RepresentationManagerSPtr RepresentationManager2D::cloneImplementation()
+    vtkCountingFrameWidget *RepresentationManager3D::createWidget(CountingFrame *cf)
     {
-      return std::make_shared<RepresentationManager2D>(m_manager, supportedViews());
-    }
-
-    //-----------------------------------------------------------------------------
-    Nm RepresentationManager2D::slicingPosition(TimeStamp t) const
-    {
-      auto crosshair = m_crosshairs.value(t, NmVector3());
-
-      Q_ASSERT(m_plane != Plane::UNDEFINED);
-      return crosshair[normalCoordinateIndex(m_plane)];
-    }
-
-    //-----------------------------------------------------------------------------
-    vtkCountingFrameSliceWidget *RepresentationManager2D::createWidget(CountingFrame *cf)
-    {
-      auto widget = cf->createSliceWidget(m_view);
+      auto widget = cf->createWidget(m_view);
       Q_ASSERT(widget);
 
       return widget;
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::showWidget(vtkCountingFrameSliceWidget *widget)
+    void RepresentationManager3D::showWidget(vtkCountingFrameWidget *widget)
     {
       widget->SetEnabled(true);
-      widget->SetSlice(slicingPosition(m_crosshairs.lastTime()));
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::hideWidget(vtkCountingFrameSliceWidget *widget)
+    void RepresentationManager3D::hideWidget(vtkCountingFrameWidget *widget)
     {
       widget->SetEnabled(false);
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::deleteWidget(CountingFrame *cf)
+    void RepresentationManager3D::deleteWidget(CountingFrame *cf)
     {
       auto widget = m_widgets[cf];
 
       hideWidget(widget);
 
-      cf->deleteSliceWidget(widget);
+      cf->deleteWidget(widget);
 
       m_widgets.remove(cf);
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::updateRenderRequestValue()
+    void RepresentationManager3D::updateRenderRequestValue()
     {
       setRenderRequired(representationsShown() && !m_widgets.isEmpty());
-    }
-
-    //-----------------------------------------------------------------------------
-    bool RepresentationManager2D::isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const
-    {
-      auto normal = normalCoordinateIndex(m_plane);
-
-      return p1[normal] != p2[normal];
     }
   }
 }

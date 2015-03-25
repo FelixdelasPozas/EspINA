@@ -21,11 +21,15 @@
 // ESPINA
 #include <EspinaConfig.h>
 #include "ChannelInspector.h"
+#include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/View/View2D.h>
 #include <Support/ViewManager.h>
+#include <Support/Representations/SliceManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
 #include <Core/Analysis/Query.h>
@@ -65,7 +69,7 @@ using namespace ESPINA;
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent)
+ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent)
 : QDialog          {parent}
 , m_spacingModified{false}
 , m_edgesModified  {false}
@@ -76,96 +80,18 @@ ChannelInspector::ChannelInspector(ChannelAdapterPtr channel, ModelAdapterSPtr m
 {
   setupUi(this);
 
-  this->setAttribute(Qt::WA_DeleteOnClose, true);
-  this->setWindowTitle(QString("Channel Inspector - ") + channel->data().toString());
+  setWindowTitle(tr("Channel Inspector - %1").arg(channel->data().toString()));
 
   /// PROPERTIES TAB
-  connect(okCancelBox, SIGNAL(accepted()), this, SLOT(acceptedChanges()));
-  connect(okCancelBox, SIGNAL(rejected()), this, SLOT(rejectedChanges()));
+  connect(okCancelBox, SIGNAL(accepted()),
+          this,        SLOT(onChangesAccpeted()));
+  connect(okCancelBox, SIGNAL(rejected()),
+          this,        SLOT(onChangesRejected()));
 
-  connect(unitsBox, SIGNAL(currentIndexChanged(int)), this, SLOT(unitsChanged(int)));
+  connect(unitsBox, SIGNAL(currentIndexChanged(int)),
+          this,     SLOT(unitsChanged()));
 
-  //TODO: m_view->add(channel);
-  m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_view->setParent(this);
-
-  mainLayout->insertWidget(0, m_view, 1);
-
-  auto volume = volumetricData(channel->output());
-  NmVector3 spacing = volume->spacing();
-
-  // prefer dots instead of commas
-  QLocale localeUSA = QLocale(QLocale::English, QLocale::UnitedStates);
-  spacingXBox->setLocale(localeUSA);
-  spacingYBox->setLocale(localeUSA);
-  spacingZBox->setLocale(localeUSA);
-
-  m_spacing = spacing;
-  spacingXBox->setValue(spacing[0]);
-  spacingYBox->setValue(spacing[1]);
-  spacingZBox->setValue(spacing[2]);
-  connect(spacingXBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
-  connect(spacingYBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
-  connect(spacingZBox, SIGNAL(valueChanged(double)), this, SLOT(spacingChanged(double)));
-
-  m_opacity = m_channel->opacity();
-  if (m_channel->opacity() == -1.0)
-  {
-    opacityBox->setEnabled(false);
-    opacityCheck->setChecked(true);
-    opacitySlider->setEnabled(false);
-    opacitySlider->setValue(100);
-  }
-  else
-  {
-    opacityBox->setEnabled(true);
-    opacityCheck->setChecked(false);
-    opacitySlider->setValue(vtkMath::Round(m_channel->opacity() * 100.));
-  }
-  connect(opacityCheck, SIGNAL(stateChanged(int)), this, SLOT(opacityCheckChanged(int)));
-  connect(opacitySlider, SIGNAL(valueChanged(int)), this, SLOT(opacityChanged(int)));
-
-  m_hueSelector = new HueSelector();
-  m_hueSelector->setFixedHeight(20);
-  hueGroupBox->layout()->addWidget(m_hueSelector);
-
-  m_hue = m_channel->hue();
-  if (m_channel->hue() == -1.0)
-  {
-    m_saturation = 0.0;
-    hueBox->setValue(-1);
-    m_hueSelector->setHueValue(0);
-    saturationBox->setValue(0);
-    saturationBox->setEnabled(false);
-    saturationSlider->setEnabled(false);
-  }
-  else
-  {
-    m_saturation = m_channel->saturation();
-    hueBox->setValue(vtkMath::Round(m_channel->hue() * 359.));
-    m_hueSelector->setHueValue(vtkMath::Round(m_channel->hue() * 359.));
-    saturationBox->setValue(vtkMath::Round(m_channel->saturation() * 100.));
-  }
-
-  connect(m_hueSelector, SIGNAL(newHsv(int,int,int)), this, SLOT(newHSV(int,int,int)));
-  connect(hueBox, SIGNAL(valueChanged(int)), this, SLOT(newHSV(int)));
-  connect(saturationSlider, SIGNAL(valueChanged(int)), this, SLOT(saturationChanged(int)));
-
-  m_brightness = m_channel->brightness();
-  m_contrast = m_channel->contrast();
-  brightnessSlider->setValue(vtkMath::Round(m_channel->brightness() * 255.));
-  brightnessBox->setValue(vtkMath::Round(m_channel->brightness() * 100.));
-  contrastSlider->setValue((vtkMath::Round((m_channel->contrast() - 1.0) * 255.)));
-  contrastBox->setValue(vtkMath::Round((m_channel->contrast() - 1.0) * 100.));
-  connect(contrastSlider, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
-  connect(contrastBox, SIGNAL(valueChanged(int)), this, SLOT(contrastChanged(int)));
-  connect(brightnessSlider, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
-  connect(brightnessBox, SIGNAL(valueChanged(int)), this, SLOT(brightnessChanged(int)));
-
-  // fix ruler initialization
-  m_view->resetCamera();
-  m_view->setRulerVisibility(true);
-  m_view->updateView();
+  initPropertiesTab();
 
   /// EDGES TAB
   auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
@@ -207,70 +133,27 @@ ChannelInspector::~ChannelInspector()
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::unitsChanged(int unused)
+void ChannelInspector::unitsChanged()
 {
   spacingXBox->setSuffix(unitsBox->currentText());
   spacingYBox->setSuffix(unitsBox->currentText());
   spacingZBox->setSuffix(unitsBox->currentText());
-  spacingChanged();
+  onSpacingChanged();
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::spacingChanged(double unused)
+void ChannelInspector::onSpacingChanged()
 {
   m_spacingModified = true;
-}
 
-//------------------------------------------------------------------------
-void ChannelInspector::changeSpacing()
-{
-  if (spacingXBox->value() == 0 || spacingYBox->value() == 0 || spacingZBox->value() == 0)
-  {
-    QMessageBox msgBox;
-    msgBox.setText("The spacing specified is invalid and won't be applied to the channel.");
-    msgBox.setIcon(QMessageBox::Critical);
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    QString detailedText = QString("Spacing was set to:\n  X: ") + QString().number(spacingXBox->value())
-        + unitsBox->currentText() + QString("\n  Y: ")  + QString().number(spacingYBox->value())
-        + unitsBox->currentText() + QString("\n  Z: ")  + QString().number(spacingZBox->value())
-        + unitsBox->currentText();
-    msgBox.setDetailedText (detailedText);
-    msgBox.exec();
+  changeChannelSpacing();
 
-    return;
-  }
-
-  NmVector3 spacing;
-  spacing[0] = spacingXBox->value()*pow(1000,unitsBox->currentIndex());
-  spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
-  spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-
-  m_channel->output()->setSpacing(spacing);
-
-  auto relatedItems = m_model->relatedItems(m_channel, RelationType::RELATION_OUT);
-  for(auto item : relatedItems)
-  {
-    if (isSegmentation(item.get()))
-    {
-      auto segmentation = segmentationPtr(item.get());
-
-      segmentation->output()->setSpacing(spacing);
-    }
-  }
-
-  // TODO m_view->updateSceneBounds();
-  //m_view->updateRepresentations();
-  m_view->resetCamera();
-  m_spacingModified = false;
   applyModifications();
-
-  QApplication::restoreOverrideCursor();
+  m_view->resetCamera();
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::opacityCheckChanged(int value)
+void ChannelInspector::onOpacityCheckChanged(int value)
 {
   opacityBox->setEnabled(!value);
   opacitySlider->setEnabled(!value);
@@ -284,7 +167,7 @@ void ChannelInspector::opacityCheckChanged(int value)
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::opacityChanged(int value)
+void ChannelInspector::onOpacityChanged(int value)
 {
   m_channel->setOpacity(value/100.);
   applyModifications();
@@ -392,30 +275,47 @@ void ChannelInspector::brightnessChanged(int value)
 //------------------------------------------------------------------------
 void ChannelInspector::applyModifications()
 {
-  if (!this->isVisible())
-    return;
-
-  m_channel->invalidateRepresentations();
+  if (isVisible())
+  {
+    invalidateChannelRepresentation();
+  }
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::acceptedChanges()
+void ChannelInspector::invalidateChannelRepresentation()
+{
+  m_sources.updateRepresentation(toViewItemList(m_channel.get()), m_view->timeStamp());
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::onChangesAccpeted()
 {
   if (hueBox->value() == -1)
+  {
     m_channel->setSaturation(0.0);
+  }
 
   if (m_spacingModified)
   {
-    changeSpacing();
+    changeChannelSpacing();
+
+    changeSegmentationSpacing();
+
+    m_spacingModified = false;
+
     emit spacingUpdated();
   }
 
   if (m_edgesModified)
+  {
     applyEdgesChanges();
+  }
+
+  m_model->notifyRepresentationsModified(toViewItemList(m_channel));
 }
 
 //------------------------------------------------------------------------
-void ChannelInspector::rejectedChanges()
+void ChannelInspector::onChangesRejected()
 {
   bool modified = false;
 
@@ -427,15 +327,9 @@ void ChannelInspector::rejectedChanges()
     modified = true;
     m_channel->output()->setSpacing(m_spacing);
 
-    auto relatedItems = m_model->relatedItems(m_channel, RelationType::RELATION_OUT);
-    for(auto item: relatedItems)
+    for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(m_channel))
     {
-      if (isSegmentation(item.get()))
-      {
-        auto segmentation = segmentationPtr(item.get());
-
-        segmentation->output()->setSpacing(m_spacing);
-      }
+      segmentation->output()->setSpacing(m_spacing);
     }
   }
 
@@ -471,15 +365,14 @@ void ChannelInspector::rejectedChanges()
 
   if (modified)
   {
-    //TODO m_view->updateSceneBounds();  // needed to update thumbnail values without triggering volume()->markAsModified()
-    //m_view->updateRepresentations();
+    invalidateChannelRepresentation();
   }
 }
 
 //------------------------------------------------------------------------
 void ChannelInspector::closeEvent(QCloseEvent *event)
 {
-  rejectedChanges();
+  onChangesRejected();
 
   QDialog::closeEvent(event);
 }
@@ -570,9 +463,175 @@ void ChannelInspector::applyEdgesChanges()
     m_threshold = thresholdBox->value();
   }
   else
+  {
     m_useDistanceToEdges = false;
+  }
 
   edgesExtension->setUseDistanceToBounds(!m_useDistanceToEdges);
 
   m_edgesModified = false;
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::initPropertiesTab()
+{
+  initSliceView();
+
+  initSpacingSettings();
+
+  initOpacitySettings();
+
+  initColorSettings();
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::initSliceView()
+{
+  m_sources.addSource(toViewItemList(m_channel.get()), m_view->timeStamp());
+
+  auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
+  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, 10);
+  poolXY->setPipelineSources(&m_sources);
+
+  auto sliceManager   = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());
+  sliceManager->show();
+
+  m_view->setChannelSources(&m_sources);
+  m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_view->setParent(this);
+  m_view->setRulerVisibility(true);
+  mainLayout->insertWidget(0, m_view, 1);
+
+  m_view->addRepresentationManager(sliceManager);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::initSpacingSettings()
+{
+  auto volume = volumetricData(m_channel->output());
+  NmVector3 spacing = volume->spacing();
+
+  // prefer dots instead of commas
+  QLocale localeUSA = QLocale(QLocale::English, QLocale::UnitedStates);
+  spacingXBox->setLocale(localeUSA);
+  spacingYBox->setLocale(localeUSA);
+  spacingZBox->setLocale(localeUSA);
+
+  spacingXBox->setMinimum(1);
+  spacingYBox->setMinimum(1);
+  spacingZBox->setMinimum(1);
+
+  m_spacing = spacing;
+  spacingXBox->setValue(spacing[0]);
+  spacingYBox->setValue(spacing[1]);
+  spacingZBox->setValue(spacing[2]);
+
+  connect(spacingXBox, SIGNAL(valueChanged(double)),
+          this,        SLOT(onSpacingChanged()));
+  connect(spacingYBox, SIGNAL(valueChanged(double)),
+          this,        SLOT(onSpacingChanged()));
+  connect(spacingZBox, SIGNAL(valueChanged(double)),
+          this,        SLOT(onSpacingChanged()));
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::initOpacitySettings()
+{
+  m_opacity = m_channel->opacity();
+
+  if (m_channel->opacity() == -1.0)
+  {
+    opacityBox->setEnabled(false);
+    opacityCheck->setChecked(true);
+    opacitySlider->setEnabled(false);
+    opacitySlider->setValue(100);
+  }
+  else
+  {
+    opacityBox->setEnabled(true);
+    opacityCheck->setChecked(false);
+    opacitySlider->setValue(vtkMath::Round(m_channel->opacity() * 100.));
+  }
+
+  connect(opacityCheck,  SIGNAL(stateChanged(int)),
+          this,          SLOT(onOpacityCheckChanged(int)));
+  connect(opacitySlider, SIGNAL(valueChanged(int)),
+          this,          SLOT(onOpacityChanged(int)));
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::initColorSettings()
+{
+  m_hueSelector = new HueSelector();
+  m_hueSelector->setFixedHeight(20);
+  hueGroupBox->layout()->addWidget(m_hueSelector);
+
+  m_hue = m_channel->hue();
+
+  if (m_channel->hue() == -1.0)
+  {
+    m_saturation = 0.0;
+    hueBox->setValue(-1);
+    m_hueSelector->setHueValue(0);
+    saturationBox->setValue(0);
+    saturationBox->setEnabled(false);
+    saturationSlider->setEnabled(false);
+  }
+  else
+  {
+    m_saturation = m_channel->saturation();
+    hueBox->setValue(vtkMath::Round(m_channel->hue() * 359.));
+    m_hueSelector->setHueValue(vtkMath::Round(m_channel->hue() * 359.));
+    saturationBox->setValue(vtkMath::Round(m_channel->saturation() * 100.));
+  }
+
+  connect(m_hueSelector, SIGNAL(newHsv(int,int,int)),
+          this,          SLOT(newHSV(int,int,int)));
+  connect(hueBox, SIGNAL(valueChanged(int)),
+          this,   SLOT(newHSV(int)));
+  connect(saturationSlider, SIGNAL(valueChanged(int)),
+          this,             SLOT(saturationChanged(int)));
+
+  m_brightness = m_channel->brightness();
+  m_contrast   = m_channel->contrast();
+
+  brightnessSlider->setValue(vtkMath::Round(m_channel->brightness() * 255.));
+  brightnessBox   ->setValue(vtkMath::Round(m_channel->brightness() * 100.));
+  contrastSlider  ->setValue(vtkMath::Round((m_channel->contrast() - 1.0) * 255.));
+  contrastBox     ->setValue(vtkMath::Round((m_channel->contrast() - 1.0) * 100.));
+
+  connect(contrastSlider,   SIGNAL(valueChanged(int)),
+          this,             SLOT(contrastChanged(int)));
+  connect(contrastBox,      SIGNAL(valueChanged(int)),
+          this,             SLOT(contrastChanged(int)));
+  connect(brightnessSlider, SIGNAL(valueChanged(int)),
+          this,             SLOT(brightnessChanged(int)));
+  connect(brightnessBox,    SIGNAL(valueChanged(int)),
+          this,             SLOT(brightnessChanged(int)));
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::changeChannelSpacing()
+{
+  NmVector3 spacing;
+  spacing[0] = spacingXBox->value()*pow(1000,unitsBox->currentIndex());
+  spacing[1] = spacingYBox->value()*pow(1000,unitsBox->currentIndex());
+  spacing[2] = spacingZBox->value()*pow(1000,unitsBox->currentIndex());
+
+  m_channel->output()->setSpacing(spacing);
+}
+
+//------------------------------------------------------------------------
+void ChannelInspector::changeSegmentationSpacing()
+{
+  auto spacing = m_channel->output()->spacing();
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(m_channel))
+  {
+    segmentation->output()->setSpacing(spacing);
+  }
+
+  QApplication::restoreOverrideCursor();
 }

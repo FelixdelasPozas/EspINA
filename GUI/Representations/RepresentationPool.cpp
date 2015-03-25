@@ -54,7 +54,7 @@ RepresentationPool::~RepresentationPool()
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
+void RepresentationPool::setPipelineSources(PipelineSources *sources)
 {
   if (m_sources)
   {
@@ -66,6 +66,8 @@ void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
                this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
     disconnect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
                this,      SLOT(onTimeStampUpdated(TimeStamp)));
+
+    onSourcesRemoved(m_sources->sources(), m_requestedTimeStamp);
   }
 
   m_sources = sources;
@@ -80,6 +82,8 @@ void RepresentationPool::setPipelineSources(PipelineSourcesFilter *sources)
             this,      SLOT(onRepresentationModified(ViewItemAdapterList, TimeStamp)));
     connect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
             this,      SLOT(onTimeStampUpdated(TimeStamp)));
+
+    onSourcesAdded(m_sources->sources(), m_requestedTimeStamp);
   }
 }
 
@@ -134,13 +138,13 @@ bool RepresentationPool::hasSources() const
 //-----------------------------------------------------------------------------
 RepresentationPipeline::Actors RepresentationPool::actors(TimeStamp t)
 {
-  return m_validActors.representation(t, RepresentationPipeline::Actors());
+  return m_validActors.value(t, RepresentationPipeline::Actors());
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::invalidatePreviousActors(TimeStamp t)
 {
-  m_validActors.invalidatePreviouesRepresentations(t);
+  m_validActors.invalidatePreviousValues(t);
 }
 
 //-----------------------------------------------------------------------------
@@ -198,13 +202,13 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
   {
     if (actorsChanged())
     {
-      m_validActors.addRepresentation(actors, t);
+      m_validActors.addValue(actors, t);
 
       emit actorsReady(t);
     }
     else
     {
-      m_validActors.usePreviousRepresentation(t);
+      m_validActors.reusePreviousValue(t);
     }
 
     emit poolUpdated(t);
@@ -253,9 +257,9 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
     invalidateRepresentations(ViewItemAdapterList(), t);
   }
 
-  m_sourcesCount -= sources.size();
+  Q_ASSERT(m_sourcesCount - sources.size() >= 0);
 
-  Q_ASSERT(m_sourcesCount >= 0);
+  m_sourcesCount -= sources.size();
 }
 
 //-----------------------------------------------------------------------------
@@ -269,7 +273,7 @@ void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, T
 //-----------------------------------------------------------------------------
 void RepresentationPool::onTimeStampUpdated(TimeStamp t)
 {
-  m_validActors.usePreviousRepresentation(t);
+  m_validActors.reusePreviousValue(t);
 }
 
 //-----------------------------------------------------------------------------

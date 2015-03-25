@@ -17,10 +17,9 @@
  *
  */
 
-#ifndef ESPINA_CF_REPRESENTATION_MANAGER_2D_H
-#define ESPINA_CF_REPRESENTATION_MANAGER_2D_H
+#ifndef ESPINA_CF_REPRESENTATION_MANAGER_3D_H
+#define ESPINA_CF_REPRESENTATION_MANAGER_3D_H
 
-// ESPINA
 #include <GUI/Representations/RangedActorManager.h>
 #include <GUI/Representations/RepresentationsRange.hxx>
 #include "CountingFrameManager.h"
@@ -29,15 +28,14 @@ namespace ESPINA
 {
   namespace CF
   {
-    class RepresentationManager2D
+    class RepresentationManager3D
     : public RepresentationManager
-    , public ESPINA::RepresentationManager2D
     {
       Q_OBJECT
     public:
-      explicit RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
+      explicit RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews);
 
-      virtual ~RepresentationManager2D();
+      virtual ~RepresentationManager3D();
 
       virtual void setResolution(const NmVector3 &resolution) override;
 
@@ -48,11 +46,6 @@ namespace ESPINA
       virtual void display(TimeStamp t) override;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
-
-      virtual void setPlane(Plane plane) override;
-
-      virtual void setRepresentationDepth(Nm depth) override
-      {}
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -70,34 +63,28 @@ namespace ESPINA
 
       virtual void onHide();
 
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
+      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
 
       virtual RepresentationManagerSPtr cloneImplementation();
 
       Nm slicingPosition(TimeStamp t) const;
 
-      vtkCountingFrameSliceWidget *createWidget(CountingFrame *cf);
+      vtkCountingFrameWidget *createWidget(CountingFrame *cf);
 
-      void showWidget(vtkCountingFrameSliceWidget *widget);
+      void showWidget(vtkCountingFrameWidget *widget);
 
-      void hideWidget(vtkCountingFrameSliceWidget *widget);
+      void hideWidget(vtkCountingFrameWidget *widget);
 
       void deleteWidget(CountingFrame *cf);
 
       void updateRenderRequestValue();
 
-      bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
-
     private:
-      Plane     m_plane;
-      NmVector3 m_resolution;
-      RepresentationsRange<NmVector3> m_crosshairs;
-
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;
-      QMap<CountingFrame *, vtkCountingFrameSliceWidget *> m_widgets;
+      QMap<CountingFrame *, vtkCountingFrame3DWidget *> m_widgets;
     };
   }
 }
 
-#endif // ESPINA_CF_REPRESENTATION_MANAGER_2D_H
+#endif // ESPINA_CF_REPRESENTATION_MANAGER_3D_H

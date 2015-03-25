@@ -32,6 +32,7 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
+    
   public:
     explicit RepresentationsGroupTool(const QIcon &icon, QString description);
 
@@ -52,15 +53,15 @@ namespace ESPINA
     /** \brief Add representation switch to this representation tool group
      *
      */
-    void addRepresentationSwitch(RepresentationSwitchSPtr renderSwitch);
-
-    void showRepresentationSwitchs(ViewTypeFlags views);
+    void addRepresentationSwitch(RepresentationSwitchSPtr representationSwitch);
 
   public slots:
     void toggleRepresentationsVisibility();
 
   private:
     virtual void onToolEnabled(bool enabled) override;
+
+    void changeSwitchStatus(RepresentationSwitchSPtr representationSwitch, bool showRepresentations);
 
   private slots:
     void setActiveRepresentationsVisibility(bool value);

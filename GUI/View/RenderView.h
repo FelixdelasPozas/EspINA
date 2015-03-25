@@ -65,6 +65,8 @@ namespace ESPINA
 
     void setState(ViewStateSPtr state);
 
+    TimeStamp timeStamp() const;
+
     /** \brief Sets the view event handler.
      * \param[in] eventHandler, event handler smart pointer.
      *
@@ -78,7 +80,7 @@ namespace ESPINA
     EventHandlerSPtr eventHandler() const
     { return m_eventHandler; }
 
-    void setChannelSources(PipelineSourcesFilter *channels);
+    void setChannelSources(PipelineSources *channels);
 
     /** \brief Adds a representation manager to the view
      *
@@ -187,6 +189,11 @@ namespace ESPINA
      *
      */
     virtual void resetCamera() = 0;
+
+    /** \brief Force a render of the scene
+     *
+     */
+    void render();
 
     /** \brief Returns the bounds of the scene.
      *
@@ -333,7 +340,7 @@ namespace ESPINA
 
     ContextualMenuSPtr m_contextMenu;
 
-    PipelineSourcesFilter     *m_channelSources;
+    PipelineSources           *m_channelSources;
     RepresentationManagerSList m_managers;
     QList<EspinaWidgetSPtr>    m_widgets;
 

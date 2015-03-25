@@ -43,9 +43,16 @@ PipelineSourcesFilter::~PipelineSourcesFilter()
 }
 
 //-----------------------------------------------------------------------------
-ViewItemAdapterList PipelineSourcesFilter::sources() const
+void PipelineSourcesFilter::setSelectedSources(ViewItemAdapterSList sources)
 {
-  return m_sources;
+  m_sources.clear();
+  m_selectedSources.clear();
+
+  for (auto source : sources)
+  {
+    m_sources         << source.get();
+    m_selectedSources << source.get();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -109,32 +116,6 @@ void PipelineSourcesFilter::onReset(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSourcesFilter::insert(ViewItemAdapterList sources)
-{
-  for (auto source : sources)
-  {
-    Q_ASSERT(!contains(source));
-    m_sources.append(source);
-  }
-}
-
-//-----------------------------------------------------------------------------
-bool PipelineSourcesFilter::contains(ViewItemAdapterPtr source) const
-{
-  return m_sources.contains(source);
-}
-
-//-----------------------------------------------------------------------------
-void PipelineSourcesFilter::remove(ViewItemAdapterList sources)
-{
-  for (auto source : sources)
-  {
-    Q_ASSERT(contains(source));
-    m_sources.removeOne(source);
-  }
-}
-
-//-----------------------------------------------------------------------------
 ViewItemAdapterList PipelineSourcesFilter::filter(ViewItemAdapterSList sources)
 {
   ViewItemAdapterList result;
@@ -161,13 +142,3 @@ bool PipelineSourcesFilter::acceptedSource(ViewItemAdapterSPtr source) const
 {
   return m_selectedSources.isEmpty() || m_selectedSources.contains(source.get());
 }
-
-// //-----------------------------------------------------------------------------
-// ViewItemAdapterList PipelineSourcesFilter::createList(ViewItemAdapterPtr item) const
-// {
-//   ViewItemAdapterList list;
-//
-//   list << item;
-//
-//   return list;
-// }

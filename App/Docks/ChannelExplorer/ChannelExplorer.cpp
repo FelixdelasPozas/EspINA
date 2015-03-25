@@ -449,24 +449,17 @@ void ChannelExplorer::showInformation()
 {
    for(auto index: m_gui->view->selectionModel()->selectedIndexes())
    {
-     QModelIndex currentIndex = m_sort->mapToSource(index);
-     ItemAdapterPtr currentItem = itemAdapter(currentIndex);
+     auto currentIndex = m_sort->mapToSource(index);
+     auto currentItem  = itemAdapter(currentIndex);
+
      Q_ASSERT(currentItem);
 
-     if (ItemAdapter::Type::CHANNEL == currentItem->type())
+     if (isChannel(currentItem))
      {
-       ChannelAdapterPtr channel = channelPtr(currentItem);
-       ChannelInspector *inspector = m_informationDialogs.value(channel, nullptr);
+       auto channel   = channelPtr(currentItem);
+       ChannelInspector dialog(m_model->smartPointer(channel), m_model, m_scheduler);
 
-       if (!inspector)
-       {
-         inspector = new ChannelInspector(channel, m_model, m_scheduler);
-         m_informationDialogs.insert(channel, inspector);
-         connect(inspector, SIGNAL(destroyed(QObject *)), this, SLOT(dialogClosed(QObject *)));
-         connect(inspector, SIGNAL(spacingUpdated()), this, SLOT(inspectorChangedSpacing()));
-       }
-       inspector->show();
-       inspector->raise();
+       dialog.exec();
      }
    }
 }
@@ -486,38 +479,6 @@ void ChannelExplorer::activateChannel()
     auto currentChannel = channelPtr(currentItem);
     m_viewManager->setActiveChannel(currentChannel);
   }
-}
-
-//------------------------------------------------------------------------
-void ChannelExplorer::dialogClosed(QObject *object)
-{
-  auto dialog = static_cast<ChannelInspector *>(object);
-  auto channel = m_informationDialogs.key(dialog);
-  Q_ASSERT(channel);
-  channel->output()->update();
-
-  ChannelAdapterList channels;
-  channels << channel;
-
-  //TODO: update representations m_viewManager->updateChannelRepresentations(channels);
-
-  SegmentationAdapterList segmentations;
-  for (auto segmentation : QueryAdapter::segmentationsOnChannelSample(channel))
-  {
-    segmentations << segmentation.get();
-  }
-
-  //TODO: update representations
-  //m_viewManager->updateSegmentationRepresentations(segmentations);
-  //m_viewManager->updateViews();
-
-  m_informationDialogs.remove(channel);
-}
-
-//------------------------------------------------------------------------
-void ChannelExplorer::inspectorChangedSpacing()
-{
-  m_viewManager->resetViewCameras();
 }
 
 //------------------------------------------------------------------------

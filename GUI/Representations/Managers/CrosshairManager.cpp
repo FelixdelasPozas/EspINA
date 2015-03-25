@@ -89,9 +89,9 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CrosshairManager::display(TimeStamp time)
   {
-    bool requiresRender = (m_showRepresentations && !m_actorsInUse) || (!m_showRepresentations && m_actorsInUse);
+    bool needsRender = (representationsShown() && !m_actorsInUse) || (!representationsShown() && m_actorsInUse);
 
-    if (m_showRepresentations)
+    if (representationsShown())
     {
       if(m_view->crosshair() != m_crosshair || !m_init)
       {
@@ -121,7 +121,7 @@ namespace ESPINA
       }
     }
 
-    m_requiresRender |= requiresRender;
+    setRenderRequired(requiresRender() || needsRender);
   }
 
   //-----------------------------------------------------------------------------

@@ -32,7 +32,7 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ModelAdapter::ModelAdapter()
-: ModelAdapter(std::make_shared<Timer>())
+: ModelAdapter{std::make_shared<Timer>()}
 {
 
 }
@@ -762,6 +762,12 @@ void ModelAdapter::reparentCategory(CategoryAdapterSPtr category, CategoryAdapte
       emit dataChanged(segIndex, segIndex);
     }
   }
+}
+
+//------------------------------------------------------------------------
+bool ModelAdapter::isEmpty() const
+{
+  return m_samples.isEmpty() && m_channels.isEmpty() && m_segmentations.isEmpty();
 }
 
 //------------------------------------------------------------------------

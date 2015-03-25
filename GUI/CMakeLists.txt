@@ -16,6 +16,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/InformationProxy.h
   Model/ViewItemAdapter.h
   Representations/PipelineSourcesFilter.h
+  Representations/PipelineSources.h
   Representations/RepresentationManager.h
   Representations/RangedActorManager.h
   Representations/ReadyActorManager.h
@@ -119,6 +120,8 @@ set (GUI_SOURCES
   Representations/Managers/CrosshairManager.cpp 
   Representations/Managers/WidgetManager.cpp
   Representations/PipelineSourcesFilter.cpp
+  Representations/PipelineSources.cpp
+  Representations/ManualPipelineSources.cpp
   Representations/RepresentationManager.cpp
   Representations/RangedActorManager.cpp
   Representations/ReadyActorManager.cpp  

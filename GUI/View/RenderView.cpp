@@ -63,8 +63,6 @@ RenderView::RenderView(ViewType type, QWidget* parent)
 //-----------------------------------------------------------------------------
 RenderView::~RenderView()
 {
-  // subclasses of this one should take care of removing elements
-  // (channels, segmentations, widgets and renderers).
   delete m_view;
 }
 
@@ -117,7 +115,13 @@ void RenderView::setState(ViewStateSPtr state)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::setChannelSources(PipelineSourcesFilter *channels)
+TimeStamp RenderView::timeStamp() const
+{
+  return m_state->timeStamp();
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::setChannelSources(PipelineSources *channels)
 {
   if (m_channelSources)
   {
@@ -297,6 +301,12 @@ void RenderView::takeSnapshot()
 //
 //   return 1.0 / numVisibleRep;
 // }
+
+//-----------------------------------------------------------------------------
+void RenderView::render()
+{
+  onRenderRequest();
+}
 
 //-----------------------------------------------------------------------------
 void RenderView::resetSceneBounds()

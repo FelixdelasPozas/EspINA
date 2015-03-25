@@ -232,6 +232,16 @@ bool ESPINA::isChannel(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSPtr channel)
+{
+  ViewItemAdapterSList result;
+
+  result << channel;
+
+  return result;
+}
+
+//------------------------------------------------------------------------
 ViewItemAdapterSList ESPINA::toViewItemList(ChannelAdapterSList channels)
 {
   ViewItemAdapterSList result;

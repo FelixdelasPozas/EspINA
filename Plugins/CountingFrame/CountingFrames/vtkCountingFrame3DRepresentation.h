@@ -174,14 +174,6 @@ protected:
   // Helper methods to create face representations
   virtual void CreateVolume();
 
-  // Helper methods
-  void MoveLeftMargin(double *p1, double *p2);
-  void MoveRightMargin(double *p1, double *p2);
-  void MoveTopMargin(double *p1, double *p2);
-  void MoveBottomMargin(double *p1, double *p2);
-  void MoveUpperMargin(double *p1, double *p2);
-  void MoveLowerMargin(double *p1, double *p2);
-
   vtkSmartPointer<vtkPolyData> CountingFrame;
 
 private:

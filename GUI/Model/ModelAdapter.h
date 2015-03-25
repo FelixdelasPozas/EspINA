@@ -129,6 +129,11 @@ namespace ESPINA
      */
     void setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory);
 
+     /** \brief Returns true if the model doesn't contains at least
+      *         one samples, channel or segmentation
+      */
+     bool isEmpty() const;
+
     /** \brief Clears current analysis items and reset views
      *
      * NOTE: Doesn't support Batch Mode
