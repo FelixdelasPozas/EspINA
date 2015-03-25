@@ -43,12 +43,20 @@ Representation ChannelRepresentationFactory::createRepresentation(ColorEngineSPt
 
   const unsigned WINDOW_SIZE = 10;
 
+  createSliceRepresentation(representation, colorEngine, WINDOW_SIZE);
+
+  return representation;
+}
+
+//----------------------------------------------------------------------------
+void ChannelRepresentationFactory::createSliceRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+{
   auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
   auto pipelineYZ     = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
-  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, WINDOW_SIZE);
-  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, WINDOW_SIZE);
-  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, WINDOW_SIZE);
+  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, windowSize);
+  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, windowSize);
+  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, windowSize);
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
   auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
@@ -67,6 +75,4 @@ Representation ChannelRepresentationFactory::createRepresentation(ColorEngineSPt
 
   representation.Managers << sliceManager << slice3DManager;
   representation.Switches << sliceSwitch << slice3DSwitch;
-
-  return representation;
 }

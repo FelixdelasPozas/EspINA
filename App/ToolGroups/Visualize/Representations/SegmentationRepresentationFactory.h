@@ -37,6 +37,12 @@ namespace ESPINA
                        ColorEngineSPtr                  colorEngine,
                        RepresentationPool::SettingsSPtr settings) const;
 
+    void createSliceRepresentation(Representation rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
+    void createContourRepresentation(Representation rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
+    void createSkeletonRepresentation(Representation rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
+    void createVolumetricRepresentation(Representation rep, ColorEngineSPtr colorEngine) const;
+    void createMeshRepresentation(Representation rep, ColorEngineSPtr colorEngine) const;
+
   private:
     SchedulerSPtr m_scheduler;
   };

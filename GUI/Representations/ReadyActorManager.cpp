@@ -132,25 +132,22 @@ namespace ESPINA
 
     auto currentActors = m_pool->actors(lastValidTimeStamp());
 
-    if(!currentActors.empty())
+    for (auto it = currentActors.begin(); it != currentActors.end(); ++it)
     {
-      for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
+      auto item = it.key();
+
+      if (m_actors[item] != it.value())
       {
-        auto item = it.key();
-
-        if(m_actors[item] != it.value())
+        for (auto actor : m_actors[item])
         {
-          for(auto actor: m_actors[item])
-          {
-            m_view->removeActor(actor);
-          }
-          m_actors[item].clear();
+          m_view->removeActor(actor);
+        }
+        m_actors[item].clear();
 
-          for(auto actor: it.value())
-          {
-            m_view->addActor(actor);
-            m_actors[item] << actor;
-          }
+        for (auto actor : it.value())
+        {
+          m_view->addActor(actor);
+          m_actors[item] << actor;
         }
       }
     }

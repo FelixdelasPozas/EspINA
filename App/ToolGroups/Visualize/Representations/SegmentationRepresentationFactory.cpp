@@ -54,17 +54,38 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
 
   Representation representation;
 
-  representation.Group     = SEGMENTATIONS_GROUP;
+  representation.Group = SEGMENTATIONS_GROUP;
 
-  // Segmentation 2D slices
-  //
-  auto sliceSettings    = std::make_shared<SegmentationSlicePoolSettings>();
+  createSliceRepresentation(representation, colorEngine, WINDOW_SIZE);
+  createContourRepresentation(representation, colorEngine, WINDOW_SIZE);
+  createSkeletonRepresentation(representation, colorEngine, WINDOW_SIZE);
+  createVolumetricRepresentation(representation, colorEngine);
+  createMeshRepresentation(representation, colorEngine);
+
+  return representation;
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::configurePool(RepresentationPoolSPtr           pool,
+                                                      ColorEngineSPtr                  colorEngine,
+                                                      RepresentationPool::SettingsSPtr settings) const
+{
+  QObject::connect(colorEngine.get(), SIGNAL(modified()),
+                   pool.get(),        SLOT(invalidate()));
+
+  pool->setSettings(settings);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createSliceRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+{
+  auto sliceSettings   = std::make_shared<SegmentationSlicePoolSettings>();
   auto pipelineSliceXY = std::make_shared<SegmentationSlicePipeline>(Plane::XY, colorEngine);
   auto pipelineSliceXZ = std::make_shared<SegmentationSlicePipeline>(Plane::XZ, colorEngine);
   auto pipelineSliceYZ = std::make_shared<SegmentationSlicePipeline>(Plane::YZ, colorEngine);
-  auto poolSliceXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineSliceXY, m_scheduler, WINDOW_SIZE);
-  auto poolSliceXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineSliceXZ, m_scheduler, WINDOW_SIZE);
-  auto poolSliceYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineSliceYZ, m_scheduler, WINDOW_SIZE);
+  auto poolSliceXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineSliceXY, m_scheduler, windowSize);
+  auto poolSliceXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineSliceXZ, m_scheduler, windowSize);
+  auto poolSliceYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineSliceYZ, m_scheduler, windowSize);
   auto sliceManager    = std::make_shared<SliceManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
   auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
   auto slice3DManager  = std::make_shared<Slice3DManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
@@ -85,16 +106,18 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   representation.Pools    << poolSliceXY << poolSliceXZ << poolSliceYZ;
   representation.Managers << sliceManager << slice3DManager;
   representation.Switches << sliceSwitch << slice3DSwitch;
+}
 
-  // Contour
-  //
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createContourRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+{
   auto contourSettings   = std::make_shared<SegmentationContourPoolSettings>();
   auto pipelineContourXY = std::make_shared<SegmentationContourPipeline>(Plane::XY, colorEngine);
   auto pipelineContourXZ = std::make_shared<SegmentationContourPipeline>(Plane::XZ, colorEngine);
   auto pipelineContourYZ = std::make_shared<SegmentationContourPipeline>(Plane::YZ, colorEngine);
-  auto poolContourXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineContourXY, m_scheduler, WINDOW_SIZE);
-  auto poolContourXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineContourXZ, m_scheduler, WINDOW_SIZE);
-  auto poolContourYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineContourYZ, m_scheduler, WINDOW_SIZE);
+  auto poolContourXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineContourXY, m_scheduler, windowSize);
+  auto poolContourXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineContourXZ, m_scheduler, windowSize);
+  auto poolContourYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineContourYZ, m_scheduler, windowSize);
   auto contourManager    = std::make_shared<SliceManager>(poolContourXY, poolContourXZ, poolContourYZ);
   auto contourSwitch     = std::make_shared<BasicRepresentationSwitch>(contourManager, ViewType::VIEW_2D);
 
@@ -108,16 +131,18 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   representation.Pools    << poolContourXY << poolContourXZ << poolContourYZ;
   representation.Managers << contourManager;
   representation.Switches << contourSwitch;
+}
 
-  // Skeleton
-  //
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createSkeletonRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+{
   auto skeletonSettings     = std::make_shared<RepresentationPool::Settings>();
   auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
   auto pipeline2DSkeletonXZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XZ, colorEngine);
   auto pipeline2DSkeletonYZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::YZ, colorEngine);
-  auto poolSkeleton2DXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipeline2DSkeletonXY, m_scheduler, WINDOW_SIZE);
-  auto poolSkeleton2DXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipeline2DSkeletonXZ, m_scheduler, WINDOW_SIZE);
-  auto poolSkeleton2DYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipeline2DSkeletonYZ, m_scheduler, WINDOW_SIZE);
+  auto poolSkeleton2DXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipeline2DSkeletonXY, m_scheduler, windowSize);
+  auto poolSkeleton2DXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipeline2DSkeletonXZ, m_scheduler, windowSize);
+  auto poolSkeleton2DYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipeline2DSkeletonYZ, m_scheduler, windowSize);
   auto skeletonManager2D    = std::make_shared<SliceManager>(poolSkeleton2DXY, poolSkeleton2DXZ, poolSkeleton2DYZ);
   auto skeletonSwitch2D     = std::make_shared<BasicRepresentationSwitch>(skeletonManager2D, ViewType::VIEW_2D);
 
@@ -141,9 +166,11 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ << poolSkeleton3D;
   representation.Managers << skeletonManager2D << skeletonManager3D;
   representation.Switches << skeletonSwitch2D << skeletonSwitch3D;
+}
 
-  // Segmentation volumetric CPU & GPU
-  //
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createVolumetricRepresentation(Representation representation, ColorEngineSPtr colorEngine) const
+{
   auto volumetricSettings   = std::make_shared<RepresentationPool::Settings>();
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
   auto poolVolumetricCPU    = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolumeCPU);
@@ -168,9 +195,11 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   representation.Pools    << poolVolumetricCPU << poolVolumetricGPU;
   representation.Managers << volumetricCPUManager << volumetricGPUManager;
   representation.Switches << volumetricCPUSwitch << volumetricGPUSwitch;
+}
 
-  // Segmentation meshes
-  //
+//----------------------------------------------------------------------------
+void SegmentationRepresentationFactory::createMeshRepresentation(Representation representation, ColorEngineSPtr colorEngine) const
+{
   auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineMesh);
@@ -195,17 +224,4 @@ Representation ESPINA::SegmentationRepresentationFactory::createRepresentation(C
   representation.Pools    << poolMesh << poolSmoothedMesh;
   representation.Managers << meshManager << smoothedMeshManager;
   representation.Switches << meshSwitch << smoothedMeshSwitch;
-
-  return representation;
-}
-
-//----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::configurePool(RepresentationPoolSPtr           pool,
-                                                      ColorEngineSPtr                  colorEngine,
-                                                      RepresentationPool::SettingsSPtr settings) const
-{
-  QObject::connect(colorEngine.get(), SIGNAL(modified()),
-                   pool.get(),        SLOT(invalidate()));
-
-  pool->setSettings(settings);
 }
