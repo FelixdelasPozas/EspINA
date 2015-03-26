@@ -49,7 +49,7 @@ Representation ChannelRepresentationFactory::createRepresentation(ColorEngineSPt
 }
 
 //----------------------------------------------------------------------------
-void ChannelRepresentationFactory::createSliceRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+void ChannelRepresentationFactory::createSliceRepresentation(Representation &representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
 {
   auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);

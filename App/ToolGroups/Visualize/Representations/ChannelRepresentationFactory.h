@@ -33,7 +33,7 @@ namespace ESPINA {
     virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
 
   private:
-    void createSliceRepresentation(Representation rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
+    void createSliceRepresentation(Representation &rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
 
     SchedulerSPtr m_scheduler;
   };

@@ -77,7 +77,7 @@ void SegmentationRepresentationFactory::configurePool(RepresentationPoolSPtr    
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createSliceRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+void SegmentationRepresentationFactory::createSliceRepresentation(Representation &representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
 {
   auto sliceSettings   = std::make_shared<SegmentationSlicePoolSettings>();
   auto pipelineSliceXY = std::make_shared<SegmentationSlicePipeline>(Plane::XY, colorEngine);
@@ -109,7 +109,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createContourRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+void SegmentationRepresentationFactory::createContourRepresentation(Representation &representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
 {
   auto contourSettings   = std::make_shared<SegmentationContourPoolSettings>();
   auto pipelineContourXY = std::make_shared<SegmentationContourPipeline>(Plane::XY, colorEngine);
@@ -134,7 +134,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createSkeletonRepresentation(Representation representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+void SegmentationRepresentationFactory::createSkeletonRepresentation(Representation &representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
 {
   auto skeletonSettings     = std::make_shared<RepresentationPool::Settings>();
   auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
@@ -169,7 +169,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createVolumetricRepresentation(Representation representation, ColorEngineSPtr colorEngine) const
+void SegmentationRepresentationFactory::createVolumetricRepresentation(Representation &representation, ColorEngineSPtr colorEngine) const
 {
   auto volumetricSettings   = std::make_shared<RepresentationPool::Settings>();
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
@@ -198,7 +198,7 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createMeshRepresentation(Representation representation, ColorEngineSPtr colorEngine) const
+void SegmentationRepresentationFactory::createMeshRepresentation(Representation &representation, ColorEngineSPtr colorEngine) const
 {
   auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
