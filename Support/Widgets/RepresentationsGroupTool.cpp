@@ -24,10 +24,12 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QMouseEvent>
 
 using namespace ESPINA;
 
 #include <QDebug>
+#include <QEvent>
 
 //----------------------------------------------------------------------------
 RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString description)

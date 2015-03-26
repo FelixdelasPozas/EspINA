@@ -87,11 +87,13 @@ Representation ESPINA::SegmentationSliceRepresentationFactory::createRepresentat
 
   sliceManager->setName(QObject::tr("Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
+  sliceManager->setDescription(QObject::tr("Slice Representation"));
 
   sliceSwitch->setActive(true);
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
-  slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
+  slice3DManager->setIcon(QIcon(":espina/segmentations_slice3D_switch.svg"));
+  slice3DManager->setDescription(QObject::tr("Slice Representation 3D"));
 
   representation.Group     = SEGMENTATIONS_GROUP;
   representation.Pools    << poolXY << poolXZ << poolYZ << poolVolumetric;
