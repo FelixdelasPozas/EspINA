@@ -43,39 +43,32 @@ class SegmentationExplorer::GUI
 , public Ui::SegmentationExplorer
 {
 public:
-	/** \brief GUI class constructor.
-	 *
-	 */
+  /** \brief GUI class constructor.
+   *
+   */
   GUI()
   {
-		setupUi(this);
-		view->setSortingEnabled(true);
-		view->sortByColumn(0, Qt::AscendingOrder);
+    setupUi(this);
+    view->setSortingEnabled(true);
+    view->sortByColumn(0, Qt::AscendingOrder);
 
-		showInformationButton->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
-	}
+    showInformationButton->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
+  }
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(ModelAdapterSPtr          model,
-                                           ModelFactorySPtr          factory,
-                                           FilterDelegateFactorySPtr delegateFactory,
-                                           ViewManagerSPtr           viewManager,
-                                           QUndoStack               *undoStack,
-                                           QWidget                  *parent)
-: DockWidget   {parent}
-, m_baseModel  {model}
-, m_viewManager{viewManager}
-, m_undoStack  {undoStack}
-, m_gui        {new GUI()}
-, m_layout     {nullptr}
+SegmentationExplorer::SegmentationExplorer(const Support::Context &context,
+                                           FilterDelegateFactorySPtr delegateFactory)
+: m_context{context}
+, m_gui    {new GUI()}
+, m_layout {nullptr}
 {
   setObjectName("SegmentationExplorer");
 
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new ClassificationLayout(m_gui->view, m_baseModel, factory, delegateFactory, m_viewManager, m_undoStack));
+  addLayout("Category",    new ClassificationLayout(m_gui->view, m_context.model(), m_context.factory(), delegateFactory, nullptr, m_context.undoStack()));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -259,7 +252,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   auto segmentation = segmentationPtr(item);
   Bounds bounds = segmentation->output()->bounds();
   NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
-  m_viewManager->focusViewsOn(center);
+  m_context.viewState()->focusViewOn(center);
 }
 
 //------------------------------------------------------------------------
@@ -280,7 +273,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indices,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  m_viewManager->selection()->set(selection);
+  m_context.viewState()->selection()->set(selection);
   this->blockSignals(false);
 }
 

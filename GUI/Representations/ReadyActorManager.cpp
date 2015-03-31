@@ -49,8 +49,9 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  void ReadyActorManager::setResolution(const NmVector3 &resolution)
+  void ReadyActorManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
   {
+
   }
 
   //----------------------------------------------------------------------------

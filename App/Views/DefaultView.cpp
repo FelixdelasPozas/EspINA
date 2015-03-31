@@ -23,6 +23,7 @@
 
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
+#include <Support/Context.h>
 
 #include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 #include <Menus/CamerasMenu.h>
@@ -50,31 +51,17 @@ const QString Z_LINE_COLOR  = "CrosshairZLineColor";
 const QString SETTINGS_FILE = "Extra/DefaultView.ini";
 
 //----------------------------------------------------------------------------
-DefaultView::DefaultView(ModelAdapterSPtr     model,
-                         ViewManagerSPtr      viewManager,
-                         QUndoStack          *undoStack,
+DefaultView::DefaultView(const Support::Context &context,
                          QMainWindow         *parent)
-: m_model(model)
-, m_viewManager(viewManager)
-, m_viewState{new ViewState{m_model->timer()}}
+: m_model(context.model())
+, m_viewState{context.viewState()}
+, m_viewXY{new View2D(context.viewState(), Plane::XY)}
+, m_viewXZ{new View2D(context.viewState(), Plane::XZ)}
+, m_viewYZ{new View2D(context.viewState(), Plane::YZ)}
+, m_view3D{new View3D(context.viewState(), false)}
 , m_channelSources(m_model, ItemAdapter::Type::CHANNEL)
 , m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION)
-, m_showProcessing(false)
-, m_renderersMenu(nullptr)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-
-  m_xLine = settings.value(X_LINE_COLOR, QColor(Qt::blue))   .value<QColor>();
-  m_yLine = settings.value(Y_LINE_COLOR, QColor(Qt::magenta)).value<QColor>();
-  m_zLine = settings.value(Z_LINE_COLOR, QColor(Qt::cyan))   .value<QColor>();
-
-  settings.endGroup();
-
-  m_viewXY = new View2D(Plane::XY);
-  m_viewXZ = new View2D(Plane::XZ);
-  m_viewYZ = new View2D(Plane::YZ);
-  m_view3D = new View3D(false);
 
   setObjectName("viewXY");
   setLayout(new QVBoxLayout());
@@ -108,15 +95,6 @@ DefaultView::DefaultView(ModelAdapterSPtr     model,
 //-----------------------------------------------------------------------------
 DefaultView::~DefaultView()
 {
-  deleteView(m_viewXY);
-  deleteView(m_viewXZ);
-  deleteView(m_viewYZ);
-  deleteView(m_view3D);
-
-  if (m_renderersMenu)
-  {
-    delete m_renderersMenu;
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -143,37 +121,9 @@ void DefaultView::addRepresentation(const Representation& representation)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::setCrosshairColor(const Plane plane, const QColor& color)
-{
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(DEFAULT_VIEW_SETTINGS);
-  switch (plane)
-  {
-    case Plane::XY:
-      m_zLine = color;
-      settings.setValue(Z_LINE_COLOR, color);
-      break;
-    case Plane::XZ:
-      m_yLine = color;
-      settings.setValue(Y_LINE_COLOR, color);
-      break;
-    case Plane::YZ:
-      m_xLine = color;
-      settings.setValue(X_LINE_COLOR, color);
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  };
-  settings.endGroup();
-  settings.sync();
-}
-
-
-//-----------------------------------------------------------------------------
 void DefaultView::createViewMenu(QMenu* menu)
 {
-  menu->addMenu(new CamerasMenu(m_viewManager, this));
+  //menu->addMenu(new CamerasMenu(m_viewManager, this));
 
   auto renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(dockYZ->toggleViewAction());
@@ -203,10 +153,10 @@ void DefaultView::createViewMenu(QMenu* menu)
   connect(m_showThumbnail, SIGNAL(toggled(bool)),
           this, SLOT(showThumbnail(bool)));
 
-  auto fitToSlices = m_viewManager->fitToSlices();
-  menu->addAction(fitToSlices);
-  connect(fitToSlices, SIGNAL(toggled(bool)),
-          this, SLOT(setFitToSlices(bool)));
+  // TODO
+//   menu->addAction(fitToSlices);
+//   connect(fitToSlices, SIGNAL(toggled(bool)),
+//           this, SLOT(setFitToSlices(bool)));
 
   setRulerVisibility(sr);
   showThumbnail(st);
@@ -215,28 +165,9 @@ void DefaultView::createViewMenu(QMenu* menu)
 //-----------------------------------------------------------------------------
 SettingsPanelSPtr DefaultView::settingsPanel()
 {
-  RendererSList renderers;
-
-  return std::make_shared<DefaultViewSettingsPanel>(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu);
+  //return std::make_shared<DefaultViewSettingsPanel>(m_viewXY, m_viewXZ, m_viewYZ, m_view3D, renderers, m_renderersMenu);
+  return SettingsPanelSPtr();
 }
-
-// //----------------------------------------------------------------------------
-// void DefaultView::sourceModelReset()
-// {
-//   m_viewManager->removeAllViewItems();
-//   m_viewXY->reset();
-//   m_viewYZ->reset();
-//   m_viewXZ->reset();
-//   m_view3D->reset();
-// }
-//
-// //----------------------------------------------------------------------------
-// void DefaultView::showCrosshair(bool visible)
-// {
-//   m_viewXY->setCrosshairVisibility(visible);
-//   m_viewYZ->setCrosshairVisibility(visible);
-//   m_viewXZ->setCrosshairVisibility(visible);
-// }
 
 //-----------------------------------------------------------------------------
 void DefaultView::setRulerVisibility(bool visible)
@@ -263,111 +194,26 @@ void DefaultView::showThumbnail(bool visible)
   m_viewXZ->setThumbnailVisibility(visible);
 }
 
-// //----------------------------------------------------------------------------
-// void DefaultView::switchPreprocessing()
-// {
-//   // Current implementation changes channel visibility and then
-//   // notifies it's been updated to other views
-//   m_showProcessing = !m_showProcessing;
-//   m_viewXY->setShowPreprocessing(m_showProcessing);
-//   m_viewYZ->setShowPreprocessing(m_showProcessing);
-//   m_viewXZ->setShowPreprocessing(m_showProcessing);
-// }
-
-// //----------------------------------------------------------------------------
-// void DefaultView::updateViews()
-// {
-//  m_viewXY->updateView();
-//  m_viewXZ->updateView();
-//  m_viewYZ->updateView();
-//  m_view3D->updateView();
-// }
-
 //-----------------------------------------------------------------------------
-void DefaultView::setFitToSlices(bool unused)
+void DefaultView::setFitToSlices(bool value)
 {
-  NmVector3 step = m_viewXY->sceneResolution();
-
-  m_viewXY->setSlicingStep(step);
-  m_viewYZ->setSlicingStep(step);
-  m_viewXZ->setSlicingStep(step);
+  m_viewState->setFitToSlices(value);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::loadSessionSettings(TemporalStorageSPtr storage)
 {
-  // TODO
-//   if(storage->exists(SETTINGS_FILE))
-//   {
-//     QSettings settings(storage->absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
-//     QStringList available2DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW2D);
-//     QStringList available3DRenderers = m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-//     QMap<QString, bool> viewState;
-//     RendererSList viewRenderers;
-//
-//     settings.beginGroup("View2D");
-//     for(auto availableRenderer: available2DRenderers)
-//     {
-//       auto renderer = m_viewManager->cloneRenderer(availableRenderer);
-//       if(renderer == nullptr || !settings.contains(availableRenderer))
-//         continue;
-//
-//       viewRenderers << renderer;
-//       auto enabled = settings.value(availableRenderer, false).toBool();
-//       viewState[availableRenderer] = enabled;
-//     }
-//
-//     m_viewXY->setRenderers(viewRenderers);
-//     m_viewXY->setRenderersState(viewState);
-//     viewState.clear();
-//     viewRenderers.clear();
-//     settings.endGroup();
-//
-//     settings.beginGroup("View3D");
-//     for(auto availableRenderer: available3DRenderers)
-//     {
-//       auto renderer = m_viewManager->cloneRenderer(availableRenderer);
-//       if(renderer == nullptr || !settings.contains(availableRenderer))
-//         continue;
-//
-//       viewRenderers << renderer;
-//       auto enabled = settings.value(availableRenderer, false).toBool();
-//       viewState[availableRenderer] = enabled;
-//     }
-//
-//     m_view3D->setRenderers(viewRenderers);
-//     m_view3D->setRenderersState(viewState);
-//     viewState.clear();
-//     viewRenderers.clear();
-//     settings.endGroup();
-//   }
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
 {
-//   QSettings settings(storage->absoluteFilePath(SETTINGS_FILE), QSettings::IniFormat);
-//
-//   settings.sync();
 }
 
 //-----------------------------------------------------------------------------
 void DefaultView::initView(RenderView* view)
 {
-  view->setState(m_viewState);
-  view->setChannelSources(&m_channelSources);
-
-  m_viewManager->registerView(view);
-
   m_views << view;
-}
-
-//-----------------------------------------------------------------------------
-void DefaultView::deleteView(RenderView* view)
-{
-  m_viewManager->unregisterView(view);
-
-  delete view;
 }
 
 //-----------------------------------------------------------------------------

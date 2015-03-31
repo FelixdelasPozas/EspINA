@@ -32,9 +32,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Menus/RenderersMenu.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
-  Settings/View2D/View2DRenderersPanel.h
   Settings/View2D/View2DSettingsPanel.h
-  Settings/View3D/View3DSettingsPanel.h
   ToolGroups/Explore/ResetZoom.h
   ToolGroups/Explore/ZoomAreaTool.h
   ToolGroups/Refine/CODEHistory.h
@@ -85,7 +83,6 @@ qt4_wrap_ui (ESPINA_UI
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
-  Settings/View3D/View3DSettingsPanel.ui
   ToolGroups/Refine/CODEHistoryWidget.ui
   ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.ui
   )
@@ -125,15 +122,12 @@ set (ESPINA_SOURCES
   Menus/DefaultContextualMenu.cpp
   Menus/RenderersMenu.cpp
   RecentDocuments.cpp
-  Settings/DefaultView/DefaultViewSettingsPanel.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
   Settings/ROI/ROISettings.cpp
   Settings/ROI/ROISettingsPanel.cpp
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
-  Settings/View2D/View2DRenderersPanel.cpp
   Settings/View2D/View2DSettingsPanel.cpp
-  Settings/View3D/View3DSettingsPanel.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/ChannelRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp

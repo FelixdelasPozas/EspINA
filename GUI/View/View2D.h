@@ -71,26 +71,12 @@ namespace ESPINA
      * \param[in] plane view's orientation plane.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      */
-    explicit View2D(Plane plane = Plane::XY, QWidget* parent = nullptr);
+    explicit View2D(ViewStateSPtr state, Plane plane = Plane::XY);
 
     /** \brief View2D class virtual destructor.
      *
      */
     virtual ~View2D();
-
-    /** \brief Enables/disables the "fit to slices" flag.
-     * \param[in] value true to enable false otherwise.
-     *
-     * If fit to slices is enabled the movement between slices is the resolution of the scene.
-     *
-     */
-    void setFitToSlices(bool value);
-
-    /** \brief Returns the value of the "fit to slices" flag.
-     *
-     */
-    bool fitToSlices() const
-    { return m_fitToSlices; }
 
     /** \brief Reverses the efect of the mouse wheel on the view.
      * \param[in] value true to reverse the movement of the wheel, false otherwise.
@@ -129,10 +115,6 @@ namespace ESPINA
     double scale() const
     { return m_scale; }
 
-    virtual void reset();
-
-    virtual void resetCamera();
-
     /** \brief Helper method that returns the depth value required in the view to put representations above the channels' representations.
      *
      */
@@ -142,17 +124,6 @@ namespace ESPINA
      *
      */
     double widgetDepth() const;
-
-    /** \brief Set the distance between two consecutive slices when displacement is set to SLICES.
-     * \param[in] steps
-     *
-     */
-    void setSlicingStep(const NmVector3& steps);
-
-    /** \brief Returns the slicing step of the view.
-     *
-     */
-    NmVector3 slicingStep() const;
 
     /** \brief Returns the value of the actual slice of the view.
      *
@@ -165,23 +136,18 @@ namespace ESPINA
      */
     void setThumbnailVisibility(bool visible);
 
-    virtual void addActor   (vtkProp *actor) override;
-
-    virtual void removeActor(vtkProp *actor) override;
-
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
-    virtual void setCameraState(struct RenderView::CameraState);
+    virtual void setCameraState(CameraState state);
 
-    virtual struct RenderView::CameraState cameraState();
+    virtual CameraState cameraState();
+
+
+    virtual void reset();
+
+    virtual vtkRenderer *mainRenderer() const;
 
   public slots:
-    /** \brief Alternate the visibility between the processed and unprocessed channels.
-     * \param[in] visible true to show the first channel and not the second, false to reverse situation.
-     *
-     */
-    void setShowPreprocessing(bool visible);
-
     /** \brief Sets the ruler visibility.
      * \param[in] visibile true to set the ruler visible, false otherwise.
      *
@@ -195,15 +161,10 @@ namespace ESPINA
     /// Unset Slice Selection flags to all registered Slice Views
     void removeSliceSelectors(SliceSelectorSPtr widget);
 
-
-    virtual void updateView() override;
-
   signals:
     void channelSelected(ChannelAdapterPtr);
-    void segmentationSelected(SegmentationAdapterPtr, bool);
 
-  protected slots:
-    virtual void updateSceneBounds() override;
+    void segmentationSelected(SegmentationAdapterPtr, bool);
 
   protected:
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
@@ -227,9 +188,15 @@ namespace ESPINA
     void selectPickedItems(int x, int y, bool append);
 
   private:
-    void addRepresentationManagerMenu(RepresentationManagerSPtr manager);
+    virtual void addActor   (vtkProp *actor) override;
 
-    void removeRepresentationManagerMenu(RepresentationManagerSPtr manager);
+    virtual void removeActor(vtkProp *actor) override;
+
+    virtual void updateViewActions();
+
+    virtual void resetCameraImplementation();
+
+    virtual void refreshViewImplementation();
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
@@ -242,11 +209,11 @@ namespace ESPINA
     vtkSmartPointer<vtkRenderer> rendererUnderCuror() const;
 
     /** \brief Shows tool tip for segmentations at position (x, y)
-     * \param[in] x DISPLAY coordinate.
-     * \param[in] y DISPLAY coordinate.
+     * \param[in] x display coordinate
+     * \param[in] y display coordinate
      *
      */
-    void showSegmentationTooltip(double x, double y);
+    void showSegmentationTooltip(const int x, const int y);
 
     /** \brief Updates the ruler widget.
      *
@@ -258,66 +225,10 @@ namespace ESPINA
      */
     void updateThumbnail();
 
-    /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
-     * \param[in] bounds new scene bounds.
-     *
-     */
-    void setSlicingBounds(const Bounds& bounds);
-
     /** \brief Centers the view of the camera on the mouse position.
      *
      */
     void centerViewOnMousePosition(int x, int y);
-
-
-    /** \brief Returns the bottom value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex integer slice index.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelBottom(const int sliceIndex, const Plane plane) const;
-
-    /** \brief Returns the bottom value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position Z position of the voxel.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelBottom(const Nm position, const Plane plane) const;
-
-    /** \brief Returns the center value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex integer slice index.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelCenter(const int sliceIndex, const Plane plane) const;
-
-    /** \brief Returns the center value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position Z position of the voxel.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelCenter(const Nm position, const Plane plane) const;
-
-    /** \brief Returns the top value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex integer slice index.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelTop(const int sliceIndex, const Plane plane) const;
-
-    /** \brief Returns the top value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position Z position of the voxel.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelTop(const Nm  position, const Plane plane) const;
-
-    /** \brief Returns the numerical index of the slice given the slice position and plane.
-     * \param[in] position slice position.
-     * \param[in] plane orientation plane.
-     *
-     */
-    int voxelSlice (const Nm position, const Plane plane) const;
 
     /** \brief Helper method to setup the UI elements.
      *
@@ -349,6 +260,26 @@ namespace ESPINA
 
     void updateScale();
 
+    void updateThumbnailBounds(const Bounds &bounds);
+
+    void updateWidgetLimits(const Bounds &bounds);
+
+    void updateSpinBoxLimits(int min, int max);
+
+    void updateScrollBarLimits(int min, int max);
+
+    inline bool fitToSlices() const;
+
+    inline Nm  voxelCenter(const int slice, const Plane plane) const;
+
+    inline Nm  voxelCenter(const Nm position, const Plane plane) const;
+
+    inline int voxelSlice(const Nm position, const Plane plane) const;
+
+    bool eventHandlerFilterEvent(QEvent *event);
+
+    EventHandlerSPtr eventHandler() const;
+
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point);
 
@@ -357,6 +288,10 @@ namespace ESPINA
      *
      */
     virtual void moveCamera(const NmVector3 &point);
+
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds);
 
     /** \brief Updates the view when the scroll widget changes its value.
      * \param[in] value new value.
@@ -374,7 +309,6 @@ namespace ESPINA
      *
      */
     void onTakeSnapshot();
-
   private:
     // GUI
     QVBoxLayout    *m_mainLayout;
@@ -387,36 +321,34 @@ namespace ESPINA
     QPushButton    *m_snapshot;
     QPushButton    *m_repManagerMenu;
 
+
     // VTK View
-    vtkSmartPointer<vtkRenderer>    m_thumbnail;
-    vtkSmartPointer<vtkAxisActor2D> m_ruler;
-
-    // View State
-    NmVector3 m_slicingStep;
-
+    vtkSmartPointer<vtkRenderer>     m_renderer;
+    vtkSmartPointer<vtkRenderer>     m_thumbnail;
     std::unique_ptr<PlanarBehaviour> m_state2D;
 
-    bool m_showThumbnail;
 
     // Slice Selectors
     using SliceSelectorPair = QPair<SliceSelectorSPtr, SliceSelectorSPtr>;
     QList<SliceSelectorPair> m_sliceSelectors;
 
     // Thumbnail
+    bool m_showThumbnail;
     bool m_inThumbnail;
+    bool m_inThumbnailClick;
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool   m_sceneReady;
-    Plane  m_plane;
+    // Ruler
     double m_scale;
+    bool   m_rulerVisibility;
+    vtkSmartPointer<vtkAxisActor2D>  m_ruler;
+
+    Plane  m_plane;
     int    m_normalCoord;
 
-    bool  m_fitToSlices;
     bool  m_invertSliceOrder;
     bool  m_invertWheel;
-    bool  m_rulerVisibility;
-    bool  m_inThumbnailClick;
   };
 
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.
@@ -433,6 +365,7 @@ namespace ESPINA
   inline bool isView2D(RenderView* view)
   { return view2D_cast(view) != nullptr; }
 
+  using View2DSPtr = std::shared_ptr<View2D>;
 
   Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectionType)
 

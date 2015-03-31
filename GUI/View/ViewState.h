@@ -22,8 +22,13 @@
 
 // ESPINA
 #include <Core/Utils/NmVector3.h>
+#include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
 #include <GUI/Utils/Timer.h>
+#include "CoordinateSystem.h"
+#include "EventHandler.h"
+#include "Selection.h"
+#include "Widgets/EspinaWidget.h"
 
 // Qt
 #include <QObject>
@@ -40,16 +45,67 @@ namespace ESPINA
      * \param[in] timer state timer object.
      *
      */
-    explicit ViewState(TimerSPtr timer = std::make_shared<Timer>(1));
+    explicit ViewState(GUI::View::CoordinateSystemSPtr coordinateSystem = std::make_shared<GUI::View::CoordinateSystem>(),
+                       TimerSPtr timer = std::make_shared<Timer>(1));
+
+    TimeStamp timeStamp() const;
+
+    NmVector3 crosshair() const;
+
+    /** \brief Enables/disables the "fit to slices" flag.
+     * \param[in] value true to enable false otherwise.
+     *
+     * If fit to slices is enabled the movement between slices is the resolution of the scene.
+     *
+     */
+    void setFitToSlices(bool value);
+
+    /** \brief Returns the value of the "fit to slices" flag.
+     *
+     */
+    bool fitToSlices() const;
+
+    /** \brief Sets the view event handler.
+     * \param[in] handler active event handler
+     *
+     */
+    void setEventHandler(EventHandlerSPtr handler);
+
+    /** \brief Sets the view event handler.
+     * \param[in] handler event handler to be deactivated
+     *
+     */
+    void unsetEventHandler(EventHandlerSPtr handler);
+
+    /** \brief Returns current event handler
+     *
+     */
+    EventHandlerSPtr eventHandler() const;
+
+    SelectionSPtr selection();
+
+    /** \brief Adds a widget to the view.
+     * \param[in] widget espina widget smart pointer.
+     *
+     */
+    virtual void addWidget(EspinaWidgetSPtr widget);
+
+    /** \brief Removes a widget to the view.
+     * \param[in] widget espina widget smart pointer.
+     *
+     */
+    virtual void removeWidget(EspinaWidgetSPtr widget);
+
+    GUI::View::CoordinateSystemSPtr coordinateSystem() const;
 
     /** \brief Ensure point position is visible
      *
      */
     void focusViewOn(const NmVector3 &point);
 
-    TimeStamp timeStamp() const;
+    void resetCamera();
 
-    NmVector3 crosshair() const;
+    void refresh();
 
   public slots:
     /** \brief Changes the crosshair position to point
@@ -67,12 +123,29 @@ namespace ESPINA
 
     void viewFocusedOn(NmVector3);
 
+    void resetCameraRequested();
+
+    void refreshRequested();
+
+  private:
+    NmVector3 crosshairPoint(const NmVector3 &point) const;
+
+    NmVector3 voxelCenter(const NmVector3 &point) const;
+
+    void changeCrosshair(const NmVector3 &point);
+
   private:
     TimerSPtr m_timer;
     NmVector3 m_crosshair;
+    bool      m_fitToSlices;
+    GUI::View::CoordinateSystemSPtr m_coordinateSystem;
+    SelectionSPtr    m_selection;
+    EventHandlerSPtr m_eventHandler;
   };
 
   using ViewStateSPtr = std::shared_ptr<ViewState>;
+
+  void updateSceneState(ViewStateSPtr state, ViewItemAdapterSList viewItems);
 }
 
 #endif // ESPINA_VIEWSTATE_H

@@ -31,6 +31,7 @@
 #include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
 #include "Widgets/Tool.h"
+#include "Context.h"
 
 // Qt
 #include <QtPlugin>
@@ -69,18 +70,8 @@ namespace ESPINA
     /** \brief Gives the plugin the neccesary objects to initilize itself.
      *        Must be called before any other plugin method.
      *
-     * \param[in] model model adapter smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] factory model factory smart pointer.
-     * \param[in] scheduler scheduler smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     *
      */
-    virtual void init(ModelAdapterSPtr model,
-                      ViewManagerSPtr  viewManager,
-                      ModelFactorySPtr factory,
-                      SchedulerSPtr    scheduler,
-                      QUndoStack      *undoStack) = 0;
+    virtual void init(Support::Context &context) = 0;
 
     /** \brief Returns a list of channel extension factories.
      *
@@ -159,6 +150,6 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.1")
+Q_DECLARE_INTERFACE(ESPINA::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.2")
 
 #endif // ESPINA_PLUGIN_H

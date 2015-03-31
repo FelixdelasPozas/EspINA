@@ -31,6 +31,7 @@
 
 // ESPINA
 #include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 class QUndoStack;
 class QIcon;
@@ -52,10 +53,7 @@ namespace ESPINA
      * \param[in] viewManager
      *
      */
-    explicit AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
-                                   ModelAdapterSPtr         model,
-                                   ModelFactorySPtr         factory,
-                                   ViewManagerSPtr          viewManager);
+    explicit AppositionSurfaceTool(AppositionSurfacePlugin *plugin, Support::Context &context);
 
     /** \brief AppositionSurfaceTool class virtual destructor.
      *
@@ -89,9 +87,7 @@ namespace ESPINA
 
   private:
     AppositionSurfacePlugin *m_plugin;
-    ModelAdapterSPtr         m_model;
-    ModelFactorySPtr         m_factory;
-    ViewManagerSPtr          m_viewManager;
+    Support::Context        &m_context;
 
     QAction *m_action;
   };

@@ -50,17 +50,12 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
-                                 ViewManagerSPtr  viewManager,
-                                 SchedulerSPtr    scheduler,
-                                 QUndoStack      *undoStack,
-                                 QWidget         *parent)
-: DockWidget    {parent}
-, m_model       {model}
-, m_viewManager {viewManager}
-, m_scheduler   {scheduler}
-, m_undoStack   {undoStack}
-, m_channelProxy{new ChannelProxy(model)}
+ChannelExplorer::ChannelExplorer(const Support::Context &context)
+: m_context(context)
+, m_model       {context.model()}
+, m_scheduler   {context.scheduler()}
+, m_undoStack   {context.undoStack()}
+, m_channelProxy{new ChannelProxy(context.model())}
 , m_sort        {new QSortFilterProxyModel()}
 , m_gui         {new CentralWidget()}
 {
@@ -107,6 +102,7 @@ ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
           this, SLOT(unloadChannel()));
 
   updateTooltips(0);
+
   setWidget(m_gui);
 }
 
@@ -457,7 +453,7 @@ void ChannelExplorer::showInformation()
      if (isChannel(currentItem))
      {
        auto channel   = channelPtr(currentItem);
-       ChannelInspector dialog(m_model->smartPointer(channel), m_model, m_scheduler);
+       ChannelInspector dialog(m_model->smartPointer(channel), m_context);
 
        dialog.exec();
      }
@@ -477,7 +473,7 @@ void ChannelExplorer::activateChannel()
   if (ItemAdapter::Type::CHANNEL == currentItem->type())
   {
     auto currentChannel = channelPtr(currentItem);
-    m_viewManager->setActiveChannel(currentChannel);
+    //m_context.activeChannel = currentChannel; //TODO
   }
 }
 
@@ -518,7 +514,7 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   auto setActive = contextMenu.addAction(tr("Set as the active channel"));
   setActive->setCheckable(true);
-  setActive->setChecked(channels.first() == m_viewManager->activeChannel());
+  setActive->setChecked(channels.first() == m_context.ActiveChannel);
   connect(setActive, SIGNAL(triggered(bool)),
           this,      SLOT(activateChannel()));
 

@@ -69,8 +69,9 @@ namespace ESPINA
   }
   
   //-----------------------------------------------------------------------------
-  void CrosshairManager::setResolution(const NmVector3 &resolution)
+  void CrosshairManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
   {
+
   }
 
   //-----------------------------------------------------------------------------

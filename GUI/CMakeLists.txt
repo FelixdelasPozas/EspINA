@@ -36,13 +36,13 @@ qt4_wrap_cpp(GUI_MOC
   View/Selection.h
   View/View2D.h
   View/ViewState.h
-  View/ViewRendererMenu.h
   View/View3D.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/OrthogonalRegion.h
   View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
+  View/CoordinateSystem.h
   View/Widgets/Ruler/RulerWidget.h
   View/Widgets/Contour/ContourWidget.h
   Widgets/ActionSelector.h
@@ -57,7 +57,6 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/NoteEditor.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
-  Widgets/RenderersSelector.h
   Widgets/SchedulerProgress.h
   Widgets/SpinBoxAction.h
   Widgets/SliderAction.h
@@ -72,7 +71,6 @@ qt4_wrap_ui (GUI_UI
   Representations/ContourRepresentationSettings.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
-  Widgets/RenderersSelector.ui
   Widgets/TagSelector.ui
   Widgets/SchedulerProgress.ui
   Widgets/TaskProgress.ui
@@ -147,7 +145,6 @@ set (GUI_SOURCES
   View/RenderView.cpp
   View/Selection.cpp
   View/View2D.cpp
-  View/ViewRendererMenu.cpp
   View/PlanarBehaviour.cpp
   View/ViewState.cpp
   View/View3D.cpp
@@ -188,12 +185,12 @@ set (GUI_SOURCES
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 
   Widgets/QComboTreeView.cpp
-  Widgets/RenderersSelector.cpp
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
   Widgets/SliderAction.cpp
   Widgets/TaskProgress.cpp
+  View/CoordinateSystem.cpp
   )
 
 set(GUI_EXTERNAL_LIBS

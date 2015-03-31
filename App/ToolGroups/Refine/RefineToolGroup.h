@@ -50,11 +50,11 @@ namespace ESPINA
      *
      */
     explicit RefineToolGroup(ModelAdapterSPtr model,
-                          ModelFactorySPtr factory,
-                          FilterDelegateFactorySPtr filterDelegateFactory,
-                          ViewManagerSPtr  viewManager,
-                          QUndoStack      *undoStack,
-                          QWidget         *parent = nullptr);
+                             ModelFactorySPtr factory,
+                             FilterDelegateFactorySPtr filterDelegateFactory,
+                             ViewManagerSPtr  viewManager,
+                             QUndoStack      *undoStack,
+                             QWidget         *parent = nullptr);
 
     virtual ~RefineToolGroup();
 

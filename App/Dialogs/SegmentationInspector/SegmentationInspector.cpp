@@ -59,7 +59,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 , m_viewManager    {viewManager}
 , m_undoStack      {undoStack}
 , m_selectedSegmentation{nullptr}
-, m_view           {new View3D(true)}
+//, m_view           {new View3D(true)}
 , m_tabularReport  {new TabularReport(factory, viewManager)}
 {
   setupUi(this);
@@ -100,7 +100,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
   m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view->setMinimumWidth(250);
   m_view->resetCamera();
-  m_view->updateView();
+  m_view->refresh();
 
   auto viewportLayout = new QVBoxLayout();
   viewportLayout->addWidget(m_view);
@@ -135,7 +135,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
   SegmentationExtension::InfoTagList tags;
   tags << tr("Name") << tr("Category");
 
-  m_viewManager->registerView(m_view);
+//   m_viewManager->registerView(m_view);
 
   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
           this,                             SLOT(updateSelection()));
@@ -161,7 +161,7 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-	m_viewManager->unregisterView(m_view);
+// 	m_viewManager->unregisterView(m_view);
   delete m_view;
   delete m_tabularReport;
 }
@@ -171,7 +171,7 @@ void SegmentationInspector::updateScene(ItemAdapterPtr item)
 {
   auto segmentation = segmentationPtr(item);
   //TODO m_view->updateRepresentation(segmentation);
-  m_view->updateView();
+  m_view->refresh();
 }
 
 //------------------------------------------------------------------------
@@ -251,7 +251,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     }
   }
 
-  m_view->updateView();
+  m_view->refresh();
 
   generateWindowTitle();
 }
@@ -265,7 +265,7 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
   m_channels << channel;
 
   //TODO m_viewManager->add(channel);
-  m_view->updateView();
+  m_view->refresh();
 
   generateWindowTitle();
 }
@@ -279,7 +279,7 @@ void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
   m_channels.removeOne(channel);
 
   //TODO m_viewManager->remove(channel);
-  m_view->updateView();
+  m_view->refresh();
 
   generateWindowTitle();
 }
@@ -406,7 +406,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   m_tabularReport->setFilter(m_segmentations);
   m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
 
-  m_view->updateView();
+  m_view->refresh();
   m_view->resetCamera();
 
   event->acceptProposedAction();

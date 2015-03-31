@@ -23,6 +23,7 @@
 // ESPINA
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Context.h>
 
 // Qt
 #include <ui_SegmentationExplorer.h>
@@ -45,18 +46,9 @@ namespace ESPINA
 
   public:
     /** \brief SegmentationExplorer class constructor.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     * \param[in] parent parent widget raw pointer.
      */
-    explicit SegmentationExplorer(ModelAdapterSPtr          model,
-                                  ModelFactorySPtr          factory,
-                                  FilterDelegateFactorySPtr delegateFactory,
-                                  ViewManagerSPtr           viewManager,
-                                  QUndoStack               *undoStack,
-                                  QWidget                  *parent = nullptr);
+    explicit SegmentationExplorer(const Support::Context &context,
+                                  FilterDelegateFactorySPtr delegateFactory);
 
     /** \brief SegmentationExplorer class virtual destructor.
      *
@@ -129,9 +121,7 @@ namespace ESPINA
     void onItemModified();
 
   protected:
-    ModelAdapterSPtr m_baseModel;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    const Support::Context &m_context;
     GUI             *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;

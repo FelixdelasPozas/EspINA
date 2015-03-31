@@ -69,11 +69,11 @@ TimeRange Slice3DManager::readyRange() const
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::setResolution(const NmVector3 &resolution)
+void Slice3DManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
 {
   for (auto pool : m_pools)
   {
-    pool->setResolution(resolution);
+    pool->setResolution(system->resolution());
   }
 }
 

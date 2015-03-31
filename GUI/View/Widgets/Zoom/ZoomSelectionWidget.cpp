@@ -144,5 +144,5 @@ void vtkZoomCommand::Execute(vtkObject *caller, unsigned long int eventId, void*
   if(!m_widget->m_views.values().contains(widget))
     return;
 
-  m_widget->m_views.key(widget)->updateView();
+  m_widget->m_views.key(widget)->refresh();
 }

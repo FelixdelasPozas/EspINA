@@ -69,14 +69,13 @@ using namespace ESPINA;
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent)
-: QDialog          {parent}
-, m_spacingModified{false}
+ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, const Support::Context &context)
+: m_spacingModified{false}
 , m_edgesModified  {false}
 , m_channel        {channel}
-, m_model          {model}
-, m_scheduler      {scheduler}
-, m_view           {new View2D(Plane::XY, this)}
+, m_model          {context.model()}
+, m_scheduler      {context.scheduler()}
+, m_view           {new View2D(std::make_shared<ViewState>(), Plane::XY)}
 {
   setupUi(this);
 
@@ -496,7 +495,6 @@ void ChannelInspector::initSliceView()
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());
   sliceManager->show();
 
-  m_view->setChannelSources(&m_sources);
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
   m_view->setRulerVisibility(true);

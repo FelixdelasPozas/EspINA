@@ -55,11 +55,11 @@ TimeRange SliceManager::readyRange() const
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::setResolution(const NmVector3 &resolution)
+void SliceManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
 {
   if (validPlane())
   {
-    planePool()->setResolution(resolution);
+    planePool()->setResolution(system->resolution());
   }
 }
 

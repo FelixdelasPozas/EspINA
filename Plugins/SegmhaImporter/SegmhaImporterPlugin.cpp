@@ -87,17 +87,13 @@ SegmhaImporterPlugin::~SegmhaImporterPlugin()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterPlugin::init(ModelAdapterSPtr model,
-                                ViewManagerSPtr  viewManager,
-                                ModelFactorySPtr factory,
-                                SchedulerSPtr    scheduler,
-                                QUndoStack*      undoStack)
+void SegmhaImporterPlugin::init(Support::Context &context)
 {
-  m_model       = model;
-  m_viewManager = viewManager;
-  m_factory     = factory;
-  m_scheduler   = scheduler;
-  m_undoStack   = undoStack;
+  m_model       = context.model();
+  m_viewManager = nullptr; // TODO
+  m_factory     = context.factory();
+  m_scheduler   = context.scheduler();
+  m_undoStack   = context.undoStack();
 }
 
 //------------------------------------------------------------------------

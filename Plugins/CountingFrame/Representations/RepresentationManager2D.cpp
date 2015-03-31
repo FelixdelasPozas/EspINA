@@ -46,9 +46,9 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setResolution(const NmVector3 &resolution)
+    void RepresentationManager2D::setResolution(const GUI::View::CoordinateSystemSPtr system)
     {
-      m_resolution = resolution;
+      m_resolution = system->resolution();
     }
 
     //-----------------------------------------------------------------------------

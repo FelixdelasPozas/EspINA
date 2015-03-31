@@ -82,30 +82,6 @@ namespace ESPINA
     /*********************** Configuration API *********************************/
     // Configure the view manager components
     //---------------------------------------------------------------------------
-    /** \brief Registers a view to be managed by this view manager.
-     * \param[in] view SelectableView raw pointer of the view to register.
-     *
-     */
-    void registerView(SelectableView* view);
-
-    /** \brief Registers a view to be managed by this view manager.
-     * \param[in] view RenderView raw pointer of the view to register.
-     *
-     */
-    void registerView(RenderView*     view);
-
-    /** \brief Unregisters a view from the view manager so it wont receive updates.
-     * \param[in] view Selectable raw pointer of the view to unregister.
-     *
-     */
-    void unregisterView(SelectableView* view);
-
-    /** \brief Unregisters a view from the view manager so it wont receive updates.
-     * \param[in] view RenderView raw pointer of the view to unregister.
-     *
-     */
-    void unregisterView(RenderView* view);
-
     /** \brief Returns a list of raw pointers of registered render views (2D and 3D views).
      *
      */

@@ -48,21 +48,23 @@ RefineToolGroup::RefineToolGroup(ModelAdapterSPtr          model,
 , m_viewManager{viewManager}
 {
   // TODO: Create EditionTool base class
-  m_manualEdition = std::make_shared<ManualEditionTool>(model, factory, undoStack, viewManager);
-  m_split         = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
-  m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
 
-  addTool(m_manualEdition);
-  addTool(m_split);
-  addTool(m_morphological);
-
-  connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
-          this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
-
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(enableCurrentSelectionActions()));
-
-  enableCurrentSelectionActions();
+  //TODO: uncomment
+  //   m_manualEdition = std::make_shared<ManualEditionTool>(model, factory, undoStack, viewManager);
+//   m_split         = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
+//   m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
+//
+//   addTool(m_manualEdition);
+//   addTool(m_split);
+//   addTool(m_morphological);
+//
+//   connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
+//           this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
+//
+//   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
+//           this,                             SLOT(enableCurrentSelectionActions()));
+//
+//   enableCurrentSelectionActions();
 }
 
 //-----------------------------------------------------------------------------

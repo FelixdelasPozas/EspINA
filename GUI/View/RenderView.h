@@ -51,6 +51,20 @@ namespace ESPINA
   , public SelectableView
   {
     Q_OBJECT
+
+
+  public:
+    struct CameraState
+    {
+      Plane     plane;
+      int       slice;           // Only used in View2D
+      NmVector3 cameraPosition;
+      NmVector3 focalPoint;
+      double    heightLength;      // Only used in View2D
+
+      CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
+    };
+
   public:
     /** \brief RenderView class virtual destructor.
      *
@@ -63,24 +77,7 @@ namespace ESPINA
     ViewType type() const
     { return m_type; }
 
-    void setState(ViewStateSPtr state);
-
     TimeStamp timeStamp() const;
-
-    /** \brief Sets the view event handler.
-     * \param[in] eventHandler, event handler smart pointer.
-     *
-     */
-    void setEventHandler(EventHandlerSPtr eventHandler)
-    { m_eventHandler = eventHandler; }
-
-    /** \brief Returns the view's event handler.
-     *
-     */
-    EventHandlerSPtr eventHandler() const
-    { return m_eventHandler; }
-
-    void setChannelSources(PipelineSources *channels);
 
     /** \brief Adds a representation manager to the view
      *
@@ -93,45 +90,15 @@ namespace ESPINA
     void removeRepresentationManager(RepresentationManagerSPtr manager);
 
     /** \brief Resets the view to it's initial state.
-     *  TODO: Rename to clear?
+     *
      */
     virtual void reset() = 0;
-
-    /** \brief Adds a widget to the view.
-     * \param[in] widget espina widget smart pointer.
-     *
-     */
-    virtual void addWidget(EspinaWidgetSPtr widget);
-
-    /** \brief Removes a widget to the view.
-     * \param[in] widget espina widget smart pointer.
-     *
-     */
-    virtual void removeWidget(EspinaWidgetSPtr widget);
-
-    /** \brief Adds an actor to the vtkRenderer.
-     * \param[in] actor vtkProp raw pointer.
-     *
-     */
-    virtual void addActor(vtkProp *actor);
-
-    /** \brief Removes an actor to the vtkRenderer.
-     * \param[in] actor vtkProp raw pointer.
-     *
-     */
-    virtual void removeActor(vtkProp *actor);
 
     /** \brief Returns the bounds in world coordinates that contains all of the objects in the view.
      * \param[in] cropToSceneBounds true to crop the bounds to the limits of the actual view, false otherwise.
      *
      */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const = 0;
-
-    /** \brief Sets the view's cursor.
-     * \param[in] cursor QCursor object.
-     *
-     */
-    virtual void setCursor(const QCursor& cursor);
 
     /** \brief Returns the coordinates of the last mouse event.
      * \param[out] x coordinate.
@@ -183,23 +150,12 @@ namespace ESPINA
     /** \brief Returns the raw pointer of the vtkRenderer of the view.
      *
      */
-    virtual vtkRenderer *mainRenderer() const;
-
-    /** \brief Resets the view's camera.
-     *
-     */
-    virtual void resetCamera() = 0;
-
-    /** \brief Force a render of the scene
-     *
-     */
-    void render();
+    virtual vtkRenderer *mainRenderer() const = 0;
 
     /** \brief Returns the bounds of the scene.
      *
      */
-    const Bounds sceneBounds() const
-    {return m_sceneBounds;}
+    const Bounds sceneBounds() const;
 
     /** \brief Returns the crosshair point.
      *
@@ -209,43 +165,39 @@ namespace ESPINA
     /** \brief Returns the resolution (spacing) of the view.
      *
      */
-    const NmVector3 sceneResolution() const
-    {return m_sceneResolution;}
+    const NmVector3 sceneResolution() const;
 
     /** \brief Sets the contextual menu of the view.
-     * \param[in] contextMenu ContextualMenu smart pointer.
+     * \param[in] contextMenu to be displayed on right button click
      *
      */
-    virtual void setContextualMenu(ContextualMenuSPtr contextMenu)
+    void setContextualMenu(ContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
-
-    /** \brief Struct used to store/restore camera state. Used in
-     * "view state" snapshots.
-     *
-     */
-    struct CameraState
-    {
-      Plane     plane;
-      int       slice;           // Only used in View2D
-      NmVector3 cameraPosition;
-      NmVector3 focalPoint;
-      double    heightLength;      // Only used in View2D
-
-      CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
-    };
 
     /** \brief Restores camera position and zoom.
      * \param[in] state VisualState struct with camera values.
      *
      */
-    virtual void setCameraState(struct CameraState) = 0;
+    virtual void setCameraState(CameraState camera) = 0;
 
     /** \brief Returns the visual state of the view.
      *
      */
-    virtual struct CameraState cameraState() = 0;
+    virtual CameraState cameraState() = 0;
 
-    /** \brief Helper method to create a QPushButton.
+    /** \brief Adds an actor to the vtkRenderer.
+     * \param[in] actor vtkProp raw pointer.
+     *
+     */
+    virtual void addActor(vtkProp *actor) = 0;
+
+    /** \brief Removes an actor to the vtkRenderer.
+     * \param[in] actor vtkProp raw pointer.
+     *
+     */
+    virtual void removeActor(vtkProp *actor) = 0;
+
+    /** \brief Helper method to create a render view action buttons
      * \param[in] icon of the button.
      * \param[in] tooltip of the button.
      *
@@ -253,41 +205,34 @@ namespace ESPINA
     static QPushButton *createButton(const QString& icon, const QString& tooltip);
 
   public slots:
-    /** \brief Updates the view.
+    /** \brief Resets the view's camera.
      *
      */
-    virtual void updateView() = 0; // TODO: RENAME?
+    void resetCamera();
+
+    /** \brief Request a graphical refresh of the current view content
+     *
+     */
+    void refresh();
 
   signals:
-    void sceneResolutionChanged();
-
     void crosshairChanged(NmVector3);
 
     void crosshairPlaneChanged(Plane, Nm);
 
   protected slots:
-    /** \brief Resets the view's camera and updates the bounds of the scene.
-     *
-     */
-    virtual void resetView();
-
     /** \brief Updates the representations of the given list of segmentations.
      * \param[in] selection list of segmentation adapter raw pointers.
      *
      */
     virtual void updateSelection(SegmentationAdapterList selection); // TODO: REVIEW
 
-    /** \brief Updates the bounds of the scene after a channel has been added or deleted.
-     *
-     */
-    virtual void updateSceneBounds();
-
   protected:
     /** \brief RenderView class constructor.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit RenderView(ViewType type, QWidget* parent = nullptr);
+    explicit RenderView(ViewStateSPtr state, ViewType type);
 
     NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
 
@@ -302,16 +247,9 @@ namespace ESPINA
      */
     void takeSnapshot();
 
-    /** \brief Resets the bounds of the scene.
-     *
-     */
-    void resetSceneBounds();
+    bool requiresCameraReset() const;
 
-    /** \brief Returns the number of active renderers for a given type of item.
-     * \param[in] type RenderableType type.
-     *
-     */
-    unsigned int numberActiveRepresentationManagers(Data::Type type);
+    ViewStateSPtr state() const;
 
   private:
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
@@ -320,35 +258,35 @@ namespace ESPINA
 
     virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
-    void changeSceneResolution();
+    virtual void updateViewActions() = 0;
+
+    virtual void resetCameraImplementation() = 0;
+
+    virtual void refreshViewImplementation() {}
+
+    void connectSignals();
 
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;
 
     virtual void moveCamera(const NmVector3 &point) = 0;
 
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion) = 0;
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
+
     void onRenderRequest();
 
   protected:
-    EventHandlerSPtr m_eventHandler;
-
-    QVTKWidget*  m_view;
-    vtkSmartPointer<vtkRenderer> m_renderer;
-
-    Bounds    m_sceneBounds;
-    NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis
-
     ContextualMenuSPtr m_contextMenu;
-
-    PipelineSources           *m_channelSources;
+    QVTKWidget   *m_view; // TODO: make private
     RepresentationManagerSList m_managers;
-    QList<EspinaWidgetSPtr>    m_widgets;
-
-    bool m_sceneCameraInitialized;
 
   private:
-    ViewType      m_type;
     ViewStateSPtr m_state;
+    ViewType      m_type;
+    bool          m_requiresCameraReset;
+
   };
 
 } // namespace ESPINA

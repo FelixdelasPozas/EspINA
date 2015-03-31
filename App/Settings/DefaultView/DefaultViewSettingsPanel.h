@@ -27,9 +27,9 @@
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 #include <Menus/RenderersMenu.h>
-#include <Settings/View2D/View2DRenderersPanel.h>
-#include <Settings/View2D/View2DSettingsPanel.h>
-#include <Settings/View3D/View3DSettingsPanel.h>
+// #include <Settings/View2D/View2DRenderersPanel.h>
+// #include <Settings/View2D/View2DSettingsPanel.h>
+// #include <Settings/View3D/View3DSettingsPanel.h>
 
 namespace ESPINA
 {
@@ -38,15 +38,15 @@ namespace ESPINA
   : public SettingsPanel
   {
   public:
- 		/** \brief DefaultViewSettingsPanel class constructor.
- 		 * \param[in] viewXY, raw pointer of the XY view.
- 		 * \param[in] viewXZ, raw pointer of the XZ view.
- 		 * \param[in] viewYZ, raw pointer of the YZ view.
- 		 * \param[in] view3D, raw pointer of the 3D view.
- 		 * \param[in] renderers, list of renderer smart pointers.
- 		 * \param[in] menu, raw pointer of the renderers menu.
-		 *
- 		 */
+    /** \brief DefaultViewSettingsPanel class constructor.
+     * \param[in] viewXY, raw pointer of the XY view.
+     * \param[in] viewXZ, raw pointer of the XZ view.
+     * \param[in] viewYZ, raw pointer of the YZ view.
+     * \param[in] view3D, raw pointer of the 3D view.
+     * \param[in] renderers, list of renderer smart pointers.
+     * \param[in] menu, raw pointer of the renderers menu.
+     *
+     */
     explicit DefaultViewSettingsPanel(View2D *viewXY,
                                       View2D* viewXZ,
                                       View2D* viewYZ,
@@ -100,9 +100,9 @@ namespace ESPINA
 
     RendererSList m_renderers;
 
-    View2DSettingsPanel  *m_panelXY, *m_panelXZ, *m_panelYZ;
-    View3DSettingsPanel  *m_panel3D;
-    View2DRenderersPanel *m_panel2D;
+//     View2DSettingsPanel  *m_panelXY, *m_panelXZ, *m_panelYZ;
+//     View3DSettingsPanel  *m_panel3D;
+//     View2DRenderersPanel *m_panel2D;
     RenderersMenu        *m_menu;
   };
 }

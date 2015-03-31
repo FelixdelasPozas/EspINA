@@ -37,7 +37,7 @@ namespace ESPINA
 
       virtual ~RepresentationManager3D();
 
-      virtual void setResolution(const NmVector3 &resolution) override;
+      virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
 
       virtual PipelineStatus pipelineStatus() const override;
 

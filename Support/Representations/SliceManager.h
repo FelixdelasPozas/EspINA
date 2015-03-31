@@ -39,7 +39,7 @@ namespace ESPINA
 
     virtual TimeRange readyRange() const;
 
-    virtual void setResolution(const NmVector3 &resolution);
+    virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
 
     virtual void setPlane(Plane plane);
 

@@ -45,6 +45,7 @@
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QMainWindow>
@@ -326,17 +327,18 @@ namespace ESPINA
      */
     void updateStatus(QString msg);
 
+    void updateUndoStackIndex();
+
+    void assignActiveChannel();
+
+    void analyzeChannelEdges();
+
 
   private:
     // ESPINA
-    SchedulerSPtr             m_scheduler;
-    ModelFactorySPtr          m_factory;
+    Support::Context          m_context;
     FilterDelegateFactorySPtr m_filterDelegateFactory;
     AnalysisSPtr              m_analysis;
-    TimerSPtr                 m_timer;
-    ModelAdapterSPtr          m_model;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack               *m_undoStack;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;

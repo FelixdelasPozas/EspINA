@@ -53,11 +53,7 @@ namespace ESPINA
     explicit AppositionSurfacePlugin();
     virtual ~AppositionSurfacePlugin();
 
-    virtual void init(ModelAdapterSPtr model,
-                      ViewManagerSPtr  viewManager,
-                      ModelFactorySPtr factory,
-                      SchedulerSPtr    scheduler,
-                      QUndoStack      *undoStack);
+    virtual void init(Support::Context &context);
 
     virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
@@ -104,11 +100,7 @@ namespace ESPINA
     static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
   private:
-    ModelAdapterSPtr                 m_model;
-    ModelFactorySPtr                 m_factory;
-    ViewManagerSPtr                  m_viewManager;
-    SchedulerSPtr                    m_scheduler;
-    QUndoStack                      *m_undoStack;
+    Support::Context *m_context;
     SettingsPanelSPtr                m_settings;
     SegmentationExtensionFactorySPtr m_extensionFactory;
     MenuEntry                        m_menuEntry;

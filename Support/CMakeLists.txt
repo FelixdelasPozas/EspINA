@@ -67,6 +67,7 @@ set (Support_SOURCES
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
   ViewManager.cpp
+  Context.cpp
   Widgets/ActionGroupWidget.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp

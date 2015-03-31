@@ -28,9 +28,9 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ResetZoom::ResetZoom(ViewManagerSPtr vm)
-: m_viewManager{vm}
-, m_action     {new QAction(QIcon(":/espina/zoom_reset.png"),tr("Reset Zoom"),this)}
+ResetZoom::ResetZoom(ViewStateSPtr state)
+: m_viewState{state}
+, m_action   {new QAction(QIcon(":/espina/zoom_reset.png"),tr("Reset Zoom"),this)}
 {
   connect(m_action, SIGNAL(triggered(bool)),
           this,     SLOT(resetViews()));
@@ -60,8 +60,8 @@ void ResetZoom::abortOperation()
 //----------------------------------------------------------------------------
 void ResetZoom::resetViews()
 {
-  m_viewManager->resetViewCameras();
-  m_viewManager->updateViews();
+  m_viewState->resetCamera();
+  m_viewState->refresh();
 }
 
 //----------------------------------------------------------------------------

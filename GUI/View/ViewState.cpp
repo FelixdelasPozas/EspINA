@@ -21,33 +21,92 @@
 #include "ViewState.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
-ViewState::ViewState(TimerSPtr timer)
-: QObject()
-, m_timer{timer}
+ViewState::ViewState(CoordinateSystemSPtr coordinateSystem,
+                     TimerSPtr timer)
+: m_timer{timer}
+, m_coordinateSystem(coordinateSystem)
+, m_fitToSlices{true}
+, m_selection{new Selection()}
 {
+}
+
+
+//----------------------------------------------------------------------------
+ESPINA::TimeStamp ViewState::timeStamp() const
+{
+  return m_timer->timeStamp();
+}
+
+//----------------------------------------------------------------------------
+ESPINA::NmVector3 ViewState::crosshair() const
+{
+  return m_crosshair;
+}
+
+//----------------------------------------------------------------------------
+void ViewState::setFitToSlices(bool value)
+{
+  m_fitToSlices = value;
+}
+
+//----------------------------------------------------------------------------
+bool ViewState::fitToSlices() const
+{
+  return m_fitToSlices;
+}
+
+//----------------------------------------------------------------------------
+void ViewState::setEventHandler(EventHandlerSPtr handler)
+{
+  // TODO manage event handler deactivation (copy from viewmanager)
+  m_eventHandler = handler;
+}
+
+//----------------------------------------------------------------------------
+void ViewState::unsetEventHandler(EventHandlerSPtr handler)
+{
+  if (m_eventHandler == handler)
+  {
+    setEventHandler(nullptr);
+  }
+}
+
+//----------------------------------------------------------------------------
+EventHandlerSPtr ViewState::eventHandler() const
+{
+  return m_eventHandler;
 }
 
 //----------------------------------------------------------------------------
 void ViewState::focusViewOn(const NmVector3 &point)
 {
-  setCrosshair(point);
+  auto center = crosshairPoint(point);
 
-  emit viewFocusedOn(point);
+  changeCrosshair(center);
+
+  emit viewFocusedOn(center);
+}
+
+//----------------------------------------------------------------------------
+void ViewState::resetCamera()
+{
+  emit resetCameraRequested();
+}
+
+//----------------------------------------------------------------------------
+void ViewState::refresh()
+{
+  emit refreshRequested();
 }
 
 //----------------------------------------------------------------------------
 void ViewState::setCrosshair(const NmVector3 &point)
 {
-  if (m_crosshair != point)
-  {
-    m_crosshair = point;
-
-    auto time = m_timer->increment();
-
-    emit crosshairChanged(point, time);
-  }
+  qDebug() << "Requested crosshair" << point;
+  changeCrosshair(crosshairPoint(point));
 }
 
 //----------------------------------------------------------------------------
@@ -61,13 +120,85 @@ void ViewState::setCrosshairPlane(const Plane plane, const Nm position)
 }
 
 //----------------------------------------------------------------------------
-ESPINA::TimeStamp ViewState::timeStamp() const
+NmVector3 ViewState::crosshairPoint(const NmVector3 &point) const
 {
-  return m_timer->timeStamp();
+  return m_fitToSlices?voxelCenter(point):point;
 }
 
 //----------------------------------------------------------------------------
-ESPINA::NmVector3 ViewState::crosshair() const
+NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 {
-  return m_crosshair;
+  return m_coordinateSystem->voxelCenter(point);
+}
+
+//----------------------------------------------------------------------------
+void ViewState::addWidget(EspinaWidgetSPtr widget)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void ViewState::removeWidget(EspinaWidgetSPtr widget)
+{
+
+}
+
+//----------------------------------------------------------------------------
+CoordinateSystemSPtr ViewState::coordinateSystem() const
+{
+  return m_coordinateSystem;
+}
+
+//----------------------------------------------------------------------------
+SelectionSPtr ViewState::selection()
+{
+  return m_selection;
+}
+
+//----------------------------------------------------------------------------
+void ViewState::changeCrosshair(const NmVector3 &point)
+{
+  if (m_crosshair != point)
+  {
+    m_crosshair = point;
+
+    auto time = m_timer->increment();
+
+    qDebug() << "crosshair changed to" << point;
+
+    emit crosshairChanged(point, time);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ESPINA::updateSceneState(ViewStateSPtr state, ViewItemAdapterSList viewItems)
+{
+  Bounds    bounds;
+  NmVector3 resolution;
+
+  if (!viewItems.isEmpty())
+  {
+    auto output = viewItems.first()->output();
+
+    bounds     = output->bounds();
+    resolution = output->spacing();
+
+    for (int i = 1; i < viewItems.size(); ++i)
+    {
+      output = viewItems[i]->output();
+
+      auto itemBounds  = output->bounds();
+      auto itemSpacing = output->spacing();
+
+      for (int i = 0; i < 3; i++)
+      {
+        resolution[i]   = std::min(resolution[i],   itemSpacing[i]);
+        bounds[2*i]     = std::min(bounds[2*i]    , itemBounds[2*i]);
+        bounds[(2*i)+1] = std::max(bounds[(2*i)+1], itemBounds[(2*i)+1]);
+      }
+    }
+  }
+
+  state->coordinateSystem()->setBounds(bounds);
+  state->coordinateSystem()->setResolution(resolution);
 }

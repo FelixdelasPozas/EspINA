@@ -1040,7 +1040,7 @@ namespace ESPINA
             m_view->resetCamera();
           }
 
-          m_view->updateView();
+          m_view->refresh();
         }
       }
 

@@ -30,6 +30,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Widgets/HueSelector.h>
 #include <GUI/Representations/ManualPipelineSources.h>
+#include <Support/Context.h>
 
 class QCloseEvent;
 
@@ -51,7 +52,7 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      * \param[in] parent parent widget.
      */
-    explicit ChannelInspector(ChannelAdapterSPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent = 0);
+    explicit ChannelInspector(ChannelAdapterSPtr channel, const Support::Context &context);
 
     /** \brief Channel Inspector class destructor.
      *

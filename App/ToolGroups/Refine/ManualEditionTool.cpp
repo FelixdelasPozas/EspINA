@@ -74,26 +74,25 @@ throw(Unknown_Filter_Exception)
 }
 
 //------------------------------------------------------------------------
-ManualEditionTool::ManualEditionTool(ModelAdapterSPtr model,
-                                     ModelFactorySPtr factory,
-                                     QUndoStack      *undoStack,
-                                     ViewManagerSPtr  viewManager)
-: m_model               {model}
-, m_factory             {factory}
-, m_undoStack           {undoStack}
-, m_viewManager         {viewManager}
-, m_filterFactory       {new ManualFilterFactory()}
-, m_drawingWidget       {model, viewManager}
-, m_mode                {Mode::CREATION}
-, m_referenceItem       {nullptr}
-, m_validStroke         {true}
+ManualEditionTool::ManualEditionTool(Support::Context &context)
+: m_model        {context.model()}
+, m_factory      {context.factory()}
+, m_undoStack    {context.undoStack()}
+, m_colorEngine  {context.colorEngine()}
+, m_selection    {context.viewState()->selection()}
+, m_filterFactory{new ManualFilterFactory()}
+, m_context      {context}
+, m_drawingWidget{m_model, nullptr}
+, m_mode         {Mode::CREATION}
+, m_referenceItem{nullptr}
+, m_validStroke  {true}
 {
   qRegisterMetaType<ViewItemAdapterPtr>("ViewItemAdapterPtr");
 
   m_factory->registerFilterFactory(m_filterFactory);
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(updateReferenceItem()));
+  connect(m_selection.get(), SIGNAL(selectionChanged()),
+          this,              SLOT(updateReferenceItem()));
 
   connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
           this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
@@ -134,8 +133,7 @@ void ManualEditionTool::updateReferenceItem() const
 
   auto brushColor = m_drawingWidget.selectedCategory()->color();
 
-  auto selection     = m_viewManager->selection();
-  auto segmentations = selection->segmentations();
+  auto segmentations = m_selection->segmentations();
 
   if (segmentations.size() > 1) return;
 
@@ -144,7 +142,7 @@ void ManualEditionTool::updateReferenceItem() const
     auto segmentation = segmentations.first();
     auto category     = segmentation->category();
 
-    brushColor        = m_viewManager->colorEngine()->color(segmentation);
+    brushColor        = m_colorEngine->color(segmentation);
 
     m_drawingWidget.setCategory(category);
     m_drawingWidget.clearBrushImage();
@@ -159,9 +157,9 @@ void ManualEditionTool::updateReferenceItem() const
   {
     if(!m_referenceItem)
     {
-      auto channels = selection->channels();
+      auto channels = m_selection->channels();
 
-      m_referenceItem = channels.isEmpty()?m_viewManager->activeChannel():channels.first();
+      m_referenceItem = channels.isEmpty()?m_context.ActiveChannel:channels.first();
     }
 
     m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
@@ -227,8 +225,8 @@ void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 
   SegmentationAdapterList list;
   list << segmentation.get();
-  m_viewManager->selection()->clear();
-  m_viewManager->selection()->set(list);
+  m_selection->clear();
+  m_selection->set(list);
 
   m_mode          = Mode::EDITION;
   m_referenceItem = segmentation.get();
@@ -295,7 +293,7 @@ void ManualEditionTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
       }
     }
 
-    m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_viewManager->colorEngine());
+    m_temporalPipeline = std::make_shared<SliceEditionPipeline>(m_colorEngine);
 
     m_temporalPipeline->setTemporalActor(actor, view);
     m_referenceItem->setTemporalRepresentation(m_temporalPipeline);
@@ -320,5 +318,5 @@ void ManualEditionTool::onMaskCreated(BinaryMaskSPtr<unsigned char> mask)
 //------------------------------------------------------------------------
 void ManualEditionTool::onCategoryChange(CategoryAdapterSPtr category)
 {
-  m_viewManager->selection()->clear();
+  m_selection->clear();
 }

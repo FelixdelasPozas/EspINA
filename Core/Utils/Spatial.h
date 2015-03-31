@@ -103,7 +103,7 @@ namespace ESPINA {
    * in fixed points (like in a grid) but aren't.
    * Solve the problem with VolumeBounds and remove this ASAP.
    */
-  inline bool areEqual(Nm lhs, Nm rhs, Nm spacing = 1.0)
+  inline bool areEqual(const Nm lhs, const Nm rhs, const Nm spacing = 1.0)
   {
     const double DELTA = 0.01 * spacing;
     return fabs(lhs - rhs) < DELTA;

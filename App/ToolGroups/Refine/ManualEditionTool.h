@@ -24,6 +24,7 @@
 // ESPINA
 #include <Support/Widgets/Tool.h>
 #include <Support/ViewManager.h>
+#include <Support/Context.h>
 #include <Core/Factory/FilterFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/EventHandlers/Brush.h>
@@ -59,14 +60,10 @@ namespace ESPINA
 
   public:
     /** \brief ManualEditionTool class constructor.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] viewManager view manager smart pointer.
+     * \param[in] context to be used for this tool
      *
      */
-    ManualEditionTool(ModelAdapterSPtr model,
-                      ModelFactorySPtr factory,
-                      QUndoStack      *undoStack,
-                      ViewManagerSPtr  viewManager);
+    ManualEditionTool(Support::Context &context);
 
     /** \brief ManualEditionTool class virtual destructor.
      *
@@ -106,8 +103,10 @@ namespace ESPINA
     ModelAdapterSPtr  m_model;
     ModelFactorySPtr  m_factory;
     QUndoStack       *m_undoStack;
-    ViewManagerSPtr   m_viewManager;
+    ColorEngineSPtr   m_colorEngine;
+    SelectionSPtr     m_selection;
     FilterFactorySPtr m_filterFactory;
+    Support::Context  m_context;
 
     // mutable needed by updateReferenceItem() const
     mutable DrawingWidget      m_drawingWidget;

@@ -27,6 +27,7 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/ViewTypeFlags.h>
+#include <GUI/View/CoordinateSystem.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 #include <GUI/Representations/RepresentationPool.h>
 
@@ -94,7 +95,7 @@ namespace ESPINA
     /** \brief Specify the resolution of the view
      *
      */
-    virtual void setResolution(const NmVector3 &resolution) = 0;
+    virtual void setResolution(const GUI::View::CoordinateSystemSPtr system) = 0;
 
     /** \brief Returns if managed representations are visible or not
      *

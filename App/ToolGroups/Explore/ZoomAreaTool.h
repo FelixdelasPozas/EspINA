@@ -39,9 +39,9 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ZoomArea class constructor.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] viewState
      */
-    explicit ZoomAreaTool(ViewManagerSPtr viewManager);
+    explicit ZoomAreaTool(ViewStateSPtr state);
 
     /** \brief ZoomArea class destructor.
      *
@@ -63,7 +63,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) override;
 
   private:
-    ViewManagerSPtr      m_viewManager;
+    ViewStateSPtr        m_viewState;
     QAction             *m_zoomArea;
     EspinaWidgetSPtr     m_widget;
     EventHandlerSPtr     m_zoomHandler;

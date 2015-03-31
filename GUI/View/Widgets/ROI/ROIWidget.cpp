@@ -67,7 +67,7 @@ void ROIWidget::updateActor(View2D *view)
     if(m_representations[view].actor != nullptr)
     {
       m_representations[view].actor->SetVisibility(false);
-      view->updateView();
+      view->refresh();
     }
     return;
   }
@@ -102,7 +102,7 @@ void ROIWidget::updateActor(View2D *view)
     position[index] += view->widgetDepth();
     m_representations[view].actor->SetPosition(position);
 
-    view->addActor(m_representations[view].actor);
+    //TODO view->addActor(m_representations[view].actor);
   }
   else
   {
@@ -117,7 +117,7 @@ void ROIWidget::updateActor(View2D *view)
     m_representations[view].actor->Modified();
   }
 
-  view->updateView();
+  view->refresh();
 }
 
 //-----------------------------------------------------------------------------
@@ -142,7 +142,7 @@ void ROIWidget::unregisterView(RenderView* view)
 
   disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
 
-  view2d->removeActor(m_representations[view2d].actor);
+  // TODO view2d->removeActor(m_representations[view2d].actor);
   m_representations.remove(view2d);
 }
 

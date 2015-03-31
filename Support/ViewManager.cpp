@@ -75,54 +75,6 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::registerView(SelectableView* view)
-{
-  Q_ASSERT(!m_espinaViews.contains(view));
-  view->setSharedSelection(m_selection);
-  m_espinaViews << view;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::registerView(RenderView* view)
-{
-  registerView(static_cast<SelectableView *>(view));
-
-  Q_ASSERT(!m_renderViews.contains(view));
-  m_renderViews << view;
-
-  view->setEventHandler(m_eventHandler);
-
-  for (auto widget : m_widgets)
-  {
-    view->addWidget(widget);
-  }
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterView(SelectableView* view)
-{
-  Q_ASSERT(m_espinaViews.contains(view));
-  m_espinaViews.removeAll(view);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterView(RenderView* view)
-{
-  Q_ASSERT(m_renderViews.contains(view));
-
-  m_renderViews.removeAll(view);
-  unregisterView(static_cast<SelectableView *>(view));
-
-  view->setEventHandler(EventHandlerSPtr());
-  view->setState(std::make_shared<ViewState>());
-
-  for(auto widget: m_widgets)
-  {
-    view->removeWidget(widget);
-  }
-}
-
-//----------------------------------------------------------------------------
 QList<View2D *> ViewManager::sliceViews()
 {
   QList<View2D *> views;
@@ -181,7 +133,7 @@ void ViewManager::setEventHandler(EventHandlerSPtr eventHandler)
 
   for(auto view : m_renderViews)
   {
-    view->setEventHandler(m_eventHandler);
+//     view->setEventHandler(m_eventHandler);
   }
 
   emit eventHandlerChanged();
@@ -203,7 +155,7 @@ void ViewManager::unsetEventHandler(EventHandlerSPtr eventHandler)
 
     for(auto view : m_renderViews)
     {
-      view->setEventHandler(m_eventHandler);
+//       view->setEventHandler(m_eventHandler);
     }
   }
 }
@@ -213,7 +165,7 @@ void ViewManager::updateViews()
 {
   for(auto view: m_renderViews)
   {
-    view->updateView();
+//     view->updateView();
   }
 }
 
@@ -226,8 +178,8 @@ void ViewManager::setFitToSlices(bool enabled)
   for(auto view: m_renderViews)
   {
     auto view2d = dynamic_cast<View2D*>(view);
-    if (view2d != nullptr)
-      view2d->setFitToSlices(enabled);
+//     if (view2d != nullptr)
+//       view2d->setFitToSlices(enabled);
   }
 }
 
@@ -245,7 +197,7 @@ void ViewManager::addWidget(EspinaWidgetSPtr widget)
     return;
 
   for(auto view: m_renderViews)
-    view->addWidget(widget);
+//     view->addWidget(widget);
 
   m_widgets << widget;
 }
@@ -257,7 +209,7 @@ void ViewManager::removeWidget(EspinaWidgetSPtr widget)
     return;
 
   for(auto view: m_renderViews)
-    view->removeWidget(widget);
+//     view->removeWidget(widget);
 
   m_widgets.removeOne(widget);
 }

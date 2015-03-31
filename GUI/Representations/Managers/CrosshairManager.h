@@ -50,7 +50,7 @@ namespace ESPINA
       virtual ~CrosshairManager()
       {};
 
-      virtual void setResolution(const NmVector3 &resolution);
+      virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
 
       virtual PipelineStatus pipelineStatus() const;
 
