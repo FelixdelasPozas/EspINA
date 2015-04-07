@@ -28,7 +28,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Representations/RepresentationFactory.h>
-#include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
 #include "Widgets/Tool.h"
 #include "Context.h"

@@ -56,6 +56,7 @@ namespace ESPINA
       QUndoStack *       m_undoStack;
       RepresentationFactorySList m_availableRepresentations;
       ModelFactorySPtr   m_factory;
+      ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)
     };
   }
 }

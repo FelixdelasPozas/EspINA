@@ -23,21 +23,21 @@
 #include "Support/EspinaSupport_Export.h"
 
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
+#include <GUI/View/ViewState.h>
 
 namespace ESPINA
 {
   /** \brief Returns the list of current selected segmentations
    *  \param[in] viewManager ViewManager where current selection is gotten from
    */
-  SegmentationAdapterList EspinaSupport_EXPORT selectSegmentations(ViewManagerSPtr viewManager);
+  SegmentationAdapterList EspinaSupport_EXPORT selectSegmentations(ViewStateSPtr selection);
 
   /** \brief Returns the list of current selected segmentations or all existing segmentations if
    *         none are selected
    *  \param[in] viewmanager viewmanager where current selection is gotten from
    *  \param[in] model where segmentations are selected from in case no selection is available
    */
-  SegmentationAdapterList EspinaSupport_EXPORT defaultReportInputSegmentations(ViewManagerSPtr viewManager, ModelAdapterSPtr model);
+  SegmentationAdapterList EspinaSupport_EXPORT defaultReportInputSegmentations(ViewStateSPtr selection, ModelAdapterSPtr model);
 }
 
 #endif // ESPINA_SELECTION_UTILS_H

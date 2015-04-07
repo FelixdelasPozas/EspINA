@@ -43,7 +43,6 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Context.h>
 

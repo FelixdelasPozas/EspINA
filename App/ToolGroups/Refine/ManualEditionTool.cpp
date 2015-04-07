@@ -27,6 +27,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/SliderAction.h>
 #include <GUI/Widgets/DrawingWidget.h>
+#include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>
 #include <Undo/AddSegmentations.h>
@@ -82,7 +83,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_selection    {context.viewState()->selection()}
 , m_filterFactory{new ManualFilterFactory()}
 , m_context      {context}
-, m_drawingWidget{m_model, nullptr}
+, m_drawingWidget{context}
 , m_mode         {Mode::CREATION}
 , m_referenceItem{nullptr}
 , m_validStroke  {true}

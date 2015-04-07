@@ -45,22 +45,14 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
-                                             ModelAdapterSPtr          model,
-                                             ModelFactorySPtr          factory,
                                              FilterDelegateFactorySPtr delegateFactory,
-                                             ViewManagerSPtr           viewManager,
-                                             QUndoStack*               undoStack,
-                                             QWidget*                  parent,
-                                             Qt::WindowFlags           flags)
-: QWidget          {parent, flags|Qt::WindowStaysOnTopHint}
-, m_model          {model}
-, m_factory        {factory}
+                                             const Support::Context   &context)
+: QWidget          {nullptr, Qt::WindowStaysOnTopHint}
+, m_context        {context}
 , m_delegateFactory{delegateFactory}
-, m_viewManager    {viewManager}
-, m_undoStack      {undoStack}
 , m_selectedSegmentation{nullptr}
 //, m_view           {new View3D(true)}
-, m_tabularReport  {new TabularReport(factory, viewManager)}
+, m_tabularReport  {new TabularReport(context)}
 {
   setupUi(this);
 
@@ -112,7 +104,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 //   QVBoxLayout *historyLayout = new QVBoxLayout();
 //   historyLayout->addWidget(m_historyScrollArea);
 
-  m_tabularReport->setModel(m_model);
+  m_tabularReport->setModel(m_context.model());
   m_tabularReport->setFilter(m_segmentations);
   m_tabularReport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport->setMinimumHeight(0);
@@ -137,8 +129,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
 //   m_viewManager->registerView(m_view);
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(updateSelection()));
+  connect(selection().get(), SIGNAL(selectionChanged()),
+          this,              SLOT(updateSelection()));
 
   generateWindowTitle();
 
@@ -310,11 +302,18 @@ void SegmentationInspector::generateWindowTitle()
 }
 
 //------------------------------------------------------------------------
+SelectionSPtr SegmentationInspector::selection() const
+{
+  return m_context.viewState()->selection();
+}
+
+
+//------------------------------------------------------------------------
 void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
 
-  m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
+  m_tabularReport->updateSelection(selection()->segmentations());
 }
 
 //------------------------------------------------------------------------
@@ -348,8 +347,11 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   QList<ItemData>         draggedItems;
   SegmentationAdapterList categorySegmentations;
 
+
   while (!stream.atEnd())
   {
+    auto model = m_context.model();
+
     int row, col;
     QMap<int, QVariant> itemData;
     stream >> row >> col >> itemData;
@@ -366,10 +368,10 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
         auto item     = reinterpret_cast<ItemAdapterPtr>(itemData[RawPointerRole].value<quintptr>());
         auto category = categoryPtr(item);
 
-        for(auto segmentation : m_model->segmentations())
+        for(auto segmentation : model->segmentations())
         {
           auto segmentationCategory = segmentation->category().get();
-          while(segmentationCategory != m_model->classification()->root().get())
+          while(segmentationCategory != model->classification()->root().get())
           {
             if (segmentationCategory == category)
             {
@@ -404,7 +406,7 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   }
 
   m_tabularReport->setFilter(m_segmentations);
-  m_tabularReport->updateSelection(m_viewManager->selection()->segmentations());
+  m_tabularReport->updateSelection(selection()->segmentations());
 
   m_view->refresh();
   m_view->resetCamera();
@@ -424,11 +426,11 @@ void SegmentationInspector::updateSelection()
     activeHistory = nullptr;
   }
 
-  auto selection = m_viewManager->selection()->segmentations();
+  auto selectedSegmentations = m_context.viewState()->selection()->segmentations();
 
-  if (selection.size() == 1)
+  if (selectedSegmentations.size() == 1)
   {
-    auto segmentation = selection.first();
+    auto segmentation = selectedSegmentations.first();
 
     if (m_segmentations.contains(segmentation))
     {
@@ -446,7 +448,7 @@ void SegmentationInspector::updateSelection()
       try
       {
         auto delegate = m_delegateFactory->createDelegate(segmentation);
-        activeHistory = delegate->createWidget(m_model, m_factory, m_viewManager, m_undoStack);
+        activeHistory = delegate->createWidget(m_context);
       }
       catch (...)
       {

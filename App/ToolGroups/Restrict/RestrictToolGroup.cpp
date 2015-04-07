@@ -124,17 +124,12 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
-                                     ModelAdapterSPtr model,
-                                     ModelFactorySPtr factory,
-                                     ViewManagerSPtr  viewManager,
-                                     QUndoStack      *undoStack,
-                                     QWidget         *parent)
-: ToolGroup          {QIcon(":/espina/toolgroup_restrict.svg"), tr("Restrict"), parent}
-, m_viewManager      {viewManager}
-, m_undoStack        {undoStack}
+                                     const Support::Context &context)
+: ToolGroup          {QIcon(":/espina/toolgroup_restrict.svg"), tr("Restrict")}
+, m_context          {context}
 // , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}
-, m_ortogonalROITool {new OrthogonalROITool(settings, model, viewManager, undoStack, this)}
-, m_cleanROITool     {new CleanROITool(model, viewManager, undoStack, this)}
+, m_ortogonalROITool {new OrthogonalROITool(settings, context, this)}
+, m_cleanROITool     {new CleanROITool(context, this)}
 , m_enabled          {true}
 , m_visible          {true}
 , m_color            {Qt::yellow}
@@ -193,7 +188,7 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    m_viewManager->removeWidget(m_accumulatorWidget);
+    // TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
 
     m_accumulator      .reset();
     m_accumulatorWidget.reset();
@@ -216,9 +211,9 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
     m_accumulator       = roi;
     m_accumulatorWidget = widget;
 
-    m_viewManager->addWidget(m_accumulatorWidget);
+    // TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
   }
-  m_viewManager->updateViews();
+  //TODO m_viewManager->updateViews();
 
   emit roiChanged(roi);
 }
@@ -271,11 +266,11 @@ void RestrictToolGroup::setVisible(bool visible)
   {
     if (visible)
     {
-      m_viewManager->addWidget(m_accumulatorWidget);
+      //TODO URGENT m_viewManager->addWidget(m_accumulatorWidget);
     }
     else
     {
-      m_viewManager->removeWidget(m_accumulatorWidget);
+      //TODO URGENT m_viewManager->removeWidget(m_accumulatorWidget);
     }
   }
 
@@ -285,7 +280,7 @@ void RestrictToolGroup::setVisible(bool visible)
   }
 
   m_visible = visible;
-  m_viewManager->updateViews();
+  //TODO m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -293,31 +288,35 @@ void RestrictToolGroup::onManualROIDefined(Selector::Selection strokes)
 {
   commitPendingOrthogonalROI(nullptr);
 
+  auto undoStack = m_context.undoStack();
+
   if(hasValidROI())
   {
-    m_undoStack->beginMacro("Modify Region Of Interest");
+    undoStack->beginMacro("Modify Region Of Interest");
   }
   else
   {
-    m_undoStack->beginMacro("Create Region Of Interest");
+    undoStack->beginMacro("Create Region Of Interest");
   }
-  m_undoStack->push(new DefineManualROICommand{strokes.first().first, this});
-  m_undoStack->endMacro();
+  undoStack->push(new DefineManualROICommand{strokes.first().first, this});
+  undoStack->endMacro();
 }
 
 //-----------------------------------------------------------------------------
 void RestrictToolGroup::onOrthogonalROIDefined(ROISPtr roi)
 {
+  auto undoStack = m_context.undoStack();
+
   if(hasValidROI())
   {
-    m_undoStack->beginMacro("Modify Region Of Interest");
+    undoStack->beginMacro("Modify Region Of Interest");
   }
   else
   {
-    m_undoStack->beginMacro("Create Region Of Interest");
+    undoStack->beginMacro("Create Region Of Interest");
   }
-  m_undoStack->push(new DefineOrthogonalROICommand{roi, this});
-  m_undoStack->endMacro();
+  undoStack->push(new DefineOrthogonalROICommand{roi, this});
+  undoStack->endMacro();
 
   emit roiChanged(roi);
 }
@@ -329,7 +328,7 @@ void RestrictToolGroup::commitPendingOrthogonalROI(ROISPtr roi)
   auto prevROI = m_ortogonalROITool->currentROI();
   if (prevROI)
   {
-    auto mask = BinaryMaskSPtr<unsigned char>{new BinaryMask<unsigned char>{prevROI->bounds(), prevROI->spacing(), prevROI->origin()}};
+    auto mask = std::make_shared<BinaryMask<unsigned char>>(prevROI->bounds(), prevROI->spacing(), prevROI->origin());
     BinaryMask<unsigned char>::iterator it{mask.get()};
     it.goToBegin();
     while(!it.isAtEnd())
@@ -353,6 +352,6 @@ void RestrictToolGroup::addMask(const BinaryMaskSPtr<unsigned char> mask)
   }
   else
   {
-    setCurrentROI(ROISPtr{new ROI(mask)});
+    setCurrentROI(std::make_shared<ROI>(mask));
   }
 }

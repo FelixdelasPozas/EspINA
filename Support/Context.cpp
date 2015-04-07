@@ -92,4 +92,5 @@ ViewStateSPtr Context::viewState() const
 //------------------------------------------------------------------------
 ColorEngineSPtr Context::colorEngine() const
 {
+  return m_colorEngine;
 }

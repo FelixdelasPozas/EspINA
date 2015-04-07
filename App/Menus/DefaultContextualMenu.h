@@ -23,8 +23,7 @@
 
 // ESPINA
 #include <GUI/Widgets/ContextualMenu.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QModelIndex>
@@ -41,18 +40,12 @@ namespace ESPINA
   {
     Q_OBJECT
     public:
-			/** \brief DefaultContextualMenu class constructor.
-			 * \param[in] selection, list of segmentation adapters of the selected items.
-			 * \param[in] model, model adapter smart pointer.
-			 * \param[in] viewManager, view manager smart pointer.
-			 * \param[in] undoStack, QUndoStack object raw pointer.
-			 * \param[in] parent, parent QWidget raw pointer.
-			 *
-			 */
+      /** \brief DefaultContextualMenu class constructor.
+       * \param[in] context
+       *
+       */
       explicit DefaultContextualMenu(SegmentationAdapterList selection,
-                                     ModelAdapterSPtr        model,
-                                     ViewManagerSPtr         viewManager,
-                                     QUndoStack             *undoStack,
+                                     const Support::Context &context,
                                      QWidget                *parent = nullptr);
 
       /** \brief DefaultContextualMenu class destructor.
@@ -66,13 +59,13 @@ namespace ESPINA
       virtual void setSelection(SelectionSPtr selection) override;
 
     private slots:
-			/** \brief Adds/Modifies notes to the selected segmentations.
-			 *
-			 */
+      /** \brief Adds/Modifies notes to the selected segmentations.
+       *
+       */
       void addNote();
 
       /** \brief Changes the category of the selected segmentation.
-       * \param[in] index, const QModelIndex referece of the item.
+       * \param[in] index const QModelIndex referece of the item.
        */
       void changeSegmentationsCategory(const QModelIndex &index);
 
@@ -132,9 +125,7 @@ namespace ESPINA
       QString dialogTitle() const;
 
     private:
-      ModelAdapterSPtr m_model;
-      ViewManagerSPtr m_viewManager;
-      QUndoStack *m_undoStack;
+      const Support::Context &m_context;
 
       QTreeView *m_classification;
       SegmentationAdapterList m_segmentations;

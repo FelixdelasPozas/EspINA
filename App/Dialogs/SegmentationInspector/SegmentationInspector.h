@@ -46,21 +46,12 @@ namespace ESPINA
   public:
     /** \brief SegmentationInspector class constructor.
      * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
-     * \param[in] model model smart pointer containing the segmentations.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     * \param[in] parent parent widget pointer.
-     * \param[in] flags flags of the dialog.
+     * \param[in] delegateFactory
+     * \param[in] context ESPINA context
      */
     SegmentationInspector(SegmentationAdapterList   segmentations,
-                          ModelAdapterSPtr          model,
-                          ModelFactorySPtr          factory,
                           FilterDelegateFactorySPtr delegateFactory,
-                          ViewManagerSPtr           viewManager,
-                          QUndoStack*               undoStack,
-                          QWidget*                  parent = nullptr,
-                          Qt::WindowFlags           flags  = 0);
+                          const Support::Context   &context);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -136,6 +127,8 @@ namespace ESPINA
      */
     void generateWindowTitle();
 
+    inline SelectionSPtr selection() const;
+
   private slots:
     /** \brief Updates which information is displayed according to current selection
      *
@@ -143,12 +136,8 @@ namespace ESPINA
     void updateSelection();
 
   private:
-
-    ModelAdapterSPtr          m_model;
-    ModelFactorySPtr          m_factory;
+    const Support::Context   &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack*               m_undoStack;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;

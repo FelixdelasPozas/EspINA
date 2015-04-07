@@ -37,11 +37,11 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  RulerTool::RulerTool(ViewManagerSPtr vm)
-  : m_action     {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
-  , m_widget     {nullptr}
-  , m_viewManager{vm}
-  , m_selection  {new Selection()}
+  RulerTool::RulerTool(ViewStateSPtr viewState)
+  : m_viewState{viewState}
+  , m_action   {new QAction(QIcon(":/espina/measure3D.png"), tr("Ruler Tool"),this) }
+  , m_widget   {nullptr}
+  , m_selection{new Selection()}
   {
     m_action->setCheckable(true);
     connect(m_action, SIGNAL(triggered(bool)),
@@ -64,16 +64,16 @@ namespace ESPINA
     if (value)
     {
       m_widget = std::make_shared<RulerWidget>();
-      m_viewManager->addWidget(m_widget);
-      connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
-              this,                             SLOT(selectionChanged()));
+      // TODO URGENT m_viewManager->addWidget(m_widget);
+      connect(m_viewState->selection().get(), SIGNAL(selectionStateChanged()),
+              this,                           SLOT(selectionChanged()));
       selectionChanged();
     }
     else
     {
-      m_viewManager->removeWidget(m_widget);
-      disconnect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged()),
-                 this,                             SLOT(selectionChanged()));
+      // TODO URGENT m_viewManager->removeWidget(m_widget);
+      disconnect(m_viewState->selection().get(), SIGNAL(selectionStateChanged()),
+                 this,                           SLOT(selectionChanged()));
       m_widget = nullptr;
     }
   }
@@ -83,7 +83,7 @@ namespace ESPINA
   {
     if (!m_widget) return;
 
-    auto selection = m_viewManager->selection();
+    auto selection = m_viewState->selection();
     if (!m_selection->items().empty())
     {
       for(auto item: m_selection->items())

@@ -26,7 +26,6 @@
 #include <Support/Settings/SettingsPanel.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <Menus/RenderersMenu.h>
 // #include <Settings/View2D/View2DRenderersPanel.h>
 // #include <Settings/View2D/View2DSettingsPanel.h>
 // #include <Settings/View3D/View3DSettingsPanel.h>
@@ -50,46 +49,23 @@ namespace ESPINA
     explicit DefaultViewSettingsPanel(View2D *viewXY,
                                       View2D* viewXZ,
                                       View2D* viewYZ,
-                                      View3D* view3D,
-                                      RendererSList renderers,
-                                      RenderersMenu *menu);
+                                      View3D* view3D);
 
-    /** \brief Overrides SettingsPanel::shortDescription().
-     *
-     */
     virtual const QString shortDescription() override
     { return QObject::tr("View"); }
 
-    /** \brief Overrides SettingsPanel::longDescription().
-     *
-     */
     virtual const QString longDescription() override
     { return QObject::tr("%1").arg(shortDescription()); }
 
-    /** \brief Overrides SettingsPanel::icon().
-     *
-     */
     virtual const QIcon icon() override
     {return QIcon(":/espina/show_all.svg");}
 
-    /** \brief Overrides SettingsPanel::acceptChanges().
-     *
-     */
     virtual void acceptChanges() override;
 
-    /** \brief Overrides SettingsPanel::rejectChanges().
-     *
-     */
     virtual void rejectChanges() override;
 
-    /** \brief Overrides SettingsPanel::modified().
-     *
-     */
     virtual bool modified() const override;
 
-    /** \brief Overrides SettingsPanel::clone().
-     *
-     */
     virtual SettingsPanelPtr clone() override;
 
   private:
@@ -98,12 +74,9 @@ namespace ESPINA
     View2D *m_viewYZ;
     View3D *m_view3D;
 
-    RendererSList m_renderers;
-
 //     View2DSettingsPanel  *m_panelXY, *m_panelXZ, *m_panelYZ;
 //     View3DSettingsPanel  *m_panel3D;
 //     View2DRenderersPanel *m_panel2D;
-    RenderersMenu        *m_menu;
   };
 }
 

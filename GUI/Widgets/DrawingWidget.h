@@ -23,7 +23,7 @@
 #include <GUI/EventHandlers/BrushPainter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/Widgets/Contour/ContourWidget.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 #include <QAction>
 #include <QMap>
@@ -41,7 +41,7 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit DrawingWidget(ModelAdapterSPtr model, ViewManagerSPtr viewManager);
+    explicit DrawingWidget(const Support::Context &context);
 
     virtual ~DrawingWidget();
 
@@ -231,7 +231,7 @@ namespace ESPINA
     void setControlVisibility(bool visible);
 
   private:
-    ViewManagerSPtr m_viewManager;
+    const Support::Context &m_context;
 
     BrushPainterSPtr m_circularPainter;
     BrushPainterSPtr m_sphericalPainter;

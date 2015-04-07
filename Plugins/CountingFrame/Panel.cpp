@@ -25,7 +25,6 @@
 
 #include "ui_Panel.h"
 
-#include <Support/ViewManager.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Segmentation.h>
@@ -246,14 +245,9 @@ const QString Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
 Panel::Panel(CountingFrameManager *manager,
-             ModelAdapterSPtr      model,
-             ViewManagerSPtr       viewManager,
-             SchedulerSPtr         scheduler,
-             QWidget              *parent)
-: DockWidget(parent)
-, m_manager(manager)
-, m_model(model)
-, m_viewManager(viewManager)
+             const Support::Context &context)
+: m_manager(manager)
+, m_context(context)
 , m_scheduler(scheduler)
 , m_gui(new GUI())
 , m_cfModel(new CFModel(m_manager))

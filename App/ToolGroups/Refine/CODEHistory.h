@@ -16,7 +16,7 @@
  *
  */
 
-#ifndef ESPINA_COD_EHISTORY_H
+#ifndef ESPINA_CODE_HISTORY_H
 #define ESPINA_CODE_HISTORY_H
 
 #include <Filters/MorphologicalEditionFilter.h>
@@ -31,10 +31,7 @@ namespace ESPINA {
   public:
     explicit CODEHistory(const QString &title, MorphologicalEditionFilterSPtr filter);
 
-    virtual QWidget* createWidget(ModelAdapterSPtr model,
-                                  ModelFactorySPtr factory,
-                                  ViewManagerSPtr  viewManager,
-                                  QUndoStack      *undoStack);
+    virtual QWidget *createWidget(const Support::Context &context);
 
   signals:
     void radiusChanged(int);

@@ -25,14 +25,10 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 SegmentationTools::SegmentationTools(SeedGrowSegmentationSettings* settings,
-                                     ModelAdapterSPtr              model,
-                                     ModelFactorySPtr              factory,
                                      FilterDelegateFactorySPtr     filterDelegateFactory,
-                                     ViewManagerSPtr               viewManager,
-                                     QUndoStack*                   undoStack,
-                                     QWidget*                      parent)
-: ToolGroup{QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools"), parent}
-, m_sgsTool{new SeedGrowSegmentationTool(settings, model, factory, filterDelegateFactory, viewManager, undoStack)}
+                                     const Support::Context       &context)
+: ToolGroup{QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools")}
+, m_sgsTool{new SeedGrowSegmentationTool(settings, filterDelegateFactory, context)}
 {
 
 }

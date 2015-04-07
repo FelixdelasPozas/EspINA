@@ -97,16 +97,10 @@ throw (Unknown_Filter_Type_Exception)
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                                   ModelAdapterSPtr              model,
-                                                   ModelFactorySPtr              factory,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
-                                                   ViewManagerSPtr               viewManager,
-                                                   QUndoStack*                   undoStack)
-: m_model           {model}
-, m_factory         {factory}
-, m_viewManager     {viewManager}
-, m_undoStack       {undoStack}
-, m_categorySelector{new CategorySelector(m_model)}
+                                                   const Support::Context       &context)
+: m_context         {context}
+, m_categorySelector{new CategorySelector(context.model())}
 , m_selectorSwitch  {new ActionSelector()}
 , m_seedThreshold   {new SeedThreshold()}
 , m_roi             {new CustomROIWidget()}
@@ -115,7 +109,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
 {
   hideSettings();
 
-  m_factory->registerFilterFactory(m_sgsFactory);
+  m_context.factory()->registerFilterFactory(m_sgsFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_sgsFactory);
 
   { // Pixel Selector
@@ -186,7 +180,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
 
   if (m_currentSelector)
   {
-    bool active = m_viewManager->eventHandler() == m_currentSelector;
+    bool active = m_context.viewState()->eventHandler() == m_currentSelector;
 
     m_selectorSwitch->setChecked(active);
   }
@@ -230,7 +224,7 @@ void SeedGrowSegmentationTool::changeSelector(QAction* action)
 {
   m_currentSelector = m_voxelSelectors[action];
 
-  m_viewManager->setEventHandler(m_currentSelector);
+  m_context.viewState()->setEventHandler(m_currentSelector);
 
   displaySettings();
 }
@@ -238,7 +232,7 @@ void SeedGrowSegmentationTool::changeSelector(QAction* action)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::unsetSelector()
 {
-  m_viewManager->unsetEventHandler(m_currentSelector);
+  m_context.viewState()->unsetEventHandler(m_currentSelector);
   m_currentSelector.reset();
   hideSettings();
 }
@@ -254,10 +248,10 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   Q_ASSERT(element.first->numberOfVoxels() == 1); // with one pixel
 
   auto pointBounds = element.first->bounds();
-  NmVector3 seedPoint{ (pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
+  NmVector3 seedPoint{(pointBounds[0]+pointBounds[1])/2, (pointBounds[2]+pointBounds[3])/2, (pointBounds[4]+pointBounds[5])/2};
 
   Q_ASSERT(ItemAdapter::Type::CHANNEL == element.second->type());
-  auto channel = m_viewManager->activeChannel();
+  auto channel = m_context.ActiveChannel;
 
   if (!channel)
     return;
@@ -277,7 +271,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  auto currentROI = m_viewManager->currentROI();
+  auto currentROI = m_context.activeROI()->currentROI();
 
   if (!currentROI && m_roi->applyROI())
   {
@@ -319,7 +313,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     inputs << channel->asInput();
 
-    auto filter = m_factory->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
+    auto filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(inputs, SGS_FILTER);
 
     filter->setSeed(seed);
     filter->setUpperThreshold(m_seedThreshold->upperThreshold());
@@ -340,7 +334,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     if (currentROI)
     {
-      m_viewManager->consumeROI();
+      m_context.activeROI()->clear();
     }
   }
   else
@@ -365,7 +359,7 @@ void SeedGrowSegmentationTool::createSegmentation()
 
     if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
 
-    auto segmentation = m_factory->createSegmentation(adapter, 0);
+    auto segmentation = m_context.factory()->createSegmentation(adapter, 0);
 
     auto category = m_categorySelector->selectedCategory();
     Q_ASSERT(category);
@@ -373,12 +367,13 @@ void SeedGrowSegmentationTool::createSegmentation()
     segmentation->setCategory(category);
 
     SampleAdapterSList samples;
-    samples << QueryAdapter::sample(m_viewManager->activeChannel());
+    samples << QueryAdapter::sample(m_context.ActiveChannel);
     Q_ASSERT(samples.size() == 1);
 
-    m_undoStack->beginMacro(tr("Add Segmentation"));
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-    m_undoStack->endMacro();
+    auto undoStack = m_context.undoStack();
+    undoStack->beginMacro(tr("Add Segmentation"));
+    undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
+    undoStack->endMacro();
 
 //     m_viewManager->updateSegmentationRepresentations(segmentation.get());
 //     m_viewManager->updateViews();

@@ -89,19 +89,13 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
-                                     ModelAdapterSPtr          model,
-                                     ModelFactorySPtr          factory,
                                      FilterDelegateFactorySPtr delegateFactory,
-                                     ViewManagerSPtr           viewManager,
-                                     QUndoStack                *undoStack)
-: m_model          {model}
-, m_factory        {factory}
+                                     const Support::Context   &context)
+: m_context        {context}
 , m_delegateFactory{delegateFactory}
-, m_viewManager    {viewManager}
-, m_undoStack      {undoStack}
 , m_view           {view}
 {
-  connect(m_model.get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+  connect(m_context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
           this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 }
 
@@ -114,9 +108,11 @@ SegmentationExplorer::Layout::~Layout()
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
 {
-  m_undoStack->beginMacro(tr("Delete Segmentations"));
-  m_undoStack->push(new RemoveSegmentations(segmentations, m_model));
-  m_undoStack->endMacro();
+  auto undoStack = m_context.undoStack();
+
+  undoStack->beginMacro(tr("Delete Segmentations"));
+  undoStack->push(new RemoveSegmentations(segmentations, m_context.model()));
+  undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------
@@ -125,9 +121,9 @@ void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapt
   auto inspector = m_inspectors.value(toKey(segmentations));
   if (!inspector)
   {
-    inspector = new SegmentationInspector(segmentations, m_model, m_factory, m_delegateFactory, m_viewManager, m_undoStack);
+    inspector = new SegmentationInspector(segmentations, m_delegateFactory, m_context);
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-    		    this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
+            this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
     m_inspectors.insert(toKey(segmentations), inspector);
   }
   inspector->show();
@@ -154,15 +150,15 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspector *inspector)
 {
-	auto key = m_inspectors.key(inspector);
-	m_inspectors[key] = nullptr;
-	m_inspectors.remove(key);
+  auto key = m_inspectors.key(inspector);
+  m_inspectors[key] = nullptr;
+  m_inspectors.remove(key);
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
 {
-  if (m_model->segmentationRoot() == parent)
+  if (m_context.model()->segmentationRoot() == parent)
   {
     for(int row = start; row <= end; row++)
     {

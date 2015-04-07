@@ -27,7 +27,7 @@
 #include <GUI/View/Widgets/PlanarSplit/PlanarSplitWidget.h>
 #include <GUI/Widgets/ActionSelector.h>
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QUndoStack>
@@ -57,16 +57,10 @@ namespace ESPINA
 
     public:
       /** \brief SplitTool class constructor.
-       * \param[in] model model adapter smart pointer.
-       * \param[in] factory factory smart pointer.
-       * \param[in] viewManager view manager smart pointer.
-       * \param[in] undoStack QUndoStack object raw pointer.
+       * \param[in] context ESPINA context
        *
        */
-      SplitTool(ModelAdapterSPtr model,
-                ModelFactorySPtr factory,
-                ViewManagerSPtr  viewManager,
-                QUndoStack      *undoStack);
+      SplitTool(const Support::Context &context);
 
       /** \brief SplitTool class virtual destructor.
        *
@@ -122,10 +116,7 @@ namespace ESPINA
       QAction *m_planarSplitAction;
       QAction *m_applyButton;
 
-      ModelAdapterSPtr m_model;
-      ModelFactorySPtr m_factory;
-      ViewManagerSPtr  m_viewManager;
-      QUndoStack      *m_undoStack;
+      const Support::Context &m_context;
 
       EspinaWidgetSPtr m_widget;
       SplitToolEventHandlerSPtr m_handler;

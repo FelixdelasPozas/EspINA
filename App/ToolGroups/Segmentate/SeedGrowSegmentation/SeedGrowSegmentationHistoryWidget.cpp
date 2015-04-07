@@ -164,16 +164,11 @@ private:
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
-                                                                     RestrictToolGroup                 *roiTools,
-                                                                     ViewManagerSPtr                viewManager,
-                                                                     QUndoStack                    *undoStack,
-                                                                     QWidget                       *parent,
-                                                                     Qt::WindowFlags                flags)
-: QWidget(parent, flags)
+                                                                     RestrictToolGroup             *roiTools,
+                                                                     const Support::Context        &context)
+: m_context(context)
 , m_gui(new Ui::SeedGrowSegmentationHistoryWidget())
 , m_filter(filter)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
 , m_roiTools(roiTools)
 {
   m_gui->setupUi(this);
@@ -209,13 +204,13 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSeg
   connect(m_roiTools,                     SIGNAL(roiChanged(ROISPtr)),
           this,                           SLOT(onROIChanged()));
 
-  m_viewManager->updateViews();
+  //TODO m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationHistoryWidget::~SeedGrowSegmentationHistoryWidget()
 {
-  m_viewManager->updateViews();
+  //TODO m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
@@ -253,10 +248,11 @@ void SeedGrowSegmentationHistoryWidget::onROIChanged()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationHistoryWidget::onDiscardROIModifications()
 {
-  m_undoStack->beginMacro(tr("Discard ROI modifications"));
-  m_undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
-  m_undoStack->endMacro();
-  m_viewManager->updateViews();
+  auto undoStack = m_context.undoStack();
+  undoStack->beginMacro(tr("Discard ROI modifications"));
+  undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
+  undoStack->endMacro();
+  //TODO m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
@@ -290,11 +286,12 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
                          return;
   }
 
-  m_undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
+  auto undoStack = m_context.undoStack();
+  undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
   {
-    m_undoStack->push(new SGSFilterModification(m_filter, roi, m_gui->threshold->value(), m_gui->closingRadius->value()));
+    undoStack->push(new SGSFilterModification(m_filter, roi, m_gui->threshold->value(), m_gui->closingRadius->value()));
   }
-  m_undoStack->endMacro();
+  undoStack->endMacro();
 
   if (m_filter->isTouchingROI())
   {

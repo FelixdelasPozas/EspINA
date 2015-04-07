@@ -29,9 +29,9 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  CamerasMenu::CamerasMenu(ViewManagerSPtr vm, QWidget *parent)
+  CamerasMenu::CamerasMenu(ViewStateSPtr viewState, QWidget *parent)
   : QMenu(parent)
-  , m_viewManager(vm)
+  , m_viewState(viewState)
   {
     m_save = new QAction(QString("Save..."), this);
     addAction(m_save);
@@ -101,10 +101,11 @@ namespace ESPINA
 
     state.id = text;
 
-    for(auto view: m_viewManager->renderViews())
-    {
-      state.states << view->cameraState();
-    }
+    // TODO Decide where we should pass the view set to save
+//     for(auto view: m_viewManager->renderViews())
+//     {
+//       state.states << view->cameraState();
+//     }
 
 
     m_cameraPositions << state;
@@ -135,13 +136,14 @@ namespace ESPINA
       {
         auto snapshot = m_cameraPositions.at(m_load->actions().indexOf(action));
 
-        for(auto state: snapshot.states)
-        {
-          for(auto view: m_viewManager->renderViews())
-          {
-            view->setCameraState(state);
-          }
-        }
+        // TODO restore view state
+//         for(auto state: snapshot.states)
+//         {
+//           for(auto view: m_viewManager->renderViews())
+//           {
+//             view->setCameraState(state);
+//           }
+//         }
       }
     }
   }

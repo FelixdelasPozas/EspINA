@@ -1249,16 +1249,16 @@ void EspinaMainWindow::createToolGroups()
   auto m_factory = m_context.factory();
   auto m_undoStack = m_context.undoStack();
 
-  m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_model, m_factory, nullptr, m_undoStack, this);
+  m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context);
   //m_viewManager->setROIProvider(m_restrictToolGroup);
   registerToolGroup(m_restrictToolGroup);
 
   m_segmentateToolGroup = createToolGroup(":/espina/toolgroup_segmentate.svg", tr("Segmentate"));
   registerToolGroup(m_segmentateToolGroup);
-  auto sgsTool = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_model, m_factory, m_filterDelegateFactory, nullptr, m_undoStack);
+  auto sgsTool = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterDelegateFactory, m_context);
   m_segmentateToolGroup->addTool(sgsTool);
 
-  m_refineToolGroup = new RefineToolGroup(m_model, m_factory, m_filterDelegateFactory, nullptr, m_undoStack, this);
+  m_refineToolGroup = new RefineToolGroup(m_filterDelegateFactory, m_context);
   registerToolGroup(m_refineToolGroup);
 
   m_visualizeToolGroup = new VisualizeToolGroup(this);

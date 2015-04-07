@@ -25,9 +25,7 @@
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
 
-#include <Settings/DefaultView/DefaultViewSettingsPanel.h>
 #include <Menus/CamerasMenu.h>
-#include <Menus/RenderersMenu.h>
 #include <ToolGroups/Visualize/VisualizeToolGroup.h>
 
 // Qt

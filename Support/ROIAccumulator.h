@@ -26,6 +26,7 @@ namespace ESPINA
   {
     class ROIAccumulator
     {
+    public:
       /** \brief Returns current ROI reference
        *
        *  After this operation the ROI is still available from the ROI provider

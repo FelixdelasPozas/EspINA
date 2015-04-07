@@ -81,24 +81,21 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  SkeletonTool::SkeletonTool(ModelAdapterSPtr model, ModelFactorySPtr factory, ViewManagerSPtr viewManager, QUndoStack *undoStack)
-  : m_vm              {viewManager}
-  , m_model           {model}
-  , m_factory         {factory}
-  , m_undoStack       {undoStack}
-  , m_categorySelector{new CategorySelector(model)}
+  SkeletonTool::SkeletonTool(const Support::Context &context)
+  : m_context         {context}
+  , m_categorySelector{new CategorySelector(context.model())}
   , m_toleranceWidget {new DoubleSpinBoxAction(this)}
   , m_toolStatus      {new SkeletonToolStatusAction(this)}
   , m_action          {new QAction(QIcon(":/espina/pencil.png"), tr("Manual creation of skeletons."), this)}
   {
-    m_factory->registerFilterFactory(std::make_shared<SourceFilterFactory>());
+    m_context.factory()->registerFilterFactory(std::make_shared<SourceFilterFactory>());
 
     m_action->setCheckable(true);
 
     connect(m_action, SIGNAL(triggered(bool)),
             this,     SLOT(initTool(bool)));
 
-    connect(m_vm->selection().get(), SIGNAL(selectionChanged()),
+    connect(m_context.viewState()->selection().get(), SIGNAL(selectionChanged()),
             this,                    SLOT(updateState()));
 
     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
@@ -116,7 +113,7 @@ namespace ESPINA
     m_toolStatus->reset();
     m_toolStatus->setVisible(false);
   }
-  
+
   //-----------------------------------------------------------------------------
   SkeletonTool::~SkeletonTool()
   {
@@ -126,13 +123,13 @@ namespace ESPINA
       m_widget = nullptr;
     }
   }
-  
+
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateState()
   {
     if(!isEnabled()) return;
 
-    auto selection = m_vm->selection()->segmentations();
+    auto selection = m_context.viewState()->selection()->segmentations();
     auto validItem = (selection.size() <= 1);
 
     m_action->setEnabled(validItem);
@@ -149,13 +146,13 @@ namespace ESPINA
     }
     else
     {
-      if(!m_vm->activeChannel())
+      if(!m_context.ActiveChannel)
       {
         spacing = NmVector3{1,1,1};
       }
       else
       {
-        spacing = m_vm->activeChannel()->output()->spacing();
+        spacing = m_context.ActiveChannel->output()->spacing();
       }
       m_item = nullptr;
       m_itemCategory = m_categorySelector->selectedCategory();
@@ -187,7 +184,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateReferenceItem()
   {
-    auto selectedSegs = m_vm->selection()->segmentations();
+    auto selectedSegs = m_context.viewState()->selection()->segmentations();
 
     if (selectedSegs.size() != 1)
     {
@@ -227,10 +224,12 @@ namespace ESPINA
   {
     if (value)
     {
-      if(!m_vm->activeChannel()) return;
+      auto activeChannel = m_context.ActiveChannel;
+
+      if(!activeChannel) return;
 
       updateReferenceItem();
-      auto spacing = m_vm->activeChannel()->output()->spacing();
+      auto spacing = activeChannel->output()->spacing();
       if(m_item)
       {
         spacing = m_item->output()->spacing();
@@ -245,11 +244,11 @@ namespace ESPINA
 
       auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-      auto selection = m_vm->selection()->segmentations();
-      auto color = m_categorySelector->selectedCategory()->color();
+      auto selection = m_context.viewState()->selection()->segmentations();
+      auto color     = m_categorySelector->selectedCategory()->color();
       if(selection.size() == 1)
       {
-        color = m_vm->colorEngine()->color(selection.first());
+        color = m_context.colorEngine()->color(selection.first());
       }
 
       auto widget = new SkeletonWidget();
@@ -271,9 +270,9 @@ namespace ESPINA
       connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
               this,            SLOT(eventHandlerToogled(bool)));
 
-      m_vm->setEventHandler(m_handler);
-      m_vm->setSelectionEnabled(false);
-      m_vm->addWidget(m_widget);
+      m_context.viewState()->setEventHandler(m_handler);
+      //TODO m_vm->setSelectionEnabled(false);
+      // TODO URGENT m_vm->addWidget(m_widget);
       widget->setSpacing(spacing);
       widget->setRepresentationColor(color);
 
@@ -294,7 +293,7 @@ namespace ESPINA
 
       m_widget->setEnabled(true);
 
-      connect(m_model.get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+      connect(m_context.model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
               this,          SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
     }
@@ -306,14 +305,14 @@ namespace ESPINA
       m_action->setChecked(false);
       m_action->blockSignals(false);
 
-      disconnect(m_model.get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
+      disconnect(m_context.model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
                  this,          SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
       disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
                  this,            SLOT(eventHandlerToogled(bool)));
 
       m_widget->setEnabled(false);
-      m_vm->removeWidget(m_widget);
+      //TODO URGENT m_vm->removeWidget(m_widget);
 
       auto widget = dynamic_cast<SkeletonWidget *>(m_widget.get());
       Q_ASSERT(widget);
@@ -324,9 +323,9 @@ namespace ESPINA
                  m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
       m_toolStatus->reset();
 
-      m_vm->unsetEventHandler(m_handler);
+      m_context.viewState()->unsetEventHandler(m_handler);
       m_handler.reset();
-      m_vm->setSelectionEnabled(true);
+      //TODO m_vm->setSelectionEnabled(true);
       m_widget.reset();
 
       if(m_item)
@@ -348,8 +347,8 @@ namespace ESPINA
           selection << m_item;
 
           m_item->invalidateRepresentations();
-          m_vm->selection()->set(selection);
-          m_vm->updateViews();
+          m_context.viewState()->selection()->set(selection);
+          //TODO m_vm->updateViews();
         }
       }
     }
@@ -439,16 +438,20 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::skeletonModification(vtkSmartPointer<vtkPolyData> polyData)
   {
+    auto m_undoStack = m_context.undoStack();
+    auto model     = m_context.model();
+
     if(m_item)
     {
       if(hasSkeletonData(m_item->output()))
       {
+
         if(polyData->GetNumberOfLines() == 0)
         {
           if(m_item->output()->numberOfDatas() == 1)
           {
             m_undoStack->beginMacro(tr("Remove Segmentation"));
-            m_undoStack->push(new RemoveSegmentations(m_item, m_model));
+            m_undoStack->push(new RemoveSegmentations(m_item, model));
             m_undoStack->endMacro();
 
             m_item = nullptr;
@@ -487,25 +490,25 @@ namespace ESPINA
     {
       if(polyData->GetNumberOfLines() == 0) return;
 
-      auto spacing  = m_vm->activeChannel()->output()->spacing();
-      auto filter   = m_factory->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
+      auto spacing  = m_context.ActiveChannel->output()->spacing();
+      auto filter   = m_context.factory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
       auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
       auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
       output->setData(skeleton);
 
       filter->addOutput(0, output);
-      auto segmentation = m_factory->createSegmentation(filter, 0);
+      auto segmentation = m_context.factory()->createSegmentation(filter, 0);
       auto category = m_categorySelector->selectedCategory();
       Q_ASSERT(category);
 
       segmentation->setCategory(category);
 
       SampleAdapterSList samples;
-      samples << QueryAdapter::sample(m_vm->activeChannel());
+      samples << QueryAdapter::sample(m_context.ActiveChannel);
       Q_ASSERT(samples.size() == 1);
 
       m_undoStack->beginMacro(tr("Add Segmentation"));
-      m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+      m_undoStack->push(new AddSegmentations(segmentation, samples, model));
       m_undoStack->endMacro();
 
       m_item = segmentation.get();
@@ -530,11 +533,11 @@ namespace ESPINA
       SegmentationAdapterList selection;
       selection << m_item;
 
-      m_vm->selection()->set(selection);
+      m_context.viewState()->selection()->set(selection);
       m_item->invalidateRepresentations();
     }
 
-    m_vm->updateViews();
+    //TODO m_vm->updateViews();
   }
 
 } // namespace ESPINA

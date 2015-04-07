@@ -42,87 +42,47 @@ namespace ESPINA
     : public SegmentationFilterProxyModel
     {
     protected:
-    	/** \brief Overrides QSortFilterProxyModel::lessThan for sorting purposes.
-    	 * \param[in] left, QModelIndex const reference.
-    	 * \param[in] right, QModelIndex const reference.
-    	 *
-    	 */
       virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
     };
 
   public:
     /** \brief ClassificationLayout class constructor.
-     * \param[in] view, QTreeView raw pointer.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] view QTreeView raw pointer.
+     * \param[in] delegateFactory
+     * \param[in] context ESPINA context
      *
      */
     explicit ClassificationLayout(CheckableTreeView        *view,
-                                  ModelAdapterSPtr          model,
-                                  ModelFactorySPtr          factory,
                                   FilterDelegateFactorySPtr delegateFactory,
-                                  ViewManagerSPtr           viewManager,
-                                  QUndoStack               *undoStack);
+                                  const Support::Context   &context);
 
     /** \brief ClassificationLayour class virtual destructor.
      *
      */
     virtual ~ClassificationLayout();
 
-    /** \brief Overrides SegmentationExplorer::Layout::createSpecificControls().
-     *
-     */
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout) override;
 
-    /** \brief Overrides SegmentationExplorer::Layout:: model()
-     *
-     */
     virtual QAbstractItemModel* model() override
     { return m_sort.get(); }
 
-    /** \brief Overrides SegmentationExplorer::Layout::item().
-     *
-     */
     virtual ItemAdapterPtr item(const QModelIndex& index) const override
     { return itemAdapter(m_sort->mapToSource(index)); }
 
-    /** \brief Overrides SegmentationExplorer::Layout::index().
-     *
-     */
     virtual QModelIndex index(ItemAdapterPtr item) const override
     { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
 
-    /** \brief Overrides SegmentationExplorer::Layout::setFilterRegExp()
-     *
-     */
     virtual void setFilterRegExp(const QString &regExp) override
     { m_sort->setFilterRegExp(regExp); }
 
-    /** \brief Overrides SegmentationExplorer::Layout::contextMenu().
-     *
-     */
     virtual void contextMenu(const QPoint &pos) override;
 
-    /** \brief Overrides SegmentationExplorer::Layout::deleteSelectedItems().
-     *
-     */
     virtual void deleteSelectedItems() override;
 
-    /** \brief Overrides SegmentationExplorer::Layout::showSelectedItemsInformation().
-     *
-     */
     virtual void showSelectedItemsInformation() override;
 
-    /** \brief Overrides SegmentationExplorer::Layout::hasInformationToShow().
-     *
-     */
     virtual bool hasInformationToShow() override;
 
-    /** \brief Overrides SegmentationExplorer::Layout::itemDelegate().
-     *
-     */
     virtual QItemDelegate *itemDelegate() const override;
 
   private:
@@ -133,9 +93,9 @@ namespace ESPINA
     bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
 
   private slots:
-		/** \brief Creates a category and adds it to the model.
-		 *
-		 */
+    /** \brief Creates a category and adds it to the model.
+     *
+     */
     void createCategory();
 
     /** \brief Creates a sub-category and adds it to the model.

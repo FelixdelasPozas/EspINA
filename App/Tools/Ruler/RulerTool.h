@@ -18,16 +18,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RULERTOOL_H_
-#define RULERTOOL_H_
+#ifndef RULER_TOOL_H_
+#define RULER_TOOL_H_
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
+#include <GUI/View/ViewState.h>
 
 namespace ESPINA
 {
-  class ViewManager;
   class RenderView;
   class RulerWidget;
 
@@ -37,9 +36,9 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief RulerTool class constructor.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] viewState
      */
-    explicit RulerTool(ViewManagerSPtr viewManager);
+    explicit RulerTool(ViewStateSPtr viewState);
 
     /** \brief RulerTool class destructor.
      *
@@ -65,9 +64,9 @@ namespace ESPINA
     virtual void onToolEnabled ( bool enabled );
 
   private:
+    ViewStateSPtr    m_viewState;
     QAction         *m_action;
     EspinaWidgetSPtr m_widget;
-    ViewManagerSPtr  m_viewManager;
     SelectionSPtr    m_selection;
     EventHandlerSPtr m_handler;
   };

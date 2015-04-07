@@ -22,11 +22,11 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  AnalyzeToolGroup::AnalyzeToolGroup(ViewManagerSPtr viewManager, QWidget* parent)
-  : ToolGroup{QIcon(":/espina/toolgroup_analyze.svg"), tr("Analyze"), parent}
+  AnalyzeToolGroup::AnalyzeToolGroup(const Support::Context &context)
+  : ToolGroup{QIcon(":/espina/toolgroup_analyze.svg"), tr("Analyze")}
   {
-    addTool(std::make_shared<MeasureTool>(viewManager));
-    addTool(std::make_shared<RulerTool>(viewManager));
+    addTool(std::make_shared<MeasureTool>(context.viewState()));
+    addTool(std::make_shared<RulerTool>(context.viewState()));
   }
 
   //----------------------------------------------------------------------------

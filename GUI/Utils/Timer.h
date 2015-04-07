@@ -34,11 +34,15 @@ namespace ESPINA
   {
     Q_OBJECT
 
+  public:
+    static const TimeStamp INVALID_TIME_STAMP;
+    static const TimeStamp INITIAL_TIME_STAMP;
+
     public:
       /** \brief Timer class constructor.
        *
        */
-      Timer(TimeStamp time = 0);
+      Timer(TimeStamp time = INITIAL_TIME_STAMP);
 
       /** \brief Timer class virtual destructor.
        *
@@ -68,7 +72,6 @@ namespace ESPINA
 
     private:
       TimeStamp m_timeStamp;
-      TimeStamp m_initialTime;
       QMutex    m_mutex;
   };
 

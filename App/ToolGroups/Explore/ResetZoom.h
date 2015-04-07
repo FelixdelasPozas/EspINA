@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
+#include <GUI/View/ViewState.h>
 
 class QAction;
 

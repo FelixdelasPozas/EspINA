@@ -24,8 +24,8 @@
 
 // ESPINA
 #include <Filters/SeedGrowSegmentationFilter.h>
-#include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/Context.h>
 
 class QUndoStack;
 
@@ -46,11 +46,8 @@ namespace ESPINA {
     Q_OBJECT
   public:
     explicit SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
-                                               RestrictToolGroup                 *roiTools,
-                                               ViewManagerSPtr                viewManager,
-                                               QUndoStack                    *undoStack,
-                                               QWidget                       *parent = 0,
-                                               Qt::WindowFlags                flags = 0);
+                                               RestrictToolGroup             *roiTools,
+                                               const Support::Context        &context);
     virtual ~SeedGrowSegmentationHistoryWidget();
 
   public slots:
@@ -72,11 +69,10 @@ namespace ESPINA {
     void modifyFilter();
 
   private:
+    const Support::Context &m_context;
+
     Ui::SeedGrowSegmentationHistoryWidget *m_gui;
     SeedGrowSegmentationFilterSPtr         m_filter;
-
-    ViewManagerSPtr m_viewManager;
-    QUndoStack     *m_undoStack;
 
     RestrictToolGroup *m_roiTools;
   };

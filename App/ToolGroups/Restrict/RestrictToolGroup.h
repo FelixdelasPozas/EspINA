@@ -23,8 +23,9 @@
 // ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Selectors/Selector.h>
 #include <Support/ROIProvider.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 #include <ToolGroups/ToolGroup.h>
 
 // Qt
@@ -54,12 +55,8 @@ namespace ESPINA
      * \param[in] undoStack QUndoStack object raw pointer.
      * \param[in] parent QWidget raw pointer of the parent of this object.
      */
-    RestrictToolGroup(ROISettings*     settings,
-                  ModelAdapterSPtr model,
-                  ModelFactorySPtr factory,
-                  ViewManagerSPtr  viewManager,
-                  QUndoStack      *undoStack,
-                  QWidget         *parent = nullptr);
+    RestrictToolGroup(ROISettings*            settings,
+                      const Support::Context &context);
 
     /** \brief VolumeOfInteresetTools class virtual destructor.
      *
@@ -125,8 +122,7 @@ namespace ESPINA
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
     using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
 
-    ViewManagerSPtr       m_viewManager;
-    QUndoStack           *m_undoStack;
+    const Support::Context &m_context;
 
 //     ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;

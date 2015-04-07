@@ -24,8 +24,8 @@
 // ESPINA
 #include <GUI/View/EventHandler.h>
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/ViewState.h>
 
 class QCursor;
 

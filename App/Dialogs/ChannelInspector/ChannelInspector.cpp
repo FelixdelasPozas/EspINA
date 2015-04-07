@@ -23,7 +23,6 @@
 #include "ChannelInspector.h"
 #include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/View/View2D.h>
-#include <Support/ViewManager.h>
 #include <Support/Representations/SliceManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/ChannelAdapter.h>

@@ -32,12 +32,12 @@ SeedGrowSegmentationHistory::~SeedGrowSegmentationHistory()
 }
 
 //-----------------------------------------------------------------------------
-QWidget* SeedGrowSegmentationHistory::createWidget(ModelAdapterSPtr model, ModelFactorySPtr factory, ViewManagerSPtr viewManager, QUndoStack* undoStack)
+QWidget *SeedGrowSegmentationHistory::createWidget(const Support::Context &context)
 {
   if (!m_roiTools)
   {
     m_roiSettings = new ROISettings();
-    m_roiTools    = new RestrictToolGroup(m_roiSettings, model, factory, viewManager, undoStack);
+    m_roiTools    = new RestrictToolGroup(m_roiSettings, context);
 
     QColor sgsROIColor{Qt::yellow};
     sgsROIColor.setHslF(sgsROIColor.hueF(),sgsROIColor.saturationF(), 0.9);
@@ -53,7 +53,7 @@ QWidget* SeedGrowSegmentationHistory::createWidget(ModelAdapterSPtr model, Model
   m_widgetCount++;
   m_roiTools->setVisible(true);
 
-  auto widget = new SeedGrowSegmentationHistoryWidget(m_filter, m_roiTools, viewManager, undoStack);
+  auto widget = new SeedGrowSegmentationHistoryWidget(m_filter, m_roiTools, context);
 
   connect(widget, SIGNAL(destroyed(QObject*)),
           this,   SLOT(onWidgetDestroyed()));

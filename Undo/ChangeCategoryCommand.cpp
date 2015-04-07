@@ -21,7 +21,6 @@
 // ESPINA
 #include "ChangeCategoryCommand.h"
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
 
 using namespace ESPINA;
 
@@ -29,11 +28,9 @@ using namespace ESPINA;
 ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                              CategoryAdapterPtr      category,
                                              ModelAdapterSPtr        model,
-                                             ViewManagerSPtr         viewManager,
                                              QUndoCommand*           parent)
 : QUndoCommand {parent}
 , m_model      {model}
-, m_viewManager{viewManager}
 , m_category   {m_model->smartPointer(category)}
 {
   for(auto segmentation: segmentations)

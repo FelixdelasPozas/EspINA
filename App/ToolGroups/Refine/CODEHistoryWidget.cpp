@@ -116,16 +116,11 @@ private:
 //----------------------------------------------------------------------------
 CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
                                      MorphologicalEditionFilterSPtr filter,
-                                     ViewManagerSPtr                viewManager,
-                                     QUndoStack                    *undoStack,
-                                     QWidget                       *parent,
-                                     Qt::WindowFlags               flags)
-: QWidget(parent, flags)
+                                     const Support::Context        &context)
+: m_context(context)
 , m_gui(new Ui::CODEHistoryWidget())
 , m_title(title)
 , m_filter(filter)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
 {
   m_gui->setupUi(this);
 
@@ -136,14 +131,11 @@ CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
           this,          SLOT(onRadiusChanged(int)));
   connect(m_gui->apply,  SIGNAL(clicked(bool)),
           this,          SLOT(modifyFilter()));
-
-  m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
 CODEHistoryWidget::~CODEHistoryWidget()
 {
-  m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
@@ -173,11 +165,13 @@ void CODEHistoryWidget::modifyFilter()
 
   auto volume  = volumetricData(output);
 
-  m_undoStack->beginMacro(tr("Modify %1 Parameters").arg(m_title));
+  auto undoStack = m_context.undoStack();
+
+  undoStack->beginMacro(tr("Modify %1 Parameters").arg(m_title));
   {
-    m_undoStack->push(new CODEModification(m_filter, m_gui->radius->value()));
+    undoStack->push(new CODEModification(m_filter, m_gui->radius->value()));
   }
-  m_undoStack->endMacro();
+  undoStack->endMacro();
 
   //TODO: update segmentation
 }

@@ -26,7 +26,6 @@
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
-#include <Support/ViewManager.h>
 #include "SkeletonTool.h"
 #include <ToolGroups/ToolGroup.h>
 
@@ -42,17 +41,10 @@ namespace ESPINA
 
     public:
       /** \brief SkeletonToolGroup class constructor.
-       * \param[in] model model adapter smart pointer.
-       * \param[in] factory model factory smart pointer.
-       * \param[in] viewManager view manager smart pointer.
-       * \param[in] parent raw pointer of the QObject parent of this one.
+       * \param[in] context ESPINA context
        *
        */
-      SkeletonToolGroup(ModelAdapterSPtr model,
-                        ModelFactorySPtr factory,
-                        ViewManagerSPtr  viewManager,
-                        QUndoStack      *undoStack,
-                        QObject *parent = nullptr);
+      SkeletonToolGroup(const Support::Context &context);
 
       /** \brief SkeletonToolGroup class virtual destructor.
        *
@@ -68,10 +60,6 @@ namespace ESPINA
       virtual ToolSList tools();
 
     private:
-      ModelAdapterSPtr m_model;
-      ModelFactorySPtr m_factory;
-      QUndoStack      *m_undoStack;
-
       SkeletonToolSPtr m_tool;
       bool             m_enabled;
   };

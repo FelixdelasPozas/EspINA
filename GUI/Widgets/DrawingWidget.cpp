@@ -35,10 +35,10 @@ const QString CONTOUR_DISTANCE("ManualEditionTools::ContourDistance");
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-DrawingWidget::DrawingWidget(ModelAdapterSPtr model, ViewManagerSPtr viewManager)
-: m_viewManager         {viewManager}
+DrawingWidget::DrawingWidget(const Support::Context &context)
+: m_context             {context}
 , m_painterSelector     {new ActionSelector()}
-, m_categorySelector    {new CategorySelector(model)}
+, m_categorySelector    {new CategorySelector(context.model())}
 , m_radiusWidget        {new SliderAction()}
 , m_opacityWidget       {new SliderAction()}
 , m_eraserWidget        {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
@@ -92,7 +92,7 @@ DrawingWidget::~DrawingWidget()
 
   if (m_currentPainter)
   {
-    m_viewManager->unsetEventHandler(m_currentPainter);
+    m_context.viewState()->unsetEventHandler(m_currentPainter);
   }
 }
 
@@ -176,7 +176,7 @@ QList<QAction *> DrawingWidget::actions() const
 {
   QList<QAction *> actions;
 
-  auto checked = m_currentPainter && m_viewManager->eventHandler() == m_currentPainter;
+  auto checked = m_currentPainter && m_context.viewState()->eventHandler() == m_currentPainter;
   m_painterSelector->setChecked(checked);
 
   actions << m_painterSelector;
@@ -229,7 +229,7 @@ void DrawingWidget::changePainter(QAction *action)
 
   m_currentPainter = m_painters[action];
 
-  m_viewManager->setEventHandler(m_currentPainter);
+  m_context.viewState()->setEventHandler(m_currentPainter);
 }
 
 
@@ -251,7 +251,7 @@ void DrawingWidget::unsetPainter()
 
     // This tool can be unset either by the tool itself or by other
     // event handler through the view manager
-    m_viewManager->unsetEventHandler(selector);
+    m_context.viewState()->unsetEventHandler(selector);
   }
 }
 
@@ -492,7 +492,7 @@ void DrawingWidget::selectorInUse(bool value)
 
       m_contourWidget = std::make_shared<ContourWidget>();
       std::dynamic_pointer_cast<ContourPainter>(m_contourPainter)->setContourWidget(m_contourWidget.get());
-      m_viewManager->addWidget(m_contourWidget);
+      // URGENT TODO m_viewManager->addWidget(m_contourWidget);
       m_contourWidget->setMinimumPointDistance(m_contourDistance);
       m_contourWidget->setDrawingMode(m_contourPainter->drawingMode());
       m_contourWidget->setPolygonColor(m_contourPainter->color());
@@ -511,7 +511,7 @@ void DrawingWidget::selectorInUse(bool value)
       m_contourDistance = m_radiusWidget->value();
 
       m_contourWidget->setEnabled(false);
-      m_viewManager->removeWidget(m_contourWidget);
+      // URGENT TODO m_viewManager->removeWidget(m_contourWidget);
       std::dynamic_pointer_cast<ContourPainter>(m_contourPainter)->setContourWidget(nullptr);
       m_contourWidget.reset();
     }

@@ -32,21 +32,17 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
-                                           ModelFactorySPtr factory,
-                                           ViewManagerSPtr  viewManager,
-                                           QWidget         *parent)
+RawInformationDialog::RawInformationDialog(const Support::Context &context)
 
-: QDialog{parent}
 {
   setObjectName("Raw Information Analysis");
 
   setWindowTitle(tr("Raw Information"));
 
-  TabularReport *report = new TabularReport(factory, viewManager, this);
-  report->setModel(model);
+  auto report = new TabularReport(context, this);
+  report->setModel(context.model());
 
-  auto segmentations = defaultReportInputSegmentations(viewManager, model);
+  auto segmentations = defaultReportInputSegmentations(context.viewState(), context.model());
   report->setFilter(segmentations);
 
   setLayout(new QVBoxLayout());

@@ -26,7 +26,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Context.h>
@@ -48,9 +47,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief DefaultView class constructor.
-     * \param[in] model to be displayed by the view
-     * \param[in] viewManager to coordinate render views
-     * \param[in] undoStack ??
+     * \param[in] context ESPINA context
      * \param[in] parent of the qobject
      */
     explicit DefaultView(const Support::Context &context,

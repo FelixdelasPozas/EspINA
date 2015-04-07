@@ -32,15 +32,11 @@ using namespace ESPINA;
 DefaultViewSettingsPanel::DefaultViewSettingsPanel(View2D* viewXY,
                                                    View2D* viewXZ,
                                                    View2D* viewYZ,
-                                                   View3D* view3D,
-                                                   RendererSList renderers,
-                                                   RenderersMenu *menu)
+                                                   View3D* view3D)
 : m_viewXY   {viewXY}
 , m_viewXZ   {viewXZ}
 , m_viewYZ   {viewYZ}
 , m_view3D   {view3D}
-, m_renderers{renderers}
-, m_menu     {menu}
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;

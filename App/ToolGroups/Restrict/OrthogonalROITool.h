@@ -22,7 +22,7 @@
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
@@ -48,16 +48,12 @@ namespace ESPINA
 
   public:
     /** \brief OrthogonalROITool class constructor.
-     * \param[in] model adapter smart pointer.
-     * \param[in] viewManager smart pointer.
-     * \param[in] undoStack raw pointer.
-     * \param[in] toolGroup raw pointer that contains ROI accumulator.
+     * \param[in] context
+     * \param[in] toolGroup
      */
-    explicit OrthogonalROITool(ROISettings     *settings,
-                               ModelAdapterSPtr model,
-                               ViewManagerSPtr  viewManager,
-                               QUndoStack      *undoStack,
-                               RestrictToolGroup   *toolgroup);
+    explicit OrthogonalROITool(ROISettings            *settings,
+                               const Support::Context &context,
+                               RestrictToolGroup      *toolgroup);
 
     /** \brief OrthogonalROITool class virtual destructor.
      *
@@ -152,9 +148,7 @@ namespace ESPINA
     void updateRepresentationColor();
 
   private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    const Support::Context &m_context;
 
     QAction         *m_activeTool;
     QAction         *m_resizeROI;

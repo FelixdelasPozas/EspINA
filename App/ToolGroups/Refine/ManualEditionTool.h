@@ -23,7 +23,6 @@
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
 #include <Support/Context.h>
 #include <Core/Factory/FilterFactory.h>
 #include <GUI/Model/ModelAdapter.h>

@@ -23,8 +23,8 @@
 
 // ESPINA
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/ViewState.h>
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
 
 class QAction;
 
@@ -37,10 +37,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief MeasureTool class constructor.
-     * \param[in] viewManager view manager smart pointer.
+     * \param[in] viewState
      *
      */
-    explicit MeasureTool(ViewManagerSPtr viewManager);
+    explicit MeasureTool(ViewStateSPtr viewState);
 
     /** \brief MeasureTool class destructor.
      *
@@ -64,9 +64,9 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled);
 
   private:
+    ViewStateSPtr    m_viewState;
     EspinaWidgetSPtr m_widget;
     EventHandlerSPtr m_handler;
-    ViewManagerSPtr  m_viewManager;
     QAction         *m_action;
   };
 

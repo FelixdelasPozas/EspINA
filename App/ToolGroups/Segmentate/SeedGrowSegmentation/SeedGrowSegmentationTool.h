@@ -31,7 +31,6 @@
 #include <GUI/Widgets/ActionSelector.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <Support/Factory/FilterDelegateFactory.h>
-#include <Support/ViewManager.h>
 #include <Support/Widgets/Tool.h>
 
 class QUndoStack;
@@ -48,9 +47,6 @@ namespace ESPINA
     : public FilterFactory
     , public SpecificFilterDelegateFactory
     {
-      /** \brief Implements FilterFactory::providedFilters().
-       *
-       */
       virtual FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const throw (Unknown_Filter_Exception);
@@ -72,11 +68,8 @@ namespace ESPINA
      * \param[in] undoStack raw pointer to a QUndoStack object.
      */
     explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                      ModelAdapterSPtr              model,
-                                      ModelFactorySPtr              factory,
                                       FilterDelegateFactorySPtr     filterDelegateFactory,
-                                      ViewManagerSPtr               viewManager,
-                                      QUndoStack*                   undoStack);
+                                      const Support::Context       &context);
 
     /** \brief SeedGrowSegmentation class virtual destructor.
      *
@@ -144,10 +137,7 @@ namespace ESPINA
     void hideSettings();
 
   private:
-    ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    const Support::Context &m_context;
 
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;

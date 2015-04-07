@@ -24,16 +24,9 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  SkeletonToolGroup::SkeletonToolGroup(ModelAdapterSPtr model,
-                                       ModelFactorySPtr factory,
-                                       ViewManagerSPtr  viewManager,
-                                       QUndoStack      *undoStack,
-                                       QObject *parent)
-  : ToolGroup  {QIcon(":/espina/tubular.svg"), tr("Skeleton tools."), parent}
-  , m_model    {model}
-  , m_factory  {factory}
-  , m_undoStack{undoStack}
-  , m_tool     {new SkeletonTool{model, factory, viewManager, undoStack}}
+  SkeletonToolGroup::SkeletonToolGroup(const Support::Context &context)
+  : ToolGroup  {QIcon(":/espina/tubular.svg"), tr("Skeleton tools.")}
+  , m_tool     {new SkeletonTool{context}}
   , m_enabled  {false}
   {
   }

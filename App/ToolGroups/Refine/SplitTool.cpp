@@ -77,16 +77,9 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  SplitTool::SplitTool(ModelAdapterSPtr model,
-                       ModelFactorySPtr factory,
-                       ViewManagerSPtr  viewManager,
-                       QUndoStack      *undoStack)
-  : m_planarSplitAction{new QAction(QIcon(":/espina/planar_split.svg"),tr("Split segmentation"), nullptr)}
-  , m_applyButton      {new QAction(QIcon(":/espina/tick.png"), tr("Apply current state"), nullptr)}
-  , m_model            {model}
-  , m_factory          {factory}
-  , m_viewManager      {viewManager}
-  , m_undoStack        {undoStack}
+  SplitTool::SplitTool(const Support::Context &context)
+  : m_planarSplitAction{new QAction(QIcon(":/espina/planar_split.svg"),tr("Split segmentation"), this)}
+  , m_applyButton      {new QAction(QIcon(":/espina/tick.png"), tr("Apply current state"), this)}
   , m_widget           {nullptr}
   , m_handler          {new SplitToolEventHandler()}
   {
@@ -102,7 +95,7 @@ namespace ESPINA
     connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
             this,            SLOT(initTool(bool)));
 
-    m_factory->registerFilterFactory(std::make_shared<SplitFilterFactory>());
+    m_context.factory()->registerFilterFactory(std::make_shared<SplitFilterFactory>());
   }
 
   //------------------------------------------------------------------------
@@ -111,10 +104,14 @@ namespace ESPINA
     delete m_planarSplitAction;
 
     if(m_widget)
-      m_viewManager->removeWidget(m_widget);
+    {
+      //TODO URGENT m_viewManager->removeWidget(m_widget);
+    }
 
-    if(m_viewManager->eventHandler() == m_handler)
-      m_viewManager->setEventHandler(nullptr);
+    if(m_context.viewState()->eventHandler() == m_handler)
+    {
+      m_context.viewState()->setEventHandler(nullptr);
+    }
   }
 
   //------------------------------------------------------------------------
@@ -137,33 +134,36 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void SplitTool::initTool(bool value)
   {
+    auto viewState = m_context.viewState();
+
     if(value)
     {
       if (m_widget) return;
 
-      auto widget = PlanarSplitWidget::New();
-      m_widget = EspinaWidgetSPtr{widget};
-      m_viewManager->setEventHandler(m_handler);
-      m_viewManager->setSelectionEnabled(false);
-      m_viewManager->addWidget(m_widget);
+      auto widget    = PlanarSplitWidget::New();
 
-      auto selectedSegs = m_viewManager->selection()->segmentations();
+      m_widget = EspinaWidgetSPtr{widget};
+      viewState->setEventHandler(m_handler);
+      //TODO m_viewManager->setSelectionEnabled(false);
+      //TODO URGENT m_viewManager->addWidget(m_widget);
+
+      auto selectedSegs = viewState->selection()->segmentations();
       Q_ASSERT(selectedSegs.size() == 1);
       auto segmentation = selectedSegs.first();
       widget->setSegmentationBounds(segmentation->bounds());
       m_widget->setEnabled(true);
 
-      m_viewManager->updateViews();
+      //TODO m_viewManager->updateViews();
     }
     else
     {
       if(m_widget == nullptr) return;
 
       m_widget->setEnabled(false);
-      m_viewManager->removeWidget(m_widget);
-      m_viewManager->unsetEventHandler(m_handler);
-      m_viewManager->setSelectionEnabled(true);
-      m_viewManager->updateViews();
+      // TODO URGENT m_viewManager->removeWidget(m_widget);
+      viewState->unsetEventHandler(m_handler);
+      //TODO m_viewManager->setSelectionEnabled(true);
+      // TODO m_viewManager->updateViews();
 
       m_widget = nullptr;
 
@@ -180,14 +180,14 @@ namespace ESPINA
   void SplitTool::applyCurrentState()
   {
     auto widget      = dynamic_cast<PlanarSplitWidget *>(m_widget.get());
-    auto selectedSeg = m_viewManager->selection()->segmentations().first();
+    auto selectedSeg = m_context.viewState()->selection()->segmentations().first();
 
     if (widget->planeIsValid())
     {
       InputSList inputs;
       inputs << selectedSeg->asInput();
 
-      auto filter = m_factory->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
+      auto filter = m_context.factory()->createFilter<SplitFilter>(inputs, SPLIT_FILTER);
 
       auto spacing = selectedSeg->output()->spacing();
       auto bounds = selectedSeg->bounds();
@@ -210,7 +210,7 @@ namespace ESPINA
 
       filter->setStencil(stencil);
 
-      Data data(filter, m_model->smartPointer(selectedSeg));
+      Data data(filter, m_context.model()->smartPointer(selectedSeg));
       m_executingTasks.insert(filter.get(), data);
 
       connect(filter.get(), SIGNAL(finished()),
@@ -251,19 +251,20 @@ namespace ESPINA
 
         for(auto i: {0, 1})
         {
-          auto segmentation  = m_factory->createSegmentation(m_executingTasks[filter].adapter, i);
+          auto segmentation  = m_context.factory()->createSegmentation(m_executingTasks[filter].adapter, i);
           segmentation->setCategory(category);
 
           segmentationsList << segmentation;
           segmentations << segmentation.get();
         }
 
-        m_viewManager->selection()->set(segmentations);
+        m_context.viewState()->selection()->set(segmentations);
 
-        m_undoStack->beginMacro("Split Segmentation");
-        m_undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_model));
-        m_undoStack->push(new AddSegmentations(segmentationsList, sample, m_model));
-        m_undoStack->endMacro();
+        auto undoStack = m_context.undoStack();
+        undoStack->beginMacro("Split Segmentation");
+        undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), m_context.model()));
+        undoStack->push(new AddSegmentations(segmentationsList, sample, m_context.model()));
+        undoStack->endMacro();
 
         initTool(false);
       }

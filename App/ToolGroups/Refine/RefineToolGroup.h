@@ -42,19 +42,12 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief EditionTools class constructor.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     * \param[in] parent QWidget raw pointer of the parent of this object.
+     * \param[in] context ESPIAN context
+     * \param[in] filterDelegateFactory factory
      *
      */
-    explicit RefineToolGroup(ModelAdapterSPtr model,
-                             ModelFactorySPtr factory,
-                             FilterDelegateFactorySPtr filterDelegateFactory,
-                             ViewManagerSPtr  viewManager,
-                             QUndoStack      *undoStack,
-                             QWidget         *parent = nullptr);
+    explicit RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
+                             const Support::Context   &context);
 
     virtual ~RefineToolGroup();
 
@@ -71,13 +64,11 @@ namespace ESPINA
     void onVoxelDeletion(ViewItemAdapterPtr item);
 
   private:
+    const Support::Context      &m_context;
+
     ManualEditionToolSPtr        m_manualEdition;
     SplitToolSPtr                m_split;
     MorphologicalEditionToolSPtr m_morphological;
-    ModelFactorySPtr             m_factory;
-    QUndoStack                  *m_undoStack;
-    ModelAdapterSPtr             m_model;
-    ViewManagerSPtr              m_viewManager;
 
     bool                         m_enabled;
     ContourWidget::ContourData   m_previousContour;

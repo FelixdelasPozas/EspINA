@@ -38,9 +38,9 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings,
-                                                                       ViewManagerSPtr               viewManager)
-: m_settings     {settings}
-, m_viewManager  {viewManager}
+                                                                       const Support::Context &context)
+: m_context      {context}
+, m_settings     {settings}
 , m_zValueChanged{false}
 {
   setupUi(this);
@@ -137,7 +137,7 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr SeedGrowSegmentationsSettingsPanel::clone()
 {
-  return new SeedGrowSegmentationsSettingsPanel(m_settings, m_viewManager);
+  return new SeedGrowSegmentationsSettingsPanel(m_settings, m_context);
 }
 
 //------------------------------------------------------------------------

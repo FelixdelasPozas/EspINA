@@ -24,6 +24,7 @@
 #include "CountingFramePlugin_Export.h"
 
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Context.h>
 
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"
@@ -53,10 +54,7 @@ namespace ESPINA
 
   public:
     explicit Panel(CountingFrameManager *manager,
-                   ModelAdapterSPtr      model,
-                   ViewManagerSPtr       viewManager,
-                   SchedulerSPtr         scheduler,
-                   QWidget              *parent = nullptr);
+                   const Support::Context &context);
     virtual ~Panel();
 
     virtual void reset(); // slot
@@ -129,10 +127,8 @@ namespace ESPINA
     void applyCountingFrames(SegmentationAdapterSList segmentations);
 
   private:
-    CountingFrameManager *m_manager;
-    ModelAdapterSPtr      m_model;
-    ViewManagerSPtr       m_viewManager;
-    SchedulerSPtr         m_scheduler;
+    CountingFrameManager   *m_manager;
+    const Support::Context &m_context;
 
     GUI     *m_gui;
     CFModel *m_cfModel;

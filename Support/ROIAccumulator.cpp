@@ -16,3 +16,17 @@
  */
 
 #include "ROIAccumulator.h"
+
+using namespace ESPINA;
+
+//-----------------------------------------------------------------------------
+ROISPtr Support::ROIAccumulator::currentROI()
+{
+  return ROISPtr();
+}
+
+//-----------------------------------------------------------------------------
+void Support::ROIAccumulator::clear()
+{
+
+}

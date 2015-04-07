@@ -105,7 +105,7 @@ void ViewState::refresh()
 //----------------------------------------------------------------------------
 void ViewState::setCrosshair(const NmVector3 &point)
 {
-  qDebug() << "Requested crosshair" << point;
+  //qDebug() << "Requested crosshair" << point;
   changeCrosshair(crosshairPoint(point));
 }
 
@@ -164,7 +164,7 @@ void ViewState::changeCrosshair(const NmVector3 &point)
 
     auto time = m_timer->increment();
 
-    qDebug() << "crosshair changed to" << point;
+    //qDebug() << "crosshair changed to" << point;
 
     emit crosshairChanged(point, time);
   }

@@ -46,14 +46,10 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
-                                             ModelAdapterSPtr        model,
-                                             ViewManagerSPtr         viewManager,
-                                             QUndoStack             *undoStack,
+                                             const Support::Context &context,
                                              QWidget                *parent)
-: ContextualMenu  {parent}
-, m_model         {model}
-, m_viewManager   {viewManager}
-, m_undoStack     {undoStack}
+: ContextualMenu  (parent)
+, m_context       {context}
 , m_classification{nullptr}
 , m_segmentations {selection}
 {
@@ -68,7 +64,9 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
 DefaultContextualMenu::~DefaultContextualMenu()
 {
   if (m_classification)
+  {
     delete m_classification;
+  }
 }
 
 //------------------------------------------------------------------------
@@ -95,12 +93,14 @@ void DefaultContextualMenu::addNote()
 
   if (!commands.isEmpty())
   {
-    m_undoStack->beginMacro(tr("Add Notes"));
+    auto undoStack = m_context.undoStack();
+
+    undoStack->beginMacro(tr("Add Notes"));
     for (auto command : commands)
     {
-      m_undoStack->push(command);
+      undoStack->push(command);
     }
-    m_undoStack->endMacro();
+    undoStack->endMacro();
   }
 }
 
@@ -113,14 +113,12 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
    Q_ASSERT(isCategory(categoryItem));
    CategoryAdapterPtr categoryAdapter = categoryPtr(categoryItem);
 
-   m_undoStack->beginMacro(tr("Change Category"));
+   auto undoStack = m_context.undoStack();
+   undoStack->beginMacro(tr("Change Category"));
    {
-     m_undoStack->push(new ChangeCategoryCommand(m_segmentations,
-                                                 categoryAdapter,
-                                                 m_model,
-                                                 m_viewManager));
+     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, m_context.model()));
    }
-   m_undoStack->endMacro();
+   undoStack->endMacro();
 
    emit changeCategory(categoryAdapter);
 }
@@ -168,19 +166,21 @@ void DefaultContextualMenu::manageTags()
 
   if (!commands.isEmpty())
   {
-    m_undoStack->beginMacro(tr("Change Segmentation Tags"));
+    auto undoStack = m_context.undoStack();
+
+    undoStack->beginMacro(tr("Change Segmentation Tags"));
     for (auto command : commands)
     {
-      m_undoStack->push(command);
+      undoStack->push(command);
     }
-    m_undoStack->endMacro();
+    undoStack->endMacro();
   }
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::resetRootItem()
 {
-  m_classification->setRootIndex(m_model->classificationRoot());
+  m_classification->setRootIndex(m_context.model()->classificationRoot());
 }
 
 //------------------------------------------------------------------------
@@ -194,7 +194,7 @@ void DefaultContextualMenu::renameSegmentation()
     QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
 
     bool exists = false;
-    for (auto existinSegmentation : m_model->segmentations())
+    for (auto existinSegmentation : m_context.model()->segmentations())
     {
       exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
     }
@@ -212,9 +212,10 @@ void DefaultContextualMenu::renameSegmentation()
 
   if (renames.size() != 0)
   {
-    m_undoStack->beginMacro(QString("Rename segmentations"));
-    m_undoStack->push(new RenameSegmentationsCommand(renames));
-    m_undoStack->endMacro();
+    auto undoStack = m_context.undoStack();
+    undoStack->beginMacro(QString("Rename segmentations"));
+    undoStack->push(new RenameSegmentationsCommand(renames));
+    undoStack->endMacro();
   }
 }
 
@@ -223,9 +224,10 @@ void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
 
-  m_undoStack->beginMacro("Delete Segmentations");
-  m_undoStack->push(new RemoveSegmentations(m_segmentations, m_model));
-  m_undoStack->endMacro();
+  auto undoStack = m_context.undoStack();
+  undoStack->beginMacro("Delete Segmentations");
+  undoStack->push(new RemoveSegmentations(m_segmentations, m_context.model()));
+  undoStack->endMacro();
 
   emit deleteSegmentations();
 }
@@ -250,12 +252,14 @@ void DefaultContextualMenu::createChangeCategoryMenu()
    QMenu         *changeCategoryMenu = new QMenu(tr("Change Category"));
    QWidgetAction *categoryListAction = new QWidgetAction(changeCategoryMenu);
 
+   auto model = m_context.model();
+
    m_classification = new QTreeView();
    m_classification->header()->setVisible(false);
-   m_classification->setModel(m_model.get());
-   m_classification->setRootIndex(m_model->classificationRoot());
+   m_classification->setModel(model.get());
+   m_classification->setRootIndex(model->classificationRoot());
    m_classification->expandAll();
-   connect(m_model.get(), SIGNAL(modelReset()),
+   connect(model.get(), SIGNAL(modelReset()),
            this,          SLOT(resetRootItem()));
    connect(m_classification, SIGNAL(clicked(QModelIndex)),
            this, SLOT(changeSegmentationsCategory(QModelIndex)));
@@ -270,8 +274,9 @@ void DefaultContextualMenu::createTagsEntry()
 {
   QAction *tagsAction = addAction(tr("Tags"));
   tagsAction->setIcon(QIcon(":/espina/tag.svg"));
+
   connect(tagsAction, SIGNAL(triggered(bool)),
-          this, SLOT(manageTags()));
+          this,       SLOT(manageTags()));
 
 }
 
@@ -287,10 +292,16 @@ void DefaultContextualMenu::createRenameEntry()
 QString DefaultContextualMenu::dialogTitle() const
 {
   QString title = m_segmentations[0]->data().toString();
+
   if (m_segmentations.size() > 1)
+  {
     title.append(", " + m_segmentations[1]->data().toString());
+  }
+
   if (m_segmentations.size() > 2)
+  {
     title.append(", ...");
+  }
 
   return title;
 }

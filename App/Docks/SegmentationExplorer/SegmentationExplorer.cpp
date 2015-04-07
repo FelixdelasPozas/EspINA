@@ -68,7 +68,7 @@ SegmentationExplorer::SegmentationExplorer(const Support::Context &context,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category",    new ClassificationLayout(m_gui->view, m_context.model(), m_context.factory(), delegateFactory, nullptr, m_context.undoStack()));
+  addLayout("Category", new ClassificationLayout(m_gui->view, delegateFactory, m_context));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);

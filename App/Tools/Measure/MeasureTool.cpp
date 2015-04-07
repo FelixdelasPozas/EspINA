@@ -28,10 +28,10 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  MeasureTool::MeasureTool(ViewManagerSPtr vm)
-  : m_widget     {nullptr}
+  MeasureTool::MeasureTool(ViewStateSPtr viewState)
+  : m_viewState  {viewState}
+  , m_widget     {nullptr}
   , m_handler    {nullptr}
-  , m_viewManager{vm}
   , m_action     {new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
   {
     m_action->setCheckable(true);
@@ -69,18 +69,18 @@ namespace ESPINA
     {
       m_widget = EspinaWidgetSPtr(new MeasureWidget());
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
-      m_viewManager->setEventHandler(m_handler);
-      m_viewManager->addWidget(m_widget);
-      m_viewManager->setSelectionEnabled(false);
+      m_viewState->setEventHandler(m_handler);
+      // TODO URGENT m_viewManager->addWidget(m_widget);
+      //TODO m_viewState->setSelectionEnabled(false);
       m_widget->setEnabled(true);
     }
     else
     {
       m_widget->setEnabled(false);
-      m_viewManager->removeWidget(m_widget);
-      m_viewManager->unsetEventHandler(m_handler);
+      //TODO m_viewManager->removeWidget(m_widget);
+      m_viewState->unsetEventHandler(m_handler);
       m_handler = nullptr;
-      m_viewManager->setSelectionEnabled(true);
+      // TODO m_viewManager->setSelectionEnabled(true);
       m_widget = nullptr;
       emit stopMeasuring();
     }
@@ -95,4 +95,3 @@ namespace ESPINA
     }
   }
 }
-

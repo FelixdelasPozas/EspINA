@@ -29,7 +29,6 @@ qt4_wrap_cpp (ESPINA_MOC
   Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
-  Menus/RenderersMenu.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
   Settings/View2D/View2DSettingsPanel.h
@@ -120,7 +119,6 @@ set (ESPINA_SOURCES
   Menus/CamerasMenu.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
-  Menus/RenderersMenu.cpp
   RecentDocuments.cpp
   Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
