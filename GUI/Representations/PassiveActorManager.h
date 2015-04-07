@@ -17,8 +17,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_READY_ACTOR_MANAGER_H_
-#define ESPINA_READY_REPRESENTATION_MANAGER_H_
+#ifndef ESPINA_PASSIVE_ACTOR_MANAGER_H_
+#define ESPINA_PASSIVE_ACTOR_MANAGER_H_
 
 // ESPINA
 #include <Core/EspinaTypes.h>
@@ -26,14 +26,14 @@
 #include <GUI/Representations/RepresentationPipeline.h>
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Model/ViewItemAdapter.h>
-#include <GUI/Representations/RangedActorManager.h>
+#include <GUI/Representations/ActorManager.h>
 
 class vtkProp;
 
 namespace ESPINA
 {
-  class ReadyActorManager
-  : public RepresentationManager
+  class PassiveActorManager
+  : public ActorManager
   {
       Q_OBJECT
     public:
@@ -41,60 +41,39 @@ namespace ESPINA
        * \param[in] pool managed pool smart pointer.
        *
        */
-      ReadyActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews);
+      PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews);
 
       /** \brief VolumetricManager class virtual destructor.
        *
        */
-      virtual ~ReadyActorManager()
+      virtual ~PassiveActorManager()
       {};
 
-      virtual void display(TimeStamp time) override;
-
-      virtual PipelineStatus pipelineStatus() const;
-
       virtual TimeRange readyRange() const;
-
-      virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
     private:
-      /** \brief Displays/Replaces the current actors in the view.
-       *
-       */
-      void displayActors();
+      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-      /** \brief Removes all actors from the view.
-       *
-       */
-      void removeActors();
+      virtual RepresentationPipeline::Actors actors(TimeStamp t);
 
-      /** \brief Returns the pool's last valid Timestamp.
-       *
-       */
-      TimeStamp lastValidTimeStamp() const;
-
-      virtual void onShow() override;
-
-      virtual void onHide() override;
-
-      virtual bool hasSources() const;
-
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
+      virtual void invalidatePreviousActors(TimeStamp t);
 
       virtual void connectPools();
 
       virtual void disconnectPools();
 
+      virtual void displayActors(const TimeStamp t);
+
       virtual RepresentationManagerSPtr cloneImplementation();
 
+      QSet<vtkProp *> toSet(const RepresentationPipeline::ActorList &list) const;
+
     private:
-      RepresentationPoolSPtr         m_pool;
-      bool                           m_init;
-      RepresentationPipeline::Actors m_actors;
+      RepresentationPoolSPtr m_pool;
   };
 
 } // namespace ESPINA
 
-#endif // ESPINA_READY_REPRESENTATION_MANAGER_H_
+#endif // ESPINA_PASSIVE_ACTOR_MANAGER_H_

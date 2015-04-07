@@ -32,7 +32,7 @@ namespace ESPINA
   public:
     explicit BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
-    virtual void setResolution(const NmVector3 &resolution);
+    virtual void setResolution(const NmVector3 &resolution, TimeStamp t);
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 

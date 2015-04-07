@@ -33,8 +33,9 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::setResolution(const NmVector3 &resolution)
+  void BasicRepresentationPool::setResolution(const NmVector3 &resolution, TimeStamp t)
   {
+
   }
 
   //-----------------------------------------------------------------------------

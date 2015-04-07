@@ -31,6 +31,10 @@ ViewState::ViewState(CoordinateSystemSPtr coordinateSystem,
 , m_fitToSlices{true}
 , m_selection{new Selection()}
 {
+  connect(m_coordinateSystem.get(), SIGNAL(resolutionChanged(NmVector3)),
+          this,                     SLOT(onResolutionChanged(NmVector3)));
+  connect(m_coordinateSystem.get(), SIGNAL(boundsChanged(Bounds)),
+          this,                     SLOT(onBoundsChanged(Bounds)));
 }
 
 
@@ -168,6 +172,22 @@ void ViewState::changeCrosshair(const NmVector3 &point)
 
     emit crosshairChanged(point, time);
   }
+}
+
+//-----------------------------------------------------------------------------
+void ViewState::onResolutionChanged(const NmVector3 &resolution)
+{
+  auto t = m_timer->increment();
+
+  emit sceneResolutionChanged(resolution, t);
+}
+
+//-----------------------------------------------------------------------------
+void ViewState::onBoundsChanged(const Bounds &bounds)
+{
+  auto t = m_timer->increment();
+
+  emit sceneBoundsChanged(bounds, t);
 }
 
 //-----------------------------------------------------------------------------

@@ -29,10 +29,10 @@ using namespace ESPINA;
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 : m_view{nullptr}
 , m_showRepresentations{false}
-, m_requiresRender{false}
+, m_status{Status::IDLE}
 , m_supportedViews{supportedViews}
-, m_lastRequestTime{1}
-, m_lastRenderRequestTime{0}
+, m_lastRequestTime{Timer::INVALID_TIME_STAMP}
+, m_lastRenderRequestTime{Timer::INVALID_TIME_STAMP}
 {
 }
 
@@ -77,11 +77,16 @@ void RepresentationManager::setView(RenderView *view)
 {
   m_view = view;
 
+  auto t = view->timeStamp();
+
+  onSceneResolutionChanged(view->sceneResolution(), t);
+  onSceneBoundsChanged(view->sceneBounds(), t);
+
   if (m_showRepresentations)
   {
     onShow();
 
-    m_lastRequestTime = m_view->timeStamp();
+    m_lastRequestTime = t;
 
     setCrosshair(m_crosshair, m_lastRequestTime);
 
@@ -104,7 +109,7 @@ void RepresentationManager::show()
     onShow();
 
     m_lastRequestTime = m_view->timeStamp();
-   
+
     setCrosshair(m_crosshair, m_lastRequestTime);
 
     emit renderRequested();
@@ -136,9 +141,23 @@ bool RepresentationManager::isActive()
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationManager::requiresRender() const
+RepresentationManager::Status RepresentationManager::status() const
 {
-  return m_requiresRender;
+  return m_status;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::display(TimeStamp t)
+{
+  if (m_view)
+  {
+    displayImplementation(t);
+  }
+
+  if (!hasNewerFrames(t))
+  {
+    m_status = Status::IDLE;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -184,12 +203,6 @@ void RepresentationManager::setRepresentationsVisibility(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::setRenderRequired(bool value)
-{
-  m_requiresRender = value;
-}
-
-//-----------------------------------------------------------------------------
 bool RepresentationManager::representationsShown() const
 {
   return m_showRepresentations;
@@ -200,7 +213,6 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
 {
   if(time > m_lastRenderRequestTime)
   {
-    m_requiresRender        = true;
     m_lastRenderRequestTime = time;
 
     emit renderRequested();
@@ -211,4 +223,16 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
 void RepresentationManager::invalidateRepresentations()
 {
   m_lastRenderRequestTime = 0;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::waitForDisplay()
+{
+  m_status = Status::PENDING_DISPLAY;
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::hasNewerFrames(TimeStamp t) const
+{
+  return t < m_lastRenderRequestTime;
 }

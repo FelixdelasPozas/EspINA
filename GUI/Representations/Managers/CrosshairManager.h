@@ -50,18 +50,18 @@ namespace ESPINA
       virtual ~CrosshairManager()
       {};
 
-      virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
-
-      virtual PipelineStatus pipelineStatus() const;
-
       virtual TimeRange readyRange() const;
-
-      virtual void display(TimeStamp time);
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
     private:
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time);
+      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
+
+      virtual void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+
+      virtual void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
+
+      virtual void displayImplementation(TimeStamp t);
 
       virtual void onShow();
 

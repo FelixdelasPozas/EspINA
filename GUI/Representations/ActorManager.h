@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_RANGED_ACTOR_MANAGER_H
-#define ESPINA_RANGED_ACTOR_MANAGER_H
+#ifndef ESPINA_ACTOR_MANAGER_H
+#define ESPINA_ACTOR_MANAGER_H
 
 #include "RepresentationManager.h"
 #include "GUI/EspinaGUI_Export.h"
@@ -38,7 +38,7 @@ namespace ESPINA
 {
   class RenderView;
 
-  class EspinaGUI_EXPORT RangedActorManager
+  class EspinaGUI_EXPORT ActorManager
   : public RepresentationManager
   {
     Q_OBJECT
@@ -46,32 +46,27 @@ namespace ESPINA
     /** \brief RangedActorManager class virtual destructor.
      *
      */
-    virtual ~RangedActorManager()
+    virtual ~ActorManager()
     {}
-
-    /** \brief Updates view's actors with those available at the given time.
-     *
-     */
-    virtual void display(TimeStamp time);
 
   protected:
     /** \brief RangedActorManager class protected constructor.
      * \param[in] supportedViews flags of the views supported by the manager.
      */
-    explicit RangedActorManager(ViewTypeFlags supportedViews);
+    explicit ActorManager(ViewTypeFlags supportedViews);
 
     bool hasActorsInDisplay() const;
 
   private:
-    virtual bool hasSources() const = 0;
+    virtual void displayImplementation(TimeStamp t) override final;
 
-    virtual void onHide();
+    virtual void onHide() override;
 
-    virtual void onShow();
+    virtual void onShow() override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp time) = 0;
+    virtual RepresentationPipeline::Actors actors(TimeStamp t) = 0;
 
-    virtual void invalidatePreviousActors(TimeStamp time) = 0;
+    virtual void invalidatePreviousActors(TimeStamp t) = 0;
 
     virtual void connectPools() = 0;
 
@@ -79,16 +74,14 @@ namespace ESPINA
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
-    void updateRenderRequestValue();
-
-    void displayActors(const TimeStamp time);
+    virtual void displayActors(const TimeStamp t);
 
     void removeCurrentActors();
 
-  private:
+  protected:
     RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view
   };
 
 }// namespace ESPINA
 
-#endif // ESPINA_RANGED_ACTOR_MANAGER_H
+#endif // ESPINA_ACTOR_MANAGER_H

@@ -66,6 +66,11 @@ namespace ESPINA
        */
       TimeStamp reset();
 
+      /** \brief Check if timestamp t is valid or not
+       *
+       */
+      static bool isValid(TimeStamp t);
+
     signals:
       void reset(TimeStamp time);
       void tic(TimeStamp time);

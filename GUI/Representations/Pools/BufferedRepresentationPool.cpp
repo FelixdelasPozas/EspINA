@@ -32,14 +32,13 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 , m_init{false}
 , m_normalRes{1}
 , m_hasChanged{false}
-, m_changedTimeStamp{0}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
 }
 
 //-----------------------------------------------------------------------------
-void BufferedRepresentationPool::setResolution(const NmVector3 &resolution)
+void BufferedRepresentationPool::setResolution(const NmVector3 &resolution, TimeStamp t)
 {
   auto normalRes = resolution[m_normalIdx];
 
@@ -51,7 +50,9 @@ void BufferedRepresentationPool::setResolution(const NmVector3 &resolution)
     {
       m_hasChanged = true;
 
-      auto invalidated = updateBuffer(m_crosshair, invalidationShift(), m_changedTimeStamp);
+      emit poolUpdated(t);
+
+      auto invalidated = updateBuffer(m_crosshair, invalidationShift(), t);
 
       updatePipelines(invalidated);
     }
@@ -81,12 +82,12 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &poi
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
-  m_init = true;
+  m_init       = true;
+  m_hasChanged = shift != 0;
 
-  if (t > m_changedTimeStamp)
+  if (m_hasChanged)
   {
-    m_hasChanged       = shift != 0;
-    m_changedTimeStamp = t;
+    emit poolUpdated(t);
   }
 
   auto invalidated = updateBuffer(point, shift, t);

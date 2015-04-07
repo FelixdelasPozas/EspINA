@@ -32,8 +32,6 @@ namespace ESPINA
 
     virtual void setResolution(const NmVector3 &resolution);
 
-    virtual PipelineStatus pipelineStatus() const;
-
     virtual TimeRange readyRange() const;
 
     virtual void display(TimeStamp time);

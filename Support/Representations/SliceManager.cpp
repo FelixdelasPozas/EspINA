@@ -27,18 +27,12 @@ using namespace ESPINA;
 SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
                            RepresentationPoolSPtr poolXZ,
                            RepresentationPoolSPtr poolYZ)
-: RangedActorManager(ViewType::VIEW_2D)
+: ActorManager(ViewType::VIEW_2D)
 , m_plane{Plane::UNDEFINED}
 , m_XY{poolXY}
 , m_XZ{poolXZ}
 , m_YZ{poolYZ}
 {
-}
-
-//----------------------------------------------------------------------------
-RepresentationManager::PipelineStatus SliceManager::pipelineStatus() const
-{
-  return PipelineStatus::RANGE_DEPENDENT;
 }
 
 //----------------------------------------------------------------------------
@@ -52,15 +46,6 @@ TimeRange SliceManager::readyRange() const
   }
 
   return range;
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
-{
-  if (validPlane())
-  {
-    planePool()->setResolution(system->resolution());
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -99,24 +84,20 @@ ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) co
 }
 
 //----------------------------------------------------------------------------
-bool SliceManager::hasSources() const
-{
-  bool result = false;
-
-  if (validPlane())
-  {
-    result = planePool()->hasSources();
-  }
-
-  return result;
-}
-
-//----------------------------------------------------------------------------
 void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   if (validPlane())
   {
     planePool()->setCrosshair(crosshair, time);
+  }
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
+{
+  if (validPlane())
+  {
+    planePool()->setResolution(resolution, t);
   }
 }
 
@@ -147,6 +128,9 @@ void SliceManager::connectPools()
 {
   if (validPlane())
   {
+    connect(planePool().get(), SIGNAL(poolUpdated(TimeStamp)),
+            this,              SLOT(waitForDisplay()));
+
     connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
             this,              SLOT(emitRenderRequest(TimeStamp)));
 
@@ -162,8 +146,12 @@ void SliceManager::disconnectPools()
 {
   if (validPlane())
   {
+    disconnect(planePool().get(), SIGNAL(poolUpdated(TimeStamp)),
+               this,              SLOT(waitForDisplay()));
+
     disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
                this,              SLOT(emitRenderRequest(TimeStamp)));
+
     disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
                this,              SLOT(invalidateRepresentations()));
 

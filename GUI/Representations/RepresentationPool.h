@@ -77,7 +77,7 @@ namespace ESPINA
     /** \brief Sets the resolution to be used for its representations
      *
      */
-    virtual void setResolution(const NmVector3 &resolution) = 0;
+    virtual void setResolution(const NmVector3 &resolution, TimeStamp t) = 0;
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
 

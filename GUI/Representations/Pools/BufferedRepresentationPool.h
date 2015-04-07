@@ -39,7 +39,7 @@ namespace ESPINA
                                         SchedulerSPtr              scheduler,
                                         unsigned                   windowSize);
 
-    virtual void setResolution(const NmVector3 &resolution) override;
+    virtual void setResolution(const NmVector3 &resolution, TimeStamp t) override;
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
@@ -87,7 +87,6 @@ namespace ESPINA
     NmVector3 m_crosshair;
 
     bool      m_hasChanged;
-    TimeStamp m_changedTimeStamp;
   };
 }
 

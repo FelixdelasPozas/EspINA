@@ -18,7 +18,7 @@
 */
 
 // ESPINA
-#include <GUI/Representations/RangedActorManager.h>
+#include <GUI/Representations/ActorManager.h>
 #include <GUI/View/RenderView.h>
 
 #include <vtkProp.h>
@@ -26,70 +26,60 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RangedActorManager::RangedActorManager(ViewTypeFlags supportedViews)
+ActorManager::ActorManager(ViewTypeFlags supportedViews)
 : RepresentationManager{supportedViews}
 {
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::display(TimeStamp time)
+void ActorManager::displayImplementation(TimeStamp t)
 {
-  if (m_view)
+  if (representationsShown())
+  {
+    displayActors(t);
+  }
+  else
   {
     removeCurrentActors();
-
-    m_viewActors.clear();
-
-    if (representationsShown())
-    {
-      displayActors(time);
-    }
-
-    invalidatePreviousActors(time);
-
-    updateRenderRequestValue();
   }
+
+  invalidatePreviousActors(t);
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::onShow()
+void ActorManager::onShow()
 {
-  updateRenderRequestValue();
-
   connectPools();
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::onHide()
+void ActorManager::onHide()
 {
   disconnectPools();
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::updateRenderRequestValue()
+void ActorManager::displayActors(const TimeStamp time)
 {
-  setRenderRequired(representationsShown() && hasSources());
-}
+  removeCurrentActors();
 
-//-----------------------------------------------------------------------------
-void RangedActorManager::displayActors(const TimeStamp time)
-{
-  if(readyRange().empty()) return;
-
-  auto currentActors = actors(time);
-
-  for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
+  if (representationsShown())
   {
-    for (auto actor : it.value())
+    auto currentActors = actors(time);
+
+    for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
     {
-      m_view->addActor(actor);
-      m_viewActors[it.key()] << actor;
+      for (auto actor : it.value())
+      {
+        m_view->addActor(actor);
+        m_viewActors[it.key()] << actor;
+      }
     }
   }
 }
 
 //-----------------------------------------------------------------------------
-void RangedActorManager::removeCurrentActors()
+void ActorManager::removeCurrentActors()
 {
   for (auto itemActors : m_viewActors)
   {
@@ -98,4 +88,6 @@ void RangedActorManager::removeCurrentActors()
       m_view->removeActor(actor);
     }
   }
+
+  m_viewActors.clear();
 }

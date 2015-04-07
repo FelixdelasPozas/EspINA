@@ -22,12 +22,12 @@
 
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Representations/RangedActorManager.h>
+#include <GUI/Representations/ActorManager.h>
 
 namespace ESPINA
 {
   class SliceManager
-  : public RangedActorManager
+  : public ActorManager
   , public RepresentationManager2D
   {
   public:
@@ -35,11 +35,7 @@ namespace ESPINA
                  RepresentationPoolSPtr poolXZ,
                  RepresentationPoolSPtr poolYZ);
 
-    virtual PipelineStatus pipelineStatus() const;
-
     virtual TimeRange readyRange() const;
-
-    virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
 
     virtual void setPlane(Plane plane);
 
@@ -48,9 +44,9 @@ namespace ESPINA
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
   private:
-    virtual bool hasSources() const override;
-
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
+
+    virtual void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
 
     virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
 

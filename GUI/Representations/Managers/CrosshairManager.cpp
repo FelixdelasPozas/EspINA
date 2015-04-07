@@ -69,60 +69,10 @@ namespace ESPINA
   }
   
   //-----------------------------------------------------------------------------
-  void CrosshairManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
-  {
-
-  }
-
-  //-----------------------------------------------------------------------------
-  RepresentationManager::PipelineStatus CrosshairManager::pipelineStatus() const
-  {
-    return PipelineStatus::READY;
-  }
-
-  //-----------------------------------------------------------------------------
   TimeRange CrosshairManager::readyRange() const
   {
     Q_ASSERT(false);
     return TimeRange();
-  }
-
-  //-----------------------------------------------------------------------------
-  void CrosshairManager::display(TimeStamp time)
-  {
-    bool needsRender = (representationsShown() && !m_actorsInUse) || (!representationsShown() && m_actorsInUse);
-
-    if (representationsShown())
-    {
-      if(m_view->crosshair() != m_crosshair || !m_init)
-      {
-        setCrosshair(m_view->crosshair(), time);
-      }
-
-      if (!m_actorsInUse)
-      {
-        for (auto i : { 0, 1, 2 })
-        {
-          m_view->addActor(m_actors[i]);
-        }
-
-        m_actorsInUse = true;
-      }
-    }
-    else
-    {
-      if (m_actorsInUse)
-      {
-        for (auto i : { 0, 1, 2 })
-        {
-          m_view->removeActor(m_actors[i]);
-        }
-
-        m_actorsInUse = false;
-      }
-    }
-
-    setRenderRequired(requiresRender() || needsRender);
   }
 
   //-----------------------------------------------------------------------------
@@ -152,6 +102,18 @@ namespace ESPINA
       emitRenderRequest(time);
     }
   }
+  //-----------------------------------------------------------------------------
+  void CrosshairManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
+  {
+    ESPINA::RepresentationManager::onSceneResolutionChanged(resolution, t);
+  }
+
+  //-----------------------------------------------------------------------------
+  void CrosshairManager::onSceneBoundsChanged(const Bounds &bounds, TimeStamp t)
+  {
+    ESPINA::RepresentationManager::onSceneBoundsChanged(bounds, t);
+  }
+
 
   //-----------------------------------------------------------------------------
   void CrosshairManager::onShow()
@@ -302,6 +264,44 @@ namespace ESPINA
     m_datas[index]->Modified();
     m_mappers[index]->Update();
     m_actors[index]->Modified();
+  }
+
+  //-----------------------------------------------------------------------------
+  void CrosshairManager::displayImplementation(TimeStamp time)
+  {
+    bool needsRender = (representationsShown() && !m_actorsInUse) || (!representationsShown() && m_actorsInUse);
+
+    if (representationsShown())
+    {
+      if(m_view->crosshair() != m_crosshair || !m_init)
+      {
+        setCrosshair(m_view->crosshair(), time);
+      }
+
+      if (!m_actorsInUse)
+      {
+        for (auto i : { 0, 1, 2 })
+        {
+          m_view->addActor(m_actors[i]);
+        }
+
+        m_actorsInUse = true;
+      }
+    }
+    else
+    {
+      if (m_actorsInUse)
+      {
+        for (auto i : { 0, 1, 2 })
+        {
+          m_view->removeActor(m_actors[i]);
+        }
+
+        m_actorsInUse = false;
+      }
+    }
+
+    //TODO setRenderRequired(requiresRender() || needsRender);
   }
 
 } // namespace ESPINA

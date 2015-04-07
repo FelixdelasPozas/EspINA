@@ -210,8 +210,6 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
     {
       m_validActors.reusePreviousValue(t);
     }
-
-    emit poolUpdated(t);
   }
 }
 

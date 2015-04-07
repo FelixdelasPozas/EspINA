@@ -32,7 +32,7 @@
 #include <GUI/Representations/Pools/BasicRepresentationPool.h>
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
-#include <GUI/Representations/ReadyActorManager.h>
+#include <GUI/Representations/PassiveActorManager.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -148,7 +148,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
 
   auto pipelineSkeleton3D   = std::make_shared<SegmentationSkeleton3DPipeline>(colorEngine);
   auto poolSkeleton3D       = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineSkeleton3D);
-  auto skeletonManager3D    = std::make_shared<ReadyActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
+  auto skeletonManager3D    = std::make_shared<PassiveActorManager>(poolSkeleton3D, ViewType::VIEW_3D);
   auto skeletonSwitch3D     = std::make_shared<BasicRepresentationSwitch>(skeletonManager3D, ViewType::VIEW_3D);
 
   configurePool(poolSkeleton2DXY, colorEngine, skeletonSettings);
@@ -174,12 +174,12 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
   auto volumetricSettings   = std::make_shared<RepresentationPool::Settings>();
   auto pipelineVolumeCPU    = std::make_shared<SegmentationVolumetricCPUPipeline>(colorEngine);
   auto poolVolumetricCPU    = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolumeCPU);
-  auto volumetricCPUManager = std::make_shared<ReadyActorManager>(poolVolumetricCPU, ViewType::VIEW_3D);
+  auto volumetricCPUManager = std::make_shared<PassiveActorManager>(poolVolumetricCPU, ViewType::VIEW_3D);
   auto volumetricCPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricCPUManager, ViewType::VIEW_3D);
 
   auto pipelineVolumeGPU    = std::make_shared<SegmentationVolumetricGPUPipeline>(colorEngine);
   auto poolVolumetricGPU    = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineVolumeGPU);
-  auto volumetricGPUManager = std::make_shared<ReadyActorManager>(poolVolumetricGPU, ViewType::VIEW_3D);
+  auto volumetricGPUManager = std::make_shared<PassiveActorManager>(poolVolumetricGPU, ViewType::VIEW_3D);
   auto volumetricGPUSwitch  = std::make_shared<BasicRepresentationSwitch>(volumetricGPUManager, ViewType::VIEW_3D);
 
   configurePool(poolVolumetricCPU, colorEngine, volumetricSettings);
@@ -203,12 +203,12 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineMesh);
-  auto meshManager    = std::make_shared<ReadyActorManager>(poolMesh, ViewType::VIEW_3D);
+  auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D);
   auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>(meshManager, ViewType::VIEW_3D);
 
   auto pipelineSmoothedMesh = std::make_shared<SegmentationSmoothedMeshPipeline>(colorEngine);
   auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool>(m_scheduler, pipelineSmoothedMesh);
-  auto smoothedMeshManager  = std::make_shared<ReadyActorManager>(poolSmoothedMesh, ViewType::VIEW_3D);
+  auto smoothedMeshManager  = std::make_shared<PassiveActorManager>(poolSmoothedMesh, ViewType::VIEW_3D);
   auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>(smoothedMeshManager, ViewType::VIEW_3D);
 
   configurePool(poolMesh, colorEngine, meshesSettings);

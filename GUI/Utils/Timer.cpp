@@ -60,3 +60,9 @@ TimeStamp Timer::reset()
 
   return m_timeStamp;
 }
+
+//------------------------------------------------------------------------
+bool Timer::isValid(TimeStamp t)
+{
+  return t != INVALID_TIME_STAMP;
+}

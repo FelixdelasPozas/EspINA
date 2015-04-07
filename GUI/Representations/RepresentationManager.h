@@ -48,7 +48,10 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    enum class PipelineStatus: int8_t { NOT_READY = 1, READY = 2, RANGE_DEPENDENT = 3 };
+    enum class Status: int8_t {
+      IDLE,
+      PENDING_DISPLAY
+    };
 
   public:
     virtual ~RepresentationManager()
@@ -92,11 +95,6 @@ namespace ESPINA
     ViewTypeFlags supportedViews() const
     { return m_supportedViews; }
 
-    /** \brief Specify the resolution of the view
-     *
-     */
-    virtual void setResolution(const GUI::View::CoordinateSystemSPtr system) = 0;
-
     /** \brief Returns if managed representations are visible or not
      *
      */
@@ -118,12 +116,10 @@ namespace ESPINA
      */
     bool isActive();
 
-    bool requiresRender() const;
-
-    /** \brief Returns the status of its pipelines.
+    /** \brief Returns the status of the manager
      *
      */
-    virtual PipelineStatus pipelineStatus() const = 0;
+    Status status() const;
 
     /** \brief Returns the range of ready pipelines.
      *
@@ -133,7 +129,7 @@ namespace ESPINA
     /** \brief Updates view's actors with those available at the given time.
      *
      */
-    virtual void display(TimeStamp time) = 0;
+    void display(TimeStamp t);
 
     /** \brief Returns the item picked
      *
@@ -146,7 +142,12 @@ namespace ESPINA
     RepresentationManagerSPtr clone();
 
   public slots:
-    void onCrosshairChanged(NmVector3 crosshair, TimeStamp time);
+    void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);
+
+    virtual void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t) {}
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t) {}
+
 
     /** \brief Set representations visibility
      *
@@ -157,25 +158,29 @@ namespace ESPINA
     void renderRequested();
 
   protected slots:
-    void emitRenderRequest(TimeStamp time);
+    void emitRenderRequest(TimeStamp t);
 
     void invalidateRepresentations();
+
+    void waitForDisplay();
 
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
-    void setRenderRequired(bool value);
-
     bool representationsShown() const;
 
   private:
-    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
+    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) = 0;
+
+    virtual void displayImplementation(TimeStamp t) = 0;
 
     virtual void onShow() = 0;
 
     virtual void onHide() = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
+
+    bool hasNewerFrames(TimeStamp t) const;
 
   protected:
     RenderView *m_view;
@@ -185,7 +190,7 @@ namespace ESPINA
     QIcon   m_icon;
     QString m_description;
     bool    m_showRepresentations;
-    bool    m_requiresRender;
+    Status  m_status;
 
     ViewTypeFlags m_supportedViews;
     NmVector3     m_crosshair;
@@ -206,6 +211,7 @@ namespace ESPINA
     {};
 
     virtual void setPlane(Plane plane) = 0;
+
     virtual void setRepresentationDepth(Nm depth) = 0;
   };
 

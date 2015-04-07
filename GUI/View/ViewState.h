@@ -46,7 +46,7 @@ namespace ESPINA
      *
      */
     explicit ViewState(GUI::View::CoordinateSystemSPtr coordinateSystem = std::make_shared<GUI::View::CoordinateSystem>(),
-                       TimerSPtr timer = std::make_shared<Timer>(1));
+                       TimerSPtr timer = std::make_shared<Timer>());
 
     TimeStamp timeStamp() const;
 
@@ -119,7 +119,11 @@ namespace ESPINA
     void setCrosshairPlane(const Plane plane, const Nm position);
 
   signals:
-    void crosshairChanged(NmVector3 point, TimeStamp time);
+    void crosshairChanged(const NmVector3 &point, TimeStamp t);
+
+    void sceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+
+    void sceneBoundsChanged(const Bounds &bounds, TimeStamp t);
 
     void viewFocusedOn(NmVector3);
 
@@ -133,6 +137,11 @@ namespace ESPINA
     NmVector3 voxelCenter(const NmVector3 &point) const;
 
     void changeCrosshair(const NmVector3 &point);
+
+  private slots:
+    void onResolutionChanged(const NmVector3 &resolution);
+
+    void onBoundsChanged(const Bounds &bounds);
 
   private:
     TimerSPtr m_timer;

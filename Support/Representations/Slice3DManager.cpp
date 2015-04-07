@@ -27,7 +27,7 @@ using namespace std;
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
                                RepresentationPoolSPtr poolXZ,
                                RepresentationPoolSPtr poolYZ)
-: RangedActorManager(ViewType::VIEW_3D)
+: ActorManager(ViewType::VIEW_3D)
 {
   m_pools << poolXY << poolXZ << poolYZ;
 }
@@ -35,12 +35,6 @@ Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
 //----------------------------------------------------------------------------
 Slice3DManager::~Slice3DManager()
 {
-}
-
-//----------------------------------------------------------------------------
-RepresentationManager::PipelineStatus Slice3DManager::pipelineStatus() const
-{
-  return PipelineStatus::RANGE_DEPENDENT;
 }
 
 //----------------------------------------------------------------------------
@@ -69,15 +63,6 @@ TimeRange Slice3DManager::readyRange() const
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::setResolution(const GUI::View::CoordinateSystemSPtr system)
-{
-  for (auto pool : m_pools)
-  {
-    pool->setResolution(system->resolution());
-  }
-}
-
-//----------------------------------------------------------------------------
 ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
   ViewItemAdapterPtr pickedItem = nullptr;
@@ -94,24 +79,20 @@ ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) 
 }
 
 //----------------------------------------------------------------------------
-bool Slice3DManager::hasSources() const
-{
-  bool result = true;
-
-  for (auto pool : m_pools)
-  {
-    result &= pool->hasSources();
-  }
-
-  return result;
-}
-
-//----------------------------------------------------------------------------
 void Slice3DManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   for (auto pool : m_pools)
   {
     pool->setCrosshair(crosshair, time);
+  }
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
+{
+  for (auto pool : m_pools)
+  {
+    pool->setResolution(resolution, t);
   }
 }
 
@@ -148,7 +129,11 @@ void Slice3DManager::connectPools()
   for (auto pool : m_pools)
   {
     connect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
+            this,       SLOT(waitForDisplay()));
+
+    connect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
             this,       SLOT(checkRenderRequest()));
+
     connect(pool.get(), SIGNAL(actorsInvalidated()),
             this,       SLOT(invalidateRepresentations()));
 
@@ -162,7 +147,11 @@ void Slice3DManager::disconnectPools()
   for (auto pool : m_pools)
   {
     disconnect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
+               this,       SLOT(waitForDisplay()));
+
+    disconnect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
                this,       SLOT(checkRenderRequest()));
+
     disconnect(pool.get(), SIGNAL(actorsInvalidated()),
                this,       SLOT(invalidateRepresentations()));
 

@@ -26,12 +26,6 @@ void WidgetManager::setResolution(const NmVector3 &resolution)
 }
 
 //------------------------------------------------------------------------
-RepresentationManager::PipelineStatus WidgetManager::pipelineStatus() const
-{
-  return PipelineStatus::READY;
-}
-
-//------------------------------------------------------------------------
 TimeRange WidgetManager::readyRange() const
 {
   return TimeRange();

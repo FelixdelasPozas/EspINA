@@ -266,26 +266,33 @@ namespace ESPINA
 
     void connectSignals();
 
+    RepresentationManagerSList managers(RepresentationManager::Status status) const;
+
+    TimeStamp latestReadyTimeStamp(RepresentationManagerSList managers) const;
+
+    void display(RepresentationManagerSList managers, TimeStamp t);
+
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;
 
     virtual void moveCamera(const NmVector3 &point) = 0;
 
-    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion) = 0;
+    virtual void onSceneResolutionChanged(const NmVector3 &resolution) = 0;
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
 
     void onRenderRequest();
 
   protected:
-    ContextualMenuSPtr m_contextMenu;
-    QVTKWidget   *m_view; // TODO: make private
+    ContextualMenuSPtr         m_contextMenu;
+    QVTKWidget                *m_view; // TODO: make private
     RepresentationManagerSList m_managers;
 
   private:
     ViewStateSPtr m_state;
     ViewType      m_type;
     bool          m_requiresCameraReset;
+    TimeStamp     m_lastRender;
 
   };
 

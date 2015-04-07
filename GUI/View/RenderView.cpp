@@ -50,9 +50,11 @@ using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 RenderView::RenderView(ViewStateSPtr state, ViewType type)
-: m_state{state}
+: m_view {new QVTKWidget()}
+, m_state{state}
 , m_type {type}
-, m_view {new QVTKWidget()}
+, m_requiresCameraReset{true}
+, m_lastRender{Timer::INVALID_TIME_STAMP}
 {
   connectSignals();
 }
@@ -72,15 +74,19 @@ TimeStamp RenderView::timeStamp() const
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
-  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-          manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
+  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
+          manager.get(), SLOT(onCrosshairChanged(NmVector3,TimeStamp)));
+
+  connect(m_state.get(), SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+          manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
+
+  connect(m_state.get(), SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
+          manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
 
   connect(manager.get(), SIGNAL(renderRequested()),
-          this,          SLOT(onRenderRequest()));
+          this,          SLOT(onRenderRequest()), Qt::QueuedConnection);
 
   configureManager(manager);
-
-  manager->setResolution(m_state->coordinateSystem());
 
   manager->setView(this);
 
@@ -92,11 +98,17 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 {
   if (m_managers.removeOne(manager))
   {
-    disconnect(manager.get(), SIGNAL(renderRequested()),
-               this,          SLOT(onRenderRequest()));
-
     disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
                manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
+
+    disconnect(m_state.get(), SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+               manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
+
+    disconnect(m_state.get(), SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
+               manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
+
+    disconnect(manager.get(), SIGNAL(renderRequested()),
+               this,          SLOT(onRenderRequest()));
   }
 }
 
@@ -297,12 +309,6 @@ void RenderView::refresh()
 //-----------------------------------------------------------------------------
 void RenderView::connectSignals()
 {
-  connect (m_state->coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
-           this,                              SLOT(onSceneResolutionChanged(NmVector3)));
-
-  connect (m_state->coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
-           this,                              SLOT(onSceneBoundsChanged(Bounds)));
-
   connect(this,          SIGNAL(crosshairChanged(NmVector3)),
           m_state.get(), SLOT(setCrosshair(NmVector3)));
 
@@ -318,115 +324,45 @@ void RenderView::connectSignals()
   connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
           this,          SLOT(onCrosshairChanged(NmVector3)));
 
+  connect (m_state.get(), SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+           this,          SLOT(onSceneResolutionChanged(NmVector3)));
+
   connect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
           this,          SLOT(moveCamera(NmVector3)));
 
-  for(auto manager: m_managers)
-  {
-    connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-            manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
-  }
+  connect (m_state->coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
+           this,                              SLOT(onSceneBoundsChanged(Bounds)));
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-  QMap<TimeStamp, int> count;
+  auto readyManagers     = managers(RepresentationManager::Status::PENDING_DISPLAY);
+  auto renderTime        = latestReadyTimeStamp(readyManagers);
 
-  int readyManagers  = 0;
-  int activeManagers = 0;
-
-  RepresentationManagerSList pendingRenderManagers;
-
-  for(auto manager: m_managers)
+  if (m_lastRender < renderTime)
   {
-    if (manager->requiresRender())
-    {
-      pendingRenderManagers << manager;
+    display(readyManagers,  renderTime);
 
-      switch(manager->pipelineStatus())
-      {
-        case RepresentationManager::PipelineStatus::NOT_READY:
-          return;
-        case RepresentationManager::PipelineStatus::READY:
-          ++readyManagers;
-          break;
-        case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
-          for(auto timeStamp: manager->readyRange())
-          {
-            count[timeStamp] = count.value(timeStamp, 0) + 1;
-          }
-          break;
-        default:
-          break;
-      }
+    // update actions
+    qDebug() << "Update actors:" << renderTime;
+
+    m_lastRender = renderTime;
+
+    if (requiresCameraReset())
+    {
+      resetCameraImplementation();
+      qDebug() << "Reset camera:" << renderTime;
+
+      m_requiresCameraReset = false;
     }
 
-    if(manager->isActive())
-    {
-      ++activeManagers;
-    }
+    refreshViewImplementation();
+
+    mainRenderer()->ResetCameraClippingRange();
+    renderWindow()->Render();
+    m_view->update();
   }
-
-  auto renderRequests = pendingRenderManagers.size();
-
-  if(renderRequests == 0) return;
-
-  TimeStamp latest;
-  bool validTimeStamp = false;
-
-  if(readyManagers != renderRequests)
-  {
-    for(auto time: count.keys())
-    {
-      if(count[time]+readyManagers == renderRequests)
-      {
-        if(!validTimeStamp || time > latest)
-        {
-          latest = time;
-          validTimeStamp  = true;
-        }
-      }
-    }
-
-    if(!validTimeStamp) // happens
-    {
-      latest = m_state->timeStamp();
-    }
-  }
-  else
-  {
-    latest = m_state->timeStamp();
-  }
-
-  for(auto manager: pendingRenderManagers)
-  {
-    if(manager->pipelineStatus() == RepresentationManager::PipelineStatus::READY || manager->readyRange().contains(latest))
-    {
-      manager->display(latest);
-    }
-  }
-
-  qDebug() << "Latest frame:" << latest;
-  if (requiresCameraReset())
-  {
-    resetCameraImplementation();
-
-    m_requiresCameraReset = false;
-  }
-
-//   if (activeManagers > 0 && !m_sceneCameraInitialized)
-//   {
-//     resetCamera();
-//   }
-//
-//   m_sceneCameraInitialized = (activeManagers != 0);
-
-  refreshViewImplementation();
-
-  mainRenderer()->ResetCameraClippingRange();
-  renderWindow()->Render();
-  m_view->update();
 }
 
 //-----------------------------------------------------------------------------//-----------------------------------------------------------------------------
@@ -459,4 +395,60 @@ QPushButton* RenderView::createButton(const QString& icon, const QString& toolti
   button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   return button;
+}
+
+//-----------------------------------------------------------------------------
+RepresentationManagerSList RenderView::managers(RepresentationManager::Status status) const
+{
+  RepresentationManagerSList result;
+
+  for(auto manager: m_managers)
+  {
+    if (manager->status() == status)
+    {
+      result << manager;
+    }
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) const
+{
+  QMap<TimeStamp, int> count;
+
+  for (auto manager : managers)
+  {
+    Q_ASSERT(manager->status() == RepresentationManager::Status::PENDING_DISPLAY);
+
+    for(auto timeStamp: manager->readyRange())
+    {
+      count[timeStamp] = count.value(timeStamp, 0) + 1;
+    }
+  }
+
+  TimeStamp latest = Timer::INVALID_TIME_STAMP;
+
+  for(auto time: count.keys())
+  {
+    if(count[time] == managers.size())
+    {
+      if(time > latest)
+      {
+        latest = time;
+      }
+    }
+  }
+
+  return latest;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::display(RepresentationManagerSList managers, TimeStamp t)
+{
+  for (auto manager : managers)
+  {
+    manager->display(t);
+  }
 }
