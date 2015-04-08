@@ -21,7 +21,7 @@
 #define ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 
 // ESPINA
-#include <GUI/Representations/RangedActorManager.h>
+#include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Representations/RepresentationsRange.hxx>
 #include "CountingFrameManager.h"
 
@@ -41,11 +41,7 @@ namespace ESPINA
 
       virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
 
-      virtual PipelineStatus pipelineStatus() const override;
-
       virtual TimeRange readyRange() const override;
-
-      virtual void display(TimeStamp t) override;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
@@ -66,6 +62,8 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
+      virtual void displayImplementation(TimeStamp t);
+
       virtual void onShow();
 
       virtual void onHide();
@@ -83,8 +81,6 @@ namespace ESPINA
       void hideWidget(vtkCountingFrameSliceWidget *widget);
 
       void deleteWidget(CountingFrame *cf);
-
-      void updateRenderRequestValue();
 
       bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
 

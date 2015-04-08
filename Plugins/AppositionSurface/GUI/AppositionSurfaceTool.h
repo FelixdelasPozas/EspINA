@@ -30,8 +30,8 @@
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <Support/Context.h>
+#include <QAction>
 
 class QUndoStack;
 class QIcon;

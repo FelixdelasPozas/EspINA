@@ -447,7 +447,7 @@ void AppositionSurfacePlugin::finishedTask()
   if(m_delayedAnalysis)
   {
     QApplication::restoreOverrideCursor();
-    SASAnalysisDialog dialog(m_analysisSynapses, m_model, m_undoStack, m_factory, nullptr/*(m_viewManager*/, nullptr);
+    SASAnalysisDialog dialog(m_analysisSynapses, *m_context);
     dialog.exec();
 
     m_delayedAnalysis = false;

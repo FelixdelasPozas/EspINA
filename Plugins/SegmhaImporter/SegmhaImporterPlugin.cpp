@@ -90,7 +90,6 @@ SegmhaImporterPlugin::~SegmhaImporterPlugin()
 void SegmhaImporterPlugin::init(Support::Context &context)
 {
   m_model       = context.model();
-  m_viewManager = nullptr; // TODO
   m_factory     = context.factory();
   m_scheduler   = context.scheduler();
   m_undoStack   = context.undoStack();

@@ -28,8 +28,6 @@ namespace ESPINA {
     , m_plane{Plane::UNDEFINED}
     , m_manager(manager)
     {
-      setRenderRequired(false);
-
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
               this,       SLOT(onCountingFrameCreated(CountingFrame*)));
       connect(&m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
@@ -52,19 +50,13 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    RepresentationManager::PipelineStatus RepresentationManager2D::pipelineStatus() const
-    {
-      return PipelineStatus::READY;
-    }
-
-    //-----------------------------------------------------------------------------
     TimeRange RepresentationManager2D::readyRange() const
     {
       return m_crosshairs.timeRange();
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::display(TimeStamp t)
+    void RepresentationManager2D::displayImplementation(TimeStamp t)
     {
       if (representationsShown())
       {
@@ -82,8 +74,6 @@ namespace ESPINA {
       }
 
       m_crosshairs.invalidatePreviousValues(t);
-
-      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
@@ -106,8 +96,6 @@ namespace ESPINA {
         auto widget = createWidget(cf);
 
         m_widgets.insert(cf, widget);
-
-        updateRenderRequestValue();
 
         emit renderRequested();
       }
@@ -143,8 +131,6 @@ namespace ESPINA {
       }
 
       m_pendingCFs.clear();
-
-      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
@@ -214,12 +200,6 @@ namespace ESPINA {
       cf->deleteSliceWidget(widget);
 
       m_widgets.remove(cf);
-    }
-
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::updateRenderRequestValue()
-    {
-      setRenderRequired(representationsShown() && !m_widgets.isEmpty());
     }
 
     //-----------------------------------------------------------------------------

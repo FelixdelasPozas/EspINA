@@ -69,7 +69,6 @@ namespace ESPINA
     private:
       CountingFrameManager m_manager;
       ModelAdapterSPtr     m_model;
-      ViewManagerSPtr      m_viewManager;
       SchedulerSPtr        m_scheduler;
       QUndoStack          *m_undoStack;
 

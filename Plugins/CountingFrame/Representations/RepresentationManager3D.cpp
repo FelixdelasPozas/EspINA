@@ -27,8 +27,6 @@ namespace ESPINA {
     : RepresentationManager(supportedViews)
     , m_manager(manager)
     {
-      setRenderRequired(false);
-
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
               this,       SLOT(onCountingFrameCreated(CountingFrame*)));
 
@@ -46,24 +44,13 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager3D::setResolution(const GUI::View::CoordinateSystemSPtr system)
-    {
-    }
-
-    //-----------------------------------------------------------------------------
-    RepresentationManager::PipelineStatus RepresentationManager3D::pipelineStatus() const
-    {
-      return PipelineStatus::READY;
-    }
-
-    //-----------------------------------------------------------------------------
     TimeRange RepresentationManager3D::readyRange() const
     {
       return TimeRange();
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager3D::display(TimeStamp t)
+    void RepresentationManager3D::displayImplementation(TimeStamp t)
     {
       if (representationsShown())
       {
@@ -79,8 +66,6 @@ namespace ESPINA {
           hideWidget(widget);
         }
       }
-
-      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
@@ -97,8 +82,6 @@ namespace ESPINA {
         auto widget = createWidget(cf);
 
         m_widgets.insert(cf, widget);
-
-        updateRenderRequestValue();
 
         emit renderRequested();
       }
@@ -134,8 +117,6 @@ namespace ESPINA {
       }
 
       m_pendingCFs.clear();
-
-      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
@@ -180,12 +161,6 @@ namespace ESPINA {
       cf->deleteWidget(widget);
 
       m_widgets.remove(cf);
-    }
-
-    //-----------------------------------------------------------------------------
-    void RepresentationManager3D::updateRenderRequestValue()
-    {
-      setRenderRequired(representationsShown() && !m_widgets.isEmpty());
     }
   }
 }

@@ -27,7 +27,6 @@
 #include "Core/Extensions/AppositionSurfaceExtension.h"
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <Support/Plugin.h>
 #include <Core/Analysis/Input.h>
 #include <Core/Analysis/DataFactory.h>
@@ -100,7 +99,7 @@ namespace ESPINA
     static bool isValidSynapse(SegmentationAdapterPtr segmentation);
 
   private:
-    Support::Context *m_context;
+    Support::Context                *m_context;
     SettingsPanelSPtr                m_settings;
     SegmentationExtensionFactorySPtr m_extensionFactory;
     MenuEntry                        m_menuEntry;

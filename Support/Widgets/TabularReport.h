@@ -210,7 +210,7 @@ namespace ESPINA
     static QString extraPath(const QString &file = QString())
     { return "Extra/RawInformation/" + file; }
 
-  private:
+  protected:
     const Support::Context &m_context;
     ModelAdapterSPtr m_model;
 

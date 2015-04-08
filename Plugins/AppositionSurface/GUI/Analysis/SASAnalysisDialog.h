@@ -25,7 +25,7 @@
 // ESPINA
 #include <Core/EspinaTypes.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QDialog>
@@ -39,19 +39,11 @@ namespace ESPINA
   public:
     /** \brief SASAnalysisDialog class constructor.
      * \param[in] segmentations list of segmentation adapter to show in the analysis.
-     * \param[in] model model adapter smart pointer of the segmentations.
-     * \param[in] undoStack raw pointer of the QUndoStack object of the application.
-     * \param[in] factory model factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] parent raw pointer of the parent of this class.
+     * \param[in] context ESPINA context
      *
      */
     explicit SASAnalysisDialog(SegmentationAdapterList segmentations,
-                               ModelAdapterSPtr        model,
-                               QUndoStack             *undoStack,
-                               ModelFactorySPtr        factory,
-                               ViewManagerSPtr         viewManager,
-                               QWidget                *parent);
+                               const Support::Context &context);
   protected:
     virtual void closeEvent(QCloseEvent* event);
   };
