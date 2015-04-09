@@ -27,15 +27,15 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                              CategoryAdapterPtr      category,
-                                             ModelAdapterSPtr        model,
+                                             Support::Context &context,
                                              QUndoCommand*           parent)
 : QUndoCommand {parent}
-, m_model      {model}
-, m_category   {m_model->smartPointer(category)}
+, m_context    {context}
+, m_category   {context.model()->smartPointer(category)}
 {
   for(auto segmentation: segmentations)
   {
-    m_oldCategories[m_model->smartPointer(segmentation)] = segmentation->category();
+    m_oldCategories[context.model()->smartPointer(segmentation)] = segmentation->category();
   }
 }
 
@@ -51,11 +51,11 @@ void ChangeCategoryCommand::redo()
 
   for(auto segmentation: m_oldCategories.keys())
   {
-    m_model->setSegmentationCategory(segmentation, m_category);
+    m_context.model()->setSegmentationCategory(segmentation, m_category);
     segmentations << segmentation;
   }
 
-  m_model->notifyRepresentationsModified(segmentations);
+  m_context.viewState().representationInvalidator().invalidateRepresentations(segmentations);
 }
 
 //------------------------------------------------------------------------
@@ -65,9 +65,9 @@ void ChangeCategoryCommand::undo()
 
   for(auto segmentation: m_oldCategories.keys())
   {
-    m_model->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
+    m_context.model()->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
     segmentations << segmentation;
   }
 
-  m_model->notifyRepresentationsModified(segmentations);
+  m_context.viewState().representationInvalidator().invalidateRepresentations(segmentations);
 }

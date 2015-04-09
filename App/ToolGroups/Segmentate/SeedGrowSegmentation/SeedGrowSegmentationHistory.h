@@ -42,7 +42,7 @@ namespace ESPINA {
 
     virtual ~SeedGrowSegmentationHistory();
 
-    virtual QWidget *createWidget(const Support::Context &context);
+    virtual QWidget *createWidget(Support::Context &context);
 
   signals:
     void thresholdChanged(int);

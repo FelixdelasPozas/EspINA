@@ -68,13 +68,15 @@ using namespace ESPINA;
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, const Support::Context &context)
+ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
 : m_spacingModified{false}
 , m_edgesModified  {false}
 , m_channel        {channel}
 , m_model          {context.model()}
 , m_scheduler      {context.scheduler()}
-, m_view           {new View2D(std::make_shared<ViewState>(), Plane::XY)}
+, m_sources        {context.representationInvalidator()}
+, m_viewState      {context.timer(), context.representationInvalidator()}
+, m_view           {new View2D(m_viewState, std::make_shared<Selection>(), Plane::XY)}
 {
   setupUi(this);
 
@@ -309,7 +311,7 @@ void ChannelInspector::onChangesAccpeted()
     applyEdgesChanges();
   }
 
-  m_model->notifyRepresentationsModified(toViewItemList(m_channel));
+  m_viewState.representationInvalidator().invalidateRepresentations(toViewItemList(m_channel));
 }
 
 //------------------------------------------------------------------------
@@ -492,7 +494,7 @@ void ChannelInspector::initSliceView()
   poolXY->setPipelineSources(&m_sources);
 
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());
-  sliceManager->show();
+  sliceManager->show(m_view->timeStamp());
 
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);

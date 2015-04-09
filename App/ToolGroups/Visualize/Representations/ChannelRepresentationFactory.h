@@ -21,6 +21,7 @@
 #define ESPINA_CHANNEL_REPRESENTATION_FACTORY_H
 
 #include <Support/Representations/RepresentationFactory.h>
+#include <Support/Context.h>
 
 namespace ESPINA {
 
@@ -28,14 +29,12 @@ namespace ESPINA {
   : public RepresentationFactory
   {
   public:
-    explicit ChannelRepresentationFactory(SchedulerSPtr scheduler);
+    explicit ChannelRepresentationFactory();
 
-    virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
+    virtual Representation createRepresentation(Support::Context &context) const;
 
   private:
-    void createSliceRepresentation(Representation &rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
-
-    SchedulerSPtr m_scheduler;
+    void createSliceRepresentation(Representation &representation, Support::Context &context) const;
   };
 }
 

@@ -44,7 +44,7 @@ namespace ESPINA
       /** \brief SASTabularReport class constructor.
        *
        */
-      SASTabularReport(const Support::Context &context,
+      SASTabularReport(Support::Context &context,
                        QWidget                *parent = nullptr,
                        Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
       : TabularReport(context, parent, flags)

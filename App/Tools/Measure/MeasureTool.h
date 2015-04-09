@@ -40,7 +40,7 @@ namespace ESPINA
      * \param[in] viewState
      *
      */
-    explicit MeasureTool(ViewStateSPtr viewState);
+    explicit MeasureTool(GUI::View::ViewState & viewState);
 
     /** \brief MeasureTool class destructor.
      *
@@ -64,7 +64,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled);
 
   private:
-    ViewStateSPtr    m_viewState;
+    GUI::View::ViewState &    m_viewState;
     EspinaWidgetSPtr m_widget;
     EventHandlerSPtr m_handler;
     QAction         *m_action;

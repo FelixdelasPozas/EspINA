@@ -32,23 +32,26 @@ namespace ESPINA {
     }
 
     //------------------------------------------------------------------------
-    Representation RepresentationFactory::createRepresentation(ColorEngineSPtr colorEngine) const
+    Representation CF::RepresentationFactory::createRepresentation(Support::Context &context) const
     {
       Representation representation;
 
+      auto &timer    = context.timer();
       auto manager2D = std::make_shared<RepresentationManager2D>(m_manager, ViewType::VIEW_2D);
-      auto switch2D  = std::make_shared<BasicRepresentationSwitch>(manager2D, ViewType::VIEW_2D);
+      auto switch2D  = std::make_shared<BasicRepresentationSwitch>(manager2D, ViewType::VIEW_2D, timer);
 
       auto manager3D = std::make_shared<RepresentationManager3D>(m_manager, ViewType::VIEW_3D);
-      auto switch3D  = std::make_shared<BasicRepresentationSwitch>(manager3D, ViewType::VIEW_3D);
+      auto switch3D  = std::make_shared<BasicRepresentationSwitch>(manager3D, ViewType::VIEW_3D, timer);
 
       manager2D->setName(QObject::tr("Counting Frame"));
       manager2D->setIcon(QIcon(":cf-switch2D.svg"));
+      manager2D->setDescription(QObject::tr("Stereological Slice Counting Frame"));
 
       switch2D->setActive(true);
 
       manager3D->setName(QObject::tr("Counting Frame"));
       manager3D->setIcon(QIcon(":cf-switch3D.svg"));
+      manager3D->setDescription(QObject::tr("Stereological Counting Frame"));
 
       representation.Group = "CountingFrame";
       representation.Managers << manager2D << manager3D;

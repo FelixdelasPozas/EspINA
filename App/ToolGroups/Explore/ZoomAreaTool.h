@@ -41,7 +41,7 @@ namespace ESPINA
     /** \brief ZoomArea class constructor.
      * \param[in] viewState
      */
-    explicit ZoomAreaTool(ViewStateSPtr state);
+    explicit ZoomAreaTool(GUI::View::ViewState &state);
 
     /** \brief ZoomArea class destructor.
      *
@@ -63,7 +63,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) override;
 
   private:
-    ViewStateSPtr        m_viewState;
+    GUI::View::ViewState &m_viewState;
     QAction             *m_zoomArea;
     EspinaWidgetSPtr     m_widget;
     EventHandlerSPtr     m_zoomHandler;

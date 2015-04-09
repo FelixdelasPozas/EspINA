@@ -52,7 +52,7 @@ namespace ESPINA
      * \param[in] toolGroup
      */
     explicit OrthogonalROITool(ROISettings            *settings,
-                               const Support::Context &context,
+                               Support::Context &context,
                                RestrictToolGroup      *toolgroup);
 
     /** \brief OrthogonalROITool class virtual destructor.
@@ -148,7 +148,7 @@ namespace ESPINA
     void updateRepresentationColor();
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     QAction         *m_activeTool;
     QAction         *m_resizeROI;

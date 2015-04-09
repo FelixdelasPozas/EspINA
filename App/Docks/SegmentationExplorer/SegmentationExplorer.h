@@ -27,6 +27,7 @@
 
 // Qt
 #include <ui_SegmentationExplorer.h>
+#include <GUI/View/SelectableView.h>
 #include <QStringListModel>
 
 class QUndoStack;
@@ -47,7 +48,7 @@ namespace ESPINA
   public:
     /** \brief SegmentationExplorer class constructor.
      */
-    explicit SegmentationExplorer(const Support::Context &context,
+    explicit SegmentationExplorer(Support::Context &context,
                                   FilterDelegateFactorySPtr delegateFactory);
 
     /** \brief SegmentationExplorer class virtual destructor.
@@ -121,7 +122,7 @@ namespace ESPINA
     void onItemModified();
 
   protected:
-    const Support::Context &m_context;
+    Support::Context &m_context;
     GUI             *m_gui;
     QStringList      m_layoutNames;
     QStringListModel m_layoutModel;

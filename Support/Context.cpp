@@ -18,6 +18,7 @@
 #include "Context.h"
 #include "Utils/FactoryUtils.h"
 #include <Core/MultiTasking/Scheduler.h>
+#include <GUI/ColorEngines/MultiColorEngine.h>
 #include <QUndoStack>
 
 
@@ -30,15 +31,18 @@ using namespace ESPINA::Support;
 //------------------------------------------------------------------------
 Context::Context()
 : ActiveChannel(nullptr)
-, m_timer(new Timer(1))
-, m_scheduler(new Scheduler(PERIOD_uSEC))
-, m_model(new ModelAdapter(m_timer))
+, m_invalidathor(m_timer)
+, m_viewState(m_timer, m_invalidathor)
+, m_model(new ModelAdapter())
 , m_activeROI(new ROIAccumulator())
-, m_viewState(new ViewState(std::make_shared<CoordinateSystem>(), m_timer))
+, m_scheduler(new Scheduler(PERIOD_uSEC))
+, m_selection(new Selection())
+, m_colorEngine(std::make_shared<MultiColorEngine>())
 , m_undoStack(new QUndoStack())
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 {
-
+  QObject::connect(m_model.get(), SIGNAL(modelChanged()),
+                  &m_timer,       SLOT(increment()));
 }
 
 //------------------------------------------------------------------------
@@ -84,13 +88,31 @@ QUndoStack *Context::undoStack() const
 }
 
 //------------------------------------------------------------------------
-ViewStateSPtr Context::viewState() const
+GUI::View::ViewState &Context::viewState()
 {
   return m_viewState;
+}
+
+//------------------------------------------------------------------------
+SelectionSPtr Context::selection() const
+{
+  return m_selection;
 }
 
 //------------------------------------------------------------------------
 ColorEngineSPtr Context::colorEngine() const
 {
   return m_colorEngine;
+}
+
+//------------------------------------------------------------------------
+Timer &Context::timer()
+{
+  return m_viewState.timer();
+}
+
+//------------------------------------------------------------------------
+RepresentationInvalidator &Context::representationInvalidator()
+{
+  return m_viewState.representationInvalidator();
 }

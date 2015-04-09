@@ -46,7 +46,7 @@ namespace ESPINA
     /** \brief ChannelExplorer class constructor.
      *
      */
-    explicit ChannelExplorer(const Support::Context &context);
+    explicit ChannelExplorer(Support::Context &context);
 
     /** \brief ChannelExplorer class virtual destructor.
      *
@@ -86,7 +86,7 @@ namespace ESPINA
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
     ModelAdapterSPtr m_model;
     SchedulerSPtr    m_scheduler;
     QUndoStack      *m_undoStack;

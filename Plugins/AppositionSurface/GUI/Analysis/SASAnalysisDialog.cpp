@@ -44,7 +44,7 @@ using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
 SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
-                                     const Support::Context &context)
+                                     Support::Context &context)
 {
   setObjectName("Synaptic Apposition Surfaces Analysis");
   setWindowTitle(tr("Synaptic Apposition Surfaces Analysis"));

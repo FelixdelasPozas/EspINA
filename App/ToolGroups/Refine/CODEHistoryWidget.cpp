@@ -116,7 +116,7 @@ private:
 //----------------------------------------------------------------------------
 CODEHistoryWidget::CODEHistoryWidget(const QString                 &title,
                                      MorphologicalEditionFilterSPtr filter,
-                                     const Support::Context        &context)
+                                     Support::Context        &context)
 : m_context(context)
 , m_gui(new Ui::CODEHistoryWidget())
 , m_title(title)

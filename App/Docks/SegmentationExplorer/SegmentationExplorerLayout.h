@@ -66,7 +66,7 @@ namespace ESPINA
      */
     explicit Layout(CheckableTreeView        *view,
                     FilterDelegateFactorySPtr delegateFactory,
-                    const Support::Context   &context);
+                    Support::Context   &context);
 
     /** \brief Layout class virtual destructor.
      *
@@ -178,7 +178,7 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    const Support::Context   &m_context;
+    Support::Context   &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
 
     CheckableTreeView *m_view;

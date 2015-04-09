@@ -69,7 +69,7 @@ protected:
 
 
 //------------------------------------------------------------------------
-TabularReport::TabularReport(const Support::Context &context,
+TabularReport::TabularReport(Support::Context &context,
                              QWidget                *parent,
                              Qt::WindowFlags         flags)
 : m_context       {context}
@@ -104,7 +104,7 @@ TabularReport::TabularReport(const Support::Context &context,
 
   setLayout(layout);
 
-  connect(context.viewState()->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+  connect(context.selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this, SLOT(updateSelection(SegmentationAdapterList)));
 }
 
@@ -238,7 +238,7 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
   auto bounds = segmentation->output()->bounds();
 
   NmVector3 center{(bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
-  m_context.viewState()->focusViewOn(center);
+  m_context.viewState().focusViewOn(center);
 
   emit doubleClicked(sourceIndex);
 }
@@ -372,7 +372,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
   }
 
   blockSignals(true);
-  m_context.viewState()->selection()->set(selection);
+  m_context.selection()->set(selection);
   blockSignals(false);
 }
 

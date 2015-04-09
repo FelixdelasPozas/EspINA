@@ -71,7 +71,7 @@ namespace ESPINA
      * \param[in] plane view's orientation plane.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      */
-    explicit View2D(ViewStateSPtr state, Plane plane = Plane::XY);
+    explicit View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane = Plane::XY);
 
     /** \brief View2D class virtual destructor.
      *

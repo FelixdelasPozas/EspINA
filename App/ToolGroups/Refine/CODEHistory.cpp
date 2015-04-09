@@ -31,7 +31,7 @@ CODEHistory::CODEHistory(const QString& title, MorphologicalEditionFilterSPtr fi
 }
 
 //-----------------------------------------------------------------------------
-QWidget *CODEHistory::createWidget(const Support::Context &context)
+QWidget *CODEHistory::createWidget(Support::Context &context)
 {
   auto widget = new CODEHistoryWidget(m_title, m_filter, context);
 

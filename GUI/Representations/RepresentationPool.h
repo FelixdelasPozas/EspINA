@@ -79,6 +79,8 @@ namespace ESPINA
      */
     virtual void setResolution(const NmVector3 &resolution, TimeStamp t) = 0;
 
+    virtual void hideRepresentations(TimeStamp t) = 0;
+
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
     /** \brief Returns whether all pipeline representations are set to the

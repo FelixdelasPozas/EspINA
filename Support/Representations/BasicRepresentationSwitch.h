@@ -31,15 +31,15 @@ namespace ESPINA {
     Q_OBJECT
 
   public:
-    explicit BasicRepresentationSwitch(RepresentationManagerSPtr manager, ViewTypeFlags supportedViews);
+    explicit BasicRepresentationSwitch(RepresentationManagerSPtr manager, ViewTypeFlags supportedViews, Timer &timer);
 
     virtual ViewTypeFlags supportedViews();
 
     virtual QWidget* widget();
 
-    virtual void showRepresentations() override;
+    virtual void showRepresentations(TimeStamp t) override;
 
-    virtual void hideRepresentations() override;
+    virtual void hideRepresentations(TimeStamp t) override;
 
   private slots:
     void onButtonToggled(bool active);

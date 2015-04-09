@@ -160,6 +160,15 @@ void SliceManager::disconnectPools()
 }
 
 //----------------------------------------------------------------------------
+void SliceManager::hideActors(TimeStamp t)
+{
+  if (validPlane())
+  {
+    planePool()->hideRepresentations(t);
+  }
+}
+
+//----------------------------------------------------------------------------
 RepresentationManagerSPtr SliceManager::cloneImplementation()
 {
   auto clone = std::make_shared<SliceManager>(m_XY, m_XZ, m_YZ);

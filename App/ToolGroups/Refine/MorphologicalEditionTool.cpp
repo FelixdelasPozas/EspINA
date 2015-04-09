@@ -224,7 +224,7 @@ bool MorphologicalEditionTool::MorphologicalFilterFactory::isSubstractionFilter(
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
 MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr filterDelegateFactory,
-                                                   const Support::Context   &context)
+                                                   Support::Context   &context)
 : m_context      {context}
 , m_filterFactory{new MorphologicalFilterFactory()}
 , m_close        {":/espina/close.png" , tr("Close selected segmentations" )}
@@ -265,8 +265,8 @@ MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr fil
   connect(&m_erode, SIGNAL(toggled(bool)),
           this,     SLOT(onErodeToggled(bool)));
 
-  connect(m_context.viewState()->selection().get(), SIGNAL(selectionChanged()),
-          this,                                     SLOT(updateAvailableActionsForSelection()));
+  connect(m_context.selection().get(), SIGNAL(selectionChanged()),
+          this,                        SLOT(updateAvailableActionsForSelection()));
 
   m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), this);
   connect(m_fill, SIGNAL(triggered(bool)),
@@ -319,9 +319,9 @@ void MorphologicalEditionTool::abortOperation()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::mergeSegmentations()
 {
-  m_context.viewState()->setEventHandler(nullptr);
+  m_context.viewState().setEventHandler(nullptr);
 
-  auto selection     = m_context.viewState()->selection();
+  auto selection     = m_context.selection();
   auto segmentations = selection->segmentations();
 
   if (segmentations.size() > 1)
@@ -356,9 +356,9 @@ void MorphologicalEditionTool::mergeSegmentations()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::subtractSegmentations()
 {
-  m_context.viewState()->setEventHandler(nullptr);
+  m_context.viewState().setEventHandler(nullptr);
 
-  auto selection     = m_context.viewState()->selection();
+  auto selection     = m_context.selection();
   auto segmentations = selection->segmentations();
 
   if (segmentations.size() > 1)
@@ -415,9 +415,9 @@ void MorphologicalEditionTool::erodeSegmentations()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::fillHoles()
 {
-  m_context.viewState()->setEventHandler(nullptr); // NOTE: Reconsider unsetActiveEventHandler
+  m_context.viewState().setEventHandler(nullptr); // NOTE: Reconsider unsetActiveEventHandler
 
-  auto selectedSegmentations = m_context.viewState()->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
   if (selectedSegmentations.size() > 0)
   {
@@ -452,7 +452,7 @@ void MorphologicalEditionTool::onCloseToggled(bool toggled)
 {
   if (toggled)
   {
-    m_context.viewState()->setEventHandler(nullptr);
+    m_context.viewState().setEventHandler(nullptr);
 
     m_open  .toggleToolWidgets(false);
     m_dilate.toggleToolWidgets(false);
@@ -465,7 +465,7 @@ void MorphologicalEditionTool::onOpenToggled(bool toggled)
 {
   if (toggled)
   {
-    m_context.viewState()->setEventHandler(nullptr);
+    m_context.viewState().setEventHandler(nullptr);
 
     m_close .toggleToolWidgets(false);
     m_dilate.toggleToolWidgets(false);
@@ -478,7 +478,7 @@ void MorphologicalEditionTool::onDilateToggled(bool toggled)
 {
   if (toggled)
   {
-    m_context.viewState()->setEventHandler(nullptr);
+    m_context.viewState().setEventHandler(nullptr);
 
     m_close.toggleToolWidgets(false);
     m_open .toggleToolWidgets(false);
@@ -491,7 +491,7 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 {
   if (toggled)
   {
-    m_context.viewState()->setEventHandler(nullptr);
+    m_context.viewState().setEventHandler(nullptr);
 
     m_close .toggleToolWidgets(false);
     m_open  .toggleToolWidgets(false);
@@ -502,7 +502,7 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  auto selectedSegmentations = m_context.viewState()->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
   bool hasRequiredData = true;
 

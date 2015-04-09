@@ -85,14 +85,17 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &poi
   m_init       = true;
   m_hasChanged = shift != 0;
 
-  if (m_hasChanged)
-  {
-    emit poolUpdated(t);
-  }
-
   auto invalidated = updateBuffer(point, shift, t);
 
   updatePipelines(invalidated);
+}
+
+//-----------------------------------------------------------------------------
+void BufferedRepresentationPool::hideRepresentations(TimeStamp t)
+{
+  m_hasChanged = true;
+
+  onActorsReady(t, RepresentationPipeline::Actors());
 }
 
 //-----------------------------------------------------------------------------

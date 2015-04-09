@@ -22,8 +22,10 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationSwitch::RepresentationSwitch()
-: m_settingsVisibility(false)
+RepresentationSwitch::RepresentationSwitch(Timer &timer)
+: m_timer(timer)
+, m_active(false)
+, m_settingsVisibility(false)
 {
 
 }
@@ -39,15 +41,20 @@ void RepresentationSwitch::setSettingsVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void RepresentationSwitch::setActive(bool value)
 {
-  m_active = value;
+  if (m_active != value)
+  {
+    m_active = value;
 
-  if (m_active)
-  {
-    showRepresentations();
-  }
-  else
-  {
-    hideRepresentations();
+    auto t = m_timer.increment();
+
+    if (m_active)
+    {
+      showRepresentations(t);
+    }
+    else
+    {
+      hideRepresentations(t);
+    }
   }
 }
 

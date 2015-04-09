@@ -36,28 +36,27 @@ using namespace ESPINA::GUI;
 
 //-----------------------------------------------------------------------------
 RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                                 const Support::Context &context)
+                                 Support::Context &context)
 : ToolGroup      {QIcon(":/espina/toolgroup_refine.svg"), tr("Refine")}
 , m_context      {context}
 {
   // TODO: Create EditionTool base class
 
-  //TODO: uncomment
-  //   m_manualEdition = std::make_shared<ManualEditionTool>(model, factory, undoStack, viewManager);
-//   m_split         = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
-//   m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
-//
-//   addTool(m_manualEdition);
-//   addTool(m_split);
-//   addTool(m_morphological);
-//
-//   connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
-//           this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
-//
-//   connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-//           this,                             SLOT(enableCurrentSelectionActions()));
-//
-//   enableCurrentSelectionActions();
+  m_manualEdition = std::make_shared<ManualEditionTool>(context);
+  m_split         = std::make_shared<SplitTool>(context);
+  m_morphological = std::make_shared<MorphologicalEditionTool>(filterDelegateFactory, context);
+
+  addTool(m_manualEdition);
+  addTool(m_split);
+  addTool(m_morphological);
+
+  connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
+          this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
+
+  connect(context.selection().get(), SIGNAL(selectionChanged()),
+          this,                      SLOT(enableCurrentSelectionActions()));
+
+  enableCurrentSelectionActions();
 }
 
 //-----------------------------------------------------------------------------
@@ -69,7 +68,7 @@ RefineToolGroup::~RefineToolGroup()
 //-----------------------------------------------------------------------------
 void RefineToolGroup::enableCurrentSelectionActions()
 {
-  auto selection     = m_context.viewState()->selection()->segmentations();
+  auto selection     = m_context.selection()->segmentations();
   auto selectionSize = selection.size();
 
   auto noSegmentation       = (selectionSize == 0);

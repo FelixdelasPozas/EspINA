@@ -191,9 +191,9 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 //------------------------------------------------------------------------
 ClassificationLayout::ClassificationLayout(CheckableTreeView        *view,
                                            FilterDelegateFactorySPtr delegateFactory,
-                                           const Support::Context   &context)
+                                           Support::Context   &context)
 : Layout               {view, delegateFactory, context}
-, m_proxy              {new ClassificationProxy(context.model())}
+, m_proxy              {new ClassificationProxy(context.model(), context.viewState().representationInvalidator())}
 , m_sort               {new SortFilter()}
 , m_delegate           {new CategoryItemDelegate(context.model(), context.undoStack(), this)}
 , m_createCategory     {nullptr}
@@ -557,7 +557,7 @@ void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmen
   auto undoStack = m_context.undoStack();
 
   undoStack->beginMacro(tr("Change Segmentation's Category"));
-  undoStack->push(new ChangeCategoryCommand(segmentations, category, m_context.model()));
+  undoStack->push(new ChangeCategoryCommand(segmentations, category, m_context));
   undoStack->endMacro();
 }
 

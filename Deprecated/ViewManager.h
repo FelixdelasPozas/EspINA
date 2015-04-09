@@ -273,7 +273,7 @@ private:
   QAction*  m_fitToSlices;
   NmVector3 m_viewResolution;
   QString   m_resolutionUnits;
-  ViewStateSPtr m_viewState;
+  GUI::View::ViewState & m_viewState;
 
     //---------------------------------------------------------------------------
     /*********************** Active Elements API *******************************/

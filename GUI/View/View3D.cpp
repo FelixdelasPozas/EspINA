@@ -56,8 +56,8 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-View3D::View3D(ViewStateSPtr state, bool showCrosshairPlaneSelectors)
-: RenderView                   {state, ViewType::VIEW_3D}
+View3D::View3D(GUI::View::ViewState &state, SelectionSPtr selection, bool showCrosshairPlaneSelectors)
+: RenderView                   {state, selection, ViewType::VIEW_3D}
 , m_mainLayout                 {new QVBoxLayout()}
 , m_controlLayout              {new QHBoxLayout()}
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}

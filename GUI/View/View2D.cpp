@@ -84,8 +84,8 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-View2D::View2D(ViewStateSPtr state, Plane plane)
-: RenderView        {state, ViewType::VIEW_2D}
+View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane)
+: RenderView        {state, selection, ViewType::VIEW_2D}
 , m_mainLayout      {new QVBoxLayout()}
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
@@ -507,7 +507,7 @@ void View2D::updateViewActions()
 //-----------------------------------------------------------------------------
 void View2D::resetCameraImplementation()
 {
-  auto origin = state()->coordinateSystem()->origin();
+  auto origin = state().coordinateSystem()->origin();
 
   m_state2D->updateCamera(m_renderer ->GetActiveCamera(), origin);
   m_state2D->updateCamera(m_thumbnail->GetActiveCamera(), origin);
@@ -926,25 +926,25 @@ void View2D::updateSpinBoxLimits(int min, int max)
 //-----------------------------------------------------------------------------
 bool View2D::fitToSlices() const
 {
-  return state()->fitToSlices();
+  return state().fitToSlices();
 }
 
 //-----------------------------------------------------------------------------
 Nm View2D::voxelCenter(const int slice, const Plane plane) const
 {
-  return state()->coordinateSystem()->voxelCenter(slice, plane);
+  return state().coordinateSystem()->voxelCenter(slice, plane);
 }
 
 //-----------------------------------------------------------------------------
 Nm View2D::voxelCenter(const Nm position, const Plane plane) const
 {
-  return state()->coordinateSystem()->voxelCenter(position, plane);
+  return state().coordinateSystem()->voxelCenter(position, plane);
 }
 
 //-----------------------------------------------------------------------------
 int View2D::voxelSlice(const Nm position, const Plane plane) const
 {
-  return state()->coordinateSystem()->voxelSlice(position, plane);
+  return state().coordinateSystem()->voxelSlice(position, plane);
 }
 
 //-----------------------------------------------------------------------------
@@ -957,7 +957,7 @@ bool View2D::eventHandlerFilterEvent(QEvent *event)
 //-----------------------------------------------------------------------------
 EventHandlerSPtr View2D::eventHandler() const
 {
-  return state()->eventHandler();
+  return state().eventHandler();
 }
 
 //-----------------------------------------------------------------------------

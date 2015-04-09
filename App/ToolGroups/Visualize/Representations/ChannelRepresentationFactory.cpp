@@ -31,44 +31,47 @@ using namespace ESPINA;
 using namespace ESPINA::Support::Representations::Utils;
 
 //----------------------------------------------------------------------------
-ChannelRepresentationFactory::ChannelRepresentationFactory(SchedulerSPtr scheduler)
-: m_scheduler{scheduler}
+ChannelRepresentationFactory::ChannelRepresentationFactory()
 {
 }
 
 //----------------------------------------------------------------------------
-Representation ChannelRepresentationFactory::createRepresentation(ColorEngineSPtr colorEngine) const
+Representation ChannelRepresentationFactory::createRepresentation(Support::Context &context) const
 {
   Representation representation;
 
-  const unsigned WINDOW_SIZE = 10;
-
-  createSliceRepresentation(representation, colorEngine, WINDOW_SIZE);
+  createSliceRepresentation(representation, context);
 
   return representation;
 }
 
 //----------------------------------------------------------------------------
-void ChannelRepresentationFactory::createSliceRepresentation(Representation &representation, ColorEngineSPtr colorEngine, const unsigned int windowSize) const
+void ChannelRepresentationFactory::createSliceRepresentation(Representation &representation, Support::Context &context) const
 {
+  const unsigned WINDOW_SIZE = 10;
+
+  auto scheduler      = context.scheduler();
+  auto &timer         = context.timer();
   auto pipelineXY     = std::make_shared<ChannelSlicePipeline>(Plane::XY);
   auto pipelineXZ     = std::make_shared<ChannelSlicePipeline>(Plane::XZ);
   auto pipelineYZ     = std::make_shared<ChannelSlicePipeline>(Plane::YZ);
-  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, windowSize);
-  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, m_scheduler, windowSize);
-  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, m_scheduler, windowSize);
+  auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, scheduler, WINDOW_SIZE);
+  auto poolXZ         = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineXZ, scheduler, WINDOW_SIZE);
+  auto poolYZ         = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineYZ, scheduler, WINDOW_SIZE);
   auto sliceManager   = std::make_shared<SliceManager>(poolXY, poolXZ, poolYZ);
-  auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D);
+  auto sliceSwitch    = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer);
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
-  auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D);
+  auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer);
 
   sliceManager->setName(QObject::tr("Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/channels_slice_switch.png"));
+  sliceManager->setDescription(QObject::tr("Channel Slice Representation"));
 
   sliceSwitch->setActive(true);
 
   slice3DManager->setName(QObject::tr("Slice Representation"));
   slice3DManager->setIcon(QIcon(":espina/channels_slice3D_switch.svg"));
+  slice3DManager->setDescription(QObject::tr("Channel 3D Slice Representation"));
 
   representation.Group     = CHANNELS_GROUP;
   representation.Pools    << poolXY << poolXZ << poolYZ;

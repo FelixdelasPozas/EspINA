@@ -42,7 +42,7 @@ namespace ESPINA
      * \param[in] viewManager view manager smart pointer.
      * \param[in] parent raw pointer to the QWidget parent of this object.
      */
-    explicit VisualizeToolGroup(QWidget *parent = 0);
+    explicit VisualizeToolGroup(Support::Context &context, QWidget *parent);
 
     /** \brief ViewTools class virtual destructor.
      *
@@ -61,13 +61,13 @@ namespace ESPINA
     class SettingsTool;
     using SettingsToolSPtr = std::shared_ptr<SettingsTool>;
 
-    using RenderGroupTools = QMap<RepresentationGroup, RenderGroupToolSPtr>;
+    using RepresentationGroupTools = QMap<RepresentationGroup, RepresentationGroupToolSPtr>;
 
-    RenderGroupToolSPtr               m_channelsRepGroup;
-    RenderGroupToolSPtr               m_segmentationsRepGroup;
-    RenderGroupTools                  m_dynamicRepresentationGroups;
+    RepresentationGroupToolSPtr m_channelsRepGroup;
+    RepresentationGroupToolSPtr m_segmentationsRepGroup;
+    RepresentationGroupTools    m_dynamicRepresentationGroups;
 
-    bool m_enabled;
+    Support::Context &m_context;
 
     QShortcut *m_segmentationsShortcut;
     QShortcut *m_crosshairShortcut;

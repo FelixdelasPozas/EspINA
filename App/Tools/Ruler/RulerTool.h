@@ -24,6 +24,7 @@
 // ESPINA
 #include <Support/Widgets/Tool.h>
 #include <GUI/View/ViewState.h>
+#include <GUI/View/Selection.h>
 
 namespace ESPINA
 {
@@ -38,7 +39,7 @@ namespace ESPINA
     /** \brief RulerTool class constructor.
      * \param[in] viewState
      */
-    explicit RulerTool(ViewStateSPtr viewState);
+    explicit RulerTool(GUI::View::ViewState &viewState, SelectionSPtr selection);
 
     /** \brief RulerTool class destructor.
      *
@@ -64,9 +65,10 @@ namespace ESPINA
     virtual void onToolEnabled ( bool enabled );
 
   private:
-    ViewStateSPtr    m_viewState;
+    GUI::View::ViewState &    m_viewState;
     QAction         *m_action;
     EspinaWidgetSPtr m_widget;
+    SelectionSPtr    m_viewSelection;
     SelectionSPtr    m_selection;
     EventHandlerSPtr m_handler;
   };

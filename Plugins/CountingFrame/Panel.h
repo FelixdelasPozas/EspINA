@@ -54,7 +54,7 @@ namespace ESPINA
 
   public:
     explicit Panel(CountingFrameManager *manager,
-                   const Support::Context &context);
+                   Support::Context &context);
     virtual ~Panel();
 
     virtual void reset(); // slot
@@ -128,7 +128,7 @@ namespace ESPINA
 
   private:
     CountingFrameManager   *m_manager;
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     GUI     *m_gui;
     CFModel *m_cfModel;

@@ -29,7 +29,7 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  CamerasMenu::CamerasMenu(ViewStateSPtr viewState, QWidget *parent)
+  CamerasMenu::CamerasMenu(GUI::View::ViewState &viewState, QWidget *parent)
   : QMenu(parent)
   , m_viewState(viewState)
   {

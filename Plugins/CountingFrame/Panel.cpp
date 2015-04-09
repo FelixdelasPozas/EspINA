@@ -245,7 +245,7 @@ const QString Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
 Panel::Panel(CountingFrameManager *manager,
-             const Support::Context &context)
+             Support::Context &context)
 : m_manager(manager)
 , m_context(context)
 , m_gui(new GUI())
@@ -299,7 +299,7 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(onCountingFrameCreated(CountingFrame*)));
 
-  connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
+  connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
           this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
 // TODO   connect(m_viewManager.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
@@ -690,7 +690,7 @@ void Panel::updateSegmentations()
     segmentations << segmentation;
   }
 
-  model->notifyRepresentationsModified(segmentations);
+  m_context.representationInvalidator().invalidateRepresentations(segmentations);
 }
 
 
@@ -942,7 +942,7 @@ void Panel::onCountingFrameApplied(CountingFrame *cf)
   auto model         = m_context.model();
   auto segmentations = toViewItemList(model->segmentations());
 
-  model->notifyRepresentationsModified(segmentations);
+  m_context.representationInvalidator().invalidateRepresentations(segmentations);
 }
 
 //------------------------------------------------------------------------

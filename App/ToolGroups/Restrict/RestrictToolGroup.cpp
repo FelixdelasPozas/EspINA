@@ -124,7 +124,7 @@ void RestrictToolGroup::DefineManualROICommand::undo()
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 RestrictToolGroup::RestrictToolGroup(ROISettings*     settings,
-                                     const Support::Context &context)
+                                     Support::Context &context)
 : ToolGroup          {QIcon(":/espina/toolgroup_restrict.svg"), tr("Restrict")}
 , m_context          {context}
 // , m_manualROITool    {new ManualROITool(model, viewManager, undoStack, this)}

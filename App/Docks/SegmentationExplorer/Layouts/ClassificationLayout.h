@@ -54,7 +54,7 @@ namespace ESPINA
      */
     explicit ClassificationLayout(CheckableTreeView        *view,
                                   FilterDelegateFactorySPtr delegateFactory,
-                                  const Support::Context   &context);
+                                  Support::Context   &context);
 
     /** \brief ClassificationLayour class virtual destructor.
      *

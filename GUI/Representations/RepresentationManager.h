@@ -53,6 +53,15 @@ namespace ESPINA
       PENDING_DISPLAY
     };
 
+    enum FlagValue
+    {
+      HAS_ACTORS   = 0x1,
+      EXPORTS_3D   = 0x2,
+      NEEDS_ACTORS = 0x4
+    };
+
+  Q_DECLARE_FLAGS(Flags, FlagValue)
+
   public:
     virtual ~RepresentationManager()
     {}
@@ -87,6 +96,8 @@ namespace ESPINA
      */
     QIcon icon() const;
 
+    Flags flags() const;
+
     /** \brief Sets the view where representation are managed
      *
      */
@@ -99,17 +110,17 @@ namespace ESPINA
      *
      */
     bool representationsVisibility() const
-    { return m_showRepresentations; }
+    { return m_representationsShown; }
 
     /** \brief Shows all representations
      *
      */
-    void show();
+    void show(TimeStamp t);
 
     /** \brief Hides all representations
      *
      */
-    void hide();
+    void hide(TimeStamp t);
 
     /** \brief Returns if the manager has been requested to display its actors
      *
@@ -148,12 +159,6 @@ namespace ESPINA
 
     virtual void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t) {}
 
-
-    /** \brief Set representations visibility
-     *
-     */
-    void setRepresentationsVisibility(bool value);
-
   signals:
     void renderRequested();
 
@@ -169,18 +174,22 @@ namespace ESPINA
 
     bool representationsShown() const;
 
+    void setFlag(const FlagValue flag, const bool value);
+
   private:
     virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) = 0;
 
     virtual void displayImplementation(TimeStamp t) = 0;
 
-    virtual void onShow() = 0;
+    virtual void onShow(TimeStamp t) = 0;
 
-    virtual void onHide() = 0;
+    virtual void onHide(TimeStamp t) = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 
     bool hasNewerFrames(TimeStamp t) const;
+
+    void showRepresentations(TimeStamp t);
 
   protected:
     RenderView *m_view;
@@ -189,8 +198,9 @@ namespace ESPINA
     QString m_name;
     QIcon   m_icon;
     QString m_description;
-    bool    m_showRepresentations;
+    bool    m_representationsShown;
     Status  m_status;
+    Flags   m_flags;
 
     ViewTypeFlags m_supportedViews;
     NmVector3     m_crosshair;
@@ -215,6 +225,7 @@ namespace ESPINA
     virtual void setRepresentationDepth(Nm depth) = 0;
   };
 
+  Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::Flags)
 }// namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_MANAGER_H

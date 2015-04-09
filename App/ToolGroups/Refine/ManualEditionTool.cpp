@@ -80,7 +80,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_factory      {context.factory()}
 , m_undoStack    {context.undoStack()}
 , m_colorEngine  {context.colorEngine()}
-, m_selection    {context.viewState()->selection()}
+, m_selection    {context.selection()}
 , m_filterFactory{new ManualFilterFactory()}
 , m_context      {context}
 , m_drawingWidget{context}

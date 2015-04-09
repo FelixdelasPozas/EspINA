@@ -52,9 +52,11 @@ namespace ESPINA
 
     virtual void invalidatePreviousActors(TimeStamp time) override;
 
-    virtual void connectPools()      override;
+    virtual void connectPools()    override;
 
-    virtual void disconnectPools()   override;
+    virtual void disconnectPools() override;
+
+    virtual void hideActors(TimeStamp t) override;
 
     virtual RepresentationManagerSPtr cloneImplementation();
 

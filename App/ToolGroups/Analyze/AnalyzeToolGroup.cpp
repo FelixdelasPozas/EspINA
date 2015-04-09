@@ -22,11 +22,11 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  AnalyzeToolGroup::AnalyzeToolGroup(const Support::Context &context)
+  AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
   : ToolGroup{QIcon(":/espina/toolgroup_analyze.svg"), tr("Analyze")}
   {
     addTool(std::make_shared<MeasureTool>(context.viewState()));
-    addTool(std::make_shared<RulerTool>(context.viewState()));
+    addTool(std::make_shared<RulerTool>(context.viewState(), context.selection()));
   }
 
   //----------------------------------------------------------------------------

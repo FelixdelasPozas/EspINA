@@ -66,6 +66,8 @@ namespace ESPINA
 
       virtual void displayActors(const TimeStamp t);
 
+      virtual void hideActors(TimeStamp t) override;
+
       virtual RepresentationManagerSPtr cloneImplementation();
 
       QSet<vtkProp *> toSet(const RepresentationPipeline::ActorList &list) const;

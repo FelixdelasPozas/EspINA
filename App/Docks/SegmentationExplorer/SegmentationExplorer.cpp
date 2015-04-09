@@ -57,7 +57,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(const Support::Context &context,
+SegmentationExplorer::SegmentationExplorer(Support::Context &context,
                                            FilterDelegateFactorySPtr delegateFactory)
 : m_context{context}
 , m_gui    {new GUI()}
@@ -252,7 +252,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   auto segmentation = segmentationPtr(item);
   Bounds bounds = segmentation->output()->bounds();
   NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
-  m_context.viewState()->focusViewOn(center);
+  m_context.viewState().focusViewOn(center);
 }
 
 //------------------------------------------------------------------------
@@ -273,7 +273,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indices,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  m_context.viewState()->selection()->set(selection);
+  m_context.selection()->set(selection);
   this->blockSignals(false);
 }
 

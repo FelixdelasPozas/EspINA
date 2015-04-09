@@ -46,7 +46,7 @@ namespace ESPINA
      *
      */
     explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings,
-                                                const Support::Context       &context);
+                                                Support::Context       &context);
 
     /** \brief SeedGrowSegmentationSettingsPanel class virtual destructor.
      *
@@ -91,7 +91,7 @@ namespace ESPINA
     void zValueChanged(int unused);
 
   private:
-    const Support::Context       &m_context;
+    Support::Context       &m_context;
     SeedGrowSegmentationSettings *m_settings;
     bool                          m_zValueChanged;
   };

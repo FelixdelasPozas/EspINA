@@ -43,7 +43,7 @@ namespace ESPINA
      *
      */
     explicit SASAnalysisDialog(SegmentationAdapterList segmentations,
-                               const Support::Context &context);
+                               Support::Context &context);
   protected:
     virtual void closeEvent(QCloseEvent* event);
   };

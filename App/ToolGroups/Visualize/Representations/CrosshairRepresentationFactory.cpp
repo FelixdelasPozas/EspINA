@@ -24,23 +24,22 @@
 #include <Support/Representations/BasicRepresentationSwitch.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 
-namespace ESPINA
+using namespace ESPINA;
+
+//----------------------------------------------------------------------------
+Representation CrosshairRepresentationFactory::createRepresentation(Support::Context &context) const
 {
-  //----------------------------------------------------------------------------
-  Representation CrosshairRepresentationFactory::createRepresentation(ColorEngineSPtr colorEngine) const
-  {
-    Representation representation;
+  Representation representation;
 
-    auto crossManager = std::make_shared<CrosshairManager>();
-    auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, ViewType::VIEW_2D|ViewType::VIEW_3D);
+  auto crossManager = std::make_shared<CrosshairManager>();
+  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, ViewType::VIEW_2D|ViewType::VIEW_3D, context.timer());
 
-    // representation.Group;
-    // representation.Pools;
-    representation.Managers   << crossManager;
-    representation.Switches   << crossSwitch;
-    representation.Icon        = QIcon(":espina/crosshair_planes.svg");
-    representation.Description = QObject::tr("Shows/Hides the crosshair");
+  // representation.Group;
+  // representation.Pools;
+  representation.Managers   << crossManager;
+  representation.Switches   << crossSwitch;
+  representation.Icon        = QIcon(":espina/crosshair_planes.svg");
+  representation.Description = QObject::tr("Shows/Hides the crosshair");
 
-    return representation;
-  }
-} // namespace ESPINA
+  return representation;
+}

@@ -21,6 +21,7 @@
 #define ESPINA_REPRESENTATION_SWITCH_H
 
 #include <GUI/View/ViewTypeFlags.h>
+#include <GUI/Utils/Timer.h>
 #include <memory>
 #include <QWidget>
 
@@ -45,17 +46,18 @@ namespace ESPINA
 
     virtual ViewTypeFlags supportedViews() = 0;
 
-    virtual void showRepresentations() = 0;
+    virtual void showRepresentations(TimeStamp t) = 0;
 
-    virtual void hideRepresentations() = 0;
+    virtual void hideRepresentations(TimeStamp t) = 0;
 
   protected:
-    explicit RepresentationSwitch();
+    explicit RepresentationSwitch(Timer &timer);
 
   private:
     virtual void onSettingsVisibilityChanged(bool visible) {}
 
   private:
+    Timer &m_timer;
     bool m_active;
     bool m_settingsVisibility;
   };

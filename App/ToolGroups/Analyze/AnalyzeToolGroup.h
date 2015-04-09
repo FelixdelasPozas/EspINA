@@ -40,7 +40,7 @@ namespace ESPINA
        * \param[in] parent, QWidget raw pointer of the parent of this object.
        *
        */
-      explicit AnalyzeToolGroup(const Support::Context &context);
+      explicit AnalyzeToolGroup(Support::Context &context);
 
       /** \brief MeasuresTools class destructor.
        *

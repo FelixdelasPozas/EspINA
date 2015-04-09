@@ -44,7 +44,7 @@ namespace ESPINA
   public:
     explicit CODEHistoryWidget(const QString                  &title,
                                MorphologicalEditionFilterSPtr filter,
-                               const Support::Context        &context);
+                               Support::Context        &context);
     virtual ~CODEHistoryWidget();
 
   public slots:
@@ -58,7 +58,7 @@ namespace ESPINA
     void modifyFilter();
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
     Ui::CODEHistoryWidget *m_gui;
 
     QString                        m_title;

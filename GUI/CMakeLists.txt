@@ -37,6 +37,7 @@ qt4_wrap_cpp(GUI_MOC
   View/View2D.h
   View/ViewState.h
   View/View3D.h
+  View/RepresentationInvalidator.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/OrthogonalRegion.h
   View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
@@ -148,6 +149,7 @@ set (GUI_SOURCES
   View/PlanarBehaviour.cpp
   View/ViewState.cpp
   View/View3D.cpp
+  View/RepresentationInvalidator.cpp
   View/Widgets/Contour/ContourWidget.cpp
   View/Widgets/Contour/SliceContourWidget.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp

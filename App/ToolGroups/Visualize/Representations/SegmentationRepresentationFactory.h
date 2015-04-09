@@ -21,6 +21,7 @@
 #define ESPINA_SEGMENTATION_REPRESENTATION_FACTORY_H
 
 #include <Support/Representations/RepresentationFactory.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 
 namespace ESPINA
 {
@@ -28,23 +29,19 @@ namespace ESPINA
   : public RepresentationFactory
   {
   public:
-    explicit SegmentationRepresentationFactory(SchedulerSPtr scheduler);
+    explicit SegmentationRepresentationFactory();
 
-    virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
-
-  private:
-    void configurePool(RepresentationPoolSPtr           pool,
-                       ColorEngineSPtr                  colorEngine,
-                       RepresentationPool::SettingsSPtr settings) const;
-
-    void createSliceRepresentation(Representation &rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
-    void createContourRepresentation(Representation &rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
-    void createSkeletonRepresentation(Representation &rep, ColorEngineSPtr colorEngine, const unsigned int windowSize) const;
-    void createVolumetricRepresentation(Representation &rep, ColorEngineSPtr colorEngine) const;
-    void createMeshRepresentation(Representation &rep, ColorEngineSPtr colorEngine) const;
+    virtual Representation createRepresentation(Support::Context &context) const;
 
   private:
-    SchedulerSPtr m_scheduler;
+    void createSliceRepresentation     (Representation &representation, Support::Context &context) const;
+    void createContourRepresentation   (Representation &representation, Support::Context &context) const;
+    void createSkeletonRepresentation  (Representation &representation, Support::Context &context) const;
+    void createVolumetricRepresentation(Representation &representation, Support::Context &context) const;
+    void createMeshRepresentation      (Representation &representation, Support::Context &context) const;
+
+  private:
+    static const unsigned int WINDOW_SIZE;
   };
 }
 

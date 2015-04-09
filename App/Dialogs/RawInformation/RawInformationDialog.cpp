@@ -32,7 +32,7 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-RawInformationDialog::RawInformationDialog(const Support::Context &context)
+RawInformationDialog::RawInformationDialog(Support::Context &context)
 
 {
   setObjectName("Raw Information Analysis");
@@ -42,7 +42,7 @@ RawInformationDialog::RawInformationDialog(const Support::Context &context)
   auto report = new TabularReport(context, this);
   report->setModel(context.model());
 
-  auto segmentations = defaultReportInputSegmentations(context.viewState(), context.model());
+  auto segmentations = defaultReportInputSegmentations(context.selection(), context.model());
   report->setFilter(segmentations);
 
   setLayout(new QVBoxLayout());

@@ -46,7 +46,7 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
                                              FilterDelegateFactorySPtr delegateFactory,
-                                             const Support::Context   &context)
+                                             Support::Context   &context)
 : QWidget          {nullptr, Qt::WindowStaysOnTopHint}
 , m_context        {context}
 , m_delegateFactory{delegateFactory}
@@ -304,7 +304,7 @@ void SegmentationInspector::generateWindowTitle()
 //------------------------------------------------------------------------
 SelectionSPtr SegmentationInspector::selection() const
 {
-  return m_context.viewState()->selection();
+  return m_context.selection();
 }
 
 
@@ -426,7 +426,7 @@ void SegmentationInspector::updateSelection()
     activeHistory = nullptr;
   }
 
-  auto selectedSegmentations = m_context.viewState()->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
   if (selectedSegmentations.size() == 1)
   {

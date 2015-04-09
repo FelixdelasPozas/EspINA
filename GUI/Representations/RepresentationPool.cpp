@@ -118,8 +118,10 @@ void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
     {
       processPendingSources();
     }
-
-    setCrosshairImplementation(point, t);
+    else
+    {
+      setCrosshairImplementation(point, t);
+    }
   }
 }
 
@@ -210,6 +212,8 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
     {
       m_validActors.reusePreviousValue(t);
     }
+
+    emit poolUpdated(t);
   }
 }
 
@@ -319,7 +323,6 @@ void RepresentationPool::processPendingSources()
   {
     setCrosshairImplementation(m_crosshair, m_requestedTimeStamp);
   }
-
 
   m_pendingSources.clear();
 }

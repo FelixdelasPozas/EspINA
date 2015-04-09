@@ -37,7 +37,7 @@ namespace ESPINA
       virtual ~CrosshairRepresentationFactory()
       {};
 
-      virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
+      virtual Representation createRepresentation(Support::Context &context) const;
   };
 
 } // namespace ESPINA

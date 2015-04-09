@@ -53,7 +53,7 @@ namespace ESPINA
      * \param[in] flags window flags.
      *
      */
-    explicit TabularReport(const Support::Context &context,
+    explicit TabularReport(Support::Context &context,
                            QWidget                *parent = nullptr,
                            Qt::WindowFlags         flags = Qt::WindowFlags{Qt::WindowNoState});
 
@@ -211,7 +211,7 @@ namespace ESPINA
     { return "Extra/RawInformation/" + file; }
 
   protected:
-    const Support::Context &m_context;
+    Support::Context &m_context;
     ModelAdapterSPtr m_model;
 
     SegmentationAdapterList m_filter;

@@ -69,7 +69,7 @@ namespace ESPINA
      */
     explicit SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                       FilterDelegateFactorySPtr     filterDelegateFactory,
-                                      const Support::Context       &context);
+                                      Support::Context       &context);
 
     /** \brief SeedGrowSegmentation class virtual destructor.
      *
@@ -137,7 +137,7 @@ namespace ESPINA
     void hideSettings();
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     CategorySelector *m_categorySelector;
     ActionSelector   *m_selectorSwitch;

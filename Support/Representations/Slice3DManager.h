@@ -54,6 +54,8 @@ namespace ESPINA {
 
     virtual void disconnectPools()   override;
 
+    virtual void hideActors(TimeStamp t) override;
+
     virtual RepresentationManagerSPtr cloneImplementation();
 
   private slots:

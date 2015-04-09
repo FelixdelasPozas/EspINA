@@ -48,7 +48,7 @@ namespace ESPINA
      *
      */
     explicit ROISettingsPanel(ROISettings            *settings,
-                              const Support::Context &context);
+                              Support::Context &context);
 
     /** \brief ROISettingsPanel class virtual destructor.
      *
@@ -90,7 +90,7 @@ namespace ESPINA
     void updateCategoryROI(const QModelIndex &index);
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
     ROISettings*            m_settings;
     CategoryAdapterSPtr     m_activeCategory;
   };

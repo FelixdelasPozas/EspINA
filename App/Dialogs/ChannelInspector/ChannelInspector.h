@@ -52,7 +52,7 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      * \param[in] parent parent widget.
      */
-    explicit ChannelInspector(ChannelAdapterSPtr channel, const Support::Context &context);
+    explicit ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context);
 
     /** \brief Channel Inspector class destructor.
      *
@@ -185,6 +185,7 @@ namespace ESPINA
     SchedulerSPtr      m_scheduler;
 
     ManualPipelineSources m_sources;
+    GUI::View::ViewState  m_viewState;
     View2D               *m_view;
 
     HueSelector      *m_hueSelector;

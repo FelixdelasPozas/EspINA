@@ -33,7 +33,7 @@ namespace ESPINA
     public:
       explicit RepresentationFactory(CountingFrameManager &manager);
 
-      virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const;
+      virtual Representation createRepresentation(Support::Context &context) const;
 
     private:
       CountingFrameManager &m_manager;

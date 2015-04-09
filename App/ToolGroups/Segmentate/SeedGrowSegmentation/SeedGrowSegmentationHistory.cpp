@@ -32,7 +32,7 @@ SeedGrowSegmentationHistory::~SeedGrowSegmentationHistory()
 }
 
 //-----------------------------------------------------------------------------
-QWidget *SeedGrowSegmentationHistory::createWidget(const Support::Context &context)
+QWidget *SeedGrowSegmentationHistory::createWidget(Support::Context &context)
 {
   if (!m_roiTools)
   {

@@ -49,9 +49,10 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(ViewStateSPtr state, ViewType type)
+RenderView::RenderView(GUI::View::ViewState &state, SelectionSPtr selection, ViewType type)
 : m_view {new QVTKWidget()}
 , m_state{state}
+, m_selection{selection}
 , m_type {type}
 , m_requiresCameraReset{true}
 , m_lastRender{Timer::INVALID_TIME_STAMP}
@@ -68,19 +69,19 @@ RenderView::~RenderView()
 //-----------------------------------------------------------------------------
 TimeStamp RenderView::timeStamp() const
 {
-  return m_state->timeStamp();
+  return m_state.timer().timeStamp();
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
-  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
+  connect(&m_state,      SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
           manager.get(), SLOT(onCrosshairChanged(NmVector3,TimeStamp)));
 
-  connect(m_state.get(), SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+  connect(&m_state,      SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
           manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
 
-  connect(m_state.get(), SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
+  connect(&m_state,      SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
           manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
 
   connect(manager.get(), SIGNAL(renderRequested()),
@@ -98,13 +99,13 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 {
   if (m_managers.removeOne(manager))
   {
-    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
+    disconnect(&m_state, SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
                manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
 
-    disconnect(m_state.get(), SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+    disconnect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
                manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
 
-    disconnect(m_state.get(), SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
+    disconnect(&m_state, SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
                manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
 
     disconnect(manager.get(), SIGNAL(renderRequested()),
@@ -211,7 +212,18 @@ bool RenderView::requiresCameraReset() const
 }
 
 //-----------------------------------------------------------------------------
-ViewStateSPtr RenderView::state() const
+bool RenderView::hasVisibleRepresentations() const
+{
+  for (auto manager : m_managers)
+  {
+    if (manager->flags().testFlag(RepresentationManager::HAS_ACTORS)) return true;
+  }
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+GUI::View::ViewState &RenderView::state() const
 {
   return m_state;
 }
@@ -225,7 +237,7 @@ vtkRenderWindow* RenderView::renderWindow() const
 //-----------------------------------------------------------------------------
 const NmVector3 RenderView::crosshair() const
 {
-  return m_state->crosshair();
+  return m_state.crosshair();
 }
 
 //-----------------------------------------------------------------------------
@@ -309,28 +321,28 @@ void RenderView::refresh()
 //-----------------------------------------------------------------------------
 void RenderView::connectSignals()
 {
-  connect(this,          SIGNAL(crosshairChanged(NmVector3)),
-          m_state.get(), SLOT(setCrosshair(NmVector3)));
+  connect(this,     SIGNAL(crosshairChanged(NmVector3)),
+          &m_state, SLOT(setCrosshair(NmVector3)));
 
-  connect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
-          m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
+  connect(this,     SIGNAL(crosshairPlaneChanged(Plane,Nm)),
+          &m_state, SLOT(setCrosshairPlane(Plane,Nm)));
 
-  connect(m_state.get(), SIGNAL(resetCameraRequested()),
-          this,          SLOT(resetCamera()));
+  connect(&m_state, SIGNAL(resetCameraRequested()),
+          this,     SLOT(resetCamera()));
 
-  connect(m_state.get(), SIGNAL(refreshRequested()),
-          this,          SLOT(refresh()));
+  connect(&m_state, SIGNAL(refreshRequested()),
+          this,     SLOT(refresh()));
 
-  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
-          this,          SLOT(onCrosshairChanged(NmVector3)));
+  connect(&m_state, SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
+          this,     SLOT(onCrosshairChanged(NmVector3)));
 
-  connect (m_state.get(), SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
-           this,          SLOT(onSceneResolutionChanged(NmVector3)));
+  connect (&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+           this,     SLOT(onSceneResolutionChanged(NmVector3)));
 
-  connect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
-          this,          SLOT(moveCamera(NmVector3)));
+  connect(&m_state, SIGNAL(viewFocusedOn(NmVector3)),
+          this,     SLOT(moveCamera(NmVector3)));
 
-  connect (m_state->coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
+  connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
            this,                              SLOT(onSceneBoundsChanged(Bounds)));
 }
 
@@ -349,32 +361,34 @@ void RenderView::onRenderRequest()
 
     m_lastRender = renderTime;
 
-    if (requiresCameraReset())
-    {
-      resetCameraImplementation();
-      qDebug() << "Reset camera:" << renderTime;
-
-      m_requiresCameraReset = false;
-    }
-
-    refreshViewImplementation();
-
-    mainRenderer()->ResetCameraClippingRange();
-    renderWindow()->Render();
-    m_view->update();
   }
+
+  if (hasVisibleRepresentations() && requiresCameraReset())
+  {
+    resetCameraImplementation();
+    qDebug() << "Reset camera:" << renderTime;
+
+    m_requiresCameraReset = false;
+  }
+
+  refreshViewImplementation();
+
+
+  mainRenderer()->ResetCameraClippingRange();
+  renderWindow()->Render();
+  m_view->update();
 }
 
 //-----------------------------------------------------------------------------//-----------------------------------------------------------------------------
 const NmVector3 RenderView::sceneResolution() const
 {
-  return m_state->coordinateSystem()->resolution();
+  return m_state.coordinateSystem()->resolution();
 }
 
 //-----------------------------------------------------------------------------//-----------------------------------------------------------------------------
 const Bounds RenderView::sceneBounds() const
 {
-  return m_state->coordinateSystem()->bounds();
+  return m_state.coordinateSystem()->bounds();
 }
 
 //-----------------------------------------------------------------------------

@@ -51,7 +51,7 @@ namespace ESPINA
      */
     SegmentationInspector(SegmentationAdapterList   segmentations,
                           FilterDelegateFactorySPtr delegateFactory,
-                          const Support::Context   &context);
+                          Support::Context   &context);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -136,7 +136,7 @@ namespace ESPINA
     void updateSelection();
 
   private:
-    const Support::Context   &m_context;
+    Support::Context   &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
 
     SegmentationAdapterList m_segmentations;

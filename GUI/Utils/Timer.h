@@ -38,46 +38,47 @@ namespace ESPINA
     static const TimeStamp INVALID_TIME_STAMP;
     static const TimeStamp INITIAL_TIME_STAMP;
 
-    public:
-      /** \brief Timer class constructor.
-       *
-       */
-      Timer(TimeStamp time = INITIAL_TIME_STAMP);
+  public:
+    /** \brief Timer class constructor.
+     *
+     */
+    Timer(TimeStamp time = INITIAL_TIME_STAMP);
 
-      /** \brief Timer class virtual destructor.
-       *
-       */
-      virtual ~Timer()
-      {};
+    /** \brief Timer class virtual destructor.
+     *
+     */
+    virtual ~Timer()
+    {};
 
-      /** \brief Increments the timer and handles the overflow.
-       *
-       */
-      TimeStamp increment();
+    /** \brief Returns the current TimeStamp of the timer.
+     *
+     */
+    TimeStamp timeStamp() const
+    { return m_timeStamp; }
 
-      /** \brief Returns the current TimeStamp of the timer.
-       *
-       */
-      TimeStamp timeStamp()
-      { return m_timeStamp; }
+    /** \brief Resets the timer to the initial TimeStamp.
+     *
+     */
+    TimeStamp reset();
 
-      /** \brief Resets the timer to the initial TimeStamp.
-       *
-       */
-      TimeStamp reset();
+    /** \brief Check if timestamp t is valid or not
+     *
+     */
+    static bool isValid(TimeStamp t);
 
-      /** \brief Check if timestamp t is valid or not
-       *
-       */
-      static bool isValid(TimeStamp t);
+  public slots:
+    /** \brief Increments the timer and handles the overflow.
+     *
+     */
+    TimeStamp increment();
 
-    signals:
-      void reset(TimeStamp time);
-      void tic(TimeStamp time);
+  signals:
+    void reset(TimeStamp time);
+    void tic(TimeStamp time);
 
-    private:
-      TimeStamp m_timeStamp;
-      QMutex    m_mutex;
+  private:
+    TimeStamp m_timeStamp;
+    QMutex    m_mutex;
   };
 
   using TimerPtr  = Timer *;

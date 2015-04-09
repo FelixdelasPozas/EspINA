@@ -46,7 +46,7 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
-                                             const Support::Context &context,
+                                             Support::Context &context,
                                              QWidget                *parent)
 : ContextualMenu  (parent)
 , m_context       {context}
@@ -116,7 +116,7 @@ void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index
    auto undoStack = m_context.undoStack();
    undoStack->beginMacro(tr("Change Category"));
    {
-     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, m_context.model()));
+     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, m_context));
    }
    undoStack->endMacro();
 

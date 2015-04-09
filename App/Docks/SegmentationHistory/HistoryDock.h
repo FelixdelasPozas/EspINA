@@ -34,7 +34,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     explicit HistoryDock(FilterDelegateFactorySPtr delegateFactory,
-                         const Support::Context &context);
+                         Support::Context &context);
     virtual ~HistoryDock();
 
     virtual void showEvent(QShowEvent* e);
@@ -45,7 +45,7 @@ namespace ESPINA
     void updateDock();
 
   private:
-    const Support::Context   &m_context;
+    Support::Context   &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
 
     FilterSPtr             m_filter;

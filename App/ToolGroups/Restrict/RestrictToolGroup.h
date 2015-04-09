@@ -56,7 +56,7 @@ namespace ESPINA
      * \param[in] parent QWidget raw pointer of the parent of this object.
      */
     RestrictToolGroup(ROISettings*            settings,
-                      const Support::Context &context);
+                      Support::Context &context);
 
     /** \brief VolumeOfInteresetTools class virtual destructor.
      *
@@ -122,7 +122,7 @@ namespace ESPINA
     using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
     using CleanROIToolSPtr      = std::shared_ptr<CleanROITool>;
 
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
 //     ManualROIToolSPtr     m_manualROITool;
     OrthogonalROIToolSPtr m_ortogonalROITool;

@@ -25,8 +25,10 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 BasicRepresentationSwitch::BasicRepresentationSwitch(RepresentationManagerSPtr manager,
-                                                     ViewTypeFlags             supportedViews)
-: m_manager(manager)
+                                                     ViewTypeFlags             supportedViews,
+                                                     Timer                    &timer)
+: RepresentationSwitch(timer)
+, m_manager(manager)
 , m_flags(supportedViews)
 {
   setActive(m_manager->representationsVisibility());
@@ -53,15 +55,15 @@ QWidget* BasicRepresentationSwitch::widget()
 }
 
 //----------------------------------------------------------------------------
-void BasicRepresentationSwitch::showRepresentations()
+void BasicRepresentationSwitch::showRepresentations(TimeStamp t)
 {
-  m_manager->show();
+  m_manager->show(t);
 }
 
 //----------------------------------------------------------------------------
-void BasicRepresentationSwitch::hideRepresentations()
+void BasicRepresentationSwitch::hideRepresentations(TimeStamp t)
 {
-  m_manager->hide();
+  m_manager->hide(t);
 }
 
 //----------------------------------------------------------------------------

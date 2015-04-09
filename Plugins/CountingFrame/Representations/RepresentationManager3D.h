@@ -56,9 +56,9 @@ namespace ESPINA
     private:
       virtual void displayImplementation(TimeStamp t) override;
 
-      virtual void onShow() override;
+      virtual void onShow(TimeStamp t) override;
 
-      virtual void onHide() override;
+      virtual void onHide(TimeStamp t) override;
 
       virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
 

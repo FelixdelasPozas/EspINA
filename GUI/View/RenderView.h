@@ -232,7 +232,7 @@ namespace ESPINA
      * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit RenderView(ViewStateSPtr state, ViewType type);
+    explicit RenderView(GUI::View::ViewState &state, SelectionSPtr selection, ViewType type);
 
     NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
 
@@ -249,7 +249,9 @@ namespace ESPINA
 
     bool requiresCameraReset() const;
 
-    ViewStateSPtr state() const;
+    bool hasVisibleRepresentations() const;
+
+    GUI::View::ViewState &state() const;
 
   private:
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
@@ -289,7 +291,9 @@ namespace ESPINA
     RepresentationManagerSList m_managers;
 
   private:
-    ViewStateSPtr m_state;
+    GUI::View::ViewState &m_state;
+    SelectionSPtr         m_selection;
+
     ViewType      m_type;
     bool          m_requiresCameraReset;
     TimeStamp     m_lastRender;

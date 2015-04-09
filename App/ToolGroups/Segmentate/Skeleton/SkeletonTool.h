@@ -65,7 +65,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      *
      */
-    SkeletonTool(const Support::Context &context);
+    SkeletonTool(Support::Context &context);
 
     /** \brief SkeletonTool class virtual destructor.
      *
@@ -156,7 +156,7 @@ namespace ESPINA
     void updateReferenceItem();
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     CategorySelector         *m_categorySelector;
     DoubleSpinBoxAction      *m_toleranceWidget;

@@ -44,7 +44,7 @@ namespace ESPINA
        * \param[in] context ESPINA context
        *
        */
-      SkeletonToolGroup(const Support::Context &context);
+      SkeletonToolGroup(Support::Context &context);
 
       /** \brief SkeletonToolGroup class virtual destructor.
        *

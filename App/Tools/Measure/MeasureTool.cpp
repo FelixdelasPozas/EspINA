@@ -28,7 +28,7 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  MeasureTool::MeasureTool(ViewStateSPtr viewState)
+  MeasureTool::MeasureTool(GUI::View::ViewState & viewState)
   : m_viewState  {viewState}
   , m_widget     {nullptr}
   , m_handler    {nullptr}
@@ -69,16 +69,16 @@ namespace ESPINA
     {
       m_widget = EspinaWidgetSPtr(new MeasureWidget());
       m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
-      m_viewState->setEventHandler(m_handler);
-      // TODO URGENT m_viewManager->addWidget(m_widget);
+      m_viewState.setEventHandler(m_handler);
+      m_viewState.addWidget(m_widget);
       //TODO m_viewState->setSelectionEnabled(false);
       m_widget->setEnabled(true);
     }
     else
     {
       m_widget->setEnabled(false);
-      //TODO m_viewManager->removeWidget(m_widget);
-      m_viewState->unsetEventHandler(m_handler);
+      m_viewState.removeWidget(m_widget);
+      m_viewState.unsetEventHandler(m_handler);
       m_handler = nullptr;
       // TODO m_viewManager->setSelectionEnabled(true);
       m_widget = nullptr;

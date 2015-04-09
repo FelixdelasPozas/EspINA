@@ -38,7 +38,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //------------------------------------------------------------------------
 SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings *settings,
-                                                                       const Support::Context &context)
+                                                                       Support::Context &context)
 : m_context      {context}
 , m_settings     {settings}
 , m_zValueChanged{false}

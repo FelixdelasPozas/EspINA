@@ -29,7 +29,7 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ZoomAreaTool::ZoomAreaTool(ViewStateSPtr state)
+ZoomAreaTool::ZoomAreaTool(GUI::View::ViewState &state)
 : m_viewState  {state}
 , m_zoomArea   {new QAction(QIcon(":/espina/zoom_selection.png"), tr("Define Zoom Area"),this)}
 , m_widget     {EspinaWidgetSPtr(ZoomSelectionWidget::New())}
@@ -76,16 +76,16 @@ void ZoomAreaTool::activateTool(bool value)
 {
   if (value)
   {
-    m_viewState->setEventHandler(m_zoomHandler);
+    m_viewState.setEventHandler(m_zoomHandler);
     //TODO m_viewState->setSelectionEnabled(false);
-    m_viewState->addWidget(m_widget);
+    m_viewState.addWidget(m_widget);
     m_widget->setEnabled(true);
   }
   else
   {
     m_widget->setEnabled(false);
-    m_viewState->removeWidget(m_widget);
-    m_viewState->unsetEventHandler(m_zoomHandler);
+    m_viewState.removeWidget(m_widget);
+    m_viewState.unsetEventHandler(m_zoomHandler);
     //TODOm_viewState->setSelectionEnabled(true);
   }
 

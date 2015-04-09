@@ -116,14 +116,15 @@ namespace ESPINA
 
 
   //-----------------------------------------------------------------------------
-  void CrosshairManager::onShow()
+  void CrosshairManager::onShow(TimeStamp t)
   {
   }
 
   //-----------------------------------------------------------------------------
-  void CrosshairManager::onHide()
+  void CrosshairManager::onHide(TimeStamp t)
   {
   }
+
 
   //-----------------------------------------------------------------------------
   RepresentationManagerSPtr CrosshairManager::cloneImplementation()

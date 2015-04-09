@@ -24,7 +24,7 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  SkeletonToolGroup::SkeletonToolGroup(const Support::Context &context)
+  SkeletonToolGroup::SkeletonToolGroup(Support::Context &context)
   : ToolGroup  {QIcon(":/espina/tubular.svg"), tr("Skeleton tools.")}
   , m_tool     {new SkeletonTool{context}}
   , m_enabled  {false}

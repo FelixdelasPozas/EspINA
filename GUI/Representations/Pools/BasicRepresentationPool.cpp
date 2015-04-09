@@ -45,6 +45,13 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
+  void BasicRepresentationPool::hideRepresentations(TimeStamp t)
+  {
+    m_hasChanged = true;
+    onActorsReady(t, RepresentationPipeline::Actors());
+  }
+
+  //-----------------------------------------------------------------------------
   void BasicRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr source)
   {
     m_updater->addSource(source);

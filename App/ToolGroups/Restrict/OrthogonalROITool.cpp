@@ -64,7 +64,7 @@ private:
 
 //-----------------------------------------------------------------------------
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
-                                     const Support::Context &context,
+                                     Support::Context &context,
                                      RestrictToolGroup *toolGroup)
 : m_context      {context}
 , m_activeTool   {new QAction(QIcon(":/espina/roi_orthogonal.svg"), tr("Orthogonal Region of Interest"), this)}
@@ -265,12 +265,12 @@ void OrthogonalROITool::setDefinitionMode(bool value)
   m_applyROI->setChecked(value);
   m_applyROI->blockSignals(false);
 
-  auto viewState = m_context.viewState();
+  auto &viewState = m_context.viewState();
   if (value)
   {
-    if (viewState->eventHandler() != m_defineHandler)
+    if (viewState.eventHandler() != m_defineHandler)
     {
-      viewState->setEventHandler(m_defineHandler);
+      viewState.setEventHandler(m_defineHandler);
       connect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
               this,                  SLOT(defineROI(Selector::Selection)));
     }
@@ -279,14 +279,14 @@ void OrthogonalROITool::setDefinitionMode(bool value)
   {
     disconnect(m_defineHandler.get(), SIGNAL(itemsSelected(Selector::Selection)),
                this,                  SLOT(defineROI(Selector::Selection)));
-    viewState->unsetEventHandler(m_defineHandler);
+    viewState.unsetEventHandler(m_defineHandler);
   }
 }
 
 //-----------------------------------------------------------------------------
 void OrthogonalROITool::onEventHandlerChanged()
 {
-  auto handler = m_context.viewState()->eventHandler();
+  auto handler = m_context.viewState().eventHandler();
 
   if (handler != m_resizeHandler)
   {
@@ -324,7 +324,7 @@ void OrthogonalROITool::setResizable(bool resizable)
     //TODO m_viewManager->updateViews();
   }
 
-  auto viewState = m_context.viewState();
+  auto viewState = &m_context.viewState();
   if (resizable)
   {
     viewState->setEventHandler(m_resizeHandler);

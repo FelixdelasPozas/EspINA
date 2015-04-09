@@ -35,7 +35,7 @@ const QString CONTOUR_DISTANCE("ManualEditionTools::ContourDistance");
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
-DrawingWidget::DrawingWidget(const Support::Context &context)
+DrawingWidget::DrawingWidget(Support::Context &context)
 : m_context             {context}
 , m_painterSelector     {new ActionSelector()}
 , m_categorySelector    {new CategorySelector(context.model())}
@@ -92,7 +92,7 @@ DrawingWidget::~DrawingWidget()
 
   if (m_currentPainter)
   {
-    m_context.viewState()->unsetEventHandler(m_currentPainter);
+    m_context.viewState().unsetEventHandler(m_currentPainter);
   }
 }
 
@@ -176,7 +176,7 @@ QList<QAction *> DrawingWidget::actions() const
 {
   QList<QAction *> actions;
 
-  auto checked = m_currentPainter && m_context.viewState()->eventHandler() == m_currentPainter;
+  auto checked = m_currentPainter && m_context.viewState().eventHandler() == m_currentPainter;
   m_painterSelector->setChecked(checked);
 
   actions << m_painterSelector;
@@ -229,7 +229,7 @@ void DrawingWidget::changePainter(QAction *action)
 
   m_currentPainter = m_painters[action];
 
-  m_context.viewState()->setEventHandler(m_currentPainter);
+  m_context.viewState().setEventHandler(m_currentPainter);
 }
 
 
@@ -251,7 +251,7 @@ void DrawingWidget::unsetPainter()
 
     // This tool can be unset either by the tool itself or by other
     // event handler through the view manager
-    m_context.viewState()->unsetEventHandler(selector);
+    m_context.viewState().unsetEventHandler(selector);
   }
 }
 

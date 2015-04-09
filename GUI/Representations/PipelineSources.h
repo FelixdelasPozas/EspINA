@@ -19,6 +19,7 @@
 #define ESPINA_PIPELINE_SOURCES_H
 
 #include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/View/RepresentationInvalidator.h>
 
 namespace ESPINA
 {
@@ -28,7 +29,7 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit PipelineSources();
+    explicit PipelineSources(GUI::View::RepresentationInvalidator &invalidator);
 
     virtual ~PipelineSources();
 
@@ -53,8 +54,16 @@ namespace ESPINA
 
     void remove(ViewItemAdapterList sources);
 
+    TimeStamp timeStamp() const;
+
+  private slots:
+    void onRepresentationInvalidated(ViewItemAdapterSList items, TimeStamp t);
+
   protected:
     ViewItemAdapterList m_sources;
+
+  private:
+    GUI::View::RepresentationInvalidator &m_representationInvalidator;
   };
 }
 

@@ -41,7 +41,7 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit DrawingWidget(const Support::Context &context);
+    explicit DrawingWidget(Support::Context &context);
 
     virtual ~DrawingWidget();
 
@@ -231,7 +231,7 @@ namespace ESPINA
     void setControlVisibility(bool visible);
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     BrushPainterSPtr m_circularPainter;
     BrushPainterSPtr m_sphericalPainter;

@@ -81,7 +81,7 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  SkeletonTool::SkeletonTool(const Support::Context &context)
+  SkeletonTool::SkeletonTool(Support::Context &context)
   : m_context         {context}
   , m_categorySelector{new CategorySelector(context.model())}
   , m_toleranceWidget {new DoubleSpinBoxAction(this)}
@@ -95,7 +95,7 @@ namespace ESPINA
     connect(m_action, SIGNAL(triggered(bool)),
             this,     SLOT(initTool(bool)));
 
-    connect(m_context.viewState()->selection().get(), SIGNAL(selectionChanged()),
+    connect(m_context.selection().get(), SIGNAL(selectionChanged()),
             this,                    SLOT(updateState()));
 
     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
@@ -129,7 +129,7 @@ namespace ESPINA
   {
     if(!isEnabled()) return;
 
-    auto selection = m_context.viewState()->selection()->segmentations();
+    auto selection = m_context.selection()->segmentations();
     auto validItem = (selection.size() <= 1);
 
     m_action->setEnabled(validItem);
@@ -184,7 +184,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateReferenceItem()
   {
-    auto selectedSegs = m_context.viewState()->selection()->segmentations();
+    auto selectedSegs = m_context.selection()->segmentations();
 
     if (selectedSegs.size() != 1)
     {
@@ -244,7 +244,7 @@ namespace ESPINA
 
       auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-      auto selection = m_context.viewState()->selection()->segmentations();
+      auto selection = m_context.selection()->segmentations();
       auto color     = m_categorySelector->selectedCategory()->color();
       if(selection.size() == 1)
       {
@@ -270,7 +270,7 @@ namespace ESPINA
       connect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
               this,            SLOT(eventHandlerToogled(bool)));
 
-      m_context.viewState()->setEventHandler(m_handler);
+      m_context.viewState().setEventHandler(m_handler);
       //TODO m_vm->setSelectionEnabled(false);
       // TODO URGENT m_vm->addWidget(m_widget);
       widget->setSpacing(spacing);
@@ -323,7 +323,7 @@ namespace ESPINA
                  m_toolStatus, SLOT(setStatus(SkeletonWidget::Status)));
       m_toolStatus->reset();
 
-      m_context.viewState()->unsetEventHandler(m_handler);
+      m_context.viewState().unsetEventHandler(m_handler);
       m_handler.reset();
       //TODO m_vm->setSelectionEnabled(true);
       m_widget.reset();
@@ -347,7 +347,7 @@ namespace ESPINA
           selection << m_item;
 
           m_item->invalidateRepresentations();
-          m_context.viewState()->selection()->set(selection);
+          m_context.selection()->set(selection);
           //TODO m_vm->updateViews();
         }
       }
@@ -533,7 +533,7 @@ namespace ESPINA
       SegmentationAdapterList selection;
       selection << m_item;
 
-      m_context.viewState()->selection()->set(selection);
+      m_context.selection()->set(selection);
       m_item->invalidateRepresentations();
     }
 

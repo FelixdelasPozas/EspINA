@@ -31,7 +31,7 @@ namespace ESPINA {
   public:
     explicit CODEHistory(const QString &title, MorphologicalEditionFilterSPtr filter);
 
-    virtual QWidget *createWidget(const Support::Context &context);
+    virtual QWidget *createWidget(Support::Context &context);
 
   signals:
     void radiusChanged(int);

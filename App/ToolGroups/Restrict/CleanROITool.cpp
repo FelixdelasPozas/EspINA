@@ -31,7 +31,7 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-CleanROITool::CleanROITool(const Support::Context &context,
+CleanROITool::CleanROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
 : m_context  {context}
 , m_toolGroup{toolGroup}

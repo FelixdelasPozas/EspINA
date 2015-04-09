@@ -21,6 +21,7 @@
 #define ESPINA_REPRESENTATIONS_GROUP_TOOL_H
 
 #include <Support/Representations/RepresentationSwitch.h>
+#include <GUI/Utils/Timer.h>
 #include <Support/Widgets/Tool.h>
 #include <QIcon>
 
@@ -32,9 +33,9 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
-    
+
   public:
-    explicit RepresentationsGroupTool(const QIcon &icon, QString description);
+    explicit RepresentationsGroupTool(const QIcon &icon, QString description, Timer &timer);
 
     virtual QList<QAction *> actions() const override;
 
@@ -67,6 +68,7 @@ namespace ESPINA
     void setActiveRepresentationsVisibility(bool value);
 
   private:
+    Timer                    &m_timer;
     QAction                  *m_globalSwitch;
     QWidgetAction            *m_content;
     QWidget                  *m_contentWidget;
@@ -77,8 +79,8 @@ namespace ESPINA
     bool m_representationsVisibility;
   };
 
-  using RenderGroupToolSPtr  = std::shared_ptr<RepresentationsGroupTool>;
-  using RenderGroupToolSList = QList<RenderGroupToolSPtr>;
+  using RepresentationGroupToolSPtr  = std::shared_ptr<RepresentationsGroupTool>;
+  using RepresentationGroupToolSList = QList<RepresentationGroupToolSPtr>;
 }
 
 #endif // ESPINA_REPRESENTATIONS_GROUP_TOOL_H

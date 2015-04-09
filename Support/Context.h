@@ -18,10 +18,13 @@
 #ifndef ESPINA_SUPPORT_CONTEXT_H
 #define ESPINA_SUPPORT_CONTEXT_H
 
+#include <Support/SupportTypes.h>
+
 #include "Support/ROIAccumulator.h"
-#include "Representations/RepresentationFactory.h"
 #include <GUI/View/ViewState.h>
+#include <GUI/View/Selection.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/ColorEngines/ColorEngine.h>
 
 class QUndoStack;
 
@@ -39,21 +42,27 @@ namespace ESPINA
       SchedulerSPtr              scheduler() const;
       ModelAdapterSPtr           model() const;
       ROIAccumulatorSPtr         activeROI() const;
-      ViewStateSPtr              viewState() const;
+      GUI::View::ViewState      &viewState();
+      SelectionSPtr              selection() const;
       ColorEngineSPtr            colorEngine() const;
       QUndoStack *               undoStack() const;
       RepresentationFactorySList &availableRepresentations();
       ModelFactorySPtr           factory() const;
 
+      Timer &timer();
+      GUI::View::RepresentationInvalidator &representationInvalidator();
+
       ChannelAdapterPtr ActiveChannel;//Move to selection
 
     private:
-      TimerSPtr          m_timer;
-      SchedulerSPtr      m_scheduler;
-      ModelAdapterSPtr   m_model;
-      ROIAccumulatorSPtr m_activeROI;
-      ViewStateSPtr      m_viewState;
-      QUndoStack *       m_undoStack;
+      Timer                m_timer;
+      GUI::View::RepresentationInvalidator m_invalidathor;
+      GUI::View::ViewState m_viewState;
+      ModelAdapterSPtr     m_model;
+      ROIAccumulatorSPtr   m_activeROI;
+      SchedulerSPtr        m_scheduler;
+      SelectionSPtr        m_selection;
+      QUndoStack *         m_undoStack;
       RepresentationFactorySList m_availableRepresentations;
       ModelFactorySPtr   m_factory;
       ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)

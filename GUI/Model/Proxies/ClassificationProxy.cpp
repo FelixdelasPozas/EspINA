@@ -41,8 +41,11 @@ Q_DECLARE_FLAGS(DragSource, DragSourceEnum);
 Q_DECLARE_OPERATORS_FOR_FLAGS(DragSource)
 
 //------------------------------------------------------------------------
-ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model, QObject* parent)
+ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model,
+                                         GUI::View::RepresentationInvalidator &invalidator,
+                                         QObject* parent)
 : QAbstractProxyModel{parent}
+, m_representationInvalidator{invalidator}
 , m_classification   {new ClassificationAdapter()}
 {
   setSourceModel(model);
@@ -1328,5 +1331,5 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
     Q_ASSERT(false);
   }
 
-  m_model->notifyRepresentationsModified(modifiedItems);
+  m_representationInvalidator.invalidateRepresentations(modifiedItems);
 }

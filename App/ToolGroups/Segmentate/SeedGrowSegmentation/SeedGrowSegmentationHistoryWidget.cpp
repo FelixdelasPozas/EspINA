@@ -165,7 +165,7 @@ private:
 //----------------------------------------------------------------------------
 SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
                                                                      RestrictToolGroup             *roiTools,
-                                                                     const Support::Context        &context)
+                                                                     Support::Context        &context)
 : m_context(context)
 , m_gui(new Ui::SeedGrowSegmentationHistoryWidget())
 , m_filter(filter)

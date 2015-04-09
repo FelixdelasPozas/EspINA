@@ -47,7 +47,7 @@ namespace ESPINA
      *
      */
     explicit RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
-                             const Support::Context   &context);
+                             Support::Context   &context);
 
     virtual ~RefineToolGroup();
 
@@ -64,7 +64,7 @@ namespace ESPINA
     void onVoxelDeletion(ViewItemAdapterPtr item);
 
   private:
-    const Support::Context      &m_context;
+    Support::Context      &m_context;
 
     ManualEditionToolSPtr        m_manualEdition;
     SplitToolSPtr                m_split;

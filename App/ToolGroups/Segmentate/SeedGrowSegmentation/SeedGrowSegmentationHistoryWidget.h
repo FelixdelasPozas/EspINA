@@ -47,7 +47,7 @@ namespace ESPINA {
   public:
     explicit SeedGrowSegmentationHistoryWidget(SeedGrowSegmentationFilterSPtr filter,
                                                RestrictToolGroup             *roiTools,
-                                               const Support::Context        &context);
+                                               Support::Context        &context);
     virtual ~SeedGrowSegmentationHistoryWidget();
 
   public slots:
@@ -69,7 +69,7 @@ namespace ESPINA {
     void modifyFilter();
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     Ui::SeedGrowSegmentationHistoryWidget *m_gui;
     SeedGrowSegmentationFilterSPtr         m_filter;

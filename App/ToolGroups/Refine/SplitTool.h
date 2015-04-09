@@ -60,7 +60,7 @@ namespace ESPINA
        * \param[in] context ESPINA context
        *
        */
-      SplitTool(const Support::Context &context);
+      SplitTool(Support::Context &context);
 
       /** \brief SplitTool class virtual destructor.
        *
@@ -116,7 +116,7 @@ namespace ESPINA
       QAction *m_planarSplitAction;
       QAction *m_applyButton;
 
-      const Support::Context &m_context;
+      Support::Context &m_context;
 
       EspinaWidgetSPtr m_widget;
       SplitToolEventHandlerSPtr m_handler;

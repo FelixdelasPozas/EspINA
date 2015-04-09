@@ -160,6 +160,15 @@ void Slice3DManager::disconnectPools()
 }
 
 //----------------------------------------------------------------------------
+void Slice3DManager::hideActors(TimeStamp t)
+{
+  for (auto pool : m_pools)
+  {
+    pool->hideRepresentations(t);
+  }
+}
+
+//----------------------------------------------------------------------------
 RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 {
   auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2]);

@@ -98,7 +98,7 @@ throw (Unknown_Filter_Type_Exception)
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
-                                                   const Support::Context       &context)
+                                                   Support::Context       &context)
 : m_context         {context}
 , m_categorySelector{new CategorySelector(context.model())}
 , m_selectorSwitch  {new ActionSelector()}
@@ -180,7 +180,7 @@ QList<QAction *> SeedGrowSegmentationTool::actions() const
 
   if (m_currentSelector)
   {
-    bool active = m_context.viewState()->eventHandler() == m_currentSelector;
+    bool active = m_context.viewState().eventHandler() == m_currentSelector;
 
     m_selectorSwitch->setChecked(active);
   }
@@ -224,7 +224,7 @@ void SeedGrowSegmentationTool::changeSelector(QAction* action)
 {
   m_currentSelector = m_voxelSelectors[action];
 
-  m_context.viewState()->setEventHandler(m_currentSelector);
+  m_context.viewState().setEventHandler(m_currentSelector);
 
   displaySettings();
 }
@@ -232,7 +232,7 @@ void SeedGrowSegmentationTool::changeSelector(QAction* action)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::unsetSelector()
 {
-  m_context.viewState()->unsetEventHandler(m_currentSelector);
+  m_context.viewState().unsetEventHandler(m_currentSelector);
   m_currentSelector.reset();
   hideSettings();
 }

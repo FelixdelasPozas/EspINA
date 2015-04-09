@@ -47,14 +47,15 @@ void ActorManager::displayImplementation(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::onShow()
+void ActorManager::onShow(TimeStamp t)
 {
   connectPools();
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::onHide()
+void ActorManager::onHide(TimeStamp t)
 {
+  hideActors(t);
   disconnectPools();
 }
 
@@ -71,6 +72,7 @@ void ActorManager::displayActors(const TimeStamp time)
     {
       for (auto actor : it.value())
       {
+        setFlag(HAS_ACTORS, true);
         m_view->addActor(actor);
         m_viewActors[it.key()] << actor;
       }
@@ -81,6 +83,8 @@ void ActorManager::displayActors(const TimeStamp time)
 //-----------------------------------------------------------------------------
 void ActorManager::removeCurrentActors()
 {
+  setFlag(HAS_ACTORS, false);
+
   for (auto itemActors : m_viewActors)
   {
     for (auto actor : itemActors)

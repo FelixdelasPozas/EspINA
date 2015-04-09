@@ -42,7 +42,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      * \param[in] toolGroup ROIToolsGroup raw pointer containing the ROI accumulator.
      */
-    explicit CleanROITool(const Support::Context &context,
+    explicit CleanROITool(Support::Context &context,
                           RestrictToolGroup *toolGroup);
 
     /** \brief CleanROITool class virtual destructor.
@@ -62,7 +62,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled);
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
     RestrictToolGroup *m_toolGroup;
     QAction           *m_cleanROI;
   };

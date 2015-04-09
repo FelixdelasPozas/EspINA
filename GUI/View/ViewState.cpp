@@ -24,12 +24,11 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
-ViewState::ViewState(CoordinateSystemSPtr coordinateSystem,
-                     TimerSPtr timer)
+ViewState::ViewState(Timer &timer, RepresentationInvalidator &invalidator)
 : m_timer{timer}
-, m_coordinateSystem(coordinateSystem)
+, m_invalidator{invalidator}
+, m_coordinateSystem(std::make_shared<CoordinateSystem>())
 , m_fitToSlices{true}
-, m_selection{new Selection()}
 {
   connect(m_coordinateSystem.get(), SIGNAL(resolutionChanged(NmVector3)),
           this,                     SLOT(onResolutionChanged(NmVector3)));
@@ -37,11 +36,16 @@ ViewState::ViewState(CoordinateSystemSPtr coordinateSystem,
           this,                     SLOT(onBoundsChanged(Bounds)));
 }
 
+//----------------------------------------------------------------------------
+Timer &ViewState::timer() const
+{
+  return m_timer;
+}
 
 //----------------------------------------------------------------------------
-ESPINA::TimeStamp ViewState::timeStamp() const
+RepresentationInvalidator &ViewState::representationInvalidator() const
 {
-  return m_timer->timeStamp();
+  return m_invalidator;
 }
 
 //----------------------------------------------------------------------------
@@ -154,30 +158,24 @@ CoordinateSystemSPtr ViewState::coordinateSystem() const
 }
 
 //----------------------------------------------------------------------------
-SelectionSPtr ViewState::selection()
-{
-  return m_selection;
-}
-
-//----------------------------------------------------------------------------
 void ViewState::changeCrosshair(const NmVector3 &point)
 {
   if (m_crosshair != point)
   {
     m_crosshair = point;
 
-    auto time = m_timer->increment();
+    auto t = m_timer.increment();
 
     //qDebug() << "crosshair changed to" << point;
 
-    emit crosshairChanged(point, time);
+    emit crosshairChanged(point, t);
   }
 }
 
 //-----------------------------------------------------------------------------
 void ViewState::onResolutionChanged(const NmVector3 &resolution)
 {
-  auto t = m_timer->increment();
+  auto t = m_timer.increment();
 
   emit sceneResolutionChanged(resolution, t);
 }
@@ -185,13 +183,13 @@ void ViewState::onResolutionChanged(const NmVector3 &resolution)
 //-----------------------------------------------------------------------------
 void ViewState::onBoundsChanged(const Bounds &bounds)
 {
-  auto t = m_timer->increment();
+  auto t = m_timer.increment();
 
   emit sceneBoundsChanged(bounds, t);
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::updateSceneState(ViewStateSPtr state, ViewItemAdapterSList viewItems)
+void ESPINA::GUI::View::updateSceneState(GUI::View::ViewState &state, ViewItemAdapterSList viewItems)
 {
   Bounds    bounds;
   NmVector3 resolution;
@@ -219,6 +217,6 @@ void ESPINA::updateSceneState(ViewStateSPtr state, ViewItemAdapterSList viewItem
     }
   }
 
-  state->coordinateSystem()->setBounds(bounds);
-  state->coordinateSystem()->setResolution(resolution);
+  state.coordinateSystem()->setBounds(bounds);
+  state.coordinateSystem()->setResolution(resolution);
 }

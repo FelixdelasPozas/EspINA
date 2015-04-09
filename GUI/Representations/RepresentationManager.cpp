@@ -28,7 +28,7 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 : m_view{nullptr}
-, m_showRepresentations{false}
+, m_representationsShown{false}
 , m_status{Status::IDLE}
 , m_supportedViews{supportedViews}
 , m_lastRequestTime{Timer::INVALID_TIME_STAMP}
@@ -73,6 +73,12 @@ QIcon RepresentationManager::icon() const
 }
 
 //-----------------------------------------------------------------------------
+RepresentationManager::Flags RepresentationManager::flags() const
+{
+  return m_flags;
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager::setView(RenderView *view)
 {
   m_view = view;
@@ -82,62 +88,48 @@ void RepresentationManager::setView(RenderView *view)
   onSceneResolutionChanged(view->sceneResolution(), t);
   onSceneBoundsChanged(view->sceneBounds(), t);
 
-  if (m_showRepresentations)
+  if (m_representationsShown)
   {
-    onShow();
-
-    m_lastRequestTime = t;
-
-    setCrosshair(m_crosshair, m_lastRequestTime);
-
-    emit renderRequested();
+    showRepresentations(t);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::show()
+void RepresentationManager::show(TimeStamp t)
 {
   for (auto child : m_childs)
   {
-    child->show();
+    child->show(t);
   }
 
-  m_showRepresentations  = true;
+  m_representationsShown  = true;
 
   if (m_view)
   {
-    onShow();
-
-    m_lastRequestTime = m_view->timeStamp();
-
-    setCrosshair(m_crosshair, m_lastRequestTime);
-
-    emit renderRequested();
+    showRepresentations(t);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::hide()
+void RepresentationManager::hide(TimeStamp t)
 {
   for (auto child : m_childs)
   {
-    child->hide();
+    child->hide(t);
   }
 
-  m_showRepresentations = false;
+  m_representationsShown = false;
 
   if (m_view)
   {
-    onHide();
-
-    emit renderRequested();
+    onHide(t);
   }
 }
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::isActive()
 {
-  return m_showRepresentations && m_view;
+  return m_representationsShown && m_view;
 }
 
 //-----------------------------------------------------------------------------
@@ -167,7 +159,7 @@ RepresentationManagerSPtr RepresentationManager::clone()
 
   child->m_name                = m_name;
   child->m_description         = m_description;
-  child->m_showRepresentations = m_showRepresentations;
+  child->m_representationsShown = m_representationsShown;
 
   m_childs << child;
 
@@ -180,32 +172,29 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp ti
   m_crosshair       = crosshair;
   m_lastRequestTime = time;
 
-  if (m_showRepresentations)
+  if (representationsShown())
   {
     setCrosshair(m_crosshair, time);
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::setRepresentationsVisibility(bool value)
+bool RepresentationManager::representationsShown() const
 {
-  if (m_showRepresentations != value)
-  {
-    if (value)
-    {
-      show();
-    }
-    else
-    {
-      hide();
-    }
-  }
+  return m_representationsShown;
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationManager::representationsShown() const
+void RepresentationManager::setFlag(const FlagValue flag, const bool value)
 {
-  return m_showRepresentations;
+  if (value)
+  {
+    m_flags |= flag;
+  }
+  else
+  {
+    m_flags ^= flag;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -214,6 +203,8 @@ void RepresentationManager::emitRenderRequest(TimeStamp time)
   if(time > m_lastRenderRequestTime)
   {
     m_lastRenderRequestTime = time;
+
+    waitForDisplay();
 
     emit renderRequested();
   }
@@ -235,4 +226,14 @@ void RepresentationManager::waitForDisplay()
 bool RepresentationManager::hasNewerFrames(TimeStamp t) const
 {
   return t < m_lastRenderRequestTime;
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::showRepresentations(TimeStamp t)
+{
+  onShow(t);
+
+  m_lastRequestTime = t;
+
+  setCrosshair(m_crosshair, m_lastRequestTime);
 }

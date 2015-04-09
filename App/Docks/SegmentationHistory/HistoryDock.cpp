@@ -29,7 +29,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 HistoryDock::HistoryDock(FilterDelegateFactorySPtr delegateFactory,
-                         const Support::Context   &context)
+                         Support::Context   &context)
 
 : m_context(context)
 , m_delegateFactory(delegateFactory)
@@ -39,7 +39,7 @@ HistoryDock::HistoryDock(FilterDelegateFactorySPtr delegateFactory,
 
   setWindowTitle(tr("History"));
 
-  connect(m_context.viewState()->selection().get(), SIGNAL(selectionChanged()),
+  connect(m_context.selection().get(), SIGNAL(selectionChanged()),
           this,                                     SLOT(updateDock()));
 }
 
@@ -74,7 +74,7 @@ void HistoryDock::updateDock()
   SegmentationAdapterPtr segmentation = nullptr;
   bool changeWidget = false;
 
-  auto selectedSegmentations = m_context.viewState()->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
   if (selectedSegmentations.size() == 1)
   {

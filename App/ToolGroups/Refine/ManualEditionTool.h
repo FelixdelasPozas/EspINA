@@ -105,7 +105,7 @@ namespace ESPINA
     ColorEngineSPtr   m_colorEngine;
     SelectionSPtr     m_selection;
     FilterFactorySPtr m_filterFactory;
-    Support::Context  m_context;
+    Support::Context &m_context;
 
     // mutable needed by updateReferenceItem() const
     mutable DrawingWidget      m_drawingWidget;

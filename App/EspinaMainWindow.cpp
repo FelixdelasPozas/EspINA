@@ -451,7 +451,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   emit analysisClosed();
 
-  m_context.viewState()->selection()->clear();
+  m_context.selection()->clear();
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 
@@ -528,8 +528,8 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
     m_analysis = mergedAnalysis;
 
     updateSceneState(m_context.viewState(), toViewItemList(model->channels()));
-    m_context.viewState()->resetCamera();
-    m_context.viewState()->refresh();
+    m_context.viewState().resetCamera();
+    m_context.viewState().refresh();
 
     int secs = timer.elapsed()/1000.0;
     int mins = 0;
@@ -907,8 +907,8 @@ void EspinaMainWindow::showRawInformation()
 //------------------------------------------------------------------------
 void EspinaMainWindow::cancelOperation()
 {
-  m_context.viewState()->setEventHandler(nullptr);
-  m_context.viewState()->refresh();
+  m_context.viewState().setEventHandler(nullptr);
+  m_context.viewState().refresh();
 }
 
 //------------------------------------------------------------------------
@@ -1037,10 +1037,9 @@ void EspinaMainWindow::registerColorEngine(const QString   &title,
 //------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
-  auto scheduler = m_context.scheduler();
   registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
-  registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>(scheduler));
-  registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>(scheduler));
+  registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>());
+  registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }
 
 //------------------------------------------------------------------------
@@ -1238,16 +1237,12 @@ void EspinaMainWindow::createToolbars()
 //------------------------------------------------------------------------
 void EspinaMainWindow::createToolGroups()
 {
-  auto viewState = m_context.viewState();
+  auto &viewState = m_context.viewState();
 
   m_exploreToolGroup = createToolGroup(":/espina/toolgroup_explore.svg", tr("Explore"));
   registerToolGroup(m_exploreToolGroup);
   m_exploreToolGroup->addTool(std::make_shared<ZoomAreaTool>(viewState));
   m_exploreToolGroup->addTool(std::make_shared<ResetZoom>(viewState));
-
-  auto m_model = m_context.model();
-  auto m_factory = m_context.factory();
-  auto m_undoStack = m_context.undoStack();
 
   m_restrictToolGroup = new RestrictToolGroup(m_roiSettings, m_context);
   //m_viewManager->setROIProvider(m_restrictToolGroup);
@@ -1261,7 +1256,7 @@ void EspinaMainWindow::createToolGroups()
   m_refineToolGroup = new RefineToolGroup(m_filterDelegateFactory, m_context);
   registerToolGroup(m_refineToolGroup);
 
-  m_visualizeToolGroup = new VisualizeToolGroup(this);
+  m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
   registerToolGroup(m_visualizeToolGroup);
 
 //   m_analyzeToolGroup = new AnalyzeToolGroup(m_viewManager, this);
@@ -1335,7 +1330,7 @@ void EspinaMainWindow::configureAutoSave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr factory)
 {
-  auto representation = factory->createRepresentation(m_colorEngineMenu->engine());
+  auto representation = factory->createRepresentation(m_context);
 
   for (auto repSwitch : representation.Switches)
   {

@@ -49,16 +49,16 @@ const QString Z_LINE_COLOR  = "CrosshairZLineColor";
 const QString SETTINGS_FILE = "Extra/DefaultView.ini";
 
 //----------------------------------------------------------------------------
-DefaultView::DefaultView(const Support::Context &context,
-                         QMainWindow         *parent)
+DefaultView::DefaultView(Support::Context &context,
+                         QMainWindow      *parent)
 : m_model(context.model())
 , m_viewState{context.viewState()}
-, m_viewXY{new View2D(context.viewState(), Plane::XY)}
-, m_viewXZ{new View2D(context.viewState(), Plane::XZ)}
-, m_viewYZ{new View2D(context.viewState(), Plane::YZ)}
-, m_view3D{new View3D(context.viewState(), false)}
-, m_channelSources(m_model, ItemAdapter::Type::CHANNEL)
-, m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION)
+, m_viewXY{new View2D(context.viewState(), context.selection(), Plane::XY)}
+, m_viewXZ{new View2D(context.viewState(), context.selection(), Plane::XZ)}
+, m_viewYZ{new View2D(context.viewState(), context.selection(), Plane::YZ)}
+, m_view3D{new View3D(context.viewState(), context.selection(), false)}
+, m_channelSources(m_model,  ItemAdapter::Type::CHANNEL, context.representationInvalidator())
+, m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION, context.representationInvalidator())
 {
 
   setObjectName("viewXY");
@@ -195,7 +195,7 @@ void DefaultView::showThumbnail(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultView::setFitToSlices(bool value)
 {
-  m_viewState->setFitToSlices(value);
+  m_viewState.setFitToSlices(value);
 }
 
 //-----------------------------------------------------------------------------

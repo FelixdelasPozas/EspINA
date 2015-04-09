@@ -117,7 +117,7 @@ void AppositionSurfacePlugin::init(Support::Context &context)
   m_context = &context;
 
   // for automatic computation of SAS
-  connect(m_context->model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
+  connect(m_context->model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
           this,                     SLOT(segmentationsAdded(ViewItemAdapterSList)));
 }
 
@@ -440,7 +440,7 @@ void AppositionSurfacePlugin::finishedTask()
 
   m_undoStack->endMacro();
 
-  m_model->notifyRepresentationsModified(segmentationsToUpdate);
+  m_context->representationInvalidator().invalidateRepresentations(segmentationsToUpdate);
 
   m_finishedTasks.clear();
 

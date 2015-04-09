@@ -50,6 +50,8 @@ namespace ESPINA
 
     virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
 
+    virtual void hideRepresentations(TimeStamp t) override;
+
     virtual void onSettingsChanged(const RepresentationState &settings) override;
 
     virtual bool actorsChanged() const override;

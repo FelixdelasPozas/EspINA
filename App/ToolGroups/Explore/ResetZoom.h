@@ -38,7 +38,7 @@ namespace ESPINA
     public:
       /** \brief ResetZoom class constructor.
        */
-      explicit ResetZoom(ViewStateSPtr state);
+      explicit ResetZoom(GUI::View::ViewState &state);
 
       /** \brief ResetZoom class destructor.
        *
@@ -60,7 +60,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) override;
 
     private:
-      ViewStateSPtr m_viewState;
+      GUI::View::ViewState &m_viewState;
       QAction      *m_action;
   };
 

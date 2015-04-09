@@ -75,7 +75,7 @@ namespace ESPINA
      *
      */
     MorphologicalEditionTool(FilterDelegateFactorySPtr filterDelegateFactory,
-                             const Support::Context    &context);
+                             Support::Context    &context);
 
     /** \brief MorphologicalEditionTools class destructor.
      *
@@ -179,9 +179,9 @@ namespace ESPINA
     template<typename T>
     void launchCODE(const Filter::Type& type, const QString& name, int radius)
     {
-      m_context.viewState()->setEventHandler(nullptr);
+      m_context.viewState().setEventHandler(nullptr);
 
-      auto selectedSegmentations = m_context.viewState()->selection()->segmentations();
+      auto selectedSegmentations = m_context.selection()->segmentations();
 
       if (selectedSegmentations.size() > 0)
       {
@@ -234,7 +234,7 @@ namespace ESPINA
     };
 
   private:
-    const Support::Context &m_context;
+    Support::Context &m_context;
 
     std::shared_ptr<MorphologicalFilterFactory> m_filterFactory;
 

@@ -50,7 +50,7 @@ namespace ESPINA
      * \param[in] context ESPINA context
      * \param[in] parent of the qobject
      */
-    explicit DefaultView(const Support::Context &context,
+    explicit DefaultView(Support::Context &context,
                          QMainWindow   *parent = nullptr);
 
     /** \brief DefaultView class virtual destructor.
@@ -106,7 +106,7 @@ namespace ESPINA
 
   private:
     ModelAdapterSPtr m_model;
-    ViewStateSPtr    m_viewState;
+    GUI::View::ViewState &    m_viewState;
 
     PipelineSourcesFilter m_channelSources;
     PipelineSourcesFilter m_segmentationSources;

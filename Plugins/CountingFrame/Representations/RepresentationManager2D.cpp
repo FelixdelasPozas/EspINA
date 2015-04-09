@@ -123,7 +123,7 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onShow()
+    void RepresentationManager2D::onShow(TimeStamp t)
     {
       for (auto cf : m_pendingCFs)
       {
@@ -134,7 +134,7 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onHide()
+    void RepresentationManager2D::onHide(TimeStamp t)
     {
     }
 

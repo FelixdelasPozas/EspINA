@@ -50,7 +50,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(const Support::Context &context)
+ChannelExplorer::ChannelExplorer(Support::Context &context)
 : m_context(context)
 , m_model       {context.model()}
 , m_scheduler   {context.scheduler()}

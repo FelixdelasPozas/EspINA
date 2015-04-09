@@ -29,7 +29,6 @@
 #include "GUI/Model/ClassificationAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
 #include <GUI/ModelFactory.h>
-#include <GUI/Utils/Timer.h>
 
 // Qt
 #include <QAbstractItemModel>
@@ -109,17 +108,10 @@ namespace ESPINA
      */
     explicit ModelAdapter();
 
-    /** \brief ModelAdapter class constructor.
-     *
-     */
-    explicit ModelAdapter(TimerSPtr timer);
-
     /** \brief ModelAdapter class destructor.
      *
      */
     virtual ~ModelAdapter();
-
-    TimerSPtr timer() const;
 
     /** \brief Sets the analysis this model adapts and a model factory.
      * \param[in] analysis analysis smart pointer.
@@ -490,19 +482,6 @@ namespace ESPINA
      */
     RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
 
-    /** \brief Emits representationsModified signal for given items
-     *
-     *   Note: This method increments the model time stamp before emitting the signal
-     */
-    void notifyRepresentationsModified(ViewItemAdapterSList items);
-
-    /** \brief Emits representationsModified signal for given items and for
-     *         those which depend on them
-     *
-     *   Note: This method increments the model time stamp before emitting the signal
-     */
-    void notifyDependentRepresentationsModified(ViewItemAdapterSList items);
-
     //---------------------------------------------------------------------------
     /************************** SmartPointer API *******************************/
     //---------------------------------------------------------------------------
@@ -545,20 +524,21 @@ namespace ESPINA
     void samplesRemoved(SampleAdapterSList samples);
     void samplesAboutToBeRemoved(SampleAdapterSList samples);
 
-    void channelsAdded  (ViewItemAdapterSList channesl, TimeStamp t);
-    void channelsRemoved(ViewItemAdapterSList  channels, TimeStamp t);
-    void channelsAboutToBeRemoved(ViewItemAdapterSList channels, TimeStamp t);
+    void channelsAdded  (ViewItemAdapterSList channesl);
+    void channelsRemoved(ViewItemAdapterSList  channels);
+    void channelsAboutToBeRemoved(ViewItemAdapterSList channels);
 
-    void segmentationsAdded  (ViewItemAdapterSList segmentations, TimeStamp t);
-    void segmentationsRemoved(ViewItemAdapterSList segmentations, TimeStamp t);
-    void segmentationsAboutToBeRemoved(ViewItemAdapterSList segmentations, TimeStamp t);
+    void segmentationsAdded  (ViewItemAdapterSList segmentations);
+    void segmentationsRemoved(ViewItemAdapterSList segmentations);
+    void segmentationsAboutToBeRemoved(ViewItemAdapterSList segmentations);
 
-    void viewItemsAdded(ViewItemAdapterSList channesl, TimeStamp t);
-    void viewItemsRemoved(ViewItemAdapterSList channesl, TimeStamp t);
-    void viewItemsAboutToBeRemoved(ViewItemAdapterSList channesl, TimeStamp t);
-    void representationsModified(ViewItemAdapterSList items, TimeStamp t);
+    void viewItemsAdded(ViewItemAdapterSList channesl);
+    void viewItemsRemoved(ViewItemAdapterSList channesl);
+    void viewItemsAboutToBeRemoved(ViewItemAdapterSList channesl);
 
-    void aboutToBeReset(TimeStamp t);
+    void aboutToBeReset();
+
+    void modelChanged();
 
   private slots:
     void resetInternalData();
@@ -680,7 +660,6 @@ namespace ESPINA
     };
 
   private:
-    TimerSPtr                 m_timer;
     AnalysisSPtr              m_analysis;
     SampleAdapterSList        m_samples;
     ChannelAdapterSList       m_channels;
