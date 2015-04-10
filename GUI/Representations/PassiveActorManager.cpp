@@ -51,11 +51,6 @@ ViewItemAdapterPtr PassiveActorManager::pick(const NmVector3 &point, vtkProp *ac
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
-{
-}
-
-//----------------------------------------------------------------------------
 RepresentationPipeline::Actors PassiveActorManager::actors(TimeStamp t)
 {
   return m_pool->actors(t);
@@ -89,6 +84,12 @@ void PassiveActorManager::disconnectPools()
              this,         SLOT(invalidateRepresentations()));
 
   m_pool->decrementObservers();
+}
+
+//----------------------------------------------------------------------------
+void PassiveActorManager::showActors(TimeStamp t)
+{
+  m_pool->reuseRepresentations(t);
 }
 
 //----------------------------------------------------------------------------

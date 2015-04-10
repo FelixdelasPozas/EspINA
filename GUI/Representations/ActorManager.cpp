@@ -50,12 +50,15 @@ void ActorManager::displayImplementation(TimeStamp t)
 void ActorManager::onShow(TimeStamp t)
 {
   connectPools();
+
+  //showActors(t);
 }
 
 //-----------------------------------------------------------------------------
 void ActorManager::onHide(TimeStamp t)
 {
   hideActors(t);
+
   disconnectPools();
 }
 

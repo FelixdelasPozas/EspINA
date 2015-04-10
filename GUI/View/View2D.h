@@ -192,7 +192,7 @@ namespace ESPINA
 
     virtual void removeActor(vtkProp *actor) override;
 
-    virtual void updateViewActions();
+    virtual void updateViewActions(RepresentationManager::Flags flags) override;
 
     virtual void resetCameraImplementation();
 
@@ -309,6 +309,8 @@ namespace ESPINA
      *
      */
     void onTakeSnapshot();
+
+    virtual const QString viewName() const;
   private:
     // GUI
     QVBoxLayout    *m_mainLayout;

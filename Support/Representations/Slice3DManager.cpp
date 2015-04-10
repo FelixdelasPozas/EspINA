@@ -79,7 +79,7 @@ ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) 
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
+void Slice3DManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   for (auto pool : m_pools)
   {
@@ -88,7 +88,7 @@ void Slice3DManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
+void Slice3DManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
 {
   for (auto pool : m_pools)
   {
@@ -128,8 +128,11 @@ void Slice3DManager::connectPools()
 {
   for (auto pool : m_pools)
   {
-    connect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
+    connect(pool.get(), SIGNAL(updateRequested()),
             this,       SLOT(waitForDisplay()));
+
+    connect(pool.get(), SIGNAL(actorsReused(TimeStamp)),
+            this,       SLOT(checkRenderRequest()));
 
     connect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
             this,       SLOT(checkRenderRequest()));
@@ -146,7 +149,10 @@ void Slice3DManager::disconnectPools()
 {
   for (auto pool : m_pools)
   {
-    disconnect(pool.get(), SIGNAL(poolUpdated(TimeStamp)),
+    disconnect(pool.get(), SIGNAL(actorsReused(TimeStamp)),
+               this,       SLOT(checkRenderRequest()));
+
+    disconnect(pool.get(), SIGNAL(updateRequested()),
                this,       SLOT(waitForDisplay()));
 
     disconnect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
@@ -156,6 +162,15 @@ void Slice3DManager::disconnectPools()
                this,       SLOT(invalidateRepresentations()));
 
     pool->decrementObservers();
+  }
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::showActors(TimeStamp t)
+{
+  for (auto pool : m_pools)
+  {
+    pool->reuseRepresentations(t);
   }
 }
 
@@ -179,11 +194,14 @@ RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 //----------------------------------------------------------------------------
 void Slice3DManager::checkRenderRequest()
 {
-  auto lastXY = m_pools[0]->lastUpdateTimeStamp();
-  auto lastXZ = m_pools[1]->lastUpdateTimeStamp();
-  auto lastYZ = m_pools[2]->lastUpdateTimeStamp();
+  if (!isIdle())
+  {
+    auto lastXY = m_pools[0]->lastUpdateTimeStamp();
+    auto lastXZ = m_pools[1]->lastUpdateTimeStamp();
+    auto lastYZ = m_pools[2]->lastUpdateTimeStamp();
 
-  auto lastTime = std::min(lastXY, std::min(lastXZ, lastYZ));
+    auto lastTime = std::min(lastXY, std::min(lastXZ, lastYZ));
 
-  emitRenderRequest(lastTime);
+    emitRenderRequest(lastTime);
+  }
 }

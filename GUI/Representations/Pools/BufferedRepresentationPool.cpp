@@ -31,7 +31,6 @@ BufferedRepresentationPool::BufferedRepresentationPool(const Plane              
 , m_updateWindow{scheduler, pipeline, windowSize}
 , m_init{false}
 , m_normalRes{1}
-, m_hasChanged{false}
 {
   connect(&m_updateWindow, SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
           this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -48,9 +47,7 @@ void BufferedRepresentationPool::setResolution(const NmVector3 &resolution, Time
 
     if (m_init)
     {
-      m_hasChanged = true;
-
-      emit poolUpdated(t);
+      emit updateRequested();
 
       auto invalidated = updateBuffer(m_crosshair, invalidationShift(), t);
 
@@ -82,20 +79,16 @@ void BufferedRepresentationPool::setCrosshairImplementation(const NmVector3 &poi
 {
   auto shift = m_init?distanceFromLastCrosshair(point):invalidationShift();
 
-  m_init       = true;
-  m_hasChanged = shift != 0;
+  m_init = true;
+
+  if (shift != 0)
+  {
+    emit updateRequested();
+  }
 
   auto invalidated = updateBuffer(point, shift, t);
 
   updatePipelines(invalidated);
-}
-
-//-----------------------------------------------------------------------------
-void BufferedRepresentationPool::hideRepresentations(TimeStamp t)
-{
-  m_hasChanged = true;
-
-  onActorsReady(t, RepresentationPipeline::Actors());
 }
 
 //-----------------------------------------------------------------------------
@@ -112,17 +105,11 @@ void BufferedRepresentationPool::onSettingsChanged(const RepresentationState &se
 }
 
 //-----------------------------------------------------------------------------
-bool BufferedRepresentationPool::actorsChanged() const
-{
-  return m_hasChanged;
-}
-
-//-----------------------------------------------------------------------------
 void BufferedRepresentationPool::invalidateImplementation()
 {
   if (m_init)
   {
-    m_hasChanged = true;
+    emit updateRequested();
 
     updatePipelines(m_updateWindow.all());
   }
@@ -133,7 +120,7 @@ void BufferedRepresentationPool::invalidateRepresentations(ViewItemAdapterList i
 {
   if(m_init)
   {
-    m_hasChanged = true;
+    emit updateRequested();
 
     m_updateWindow.current()->setTimeStamp(t);
 

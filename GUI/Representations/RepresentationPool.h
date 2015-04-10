@@ -79,7 +79,6 @@ namespace ESPINA
      */
     virtual void setResolution(const NmVector3 &resolution, TimeStamp t) = 0;
 
-    virtual void hideRepresentations(TimeStamp t) = 0;
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
@@ -101,6 +100,10 @@ namespace ESPINA
 
     void invalidatePreviousActors(TimeStamp t);
 
+    void reuseRepresentations(TimeStamp t);
+
+    void hideRepresentations(TimeStamp t);
+
     TimeStamp lastUpdateTimeStamp() const;
 
     /** \brief Increment the number of active managers using this pool
@@ -117,6 +120,8 @@ namespace ESPINA
     void invalidate();
 
   signals:
+    void updateRequested();
+
     /** \brief Some managers may be interested in changes in the actors of the pool
      *
      *   This signal is only emitted whenever two consecutive time stamps generate
@@ -127,7 +132,7 @@ namespace ESPINA
     /** \brief Some managers may be interested in pool updates
      *
      */
-    void poolUpdated(TimeStamp t);
+    void actorsReused(TimeStamp t);
 
     void actorsInvalidated();
 
@@ -166,11 +171,11 @@ namespace ESPINA
 
     virtual void onSettingsChanged(const RepresentationState &settings) = 0;
 
-    virtual bool actorsChanged() const = 0;
-
     virtual void invalidateImplementation() = 0;
 
     virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t) = 0;
+
+    bool actorsChanged(const RepresentationPipeline::Actors &actors) const;
 
     void invalidateActors();
 

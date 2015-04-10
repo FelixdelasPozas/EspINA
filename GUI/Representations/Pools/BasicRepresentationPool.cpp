@@ -26,7 +26,6 @@ namespace ESPINA
   BasicRepresentationPool::BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
   : m_updater      {std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
   , m_init         {false}
-  , m_hasChanged   {false}
   {
     connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
             this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
@@ -42,13 +41,6 @@ namespace ESPINA
   ViewItemAdapterPtr BasicRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
   {
     return m_updater->pick(point, actor);
-  }
-
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::hideRepresentations(TimeStamp t)
-  {
-    m_hasChanged = true;
-    onActorsReady(t, RepresentationPipeline::Actors());
   }
 
   //-----------------------------------------------------------------------------
@@ -70,8 +62,6 @@ namespace ESPINA
 
     if (t > lastUpdateTimeStamp())
     {
-      m_hasChanged = true;
-
       m_updater->invalidate();
       m_updater->setCrosshair(point);
       m_updater->setTimeStamp(t);
@@ -89,18 +79,10 @@ namespace ESPINA
   }
 
   //-----------------------------------------------------------------------------
-  bool BasicRepresentationPool::actorsChanged() const
-  {
-    return m_hasChanged;
-  }
-
-  //-----------------------------------------------------------------------------
   void BasicRepresentationPool::invalidateImplementation()
   {
     if (m_init)
     {
-      m_hasChanged = true;
-
       Task::submit(m_updater);
     }
   }
@@ -110,8 +92,6 @@ namespace ESPINA
   {
     if(m_init)
     {
-      m_hasChanged = true;
-
       m_updater->setTimeStamp(t);
       m_updater->setUpdateList(items);
 

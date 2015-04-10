@@ -115,7 +115,7 @@ namespace ESPINA
 
     virtual vtkRenderer *mainRenderer() const;
 
-    virtual void updateViewActions();
+    virtual void updateViewActions(RepresentationManager::Flags flags) override;
 
     virtual void resetCameraImplementation();
 
@@ -138,6 +138,7 @@ namespace ESPINA
      */
     void updateScrollBarsLimits();
 
+    virtual const QString viewName() const;
   private:
     // GUI
     QVBoxLayout *m_mainLayout;

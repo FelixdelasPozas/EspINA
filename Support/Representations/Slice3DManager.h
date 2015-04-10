@@ -42,9 +42,9 @@ namespace ESPINA {
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
   private:
-    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
+    virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-    virtual void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+    virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
     virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
 
@@ -53,6 +53,8 @@ namespace ESPINA {
     virtual void connectPools()      override;
 
     virtual void disconnectPools()   override;
+
+    virtual void showActors(TimeStamp t) override;
 
     virtual void hideActors(TimeStamp t) override;
 

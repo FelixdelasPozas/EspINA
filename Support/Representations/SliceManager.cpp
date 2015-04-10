@@ -84,7 +84,7 @@ ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) co
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
+void SliceManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   if (validPlane())
   {
@@ -93,7 +93,7 @@ void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
+void SliceManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
 {
   if (validPlane())
   {
@@ -128,8 +128,11 @@ void SliceManager::connectPools()
 {
   if (validPlane())
   {
-    connect(planePool().get(), SIGNAL(poolUpdated(TimeStamp)),
+    connect(planePool().get(), SIGNAL(updateRequested()),
             this,              SLOT(waitForDisplay()));
+
+    connect(planePool().get(), SIGNAL(actorsReused(TimeStamp)),
+            this,              SLOT(idle()));
 
     connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
             this,              SLOT(emitRenderRequest(TimeStamp)));
@@ -146,8 +149,11 @@ void SliceManager::disconnectPools()
 {
   if (validPlane())
   {
-    disconnect(planePool().get(), SIGNAL(poolUpdated(TimeStamp)),
+    disconnect(planePool().get(), SIGNAL(updateRequested()),
                this,              SLOT(waitForDisplay()));
+
+    disconnect(planePool().get(), SIGNAL(actorsReused(TimeStamp)),
+               this,              SLOT(idle()));
 
     disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
                this,              SLOT(emitRenderRequest(TimeStamp)));
@@ -156,6 +162,15 @@ void SliceManager::disconnectPools()
                this,              SLOT(invalidateRepresentations()));
 
     planePool()->decrementObservers();
+  }
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::showActors(TimeStamp t)
+{
+  if (validPlane())
+  {
+    planePool()->reuseRepresentations(t);
   }
 }
 

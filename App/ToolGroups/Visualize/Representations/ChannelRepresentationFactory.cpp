@@ -63,7 +63,7 @@ void ChannelRepresentationFactory::createSliceRepresentation(Representation &rep
   auto slice3DManager = std::make_shared<Slice3DManager>(poolXY, poolXZ, poolYZ);
   auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer);
 
-  sliceManager->setName(QObject::tr("Slice Representation"));
+  sliceManager->setName(QObject::tr("Channel Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/channels_slice_switch.png"));
   sliceManager->setDescription(QObject::tr("Channel Slice Representation"));
 

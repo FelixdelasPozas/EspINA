@@ -204,6 +204,8 @@ namespace ESPINA
      */
     static QPushButton *createButton(const QString& icon, const QString& tooltip);
 
+    virtual const QString viewName() const = 0;
+
   public slots:
     /** \brief Resets the view's camera.
      *
@@ -260,7 +262,7 @@ namespace ESPINA
 
     virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
-    virtual void updateViewActions() = 0;
+    virtual void updateViewActions(RepresentationManager::Flags flags) = 0;
 
     virtual void resetCameraImplementation() = 0;
 
@@ -268,11 +270,13 @@ namespace ESPINA
 
     void connectSignals();
 
-    RepresentationManagerSList managers(RepresentationManager::Status status) const;
+    RepresentationManagerSList pendingManagers() const;
 
     TimeStamp latestReadyTimeStamp(RepresentationManagerSList managers) const;
 
     void display(RepresentationManagerSList managers, TimeStamp t);
+
+    RepresentationManager::Flags managerFlags() const;
 
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;

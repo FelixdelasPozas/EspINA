@@ -72,6 +72,8 @@ namespace ESPINA
 
     virtual void disconnectPools() = 0;
 
+    virtual void showActors(TimeStamp t) = 0;
+
     virtual void hideActors(TimeStamp t) = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;

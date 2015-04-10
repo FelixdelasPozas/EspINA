@@ -127,10 +127,10 @@ namespace ESPINA
      */
     bool isActive();
 
-    /** \brief Returns the status of the manager
+    /** \brief Returns true if the manager is idle, false otherwise
      *
      */
-    Status status() const;
+    bool isIdle() const;
 
     /** \brief Returns the range of ready pipelines.
      *
@@ -152,12 +152,14 @@ namespace ESPINA
      */
     RepresentationManagerSPtr clone();
 
+    QString debugName() const;
+
   public slots:
     void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);
 
-    virtual void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t) {}
+    void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
 
-    virtual void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t) {}
+    void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
 
   signals:
     void renderRequested();
@@ -169,6 +171,8 @@ namespace ESPINA
 
     void waitForDisplay();
 
+    void idle();
+
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
@@ -177,7 +181,14 @@ namespace ESPINA
     void setFlag(const FlagValue flag, const bool value);
 
   private:
-    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) = 0;
+    /** \brief Performs the actual crosshair change for the underlying representations
+     *
+     */
+    virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) {};
+
+    virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) {};
+
+    virtual void changeSceneBounds(const Bounds &bounds, TimeStamp t) {};
 
     virtual void displayImplementation(TimeStamp t) = 0;
 

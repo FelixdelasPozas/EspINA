@@ -87,7 +87,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   poolSliceXZ->setSettings(sliceSettings);
   poolSliceYZ->setSettings(sliceSettings);
 
-  sliceManager->setName(QObject::tr("Slice Representation"));
+  sliceManager->setName(QObject::tr("Segmentation Slice Representation"));
   sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
   sliceManager->setDescription(QObject::tr("Segmentation Slice Representation"));
 

@@ -70,6 +70,7 @@ void RepresentationsRange<R>::addValue(R representation, TimeStamp t)
 template<typename R>
 void RepresentationsRange<R>::reusePreviousValue(TimeStamp t)
 {
+  Q_ASSERT(m_lastTime <= t);
   m_lastTime = t;
 }
 

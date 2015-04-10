@@ -349,15 +349,16 @@ void RenderView::connectSignals()
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-  auto readyManagers     = managers(RepresentationManager::Status::PENDING_DISPLAY);
+  auto readyManagers     = pendingManagers();
   auto renderTime        = latestReadyTimeStamp(readyManagers);
 
+  qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
   if (m_lastRender < renderTime)
   {
     display(readyManagers,  renderTime);
 
     // update actions
-    qDebug() << "Update actors:" << renderTime;
+    qDebug() << viewName() << ": Update actors:" << renderTime;
 
     m_lastRender = renderTime;
 
@@ -366,26 +367,27 @@ void RenderView::onRenderRequest()
   if (hasVisibleRepresentations() && requiresCameraReset())
   {
     resetCameraImplementation();
-    qDebug() << "Reset camera:" << renderTime;
+    qDebug() << viewName() << ": Reset camera:" << renderTime;
 
     m_requiresCameraReset = false;
   }
 
-  refreshViewImplementation();
+  updateViewActions(managerFlags());
 
+  refreshViewImplementation();
 
   mainRenderer()->ResetCameraClippingRange();
   renderWindow()->Render();
   m_view->update();
 }
 
-//-----------------------------------------------------------------------------//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 const NmVector3 RenderView::sceneResolution() const
 {
   return m_state.coordinateSystem()->resolution();
 }
 
-//-----------------------------------------------------------------------------//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 const Bounds RenderView::sceneBounds() const
 {
   return m_state.coordinateSystem()->bounds();
@@ -412,13 +414,13 @@ QPushButton* RenderView::createButton(const QString& icon, const QString& toolti
 }
 
 //-----------------------------------------------------------------------------
-RepresentationManagerSList RenderView::managers(RepresentationManager::Status status) const
+RepresentationManagerSList RenderView::pendingManagers() const
 {
   RepresentationManagerSList result;
 
   for(auto manager: m_managers)
   {
-    if (manager->status() == status)
+    if (!manager->isIdle())
     {
       result << manager;
     }
@@ -434,7 +436,7 @@ TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) 
 
   for (auto manager : managers)
   {
-    Q_ASSERT(manager->status() == RepresentationManager::Status::PENDING_DISPLAY);
+    Q_ASSERT(!manager->isIdle());
 
     for(auto timeStamp: manager->readyRange())
     {
@@ -465,4 +467,18 @@ void RenderView::display(RepresentationManagerSList managers, TimeStamp t)
   {
     manager->display(t);
   }
+}
+
+//-----------------------------------------------------------------------------
+RepresentationManager::Flags RenderView::managerFlags() const
+{
+
+  RepresentationManager::Flags flags;
+
+  for (auto manager : m_managers)
+  {
+    flags |= manager->flags();
+  }
+
+  return flags;
 }

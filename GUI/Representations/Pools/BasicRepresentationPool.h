@@ -37,8 +37,6 @@ namespace ESPINA
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
   private:
-    virtual void hideRepresentations(TimeStamp t);
-
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source);
@@ -47,8 +45,6 @@ namespace ESPINA
 
     virtual void onSettingsChanged(const RepresentationState &settings);
 
-    virtual bool actorsChanged() const;
-
     virtual void invalidateImplementation();
 
     virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t);
@@ -56,7 +52,6 @@ namespace ESPINA
   private:
     RepresentationUpdaterSPtr m_updater;
     bool m_init;
-    bool m_hasChanged;
   };
 }
 

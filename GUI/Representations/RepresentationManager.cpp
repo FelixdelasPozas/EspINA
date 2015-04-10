@@ -122,6 +122,9 @@ void RepresentationManager::hide(TimeStamp t)
 
   if (m_view)
   {
+    qDebug() << debugName() << "Requested hide" << t;
+    waitForDisplay();
+
     onHide(t);
   }
 }
@@ -133,22 +136,27 @@ bool RepresentationManager::isActive()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationManager::Status RepresentationManager::status() const
+bool RepresentationManager::isIdle() const
 {
-  return m_status;
+  return m_status == Status::IDLE;
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::display(TimeStamp t)
 {
-  if (m_view)
-  {
-    displayImplementation(t);
-  }
+  Q_ASSERT(m_view);
+
+  qDebug() << debugName() << "Display" << t;
+  displayImplementation(t);
 
   if (!hasNewerFrames(t))
   {
-    m_status = Status::IDLE;
+    qDebug() << debugName() << "Displayed las frame" << t;
+    idle();
+  }
+  else
+  {
+    qDebug() << debugName() << "PENDING Frames at" << t;
   }
 }
 
@@ -167,15 +175,34 @@ RepresentationManagerSPtr RepresentationManager::clone()
 }
 
 //-----------------------------------------------------------------------------
+QString RepresentationManager::debugName() const
+{
+  return m_view->viewName() + "::" + name() + ":";
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp time)
 {
   m_crosshair       = crosshair;
-  m_lastRequestTime = time;
+  m_lastRequestTime = time; // Remove?
 
   if (representationsShown())
   {
-    setCrosshair(m_crosshair, time);
+    changeCrosshair(m_crosshair, time);
   }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
+{
+  changeSceneResolution(resolution, t);
+}
+
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::onSceneBoundsChanged(const Bounds &bounds, TimeStamp t)
+{
+  changeSceneBounds(bounds, t);
 }
 
 //-----------------------------------------------------------------------------
@@ -193,18 +220,22 @@ void RepresentationManager::setFlag(const FlagValue flag, const bool value)
   }
   else
   {
-    m_flags ^= flag;
+    m_flags &= !flag;
   }
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::emitRenderRequest(TimeStamp time)
+void RepresentationManager::emitRenderRequest(TimeStamp t)
 {
-  if(time > m_lastRenderRequestTime)
-  {
-    m_lastRenderRequestTime = time;
 
-    waitForDisplay();
+  qDebug() << debugName() << "Requested to emit renderRequested at" << t;
+  if(t > m_lastRenderRequestTime)
+  {
+    Q_ASSERT(t == readyRange().last());
+
+    m_lastRenderRequestTime = t;
+
+    qDebug() << debugName() << "Emit renderRequested at" << t;
 
     emit renderRequested();
   }
@@ -219,8 +250,17 @@ void RepresentationManager::invalidateRepresentations()
 //-----------------------------------------------------------------------------
 void RepresentationManager::waitForDisplay()
 {
+  qDebug() << debugName() << "Wait for display";
   m_status = Status::PENDING_DISPLAY;
 }
+
+//-----------------------------------------------------------------------------
+void RepresentationManager::idle()
+{
+  qDebug() << debugName() << "Is idle";
+  m_status = Status::IDLE;
+}
+
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::hasNewerFrames(TimeStamp t) const
@@ -235,5 +275,7 @@ void RepresentationManager::showRepresentations(TimeStamp t)
 
   m_lastRequestTime = t;
 
-  setCrosshair(m_crosshair, m_lastRequestTime);
+  changeCrosshair(m_crosshair, m_lastRequestTime);
+
+  waitForDisplay();
 }

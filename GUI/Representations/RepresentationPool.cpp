@@ -18,7 +18,9 @@
  */
 
 #include "RepresentationPool.h"
+
 #include <QApplication>
+#include <vtkProp.h>
 
 using namespace ESPINA;
 
@@ -150,6 +152,23 @@ void RepresentationPool::invalidatePreviousActors(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationPool::reuseRepresentations(TimeStamp t)
+{
+  if (!m_validActors.isEmpty())
+  {
+    m_validActors.reusePreviousValue(t);
+
+    emit actorsReady(t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::hideRepresentations(TimeStamp t)
+{
+  onActorsReady(t, RepresentationPipeline::Actors());
+}
+
+//-----------------------------------------------------------------------------
 TimeStamp RepresentationPool::lastUpdateTimeStamp() const
 {
   return m_validActors.lastTime();
@@ -200,9 +219,10 @@ bool RepresentationPool::notHasBeenProcessed(const TimeStamp t) const
 //-----------------------------------------------------------------------------
 void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Actors actors)
 {
+  //Q_ASSERT(notHasBeenProcessed(t));
   if (notHasBeenProcessed(t))
   {
-    if (actorsChanged())
+    if (actorsChanged(actors))
     {
       m_validActors.addValue(actors, t);
 
@@ -211,9 +231,9 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
     else
     {
       m_validActors.reusePreviousValue(t);
-    }
 
-    emit poolUpdated(t);
+      emit actorsReused(t);
+    }
   }
 }
 
@@ -292,6 +312,12 @@ void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterPtr item)
 bool RepresentationPool::hasActorsDisplayed() const
 {
   return m_numObservers > 0 && hasSources();
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationPool::actorsChanged(const RepresentationPipeline::Actors &actors) const
+{
+  return m_validActors.last() != actors;
 }
 
 //-----------------------------------------------------------------------------

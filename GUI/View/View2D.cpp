@@ -499,9 +499,12 @@ void View2D::removeActor(vtkProp* actor)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateViewActions()
+void View2D::updateViewActions(RepresentationManager::Flags flags)
 {
+  auto hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
 
+  m_zoomButton->setEnabled(hasActors);
+  m_snapshot->setEnabled(hasActors);
 }
 
 //-----------------------------------------------------------------------------
@@ -530,10 +533,6 @@ void View2D::refreshViewImplementation()
 {
   updateRuler();
   updateThumbnail();
-
-  if (m_plane == Plane::XY) qDebug() << "Rendering XY";
-  if (m_plane == Plane::XZ) qDebug() << "Rendering XZ";
-  if (m_plane == Plane::YZ) qDebug() << "Rendering YZ";
 }
 
 //-----------------------------------------------------------------------------
@@ -868,6 +867,16 @@ void View2D::showSegmentationTooltip(const int x, const int y)
 void View2D::onTakeSnapshot()
 {
   takeSnapshot();
+}
+
+//-----------------------------------------------------------------------------
+const QString View2D::viewName() const
+{
+  if (m_plane == Plane::XY) return "XY";
+  if (m_plane == Plane::XZ) return "XZ";
+  if (m_plane == Plane::YZ) return "YZ";
+
+  return "Unknown View";
 }
 
 //-----------------------------------------------------------------------------

@@ -77,7 +77,6 @@ View3D::~View3D()
 //-----------------------------------------------------------------------------
 void View3D::reset()
 {
-  updateViewActions();
 }
 
 //-----------------------------------------------------------------------------
@@ -87,7 +86,7 @@ void View3D::buildViewActionsButtons()
   m_controlLayout->addStretch();
 
   m_zoom = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
-  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetView()));
+  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetCamera()));
 
   m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
   connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
@@ -260,7 +259,6 @@ void View3D::setupUI()
 //-----------------------------------------------------------------------------
 void View3D::refreshViewImplementation()
 {
-  qDebug() << "Render 3D";
 }
 
 //-----------------------------------------------------------------------------
@@ -420,29 +418,20 @@ void View3D::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::updateViewActions()
+void View3D::updateViewActions(RepresentationManager::Flags flags)
 {
-  // TODO: incomplete
-  bool active = false;
+  bool hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
+  bool exports3D = flags.testFlag(RepresentationManager::EXPORTS_3D);
 
-  for(auto manager: m_managers)
-  {
-    if(manager->isActive())
-    {
-      active = true;
-      break;
-    }
-  }
-
-  m_zoom->setEnabled(active);
-  m_snapshot->setEnabled(active);
-  m_export->setEnabled(active);
+  m_zoom    ->setEnabled(hasActors);
+  m_snapshot->setEnabled(hasActors);
+  m_export  ->setEnabled(exports3D);
 
   if(m_showCrosshairPlaneSelectors)
   {
-    m_axialScrollBar->setEnabled(active);
-    m_coronalScrollBar->setEnabled(active);
-    m_sagittalScrollBar->setEnabled(active);
+    m_axialScrollBar   ->setEnabled(hasActors);
+    m_coronalScrollBar ->setEnabled(hasActors);
+    m_sagittalScrollBar->setEnabled(hasActors);
     updateScrollBarsLimits();
   }
 }
@@ -511,3 +500,10 @@ RenderView::CameraState View3D::cameraState()
 
   return state;
 }
+
+//-----------------------------------------------------------------------------
+const QString View3D::viewName() const
+{
+  return "3D";
+}
+
