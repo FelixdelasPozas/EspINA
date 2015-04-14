@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef ESPINA_REPRESENTATIONS_RANGE_H
-#define ESPINA_REPRESENTATIONS_RANGE_H
+#ifndef ESPINA_RANGED_VALUE_H
+#define ESPINA_RANGED_VALUE_H
 
 #include <Core/EspinaTypes.h>
 #include <QMap>
@@ -24,10 +24,10 @@
 namespace ESPINA
 {
   template<typename R>
-  class RepresentationsRange
+  class RangedValue
   {
   public:
-    RepresentationsRange();
+    RangedValue();
 
     TimeRange timeRange() const;
 
@@ -53,7 +53,7 @@ namespace ESPINA
     QMap<TimeStamp, R> m_representations;
   };
 
-#include "RepresentationsRange.cxx"
+  #include "RangedValue.cxx"
 }
 
-#endif // ESPINA_REPRESENTATIONS_RANGE_H
+#endif // ESPINA_RANGED_VALUE_H

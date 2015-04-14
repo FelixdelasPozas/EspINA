@@ -28,10 +28,9 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
 : m_view{nullptr}
-, m_representationsShown{false}
+, m_isActive{false}
 , m_status{Status::IDLE}
 , m_supportedViews{supportedViews}
-, m_lastRequestTime{Timer::INVALID_TIME_STAMP}
 , m_lastRenderRequestTime{Timer::INVALID_TIME_STAMP}
 {
 }
@@ -85,54 +84,60 @@ void RepresentationManager::setView(RenderView *view)
 
   auto t = view->timeStamp();
 
-  onSceneResolutionChanged(view->sceneResolution(), t);
-  onSceneBoundsChanged(view->sceneBounds(), t);
+  m_crosshair  = m_view->crosshair();
+  m_resolution = m_view->sceneResolution();
+  m_bounds     = m_view->sceneBounds();
 
-  if (m_representationsShown)
+  if (m_isActive)
   {
-    showRepresentations(t);
+    updateRepresentations(t);
   }
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::show(TimeStamp t)
 {
+  m_isActive = true;
+
+  if (m_view)
+  {
+    updateRepresentations(t);
+  }
+
   for (auto child : m_childs)
   {
     child->show(t);
   }
 
-  m_representationsShown  = true;
-
-  if (m_view)
-  {
-    showRepresentations(t);
-  }
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::hide(TimeStamp t)
 {
+  m_isActive = false;
+
+  if (m_view)
+  {
+    onHide(t);
+
+    qDebug() << debugName() << "Requested hide" << t;
+
+    waitForDisplay();
+
+    emitRenderRequest(t);
+  }
+
   for (auto child : m_childs)
   {
     child->hide(t);
   }
 
-  m_representationsShown = false;
-
-  if (m_view)
-  {
-    qDebug() << debugName() << "Requested hide" << t;
-    waitForDisplay();
-
-    onHide(t);
-  }
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationManager::isActive()
+bool RepresentationManager::isActive() const
 {
-  return m_representationsShown && m_view;
+  return m_isActive && m_view;
 }
 
 //-----------------------------------------------------------------------------
@@ -142,12 +147,37 @@ bool RepresentationManager::isIdle() const
 }
 
 //-----------------------------------------------------------------------------
+TimeRange RepresentationManager::readyRange() const
+{
+  TimeRange range;
+
+  if (isActive())
+  {
+    range = readyRangeImplementation();
+  }
+  else
+  {
+    range << m_lastRenderRequestTime;
+  }
+
+  return range;
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager::display(TimeStamp t)
 {
   Q_ASSERT(m_view);
 
-  qDebug() << debugName() << "Display" << t;
-  displayImplementation(t);
+  if (isActive())
+  {
+    qDebug() << debugName() << "Display" << t << "actors";
+    displayActors(t);
+  }
+  else
+  {
+    qDebug() << debugName() << "Hide at" << t;
+    hideActors(t);
+  }
 
   if (!hasNewerFrames(t))
   {
@@ -156,7 +186,7 @@ void RepresentationManager::display(TimeStamp t)
   }
   else
   {
-    qDebug() << debugName() << "PENDING Frames at" << t;
+    qDebug() << debugName() << "Pending Frames at" << t;
   }
 }
 
@@ -165,9 +195,9 @@ RepresentationManagerSPtr RepresentationManager::clone()
 {
   auto child = cloneImplementation();
 
-  child->m_name                = m_name;
-  child->m_description         = m_description;
-  child->m_representationsShown = m_representationsShown;
+  child->m_name        = m_name;
+  child->m_description = m_description;
+  child->m_isActive    = m_isActive;
 
   m_childs << child;
 
@@ -181,34 +211,51 @@ QString RepresentationManager::debugName() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp time)
+void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp t)
 {
-  m_crosshair       = crosshair;
-  m_lastRequestTime = time; // Remove?
-
-  if (representationsShown())
+  if (acceptCrosshairChange(crosshair))
   {
-    changeCrosshair(m_crosshair, time);
+    m_crosshair = crosshair;
+
+    if (isActive())
+    {
+      waitForDisplay();
+
+      changeCrosshair(crosshair, t);
+    }
   }
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
 {
-  changeSceneResolution(resolution, t);
-}
+  if (acceptSceneResolutionChange(resolution))
+  {
+    m_resolution = resolution;
 
+    if (isActive())
+    {
+      waitForDisplay();
+
+      changeSceneResolution(m_resolution, t);
+    }
+  }
+}
 
 //-----------------------------------------------------------------------------
 void RepresentationManager::onSceneBoundsChanged(const Bounds &bounds, TimeStamp t)
 {
-  changeSceneBounds(bounds, t);
-}
+  if (acceptSceneBoundsChange(bounds))
+  {
+    m_bounds = bounds;
 
-//-----------------------------------------------------------------------------
-bool RepresentationManager::representationsShown() const
-{
-  return m_representationsShown;
+    if (isActive())
+    {
+      waitForDisplay();
+
+      changeSceneBounds(m_bounds, t);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -225,14 +272,30 @@ void RepresentationManager::setFlag(const FlagValue flag, const bool value)
 }
 
 //-----------------------------------------------------------------------------
+NmVector3 RepresentationManager::currentCrosshair() const
+{
+  return m_crosshair;
+}
+
+//-----------------------------------------------------------------------------
+NmVector3 RepresentationManager::currentSceneResolution() const
+{
+  return m_resolution;
+}
+
+//-----------------------------------------------------------------------------
+Bounds RepresentationManager::currentSceneBounds() const
+{
+  return m_bounds;
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationManager::emitRenderRequest(TimeStamp t)
 {
 
   qDebug() << debugName() << "Requested to emit renderRequested at" << t;
   if(t > m_lastRenderRequestTime)
   {
-    Q_ASSERT(t == readyRange().last());
-
     m_lastRenderRequestTime = t;
 
     qDebug() << debugName() << "Emit renderRequested at" << t;
@@ -244,7 +307,7 @@ void RepresentationManager::emitRenderRequest(TimeStamp t)
 //-----------------------------------------------------------------------------
 void RepresentationManager::invalidateRepresentations()
 {
-  m_lastRenderRequestTime = 0;
+  m_lastRenderRequestTime = Timer::INVALID_TIME_STAMP;
 }
 
 //-----------------------------------------------------------------------------
@@ -261,6 +324,23 @@ void RepresentationManager::idle()
   m_status = Status::IDLE;
 }
 
+//-----------------------------------------------------------------------------
+bool RepresentationManager::acceptCrosshairChange(const NmVector3 &crosshair) const
+{
+  return m_crosshair != crosshair;
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return m_resolution != resolution;
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return m_bounds != bounds;
+}
 
 //-----------------------------------------------------------------------------
 bool RepresentationManager::hasNewerFrames(TimeStamp t) const
@@ -269,13 +349,14 @@ bool RepresentationManager::hasNewerFrames(TimeStamp t) const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationManager::showRepresentations(TimeStamp t)
+void RepresentationManager::updateRepresentations(TimeStamp t)
 {
   onShow(t);
 
-  m_lastRequestTime = t;
+  if (hasRepresentations())
+  {
+    waitForDisplay();
 
-  changeCrosshair(m_crosshair, m_lastRequestTime);
-
-  waitForDisplay();
+    updateRepresentations(m_crosshair, m_resolution, m_bounds, t);
+  }
 }

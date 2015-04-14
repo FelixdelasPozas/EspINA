@@ -43,39 +43,39 @@ namespace ESPINA {
       }
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setResolution(const GUI::View::CoordinateSystemSPtr system)
-    {
-      m_resolution = system->resolution();
-    }
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager2D::setResolution(const GUI::View::CoordinateSystemSPtr system)
+//     {
+//       m_resolution = system->resolution();
+//     }
 
     //-----------------------------------------------------------------------------
-    TimeRange RepresentationManager2D::readyRange() const
+    TimeRange RepresentationManager2D::readyRangeImplementation() const
     {
       return m_crosshairs.timeRange();
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::displayImplementation(TimeStamp t)
-    {
-      if (representationsShown())
-      {
-        for (auto widget : m_widgets)
-        {
-          showWidget(widget);
-        }
-      }
-      else
-      {
-        for (auto widget : m_widgets)
-        {
-          hideWidget(widget);
-        }
-      }
-
-      m_crosshairs.invalidatePreviousValues(t);
-    }
-
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager2D::displayImplementation(TimeStamp t)
+//     {
+//       if (representationsShown())
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           showWidget(widget);
+//         }
+//       }
+//       else
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           hideWidget(widget);
+//         }
+//       }
+//
+//       m_crosshairs.invalidatePreviousValues(t);
+//     }
+//
     //-----------------------------------------------------------------------------
     ViewItemAdapterPtr RepresentationManager2D::pick(const NmVector3 &point, vtkProp *actor) const
     {
@@ -138,20 +138,20 @@ namespace ESPINA {
     {
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
-    {
-      if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
-      {
-        m_crosshairs.addValue(crosshair, t);
-
-        emit renderRequested();
-      }
-      else
-      {
-        m_crosshairs.reusePreviousValue(t);
-      }
-    }
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager2D::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
+//     {
+//       if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
+//       {
+//         m_crosshairs.addValue(crosshair, t);
+//
+//         emit renderRequested();
+//       }
+//       else
+//       {
+//         m_crosshairs.reusePreviousValue(t);
+//       }
+//     }
 
     //-----------------------------------------------------------------------------
     RepresentationManagerSPtr RepresentationManager2D::cloneImplementation()

@@ -26,7 +26,7 @@ void WidgetManager::setResolution(const NmVector3 &resolution)
 }
 
 //------------------------------------------------------------------------
-TimeRange WidgetManager::readyRange() const
+TimeRange WidgetManager::readyRangeImplementation() const
 {
   return TimeRange();
 }

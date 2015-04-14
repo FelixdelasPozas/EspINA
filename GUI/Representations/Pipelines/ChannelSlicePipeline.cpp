@@ -118,6 +118,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(const ViewI
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
       actor->SetDisplayExtent(slice->GetExtent());
+      actor->SetOpacity(0.99);
       actor->Update();
 
       actors << actor;

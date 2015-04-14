@@ -44,7 +44,7 @@ void RepresentationInvalidator::invalidateDependentRepresentations(ViewItemAdapt
 }
 
 //------------------------------------------------------------------------
-const Timer &RepresentationInvalidator::timer() const
+Timer &RepresentationInvalidator::timer() const
 {
   return m_timer;
 }

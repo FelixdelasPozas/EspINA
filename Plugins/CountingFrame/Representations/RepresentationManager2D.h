@@ -22,7 +22,6 @@
 
 // ESPINA
 #include <GUI/Representations/RepresentationManager.h>
-#include <GUI/Representations/RepresentationsRange.hxx>
 #include "CountingFrameManager.h"
 
 namespace ESPINA
@@ -39,9 +38,7 @@ namespace ESPINA
 
       virtual ~RepresentationManager2D();
 
-      virtual void setResolution(const GUI::View::CoordinateSystemSPtr system);
-
-      virtual TimeRange readyRange() const override;
+      virtual TimeRange readyRangeImplementation() const override;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
@@ -49,6 +46,13 @@ namespace ESPINA
 
       virtual void setRepresentationDepth(Nm depth) override
       {}
+
+    protected:
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const {};
+
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const {};
+
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const {};
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -62,13 +66,17 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      virtual void displayImplementation(TimeStamp t);
+      virtual bool hasRepresentations() const {};
+
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) {};
 
       virtual void onShow(TimeStamp t);
 
       virtual void onHide(TimeStamp t);
 
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
+      virtual void displayActors(TimeStamp t) {};
+
+      virtual void hideActors(TimeStamp t) {};
 
       virtual RepresentationManagerSPtr cloneImplementation();
 
@@ -87,7 +95,7 @@ namespace ESPINA
     private:
       Plane     m_plane;
       NmVector3 m_resolution;
-      RepresentationsRange<NmVector3> m_crosshairs;
+      RangedValue<NmVector3> m_crosshairs;
 
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;

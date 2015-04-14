@@ -44,24 +44,24 @@ namespace ESPINA
        */
       explicit CrosshairManager();
 
-      /** \brief CrosshairManager class virtual destructor.
-       *
-       */
-      virtual ~CrosshairManager()
-      {};
-
-      virtual TimeRange readyRange() const;
+      virtual TimeRange readyRangeImplementation() const;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
     private:
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
+      virtual bool hasRepresentations() const;
 
-      virtual void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
 
-      virtual void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
-      virtual void displayImplementation(TimeStamp t);
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+
+      virtual void displayActors(TimeStamp t);
+
+      virtual void hideActors(TimeStamp t );
 
       virtual void onHide(TimeStamp t);
 
@@ -69,19 +69,19 @@ namespace ESPINA
 
       virtual RepresentationManagerSPtr cloneImplementation();
 
-      /** \brief Helper method to configure the 3D actors for the given crosshair.
-       * \param[in] crosshair crosshair point.
-       *
-       */
-      void configure3DActors(const NmVector3 &crosshair);
-
-      /** \brief Helper method to configure the 2D actors for the given crosshair.
+      /** \brief Configure the 2D actors for the given crosshair.
        * \param[in] crosshair crosshair point.
        *
        */
       void configure2DActors(const NmVector3 &crosshair);
 
-      /** \brief Helper method to configure the actors for 2D views.
+      /** \brief Configure the 3D actors for the given crosshair.
+       * \param[in] crosshair crosshair point.
+       *
+       */
+      void configure3DActors(const NmVector3 &crosshair);
+
+      /** \brief Configure the actors for 2D views.
        * \param[in] index normal coordinate index of the actors.
        * \param[in] point1 inital point of the crosshair line.
        * \param[in] point2 final point of the crosshair line.

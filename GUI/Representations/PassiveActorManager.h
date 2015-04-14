@@ -22,51 +22,48 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
-#include <Core/Utils/NmVector3.h>
-#include <GUI/Representations/RepresentationPipeline.h>
 #include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Model/ViewItemAdapter.h>
-#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/PoolManager.h>
 
 class vtkProp;
 
 namespace ESPINA
 {
   class PassiveActorManager
-  : public ActorManager
+  : public PoolManager
   {
       Q_OBJECT
     public:
-      /** \brief Volumetric Manager class constructor.
-       * \param[in] pool managed pool smart pointer.
+      /** \brief Passive Actor Manager class constructor
+       * \param[in] pool managed pool smart pointer
        *
        */
       PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews);
 
-      /** \brief VolumetricManager class virtual destructor.
-       *
-       */
-      virtual ~PassiveActorManager()
-      {};
-
-      virtual TimeRange readyRange() const;
+      virtual TimeRange readyRangeImplementation() const;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
 
     private:
+      virtual bool hasRepresentations() const;
+
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+
       virtual RepresentationPipeline::Actors actors(TimeStamp t);
 
       virtual void invalidatePreviousActors(TimeStamp t);
 
-      virtual void connectPools();
+      virtual void connectPools() override;
 
-      virtual void disconnectPools();
+      virtual void disconnectPools() override;
 
-      virtual void displayActors(const TimeStamp t);
-
-      virtual void showActors(TimeStamp t) override;
-
-      virtual void hideActors(TimeStamp t) override;
+      virtual void displayActors(TimeStamp t) override;
 
       virtual RepresentationManagerSPtr cloneImplementation();
 

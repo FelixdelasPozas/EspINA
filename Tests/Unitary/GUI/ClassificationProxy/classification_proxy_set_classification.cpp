@@ -38,14 +38,16 @@
 using namespace std;
 using namespace ESPINA;
 using namespace ESPINA::Testing;
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 int classification_proxy_set_classification( int argc, char** argv )
 {
   bool error = false;
 
-  auto modelAdapter = make_shared<ModelAdapter>();
-
-  ClassificationProxy proxy(modelAdapter);
+  Timer               timer;
+  Invalidator         invalidator(timer);
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter, invalidator);
   ModelTest           modelTester(&proxy);
   ModelProfiler       modelProfiler(proxy);
 

@@ -20,82 +20,79 @@
 // ESPINA
 #include <GUI/Representations/Pools/BasicRepresentationPool.h>
 
-namespace ESPINA
+using namespace ESPINA;
+
+//-----------------------------------------------------------------------------
+BasicRepresentationPool::BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
+: m_updater{std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
 {
-  //-----------------------------------------------------------------------------
-  BasicRepresentationPool::BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline)
-  : m_updater      {std::make_shared<RepresentationUpdater>(scheduler, pipeline)}
-  , m_init         {false}
-  {
-    connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
-            this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
-  }
+  connect(m_updater.get(), SIGNAL(actorsReady(TimeStamp,RepresentationPipeline::Actors)),
+          this,            SLOT(onActorsReady(TimeStamp,RepresentationPipeline::Actors)), Qt::DirectConnection);
+}
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::setResolution(const NmVector3 &resolution, TimeStamp t)
-  {
+//-----------------------------------------------------------------------------
+ViewItemAdapterPtr BasicRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
+{
+  return m_updater->pick(point, actor);
+}
 
-  }
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t)
+{
+  m_updater->invalidate();
+  m_updater->setCrosshair(crosshair);
+  //m_updater->setResolution(resolution); TODO
+  m_updater->setTimeStamp(t);
 
-  //-----------------------------------------------------------------------------
-  ViewItemAdapterPtr BasicRepresentationPool::pick(const NmVector3 &point, vtkProp *actor) const
-  {
-    return m_updater->pick(point, actor);
-  }
+  Task::submit(m_updater);
+}
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr source)
-  {
-    m_updater->addSource(source);
-  }
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &crosshair, TimeStamp t)
+{
+  m_updater->invalidate();
+  m_updater->setCrosshair(crosshair);
+  m_updater->setTimeStamp(t);
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr source)
-  {
-    m_updater->removeSource(source);
-  }
+  Task::submit(m_updater);
+}
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &point, TimeStamp t)
-  {
-    m_init = true;
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t)
+{
 
-    if (t > lastUpdateTimeStamp())
-    {
-      m_updater->invalidate();
-      m_updater->setCrosshair(point);
-      m_updater->setTimeStamp(t);
+  m_updater->invalidate();
+  //m_updater->setResolution(resolution); TODO
+  m_updater->setTimeStamp(t);
 
-      Task::submit(m_updater);
-    }
-  }
+  Task::submit(m_updater);
+}
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::onSettingsChanged(const RepresentationState &settings)
-  {
-    m_updater->setSettings(settings);
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems)
+{
+  m_updater->setTimeStamp(t);
+  m_updater->setUpdateList(modifiedItems);
 
-    Task::submit(m_updater);
-  }
+  Task::submit(m_updater);
+}
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::invalidateImplementation()
-  {
-    if (m_init)
-    {
-      Task::submit(m_updater);
-    }
-  }
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::addRepresentationPipeline(ViewItemAdapterPtr source)
+{
+  m_updater->addSource(source);
+}
 
-  //-----------------------------------------------------------------------------
-  void BasicRepresentationPool::invalidateRepresentations(ViewItemAdapterList items, TimeStamp t)
-  {
-    if(m_init)
-    {
-      m_updater->setTimeStamp(t);
-      m_updater->setUpdateList(items);
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr source)
+{
+  m_updater->removeSource(source);
+}
 
-      Task::submit(m_updater);
-    }
-  }
+//-----------------------------------------------------------------------------
+void BasicRepresentationPool::onSettingsChanged(const RepresentationState &settings)
+{
+  m_updater->setSettings(settings);
+
+  Task::submit(m_updater);
 }

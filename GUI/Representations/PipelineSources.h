@@ -41,6 +41,8 @@ namespace ESPINA
     int size() const
     { return m_sources.size(); }
 
+    GUI::View::RepresentationInvalidator &invalidator();
+
   signals:
     void sourcesAdded  (ViewItemAdapterList sources, TimeStamp t);
     void sourcesRemoved(ViewItemAdapterList sources, TimeStamp t);

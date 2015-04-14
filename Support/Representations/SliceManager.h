@@ -22,12 +22,12 @@
 
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/PoolManager.h>
 
 namespace ESPINA
 {
   class SliceManager
-  : public ActorManager
+  : public PoolManager
   , public RepresentationManager2D
   {
   public:
@@ -35,30 +35,37 @@ namespace ESPINA
                  RepresentationPoolSPtr poolXZ,
                  RepresentationPoolSPtr poolYZ);
 
-    virtual TimeRange readyRange() const;
+    virtual TimeRange readyRangeImplementation() const override;
 
-    virtual void setPlane(Plane plane);
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    virtual void setRepresentationDepth(Nm depth);
+    virtual void setPlane(Plane plane) override;
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+    virtual void setRepresentationDepth(Nm depth) override;
+
+  protected:
+    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
+
+    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
+
+    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
   private:
+    virtual bool hasRepresentations() const override;
+
+    virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+
     virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
     virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
+    virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
-    virtual void invalidatePreviousActors(TimeStamp time) override;
+    virtual void invalidatePreviousActors(TimeStamp t) override;
 
     virtual void connectPools()    override;
 
     virtual void disconnectPools() override;
-
-    virtual void showActors(TimeStamp t) override;
-
-    virtual void hideActors(TimeStamp t) override;
 
     virtual RepresentationManagerSPtr cloneImplementation();
 
@@ -66,8 +73,11 @@ namespace ESPINA
 
     bool validPlane() const;
 
+    Nm normalCoordinate(const NmVector3 &value) const;
+
   private:
     Plane m_plane;
+    Nm    m_depth;
     RepresentationPoolSPtr m_XY;
     RepresentationPoolSPtr m_XZ;
     RepresentationPoolSPtr m_YZ;

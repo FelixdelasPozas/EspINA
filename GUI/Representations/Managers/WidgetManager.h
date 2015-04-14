@@ -32,7 +32,7 @@ namespace ESPINA
 
     virtual void setResolution(const NmVector3 &resolution);
 
-    virtual TimeRange readyRange() const;
+    virtual TimeRange readyRangeImplementation() const;
 
     virtual void display(TimeStamp time);
 

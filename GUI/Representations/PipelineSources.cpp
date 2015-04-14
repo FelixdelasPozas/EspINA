@@ -40,6 +40,12 @@ ViewItemAdapterList PipelineSources::sources() const
 }
 
 //-----------------------------------------------------------------------------
+GUI::View::RepresentationInvalidator &PipelineSources::invalidator()
+{
+  return m_representationInvalidator;
+}
+
+//-----------------------------------------------------------------------------
 void PipelineSources::insert(ViewItemAdapterList sources)
 {
   for (auto source : sources)

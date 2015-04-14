@@ -39,22 +39,22 @@ namespace ESPINA
                                         SchedulerSPtr              scheduler,
                                         unsigned                   windowSize);
 
-    virtual void setResolution(const NmVector3 &resolution, TimeStamp t) override;
-
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
   private:
+    virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) override;
+
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
+
+    virtual void setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t) override;
+
+    virtual void updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems) override;
+
     virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
-
     virtual void onSettingsChanged(const RepresentationState &settings) override;
-
-    virtual void invalidateImplementation() override;
-
-    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t) override;
 
     void updatePriorities();
 

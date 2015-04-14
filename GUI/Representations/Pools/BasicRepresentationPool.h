@@ -32,26 +32,25 @@ namespace ESPINA
   public:
     explicit BasicRepresentationPool(SchedulerSPtr scheduler, RepresentationPipelineSPtr pipeline);
 
-    virtual void setResolution(const NmVector3 &resolution, TimeStamp t);
-
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
   private:
-    virtual void addRepresentationPipeline(ViewItemAdapterPtr source);
+    virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual void removeRepresentationPipeline(ViewItemAdapterPtr source);
+    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) override;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t);
+    virtual void setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual void onSettingsChanged(const RepresentationState &settings);
+    virtual void updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems) override;
 
-    virtual void invalidateImplementation();
+    virtual void addRepresentationPipeline(ViewItemAdapterPtr source) override;
 
-    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t);
+    virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) override;
+
+    virtual void onSettingsChanged(const RepresentationState &settings) override;
 
   private:
     RepresentationUpdaterSPtr m_updater;
-    bool m_init;
   };
 }
 

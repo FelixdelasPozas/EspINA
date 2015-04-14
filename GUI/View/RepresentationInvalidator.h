@@ -45,7 +45,7 @@ namespace ESPINA
          */
         void invalidateDependentRepresentations(ViewItemAdapterSList items);
 
-        const Timer &timer() const;
+        Timer &timer() const;
 
       signals:
         void representationsInvalidated(ViewItemAdapterSList items, TimeStamp t);

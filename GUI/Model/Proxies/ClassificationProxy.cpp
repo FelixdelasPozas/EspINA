@@ -1235,7 +1235,7 @@ int ClassificationProxy::numSubCategories(CategoryAdapterPtr proxyCategory) cons
 //------------------------------------------------------------------------
 QString ClassificationProxy::categorySuffix(const int numSegmentations) const
 {
-  return numSegmentations>0?"":QString(" (%1)").arg(numSegmentations);
+  return numSegmentations>0?QString(" (%1)").arg(numSegmentations):"";
 }
 
 //------------------------------------------------------------------------

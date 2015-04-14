@@ -21,13 +21,13 @@
 #define ESPINA_SLICE_3D_MANAGER_H
 
 // ESPINA
-#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/PoolManager.h>
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA {
 
   class Slice3DManager
-  : public ActorManager
+  : public PoolManager
   {
     Q_OBJECT
   public:
@@ -35,30 +35,35 @@ namespace ESPINA {
                    RepresentationPoolSPtr poolXZ,
                    RepresentationPoolSPtr poolYZ);
 
-    virtual ~Slice3DManager();
+    virtual TimeRange readyRangeImplementation() const override;
 
-    virtual TimeRange readyRange() const;
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+  protected:
+    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
+
+    virtual bool acceptSceneResolutionChange( const NmVector3 &resolution) const override;
+
+    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
   private:
+    virtual bool hasRepresentations() const override;
+
+    virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
+
     virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
     virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
+    virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
-    virtual void invalidatePreviousActors(TimeStamp time) override;
+    virtual void invalidatePreviousActors(TimeStamp t) override;
 
-    virtual void connectPools()      override;
+    virtual void connectPools() override;
 
-    virtual void disconnectPools()   override;
+    virtual void disconnectPools() override;
 
-    virtual void showActors(TimeStamp t) override;
-
-    virtual void hideActors(TimeStamp t) override;
-
-    virtual RepresentationManagerSPtr cloneImplementation();
+    virtual RepresentationManagerSPtr cloneImplementation() override;
 
   private slots:
     void checkRenderRequest();

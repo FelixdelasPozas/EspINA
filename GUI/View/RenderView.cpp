@@ -472,7 +472,6 @@ void RenderView::display(RepresentationManagerSList managers, TimeStamp t)
 //-----------------------------------------------------------------------------
 RepresentationManager::Flags RenderView::managerFlags() const
 {
-
   RepresentationManager::Flags flags;
 
   for (auto manager : m_managers)

@@ -206,8 +206,7 @@ namespace ESPINA
       plane2stencil->SetOutputWholeExtent(extent);
       plane2stencil->Update();
 
-      vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
-      stencil = plane2stencil->GetOutput();
+      vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
 
       filter->setStencil(stencil);
 

@@ -18,7 +18,7 @@
 */
 
 // ESPINA
-#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/PoolManager.h>
 #include <GUI/View/RenderView.h>
 
 #include <vtkProp.h>
@@ -26,68 +26,32 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-ActorManager::ActorManager(ViewTypeFlags supportedViews)
+PoolManager::PoolManager(ViewTypeFlags supportedViews)
 : RepresentationManager{supportedViews}
 {
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::displayImplementation(TimeStamp t)
-{
-  if (representationsShown())
-  {
-    displayActors(t);
-  }
-  else
-  {
-    removeCurrentActors();
-  }
-
-  invalidatePreviousActors(t);
-}
-
-//-----------------------------------------------------------------------------
-void ActorManager::onShow(TimeStamp t)
-{
-  connectPools();
-
-  //showActors(t);
-}
-
-//-----------------------------------------------------------------------------
-void ActorManager::onHide(TimeStamp t)
+void PoolManager::displayActors(TimeStamp t)
 {
   hideActors(t);
 
-  disconnectPools();
-}
+  auto currentActors = actors(t);
 
-//-----------------------------------------------------------------------------
-void ActorManager::displayActors(const TimeStamp time)
-{
-  removeCurrentActors();
-
-  if (representationsShown())
+  for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
   {
-    auto currentActors = actors(time);
-
-    for(auto it = currentActors.begin(); it != currentActors.end(); ++it)
+    for (auto actor : it.value())
     {
-      for (auto actor : it.value())
-      {
-        setFlag(HAS_ACTORS, true);
-        m_view->addActor(actor);
-        m_viewActors[it.key()] << actor;
-      }
+      setFlag(HAS_ACTORS, true);
+      m_view->addActor(actor);
+      m_viewActors[it.key()] << actor;
     }
   }
 }
 
 //-----------------------------------------------------------------------------
-void ActorManager::removeCurrentActors()
+void PoolManager::hideActors(TimeStamp t)
 {
-  setFlag(HAS_ACTORS, false);
-
   for (auto itemActors : m_viewActors)
   {
     for (auto actor : itemActors)
@@ -96,5 +60,21 @@ void ActorManager::removeCurrentActors()
     }
   }
 
+  setFlag(HAS_ACTORS, false);
+
   m_viewActors.clear();
+
+  invalidatePreviousActors(t);
+}
+
+//-----------------------------------------------------------------------------
+void PoolManager::onShow(TimeStamp t)
+{
+  connectPools();
+}
+
+//-----------------------------------------------------------------------------
+void PoolManager::onHide(TimeStamp t)
+{
+  disconnectPools();
 }

@@ -44,29 +44,29 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    TimeRange RepresentationManager3D::readyRange() const
+    TimeRange RepresentationManager3D::readyRangeImplementation() const
     {
       return TimeRange();
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager3D::displayImplementation(TimeStamp t)
-    {
-      if (representationsShown())
-      {
-        for (auto widget : m_widgets)
-        {
-          showWidget(widget);
-        }
-      }
-      else
-      {
-        for (auto widget : m_widgets)
-        {
-          hideWidget(widget);
-        }
-      }
-    }
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager3D::displayImplementation(TimeStamp t)
+//     {
+//       if (representationsShown())
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           showWidget(widget);
+//         }
+//       }
+//       else
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           hideWidget(widget);
+//         }
+//       }
+//     }
 
     //-----------------------------------------------------------------------------
     ViewItemAdapterPtr RepresentationManager3D::pick(const NmVector3 &point, vtkProp *actor) const

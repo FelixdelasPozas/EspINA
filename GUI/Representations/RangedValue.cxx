@@ -15,16 +15,16 @@
  *
  */
 
-#include <GUI/Representations/RepresentationsRange.hxx>
+#include <GUI/Representations/RangedValue.hxx>
 
 template<typename R>
-RepresentationsRange<R>::RepresentationsRange()
+RangedValue<R>::RangedValue()
 : m_lastTime{0}
 {
 }
 
 template<typename R>
-TimeRange RepresentationsRange<R>::timeRange() const
+TimeRange RangedValue<R>::timeRange() const
 {
   TimeRange range;
 
@@ -40,7 +40,7 @@ TimeRange RepresentationsRange<R>::timeRange() const
 }
 
 template<typename R>
-R RepresentationsRange<R>::last() const
+R RangedValue<R>::last() const
 {
   R result;
 
@@ -54,13 +54,13 @@ R RepresentationsRange<R>::last() const
 }
 
 template<typename R>
-TimeStamp RepresentationsRange<R>::lastTime() const
+TimeStamp RangedValue<R>::lastTime() const
 {
   return m_lastTime;
 }
 
 template<typename R>
-void RepresentationsRange<R>::addValue(R representation, TimeStamp t)
+void RangedValue<R>::addValue(R representation, TimeStamp t)
 {
   m_lastTime = t;
   m_times << t;
@@ -68,7 +68,7 @@ void RepresentationsRange<R>::addValue(R representation, TimeStamp t)
 }
 
 template<typename R>
-void RepresentationsRange<R>::reusePreviousValue(TimeStamp t)
+void RangedValue<R>::reusePreviousValue(TimeStamp t)
 {
   Q_ASSERT(m_lastTime <= t);
   m_lastTime = t;
@@ -76,7 +76,7 @@ void RepresentationsRange<R>::reusePreviousValue(TimeStamp t)
 
 
 template<typename R>
-R RepresentationsRange<R>::value(TimeStamp t, R invalid) const
+R RangedValue<R>::value(TimeStamp t, R invalid) const
 {
   int  i     = 1;
   bool found = false;
@@ -104,7 +104,7 @@ R RepresentationsRange<R>::value(TimeStamp t, R invalid) const
 
 
 template<typename R>
-void RepresentationsRange<R>::invalidate()
+void RangedValue<R>::invalidate()
 {
   m_lastTime = 0;
   m_times.clear();
@@ -112,7 +112,7 @@ void RepresentationsRange<R>::invalidate()
 }
 
 template<typename R>
-void RepresentationsRange<R>::invalidatePreviousValues(TimeStamp t)
+void RangedValue<R>::invalidatePreviousValues(TimeStamp t)
 {
   int  i     = 1;
   bool found = false;
@@ -150,7 +150,7 @@ void RepresentationsRange<R>::invalidatePreviousValues(TimeStamp t)
 }
 
 template<typename R>
-bool RepresentationsRange<R>::isEmpty() const
+bool RangedValue<R>::isEmpty() const
 {
   return m_representations.isEmpty();
 }

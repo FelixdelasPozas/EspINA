@@ -157,6 +157,7 @@ namespace ESPINA
         // need to reposition the actor so it will always be over the channels actors'
         double pos[3];
         actor->GetPosition(pos);
+        qDebug() << segmentationDepth(state);
         pos[planeIndex] += segmentationDepth(state);
         actor->SetPosition(pos);
 

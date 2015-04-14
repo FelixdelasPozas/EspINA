@@ -21,10 +21,11 @@
 #define ESPINA_REPRESENTATION_POOL_H
 
 #include <Core/Utils/NmVector3.h>
-#include <GUI/Representations/RepresentationsRange.hxx>
+#include <GUI/Representations/RangedValue.hxx>
 #include "RepresentationState.h"
 #include "RepresentationPipeline.h"
 #include "PipelineSourcesFilter.h"
+#include <GUI/Model/ViewItemAdapter.h>
 #include <memory>
 
 namespace ESPINA
@@ -69,16 +70,21 @@ namespace ESPINA
     template<typename T>
     void setSetting(const QString &tag, const T value);
 
+    /** \brief Update all representations to conform crosshair and resolution
+     * \param[in] crosshair scene crosshair
+     * \param[in] resolution scene resolution
+     */
+    void updatePipelines(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t);
+
     /** \brief Updates pool representation actors to the given position
      *
      */
-    void setCrosshair(const NmVector3 &point, TimeStamp t);
+    void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
 
     /** \brief Sets the resolution to be used for its representations
      *
      */
-    virtual void setResolution(const NmVector3 &resolution, TimeStamp t) = 0;
-
+    void setSceneResolution(const NmVector3 &resolution, TimeStamp t);
 
     virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const = 0;
 
@@ -87,6 +93,8 @@ namespace ESPINA
      *
      */
     TimeRange readyRange() const;
+
+    TimeStamp lastUpdateTimeStamp() const;
 
     /** \brief Returns if the pool has sources to generate pipelines from
      *
@@ -102,10 +110,6 @@ namespace ESPINA
 
     void reuseRepresentations(TimeStamp t);
 
-    void hideRepresentations(TimeStamp t);
-
-    TimeStamp lastUpdateTimeStamp() const;
-
     /** \brief Increment the number of active managers using this pool
      *
      */
@@ -116,12 +120,7 @@ namespace ESPINA
      */
     void decrementObservers();
 
-  public slots:
-    void invalidate();
-
   signals:
-    void updateRequested();
-
     /** \brief Some managers may be interested in changes in the actors of the pool
      *
      *   This signal is only emitted whenever two consecutive time stamps generate
@@ -147,7 +146,6 @@ namespace ESPINA
      */
     bool hasActorsDisplayed() const;
 
-
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
@@ -167,19 +165,25 @@ namespace ESPINA
 
     virtual void removeRepresentationPipeline(ViewItemAdapterPtr source) = 0;
 
-    virtual void setCrosshairImplementation(const NmVector3 &point, TimeStamp t) = 0;
+    virtual void setCrosshairImplementation(const NmVector3 &crosshair, TimeStamp t) = 0;
+
+    virtual void setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t) = 0;
+
+    virtual void updatePipelinesImplementation(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t) = 0;
 
     virtual void onSettingsChanged(const RepresentationState &settings) = 0;
 
-    virtual void invalidateImplementation() = 0;
+    void updateRepresentationsAt(TimeStamp t, ViewItemAdapterList modifiedItems = ViewItemAdapterList());
 
-    virtual void invalidateRepresentations(ViewItemAdapterList items, TimeStamp t) = 0;
+    virtual void updateRepresentationsImlementationAt(TimeStamp t, ViewItemAdapterList modifiedItems) = 0;
 
     bool actorsChanged(const RepresentationPipeline::Actors &actors) const;
 
-    void invalidateActors();
-
     bool hasPendingSources() const;
+
+    void addSources(ViewItemAdapterList sources);
+
+    bool removeSources(ViewItemAdapterList sources);
 
     void processPendingSources();
 
@@ -189,12 +193,12 @@ namespace ESPINA
     SettingsSPtr        m_settings;
     RepresentationState m_poolState;
 
+    NmVector3 m_crosshair;
+    NmVector3 m_resolution;
+
     ViewItemAdapterList m_pendingSources;
 
-    NmVector3 m_crosshair;
-    TimeStamp m_requestedTimeStamp;
-
-    RepresentationsRange<RepresentationPipeline::Actors> m_validActors;
+    RangedValue<RepresentationPipeline::Actors> m_validActors;
 
     unsigned m_numObservers;
     unsigned m_sourcesCount;

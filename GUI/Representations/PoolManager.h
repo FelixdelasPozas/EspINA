@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_ACTOR_MANAGER_H
-#define ESPINA_ACTOR_MANAGER_H
+#ifndef ESPINA_POOL_MANAGER_H
+#define ESPINA_POOL_MANAGER_H
 
 #include "RepresentationManager.h"
 #include "GUI/EspinaGUI_Export.h"
@@ -38,7 +38,7 @@ namespace ESPINA
 {
   class RenderView;
 
-  class EspinaGUI_EXPORT ActorManager
+  class EspinaGUI_EXPORT PoolManager
   : public RepresentationManager
   {
     Q_OBJECT
@@ -46,19 +46,21 @@ namespace ESPINA
     /** \brief RangedActorManager class virtual destructor.
      *
      */
-    virtual ~ActorManager()
+    virtual ~PoolManager()
     {}
 
   protected:
     /** \brief RangedActorManager class protected constructor.
      * \param[in] supportedViews flags of the views supported by the manager.
      */
-    explicit ActorManager(ViewTypeFlags supportedViews);
+    explicit PoolManager(ViewTypeFlags supportedViews);
 
     bool hasActorsInDisplay() const;
 
   private:
-    virtual void displayImplementation(TimeStamp t) override final;
+    virtual void displayActors(TimeStamp t) override;
+
+    virtual void hideActors(TimeStamp t) override;
 
     virtual void onShow(TimeStamp t) override;
 
@@ -72,15 +74,7 @@ namespace ESPINA
 
     virtual void disconnectPools() = 0;
 
-    virtual void showActors(TimeStamp t) = 0;
-
-    virtual void hideActors(TimeStamp t) = 0;
-
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
-
-    virtual void displayActors(const TimeStamp t);
-
-    void removeCurrentActors();
 
   protected:
     RepresentationPipeline::Actors m_viewActors; // actors being rendered by its view
@@ -88,4 +82,4 @@ namespace ESPINA
 
 }// namespace ESPINA
 
-#endif // ESPINA_ACTOR_MANAGER_H
+#endif // ESPINA_POOL_MANAGER_H

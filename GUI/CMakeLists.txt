@@ -18,7 +18,7 @@ qt4_wrap_cpp(GUI_MOC
   Representations/PipelineSourcesFilter.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
-  Representations/ActorManager.h
+  Representations/PoolManager.h
   Representations/PassiveActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
@@ -122,7 +122,7 @@ set (GUI_SOURCES
   Representations/PipelineSources.cpp
   Representations/ManualPipelineSources.cpp
   Representations/RepresentationManager.cpp
-  Representations/ActorManager.cpp
+  Representations/PoolManager.cpp
   Representations/PassiveActorManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp

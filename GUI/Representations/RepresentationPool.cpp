@@ -44,7 +44,6 @@ RepresentationState RepresentationPool::Settings::poolSettingsImplementation()
 RepresentationPool::RepresentationPool()
 : m_sources            {nullptr}
 , m_settings           {new Settings()}
-, m_requestedTimeStamp {1}
 , m_numObservers       {0}
 , m_sourcesCount       {0}
 {
@@ -58,6 +57,8 @@ RepresentationPool::~RepresentationPool()
 //-----------------------------------------------------------------------------
 void RepresentationPool::setPipelineSources(PipelineSources *sources)
 {
+  auto t = sources->invalidator().timer().increment();
+
   if (m_sources)
   {
     disconnect(m_sources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
@@ -69,7 +70,7 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
     disconnect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
                this,      SLOT(onTimeStampUpdated(TimeStamp)));
 
-    onSourcesRemoved(m_sources->sources(), m_requestedTimeStamp);
+    removeSources(m_sources->sources());
   }
 
   m_sources = sources;
@@ -85,8 +86,10 @@ void RepresentationPool::setPipelineSources(PipelineSources *sources)
     connect(m_sources, SIGNAL(updateTimeStamp(TimeStamp)),
             this,      SLOT(onTimeStampUpdated(TimeStamp)));
 
-    onSourcesAdded(m_sources->sources(), m_requestedTimeStamp);
+    addSources(m_sources->sources());
   }
+
+  updateRepresentationsAt(t, m_sources->sources());
 }
 
 //-----------------------------------------------------------------------------
@@ -109,21 +112,35 @@ RepresentationState RepresentationPool::settings() const
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::setCrosshair(const NmVector3 &point, TimeStamp t)
+void RepresentationPool::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
 {
-  m_requestedTimeStamp = t;
-  m_crosshair          = point;
+  m_crosshair = crosshair;
 
-  if (hasActorsDisplayed())
+  if (notHasBeenProcessed(t))
   {
-    if (hasPendingSources())
-    {
-      processPendingSources();
-    }
-    else
-    {
-      setCrosshairImplementation(point, t);
-    }
+    setCrosshairImplementation(crosshair, t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::setSceneResolution(const NmVector3 &resolution, TimeStamp t)
+{
+  m_resolution = resolution;
+
+  if (notHasBeenProcessed(t))
+  {
+    setSceneResolutionImplementation(resolution, t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RepresentationPool::updatePipelines(const NmVector3 &crosshair, const NmVector3 &resolution, TimeStamp t)
+{
+  if (notHasBeenProcessed(t))
+  {
+    processPendingSources();
+
+    updatePipelinesImplementation(crosshair, resolution, t);
   }
 }
 
@@ -163,12 +180,6 @@ void RepresentationPool::reuseRepresentations(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::hideRepresentations(TimeStamp t)
-{
-  onActorsReady(t, RepresentationPipeline::Actors());
-}
-
-//-----------------------------------------------------------------------------
 TimeStamp RepresentationPool::lastUpdateTimeStamp() const
 {
   return m_validActors.lastTime();
@@ -191,17 +202,6 @@ void RepresentationPool::decrementObservers()
   if (m_numObservers == 0) qWarning() << "Unexpected observer decrement";
 
   --m_numObservers;
-}
-
-//-----------------------------------------------------------------------------
-void RepresentationPool::invalidate()
-{
-  if (hasActorsDisplayed())
-  {
-    invalidateActors();
-
-    invalidateImplementation();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -240,43 +240,22 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources, TimeStamp t)
 {
-  m_sourcesCount += sources.size();
-
-  m_pendingSources << sources;
+  addSources(sources);
 
   if (hasActorsDisplayed())
   {
     processPendingSources();
 
-    invalidateActors();
-
-    invalidateRepresentations(sources, t);
+    updateRepresentationsAt(t, sources);
   }
 }
 
 //-----------------------------------------------------------------------------
 void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp t)
 {
-  bool invalidate = false;
-
-  for (auto source : sources)
+  if (removeSources(sources))
   {
-    if (m_pendingSources.contains(source))
-    {
-      m_pendingSources.removeOne(source);
-    }
-    else
-    {
-      removeRepresentationPipeline(source);
-      invalidate = true;
-    }
-  }
-
-  if (invalidate)
-  {
-    invalidateActors();
-
-    invalidateRepresentations(ViewItemAdapterList(), t);
+    updateRepresentationsAt(t);
   }
 
   Q_ASSERT(m_sourcesCount - sources.size() >= 0);
@@ -287,9 +266,7 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
 //-----------------------------------------------------------------------------
 void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, TimeStamp t)
 {
-  invalidateActors();
-
-  invalidateRepresentations(sources, t);
+  updateRepresentationsAt(t, sources);
 }
 
 //-----------------------------------------------------------------------------
@@ -321,11 +298,13 @@ bool RepresentationPool::actorsChanged(const RepresentationPipeline::Actors &act
 }
 
 //-----------------------------------------------------------------------------
-void RepresentationPool::invalidateActors()
+void RepresentationPool::updateRepresentationsAt(TimeStamp t, ViewItemAdapterList modifiedItems)
 {
   m_validActors.invalidate();
 
   emit actorsInvalidated();
+
+  updateRepresentationsImlementationAt(t, modifiedItems);
 }
 
 //-----------------------------------------------------------------------------
@@ -335,19 +314,40 @@ bool RepresentationPool::hasPendingSources() const
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationPool::addSources(ViewItemAdapterList sources)
+{
+  m_sourcesCount += sources.size();
+
+  m_pendingSources << sources;
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationPool::removeSources(ViewItemAdapterList sources)
+{
+  bool removed = false;
+
+  for (auto source : sources)
+  {
+    if (m_pendingSources.contains(source))
+    {
+      m_pendingSources.removeOne(source);
+    }
+    else
+    {
+      removeRepresentationPipeline(source);
+      removed = true;
+    }
+  }
+
+  return removed;
+}
+
+//-----------------------------------------------------------------------------
 void RepresentationPool::processPendingSources()
 {
   for (auto source : m_pendingSources)
   {
     addRepresentationPipeline(source);
-
-    connect(source, SIGNAL(representationsInvalidated(ViewItemAdapterPtr)),
-            this,   SLOT(onRepresentationsInvalidated(ViewItemAdapterPtr)));
-  }
-
-  if (m_validActors.isEmpty())
-  {
-    setCrosshairImplementation(m_crosshair, m_requestedTimeStamp);
   }
 
   m_pendingSources.clear();

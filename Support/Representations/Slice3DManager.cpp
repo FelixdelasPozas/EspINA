@@ -27,18 +27,13 @@ using namespace std;
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
                                RepresentationPoolSPtr poolXZ,
                                RepresentationPoolSPtr poolYZ)
-: ActorManager(ViewType::VIEW_3D)
+: PoolManager(ViewType::VIEW_3D)
 {
   m_pools << poolXY << poolXZ << poolYZ;
 }
 
 //----------------------------------------------------------------------------
-Slice3DManager::~Slice3DManager()
-{
-}
-
-//----------------------------------------------------------------------------
-TimeRange Slice3DManager::readyRange() const
+TimeRange Slice3DManager::readyRangeImplementation() const
 {
   QMap<TimeStamp, int> count;
 
@@ -79,6 +74,46 @@ ViewItemAdapterPtr Slice3DManager::pick(const NmVector3 &point, vtkProp *actor) 
 }
 
 //----------------------------------------------------------------------------
+bool Slice3DManager::acceptCrosshairChange(const NmVector3 &crosshair) const
+{
+  return RepresentationManager::acceptCrosshairChange(crosshair);
+}
+
+//----------------------------------------------------------------------------
+bool Slice3DManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return RepresentationManager::acceptSceneResolutionChange(resolution);
+}
+
+//----------------------------------------------------------------------------
+bool Slice3DManager::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool Slice3DManager::hasRepresentations() const
+{
+  bool result = false;
+
+  for (auto pool : m_pools)
+  {
+    result |= pool->hasSources();
+  }
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+{
+  for (auto pool : m_pools)
+  {
+    pool->updatePipelines(crosshair, resolution, t);
+  }
+}
+
+//----------------------------------------------------------------------------
 void Slice3DManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   for (auto pool : m_pools)
@@ -92,18 +127,18 @@ void Slice3DManager::changeSceneResolution(const NmVector3 &resolution, TimeStam
 {
   for (auto pool : m_pools)
   {
-    pool->setResolution(resolution, t);
+    pool->setSceneResolution(resolution, t);
   }
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
+RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp t)
 {
   RepresentationPipeline::Actors actors;
 
   for (auto pool : m_pools)
   {
-    auto poolActors = pool->actors(time);
+    auto poolActors = pool->actors(t);
 
     for(auto it = poolActors.begin(); it != poolActors.end(); ++it)
     {
@@ -115,11 +150,11 @@ RepresentationPipeline::Actors Slice3DManager::actors(TimeStamp time)
 }
 
 //----------------------------------------------------------------------------
-void Slice3DManager::invalidatePreviousActors(TimeStamp time)
+void Slice3DManager::invalidatePreviousActors(TimeStamp t)
 {
   for (auto pool : m_pools)
   {
-    pool->invalidatePreviousActors(time);
+    pool->invalidatePreviousActors(t);
   }
 }
 
@@ -128,7 +163,7 @@ void Slice3DManager::connectPools()
 {
   for (auto pool : m_pools)
   {
-    connect(pool.get(), SIGNAL(updateRequested()),
+    connect(pool.get(), SIGNAL(actorsInvalidated()),
             this,       SLOT(waitForDisplay()));
 
     connect(pool.get(), SIGNAL(actorsReused(TimeStamp)),
@@ -149,11 +184,11 @@ void Slice3DManager::disconnectPools()
 {
   for (auto pool : m_pools)
   {
+    disconnect(pool.get(), SIGNAL(actorsInvalidated()),
+               this,       SLOT(waitForDisplay()));
+
     disconnect(pool.get(), SIGNAL(actorsReused(TimeStamp)),
                this,       SLOT(checkRenderRequest()));
-
-    disconnect(pool.get(), SIGNAL(updateRequested()),
-               this,       SLOT(waitForDisplay()));
 
     disconnect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
                this,       SLOT(checkRenderRequest()));
@@ -162,24 +197,6 @@ void Slice3DManager::disconnectPools()
                this,       SLOT(invalidateRepresentations()));
 
     pool->decrementObservers();
-  }
-}
-
-//----------------------------------------------------------------------------
-void Slice3DManager::showActors(TimeStamp t)
-{
-  for (auto pool : m_pools)
-  {
-    pool->reuseRepresentations(t);
-  }
-}
-
-//----------------------------------------------------------------------------
-void Slice3DManager::hideActors(TimeStamp t)
-{
-  for (auto pool : m_pools)
-  {
-    pool->hideRepresentations(t);
   }
 }
 

@@ -29,25 +29,51 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 PassiveActorManager::PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews)
-: ActorManager{supportedViews}
-, m_pool      {pool}
+: PoolManager{supportedViews}
+, m_pool     {pool}
 {
 }
 
 //----------------------------------------------------------------------------
-TimeRange PassiveActorManager::readyRange() const
+TimeRange PassiveActorManager::readyRangeImplementation() const
 {
-  TimeRange range;
-
-  range << m_pool->lastUpdateTimeStamp();
-
-  return range;
+  return m_pool->readyRange();
 }
 
 //----------------------------------------------------------------------------
 ViewItemAdapterPtr PassiveActorManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return m_pool->pick(point, actor);
+}
+
+//----------------------------------------------------------------------------
+bool PassiveActorManager::hasRepresentations() const
+{
+  return m_pool->hasSources();
+}
+
+//----------------------------------------------------------------------------
+void PassiveActorManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+{
+  m_pool->updatePipelines(crosshair, resolution, t);
+}
+
+//----------------------------------------------------------------------------
+bool PassiveActorManager::acceptCrosshairChange(const NmVector3 &crosshair) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool PassiveActorManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool PassiveActorManager::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -65,6 +91,9 @@ void PassiveActorManager::invalidatePreviousActors(TimeStamp t)
 //----------------------------------------------------------------------------
 void PassiveActorManager::connectPools()
 {
+  connect(m_pool.get(), SIGNAL(actorsInvalidated()),
+          this,         SLOT(waitForDisplay()));
+
   connect(m_pool.get(), SIGNAL(actorsReady(TimeStamp)),
           this,         SLOT(emitRenderRequest(TimeStamp)));
 
@@ -77,6 +106,9 @@ void PassiveActorManager::connectPools()
 //----------------------------------------------------------------------------
 void PassiveActorManager::disconnectPools()
 {
+  disconnect(m_pool.get(), SIGNAL(actorsInvalidated()),
+             this,         SLOT(waitForDisplay()));
+
   disconnect(m_pool.get(), SIGNAL(actorsReady(TimeStamp)),
              this,         SLOT(emitRenderRequest(TimeStamp)));
 
@@ -84,18 +116,6 @@ void PassiveActorManager::disconnectPools()
              this,         SLOT(invalidateRepresentations()));
 
   m_pool->decrementObservers();
-}
-
-//----------------------------------------------------------------------------
-void PassiveActorManager::showActors(TimeStamp t)
-{
-  m_pool->reuseRepresentations(t);
-}
-
-//----------------------------------------------------------------------------
-void PassiveActorManager::hideActors(TimeStamp t)
-{
-  m_pool->hideRepresentations(t);
 }
 
 //----------------------------------------------------------------------------
@@ -121,6 +141,15 @@ void PassiveActorManager::displayActors(const TimeStamp t)
     }
 
     m_viewActors[item] = it.value();
+  }
+
+  for(auto actors : m_viewActors)
+  {
+    if(!actors.isEmpty())
+    {
+      setFlag(HAS_ACTORS, true);
+      break;
+    }
   }
 }
 
