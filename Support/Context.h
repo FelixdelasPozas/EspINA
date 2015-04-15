@@ -25,6 +25,7 @@
 #include <GUI/View/Selection.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/ColorEngine.h>
+#include <QUndoStack>
 
 class QUndoStack;
 
@@ -37,6 +38,8 @@ namespace ESPINA
     public:
       explicit Context();
 
+      Context(Context &context) = delete;
+
       ~Context();
 
       SchedulerSPtr              scheduler() const;
@@ -45,7 +48,7 @@ namespace ESPINA
       GUI::View::ViewState      &viewState();
       SelectionSPtr              selection() const;
       ColorEngineSPtr            colorEngine() const;
-      QUndoStack *               undoStack() const;
+      QUndoStack *               undoStack();
       RepresentationFactorySList &availableRepresentations();
       ModelFactorySPtr           factory() const;
 
@@ -53,6 +56,7 @@ namespace ESPINA
       GUI::View::RepresentationInvalidator &representationInvalidator();
 
       ChannelAdapterPtr ActiveChannel;//Move to selection
+
 
     private:
       Timer                m_timer;
@@ -62,7 +66,7 @@ namespace ESPINA
       ROIAccumulatorSPtr   m_activeROI;
       SchedulerSPtr        m_scheduler;
       SelectionSPtr        m_selection;
-      QUndoStack *         m_undoStack;
+      QUndoStack           m_undoStack;
       RepresentationFactorySList m_availableRepresentations;
       ModelFactorySPtr   m_factory;
       ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)

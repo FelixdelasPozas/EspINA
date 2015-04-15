@@ -27,8 +27,8 @@ using namespace ESPINA::GUI::View;
 ViewState::ViewState(Timer &timer, RepresentationInvalidator &invalidator)
 : m_timer{timer}
 , m_invalidator{invalidator}
-, m_coordinateSystem(std::make_shared<CoordinateSystem>())
 , m_fitToSlices{true}
+, m_coordinateSystem(std::make_shared<CoordinateSystem>())
 {
   connect(m_coordinateSystem.get(), SIGNAL(resolutionChanged(NmVector3)),
           this,                     SLOT(onResolutionChanged(NmVector3)));
@@ -140,15 +140,17 @@ NmVector3 ViewState::voxelCenter(const NmVector3 &point) const
 }
 
 //----------------------------------------------------------------------------
-void ViewState::addWidget(EspinaWidgetSPtr widget)
+void ViewState::addWidgets(Widgets::WidgetFactorySPtr factory)
 {
-
+  auto t = m_timer.increment();
+  emit widgetsAdded(factory, t);
 }
 
 //----------------------------------------------------------------------------
-void ViewState::removeWidget(EspinaWidgetSPtr widget)
+void ViewState::removeWidgets(Widgets::WidgetFactorySPtr factory)
 {
-
+  auto t = m_timer.increment();
+  emit widgetsRemoved(factory, t);
 }
 
 //----------------------------------------------------------------------------
@@ -189,7 +191,7 @@ void ViewState::onBoundsChanged(const Bounds &bounds)
 }
 
 //-----------------------------------------------------------------------------
-void ESPINA::GUI::View::updateSceneState(GUI::View::ViewState &state, ViewItemAdapterSList viewItems)
+void ESPINA::GUI::View::updateSceneState(ViewState &state, ViewItemAdapterSList viewItems)
 {
   Bounds    bounds;
   NmVector3 resolution;

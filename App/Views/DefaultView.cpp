@@ -175,9 +175,9 @@ void DefaultView::setRulerVisibility(bool visible)
   settings.setValue("ShowRuler", visible);
   settings.endGroup();
 
-  m_viewXY->setRulerVisibility(visible);
-  m_viewYZ->setRulerVisibility(visible);
-  m_viewXZ->setRulerVisibility(visible);
+  m_viewXY->setScaleVisibility(visible);
+  m_viewYZ->setScaleVisibility(visible);
+  m_viewXZ->setScaleVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------

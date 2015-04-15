@@ -95,16 +95,16 @@ View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane
 , m_zoomButton      {nullptr}
 , m_snapshot        {nullptr}
 , m_repManagerMenu  {nullptr}
-, m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
 , m_showThumbnail   {true}
 , m_inThumbnail     {false}
-, m_plane           {plane}
-, m_scale           {1.0}
-, m_normalCoord     {normalCoordinateIndex(plane)}
-, m_invertSliceOrder{false}
-, m_invertWheel     {false}
-, m_rulerVisibility {true}
 , m_inThumbnailClick{true}
+, m_scaleValue      {1.0}
+, m_scaleVisibility {true}
+, m_scale           {vtkSmartPointer<vtkAxisActor2D>::New()}
+, m_plane           {plane}
+, m_normalCoord     {normalCoordinateIndex(plane)}
+, m_invertWheel     {false}
+, m_invertSliceOrder{false}
 {
   setupUI();
 
@@ -149,18 +149,18 @@ View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane
   m_thumbnail->DrawOff();
 
   // Init Ruler
-  m_ruler->SetPosition(0.1, 0.1);
-  m_ruler->SetPosition2(0.1, 0.1);
-  m_ruler->SetPickable(false);
-  m_ruler->SetLabelFactor(0.8);
-  m_ruler->SetFontFactor(1);
-  m_ruler->SetTitle("nm");
-  m_ruler->RulerModeOff();
-  m_ruler->SetLabelFormat("%.0f");
-  m_ruler->SetAdjustLabels(false);
-  m_ruler->SetNumberOfLabels(2);
-  m_ruler->SizeFontRelativeToAxisOff();
-  m_renderer->AddViewProp(m_ruler);
+  m_scale->SetPosition(0.1, 0.1);
+  m_scale->SetPosition2(0.1, 0.1);
+  m_scale->SetPickable(false);
+  m_scale->SetLabelFactor(0.8);
+  m_scale->SetFontFactor(1);
+  m_scale->SetTitle("nm");
+  m_scale->RulerModeOff();
+  m_scale->SetLabelFormat("%.0f");
+  m_scale->SetAdjustLabels(false);
+  m_scale->SetNumberOfLabels(2);
+  m_scale->SizeFontRelativeToAxisOff();
+  m_renderer->AddViewProp(m_scale);
 
   auto interactor = View2DInteractor::New();
   interactor->AutoAdjustCameraClippingRangeOff();
@@ -190,7 +190,7 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-  m_renderer->RemoveViewProp(m_ruler);
+  m_renderer->RemoveViewProp(m_scale);
 
   m_state2D.reset();
 }
@@ -213,7 +213,7 @@ vtkRenderer *View2D::mainRenderer() const
 }
 
 //-----------------------------------------------------------------------------
-Nm rulerScale(Nm value)
+Nm scaleResolution(Nm value)
 {
   int factor = 100;
 
@@ -240,7 +240,7 @@ Nm rulerScale(Nm value)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateRuler()
+void View2D::updateScale()
 {
   if (!m_renderer || !m_view->GetRenderWindow()) return;
 
@@ -262,12 +262,12 @@ void View2D::updateRuler()
   Nm viewWidth = fabs(left-right);
 
   Nm scale = rulerLength * viewWidth;
-  scale = rulerScale(scale);
+  scale = scaleResolution(scale);
   rulerLength = scale / viewWidth;
 
-  m_ruler->SetRange(0, scale);
-  m_ruler->SetPoint2(0.1+rulerLength, 0.1);
-  m_ruler->SetVisibility(m_rulerVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
+  m_scale->SetRange(0, scale);
+  m_scale->SetPoint2(0.1+rulerLength, 0.1);
+  m_scale->SetVisibility(m_scaleVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
 }
 
 //-----------------------------------------------------------------------------
@@ -525,13 +525,13 @@ void View2D::resetCameraImplementation()
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);
 
-  updateScale();
+  updateScaleValue();
 }
 
 //-----------------------------------------------------------------------------
 void View2D::refreshViewImplementation()
 {
-  updateRuler();
+  updateScale();
   updateThumbnail();
 }
 
@@ -685,7 +685,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 
           if (me->button() == Qt::RightButton)
           {
-            updateScale();
+            updateScaleValue();
           }
 
           // to avoid interfering with ctrl use in the event handler/selector
@@ -715,7 +715,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           }
         }
 
-        updateRuler();
+        updateScale();
         updateThumbnail();
       }
       break;
@@ -970,13 +970,13 @@ EventHandlerSPtr View2D::eventHandler() const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setRulerVisibility(bool visible)
+void View2D::setScaleVisibility(bool visible)
 {
-  if(m_rulerVisibility != visible)
+  if(m_scaleVisibility != visible)
   {
-    m_rulerVisibility = visible;
+    m_scaleVisibility = visible;
 
-    updateRuler();
+    updateScale();
 
     refresh();
   }
@@ -1047,7 +1047,7 @@ bool View2D::isCrosshairPointVisible() const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateScale()
+void View2D::updateScaleValue()
 {
   double *world,   worldWidth;
   int    *display, displayWidth;
@@ -1067,7 +1067,7 @@ void View2D::updateScale()
   display = coords->GetComputedDisplayValue(m_renderer);
   displayWidth = fabs(displayWidth - display[0]);
 
-  m_scale = worldWidth/displayWidth;
+  m_scaleValue = worldWidth/displayWidth;
 }
 
 //-----------------------------------------------------------------------------
@@ -1112,6 +1112,10 @@ void View2D::moveCamera(const NmVector3 &point)
 void View2D::onSceneResolutionChanged(const NmVector3 &reslotuion)
 {
   int sliceIndex = voxelSlice(slicingPosition(), m_plane);
+
+  updateThumbnailBounds(sceneBounds());
+
+  updateWidgetLimits(sceneBounds());
 
   m_scrollBar->setValue(sliceIndex);
 }

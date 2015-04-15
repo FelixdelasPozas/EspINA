@@ -19,28 +19,87 @@
 #define ESPINA_WIDGET_MANAGER_H
 
 #include <GUI/Representations/RepresentationManager.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT WidgetManager
-  : public RepresentationManager
-  , public RepresentationManager2D
+  namespace GUI
   {
-  public:
-    explicit WidgetManager(EspinaWidgetSPtr widget, ViewTypeFlags supportedViews);
+    namespace View
+    {
+      namespace Widgets
+      {
+        class EspinaWidget;
+        class WidgetFactory;
+      }
+    }
 
-    virtual void setResolution(const NmVector3 &resolution);
+    namespace Representations
+    {
+      namespace Managers
+      {
+        using EspinaWidgetSPtr  = std::shared_ptr<GUI::View::Widgets::EspinaWidget>;
+        using WidgetFactorySPtr = std::shared_ptr<GUI::View::Widgets::WidgetFactory>;
 
-    virtual TimeRange readyRangeImplementation() const;
+        class EspinaGUI_EXPORT WidgetManager
+        : public RepresentationManager
+        , public RepresentationManager2D
+        {
+        public:
+          explicit WidgetManager(WidgetFactorySPtr factory);
 
-    virtual void display(TimeStamp time);
+          virtual ~WidgetManager();
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+          virtual TimeRange readyRangeImplementation() const;
 
-  private:
-    EspinaWidgetSPtr m_widget;
-  };
+          virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+
+          virtual void setPlane(Plane plane);
+
+          virtual void setRepresentationDepth(Nm depth);
+
+        protected:
+          virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
+
+          virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
+
+          virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
+
+        private:
+          virtual bool hasRepresentations() const;
+
+          virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+
+          virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t);
+
+          virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t);
+
+          virtual void onShow(TimeStamp t);
+
+          virtual void onHide(TimeStamp t);
+
+          virtual void displayActors(TimeStamp t);
+
+          virtual void hideActors(TimeStamp t);
+
+          virtual RepresentationManagerSPtr cloneImplementation();
+
+        private:
+          WidgetFactorySPtr m_factory;
+
+          Plane m_plane;
+          Nm    m_depth;
+
+          enum Type {INIT, CROSSHAIR, RESOLUTION };
+
+          using Action = QPair<Type, NmVector3>;
+
+          RangedValue<Action> m_pendingActions;
+
+          EspinaWidgetSPtr  m_widget;
+        };
+      }
+    }
+  }
 }
 
 #endif // ESPINA_WIDGET_MANAGER_H

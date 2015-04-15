@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <Support/ROIProvider.h>
 #include <Support/Context.h>
 #include <ToolGroups/ToolGroup.h>

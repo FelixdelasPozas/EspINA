@@ -27,6 +27,7 @@
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Representations/Managers/WidgetManager.h>
 
 // VTK
 #include <vtkMath.h>
@@ -47,9 +48,12 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(GUI::View::ViewState &state, SelectionSPtr selection, ViewType type)
+RenderView::RenderView(ViewState &state, SelectionSPtr selection, ViewType type)
 : m_view {new QVTKWidget()}
 , m_state{state}
 , m_selection{selection}
@@ -339,6 +343,12 @@ void RenderView::connectSignals()
   connect (&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
            this,     SLOT(onSceneResolutionChanged(NmVector3)));
 
+  connect (&m_state, SIGNAL(widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
+           this,     SLOT(onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+
+  connect (&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
+           this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+
   connect(&m_state, SIGNAL(viewFocusedOn(NmVector3)),
           this,     SLOT(moveCamera(NmVector3)));
 
@@ -347,10 +357,33 @@ void RenderView::connectSignals()
 }
 
 //-----------------------------------------------------------------------------
+void RenderView::onWidgetsAdded(WidgetFactorySPtr factory, TimeStamp t)
+{
+  auto manager = std::make_shared<WidgetManager>(factory);
+
+  addRepresentationManager(manager);
+
+  manager->show(t);
+
+  m_widgetManagers[factory] = manager;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onWidgetsRemoved(WidgetFactorySPtr factory, TimeStamp t)
+{
+  auto manager = m_widgetManagers[factory];
+
+  manager->hide(t);
+
+  removeRepresentationManager(manager);
+  // NOTE: managers should be removed after processing render request of t
+}
+
+//-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-  auto readyManagers     = pendingManagers();
-  auto renderTime        = latestReadyTimeStamp(readyManagers);
+  auto readyManagers = pendingManagers();
+  auto renderTime    = latestReadyTimeStamp(readyManagers);
 
   qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
   if (m_lastRender < renderTime)
@@ -362,6 +395,7 @@ void RenderView::onRenderRequest()
 
     m_lastRender = renderTime;
 
+    deleteInactiveWidgetManagers();
   }
 
   if (hasVisibleRepresentations() && requiresCameraReset())
@@ -418,7 +452,18 @@ RepresentationManagerSList RenderView::pendingManagers() const
 {
   RepresentationManagerSList result;
 
-  for(auto manager: m_managers)
+  result << pendingManagers(m_managers);
+  result << pendingManagers(m_widgetManagers.values());
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+RepresentationManagerSList RenderView::pendingManagers(RepresentationManagerSList managers) const
+{
+  RepresentationManagerSList result;
+
+  for (auto manager : managers)
   {
     if (!manager->isIdle())
     {
@@ -480,4 +525,18 @@ RepresentationManager::Flags RenderView::managerFlags() const
   }
 
   return flags;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::deleteInactiveWidgetManagers()
+{
+  auto factories = m_widgetManagers.keys();
+
+  for (auto factory : factories)
+  {
+    if (!m_widgetManagers[factory]->isActive())
+    {
+      m_widgetManagers.remove(factory);
+    }
+  }
 }

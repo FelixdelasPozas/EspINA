@@ -106,7 +106,7 @@ namespace ESPINA
 
     if(m_widget)
     {
-      m_context.viewState().removeWidget(m_widget);
+      //TODO m_context.viewState().removeWidget(m_widget);
     }
 
     if(m_context.viewState().eventHandler() == m_handler)
@@ -145,7 +145,7 @@ namespace ESPINA
 
       m_widget = EspinaWidgetSPtr{widget};
       viewState->setEventHandler(m_handler);
-      viewState->addWidget(m_widget);
+      // TODO viewState->addWidget(m_widget);
       //TODO m_viewManager->setSelectionEnabled(false);
 
       auto selectedSegs = m_context.selection()->segmentations();
@@ -161,7 +161,7 @@ namespace ESPINA
       if(m_widget == nullptr) return;
 
       m_widget->setEnabled(false);
-      viewState->removeWidget(m_widget);
+      //TODO viewState->removeWidget(m_widget);
       viewState->unsetEventHandler(m_handler);
       //TODO m_viewManager->setSelectionEnabled(true);
       // TODO m_viewManager->updateViews();

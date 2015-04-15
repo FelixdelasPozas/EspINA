@@ -24,11 +24,11 @@
 #include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
+#include <GUI/Types.h>
 #include <GUI/View/RepresentationInvalidator.h>
 #include <GUI/Utils/Timer.h>
 #include "CoordinateSystem.h"
 #include "EventHandler.h"
-#include "Widgets/EspinaWidget.h"
 
 // Qt
 #include <QObject>
@@ -43,7 +43,6 @@ namespace ESPINA
       : public QObject
       {
         Q_OBJECT
-
       public:
         /** \brief Class ViewState class constructor.
          * \param[in] timer state timer object.
@@ -91,13 +90,13 @@ namespace ESPINA
          * \param[in] widget espina widget smart pointer.
          *
          */
-        virtual void addWidget(EspinaWidgetSPtr widget);
+        void addWidgets(Widgets::WidgetFactorySPtr factory);
 
         /** \brief Removes a widget to the view.
          * \param[in] widget espina widget smart pointer.
          *
          */
-        virtual void removeWidget(EspinaWidgetSPtr widget);
+        void removeWidgets(Widgets::WidgetFactorySPtr factory);
 
         CoordinateSystemSPtr coordinateSystem() const;
 
@@ -128,6 +127,10 @@ namespace ESPINA
 
         void sceneBoundsChanged(const Bounds &bounds, TimeStamp t);
 
+        void widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+
+        void widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+
         void viewFocusedOn(NmVector3);
 
         void resetCameraRequested();
@@ -147,18 +150,19 @@ namespace ESPINA
         void onBoundsChanged(const Bounds &bounds);
 
       private:
-        Timer        &m_timer;
+        Timer                     &m_timer;
         RepresentationInvalidator &m_invalidator;
 
-        NmVector3    m_crosshair;
-        bool         m_fitToSlices;
+        bool                 m_fitToSlices;
+        NmVector3            m_crosshair;
         CoordinateSystemSPtr m_coordinateSystem;
+
         EventHandlerSPtr m_eventHandler;
       };
 
       using ViewStateSPtr = std::shared_ptr<ViewState>;
 
-      void updateSceneState(GUI::View::ViewState & state, ViewItemAdapterSList viewItems);
+      void updateSceneState(ViewState & state, ViewItemAdapterSList viewItems);
     }
   }
 }

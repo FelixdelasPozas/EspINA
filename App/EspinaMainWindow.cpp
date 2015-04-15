@@ -1259,8 +1259,8 @@ void EspinaMainWindow::createToolGroups()
   m_visualizeToolGroup = new VisualizeToolGroup(m_context, this);
   registerToolGroup(m_visualizeToolGroup);
 
-//   m_analyzeToolGroup = new AnalyzeToolGroup(m_viewManager, this);
-//   registerToolGroup(m_analyzeToolGroup);
+  m_analyzeToolGroup = new AnalyzeToolGroup(m_context);
+  registerToolGroup(m_analyzeToolGroup);
 }
 
 //------------------------------------------------------------------------

@@ -78,15 +78,15 @@ void ZoomAreaTool::activateTool(bool value)
   {
     m_viewState.setEventHandler(m_zoomHandler);
     //TODO m_viewState->setSelectionEnabled(false);
-    m_viewState.addWidget(m_widget);
+    //TODO m_viewState.addWidget(m_widget);
     m_widget->setEnabled(true);
   }
   else
   {
     m_widget->setEnabled(false);
-    m_viewState.removeWidget(m_widget);
+    //TODO m_viewState.removeWidget(m_widget);
     m_viewState.unsetEventHandler(m_zoomHandler);
-    //TODOm_viewState->setSelectionEnabled(true);
+    //TODO m_viewState->setSelectionEnabled(true);
   }
 
   m_zoomArea->blockSignals(true);

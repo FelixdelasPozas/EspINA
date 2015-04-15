@@ -20,78 +20,60 @@
 
 // ESPINA
 #include "MeasureTool.h"
+#include <GUI/View/Widgets/Measures/MeasureEventHandler.h>
 #include <GUI/View/Widgets/Measures/MeasureWidget.h>
 
 // Qt
 #include <QAction>
 
-namespace ESPINA
+using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::View::Widgets::Measures;
+
+
+//----------------------------------------------------------------------------
+MeasureTool::MeasureTool(ViewState & viewState)
+: m_viewState{viewState}
+, m_handler  {new MeasureEventHandler()}
+, m_factory  {std::make_shared<WidgetFactory>(std::make_shared<MeasureWidget>(m_handler.get()), EspinaWidget3DSPtr())}
+, m_action   {new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
 {
-  //----------------------------------------------------------------------------
-  MeasureTool::MeasureTool(GUI::View::ViewState & viewState)
-  : m_viewState  {viewState}
-  , m_widget     {nullptr}
-  , m_handler    {nullptr}
-  , m_action     {new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
+  m_action->setCheckable(true);
+  connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
+}
+
+//----------------------------------------------------------------------------
+MeasureTool::~MeasureTool()
+{
+}
+
+//----------------------------------------------------------------------------
+QList< QAction* > MeasureTool::actions() const
+{
+  QList<QAction *> actions;
+  actions << m_action;
+
+  return actions;
+}
+
+//----------------------------------------------------------------------------
+void MeasureTool::abortOperation()
+{
+}
+
+//----------------------------------------------------------------------------
+void MeasureTool::initTool(bool value)
+{
+  if (value)
   {
-    m_action->setCheckable(true);
-    connect(m_action, SIGNAL(triggered(bool)), this, SLOT(initTool(bool)), Qt::QueuedConnection);
+    m_viewState.setEventHandler(m_handler);
+    m_viewState.addWidgets(m_factory);
   }
-
-  //----------------------------------------------------------------------------
-  MeasureTool::~MeasureTool()
+  else
   {
-    if(m_widget)
-    {
-      m_widget->setEnabled(false);
-      m_widget = nullptr;
-    }
-  }
+    m_viewState.removeWidgets(m_factory);
+    m_viewState.unsetEventHandler(m_handler);
 
-  //----------------------------------------------------------------------------
-  QList< QAction* > MeasureTool::actions() const
-  {
-    QList<QAction *> actions;
-    actions << m_action;
-
-    return actions;
-  }
-
-  //----------------------------------------------------------------------------
-  void MeasureTool::abortOperation()
-  {
-  }
-
-  //----------------------------------------------------------------------------
-  void MeasureTool::initTool(bool value)
-  {
-    if (value)
-    {
-      m_widget = EspinaWidgetSPtr(new MeasureWidget());
-      m_handler = std::dynamic_pointer_cast<EventHandler>(m_widget);
-      m_viewState.setEventHandler(m_handler);
-      m_viewState.addWidget(m_widget);
-      //TODO m_viewState->setSelectionEnabled(false);
-      m_widget->setEnabled(true);
-    }
-    else
-    {
-      m_widget->setEnabled(false);
-      m_viewState.removeWidget(m_widget);
-      m_viewState.unsetEventHandler(m_handler);
-      m_handler = nullptr;
-      // TODO m_viewManager->setSelectionEnabled(true);
-      m_widget = nullptr;
-      emit stopMeasuring();
-    }
-  }
-
- //----------------------------------------------------------------------------
-  void MeasureTool::onToolEnabled(bool enabled)
-  {
-    if (m_widget)
-    {
-      m_widget->setEnabled(enabled);
-    }
+    emit stopMeasuring();
   }
 }

@@ -22,8 +22,8 @@
 #define ESPINA_MEASURE_TOOL_H_
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/ViewState.h>
+#include <GUI/View/Widgets/WidgetFactory.h>
 #include <Support/Widgets/Tool.h>
 
 class QAction;
@@ -35,12 +35,13 @@ namespace ESPINA
   : public Tool
   {
     Q_OBJECT
+
   public:
     /** \brief MeasureTool class constructor.
      * \param[in] viewState
      *
      */
-    explicit MeasureTool(GUI::View::ViewState & viewState);
+    explicit MeasureTool(GUI::View::ViewState &viewState);
 
     /** \brief MeasureTool class destructor.
      *
@@ -51,23 +52,25 @@ namespace ESPINA
 
     virtual void abortOperation() override;
 
-  public slots:
+  signals:
+    void stopMeasuring();
+
+  private slots:
     /** \brief Initializes/De-initializes tool.
      * \param[in] value true to initialize tool, false to de-initialize.
      */
     void initTool(bool value);
 
-  signals:
-    void stopMeasuring();
+    virtual void onToolEnabled(bool enabled) {}
 
   private:
-    virtual void onToolEnabled(bool enabled);
+    using ViewState         = GUI::View::ViewState;
+    using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
 
-  private:
-    GUI::View::ViewState &    m_viewState;
-    EspinaWidgetSPtr m_widget;
-    EventHandlerSPtr m_handler;
-    QAction         *m_action;
+    ViewState        &m_viewState;
+    EventHandlerSPtr  m_handler;
+    WidgetFactorySPtr m_factory;
+    QAction          *m_action;
   };
 
   using MeasureToolPtr  = MeasureTool *;
@@ -75,4 +78,4 @@ namespace ESPINA
 
 } // namespace ESPINA
 
-#endif /* MEASURETOOL_H_ */
+#endif // ESPINA_MEASURE_TOOL_H_

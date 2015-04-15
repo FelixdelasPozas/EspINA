@@ -25,6 +25,8 @@
 #include <Support/Widgets/Tool.h>
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>
+#include <GUI/View/Widgets/WidgetFactory.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 namespace ESPINA
 {

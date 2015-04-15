@@ -38,7 +38,6 @@ Context::Context()
 , m_scheduler(new Scheduler(PERIOD_uSEC))
 , m_selection(new Selection())
 , m_colorEngine(std::make_shared<MultiColorEngine>())
-, m_undoStack(new QUndoStack())
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
 {
   QObject::connect(m_model.get(), SIGNAL(modelChanged()),
@@ -48,7 +47,6 @@ Context::Context()
 //------------------------------------------------------------------------
 Context::~Context()
 {
-  delete m_undoStack;
 }
 
 //------------------------------------------------------------------------
@@ -82,9 +80,9 @@ ModelFactorySPtr Context::factory() const
 }
 
 //------------------------------------------------------------------------
-QUndoStack *Context::undoStack() const
+QUndoStack *Context::undoStack()
 {
-  return m_undoStack;
+  return &m_undoStack;
 }
 
 //------------------------------------------------------------------------

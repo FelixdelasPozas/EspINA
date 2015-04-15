@@ -498,7 +498,7 @@ void ChannelInspector::initSliceView()
 
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
-  m_view->setRulerVisibility(true);
+  m_view->setScaleVisibility(true);
   mainLayout->insertWidget(0, m_view, 1);
 
   m_view->addRepresentationManager(sliceManager);

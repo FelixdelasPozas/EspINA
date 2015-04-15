@@ -25,10 +25,11 @@
 #include "GUI/View/SelectableView.h"
 
 #include <Core/EspinaTypes.h>
+#include <GUI/Types.h>
+
 #include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Widgets/ContextualMenu.h>
 #include <GUI/Selectors/Selector.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
 #include "ViewState.h"
 #include <GUI/Representations/PipelineSourcesFilter.h>
@@ -44,15 +45,11 @@ class QPushButton;
 
 namespace ESPINA
 {
-  class EspinaWidget;
-
   class EspinaGUI_EXPORT RenderView
   : public QWidget
   , public SelectableView
   {
     Q_OBJECT
-
-
   public:
     struct CameraState
     {
@@ -272,11 +269,15 @@ namespace ESPINA
 
     RepresentationManagerSList pendingManagers() const;
 
+    RepresentationManagerSList pendingManagers(RepresentationManagerSList managers) const;
+
     TimeStamp latestReadyTimeStamp(RepresentationManagerSList managers) const;
 
     void display(RepresentationManagerSList managers, TimeStamp t);
 
     RepresentationManager::Flags managerFlags() const;
+
+    void deleteInactiveWidgetManagers();
 
   private slots:
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;
@@ -286,6 +287,10 @@ namespace ESPINA
     virtual void onSceneResolutionChanged(const NmVector3 &resolution) = 0;
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
+
+    void onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+
+    void onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
 
     void onRenderRequest();
 
@@ -301,6 +306,7 @@ namespace ESPINA
     ViewType      m_type;
     bool          m_requiresCameraReset;
     TimeStamp     m_lastRender;
+    QMap<GUI::View::Widgets::WidgetFactorySPtr, RepresentationManagerSPtr> m_widgetManagers;
 
   };
 

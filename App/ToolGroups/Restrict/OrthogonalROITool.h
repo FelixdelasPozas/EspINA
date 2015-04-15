@@ -27,6 +27,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // Qt
 #include <QUndoCommand>

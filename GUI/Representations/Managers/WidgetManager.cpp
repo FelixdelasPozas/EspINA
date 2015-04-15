@@ -17,28 +17,151 @@
 
 #include <GUI/Representations/Managers/WidgetManager.h>
 
+#include "GUI/View/Widgets/WidgetFactory.h"
+#include <GUI/View/RenderView.h>
+
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //------------------------------------------------------------------------
-void WidgetManager::setResolution(const NmVector3 &resolution)
+WidgetManager::WidgetManager(WidgetFactorySPtr factory)
+: RepresentationManager(factory->supportedViews())
+, m_factory(factory)
 {
+}
 
+//------------------------------------------------------------------------
+WidgetManager::~WidgetManager()
+{
 }
 
 //------------------------------------------------------------------------
 TimeRange WidgetManager::readyRangeImplementation() const
 {
-  return TimeRange();
-}
-
-//------------------------------------------------------------------------
-void WidgetManager::display(TimeStamp time)
-{
-
+  return m_pendingActions.timeRange();
 }
 
 //------------------------------------------------------------------------
 ViewItemAdapterPtr WidgetManager::pick(const NmVector3 &point, vtkProp *actor) const
 {
   return nullptr;
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::setPlane(Plane plane)
+{
+  m_plane = plane;
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::setRepresentationDepth(Nm depth)
+{
+  m_depth = 2*depth;
+}
+
+//------------------------------------------------------------------------
+bool WidgetManager::acceptCrosshairChange(const NmVector3 &crosshair) const
+{
+  Q_ASSERT(m_widget);
+  return m_widget->acceptCrosshairChange(crosshair);
+}
+
+//------------------------------------------------------------------------
+bool WidgetManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  Q_ASSERT(m_widget);
+  return m_widget->acceptSceneResolutionChange(resolution);
+}
+
+//------------------------------------------------------------------------
+bool WidgetManager::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
+}
+
+//------------------------------------------------------------------------
+bool WidgetManager::hasRepresentations() const
+{
+  return true;
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+{
+  if (m_plane != Plane::UNDEFINED)
+  {
+    auto widget2D = m_factory->createWidget2D();
+
+    widget2D->setPlane(m_plane);
+    widget2D->setRepresentationDepth(m_depth);
+
+    m_widget = widget2D;
+  }
+  else
+  {
+    m_widget = m_factory->createWidget2D();
+  }
+
+  m_widget->setCrosshair(crosshair);
+  m_widget->setSceneResolution(resolution);
+
+  m_widget->initialize(m_view);
+
+  m_pendingActions.addValue(Action(INIT, NmVector3()), t);
+
+  emitRenderRequest(t);
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp t)
+{
+  m_pendingActions.addValue(Action(CROSSHAIR, crosshair), t);
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
+{
+  m_pendingActions.addValue(Action(RESOLUTION, resolution), t);
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::onShow(TimeStamp t)
+{
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::onHide(TimeStamp t)
+{
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::displayActors(TimeStamp t)
+{
+  if (!m_widget->isEnabled()) m_widget->show();
+
+  auto action = m_pendingActions.value(t, Action(INIT, NmVector3()));
+
+  if (action.first == CROSSHAIR)
+  {
+    m_widget->setCrosshair(action.second);
+  }
+  else if (action.first == RESOLUTION)
+  {
+    m_widget->setSceneResolution(action.second);
+  }
+
+  m_pendingActions.invalidatePreviousValues(t);
+}
+
+//------------------------------------------------------------------------
+void WidgetManager::hideActors(TimeStamp t)
+{
+  m_widget->hide();
+  m_widget->uninitialize();
+}
+
+//------------------------------------------------------------------------
+RepresentationManagerSPtr WidgetManager::cloneImplementation()
+{
+  return std::make_shared<WidgetManager>(m_factory);
 }

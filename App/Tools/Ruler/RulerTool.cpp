@@ -65,14 +65,14 @@ namespace ESPINA
     if (value)
     {
       m_widget = std::make_shared<RulerWidget>();
-      m_viewState.addWidget(m_widget);
+      //TODO m_viewState.addWidget(m_widget);
       connect(m_viewSelection.get(), SIGNAL(selectionStateChanged()),
               this,                    SLOT(selectionChanged()));
       selectionChanged();
     }
     else
     {
-      m_viewState.removeWidget(m_widget);
+      //TODO m_viewState.removeWidget(m_widget);
       disconnect(m_viewSelection.get(), SIGNAL(selectionStateChanged()),
                  this,                           SLOT(selectionChanged()));
       m_widget = nullptr;

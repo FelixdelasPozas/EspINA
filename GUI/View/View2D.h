@@ -113,7 +113,7 @@ namespace ESPINA
      *
      */
     double scale() const
-    { return m_scale; }
+    { return m_scaleValue; }
 
     /** \brief Helper method that returns the depth value required in the view to put representations above the channels' representations.
      *
@@ -148,11 +148,11 @@ namespace ESPINA
     virtual vtkRenderer *mainRenderer() const;
 
   public slots:
-    /** \brief Sets the ruler visibility.
+    /** \brief Sets the scale visibility.
      * \param[in] visibile true to set the ruler visible, false otherwise.
      *
      */
-    void setRulerVisibility(bool visible);
+    void setScaleVisibility(bool visible);
 
     /// Set Slice Selection flags to all registered Slice Views
     void addSliceSelectors(SliceSelectorSPtr widget,
@@ -215,10 +215,10 @@ namespace ESPINA
      */
     void showSegmentationTooltip(const int x, const int y);
 
-    /** \brief Updates the ruler widget.
+    /** \brief Updates the scale widget.
      *
      */
-    void updateRuler();
+    void updateScale();
 
     /** \brief Updates the thumbnail.
      *
@@ -258,7 +258,7 @@ namespace ESPINA
 
     bool isCrosshairPointVisible() const;
 
-    void updateScale();
+    void updateScaleValue();
 
     void updateThumbnailBounds(const Bounds &bounds);
 
@@ -342,15 +342,15 @@ namespace ESPINA
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
     // Ruler
-    double m_scale;
-    bool   m_rulerVisibility;
-    vtkSmartPointer<vtkAxisActor2D>  m_ruler;
+    double                           m_scaleValue;
+    bool                             m_scaleVisibility;
+    vtkSmartPointer<vtkAxisActor2D>  m_scale;
 
     Plane  m_plane;
     int    m_normalCoord;
 
-    bool  m_invertSliceOrder;
     bool  m_invertWheel;
+    bool  m_invertSliceOrder;
   };
 
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.
