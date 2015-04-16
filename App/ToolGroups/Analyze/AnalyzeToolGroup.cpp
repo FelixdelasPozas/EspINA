@@ -19,18 +19,20 @@
  */
 #include <ToolGroups/Analyze/AnalyzeToolGroup.h>
 
-namespace ESPINA
-{
-  //----------------------------------------------------------------------------
-  AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
-  : ToolGroup{QIcon(":/espina/toolgroup_analyze.svg"), tr("Analyze")}
-  {
-    addTool(std::make_shared<MeasureTool>(context.viewState()));
-    addTool(std::make_shared<RulerTool>(context.viewState(), context.selection()));
-  }
+#include <Tools/Measure/MeasureTool.h>
+#include <Tools/SelectionMeasure/SelectionMeasureTool.h>
 
-  //----------------------------------------------------------------------------
-  AnalyzeToolGroup::~AnalyzeToolGroup()
-  {
-  }
-} /* namespace ESPINA */
+using namespace ESPINA;
+
+//----------------------------------------------------------------------------
+AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
+: ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
+{
+  addTool(std::make_shared<MeasureTool>(context.viewState()));
+  addTool(std::make_shared<SelectionMeasureTool>(context.viewState(), context.selection()));
+}
+
+//----------------------------------------------------------------------------
+AnalyzeToolGroup::~AnalyzeToolGroup()
+{
+}

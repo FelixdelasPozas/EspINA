@@ -57,11 +57,13 @@ namespace ESPINA
 
       ChannelAdapterPtr ActiveChannel;//Move to selection
 
-
     private:
+      using Invalidator = GUI::View::RepresentationInvalidator;
+      using ViewState   = GUI::View::ViewState;
+
       Timer                m_timer;
-      GUI::View::RepresentationInvalidator m_invalidathor;
-      GUI::View::ViewState m_viewState;
+      Invalidator          m_invalidathor;
+      ViewState            m_viewState;
       ModelAdapterSPtr     m_model;
       ROIAccumulatorSPtr   m_activeROI;
       SchedulerSPtr        m_scheduler;

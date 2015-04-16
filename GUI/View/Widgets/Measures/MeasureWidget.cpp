@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "MeasureWidget.h"
+
 #include <Core/EspinaTypes.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
@@ -46,10 +47,48 @@ using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::Measures;
 
 
+class MeasureWidget::vtkDistanceCommand
+: public vtkCommand
+{
+  vtkTypeMacro(vtkDistanceCommand, vtkCommand);
+
+  virtual ~vtkDistanceCommand();
+
+  /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
+   *
+   */
+  static vtkDistanceCommand* New()
+  { return new vtkDistanceCommand(); }
+
+  void setDistanceWidget(vtkDistanceWidget *widget);
+
+  virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
+
+private:
+  /** \brief Class vtkDistanceCommand class private constructor.
+   *
+   */
+  explicit vtkDistanceCommand()
+  : m_widget{nullptr}
+  , m_camera{nullptr}
+  {}
+
+  vtkProperty2D *pointProperty(vtkHandleRepresentation *point) const;
+
+  /** \brief Computes optimal tick distance for current representation
+   * \param[in] length numerical value.
+   *
+   */
+  Nm optimalTickDistance(vtkDistanceRepresentation2D *representation) const;
+
+private:
+  vtkDistanceWidget *m_widget;
+  vtkCamera         *m_camera;
+};
+
 //----------------------------------------------------------------------------
 MeasureWidget::vtkDistanceCommand::~vtkDistanceCommand()
 {
-  qDebug() << "Destroy vtkDistanceCommand";
 }
 
 //----------------------------------------------------------------------------
@@ -89,7 +128,6 @@ void MeasureWidget::vtkDistanceCommand::Execute(vtkObject *caller, unsigned long
         auto renderers = widget->GetInteractor()->GetRenderWindow()->GetRenderers();
         auto renderer  = renderers->GetFirstRenderer();
 
-        qDebug() << "Asign camera" << this;
         m_camera = renderer->GetActiveCamera();
         m_camera->AddObserver(vtkCommand::AnyEvent, this);
       }
@@ -150,7 +188,6 @@ MeasureWidget::MeasureWidget(MeasureEventHandler *eventHandler)
   m_widget->AddObserver(vtkCommand::InteractionEvent,      m_command);
   m_widget->CreateDefaultRepresentation();
 
-  qDebug() << "Create vtkDistanceWidget";
   connect(eventHandler, SIGNAL(clear()),
           this,         SLOT(onClear()));
 }
@@ -158,7 +195,6 @@ MeasureWidget::MeasureWidget(MeasureEventHandler *eventHandler)
 //----------------------------------------------------------------------------
 MeasureWidget::~MeasureWidget()
 {
-  qDebug() << "Destroy vtkDistanceWidget";
 }
 
 //----------------------------------------------------------------------------
@@ -192,7 +228,7 @@ bool MeasureWidget::acceptSceneResolutionChange(const NmVector3 &resolution) con
 }
 
 //----------------------------------------------------------------------------
-void MeasureWidget::initializeImplementation()
+void MeasureWidget::initializeImplementation(RenderView *view)
 {
   m_command->setDistanceWidget(m_widget);
 }

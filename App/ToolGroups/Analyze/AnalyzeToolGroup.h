@@ -22,8 +22,6 @@
 #define ESPINA_MEASURES_TOOLS_H_
 
 // ESPINA
-#include <Tools/Measure/MeasureTool.h>
-#include <Tools/Ruler/RulerTool.h>
 #include <ToolGroups/ToolGroup.h>
 #include <Support/Context.h>
 

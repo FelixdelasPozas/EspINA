@@ -37,7 +37,7 @@ using namespace ESPINA::GUI;
 //-----------------------------------------------------------------------------
 RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
                                  Support::Context &context)
-: ToolGroup      {QIcon(":/espina/toolgroup_refine.svg"), tr("Refine")}
+: ToolGroup      {":/espina/toolgroup_refine.svg", tr("Refine")}
 , m_context      {context}
 {
   // TODO: Create EditionTool base class

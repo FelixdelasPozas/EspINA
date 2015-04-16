@@ -46,7 +46,7 @@ namespace ESPINA
      * \param[in] parent of the tool group
      *
      */
-    ToolGroup(const QIcon& icon, const QString& text, QObject* parent = nullptr);
+    ToolGroup(const QString& icon, const QString& text, QObject* parent = nullptr);
 
     virtual ~ToolGroup();
 

@@ -1272,7 +1272,7 @@ void EspinaMainWindow::createToolGroups()
 //------------------------------------------------------------------------
 ToolGroupPtr EspinaMainWindow::createToolGroup(const QString &icon, const QString &title)
 {
-  return new ToolGroup(QIcon(icon), title, this);
+  return new ToolGroup(icon, title, this);
 }
 
 //------------------------------------------------------------------------

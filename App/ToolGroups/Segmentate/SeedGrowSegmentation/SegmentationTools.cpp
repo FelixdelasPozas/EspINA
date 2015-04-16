@@ -27,7 +27,7 @@ using namespace ESPINA;
 SegmentationTools::SegmentationTools(SeedGrowSegmentationSettings* settings,
                                      FilterDelegateFactorySPtr     filterDelegateFactory,
                                      Support::Context       &context)
-: ToolGroup{QIcon(":/espina/pixelSelector.svg"), tr("Segmentation Tools")}
+: ToolGroup{":/espina/pixelSelector.svg", tr("Segmentation Tools")}
 , m_sgsTool{new SeedGrowSegmentationTool(settings, filterDelegateFactory, context)}
 {
 

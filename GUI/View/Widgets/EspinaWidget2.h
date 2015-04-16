@@ -81,7 +81,7 @@ namespace ESPINA
           virtual void setSceneResolution(const NmVector3 &resolution) {}
 
         private:
-          virtual void initializeImplementation() = 0;
+          virtual void initializeImplementation(RenderView *view) = 0;
 
           virtual void uninitializeImplementation() = 0;
 

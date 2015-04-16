@@ -63,7 +63,7 @@ private:
 
 //----------------------------------------------------------------------------
 VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *parent)
-: ToolGroup              {QIcon(":/espina/toolgroup_visualize.svg"), tr("Visualize"), parent}
+: ToolGroup              {":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
 , m_channelsRepGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"), tr("Show Channels"), context.timer())}
 , m_segmentationsRepGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"), context.timer())}
 , m_segmentationsShortcut{new QShortcut(parent)}

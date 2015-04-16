@@ -37,8 +37,8 @@ Context::Context()
 , m_activeROI(new ROIAccumulator())
 , m_scheduler(new Scheduler(PERIOD_uSEC))
 , m_selection(new Selection())
-, m_colorEngine(std::make_shared<MultiColorEngine>())
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler))
+, m_colorEngine(std::make_shared<MultiColorEngine>())
 {
   QObject::connect(m_model.get(), SIGNAL(modelChanged()),
                   &m_timer,       SLOT(increment()));

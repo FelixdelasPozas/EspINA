@@ -46,7 +46,8 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
   View/CoordinateSystem.h
-  View/Widgets/Ruler/RulerWidget.h
+  View/Widgets/SelectionMeasure/Widget2D.h
+  View/Widgets/SelectionMeasure/Widget3D.h
   View/Widgets/Contour/ContourWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
@@ -174,9 +175,10 @@ set (GUI_SOURCES
   View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceWidget.cpp
   View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceRepresentation.cpp
   View/Widgets/ROI/ROIWidget.cpp
-  View/Widgets/Ruler/RulerWidget.cpp
-  View/Widgets/Ruler/vtkRulerWidget.cpp
-  View/Widgets/Ruler/vtkRulerWidget3D.cpp
+  View/Widgets/SelectionMeasure/Widget2D.cpp
+  View/Widgets/SelectionMeasure/Widget3D.cpp
+  View/Widgets/SelectionMeasure/vtkWidget2D.cpp
+  View/Widgets/SelectionMeasure/vtkWidget3D.cpp
   View/Widgets/Skeleton/SkeletonWidget.cpp
   View/Widgets/Skeleton/vtkSkeletonWidget.cpp
   View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp

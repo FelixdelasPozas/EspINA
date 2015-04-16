@@ -102,10 +102,9 @@ void WidgetManager::updateRepresentations(const NmVector3 &crosshair, const NmVe
     m_widget = m_factory->createWidget3D();
   }
 
+  m_widget->initialize(m_view);
   m_widget->setCrosshair(crosshair);
   m_widget->setSceneResolution(resolution);
-
-  m_widget->initialize(m_view);
 
   m_pendingActions.addValue(Action(INIT, NmVector3()), t);
 

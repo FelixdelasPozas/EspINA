@@ -278,6 +278,22 @@ Bounds ESPINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing
   return bb;
 }
 
+//-----------------------------------------------------------------------------
+void ESPINA::updateBoundingBox(Bounds &boundingBox, const Bounds &bounds)
+{
+  if (boundingBox.areValid())
+  {
+    for (int i = 0, j = 1; i < 6; i += 2, j += 2)
+    {
+      boundingBox[i] = std::min(bounds[i], boundingBox[i]);
+      boundingBox[j] = std::max(bounds[j], boundingBox[j]);
+    }
+  }
+  else
+  {
+    boundingBox = bounds;
+  }
+}
 
 //-----------------------------------------------------------------------------
 std::ostream& ESPINA::operator<<(std::ostream& os, const Bounds& bounds)

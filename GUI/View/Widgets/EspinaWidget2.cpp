@@ -27,7 +27,7 @@ void EspinaWidget::initialize(RenderView *view)
   widget->SetCurrentRenderer(renderer);
   widget->SetInteractor(interactor);
 
-  initializeImplementation();
+  initializeImplementation(view);
 }
 
 //-----------------------------------------------------------------------------

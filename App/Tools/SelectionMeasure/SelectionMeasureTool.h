@@ -18,61 +18,54 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_MEASURE_TOOL_H_
-#define ESPINA_MEASURE_TOOL_H_
+#ifndef ESPINA_SELECTION_MEASURE_TOOL_H
+#define ESPINA_SELECTION_MEASURE_TOOL_H
 
 // ESPINA
-#include <GUI/View/ViewState.h>
-#include <GUI/View/Widgets/WidgetFactory.h>
 #include <Support/Widgets/Tool.h>
 
-class QAction;
+#include <GUI/View/ViewState.h>
+#include <GUI/View/Selection.h>
+#include <GUI/View/Widgets/WidgetFactory.h>
 
 namespace ESPINA
 {
+  class RenderView;
+  class SelectionMeasureWidget;
 
-  class MeasureTool
+  class SelectionMeasureTool
   : public Tool
   {
     Q_OBJECT
-
   public:
-    /** \brief MeasureTool class constructor.
+    /** \brief RulerTool class constructor.
      * \param[in] viewState
-     *
      */
-    explicit MeasureTool(GUI::View::ViewState &viewState);
+    explicit SelectionMeasureTool(GUI::View::ViewState &viewState, SelectionSPtr selection);
 
-    /** \brief MeasureTool class destructor.
+    /** \brief RulerTool class destructor.
      *
      */
-    virtual ~MeasureTool();
+    virtual ~SelectionMeasureTool();
 
     virtual QList<QAction *> actions() const override;
 
     virtual void abortOperation() override;
 
-  signals:
-    void stopMeasuring();
-
   private slots:
     void onToolActivated(bool value);
 
-    virtual void onToolEnabled(bool enabled) {}
+  private:
+    virtual void onToolEnabled(bool enabled);
 
   private:
     using ViewState         = GUI::View::ViewState;
     using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
 
     ViewState        &m_viewState;
-    EventHandlerSPtr  m_handler;
     WidgetFactorySPtr m_factory;
     QAction          *m_action;
   };
-
-  using MeasureToolPtr  = MeasureTool *;
-  using MeasureToolSPtr = std::shared_ptr<MeasureTool>;
-
 } // namespace ESPINA
 
-#endif // ESPINA_MEASURE_TOOL_H_
+#endif // ESPINA_SELECTION_MEASURE_TOOL_H

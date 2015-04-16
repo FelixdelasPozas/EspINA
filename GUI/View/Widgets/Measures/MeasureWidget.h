@@ -36,14 +36,13 @@
 // Qt
 #include <QMap>
 
+class vtkDistanceWidget;
 class vtkProperty2D;
 class vtkHandleRepresentation;
 class vtkDistanceRepresentation2D;
 class vtkAbstractWidget;
 class vtkDistanceWidget;
-class vtkMeasureWidget;
 class vtkCamera;
-class vtkRenderWindowInteractor;
 
 class QEvent;
 
@@ -57,51 +56,12 @@ namespace ESPINA
       {
         namespace Measures
         {
-          class vtkDistanceCommand;
-
           class EspinaGUI_EXPORT MeasureWidget
           : public EspinaWidget2D
           {
             Q_OBJECT
 
-            class vtkDistanceCommand
-            : public vtkCommand
-            {
-              vtkTypeMacro(vtkDistanceCommand, vtkCommand);
-
-              virtual ~vtkDistanceCommand();
-
-              /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
-               *
-               */
-              static vtkDistanceCommand* New()
-              { return new vtkDistanceCommand(); }
-
-              void setDistanceWidget(vtkDistanceWidget *widget);
-
-              virtual void Execute(vtkObject *, unsigned long int, void*);
-
-            private:
-              /** \brief Class vtkDistanceCommand class private constructor.
-               *
-               */
-              explicit vtkDistanceCommand()
-              : m_widget{nullptr}
-              , m_camera{nullptr}
-              {}
-
-              vtkProperty2D *pointProperty(vtkHandleRepresentation *point) const;
-
-              /** \brief Computes optimal tick distance for current representation
-               * \param[in] length numerical value.
-               *
-               */
-              Nm optimalTickDistance(vtkDistanceRepresentation2D *representation) const;
-
-            private:
-              vtkDistanceWidget *m_widget;
-              vtkCamera         *m_camera;
-            };
+            class vtkDistanceCommand;
 
           public:
             /** \brief Class MeasureWidget constructor.
@@ -125,7 +85,7 @@ namespace ESPINA
 
             virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
-            virtual void initializeImplementation();
+            virtual void initializeImplementation(RenderView *view);
 
             virtual void uninitializeImplementation();
 

@@ -59,7 +59,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Analyze/AnalyzeToolGroup.h
   ToolGroups/ToolGroup.h
   Tools/Measure/MeasureTool.h
-  Tools/Ruler/RulerTool.h
+  Tools/SelectionMeasure/SelectionMeasureTool.h
   Undo/DrawUndoCommand.h
   Views/DefaultView.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
@@ -157,7 +157,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/AnalyzeToolGroup.cpp
   ToolGroups/ToolGroup.cpp
   Tools/Measure/MeasureTool.cpp
-  Tools/Ruler/RulerTool.cpp
+  Tools/SelectionMeasure/SelectionMeasureTool.cpp
   Undo/DrawUndoCommand.cpp
   Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
