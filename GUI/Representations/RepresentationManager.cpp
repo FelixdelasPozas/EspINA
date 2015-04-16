@@ -171,12 +171,12 @@ void RepresentationManager::display(TimeStamp t)
   if (isActive())
   {
     qDebug() << debugName() << "Display" << t << "actors";
-    displayActors(t);
+    displayRepresentations(t);
   }
   else
   {
     qDebug() << debugName() << "Hide at" << t;
-    hideActors(t);
+    hideRepresentations(t);
   }
 
   if (!hasNewerFrames(t))

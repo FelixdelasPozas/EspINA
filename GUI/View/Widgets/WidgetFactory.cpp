@@ -25,6 +25,12 @@ WidgetFactory::WidgetFactory(EspinaWidget2DSPtr prototype2D, EspinaWidget3DSPtr 
 : m_prototype2D(prototype2D)
 , m_prototype3D(prototype3D)
 {
+  qDebug() << "Create Widget Factory";
+}
+
+WidgetFactory::~WidgetFactory()
+{
+  qDebug() << "Destroy Widget Factory";
 }
 
 //-----------------------------------------------------------------------------

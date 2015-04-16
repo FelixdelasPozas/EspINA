@@ -63,7 +63,7 @@ namespace ESPINA
 
       virtual void disconnectPools() override;
 
-      virtual void displayActors(TimeStamp t) override;
+      virtual void displayRepresentations(TimeStamp t) override;
 
       virtual RepresentationManagerSPtr cloneImplementation();
 

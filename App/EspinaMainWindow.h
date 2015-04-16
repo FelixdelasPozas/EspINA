@@ -360,7 +360,7 @@ namespace ESPINA
     // ToolBars
     QToolBar          *m_mainBar;
     QToolBar          *m_contextualBar;
-    ToolGroupPtr       m_activeToolGroup;
+    ToolGroupPtr        m_activeToolGroup;
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;
     ToolGroup          *m_segmentateToolGroup;

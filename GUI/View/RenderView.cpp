@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "RenderView.h"
+#include "Widgets/WidgetFactory.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricData.hxx>
@@ -359,24 +360,32 @@ void RenderView::connectSignals()
 //-----------------------------------------------------------------------------
 void RenderView::onWidgetsAdded(WidgetFactorySPtr factory, TimeStamp t)
 {
-  auto manager = std::make_shared<WidgetManager>(factory);
+  if (factory->supportedViews().testFlag(m_type))
+  {
+    auto manager = std::make_shared<WidgetManager>(factory);
 
-  addRepresentationManager(manager);
+    addRepresentationManager(manager);
 
-  manager->show(t);
+    manager->show(t);
 
-  m_widgetManagers[factory] = manager;
+    m_widgetManagers[factory] = manager;
+  }
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::onWidgetsRemoved(WidgetFactorySPtr factory, TimeStamp t)
 {
-  auto manager = m_widgetManagers[factory];
+  if (factory->supportedViews().testFlag(m_type))
+  {
+    auto manager = m_widgetManagers[factory];
 
-  manager->hide(t);
+    manager->hide(t);
 
-  removeRepresentationManager(manager);
-  // NOTE: managers should be removed after processing render request of t
+    removeRepresentationManager(manager);
+
+    //NOTE: managers should be removed after processing render request of t
+    //      so they can hide its representations
+  }
 }
 
 //-----------------------------------------------------------------------------

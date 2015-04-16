@@ -110,13 +110,13 @@ bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::displayActors(TimeStamp t)
+void CrosshairManager::displayRepresentations(TimeStamp t)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-void CrosshairManager::hideActors(TimeStamp t)
+void CrosshairManager::hideRepresentations(TimeStamp t)
 {
 
 }

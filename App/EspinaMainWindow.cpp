@@ -158,6 +158,12 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "********************************************************";
 //   qDebug() << "              Destroying Main Window";
 //   qDebug() << "********************************************************";
+  delete m_exploreToolGroup;
+  delete m_restrictToolGroup;
+  delete m_segmentateToolGroup;
+  delete m_refineToolGroup;
+  delete m_visualizeToolGroup;
+  delete m_analyzeToolGroup;
   delete m_roiSettings;
   delete m_colorEngineMenu;
   delete m_dynamicMenuRoot;

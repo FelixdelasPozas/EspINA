@@ -34,6 +34,8 @@ namespace ESPINA
         public:
           explicit WidgetFactory(EspinaWidget2DSPtr prototype2D, EspinaWidget3DSPtr prototype3D);
 
+          ~WidgetFactory();
+
           ViewTypeFlags supportedViews() const;
 
           EspinaWidget2DSPtr createWidget2D() const;

@@ -45,6 +45,7 @@ MeasureTool::MeasureTool(ViewState & viewState)
 //----------------------------------------------------------------------------
 MeasureTool::~MeasureTool()
 {
+  qDebug() << "Destroy Measure Tool";
 }
 
 //----------------------------------------------------------------------------

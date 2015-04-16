@@ -119,7 +119,7 @@ void PassiveActorManager::disconnectPools()
 }
 
 //----------------------------------------------------------------------------
-void PassiveActorManager::displayActors(const TimeStamp t)
+void PassiveActorManager::displayRepresentations(const TimeStamp t)
 {
   auto currentActors = m_pool->actors(t);
 

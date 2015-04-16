@@ -58,9 +58,9 @@ namespace ESPINA
     bool hasActorsInDisplay() const;
 
   private:
-    virtual void displayActors(TimeStamp t) override;
+    virtual void displayRepresentations(TimeStamp t) override;
 
-    virtual void hideActors(TimeStamp t) override;
+    virtual void hideRepresentations(TimeStamp t) override;
 
     virtual void onShow(TimeStamp t) override;
 

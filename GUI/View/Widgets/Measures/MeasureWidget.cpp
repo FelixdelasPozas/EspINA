@@ -150,6 +150,7 @@ MeasureWidget::MeasureWidget(MeasureEventHandler *eventHandler)
   m_widget->AddObserver(vtkCommand::InteractionEvent,      m_command);
   m_widget->CreateDefaultRepresentation();
 
+  qDebug() << "Create vtkDistanceWidget";
   connect(eventHandler, SIGNAL(clear()),
           this,         SLOT(onClear()));
 }
@@ -157,7 +158,7 @@ MeasureWidget::MeasureWidget(MeasureEventHandler *eventHandler)
 //----------------------------------------------------------------------------
 MeasureWidget::~MeasureWidget()
 {
-  qDebug() << "Destroy MeasureWidget";
+  qDebug() << "Destroy vtkDistanceWidget";
 }
 
 //----------------------------------------------------------------------------

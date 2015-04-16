@@ -99,7 +99,7 @@ void WidgetManager::updateRepresentations(const NmVector3 &crosshair, const NmVe
   }
   else
   {
-    m_widget = m_factory->createWidget2D();
+    m_widget = m_factory->createWidget3D();
   }
 
   m_widget->setCrosshair(crosshair);
@@ -135,7 +135,7 @@ void WidgetManager::onHide(TimeStamp t)
 }
 
 //------------------------------------------------------------------------
-void WidgetManager::displayActors(TimeStamp t)
+void WidgetManager::displayRepresentations(TimeStamp t)
 {
   if (!m_widget->isEnabled()) m_widget->show();
 
@@ -154,7 +154,7 @@ void WidgetManager::displayActors(TimeStamp t)
 }
 
 //------------------------------------------------------------------------
-void WidgetManager::hideActors(TimeStamp t)
+void WidgetManager::hideRepresentations(TimeStamp t)
 {
   m_widget->hide();
   m_widget->uninitialize();

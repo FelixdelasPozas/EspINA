@@ -32,9 +32,9 @@ PoolManager::PoolManager(ViewTypeFlags supportedViews)
 }
 
 //-----------------------------------------------------------------------------
-void PoolManager::displayActors(TimeStamp t)
+void PoolManager::displayRepresentations(TimeStamp t)
 {
-  hideActors(t);
+  hideRepresentations(t);
 
   auto currentActors = actors(t);
 
@@ -50,7 +50,7 @@ void PoolManager::displayActors(TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-void PoolManager::hideActors(TimeStamp t)
+void PoolManager::hideRepresentations(TimeStamp t)
 {
   for (auto itemActors : m_viewActors)
   {

@@ -74,9 +74,9 @@ namespace ESPINA
 
       virtual void onHide(TimeStamp t);
 
-      virtual void displayActors(TimeStamp t) {};
+      virtual void displayRepresentations(TimeStamp t) {};
 
-      virtual void hideActors(TimeStamp t) {};
+      virtual void hideRepresentations(TimeStamp t) {};
 
       virtual RepresentationManagerSPtr cloneImplementation();
 

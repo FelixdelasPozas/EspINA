@@ -208,9 +208,9 @@ namespace ESPINA
 
     bool hasNewerFrames(TimeStamp t) const;
 
-    virtual void displayActors(TimeStamp t) = 0;
+    virtual void displayRepresentations(TimeStamp t) = 0;
 
-    virtual void hideActors(TimeStamp t) = 0;
+    virtual void hideRepresentations(TimeStamp t) = 0;
 
     virtual void onShow(TimeStamp t) = 0;
 
