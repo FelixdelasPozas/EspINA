@@ -37,18 +37,24 @@ namespace ESPINA
         /** \brief Invalidates item representations
          *
          */
-        void invalidateRepresentations(ViewItemAdapterSList items);
+        void invalidateRepresentations(ViewItemAdapterList items);
 
         /** \brief Invalidates item representations and those which
          *         depend on them
          *
          */
-        void invalidateDependentRepresentations(ViewItemAdapterSList items);
+        void invalidateDependentRepresentations(ViewItemAdapterList items);
 
         Timer &timer() const;
 
+      public slots:
+        /** \brief Invalidates item representations
+         *
+         */
+        void invalidateRepresentations(ViewItemAdapterPtr item);
+
       signals:
-        void representationsInvalidated(ViewItemAdapterSList items, TimeStamp t);
+        void representationsInvalidated(ViewItemAdapterList items, TimeStamp t);
 
       private:
         Timer &m_timer;

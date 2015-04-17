@@ -1204,13 +1204,13 @@ int ClassificationProxy::numSegmentations(CategoryAdapterPtr proxyCategory, bool
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterSList ClassificationProxy::childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive) const
+ViewItemAdapterList ClassificationProxy::childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive) const
 {
-  ViewItemAdapterSList children;
+  ViewItemAdapterList children;
 
   for (auto item : m_categorySegmentations[proxyCategory])
   {
-    children << toSourceSPtr(segmentationPtr(item));
+    children << segmentationPtr(item);
   }
 
   if (recursive)
@@ -1315,7 +1315,7 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
 {
   auto item = itemAdapter(index);
 
-  ViewItemAdapterSList modifiedItems;
+  ViewItemAdapterList modifiedItems;
 
   if (isCategory(item))
   {
@@ -1324,7 +1324,7 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
   }
   else if (isSegmentation(item))
   {
-    modifiedItems << toSourceSPtr(segmentationPtr(item));
+    modifiedItems << segmentationPtr(item);
   }
   else
   {

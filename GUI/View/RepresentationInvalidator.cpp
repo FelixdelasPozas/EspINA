@@ -27,7 +27,7 @@ RepresentationInvalidator::RepresentationInvalidator(Timer &timer)
 }
 
 //------------------------------------------------------------------------
-void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterSList items)
+void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterList items)
 {
   auto t = m_timer.increment();
 
@@ -35,7 +35,7 @@ void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterSList i
 }
 
 //------------------------------------------------------------------------
-void RepresentationInvalidator::invalidateDependentRepresentations(ViewItemAdapterSList items)
+void RepresentationInvalidator::invalidateDependentRepresentations(ViewItemAdapterList items)
 {
   auto invalidatedItems = items;
   // TODO: add dependent items
@@ -47,4 +47,10 @@ void RepresentationInvalidator::invalidateDependentRepresentations(ViewItemAdapt
 Timer &RepresentationInvalidator::timer() const
 {
   return m_timer;
+}
+
+//------------------------------------------------------------------------
+void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterPtr item)
+{
+  invalidateRepresentations(toViewItemList(item));
 }

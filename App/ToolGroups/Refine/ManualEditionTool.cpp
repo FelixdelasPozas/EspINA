@@ -30,6 +30,7 @@
 #include <GUI/View/RenderView.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Filters/SourceFilter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/DrawUndoCommand.h>
 
@@ -195,6 +196,15 @@ bool ManualEditionTool::isCreationMode() const
 }
 
 //------------------------------------------------------------------------
+SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
+{
+  Q_ASSERT(m_referenceItem);
+
+  auto segmentation = reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem);
+  return m_model->smartPointer(segmentation);
+}
+
+//------------------------------------------------------------------------
 void ManualEditionTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
   auto channel = channelPtr(m_referenceItem);
@@ -240,9 +250,8 @@ void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
     m_referenceItem->clearTemporalRepresentation();
 
-    auto segmentation = m_model->smartPointer(reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem));
     m_undoStack->beginMacro(tr("Modify Segmentation"));
-    m_undoStack->push(new DrawUndoCommand(segmentation, mask));
+    m_undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
     m_undoStack->endMacro();
 
     if(mask->foregroundValue() == SEG_BG_VALUE)

@@ -136,7 +136,7 @@ NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y, in
 void RenderView::onSelectionSet(SelectionSPtr selection)
 {
   connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
-          this, SLOT(updateSelection(SegmentationAdapterList)));
+          this,            SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //-----------------------------------------------------------------------------
@@ -289,7 +289,7 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 //-----------------------------------------------------------------------------
 void RenderView::updateSelection(SegmentationAdapterList selection)
 {
-  //TODO updateRepresentations(selection);
+  //updateRepresentations(selection);
 }
 
 //-----------------------------------------------------------------------------

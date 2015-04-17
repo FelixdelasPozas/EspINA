@@ -23,8 +23,8 @@ using namespace ESPINA;
 PipelineSources::PipelineSources(GUI::View::RepresentationInvalidator &invalidator)
 : m_representationInvalidator(invalidator)
 {
-  connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterSList,TimeStamp)),
-          this,                         SLOT(onRepresentationInvalidated(ViewItemAdapterSList,TimeStamp)));
+  connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
+          this,                         SLOT(onRepresentationInvalidated(ViewItemAdapterList, TimeStamp)));
 }
 
 //-----------------------------------------------------------------------------
@@ -78,16 +78,15 @@ TimeStamp PipelineSources::timeStamp() const
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSources::onRepresentationInvalidated(ViewItemAdapterSList items, TimeStamp t)
+void PipelineSources::onRepresentationInvalidated(ViewItemAdapterList items, TimeStamp t)
 {
   ViewItemAdapterList updatedItems;
 
   for (auto item : items)
   {
-    auto ptr = item.get();
-    if (contains(ptr))
+    if (contains(item))
     {
-      updatedItems << ptr;
+      updatedItems << item;
     }
   }
 

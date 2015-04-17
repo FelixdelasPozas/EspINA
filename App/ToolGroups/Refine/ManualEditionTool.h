@@ -91,6 +91,8 @@ namespace ESPINA
 
     bool isCreationMode() const;
 
+    SegmentationAdapterSPtr referenceSegmentation() const;
+
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 

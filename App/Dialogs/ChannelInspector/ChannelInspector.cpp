@@ -311,7 +311,7 @@ void ChannelInspector::onChangesAccpeted()
     applyEdgesChanges();
   }
 
-  m_viewState.representationInvalidator().invalidateRepresentations(toViewItemList(m_channel));
+  m_viewState.representationInvalidator().invalidateRepresentations(toViewItemList(m_channel.get()));
 }
 
 //------------------------------------------------------------------------

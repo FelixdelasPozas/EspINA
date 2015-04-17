@@ -59,7 +59,7 @@ namespace ESPINA
     TimeStamp timeStamp() const;
 
   private slots:
-    void onRepresentationInvalidated(ViewItemAdapterSList items, TimeStamp t);
+    void onRepresentationInvalidated(ViewItemAdapterList items, TimeStamp t);
 
   protected:
     ViewItemAdapterList m_sources;

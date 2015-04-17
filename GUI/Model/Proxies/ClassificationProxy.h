@@ -294,7 +294,7 @@ namespace ESPINA
      */
     int numSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
 
-    ViewItemAdapterSList childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
+    ViewItemAdapterList childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
 
     /** \brief Returns the number of sub-categories contained in a category.
      * \param[in] categoryIndex model index of the category.
