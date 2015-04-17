@@ -52,6 +52,7 @@
 #include <GUI/ColorEngines/UserColorEngine.h>
 #include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Utils/DefaultIcons.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -896,18 +897,22 @@ void EspinaMainWindow::autosave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::showRawInformation()
 {
-  //TODO
-//   if (!m_model->segmentations().isEmpty())
-//   {
-//     RawInformationDialog *dialog = new RawInformationDialog(m_model, m_factory, m_viewManager, this);
-//     connect(dialog, SIGNAL(finished(int)),
-//             dialog, SLOT(deleteLater()));
-//     dialog->show();
-//   }
-//   else
-//   {
-//     QMessageBox::warning(this, "ESPINA", tr("Current analysis does not contain any segmentations"));
-//   }
+  if (m_context.model()->segmentations().isEmpty())
+  {
+    auto title   = tr("Raw Information");
+    auto message = tr("Current analysis does not contain any segmentations");
+
+    DefaultDialogs::InformationMessage(title, message);
+  }
+  else
+  {
+    auto dialog = new RawInformationDialog(m_context);
+
+    connect(dialog, SIGNAL(finished(int)),
+            dialog, SLOT(deleteLater()));
+
+    dialog->show();
+  }
 }
 
 //------------------------------------------------------------------------
