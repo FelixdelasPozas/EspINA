@@ -31,8 +31,8 @@ using namespace ESPINA::Support;
 //------------------------------------------------------------------------
 Context::Context()
 : ActiveChannel(nullptr)
-, m_invalidathor(m_timer)
-, m_viewState(m_timer, m_invalidathor)
+, m_invalidator(m_timer)
+, m_viewState(m_timer, m_invalidator)
 , m_model(new ModelAdapter())
 , m_activeROI(new ROIAccumulator())
 , m_scheduler(new Scheduler(PERIOD_uSEC))

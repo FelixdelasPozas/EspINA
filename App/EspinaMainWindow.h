@@ -363,7 +363,7 @@ namespace ESPINA
     ToolGroupPtr        m_activeToolGroup;
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;
-    ToolGroup          *m_segmentateToolGroup;
+    ToolGroup          *m_segmentToolGroup;
     RefineToolGroup    *m_refineToolGroup;
     VisualizeToolGroup *m_visualizeToolGroup;
     AnalyzeToolGroup   *m_analyzeToolGroup;

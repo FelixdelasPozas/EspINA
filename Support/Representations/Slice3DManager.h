@@ -55,15 +55,19 @@ namespace ESPINA {
 
     virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
+    virtual void onShow(TimeStamp t);
+
+    virtual void onHide(TimeStamp t);
+
     virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
     virtual void invalidatePreviousActors(TimeStamp t) override;
 
-    virtual void connectPools() override;
-
-    virtual void disconnectPools() override;
-
     virtual RepresentationManagerSPtr cloneImplementation() override;
+
+    void connectPools();
+
+    void disconnectPools();
 
   private slots:
     void checkRenderRequest();

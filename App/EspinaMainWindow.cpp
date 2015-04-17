@@ -42,8 +42,8 @@
 #include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
-#include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
-#include "ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
+#include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h"
+#include "ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h"
 #include "ToolGroups/Explore/ResetZoom.h"
 #include "ToolGroups/Explore/ZoomAreaTool.h"
 #include <Extensions/EdgeDistances/ChannelEdges.h>
@@ -160,7 +160,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //   qDebug() << "********************************************************";
   delete m_exploreToolGroup;
   delete m_restrictToolGroup;
-  delete m_segmentateToolGroup;
+  delete m_segmentToolGroup;
   delete m_refineToolGroup;
   delete m_visualizeToolGroup;
   delete m_analyzeToolGroup;
@@ -209,8 +209,8 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
           case ToolCategory::RESTRICT:
             m_restrictToolGroup->addTool(tool.second);
             break;
-          case ToolCategory::SEGMENTATE:
-            m_segmentateToolGroup->addTool(tool.second);
+          case ToolCategory::SEGMENT:
+            m_segmentToolGroup->addTool(tool.second);
             break;
           case ToolCategory::REFINE:
             m_refineToolGroup->addTool(tool.second);
@@ -315,10 +315,10 @@ void EspinaMainWindow::createActivityMenu()
   sigMapper->setMapping(reload,QString("Reload"));
   connect(reload,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
 
-  auto segmentate = new QAction(tr("Segmentate"),activityMenu);
-  activityMenu->addAction(segmentate);
-  sigMapper->setMapping(segmentate,QString("segmentate"));
-  connect(segmentate,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
+  auto segment = new QAction(tr("Segment"),activityMenu);
+  activityMenu->addAction(segment);
+  sigMapper->setMapping(segment,QString("segment"));
+  connect(segment,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
 
   connect(sigMapper,SIGNAL(mapped(QString)),this, SLOT(setActivity(QString)));
 }
@@ -1254,10 +1254,10 @@ void EspinaMainWindow::createToolGroups()
   //m_viewManager->setROIProvider(m_restrictToolGroup);
   registerToolGroup(m_restrictToolGroup);
 
-  m_segmentateToolGroup = createToolGroup(":/espina/toolgroup_segmentate.svg", tr("Segmentate"));
-  registerToolGroup(m_segmentateToolGroup);
+  m_segmentToolGroup = createToolGroup(":/espina/toolgroup_segment.svg", tr("Segment"));
+  registerToolGroup(m_segmentToolGroup);
   auto sgsTool = std::make_shared<SeedGrowSegmentationTool>(m_sgsSettings, m_filterDelegateFactory, m_context);
-  m_segmentateToolGroup->addTool(sgsTool);
+  m_segmentToolGroup->addTool(sgsTool);
 
   m_refineToolGroup = new RefineToolGroup(m_filterDelegateFactory, m_context);
   registerToolGroup(m_refineToolGroup);

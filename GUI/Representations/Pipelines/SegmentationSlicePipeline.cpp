@@ -86,14 +86,15 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       actor->SetInterpolate(false);
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-      actor->SetDisplayExtent(slice->GetExtent());
-      actor->Update();
 
       // need to reposition the actor so it will always be over the channels actors'
       double pos[3];
       actor->GetPosition(pos);
       pos[planeIndex] += segmentationDepth(state);
       actor->SetPosition(pos);
+
+      actor->SetDisplayExtent(slice->GetExtent());
+      actor->Update();
 
       actors << actor;
     }

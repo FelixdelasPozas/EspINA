@@ -62,17 +62,9 @@ namespace ESPINA
 
     virtual void hideRepresentations(TimeStamp t) override;
 
-    virtual void onShow(TimeStamp t) override;
-
-    virtual void onHide(TimeStamp t) override;
-
     virtual RepresentationPipeline::Actors actors(TimeStamp t) = 0;
 
     virtual void invalidatePreviousActors(TimeStamp t) = 0;
-
-    virtual void connectPools() = 0;
-
-    virtual void disconnectPools() = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
 

@@ -94,14 +94,16 @@ void vtkWidget2D::SetEnabled(int enabled)
     {
       CurrentRenderer->AddActor2D(m_up);
       CurrentRenderer->AddActor2D(m_right);
+
+      drawActors();
     }
     else
     {
       CurrentRenderer->RemoveActor2D(m_up);
       CurrentRenderer->RemoveActor2D(m_right);
-    }
 
-    drawActors();
+      CurrentRenderer->GetRenderWindow()->Render();
+    }
   }
 }
 

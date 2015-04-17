@@ -45,15 +45,15 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Restrict/CleanROITool.h
   ToolGroups/Restrict/OrthogonalROITool.h
   ToolGroups/Restrict/RestrictToolGroup.h
-  ToolGroups/Segmentate/SeedGrowSegmentation/CustomROIWidget.h
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistory.h
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.h
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedThreshold.h
-  ToolGroups/Segmentate/Skeleton/SkeletonTool.h
-  ToolGroups/Segmentate/Skeleton/SkeletonToolGroup.h
-  ToolGroups/Segmentate/Skeleton/SkeletonToolStatusAction.h
+  ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
+  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonToolGroup.h
+  ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.h
   ToolGroups/Visualize/RepresentationsGroupTool.h
   ToolGroups/Visualize/VisualizeToolGroup.h
   ToolGroups/Analyze/AnalyzeToolGroup.h
@@ -83,7 +83,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
   Settings/View2D/View2DSettingsPanel.ui
   ToolGroups/Refine/CODEHistoryWidget.ui
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.ui
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.ui
   )
 
 if (METADONA_FOUND)
@@ -136,16 +136,16 @@ set (ESPINA_SOURCES
   ToolGroups/Restrict/CleanROITool.cpp
   ToolGroups/Restrict/OrthogonalROITool.cpp
   ToolGroups/Restrict/RestrictToolGroup.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/CustomROIWidget.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistory.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/SeedThreshold.cpp
-  ToolGroups/Segmentate/SeedGrowSegmentation/SegmentationTools.cpp
-  ToolGroups/Segmentate/Skeleton/SkeletonTool.cpp
-  ToolGroups/Segmentate/Skeleton/SkeletonToolGroup.cpp
-  ToolGroups/Segmentate/Skeleton/SkeletonToolStatusAction.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistory.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationHistoryWidget.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SegmentationTools.cpp
+  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolGroup.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolStatusAction.cpp
   ToolGroups/Refine/CODEHistory.cpp
   ToolGroups/Refine/CODEHistoryWidget.cpp
   ToolGroups/Refine/CODETool.cpp

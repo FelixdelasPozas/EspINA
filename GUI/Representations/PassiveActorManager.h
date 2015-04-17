@@ -55,13 +55,17 @@ namespace ESPINA
 
       virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
 
+      virtual void onShow(TimeStamp t);
+
+      virtual void onHide(TimeStamp t);
+
       virtual RepresentationPipeline::Actors actors(TimeStamp t);
 
       virtual void invalidatePreviousActors(TimeStamp t);
 
-      virtual void connectPools() override;
+      void connectPools();
 
-      virtual void disconnectPools() override;
+      void disconnectPools();
 
       virtual void displayRepresentations(TimeStamp t) override;
 

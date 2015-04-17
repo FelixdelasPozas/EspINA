@@ -114,6 +114,18 @@ void Slice3DManager::updateRepresentations(const NmVector3 &crosshair, const NmV
 }
 
 //----------------------------------------------------------------------------
+void Slice3DManager::onShow(TimeStamp t)
+{
+  connectPools();
+}
+
+//----------------------------------------------------------------------------
+void Slice3DManager::onHide(TimeStamp t)
+{
+  disconnectPools();
+}
+
+//----------------------------------------------------------------------------
 void Slice3DManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
 {
   for (auto pool : m_pools)

@@ -124,14 +124,12 @@ void BufferedRepresentationPool::removeRepresentationPipeline(ViewItemAdapterPtr
 //-----------------------------------------------------------------------------
 void BufferedRepresentationPool::onSettingsChanged(const RepresentationState &settings)
 {
-  auto invalidated =  m_updateWindow.all();
-
-  for (auto updater : invalidated)
+  for (auto updater : m_updateWindow.all())
   {
     updater->setSettings(settings);
   }
 
-  updatePipelines(invalidated);
+//   updatePipelines(invalidated);
 }
 
 //-----------------------------------------------------------------------------

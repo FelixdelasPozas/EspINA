@@ -166,7 +166,7 @@ QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 
   auto plugin = const_cast<AppositionSurfacePlugin *>(this);
 
-  tools << CategorizedTool(ToolCategory::SEGMENTATE, std::make_shared<AppositionSurfaceTool>(plugin, *m_context));
+  tools << CategorizedTool(ToolCategory::SEGMENT, std::make_shared<AppositionSurfaceTool>(plugin, *m_context));
 
   return tools;
 }

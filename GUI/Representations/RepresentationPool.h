@@ -209,10 +209,7 @@ namespace ESPINA
   {
     m_poolState.setValue<T>(tag, value);
 
-    if (hasActorsDisplayed())
-    {
-      onSettingsChanged(m_poolState);
-    }
+    onSettingsChanged(m_poolState);
   }
 
 

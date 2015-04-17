@@ -66,15 +66,3 @@ void PoolManager::hideRepresentations(TimeStamp t)
 
   invalidatePreviousActors(t);
 }
-
-//-----------------------------------------------------------------------------
-void PoolManager::onShow(TimeStamp t)
-{
-  connectPools();
-}
-
-//-----------------------------------------------------------------------------
-void PoolManager::onHide(TimeStamp t)
-{
-  disconnectPools();
-}

@@ -47,7 +47,7 @@ namespace ESPINA
   {
     EXPLORE,
     RESTRICT,
-    SEGMENTATE,
+    SEGMENT,
     REFINE,
     VISUALIZE,
     ANALYZE

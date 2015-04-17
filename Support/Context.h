@@ -62,7 +62,7 @@ namespace ESPINA
       using ViewState   = GUI::View::ViewState;
 
       Timer                m_timer;
-      Invalidator          m_invalidathor;
+      Invalidator          m_invalidator;
       ViewState            m_viewState;
       ModelAdapterSPtr     m_model;
       ROIAccumulatorSPtr   m_activeROI;

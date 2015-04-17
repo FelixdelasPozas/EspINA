@@ -273,53 +273,55 @@ void View2D::updateScale()
 //-----------------------------------------------------------------------------
 void View2D::updateThumbnail()
 {
-  if (!m_showThumbnail)// || !m_sceneReady)
-    return;
-
-  double *value;
-  // Position of world margins acording to the display
-  // Depending on the plane being shown can refer to different
-  // bound components
-  double viewLeft, viewRight, viewUpper, viewLower;
-
-  auto coords = vtkSmartPointer<vtkCoordinate>::New();
-  coords->SetViewport(m_renderer);
-  coords->SetCoordinateSystemToNormalizedViewport();
-
-  int h = m_plane == Plane::YZ ? 2 : 0;
-  int v = m_plane == Plane::XZ ? 2 : 1;
-
-  coords->SetValue(0, 0); // Viewport Lower Left Corner
-  value = coords->GetComputedWorldValue(m_renderer);
-  viewLeft  = value[h]; // Left Margin in World Coordinates
-  viewLower = value[v]; // Lower Margin in World Coordinates
-
-  coords->SetValue(1, 1);
-  value = coords->GetComputedWorldValue(m_renderer);
-  viewRight = value[h]; // Right Margin in World Coordinates
-  viewUpper = value[v]; // Upper Margin in World Coordinates
-
-  auto bounds = sceneBounds();
-  double sceneLeft  = bounds[2*h];
-  double sceneRight = bounds[2*h+1];
-  double sceneLower = bounds[2*v];
-  double sceneUpper = bounds[2*v+1];
-
-  // viewLower and viewUpper are inverted because the roll we made
-  // in the renderer camera
-  bool leftHidden  = sceneLeft < viewLeft;
-  bool rightHidden = sceneRight > viewRight;
-  bool upperHidden = sceneUpper > viewLower;
-  bool lowerHidden = sceneLower < viewUpper;
-
-  if (leftHidden || rightHidden || upperHidden || lowerHidden)
+  if (m_showThumbnail)
   {
-    m_thumbnail->DrawOn();
-    updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
-    m_thumbnail->ResetCameraClippingRange();
+    double *value;
+    // Position of world margins acording to the display
+    // Depending on the plane being shown can refer to different
+    // bound components
+    double viewLeft, viewRight, viewUpper, viewLower;
+
+    auto coords = vtkSmartPointer<vtkCoordinate>::New();
+    coords->SetViewport(m_renderer);
+    coords->SetCoordinateSystemToNormalizedViewport();
+
+    int h = m_plane == Plane::YZ ? 2 : 0;
+    int v = m_plane == Plane::XZ ? 2 : 1;
+
+    coords->SetValue(0, 0); // Viewport Lower Left Corner
+    value = coords->GetComputedWorldValue(m_renderer);
+    viewLeft  = value[h]; // Left Margin in World Coordinates
+    viewLower = value[v]; // Lower Margin in World Coordinates
+
+    coords->SetValue(1, 1);
+    value = coords->GetComputedWorldValue(m_renderer);
+    viewRight = value[h]; // Right Margin in World Coordinates
+    viewUpper = value[v]; // Upper Margin in World Coordinates
+
+    auto bounds = sceneBounds();
+    double sceneLeft  = bounds[2*h];
+    double sceneRight = bounds[2*h+1];
+    double sceneLower = bounds[2*v];
+    double sceneUpper = bounds[2*v+1];
+
+    // viewLower and viewUpper are inverted because the roll we made
+    // in the renderer camera
+    bool leftHidden  = sceneLeft < viewLeft;
+    bool rightHidden = sceneRight > viewRight;
+    bool upperHidden = sceneUpper > viewLower;
+    bool lowerHidden = sceneLower < viewUpper;
+
+    if (leftHidden || rightHidden || upperHidden || lowerHidden)
+    {
+      m_thumbnail->DrawOn();
+      updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
+      m_thumbnail->ResetCameraClippingRange();
+    }
+    else
+    {
+      m_thumbnail->DrawOff();
+    }
   }
-  else
-    m_thumbnail->DrawOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -482,8 +484,6 @@ void View2D::addActor(vtkProp* actor)
 
   m_thumbnail->RemoveViewProp(m_channelBorder);
   m_thumbnail->RemoveViewProp(m_viewportBorder);
-
-  //updateThumbnail();
 
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);

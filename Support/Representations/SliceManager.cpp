@@ -108,12 +108,7 @@ void SliceManager::updateRepresentations(const NmVector3 &crosshair, const NmVec
 {
   Q_ASSERT(validPlane());
 
-  auto pool = planePool();
-
-  RepresentationUtils::setPlane(pool, m_plane);
-  RepresentationUtils::setSegmentationDepth(pool, m_depth);
-
-  pool->updatePipelines(crosshair, resolution, t);
+  planePool()->updatePipelines(crosshair, resolution, t);
 }
 
 //----------------------------------------------------------------------------
@@ -146,6 +141,23 @@ void SliceManager::invalidatePreviousActors(TimeStamp t)
   Q_ASSERT(validPlane());
 
   planePool()->invalidatePreviousActors(t);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::onShow(TimeStamp t)
+{
+  connectPools();
+
+  auto pool = planePool();
+
+  RepresentationUtils::setPlane(pool, m_plane);
+  RepresentationUtils::setSegmentationDepth(pool, m_depth);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::onHide(TimeStamp t)
+{
+  disconnectPools();
 }
 
 //----------------------------------------------------------------------------

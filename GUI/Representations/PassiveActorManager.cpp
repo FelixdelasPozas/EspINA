@@ -77,6 +77,18 @@ bool PassiveActorManager::acceptSceneBoundsChange(const Bounds &bounds) const
 }
 
 //----------------------------------------------------------------------------
+void PassiveActorManager::onShow(TimeStamp t)
+{
+  connectPools();
+}
+
+//----------------------------------------------------------------------------
+void PassiveActorManager::onHide(TimeStamp t)
+{
+  disconnectPools();
+}
+
+//----------------------------------------------------------------------------
 RepresentationPipeline::Actors PassiveActorManager::actors(TimeStamp t)
 {
   return m_pool->actors(t);

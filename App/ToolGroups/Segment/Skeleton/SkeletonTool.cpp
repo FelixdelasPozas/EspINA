@@ -19,7 +19,7 @@
  */
 
 // ESPINA
-#include <App/ToolGroups/Segmentate/Skeleton/SkeletonTool.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonTool.h>
 #include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Output.h>

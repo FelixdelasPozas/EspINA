@@ -6,7 +6,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -63,11 +63,15 @@ namespace ESPINA
 
     virtual void invalidatePreviousActors(TimeStamp t) override;
 
-    virtual void connectPools()    override;
+    void onShow(TimeStamp t);
 
-    virtual void disconnectPools() override;
+    void onHide(TimeStamp t);
 
     virtual RepresentationManagerSPtr cloneImplementation();
+
+    void connectPools();
+
+    void disconnectPools();
 
     RepresentationPoolSPtr planePool() const;
 

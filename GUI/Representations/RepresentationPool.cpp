@@ -99,10 +99,7 @@ void RepresentationPool::setSettings(RepresentationPool::SettingsSPtr settings)
 
   m_poolState.apply(settings->poolSettings());
 
-  if (hasActorsDisplayed())
-  {
-    onSettingsChanged(m_poolState);
-  }
+  onSettingsChanged(m_poolState);
 }
 
 //-----------------------------------------------------------------------------
