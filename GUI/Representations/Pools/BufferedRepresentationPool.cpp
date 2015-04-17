@@ -61,7 +61,10 @@ void BufferedRepresentationPool::updatePipelinesImplementation(const NmVector3 &
 
   m_init = true;
 
-  updatePipelines(invalidated);
+  if (!m_updateWindow.current()->isEmpty())
+  {
+    updatePipelines(invalidated);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -128,8 +131,6 @@ void BufferedRepresentationPool::onSettingsChanged(const RepresentationState &se
   {
     updater->setSettings(settings);
   }
-
-//   updatePipelines(invalidated);
 }
 
 //-----------------------------------------------------------------------------

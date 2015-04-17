@@ -21,7 +21,6 @@
 #ifndef ESPINA_VIEW_3D_H
 #define ESPINA_VIEW_3D_H
 
-#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include <GUI/View/RenderView.h>
 
 // ESPINA
@@ -49,10 +48,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief View3D class constructor.
-     * \param[in] showCrosshairPlaneSelectors, true to show three aditional
+     * \param[in] showCrosshairPlaneSelectors true to show three aditional
      *            scrollbars in the borders of the view to manipulate the
      *            crosshair point, false otherwise.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
     explicit View3D(GUI::View::ViewState &state, SelectionSPtr selection , bool showCrosshairPlaneSelectors = false);

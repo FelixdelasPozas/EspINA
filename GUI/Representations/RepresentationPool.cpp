@@ -239,7 +239,7 @@ void RepresentationPool::onSourcesAdded(ViewItemAdapterList sources, TimeStamp t
 {
   addSources(sources);
 
-  if (hasActorsDisplayed())
+  if (isEnabled())
   {
     processPendingSources();
 
@@ -283,7 +283,7 @@ void RepresentationPool::onRepresentationsInvalidated(ViewItemAdapterPtr item)
 }
 
 //-----------------------------------------------------------------------------
-bool RepresentationPool::hasActorsDisplayed() const
+bool RepresentationPool::isEnabled() const
 {
   return m_numObservers > 0 && hasSources();
 }
@@ -299,9 +299,12 @@ void RepresentationPool::updateRepresentationsAt(TimeStamp t, ViewItemAdapterLis
 {
   m_validActors.invalidate();
 
-  emit actorsInvalidated();
+  if (isEnabled())
+  {
+    emit actorsInvalidated();
 
-  updateRepresentationsImlementationAt(t, modifiedItems);
+    updateRepresentationsImlementationAt(t, modifiedItems);
+  }
 }
 
 //-----------------------------------------------------------------------------

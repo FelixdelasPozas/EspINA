@@ -217,7 +217,7 @@ void RepresentationManager::onCrosshairChanged(NmVector3 crosshair, TimeStamp t)
   {
     m_crosshair = crosshair;
 
-    if (isActive())
+    if (isActive() && hasRepresentations())
     {
       waitForDisplay();
 
@@ -233,7 +233,7 @@ void RepresentationManager::onSceneResolutionChanged(const NmVector3 &resolution
   {
     m_resolution = resolution;
 
-    if (isActive())
+    if (isActive() && hasRepresentations())
     {
       waitForDisplay();
 
@@ -356,7 +356,7 @@ void RepresentationManager::updateRepresentations(TimeStamp t)
   if (hasRepresentations())
   {
     waitForDisplay();
-
-    updateRepresentations(m_crosshair, m_resolution, m_bounds, t);
   }
+
+  updateRepresentations(m_crosshair, m_resolution, m_bounds, t);
 }

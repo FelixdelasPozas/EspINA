@@ -53,6 +53,12 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 }
 
 //----------------------------------------------------------------------------
+bool RepresentationUpdater::isEmpty() const
+{
+  return m_sources.isEmpty();
+}
+
+//----------------------------------------------------------------------------
 void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
   setCrosshairPoint(point, m_settings);

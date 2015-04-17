@@ -48,6 +48,11 @@ namespace ESPINA
      */
     void removeSource(ViewItemAdapterPtr item);
 
+    /** \brief Returns if the representation updater has sources
+     *
+     */
+    bool isEmpty() const;
+
     /** \brief Changes the crosshair point to be used for this representation
      *
      */

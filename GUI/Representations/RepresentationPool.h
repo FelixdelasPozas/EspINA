@@ -142,10 +142,6 @@ namespace ESPINA
 
     bool notHasBeenProcessed(const TimeStamp t) const;
 
-    /** \brief Returns
-     */
-    bool hasActorsDisplayed() const;
-
   protected slots:
     void onActorsReady(TimeStamp time, RepresentationPipeline::Actors actors);
 
@@ -186,6 +182,11 @@ namespace ESPINA
     bool removeSources(ViewItemAdapterList sources);
 
     void processPendingSources();
+
+    /** \brief Returns true if the pool is being managed and has sources
+     *
+     */
+    bool isEnabled() const;
 
   private:
     PipelineSources    *m_sources;

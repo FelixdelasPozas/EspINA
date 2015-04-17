@@ -77,6 +77,7 @@ Widget2D::Widget2D(SelectionSPtr selection)
 , m_selection(selection)
 , m_widget(vtkSmartPointer<vtkWidget2D>::New())
 , m_command(vtkSmartPointer<Command>::New())
+, m_camera(nullptr)
 , m_selectedSegmentations(selection->segmentations())
 {
 }
