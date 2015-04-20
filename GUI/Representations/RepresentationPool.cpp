@@ -185,11 +185,11 @@ TimeStamp RepresentationPool::lastUpdateTimeStamp() const
 //-----------------------------------------------------------------------------
 void RepresentationPool::incrementObservers()
 {
-  if(m_numObservers == 0)
-  {
-    onSettingsChanged(m_poolState);
-  }
-
+//   if(m_numObservers == 0)
+//   {
+//     onSettingsChanged(m_poolState);
+//   }
+//
   ++m_numObservers;
 }
 
@@ -222,15 +222,12 @@ void RepresentationPool::onActorsReady(TimeStamp t, RepresentationPipeline::Acto
     if (actorsChanged(actors))
     {
       m_validActors.addValue(actors, t);
-
-      emit actorsReady(t);
     }
     else
     {
       m_validActors.reusePreviousValue(t);
-
-      emit actorsReused(t);
     }
+    emit actorsReady(t);
   }
 }
 
@@ -291,7 +288,7 @@ bool RepresentationPool::isEnabled() const
 //-----------------------------------------------------------------------------
 bool RepresentationPool::actorsChanged(const RepresentationPipeline::Actors &actors) const
 {
-  return m_validActors.last() != actors;
+  return m_validActors.isEmpty() || m_validActors.last() != actors;
 }
 
 //-----------------------------------------------------------------------------

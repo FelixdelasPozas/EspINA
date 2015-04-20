@@ -373,6 +373,7 @@ void ChannelExplorer::updateTooltips(int index)
 //------------------------------------------------------------------------
 void ChannelExplorer::unloadChannel()
 {
+  // TODO Update APIs
 //   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
 //   if (!index.isValid())
 //     return;

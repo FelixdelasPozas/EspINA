@@ -66,29 +66,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
             this,         SLOT(updateScene(ItemAdapterPtr)));
   }
 
-  ESPINA_SETTINGS(settings);
-// TODO: Usar los RepresentationsDrivers
-//   QStringList defaultRenderers;
-//   if (!settings.contains(RENDERERS) || !settings.value(RENDERERS).isValid())
-//   {
-//     defaultRenderers << m_viewManager->renderers(ESPINA::RendererType::RENDERER_VIEW3D);
-//
-//     settings.setValue(RENDERERS, defaultRenderers);
-//   }
-//
-//   defaultRenderers = settings.value(RENDERERS).toStringList();
-//   RendererSList renderers;
-//
-//   for(auto name: defaultRenderers)
-//   {
-//     if(m_viewManager->renderers(RendererType::RENDERER_VIEW3D).contains(name))
-//     {
-//       renderers << m_viewManager->cloneRenderer(name);
-//     }
-//   }
-//
-//   m_view->setRenderers(renderers);
-  //TODO m_view->setColorEngine(m_viewManager->colorEngine());
+  ESPINA_SETTINGS(settings); // TODO Store visualization settings
   m_view->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view->setMinimumWidth(250);
   m_view->resetCamera();

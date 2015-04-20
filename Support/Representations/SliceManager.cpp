@@ -168,9 +168,6 @@ void SliceManager::connectPools()
     connect(planePool().get(), SIGNAL(actorsInvalidated()),
             this,              SLOT(waitForDisplay()));
 
-//     connect(planePool().get(), SIGNAL(actorsReused(TimeStamp)),
-//             this,              SLOT(idle()));
-//
     connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
             this,              SLOT(emitRenderRequest(TimeStamp)));
 
@@ -189,9 +186,6 @@ void SliceManager::disconnectPools()
     disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
                this,              SLOT(waitForDisplay()));
 
-//     disconnect(planePool().get(), SIGNAL(actorsReused(TimeStamp)),
-//                this,              SLOT(idle()));
-// 
     disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
                this,              SLOT(emitRenderRequest(TimeStamp)));
 

@@ -178,9 +178,6 @@ void Slice3DManager::connectPools()
     connect(pool.get(), SIGNAL(actorsInvalidated()),
             this,       SLOT(waitForDisplay()));
 
-    connect(pool.get(), SIGNAL(actorsReused(TimeStamp)),
-            this,       SLOT(checkRenderRequest()));
-
     connect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
             this,       SLOT(checkRenderRequest()));
 
@@ -198,9 +195,6 @@ void Slice3DManager::disconnectPools()
   {
     disconnect(pool.get(), SIGNAL(actorsInvalidated()),
                this,       SLOT(waitForDisplay()));
-
-    disconnect(pool.get(), SIGNAL(actorsReused(TimeStamp)),
-               this,       SLOT(checkRenderRequest()));
 
     disconnect(pool.get(), SIGNAL(actorsReady(TimeStamp)),
                this,       SLOT(checkRenderRequest()));

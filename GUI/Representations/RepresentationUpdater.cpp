@@ -178,7 +178,6 @@ void RepresentationUpdater::run()
     ++it;
   }
 
-
   if (hasValidTimeStamp() && canExecute())
   {
     emit actorsReady(timeStamp(), m_actors);

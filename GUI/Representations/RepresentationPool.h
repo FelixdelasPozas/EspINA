@@ -128,11 +128,6 @@ namespace ESPINA
      */
     void actorsReady(TimeStamp t);
 
-    /** \brief Some managers may be interested in pool updates
-     *
-     */
-    void actorsReused(TimeStamp t);
-
     void actorsInvalidated();
 
   protected:
@@ -210,7 +205,11 @@ namespace ESPINA
   {
     m_poolState.setValue<T>(tag, value);
 
-    onSettingsChanged(m_poolState);
+    if (m_poolState.isModified(tag))
+    {
+      onSettingsChanged(m_poolState);
+      m_poolState.commit();
+    }
   }
 
 
