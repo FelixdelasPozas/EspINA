@@ -41,7 +41,7 @@ void BasicRepresentationPool::updatePipelinesImplementation(const NmVector3 &cro
 {
   m_updater->invalidate();
   m_updater->setCrosshair(crosshair);
-  //m_updater->setResolution(resolution); TODO
+  m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);
 
   Task::submit(m_updater);
@@ -62,7 +62,7 @@ void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &
 {
 
   m_updater->invalidate();
-  //m_updater->setResolution(resolution); TODO
+  m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);
 
   Task::submit(m_updater);

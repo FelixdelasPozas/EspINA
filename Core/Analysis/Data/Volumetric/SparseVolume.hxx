@@ -459,7 +459,7 @@ namespace ESPINA
   void SparseVolume<T>::setOrigin(const NmVector3& origin)
   {
     //QWriteLocker lock(&m_mutex);
-    //TODO
+    //NOTE: 2015-04-20 Review when tiling support added
     //NmVector3 shift = m_origin - origin;
     m_origin = origin;
   }
@@ -488,7 +488,6 @@ namespace ESPINA
 
       auto region = equivalentRegion<T>(m_origin, spacing, m_bounds.bounds());
 
-      // TODO: use m_bounds.setSpacing()
       m_bounds = volumeBounds<T>(m_origin, spacing, region);
     }
   }

@@ -422,6 +422,7 @@ void ChannelExplorer::unloadChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::focusOnChannel()
 {
+  //TODO Focus on channel
 //   QModelIndex currentIndex = m_gui->view->currentIndex();
 //   if (!currentIndex.parent().isValid())
 //     return;
@@ -433,7 +434,6 @@ void ChannelExplorer::focusOnChannel()
 //     ChannelPtr channel = channelPtr(currentItem);
 //     Nm bounds[6];
 //     channel->volume()->bounds(bounds);
-//     //TODO 2012-10-04: Use setSelection instead of setCameraFocus
 // //     double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
 // //     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 // //     view->setCameraFocus(pos);
@@ -474,7 +474,7 @@ void ChannelExplorer::activateChannel()
   if (ItemAdapter::Type::CHANNEL == currentItem->type())
   {
     auto currentChannel = channelPtr(currentItem);
-    //m_context.activeChannel = currentChannel; //TODO
+    //TODO URGENT //m_context.activeChannel = currentChannel;
   }
 }
 

@@ -35,6 +35,7 @@ class vtkActor;
 
 namespace ESPINA
 {
+  // TODO 2015-04-20 Update to new API
   class CrosshairManager
   : public RepresentationManager
   {

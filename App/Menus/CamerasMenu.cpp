@@ -86,6 +86,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CamerasMenu::save()
   {
+    //TODO 2015-04-20 Manage camera positions in explore toolgroup
     CameraPositions state;
     QDateTime time = QDateTime::currentDateTime();
     state.id = time.toString();
@@ -100,8 +101,7 @@ namespace ESPINA
     if (!(ok && !text.isEmpty())) return;
 
     state.id = text;
-
-    // TODO Decide where we should pass the view set to save
+    //TODO 2015-04-20 Use camera state for default views
 //     for(auto view: m_viewManager->renderViews())
 //     {
 //       state.states << view->cameraState();
@@ -136,7 +136,7 @@ namespace ESPINA
       {
         auto snapshot = m_cameraPositions.at(m_load->actions().indexOf(action));
 
-        // TODO restore view state
+    //TODO 2015-04-20 Restore camera state for default views
 //         for(auto state: snapshot.states)
 //         {
 //           for(auto view: m_viewManager->renderViews())

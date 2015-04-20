@@ -203,14 +203,11 @@ SeedGrowSegmentationHistoryWidget::SeedGrowSegmentationHistoryWidget(SeedGrowSeg
           this,                           SLOT(modifyFilter()));
   connect(m_roiTools,                     SIGNAL(roiChanged(ROISPtr)),
           this,                           SLOT(onROIChanged()));
-
-  //TODO m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationHistoryWidget::~SeedGrowSegmentationHistoryWidget()
 {
-  //TODO m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
@@ -252,7 +249,6 @@ void SeedGrowSegmentationHistoryWidget::onDiscardROIModifications()
   undoStack->beginMacro(tr("Discard ROI modifications"));
   undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
   undoStack->endMacro();
-  //TODO m_viewManager->updateViews();
 }
 
 //----------------------------------------------------------------------------
@@ -289,6 +285,7 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
   auto undoStack = m_context.undoStack();
   undoStack->beginMacro("Modify Seed Grow Segmentation Parameters");
   {
+    // TODO 2015-04-20 Invalidate segmentation represenations
     undoStack->push(new SGSFilterModification(m_filter, roi, m_gui->threshold->value(), m_gui->closingRadius->value()));
   }
   undoStack->endMacro();
@@ -307,8 +304,6 @@ void SeedGrowSegmentationHistoryWidget::modifyFilter()
   {
     m_roiTools->setCurrentROI(currentFilterROI->clone());
   }
-
-  // TODO: Update Representations
 }
 
 //----------------------------------------------------------------------------

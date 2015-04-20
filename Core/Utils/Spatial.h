@@ -98,10 +98,10 @@ namespace ESPINA {
    * \param[in] rhs.
    * \param[in] spacing.
    *
-   * TODO: The spacing parameter is here to change the DELTA
+   * NOTE: The spacing parameter is here to change the DELTA
    * when checking VolumeBounds values, as their values should be
    * in fixed points (like in a grid) but aren't.
-   * Solve the problem with VolumeBounds and remove this ASAP.
+   * TODO: Solve the problem with VolumeBounds and remove this ASAP.
    */
   inline bool areEqual(const Nm lhs, const Nm rhs, const Nm spacing = 1.0)
   {

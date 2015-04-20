@@ -172,8 +172,6 @@ void CODEHistoryWidget::modifyFilter()
     undoStack->push(new CODEModification(m_filter, m_gui->radius->value()));
   }
   undoStack->endMacro();
-
-  //TODO: update segmentation
 }
 
 //----------------------------------------------------------------------------

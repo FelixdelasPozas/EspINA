@@ -286,7 +286,7 @@ bool Filter::restorePreviousOutputs() const
             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
             if (!data)
             {
-              // TODO: Create ReadOnlyData to preserve data information in further savings
+              // TODO 2014-04-20: Create ReadOnlyData to preserve data information in further savings
               qWarning() << "Unable to create requested data type";
             }
             editedRegions.clear();

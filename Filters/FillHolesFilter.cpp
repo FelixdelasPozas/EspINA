@@ -73,7 +73,6 @@ bool FillHolesFilter::needUpdate(Output::Id id) const
 {
   if (id != 0) throw Undefined_Output_Exception();
 
-  // TODO: When input exists, check its timeStamp
   return m_outputs.isEmpty() || !validOutput(id);
 }
 

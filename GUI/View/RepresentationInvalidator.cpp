@@ -38,7 +38,7 @@ void RepresentationInvalidator::invalidateRepresentations(ViewItemAdapterList it
 void RepresentationInvalidator::invalidateDependentRepresentations(ViewItemAdapterList items)
 {
   auto invalidatedItems = items;
-  // TODO: add dependent items
+  // TODO 2015-04-20: search dependent items on relationship graph
 
   invalidateRepresentations(invalidatedItems);
 }

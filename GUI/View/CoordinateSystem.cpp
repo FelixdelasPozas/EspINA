@@ -22,7 +22,6 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::View;
 
-//TODO: Add origin
 //-----------------------------------------------------------------------------
 CoordinateSystem::CoordinateSystem(const NmVector3 &resolution)
 : CoordinateSystem(resolution, NmVector3{1, 1, 1})

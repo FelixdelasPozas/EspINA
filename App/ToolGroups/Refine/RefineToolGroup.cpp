@@ -40,7 +40,8 @@ RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory
 : ToolGroup      {":/espina/toolgroup_refine.svg", tr("Refine")}
 , m_context      {context}
 {
-  // TODO: Create EditionTool base class
+  // DESIGN: Consider using a base class for all refine tools to
+  //         manage enabling tools depending on current selection
 
   m_manualEdition = std::make_shared<ManualEditionTool>(context);
   m_split         = std::make_shared<SplitTool>(context);

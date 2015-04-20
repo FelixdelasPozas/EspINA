@@ -232,7 +232,7 @@ namespace ESPINA
     DataFactorySPtr    m_dataFactory;
     ErrorHandlerSPtr   m_handler;
 
-    // TODO : Remove with ESPINA 2.1
+    // NOTE: Remove with ESPINA 2.2
     friend class IO::SegFile::SegFile_V4;
   };
 } // namespace ESPINA

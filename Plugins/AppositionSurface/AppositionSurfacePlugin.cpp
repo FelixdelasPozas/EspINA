@@ -210,7 +210,7 @@ void AppositionSurfacePlugin::createSASAnalysis()
 
   SegmentationAdapterList synapsis;
 
-  //TODO: Uncomment all method
+  //TODO 2015-04-20 Update to new API
 //   for(auto segmentation: defaultReportInputSegmentations(m_viewManager, m_model))
 //   {
 //     if (isValidSynapse(segmentation))

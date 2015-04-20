@@ -70,7 +70,6 @@ namespace ESPINA
     Support::Context &m_context;
 
     QShortcut *m_segmentationsShortcut;
-    QShortcut *m_crosshairShortcut;
   };
 
 } // namespace ESPINA

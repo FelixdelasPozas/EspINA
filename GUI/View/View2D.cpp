@@ -728,7 +728,8 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 
 //-----------------------------------------------------------------------------
 void View2D::keyPressEvent(QKeyEvent *e)
-{ //TODO REVIEW
+{
+  // TODO 2015-04-20 Remove if not needed by new crosshair and toggle segmentation visibility?
   if (eventHandlerFilterEvent(e))
   {
     refresh();

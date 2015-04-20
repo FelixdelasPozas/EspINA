@@ -65,6 +65,12 @@ void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 }
 
 //----------------------------------------------------------------------------
+void RepresentationUpdater::setResolution(const NmVector3 &resolution)
+{
+  // TODO 2015-04-20 apply resolution change
+}
+
+//----------------------------------------------------------------------------
 void RepresentationUpdater::setSettings(const RepresentationState &settings)
 {
   if (hasCrosshairPoint(m_settings))

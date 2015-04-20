@@ -341,5 +341,5 @@ void CrosshairManager::setPointInternal(int index, double *point1, double *point
 //     }
 //   }
 //
-//   //TODO setRenderRequired(requiresRender() || needsRender);
+//   setRenderRequired(requiresRender() || needsRender);
 // }

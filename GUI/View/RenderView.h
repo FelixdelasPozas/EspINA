@@ -224,7 +224,7 @@ namespace ESPINA
      * \param[in] selection list of segmentation adapter raw pointers.
      *
      */
-    virtual void updateSelection(SegmentationAdapterList selection); // TODO: REVIEW
+    virtual void updateSelection(SegmentationAdapterList selection);
 
   protected:
     /** \brief RenderView class constructor.
@@ -296,7 +296,7 @@ namespace ESPINA
 
   protected:
     ContextualMenuSPtr         m_contextMenu;
-    QVTKWidget                *m_view; // TODO: make private
+    QVTKWidget                *m_view;
     RepresentationManagerSList m_managers;
 
   private:

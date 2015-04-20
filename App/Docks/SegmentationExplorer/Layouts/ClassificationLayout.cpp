@@ -651,8 +651,6 @@ void ClassificationLayout::changeCategoryColor()
   {
     category->setData(colorSelector.selectedColor(),
                       Qt::DecorationRole);
-
-    // TODO: invalidate representations of seletected categories
   }
 }
 

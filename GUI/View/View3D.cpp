@@ -264,7 +264,7 @@ void View3D::refreshViewImplementation()
 //-----------------------------------------------------------------------------
 void View3D::selectPickedItems(int vx, int vy, bool append)
 {
-  //TODO
+  // TODO 2015-04-20 recover 3D picking
 }
 
 //-----------------------------------------------------------------------------
@@ -313,7 +313,7 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
     {
       if (me->modifiers() == Qt::CTRL)
       {
-        // TODO: Change Crosshair point
+        // TODO 2015-04-20 Recover change crosshair
       }
       else
       {

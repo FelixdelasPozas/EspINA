@@ -188,7 +188,7 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
            * clearing the loopuk table, the
            * pedigree->LoockupValue(p1) fails
            *
-           * TODO: Check if ClearLookup is
+           * NOTE: Check if ClearLookup is
            * needed in other version of VTK
            */
           pedigree->ClearLookup();

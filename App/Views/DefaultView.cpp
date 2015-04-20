@@ -151,7 +151,7 @@ void DefaultView::createViewMenu(QMenu* menu)
   connect(m_showThumbnail, SIGNAL(toggled(bool)),
           this, SLOT(showThumbnail(bool)));
 
-  // TODO
+  // TODO 2015-04-20 Recuperar fit to slices
 //   menu->addAction(fitToSlices);
 //   connect(fitToSlices, SIGNAL(toggled(bool)),
 //           this, SLOT(setFitToSlices(bool)));

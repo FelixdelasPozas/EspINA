@@ -67,7 +67,6 @@ VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *paren
 , m_channelsRepGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"), tr("Show Channels"), context.timer())}
 , m_segmentationsRepGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"), context.timer())}
 , m_segmentationsShortcut{new QShortcut(parent)}
-, m_crosshairShortcut    {new QShortcut(parent)} //TODO
 , m_context{context}
 {
   addTool(m_channelsRepGroup);
@@ -78,11 +77,6 @@ VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *paren
   connect(m_segmentationsShortcut,       SIGNAL(activated()),
           m_segmentationsRepGroup.get(), SLOT(toggleRepresentationsVisibility()));
 
-//   m_crosshairShortcut->setKey(Qt::Key_C);
-//   m_crosshairShortcut->setContext(Qt::ApplicationShortcut);
-//   connect(m_crosshairShortcut,     SIGNAL(activated()),
-//           m_toggleCrosshair.get(), SLOT(shortcut()));
-
   m_channelsRepGroup->showActiveRepresentations();
   m_segmentationsRepGroup->showActiveRepresentations();
 }
@@ -91,11 +85,10 @@ VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *paren
 VisualizeToolGroup::~VisualizeToolGroup()
 {
   delete m_segmentationsShortcut;
-  delete m_crosshairShortcut;
 }
 
 //----------------------------------------------------------------------------
-void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
+void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup    group,
                                                RepresentationSwitchSPtr repSwitch,
                                                const QIcon             &groupIcon,
                                                const QString           &groupDescription)

@@ -116,11 +116,6 @@ namespace ESPINA
      */
     void onSelectionChanged();
 
-    /** \brief Updates the render views.
-     *
-     */
-    void onItemModified();
-
   protected:
     Support::Context &m_context;
     GUI             *m_gui;

@@ -69,7 +69,7 @@ bool ViewState::fitToSlices() const
 //----------------------------------------------------------------------------
 void ViewState::setEventHandler(EventHandlerSPtr handler)
 {
-  // TODO manage event handler deactivation (copy from viewmanager)
+  // TODO 2015-04-20: manage event handler deactivation (copy from viewmanager)
   m_eventHandler = handler;
 }
 

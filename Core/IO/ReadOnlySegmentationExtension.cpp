@@ -39,5 +39,4 @@ ReadOnlySegmentationExtension::ReadOnlySegmentationExtension(const SegmentationE
 //------------------------------------------------------------------------
 void ReadOnlySegmentationExtension::onExtendedItemSet(Segmentation* item)
 {
-// TODO
 }

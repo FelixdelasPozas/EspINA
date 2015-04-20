@@ -46,7 +46,7 @@ namespace ESPINA
    * Image origin and spacing are key values to obtain the image region
    * equivalent to a given bounds.
    *
-   * TODO: how to proceed when bounds doesn't intersect with largest possible image region
+   * DESIGN: how to proceed when bounds doesn't intersect with largest possible image region
    *       - we coud either return an invalid region or throw an execption
    */
   template<typename T>

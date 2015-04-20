@@ -48,7 +48,7 @@ bool Widget3D::acceptCrosshairChange(const NmVector3 &crosshair) const
 //----------------------------------------------------------------------------
 bool Widget3D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  return true; // TODO
+  return false;
 }
 
 //----------------------------------------------------------------------------

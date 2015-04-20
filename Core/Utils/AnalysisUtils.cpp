@@ -115,7 +115,7 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 
     for(auto channel : analysis->channels())
     {
-      // TODO: How to deal with different states (spacing) of same channels??
+      // DESIGN: How to deal with different states (spacing) of same channels??
       auto mergedChannel = findChannel(channel, mergedAnalysis->channels());
       if (!mergedChannel)
       {

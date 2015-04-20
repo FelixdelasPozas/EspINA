@@ -58,6 +58,11 @@ namespace ESPINA
      */
     void setCrosshair(const NmVector3 &point);
 
+    /** \brief Changes the resolution to be used for this representation
+     *
+     */
+    void setResolution(const NmVector3 &resolution);
+
     /** \brief Set the external settings to be used on actor creation
      *
      */

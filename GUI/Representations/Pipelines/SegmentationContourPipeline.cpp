@@ -173,7 +173,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   bool SegmentationContourPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
   {
-    // TODO
+    // TODO 2015-04-20 implement pick
     return false;
   }
 

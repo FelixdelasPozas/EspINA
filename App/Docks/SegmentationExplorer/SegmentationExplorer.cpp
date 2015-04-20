@@ -78,8 +78,6 @@ SegmentationExplorer::SegmentationExplorer(Support::Context &context,
           this, SLOT(changeLayout(int)));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnSegmentation(QModelIndex)));
-  connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
-          this, SLOT(onItemModified()));
   connect(m_gui->showInformationButton, SIGNAL(clicked(bool)),
           this, SLOT(showSelectedItemsInformation()));
   connect(m_gui->deleteButton, SIGNAL(clicked(bool)),
@@ -111,7 +109,7 @@ void SegmentationExplorer::reset()
 {
   for(auto layout : m_layouts)
   {
-  	layout->reset();
+    layout->reset();
   }
 }
 
@@ -317,10 +315,4 @@ void SegmentationExplorer::onSelectionChanged()
 
   // Update all visible items
   m_gui->view->viewport()->update();
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::onItemModified()
-{
-  // TODO: invalidate representations?
 }

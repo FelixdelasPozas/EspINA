@@ -116,7 +116,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   auto defaultExtensions = std::make_shared<DefaultSegmentationExtensionFactory>();
   factory->registerExtensionFactory(defaultExtensions);
 
-  //TODO
+  //TODO 2015-04-20 Update ESPINA Settings
 //   m_availableSettingsPanels << std::make_shared<SeedGrowSegmentationsSettingsPanel>(m_sgsSettings, m_viewManager);
 //   m_availableSettingsPanels << std::make_shared<ROISettingsPanel>(m_roiSettings, m_model, m_viewManager);
 #if USE_METADONA
@@ -483,6 +483,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::openAnalysis()
 {
+  //TODO 2015-04-20 Use default dialog
   const QString title   = tr("Start New Analysis From File");
   const QString filters = m_context.factory()->supportedFileExtensions().join(";;");
 
@@ -605,6 +606,7 @@ void EspinaMainWindow::openRecentAnalysis()
 //------------------------------------------------------------------------
 void EspinaMainWindow::addToAnalysis()
 {
+ //TODO 2015-04-20  Use default dialog and set available formats
   QList<QUrl> urls;
   urls << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DesktopLocation))
        << QUrl::fromLocalFile(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation))
@@ -615,7 +617,6 @@ void EspinaMainWindow::addToAnalysis()
   fileDialog.setWindowTitle(tr("Add Data To Analysis"));
   //fileDialog.setFilters(m_model->factory()->supportedFiles());
   QStringList channelFiles;
-  //TODO 2013-10-06: channelFiles << CHANNEL_FILES;
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(channelFiles);
   fileDialog.setDirectory(m_sessionFile.absoluteDir());
@@ -698,7 +699,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
 
     if (readers.size() > 1)
     {
-      //TODO: choose reader
+      //TODO 2015-04-20: show reader selection dialog
     }
 
     try
@@ -758,6 +759,7 @@ AnalysisSPtr EspinaMainWindow::loadedAnalysis(const QStringList files)
 //------------------------------------------------------------------------
 void EspinaMainWindow::saveAnalysis()
 {
+  //TODO 2015-04-20 Use default dialog
   QString suggestedFileName;
   if (m_sessionFile.suffix().toLower() == QString("seg"))
     suggestedFileName = m_sessionFile.fileName();

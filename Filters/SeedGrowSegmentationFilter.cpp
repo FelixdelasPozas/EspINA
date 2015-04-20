@@ -399,12 +399,6 @@ bool SeedGrowSegmentationFilter::ignoreStorageContent() const
       || m_ROI.get() != m_prevROI;
 }
 
-// //----------------------------------------------------------------------------
-// bool SeedGrowSegmentationFilter::areEditedRegionsInvalidated()
-// {
-//   return false;
-// }
-
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {

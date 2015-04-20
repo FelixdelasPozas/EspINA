@@ -39,5 +39,4 @@ ReadOnlyChannelExtension::ReadOnlyChannelExtension(const ChannelExtension::Type 
 //------------------------------------------------------------------------
 void ReadOnlyChannelExtension::onExtendedItemSet(Channel* item)
 {
-// TODO
 }
