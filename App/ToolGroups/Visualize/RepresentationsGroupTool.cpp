@@ -29,8 +29,9 @@ using namespace ESPINA;
 #include <QDebug>
 
 //----------------------------------------------------------------------------
-RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString description)
-: m_globalSwitch{new QAction(icon, description, this)}
+RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString description, Timer &timer)
+: m_timer(timer)
+, m_globalSwitch{new QAction(icon, description, this)}
 , m_content{new QWidgetAction(this)}
 , m_contentWidget{new QWidget()}
 , m_viewFlags{ViewType::VIEW_2D|ViewType::VIEW_3D}
@@ -104,11 +105,11 @@ void RepresentationsGroupTool::changeSwitchStatus(RepresentationSwitchSPtr repre
   {
     if (showRepresentations)
     {
-      representationSwitch->showRepresentations();
+      representationSwitch->showRepresentations(m_timer.timeStamp());
     }
     else
     {
-      representationSwitch->hideRepresentations();
+      representationSwitch->hideRepresentations(m_timer.timeStamp());
     }
   }
 }
@@ -118,6 +119,7 @@ void RepresentationsGroupTool::setActiveRepresentationsVisibility(bool value)
 {
   if (m_representationsVisibility != value)
   {
+    m_timer.increment();
     for (auto repSwitch : m_switches)
     {
       changeSwitchStatus(repSwitch, value);

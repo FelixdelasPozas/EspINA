@@ -24,7 +24,6 @@
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
-#include <Support/ViewManager.h>
 
 // VTK
 #include <vtkMath.h>
@@ -38,13 +37,11 @@ using namespace ESPINA;
 const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 
 //------------------------------------------------------------------------
-ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
-                                   ModelAdapterSPtr model,
-                                   ViewManagerSPtr  viewManager)
-: m_model         {model}
+ROISettingsPanel::ROISettingsPanel(ROISettings            *settings,
+                                   Support::Context &context)
+: m_context       {context}
 , m_settings      {settings}
 , m_activeCategory{nullptr}
-, m_viewManager   {viewManager}
 {
   setupUi(this);
 
@@ -65,10 +62,12 @@ ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
     m_zCategorySize->setSuffix(" nm");
   }
 
-  m_categorySelector->setModel(m_model.get());
+  auto model = context.model().get();
+
+  m_categorySelector->setModel(model);
 
   // disable category selector if there isn't a category to choose.
-  if (m_model->classification() == nullptr)
+  if (model->classification() == nullptr)
   {
     m_categorySelectorGroup->setEnabled(false);
   }
@@ -76,7 +75,7 @@ ROISettingsPanel::ROISettingsPanel(ROISettings*     settings,
   connect(m_categorySelector, SIGNAL(activated(QModelIndex)),
           this, SLOT(updateCategoryROI(QModelIndex)));
 
-  m_categorySelector->setRootModelIndex(m_model->classificationRoot());
+  m_categorySelector->setRootModelIndex(model->classificationRoot());
 }
 
 //------------------------------------------------------------------------
@@ -114,7 +113,7 @@ bool ROISettingsPanel::modified() const
 //------------------------------------------------------------------------
 SettingsPanelPtr ROISettingsPanel::clone()
 {
-  return SettingsPanelPtr(new ROISettingsPanel(m_settings, m_model, m_viewManager));
+  return new ROISettingsPanel(m_settings, m_context);
 }
 
 //------------------------------------------------------------------------
@@ -168,7 +167,7 @@ void ROISettingsPanel::updateCategoryROI(const QModelIndex& index)
     }
   }
 
-  m_activeCategory = m_model->smartPointer(category);
+  m_activeCategory = m_context.model()->smartPointer(category);
 
   // Fix missing category properties in some cases. By default revert to "default ROI" values.
   if (!m_activeCategory->properties().contains(Category::DIM_X()) ||

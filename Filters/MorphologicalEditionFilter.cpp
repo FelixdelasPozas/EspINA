@@ -95,26 +95,7 @@ bool MorphologicalEditionFilter::needUpdate(Output::Id id) const
 {
   if (id != 0) throw Undefined_Output_Exception();
 
-  // TODO: When input exists, check its timeStamp
   return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
-//   bool update = Filter::needUpdate(oId);
-//
-//   if (!update)
-//   {
-//     Q_ASSERT(m_outputs.size() == 1);
-//
-//     VolumetricDataSPtr<T> outputVolume = segmentationVolume(m_outputs[0]);
-//     Q_ASSERT(outputVolume.get());
-//     Q_ASSERT(outputVolume->toITK().IsNotNull());
-//     if (!m_inputs.isEmpty())
-//     {
-//       Q_ASSERT(m_inputs.size() == 1);
-//       SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0]);
-//       update = outputVolume->timeStamp() < inputVolume->timeStamp();
-//     }
-//   }
-//
-//   return update;
 }
 
 //-----------------------------------------------------------------------------

@@ -39,20 +39,6 @@ namespace ESPINA
     virtual ~PlanarBehaviour()
     {}
 
-    /** \brief Sets the crosshairs of the view.
-     * \param[out] hline, smart pointer of the vtkPolyData of the horizontal crosshair line.
-     * \param[out] vline, smart pointer of the vtkPolyData of the vertical crosshair line.
-     * \param[in] center, crosshair point.
-     * \param[in] bounds, bounds of the view.
-     * \param[in] slicingStep, spacing of the view's plane.
-     *
-     */
-    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                               vtkSmartPointer<vtkPolyData> &vline,
-                               const NmVector3              &center,
-                               const Bounds                 &bounds,
-                               const NmVector3              &slicingStep) const = 0;
-
     /** \brief Updates the camera of the view.
      *
      */
@@ -70,12 +56,6 @@ namespace ESPINA
     explicit AxialBehaviour()
     {}
 
-    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                               vtkSmartPointer<vtkPolyData> &vline,
-                               const NmVector3              &center,
-                               const Bounds                 &bounds,
-                               const NmVector3              &slicingStep) const;
-
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center) const;
   };
@@ -90,12 +70,6 @@ namespace ESPINA
     explicit SagittalBehaviour()
     {}
 
-    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                               vtkSmartPointer<vtkPolyData> &vline,
-                               const NmVector3              &center,
-                               const Bounds                 &bounds,
-                               const NmVector3              &slicingStep) const;
-
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center) const;
   };
@@ -109,12 +83,6 @@ namespace ESPINA
      */
     explicit CoronalBehaviour()
     {}
-
-    virtual void setCrossHairs(vtkSmartPointer<vtkPolyData> &hline,
-                               vtkSmartPointer<vtkPolyData> &vline,
-                               const NmVector3              &center,
-                               const Bounds                 &bounds,
-                               const NmVector3              &slicingStep) const;
 
     virtual void updateCamera(vtkCamera       *camera,
                               const NmVector3 &center) const;

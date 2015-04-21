@@ -20,8 +20,8 @@
 #ifndef ESPINA_CF_REPRESENTATION_MANAGER_3D_H
 #define ESPINA_CF_REPRESENTATION_MANAGER_3D_H
 
-#include <GUI/Representations/ActorManager.h>
-#include <GUI/Representations/RepresentationsRange.h>
+#include <GUI/Representations/RepresentationManager.h>
+
 #include "CountingFrameManager.h"
 
 namespace ESPINA
@@ -37,15 +37,16 @@ namespace ESPINA
 
       virtual ~RepresentationManager3D();
 
-      virtual void setResolution(const NmVector3 &resolution) override;
-
-      virtual PipelineStatus pipelineStatus() const override;
-
-      virtual TimeRange readyRange() const override;
-
-      virtual void display(TimeStamp t) override;
+      virtual TimeRange readyRangeImplementation() const override;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
+
+    protected:
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const {};
+
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const {};
+
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const {};
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -59,11 +60,17 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      virtual void onShow();
+      virtual bool hasRepresentations() const {};
 
-      virtual void onHide();
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) {};
 
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
+      virtual void onShow(TimeStamp t) override;
+
+      virtual void onHide(TimeStamp t) override;
+
+      virtual void displayRepresentations(TimeStamp t) {};
+
+      virtual void hideRepresentations(TimeStamp t) {};
 
       virtual RepresentationManagerSPtr cloneImplementation();
 
@@ -76,8 +83,6 @@ namespace ESPINA
       void hideWidget(vtkCountingFrameWidget *widget);
 
       void deleteWidget(CountingFrame *cf);
-
-      void updateRenderRequestValue();
 
     private:
       CountingFrameManager  &m_manager;

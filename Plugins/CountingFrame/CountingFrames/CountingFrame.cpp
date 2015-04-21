@@ -187,7 +187,7 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
 
   widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
   widget->SetPlane(view2D->plane());
-  widget->SetSlicingStep(view2D->slicingStep());
+  widget->SetSlicingStep(view2D->sceneResolution());
   widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
   widget->SetCurrentRenderer(view2D->mainRenderer());
   widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());

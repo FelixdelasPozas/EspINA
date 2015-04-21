@@ -35,22 +35,17 @@ using namespace ESPINA::GUI;
 
 
 //-----------------------------------------------------------------------------
-RefineToolGroup::RefineToolGroup(ModelAdapterSPtr          model,
-                                 ModelFactorySPtr          factory,
-                                 FilterDelegateFactorySPtr filterDelegateFactory,
-                                 ViewManagerSPtr           viewManager,
-                                 QUndoStack               *undoStack,
-                                 QWidget                  *parent)
-: ToolGroup      {QIcon(":/espina/toolgroup_refine.svg"), tr("Refine"), parent}
-, m_factory      {factory}
-, m_undoStack    {undoStack}
-, m_model        {model}
-, m_viewManager{viewManager}
+RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
+                                 Support::Context &context)
+: ToolGroup      {":/espina/toolgroup_refine.svg", tr("Refine")}
+, m_context      {context}
 {
-  // TODO: Create EditionTool base class
-  m_manualEdition = std::make_shared<ManualEditionTool>(model, factory, undoStack, viewManager);
-  m_split         = std::make_shared<SplitTool>(model, factory, viewManager, undoStack);
-  m_morphological = std::make_shared<MorphologicalEditionTool>(model, factory, filterDelegateFactory, viewManager, undoStack);
+  // DESIGN: Consider using a base class for all refine tools to
+  //         manage enabling tools depending on current selection
+
+  m_manualEdition = std::make_shared<ManualEditionTool>(context);
+  m_split         = std::make_shared<SplitTool>(context);
+  m_morphological = std::make_shared<MorphologicalEditionTool>(filterDelegateFactory, context);
 
   addTool(m_manualEdition);
   addTool(m_split);
@@ -59,8 +54,8 @@ RefineToolGroup::RefineToolGroup(ModelAdapterSPtr          model,
   connect(m_manualEdition.get(), SIGNAL(voxelsDeleted(ViewItemAdapterPtr)),
           this,                  SLOT(onVoxelDeletion(ViewItemAdapterPtr)));
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(enableCurrentSelectionActions()));
+  connect(context.selection().get(), SIGNAL(selectionChanged()),
+          this,                      SLOT(enableCurrentSelectionActions()));
 
   enableCurrentSelectionActions();
 }
@@ -68,14 +63,13 @@ RefineToolGroup::RefineToolGroup(ModelAdapterSPtr          model,
 //-----------------------------------------------------------------------------
 RefineToolGroup::~RefineToolGroup()
 {
-  disconnect(m_viewManager.get());
   disconnect(this->parent());
 }
 
 //-----------------------------------------------------------------------------
 void RefineToolGroup::enableCurrentSelectionActions()
 {
-  auto selection     = m_viewManager->selection()->segmentations();
+  auto selection     = m_context.selection()->segmentations();
   auto selectionSize = selection.size();
 
   auto noSegmentation       = (selectionSize == 0);
@@ -103,15 +97,17 @@ void RefineToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
 
   auto volume = volumetricData(segmentation->output());
 
+  auto undoStack = m_context.undoStack();
+
   if (volume->isEmpty())
   {
-    m_undoStack->blockSignals(true);
+    undoStack->blockSignals(true);
     do
     {
-      m_undoStack->undo();
+      undoStack->undo();
     }
     while(volume->isEmpty());
-    m_undoStack->blockSignals(false);
+    undoStack->blockSignals(false);
 
     if(segmentation->output()->numberOfDatas() == 1)
     {
@@ -119,16 +115,16 @@ void RefineToolGroup::onVoxelDeletion(ViewItemAdapterPtr item)
       DefaultDialogs::InformationMessage(tr("Deleting segmentation"),
                                          tr("%1 will be deleted because all its voxels were erased.").arg(name));
 
-      m_undoStack->beginMacro("Remove Segmentation");
-      m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+      undoStack->beginMacro("Remove Segmentation");
+      undoStack->push(new RemoveSegmentations(segmentation, m_context.model()));
     }
     else
     {
       auto output = segmentation->output();
-      m_undoStack->beginMacro("Remove Segmentation's volume");
-      m_undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
+      undoStack->beginMacro("Remove Segmentation's volume");
+      undoStack->push(new RemoveDataCommand(output, VolumetricData<itkVolumeType>::TYPE));
     }
-    m_undoStack->endMacro();
+    undoStack->endMacro();
   }
   else
   {

@@ -22,24 +22,23 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-SegmentationAdapterList ESPINA::selectSegmentations(ViewManagerSPtr viewManager)
+SegmentationAdapterList ESPINA::selectSegmentations(SelectionSPtr selection)
 {
-  return viewManager->selection()->segmentations();
+  return selection->segmentations();
 }
 
 //----------------------------------------------------------------------------
-SegmentationAdapterList ESPINA::defaultReportInputSegmentations(ViewManagerSPtr viewManager, ModelAdapterSPtr model)
+SegmentationAdapterList ESPINA::defaultReportInputSegmentations(SelectionSPtr selection, ModelAdapterSPtr model)
 {
-  auto selection = selectSegmentations(viewManager);
+  auto segmentations = selectSegmentations(selection);
 
-  if(selection.isEmpty())
+  if(segmentations.isEmpty())
   {
     for(auto segmentation: model->segmentations())
     {
-      selection << segmentation.get();
+      segmentations << segmentation.get();
     }
   }
 
-  return selection;
+  return segmentations;
 }
-

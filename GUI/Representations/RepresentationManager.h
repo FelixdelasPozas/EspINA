@@ -27,6 +27,7 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/View/SelectableView.h>
 #include <GUI/View/ViewTypeFlags.h>
+#include <GUI/View/CoordinateSystem.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 #include <GUI/Representations/RepresentationPool.h>
 
@@ -47,7 +48,19 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    enum class PipelineStatus: int8_t { NOT_READY = 1, READY = 2, RANGE_DEPENDENT = 3 };
+    enum class Status: int8_t {
+      IDLE,
+      PENDING_DISPLAY
+    };
+
+    enum FlagValue
+    {
+      HAS_ACTORS   = 0x1,
+      EXPORTS_3D   = 0x2,
+      NEEDS_ACTORS = 0x4
+    };
+
+  Q_DECLARE_FLAGS(Flags, FlagValue)
 
   public:
     virtual ~RepresentationManager()
@@ -83,62 +96,46 @@ namespace ESPINA
      */
     QIcon icon() const;
 
-    /** \brief Sets the view where representation are managed
-     *
-     */
-    void setView(RenderView *view);
+    Flags flags() const;
 
     ViewTypeFlags supportedViews() const
     { return m_supportedViews; }
-
-    /** \brief Specify the resolution of the view
-     *
-     */
-    virtual void setResolution(const NmVector3 &resolution) = 0;
 
     /** \brief Returns if managed representations are visible or not
      *
      */
     bool representationsVisibility() const
-    { return m_showRepresentations; }
+    { return m_isActive; }
 
     /** \brief Shows all representations
      *
      */
-    void show();
+    void show(TimeStamp t);
 
     /** \brief Hides all representations
      *
      */
-    void hide();
+    void hide(TimeStamp t);
 
     /** \brief Returns if the manager has been requested to display its actors
      *
      */
-    bool isActive();
+    bool isActive() const;
 
-    bool requiresRender() const;
-
-    /** \brief Returns the status of its pipelines.
+    /** \brief Returns true if the manager is idle, false otherwise
      *
      */
-    virtual PipelineStatus pipelineStatus() const = 0;
+    bool isIdle() const;
 
     /** \brief Returns the range of ready pipelines.
      *
      */
-    virtual TimeRange readyRange() const = 0;
+    TimeRange readyRange() const;
 
     /** \brief Updates view's actors with those available at the given time.
      *
      */
-    virtual void display(TimeStamp time) = 0;
-
-    /** \brief Adds a pool to be managed.
-     * \param[in] pool pool smart pointer.
-     *
-     */
-    virtual void addPool(RepresentationPoolSPtr pool);
+    void display(TimeStamp t);
 
     /** \brief Returns the item picked
      *
@@ -150,39 +147,83 @@ namespace ESPINA
      */
     RepresentationManagerSPtr clone();
 
-  public slots:
-    void onCrosshairChanged(NmVector3 crosshair, TimeStamp time);
+    QString debugName() const;
 
-    /** \brief Set representations visibility
-     *
-     */
-    void setRepresentationsVisibility(bool value);
+  public slots:
+    void onCrosshairChanged(NmVector3 crosshair, TimeStamp t);
+
+    void onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+
+    void onSceneBoundsChanged(const Bounds &bounds, TimeStamp t);
 
   signals:
     void renderRequested();
 
   protected slots:
-    void emitRenderRequest(TimeStamp time);
+    void emitRenderRequest(TimeStamp t);
 
     void invalidateRepresentations();
+
+    void waitForDisplay();
+
+    void idle();
 
   protected:
     explicit RepresentationManager(ViewTypeFlags supportedViews);
 
-    RepresentationPoolSList managedPools() const;
+    void setFlag(const FlagValue flag, const bool value);
 
-    void setRenderRequired(bool value);
+    /** \brief Returns if the manager should react to the requested crosshair change
+     *
+     */
+    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const = 0;
 
-    bool representationsShown() const;
+    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const = 0;
+
+    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const = 0;
+
+    NmVector3 currentCrosshair() const;
+
+    NmVector3 currentSceneResolution() const;
+
+    Bounds currentSceneBounds() const;
 
   private:
-    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) = 0;
+    virtual TimeRange readyRangeImplementation() const = 0;
 
-    virtual void onShow() = 0;
+    virtual bool hasRepresentations() const = 0;
 
-    virtual void onHide() = 0;
+    void updateRepresentations(TimeStamp t);
+
+    virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) = 0;
+
+    /** \brief Performs the actual crosshair change for the underlying representations
+     *
+     */
+    virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) {}
+
+    virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) {}
+
+    virtual void changeSceneBounds(const Bounds &bounds, TimeStamp t) {}
+
+    bool hasNewerFrames(TimeStamp t) const;
+
+    virtual void displayRepresentations(TimeStamp t) = 0;
+
+    virtual void hideRepresentations(TimeStamp t) = 0;
+
+    virtual void onShow(TimeStamp t) = 0;
+
+    virtual void onHide(TimeStamp t) = 0;
 
     virtual RepresentationManagerSPtr cloneImplementation() = 0;
+
+    /** \brief Sets the view where representation are managed
+     *
+     */
+    void setView(RenderView *view);
+
+    friend class RenderView;
 
   protected:
     RenderView *m_view;
@@ -191,16 +232,18 @@ namespace ESPINA
     QString m_name;
     QIcon   m_icon;
     QString m_description;
-    bool    m_showRepresentations;
-    bool    m_requiresRender;
+    bool    m_isActive;
+    Status  m_status;
+    Flags   m_flags;
 
     ViewTypeFlags m_supportedViews;
-    NmVector3     m_crosshair;
-    TimeStamp     m_lastRequestTime;
     TimeStamp     m_lastRenderRequestTime;
 
+    NmVector3 m_crosshair;
+    NmVector3 m_resolution; // CoordinateSystem?
+    Bounds    m_bounds;
+
     RepresentationManagerSList m_childs;
-    RepresentationPoolSList    m_pools;
   };
 
   class RepresentationManager2D
@@ -213,9 +256,11 @@ namespace ESPINA
     {};
 
     virtual void setPlane(Plane plane) = 0;
+
     virtual void setRepresentationDepth(Nm depth) = 0;
   };
 
+  Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::Flags)
 }// namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_MANAGER_H

@@ -148,7 +148,7 @@ namespace ESPINA
   template <typename T>
   void MarchingCubesMesh<T>::setSpacing(const NmVector3& spacing)
   {
-    // TODO: not allowed
+    // NOTE: not allowed
   }
 
   //----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ namespace ESPINA
   template <typename T>
   void MarchingCubesMesh<T>::undo()
   {
-    // TODO: ways to modify a mesh have not been implemented, so this is not allowed
+    // NOTE: ways to modify a mesh have not been implemented, so this is not allowed
   }
 
   //----------------------------------------------------------------------------

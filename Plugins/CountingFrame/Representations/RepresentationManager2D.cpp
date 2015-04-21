@@ -24,11 +24,10 @@ namespace ESPINA {
   namespace CF {
     //-----------------------------------------------------------------------------
     RepresentationManager2D::RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
-    : RepresentationManager(supportedViews)
+    : RepresentationManager{supportedViews}
+    , m_plane{Plane::UNDEFINED}
     , m_manager(manager)
     {
-      setRenderRequired(false);
-
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
               this,       SLOT(onCountingFrameCreated(CountingFrame*)));
       connect(&m_manager, SIGNAL(countingFrameDeleted(CountingFrame*)),
@@ -44,53 +43,44 @@ namespace ESPINA {
       }
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setResolution(const NmVector3 &resolution)
-    {
-      m_resolution = resolution;
-    }
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager2D::setResolution(const GUI::View::CoordinateSystemSPtr system)
+//     {
+//       m_resolution = system->resolution();
+//     }
 
     //-----------------------------------------------------------------------------
-    RepresentationManager::PipelineStatus RepresentationManager2D::pipelineStatus() const
-    {
-      return PipelineStatus::READY;
-    }
-
-    //-----------------------------------------------------------------------------
-    TimeRange RepresentationManager2D::readyRange() const
+    TimeRange RepresentationManager2D::readyRangeImplementation() const
     {
       return m_crosshairs.timeRange();
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::display(TimeStamp t)
-    {
-      if (representationsShown())
-      {
-        for (auto widget : m_widgets)
-        {
-          showWidget(widget);
-        }
-      }
-      else
-      {
-        for (auto widget : m_widgets)
-        {
-          hideWidget(widget);
-        }
-      }
-
-      m_crosshairs.invalidatePreviousValues(t);
-
-      updateRenderRequestValue();
-    }
-
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager2D::displayImplementation(TimeStamp t)
+//     {
+//       if (representationsShown())
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           showWidget(widget);
+//         }
+//       }
+//       else
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           hideWidget(widget);
+//         }
+//       }
+//
+//       m_crosshairs.invalidatePreviousValues(t);
+//     }
+//
     //-----------------------------------------------------------------------------
     ViewItemAdapterPtr RepresentationManager2D::pick(const NmVector3 &point, vtkProp *actor) const
     {
       return nullptr;
     }
-
 
     //-----------------------------------------------------------------------------
     void RepresentationManager2D::setPlane(Plane plane)
@@ -106,8 +96,6 @@ namespace ESPINA {
         auto widget = createWidget(cf);
 
         m_widgets.insert(cf, widget);
-
-        updateRenderRequestValue();
 
         emit renderRequested();
       }
@@ -135,7 +123,7 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onShow()
+    void RepresentationManager2D::onShow(TimeStamp t)
     {
       for (auto cf : m_pendingCFs)
       {
@@ -143,29 +131,27 @@ namespace ESPINA {
       }
 
       m_pendingCFs.clear();
-
-      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager2D::onHide()
+    void RepresentationManager2D::onHide(TimeStamp t)
     {
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
-    {
-      if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
-      {
-        m_crosshairs.addValue(crosshair, t);
-
-        emit renderRequested();
-      }
-      else
-      {
-        m_crosshairs.reusePreviousValue(t);
-      }
-    }
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager2D::setCrosshair(const NmVector3 &crosshair, TimeStamp t)
+//     {
+//       if (m_crosshairs.isEmpty() || isNormalDifferent(m_crosshairs.last(), crosshair))
+//       {
+//         m_crosshairs.addValue(crosshair, t);
+//
+//         emit renderRequested();
+//       }
+//       else
+//       {
+//         m_crosshairs.reusePreviousValue(t);
+//       }
+//     }
 
     //-----------------------------------------------------------------------------
     RepresentationManagerSPtr RepresentationManager2D::cloneImplementation()
@@ -178,6 +164,7 @@ namespace ESPINA {
     {
       auto crosshair = m_crosshairs.value(t, NmVector3());
 
+      Q_ASSERT(m_plane != Plane::UNDEFINED);
       return crosshair[normalCoordinateIndex(m_plane)];
     }
 
@@ -213,12 +200,6 @@ namespace ESPINA {
       cf->deleteSliceWidget(widget);
 
       m_widgets.remove(cf);
-    }
-
-    //-----------------------------------------------------------------------------
-    void RepresentationManager2D::updateRenderRequestValue()
-    {
-      setRenderRequired(representationsShown() && !m_widgets.isEmpty());
     }
 
     //-----------------------------------------------------------------------------

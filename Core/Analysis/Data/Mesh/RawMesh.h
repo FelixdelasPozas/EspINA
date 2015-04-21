@@ -91,7 +91,7 @@ namespace ESPINA
     { return m_spacing; }
 
     void undo()
-    { /* TODO: not allowed */ };
+    { /* NOTE: not allowed */ };
 
     size_t memoryUsage() const;
 

@@ -23,7 +23,6 @@
 
 // ESPINA
 #include <App/ToolGroups/Restrict/RestrictToolGroup.h>
-#include <Support/ViewManager.h>
 
 // Qt
 #include <QUndoStack>

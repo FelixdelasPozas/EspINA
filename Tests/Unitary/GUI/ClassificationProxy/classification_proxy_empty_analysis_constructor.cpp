@@ -34,13 +34,16 @@
 
 using namespace ESPINA;
 using namespace std;
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 int classification_proxy_empty_analysis_constructor(int argc, char** argv )
 {
   bool error = false;
 
+  Timer               timer;
+  Invalidator         invalidator(timer);
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter);
+  ClassificationProxy proxy(modelAdapter, invalidator);
   ModelTest           modelTester(&proxy);
 
   return error;

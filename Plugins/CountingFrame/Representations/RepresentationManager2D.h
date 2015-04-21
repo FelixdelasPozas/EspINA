@@ -20,8 +20,8 @@
 #ifndef ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 #define ESPINA_CF_REPRESENTATION_MANAGER_2D_H
 
-#include <GUI/Representations/ActorManager.h>
-#include <GUI/Representations/RepresentationsRange.h>
+// ESPINA
+#include <GUI/Representations/RepresentationManager.h>
 #include "CountingFrameManager.h"
 
 namespace ESPINA
@@ -38,13 +38,7 @@ namespace ESPINA
 
       virtual ~RepresentationManager2D();
 
-      virtual void setResolution(const NmVector3 &resolution) override;
-
-      virtual PipelineStatus pipelineStatus() const override;
-
-      virtual TimeRange readyRange() const override;
-
-      virtual void display(TimeStamp t) override;
+      virtual TimeRange readyRangeImplementation() const override;
 
       virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
@@ -52,6 +46,13 @@ namespace ESPINA
 
       virtual void setRepresentationDepth(Nm depth) override
       {}
+
+    protected:
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const {};
+
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const {};
+
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const {};
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -65,11 +66,17 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      virtual void onShow();
+      virtual bool hasRepresentations() const {};
 
-      virtual void onHide();
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) {};
 
-      virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp t);
+      virtual void onShow(TimeStamp t);
+
+      virtual void onHide(TimeStamp t);
+
+      virtual void displayRepresentations(TimeStamp t) {};
+
+      virtual void hideRepresentations(TimeStamp t) {};
 
       virtual RepresentationManagerSPtr cloneImplementation();
 
@@ -83,14 +90,12 @@ namespace ESPINA
 
       void deleteWidget(CountingFrame *cf);
 
-      void updateRenderRequestValue();
-
       bool isNormalDifferent(const NmVector3 &p1, const NmVector3 &p2) const;
 
     private:
       Plane     m_plane;
       NmVector3 m_resolution;
-      RepresentationsRange<NmVector3> m_crosshairs;
+      RangedValue<NmVector3> m_crosshairs;
 
       CountingFrameManager  &m_manager;
       QList<CountingFrame *> m_pendingCFs;

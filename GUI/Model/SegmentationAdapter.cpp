@@ -315,6 +315,16 @@ bool ESPINA::isSegmentation(ItemAdapterPtr item)
 }
 
 //------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemList(SegmentationAdapterSPtr segmentation)
+{
+  ViewItemAdapterSList result;
+
+  result << segmentation;
+
+  return result;
+}
+
+//------------------------------------------------------------------------
 ViewItemAdapterSList ESPINA::toViewItemList(SegmentationAdapterSList segmentations)
 {
   ViewItemAdapterSList result;

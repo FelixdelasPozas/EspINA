@@ -22,19 +22,19 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-PipelineSourcesFilter::PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type)
-: m_model{model}
+PipelineSourcesFilter::PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::RepresentationInvalidator &invalidator)
+: PipelineSources(invalidator)
+, m_model{model}
 , m_type{type}
 {
-  connect(m_model.get(), SIGNAL(viewItemsAdded(ViewItemAdapterSList,TimeStamp)),
-          this,          SLOT(onSourcesAdded(ViewItemAdapterSList,TimeStamp)));
-  connect(m_model.get(), SIGNAL(viewItemsAboutToBeRemoved(ViewItemAdapterSList,TimeStamp)),
-          this,          SLOT(onSourcesRemoved(ViewItemAdapterSList,TimeStamp)));
+  connect(m_model.get(), SIGNAL(viewItemsAdded(ViewItemAdapterSList)),
+          this,          SLOT(onSourcesAdded(ViewItemAdapterSList)));
 
-  connect(m_model.get(), SIGNAL(representationsModified(ViewItemAdapterSList,TimeStamp)),
-          this,          SLOT(onRepresentationModified(ViewItemAdapterSList,TimeStamp)));
-  connect(m_model.get(), SIGNAL(aboutToBeReset(TimeStamp)),
-          this,          SLOT(onReset(TimeStamp)));
+  connect(m_model.get(), SIGNAL(viewItemsAboutToBeRemoved(ViewItemAdapterSList)),
+          this,          SLOT(onSourcesRemoved(ViewItemAdapterSList)));
+
+  connect(m_model.get(), SIGNAL(aboutToBeReset()),
+          this,          SLOT(onReset()));
 }
 
 //-----------------------------------------------------------------------------
@@ -56,11 +56,13 @@ void PipelineSourcesFilter::setSelectedSources(ViewItemAdapterSList sources)
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSourcesFilter::onSourcesAdded(ViewItemAdapterSList sources, TimeStamp t)
+void PipelineSourcesFilter::onSourcesAdded(ViewItemAdapterSList sources)
 {
   auto filteredSources = filter(sources);
 
   insert(filteredSources);
+
+  auto t = timeStamp();
 
   if (filteredSources.isEmpty())
   {
@@ -73,11 +75,13 @@ void PipelineSourcesFilter::onSourcesAdded(ViewItemAdapterSList sources, TimeSta
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSourcesFilter::onSourcesRemoved(ViewItemAdapterSList sources, TimeStamp t)
+void PipelineSourcesFilter::onSourcesRemoved(ViewItemAdapterSList sources)
 {
   auto filteredSources = filter(sources);
 
   remove(filteredSources);
+
+  auto t = timeStamp();
 
   if (filteredSources.isEmpty())
   {
@@ -90,26 +94,11 @@ void PipelineSourcesFilter::onSourcesRemoved(ViewItemAdapterSList sources, TimeS
 }
 
 //-----------------------------------------------------------------------------
-void PipelineSourcesFilter::onRepresentationModified(ViewItemAdapterSList sources, TimeStamp t)
-{
-  auto filteredSources = filter(sources);
-
-  if (filteredSources.isEmpty())
-  {
-    emit updateTimeStamp(t);
-  }
-  else
-  {
-    emit representationsModified(filteredSources, t);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void PipelineSourcesFilter::onReset(TimeStamp t)
+void PipelineSourcesFilter::onReset()
 {
   if (!m_sources.isEmpty())
   {
-    emit sourcesRemoved(m_sources, t);
+    emit sourcesRemoved(m_sources, timeStamp());
 
     m_sources.clear();
   }

@@ -252,7 +252,7 @@ void Segmentation::restoreState(const State& state)
 //------------------------------------------------------------------------
 void Segmentation::unload()
 {
-  // TODO
+  // NOTE: Further versions
 }
 
 //------------------------------------------------------------------------

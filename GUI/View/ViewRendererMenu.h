@@ -22,9 +22,7 @@
 #define ESPINA_VIEW_RENDERER_MENU_H_
 
 // ESPINA
-#include <GUI/Representations/Renderers/Renderer.h>
-
-// Qt
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include <QMenu>
 #include <QMap>
 

@@ -24,8 +24,8 @@
 #include "Support/EspinaSupport_Export.h"
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QWidget>
@@ -48,16 +48,14 @@ namespace ESPINA
 
   public:
     /** \brief TabularReport class cosntructor.
-     * \param[in] factory, model factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
-     * \param[in] flags, window flags.
+     * \param[in] context of ESPINA
+     * \param[in] parent widget
+     * \param[in] flags window flags.
      *
      */
-    explicit TabularReport(ModelFactorySPtr factory,
-                           ViewManagerSPtr  viewManager,
-                           QWidget         *parent = nullptr,
-                           Qt::WindowFlags  flags = Qt::WindowFlags{Qt::WindowNoState});
+    explicit TabularReport(Support::Context &context,
+                           QWidget                *parent = nullptr,
+                           Qt::WindowFlags         flags = Qt::WindowFlags{Qt::WindowNoState});
 
     /** \brief TabularReport class virtual destructor.
      *
@@ -203,6 +201,8 @@ namespace ESPINA
      */
     void removeTabsAndWidgets();
 
+    inline ModelFactorySPtr factory() const;
+
     /** \brief Returns the path to store/read the information of the report in the temporal storage.
      * \param[in] file optional file name.
      *
@@ -211,9 +211,8 @@ namespace ESPINA
     { return "Extra/RawInformation/" + file; }
 
   protected:
+    Support::Context &m_context;
     ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    ViewManagerSPtr  m_viewManager;
 
     SegmentationAdapterList m_filter;
     QTabWidget  *m_tabs;

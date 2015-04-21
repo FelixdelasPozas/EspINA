@@ -19,9 +19,8 @@
 
 #include "RepresentationUtils.h"
 
-
-namespace ESPINA {
-
+namespace ESPINA
+{
   namespace RepresentationUtils
   {
     const QString PLANE = "Plane";
@@ -61,7 +60,6 @@ namespace ESPINA {
     void setSegmentationDepth(RepresentationPoolSPtr pool, const Nm depth)
     {
       pool->setSetting<Nm>(DEPTH, depth);
-
     }
   }
 }

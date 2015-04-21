@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "RenderView.h"
+#include "Widgets/WidgetFactory.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricData.hxx>
@@ -27,6 +28,7 @@
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Representations/Managers/WidgetManager.h>
 
 // VTK
 #include <vtkMath.h>
@@ -47,17 +49,20 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(ViewType type, QWidget* parent)
-: QWidget                 {parent}
-, m_view                  {new QVTKWidget()}
-, m_sceneResolution       {1, 1, 1}
-, m_channelSources        {nullptr}
-, m_sceneCameraInitialized{false}
-, m_type                  {type}
+RenderView::RenderView(ViewState &state, SelectionSPtr selection, ViewType type)
+: m_view {new QVTKWidget()}
+, m_state{state}
+, m_selection{selection}
+, m_type {type}
+, m_requiresCameraReset{true}
+, m_lastRender{Timer::INVALID_TIME_STAMP}
 {
-  setState(std::make_shared<ViewState>());
+  connectSignals();
 }
 
 //-----------------------------------------------------------------------------
@@ -67,93 +72,27 @@ RenderView::~RenderView()
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::setState(ViewStateSPtr state)
-{
-  if (m_state)
-  {
-    disconnect(this,          SIGNAL(crosshairChanged(NmVector3)),
-               m_state.get(), SLOT(setCrosshair(NmVector3)));
-
-    disconnect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
-               m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
-
-    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-               this,          SLOT(onCrosshairChanged(NmVector3)));
-
-    disconnect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
-               this,          SLOT(moveCamera(NmVector3)));
-
-    for(auto manager: m_managers)
-    {
-      disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-                 manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
-    }
-  }
-
-  m_state = state;
-
-  if (m_state)
-  {
-    connect(this,          SIGNAL(crosshairChanged(NmVector3)),
-            m_state.get(), SLOT(setCrosshair(NmVector3)));
-
-    connect(this,          SIGNAL(crosshairPlaneChanged(Plane,Nm)),
-            m_state.get(), SLOT(setCrosshairPlane(Plane,Nm)));
-
-    connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
-            this,          SLOT(onCrosshairChanged(NmVector3)));
-
-    connect(m_state.get(), SIGNAL(viewFocusedOn(NmVector3)),
-            this,          SLOT(moveCamera(NmVector3)));
-
-    for(auto manager: m_managers)
-    {
-      connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-              manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
 TimeStamp RenderView::timeStamp() const
 {
-  return m_state->timeStamp();
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::setChannelSources(PipelineSources *channels)
-{
-  if (m_channelSources)
-  {
-    disconnect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
-               this,             SLOT(updateSceneBounds()));
-    disconnect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
-               this,             SLOT(updateSceneBounds()));
-  }
-
-  m_channelSources = channels;
-
-  if (m_channelSources)
-  {
-    connect(m_channelSources, SIGNAL(sourcesAdded(ViewItemAdapterList,TimeStamp)),
-            this,             SLOT(updateSceneBounds()));
-    connect(m_channelSources, SIGNAL(sourcesRemoved(ViewItemAdapterList,TimeStamp)),
-            this,             SLOT(updateSceneBounds()));
-  }
+  return m_state.timer().timeStamp();
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::addRepresentationManager(RepresentationManagerSPtr manager)
 {
-  connect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-          manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
+  connect(&m_state,      SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
+          manager.get(), SLOT(onCrosshairChanged(NmVector3,TimeStamp)));
+
+  connect(&m_state,      SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+          manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
+
+  connect(&m_state,      SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
+          manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
 
   connect(manager.get(), SIGNAL(renderRequested()),
-          this,          SLOT(onRenderRequest()));
+          this,          SLOT(onRenderRequest()), Qt::QueuedConnection);
 
   configureManager(manager);
-
-  manager->setResolution(m_sceneResolution);
 
   manager->setView(this);
 
@@ -165,11 +104,17 @@ void RenderView::removeRepresentationManager(RepresentationManagerSPtr manager)
 {
   if (m_managers.removeOne(manager))
   {
+    disconnect(&m_state, SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
+               manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
+
+    disconnect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+               manager.get(), SLOT(onSceneResolutionChanged(NmVector3,TimeStamp)));
+
+    disconnect(&m_state, SIGNAL(sceneBoundsChanged(Bounds,TimeStamp)),
+               manager.get(), SLOT(onSceneBoundsChanged(Bounds,TimeStamp)));
+
     disconnect(manager.get(), SIGNAL(renderRequested()),
                this,          SLOT(onRenderRequest()));
-
-    disconnect(m_state.get(), SIGNAL(crosshairChanged(NmVector3, TimeStamp)),
-               manager.get(), SLOT(onCrosshairChanged(NmVector3, TimeStamp)));
   }
 }
 
@@ -191,29 +136,7 @@ NmVector3 RenderView::toWorldCoordinates(vtkRenderer *renderer, int x, int y, in
 void RenderView::onSelectionSet(SelectionSPtr selection)
 {
   connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
-          this, SLOT(updateSelection(SegmentationAdapterList)));
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::addWidget(EspinaWidgetSPtr widget)
-{
-  if(!m_widgets.contains(widget))
-  {
-    widget->registerView(this);
-
-    m_widgets << widget;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::removeWidget(EspinaWidgetSPtr widget)
-{
-  if (m_widgets.contains(widget))
-  {
-    widget->unregisterView(this);
-
-    m_widgets.removeOne(widget);
-  }
+          this,            SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //-----------------------------------------------------------------------------
@@ -288,94 +211,26 @@ void RenderView::takeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-// double RenderView::suggestedChannelOpacity()
-// {
-//   double numVisibleRep = 0;
-//
-//   for(auto channel: m_channelStates.keys())
-//     if (channel->isVisible())
-//       numVisibleRep++;
-//
-//   if (numVisibleRep == 0)
-//     return 1.0;
-//
-//   return 1.0 / numVisibleRep;
-// }
-
-//-----------------------------------------------------------------------------
-void RenderView::render()
+bool RenderView::requiresCameraReset() const
 {
-  onRenderRequest();
+  return m_requiresCameraReset;
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::resetSceneBounds()
-{
-  m_sceneBounds[0]     = m_sceneBounds[2]     = m_sceneBounds[4]     = 0;
-  m_sceneBounds[1]     = m_sceneBounds[3]     = m_sceneBounds[5]     = 0;
-  m_sceneResolution[0] = m_sceneResolution[1] = m_sceneResolution[2] = 1;
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::updateSceneBounds()
-{
-  NmVector3 resolution = m_sceneResolution;
-
-  if (!m_channelSources->isEmpty())
-  {
-    auto channels      = m_channelSources->sources();
-    auto channelOutput = channels.first()->output();
-
-    m_sceneBounds     = channelOutput->bounds();
-    m_sceneResolution = channelOutput->spacing();
-
-    for (int i = 1; i < channels.size(); ++i)
-    {
-      channelOutput = channels[i]->output();
-
-      auto channelSpacing = channelOutput->spacing();
-      auto channelBounds  = channelOutput->bounds();
-
-      for (int i = 0; i < 3; i++)
-      {
-        m_sceneResolution[i]   = std::min(m_sceneResolution[i],   channelSpacing[i]);
-
-        m_sceneBounds[2*i]     = std::min(m_sceneBounds[2*i]    , channelBounds[2*i]);
-        m_sceneBounds[(2*i)+1] = std::max(m_sceneBounds[(2*i)+1], channelBounds[(2*i)+1]);
-      }
-    }
-  }
-  else
-  {
-    resetSceneBounds();
-  }
-
-  if (m_channelSources->size() <= 1)
-  {
-    m_sceneCameraInitialized = false;
-  }
-
-  if (resolution != m_sceneResolution)
-  {
-    changeSceneResolution();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::changeSceneResolution()
+bool RenderView::hasVisibleRepresentations() const
 {
   for (auto manager : m_managers)
   {
-    manager->setResolution(m_sceneResolution);
+    if (manager->flags().testFlag(RepresentationManager::HAS_ACTORS)) return true;
   }
 
-  emit sceneResolutionChanged();
+  return false;
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::setCursor(const QCursor& cursor)
+GUI::View::ViewState &RenderView::state() const
 {
-  m_view->setCursor(cursor);
+  return m_state;
 }
 
 //-----------------------------------------------------------------------------
@@ -385,15 +240,9 @@ vtkRenderWindow* RenderView::renderWindow() const
 }
 
 //-----------------------------------------------------------------------------
-vtkRenderer* RenderView::mainRenderer() const
-{
-  return m_renderer;
-}
-
-//-----------------------------------------------------------------------------
 const NmVector3 RenderView::crosshair() const
 {
-  return m_state->crosshair();
+  return m_state.crosshair();
 }
 
 //-----------------------------------------------------------------------------
@@ -401,9 +250,9 @@ void RenderView::eventPosition(int& x, int& y)
 {
   x = y = -1;
 
-  if (m_renderer)
+  if (mainRenderer())
   {
-    vtkRenderWindowInteractor *rwi = renderWindow()->GetInteractor();
+    auto rwi = renderWindow()->GetInteractor();
     Q_ASSERT(rwi);
     rwi->GetEventPosition(x, y);
   }
@@ -420,7 +269,7 @@ NmVector3 RenderView::worldEventPosition()
   coords->SetCoordinateSystemToDisplay();
   coords->SetValue(x, y, 0);
 
-  double *displayCoords = coords->GetComputedWorldValue(m_renderer);
+  double *displayCoords = coords->GetComputedWorldValue(mainRenderer());
 
   NmVector3 position{displayCoords[0], displayCoords[1], displayCoords[2]};
 
@@ -440,7 +289,151 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 //-----------------------------------------------------------------------------
 void RenderView::updateSelection(SegmentationAdapterList selection)
 {
-  //TODO updateRepresentations(selection);
+  // TODO 2015-04-20 Resaltar los elementos seleccionado
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const
+{
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  coords->SetCoordinateSystemToWorld();
+  coords->SetValue(point[0], point[1], point[2]);
+
+  int *displayCoords = coords->GetComputedDisplayValue(mainRenderer());
+
+  return pick(flags, displayCoords[0], displayCoords[1], multiselection);
+}
+
+//-----------------------------------------------------------------------------
+Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
+{
+  return pickImplementation(flags, x, y, multiselection);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::resetCamera()
+{
+  m_requiresCameraReset = true;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::refresh()
+{
+  onRenderRequest();
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::connectSignals()
+{
+  connect(this,     SIGNAL(crosshairChanged(NmVector3)),
+          &m_state, SLOT(setCrosshair(NmVector3)));
+
+  connect(this,     SIGNAL(crosshairPlaneChanged(Plane,Nm)),
+          &m_state, SLOT(setCrosshairPlane(Plane,Nm)));
+
+  connect(&m_state, SIGNAL(resetCameraRequested()),
+          this,     SLOT(resetCamera()));
+
+  connect(&m_state, SIGNAL(refreshRequested()),
+          this,     SLOT(refresh()));
+
+  connect(&m_state, SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
+          this,     SLOT(onCrosshairChanged(NmVector3)));
+
+  connect (&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+           this,     SLOT(onSceneResolutionChanged(NmVector3)));
+
+  connect (&m_state, SIGNAL(widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
+           this,     SLOT(onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+
+  connect (&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
+           this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+
+  connect(&m_state, SIGNAL(viewFocusedOn(NmVector3)),
+          this,     SLOT(moveCamera(NmVector3)));
+
+  connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
+           this,                              SLOT(onSceneBoundsChanged(Bounds)));
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onWidgetsAdded(WidgetFactorySPtr factory, TimeStamp t)
+{
+  if (factory->supportedViews().testFlag(m_type))
+  {
+    auto manager = std::make_shared<WidgetManager>(factory);
+
+    addRepresentationManager(manager);
+
+    manager->show(t);
+
+    m_widgetManagers[factory] = manager;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onWidgetsRemoved(WidgetFactorySPtr factory, TimeStamp t)
+{
+  if (factory->supportedViews().testFlag(m_type))
+  {
+    auto manager = m_widgetManagers[factory];
+
+    manager->hide(t);
+
+    removeRepresentationManager(manager);
+
+    //NOTE: managers should be removed after processing render request of t
+    //      so they can hide its representations
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::onRenderRequest()
+{
+  auto readyManagers = pendingManagers();
+  auto renderTime    = latestReadyTimeStamp(readyManagers);
+
+  qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
+  if (m_lastRender < renderTime)
+  {
+    display(readyManagers,  renderTime);
+
+    // update actions
+    qDebug() << viewName() << ": Update actors:" << renderTime;
+
+    m_lastRender = renderTime;
+
+    deleteInactiveWidgetManagers();
+  }
+
+  if (hasVisibleRepresentations() && requiresCameraReset())
+  {
+    resetCameraImplementation();
+    qDebug() << viewName() << ": Reset camera:" << renderTime;
+
+    m_requiresCameraReset = false;
+  }
+
+  updateViewActions(managerFlags());
+
+  refreshViewImplementation();
+
+  mainRenderer()->ResetCameraClippingRange();
+  renderWindow()->Render();
+  m_view->update();
+}
+
+//-----------------------------------------------------------------------------
+const NmVector3 RenderView::sceneResolution() const
+{
+  return m_state.coordinateSystem()->resolution();
+}
+
+//-----------------------------------------------------------------------------
+const Bounds RenderView::sceneBounds() const
+{
+  return m_state.coordinateSystem()->bounds();
 }
 
 //-----------------------------------------------------------------------------
@@ -464,136 +457,95 @@ QPushButton* RenderView::createButton(const QString& icon, const QString& toolti
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::addActor(vtkProp *actor)
+RepresentationManagerSList RenderView::pendingManagers() const
 {
-  m_renderer->AddActor(actor);
+  RepresentationManagerSList result;
+
+  result << pendingManagers(m_managers);
+  result << pendingManagers(m_widgetManagers.values());
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::removeActor(vtkProp *actor)
+RepresentationManagerSList RenderView::pendingManagers(RepresentationManagerSList managers) const
 {
-  m_renderer->RemoveActor(actor);
+  RepresentationManagerSList result;
+
+  for (auto manager : managers)
+  {
+    if (!manager->isIdle())
+    {
+      result << manager;
+    }
+  }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::resetView()
-{
-  resetCamera();
-  onRenderRequest();
-}
-
-
-//-----------------------------------------------------------------------------
-unsigned int RenderView::numberActiveRepresentationManagers(Data::Type type)
-{
-  unsigned int count = 0;
-//   for(auto renderer: m_renderers)
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (canRender(repRenderer, type) && !renderer->isHidden())
-//       ++count;
-//     }
-
-  return count;
-}
-
-// //-----------------------------------------------------------------------------
-// Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection) const
-// {
-// }
-
-//-----------------------------------------------------------------------------
-Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection) const
-{
-  auto coords = vtkSmartPointer<vtkCoordinate>::New();
-
-  coords->SetCoordinateSystemToWorld();
-  coords->SetValue(point[0], point[1], point[2]);
-
-  int *displayCoords = coords->GetComputedDisplayValue(m_renderer);
-
-  return pick(flags, displayCoords[0], displayCoords[1], multiselection);
-}
-
-//-----------------------------------------------------------------------------
-Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
-{
-  return pickImplementation(flags, x, y, multiselection);
-}
-
-//-----------------------------------------------------------------------------
-void RenderView::onRenderRequest()
+TimeStamp RenderView::latestReadyTimeStamp(RepresentationManagerSList managers) const
 {
   QMap<TimeStamp, int> count;
 
-  int readyManagers  = 0;
-  int renderRequests = 0;
-
-  for(auto manager: m_managers)
+  for (auto manager : managers)
   {
-    if (manager->requiresRender())
-    {
-      renderRequests++;
+    Q_ASSERT(!manager->isIdle());
 
-      switch(manager->pipelineStatus())
+    for(auto timeStamp: manager->readyRange())
+    {
+      count[timeStamp] = count.value(timeStamp, 0) + 1;
+    }
+  }
+
+  TimeStamp latest = Timer::INVALID_TIME_STAMP;
+
+  for(auto time: count.keys())
+  {
+    if(count[time] == managers.size())
+    {
+      if(time > latest)
       {
-        case RepresentationManager::PipelineStatus::NOT_READY:
-          return;
-        case RepresentationManager::PipelineStatus::READY:
-          readyManagers++;
-          break;
-        case RepresentationManager::PipelineStatus::RANGE_DEPENDENT:
-          for(auto timeStamp: manager->readyRange())
-          {
-            count[timeStamp] = count.value(timeStamp, 0) + 1;
-          }
-          break;
-        default:
-          break;
+        latest = time;
       }
     }
   }
 
-  TimeStamp latest       = 0;
-  bool validTimeStamp    = false;
-  bool onlyReadyManagers = readyManagers == renderRequests;
+  return latest;
+}
 
-  if(!onlyReadyManagers)
+//-----------------------------------------------------------------------------
+void RenderView::display(RepresentationManagerSList managers, TimeStamp t)
+{
+  for (auto manager : managers)
   {
-    for(auto time: count.keys())
+    manager->display(t);
+  }
+}
+
+//-----------------------------------------------------------------------------
+RepresentationManager::Flags RenderView::managerFlags() const
+{
+  RepresentationManager::Flags flags;
+
+  for (auto manager : m_managers)
+  {
+    flags |= manager->flags();
+  }
+
+  return flags;
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::deleteInactiveWidgetManagers()
+{
+  auto factories = m_widgetManagers.keys();
+
+  for (auto factory : factories)
+  {
+    if (!m_widgetManagers[factory]->isActive())
     {
-      if(count[time]+readyManagers == renderRequests)
-      {
-        if(!validTimeStamp || time > latest)
-        {
-          latest = time;
-          validTimeStamp  = true;
-        }
-      }
+      m_widgetManagers.remove(factory);
     }
   }
-
-  if (renderRequests == 0) return;
-
-  if (validTimeStamp || onlyReadyManagers)
-  {
-    for(auto manager: m_managers)
-    {
-      if (manager->requiresRender())
-      {
-        manager->display(latest);
-      }
-    }
-    qDebug() << "Latest frame:" << latest;
-  }
-
-  if (!m_sceneCameraInitialized)
-  {
-    resetCamera();
-
-    m_sceneCameraInitialized = true;
-  }
-
-  updateView();
 }

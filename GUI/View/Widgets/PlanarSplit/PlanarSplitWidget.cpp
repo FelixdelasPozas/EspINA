@@ -330,6 +330,6 @@ void vtkSplitCommand::Execute(vtkObject *caller, unsigned long eventId, void *ca
       }
     }
 
-    m_widget->m_widgets.key(widget)->updateView();
+    m_widget->m_widgets.key(widget)->refresh();
   }
 }

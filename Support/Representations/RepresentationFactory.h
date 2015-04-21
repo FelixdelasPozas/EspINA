@@ -22,7 +22,7 @@
 
 #include <GUI/Representations/RepresentationPool.h>
 #include <GUI/Representations/RepresentationManager.h>
-#include <GUI/ColorEngines/ColorEngine.h>
+#include <Support/Context.h>
 #include "RepresentationSwitch.h"
 
 namespace ESPINA
@@ -57,13 +57,9 @@ namespace ESPINA
      *         to display an specific type of related elements
      *
      */
-    virtual Representation createRepresentation(ColorEngineSPtr colorEngine) const = 0;
+    virtual Representation createRepresentation(Support::Context &context) const = 0;
 
   };
-
-  using RepresentationFactorySPtr  = std::shared_ptr<RepresentationFactory>;
-  using RepresentationFactorySList = QList<RepresentationFactorySPtr>;
-
 } // namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_FACTORY_H

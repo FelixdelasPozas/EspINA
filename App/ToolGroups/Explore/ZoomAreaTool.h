@@ -24,8 +24,8 @@
 // ESPINA
 #include <GUI/View/EventHandler.h>
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/ViewState.h>
 
 class QCursor;
 
@@ -39,9 +39,9 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ZoomArea class constructor.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] viewState
      */
-    explicit ZoomAreaTool(ViewManagerSPtr viewManager);
+    explicit ZoomAreaTool(GUI::View::ViewState &state);
 
     /** \brief ZoomArea class destructor.
      *
@@ -63,7 +63,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) override;
 
   private:
-    ViewManagerSPtr      m_viewManager;
+    GUI::View::ViewState &m_viewState;
     QAction             *m_zoomArea;
     EspinaWidgetSPtr     m_widget;
     EventHandlerSPtr     m_zoomHandler;

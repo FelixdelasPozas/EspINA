@@ -69,12 +69,10 @@ protected:
 
 
 //------------------------------------------------------------------------
-TabularReport::TabularReport(ModelFactorySPtr factory,
-                             ViewManagerSPtr  viewManager,
-                             QWidget         *parent,
-                             Qt::WindowFlags  flags)
-: m_factory       {factory}
-, m_viewManager   {viewManager}
+TabularReport::TabularReport(Support::Context &context,
+                             QWidget                *parent,
+                             Qt::WindowFlags         flags)
+: m_context       {context}
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {
@@ -106,7 +104,7 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
 
   setLayout(layout);
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+  connect(context.selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this, SLOT(updateSelection(SegmentationAdapterList)));
 }
 
@@ -240,7 +238,7 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
   auto bounds = segmentation->output()->bounds();
 
   NmVector3 center{(bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
-  m_viewManager->focusViewsOn(center);
+  m_context.viewState().focusViewOn(center);
 
   emit doubleClicked(sourceIndex);
 }
@@ -374,7 +372,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
   }
 
   blockSignals(true);
-  m_viewManager->setSelection(selection);
+  m_context.selection()->set(selection);
   blockSignals(false);
 }
 
@@ -452,24 +450,28 @@ void TabularReport::createCategoryEntry(const QString &category)
   while (!found && i < m_tabs->count())
   {
     if (m_tabs->tabText(i) >= category)
+    {
       found = true;
+    }
     else
+    {
       i++;
+    }
   }
 
   if (m_tabs->tabText(i) != category)
   {
-    Entry *entry = new Entry(category, m_model, m_factory);
+    auto entry = new Entry(category, m_model, factory());
 
     connect(entry, SIGNAL(informationReadyChanged()),
             this,  SLOT(updateExportStatus()));
 
-    InformationProxy *infoProxy = new InformationProxy(m_factory->scheduler());
+    InformationProxy *infoProxy = new InformationProxy(factory()->scheduler());
     infoProxy->setCategory(category);
     infoProxy->setFilter(&m_filter);
     infoProxy->setSourceModel(m_model);
     connect (infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-             this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
+             this,      SLOT(rowsRemoved(const QModelIndex &, int, int)));
     entry->setProxy(infoProxy);
 
     DataSortFiler *sortFilter = new DataSortFiler();
@@ -491,6 +493,7 @@ void TabularReport::createCategoryEntry(const QString &category)
 
     m_tabs->insertTab(i, entry, category);
   }
+
   updateExportStatus();
 }
 
@@ -499,9 +502,9 @@ bool TabularReport::exportToCSV(const QFileInfo &filename)
 {
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto entry   = dynamic_cast<Entry *>(m_tabs->widget(i));
 
-    QString csvFile = filename.dir().absoluteFilePath(filename.baseName() + "-" + m_tabs->tabText(i).replace("/","-") + ".csv");
+    auto csvFile = filename.dir().absoluteFilePath(filename.baseName() + "-" + m_tabs->tabText(i).replace("/","-") + ".csv");
 
     QFile file( csvFile);
 
@@ -514,7 +517,9 @@ bool TabularReport::exportToCSV(const QFileInfo &filename)
       for (int c = 0; c < entry->columnCount(); c++)
       {
         if (c)
+        {
           out << ",";
+        }
         out << entry->value(r, c).toString();
       }
       out << "\n";
@@ -532,7 +537,7 @@ bool TabularReport::exportToXLS(const QString &filename)
 
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     worksheet *sheet = wb.sheet(m_tabs->tabText(i).replace("/",">").toStdString());
 
     for (int r = 0; r < entry->rowCount(); ++r)
@@ -552,7 +557,7 @@ bool TabularReport::exportToXLS(const QString &filename)
 //------------------------------------------------------------------------
 QModelIndex TabularReport::mapToSource(const QModelIndex &index)
 {
-  const QSortFilterProxyModel *sortFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
+  auto sortFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
 
   return sortFilter->mapToSource(index);
 }
@@ -570,4 +575,10 @@ void TabularReport::removeTabsAndWidgets()
   {
     delete m_tabs->widget(0);
   }
+}
+
+//------------------------------------------------------------------------
+ModelFactorySPtr TabularReport::factory() const
+{
+  return m_context.factory();
 }

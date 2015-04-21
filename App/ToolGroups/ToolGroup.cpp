@@ -24,8 +24,8 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-ToolGroup::ToolGroup(const QIcon    &icon, const QString  &text, QObject *parent)
-: QAction{icon, text, parent}
+ToolGroup::ToolGroup(const QString &icon, const QString  &text, QObject *parent)
+: QAction{QIcon(icon), text, parent}
 {
   setCheckable(true);
 

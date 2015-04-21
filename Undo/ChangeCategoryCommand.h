@@ -27,7 +27,7 @@
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QUndoStack>
@@ -36,24 +36,21 @@
 namespace ESPINA
 {
   class ModelAdapter;
-  class ViewManager;
 
   class EspinaUndo_EXPORT ChangeCategoryCommand
   : public QUndoCommand
   {
   public:
-  	/** \brief ChangeCategoryCommand class constructor.
-  	 * \param[in] segmentations, list of segmentation adapter raw pointers.
-  	 * \param[in] category, raw pointer of the new category adapter.
-  	 * \param[in] model, smart pointer of the model containig the segmentations the category.
-  	 * \param[in] viewManager, view manager smart pointer.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief ChangeCategoryCommand class constructor.
+     * \param[in] segmentations list of segmentation adapter raw pointers.
+     * \param[in] category raw pointer of the new category adapter.
+     * \param[in] context ESPINA context
+     * \param[in] parent raw pointer of the QUndoCommand parent of this one.
+     *
+     */
     explicit ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                    CategoryAdapterPtr      category,
-                                   ModelAdapterSPtr        model,
-                                   ViewManagerSPtr         viewManager,
+                                   Support::Context &context,
                                    QUndoCommand*           parent = nullptr);
 
     /** \brief ChangeCategoryCommand class virtual destructor.
@@ -61,20 +58,13 @@ namespace ESPINA
      */
     virtual ~ChangeCategoryCommand();
 
-    /** \brief Overrides QUndoCommand::redo().
-     *
-     */
     virtual void redo() override;
 
-    /** \brief Overrides QUndoCommand::undo().
-     *
-     */
     virtual void undo() override;
 
   private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    CategoryAdapterSPtr m_category;
+    Support::Context &m_context;
+    CategoryAdapterSPtr     m_category;
     QMap<SegmentationAdapterSPtr, CategoryAdapterSPtr> m_oldCategories;
   };
 

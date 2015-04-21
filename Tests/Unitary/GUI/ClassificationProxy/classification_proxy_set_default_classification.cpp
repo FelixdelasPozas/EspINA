@@ -43,6 +43,7 @@
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 int classification_proxy_set_default_classification( int argc, char** argv )
 {
@@ -54,9 +55,10 @@ int classification_proxy_set_default_classification( int argc, char** argv )
   auto classification = IO::ClassificationXML::load(defaultClassification);
   analysis->setClassification(classification);
 
-
+  Timer               timer;
+  Invalidator         invalidator(timer);
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter);
+  ClassificationProxy proxy(modelAdapter, invalidator);
   ModelTest           modelTester(&proxy);
 
   auto coreFactory = make_shared<CoreFactory>();

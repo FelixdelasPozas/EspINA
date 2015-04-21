@@ -23,40 +23,46 @@
 // C++
 #include <limits>
 
-namespace ESPINA
+using namespace ESPINA;
+
+const TimeStamp Timer::INVALID_TIME_STAMP = 0;
+const TimeStamp Timer::INITIAL_TIME_STAMP = 1;
+
+//------------------------------------------------------------------------
+Timer::Timer(TimeStamp time)
+: m_timeStamp  {time}
 {
-  //------------------------------------------------------------------------
-  Timer::Timer(TimeStamp time)
-  : QObject()
-  , m_timeStamp  {time}
-  , m_initialTime{time}
+}
+
+//------------------------------------------------------------------------
+TimeStamp Timer::increment()
+{
+  ++m_timeStamp;
+
+  if(m_timeStamp == std::numeric_limits<std::uint64_t>::max())
   {
+    reset();
+  }
+  else
+  {
+    emit tic(m_timeStamp);
   }
 
-  //------------------------------------------------------------------------
-  TimeStamp Timer::increment()
-  {
-    ++m_timeStamp;
+  return m_timeStamp;
+}
 
-    if(m_timeStamp == std::numeric_limits<std::uint64_t>::max())
-    {
-      reset();
-    }
-    else
-    {
-      emit tic(m_timeStamp);
-    }
+//------------------------------------------------------------------------
+TimeStamp Timer::reset()
+{
+  m_timeStamp = INITIAL_TIME_STAMP;
 
-    return m_timeStamp;
-  }
+  emit reset(m_timeStamp);
 
-  //------------------------------------------------------------------------
-  TimeStamp Timer::reset()
-  {
-    m_timeStamp = m_initialTime;
-    emit reset(m_timeStamp);
+  return m_timeStamp;
+}
 
-    return m_timeStamp;
-  }
-
-} /* namespace ESPINA */
+//------------------------------------------------------------------------
+bool Timer::isValid(TimeStamp t)
+{
+  return t != INVALID_TIME_STAMP;
+}

@@ -23,6 +23,7 @@
 
 #include <QAbstractProxyModel>
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/View/RepresentationInvalidator.h>
 
 namespace ESPINA
 {
@@ -40,7 +41,7 @@ namespace ESPINA
      * \param[in] parent raw pointer of the parent of this object.
      *
      */
-    ClassificationProxy(ModelAdapterSPtr sourceModel, QObject *parent = nullptr);
+    ClassificationProxy(ModelAdapterSPtr sourceModel, GUI::View::RepresentationInvalidator &invalidator, QObject *parent = nullptr);
 
     /** \brief ClassificationProxy class virtual destructor.
      *
@@ -293,7 +294,7 @@ namespace ESPINA
      */
     int numSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
 
-    ViewItemAdapterSList childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
+    ViewItemAdapterList childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive = false) const;
 
     /** \brief Returns the number of sub-categories contained in a category.
      * \param[in] categoryIndex model index of the category.
@@ -319,7 +320,8 @@ namespace ESPINA
 
     void notifyModifiedRepresentations(const QModelIndex &index);
   private:
-    ModelAdapterSPtr m_model;
+    ModelAdapterSPtr                      m_model;
+    GUI::View::RepresentationInvalidator &m_representationInvalidator;
     // Keep a reference to the categories which belong to the classification root
     CategoryAdapterList m_rootCategories;
 

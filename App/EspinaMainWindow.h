@@ -43,8 +43,8 @@
 #include <Support/Readers/ChannelReader.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/ViewManager.h>
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QMainWindow>
@@ -326,17 +326,18 @@ namespace ESPINA
      */
     void updateStatus(QString msg);
 
+    void updateUndoStackIndex();
+
+    void assignActiveChannel();
+
+    void analyzeChannelEdges();
+
 
   private:
     // ESPINA
-    SchedulerSPtr             m_scheduler;
-    ModelFactorySPtr          m_factory;
+    Support::Context          m_context;
     FilterDelegateFactorySPtr m_filterDelegateFactory;
     AnalysisSPtr              m_analysis;
-    TimerSPtr                 m_timer;
-    ModelAdapterSPtr          m_model;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack               *m_undoStack;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;
@@ -359,10 +360,10 @@ namespace ESPINA
     // ToolBars
     QToolBar          *m_mainBar;
     QToolBar          *m_contextualBar;
-    ToolGroupPtr       m_activeToolGroup;
+    ToolGroupPtr        m_activeToolGroup;
     ToolGroup          *m_exploreToolGroup;
     RestrictToolGroup  *m_restrictToolGroup;
-    ToolGroup          *m_segmentateToolGroup;
+    ToolGroup          *m_segmentToolGroup;
     RefineToolGroup    *m_refineToolGroup;
     VisualizeToolGroup *m_visualizeToolGroup;
     AnalyzeToolGroup   *m_analyzeToolGroup;

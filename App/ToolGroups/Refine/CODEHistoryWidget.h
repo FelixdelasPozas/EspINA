@@ -24,8 +24,8 @@
 
 // ESPINA
 #include <Filters/MorphologicalEditionFilter.h>
-#include <Support/ViewManager.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/Context.h>
 
 class QUndoStack;
 
@@ -42,12 +42,9 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit CODEHistoryWidget(const QString                 &title,
+    explicit CODEHistoryWidget(const QString                  &title,
                                MorphologicalEditionFilterSPtr filter,
-                               ViewManagerSPtr                viewManager,
-                               QUndoStack                    *undoStack,
-                               QWidget                       *parent = 0,
-                               Qt::WindowFlags               flags = 0);
+                               Support::Context        &context);
     virtual ~CODEHistoryWidget();
 
   public slots:
@@ -61,13 +58,11 @@ namespace ESPINA
     void modifyFilter();
 
   private:
+    Support::Context &m_context;
     Ui::CODEHistoryWidget *m_gui;
 
     QString                        m_title;
     MorphologicalEditionFilterSPtr m_filter;
-
-    ViewManagerSPtr m_viewManager;
-    QUndoStack     *m_undoStack;
   };
 
 } // namespace ESPINA

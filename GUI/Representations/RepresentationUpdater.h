@@ -48,10 +48,20 @@ namespace ESPINA
      */
     void removeSource(ViewItemAdapterPtr item);
 
+    /** \brief Returns if the representation updater has sources
+     *
+     */
+    bool isEmpty() const;
+
     /** \brief Changes the crosshair point to be used for this representation
      *
      */
     void setCrosshair(const NmVector3 &point);
+
+    /** \brief Changes the resolution to be used for this representation
+     *
+     */
+    void setResolution(const NmVector3 &resolution);
 
     /** \brief Set the external settings to be used on actor creation
      *

@@ -22,7 +22,6 @@
 #define ESPINA_CAMERAS_MENU_H_
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <GUI/View/RenderView.h>
 
 // Qt
@@ -36,7 +35,7 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit CamerasMenu(ViewManagerSPtr vm, QWidget *parent = 0);
+    explicit CamerasMenu(GUI::View::ViewState & viewState, QWidget *parent = 0);
 
     virtual ~CamerasMenu();
 
@@ -80,7 +79,7 @@ namespace ESPINA
     void save();
 
   private:
-    ViewManagerSPtr     m_viewManager;
+    GUI::View::ViewState &      m_viewState;
     QAction            *m_save;
     QAction            *m_clear;
     QMenu              *m_load;

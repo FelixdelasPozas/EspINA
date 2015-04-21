@@ -22,9 +22,9 @@
 #define ESPINA_VIEW2D_RENDERERS_PANEL_H_
 
 // ESPINA
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <GUI/Widgets/RenderersSelector.h>
-#include <GUI/Representations/Renderers/Renderer.h>
 
 namespace ESPINA
 {

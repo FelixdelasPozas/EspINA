@@ -25,7 +25,7 @@
 #include <GUI/Analysis/SASAnalysisDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
-#include "GUI/AppositionSurfaceTool.h"
+#include <GUI/AppositionSurfaceTool.h>
 #include <Core/Extensions/ExtensionFactory.h>
 
 // ESPINA
@@ -81,14 +81,10 @@ throw (Unknown_Filter_Exception)
 
 //-----------------------------------------------------------------------------
 AppositionSurfacePlugin::AppositionSurfacePlugin()
-: m_model           {nullptr}
-, m_factory         {nullptr}
-, m_viewManager     {nullptr}
-, m_scheduler       {nullptr}
-, m_undoStack       {nullptr}
+: m_context         {nullptr}
 , m_settings        {new AppositionSurfaceSettings()}
 , m_extensionFactory{new ASExtensionFactory()}
-, m_filterFactory   {FilterFactorySPtr{new ASFilterFactory()}}
+, m_filterFactory   {new ASFilterFactory()}
 , m_delayedAnalysis {false}
 {
   QStringList hierarchy;
@@ -110,25 +106,19 @@ AppositionSurfacePlugin::~AppositionSurfacePlugin()
 }
 
 //-----------------------------------------------------------------------------
-void AppositionSurfacePlugin::init(ModelAdapterSPtr model,
-                             ViewManagerSPtr  viewManager,
-                             ModelFactorySPtr factory,
-                             SchedulerSPtr    scheduler,
-                             QUndoStack      *undoStack)
+void AppositionSurfacePlugin::init(Support::Context &context)
 {
-  // if already initialized just return
-  if(m_model != nullptr)
-    return;
+  if (m_context != nullptr)
+  {
+    qWarning() << "Already Initialized AppositionSurfacePlugin";
+    Q_ASSERT(false);
+  }
 
-  m_model = model;
-  m_viewManager = viewManager;
-  m_factory = factory;
-  m_scheduler = scheduler;
-  m_undoStack = undoStack;
+  m_context = &context;
 
   // for automatic computation of SAS
-  connect(m_model.get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
-          this,          SLOT(segmentationsAdded(ViewItemAdapterSList)));
+  connect(m_context->model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
+          this,                     SLOT(segmentationsAdded(ViewItemAdapterSList)));
 }
 
 //-----------------------------------------------------------------------------
@@ -174,7 +164,9 @@ QList<CategorizedTool> AppositionSurfacePlugin::tools() const
 {
   QList<CategorizedTool> tools;
 
-  tools << CategorizedTool(ToolCategory::SEGMENTATE, std::make_shared<AppositionSurfaceTool>(this, m_model, m_factory, m_viewManager));
+  auto plugin = const_cast<AppositionSurfacePlugin *>(this);
+
+  tools << CategorizedTool(ToolCategory::SEGMENT, std::make_shared<AppositionSurfaceTool>(plugin, *m_context));
 
   return tools;
 }
@@ -214,82 +206,81 @@ AnalysisReaderSList AppositionSurfacePlugin::analysisReaders() const
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::createSASAnalysis()
 {
-  // if not initialized just return
-  if(m_model == nullptr)
-    return;
+  Q_ASSERT(m_context);
 
   SegmentationAdapterList synapsis;
 
-  for(auto segmentation: defaultReportInputSegmentations(m_viewManager, m_model))
-  {
-    if (isValidSynapse(segmentation))
-    {
-      synapsis << segmentation;
-    }
-  }
-
-  if (synapsis.isEmpty())
-  {
-    QMessageBox::warning(nullptr, tr("ESPINA"), tr("Current analysis does not contain any synapses"));
-    return;
-  }
-
-  if (m_model->classification()->category(SAS) == nullptr)
-  {
-    m_undoStack->beginMacro(tr("Apposition Surface"));
-    m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255, 255, 0)));
-    m_undoStack->endMacro();
-
-    m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
-    m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
-    m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
-  }
-
-  // check segmentations for SAS and create it if needed
-  for (auto segmentation : synapsis)
-  {
-    auto sasItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
-    if (sasItems.empty())
-    {
-      if (!m_delayedAnalysis)
-      {
-        m_delayedAnalysis = true;
-        m_analysisSynapses = synapsis;
-        QApplication::setOverrideCursor(Qt::WaitCursor);
-      }
-
-      InputSList inputs;
-      inputs << segmentation->asInput();
-
-      auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
-
-      struct Data data(filter, m_model->smartPointer(segmentation));
-      m_executingTasks.insert(filter.get(), data);
-
-      connect(filter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
-
-      Task::submit(filter);
-    }
-    else
-    {
-      Q_ASSERT(sasItems.size() == 1);
-      auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
-      if (!sas->hasExtension(AppositionSurfaceExtension::TYPE))
-      {
-        auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
-        std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_model->smartPointer(segmentation));
-        sas->addExtension(extension);
-      }
-    }
-  }
-
+  //TODO 2015-04-20 Update to new API
+//   for(auto segmentation: defaultReportInputSegmentations(m_viewManager, m_model))
+//   {
+//     if (isValidSynapse(segmentation))
+//     {
+//       synapsis << segmentation;
+//     }
+//   }
+//
+//   if (synapsis.isEmpty())
+//   {
+//     QMessageBox::warning(nullptr, tr("ESPINA"), tr("Current analysis does not contain any synapses"));
+//     return;
+//   }
+//
+//   if (m_model->classification()->category(SAS) == nullptr)
+//   {
+//     m_undoStack->beginMacro(tr("Apposition Surface"));
+//     m_undoStack->push(new AddCategoryCommand(m_model->classification()->root(), SAS, m_model, QColor(255, 255, 0)));
+//     m_undoStack->endMacro();
+//
+//     m_model->classification()->category(SAS)->addProperty(QString("Dim_X"), QVariant("500"));
+//     m_model->classification()->category(SAS)->addProperty(QString("Dim_Y"), QVariant("500"));
+//     m_model->classification()->category(SAS)->addProperty(QString("Dim_Z"), QVariant("500"));
+//   }
+//
+//   // check segmentations for SAS and create it if needed
+//   for (auto segmentation : synapsis)
+//   {
+//     auto sasItems = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS);
+//     if (sasItems.empty())
+//     {
+//       if (!m_delayedAnalysis)
+//       {
+//         m_delayedAnalysis = true;
+//         m_analysisSynapses = synapsis;
+//         QApplication::setOverrideCursor(Qt::WaitCursor);
+//       }
+//
+//       InputSList inputs;
+//       inputs << segmentation->asInput();
+//
+//       auto filter = m_factory->createFilter<AppositionSurfaceFilter>(inputs, AS_FILTER);
+//
+//       struct Data data(filter, m_model->smartPointer(segmentation));
+//       m_executingTasks.insert(filter.get(), data);
+//
+//       connect(filter.get(), SIGNAL(finished()), this, SLOT(finishedTask()));
+//
+//       Task::submit(filter);
+//     }
+//     else
+//     {
+//       Q_ASSERT(sasItems.size() == 1);
+//       auto sas = std::dynamic_pointer_cast<SegmentationAdapter>(sasItems.first());
+//       if (!sas->hasExtension(AppositionSurfaceExtension::TYPE))
+//       {
+//         auto extension = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+//         std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension)->setOriginSegmentation(m_model->smartPointer(segmentation));
+//         sas->addExtension(extension);
+//       }
+//     }
+//  }
+/*
   if (!m_delayedAnalysis)
   {
     SASAnalysisDialog *analysis = new SASAnalysisDialog(synapsis, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
     analysis->exec();
 
     delete analysis;
-  }
+  } */
 }
 
 //-----------------------------------------------------------------------------
@@ -309,6 +300,8 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
   if (!settings.contains("Automatic Computation For Synapses") || !settings.value("Automatic Computation For Synapses").toBool())
     return;
 
+  auto m_model   = m_context->model();
+  auto m_factory = m_context->factory();
   SegmentationAdapterList validSegmentations;
   for(auto item : segmentations)
   {
@@ -355,6 +348,10 @@ void AppositionSurfacePlugin::segmentationsAdded(ViewItemAdapterSList segmentati
 //-----------------------------------------------------------------------------
 void AppositionSurfacePlugin::finishedTask()
 {
+  auto m_model     = m_context->model();
+  auto m_factory   = m_context->factory();
+  auto m_undoStack = m_context->undoStack();
+
   auto filter = dynamic_cast<FilterPtr>(sender());
   disconnect(filter, SIGNAL(finished()), this, SLOT(finishedTask()));
 
@@ -443,14 +440,14 @@ void AppositionSurfacePlugin::finishedTask()
 
   m_undoStack->endMacro();
 
-  m_model->notifyRepresentationsModified(segmentationsToUpdate);
+  m_context->representationInvalidator().invalidateRepresentations(segmentationsToUpdate);
 
   m_finishedTasks.clear();
 
   if(m_delayedAnalysis)
   {
     QApplication::restoreOverrideCursor();
-    SASAnalysisDialog dialog(m_analysisSynapses, m_model, m_undoStack, m_factory, m_viewManager, nullptr);
+    SASAnalysisDialog dialog(m_analysisSynapses, *m_context);
     dialog.exec();
 
     m_delayedAnalysis = false;

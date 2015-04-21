@@ -250,8 +250,6 @@ namespace ESPINA
       Problem segProblem { viewItem->data().toString(), Severity::CRITICAL, tr("Item does not have a filter."), tr("Delete item.")};
       emit problem(segProblem);
     }
-
-    // TODO: fix output if filter != nullptr??
   }
 
 } // namespace ESPINA

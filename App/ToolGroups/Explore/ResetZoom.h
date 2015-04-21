@@ -24,7 +24,7 @@
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
+#include <GUI/View/ViewState.h>
 
 class QAction;
 
@@ -37,9 +37,8 @@ namespace ESPINA
     Q_OBJECT
     public:
       /** \brief ResetZoom class constructor.
-       * \param[in] vm, view manager smart pointer.
        */
-      explicit ResetZoom(ViewManagerSPtr vm);
+      explicit ResetZoom(GUI::View::ViewState &state);
 
       /** \brief ResetZoom class destructor.
        *
@@ -61,8 +60,8 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) override;
 
     private:
-      ViewManagerSPtr m_viewManager;
-      QAction        *m_action;
+      GUI::View::ViewState &m_viewState;
+      QAction      *m_action;
   };
 
   using ResetZoomSPtr = std::shared_ptr<ResetZoom>;

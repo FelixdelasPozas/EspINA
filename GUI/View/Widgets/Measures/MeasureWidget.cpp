@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "MeasureWidget.h"
+
 #include <Core/EspinaTypes.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
@@ -42,104 +43,135 @@
 #include <QKeyEvent>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::View::Widgets::Measures;
+
+
+class MeasureWidget::vtkDistanceCommand
+: public vtkCommand
+{
+  vtkTypeMacro(vtkDistanceCommand, vtkCommand);
+
+  virtual ~vtkDistanceCommand();
+
+  /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
+   *
+   */
+  static vtkDistanceCommand* New()
+  { return new vtkDistanceCommand(); }
+
+  void setDistanceWidget(vtkDistanceWidget *widget);
+
+  virtual void Execute(vtkObject *caller, unsigned long int eventId, void *callData);
+
+private:
+  /** \brief Class vtkDistanceCommand class private constructor.
+   *
+   */
+  explicit vtkDistanceCommand()
+  : m_widget{nullptr}
+  , m_camera{nullptr}
+  {}
+
+  vtkProperty2D *pointProperty(vtkHandleRepresentation *point) const;
+
+  /** \brief Computes optimal tick distance for current representation
+   * \param[in] length numerical value.
+   *
+   */
+  Nm optimalTickDistance(vtkDistanceRepresentation2D *representation) const;
+
+private:
+  vtkDistanceWidget *m_widget;
+  vtkCamera         *m_camera;
+};
 
 //----------------------------------------------------------------------------
-MeasureWidget::MeasureWidget()
-: m_command{vtkSmartPointer<vtkDistanceCommand>::New()}
+MeasureWidget::vtkDistanceCommand::~vtkDistanceCommand()
 {
-  m_command->setWidget(this);
 }
 
 //----------------------------------------------------------------------------
-MeasureWidget::~MeasureWidget()
+void MeasureWidget::vtkDistanceCommand::setDistanceWidget(vtkDistanceWidget *widget)
 {
-  for(auto view: m_widgets.keys())
-    unregisterView(view);
+  m_widget = widget;
 
-  m_cameras.clear();
-  m_widgets.clear();
-  m_command = nullptr;
-}
-
-//----------------------------------------------------------------------------
-void MeasureWidget::registerView(RenderView *view)
-{
-  auto view2d = dynamic_cast<View2D *>(view);
-
-  if (!view2d || m_widgets.keys().contains(view))
-    return;
-
-  auto widget = vtkDistanceWidget::New();
-  widget->AddObserver(vtkCommand::StartInteractionEvent, m_command);
-  widget->AddObserver(vtkCommand::InteractionEvent, m_command);
-  m_widgets.insert(view2d, widget);
-
-  widget->SetCurrentRenderer(view2d->mainRenderer());
-  widget->SetInteractor(view2d->renderWindow()->GetInteractor());
-  widget->CreateDefaultRepresentation();
-  widget->On();
-}
-
-//----------------------------------------------------------------------------
-void MeasureWidget::unregisterView(RenderView *view)
-{
-  if (!m_widgets.keys().contains(view))
-    return;
-
-  auto widget = m_widgets[view];
-
-  for(auto camera: m_cameras[widget])
-    camera->RemoveObserver(m_command);
-
-  m_cameras.remove(widget);
-
-  widget->Off();
-  view->mainRenderer()->RemoveActor(widget->GetRepresentation());
-  widget->RemoveObserver(m_command);
-  widget->SetCurrentRenderer(nullptr);
-  widget->SetInteractor(nullptr);
-  widget->Delete();
-
-  m_widgets.remove(view);
-}
-
-//----------------------------------------------------------------------------
-void MeasureWidget::setEnabled(bool enable)
-{
-  for(vtkDistanceWidget *widget: m_cameras.keys())
-    widget->SetEnabled(enable);
-}
-
-//----------------------------------------------------------------------------
-bool MeasureWidget::filterEvent(QEvent *e, RenderView *view)
-{
-  if (e->type() == QEvent::KeyPress)
+  if (!m_widget && m_camera)
   {
-    QKeyEvent *ke = reinterpret_cast<QKeyEvent*>(e);
-    if (ke->key() == Qt::Key_Backspace)
+    m_camera->RemoveObserver(this);
+    m_camera = nullptr;
+  }
+}
+
+//----------------------------------------------------------------------------
+void MeasureWidget::vtkDistanceCommand::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
+{
+  if (strcmp("vtkOpenGLCamera", caller->GetClassName()) == 0)
+  {
+    double p1[3], p2[3];
+    // Force representation update when zoom is applied
+    m_widget->GetDistanceRepresentation()->GetPoint1WorldPosition(p1);
+    m_widget->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
+    m_widget->GetDistanceRepresentation()->GetPoint2WorldPosition(p2);
+    m_widget->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
+    m_widget->GetDistanceRepresentation()->BuildRepresentation();
+  }
+  else if (strcmp("vtkDistanceWidget", caller->GetClassName()) == 0)
+  {
+    auto widget = reinterpret_cast<vtkDistanceWidget*>(caller);
+    auto rep    = reinterpret_cast<vtkDistanceRepresentation2D*>(widget->GetRepresentation());
+
+    if (vtkCommand::StartInteractionEvent == eventId)
     {
-      for(auto widget: m_cameras.keys())
+      if (!m_camera)
       {
-        widget->SetWidgetStateToStart();
-        widget->GetDistanceRepresentation()->VisibilityOff();
-        widget->GetDistanceRepresentation()->GetPoint1Representation()->VisibilityOff();
-        widget->GetDistanceRepresentation()->GetPoint2Representation()->VisibilityOff();
-        widget->Render();
+        auto renderers = widget->GetInteractor()->GetRenderWindow()->GetRenderers();
+        auto renderer  = renderers->GetFirstRenderer();
+
+        m_camera = renderer->GetActiveCamera();
+        m_camera->AddObserver(vtkCommand::AnyEvent, this);
+      }
+
+      rep->SetLabelFormat("%.1f nm");
+      rep->RulerModeOn();
+      rep->SetRulerDistance(optimalTickDistance(rep));
+
+      auto property = pointProperty(rep->GetPoint1Representation());
+      property->SetColor(0.0, 1.0, 0.0);
+      property->SetLineWidth(2);
+
+      property = pointProperty(rep->GetPoint2Representation());
+      property->SetColor(0.0, 1.0, 0.0);
+      property->SetLineWidth(2);
+    }
+    else if (vtkCommand::InteractionEvent == eventId)
+    {
+      Nm newTickDistance = optimalTickDistance(rep);
+
+      if (rep->GetRulerDistance() != newTickDistance)
+      {
+        rep->SetRulerDistance(newTickDistance);
+        rep->BuildRepresentation();
       }
     }
   }
-
-  return false;
 }
 
 //----------------------------------------------------------------------------
-double MeasureWidget::ComputeRulerTickDistance(double distance)
+vtkProperty2D *MeasureWidget::vtkDistanceCommand::pointProperty(vtkHandleRepresentation *point) const
 {
-  double result = 1.0;
+  return reinterpret_cast<vtkPointHandleRepresentation2D*>(point)->GetProperty();
+}
+
+//----------------------------------------------------------------------------
+Nm MeasureWidget::vtkDistanceCommand::optimalTickDistance(vtkDistanceRepresentation2D *representation) const
+{
+  Nm result   = 1.0;
+  Nm distance = representation->GetDistance();
 
   while (distance >= 10)
   {
-    result *= 10.0;
+    result   *= 10.0;
     distance /= 10.0;
   }
 
@@ -147,80 +179,78 @@ double MeasureWidget::ComputeRulerTickDistance(double distance)
 }
 
 //----------------------------------------------------------------------------
-void vtkDistanceCommand::Execute(vtkObject *caller, unsigned long int eventId, void* callData)
+MeasureWidget::MeasureWidget(MeasureEventHandler *eventHandler)
+: m_eventHandler(eventHandler)
+, m_command{vtkSmartPointer<vtkDistanceCommand>::New()}
+, m_widget{vtkSmartPointer<vtkDistanceWidget>::New()}
 {
-  MeasureWidget *eWidget = dynamic_cast<MeasureWidget *>(m_widget);
+  m_widget->AddObserver(vtkCommand::StartInteractionEvent, m_command);
+  m_widget->AddObserver(vtkCommand::InteractionEvent,      m_command);
+  m_widget->CreateDefaultRepresentation();
 
-  vtkDistanceWidget *widget = nullptr;
-  vtkDistanceRepresentation2D *rep = nullptr;
-  vtkCamera *camera = nullptr;
-
-  if (strcmp("vtkOpenGLCamera", caller->GetClassName()) == 0)
-    camera = reinterpret_cast<vtkCamera*>(caller);
-
-  if (strcmp("vtkDistanceWidget", caller->GetClassName()) == 0)
-  {
-    widget = reinterpret_cast<vtkDistanceWidget*>(caller);
-    rep = reinterpret_cast<vtkDistanceRepresentation2D*>(widget->GetRepresentation());
-  }
-
-  if (widget != nullptr)
-  {
-    if (vtkCommand::StartInteractionEvent == eventId)
-    {
-      vtkRendererCollection *renderers = widget->GetInteractor()->GetRenderWindow()->GetRenderers();
-      vtkRenderer *renderer = renderers->GetFirstRenderer();
-
-      for(auto dWidget: eWidget->m_widgets.values())
-      {
-        if(dWidget == widget)
-        {
-          if(eWidget->m_cameras[dWidget].empty())
-          {
-            vtkCamera *camera = renderer->GetActiveCamera();
-            camera->AddObserver(vtkCommand::AnyEvent, this);
-            eWidget->m_cameras[dWidget] << camera;
-            renderer = renderers->GetNextItem();
-          }
-        }
-      }
-
-      rep->SetLabelFormat("%.1f nm");
-      rep->RulerModeOn();
-      rep->SetRulerDistance(eWidget->ComputeRulerTickDistance(rep->GetDistance()));
-
-      vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint1Representation())->GetProperty();
-      property->SetColor(0.0, 1.0, 0.0);
-      property->SetLineWidth(2);
-
-      property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint2Representation())->GetProperty();
-      property->SetColor(0.0, 1.0, 0.0);
-      property->SetLineWidth(2);
-    }
-    else if (vtkCommand::InteractionEvent == eventId)
-    {
-      double newTickDistance = eWidget->ComputeRulerTickDistance(rep->GetDistance());
-      if (rep->GetRulerDistance() != newTickDistance)
-      {
-        rep->SetRulerDistance(newTickDistance);
-        rep->BuildRepresentation();
-      }
-    }
-    return;
-  }
-
-  if (camera != nullptr)
-  {
-    double p1[3], p2[3];
-    for(vtkDistanceWidget *dWidget: eWidget->m_cameras.keys())
-      if(eWidget->m_cameras[dWidget].contains(camera))
-      {
-        dWidget->GetDistanceRepresentation()->GetPoint1WorldPosition(p1);
-        dWidget->GetDistanceRepresentation()->SetPoint1WorldPosition(p1);
-        dWidget->GetDistanceRepresentation()->GetPoint2WorldPosition(p2);
-        dWidget->GetDistanceRepresentation()->SetPoint2WorldPosition(p2);
-        dWidget->GetDistanceRepresentation()->BuildRepresentation();
-      }
-  }
+  connect(eventHandler, SIGNAL(clear()),
+          this,         SLOT(onClear()));
 }
 
+//----------------------------------------------------------------------------
+MeasureWidget::~MeasureWidget()
+{
+}
+
+//----------------------------------------------------------------------------
+void MeasureWidget::setPlane(Plane plane)
+{
+
+}
+
+//----------------------------------------------------------------------------
+void MeasureWidget::setRepresentationDepth(Nm depth)
+{
+
+}
+
+//----------------------------------------------------------------------------
+EspinaWidget2DSPtr MeasureWidget::clone()
+{
+  return std::make_shared<MeasureWidget>(m_eventHandler);
+}
+
+//----------------------------------------------------------------------------
+bool MeasureWidget::acceptCrosshairChange(const NmVector3 &crosshair) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+bool MeasureWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+void MeasureWidget::initializeImplementation(RenderView *view)
+{
+  m_command->setDistanceWidget(m_widget);
+}
+
+//----------------------------------------------------------------------------
+void MeasureWidget::uninitializeImplementation()
+{
+  m_command->setDistanceWidget(nullptr);
+}
+
+//----------------------------------------------------------------------------
+vtkAbstractWidget *MeasureWidget::vtkWidget()
+{
+  return m_widget;
+}
+
+//----------------------------------------------------------------------------
+void MeasureWidget::onClear()
+{
+  m_widget->SetWidgetStateToStart();
+  m_widget->GetDistanceRepresentation()->VisibilityOff();
+  m_widget->GetDistanceRepresentation()->GetPoint1Representation()->VisibilityOff();
+  m_widget->GetDistanceRepresentation()->GetPoint2Representation()->VisibilityOff();
+  m_widget->Render();
+}

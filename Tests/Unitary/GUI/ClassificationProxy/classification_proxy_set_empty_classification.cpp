@@ -35,6 +35,7 @@
 
 using namespace ESPINA;
 using namespace std;
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 int classification_proxy_set_empty_classification( int argc, char** argv )
 {
@@ -42,8 +43,10 @@ int classification_proxy_set_empty_classification( int argc, char** argv )
 
   AnalysisSPtr analysis{new Analysis()};
 
-  ModelAdapterSPtr modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter);
+  Timer               timer;
+  Invalidator         invalidator(timer);
+  ModelAdapterSPtr    modelAdapter(new ModelAdapter());
+  ClassificationProxy proxy(modelAdapter, invalidator);
   ModelTest           modelTester(&proxy);
 
   SchedulerSPtr sch;

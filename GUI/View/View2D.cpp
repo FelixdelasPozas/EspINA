@@ -18,12 +18,10 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 // ESPINA
 #include "View2D.h"
 
 #include "PlanarBehaviour.h"
-#include "ViewRendererMenu.h"
 #include "Widgets/EspinaWidget.h"
 #include <GUI/View/vtkInteractorStyleEspinaSlice.h>
 #include <Core/Analysis/Channel.h>
@@ -86,8 +84,8 @@ using namespace ESPINA;
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-View2D::View2D(Plane plane, QWidget* parent)
-: RenderView        {ViewType::VIEW_2D, parent}
+View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane)
+: RenderView        {state, selection, ViewType::VIEW_2D}
 , m_mainLayout      {new QVBoxLayout()}
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
@@ -97,19 +95,16 @@ View2D::View2D(Plane plane, QWidget* parent)
 , m_zoomButton      {nullptr}
 , m_snapshot        {nullptr}
 , m_repManagerMenu  {nullptr}
-, m_ruler           {vtkSmartPointer<vtkAxisActor2D>::New()}
-, m_slicingStep     {1, 1, 1}
 , m_showThumbnail   {true}
 , m_inThumbnail     {false}
-, m_sceneReady      {false}
-, m_plane           {plane}
-, m_scale           {1.0}
-, m_normalCoord     {normalCoordinateIndex(plane)}
-, m_fitToSlices     {true}
-, m_invertSliceOrder{false}
-, m_invertWheel     {false}
-, m_rulerVisibility {true}
 , m_inThumbnailClick{true}
+, m_scaleValue      {1.0}
+, m_scaleVisibility {true}
+, m_scale           {vtkSmartPointer<vtkAxisActor2D>::New()}
+, m_plane           {plane}
+, m_normalCoord     {normalCoordinateIndex(plane)}
+, m_invertWheel     {false}
+, m_invertSliceOrder{false}
 {
   setupUI();
 
@@ -154,18 +149,18 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_thumbnail->DrawOff();
 
   // Init Ruler
-  m_ruler->SetPosition(0.1, 0.1);
-  m_ruler->SetPosition2(0.1, 0.1);
-  m_ruler->SetPickable(false);
-  m_ruler->SetLabelFactor(0.8);
-  m_ruler->SetFontFactor(1);
-  m_ruler->SetTitle("nm");
-  m_ruler->RulerModeOff();
-  m_ruler->SetLabelFormat("%.0f");
-  m_ruler->SetAdjustLabels(false);
-  m_ruler->SetNumberOfLabels(2);
-  m_ruler->SizeFontRelativeToAxisOff();
-  m_renderer->AddViewProp(m_ruler);
+  m_scale->SetPosition(0.1, 0.1);
+  m_scale->SetPosition2(0.1, 0.1);
+  m_scale->SetPickable(false);
+  m_scale->SetLabelFactor(0.8);
+  m_scale->SetFontFactor(1);
+  m_scale->SetTitle("nm");
+  m_scale->RulerModeOff();
+  m_scale->SetLabelFormat("%.0f");
+  m_scale->SetAdjustLabels(false);
+  m_scale->SetNumberOfLabels(2);
+  m_scale->SizeFontRelativeToAxisOff();
+  m_renderer->AddViewProp(m_scale);
 
   auto interactor = View2DInteractor::New();
   interactor->AutoAdjustCameraClippingRangeOff();
@@ -182,8 +177,6 @@ View2D::View2D(Plane plane, QWidget* parent)
   m_viewportBorder     = vtkSmartPointer<vtkActor>::New();
   initBorders(m_viewportBorderData, m_viewportBorder);
 
-  buildCrosshairs();
-
   this->setAutoFillBackground(true);
   this->setLayout(m_mainLayout);
 
@@ -197,21 +190,9 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-  for(auto widget: m_widgets)
-  {
-    RenderView::removeWidget(widget);
-  }
-  m_widgets.clear();
-
-  m_renderer->RemoveViewProp(m_ruler);
+  m_renderer->RemoveViewProp(m_scale);
 
   m_state2D.reset();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::setFitToSlices(bool value)
-{
-  m_fitToSlices = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -223,14 +204,16 @@ void View2D::setInvertSliceOrder(bool value)
 //-----------------------------------------------------------------------------
 void View2D::reset()
 {
-  for(auto widget: m_widgets)
-  {
-    widget->unregisterView(this);
-  }
 }
 
 //-----------------------------------------------------------------------------
-Nm rulerScale(Nm value)
+vtkRenderer *View2D::mainRenderer() const
+{
+  return m_renderer;
+}
+
+//-----------------------------------------------------------------------------
+Nm scaleResolution(Nm value)
 {
   int factor = 100;
 
@@ -257,7 +240,7 @@ Nm rulerScale(Nm value)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateRuler()
+void View2D::updateScale()
 {
   if (!m_renderer || !m_view->GetRenderWindow()) return;
 
@@ -279,93 +262,66 @@ void View2D::updateRuler()
   Nm viewWidth = fabs(left-right);
 
   Nm scale = rulerLength * viewWidth;
-  scale = rulerScale(scale);
+  scale = scaleResolution(scale);
   rulerLength = scale / viewWidth;
 
-  m_ruler->SetRange(0, scale);
-  m_ruler->SetPoint2(0.1+rulerLength, 0.1);
-  m_ruler->SetVisibility(m_rulerVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
+  m_scale->SetRange(0, scale);
+  m_scale->SetPoint2(0.1+rulerLength, 0.1);
+  m_scale->SetVisibility(m_scaleVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
 }
 
 //-----------------------------------------------------------------------------
 void View2D::updateThumbnail()
 {
-  if (!m_showThumbnail || !m_sceneReady)
-    return;
-
-  double *value;
-  // Position of world margins acording to the display
-  // Depending on the plane being shown can refer to different
-  // bound components
-  double viewLeft, viewRight, viewUpper, viewLower;
-
-  auto coords = vtkSmartPointer<vtkCoordinate>::New();
-  coords->SetViewport(m_renderer);
-  coords->SetCoordinateSystemToNormalizedViewport();
-
-  int h = m_plane == Plane::YZ ? 2 : 0;
-  int v = m_plane == Plane::XZ ? 2 : 1;
-
-  coords->SetValue(0, 0); // Viewport Lower Left Corner
-  value = coords->GetComputedWorldValue(m_renderer);
-  viewLeft  = value[h]; // Left Margin in World Coordinates
-  viewLower = value[v]; // Lower Margin in World Coordinates
-
-  coords->SetValue(1, 1);
-  value = coords->GetComputedWorldValue(m_renderer);
-  viewRight = value[h]; // Right Margin in World Coordinates
-  viewUpper = value[v]; // Upper Margin in World Coordinates
-
-  double sceneLeft  = m_sceneBounds[2*h];
-  double sceneRight = m_sceneBounds[2*h+1];
-  double sceneLower = m_sceneBounds[2*v];
-  double sceneUpper = m_sceneBounds[2*v+1];
-
-  // viewLower and viewUpper are inverted because the roll we made
-  // in the renderer camera
-  bool leftHidden  = sceneLeft < viewLeft;
-  bool rightHidden = sceneRight > viewRight;
-  bool upperHidden = sceneUpper > viewLower;
-  bool lowerHidden = sceneLower < viewUpper;
-
-  if (leftHidden || rightHidden || upperHidden || lowerHidden)
+  if (m_showThumbnail)
   {
-    m_thumbnail->DrawOn();
-    updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
-    m_thumbnail->ResetCameraClippingRange();
+    double *value;
+    // Position of world margins acording to the display
+    // Depending on the plane being shown can refer to different
+    // bound components
+    double viewLeft, viewRight, viewUpper, viewLower;
+
+    auto coords = vtkSmartPointer<vtkCoordinate>::New();
+    coords->SetViewport(m_renderer);
+    coords->SetCoordinateSystemToNormalizedViewport();
+
+    int h = m_plane == Plane::YZ ? 2 : 0;
+    int v = m_plane == Plane::XZ ? 2 : 1;
+
+    coords->SetValue(0, 0); // Viewport Lower Left Corner
+    value = coords->GetComputedWorldValue(m_renderer);
+    viewLeft  = value[h]; // Left Margin in World Coordinates
+    viewLower = value[v]; // Lower Margin in World Coordinates
+
+    coords->SetValue(1, 1);
+    value = coords->GetComputedWorldValue(m_renderer);
+    viewRight = value[h]; // Right Margin in World Coordinates
+    viewUpper = value[v]; // Upper Margin in World Coordinates
+
+    auto bounds = sceneBounds();
+    double sceneLeft  = bounds[2*h];
+    double sceneRight = bounds[2*h+1];
+    double sceneLower = bounds[2*v];
+    double sceneUpper = bounds[2*v+1];
+
+    // viewLower and viewUpper are inverted because the roll we made
+    // in the renderer camera
+    bool leftHidden  = sceneLeft < viewLeft;
+    bool rightHidden = sceneRight > viewRight;
+    bool upperHidden = sceneUpper > viewLower;
+    bool lowerHidden = sceneLower < viewUpper;
+
+    if (leftHidden || rightHidden || upperHidden || lowerHidden)
+    {
+      m_thumbnail->DrawOn();
+      updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
+      m_thumbnail->ResetCameraClippingRange();
+    }
+    else
+    {
+      m_thumbnail->DrawOff();
+    }
   }
-  else
-    m_thumbnail->DrawOff();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::updateSceneBounds()
-{
-  RenderView::updateSceneBounds();
-
-  if (m_spinBox->minimum() == 0 && m_spinBox->maximum() == 0)
-  {
-    emit crosshairChanged(NmVector3());
-  }
-
-  setSlicingStep(m_sceneResolution);
-
-  // reset thumbnail channel border
-  int h = m_plane == Plane::YZ ? 2 : 0;
-  int v = m_plane == Plane::XZ ? 2 : 1;
-
-  double sceneLeft  = m_sceneBounds[2*h];
-  double sceneRight = m_sceneBounds[2*h+1];
-  double sceneUpper = m_sceneBounds[2*v];
-  double sceneLower = m_sceneBounds[2*v+1];
-
-  updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
-
-  // REVIEW
-//   // we need to update the view only if a signal has been sent
-//   // (the volume of a channel has been updated)
-//   if (sender() != nullptr)
-//     updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -405,25 +361,27 @@ void View2D::initBorders(vtkPolyData* data, vtkActor* actor)
 void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm lower)
 {
   auto corners = data->GetPoints();
-  Nm zShift;
+
+  Nm   zShift;
+  auto bounds = sceneBounds();
   switch(m_plane)
   {
     case Plane::XY:
-      zShift = m_sceneBounds[4]-0.1;
+      zShift = bounds[4] + widgetDepth();
       corners->SetPoint(0, left,  upper, zShift); //UL
       corners->SetPoint(1, right, upper, zShift); //UR
       corners->SetPoint(2, right, lower, zShift); //LR
       corners->SetPoint(3, left,  lower, zShift); //LL
       break;
     case Plane::XZ:
-      zShift = m_sceneBounds[3]+0.1;
+      zShift = bounds[3] + widgetDepth();
       corners->SetPoint(0, left,  zShift, upper); //UL
       corners->SetPoint(1, right, zShift, upper); //UR
       corners->SetPoint(2, right, zShift, lower); //LR
       corners->SetPoint(3, left,  zShift, lower); //LL
       break;
     case Plane::YZ:
-      zShift = m_sceneBounds[1]+0.1;
+      zShift = bounds[1] + widgetDepth();
       corners->SetPoint(0, zShift, upper,  left); //UL
       corners->SetPoint(1, zShift, lower,  left); //UR
       corners->SetPoint(2, zShift, lower, right); //LR
@@ -437,113 +395,17 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
 }
 
 //-----------------------------------------------------------------------------
-Nm View2D::voxelBottom(const int sliceIndex, const Plane plane) const
-{
-  int index = normalCoordinateIndex(plane);
-  return m_sceneBounds[2*index] + sliceIndex * m_slicingStep[index];
-}
-
-//-----------------------------------------------------------------------------
-Nm View2D::voxelBottom(const Nm position, const Plane plane) const
-{
-  return voxelBottom(voxelSlice(position, plane), plane);
-}
-
-//-----------------------------------------------------------------------------
-Nm View2D::voxelCenter(const int sliceIndex, const Plane plane) const
-{
-  int index = normalCoordinateIndex(plane);
-  return m_sceneBounds[2*index] + ((static_cast<double>(sliceIndex) + 0.5)* m_slicingStep[index]);
-}
-
-//-----------------------------------------------------------------------------
-Nm View2D::voxelCenter(const Nm position, const Plane plane) const
-{
-  return voxelCenter(voxelSlice(position, plane), plane);
-}
-
-//-----------------------------------------------------------------------------
-Nm View2D::voxelTop(const int sliceIndex, const Plane plane) const
-{
-  int index = normalCoordinateIndex(plane);
-  return m_sceneBounds[2*index] + (sliceIndex + 1.0) * m_slicingStep[index];
-}
-
-//-----------------------------------------------------------------------------
-Nm View2D::voxelTop(const Nm position, const Plane plane) const
-{
-  return voxelTop(voxelSlice(position, plane), plane);
-}
-
-//-----------------------------------------------------------------------------
-int View2D::voxelSlice(const Nm position, const Plane plane) const
-{
-  int index = normalCoordinateIndex(plane);
-  return vtkMath::Floor((position-m_sceneBounds[2*index])/m_slicingStep[index]);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::buildCrosshairs()
-{
-  auto HPoints = vtkPoints::New();
-  HPoints->InsertNextPoint(-0.5, 0, 0);
-  HPoints->InsertNextPoint(0.5, 0, 0);
-  auto HLine = vtkCellArray::New();
-  HLine->EstimateSize(1, 2);
-  HLine->InsertNextCell (2);
-  HLine->InsertCellPoint(0);
-  HLine->InsertCellPoint(1);
-
-  m_HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-  m_HCrossLineData->SetPoints(HPoints);
-  m_HCrossLineData->SetLines (HLine);
-
-  HPoints->Delete();
-  HLine->Delete();
-
-  auto HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  HMapper->SetInputData(m_HCrossLineData);
-
-  m_HCrossLine = vtkSmartPointer<vtkActor>::New();
-  m_HCrossLine->SetMapper(HMapper);
-  m_HCrossLine->GetProperty()->SetLineWidth(2);
-  m_HCrossLine->SetPickable(false);
-
-  auto VPoints = vtkPoints::New();
-  VPoints->InsertNextPoint(0, -0.5, 0);
-  VPoints->InsertNextPoint(0, 0.5, 0);
-  auto VLine = vtkCellArray::New();
-  VLine->EstimateSize(1, 2);
-  VLine->InsertNextCell (2);
-  VLine->InsertCellPoint(0);
-  VLine->InsertCellPoint(1);
-
-  m_VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-  m_VCrossLineData->SetPoints(VPoints);
-  m_VCrossLineData->SetLines(VLine);
-
-  VPoints->Delete();
-  VLine->Delete();
-
-  auto VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  VMapper->SetInputData(m_VCrossLineData);
-
-  m_VCrossLine = vtkSmartPointer<vtkActor>::New();
-  m_VCrossLine->SetMapper(VMapper);
-  m_VCrossLine->GetProperty()->SetLineWidth(2);
-  m_VCrossLine->SetPickable(false);
-}
-
-//-----------------------------------------------------------------------------
 void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
   m_zoomButton = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
-  connect(m_zoomButton, SIGNAL(clicked()), this, SLOT(resetView()));
+  connect(m_zoomButton, SIGNAL(clicked()),
+          this,         SLOT(resetCamera()));
 
   m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
-  connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
+  connect(m_snapshot, SIGNAL(clicked(bool)),
+          this,       SLOT(onTakeSnapshot()));
 
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -556,9 +418,6 @@ void View2D::setupUI()
   m_spinBox->setAlignment(Qt::AlignRight);
   m_spinBox->setSingleStep(1);
 
-//   m_repManagerMenu = createButton(":/espina/settings.png", tr("Configure this view's renderers"));
-//   m_repManagerMenu->setStyleSheet("QPushButton::menu-indicator {image: "";}");
-
   connect(m_spinBox,   SIGNAL(valueChanged(double)),
           this,        SLOT(spinValueChanged(double)));
 
@@ -569,7 +428,6 @@ void View2D::setupUI()
   m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
-//   m_controlLayout->addWidget(m_repManagerMenu);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
   m_controlLayout->addLayout(m_toLayout);
@@ -584,90 +442,38 @@ void View2D::setupUI()
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setCrosshairColors(const QColor& vColor, const QColor& hColor)
+double View2D::segmentationDepth() const
 {
-  double hc[3] = {hColor.redF(), hColor.greenF(), hColor.blueF()};
-  double vc[3] = {vColor.redF(), vColor.greenF(), vColor.blueF()};
-
-  m_HCrossLine->GetProperty()->SetColor(hc);
-  m_VCrossLine->GetProperty()->SetColor(vc);
+  auto segmentationShift = 0.05;
+  return Plane::XY == m_plane ? -segmentationShift : segmentationShift;
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setCrosshairVisibility(bool visible)
+double View2D::widgetDepth() const
 {
-  if(visible == this->m_renderer->HasViewProp(this->m_HCrossLine))
-  {
-    return;
-  }
+  auto depthSpacing = this->sceneResolution()[normalCoordinateIndex(m_plane)];
+  auto widgetShift = 0.15 + depthSpacing;
 
-  if (visible)
-  {
-    m_renderer->AddViewProp(m_HCrossLine);
-    m_renderer->AddViewProp(m_VCrossLine);
-  }
-  else
-  {
-    m_renderer->RemoveViewProp(m_HCrossLine);
-    m_renderer->RemoveViewProp(m_VCrossLine);
-  }
+  return Plane::XY == m_plane ? -widgetShift : widgetShift;
+}
 
-  updateView();
+//-----------------------------------------------------------------------------
+Nm View2D::slicingPosition() const
+{
+  return crosshair()[m_normalCoord];
 }
 
 //-----------------------------------------------------------------------------
 void View2D::setThumbnailVisibility(bool visible)
 {
-  if(m_showThumbnail == visible)
-    return;
-
-  m_showThumbnail = visible;
-
-  m_thumbnail->SetDraw(visible && m_sceneReady);
-
-  updateView();
-}
-
-//-----------------------------------------------------------------------------
-void View2D::updateView()
-{
-  if (isVisible())
+  if(m_showThumbnail != visible)
   {
-    if (m_plane == Plane::XY) qDebug() << "Rendering XY";
-    if (m_plane == Plane::XZ) qDebug() << "Rendering XZ";
-    if (m_plane == Plane::YZ) qDebug() << "Rendering YZ";
+    m_showThumbnail = visible;
 
-    updateRuler();
-    updateThumbnail();
+    m_thumbnail->SetDraw(visible);
 
-    m_renderer->ResetCameraClippingRange();
-
-    m_view->GetRenderWindow()->Render();
+    refresh();
   }
-}
-
-//-----------------------------------------------------------------------------
-void View2D::resetCamera()
-{
-  NmVector3 origin{ 0, 0, 0 };
-
-  m_state2D->updateCamera(m_renderer ->GetActiveCamera(), origin);
-  m_state2D->updateCamera(m_thumbnail->GetActiveCamera(), origin);
-
-  m_thumbnail->RemoveViewProp(m_channelBorder);
-  m_thumbnail->RemoveViewProp(m_viewportBorder);
-
-  updateSceneBounds();
-  updateThumbnail();
-
-  m_renderer->ResetCamera();
-  m_thumbnail->ResetCamera();
-  m_thumbnail->AddViewProp(m_channelBorder);
-  m_thumbnail->AddViewProp(m_viewportBorder);
-
-  m_sceneReady = !m_channelSources->isEmpty();
-
-  updateScale();
 }
 
 //-----------------------------------------------------------------------------
@@ -679,10 +485,6 @@ void View2D::addActor(vtkProp* actor)
   m_thumbnail->RemoveViewProp(m_channelBorder);
   m_thumbnail->RemoveViewProp(m_viewportBorder);
 
-  updateThumbnail();
-//  m_thumbnail->ResetCamera();
-//  updateThumbnail();
-
   m_thumbnail->AddViewProp(m_channelBorder);
   m_thumbnail->AddViewProp(m_viewportBorder);
 }
@@ -693,6 +495,43 @@ void View2D::removeActor(vtkProp* actor)
   m_renderer->RemoveActor(actor);
   m_thumbnail->RemoveActor(actor);
 
+  //updateThumbnail();
+}
+
+//-----------------------------------------------------------------------------
+void View2D::updateViewActions(RepresentationManager::Flags flags)
+{
+  auto hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
+
+  m_zoomButton->setEnabled(hasActors);
+  m_snapshot->setEnabled(hasActors);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::resetCameraImplementation()
+{
+  auto origin = state().coordinateSystem()->origin();
+
+  m_state2D->updateCamera(m_renderer ->GetActiveCamera(), origin);
+  m_state2D->updateCamera(m_thumbnail->GetActiveCamera(), origin);
+
+  m_thumbnail->RemoveViewProp(m_channelBorder);
+  m_thumbnail->RemoveViewProp(m_viewportBorder);
+
+  updateThumbnail();
+
+  m_renderer->ResetCamera();
+  m_thumbnail->ResetCamera();
+  m_thumbnail->AddViewProp(m_channelBorder);
+  m_thumbnail->AddViewProp(m_viewportBorder);
+
+  updateScaleValue();
+}
+
+//-----------------------------------------------------------------------------
+void View2D::refreshViewImplementation()
+{
+  updateScale();
   updateThumbnail();
 }
 
@@ -724,10 +563,12 @@ Bounds View2D::previewBounds(bool cropToSceneBounds) const
 
   if (cropToSceneBounds)
   {
-    bounds[2*H]   = std::max(LL[H], m_sceneBounds[2*H]);
-    bounds[2*H+1] = std::min(UR[H], m_sceneBounds[2*H+1]);
-    bounds[2*V]   = std::max(UR[V], m_sceneBounds[2*V]);
-    bounds[2*V+1] = std::min(LL[V], m_sceneBounds[2*V+1]);
+    auto sBounds = sceneBounds();
+
+    bounds[2*H]   = std::max(LL[H], sBounds[2*H]);
+    bounds[2*H+1] = std::min(UR[H], sBounds[2*H+1]);
+    bounds[2*V]   = std::max(UR[V], sBounds[2*V]);
+    bounds[2*V+1] = std::min(LL[V], sBounds[2*V+1]);
   }
   bounds.setUpperInclusion(true);
 
@@ -745,7 +586,7 @@ void View2D::scrollValueChanged(int value/*slice index */)
 //-----------------------------------------------------------------------------
 void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToSlices */)
 {
-  int sliceIndex = m_fitToSlices ? (value - 1) : voxelSlice(value, m_plane);
+  int sliceIndex = fitToSlices()?(value - 1) : voxelSlice(value, m_plane);
 
   auto position = voxelCenter(sliceIndex, m_plane);
 
@@ -761,7 +602,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 
   m_inThumbnail = m_thumbnail && m_thumbnail->GetDraw() && m_thumbnail->PickProp(xPos, yPos);
 
-  if (!m_inThumbnail && m_eventHandler && m_eventHandler->filterEvent(e, this))
+  if (!m_inThumbnail && eventHandlerFilterEvent(e))
   {
     return true;
   }
@@ -769,7 +610,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
   switch (e->type())
   {
     case QEvent::Resize:
-      updateView();
+      refresh();
       e->accept();
       break;
     case QEvent::Wheel:
@@ -788,9 +629,9 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       // get the focus this very moment
       setFocus(Qt::OtherFocusReason);
 
-      if (m_eventHandler && !m_inThumbnail)
+      if (eventHandler() && !m_inThumbnail)
       {
-        m_view->setCursor(m_eventHandler->cursor());
+        m_view->setCursor(eventHandler()->cursor());
       }
       else
       {
@@ -844,11 +685,11 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 
           if (me->button() == Qt::RightButton)
           {
-            updateScale();
+            updateScaleValue();
           }
 
           // to avoid interfering with ctrl use in the event handler/selector
-          if (!m_eventHandler)
+          if (!eventHandler())
           {
             if ((e->type() == QEvent::MouseButtonPress) && (me->button() == Qt::LeftButton))
             {
@@ -858,7 +699,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
               }
               else
               {
-                if (selectionEnabled() && !m_eventHandler)
+                if (selectionEnabled())
                 {
                   bool appendSelectedItems = me->modifiers() == Qt::SHIFT;
                   selectPickedItems(xPos, yPos, appendSelectedItems);
@@ -870,24 +711,16 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           }
           else
           {
-            m_view->setCursor(m_eventHandler->cursor());
+            m_view->setCursor(eventHandler()->cursor());
           }
         }
 
-        updateRuler();
+        updateScale();
         updateThumbnail();
       }
       break;
     default:
       break;
-  }
-
-  for (auto widget : m_widgets)
-  {
-    // TODO: widget is not an event handler
-//    auto eventHandler = dynamic_cast<EventHandler *>(widget.get());
-//    if(eventHandler && eventHandler->filterEvent(e, this))
-//      return true;
   }
 
   return QWidget::eventFilter(caller, e);
@@ -896,8 +729,11 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 //-----------------------------------------------------------------------------
 void View2D::keyPressEvent(QKeyEvent *e)
 {
-  if (m_eventHandler && m_eventHandler->filterEvent(e, this))
-      updateView();
+  // TODO 2015-04-20 Remove if not needed by new crosshair and toggle segmentation visibility?
+  if (eventHandlerFilterEvent(e))
+  {
+    refresh();
+  }
 };
 
 //-----------------------------------------------------------------------------
@@ -973,24 +809,11 @@ void View2D::selectPickedItems(int x, int y, bool append)
       selection << item;
     }
 
-    if (!append)
-      break;
+    if (!append) break;
   }
 
   currentSelection()->set(selection);
 }
-
-// //-----------------------------------------------------------------------------
-// void View2::updateChannelsOpacity()
-// {
-//   // TODO: Define opacity behaviour
-//   double opacity = suggestedChannelOpacity();
-//
-//   for(auto channel: m_channelStates.keys())
-//     if (Channel::AUTOMATIC_OPACITY == channel->opacity())
-//       for(auto representation: m_channelStates[channel].representations)
-//         representation->setOpacity(opacity);
-// }
 
 //-----------------------------------------------------------------------------
 void View2D::configureManager(RepresentationManagerSPtr manager)
@@ -1027,7 +850,7 @@ vtkSmartPointer< vtkRenderer > View2D::rendererUnderCuror() const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::showSegmentationTooltip(double x, double y)
+void View2D::showSegmentationTooltip(const int x, const int y)
 {
   auto segmentations = pick(Selector::SEGMENTATION, x, y);
 
@@ -1048,37 +871,116 @@ void View2D::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setShowPreprocessing(bool visible)
+const QString View2D::viewName() const
 {
-//   if (m_channelStates.size() < 2)
-//     return;
-//
-//   ChannelAdapterPtr hiddenChannel = m_channelStates.keys()[visible];
-//   ChannelAdapterPtr visibleChannel = m_channelStates.keys()[1 - visible];
-//   hiddenChannel->setData(false, Qt::CheckStateRole);
-//   hiddenChannel->notifyModification();
-//   visibleChannel->setData(true, Qt::CheckStateRole);
-//   visibleChannel->notifyModification();
-//
-//   for (int i = 2; i < m_channelStates.keys().size(); i++)
-//   {
-//     ChannelAdapterPtr otherChannel = m_channelStates.keys()[i];
-//     otherChannel->setData(false, Qt::CheckStateRole);
-//     otherChannel->notifyModification();
-//   }
-//
-//   updateRepresentations(ChannelAdapterList());
+  if (m_plane == Plane::XY) return "XY";
+  if (m_plane == Plane::XZ) return "XZ";
+  if (m_plane == Plane::YZ) return "YZ";
+
+  return "Unknown View";
 }
 
 //-----------------------------------------------------------------------------
-void View2D::setRulerVisibility(bool visible)
+void View2D::updateThumbnailBounds(const Bounds &bounds)
 {
-  if(m_rulerVisibility == visible)
-    return;
+  // reset thumbnail channel border
+  int h = m_plane == Plane::YZ ? 2 : 0;
+  int v = m_plane == Plane::XZ ? 2 : 1;
 
-  m_rulerVisibility = visible;
-  updateRuler();
-  updateView();
+  double sceneLeft  = bounds[2*h  ];
+  double sceneRight = bounds[2*h+1];
+  double sceneUpper = bounds[2*v  ];
+  double sceneLower = bounds[2*v+1];
+
+  updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::updateWidgetLimits(const Bounds &bounds)
+{
+  int sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
+  int sliceMin = voxelSlice(bounds[2*m_normalCoord]  , m_plane);
+
+  updateSpinBoxLimits  (sliceMin, sliceMax);
+  updateScrollBarLimits(sliceMin, sliceMax);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::updateScrollBarLimits(int min, int max)
+{
+  m_scrollBar->blockSignals(true);
+  m_scrollBar->setMinimum(min);
+  m_scrollBar->setMaximum(max);
+  m_scrollBar->blockSignals(false);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::updateSpinBoxLimits(int min, int max)
+{
+  m_spinBox->blockSignals(true);
+  if(fitToSlices())
+  {
+    m_spinBox->setSuffix(" slice");
+    m_spinBox->setMinimum(min+1);
+    m_spinBox->setMaximum(max+1);
+  }
+  else
+  {
+    m_spinBox->setSuffix(" nm");
+    m_spinBox->setMinimum(voxelCenter(min, m_plane));
+    m_spinBox->setMaximum(voxelCenter(max, m_plane));
+  }
+  m_spinBox->blockSignals(false);
+}
+
+//-----------------------------------------------------------------------------
+bool View2D::fitToSlices() const
+{
+  return state().fitToSlices();
+}
+
+//-----------------------------------------------------------------------------
+Nm View2D::voxelCenter(const int slice, const Plane plane) const
+{
+  return state().coordinateSystem()->voxelCenter(slice, plane);
+}
+
+//-----------------------------------------------------------------------------
+Nm View2D::voxelCenter(const Nm position, const Plane plane) const
+{
+  return state().coordinateSystem()->voxelCenter(position, plane);
+}
+
+//-----------------------------------------------------------------------------
+int View2D::voxelSlice(const Nm position, const Plane plane) const
+{
+  return state().coordinateSystem()->voxelSlice(position, plane);
+}
+
+//-----------------------------------------------------------------------------
+bool View2D::eventHandlerFilterEvent(QEvent *event)
+{
+  return eventHandler() && eventHandler()->filterEvent(event, this);
+}
+
+
+//-----------------------------------------------------------------------------
+EventHandlerSPtr View2D::eventHandler() const
+{
+  return state().eventHandler();
+}
+
+//-----------------------------------------------------------------------------
+void View2D::setScaleVisibility(bool visible)
+{
+  if(m_scaleVisibility != visible)
+  {
+    m_scaleVisibility = visible;
+
+    updateScale();
+
+    refresh();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1122,82 +1024,8 @@ void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
   m_sliceSelectors.removeOne(requestedsliceSelectors);
 }
 
-//----------------------------------------------------------------------------
-NmVector3 View2D::slicingStep() const
-{
-  return m_slicingStep;
-}
-
 //-----------------------------------------------------------------------------
-void View2D::setSlicingStep(const NmVector3& steps)
-{
-  if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
-  {
-    qFatal("View2D: Invalid Step value. Slicing Step not changed");
-    return;
-  }
-
-  m_slicingStep = steps;
-
-  int sliceIndex = voxelSlice(slicingPosition(), m_plane);
-
-  setSlicingBounds(m_sceneBounds);
-
-  m_scrollBar->setValue(sliceIndex);
-}
-
-//-----------------------------------------------------------------------------
-Nm View2D::slicingPosition() const
-{
-  return crosshair()[m_normalCoord];
-}
-
-
-//-----------------------------------------------------------------------------
-void View2D::setSlicingBounds(const Bounds& bounds)
-{
-  if (bounds[1] < bounds[0] || bounds[3] < bounds[2] || bounds[5] < bounds[4])
-  {
-    qFatal("View2D: Invalid Slicing Ranges. Ranges not changed");
-    return;
-  }
-
-  int sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
-  int sliceMin = voxelSlice(bounds[2*m_normalCoord]  , m_plane);
-
-  m_spinBox->blockSignals(true);
-  if(m_fitToSlices)
-  {
-    m_spinBox->setSuffix(" slice");
-    m_spinBox->setMinimum(sliceMin+1);
-    m_spinBox->setMaximum(sliceMax+1);
-  }
-  else
-  {
-    m_spinBox->setSuffix(" nm");
-    m_spinBox->setMinimum(voxelCenter(sliceMin, m_plane));
-    m_spinBox->setMaximum(voxelCenter(sliceMax, m_plane));
-  }
-  m_spinBox->blockSignals(false);
-
-  m_scrollBar->blockSignals(true);
-  m_scrollBar->setMinimum(sliceMin);
-  m_scrollBar->setMaximum(sliceMax);
-  m_scrollBar->blockSignals(false);
-
-  //bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
-  //TODO 2012-11-14 m_fromSlice->setEnabled(enabled);
-  //                m_toSlice->setEnabled(enabled);
-
-//   // update crosshair
-//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-//                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
-}
-
-
-
-//-----------------------------------------------------------------------------
-bool View2D::isCrosshairVisible() const
+bool View2D::isCrosshairPointVisible() const
 {
   // Only center camera if center is out of the display view
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -1220,7 +1048,7 @@ bool View2D::isCrosshairVisible() const
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateScale()
+void View2D::updateScaleValue()
 {
   double *world,   worldWidth;
   int    *display, displayWidth;
@@ -1240,27 +1068,12 @@ void View2D::updateScale()
   display = coords->GetComputedDisplayValue(m_renderer);
   displayWidth = fabs(displayWidth - display[0]);
 
-  m_scale = worldWidth/displayWidth;
+  m_scaleValue = worldWidth/displayWidth;
 }
 
 //-----------------------------------------------------------------------------
 void View2D::onCrosshairChanged(const NmVector3 &point)
 {
-//   NmVector3 centerVoxel;
-//
-//   // Adjust crosshairs to fit slicing steps
-//   for (int i = 0; i < 3; i++)
-//   {
-//     centerVoxel[i] = voxelCenter(point[i], toPlane(i));
-//   }
-
-//   if (!isVisible() ||
-//      (m_crosshairPoint[0] == centerVoxel[0] &&
-//       m_crosshairPoint[1] == centerVoxel[1] &&
-//       m_crosshairPoint[2] == centerVoxel[2] &&
-//       !force))
-//     return;
-
   // Disable scrollbar signals to avoid calling setting slice
   m_spinBox  ->blockSignals(true);
   m_scrollBar->blockSignals(true);
@@ -1269,26 +1082,20 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
 
   m_scrollBar->setValue(slicingPos);
 
-  if (m_fitToSlices)
+  if (fitToSlices())
   {
     slicingPos++; // Correct 0 index
   }
   else
   {
-    //slicingPos = vtkMath::Round(centerVoxel[m_normalCoord]);
-    slicingPos = vtkMath::Round(voxelCenter(point[m_normalCoord], toPlane(m_normalCoord)));
+    slicingPos = vtkMath::Round(point[m_normalCoord]);
   }
-
   m_spinBox->setValue(slicingPos);
 
   m_spinBox  ->blockSignals(false);
   m_scrollBar->blockSignals(false);
 
-  // TODO
-//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-//                            point, m_sceneBounds, m_slicingStep);
-
-  if (isCrosshairVisible())
+  if (isCrosshairPointVisible())
   {
     moveCamera(crosshair());
   }
@@ -1299,250 +1106,69 @@ void View2D::moveCamera(const NmVector3 &point)
 {
   m_state2D->updateCamera(m_renderer->GetActiveCamera(), point);
 
-  updateView();
-}
-//-----------------------------------------------------------------------------
-void View2D::addRepresentationManagerMenu(RepresentationManagerSPtr manager)
-{
-//   if(m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW2D))
-//     return;
-//
-//   m_renderers << renderer;
-//
-//   renderer->setView(this);
-//   renderer->setEnable(true);
-//
-//   // add representations to renderer
-//   if(renderer->type() == Renderer::Type::Representation)
-//   {
-//     auto repRenderer = representationRenderer(renderer);
-//     for (auto seg : m_segmentationStates.keys())
-//     {
-//       if (repRenderer->canRender(seg))
-//       {
-//         for (auto repName : seg->representationTypes())
-//         {
-//           if (!repRenderer->managesRepresentation(repName))
-//             continue;
-//
-//           bool found = false;
-//           for (auto rep : m_segmentationStates[seg].representations)
-//           {
-//             if (rep->type() == repName)
-//             {
-//               repRenderer->addRepresentation(seg, rep);
-//               found = true;
-//             }
-//           }
-//
-//           if (!found)
-//           {
-//             auto rep = cloneRepresentation(seg, repName);
-//             if (rep.get() != nullptr)
-//             {
-//               repRenderer->addRepresentation(seg, rep);
-//               m_segmentationStates[seg].representations << rep;
-//
-//               rep->setColor(m_colorEngine->color(seg));
-//               rep->setHighlighted(m_segmentationStates[seg].highlited);
-//               rep->setVisible(m_segmentationStates[seg].visible);
-//
-//               rep->updateRepresentation();
-//             }
-//           }
-//         }
-//       }
-//     }
-//
-//     for (auto channel : m_channelStates.keys())
-//     {
-//       if (repRenderer->canRender(channel))
-//       {
-//         for (auto repName : channel->representationTypes())
-//         {
-//           if (!repRenderer->managesRepresentation(repName))
-//             continue;
-//
-//           bool found = false;
-//           for (auto rep : m_channelStates[channel].representations)
-//           {
-//             if (rep->type() == repName)
-//             {
-//               repRenderer->addRepresentation(channel, rep);
-//               found = true;
-//             }
-//           }
-//
-//           if (!found)
-//           {
-//             auto rep = cloneRepresentation(channel, repName);
-//             if (rep.get() != nullptr)
-//             {
-//               repRenderer->addRepresentation(channel, rep);
-//               m_channelStates[channel].representations << rep;
-//
-//               rep->setBrightness(m_channelStates[channel].brightness);
-//               rep->setContrast(m_channelStates[channel].contrast);
-//               rep->setColor(m_channelStates[channel].stain);
-//               rep->setOpacity(m_channelStates[channel].opacity);
-//               rep->setVisible(m_channelStates[channel].visible);
-//
-//               rep->updateRepresentation();
-//               updateChannelsOpacity();
-//             }
-//           }
-//         }
-//       }
-//     }
-//   }
-//
-//   if (0 != numberActiveRepresentationManagers(RenderableType::SEGMENTATION))
-//   {
-//     for(auto widget: m_widgets)
-//     {
-//       if (widget->manipulatesSegmentations())
-//       {
-//         widget->setEnabled(true);
-//       }
-//     }
-//   }
-//
-//   ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_repManagerMenu->menu());
-//   if (configMenu == nullptr)
-//   {
-//     configMenu = new ViewRendererMenu(m_repManagerMenu);
-//     m_repManagerMenu->setMenu(configMenu);
-//     m_repManagerMenu->setEnabled(true);
-//   }
-//   configMenu->add(renderer);
-//
-//   m_zoomButton->setEnabled(false);
-//   m_snapshot->setEnabled(false);
-//   for(auto renderer: m_renderers)
-//     if(!renderer->isHidden())
-//     {
-//       m_zoomButton->setEnabled(true);
-//       m_snapshot->setEnabled(true);
-//       break;
-//     }
-//
-//   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
+  refresh();
 }
 
 //-----------------------------------------------------------------------------
-void View2D::removeRepresentationManagerMenu(RepresentationManagerSPtr manager)
+void View2D::onSceneResolutionChanged(const NmVector3 &reslotuion)
 {
-//   RendererSPtr removedRenderer = nullptr;
-//   for(auto renderer: m_renderers)
-//     if (renderer->name() == name)
-//     {
-//       removedRenderer = renderer;
-//       break;
-//     }
-//
-//   if (removedRenderer == nullptr)
-//     return;
-//
-//   // delete representations for this renderer if its a representationRenderer
-//   if(removedRenderer->type() == Renderer::Type::Representation)
-//   {
-//     auto repRenderer = representationRenderer(removedRenderer);
-//
-//     for(auto seg : m_segmentationStates.keys())
-//       if(repRenderer->canRender(seg))
-//       {
-//         for(auto rep: m_segmentationStates[seg].representations)
-//           if(repRenderer->managesRepresentation(rep->type()))
-//             m_segmentationStates[seg].representations.removeOne(rep);
-//       }
-//
-//     for(auto channel : m_channelStates.keys())
-//       if(repRenderer->canRender(channel))
-//       {
-//         for(auto rep: m_channelStates[channel].representations)
-//           if(repRenderer->managesRepresentation(rep->type()))
-//             m_channelStates[channel].representations.removeOne(rep);
-//       }
-//   }
-//
-//   m_renderers.removeOne(removedRenderer);
-//
-//     if (!removedRenderer->isHidden())
-//       removedRenderer->setEnable(false);
-//
-//   if (0 == numberActiveRepresentationManagers(RenderableType::SEGMENTATION))
-//   {
-//     for (auto widget: m_widgets)
-//       if (widget->manipulatesSegmentations())
-//         widget->setEnabled(false);
-//   }
-//
-//   ViewRendererMenu *configMenu = qobject_cast<ViewRendererMenu*>(m_repManagerMenu->menu());
-//   if (configMenu != nullptr)
-//   {
-//     configMenu->remove(removedRenderer);
-//     if (configMenu->actions().isEmpty())
-//     {
-//       m_repManagerMenu->setMenu(nullptr);
-//       delete configMenu;
-//       m_repManagerMenu->setEnabled(false);
-//     }
-//   }
-//
-//   m_zoomButton->setEnabled(false);
-//   m_snapshot->setEnabled(false);
-//   for(auto renderer: m_renderers)
-//     if(!renderer->isHidden())
-//     {
-//       m_zoomButton->setEnabled(true);
-//       m_snapshot->setEnabled(true);
-//       break;
-//     }
-//
-//   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
+  int sliceIndex = voxelSlice(slicingPosition(), m_plane);
+
+  updateThumbnailBounds(sceneBounds());
+
+  updateWidgetLimits(sceneBounds());
+
+  m_scrollBar->setValue(sliceIndex);
 }
 
-// //-----------------------------------------------------------------------------
-// void View2D::updateCrosshairPoint(const Plane plane, const Nm slicePos)
-// {
-//   m_crosshairPoint[normalCoordinateIndex(plane)] = voxelCenter(slicePos, plane);
-//   m_state2D->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
-//                          m_crosshairPoint, m_sceneBounds, m_slicingStep);
-//
-//   // render if present
-//   if (this->m_renderer->HasViewProp(this->m_HCrossLine))
-//     updateView();
-// }
-
 //-----------------------------------------------------------------------------
-void View2D::setCameraState(struct RenderView::CameraState state)
+void View2D::onSceneBoundsChanged(const Bounds &bounds)
 {
-  if (state.plane != m_plane)
+  if (bounds[1] < bounds[0] || bounds[3] < bounds[2] || bounds[5] < bounds[4])
+  {
+    qFatal("View2D: Invalid Slicing Ranges. Ranges not changed");
     return;
+  }
 
-  auto camera = m_renderer->GetActiveCamera();
-  camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
-  camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
-  camera->Zoom(viewHeightLength() / state.heightLength);
+  updateThumbnailBounds(bounds);
 
-  m_scrollBar->setValue(state.slice);
-  updateView();
+  updateWidgetLimits(bounds);
 }
 
 //-----------------------------------------------------------------------------
-struct RenderView::CameraState View2D::cameraState()
+void View2D::setCameraState(CameraState state)
 {
-  struct RenderView::CameraState state;
+  if (state.plane == m_plane)
+  {
+    auto camera = m_renderer->GetActiveCamera();
+    camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
+    camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
+    camera->Zoom(viewHeightLength() / state.heightLength);
+
+    m_scrollBar->setValue(state.slice);
+
+    refresh();
+  }
+}
+
+//-----------------------------------------------------------------------------
+RenderView::CameraState View2D::cameraState()
+{
+  RenderView::CameraState state;
+
   auto camera = m_renderer->GetActiveCamera();
+
   double cameraPos[3], focalPoint[3];
+
   camera->GetFocalPoint(focalPoint);
   camera->GetPosition(cameraPos);
 
-  state.plane = m_plane;
-  state.slice = m_scrollBar->value();
+  state.plane          = m_plane;
+  state.slice          = m_scrollBar->value();
   state.cameraPosition = NmVector3{cameraPos[0], cameraPos[1], cameraPos[2]};
-  state.focalPoint = NmVector3{focalPoint[0], focalPoint[1], focalPoint[2]};
-  state.heightLength = viewHeightLength();
+  state.focalPoint     = NmVector3{focalPoint[0], focalPoint[1], focalPoint[2]};
+  state.heightLength   = viewHeightLength();
+
   return state;
 }
 
@@ -1550,10 +1176,13 @@ struct RenderView::CameraState View2D::cameraState()
 double View2D::viewHeightLength()
 {
   double ll[3], ur[3];
+
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToNormalizedViewport();
+
   coords->SetValue(0, 0);
   memcpy(ll,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+
   coords->SetValue(1, 1);
   memcpy(ur,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
   double heightDist = 0;
@@ -1638,20 +1267,4 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   sceneActors->Modified();
 
   return finalSelection;
-}
-
-//-----------------------------------------------------------------------------
-double View2D::segmentationDepth() const
-{
-  auto segmentationShift = 0.05;
-  return Plane::XY == m_plane ? -segmentationShift : segmentationShift;
-}
-
-//-----------------------------------------------------------------------------
-double View2D::widgetDepth() const
-{
-  auto depthSpacing = this->sceneResolution()[normalCoordinateIndex(m_plane)];
-  auto widgetShift = 0.15 + depthSpacing;
-
-  return Plane::XY == m_plane ? -widgetShift : widgetShift;
 }

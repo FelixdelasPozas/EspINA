@@ -19,8 +19,8 @@
  */
 
 // ESPINA
+#include <Deprecated/GUI/Representations/Renderers/Renderer.h>
 #include <GUI/View/ViewRendererMenu.h>
-#include <GUI/Representations/Renderers/Renderer.h>
 
 namespace ESPINA
 {

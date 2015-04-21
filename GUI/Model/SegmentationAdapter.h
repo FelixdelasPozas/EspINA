@@ -53,28 +53,13 @@ namespace ESPINA
      */
     virtual ~SegmentationAdapter();
 
-    /** \brief Implements ItemAdapter::data().
-     *
-     */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /** \brief Implements ItemAdapter::setData().
-     *
-     */
     virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
-    /** \brief Implements ItemAdapter::type().
-     *
-     */
     virtual ItemAdapter::Type type() const
     { return Type::SEGMENTATION; }
 
-    /** \brief Implements ViewItemAdapter::asInput().
-     *
-     * TODO 2014-05-13: create a new method with this name to add a new type of input which is
-     *      invariant to the segmentation and rename this method to something else?
-     *
-     */
     virtual InputSPtr asInput() const;
 
     /** \brief Sets the number of the segmentation.
@@ -171,9 +156,6 @@ namespace ESPINA
     Bounds bounds() const;
 
   protected:
-    /** \brief Implements ViewItemAdapter::changeOutput().
-     *
-     */
     virtual void changeOutputImplementation(InputSPtr input);
 
   private:
@@ -235,6 +217,8 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT isSegmentation(ItemAdapterPtr item);
+
+  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSPtr segmentation);
 
   ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSList segmentations);
 }

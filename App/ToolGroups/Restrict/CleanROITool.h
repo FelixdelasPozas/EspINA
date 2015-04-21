@@ -21,8 +21,8 @@
 #define ESPINA_CLEAN_ROI_H
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <Support/Widgets/Tool.h>
+#include <Support/Context.h>
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
@@ -39,14 +39,10 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief CleanROITool class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack raw pointer.
-     * \param[in] toolGroup, ROIToolsGroup raw pointer containing the ROI accumulator.
+     * \param[in] context ESPINA context
+     * \param[in] toolGroup ROIToolsGroup raw pointer containing the ROI accumulator.
      */
-    explicit CleanROITool(ModelAdapterSPtr  model,
-                          ViewManagerSPtr   viewManager,
-                          QUndoStack        *undoStack,
+    explicit CleanROITool(Support::Context &context,
                           RestrictToolGroup *toolGroup);
 
     /** \brief CleanROITool class virtual destructor.
@@ -66,9 +62,7 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled);
 
   private:
-    ModelAdapterSPtr   m_model;
-    ViewManagerSPtr    m_viewManager;
-    QUndoStack        *m_undoStack;
+    Support::Context &m_context;
     RestrictToolGroup *m_toolGroup;
     QAction           *m_cleanROI;
   };

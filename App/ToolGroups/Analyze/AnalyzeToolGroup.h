@@ -22,9 +22,8 @@
 #define ESPINA_MEASURES_TOOLS_H_
 
 // ESPINA
-#include <Tools/Measure/MeasureTool.h>
-#include <Tools/Ruler/RulerTool.h>
 #include <ToolGroups/ToolGroup.h>
+#include <Support/Context.h>
 
 namespace ESPINA
 {
@@ -39,7 +38,7 @@ namespace ESPINA
        * \param[in] parent, QWidget raw pointer of the parent of this object.
        *
        */
-      explicit AnalyzeToolGroup(ViewManagerSPtr viewManager, QWidget* parent = nullptr);
+      explicit AnalyzeToolGroup(Support::Context &context);
 
       /** \brief MeasuresTools class destructor.
        *

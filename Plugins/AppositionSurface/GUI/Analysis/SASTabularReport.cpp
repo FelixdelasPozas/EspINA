@@ -74,14 +74,16 @@ namespace ESPINA
         i++;
     }
 
+    auto factory = m_context.factory();
+
     if (m_tabs->tabText(i) != category)
     {
-      auto entry = new Entry(category, m_model, m_factory);
+      auto entry = new Entry(category, m_model, factory);
 
       connect(entry, SIGNAL(informationReadyChanged()),
               this,  SLOT(updateExportStatus()));
 
-      auto infoProxy = new SASInformationProxy(m_model, m_sasTags, m_factory->scheduler());
+      auto infoProxy = new SASInformationProxy(m_model, m_sasTags, factory->scheduler());
       infoProxy->setCategory(category);
       infoProxy->setFilter(&m_filter);
       infoProxy->setSourceModel(m_model);

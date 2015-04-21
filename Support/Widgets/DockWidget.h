@@ -24,7 +24,6 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
 
 // Qt
 #include <QDockWidget>

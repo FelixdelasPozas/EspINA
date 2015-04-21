@@ -50,17 +50,12 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
-                                 ViewManagerSPtr  viewManager,
-                                 SchedulerSPtr    scheduler,
-                                 QUndoStack      *undoStack,
-                                 QWidget         *parent)
-: DockWidget    {parent}
-, m_model       {model}
-, m_viewManager {viewManager}
-, m_scheduler   {scheduler}
-, m_undoStack   {undoStack}
-, m_channelProxy{new ChannelProxy(model)}
+ChannelExplorer::ChannelExplorer(Support::Context &context)
+: m_context(context)
+, m_model       {context.model()}
+, m_scheduler   {context.scheduler()}
+, m_undoStack   {context.undoStack()}
+, m_channelProxy{new ChannelProxy(context.model())}
 , m_sort        {new QSortFilterProxyModel()}
 , m_gui         {new CentralWidget()}
 {
@@ -107,6 +102,7 @@ ChannelExplorer::ChannelExplorer(ModelAdapterSPtr model,
           this, SLOT(unloadChannel()));
 
   updateTooltips(0);
+
   setWidget(m_gui);
 }
 
@@ -377,6 +373,7 @@ void ChannelExplorer::updateTooltips(int index)
 //------------------------------------------------------------------------
 void ChannelExplorer::unloadChannel()
 {
+  // TODO Update APIs
 //   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
 //   if (!index.isValid())
 //     return;
@@ -425,6 +422,7 @@ void ChannelExplorer::unloadChannel()
 //------------------------------------------------------------------------
 void ChannelExplorer::focusOnChannel()
 {
+  //TODO Focus on channel
 //   QModelIndex currentIndex = m_gui->view->currentIndex();
 //   if (!currentIndex.parent().isValid())
 //     return;
@@ -436,7 +434,6 @@ void ChannelExplorer::focusOnChannel()
 //     ChannelPtr channel = channelPtr(currentItem);
 //     Nm bounds[6];
 //     channel->volume()->bounds(bounds);
-//     //TODO 2012-10-04: Use setSelection instead of setCameraFocus
 // //     double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
 // //     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 // //     view->setCameraFocus(pos);
@@ -457,7 +454,7 @@ void ChannelExplorer::showInformation()
      if (isChannel(currentItem))
      {
        auto channel   = channelPtr(currentItem);
-       ChannelInspector dialog(m_model->smartPointer(channel), m_model, m_scheduler);
+       ChannelInspector dialog(m_model->smartPointer(channel), m_context);
 
        dialog.exec();
      }
@@ -477,7 +474,7 @@ void ChannelExplorer::activateChannel()
   if (ItemAdapter::Type::CHANNEL == currentItem->type())
   {
     auto currentChannel = channelPtr(currentItem);
-    m_viewManager->setActiveChannel(currentChannel);
+    //TODO URGENT //m_context.activeChannel = currentChannel;
   }
 }
 
@@ -518,7 +515,7 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   auto setActive = contextMenu.addAction(tr("Set as the active channel"));
   setActive->setCheckable(true);
-  setActive->setChecked(channels.first() == m_viewManager->activeChannel());
+  setActive->setChecked(channels.first() == m_context.ActiveChannel);
   connect(setActive, SIGNAL(triggered(bool)),
           this,      SLOT(activateChannel()));
 

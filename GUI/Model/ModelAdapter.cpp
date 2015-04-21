@@ -28,19 +28,9 @@
 
 using namespace ESPINA;
 
-
-
 //------------------------------------------------------------------------
 ModelAdapter::ModelAdapter()
-: ModelAdapter{std::make_shared<Timer>()}
-{
-
-}
-
-//------------------------------------------------------------------------
-ModelAdapter::ModelAdapter(TimerSPtr timer)
-: m_timer      {timer}
-, m_analysis   {new Analysis()}
+: m_analysis   {new Analysis()}
 , m_isBatchMode{false}
 {
 }
@@ -52,25 +42,17 @@ ModelAdapter::~ModelAdapter()
 }
 
 //------------------------------------------------------------------------
-TimerSPtr ModelAdapter::timer() const
-{
-  return m_timer;
-}
-
-//------------------------------------------------------------------------
 void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 {
-  m_timer->increment();
+  emit modelChanged();
 
-  emit aboutToBeReset(m_timer->timeStamp());
+  emit aboutToBeReset();
 
   reset(); //It is needed in order to keep the views coherent
 
   m_analysis = analysis;
 
   if (!analysis) return;
-
-  TimeStamp t = m_timer->timeStamp();
 
   // Adapt classification
   if (analysis->classification())
@@ -109,7 +91,7 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 
     auto addedChannels = toViewItemList(m_channels);
     addedItems << addedChannels;
-    emit channelsAdded(addedChannels, t);
+    emit channelsAdded(addedChannels);
   }
 
   if (!analysis->segmentations().isEmpty())
@@ -133,12 +115,12 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
     endInsertRows();
     auto addedSegmentations = toViewItemList(m_segmentations);
     addedItems << addedSegmentations;
-    emit segmentationsAdded(addedSegmentations, t);
+    emit segmentationsAdded(addedSegmentations);
   }
 
   if (!addedItems.isEmpty())
   {
-    emit viewItemsAdded(addedItems, t);
+    emit viewItemsAdded(addedItems);
   }
 }
 
@@ -775,9 +757,10 @@ void ModelAdapter::clear()
 {
   Q_ASSERT(!m_isBatchMode);
 
-  m_timer->increment();
 
-  emit aboutToBeReset(m_timer->timeStamp());
+  emit modelChanged();
+
+  emit aboutToBeReset();
 
   beginResetModel();
   {
@@ -901,7 +884,7 @@ void ModelAdapter::endBatchMode()
 {
   m_isBatchMode = false;
 
-  m_timer->increment();
+  emit modelChanged();
 
   executeAddCommands();
 
@@ -966,32 +949,14 @@ bool ModelAdapter::setData(const QModelIndex& index, const QVariant& value, int 
 //------------------------------------------------------------------------
 void ModelAdapter::setSegmentationCategory(SegmentationAdapterSPtr segmentation, CategoryAdapterSPtr category)
 {
-  auto command = [this, segmentation, category]() {
+  auto command = [this, segmentation, category]()
+  {
     segmentation->setCategory(category);
   };
 
   queueUpdateCommand(segmentation, std::make_shared<Command<decltype(command)>>(command));
 
   executeCommandsIfNoBatchMode();
-}
-
-//------------------------------------------------------------------------
-void ModelAdapter::notifyRepresentationsModified(ViewItemAdapterSList items)
-{
-  m_timer->increment();
-
-  emit representationsModified(items, m_timer->timeStamp());
-}
-
-//------------------------------------------------------------------------
-void ModelAdapter::notifyDependentRepresentationsModified(ViewItemAdapterSList items)
-{
-  m_timer->increment();
-
-  auto notificationItems = items;
-  // TODO: add dependent items
-
-  emit representationsModified(notificationItems, m_timer->timeStamp());
 }
 
 //------------------------------------------------------------------------
@@ -1322,13 +1287,13 @@ void ModelAdapter::executeAddCommands()
   auto channels = queuedViewItems(channelQueues);
   if (!channels.isEmpty())
   {
-    emit channelsAdded(channels, m_timer->timeStamp());
+    emit channelsAdded(channels);
   }
 
   auto segmentations = queuedViewItems(segmentationQueues);
   if (!segmentations.isEmpty())
   {
-    emit segmentationsAdded(segmentations, m_timer->timeStamp());
+    emit segmentationsAdded(segmentations);
   }
 
   ViewItemAdapterSList addedItems;
@@ -1336,7 +1301,7 @@ void ModelAdapter::executeAddCommands()
 
   if (!addedItems.isEmpty())
   {
-    emit viewItemsAdded(addedItems, m_timer->timeStamp());
+    emit viewItemsAdded(addedItems);
   }
 
   m_addCommands.clear();
@@ -1364,8 +1329,6 @@ void ModelAdapter::executeRemoveCommands()
 
   classifyQueues(m_removeCommands, sampleQueues, channelQueues, segmentationQueues);
 
-  TimeStamp t = m_timer->timeStamp();
-
   auto samples = queuedSamples(sampleQueues);
   if (!samples.isEmpty())
   {
@@ -1375,13 +1338,13 @@ void ModelAdapter::executeRemoveCommands()
   auto channels = queuedViewItems(channelQueues);
   if (!channels.isEmpty())
   {
-    emit channelsAboutToBeRemoved(channels, t);
+    emit channelsAboutToBeRemoved(channels);
   }
 
   auto segmentations = queuedViewItems(segmentationQueues);
   if (!segmentations.isEmpty())
   {
-    emit segmentationsAboutToBeRemoved(segmentations, t);
+    emit segmentationsAboutToBeRemoved(segmentations);
   }
 
   ViewItemAdapterSList addedItems;
@@ -1389,7 +1352,7 @@ void ModelAdapter::executeRemoveCommands()
 
   if (!addedItems.isEmpty())
   {
-    emit viewItemsAboutToBeRemoved(addedItems, t);
+    emit viewItemsAboutToBeRemoved(addedItems);
   }
   // Remove Row Signals are grouped by parent node
   executeRemoveQueues(sampleRoot(),       sampleQueues);
@@ -1403,17 +1366,17 @@ void ModelAdapter::executeRemoveCommands()
 
   if (!channels.isEmpty())
   {
-    emit channelsRemoved(channels, t);
+    emit channelsRemoved(channels);
   }
 
   if (!segmentations.isEmpty())
   {
-    emit segmentationsRemoved(segmentations, t);
+    emit segmentationsRemoved(segmentations);
   }
 
   if (!addedItems.isEmpty())
   {
-    emit viewItemsRemoved(addedItems, t);
+    emit viewItemsRemoved(addedItems);
   }
 
   m_removeCommands.clear();
