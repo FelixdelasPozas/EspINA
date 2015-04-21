@@ -240,7 +240,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
       for(auto reader: validPlugin->analysisReaders())
       {
         qDebug() << plugin << "- Analysis Reader  ...... OK";
-        factory->registerAnalysisReader(reader.get());
+        factory->registerAnalysisReader(reader);
       }
 
       for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
