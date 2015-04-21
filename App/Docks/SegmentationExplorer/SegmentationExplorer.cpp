@@ -59,7 +59,7 @@ public:
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(Support::Context &context,
                                            FilterDelegateFactorySPtr delegateFactory)
-: m_context{context}
+: m_context(context)
 , m_gui    {new GUI()}
 , m_layout {nullptr}
 {

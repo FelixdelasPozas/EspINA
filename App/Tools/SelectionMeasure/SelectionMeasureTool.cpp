@@ -40,7 +40,7 @@ using namespace ESPINA::GUI::View::Widgets::SelectionMeasure;
 
 //----------------------------------------------------------------------------
 SelectionMeasureTool::SelectionMeasureTool(GUI::View::ViewState &viewState, SelectionSPtr selection)
-: m_viewState{viewState}
+: m_viewState(viewState)
 , m_factory  {new WidgetFactory(std::make_shared<Widget2D>(selection), std::make_shared<Widget3D>(selection))}
 , m_action   {new QAction(QIcon(":/espina/measure3D.png"), tr("Measure Selection"),this) }
 {

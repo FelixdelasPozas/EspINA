@@ -26,10 +26,11 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews)
+RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags)
 : m_view{nullptr}
 , m_isActive{false}
 , m_status{Status::IDLE}
+, m_flags {flags}
 , m_supportedViews{supportedViews}
 , m_lastRenderRequestTime{Timer::INVALID_TIME_STAMP}
 {
@@ -72,7 +73,7 @@ QIcon RepresentationManager::icon() const
 }
 
 //-----------------------------------------------------------------------------
-RepresentationManager::Flags RepresentationManager::flags() const
+RepresentationManager::ManagerFlags RepresentationManager::flags() const
 {
   return m_flags;
 }

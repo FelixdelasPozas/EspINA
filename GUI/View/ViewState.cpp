@@ -25,8 +25,8 @@ using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
 ViewState::ViewState(Timer &timer, RepresentationInvalidator &invalidator)
-: m_timer{timer}
-, m_invalidator{invalidator}
+: m_timer(timer)
+, m_invalidator(invalidator)
 , m_fitToSlices{true}
 , m_coordinateSystem(std::make_shared<CoordinateSystem>())
 {

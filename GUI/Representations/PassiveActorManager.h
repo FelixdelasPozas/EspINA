@@ -36,9 +36,11 @@ namespace ESPINA
     public:
       /** \brief Passive Actor Manager class constructor
        * \param[in] pool managed pool smart pointer
+       * \param[in] supportedViews flags of the views supported by this manager.
+       * \param[in] flags initial flags.
        *
        */
-      PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews);
+      PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews, ManagerFlags flags = ManagerFlags());
 
       virtual TimeRange readyRangeImplementation() const;
 

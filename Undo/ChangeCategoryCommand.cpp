@@ -27,10 +27,10 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                              CategoryAdapterPtr      category,
-                                             Support::Context &context,
+                                             Support::Context       &context,
                                              QUndoCommand*           parent)
 : QUndoCommand {parent}
-, m_context    {context}
+, m_context    (context)
 , m_category   {context.model()->smartPointer(category)}
 {
   for(auto segmentation: segmentations)

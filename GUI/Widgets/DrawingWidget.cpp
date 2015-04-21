@@ -36,7 +36,7 @@ using namespace ESPINA;
 
 //------------------------------------------------------------------------
 DrawingWidget::DrawingWidget(Support::Context &context)
-: m_context             {context}
+: m_context             (context)
 , m_painterSelector     {new ActionSelector()}
 , m_categorySelector    {new CategorySelector(context.model())}
 , m_radiusWidget        {new SliderAction()}

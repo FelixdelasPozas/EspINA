@@ -80,7 +80,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   auto poolSliceYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineSliceYZ, scheduler, WINDOW_SIZE);
   auto sliceManager    = std::make_shared<SliceManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
   auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer);
-  auto slice3DManager  = std::make_shared<Slice3DManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
+  auto slice3DManager  = std::make_shared<Slice3DManager>(poolSliceXY, poolSliceXZ, poolSliceYZ, RepresentationManager::EXPORTS_3D);
   auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer);
 
   poolSliceXY->setSettings(sliceSettings);
@@ -201,6 +201,7 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
 
   volumetricGPUManager->setName(QObject::tr("Volumetric GPU Representation"));
   volumetricGPUManager->setIcon(QIcon(":espina/voxelGPU.png"));
+  volumetricGPUManager->setDescription(QObject::tr("Segmentation Volumetric Representation By GPU"));
 
   representation.Pools    << poolVolumetricCPU << poolVolumetricGPU;
   representation.Managers << volumetricCPUManager << volumetricGPUManager;
@@ -217,12 +218,12 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   auto meshesSettings = std::make_shared<RepresentationPool::Settings>();
   auto pipelineMesh   = std::make_shared<SegmentationMeshPipeline>(colorEngine);
   auto poolMesh       = std::make_shared<BasicRepresentationPool>(scheduler, pipelineMesh);
-  auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D);
+  auto meshManager    = std::make_shared<PassiveActorManager>(poolMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
   auto meshSwitch     = std::make_shared<BasicRepresentationSwitch>(meshManager, ViewType::VIEW_3D, timer);
 
   auto pipelineSmoothedMesh = std::make_shared<SegmentationSmoothedMeshPipeline>(colorEngine);
   auto poolSmoothedMesh     = std::make_shared<BasicRepresentationPool>(scheduler, pipelineSmoothedMesh);
-  auto smoothedMeshManager  = std::make_shared<PassiveActorManager>(poolSmoothedMesh, ViewType::VIEW_3D);
+  auto smoothedMeshManager  = std::make_shared<PassiveActorManager>(poolSmoothedMesh, ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D);
   auto smoothedMeshSwitch   = std::make_shared<BasicRepresentationSwitch>(smoothedMeshManager, ViewType::VIEW_3D, timer);
 
   poolMesh->setSettings(meshesSettings);

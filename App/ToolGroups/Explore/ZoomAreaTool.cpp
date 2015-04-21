@@ -30,7 +30,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ZoomAreaTool::ZoomAreaTool(GUI::View::ViewState &state)
-: m_viewState  {state}
+: m_viewState  (state)
 , m_zoomArea   {new QAction(QIcon(":/espina/zoom_selection.png"), tr("Define Zoom Area"),this)}
 , m_widget     {EspinaWidgetSPtr(ZoomSelectionWidget::New())}
 , m_zoomHandler{std::dynamic_pointer_cast<EventHandler>(m_widget)}

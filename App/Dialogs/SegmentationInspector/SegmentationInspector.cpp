@@ -46,13 +46,13 @@ using namespace ESPINA;
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
                                              FilterDelegateFactorySPtr delegateFactory,
-                                             Support::Context   &context)
-: QWidget          {nullptr, Qt::WindowStaysOnTopHint}
-, m_context        {context}
-, m_delegateFactory{delegateFactory}
+                                             Support::Context         &context)
+: QWidget               {nullptr, Qt::WindowStaysOnTopHint}
+, m_context             (context)
+, m_delegateFactory     {delegateFactory}
 , m_selectedSegmentation{nullptr}
 //, m_view           {new View3D(true)}
-, m_tabularReport  {new TabularReport(context)}
+, m_tabularReport       {new TabularReport(context)}
 {
   setupUi(this);
 

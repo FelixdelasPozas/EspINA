@@ -48,8 +48,8 @@ using namespace ESPINA;
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
                                              Support::Context &context,
                                              QWidget                *parent)
-: ContextualMenu  (parent)
-, m_context       {context}
+: ContextualMenu  {parent}
+, m_context       (context)
 , m_classification{nullptr}
 , m_segmentations {selection}
 {
