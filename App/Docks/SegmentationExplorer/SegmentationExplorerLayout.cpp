@@ -90,8 +90,8 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 //------------------------------------------------------------------------
 SegmentationExplorer::Layout::Layout(CheckableTreeView        *view,
                                      FilterDelegateFactorySPtr delegateFactory,
-                                     Support::Context   &context)
-: m_context        {context}
+                                     Support::Context         &context)
+: m_context        (context)
 , m_delegateFactory{delegateFactory}
 , m_view           {view}
 {

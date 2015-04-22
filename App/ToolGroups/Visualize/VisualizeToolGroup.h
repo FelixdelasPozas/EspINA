@@ -68,7 +68,6 @@ namespace ESPINA
     RepresentationGroupTools    m_dynamicRepresentationGroups;
 
     Support::Context &m_context;
-
     QShortcut *m_segmentationsShortcut;
   };
 

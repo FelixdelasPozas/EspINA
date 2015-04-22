@@ -66,7 +66,7 @@ private:
 OrthogonalROITool::OrthogonalROITool(ROISettings       *settings,
                                      Support::Context &context,
                                      RestrictToolGroup *toolGroup)
-: m_context      {context}
+: m_context      (context)
 , m_activeTool   {new QAction(QIcon(":/espina/roi_orthogonal.svg"), tr("Orthogonal Region of Interest"), this)}
 , m_resizeROI    {new QAction(QIcon(":/espina/resize_roi.svg"), tr("Resize Orthogonal Region of Interest"), this)}
 , m_applyROI     {new QAction(QIcon(":/espina/roi_go.svg"), tr("Define Orthogonal Region of Interest"), this)}

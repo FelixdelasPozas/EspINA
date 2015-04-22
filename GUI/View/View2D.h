@@ -178,23 +178,12 @@ namespace ESPINA
      */
     void centerCrosshairOnMousePosition(int x, int y);
 
-    /** \brief Updates the selection of items.
-     * \param[in] append if true the elements picked will be merged with the ones currently
-     *  selected, if false the elements picked will be the new selection.
-     *
-     *  If an item is selected and also is on the picked list the merge will deselect the item.
-     *
-     */
-    void selectPickedItems(int x, int y, bool append);
-
   private:
     virtual void addActor   (vtkProp *actor) override;
 
     virtual void removeActor(vtkProp *actor) override;
 
-    virtual void updateViewActions(RepresentationManager::Flags flags) override;
-
-    virtual void resetCameraImplementation();
+    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
 
     virtual void refreshViewImplementation();
 
@@ -207,13 +196,6 @@ namespace ESPINA
     NmVector3 toNormalizeWorldPosition(vtkRenderer *renderer, int x, int y) const;
 
     vtkSmartPointer<vtkRenderer> rendererUnderCuror() const;
-
-    /** \brief Shows tool tip for segmentations at position (x, y)
-     * \param[in] x display coordinate
-     * \param[in] y display coordinate
-     *
-     */
-    void showSegmentationTooltip(const int x, const int y);
 
     /** \brief Updates the scale widget.
      *
@@ -288,6 +270,8 @@ namespace ESPINA
      *
      */
     virtual void moveCamera(const NmVector3 &point);
+
+    virtual void resetCameraImplementation();
 
     virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
 

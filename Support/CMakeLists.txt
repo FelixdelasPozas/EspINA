@@ -2,6 +2,9 @@ include (GenerateExportHeader)
 
 find_package(XLSLIB REQUIRED)
 
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 include_directories(
   ${CMAKE_BINARY_DIR}         # Exports & Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files

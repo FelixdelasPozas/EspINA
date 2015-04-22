@@ -71,15 +71,6 @@ namespace ESPINA
 
     virtual RenderView::CameraState cameraState();
 
-  protected:
-    /** \brief Selects items under the given coordinates.
-     * \param[in] x display coordinate.
-     * \param[in] y display coordinate.
-     * \param[in] append if true returns all the items if false returns only the first picked (if any).
-     *
-     */
-    void selectPickedItems(int x, int y, bool append);
-
   protected slots:
     /** \brief Updates the view then a crosshair scroll bar changes value.
      * \param[in] value new scrollbar value.
@@ -114,13 +105,9 @@ namespace ESPINA
 
     virtual vtkRenderer *mainRenderer() const;
 
-    virtual void updateViewActions(RepresentationManager::Flags flags) override;
-
-    virtual void resetCameraImplementation();
+    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
 
     virtual void refreshViewImplementation();
-
-    bool isCrosshairPointVisible() const;
 
     /** \brief Helper method to setup the UI.
      *
@@ -138,6 +125,10 @@ namespace ESPINA
     void updateScrollBarsLimits();
 
     virtual const QString viewName() const;
+
+  private slots:
+    virtual void resetCameraImplementation();
+
   private:
     // GUI
     QVBoxLayout *m_mainLayout;

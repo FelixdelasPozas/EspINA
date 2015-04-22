@@ -24,8 +24,8 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //------------------------------------------------------------------------
-WidgetManager::WidgetManager(WidgetFactorySPtr factory)
-: RepresentationManager(factory->supportedViews())
+WidgetManager::WidgetManager(WidgetFactorySPtr factory, ManagerFlags flags)
+: RepresentationManager(factory->supportedViews(), flags)
 , m_factory(factory)
 {
 }
@@ -162,5 +162,5 @@ void WidgetManager::hideRepresentations(TimeStamp t)
 //------------------------------------------------------------------------
 RepresentationManagerSPtr WidgetManager::cloneImplementation()
 {
-  return std::make_shared<WidgetManager>(m_factory);
+  return std::make_shared<WidgetManager>(m_factory, flags());
 }

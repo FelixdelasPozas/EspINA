@@ -45,7 +45,7 @@ namespace ESPINA
         , public RepresentationManager2D
         {
         public:
-          explicit WidgetManager(WidgetFactorySPtr factory);
+          explicit WidgetManager(WidgetFactorySPtr factory, ManagerFlags flags = ManagerFlags());
 
           virtual ~WidgetManager();
 

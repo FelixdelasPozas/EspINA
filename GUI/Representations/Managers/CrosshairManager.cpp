@@ -36,7 +36,7 @@
 using namespace ESPINA;
 //-----------------------------------------------------------------------------
 CrosshairManager::CrosshairManager()
-: RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D}
+: RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D, ManagerFlags()}
 , m_init               {false}
 , m_actorsInUse        {false}
 {

@@ -83,7 +83,7 @@ namespace ESPINA
       actor->SetMapper(mapper);
       actor->GetProperty()->SetSpecular(0.2);
       actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-      actor->GetProperty()->SetOpacity(rgba[3]);
+      actor->GetProperty()->SetOpacity(1);
       actor->Modified();
 
       actors << actor;
@@ -95,9 +95,8 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   bool SegmentationMeshPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
   {
-    Q_ASSERT(hasVolumetricData(item->output()));
-    auto volume = volumetricData(item->output());
-    return isSegmentationVoxel(volume, point);
+    // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
+    return true;
   }
 
 } // namespace ESPINA

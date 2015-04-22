@@ -60,7 +60,7 @@ namespace ESPINA
       NEEDS_ACTORS = 0x4
     };
 
-  Q_DECLARE_FLAGS(Flags, FlagValue)
+  Q_DECLARE_FLAGS(ManagerFlags, FlagValue)
 
   public:
     virtual ~RepresentationManager()
@@ -96,7 +96,7 @@ namespace ESPINA
      */
     QIcon icon() const;
 
-    Flags flags() const;
+    ManagerFlags flags() const;
 
     ViewTypeFlags supportedViews() const
     { return m_supportedViews; }
@@ -169,7 +169,7 @@ namespace ESPINA
     void idle();
 
   protected:
-    explicit RepresentationManager(ViewTypeFlags supportedViews);
+    explicit RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
     void setFlag(const FlagValue flag, const bool value);
 
@@ -229,12 +229,12 @@ namespace ESPINA
     RenderView *m_view;
 
   private:
-    QString m_name;
-    QIcon   m_icon;
-    QString m_description;
-    bool    m_isActive;
-    Status  m_status;
-    Flags   m_flags;
+    QString      m_name;
+    QIcon        m_icon;
+    QString      m_description;
+    bool         m_isActive;
+    Status       m_status;
+    ManagerFlags m_flags;
 
     ViewTypeFlags m_supportedViews;
     TimeStamp     m_lastRenderRequestTime;
@@ -260,7 +260,7 @@ namespace ESPINA
     virtual void setRepresentationDepth(Nm depth) = 0;
   };
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::Flags)
+  Q_DECLARE_OPERATORS_FOR_FLAGS(RepresentationManager::ManagerFlags)
 }// namespace ESPINA
 
 #endif // ESPINA_REPRESENTATION_MANAGER_H

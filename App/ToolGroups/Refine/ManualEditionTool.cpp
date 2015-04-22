@@ -83,8 +83,8 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_colorEngine  {context.colorEngine()}
 , m_selection    {context.selection()}
 , m_filterFactory{new ManualFilterFactory()}
-, m_context      {context}
-, m_drawingWidget{context}
+, m_context      (context)
+, m_drawingWidget(context)
 , m_mode         {Mode::CREATION}
 , m_referenceItem{nullptr}
 , m_validStroke  {true}

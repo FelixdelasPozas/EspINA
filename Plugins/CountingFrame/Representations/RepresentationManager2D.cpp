@@ -24,7 +24,7 @@ namespace ESPINA {
   namespace CF {
     //-----------------------------------------------------------------------------
     RepresentationManager2D::RepresentationManager2D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
-    : RepresentationManager{supportedViews}
+    : RepresentationManager{supportedViews, ManagerFlags()}
     , m_plane{Plane::UNDEFINED}
     , m_manager(manager)
     {

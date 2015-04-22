@@ -99,7 +99,7 @@ throw (Unknown_Filter_Type_Exception)
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
                                                    FilterDelegateFactorySPtr     filterDelegateFactory,
                                                    Support::Context       &context)
-: m_context         {context}
+: m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_selectorSwitch  {new ActionSelector()}
 , m_seedThreshold   {new SeedThreshold()}

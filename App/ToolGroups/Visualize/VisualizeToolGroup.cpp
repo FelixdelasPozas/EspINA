@@ -66,8 +66,8 @@ VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *paren
 : ToolGroup              {":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
 , m_channelsRepGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"), tr("Show Channels"), context.timer())}
 , m_segmentationsRepGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"), context.timer())}
+, m_context              (context)
 , m_segmentationsShortcut{new QShortcut(parent)}
-, m_context{context}
 {
   addTool(m_channelsRepGroup);
   addTool(m_segmentationsRepGroup);

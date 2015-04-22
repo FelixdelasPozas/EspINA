@@ -53,7 +53,7 @@ namespace ESPINA
     /** \brief RangedActorManager class protected constructor.
      * \param[in] supportedViews flags of the views supported by the manager.
      */
-    explicit PoolManager(ViewTypeFlags supportedViews);
+    explicit PoolManager(ViewTypeFlags supportedViews, ManagerFlags flags);
 
     bool hasActorsInDisplay() const;
 

@@ -46,9 +46,9 @@ using namespace ESPINA::GUI;
 //-----------------------------------------------------------------------------
 AppositionSurfaceTool::AppositionSurfaceTool(AppositionSurfacePlugin *plugin,
                                              Support::Context        &context)
-: m_plugin{plugin}
-, m_context{context}
-, m_action{new QAction(QIcon(":/AppSurface.svg"), tr("Apposition Surface Tools"), this)}
+: m_plugin (plugin)
+, m_context(context)
+, m_action (new QAction(QIcon(":/AppSurface.svg"), tr("Apposition Surface Tools"), this))
 {
   setToolTip("Create a synaptic apposition surface from selected segmentations.");
 

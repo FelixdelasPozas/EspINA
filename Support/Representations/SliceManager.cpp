@@ -26,8 +26,9 @@ using namespace ESPINA;
 //----------------------------------------------------------------------------
 SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
                            RepresentationPoolSPtr poolXZ,
-                           RepresentationPoolSPtr poolYZ)
-: PoolManager(ViewType::VIEW_2D)
+                           RepresentationPoolSPtr poolYZ,
+                           ManagerFlags           flags)
+: PoolManager(ViewType::VIEW_2D, flags)
 , m_plane{Plane::UNDEFINED}
 , m_depth{0}
 , m_XY{poolXY}
@@ -199,7 +200,7 @@ void SliceManager::disconnectPools()
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr SliceManager::cloneImplementation()
 {
-  auto clone = std::make_shared<SliceManager>(m_XY, m_XZ, m_YZ);
+  auto clone = std::make_shared<SliceManager>(m_XY, m_XZ, m_YZ, flags());
 
   clone->m_plane = m_plane;
 
