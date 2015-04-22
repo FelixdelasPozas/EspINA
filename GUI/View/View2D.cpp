@@ -93,7 +93,7 @@ View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane
 , m_toLayout        {new QHBoxLayout()}
 , m_scrollBar       {new QScrollBar(Qt::Horizontal)}
 , m_spinBox         {new QDoubleSpinBox()}
-, m_zoomButton      {nullptr}
+, m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
 , m_repManagerMenu  {nullptr}
 , m_showThumbnail   {true}
@@ -406,9 +406,9 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_zoomButton = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
-  connect(m_zoomButton, SIGNAL(clicked()),
-          this,         SLOT(resetCameraImplementation()));
+  m_cameraReset = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
+  connect(m_cameraReset, SIGNAL(clicked()),
+          this,          SLOT(onCameraResetPressed()));
 
   m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
   connect(m_snapshot, SIGNAL(clicked(bool)),
@@ -432,7 +432,7 @@ void View2D::setupUI()
           this,        SLOT(scrollValueChanged(int)));
 
   m_mainLayout   ->addWidget(m_view);
-  m_controlLayout->addWidget(m_zoomButton);
+  m_controlLayout->addWidget(m_cameraReset);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addLayout(m_fromLayout);
@@ -510,7 +510,7 @@ void View2D::updateViewActions(RepresentationManager::ManagerFlags flags)
 {
   auto hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
 
-  m_zoomButton->setEnabled(hasActors);
+  m_cameraReset->setEnabled(hasActors);
   m_snapshot->setEnabled(hasActors);
 }
 
@@ -533,13 +533,6 @@ void View2D::resetCameraImplementation()
   m_thumbnail->AddViewProp(m_viewportBorder);
 
   updateScaleValue();
-
-  if(nullptr != sender())
-  {
-    // comes from the zoom button -> force a refresh
-    mainRenderer()->ResetCameraClippingRange();
-    renderWindow()->Render();
-  }
 }
 
 //-----------------------------------------------------------------------------

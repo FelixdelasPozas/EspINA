@@ -334,9 +334,10 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 }
 
 //-----------------------------------------------------------------------------
-void RenderView::updateSelection(SegmentationAdapterList selection)
+void RenderView::onCameraResetPressed()
 {
-  // TODO 2015-04-20 Resaltar los elementos seleccionado
+  resetCamera();
+  refresh();
 }
 
 //-----------------------------------------------------------------------------

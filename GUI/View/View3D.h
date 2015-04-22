@@ -109,6 +109,8 @@ namespace ESPINA
 
     virtual void refreshViewImplementation();
 
+    virtual void resetCameraImplementation();
+
     /** \brief Helper method to setup the UI.
      *
      */
@@ -126,16 +128,13 @@ namespace ESPINA
 
     virtual const QString viewName() const;
 
-  private slots:
-    virtual void resetCameraImplementation();
-
   private:
     // GUI
     QVBoxLayout *m_mainLayout;
     QHBoxLayout *m_controlLayout;
     QPushButton *m_snapshot;
     QPushButton *m_export;
-    QPushButton *m_zoom;
+    QPushButton *m_cameraReset;
     QPushButton *m_renderConfig;
 
     // GUI elements only visible in Segmentation Information dialog

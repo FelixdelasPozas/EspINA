@@ -220,11 +220,10 @@ namespace ESPINA
     void crosshairPlaneChanged(Plane, Nm);
 
   protected slots:
-    /** \brief Updates the representations of the given list of segmentations.
-     * \param[in] selection list of segmentation adapter raw pointers.
+    /** \brief Resets the camera using the camera reset button of the view.
      *
      */
-    virtual void updateSelection(SegmentationAdapterList selection);
+    virtual void onCameraResetPressed();
 
   protected:
     /** \brief RenderView class constructor.

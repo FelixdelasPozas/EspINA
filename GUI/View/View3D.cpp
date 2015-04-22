@@ -86,18 +86,21 @@ void View3D::buildViewActionsButtons()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_zoom = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
-  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetCameraImplementation()));
+  m_cameraReset = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
+  connect(m_cameraReset, SIGNAL(clicked()),
+          this,          SLOT(onCameraResetPressed()));
 
   m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
-  connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
+  connect(m_snapshot,  SIGNAL(clicked()),
+          this,        SLOT(onTakeSnapshot()));
 
   m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
-  connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+  connect(m_export,    SIGNAL(clicked()),
+          this,        SLOT(exportScene()));
 
   auto horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-  m_controlLayout->addWidget(m_zoom);
+  m_controlLayout->addWidget(m_cameraReset);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_export);
   m_controlLayout->addItem(horizontalSpacer);
@@ -297,6 +300,16 @@ void View3D::refreshViewImplementation()
 }
 
 //-----------------------------------------------------------------------------
+void View3D::resetCameraImplementation()
+{
+  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
+  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
+  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
+  m_renderer->GetActiveCamera()->SetRoll(180);
+  m_renderer->ResetCamera();
+}
+
+//-----------------------------------------------------------------------------
 void View3D::addActor(vtkProp *actor)
 {
   m_renderer->AddActor(actor);
@@ -312,23 +325,6 @@ void View3D::removeActor(vtkProp *actor)
 vtkRenderer *View3D::mainRenderer() const
 {
   return m_renderer;
-}
-
-//-----------------------------------------------------------------------------
-void View3D::resetCameraImplementation()
-{
-  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
-  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
-  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
-  m_renderer->GetActiveCamera()->SetRoll(180);
-  m_renderer->ResetCamera();
-
-  if(nullptr != sender())
-  {
-    // comes from the zoom button -> force a refresh
-    mainRenderer()->ResetCameraClippingRange();
-    renderWindow()->Render();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -480,9 +476,9 @@ void View3D::updateViewActions(RepresentationManager::ManagerFlags flags)
   bool hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
   bool exports3D = flags.testFlag(RepresentationManager::EXPORTS_3D);
 
-  m_zoom    ->setEnabled(hasActors);
-  m_snapshot->setEnabled(hasActors);
-  m_export  ->setEnabled(exports3D);
+  m_cameraReset->setEnabled(hasActors);
+  m_snapshot   ->setEnabled(hasActors);
+  m_export     ->setEnabled(exports3D);
 
   if(m_showCrosshairPlaneSelectors)
   {

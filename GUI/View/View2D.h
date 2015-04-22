@@ -187,6 +187,8 @@ namespace ESPINA
 
     virtual void refreshViewImplementation();
 
+    virtual void resetCameraImplementation();
+
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
     virtual void configureManager(RepresentationManagerSPtr manager);
@@ -271,8 +273,6 @@ namespace ESPINA
      */
     virtual void moveCamera(const NmVector3 &point);
 
-    virtual void resetCameraImplementation();
-
     virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
 
     virtual void onSceneBoundsChanged(const Bounds &bounds);
@@ -303,7 +303,7 @@ namespace ESPINA
     QHBoxLayout    *m_toLayout;
     QScrollBar     *m_scrollBar;
     QDoubleSpinBox *m_spinBox;
-    QPushButton    *m_zoomButton;
+    QPushButton    *m_cameraReset;
     QPushButton    *m_snapshot;
     QPushButton    *m_repManagerMenu;
 
