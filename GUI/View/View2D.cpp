@@ -4,7 +4,7 @@
 
  This file is part of ESPINA.
 
-    ESPINA is free software: you can redistribute it and/or modify
+ ESPINA is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
@@ -16,6 +16,7 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
  */
 
 // ESPINA
@@ -275,6 +276,14 @@ void View2D::updateScale()
 //-----------------------------------------------------------------------------
 void View2D::updateThumbnail()
 {
+  // This lambda avoids having to reorder the limits depending on the camera position of the view.
+  auto isOutsideLimits = [] (double coord, double limitA, double limitB)
+  {
+    double lower = std::min(limitA, limitB);
+    double upper = std::max(limitA, limitB);
+    return (coord < lower || upper < coord);
+  };
+
   if (m_showThumbnail)
   {
     double *value;
@@ -306,14 +315,12 @@ void View2D::updateThumbnail()
     double sceneLower = bounds[2*v];
     double sceneUpper = bounds[2*v+1];
 
-    // viewLower and viewUpper are inverted because the roll we made
-    // in the renderer camera
-    bool leftHidden  = sceneLeft < viewLeft;
-    bool rightHidden = sceneRight > viewRight;
-    bool upperHidden = sceneUpper > viewLower;
-    bool lowerHidden = sceneLower < viewUpper;
+    bool isLeftHidden  = isOutsideLimits(sceneLeft, viewLeft, viewRight);
+    bool isRightHidden = isOutsideLimits(sceneRight, viewLeft, viewRight);
+    bool isUpperHidden = isOutsideLimits(sceneUpper, viewUpper, viewLower);
+    bool isLowerHidden = isOutsideLimits(sceneLower, viewUpper, viewLower);
 
-    if (leftHidden || rightHidden || upperHidden || lowerHidden)
+    if (isLeftHidden || isRightHidden || isUpperHidden || isLowerHidden)
     {
       m_thumbnail->DrawOn();
       updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
@@ -376,14 +383,14 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
       corners->SetPoint(3, left,  lower, zShift); //LL
       break;
     case Plane::XZ:
-      zShift = bounds[3] + widgetDepth();
+      zShift = bounds[2] - widgetDepth();
       corners->SetPoint(0, left,  zShift, upper); //UL
       corners->SetPoint(1, right, zShift, upper); //UR
       corners->SetPoint(2, right, zShift, lower); //LR
       corners->SetPoint(3, left,  zShift, lower); //LL
       break;
     case Plane::YZ:
-      zShift = bounds[1] + widgetDepth();
+      zShift = bounds[0] - widgetDepth();
       corners->SetPoint(0, zShift, upper,  left); //UL
       corners->SetPoint(1, zShift, lower,  left); //UR
       corners->SetPoint(2, zShift, lower, right); //LR
@@ -403,7 +410,7 @@ void View2D::setupUI()
 
   m_zoomButton = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
   connect(m_zoomButton, SIGNAL(clicked()),
-          this,         SLOT(resetCamera()));
+          this,         SLOT(resetCameraImplementation()));
 
   m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
   connect(m_snapshot, SIGNAL(clicked(bool)),
@@ -501,7 +508,7 @@ void View2D::removeActor(vtkProp* actor)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::updateViewActions(RepresentationManager::Flags flags)
+void View2D::updateViewActions(RepresentationManager::ManagerFlags flags)
 {
   auto hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
 
@@ -528,6 +535,13 @@ void View2D::resetCameraImplementation()
   m_thumbnail->AddViewProp(m_viewportBorder);
 
   updateScaleValue();
+
+  if(nullptr != sender())
+  {
+    // comes from the zoom button -> force a refresh
+    mainRenderer()->ResetCameraClippingRange();
+    renderWindow()->Render();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -771,53 +785,6 @@ void View2D::centerViewOnMousePosition(int x, int y)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::selectPickedItems(int x, int y, bool append)
-{
-  ViewItemAdapterList selection;
-
-  if (append)
-  {
-    selection = currentSelection()->items();
-  }
-
-  auto flags       = Selector::SelectionFlags(Selector::CHANNEL|Selector::SEGMENTATION);
-  auto pickedItems = pick(flags, x, y);
-
-  ViewItemAdapterList channels;
-  ViewItemAdapterList segmentations;
-
-  for (auto selectionItem : pickedItems)
-  {
-    auto pickedItem = selectionItem.second;
-
-    if (isSegmentation(pickedItem))
-    {
-      segmentations << pickedItem;
-    }
-    else if (isChannel(pickedItem))
-    {
-      channels << pickedItem;
-    }
-  }
-
-  for (auto item : segmentations + channels)
-  {
-    if (selection.contains(item))
-    {
-      selection.removeAll(item);
-    }
-    else
-    {
-      selection << item;
-    }
-
-    if (!append) break;
-  }
-
-  currentSelection()->set(selection);
-}
-
-//-----------------------------------------------------------------------------
 void View2D::configureManager(RepresentationManagerSPtr manager)
 {
   auto manager2D = dynamic_cast<RepresentationManager2D *>(manager.get());
@@ -849,21 +816,6 @@ NmVector3 View2D::toNormalizeWorldPosition(vtkRenderer* renderer, int x, int y) 
 vtkSmartPointer< vtkRenderer > View2D::rendererUnderCuror() const
 {
   return m_inThumbnail?m_thumbnail:m_renderer;
-}
-
-//-----------------------------------------------------------------------------
-void View2D::showSegmentationTooltip(const int x, const int y)
-{
-  auto segmentations = pick(Selector::SEGMENTATION, x, y);
-
-  QString toopTip;
-
-  for (auto segmentation : segmentations)
-  {
-    toopTip = toopTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
-  }
-
-  m_view->setToolTip(toopTip);
 }
 
 //-----------------------------------------------------------------------------
@@ -1210,9 +1162,8 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 {
   Selector::Selection finalSelection;
 
-  auto renderer    = rendererUnderCuror();
   auto picker      = vtkSmartPointer<vtkPropPicker>::New();
-  auto sceneActors = renderer->GetViewProps();
+  auto sceneActors = m_renderer->GetViewProps();
 
   NeuroItemAdapterList pickedItems;
 
@@ -1224,7 +1175,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
   do
   {
-    picked     = picker->PickProp(x,y, renderer, sceneActors);
+    picked = picker->PickProp(x,y, m_renderer, sceneActors);
     pickedProp = picker->GetViewProp();
 
     if(pickedProp)
@@ -1233,7 +1184,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
       pickedProps->AddItem(pickedProp);
     }
 
-    auto worldPoint = toNormalizeWorldPosition(renderer, x, y);
+    auto worldPoint = toNormalizeWorldPosition(m_renderer, x, y);
 
     for(auto manager: m_managers)
     {

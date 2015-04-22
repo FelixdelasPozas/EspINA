@@ -26,8 +26,8 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-PoolManager::PoolManager(ViewTypeFlags supportedViews)
-: RepresentationManager{supportedViews}
+PoolManager::PoolManager(ViewTypeFlags supportedViews, ManagerFlags flags)
+: RepresentationManager{supportedViews, flags}
 {
 }
 

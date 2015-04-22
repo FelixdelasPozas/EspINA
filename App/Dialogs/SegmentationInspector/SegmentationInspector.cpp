@@ -55,7 +55,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
                                              FilterDelegateFactorySPtr delegateFactory,
                                              Support::Context   &context)
 : QWidget               {nullptr, Qt::WindowStaysOnTopHint}
-, m_context             {context}
+, m_context             (context)
 , m_delegateFactory     {delegateFactory}
 , m_selectedSegmentation{nullptr}
 , m_channelSources      {context.representationInvalidator()}

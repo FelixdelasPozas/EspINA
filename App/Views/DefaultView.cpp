@@ -52,13 +52,13 @@ const QString SETTINGS_FILE = "Extra/DefaultView.ini";
 DefaultView::DefaultView(Support::Context &context,
                          QMainWindow      *parent)
 : m_model(context.model())
-, m_viewState{context.viewState()}
-, m_viewXY{new View2D(context.viewState(), context.selection(), Plane::XY)}
-, m_viewXZ{new View2D(context.viewState(), context.selection(), Plane::XZ)}
-, m_viewYZ{new View2D(context.viewState(), context.selection(), Plane::YZ)}
-, m_view3D{new View3D(context.viewState(), context.selection(), false)}
+, m_viewState(context.viewState())
 , m_channelSources(m_model,  ItemAdapter::Type::CHANNEL, context.representationInvalidator())
 , m_segmentationSources(m_model, ItemAdapter::Type::SEGMENTATION, context.representationInvalidator())
+, m_viewXY{new View2D(context.viewState(), context.selection(), Plane::XY)}
+, m_viewYZ{new View2D(context.viewState(), context.selection(), Plane::YZ)}
+, m_viewXZ{new View2D(context.viewState(), context.selection(), Plane::XZ)}
+, m_view3D{new View3D(context.viewState(), context.selection(), false)}
 {
 
   setObjectName("viewXY");

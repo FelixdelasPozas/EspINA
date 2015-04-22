@@ -74,7 +74,7 @@ protected:
 TabularReport::TabularReport(Support::Context &context,
                              QWidget                *parent,
                              Qt::WindowFlags         flags)
-: m_context       {context}
+: m_context       (context)
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {

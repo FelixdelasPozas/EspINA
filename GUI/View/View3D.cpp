@@ -52,6 +52,7 @@
 #include <vtkAxisActor2D.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
+#include <vtkPropPicker.h>
 
 using namespace ESPINA;
 
@@ -86,7 +87,7 @@ void View3D::buildViewActionsButtons()
   m_controlLayout->addStretch();
 
   m_zoom = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
-  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetCamera()));
+  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetCameraImplementation()));
 
   m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
   connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
@@ -102,29 +103,6 @@ void View3D::buildViewActionsButtons()
   m_controlLayout->addItem(horizontalSpacer);
 
   m_mainLayout->addLayout(m_controlLayout);
-}
-
-//-----------------------------------------------------------------------------
-bool View3D::isCrosshairPointVisible() const
-{
-  auto coords = vtkSmartPointer<vtkCoordinate>::New();
-  coords->SetViewport(m_renderer);
-  coords->SetCoordinateSystemToNormalizedViewport();
-
-  double ll[3], ur[3], ch[3];
-  coords->SetValue(0, 0); //LL
-  memcpy(ll,coords->GetComputedDisplayValue(m_renderer),3*sizeof(double));
-  coords->SetValue(1, 1); //UR
-  memcpy(ur,coords->GetComputedDisplayValue(m_renderer),3*sizeof(double));
-
-  auto current = crosshair();
-
-  coords->SetCoordinateSystemToWorld();
-  coords->SetValue(current[0], current[1], current[2]);
-  memcpy(ch,coords->GetComputedDisplayValue(m_renderer),3*sizeof(double));
-
-  return  current[0] < ll[0] || current[0] > ur[0] // Horizontally out
-       || current[1] > ll[1] || current[1] < ur[1];// Vertically out
 }
 
 //-----------------------------------------------------------------------------
@@ -150,11 +128,6 @@ void View3D::onCrosshairChanged(const NmVector3 &point)
     m_coronalScrollBar ->blockSignals(false);
     m_sagittalScrollBar->blockSignals(false);
   }
-
-  if (!isCrosshairPointVisible())
-  {
-    moveCamera(point);
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -179,8 +152,70 @@ void View3D::onSceneBoundsChanged(const Bounds &bounds)
 //-----------------------------------------------------------------------------
 Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
+
+  auto picker      = vtkSmartPointer<vtkPropPicker>::New();
+  auto sceneActors = m_renderer->GetViewProps();
+
+  NeuroItemAdapterList pickedItems;
+
+  vtkProp *pickedProp;
+  auto pickedProps = vtkSmartPointer<vtkPropCollection>::New();
+
+  bool finished = false;
+  bool picked   = false;
+
+  do
+  {
+    picked = picker->PickProp(x,y, m_renderer, sceneActors);
+    pickedProp = picker->GetViewProp();
+
+    if(pickedProp)
+    {
+      sceneActors->RemoveItem(pickedProp);
+      pickedProps->AddItem(pickedProp);
+
+      NmVector3 worldPoint;
+      double point[3];
+      picker->GetPickPosition(point);
+      worldPoint = NmVector3{point};
+
+      for(auto manager: m_managers)
+      {
+        auto pickedItem = manager->pick(worldPoint, pickedProp);
+
+        NeuroItemAdapterPtr neuroItem = pickedItem;
+        if(pickedItem && !pickedItems.contains(pickedItem))
+        {
+          if (Selector::IsValid(pickedItem, flags))
+          {
+            if(flags.testFlag(Selector::SAMPLE) && isChannel(pickedItem))
+            {
+              neuroItem = QueryAdapter::sample(pickedItem).get();
+            }
+            finalSelection << Selector::SelectionItem(pointToMask<unsigned char>(worldPoint, pickedItem->output()->spacing()), neuroItem);
+            finished = !multiselection;
+          }
+
+          pickedItems << pickedItem;
+          picked |= pickedItem != nullptr;
+        }
+      }
+    }
+    else
+    {
+      finished = true;
+    }
+  }
+  while(picked && !finished);
+
+  pickedProps->InitTraversal();
+
+  while ((pickedProp = pickedProps->GetNextProp()))
+  {
+    sceneActors->AddItem(pickedProp);
+  }
+  sceneActors->Modified();
 
   return finalSelection;
 }
@@ -262,12 +297,6 @@ void View3D::refreshViewImplementation()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::selectPickedItems(int vx, int vy, bool append)
-{
-  // TODO 2015-04-20 recover 3D picking
-}
-
-//-----------------------------------------------------------------------------
 void View3D::addActor(vtkProp *actor)
 {
   m_renderer->AddActor(actor);
@@ -293,6 +322,13 @@ void View3D::resetCameraImplementation()
   m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
   m_renderer->GetActiveCamera()->SetRoll(180);
   m_renderer->ResetCamera();
+
+  if(nullptr != sender())
+  {
+    // comes from the zoom button -> force a refresh
+    mainRenderer()->ResetCameraClippingRange();
+    renderWindow()->Render();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -303,37 +339,58 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
   static int x = -1;
   static int y = -1;
 
-  int newX, newY;
-  eventPosition(newX, newY);
+  int xPos, yPos;
+  eventPosition(xPos, yPos);
 
-  if (e->type() == QEvent::MouseButtonPress)
+  switch(e->type())
   {
-    auto me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
-    {
-      if (me->modifiers() == Qt::CTRL)
+    case QEvent::MouseButtonPress:
       {
-        // TODO 2015-04-20 Recover change crosshair
-      }
-      else
-      {
-        x = newX;
-        y = newY;
-      }
-    }
-  }
+        auto me = static_cast<QMouseEvent*>(e);
+        if (me->button() == Qt::LeftButton)
+        {
+          if (me->modifiers() == Qt::CTRL)
+          {
+            Selector::SelectionFlags flags(Selector::SelectionTag::CHANNEL|Selector::SelectionTag::SEGMENTATION);
+            auto picked = pick(flags, xPos, yPos, true);
+            if(picked.size() != 0)
+            {
+              auto element = picked.first();
+              auto bounds = element.first->bounds();
 
-  if (e->type() == QEvent::MouseButtonRelease)
-  {
-    auto me = static_cast<QMouseEvent*>(e);
+              NmVector3 point{(bounds[0]+bounds[1])/2,
+                              (bounds[2]+bounds[3])/2,
+                              (bounds[4]+bounds[5])/2};
 
-    if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
-    {
-      if ((newX == x) && (newY == y))
-      {
-        selectPickedItems(newX, newY, me->modifiers() == Qt::SHIFT);
+              emit crosshairChanged(point);
+            }
+          }
+          else
+          {
+            x = xPos;
+            y = yPos;
+          }
+        }
       }
-    }
+      break;
+    case QEvent::MouseButtonRelease:
+      {
+        auto me = static_cast<QMouseEvent*>(e);
+
+        if ((me->button() == Qt::LeftButton) && !(me->modifiers() == Qt::CTRL))
+        {
+          if ((xPos == x) && (yPos == y))
+          {
+            selectPickedItems(xPos, yPos, me->modifiers() == Qt::SHIFT);
+          }
+        }
+      }
+      break;
+    case QEvent::ToolTip:
+      showSegmentationTooltip(xPos, yPos);
+      break;
+    default:
+      break;
   }
 
   return QObject::eventFilter(caller, e);
@@ -418,7 +475,7 @@ void View3D::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::updateViewActions(RepresentationManager::Flags flags)
+void View3D::updateViewActions(RepresentationManager::ManagerFlags flags)
 {
   bool hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
   bool exports3D = flags.testFlag(RepresentationManager::EXPORTS_3D);
@@ -506,4 +563,3 @@ const QString View3D::viewName() const
 {
   return "3D";
 }
-

@@ -82,7 +82,7 @@ namespace ESPINA
 
   //-----------------------------------------------------------------------------
   SkeletonTool::SkeletonTool(Support::Context &context)
-  : m_context         {context}
+  : m_context         (context)
   , m_categorySelector{new CategorySelector(context.model())}
   , m_toleranceWidget {new DoubleSpinBoxAction(this)}
   , m_toolStatus      {new SkeletonToolStatusAction(this)}

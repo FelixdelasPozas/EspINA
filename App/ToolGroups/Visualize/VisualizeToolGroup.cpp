@@ -64,9 +64,9 @@ using namespace ESPINA::Support::Representations::Utils;
 //----------------------------------------------------------------------------
 VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *parent)
 : ToolGroup              {":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
-, m_segmentationsShortcut{new QShortcut(parent)}
+, m_context(context)
 , m_representationTools{context.timer()}
-, m_context{context}
+, m_segmentationsShortcut{new QShortcut(parent)}
 {
   for (auto tool : m_representationTools.representationTools())
   {

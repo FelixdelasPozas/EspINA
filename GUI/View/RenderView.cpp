@@ -28,6 +28,7 @@
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/WidgetManager.h>
 
 // VTK
@@ -49,6 +50,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -56,7 +58,7 @@ using namespace ESPINA::GUI::Representations::Managers;
 //-----------------------------------------------------------------------------
 RenderView::RenderView(ViewState &state, SelectionSPtr selection, ViewType type)
 : m_view {new QVTKWidget()}
-, m_state{state}
+, m_state(state)
 , m_selection{selection}
 , m_type {type}
 , m_requiresCameraReset{true}
@@ -137,6 +139,53 @@ void RenderView::onSelectionSet(SelectionSPtr selection)
 {
   connect(selection.get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
           this,            SLOT(updateSelection(SegmentationAdapterList)));
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::selectPickedItems(int x, int y, bool append)
+{
+  ViewItemAdapterList selection;
+
+  if (append)
+  {
+    selection = currentSelection()->items();
+  }
+
+  auto flags       = Selector::SelectionFlags(Selector::CHANNEL|Selector::SEGMENTATION);
+  auto pickedItems = pick(flags, x, y);
+
+  ViewItemAdapterList channels;
+  ViewItemAdapterList segmentations;
+
+  for (auto selectionItem : pickedItems)
+  {
+    auto pickedItem = selectionItem.second;
+
+    if (isSegmentation(pickedItem))
+    {
+      segmentations << pickedItem;
+    }
+    else if (isChannel(pickedItem))
+    {
+      channels << pickedItem;
+    }
+  }
+
+  for (auto item : segmentations + channels)
+  {
+    if (selection.contains(item))
+    {
+      selection.removeAll(item);
+    }
+    else
+    {
+      selection << item;
+    }
+
+    if (!append) break;
+  }
+
+  currentSelection()->set(selection);
 }
 
 //-----------------------------------------------------------------------------
@@ -524,13 +573,16 @@ void RenderView::display(RepresentationManagerSList managers, TimeStamp t)
 }
 
 //-----------------------------------------------------------------------------
-RepresentationManager::Flags RenderView::managerFlags() const
+RepresentationManager::ManagerFlags RenderView::managerFlags() const
 {
-  RepresentationManager::Flags flags;
+  RepresentationManager::ManagerFlags flags;
 
   for (auto manager : m_managers)
   {
-    flags |= manager->flags();
+    if(manager->isActive())
+    {
+      flags |= manager->flags();
+    }
   }
 
   return flags;
@@ -548,4 +600,19 @@ void RenderView::deleteInactiveWidgetManagers()
       m_widgetManagers.remove(factory);
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::showSegmentationTooltip(const int x, const int y)
+{
+  auto segmentations = pick(Selector::SEGMENTATION, x, y);
+
+  QString toopTip;
+
+  for (auto segmentation : segmentations)
+  {
+    toopTip = toopTip.append(segmentation.second->data(Qt::ToolTipRole).toString());
+  }
+
+  m_view->setToolTip(toopTip);
 }

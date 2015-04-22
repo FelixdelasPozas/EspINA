@@ -106,7 +106,6 @@ namespace ESPINA
       property->SetSpecular(0.5);
       property->ShadeOn();
       property->SetInterpolationTypeToLinear();
-      property->IndependentComponentsOn();
       property->Modified();
 
       auto actor = vtkSmartPointer<vtkVolume>::New();
@@ -125,9 +124,8 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   bool SegmentationVolumetricGPUPipeline::pick(ViewItemAdapter *item, const NmVector3 &point) const
   {
-    Q_ASSERT(hasVolumetricData(item->output()));
-    auto volume = volumetricData(item->output());
-    return isSegmentationVoxel(volume, point);
+    // relies on an actor being picked in the View3D and the updater selecting the correct ViewItem.
+    return true;
   }
 
 } // namespace ESPINA

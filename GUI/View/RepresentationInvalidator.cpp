@@ -22,7 +22,7 @@ using namespace ESPINA::GUI::View;
 
 //------------------------------------------------------------------------
 RepresentationInvalidator::RepresentationInvalidator(Timer &timer)
-: m_timer{timer}
+: m_timer(timer)
 {
 }
 

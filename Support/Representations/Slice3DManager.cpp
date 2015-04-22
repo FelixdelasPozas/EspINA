@@ -26,8 +26,9 @@ using namespace std;
 //----------------------------------------------------------------------------
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,
                                RepresentationPoolSPtr poolXZ,
-                               RepresentationPoolSPtr poolYZ)
-: PoolManager(ViewType::VIEW_3D)
+                               RepresentationPoolSPtr poolYZ,
+                               ManagerFlags           flags)
+: PoolManager(ViewType::VIEW_3D, flags)
 {
   m_pools << poolXY << poolXZ << poolYZ;
 }
@@ -209,7 +210,7 @@ void Slice3DManager::disconnectPools()
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr Slice3DManager::cloneImplementation()
 {
-  auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2]);
+  auto clone = std::make_shared<Slice3DManager>(m_pools[0], m_pools[1], m_pools[2], flags());
 
   return clone;
 }

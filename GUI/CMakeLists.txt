@@ -1,3 +1,6 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 include (GenerateExportHeader)
 
 include_directories(

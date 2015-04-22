@@ -225,7 +225,7 @@ bool MorphologicalEditionTool::MorphologicalFilterFactory::isSubstractionFilter(
 //------------------------------------------------------------------------
 MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr filterDelegateFactory,
                                                    Support::Context   &context)
-: m_context      {context}
+: m_context      (context)
 , m_filterFactory{new MorphologicalFilterFactory()}
 , m_close        {":/espina/close.png" , tr("Close selected segmentations" )}
 , m_open         {":/espina/open.png"  , tr("Open selected segmentations"  )}

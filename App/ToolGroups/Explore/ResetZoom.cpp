@@ -29,7 +29,7 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 ResetZoom::ResetZoom(GUI::View::ViewState &state)
-: m_viewState{state}
+: m_viewState(state)
 , m_action   {new QAction(QIcon(":/espina/zoom_reset.png"),tr("Reset Zoom"),this)}
 {
   connect(m_action, SIGNAL(triggered(bool)),

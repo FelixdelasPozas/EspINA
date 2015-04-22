@@ -63,7 +63,7 @@ namespace ESPINA
   private:
     Support::Context &m_context;
     Support::Widgets::RepresentationTools m_representationTools;
-
+    
     QShortcut *m_segmentationsShortcut;
   };
 

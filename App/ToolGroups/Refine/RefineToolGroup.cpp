@@ -40,7 +40,7 @@ using namespace ESPINA::GUI::Model::Utils;
 RefineToolGroup::RefineToolGroup(FilterDelegateFactorySPtr filterDelegateFactory,
                                  Support::Context &context)
 : ToolGroup      {":/espina/toolgroup_refine.svg", tr("Refine")}
-, m_context      {context}
+, m_context      (context)
 {
   // DESIGN: Consider using a base class for all refine tools to
   //         manage enabling tools depending on current selection

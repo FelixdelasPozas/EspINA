@@ -80,7 +80,7 @@ namespace ESPINA
   SplitTool::SplitTool(Support::Context &context)
   : m_planarSplitAction{new QAction(QIcon(":/espina/planar_split.svg"),tr("Split segmentation"), this)}
   , m_applyButton      {new QAction(QIcon(":/espina/tick.png"), tr("Apply current state"), this)}
-  , m_context          {context}
+  , m_context          (context)
   , m_widget           {nullptr}
   , m_handler          {new SplitToolEventHandler()}
   {

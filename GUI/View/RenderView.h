@@ -57,7 +57,7 @@ namespace ESPINA
       int       slice;           // Only used in View2D
       NmVector3 cameraPosition;
       NmVector3 focalPoint;
-      double    heightLength;      // Only used in View2D
+      double    heightLength;    // Only used in View2D
 
       CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
     };
@@ -241,10 +241,26 @@ namespace ESPINA
      */
     virtual void onSelectionSet(SelectionSPtr selection);
 
+    /** \brief Updates the selection of items.
+     * \param[in] append if true the elements picked will be merged with the ones currently
+     *  selected, if false the elements picked will be the new selection.
+     *
+     *  If an item is selected and also is on the picked list the merge will deselect the item.
+     *
+     */
+    void selectPickedItems(int x, int y, bool append);
+
     /** \brief Generates and saves to disk an image of the actual view state.
      *
      */
     void takeSnapshot();
+
+    /** \brief Shows tool tip for segmentations at position (x, y)
+     * \param[in] x display coordinate
+     * \param[in] y display coordinate
+     *
+     */
+    void showSegmentationTooltip(const int x, const int y);
 
     bool requiresCameraReset() const;
 
@@ -261,7 +277,7 @@ namespace ESPINA
 
     virtual void normalizeWorldPosition(NmVector3 &point) const {}
 
-    virtual void updateViewActions(RepresentationManager::Flags flags) = 0;
+    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) = 0;
 
     virtual void resetCameraImplementation() = 0;
 
@@ -277,7 +293,7 @@ namespace ESPINA
 
     void display(RepresentationManagerSList managers, TimeStamp t);
 
-    RepresentationManager::Flags managerFlags() const;
+    RepresentationManager::ManagerFlags managerFlags() const;
 
     void deleteInactiveWidgetManagers();
 

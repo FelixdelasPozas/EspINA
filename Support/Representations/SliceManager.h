@@ -33,7 +33,8 @@ namespace ESPINA
   public:
     SliceManager(RepresentationPoolSPtr poolXY,
                  RepresentationPoolSPtr poolXZ,
-                 RepresentationPoolSPtr poolYZ);
+                 RepresentationPoolSPtr poolYZ,
+                 ManagerFlags           flags = ManagerFlags());
 
     virtual TimeRange readyRangeImplementation() const override;
 

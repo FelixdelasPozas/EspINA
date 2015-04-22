@@ -24,7 +24,7 @@ namespace ESPINA {
   namespace CF {
     //-----------------------------------------------------------------------------
     RepresentationManager3D::RepresentationManager3D(CountingFrameManager &manager, ViewTypeFlags supportedViews)
-    : RepresentationManager(supportedViews)
+    : RepresentationManager(supportedViews, ManagerFlags())
     , m_manager(manager)
     {
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),

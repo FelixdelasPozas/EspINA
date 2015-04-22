@@ -39,7 +39,7 @@ const QString FIT_TO_SLICES ("ViewManager::FitToSlices");
 //------------------------------------------------------------------------
 ROISettingsPanel::ROISettingsPanel(ROISettings            *settings,
                                    Support::Context &context)
-: m_context       {context}
+: m_context       (context)
 , m_settings      {settings}
 , m_activeCategory{nullptr}
 {

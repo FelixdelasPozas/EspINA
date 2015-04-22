@@ -28,8 +28,8 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-PassiveActorManager::PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews)
-: PoolManager{supportedViews}
+PassiveActorManager::PassiveActorManager(RepresentationPoolSPtr pool, ViewTypeFlags supportedViews, ManagerFlags flags)
+: PoolManager{supportedViews, flags}
 , m_pool     {pool}
 {
 }
@@ -168,7 +168,7 @@ void PassiveActorManager::displayRepresentations(const TimeStamp t)
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr PassiveActorManager::cloneImplementation()
 {
-  return std::make_shared<PassiveActorManager>(m_pool, supportedViews());
+  return std::make_shared<PassiveActorManager>(m_pool, supportedViews(), flags());
 }
 
 //----------------------------------------------------------------------------
