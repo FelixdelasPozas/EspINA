@@ -58,9 +58,6 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
 {
   bool dataFetched = false;
 
-  // TODO: Fetch old file names
-  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
-
   for (auto filename : {snapshotFilename   (path, id),
                         oldSnapshotFilename(path, id)})
   {

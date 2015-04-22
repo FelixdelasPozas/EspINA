@@ -45,7 +45,7 @@
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
-
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 namespace CPADCS
 {
@@ -114,8 +114,10 @@ int classification_proxy_add_different_category_segmentations( int argc, char** 
 {
   bool error = false;
 
+  Timer               synchTimer;
+  Invalidator         invalidator(synchTimer);
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter);
+  ClassificationProxy proxy(modelAdapter, invalidator);
   //ModelTest           modelTester(&proxy);
 
   auto classification = make_shared<ClassificationAdapter>();

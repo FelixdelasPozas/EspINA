@@ -31,12 +31,9 @@ CODEHistory::CODEHistory(const QString& title, MorphologicalEditionFilterSPtr fi
 }
 
 //-----------------------------------------------------------------------------
-QWidget *CODEHistory::createWidget(ModelAdapterSPtr model,
-                                   ModelFactorySPtr factory,
-                                   ViewManagerSPtr  viewManager,
-                                   QUndoStack      *undoStack )
+QWidget *CODEHistory::createWidget(Support::Context &context)
 {
-  auto widget = new CODEHistoryWidget(m_title, m_filter,viewManager, undoStack);
+  auto widget = new CODEHistoryWidget(m_title, m_filter, context);
 
   connect(widget, SIGNAL(radiusChanged(int)),
           this,   SIGNAL(radiusChanged(int)));

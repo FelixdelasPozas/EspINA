@@ -223,29 +223,23 @@ bool MorphologicalEditionTool::MorphologicalFilterFactory::isSubstractionFilter(
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
-MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr          model,
-                                                   ModelFactorySPtr          factory,
-                                                   FilterDelegateFactorySPtr filterDelegateFactory,
-                                                   ViewManagerSPtr           viewManager,
-                                                   QUndoStack                *undoStack)
-: m_model        {model}
-, m_factory      {factory}
-, m_viewManager  {viewManager}
-, m_undoStack    {undoStack}
+MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr filterDelegateFactory,
+                                                   Support::Context   &context)
+: m_context      {context}
 , m_filterFactory{new MorphologicalFilterFactory()}
 , m_close        {":/espina/close.png" , tr("Close selected segmentations" )}
 , m_open         {":/espina/open.png"  , tr("Open selected segmentations"  )}
 , m_dilate       {":/espina/dilate.png", tr("Dilate selected segmentations")}
 , m_erode        {":/espina/erode.png" , tr("Erode selected segmentations" )}
 {
-  m_factory->registerFilterFactory(m_filterFactory);
+  m_context.factory()->registerFilterFactory(m_filterFactory);
   filterDelegateFactory->registerFilterDelegateFactory(m_filterFactory);
 
-  m_addition = new QAction(QIcon(":/espina/add.svg"), tr("Merge selected segmentations"), nullptr);
+  m_addition = new QAction(QIcon(":/espina/add.svg"), tr("Merge selected segmentations"), this);
   connect(m_addition, SIGNAL(triggered(bool)),
           this, SLOT(mergeSegmentations()));
 
-  m_subtract = new QAction(QIcon(":/espina/remove.svg"), tr("Subtract selected segmentations"), nullptr);
+  m_subtract = new QAction(QIcon(":/espina/remove.svg"), tr("Subtract selected segmentations"), this);
   connect(m_subtract, SIGNAL(triggered(bool)),
           this, SLOT(subtractSegmentations()));
 
@@ -271,10 +265,10 @@ MorphologicalEditionTool::MorphologicalEditionTool(ModelAdapterSPtr          mod
   connect(&m_erode, SIGNAL(toggled(bool)),
           this,     SLOT(onErodeToggled(bool)));
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(updateAvailableActionsForSelection()));
+  connect(m_context.selection().get(), SIGNAL(selectionChanged()),
+          this,                        SLOT(updateAvailableActionsForSelection()));
 
-  m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), nullptr);
+  m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), this);
   connect(m_fill, SIGNAL(triggered(bool)),
           this,   SLOT(fillHoles()));
 
@@ -325,13 +319,14 @@ void MorphologicalEditionTool::abortOperation()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::mergeSegmentations()
 {
-  m_viewManager->unsetActiveEventHandler();
+  m_context.viewState().setEventHandler(nullptr);
 
-  auto segmentations = m_viewManager->selection()->segmentations();
+  auto selection     = m_context.selection();
+  auto segmentations = selection->segmentations();
 
   if (segmentations.size() > 1)
   {
-    m_viewManager->selection()->clear();
+    selection->clear();
 
     InputSList inputs;
     for(auto segmentation: segmentations)
@@ -339,7 +334,7 @@ void MorphologicalEditionTool::mergeSegmentations()
       inputs << segmentation->asInput();
     }
 
-    auto filter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
+    auto filter = m_context.factory()->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::ADDITION);
     filter->setDescription("Segmentations Addition");
 
@@ -361,19 +356,20 @@ void MorphologicalEditionTool::mergeSegmentations()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::subtractSegmentations()
 {
-  m_viewManager->unsetActiveEventHandler();
+  m_context.viewState().setEventHandler(nullptr);
 
-  auto segmentations = m_viewManager->selection()->segmentations();
+  auto selection     = m_context.selection();
+  auto segmentations = selection->segmentations();
 
   if (segmentations.size() > 1)
   {
-    m_viewManager->selection()->clear();
+    selection->clear();
 
     InputSList inputs;
     for(auto segmentation: segmentations)
       inputs << segmentation->asInput();
 
-    auto filter = m_factory->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
+    auto filter = m_context.factory()->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
     filter->setDescription("Segmentations Subtraction");
 
@@ -419,19 +415,19 @@ void MorphologicalEditionTool::erodeSegmentations()
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::fillHoles()
 {
-  m_viewManager->unsetActiveEventHandler();
+  m_context.viewState().setEventHandler(nullptr); // NOTE: Reconsider unsetActiveEventHandler
 
-  auto selection = m_viewManager->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
-  if (selection.size() > 0)
+  if (selectedSegmentations.size() > 0)
   {
-    for (auto segmentation :  selection)
+    for (auto segmentation :  selectedSegmentations)
     {
       InputSList inputs;
 
       inputs << segmentation->asInput();
 
-      auto filter = m_factory->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
+      auto filter = m_context.factory()->createFilter<FillHolesFilter>(inputs, FILL_HOLES_FILTER);
 
       filter->setDescription(tr("Fill %1 Holes").arg(segmentation->data(Qt::DisplayRole).toString()));
 
@@ -456,7 +452,7 @@ void MorphologicalEditionTool::onCloseToggled(bool toggled)
 {
   if (toggled)
   {
-    m_viewManager->unsetActiveEventHandler();
+    m_context.viewState().setEventHandler(nullptr);
 
     m_open  .toggleToolWidgets(false);
     m_dilate.toggleToolWidgets(false);
@@ -469,7 +465,7 @@ void MorphologicalEditionTool::onOpenToggled(bool toggled)
 {
   if (toggled)
   {
-    m_viewManager->unsetActiveEventHandler();
+    m_context.viewState().setEventHandler(nullptr);
 
     m_close .toggleToolWidgets(false);
     m_dilate.toggleToolWidgets(false);
@@ -482,7 +478,7 @@ void MorphologicalEditionTool::onDilateToggled(bool toggled)
 {
   if (toggled)
   {
-    m_viewManager->unsetActiveEventHandler();
+    m_context.viewState().setEventHandler(nullptr);
 
     m_close.toggleToolWidgets(false);
     m_open .toggleToolWidgets(false);
@@ -495,7 +491,7 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 {
   if (toggled)
   {
-    m_viewManager->unsetActiveEventHandler();
+    m_context.viewState().setEventHandler(nullptr);
 
     m_close .toggleToolWidgets(false);
     m_open  .toggleToolWidgets(false);
@@ -506,17 +502,17 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  auto selection = m_viewManager->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
   bool hasRequiredData = true;
 
-  for(auto seg : selection)
+  for(auto segmentation : selectedSegmentations)
   {
-    hasRequiredData &= hasVolumetricData(seg->output());
+    hasRequiredData &= hasVolumetricData(segmentation->output());
   }
 
-  auto morphologicalEnabled = isEnabled() && (selection.size() >  0) && hasRequiredData;
-  auto logicalEnabled       = isEnabled() && (selection.size() >= 2) && hasRequiredData;
+  auto morphologicalEnabled = isEnabled() && (selectedSegmentations.size() >  0) && hasRequiredData;
+  auto logicalEnabled       = isEnabled() && (selectedSegmentations.size() >= 2) && hasRequiredData;
 
   m_addition->setEnabled(logicalEnabled);
   m_subtract->setEnabled(logicalEnabled);
@@ -534,29 +530,30 @@ void MorphologicalEditionTool::onMorphologicalFilterFinished()
 
   if (!filter->isAborted())
   {
-    auto context = m_executingMorpholocialTasks[filter];
+    auto taskContext = m_executingMorpholocialTasks[filter];
+    auto undoStack   = m_context.undoStack();
 
     if (filter->isOutputEmpty())
     {
-      auto name    = context.Segmentation->data(Qt::DisplayRole).toString();
-      auto title   = context.Operation;
+      auto name    = taskContext.Segmentation->data(Qt::DisplayRole).toString();
+      auto title   = taskContext.Operation;
       auto message = tr("%1 segmentation will be deleted by %2 operation.\n"
-                        "Do you want to continue with the operation?").arg(name).arg(context.Operation);
+                        "Do you want to continue with the operation?").arg(name).arg(taskContext.Operation);
 
       if (DefaultDialogs::UserConfirmation(title, message))
       {
-        m_undoStack->beginMacro(context.Operation);
-        m_undoStack->push(new RemoveSegmentations(context.Segmentation, m_model));
-        m_undoStack->endMacro();
+        undoStack->beginMacro(taskContext.Operation);
+        undoStack->push(new RemoveSegmentations(taskContext.Segmentation, m_context.model()));
+        undoStack->endMacro();
       }
     }
     else
     {
       if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
 
-      m_undoStack->beginMacro(context.Operation);
-      m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
-      m_undoStack->endMacro();
+      undoStack->beginMacro(taskContext.Operation);
+      undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
+      undoStack->endMacro();
     }
   }
 
@@ -570,13 +567,15 @@ void MorphologicalEditionTool::onFillHolesFinished()
 
   if (!filter->isAborted())
   {
-    auto context = m_executingFillHolesTasks[filter];
+    auto taskContext = m_executingFillHolesTasks[filter];
 
     if (filter->numberOfOutputs() != 1) throw Filter::Undefined_Output_Exception();
 
-    m_undoStack->beginMacro(context.Operation);
-    m_undoStack->push(new ReplaceOutputCommand(context.Segmentation, getInput(context.Task, 0)));
-    m_undoStack->endMacro();
+    auto undoStack = m_context.undoStack();
+
+    undoStack->beginMacro(taskContext.Operation);
+    undoStack->push(new ReplaceOutputCommand(taskContext.Segmentation, getInput(taskContext.Task, 0)));
+    undoStack->endMacro();
   }
 
   m_executingFillHolesTasks.remove(filter);
@@ -592,21 +591,23 @@ void MorphologicalEditionTool::onImageLogicFilterFinished()
     Q_ASSERT(m_executingImageLogicTasks.keys().contains(filter));
     auto context = m_executingImageLogicTasks[filter];
 
-    m_undoStack->beginMacro(filter->description());
+    auto undoStack = m_context.undoStack();
 
-    auto segmentation = m_factory->createSegmentation(context.Task, 0);
+    undoStack->beginMacro(filter->description());
+
+    auto segmentation = m_context.factory()->createSegmentation(context.Task, 0);
     segmentation->setCategory(context.Segmentations.first()->category());
 
     auto samples = QueryAdapter::samples(context.Segmentations.first());
 
-    m_undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+    undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
 
     for(auto segmentation: context.Segmentations)
-      m_undoStack->push(new RemoveSegmentations(segmentation, m_model));
+      undoStack->push(new RemoveSegmentations(segmentation, m_context.model()));
 
-    m_undoStack->endMacro();
+    undoStack->endMacro();
 
-    m_viewManager->updateViews();
+    //REVIEW m_viewManager->updateViews();
   }
 
   m_executingImageLogicTasks.remove(filter);

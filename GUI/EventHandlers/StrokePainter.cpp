@@ -158,6 +158,6 @@ void StrokePainter::onStroke(Brush::Stroke stroke)
   m_strokeCanvas->Modified();
   m_mapToColors->Update();
   m_actor->Update();
-  m_view->updateView();
+  m_view->refresh();
 }
 

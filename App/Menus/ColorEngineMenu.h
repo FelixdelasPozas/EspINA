@@ -23,7 +23,6 @@
 #define ESPINA_COLOR_ENGINE_MENU_H
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
 
 // Qt
@@ -78,7 +77,6 @@ namespace ESPINA
     void colorEngineChanged(ColorEngineSPtr);
 
   private:
-    ViewManagerSPtr      m_viewManager;
     MultiColorEngineSPtr m_engine;
 
     QMap<QAction *, ColorEngineSPtr>  m_availableEngines;

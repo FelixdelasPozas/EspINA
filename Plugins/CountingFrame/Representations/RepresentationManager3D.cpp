@@ -27,8 +27,6 @@ namespace ESPINA {
     : RepresentationManager(supportedViews)
     , m_manager(manager)
     {
-      setRenderRequired(false);
-
       connect(&m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
               this,       SLOT(onCountingFrameCreated(CountingFrame*)));
 
@@ -46,42 +44,29 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager3D::setResolution(const NmVector3 &resolution)
-    {
-    }
-
-    //-----------------------------------------------------------------------------
-    RepresentationManager::PipelineStatus RepresentationManager3D::pipelineStatus() const
-    {
-      return PipelineStatus::READY;
-    }
-
-    //-----------------------------------------------------------------------------
-    TimeRange RepresentationManager3D::readyRange() const
+    TimeRange RepresentationManager3D::readyRangeImplementation() const
     {
       return TimeRange();
     }
 
-    //-----------------------------------------------------------------------------
-    void RepresentationManager3D::display(TimeStamp t)
-    {
-      if (representationsShown())
-      {
-        for (auto widget : m_widgets)
-        {
-          showWidget(widget);
-        }
-      }
-      else
-      {
-        for (auto widget : m_widgets)
-        {
-          hideWidget(widget);
-        }
-      }
-
-      updateRenderRequestValue();
-    }
+//     //-----------------------------------------------------------------------------
+//     void RepresentationManager3D::displayImplementation(TimeStamp t)
+//     {
+//       if (representationsShown())
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           showWidget(widget);
+//         }
+//       }
+//       else
+//       {
+//         for (auto widget : m_widgets)
+//         {
+//           hideWidget(widget);
+//         }
+//       }
+//     }
 
     //-----------------------------------------------------------------------------
     ViewItemAdapterPtr RepresentationManager3D::pick(const NmVector3 &point, vtkProp *actor) const
@@ -97,8 +82,6 @@ namespace ESPINA {
         auto widget = createWidget(cf);
 
         m_widgets.insert(cf, widget);
-
-        updateRenderRequestValue();
 
         emit renderRequested();
       }
@@ -126,7 +109,7 @@ namespace ESPINA {
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager3D::onShow()
+    void RepresentationManager3D::onShow(TimeStamp t)
     {
       for (auto cf : m_pendingCFs)
       {
@@ -134,12 +117,10 @@ namespace ESPINA {
       }
 
       m_pendingCFs.clear();
-
-      updateRenderRequestValue();
     }
 
     //-----------------------------------------------------------------------------
-    void RepresentationManager3D::onHide()
+    void RepresentationManager3D::onHide(TimeStamp t)
     {
     }
 
@@ -180,12 +161,6 @@ namespace ESPINA {
       cf->deleteWidget(widget);
 
       m_widgets.remove(cf);
-    }
-
-    //-----------------------------------------------------------------------------
-    void RepresentationManager3D::updateRenderRequestValue()
-    {
-      setRenderRequired(representationsShown() && !m_widgets.isEmpty());
     }
   }
 }

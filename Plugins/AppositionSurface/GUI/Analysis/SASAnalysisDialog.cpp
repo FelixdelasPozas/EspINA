@@ -44,25 +44,20 @@ using namespace xlslib_core;
 
 //----------------------------------------------------------------------------
 SASAnalysisDialog::SASAnalysisDialog(SegmentationAdapterList segmentations,
-                                     ModelAdapterSPtr        model,
-                                     QUndoStack             *undoStack,
-                                     ModelFactorySPtr        factory,
-                                     ViewManagerSPtr         viewManager,
-                                     QWidget                *parent)
-: QDialog(parent)
+                                     Support::Context &context)
 {
   setObjectName("Synaptic Apposition Surfaces Analysis");
   setWindowTitle(tr("Synaptic Apposition Surfaces Analysis"));
   setWindowIcon(QIcon(":/AppSurface.svg"));
 
-  SASTabularReport *report = new SASTabularReport(model, factory, viewManager, this);
-  report->setModel(model);
+  auto report = new SASTabularReport(context, this);
+  report->setModel(context.model());
   report->setFilter(segmentations);
 
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
 
-  QDialogButtonBox *acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);
@@ -87,4 +82,3 @@ void SASAnalysisDialog::closeEvent(QCloseEvent *event)
 
   QDialog::closeEvent(event);
 }
-

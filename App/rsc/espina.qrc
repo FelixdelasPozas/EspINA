@@ -4,7 +4,7 @@
     <file>representation_group_3D_separator.svg</file>
     <file>toolgroup_explore.svg</file>
     <file>toolgroup_restrict.svg</file>
-    <file>toolgroup_segmentate.svg</file>
+    <file>toolgroup_segment.svg</file>
     <file>toolgroup_refine.svg</file>
     <file>toolgroup_visualize.svg</file>
     <file>toolgroup_analyze.svg</file>
@@ -120,5 +120,6 @@
     <file>database.png</file>
     <file>skelCreate.png</file>
     <file>skelModify.png</file>
+    <file>crosshair_planes.svg</file>
   </qresource>
 </RCC>

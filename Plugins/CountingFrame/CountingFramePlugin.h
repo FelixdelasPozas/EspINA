@@ -41,11 +41,7 @@ namespace ESPINA
       explicit CountingFramePlugin();
       virtual ~CountingFramePlugin();
 
-      virtual void init(ModelAdapterSPtr model,
-                        ViewManagerSPtr  viewManager,
-                        ModelFactorySPtr factory,
-                        SchedulerSPtr    scheduler,
-                        QUndoStack      *undoStack);
+      virtual void init(Support::Context &context);
 
       virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
@@ -73,7 +69,6 @@ namespace ESPINA
     private:
       CountingFrameManager m_manager;
       ModelAdapterSPtr     m_model;
-      ViewManagerSPtr      m_viewManager;
       SchedulerSPtr        m_scheduler;
       QUndoStack          *m_undoStack;
 

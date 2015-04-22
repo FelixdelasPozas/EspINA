@@ -22,57 +22,149 @@
 
 // ESPINA
 #include <Core/Utils/NmVector3.h>
+#include <Core/Utils/Bounds.h>
 #include <Core/EspinaTypes.h>
+#include <GUI/Types.h>
+#include <GUI/View/RepresentationInvalidator.h>
 #include <GUI/Utils/Timer.h>
+#include "CoordinateSystem.h"
+#include "EventHandler.h"
 
 // Qt
 #include <QObject>
 
 namespace ESPINA
 {
-  class ViewState
-  : public QObject
+  namespace GUI
   {
-    Q_OBJECT
+    namespace View
+    {
+      class ViewState
+      : public QObject
+      {
+        Q_OBJECT
+      public:
+        /** \brief Class ViewState class constructor.
+         * \param[in] timer state timer object.
+         *
+         */
+        explicit ViewState(Timer &timer, RepresentationInvalidator &invalidator);
 
-  public:
-    /** \brief Class ViewState class constructor.
-     * \param[in] timer state timer object.
-     *
-     */
-    explicit ViewState(TimerSPtr timer = std::make_shared<Timer>(1));
+        Timer        &timer() const;
 
-    /** \brief Ensure point position is visible
-     *
-     */
-    void focusViewOn(const NmVector3 &point);
+        RepresentationInvalidator &representationInvalidator() const;
 
-    TimeStamp timeStamp() const;
+        NmVector3 crosshair() const;
 
-    NmVector3 crosshair() const;
+        /** \brief Enables/disables the "fit to slices" flag.
+         * \param[in] value true to enable false otherwise.
+         *
+         * If fit to slices is enabled the movement between slices is the resolution of the scene.
+         *
+         */
+        void setFitToSlices(bool value);
 
-  public slots:
-    /** \brief Changes the crosshair position to point
-     *
-     */
-    void setCrosshair(const NmVector3 &point);
+        /** \brief Returns the value of the "fit to slices" flag.
+         *
+         */
+        bool fitToSlices() const;
 
-    /** \brief Changes the crosshair position of the given plane
-     *
-     */
-    void setCrosshairPlane(const Plane plane, const Nm position);
+        /** \brief Sets the view event handler.
+         * \param[in] handler active event handler
+         *
+         */
+        void setEventHandler(EventHandlerSPtr handler);
 
-  signals:
-    void crosshairChanged(NmVector3 point, TimeStamp time);
+        /** \brief Sets the view event handler.
+         * \param[in] handler event handler to be deactivated
+         *
+         */
+        void unsetEventHandler(EventHandlerSPtr handler);
 
-    void viewFocusedOn(NmVector3);
+        /** \brief Returns current event handler
+         *
+         */
+        EventHandlerSPtr eventHandler() const;
 
-  private:
-    TimerSPtr m_timer;
-    NmVector3 m_crosshair;
-  };
+        /** \brief Adds a widget to the view.
+         * \param[in] widget espina widget smart pointer.
+         *
+         */
+        void addWidgets(Widgets::WidgetFactorySPtr factory);
 
-  using ViewStateSPtr = std::shared_ptr<ViewState>;
+        /** \brief Removes a widget to the view.
+         * \param[in] widget espina widget smart pointer.
+         *
+         */
+        void removeWidgets(Widgets::WidgetFactorySPtr factory);
+
+        CoordinateSystemSPtr coordinateSystem() const;
+
+        /** \brief Ensure point position is visible
+         *
+         */
+        void focusViewOn(const NmVector3 &point);
+
+        void resetCamera();
+
+        void refresh();
+
+      public slots:
+        /** \brief Changes the crosshair position to point
+         *
+         */
+        void setCrosshair(const NmVector3 &point);
+
+        /** \brief Changes the crosshair position of the given plane
+         *
+         */
+        void setCrosshairPlane(const Plane plane, const Nm position);
+
+      signals:
+        void crosshairChanged(const NmVector3 &point, TimeStamp t);
+
+        void sceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);
+
+        void sceneBoundsChanged(const Bounds &bounds, TimeStamp t);
+
+        void widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+
+        void widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
+
+        void viewFocusedOn(NmVector3);
+
+        void resetCameraRequested();
+
+        void refreshRequested();
+
+      private:
+        NmVector3 crosshairPoint(const NmVector3 &point) const;
+
+        NmVector3 voxelCenter(const NmVector3 &point) const;
+
+        void changeCrosshair(const NmVector3 &point);
+
+      private slots:
+        void onResolutionChanged(const NmVector3 &resolution);
+
+        void onBoundsChanged(const Bounds &bounds);
+
+      private:
+        Timer                     &m_timer;
+        RepresentationInvalidator &m_invalidator;
+
+        bool                 m_fitToSlices;
+        NmVector3            m_crosshair;
+        CoordinateSystemSPtr m_coordinateSystem;
+
+        EventHandlerSPtr m_eventHandler;
+      };
+
+      using ViewStateSPtr = std::shared_ptr<ViewState>;
+
+      void updateSceneState(ViewState & state, ViewItemAdapterSList viewItems);
+    }
+  }
 }
 
 #endif // ESPINA_VIEWSTATE_H

@@ -109,19 +109,21 @@ void OrthogonalRegionSliceSelector::update()
 
     int i = normalCoordinateIndex(m_plane);
 
-    Nm voxelSize     = m_view->slicingStep()[i];
-    Nm lowerDistance = m_view->slicingPosition() - bounds[2*i];
-    Nm upperDistance = bounds[2*i+1] - m_view->slicingPosition();
-
-    m_leftWidget ->setEnabled(lowerDistance < 0 || lowerDistance > voxelSize);
-    m_rightWidget->setEnabled(upperDistance < 0 || upperDistance > voxelSize);
-
-    Nm leftSlicePosition  = m_view->slicingPosition() - voxelSize/2;
-    Nm rightSlicePosition = m_view->slicingPosition() + voxelSize/2;
-
-    QString tooltip = tr("<b>%1</b><br>Place %2 at %3 nm").arg(m_label);
-    m_leftWidget ->setToolTip(tooltip.arg(leftFaceLabel()) .arg(leftSlicePosition));
-    m_rightWidget->setToolTip(tooltip.arg(rightFaceLabel()).arg(rightSlicePosition));
+    Q_ASSERT(false);
+    // TODO use coordinate system
+//     Nm voxelSize     = m_view->slicingStep()[i];
+//     Nm lowerDistance = m_view->slicingPosition() - bounds[2*i];
+//     Nm upperDistance = bounds[2*i+1] - m_view->slicingPosition();
+//
+//     m_leftWidget ->setEnabled(lowerDistance < 0 || lowerDistance > voxelSize);
+//     m_rightWidget->setEnabled(upperDistance < 0 || upperDistance > voxelSize);
+//
+//     Nm leftSlicePosition  = m_view->slicingPosition() - voxelSize/2;
+//     Nm rightSlicePosition = m_view->slicingPosition() + voxelSize/2;
+//
+//     QString tooltip = tr("<b>%1</b><br>Place %2 at %3 nm").arg(m_label);
+//     m_leftWidget ->setToolTip(tooltip.arg(leftFaceLabel()) .arg(leftSlicePosition));
+//     m_rightWidget->setToolTip(tooltip.arg(rightFaceLabel()).arg(rightSlicePosition));
   }
 }
 
@@ -147,7 +149,8 @@ void OrthogonalRegionSliceSelector::moveEdge(Edge edge)
     int i   = normalCoordinateIndex(m_plane);
     Nm sign = (Lower==edge)?-0.5:0.5;
 
-    bounds[2*i+edge] = m_view->slicingPosition() + sign*m_view->slicingStep()[i];
+    Q_ASSERT(false);
+    //TODO bounds[2*i+edge] = m_view->slicingPosition() + sign*m_view->slicingStep()[i];
 
     if (bounds[2*i] > bounds[2*i+1])
     {

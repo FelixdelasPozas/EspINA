@@ -24,88 +24,29 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-SliceManager::SliceManager()
-: ActorManager(ViewType::VIEW_2D)
+SliceManager::SliceManager(RepresentationPoolSPtr poolXY,
+                           RepresentationPoolSPtr poolXZ,
+                           RepresentationPoolSPtr poolYZ)
+: PoolManager(ViewType::VIEW_2D)
 , m_plane{Plane::UNDEFINED}
+, m_depth{0}
+, m_XY{poolXY}
+, m_XZ{poolXZ}
+, m_YZ{poolYZ}
 {
 }
 
 //----------------------------------------------------------------------------
-RepresentationManager::PipelineStatus SliceManager::pipelineStatus() const
+TimeRange SliceManager::readyRangeImplementation() const
 {
-  return PipelineStatus::RANGE_DEPENDENT;
-}
-
-//----------------------------------------------------------------------------
-TimeRange SliceManager::readyRange() const
-{
-  QMap<TimeStamp, unsigned int> range;
+  TimeRange range;
 
   if(validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      auto timeRange = planePool->readyRange();
-
-      for(auto time: timeRange)
-      {
-        range[time] += 1;
-      }
-    }
+    range = planePool()->readyRange();
   }
 
-  TimeRange finalRange;
-  unsigned int poolsNum = planePools().size();
-
-  for(auto time: range.keys())
-  {
-    if(range[time] == poolsNum)
-    {
-      finalRange << time;
-    }
-  }
-
-  return finalRange;
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::setResolution(const NmVector3 &resolution)
-{
-  if (validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      planePool->setResolution(resolution);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::setPlane(Plane plane)
-{
-  Q_ASSERT(Plane::UNDEFINED == m_plane);
-
-  m_plane = plane;
-
-  if(validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      RepresentationUtils::setPlane(planePool, plane);
-    }
-  }
-}
-
-//----------------------------------------------------------------------------
-void SliceManager::setRepresentationDepth(Nm depth)
-{
-  if(validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      RepresentationUtils::setSegmentationDepth(planePool, depth);
-    }
-  }
+  return range;
 }
 
 //----------------------------------------------------------------------------
@@ -115,98 +56,108 @@ ViewItemAdapterPtr SliceManager::pick(const NmVector3 &point, vtkProp *actor) co
 
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      pickedItem = planePool->pick(point, actor);
-
-      if(pickedItem) break;
-    }
+    pickedItem = planePool()->pick(point, actor);
   }
 
   return pickedItem;
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::addPool(RepresentationPoolSPtr pool, Plane plane)
+void SliceManager::setPlane(Plane plane)
 {
-  RepresentationManager::addPool(pool);
+  Q_ASSERT(Plane::UNDEFINED == m_plane);
 
-  switch(plane)
-  {
-    case Plane::XY:
-      m_poolsXY << pool;
-      break;
-    case Plane::XZ:
-      m_poolsXZ << pool;
-      break;
-    case Plane::YZ:
-      m_poolsYZ << pool;
-      break;
-    default:
-      Q_ASSERT(false);
-      break;
-  }
+  m_plane = plane;
 }
 
 //----------------------------------------------------------------------------
-bool SliceManager::hasSources() const
+void SliceManager::setRepresentationDepth(Nm depth)
 {
-  bool result = false;
-
-  if (validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      result |= planePool->hasSources();
-    }
-  }
-
-  return result;
+  m_depth = depth;
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
+bool SliceManager::acceptCrosshairChange(const NmVector3 &crosshair) const
 {
-  if (validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      planePool->setCrosshair(crosshair, time);
-    }
-  }
+  return normalCoordinate(currentCrosshair()) != normalCoordinate(crosshair);
 }
 
 //----------------------------------------------------------------------------
-RepresentationPipeline::Actors SliceManager::actors(TimeStamp time)
+bool SliceManager::acceptSceneResolutionChange(const NmVector3 &resolution) const
 {
-  RepresentationPipeline::Actors actors;
-
-  if (validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      auto poolActors = planePool->actors(time);
-
-      for(auto item: poolActors.keys())
-      {
-        actors[item] << poolActors[item];
-      }
-    }
-  }
-
-  return actors;
+  return normalCoordinate(currentSceneResolution()) != normalCoordinate(resolution);
 }
 
 //----------------------------------------------------------------------------
-void SliceManager::invalidatePreviousActors(TimeStamp time)
+bool SliceManager::acceptSceneBoundsChange(const Bounds &bounds) const
 {
-  if (validPlane())
-  {
-    for(auto planePool: planePools())
-    {
-      planePool->invalidatePreviousActors(time);
-    }
-  }
+  return false;
+}
+
+
+//----------------------------------------------------------------------------
+bool SliceManager::hasRepresentations() const
+{
+  Q_ASSERT(validPlane());
+
+  return planePool()->hasSources();
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
+{
+  Q_ASSERT(validPlane());
+
+  planePool()->updatePipelines(crosshair, resolution, t);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp time)
+{
+  Q_ASSERT(validPlane());
+
+  planePool()->setCrosshair(crosshair, time);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::changeSceneResolution(const NmVector3 &resolution, TimeStamp t)
+{
+  Q_ASSERT(validPlane());
+
+  planePool()->setSceneResolution(resolution, t);
+}
+
+//----------------------------------------------------------------------------
+RepresentationPipeline::Actors SliceManager::actors(TimeStamp t)
+{
+  Q_ASSERT(validPlane());
+
+  return  planePool()->actors(t);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::invalidatePreviousActors(TimeStamp t)
+{
+  Q_ASSERT(validPlane());
+
+  planePool()->invalidatePreviousActors(t);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::onShow(TimeStamp t)
+{
+  connectPools();
+
+  auto pool = planePool();
+
+  RepresentationUtils::setPlane(pool, m_plane);
+  RepresentationUtils::setSegmentationDepth(pool, m_depth);
+}
+
+//----------------------------------------------------------------------------
+void SliceManager::onHide(TimeStamp t)
+{
+  disconnectPools();
 }
 
 //----------------------------------------------------------------------------
@@ -214,16 +165,16 @@ void SliceManager::connectPools()
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      connect(planePool.get(), SIGNAL(actorsReady(TimeStamp)),
-              this,              SLOT(emitRenderRequest(TimeStamp)));
+    connect(planePool().get(), SIGNAL(actorsInvalidated()),
+            this,              SLOT(waitForDisplay()));
 
-      connect(planePool.get(), SIGNAL(actorsInvalidated()),
-              this,              SLOT(invalidateRepresentations()));
+    connect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
+            this,              SLOT(emitRenderRequest(TimeStamp)));
 
-      planePool->incrementObservers();
-    }
+    connect(planePool().get(), SIGNAL(actorsInvalidated()),
+            this,              SLOT(invalidateRepresentations()));
+
+    planePool()->incrementObservers();
   }
 }
 
@@ -232,64 +183,56 @@ void SliceManager::disconnectPools()
 {
   if (validPlane())
   {
-    for(auto planePool: planePools())
-    {
-      disconnect(planePool.get(), SIGNAL(actorsReady(TimeStamp)),
-                 this,              SLOT(emitRenderRequest(TimeStamp)));
-      disconnect(planePool.get(), SIGNAL(actorsInvalidated()),
-                 this,              SLOT(invalidateRepresentations()));
+    disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
+               this,              SLOT(waitForDisplay()));
 
-      planePool->decrementObservers();
-    }
+    disconnect(planePool().get(), SIGNAL(actorsReady(TimeStamp)),
+               this,              SLOT(emitRenderRequest(TimeStamp)));
+
+    disconnect(planePool().get(), SIGNAL(actorsInvalidated()),
+               this,              SLOT(invalidateRepresentations()));
+
+    planePool()->decrementObservers();
   }
 }
 
 //----------------------------------------------------------------------------
 RepresentationManagerSPtr SliceManager::cloneImplementation()
 {
-  auto clone = std::make_shared<SliceManager>();
+  auto clone = std::make_shared<SliceManager>(m_XY, m_XZ, m_YZ);
 
   clone->m_plane = m_plane;
-
-  for(auto pool: m_poolsXY)
-  {
-    clone->addPool(pool, Plane::XY);
-  }
-
-  for(auto pool: m_poolsXZ)
-  {
-    clone->addPool(pool, Plane::XZ);
-  }
-
-  for(auto pool: m_poolsYZ)
-  {
-    clone->addPool(pool, Plane::YZ);
-  }
 
   return clone;
 }
 
 //----------------------------------------------------------------------------
-RepresentationPoolSList SliceManager::planePools() const
+RepresentationPoolSPtr SliceManager::planePool() const
 {
   switch (m_plane)
   {
     case Plane::XY:
-      return m_poolsXY;
+      return m_XY;
     case Plane::XZ:
-      return m_poolsXZ;
+      return m_XZ;
     case Plane::YZ:
-      return m_poolsYZ;
+      return m_YZ;
     case Plane::UNDEFINED:
       Q_ASSERT(false);
       break;
   };
 
-  return RepresentationPoolSList();
+  return RepresentationPoolSPtr();
 }
 
 //----------------------------------------------------------------------------
 bool SliceManager::validPlane() const
 {
   return Plane::UNDEFINED != m_plane;
+}
+
+//----------------------------------------------------------------------------
+Nm SliceManager::normalCoordinate(const NmVector3 &value) const
+{
+  return value[normalCoordinateIndex(m_plane)];
 }

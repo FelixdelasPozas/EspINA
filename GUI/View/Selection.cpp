@@ -119,7 +119,7 @@ void Selection::set(ViewItemAdapterList selection)
           segmentations << dynamic_cast<SegmentationAdapterPtr>(item);
           break;
         default:
-          Q_ASSERT(false); // TODO: SAMPLES?
+          Q_ASSERT(false); // NOTE: SAMPLES?
           break;
       }
 

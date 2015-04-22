@@ -51,24 +51,18 @@ using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support::Representations::Utils;
 
 //------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(SegmentationAdapterList     segmentations,
-                                             RepresentationFactorySList &representation,
-                                             ModelAdapterSPtr            model,
-                                             ModelFactorySPtr            factory,
-                                             FilterDelegateFactorySPtr   delegateFactory,
-                                             ViewManagerSPtr             viewManager,
-                                             QUndoStack*                 undoStack,
-                                             QWidget*                    parent)
-: QWidget          {parent, Qt::WindowStaysOnTopHint}
-, m_model          {model}
-, m_factory        {factory}
-, m_delegateFactory{delegateFactory}
-, m_viewManager    {viewManager}
-, m_undoStack      {undoStack}
+SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentations,
+                                             FilterDelegateFactorySPtr delegateFactory,
+                                             Support::Context   &context)
+: QWidget               {nullptr, Qt::WindowStaysOnTopHint}
+, m_context             {context}
+, m_delegateFactory     {delegateFactory}
 , m_selectedSegmentation{nullptr}
-, m_colorEngine    {new CategoryColorEngine()}
-, m_view           {true}
-, m_tabularReport  {factory, viewManager}
+, m_channelSources      {context.representationInvalidator()}
+, m_segmentationSources {context.representationInvalidator()}
+, m_representations     {context.timer()}
+, m_view                {context.viewState(), context.selection(), true}
+, m_tabularReport       {context}
 {
   setupUi(this);
 
@@ -80,7 +74,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList     segment
     addSegmentation(segmentation);
   }
 
-  initView3D(representation);
+  initView3D(m_context.availableRepresentations());
 
   initReport();
 
@@ -88,10 +82,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList     segment
 
   restoreGeometryState();
 
-  m_viewManager->registerView(&m_view);
-
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(updateSelection()));
+//   connect(selection().get(), SIGNAL(selectionChanged()),
+//           this,              SLOT(updateSelection()));
 
   updateWindowTitle();
 
@@ -111,15 +103,13 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-  m_viewManager->unregisterView(&m_view);
 }
 
 //------------------------------------------------------------------------
 void SegmentationInspector::updateScene(ItemAdapterPtr item)
 {
   auto segmentation = segmentationPtr(item);
-  //TODO m_view->updateRepresentation(segmentation);
-//   m_view.updateView();
+  m_view.refresh();
 }
 
 //------------------------------------------------------------------------
@@ -198,7 +188,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     }
   }
 
-  m_view.updateView();
+  m_view.refresh();
 
   updateWindowTitle();
 }
@@ -210,6 +200,10 @@ void SegmentationInspector::addChannel(ChannelAdapterPtr channel)
   {
     m_channels << channel;
     m_channelSources.addSource(toViewItemList(channel), m_view.timeStamp());
+
+    m_channels << channel;
+
+    m_view.refresh();
 
     updateWindowTitle();
   }
@@ -223,8 +217,7 @@ void SegmentationInspector::removeChannel(ChannelAdapterPtr channel)
 
   m_channels.removeOne(channel);
 
-  //TODO m_viewManager->remove(channel);
-  m_view.updateView();
+  m_view.refresh();
 
   updateWindowTitle();
 }
@@ -255,11 +248,18 @@ void SegmentationInspector::updateWindowTitle()
 }
 
 //------------------------------------------------------------------------
+SelectionSPtr SegmentationInspector::selection() const
+{
+  return m_context.selection();
+}
+
+
+//------------------------------------------------------------------------
 void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
 
-  m_tabularReport.updateSelection(m_viewManager->selection()->segmentations());
+  m_tabularReport.updateSelection(selection()->segmentations());
 }
 
 //------------------------------------------------------------------------
@@ -293,8 +293,11 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   QList<ItemData>         draggedItems;
   SegmentationAdapterList categorySegmentations;
 
+
   while (!stream.atEnd())
   {
+    auto model = m_context.model();
+
     int row, col;
     QMap<int, QVariant> itemData;
     stream >> row >> col >> itemData;
@@ -311,10 +314,10 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
         auto item     = reinterpret_cast<ItemAdapterPtr>(itemData[RawPointerRole].value<quintptr>());
         auto category = categoryPtr(item);
 
-        for(auto segmentation : m_model->segmentations())
+        for(auto segmentation : model->segmentations())
         {
           auto segmentationCategory = segmentation->category().get();
-          while(segmentationCategory != m_model->classification()->root().get())
+          while(segmentationCategory != model->classification()->root().get())
           {
             if (segmentationCategory == category)
             {
@@ -349,10 +352,10 @@ void SegmentationInspector::dropEvent(QDropEvent *event)
   }
 
   m_tabularReport.setFilter(m_segmentations);
-  m_tabularReport.updateSelection(m_viewManager->selection()->segmentations());
+  m_tabularReport.updateSelection(selection()->segmentations());
 
-  m_view.updateView();
   m_view.resetCamera();
+  m_view.refresh();
 
   event->acceptProposedAction();
 }
@@ -369,11 +372,11 @@ void SegmentationInspector::updateSelection()
     activeHistory = nullptr;
   }
 
-  auto selection = m_viewManager->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
-  if (selection.size() == 1)
+  if (selectedSegmentations.size() == 1)
   {
-    auto segmentation = selection.first();
+    auto segmentation = selectedSegmentations.first();
 
     if (m_segmentations.contains(segmentation))
     {
@@ -391,7 +394,7 @@ void SegmentationInspector::updateSelection()
       try
       {
         auto delegate = m_delegateFactory->createDelegate(segmentation);
-        activeHistory = delegate->createWidget(m_model, m_factory, m_viewManager, m_undoStack);
+        activeHistory = delegate->createWidget(m_context);
       }
       catch (...)
       {
@@ -447,17 +450,16 @@ QHBoxLayout *SegmentationInspector::createReportLayout()
 //------------------------------------------------------------------------
 void SegmentationInspector::initView3D(RepresentationFactorySList representations)
 {
-  m_view.setChannelSources(&m_channelSources);
   m_view.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
   m_view.setMinimumWidth(250);
 
   for (auto factory : representations)
   {
-    auto representation = factory->createRepresentation(m_colorEngine);
+    auto representation = factory->createRepresentation(m_context, ViewType::VIEW_3D);
 
     for (auto repSwitch : representation.Switches)
     {
-      tools.addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
+      m_representations.addRepresentationSwitch(representation.Group, repSwitch, representation.Icon, representation.Description);
     }
 
     for (auto manager : representation.Managers)
@@ -467,18 +469,18 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
     for (auto pool : representation.Pools)
     {
-      if (CHANNELS_GROUP == representation.Group)
+      if (isChannelRepresentation(representation))
       {
         pool->setPipelineSources(&m_channelSources);
       }
-      else if (SEGMENTATIONS_GROUP == representation.Group)
+      else if (isSegmentationRepresentation(representation))
       {
         pool->setPipelineSources(&m_segmentationSources);
       }
     }
   }
 
-  for (auto tool : tools.representationTools())
+  for (auto tool : m_representations.representationTools())
   {
     for (auto action : tool->actions())
     {
@@ -493,7 +495,7 @@ void SegmentationInspector::initReport()
   SegmentationExtension::InfoTagList tags;
   tags << tr("Name") << tr("Category");
 
-  m_tabularReport.setModel(m_model);
+  m_tabularReport.setModel(m_context.model());
   m_tabularReport.setFilter(m_segmentations);
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_tabularReport.setMinimumHeight(0);

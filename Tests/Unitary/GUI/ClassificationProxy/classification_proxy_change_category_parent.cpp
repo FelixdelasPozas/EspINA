@@ -43,6 +43,7 @@
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 int classification_proxy_change_category_parent( int argc, char** argv )
 {
@@ -55,8 +56,10 @@ int classification_proxy_change_category_parent( int argc, char** argv )
   analysis->setClassification(classification);
 
 
+  Timer               timer;
+  Invalidator         invalidator(timer);
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter);
+  ClassificationProxy proxy(modelAdapter, invalidator);
   ModelTest           modelTester(&proxy);
 
   SchedulerSPtr sch;

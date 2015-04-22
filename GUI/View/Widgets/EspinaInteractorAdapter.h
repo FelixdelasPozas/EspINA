@@ -42,9 +42,9 @@ namespace ESPINA
   : public T
   {
   public:
-  	/** \brief Instanciates a new object.
-  	 *
-  	 */
+    /** \brief Instanciates a new object.
+     *
+     */
     static EspinaInteractorAdapter* New()
     {
       EspinaInteractorAdapter *result = new EspinaInteractorAdapter;

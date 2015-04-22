@@ -6,7 +6,7 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -20,59 +20,71 @@
 #ifndef ESPINA_SLICE_MANAGER_H
 #define ESPINA_SLICE_MANAGER_H
 
+// ESPINA
 #include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Representations/ActorManager.h>
+#include <GUI/Representations/PoolManager.h>
 
 namespace ESPINA
 {
   class SliceManager
-  : public ActorManager
+  : public PoolManager
   , public RepresentationManager2D
   {
   public:
-    SliceManager();
+    SliceManager(RepresentationPoolSPtr poolXY,
+                 RepresentationPoolSPtr poolXZ,
+                 RepresentationPoolSPtr poolYZ);
 
-    virtual PipelineStatus pipelineStatus() const;
+    virtual TimeRange readyRangeImplementation() const override;
 
-    virtual TimeRange readyRange() const;
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    virtual void setResolution(const NmVector3 &resolution);
+    virtual void setPlane(Plane plane) override;
 
-    virtual void setPlane(Plane plane);
+    virtual void setRepresentationDepth(Nm depth) override;
 
-    virtual void setRepresentationDepth(Nm depth);
+  protected:
+    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+    virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override;
 
-    /** \brief Adds a pool to the managed pools list of the specified plane.
-     *
-     */
-    void addPool(RepresentationPoolSPtr pool, Plane plane);
+    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
   private:
-    virtual bool hasSources() const override;
+    virtual bool hasRepresentations() const override;
 
-    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
+    virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
+    virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-    virtual void invalidatePreviousActors(TimeStamp time) override;
+    virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual void connectPools()      override;
+    virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
 
-    virtual void disconnectPools()   override;
+    virtual void invalidatePreviousActors(TimeStamp t) override;
+
+    void onShow(TimeStamp t);
+
+    void onHide(TimeStamp t);
 
     virtual RepresentationManagerSPtr cloneImplementation();
 
-    RepresentationPoolSList planePools() const;
+    void connectPools();
+
+    void disconnectPools();
+
+    RepresentationPoolSPtr planePool() const;
 
     bool validPlane() const;
 
+    Nm normalCoordinate(const NmVector3 &value) const;
+
   private:
     Plane m_plane;
-    RepresentationPoolSList m_poolsXY;
-    RepresentationPoolSList m_poolsXZ;
-    RepresentationPoolSList m_poolsYZ;
+    Nm    m_depth;
+    RepresentationPoolSPtr m_XY;
+    RepresentationPoolSPtr m_XZ;
+    RepresentationPoolSPtr m_YZ;
   };
 }
 

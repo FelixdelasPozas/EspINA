@@ -25,9 +25,11 @@
 
 // ESPINA
 #include "Model/SegmentationAdapter.h"
+
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
+#include <GUI/View/RepresentationInvalidator.h>
 
 // C++
 #include <memory>
@@ -55,7 +57,8 @@ namespace ESPINA
      *
      */
     explicit ModelFactory(CoreFactorySPtr factory = CoreFactorySPtr(),
-                          SchedulerSPtr scheduler = SchedulerSPtr());
+                          SchedulerSPtr scheduler = SchedulerSPtr(),
+                          GUI::View::RepresentationInvalidator *invalidator = nullptr);
 
     /** \brief ModelFactory class destructor.
      *
@@ -187,8 +190,11 @@ namespace ESPINA
     { return m_scheduler; }
 
   private:
+    using Invalidator = GUI::View::RepresentationInvalidator;
+
     CoreFactorySPtr m_factory;
     SchedulerSPtr   m_scheduler;
+    Invalidator    *m_invalidator;
 
     AnalysisReaderSList                m_readers;
     QMap<QString, AnalysisReaderSList> m_readerExtensions;

@@ -436,28 +436,12 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 void InformationProxy::onProgessReported(int progress)
 {
   emit informationProgress();
-//   auto task = dynamic_cast<InformationFetcher *>(sender());
-//   Q_ASSERT(task);
-//
-//   auto firstColumn = index(task->Segmentation);
-//   auto lastColumn  = index(task->Segmentation, rowCount() - 1);
-//
-//   emit dataChanged(firstColumn, lastColumn);
 }
 
 //------------------------------------------------------------------------
 void InformationProxy::onTaskFininished()
 {
   emit informationProgress();
-//   auto task = dynamic_cast<InformationFetcher *>(sender());
-//   Q_ASSERT(task);
-//
-//   auto firstColumn = index(task->Segmentation);
-//   auto lastColumn  = index(task->Segmentation, rowCount() - 1);
-//
-// //   firstColumn = index(0, 0);
-// //   lastColumn  = index(rowCount(), 0);
-//   emit dataChanged(firstColumn, lastColumn);
 }
 
 //------------------------------------------------------------------------

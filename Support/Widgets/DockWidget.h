@@ -24,11 +24,11 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
 
 // Qt
 #include <QDockWidget>
 
+class QPushButton;
 class QUndoStack;
 
 namespace ESPINA

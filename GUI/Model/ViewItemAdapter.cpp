@@ -72,7 +72,6 @@ void ViewItemAdapter::changeOutput(InputSPtr input)
   connect(output().get(), SIGNAL(modified()),
           this,           SLOT(onOutputModified()));
 
-  // TODO: shall we deactivate the temporal representation if any?
   onOutputModified();
 }
 

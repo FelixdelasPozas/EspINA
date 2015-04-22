@@ -20,9 +20,11 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-PipelineSources::PipelineSources(): QObject()
+PipelineSources::PipelineSources(GUI::View::RepresentationInvalidator &invalidator)
+: m_representationInvalidator(invalidator)
 {
-
+  connect(&m_representationInvalidator, SIGNAL(representationsInvalidated(ViewItemAdapterList,TimeStamp)),
+          this,                         SLOT(onRepresentationInvalidated(ViewItemAdapterList, TimeStamp)));
 }
 
 //-----------------------------------------------------------------------------
@@ -35,6 +37,12 @@ PipelineSources::~PipelineSources()
 ViewItemAdapterList PipelineSources::sources() const
 {
   return m_sources;
+}
+
+//-----------------------------------------------------------------------------
+GUI::View::RepresentationInvalidator &PipelineSources::invalidator()
+{
+  return m_representationInvalidator;
 }
 
 //-----------------------------------------------------------------------------
@@ -60,5 +68,30 @@ void PipelineSources::remove(ViewItemAdapterList sources)
   {
     Q_ASSERT(contains(source));
     m_sources.removeOne(source);
+  }
+}
+
+//-----------------------------------------------------------------------------
+TimeStamp PipelineSources::timeStamp() const
+{
+  return m_representationInvalidator.timer().timeStamp();
+}
+
+//-----------------------------------------------------------------------------
+void PipelineSources::onRepresentationInvalidated(ViewItemAdapterList items, TimeStamp t)
+{
+  ViewItemAdapterList updatedItems;
+
+  for (auto item : items)
+  {
+    if (contains(item))
+    {
+      updatedItems << item;
+    }
+  }
+
+  if (!updatedItems.isEmpty())
+  {
+    emit representationsModified(updatedItems, t);
   }
 }

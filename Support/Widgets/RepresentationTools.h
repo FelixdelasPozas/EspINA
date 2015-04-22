@@ -33,7 +33,7 @@ namespace ESPINA
         Q_OBJECT
 
       public:
-        explicit RepresentationTools();
+        explicit RepresentationTools(Timer &timer);
 
         /** \brief Add render switch to group render group tool
          *
@@ -58,6 +58,8 @@ namespace ESPINA
         RepresentationGroupToolSPtr m_channelsGroup;
         RepresentationGroupToolSPtr m_segmentationsGroup;
         RepresentationGroupTools    m_dynamicRepresentationGroups;
+
+        Timer &m_timer;
       };
     }
   }

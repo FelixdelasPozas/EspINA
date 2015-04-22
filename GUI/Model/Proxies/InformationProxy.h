@@ -270,13 +270,11 @@ namespace ESPINA
     void sourceModelReset();
 
     /** \brief Reports progress.
-     * TODO
      *
      */
     void onProgessReported(int progress);
 
     /** \brief Reports progress.
-     * TODO
      *
      */
     void onTaskFininished();

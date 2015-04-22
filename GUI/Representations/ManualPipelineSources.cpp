@@ -20,6 +20,13 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
+ManualPipelineSources::ManualPipelineSources(GUI::View::RepresentationInvalidator &invalidator)
+: PipelineSources(invalidator)
+{
+
+}
+
+//-----------------------------------------------------------------------------
 void ManualPipelineSources::addSource(ViewItemAdapterList sources, TimeStamp t)
 {
   insert(sources);

@@ -32,13 +32,19 @@ using namespace ESPINA;
 #include <QEvent>
 
 //----------------------------------------------------------------------------
-RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString description)
-: m_globalSwitch{new QAction(icon, description, this)}
+RepresentationsGroupTool::RepresentationsGroupTool(const QString &icon, const QString &description, Timer &timer)
+: RepresentationsGroupTool{QIcon(icon), description, timer}
+{
+
+}
+//----------------------------------------------------------------------------
+RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, const QString &description, Timer &timer)
+: m_timer(timer)
+, m_globalSwitch{new QAction(icon, description, this)}
 , m_content{new QWidgetAction(this)}
 , m_contentWidget{new QWidget()}
 , m_layout2D{new QHBoxLayout()}
 , m_layout3D{new QHBoxLayout()}
-, m_viewFlags{ViewType::VIEW_2D|ViewType::VIEW_3D}
 , m_representationsVisibility{false}
 {
   m_globalSwitch->setCheckable(true);
@@ -46,8 +52,11 @@ RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, QString de
   connect(m_globalSwitch, SIGNAL(toggled(bool)),
           this,           SLOT(setActiveRepresentationsVisibility(bool)));
 
-  m_layout2D->addWidget(createSeparator(":/espina/representation_group_2D_separator.svg"));
-  m_layout3D->addWidget(createSeparator(":/espina/representation_group_3D_separator.svg"));
+  m_separator2D = createSeparator(":/espina/representation_group_2D_separator.svg");
+  m_separator3D = createSeparator(":/espina/representation_group_3D_separator.svg");
+
+  m_layout2D->addWidget(m_separator2D);
+  m_layout3D->addWidget(m_separator3D);
 
   auto layout = new QHBoxLayout();
   layout->addLayout(m_layout2D);
@@ -95,15 +104,22 @@ void RepresentationsGroupTool::addRepresentationSwitch(RepresentationSwitchSPtr 
   if (representationSwitch->supportedViews().testFlag(ESPINA::VIEW_2D))
   {
     m_layout2D->addWidget(widget);
+    m_viewFlags |= ViewType::VIEW_2D;
   }
   else if (representationSwitch->supportedViews().testFlag(ESPINA::VIEW_3D))
   {
     m_layout3D->addWidget(widget);
+    m_viewFlags |= ViewType::VIEW_3D;
   }
 
   changeSwitchStatus(representationSwitch, m_representationsVisibility);
 
   m_switches << representationSwitch;
+
+  bool showSeparators = m_viewFlags.testFlag(ESPINA::VIEW_2D) && m_viewFlags.testFlag(ESPINA::VIEW_3D);
+
+  m_separator2D->setVisible(showSeparators);
+  m_separator3D->setVisible(showSeparators);
 }
 
 //----------------------------------------------------------------------------
@@ -125,11 +141,11 @@ void RepresentationsGroupTool::changeSwitchStatus(RepresentationSwitchSPtr repre
   {
     if (showRepresentations)
     {
-      representationSwitch->showRepresentations();
+      representationSwitch->showRepresentations(m_timer.timeStamp());
     }
     else
     {
-      representationSwitch->hideRepresentations();
+      representationSwitch->hideRepresentations(m_timer.timeStamp());
     }
   }
 }
@@ -142,6 +158,7 @@ QWidget *RepresentationsGroupTool::createSeparator(const QString &icon) const
   separator->setPixmap(QPixmap(icon));
   separator->setScaledContents(true);
   separator->setMaximumSize(8, 30);
+  separator->setVisible(false);
 
   return separator;
 }
@@ -151,6 +168,7 @@ void RepresentationsGroupTool::setActiveRepresentationsVisibility(bool value)
 {
   if (m_representationsVisibility != value)
   {
+    m_timer.increment();
     for (auto repSwitch : m_switches)
     {
       changeSwitchStatus(repSwitch, value);

@@ -164,7 +164,7 @@ namespace ESPINA
 
     /** \brief Returns the bounds of the output.
      *
-     * TODO: Representation may have different bounds, in which case,
+     * NOTE: Representation may have different bounds, in which case,
      * this function will be needed to represent the bounding box of all those regions
      *
      */

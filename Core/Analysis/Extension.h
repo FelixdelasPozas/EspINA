@@ -220,7 +220,7 @@ namespace ESPINA
 
   protected:
     T *m_extendedItem;
-    mutable InfoCache m_infoCache; // TODO: make private, fix SegmentationNotes first.
+    mutable InfoCache m_infoCache;
 
   private:
     mutable QReadWriteLock m_lock;

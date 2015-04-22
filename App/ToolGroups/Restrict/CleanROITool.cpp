@@ -31,15 +31,11 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-CleanROITool::CleanROITool(ModelAdapterSPtr   model,
-                           ViewManagerSPtr    viewManager,
-                           QUndoStack        *undoStack,
+CleanROITool::CleanROITool(Support::Context &context,
                            RestrictToolGroup *toolGroup)
-: m_model      {model}
-, m_viewManager{viewManager}
-, m_undoStack  {undoStack}
-, m_toolGroup  {toolGroup}
-, m_cleanROI   {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
+: m_context  {context}
+, m_toolGroup{toolGroup}
+, m_cleanROI {new QAction(QIcon(":/espina/voi_clean.svg"), tr("Clean Volume Of Interest"), this)}
 {
   m_cleanROI->setEnabled(false);
 
@@ -80,9 +76,11 @@ void CleanROITool::abortOperation()
 //-----------------------------------------------------------------------------
 void CleanROITool::cancelROI()
 {
-  m_undoStack->beginMacro("Clear Region Of Interest");
-  m_undoStack->push(new ClearROIUndoCommand{m_toolGroup});
-  m_undoStack->endMacro();
+  auto undoStack = m_context.undoStack();
+
+  undoStack->beginMacro("Clear Region Of Interest");
+  undoStack->push(new ClearROIUndoCommand{m_toolGroup});
+  undoStack->endMacro();
 }
 
 //-----------------------------------------------------------------------------

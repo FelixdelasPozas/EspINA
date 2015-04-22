@@ -12,7 +12,6 @@ qt4_wrap_cpp(Support_MOC
   Plugin.h
   Representations/BasicRepresentationSwitch.h
   Representations/Slice3DManager.h
-  ViewManager.h
   Widgets/DockWidget.h
   Widgets/RepresentationsGroupTool.h
   Widgets/RepresentationTools.h
@@ -65,10 +64,11 @@ set (Support_SOURCES
   Representations/Slice3DManager.cpp
   Representations/SliceManager.cpp
   Representations/RepresentationUtils.cpp
+  ROIAccumulator.cpp
   Utils/FactoryUtils.cpp
   Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
-  ViewManager.cpp
+  Context.cpp
   Widgets/ActionGroupWidget.cpp
   Widgets/DockWidget.cpp
   Widgets/TabularReport.cpp

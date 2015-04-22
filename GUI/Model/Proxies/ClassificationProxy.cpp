@@ -44,8 +44,11 @@ Q_DECLARE_FLAGS(DragSource, DragSourceEnum);
 Q_DECLARE_OPERATORS_FOR_FLAGS(DragSource)
 
 //------------------------------------------------------------------------
-ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model, QObject* parent)
+ClassificationProxy::ClassificationProxy(ModelAdapterSPtr model,
+                                         GUI::View::RepresentationInvalidator &invalidator,
+                                         QObject* parent)
 : QAbstractProxyModel{parent}
+, m_representationInvalidator{invalidator}
 , m_classification   {new ClassificationAdapter()}
 {
   setSourceModel(model);
@@ -1204,13 +1207,13 @@ int ClassificationProxy::numSegmentations(CategoryAdapterPtr proxyCategory, bool
 }
 
 //------------------------------------------------------------------------
-ViewItemAdapterSList ClassificationProxy::childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive) const
+ViewItemAdapterList ClassificationProxy::childrenSegmentations(CategoryAdapterPtr proxyCategory, bool recursive) const
 {
-  ViewItemAdapterSList children;
+  ViewItemAdapterList children;
 
   for (auto item : m_categorySegmentations[proxyCategory])
   {
-    children << toSourceSPtr(segmentationPtr(item));
+    children << segmentationPtr(item);
   }
 
   if (recursive)
@@ -1315,7 +1318,7 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
 {
   auto item = itemAdapter(index);
 
-  ViewItemAdapterSList modifiedItems;
+  ViewItemAdapterList modifiedItems;
 
   if (isCategory(item))
   {
@@ -1324,12 +1327,12 @@ void ClassificationProxy::notifyModifiedRepresentations(const QModelIndex &index
   }
   else if (isSegmentation(item))
   {
-    modifiedItems << toSourceSPtr(segmentationPtr(item));
+    modifiedItems << segmentationPtr(item);
   }
   else
   {
     Q_ASSERT(false);
   }
 
-  m_model->notifyRepresentationsModified(modifiedItems);
+  m_representationInvalidator.invalidateRepresentations(modifiedItems);
 }

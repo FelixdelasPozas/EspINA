@@ -61,19 +61,20 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
 
     m_LUT.insert(lutName, seg_lut);
 
-    // TODO: review signals use
+    // TODO 2015-04-20: Check signals
     if (lutName != "")
       connect(seg->category().get(), SIGNAL(colorChanged(CategoryElementPtr)),
               this, SLOT(updateCategoryColor(CategoryElementPtr)));
   }
   else
   {
-    Q_ASSERT(false);
+    // TODO 2015-04-20:sometimes happens, segs without category, fixed?
     // fix a corner case when a segmentation and it's category have been deleted
     // but the lookuptable hasn't, so when the segmentation and category are
     // created again with a different color the ColorEngine returns the lookuptable
     // with the old color.
-    if (seg->category()) // TODO: sometimes happens, segs without category, fixed?
+    Q_ASSERT(false);
+    if (seg->category())
     {
       double rgb[3];
       m_LUT[lutName]->GetColor(1, rgb);

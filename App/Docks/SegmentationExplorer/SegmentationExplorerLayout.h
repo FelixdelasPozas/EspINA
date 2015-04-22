@@ -61,20 +61,13 @@ namespace ESPINA
 
   public:
     /** \brief Layout class constructor.
-     * \param[in] view, QTreeView raw pointer.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] view QTreeView raw pointer.
+     * \param[in] context ESPINA context
      *
      */
-    explicit Layout(CheckableTreeView          *view,
-                    RepresentationFactorySList &representations,
-                    ModelAdapterSPtr           model,
-                    ModelFactorySPtr           factory,
-                    FilterDelegateFactorySPtr  delegateFactory,
-                    ViewManagerSPtr            viewManager,
-                    QUndoStack                *undoStack);
+    explicit Layout(CheckableTreeView        *view,
+                    FilterDelegateFactorySPtr delegateFactory,
+                    Support::Context   &context);
 
     /** \brief Layout class virtual destructor.
      *
@@ -90,7 +83,7 @@ namespace ESPINA
      *
      */
     virtual QAbstractItemModel *model()
-    {return m_model.get(); }
+    {return m_context.model().get(); }
 
     /** \brief Returns the ItemAdapter raw pointer of the QModelIndex passed as paramenter in this layout.
      * \param[in] index, const QModelIndex reference of the item.
@@ -103,7 +96,7 @@ namespace ESPINA
      * \param[in] item, ItemAdapter raw pointer of the item.
      */
     virtual QModelIndex index(ItemAdapterPtr item) const
-    { return m_model->index(item); }
+    { return m_context.model()->index(item); }
 
     /** \brief Sets the regular expresion for the filter.
      * \param[in] regExpr, regular expresion to use as filter expression.
@@ -186,12 +179,8 @@ namespace ESPINA
     void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
 
   protected:
-    RepresentationFactorySList &m_representations;
-    ModelAdapterSPtr           m_model;
-    ModelFactorySPtr           m_factory;
-    FilterDelegateFactorySPtr  m_delegateFactory;
-    ViewManagerSPtr            m_viewManager;
-    QUndoStack                *m_undoStack;
+    Support::Context   &m_context;
+    FilterDelegateFactorySPtr m_delegateFactory;
 
     CheckableTreeView *m_view;
 

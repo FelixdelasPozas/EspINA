@@ -20,7 +20,6 @@
 
 // ESPINA
 #include "View3D.h"
-#include "ViewRendererMenu.h"
 #include "GUI/View/Widgets/EspinaWidget.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
 
@@ -57,12 +56,11 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-View3D::View3D(bool showCrosshairPlaneSelectors, QWidget* parent)
-: RenderView                   {ViewType::VIEW_3D, parent}
+View3D::View3D(GUI::View::ViewState &state, SelectionSPtr selection, bool showCrosshairPlaneSelectors)
+: RenderView                   {state, selection, ViewType::VIEW_3D}
 , m_mainLayout                 {new QVBoxLayout()}
 , m_controlLayout              {new QHBoxLayout()}
 , m_showCrosshairPlaneSelectors{showCrosshairPlaneSelectors}
-, m_numEnabledRenderers        {0}
 {
   setupUI();
 }
@@ -74,111 +72,12 @@ View3D::~View3D()
 //   qDebug() << "              Destroying Volume View";
 //   qDebug() << "********************************************************";
 
-  for(auto widget: m_widgets)
-  {
-    RenderView::removeWidget(widget); // faster than calling this->removeWidget(widget);
-  }
-
-  m_widgets.clear();
 }
 
 //-----------------------------------------------------------------------------
 void View3D::reset()
 {
-  for(auto widget: m_widgets)
-  {
-    widget->unregisterView(this);
-  }
-
-  m_widgets.clear();
-
-  Q_ASSERT(m_widgets.isEmpty());
-
-  updateViewActions();
 }
-
-// //-----------------------------------------------------------------------------
-// void View3D::addRendererControls(RendererSPtr renderer)
-// {
-//   if (m_renderers.contains(renderer) || !renderer->renderType().testFlag(RendererType::RENDERER_VIEW3D))
-//     return;
-//
-//   m_renderers << renderer;
-//
-//   renderer->setView(this);
-//   renderer->setEnable(false);
-//
-//   // add segmentation representations to renderer
-//   for(auto segmentation : m_segmentationStates.keys())
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (repRenderer->canRender(segmentation))
-//         for(auto rep : m_segmentationStates[segmentation].representations)
-//            if (repRenderer->managesRepresentation(rep->type()))
-//              repRenderer->addRepresentation(segmentation, rep);
-//     }
-//
-//   // add channel representations to renderer
-//   for(auto channel : m_channelStates.keys())
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (repRenderer->canRender(channel))
-//         for(auto rep : m_channelStates[channel].representations)
-//           if (repRenderer->managesRepresentation(rep->type()))
-//             repRenderer->addRepresentation(channel, rep);
-//     }
-//
-//   auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
-//   if (configMenu == nullptr)
-//   {
-//     configMenu = new ViewRendererMenu(m_renderConfig);
-//     m_renderConfig->setMenu(configMenu);
-//     m_renderConfig->setEnabled(true);
-//   }
-//   configMenu->add(renderer);
-//
-//   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateViewActions()), Qt::QueuedConnection);
-//   connect(renderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()), Qt::QueuedConnection);
-//
-//   updateViewActions();
-// }
-//
-// //-----------------------------------------------------------------------------
-// void View3D::removeRendererControls(const QString name)
-// {
-//   RendererSPtr removedRenderer;
-//   for(auto renderer: m_renderers)
-//     if (renderer->name() == name)
-//     {
-//       removedRenderer = renderer;
-//       break;
-//     }
-//
-//   if (!removedRenderer)
-//     return;
-//
-//   m_renderers.removeOne(removedRenderer);
-//
-//   if (!removedRenderer->isHidden())
-//     removedRenderer->setEnable(false);
-//
-//   auto configMenu = qobject_cast<ViewRendererMenu*>(m_renderConfig->menu());
-//   if (configMenu != nullptr)
-//   {
-//     configMenu->remove(removedRenderer);
-//     if (configMenu->actions().isEmpty())
-//     {
-//       m_renderConfig->setMenu(nullptr);
-//       delete configMenu;
-//       m_renderConfig->setEnabled(false);
-//     }
-//   }
-//   disconnect(removedRenderer.get(), SIGNAL(renderRequested()), this, SLOT(updateView()));
-//
-//   updateViewActions();
-// }
 
 //-----------------------------------------------------------------------------
 void View3D::buildViewActionsButtons()
@@ -187,7 +86,7 @@ void View3D::buildViewActionsButtons()
   m_controlLayout->addStretch();
 
   m_zoom = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
-  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetView()));
+  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetCamera()));
 
   m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
   connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
@@ -206,7 +105,7 @@ void View3D::buildViewActionsButtons()
 }
 
 //-----------------------------------------------------------------------------
-bool View3D::isCrosshairVisible() const
+bool View3D::isCrosshairPointVisible() const
 {
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetViewport(m_renderer);
@@ -231,12 +130,12 @@ bool View3D::isCrosshairVisible() const
 //-----------------------------------------------------------------------------
 void View3D::onCrosshairChanged(const NmVector3 &point)
 {
-  if (m_showCrosshairPlaneSelectors && !m_channelSources->isEmpty())
+  if (m_showCrosshairPlaneSelectors)
   {
     int iCenter[3] = {
-      vtkMath::Round(point[0]/m_sceneResolution[0]),
-      vtkMath::Round(point[1]/m_sceneResolution[1]),
-      vtkMath::Round(point[2]/m_sceneResolution[2])
+      vtkMath::Round(point[0]/sceneResolution()[0]),
+      vtkMath::Round(point[1]/sceneResolution()[1]),
+      vtkMath::Round(point[2]/sceneResolution()[2])
     };
 
     m_axialScrollBar   ->blockSignals(true);
@@ -252,10 +151,10 @@ void View3D::onCrosshairChanged(const NmVector3 &point)
     m_sagittalScrollBar->blockSignals(false);
   }
 
-//   if (!isCrosshairVisible())
-//   {
-//     moveCamera(point);
-//   }
+  if (!isCrosshairPointVisible())
+  {
+    moveCamera(point);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -266,105 +165,30 @@ void View3D::moveCamera(const NmVector3 &point)
 }
 
 //-----------------------------------------------------------------------------
+void View3D::onSceneResolutionChanged(const NmVector3 &reslotuion)
+{
+  updateScrollBarsLimits();
+}
+
+//-----------------------------------------------------------------------------
+void View3D::onSceneBoundsChanged(const Bounds &bounds)
+{
+  updateScrollBarsLimits();
+}
+
+//-----------------------------------------------------------------------------
 Selector::Selection View3D::pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
   QMap<NeuroItemAdapterPtr, BinaryMaskSPtr<unsigned char>> selectedItems;
   Selector::Selection finalSelection;
 
-//   for(auto renderer: m_renderers)
-//   {
-//     if(renderer->type() != Renderer::Type::Representation)
-//       continue;
-//
-//     auto repRenderer = representationRenderer(renderer);
-//
-//     if(flags.contains(Selector::SEGMENTATION) && canRender(repRenderer, RenderableType::SEGMENTATION))
-//     {
-//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), multiselection))
-//       {
-//         BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-//         BinaryMask<unsigned char>::iterator bmit(bm.get());
-//         bmit.goToBegin();
-//         bmit.Set();
-//
-//         selectedItems[item] = bm;
-//       }
-//     }
-//
-//     if((flags.contains(Selector::CHANNEL) || flags.contains(Selector::SAMPLE)) && canRender(repRenderer, RenderableType::CHANNEL))
-//     {
-//       for (auto item : repRenderer->pick(x, y, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), multiselection))
-//       {
-//         if(flags.contains(Selector::CHANNEL))
-//         {
-//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-//           BinaryMask<unsigned char>::iterator bmit(bm.get());
-//           bmit.goToBegin();
-//           bmit.Set();
-//
-//           selectedItems[item] = bm;
-//         }
-//
-//
-//         if(flags.contains(Selector::SAMPLE))
-//         {
-//           BinaryMaskSPtr<unsigned char> bm { new BinaryMask<unsigned char> { Bounds(repRenderer->pickCoordinates()), item->output()->spacing() } };
-//           BinaryMask<unsigned char>::iterator bmit(bm.get());
-//           bmit.goToBegin();
-//           bmit.Set();
-//
-//           auto sample = QueryAdapter::sample(dynamic_cast<ChannelAdapterPtr>(item));
-//           selectedItems[item] = bm;
-//         }
-//       }
-//     }
-//   }
-//
-//   for(auto item: selectedItems.keys())
-//     finalSelection << QPair<Selector::SelectionMask, NeuroItemAdapterPtr>(selectedItems[item], item);
-
   return finalSelection;
-}
-
-//-----------------------------------------------------------------------------
-void View3D::resetCamera()
-{
-  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
-  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
-  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
-  m_renderer->GetActiveCamera()->SetRoll(180);
-  m_renderer->ResetCamera();
-}
-
-//-----------------------------------------------------------------------------
-void View3D::addWidget(EspinaWidgetSPtr widget)
-{
-  RenderView::addWidget(widget);
-
-  updateViewActions();
-}
-
-//-----------------------------------------------------------------------------
-void View3D::removeWidget(EspinaWidgetSPtr widget)
-{
-  RenderView::removeWidget(widget);
-
-  updateViewActions();
 }
 
 //-----------------------------------------------------------------------------
 Bounds View3D::previewBounds(bool cropToSceneBounds) const
 {
-  Bounds resultBounds;
-//   for (auto channel: m_channelStates.keys())
-//   {
-//     if (!resultBounds.areValid())
-//       resultBounds = channel->bounds();
-//     else
-//       resultBounds = boundingBox(resultBounds, channel->bounds());
-//   }
-
-  return resultBounds;
+  return sceneBounds();
 }
 
 //-----------------------------------------------------------------------------
@@ -377,21 +201,21 @@ void View3D::setupUI()
 
     m_axialScrollBar->setEnabled(false);
     m_axialScrollBar->setFixedHeight(15);
-    m_axialScrollBar->setToolTip("Axial scroll bar");
+    m_axialScrollBar->setToolTip(tr("Axial scroll bar"));
     connect(m_axialScrollBar, SIGNAL(valueChanged(int)),
             this,             SLOT(scrollBarMoved(int)));
 
     m_coronalScrollBar = new QScrollBar(Qt::Vertical);
     m_coronalScrollBar->setEnabled(false);
     m_coronalScrollBar->setFixedWidth(15);
-    m_coronalScrollBar->setToolTip("Coronal scroll bar");
+    m_coronalScrollBar->setToolTip(tr("Coronal scroll bar"));
     connect(m_coronalScrollBar, SIGNAL(valueChanged(int)),
             this,               SLOT(scrollBarMoved(int)));
 
     m_sagittalScrollBar = new QScrollBar(Qt::Vertical);
     m_sagittalScrollBar->setEnabled(false);
     m_sagittalScrollBar->setFixedWidth(15);
-    m_sagittalScrollBar->setToolTip("Sagittal scroll bar");
+    m_sagittalScrollBar->setToolTip(tr("Sagittal scroll bar"));
     connect(m_sagittalScrollBar, SIGNAL(valueChanged(int)),
             this,                SLOT(scrollBarMoved(int)));
 
@@ -418,9 +242,8 @@ void View3D::setupUI()
   interactorstyle->AutoAdjustCameraClippingRangeOn();
   interactorstyle->KeyPressActivationOff();
 
-  m_view->GetRenderWindow()->AddRenderer(m_renderer);
-  m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
-  m_view->GetRenderWindow()->Render();
+  renderWindow()->AddRenderer(m_renderer);
+  renderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
   m_view->installEventFilter(this);
 
   buildViewActionsButtons();
@@ -434,74 +257,42 @@ void View3D::setupUI()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::updateView()
+void View3D::refreshViewImplementation()
 {
-  if(isVisible())
-  {
-    qDebug() << "Render 3D";
-    m_view->GetRenderWindow()->Render();
-    m_view->update();
-  }
 }
 
 //-----------------------------------------------------------------------------
 void View3D::selectPickedItems(int vx, int vy, bool append)
 {
-  ViewItemAdapterList selection, pickedItems;
-//   if (append)
-//     selection = currentSelection()->items();
-//
-//   // If no append, segmentations have priority over channels
-//   for(auto renderer : m_renderers)
-//   {
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::SEGMENTATION))
-//       {
-//         pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION), append);
-//         if (!pickedItems.empty())
-//         {
-//           for(ViewItemAdapterPtr item : pickedItems)
-//             if (!selection.contains(item))
-//               selection << item;
-//             else
-//               selection.removeAll(item);
-//         }
-//       }
-//     }
-//   }
-//
-//   pickedItems.clear();
-//
-//   for(auto renderer : m_renderers)
-//   {
-//     if(renderer->type() == Renderer::Type::Representation)
-//     {
-//       auto repRenderer = representationRenderer(renderer);
-//       if (!repRenderer->isHidden() && canRender(repRenderer, RenderableType::CHANNEL))
-//       {
-//         pickedItems = repRenderer->pick(vx, vy, 0, m_renderer, RenderableItems(RenderableType::CHANNEL), append);
-//         if (!pickedItems.empty())
-//         {
-//           for(ViewItemAdapterPtr item : pickedItems)
-//             if (!selection.contains(item))
-//               selection << item;
-//             else
-//               selection.removeAll(item);
-//         }
-//       }
-//     }
-//   }
-//
-//   if (!append && !selection.empty())
-//   {
-//     ViewItemAdapterPtr returnItem = selection.first();
-//     selection.clear();
-//     selection << returnItem;
-//   }
-//
-//   currentSelection()->set(selection);
+  // TODO 2015-04-20 recover 3D picking
+}
+
+//-----------------------------------------------------------------------------
+void View3D::addActor(vtkProp *actor)
+{
+  m_renderer->AddActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void View3D::removeActor(vtkProp *actor)
+{
+  m_renderer->RemoveActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+vtkRenderer *View3D::mainRenderer() const
+{
+  return m_renderer;
+}
+
+//-----------------------------------------------------------------------------
+void View3D::resetCameraImplementation()
+{
+  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
+  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
+  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
+  m_renderer->GetActiveCamera()->SetRoll(180);
+  m_renderer->ResetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -522,24 +313,7 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
     {
       if (me->modifiers() == Qt::CTRL)
       {
-//         for(auto renderer: m_renderers)
-//         {
-//           if(renderer->type() == Renderer::Type::Representation)
-//           {
-//             auto repRenderer = representationRenderer(renderer);
-//             if (!repRenderer->isHidden())
-//             {
-//               auto selection = repRenderer->pick(newX, newY, 0, m_renderer, RenderableItems(RenderableType::SEGMENTATION|RenderableType::CHANNEL), false);
-//               if (!selection.empty())
-//               {
-//                 NmVector3 point = repRenderer->pickCoordinates();
-//
-//                 emit centerChanged(point);
-//                 break;
-//               }
-//             }
-//           }
-//         }
+        // TODO 2015-04-20 Recover change crosshair
       }
       else
       {
@@ -644,34 +418,20 @@ void View3D::onTakeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::updateViewActions()
+void View3D::updateViewActions(RepresentationManager::Flags flags)
 {
-  // TODO: incomplete
-  bool active = false;
+  bool hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
+  bool exports3D = flags.testFlag(RepresentationManager::EXPORTS_3D);
 
-  for(auto manager: m_managers)
-  {
-    if(manager->isActive())
-    {
-      active = true;
-      break;
-    }
-  }
-
-  m_zoom->setEnabled(active);
-  m_snapshot->setEnabled(active);
-  m_export->setEnabled(active);
-
-  for(auto widget: m_widgets)
-  {
-    widget->setEnabled(active);
-  }
+  m_zoom    ->setEnabled(hasActors);
+  m_snapshot->setEnabled(hasActors);
+  m_export  ->setEnabled(exports3D);
 
   if(m_showCrosshairPlaneSelectors)
   {
-    m_axialScrollBar->setEnabled(active);
-    m_coronalScrollBar->setEnabled(active);
-    m_sagittalScrollBar->setEnabled(active);
+    m_axialScrollBar   ->setEnabled(hasActors);
+    m_coronalScrollBar ->setEnabled(hasActors);
+    m_sagittalScrollBar->setEnabled(hasActors);
     updateScrollBarsLimits();
   }
 }
@@ -681,9 +441,11 @@ void View3D::scrollBarMoved(int value)
 {
   NmVector3 point;
 
-  point[0] = m_axialScrollBar   ->value() * m_sceneResolution[0];
-  point[1] = m_coronalScrollBar ->value() * m_sceneResolution[1];
-  point[2] = m_sagittalScrollBar->value() * m_sceneResolution[2];
+  auto resolution = sceneResolution();
+
+  point[0] = m_axialScrollBar   ->value() * resolution[0];
+  point[1] = m_coronalScrollBar ->value() * resolution[1];
+  point[2] = m_sagittalScrollBar->value() * resolution[2];
 
   emit crosshairChanged(point);
 }
@@ -691,48 +453,42 @@ void View3D::scrollBarMoved(int value)
 //-----------------------------------------------------------------------------
 void View3D::updateScrollBarsLimits()
 {
-  if(!m_showCrosshairPlaneSelectors) return;
-
-  if (!hasChannelSources())
+  if(m_showCrosshairPlaneSelectors)
   {
-    m_axialScrollBar   ->setMinimum(0);
-    m_axialScrollBar   ->setMaximum(0);
-    m_coronalScrollBar ->setMinimum(0);
-    m_coronalScrollBar ->setMaximum(0);
-    m_sagittalScrollBar->setMinimum(0);
-    m_sagittalScrollBar->setMaximum(0);
+    auto bounds     = sceneBounds();
+    auto resolution = sceneResolution();
 
-    return;
+    m_axialScrollBar   ->setMinimum(vtkMath::Round(bounds[0]/resolution[0]));
+    m_axialScrollBar   ->setMaximum(vtkMath::Round(bounds[1]/resolution[0])-1);
+    m_coronalScrollBar ->setMinimum(vtkMath::Round(bounds[2]/resolution[1]));
+    m_coronalScrollBar ->setMaximum(vtkMath::Round(bounds[3]/resolution[1])-1);
+    m_sagittalScrollBar->setMinimum(vtkMath::Round(bounds[4]/resolution[2]));
+    m_sagittalScrollBar->setMaximum(vtkMath::Round(bounds[5]/resolution[2])-1);
   }
-
-  m_axialScrollBar   ->setMinimum(vtkMath::Round(m_sceneBounds[0]/m_sceneResolution[0]));
-  m_axialScrollBar   ->setMaximum(vtkMath::Round(m_sceneBounds[1]/m_sceneResolution[0])-1);
-  m_coronalScrollBar ->setMinimum(vtkMath::Round(m_sceneBounds[2]/m_sceneResolution[1]));
-  m_coronalScrollBar ->setMaximum(vtkMath::Round(m_sceneBounds[3]/m_sceneResolution[1])-1);
-  m_sagittalScrollBar->setMinimum(vtkMath::Round(m_sceneBounds[4]/m_sceneResolution[2]));
-  m_sagittalScrollBar->setMaximum(vtkMath::Round(m_sceneBounds[5]/m_sceneResolution[2])-1);
 }
 
 //-----------------------------------------------------------------------------
-void View3D::setCameraState(struct RenderView::CameraState state)
+void View3D::setCameraState(CameraState state)
 {
-  if (state.plane != Plane::UNDEFINED)
-    return;
+  if (state.plane == Plane::UNDEFINED)
+  {
+    auto camera = m_renderer->GetActiveCamera();
+
+    camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
+    camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
+
+    refresh();
+  }
+}
+
+//-----------------------------------------------------------------------------
+RenderView::CameraState View3D::cameraState()
+{
+  CameraState state;
 
   auto camera = m_renderer->GetActiveCamera();
-  camera->SetPosition(state.cameraPosition[0], state.cameraPosition[1], state.cameraPosition[2]);
-  camera->SetFocalPoint(state.focalPoint[0], state.focalPoint[1], state.focalPoint[2]);
-  m_renderer->ResetCameraClippingRange();
-
-  updateView();
-}
-
-//-----------------------------------------------------------------------------
-struct RenderView::CameraState View3D::cameraState()
-{
-  struct RenderView::CameraState state;
   double cameraPos[3], focalPoint[3];
-  auto camera = m_renderer->GetActiveCamera();
+
   camera->GetFocalPoint(focalPoint);
   camera->GetPosition(cameraPos);
 
@@ -744,3 +500,10 @@ struct RenderView::CameraState View3D::cameraState()
 
   return state;
 }
+
+//-----------------------------------------------------------------------------
+const QString View3D::viewName() const
+{
+  return "3D";
+}
+

@@ -120,6 +120,7 @@ qt4_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
   ${GUI_DIR}/Model/ViewItemAdapter.h
   ${GUI_DIR}/Utils/Timer.h
+  ${GUI_DIR}/View/RepresentationInvalidator.h
 )
 
 set (GUI_SOURCES
@@ -134,8 +135,10 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Model/Utils/SegmentationUtils.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
+  ${GUI_DIR}/View/RepresentationInvalidator.cpp
   ${GUI_DIR}/Utils/Timer.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})

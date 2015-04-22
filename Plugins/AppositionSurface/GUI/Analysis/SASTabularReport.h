@@ -44,14 +44,12 @@ namespace ESPINA
       /** \brief SASTabularReport class constructor.
        *
        */
-      SASTabularReport(ModelAdapterSPtr model,
-                       ModelFactorySPtr factory,
-                       ViewManagerSPtr  viewManager,
-                       QWidget         *parent = nullptr,
-                       Qt::WindowFlags  flags = Qt::WindowFlags{Qt::WindowNoState})
-      : TabularReport(factory, viewManager, parent, flags)
-      , m_model{model}
-      , m_sasTags{factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
+      SASTabularReport(Support::Context &context,
+                       QWidget                *parent = nullptr,
+                       Qt::WindowFlags         flags  = Qt::WindowFlags{Qt::WindowNoState})
+      : TabularReport(context, parent, flags)
+      , m_model{context.model()}
+      , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
       {};
 
     protected slots:

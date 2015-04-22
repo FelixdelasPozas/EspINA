@@ -217,6 +217,13 @@ namespace ESPINA
    */
   Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
+  /** \brief Add bounds to boundingBox
+   * \param[in] boundingBox to be updated
+   * \param[in] bounds to update boundingBox with
+   *
+   */
+  void EspinaCore_EXPORT updateBoundingBox(Bounds &boundingBox, const Bounds &bounds);
+
   /** \brief Return whether a bound is contained inside another
    * \param[in] container bounds object.
    * \param[in] contained bounds object.

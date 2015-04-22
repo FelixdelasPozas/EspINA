@@ -53,9 +53,21 @@ void RepresentationUpdater::removeSource(ViewItemAdapterPtr item)
 }
 
 //----------------------------------------------------------------------------
+bool RepresentationUpdater::isEmpty() const
+{
+  return m_sources.isEmpty();
+}
+
+//----------------------------------------------------------------------------
 void RepresentationUpdater::setCrosshair(const NmVector3 &point)
 {
   setCrosshairPoint(point, m_settings);
+}
+
+//----------------------------------------------------------------------------
+void RepresentationUpdater::setResolution(const NmVector3 &resolution)
+{
+  // TODO 2015-04-20 apply resolution change
 }
 
 //----------------------------------------------------------------------------
@@ -171,7 +183,6 @@ void RepresentationUpdater::run()
 
     ++it;
   }
-
 
   if (hasValidTimeStamp() && canExecute())
   {

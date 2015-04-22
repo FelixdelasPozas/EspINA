@@ -42,13 +42,16 @@
 using namespace std;
 using namespace ESPINA;
 using namespace Testing;
+using Invalidator = GUI::View::RepresentationInvalidator;
 
 int classification_proxy_remove_segmentation( int argc, char** argv )
 {
   bool error = false;
 
+  Timer               timer;
+  Invalidator         invalidator(timer);
   ModelAdapterSPtr    modelAdapter(new ModelAdapter());
-  ClassificationProxy proxy(modelAdapter);
+  ClassificationProxy proxy(modelAdapter, invalidator);
   ModelTest           modelTester(&proxy);
 
   ClassificationAdapterSPtr classification{new ClassificationAdapter()};

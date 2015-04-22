@@ -48,19 +48,13 @@ namespace ESPINA
   public:
     /** \brief ClassificationLayout class constructor.
      * \param[in] view QTreeView raw pointer.
-     * \param[in] model model adapter smart pointer.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
+     * \param[in] delegateFactory
+     * \param[in] context ESPINA context
      *
      */
     explicit ClassificationLayout(CheckableTreeView        *view,
-                                  RepresentationFactorySList &representations,
-                                  ModelAdapterSPtr          model,
-                                  ModelFactorySPtr          factory,
                                   FilterDelegateFactorySPtr delegateFactory,
-                                  ViewManagerSPtr           viewManager,
-                                  QUndoStack               *undoStack);
+                                  Support::Context   &context);
 
     virtual ~ClassificationLayout();
 
@@ -147,6 +141,7 @@ namespace ESPINA
 
     void addDockButton(QPushButton *button, QHBoxLayout *layout);
 
+    bool hasClassification() const;
 
   private:
     std::shared_ptr<ClassificationProxy> m_proxy;

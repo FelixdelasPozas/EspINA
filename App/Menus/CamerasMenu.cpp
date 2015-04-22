@@ -29,9 +29,9 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  CamerasMenu::CamerasMenu(ViewManagerSPtr vm, QWidget *parent)
+  CamerasMenu::CamerasMenu(GUI::View::ViewState &viewState, QWidget *parent)
   : QMenu(parent)
-  , m_viewManager(vm)
+  , m_viewState(viewState)
   {
     m_save = new QAction(QString("Save..."), this);
     addAction(m_save);
@@ -86,6 +86,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void CamerasMenu::save()
   {
+    //TODO 2015-04-20 Manage camera positions in explore toolgroup
     CameraPositions state;
     QDateTime time = QDateTime::currentDateTime();
     state.id = time.toString();
@@ -100,11 +101,11 @@ namespace ESPINA
     if (!(ok && !text.isEmpty())) return;
 
     state.id = text;
-
-    for(auto view: m_viewManager->renderViews())
-    {
-      state.states << view->cameraState();
-    }
+    //TODO 2015-04-20 Use camera state for default views
+//     for(auto view: m_viewManager->renderViews())
+//     {
+//       state.states << view->cameraState();
+//     }
 
 
     m_cameraPositions << state;
@@ -135,13 +136,14 @@ namespace ESPINA
       {
         auto snapshot = m_cameraPositions.at(m_load->actions().indexOf(action));
 
-        for(auto state: snapshot.states)
-        {
-          for(auto view: m_viewManager->renderViews())
-          {
-            view->setCameraState(state);
-          }
-        }
+    //TODO 2015-04-20 Restore camera state for default views
+//         for(auto state: snapshot.states)
+//         {
+//           for(auto view: m_viewManager->renderViews())
+//           {
+//             view->setCameraState(state);
+//           }
+//         }
       }
     }
   }

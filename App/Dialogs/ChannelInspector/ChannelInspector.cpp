@@ -21,15 +21,14 @@
 // ESPINA
 #include <EspinaConfig.h>
 #include "ChannelInspector.h"
-#include <ToolGroups/Visualize/Representations/ChannelSlice/ChannelSlicePipeline.h>
+#include <GUI/Representations/Pipelines/ChannelSlicePipeline.h>
 #include <GUI/View/View2D.h>
-#include <Support/ViewManager.h>
 #include <Support/Representations/SliceManager.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Representations/BufferedRepresentationPool.h>
+#include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Utils/NmVector3.h>
 #include <Core/Analysis/Query.h>
@@ -69,14 +68,15 @@ using namespace ESPINA;
 typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationFilter;
 
 //------------------------------------------------------------------------
-ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, ModelAdapterSPtr model, SchedulerSPtr scheduler, QWidget *parent)
-: QDialog          {parent}
-, m_spacingModified{false}
+ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context &context)
+: m_spacingModified{false}
 , m_edgesModified  {false}
 , m_channel        {channel}
-, m_model          {model}
-, m_scheduler      {scheduler}
-, m_view           {new View2D(Plane::XY, this)}
+, m_model          {context.model()}
+, m_scheduler      {context.scheduler()}
+, m_sources        {context.representationInvalidator()}
+, m_viewState      {context.timer(), context.representationInvalidator()}
+, m_view           {new View2D(m_viewState, std::make_shared<Selection>(), Plane::XY)}
 {
   setupUi(this);
 
@@ -311,7 +311,7 @@ void ChannelInspector::onChangesAccpeted()
     applyEdgesChanges();
   }
 
-  m_model->notifyRepresentationsModified(toViewItemList(m_channel));
+  m_viewState.representationInvalidator().invalidateRepresentations(toViewItemList(m_channel.get()));
 }
 
 //------------------------------------------------------------------------
@@ -493,14 +493,12 @@ void ChannelInspector::initSliceView()
   auto poolXY         = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineXY, m_scheduler, 10);
   poolXY->setPipelineSources(&m_sources);
 
-  auto sliceManager   = std::make_shared<SliceManager>();
-  sliceManager->addPool(poolXY, Plane::XY);
-  sliceManager->show();
+  auto sliceManager   = std::make_shared<SliceManager>(poolXY, RepresentationPoolSPtr(), RepresentationPoolSPtr());
+  sliceManager->show(m_view->timeStamp());
 
-  m_view->setChannelSources(&m_sources);
   m_view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_view->setParent(this);
-  m_view->setRulerVisibility(true);
+  m_view->setScaleVisibility(true);
   mainLayout->insertWidget(0, m_view, 1);
 
   m_view->addRepresentationManager(sliceManager);

@@ -52,21 +52,12 @@ namespace ESPINA
   public:
     /** \brief SegmentationInspector class constructor.
      * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
-     * \param[in] model model smart pointer containing the segmentations.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     * \param[in] parent parent widget pointer.
-     * \param[in] flags flags of the dialog.
+     * \param[in] delegateFactory
+     * \param[in] context ESPINA context
      */
-    SegmentationInspector(SegmentationAdapterList     segmentations,
-                          RepresentationFactorySList &representation,
-                          ModelAdapterSPtr            model,
-                          ModelFactorySPtr            factory,
-                          FilterDelegateFactorySPtr   delegateFactory,
-                          ViewManagerSPtr             viewManager,
-                          QUndoStack*                 undoStack,
-                          QWidget*                    parent = nullptr);
+    SegmentationInspector(SegmentationAdapterList   segmentations,
+                          FilterDelegateFactorySPtr delegateFactory,
+                          Support::Context         &context);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -152,12 +143,11 @@ namespace ESPINA
 
     QHBoxLayout *createReportLayout();
 
+    SelectionSPtr selection() const;
+
   private:
-    ModelAdapterSPtr          m_model;
-    ModelFactorySPtr          m_factory;
+    Support::Context         &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack*               m_undoStack;
 
     SegmentationAdapterList m_segmentations;
     ChannelAdapterList      m_channels;
@@ -166,12 +156,11 @@ namespace ESPINA
 
     ManualPipelineSources m_channelSources;
     ManualPipelineSources m_segmentationSources;
-    ColorEngineSPtr       m_colorEngine;
 
-    QToolBar      m_toolbar;
-    RepresentationTools tools;
-    View3D        m_view;
-    TabularReport m_tabularReport;
+    QToolBar            m_toolbar;
+    RepresentationTools m_representations;
+    View3D              m_view;
+    TabularReport       m_tabularReport;
   };
 
 } // namespace ESPINA

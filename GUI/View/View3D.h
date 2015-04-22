@@ -24,9 +24,6 @@
 #include <GUI/View/RenderView.h>
 
 // ESPINA
-#include "GUI/Representations/Renderers/Renderer.h"
-
-// VTK
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
@@ -51,38 +48,28 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief View3D class constructor.
-     * \param[in] showCrosshairPlaneSelectors, true to show three aditional
+     * \param[in] showCrosshairPlaneSelectors true to show three aditional
      *            scrollbars in the borders of the view to manipulate the
      *            crosshair point, false otherwise.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit View3D(bool showCrosshairPlaneSelectors = false,
-                    QWidget* parent = nullptr);
+    explicit View3D(GUI::View::ViewState &state, SelectionSPtr selection , bool showCrosshairPlaneSelectors = false);
 
     /** \brief View3D class virtual destructor.
      *
      */
     virtual ~View3D();
 
-    virtual void reset();
-
-    virtual void resetCamera();
-
-    virtual void addWidget(EspinaWidgetSPtr widget) override;
-
-    virtual void removeWidget(EspinaWidgetSPtr widget) override;
+    virtual void reset() override;
 
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    virtual void setCameraState(struct RenderView::CameraState);
+    virtual void setCameraState(CameraState state);
 
-    virtual struct RenderView::CameraState cameraState();
-
-  public slots:
-    virtual void updateView();
+    virtual RenderView::CameraState cameraState();
 
   protected:
     /** \brief Selects items under the given coordinates.
@@ -110,19 +97,30 @@ namespace ESPINA
      */
     void onTakeSnapshot();
 
-    /** \brief Updates the state of the renderers controls.
-     *
-     */
-    void updateViewActions();
-
   private:
     virtual void onCrosshairChanged(const NmVector3 &point);
 
     virtual void moveCamera(const NmVector3 &point);
 
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds);
+
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
-    bool isCrosshairVisible() const;
+    virtual void addActor   (vtkProp *actor);
+
+    virtual void removeActor(vtkProp *actor);
+
+    virtual vtkRenderer *mainRenderer() const;
+
+    virtual void updateViewActions(RepresentationManager::Flags flags) override;
+
+    virtual void resetCameraImplementation();
+
+    virtual void refreshViewImplementation();
+
+    bool isCrosshairPointVisible() const;
 
     /** \brief Helper method to setup the UI.
      *
@@ -139,6 +137,7 @@ namespace ESPINA
      */
     void updateScrollBarsLimits();
 
+    virtual const QString viewName() const;
   private:
     // GUI
     QVBoxLayout *m_mainLayout;
@@ -154,9 +153,8 @@ namespace ESPINA
     QScrollBar  *m_coronalScrollBar;
     QScrollBar  *m_sagittalScrollBar;
 
+    vtkSmartPointer<vtkRenderer> m_renderer;
     bool m_showCrosshairPlaneSelectors;
-
-    unsigned int m_numEnabledRenderers;
   };
 
   /** \brief Returns the 3D view raw pointer given a RenderView raw pointer.
@@ -172,6 +170,8 @@ namespace ESPINA
    */
   inline bool isView3D(RenderView *view)
   { return view3D_cast(view) != nullptr; }
+
+  using View3DSPtr = std::shared_ptr<View3D>;
 
 } // namespace ESPINA
 

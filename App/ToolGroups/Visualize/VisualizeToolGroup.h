@@ -42,7 +42,7 @@ namespace ESPINA
      * \param[in] viewManager view manager smart pointer.
      * \param[in] parent raw pointer to the QWidget parent of this object.
      */
-    explicit VisualizeToolGroup(QWidget *parent = 0);
+    explicit VisualizeToolGroup(Support::Context &context, QWidget *parent);
 
     /** \brief ViewTools class virtual destructor.
      *
@@ -61,10 +61,7 @@ namespace ESPINA
     void onRepresentationToolAdded(ToolSPtr tool);
 
   private:
-    class SettingsTool;
-
-    bool m_enabled;
-
+    Support::Context &m_context;
     Support::Widgets::RepresentationTools m_representationTools;
 
     QShortcut *m_segmentationsShortcut;

@@ -32,80 +32,54 @@
 
 namespace ESPINA {
 
+  // TODO 2015-04-20: Implement this class
   class EspinaCore_EXPORT ReadOnlySegmentationExtension
   : public SegmentationExtension
   {
   public:
-  	/** \brief ReadOnlySegmentationExtension class constructor.
-  	 * \param[in] type, segmentation extension type.
-  	 * \param[in] cache, cache object.
-  	 * \param[in] state, state of the extension.
-  	 *
-  	 */
+    /** \brief ReadOnlySegmentationExtension class constructor.
+     * \param[in] type segmentation extension type.
+     * \param[in] cache cache object.
+     * \param[in] state state of the extension.
+     *
+     */
     explicit ReadOnlySegmentationExtension(const SegmentationExtension::Type      &type,
                                            const SegmentationExtension::InfoCache &cache,
                                            const State &state);
 
-  	/** \brief Implements Extension::type().
-  	 *
-  	 */
     virtual SegmentationExtension::Type type() const
     { return m_type; }
 
-  	/** \brief Sets if the extension data is invalidated when the extended item changes.
-  	 * \param[in] value, true to invalidate on change, false otherwise.
-  	 *
-  	 */
+    /** \brief Sets if the extension data is invalidated when the extended item changes.
+     * \param[in] value true to invalidate on change, false otherwise.
+     *
+     */
     void setInvalidateOnChange(bool value)
     { m_invalidateOnChange = value; }
 
-  	/** \brief Implements Extension::invalidateOnChange().
-  	 *
-  	 */
     virtual bool invalidateOnChange() const
     { return m_invalidateOnChange; }
 
-  	/** \brief Implements Extension::state().
-  	 *
-  	 */
     virtual State state() const
     { return m_state; }
 
-  	/** \brief Implements Extensions::snapshot().
-  	 *
-  	 */
     virtual Snapshot snapshot() const
-    { return Snapshot(); } // TODO
+    { return Snapshot(); }
 
-  	/** \brief Implements Extension::dependencies().
-  	 *
-  	 */
     virtual TypeList dependencies() const
     { return TypeList(); }
 
-  	/** \brief Implements Extension::availabelInformations().
-  	 *
-  	 */
     virtual InfoTagList availableInformations() const
     { return readyInformation(); }
 
-    /** \brief Implements Extension::validCategory().
-  	 *
-  	 */
     virtual bool validCategory(const QString& classificationName) const
     { return true; }
 
   protected:
-  	/** \brief Implements Extension::onExtendedItemSet().
-  	 *
-  	 */
     virtual void onExtendedItemSet(Segmentation* item);
 
-  	/** \brief Implements Extension::cacheFail().
-  	 *
-  	 */
     virtual QVariant cacheFail(const InfoTag &tag) const
-    { return QVariant(); } //TODO
+    { return QVariant(); }
 
   private:
     SegmentationExtension::Type m_type;

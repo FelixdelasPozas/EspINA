@@ -20,12 +20,14 @@
 #ifndef ESPINA_REPRESENTATION_PIPELINE_H
 #define ESPINA_REPRESENTATION_PIPELINE_H
 
-#include <memory>
-#include <QString>
-#include <QList>
 #include <Core/Utils/NmVector3.h>
 #include <Core/EspinaTypes.h>
 #include "RepresentationState.h"
+
+#include <QString>
+#include <QList>
+
+#include <memory>
 
 #include <vtkSmartPointer.h>
 

@@ -61,6 +61,7 @@ namespace ESPINA
    *  Add operation will replace every voxel with a value different to
    *  the background value.
    */
+  // DEPRECATED
   template<typename T>
   class EspinaCore_EXPORT RawVolume
   : public VolumetricData<T>
@@ -247,7 +248,6 @@ namespace ESPINA
   void RawVolume<T>::setOrigin(const NmVector3& origin)
   {
     //QWriteLocker lock(&m_mutex);
-    //TODO
     //NmVector3 shift = m_origin - origin;
     m_image->SetOrigin(ItkPoint<T>(origin));
 
@@ -375,7 +375,6 @@ namespace ESPINA
   template<typename T>
   bool RawVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
   {
-//     // TODO: Manage output dependencies outside this class
 //     using VolumeReader = itk::ImageFileReader<itkVolumeType>;
 //
     bool dataFetched = false;
@@ -469,7 +468,6 @@ namespace ESPINA
 
       snapshot << createSnapshot<T>(itkImage(bounds), storage, path, filename);
 
-      // TODO: Remove temporal files from storage (mhd, raw)?
     } */
 
     return snapshot;

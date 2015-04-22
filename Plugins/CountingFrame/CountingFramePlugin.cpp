@@ -22,21 +22,15 @@ CountingFramePlugin::~CountingFramePlugin()
 }
 
 //------------------------------------------------------------------------
-void CountingFramePlugin::init(ModelAdapterSPtr model,
-                               ViewManagerSPtr  viewManager,
-                               ModelFactorySPtr factory,
-                               SchedulerSPtr    scheduler,
-                               QUndoStack*      undoStack)
+void CountingFramePlugin::init(Support::Context &context)
 {
-  m_model       = model;
-  m_viewManager = viewManager;
-  m_scheduler   = scheduler;
-  m_undoStack   = undoStack;
+  m_scheduler   = context.scheduler();
+  m_undoStack   = context.undoStack();
 
-  m_colorEngine = NamedColorEngine("Counting Frame", std::make_shared<CountingFrameColorEngine>());
+  m_colorEngine = NamedColorEngine(tr("Counting Frame"), std::make_shared<CountingFrameColorEngine>());
   m_representationFactory = std::make_shared<RepresentationFactory>(m_manager);
 
-  m_dockWidget = new Panel(&m_manager, m_model, m_viewManager, m_scheduler);
+  m_dockWidget = new Panel(&m_manager, context);
 
   m_channelExtensionFactory      = std::make_shared<ChannelExtensionFactoryCF>(const_cast<CountingFrameManager *>(&m_manager), m_scheduler);
   m_segmentationExtensionFactory = std::make_shared<SegmentationExtensionFactoryCF>();

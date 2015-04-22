@@ -53,11 +53,7 @@ namespace ESPINA
     explicit SegmhaImporterPlugin();
     virtual ~SegmhaImporterPlugin();
 
-    virtual void init(ModelAdapterSPtr model,
-                      ViewManagerSPtr  viewManager,
-                      ModelFactorySPtr factory,
-                      SchedulerSPtr    scheduler,
-                      QUndoStack*      undoStack);
+    virtual void init(Support::Context &context);
 
     virtual ChannelExtensionFactorySList channelExtensionFactories() const;
 
@@ -81,7 +77,6 @@ namespace ESPINA
 
   private:
     ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
     ModelFactorySPtr m_factory;
     SchedulerSPtr    m_scheduler;
     QUndoStack*      m_undoStack;

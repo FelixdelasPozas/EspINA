@@ -33,12 +33,8 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    explicit HistoryDock(ModelAdapterSPtr          model,
-                         ModelFactorySPtr          factory,
-                         FilterDelegateFactorySPtr delegateFactory,
-                         ViewManagerSPtr           viewManager,
-                         QUndoStack               *undoStack,
-                         QWidget                  *parent = 0);
+    explicit HistoryDock(FilterDelegateFactorySPtr delegateFactory,
+                         Support::Context &context);
     virtual ~HistoryDock();
 
     virtual void showEvent(QShowEvent* e);
@@ -49,11 +45,8 @@ namespace ESPINA
     void updateDock();
 
   private:
-    ModelAdapterSPtr          m_model;
-    ModelFactorySPtr          m_factory;
+    Support::Context   &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack               *m_undoStack;
 
     FilterSPtr             m_filter;
     SegmentationAdapterPtr m_segmentation;

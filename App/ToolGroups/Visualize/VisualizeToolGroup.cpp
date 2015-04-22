@@ -34,41 +34,40 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::Support::Representations::Utils;
 
-class VisualizeToolGroup::SettingsTool
-: public Tool
-{
-public:
-  SettingsTool()
-  : m_showSettings{new QAction(DefaultIcons::Settings(), tr("Show Representation Options"), this)}
-  {
-  }
-
-  virtual QList<QAction *> actions() const
-  {
-    QList<QAction *> settingsActions;
-
-    settingsActions << m_showSettings;
-
-    return settingsActions;
-  }
-
-private:
-  virtual void onToolEnabled(bool enabled) override
-  {
-  }
-
-private:
-  QAction *m_showSettings;
-};
+// class VisualizeToolGroup::SettingsTool
+// : public Tool
+// {
+// public:
+//   SettingsTool()
+//   : m_showSettings{new QAction(DefaultIcons::Settings(), tr("Show Representation Options"), this)}
+//   {
+//   }
+//
+//   virtual QList<QAction *> actions() const
+//   {
+//     QList<QAction *> settingsActions;
+//
+//     settingsActions << m_showSettings;
+//
+//     return settingsActions;
+//   }
+//
+// private:
+//   virtual void onToolEnabled(bool enabled) override
+//   {
+//   }
+//
+// private:
+//   QAction *m_showSettings;
+// };
 
 //----------------------------------------------------------------------------
-VisualizeToolGroup::VisualizeToolGroup(QWidget *parent)
-: ToolGroup              {QIcon(":/espina/toolgroup_visualize.svg"), tr("Visualize"), parent}
+VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *parent)
+: ToolGroup              {":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
 , m_segmentationsShortcut{new QShortcut(parent)}
+, m_representationTools{context.timer()}
+, m_context{context}
 {
-  auto channelTool      = m_representationTools.channelRepresentations();
-  auto segmentationTool = m_representationTools.segmentationRepresentations();
-
   for (auto tool : m_representationTools.representationTools())
   {
     addTool(tool);
@@ -79,6 +78,9 @@ VisualizeToolGroup::VisualizeToolGroup(QWidget *parent)
 
   connect(&m_representationTools, SIGNAL(representationToolAdded(ToolSPtr)),
           this,                   SLOT(onRepresentationToolAdded(ToolSPtr)));
+
+  auto segmentationTool = m_representationTools.segmentationRepresentations();
+
   connect(m_segmentationsShortcut, SIGNAL(activated()),
           segmentationTool.get(),  SLOT(toggleRepresentationsVisibility()));
 }

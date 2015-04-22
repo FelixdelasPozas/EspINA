@@ -225,7 +225,7 @@ namespace ESPINA
 
       QString m_categoryConstraint;
 
-      // TODO: Change to private (may need some changes in the API)
+      // DESIGN: Change to private (may need some changes in the API)
       mutable QMutex m_widgetMutex;
       vtkSmartPointer<vtkCountingFrameCommand> m_command;
 

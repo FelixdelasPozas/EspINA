@@ -26,9 +26,9 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Representations/RepresentationFactory.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QAbstractItemView>
@@ -39,7 +39,6 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  class RenderersMenu;
   class CamerasMenu;
 
   class DefaultView
@@ -48,15 +47,11 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief DefaultView class constructor.
-     * \param[in] model to be displayed by the view
-     * \param[in] viewManager to coordinate render views
-     * \param[in] undoStack ??
+     * \param[in] context ESPINA context
      * \param[in] parent of the qobject
      */
-    explicit DefaultView(ModelAdapterSPtr    model,
-                         ViewManagerSPtr     viewManager,
-                         QUndoStack         *undoStack,
-                         QMainWindow        *parent = nullptr);
+    explicit DefaultView(Support::Context &context,
+                         QMainWindow   *parent = nullptr);
 
     /** \brief DefaultView class virtual destructor.
      *
@@ -64,13 +59,6 @@ namespace ESPINA
     virtual ~DefaultView();
 
     void addRepresentation(const Representation &representation);
-
-    /** \brief Sets the crosshair colors of the view.
-     * \param[in] plane of the crosshair line.
-     * \param[in] color of the crosshair line.
-     *
-     */
-    void setCrosshairColor(const Plane plane, const QColor& color);
 
     /** \brief Fill the view menu.
      * \param[inout] menu to modify.
@@ -112,16 +100,13 @@ namespace ESPINA
   private:
     void initView(RenderView *view);
 
-    void deleteView(RenderView *view);
-
     void addRepresentationManager(RepresentationManagerSPtr manager);
 
     void addRepresentationPool(RepresentationPoolSPtr pool, const QString &group);
 
   private:
     ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    ViewStateSPtr    m_viewState;
+    GUI::View::ViewState &    m_viewState;
 
     PipelineSourcesFilter m_channelSources;
     PipelineSourcesFilter m_segmentationSources;
@@ -131,12 +116,6 @@ namespace ESPINA
     RepresentationPoolSList    m_autonomousPools;
     RepresentationManagerSList m_repManagers;
 
-    bool m_showProcessing;
-
-    NmVector3 m_slicingStep;
-
-    QColor m_xLine, m_yLine, m_zLine;
-
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
     View3D *m_view3D;
 
@@ -144,8 +123,6 @@ namespace ESPINA
 
     QDockWidget *dock3D, *dockYZ, *dockXZ;
     QAction     *m_showRuler, *m_showThumbnail;
-
-    RenderersMenu      *m_renderersMenu;
   };
 
 

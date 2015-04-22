@@ -20,45 +20,60 @@
 #ifndef ESPINA_SLICE_3D_MANAGER_H
 #define ESPINA_SLICE_3D_MANAGER_H
 
-#include <GUI/Representations/ActorManager.h>
+// ESPINA
+#include <GUI/Representations/PoolManager.h>
 #include <GUI/Representations/RepresentationPool.h>
 
 namespace ESPINA {
 
   class Slice3DManager
-  : public ActorManager
+  : public PoolManager
   {
     Q_OBJECT
   public:
-    Slice3DManager();
+    Slice3DManager(RepresentationPoolSPtr poolXY,
+                   RepresentationPoolSPtr poolXZ,
+                   RepresentationPoolSPtr poolYZ);
 
-    virtual ~Slice3DManager();
+    virtual TimeRange readyRangeImplementation() const override;
 
-    virtual PipelineStatus pipelineStatus() const;
+    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const override;
 
-    virtual TimeRange readyRange() const;
+  protected:
+    virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-    virtual void setResolution(const NmVector3 &resolution);
+    virtual bool acceptSceneResolutionChange( const NmVector3 &resolution) const override;
 
-    virtual ViewItemAdapterPtr pick(const NmVector3 &point, vtkProp *actor) const;
+    virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override;
 
   private:
-    virtual bool hasSources() const override;
+    virtual bool hasRepresentations() const override;
 
-    virtual void setCrosshair(const NmVector3 &crosshair, TimeStamp time) override;
+    virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
-    virtual RepresentationPipeline::Actors actors(TimeStamp time) override;
+    virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
-    virtual void invalidatePreviousActors(TimeStamp time) override;
+    virtual void changeSceneResolution(const NmVector3 &resolution, TimeStamp t) override;
 
-    virtual void connectPools()      override;
+    virtual void onShow(TimeStamp t);
 
-    virtual void disconnectPools()   override;
+    virtual void onHide(TimeStamp t);
 
-    virtual RepresentationManagerSPtr cloneImplementation();
+    virtual RepresentationPipeline::Actors actors(TimeStamp t) override;
+
+    virtual void invalidatePreviousActors(TimeStamp t) override;
+
+    virtual RepresentationManagerSPtr cloneImplementation() override;
+
+    void connectPools();
+
+    void disconnectPools();
 
   private slots:
     void checkRenderRequest();
+
+  private:
+    RepresentationPoolSList m_pools;
   };
 }
 

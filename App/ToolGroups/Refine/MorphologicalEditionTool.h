@@ -23,7 +23,6 @@
 
 // ESPINA
 #include <Support/Widgets/Tool.h>
-#include <Support/ViewManager.h>
 #include <Support/Factory/FilterDelegateFactory.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Filters/MorphologicalEditionFilter.h>
@@ -71,17 +70,12 @@ namespace ESPINA
 
   public:
     /** \brief MorphologicalEdtionTool class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] factory, factory smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
+     * \param[in] FilterDelegateFactory
+     * \param[in] context ESPINA context
      *
      */
-    MorphologicalEditionTool(ModelAdapterSPtr          model,
-                             ModelFactorySPtr          factory,
-                             FilterDelegateFactorySPtr filterDelegateFactory,
-                             ViewManagerSPtr           viewManager,
-                             QUndoStack               *undoStack);
+    MorphologicalEditionTool(FilterDelegateFactorySPtr filterDelegateFactory,
+                             Support::Context    &context);
 
     /** \brief MorphologicalEditionTools class destructor.
      *
@@ -177,27 +171,27 @@ namespace ESPINA
     virtual void onToolEnabled(bool enabled) override;
 
     /** \brief Launches the CODE filter (Morphological filter).
-     * \param[in] type, type of the morphological operation.
-     * \param[in] name, name of the operation.
-     * \param[in] radius, radius of the morphological operation.
+     * \param[in] type type of the morphological operation.
+     * \param[in] name name of the operation.
+     * \param[in] radius radius of the morphological operation.
      *
      */
     template<typename T>
     void launchCODE(const Filter::Type& type, const QString& name, int radius)
     {
-      m_viewManager->unsetActiveEventHandler();
+      m_context.viewState().setEventHandler(nullptr);
 
-      auto selection = m_viewManager->selection()->segmentations();
+      auto selectedSegmentations = m_context.selection()->segmentations();
 
-      if (selection.size() > 0)
+      if (selectedSegmentations.size() > 0)
       {
-        for (auto segmentation :  selection)
+        for (auto segmentation :  selectedSegmentations)
         {
           InputSList inputs;
 
           inputs << segmentation->asInput();
 
-          auto filter = m_factory->createFilter<T>(inputs, type);
+          auto filter = m_context.factory()->createFilter<T>(inputs, type);
 
           filter->setRadius(radius);
           filter->setDescription(tr("%1 %2").arg(name)
@@ -240,10 +234,7 @@ namespace ESPINA
     };
 
   private:
-    ModelAdapterSPtr m_model;
-    ModelFactorySPtr m_factory;
-    ViewManagerSPtr  m_viewManager;
-    QUndoStack      *m_undoStack;
+    Support::Context &m_context;
 
     std::shared_ptr<MorphologicalFilterFactory> m_filterFactory;
 

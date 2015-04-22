@@ -20,8 +20,8 @@
 #ifndef ESPINA_MANUALEDITIONPIPELINE_H
 #define ESPINA_MANUALEDITIONPIPELINE_H
 
+#include <GUI/Representations/Pipelines/SegmentationSlicePipeline.h>
 #include <GUI/Representations/RepresentationPipeline.h>
-#include <ToolGroups/Visualize/Representations/SegmentationSlice/SegmentationSlicePipeline.h>
 
 namespace ESPINA
 {

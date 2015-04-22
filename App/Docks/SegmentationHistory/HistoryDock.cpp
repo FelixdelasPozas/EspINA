@@ -28,26 +28,19 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-HistoryDock::HistoryDock(ModelAdapterSPtr          model,
-                         ModelFactorySPtr          factory,
-                         FilterDelegateFactorySPtr delegateFactory,
-                         ViewManagerSPtr           viewManager,
-                         QUndoStack               *undoStack,
-                         QWidget                  *parent)
-: DockWidget(parent)
-, m_model(model)
-, m_factory(factory)
+HistoryDock::HistoryDock(FilterDelegateFactorySPtr delegateFactory,
+                         Support::Context   &context)
+
+: m_context(context)
 , m_delegateFactory(delegateFactory)
-, m_viewManager(viewManager)
-, m_undoStack(undoStack)
 , m_segmentation(nullptr)
 {
   setObjectName(tr("History Panel"));
 
   setWindowTitle(tr("History"));
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionChanged()),
-          this,                             SLOT(updateDock()));
+  connect(m_context.selection().get(), SIGNAL(selectionChanged()),
+          this,                                     SLOT(updateDock()));
 }
 
 //----------------------------------------------------------------------------
@@ -81,7 +74,7 @@ void HistoryDock::updateDock()
   SegmentationAdapterPtr segmentation = nullptr;
   bool changeWidget = false;
 
-  auto selectedSegmentations = m_viewManager->selection()->segmentations();
+  auto selectedSegmentations = m_context.selection()->segmentations();
 
   if (selectedSegmentations.size() == 1)
   {
@@ -129,7 +122,7 @@ void HistoryDock::updateDock()
       try
       {
         auto delegate = m_delegateFactory->createDelegate(m_segmentation);
-        setWidget(delegate->createWidget(m_model, m_factory, m_viewManager, m_undoStack));
+        setWidget(delegate->createWidget(m_context));
       }
       catch (...)
       {

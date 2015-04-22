@@ -37,17 +37,16 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type);
+    explicit PipelineSourcesFilter(ModelAdapterSPtr model, const ItemAdapter::Type type, GUI::View::RepresentationInvalidator &invalidator);
 
     virtual ~PipelineSourcesFilter();
 
     void setSelectedSources(ViewItemAdapterSList sources);
 
   private slots:
-    void onSourcesAdded  (ViewItemAdapterSList sources,  TimeStamp t);
-    void onSourcesRemoved(ViewItemAdapterSList sources,  TimeStamp t);
-    void onRepresentationModified(ViewItemAdapterSList sources, TimeStamp t);
-    void onReset(TimeStamp t);
+    void onSourcesAdded  (ViewItemAdapterSList sources);
+    void onSourcesRemoved(ViewItemAdapterSList sources);
+    void onReset();
 
   private:
     ViewItemAdapterList filter(ViewItemAdapterSList sources);

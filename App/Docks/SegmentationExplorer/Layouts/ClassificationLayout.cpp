@@ -190,31 +190,29 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 
 //------------------------------------------------------------------------
 ClassificationLayout::ClassificationLayout(CheckableTreeView        *view,
-                                           RepresentationFactorySList &representations,
-                                           ModelAdapterSPtr          model,
-                                           ModelFactorySPtr          factory,
                                            FilterDelegateFactorySPtr delegateFactory,
-                                           ViewManagerSPtr           viewManager,
-                                           QUndoStack                *undoStack)
-: Layout               {view, representations, model, factory, delegateFactory, viewManager, undoStack}
-, m_proxy              {new ClassificationProxy(model)}
+                                           Support::Context   &context)
+: Layout               {view, delegateFactory, context}
+, m_proxy              {new ClassificationProxy(context.model(), context.viewState().representationInvalidator())}
 , m_sort               {new SortFilter()}
-, m_delegate           {new CategoryItemDelegate(model, undoStack, this)}
+, m_delegate           {new CategoryItemDelegate(context.model(), context.undoStack(), this)}
 {
-  m_proxy->setSourceModel(m_model);
-  m_sort ->setSourceModel(m_proxy.get());
-  m_sort ->setDynamicSortFilter(true);
+  auto model = context.model();
+
+  m_proxy->setSourceModel(model);
+  m_sort->setSourceModel(m_proxy.get());
+  m_sort->setDynamicSortFilter(true);
 
   connect(m_proxy.get(), SIGNAL(segmentationsDropped(SegmentationAdapterList,CategoryAdapterPtr)),
           this,          SLOT(segmentationsDropped(SegmentationAdapterList,CategoryAdapterPtr)));
   connect(m_proxy.get(), SIGNAL(categoriesDropped(CategoryAdapterList,CategoryAdapterPtr)),
           this,          SLOT  (categoriesDropped(CategoryAdapterList,CategoryAdapterPtr)));
 
-  connect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+  connect(model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this,  SLOT(updateSelection()));
-  connect(m_model.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+  connect(model.get(), SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
           this,  SLOT(updateSelection()));
-  connect(m_model.get(), SIGNAL(modelReset()),
+  connect(model.get(), SIGNAL(modelReset()),
           this,  SLOT(updateSelection()));
 
   m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
@@ -261,10 +259,7 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
 
   if (categories.isEmpty())
   {
-    DefaultContextualMenu contextMenu(segmentations.toList(),
-                                      m_model,
-                                      m_viewManager,
-                                      m_undoStack);
+    DefaultContextualMenu contextMenu(segmentations.toList(), m_context);
 
     contextMenu.addSeparator();
 
@@ -365,20 +360,23 @@ void ClassificationLayout::deleteSelectedItems()
       }
     }
 
+    auto undoStack = m_context.undoStack();
+
     // assuming categories are empty, because if they weren't then !segmentations.empty()
-    m_undoStack->beginMacro(tr("Remove Categories and Segmentations"));
+    m_context.undoStack()->beginMacro(tr("Remove Categories and Segmentations"));
     deleteSegmentations(segmentations.toList());
 
     categories << additionalCategories;
 
     for(auto category : categories)
     {
-      if (m_model->classification()->category(category->classificationName()))
+      auto model = m_context.model();
+      if (model->classification()->category(category->classificationName()))
       {
-        m_undoStack->push(new RemoveCategoryCommand(category, m_model));
+        undoStack->push(new RemoveCategoryCommand(category, model));
       }
     }
-    m_undoStack->endMacro();
+    undoStack->endMacro();
   }
   else if (!segmentations.isEmpty())
   {
@@ -432,9 +430,10 @@ QItemDelegate *ClassificationLayout::itemDelegate() const
 //------------------------------------------------------------------------
 void ClassificationLayout::createCategory()
 {
-  QModelIndex currentIndex = m_view->currentIndex();
-
   ItemAdapterPtr categoryItem = nullptr;
+
+  auto model        = m_context.model();
+  auto currentIndex = m_view->currentIndex();
 
   if (currentIndex.isValid())
   {
@@ -442,7 +441,7 @@ void ClassificationLayout::createCategory()
   }
   else if (m_view->model()->rowCount() > 0)
   {
-    categoryItem = m_model->classification()->categories().first().get();
+    categoryItem = model->classification()->categories().first().get();
   }
 
   if (!categoryItem) return;
@@ -456,9 +455,10 @@ void ClassificationLayout::createCategory()
 
     if (!parentCategory->subCategory(name))
     {
-      m_undoStack->beginMacro("Create Category");
-      m_undoStack->push(new AddCategoryCommand(m_model->smartPointer(parentCategory), name, m_model, parentCategory->color()));
-      m_undoStack->endMacro();
+      auto undoStack = m_context.undoStack();
+      undoStack->beginMacro("Create Category");
+      undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
+      undoStack->endMacro();
     }
   }
 }
@@ -480,9 +480,11 @@ void ClassificationLayout::createSubCategory()
     auto category = categoryPtr(categorytItem);
     if (!category->subCategory(name))
     {
-      m_undoStack->beginMacro("Create Category");
-      m_undoStack->push(new AddCategoryCommand(m_model->smartPointer(category), name, m_model, category->color()));
-      m_undoStack->endMacro();
+      auto undoStack = m_context.undoStack();
+
+      undoStack->beginMacro("Create Category");
+      undoStack->push(new AddCategoryCommand(m_context.model()->smartPointer(category), name, m_context.model(), category->color()));
+      undoStack->endMacro();
     }
   }
 }
@@ -491,11 +493,11 @@ void ClassificationLayout::createSubCategory()
 void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmentations,
                                                 CategoryAdapterPtr        category)
 {
-  m_undoStack->beginMacro(tr("Change Segmentation's Category"));
-  {
-    m_undoStack->push(new ChangeCategoryCommand(segmentations, category, m_model, m_viewManager));
-  }
-  m_undoStack->endMacro();
+  auto undoStack = m_context.undoStack();
+
+  undoStack->beginMacro(tr("Change Segmentation's Category"));
+  undoStack->push(new ChangeCategoryCommand(segmentations, category, m_context));
+  undoStack->endMacro();
 }
 
 //------------------------------------------------------------------------
@@ -525,9 +527,10 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
 
   if (!validSubCategories.isEmpty())
   {
-    m_undoStack->beginMacro(tr("Modify Classification"));
-    m_undoStack->push(new ReparentCategoryCommand(validSubCategories, category, m_model));
-    m_undoStack->endMacro();
+    auto undoStack = m_context.undoStack();
+    undoStack->beginMacro(tr("Modify Classification"));
+    undoStack->push(new ReparentCategoryCommand(validSubCategories, category, m_context.model()));
+    undoStack->endMacro();
   }
 }
 
@@ -546,9 +549,7 @@ void ClassificationLayout::updateSelection()
     }
   }
 
-  bool hasClassification = m_model->classification() != nullptr;
-
-  emit canCreateCategory(hasClassification);
+  emit canCreateCategory(hasClassification());
   emit categorySelected(numCategories == 1);
 
   m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
@@ -577,8 +578,6 @@ void ClassificationLayout::changeCategoryColor()
   {
     category->setData(colorSelector.selectedColor(),
                       Qt::DecorationRole);
-
-    // TODO: invalidate representations of seletected categories
   }
 }
 
@@ -694,4 +693,10 @@ void ClassificationLayout::addDockButton(QPushButton *button, QHBoxLayout *layou
 {
   button->setEnabled(false);
   layout->addWidget(button);
+}
+
+//------------------------------------------------------------------------
+bool ClassificationLayout::hasClassification() const
+{
+ return m_context.model()->classification().get();
 }

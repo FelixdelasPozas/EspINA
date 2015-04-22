@@ -25,10 +25,10 @@
 
 #include "ui_Panel.h"
 
-#include <Support/ViewManager.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -41,6 +41,7 @@
 #include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::CF;
@@ -247,15 +248,9 @@ const QString Panel::ID = "CountingFrameExtension";
 
 //------------------------------------------------------------------------
 Panel::Panel(CountingFrameManager *manager,
-             ModelAdapterSPtr      model,
-             ViewManagerSPtr       viewManager,
-             SchedulerSPtr         scheduler,
-             QWidget              *parent)
-: DockWidget(parent)
-, m_manager(manager)
-, m_model(model)
-, m_viewManager(viewManager)
-, m_scheduler(scheduler)
+             Support::Context &context)
+: m_manager(manager)
+, m_context(context)
 , m_gui(new GUI())
 , m_cfModel(new CFModel(m_manager))
 , m_useSlices(true)
@@ -307,11 +302,11 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_manager, SIGNAL(countingFrameCreated(CountingFrame*)),
           this, SLOT(onCountingFrameCreated(CountingFrame*)));
 
-  connect(m_model.get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList,TimeStamp)),
+  connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
           this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
-  connect(m_viewManager.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-          this, SLOT(onChannelChanged(ChannelAdapterPtr)));
+// TODO   connect(m_viewManager.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+//           this, SLOT(onChannelChanged(ChannelAdapterPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -489,7 +484,7 @@ void Panel::createCountingFrame()
 {
   if (!m_pendingCFs.isEmpty()) return;
 
-  CFTypeSelectorDialog cfSelector(m_model, this);
+  CFTypeSelectorDialog cfSelector(m_context.model(), this);
 
   if (cfSelector.exec())
   {
@@ -501,7 +496,7 @@ void Panel::createCountingFrame()
 
     if (!channel->hasExtension(CountingFrameExtension::TYPE))
     {
-      channel->addExtension(m_manager->createExtension(m_scheduler));
+      channel->addExtension(m_manager->createExtension(m_context.scheduler()));
     }
 
 
@@ -532,7 +527,7 @@ void Panel::resetActiveCountingFrame()
     auto channel       = m_activeCF->channel();
     auto segmentations = QueryContents::segmentationsOnChannelSample(channel);
 
-    ComputeOptimalMarginsSPtr task(new ComputeOptimalMarginsTask(channel, segmentations, m_scheduler));
+    ComputeOptimalMarginsSPtr task(new ComputeOptimalMarginsTask(channel, segmentations, m_context.scheduler()));
 
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(onMarginsComputed()));
@@ -575,8 +570,10 @@ void Panel::deleteActiveCountingFrame()
 //------------------------------------------------------------------------
 void Panel::onChannelChanged(ChannelAdapterPtr channel)
 {
-  m_gui->categorySelector->setModel(m_model.get());
-  m_gui->categorySelector->setRootModelIndex(m_model->classificationRoot());
+  auto model = m_context.model().get();
+
+  m_gui->categorySelector->setModel(model);
+  m_gui->categorySelector->setRootModelIndex(model->classificationRoot());
 
   m_gui->createCF->setEnabled(channel != nullptr);
 
@@ -604,7 +601,7 @@ void Panel::onChannelChanged(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void Panel::showInfo(CountingFrame* activeCF)
 {
-  if (!activeCF || !m_viewManager->activeChannel())
+  if (!activeCF || !m_context.ActiveChannel)
     return;
 
   m_activeCF = activeCF;
@@ -678,22 +675,19 @@ void Panel::showInfo(CountingFrame* activeCF)
 //------------------------------------------------------------------------
 QModelIndex Panel::findCategoryIndex(const QString& classificationName)
 {
-  auto category =  m_model->classification()->category(classificationName);
+  auto model    = m_context.model();
+  auto category = model->classification()->category(classificationName);
 
-  return m_model->categoryIndex(category);
+  return model->categoryIndex(category);
 }
 
 //------------------------------------------------------------------------
 void Panel::updateSegmentations()
 {
-  ViewItemAdapterSList segmentations;
+  auto model         = m_context.model();
+  auto segmentations = toRawList<ViewItemAdapter>(model->segmentations());
 
-  for (auto segmentation : m_model->segmentations())
-  {
-    segmentations << segmentation;
-  }
-
-  m_model->notifyRepresentationsModified(segmentations);
+  m_context.representationInvalidator().invalidateRepresentations(segmentations);
 }
 
 
@@ -942,9 +936,7 @@ void Panel::onCountingFrameCreated(CountingFrame* cf)
 //------------------------------------------------------------------------
 void Panel::onCountingFrameApplied(CountingFrame *cf)
 {
-  auto segmentations = toViewItemSList(m_model->segmentations());
-
-  m_model->notifyRepresentationsModified(segmentations);
+  updateSegmentations();
 }
 
 //------------------------------------------------------------------------

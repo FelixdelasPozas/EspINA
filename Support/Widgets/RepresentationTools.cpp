@@ -24,16 +24,20 @@ using namespace ESPINA::Support::Representations::Utils;
 using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
-RepresentationTools::RepresentationTools()
-: m_channelsGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"),      tr("Show Channels"))}
-, m_segmentationsGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"))}
+RepresentationTools::RepresentationTools(Timer &timer)
+: m_channelsGroup     (new RepresentationsGroupTool(":/espina/channels_switch.png",      tr("Show Channels"), timer))
+, m_segmentationsGroup(new RepresentationsGroupTool(":/espina/segmentations_switch.svg", tr("Show Segmentations"), timer))
+, m_timer(timer)
 {
   m_channelsGroup->showActiveRepresentations();
   m_segmentationsGroup->showActiveRepresentations();
 }
 
 //----------------------------------------------------------------------------
-void RepresentationTools::addRepresentationSwitch(RepresentationGroup group, RepresentationSwitchSPtr repSwitch, const QIcon &groupIcon, const QString &groupDescription)
+void RepresentationTools::addRepresentationSwitch(RepresentationGroup      group,
+                                                  RepresentationSwitchSPtr repSwitch,
+                                                  const QIcon             &groupIcon,
+                                                  const QString           &groupDescription)
 {
   if (CHANNELS_GROUP == group)
   {
@@ -47,7 +51,8 @@ void RepresentationTools::addRepresentationSwitch(RepresentationGroup group, Rep
   {
     auto addRepresentationGroup = !m_dynamicRepresentationGroups.contains(group);
 
-    auto representationGroup    = m_dynamicRepresentationGroups.value(group, std::make_shared<RepresentationsGroupTool>(groupIcon, groupDescription));
+    auto newGroup               = std::make_shared<RepresentationsGroupTool>(groupIcon, groupDescription, m_timer);
+    auto representationGroup    = m_dynamicRepresentationGroups.value(group, newGroup);
 
     representationGroup->addRepresentationSwitch(repSwitch);
 

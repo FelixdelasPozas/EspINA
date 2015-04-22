@@ -17,8 +17,10 @@
  * 
  */
 
+// ESPINA
 #include "RepresentationState.h"
-#include <App/ToolGroups/Visualize/Representations/RepresentationSettings.h>
+#include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <Support/Representations/RepresentationUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Representations;

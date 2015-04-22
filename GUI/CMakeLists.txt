@@ -18,7 +18,8 @@ qt4_wrap_cpp(GUI_MOC
   Representations/PipelineSourcesFilter.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
-  Representations/ActorManager.h
+  Representations/PoolManager.h
+  Representations/PassiveActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
   Representations/RepresentationWindow.h
@@ -35,14 +36,18 @@ qt4_wrap_cpp(GUI_MOC
   View/Selection.h
   View/View2D.h
   View/ViewState.h
-  View/ViewRendererMenu.h
   View/View3D.h
+  View/RepresentationInvalidator.h
+  View/Widgets/Measures/MeasureWidget.h
+  View/Widgets/Measures/MeasureEventHandler.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/OrthogonalRegion.h
   View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
-  View/Widgets/Ruler/RulerWidget.h
+  View/CoordinateSystem.h
+  View/Widgets/SelectionMeasure/Widget2D.h
+  View/Widgets/SelectionMeasure/Widget3D.h
   View/Widgets/Contour/ContourWidget.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
@@ -56,7 +61,6 @@ qt4_wrap_cpp(GUI_MOC
   Widgets/NoteEditor.h
   Widgets/QComboTreeView.h
   Widgets/TagSelector.h
-  Widgets/RenderersSelector.h
   Widgets/SchedulerProgress.h
   Widgets/SpinBoxAction.h
   Widgets/SliderAction.h
@@ -71,7 +75,6 @@ qt4_wrap_ui (GUI_UI
   Representations/ContourRepresentationSettings.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
-  Widgets/RenderersSelector.ui
   Widgets/TagSelector.ui
   Widgets/SchedulerProgress.ui
   Widgets/TaskProgress.ui
@@ -103,21 +106,33 @@ set (GUI_SOURCES
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
   ModelFactory.cpp
-  Representations/BufferedRepresentationPool.cpp
-  Representations/ChannelPipeline.cpp
+  Representations/Pipelines/ChannelSlicePipeline.cpp
+  Representations/Pipelines/SegmentationSlicePipeline.cpp
+  Representations/Pipelines/SegmentationMeshPipeline.cpp
+  Representations/Pipelines/SegmentationSmoothedMeshPipeline.cpp
+  Representations/Pipelines/SegmentationContourPipeline.cpp
+  Representations/Pipelines/SegmentationSkeleton2DPipeline.cpp
+  Representations/Pipelines/SegmentationSkeleton3DPipeline.cpp
+  Representations/Pipelines/SegmentationVolumetricCPUPipeline.cpp
+  Representations/Pipelines/SegmentationVolumetricGPUPipeline.cpp
+  Representations/Settings/PipelineStateUtils.cpp
+  Representations/Settings/SegmentationSlicePoolSettings.cpp
+  Representations/Settings/SegmentationContourPoolSettings.cpp
+  Representations/Pools/BufferedRepresentationPool.cpp
+  Representations/Pools/BasicRepresentationPool.cpp
+  Representations/Managers/CrosshairManager.cpp 
+  Representations/Managers/WidgetManager.cpp
   Representations/PipelineSourcesFilter.cpp
   Representations/PipelineSources.cpp
   Representations/ManualPipelineSources.cpp
   Representations/RepresentationManager.cpp
-  Representations/ActorManager.cpp
-  Representations/WidgetManager.cpp
+  Representations/PoolManager.cpp
+  Representations/PassiveActorManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
-  Representations/BasicRepresentationPool.cpp
   Representations/RepresentationState.cpp
   Representations/RepresentationUpdater.cpp
   Representations/RepresentationWindow.cpp
-  Representations/SegmentationPipeline.cpp
   Selectors/PixelSelector.cpp
   Selectors/Selector.cpp
   Utils/DefaultIcons.cpp
@@ -135,10 +150,12 @@ set (GUI_SOURCES
   View/RenderView.cpp
   View/Selection.cpp
   View/View2D.cpp
-  View/ViewRendererMenu.cpp
   View/PlanarBehaviour.cpp
   View/ViewState.cpp
   View/View3D.cpp
+  View/RepresentationInvalidator.cpp
+  View/Widgets/EspinaWidget2.cpp
+  View/Widgets/WidgetFactory.cpp
   View/Widgets/Contour/ContourWidget.cpp
   View/Widgets/Contour/SliceContourWidget.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp
@@ -150,6 +167,7 @@ set (GUI_SOURCES
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidgetRepresentation.cpp
   View/Widgets/Measures/MeasureWidget.cpp
+  View/Widgets/Measures/MeasureEventHandler.cpp
   View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
@@ -158,9 +176,10 @@ set (GUI_SOURCES
   View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceWidget.cpp
   View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceRepresentation.cpp
   View/Widgets/ROI/ROIWidget.cpp
-  View/Widgets/Ruler/RulerWidget.cpp
-  View/Widgets/Ruler/vtkRulerWidget.cpp
-  View/Widgets/Ruler/vtkRulerWidget3D.cpp
+  View/Widgets/SelectionMeasure/Widget2D.cpp
+  View/Widgets/SelectionMeasure/Widget3D.cpp
+  View/Widgets/SelectionMeasure/vtkWidget2D.cpp
+  View/Widgets/SelectionMeasure/vtkWidget3D.cpp
   View/Widgets/Skeleton/SkeletonWidget.cpp
   View/Widgets/Skeleton/vtkSkeletonWidget.cpp
   View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.cpp
@@ -176,12 +195,12 @@ set (GUI_SOURCES
   Widgets/InformationSelector.cpp
   Widgets/NoteEditor.cpp 
   Widgets/QComboTreeView.cpp
-  Widgets/RenderersSelector.cpp
   Widgets/TagSelector.cpp 
   Widgets/SchedulerProgress.cpp
   Widgets/SpinBoxAction.cpp
   Widgets/SliderAction.cpp
   Widgets/TaskProgress.cpp
+  View/CoordinateSystem.cpp
   )
 
 set(GUI_EXTERNAL_LIBS

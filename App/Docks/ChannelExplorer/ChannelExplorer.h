@@ -24,6 +24,7 @@
 // ESPINA
 #include <Core/EspinaTypes.h>
 #include <Support/Widgets/DockWidget.h>
+#include <Support/Context.h>
 #include <GUI/Model/Proxies/ChannelProxy.h>
 
 //Qt
@@ -43,18 +44,9 @@ namespace ESPINA
     class CentralWidget;
   public:
     /** \brief ChannelExplorer class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] scheduler, scheduler smart pointer.
-     * \param[in] undoStack, QUndoStack raw pointer.
-     * \param[in] parent, parent widget raw pointer.
      *
      */
-    explicit ChannelExplorer(ModelAdapterSPtr model,
-                             ViewManagerSPtr  viewManager,
-                             SchedulerSPtr    scheduler,
-                             QUndoStack      *undoStack,
-                             QWidget         *parent = nullptr);
+    explicit ChannelExplorer(Support::Context &context);
 
     /** \brief ChannelExplorer class virtual destructor.
      *
@@ -94,8 +86,8 @@ namespace ESPINA
     virtual void contextMenuEvent(QContextMenuEvent *);
 
   private:
+    Support::Context &m_context;
     ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
     SchedulerSPtr    m_scheduler;
     QUndoStack      *m_undoStack;
 
