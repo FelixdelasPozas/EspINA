@@ -22,6 +22,7 @@
 #define ESPINA_CROSSHAIR_MANAGER_H_
 
 // ESPINA
+#include <GUI/Representations/RangedValue.hxx>
 #include <GUI/Representations/RepresentationManager.h>
 
 // VTK
@@ -35,7 +36,6 @@ class vtkActor;
 
 namespace ESPINA
 {
-  // TODO 2015-04-20 Update to new API
   class CrosshairManager
   : public RepresentationManager
   {
@@ -53,6 +53,8 @@ namespace ESPINA
       virtual bool hasRepresentations() const;
 
       virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t);
+
+      virtual void changeCrosshair(const NmVector3 &crosshair, TimeStamp t) override;
 
       virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
@@ -90,15 +92,19 @@ namespace ESPINA
        */
       void setPointInternal(int index, double *point1, double *point2);
 
+      /** \brief Updates the actors with the crosshair associated to t.
+       *
+       */
+      void updateCrosshairs(const TimeStamp t);
+
     private:
-      bool                               m_init;
-      bool                               m_actorsInUse;
-      NmVector3                          m_crosshair;
       vtkSmartPointer<vtkPoints>         m_points[3];
       vtkSmartPointer<vtkCellArray>      m_cells[3];
       vtkSmartPointer<vtkPolyData>       m_datas[3];
       vtkSmartPointer<vtkPolyDataMapper> m_mappers[3];
       vtkSmartPointer<vtkActor>          m_actors[3];
+
+      RangedValue<NmVector3> m_crosshairs;
   };
 
 } // namespace ESPINA

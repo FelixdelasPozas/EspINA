@@ -36,9 +36,7 @@
 using namespace ESPINA;
 //-----------------------------------------------------------------------------
 CrosshairManager::CrosshairManager()
-: RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D, ManagerFlags()}
-, m_init               {false}
-, m_actorsInUse        {false}
+: RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
 {
   double colors[3][3]{ { 0, 1, 1 }, { 0, 0, 1 },  { 1, 0, 1 } };
 
@@ -70,7 +68,7 @@ CrosshairManager::CrosshairManager()
 //-----------------------------------------------------------------------------
 TimeRange CrosshairManager::readyRangeImplementation() const
 {
-  return TimeRange();
+  return m_crosshairs.timeRange();
 }
 
 //-----------------------------------------------------------------------------
@@ -88,7 +86,29 @@ bool CrosshairManager::hasRepresentations() const
 //-----------------------------------------------------------------------------
 void CrosshairManager::updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t)
 {
+  m_crosshairs.addValue(crosshair,t);
 
+  updateCrosshairs(t);
+
+  emitRenderRequest(t);
+}
+
+//-----------------------------------------------------------------------------
+void CrosshairManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp t)
+{
+  if(m_crosshairs.isEmpty() || crosshair != m_crosshairs.last())
+  {
+    m_crosshairs.addValue(crosshair, t);
+
+    if(flags().testFlag(HAS_ACTORS))
+    {
+      emitRenderRequest(t);
+    }
+  }
+  else
+  {
+    m_crosshairs.reusePreviousValue(t);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -112,47 +132,33 @@ bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 //-----------------------------------------------------------------------------
 void CrosshairManager::displayRepresentations(TimeStamp t)
 {
+  if(m_view)
+  {
+    updateCrosshairs(t);
 
+    if(!flags().testFlag(HAS_ACTORS))
+    {
+      setFlag(HAS_ACTORS, true);
+      m_view->addActor(m_actors[0]);
+      m_view->addActor(m_actors[1]);
+      m_view->addActor(m_actors[2]);
+    }
+
+    m_crosshairs.invalidatePreviousValues(t);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void CrosshairManager::hideRepresentations(TimeStamp t)
 {
-
+  if(m_view)
+  {
+    setFlag(HAS_ACTORS, false);
+    m_view->removeActor(m_actors[0]);
+    m_view->removeActor(m_actors[1]);
+    m_view->removeActor(m_actors[2]);
+  }
 }
-
-// //-----------------------------------------------------------------------------
-// void CrosshairManager::setCrosshair(const NmVector3 &crosshair, TimeStamp time)
-// {
-//   if(crosshair == m_crosshair && m_init) return;
-//
-//   m_init = true;
-//
-//   if(m_view)
-//   {
-//     if(view3D_cast(m_view))
-//     {
-//       configure3DActors(crosshair);
-//     }
-//     else
-//     {
-//       configure2DActors(crosshair);
-//     }
-//
-//     emitRenderRequest(time);
-//   }
-// }
-// //-----------------------------------------------------------------------------
-// void CrosshairManager::onSceneResolutionChanged(const NmVector3 &resolution, TimeStamp t)
-// {
-//   ESPINA::RepresentationManager::onSceneResolutionChanged(resolution, t);
-// }
-//
-// //-----------------------------------------------------------------------------
-// void CrosshairManager::onSceneBoundsChanged(const Bounds &bounds, TimeStamp t)
-// {
-//   ESPINA::RepresentationManager::onSceneBoundsChanged(bounds, t);
-// }
 
 //-----------------------------------------------------------------------------
 void CrosshairManager::onShow(TimeStamp t)
@@ -163,7 +169,6 @@ void CrosshairManager::onShow(TimeStamp t)
 void CrosshairManager::onHide(TimeStamp t)
 {
 }
-
 
 //-----------------------------------------------------------------------------
 RepresentationManagerSPtr CrosshairManager::cloneImplementation()
@@ -193,12 +198,12 @@ void CrosshairManager::configure2DActors(const NmVector3 &crosshair)
       vShift = 0.5*res[1];
       zShift = crosshair[2]+depth;
 
-      double p1[3]{sceneBounds[0]-hShift, crosshair[1], zShift};
-      double p2[3]{sceneBounds[1]+hShift, crosshair[1], zShift};
+      double p1[3]{crosshair[0], sceneBounds[2]-vShift, zShift};
+      double p2[3]{crosshair[0], sceneBounds[3]+vShift, zShift};
       setPointInternal(0, p1, p2);
 
-      double p3[3]{crosshair[0], sceneBounds[2]-vShift, zShift};
-      double p4[3]{crosshair[0], sceneBounds[3]+vShift, zShift};
+      double p3[3]{sceneBounds[0]-hShift, crosshair[1], zShift};
+      double p4[3]{sceneBounds[1]+hShift, crosshair[1], zShift};
       setPointInternal(1, p3, p4);
     }
     break;
@@ -208,12 +213,12 @@ void CrosshairManager::configure2DActors(const NmVector3 &crosshair)
       vShift = 0.5*res[2];
       zShift = crosshair[1]+depth;
 
-      double p1[3]{sceneBounds[0]-hShift, zShift, crosshair[2]};
-      double p2[3]{sceneBounds[1]+hShift, zShift, crosshair[2]};
+      double p1[3]{crosshair[0], zShift, sceneBounds[4]-vShift};
+      double p2[3]{crosshair[0], zShift, sceneBounds[5]+vShift};
       setPointInternal(0, p1, p2);
 
-      double p3[3]{crosshair[0], zShift, sceneBounds[4]-vShift};
-      double p4[3]{crosshair[0], zShift, sceneBounds[5]+vShift};
+      double p3[3]{sceneBounds[0]-hShift, zShift, crosshair[2]};
+      double p4[3]{sceneBounds[1]+hShift, zShift, crosshair[2]};
       setPointInternal(2, p3, p4);
     }
     break;
@@ -306,40 +311,20 @@ void CrosshairManager::setPointInternal(int index, double *point1, double *point
   m_actors[index]->Modified();
 }
 
-// //-----------------------------------------------------------------------------
-// void CrosshairManager::displayImplementation(TimeStamp time)
-// {
-//   bool needsRender = (representationsShown() && !m_actorsInUse) || (!representationsShown() && m_actorsInUse);
-//
-//   if (representationsShown())
-//   {
-//     if(m_view->crosshair() != m_crosshair || !m_init)
-//     {
-//       setCrosshair(m_view->crosshair(), time);
-//     }
-//
-//     if (!m_actorsInUse)
-//     {
-//       for (auto i : { 0, 1, 2 })
-//       {
-//         m_view->addActor(m_actors[i]);
-//       }
-//
-//       m_actorsInUse = true;
-//     }
-//   }
-//   else
-//   {
-//     if (m_actorsInUse)
-//     {
-//       for (auto i : { 0, 1, 2 })
-//       {
-//         m_view->removeActor(m_actors[i]);
-//       }
-//
-//       m_actorsInUse = false;
-//     }
-//   }
-//
-//   setRenderRequired(requiresRender() || needsRender);
-// }
+//-----------------------------------------------------------------------------
+void CrosshairManager::updateCrosshairs(const TimeStamp t)
+{
+  if(m_view)
+  {
+    auto crosshair = m_crosshairs.value(t, NmVector3());
+
+    if (view3D_cast(m_view))
+    {
+      configure3DActors(crosshair);
+    }
+    else
+    {
+      configure2DActors(crosshair);
+    }
+  }
+}

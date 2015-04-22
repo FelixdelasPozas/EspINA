@@ -44,6 +44,8 @@ namespace ESPINA {
   private slots:
     void onButtonToggled(bool active);
 
+    void onSwitchValue();
+
   private:
     RepresentationManagerSPtr m_manager;
 

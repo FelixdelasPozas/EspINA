@@ -274,14 +274,6 @@ void View2D::updateScale()
 //-----------------------------------------------------------------------------
 void View2D::updateThumbnail()
 {
-  // This lambda avoids having to reorder the limits depending on the camera position of the view.
-  auto isOutsideLimits = [] (double coord, double limitA, double limitB)
-  {
-    double lower = std::min(limitA, limitB);
-    double upper = std::max(limitA, limitB);
-    return (coord < lower || upper < coord);
-  };
-
   if (m_showThumbnail)
   {
     double *value;
@@ -381,14 +373,14 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
       corners->SetPoint(3, left,  lower, zShift); //LL
       break;
     case Plane::XZ:
-      zShift = bounds[2] - widgetDepth();
+      zShift = bounds[2] + widgetDepth();
       corners->SetPoint(0, left,  zShift, upper); //UL
       corners->SetPoint(1, right, zShift, upper); //UR
       corners->SetPoint(2, right, zShift, lower); //LR
       corners->SetPoint(3, left,  zShift, lower); //LL
       break;
     case Plane::YZ:
-      zShift = bounds[0] - widgetDepth();
+      zShift = bounds[0] + widgetDepth();
       corners->SetPoint(0, zShift, upper,  left); //UL
       corners->SetPoint(1, zShift, lower,  left); //UR
       corners->SetPoint(2, zShift, lower, right); //LR
@@ -733,15 +725,15 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
   return QWidget::eventFilter(caller, e);
 }
 
-//-----------------------------------------------------------------------------
-void View2D::keyPressEvent(QKeyEvent *e)
-{
-  // TODO 2015-04-20 Remove if not needed by new crosshair and toggle segmentation visibility?
-  if (eventHandlerFilterEvent(e))
-  {
-    refresh();
-  }
-};
+////-----------------------------------------------------------------------------
+//void View2D::keyPressEvent(QKeyEvent *e)
+//{
+//  // TODO 2015-04-20 Remove if not needed by new crosshair and toggle segmentation visibility?
+//  if (eventHandlerFilterEvent(e))
+//  {
+//    refresh();
+//  }
+//};
 
 //-----------------------------------------------------------------------------
 void View2D::keyReleaseEvent(QKeyEvent *e)
@@ -988,8 +980,7 @@ bool View2D::isCrosshairPointVisible() const
 
   auto current = crosshair();
 
-  return  ll[H] <= current[H] && current[H] <= ur[H] // Horizontally in
-       && ll[V] <= current[V] && current[V] >= ur[V];// Vertically in
+  return  !(isOutsideLimits(current[H], ll[H], ur[H]) || isOutsideLimits(current[V], ll[V], ur[V]));
 }
 
 //-----------------------------------------------------------------------------
@@ -1040,7 +1031,7 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
   m_spinBox  ->blockSignals(false);
   m_scrollBar->blockSignals(false);
 
-  if (isCrosshairPointVisible())
+  if (!isCrosshairPointVisible())
   {
     moveCamera(crosshair());
   }

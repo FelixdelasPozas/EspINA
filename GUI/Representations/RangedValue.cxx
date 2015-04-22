@@ -70,7 +70,7 @@ void RangedValue<R>::addValue(R representation, TimeStamp t)
 template<typename R>
 void RangedValue<R>::reusePreviousValue(TimeStamp t)
 {
-  Q_ASSERT(m_lastTime <= t);
+  Q_ASSERT(!m_times.isEmpty() && m_lastTime <= t);
   m_lastTime = t;
 }
 

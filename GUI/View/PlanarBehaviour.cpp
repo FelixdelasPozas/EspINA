@@ -33,21 +33,6 @@
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
-void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
-                                          const NmVector3 &center) const
-{
-  double oldPos[3];
-  camera->GetPosition(oldPos);
-  oldPos[2] = (oldPos[2] < 1) ? oldPos[2] : -oldPos[2];
-
-  // and the award to the weirdest camera position goes to....
-  camera->SetPosition(center[0], center[1], oldPos[2]);
-  camera->SetFocalPoint(center[0], center[1], center[2]);
-  camera->SetRoll(180);
-}
-
-
-//-----------------------------------------------------------------------------
 void View2D::SagittalBehaviour::updateCamera(vtkCamera       *camera,
                                              const NmVector3 &center) const
 {
@@ -68,9 +53,25 @@ void View2D::CoronalBehaviour::updateCamera(vtkCamera       *camera,
 {
   double *camPos = camera->GetPosition();
   if (camPos[1] == center[1])
+  {
     ++camPos[1];
+  }
 
   camera->SetPosition(center[0], camPos[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetViewUp(0, 0, -1);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::AxialBehaviour::updateCamera(vtkCamera       *camera,
+                                          const NmVector3 &center) const
+{
+  double oldPos[3];
+  camera->GetPosition(oldPos);
+  oldPos[2] = (oldPos[2] < 1) ? oldPos[2] : -oldPos[2];
+
+  // and the award to the weirdest camera position goes to....
+  camera->SetPosition(center[0], center[1], oldPos[2]);
+  camera->SetFocalPoint(center[0], center[1], center[2]);
+  camera->SetRoll(180);
 }

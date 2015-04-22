@@ -40,6 +40,8 @@ namespace ESPINA
 
     void setActive(bool value);
 
+    void switchValue();
+
     bool isActive() const;
 
     virtual QWidget *widget() = 0;

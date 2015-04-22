@@ -109,7 +109,6 @@ void RepresentationManager::show(TimeStamp t)
   {
     child->show(t);
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -132,7 +131,6 @@ void RepresentationManager::hide(TimeStamp t)
   {
     child->hide(t);
   }
-
 }
 
 //-----------------------------------------------------------------------------

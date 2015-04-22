@@ -169,7 +169,7 @@ namespace ESPINA
   protected:
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    virtual void keyPressEvent(QKeyEvent *e) override;
+//    virtual void keyPressEvent(QKeyEvent *e) override;
 
     void keyReleaseEvent(QKeyEvent *e);
 
