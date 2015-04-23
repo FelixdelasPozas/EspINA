@@ -22,6 +22,7 @@
 #include "View3D.h"
 #include "GUI/View/Widgets/EspinaWidget.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QApplication>
@@ -55,6 +56,7 @@
 #include <vtkPropPicker.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(GUI::View::ViewState &state, SelectionSPtr selection, bool showCrosshairPlaneSelectors)
@@ -349,15 +351,35 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
           {
             Selector::SelectionFlags flags(Selector::SelectionTag::CHANNEL|Selector::SelectionTag::SEGMENTATION);
             auto picked = pick(flags, xPos, yPos, true);
+            qDebug() << "pick size" << picked.size();
             if(picked.size() != 0)
             {
               auto element = picked.first();
-              auto bounds = element.first->bounds();
+              auto maskBounds = element.first->bounds();
 
-              NmVector3 point{(bounds[0]+bounds[1])/2,
-                              (bounds[2]+bounds[3])/2,
-                              (bounds[4]+bounds[5])/2};
+              NmVector3 point{(maskBounds[0]+maskBounds[1])/2,
+                              (maskBounds[2]+maskBounds[3])/2,
+                              (maskBounds[4]+maskBounds[5])/2};
 
+              // point is not guaranteed to belong to the picked item, as the vtkPropPicker can
+              // select a point outside the picked point in 3D picking. That's why this method
+              // won't work with 3D channel representation as it's manager won't recognize the
+              // point as part of the actor.
+              Bounds itemBounds;
+              if(isSegmentation(element.second))
+                itemBounds = segmentationPtr(element.second)->bounds();
+              else
+                itemBounds = channelPtr(element.second)->bounds();
+
+              if(!contains(itemBounds, point))
+              {
+                // adjust point to avoid changing the crosshair to a point outside the channel.
+                for(int i: {0,1,2})
+                {
+                  if (point[i] < itemBounds[2*i]) point[i] = itemBounds[2*i];
+                  if (point[i] > itemBounds[(2*i)+1]) point[i] = itemBounds[(2*i)+1];
+                }
+              }
               emit crosshairChanged(point);
             }
           }

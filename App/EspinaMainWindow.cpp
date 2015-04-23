@@ -1050,7 +1050,7 @@ void EspinaMainWindow::registerColorEngine(const QString   &title,
 //------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
-  //TODO 2015-04-22 registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
+  registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }

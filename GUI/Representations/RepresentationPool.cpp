@@ -266,7 +266,10 @@ void RepresentationPool::onRepresentationModified(ViewItemAdapterList sources, T
 //-----------------------------------------------------------------------------
 void RepresentationPool::onTimeStampUpdated(TimeStamp t)
 {
-  m_validActors.reusePreviousValue(t);
+  if(!m_validActors.isEmpty())
+  {
+    m_validActors.reusePreviousValue(t);
+  }
 }
 
 //-----------------------------------------------------------------------------
