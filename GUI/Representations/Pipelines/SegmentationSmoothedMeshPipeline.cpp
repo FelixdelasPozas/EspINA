@@ -24,6 +24,7 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Representations/Pipelines/SegmentationSmoothedMeshPipeline.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 
 // VTK
@@ -34,6 +35,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkProperty.h>
 #include <vtkWindowedSincPolyDataFilter.h>
+
+using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {

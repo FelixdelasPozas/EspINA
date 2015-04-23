@@ -24,8 +24,8 @@
 #include <ToolGroups/ToolGroup.h>
 
 // ESPINA
-#include "RepresentationsGroupTool.h"
 #include <Support/Representations/RepresentationUtils.h>
+#include <Support/Widgets/RepresentationTools.h>
 
 // Qt
 #include <QShortcut>
@@ -57,17 +57,13 @@ namespace ESPINA
                                  const QIcon             &groupIcon        = QIcon(),
                                  const QString           &groupDescription = QString());
 
+  private slots:
+    void onRepresentationToolAdded(ToolSPtr tool);
+
   private:
-    class SettingsTool;
-    using SettingsToolSPtr = std::shared_ptr<SettingsTool>;
-
-    using RepresentationGroupTools = QMap<RepresentationGroup, RepresentationGroupToolSPtr>;
-
-    RepresentationGroupToolSPtr m_channelsRepGroup;
-    RepresentationGroupToolSPtr m_segmentationsRepGroup;
-    RepresentationGroupTools    m_dynamicRepresentationGroups;
-
     Support::Context &m_context;
+    Support::Widgets::RepresentationTools m_representationTools;
+    
     QShortcut *m_segmentationsShortcut;
   };
 

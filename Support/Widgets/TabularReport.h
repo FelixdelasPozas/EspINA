@@ -54,8 +54,8 @@ namespace ESPINA
      *
      */
     explicit TabularReport(Support::Context &context,
-                           QWidget                *parent = nullptr,
-                           Qt::WindowFlags         flags = Qt::WindowFlags{Qt::WindowNoState});
+                           QWidget          *parent = nullptr,
+                           Qt::WindowFlags   flags = Qt::WindowFlags{Qt::WindowNoState});
 
     /** \brief TabularReport class virtual destructor.
      *

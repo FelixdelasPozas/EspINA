@@ -24,12 +24,15 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Representations/Pipelines/SegmentationMeshPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // VTK
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 #include <vtkActor.h>
 #include <vtkProperty.h>
+
+using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {

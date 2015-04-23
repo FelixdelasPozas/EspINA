@@ -33,9 +33,9 @@ namespace ESPINA
     public:
       explicit RepresentationFactory(CountingFrameManager &manager);
 
-      virtual Representation createRepresentation(Support::Context &context) const;
-
     private:
+      virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const;
+
       CountingFrameManager &m_manager;
     };
   }

@@ -28,6 +28,7 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Debug
 #include <QDebug>
@@ -81,6 +82,7 @@
 #include <vtkRendererCollection.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW

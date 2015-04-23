@@ -34,51 +34,55 @@ using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::Support::Representations::Utils;
 
-class VisualizeToolGroup::SettingsTool
-: public Tool
-{
-public:
-  SettingsTool()
-  : m_showSettings{new QAction(DefaultIcons::Settings(), tr("Show Representation Options"), this)}
-  {
-  }
-
-  virtual QList<QAction *> actions() const
-  {
-    QList<QAction *> settingsActions;
-
-    settingsActions << m_showSettings;
-
-    return settingsActions;
-  }
-
-private:
-  virtual void onToolEnabled(bool enabled) override
-  {
-  }
-
-private:
-  QAction *m_showSettings;
-};
+// class VisualizeToolGroup::SettingsTool
+// : public Tool
+// {
+// public:
+//   SettingsTool()
+//   : m_showSettings{new QAction(DefaultIcons::Settings(), tr("Show Representation Options"), this)}
+//   {
+//   }
+//
+//   virtual QList<QAction *> actions() const
+//   {
+//     QList<QAction *> settingsActions;
+//
+//     settingsActions << m_showSettings;
+//
+//     return settingsActions;
+//   }
+//
+// private:
+//   virtual void onToolEnabled(bool enabled) override
+//   {
+//   }
+//
+// private:
+//   QAction *m_showSettings;
+// };
 
 //----------------------------------------------------------------------------
 VisualizeToolGroup::VisualizeToolGroup(Support::Context &context, QWidget *parent)
 : ToolGroup              {":/espina/toolgroup_visualize.svg", tr("Visualize"), parent}
-, m_channelsRepGroup     {new RepresentationsGroupTool(QIcon(":/espina/channels_switch.png"), tr("Show Channels"), context.timer())}
-, m_segmentationsRepGroup{new RepresentationsGroupTool(QIcon(":/espina/segmentations_switch.svg"), tr("Show Segmentations"), context.timer())}
-, m_context              (context)
+, m_context(context)
+, m_representationTools{context.timer()}
 , m_segmentationsShortcut{new QShortcut(parent)}
 {
-  addTool(m_channelsRepGroup);
-  addTool(m_segmentationsRepGroup);
+  for (auto tool : m_representationTools.representationTools())
+  {
+    addTool(tool);
+  }
 
   m_segmentationsShortcut->setKey(Qt::Key_Space);
   m_segmentationsShortcut->setContext(Qt::ApplicationShortcut);
-  connect(m_segmentationsShortcut,       SIGNAL(activated()),
-          m_segmentationsRepGroup.get(), SLOT(toggleRepresentationsVisibility()));
 
-  m_channelsRepGroup->showActiveRepresentations();
-  m_segmentationsRepGroup->showActiveRepresentations();
+  connect(&m_representationTools, SIGNAL(representationToolAdded(ToolSPtr)),
+          this,                   SLOT(onRepresentationToolAdded(ToolSPtr)));
+
+  auto segmentationTool = m_representationTools.segmentationRepresentations();
+
+  connect(m_segmentationsShortcut, SIGNAL(activated()),
+          segmentationTool.get(),  SLOT(toggleRepresentationsVisibility()));
 }
 
 //----------------------------------------------------------------------------
@@ -88,32 +92,16 @@ VisualizeToolGroup::~VisualizeToolGroup()
 }
 
 //----------------------------------------------------------------------------
-void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup    group,
-                                               RepresentationSwitchSPtr repSwitch,
-                                               const QIcon             &groupIcon,
-                                               const QString           &groupDescription)
+void VisualizeToolGroup::addRepresentationSwitch(RepresentationGroup      group,
+                                               RepresentationSwitchSPtr   repSwitch,
+                                               const QIcon               &groupIcon,
+                                               const QString             &groupDescription)
 {
-  if (CHANNELS_GROUP == group)
-  {
-    m_channelsRepGroup->addRepresentationSwitch(repSwitch);
-  }
-  else if (SEGMENTATIONS_GROUP == group)
-  {
-    m_segmentationsRepGroup->addRepresentationSwitch(repSwitch);
-  }
-  else
-  {
-    auto addRepresentationGroup = !m_dynamicRepresentationGroups.contains(group);
+  m_representationTools.addRepresentationSwitch(group, repSwitch, groupIcon, groupDescription);
+}
 
-    auto representationGroup    = m_dynamicRepresentationGroups.value(group, std::make_shared<RepresentationsGroupTool>(groupIcon, groupDescription, m_context.timer()));
-
-    representationGroup->addRepresentationSwitch(repSwitch);
-
-    m_dynamicRepresentationGroups[group] = representationGroup;
-
-    if (addRepresentationGroup)
-    {
-      addTool(representationGroup);
-    }
-  }
+//----------------------------------------------------------------------------
+void VisualizeToolGroup::onRepresentationToolAdded(ToolSPtr tool)
+{
+  addTool(tool);
 }

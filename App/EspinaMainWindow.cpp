@@ -50,7 +50,6 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/ColorEngines/UserColorEngine.h>
-#include <GUI/Model/Utils/ModelAdapterUtils.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Factory/DefaultSegmentationExtensionFactory.h>
@@ -108,6 +107,7 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
   m_dynamicMenuRoot->menu = nullptr;
 
   updateUndoStackIndex();
+
   auto factory = m_context.factory();
   factory->registerAnalysisReader(m_channelReader);
   factory->registerAnalysisReader(m_segFileReader);
@@ -1050,7 +1050,7 @@ void EspinaMainWindow::registerColorEngine(const QString   &title,
 //------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
-  registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
+  //TODO 2015-04-22 registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }
@@ -1352,7 +1352,7 @@ void EspinaMainWindow::registerRepresentationFactory(RepresentationFactorySPtr f
 
   m_view->addRepresentation(representation);
 
-  m_representationFactories << factory;
+  m_context.availableRepresentations() << factory;
 }
 
 //------------------------------------------------------------------------

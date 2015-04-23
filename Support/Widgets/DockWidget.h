@@ -28,6 +28,7 @@
 // Qt
 #include <QDockWidget>
 
+class QPushButton;
 class QUndoStack;
 
 namespace ESPINA
@@ -50,6 +51,8 @@ namespace ESPINA
      */
     virtual ~DockWidget()
     {}
+
+    static QPushButton *createDockButton(const QString &icon, const QString &tooltip);
 
   public slots:
     /** \brief Resets the dock to its initial state and frees resources.

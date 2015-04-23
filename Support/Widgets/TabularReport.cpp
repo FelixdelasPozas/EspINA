@@ -23,6 +23,7 @@
 #include "TabularReportEntry.h"
 #include <GUI/Widgets/CheckableTableView.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Utils/xlsUtils.h>
 
@@ -37,6 +38,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------

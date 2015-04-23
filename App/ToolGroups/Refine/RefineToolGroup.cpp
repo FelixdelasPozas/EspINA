@@ -23,6 +23,7 @@
 
 #include <Core/Analysis/Output.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/DrawUndoCommand.h>
 #include <Undo/ModifyDataCommand.h>
 #include <Undo/RemoveSegmentations.h>
@@ -32,6 +33,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 
 
 //-----------------------------------------------------------------------------

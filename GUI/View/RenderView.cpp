@@ -28,6 +28,7 @@
 #include <GUI/ColorEngines/NumberColorEngine.h>
 #include <GUI/Extension/Visualization/VisualizationState.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Representations/Managers/WidgetManager.h>
 
 // VTK
@@ -49,6 +50,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Representations::Managers;

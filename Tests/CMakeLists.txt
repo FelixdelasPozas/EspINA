@@ -135,6 +135,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Model/Utils/SegmentationUtils.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
   ${GUI_DIR}/View/RepresentationInvalidator.cpp

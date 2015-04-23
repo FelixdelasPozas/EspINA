@@ -21,12 +21,15 @@
 // ESPINA
 #include "ClassificationProxy.h"
 
+#include <GUI/Model/Utils/SegmentationUtils.h>
+
 // Qt
 #include <QMimeData>
 #include <QPixmap>
 #include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 typedef QSet<ItemAdapterPtr > SegmentationSet;
 

@@ -206,20 +206,5 @@ namespace ESPINA
    *
    */
   bool EspinaGUI_EXPORT operator!=(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
-
-  /** \brief Returns the segmentation adapter smart pointer from the item adapter raw pointer.
-   * \param[in] item item adapter raw pointer.
-   */
-  SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ItemAdapterPtr item);
-
-  /** \brief Returns true if the given item is a segmentation item.
-   * \param[in] item item adapter raw pointer.
-   *
-   */
-  bool EspinaGUI_EXPORT isSegmentation(ItemAdapterPtr item);
-
-  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSPtr segmentation);
-
-  ViewItemAdapterSList EspinaGUI_EXPORT toViewItemList(SegmentationAdapterSList segmentations);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

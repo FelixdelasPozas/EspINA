@@ -35,7 +35,9 @@ namespace ESPINA
     Q_OBJECT
 
   public:
-    explicit RepresentationsGroupTool(const QIcon &icon, QString description, Timer &timer);
+    explicit RepresentationsGroupTool(const QString &icon, const QString &description, Timer &timer);
+
+    explicit RepresentationsGroupTool(const QIcon &icon, const QString &description, Timer &timer);
 
     virtual QList<QAction *> actions() const override;
 
@@ -64,6 +66,8 @@ namespace ESPINA
 
     void changeSwitchStatus(RepresentationSwitchSPtr representationSwitch, bool showRepresentations);
 
+    QWidget *createSeparator(const QString &icon) const;
+
   private slots:
     void setActiveRepresentationsVisibility(bool value);
 
@@ -72,6 +76,10 @@ namespace ESPINA
     QAction                  *m_globalSwitch;
     QWidgetAction            *m_content;
     QWidget                  *m_contentWidget;
+    QLayout                  *m_layout2D;
+    QLayout                  *m_layout3D;
+    QWidget                  *m_separator2D;
+    QWidget                  *m_separator3D;
     RepresentationSwitchSList m_switches;
 
     ViewTypeFlags m_viewFlags;

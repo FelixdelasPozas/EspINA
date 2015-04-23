@@ -301,38 +301,3 @@ bool ESPINA::operator!=(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
 }
-
-//------------------------------------------------------------------------
-SegmentationAdapterPtr ESPINA::segmentationPtr(ItemAdapterPtr item)
-{
-  return dynamic_cast<SegmentationAdapterPtr>(item);
-}
-
-//------------------------------------------------------------------------
-bool ESPINA::isSegmentation(ItemAdapterPtr item)
-{
-  return ItemAdapter::Type::SEGMENTATION == item->type();
-}
-
-//------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::toViewItemList(SegmentationAdapterSPtr segmentation)
-{
-  ViewItemAdapterSList result;
-
-  result << segmentation;
-
-  return result;
-}
-
-//------------------------------------------------------------------------
-ViewItemAdapterSList ESPINA::toViewItemList(SegmentationAdapterSList segmentations)
-{
-  ViewItemAdapterSList result;
-
-  for (auto segmentation : segmentations)
-  {
-    result << segmentation;
-  }
-
-  return result;
-}

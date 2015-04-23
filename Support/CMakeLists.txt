@@ -16,6 +16,8 @@ qt4_wrap_cpp(Support_MOC
   Representations/BasicRepresentationSwitch.h
   Representations/Slice3DManager.h
   Widgets/DockWidget.h
+  Widgets/RepresentationsGroupTool.h
+  Widgets/RepresentationTools.h
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
@@ -71,9 +73,12 @@ set (Support_SOURCES
   Utils/xlsUtils.cpp
   Context.cpp
   Widgets/ActionGroupWidget.cpp
+  Widgets/DockWidget.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
   Widgets/Tool.cpp
+  Widgets/RepresentationsGroupTool.cpp
+  Widgets/RepresentationTools.cpp
   )
 
 set(Support_EXTERNAL_LIBS

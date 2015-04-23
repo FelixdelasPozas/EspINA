@@ -25,6 +25,7 @@
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // #include <Core/Model/Segmentation.h>
 // #include <Core/Extensions/Tags/TagExtension.h>
@@ -32,6 +33,7 @@
 #include <QUndoStack>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE
   = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
@@ -53,7 +55,7 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 {
   bool acceptRows = QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
-  QModelIndex rowIndex = sourceModel()->index(source_row, 0, source_parent);
+  auto rowIndex = sourceModel()->index(source_row, 0, source_parent);
 
   if (!acceptRows)
   {
@@ -122,6 +124,7 @@ void SegmentationExplorer::Layout::showSegmentationInformation(SegmentationAdapt
   if (!inspector)
   {
     inspector = new SegmentationInspector(segmentations, m_delegateFactory, m_context);
+
     connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
             this,      SLOT(releaseInspectorResources(SegmentationInspector*)), Qt::DirectConnection);
     m_inspectors.insert(toKey(segmentations), inspector);
@@ -207,11 +210,11 @@ QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentation
 //------------------------------------------------------------------------
 void SegmentationExplorer::Layout::reset()
 {
-	for(auto key: m_inspectors.keys())
-	{
-		m_inspectors[key]->close();
-		m_inspectors.remove(key);
-	}
+  for(auto key: m_inspectors.keys())
+  {
+    m_inspectors[key]->close();
+    m_inspectors.remove(key);
+  }
 }
 
 //------------------------------------------------------------------------

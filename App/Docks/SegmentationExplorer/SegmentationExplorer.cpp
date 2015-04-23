@@ -25,6 +25,7 @@
 #include "Layouts/ClassificationLayout.h"
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QContextMenuEvent>
@@ -36,6 +37,7 @@
 #include <QWidgetAction>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -68,7 +70,7 @@ SegmentationExplorer::SegmentationExplorer(Support::Context &context,
   setWindowTitle(tr("Segmentation Explorer"));
 
   //   addLayout("Debug", new Layout(m_baseModel));
-  addLayout("Category", new ClassificationLayout(m_gui->view, delegateFactory, m_context));
+  addLayout(tr("Category"), new ClassificationLayout(m_gui->view, delegateFactory, m_context));
 
   m_layoutModel.setStringList(m_layoutNames);
   m_gui->groupList->setModel(&m_layoutModel);
@@ -244,13 +246,15 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
   auto item = m_layout->item(index);
 
-  if (ItemAdapter::Type::SEGMENTATION != item->type())
-    return;
+  if (isSegmentation(item))
+  {
+    auto segmentation = segmentationPtr(item);
 
-  auto segmentation = segmentationPtr(item);
-  Bounds bounds = segmentation->output()->bounds();
-  NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
-  m_context.viewState().focusViewOn(center);
+    Bounds bounds = segmentation->output()->bounds();
+    NmVector3 center{(bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2};
+
+    m_context.viewState().focusViewOn(center);
+  }
 }
 
 //------------------------------------------------------------------------

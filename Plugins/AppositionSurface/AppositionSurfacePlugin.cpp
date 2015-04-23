@@ -33,6 +33,7 @@
 #include <Core/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Support/Utils/SelectionUtils.h>
 #include <Support/Settings/EspinaSettings.h>
@@ -52,6 +53,7 @@ const QString SAS = QObject::tr("SAS");
 const QString SASTAG_PREPEND = QObject::tr("SAS ");
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 FilterTypeList AppositionSurfacePlugin::ASFilterFactory::providedFilters() const

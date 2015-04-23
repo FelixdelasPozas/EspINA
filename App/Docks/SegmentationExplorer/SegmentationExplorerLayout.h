@@ -25,6 +25,7 @@
 #include "SegmentationExplorer.h"
 #include <GUI/Widgets/CheckableTreeView.h>
 #include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Representations/RepresentationFactory.h>
 
 // Qt
 #include <QItemDelegate>
