@@ -23,7 +23,7 @@
 #include "SASTabularReport.h"
 
 // ESPINA
-#include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/InformationSelector.h>
 
 // Qt
@@ -35,6 +35,8 @@
 
 const QString SEGMENTATION_GROUP = "Segmentation";
 const QString SASTAG_PREPEND = QObject::tr("SAS ");
+
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 class DataSortFiler

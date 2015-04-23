@@ -31,6 +31,7 @@
 #include <Support/Utils/xlsUtils.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <GUI/Widgets/InformationSelector.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 #include <QFileDialog>
 #include <QStandardItemModel>
@@ -39,6 +40,7 @@
 #include <qvarlengtharray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
 
 const QString SEGMENTATION_GROUP = "Segmentation";

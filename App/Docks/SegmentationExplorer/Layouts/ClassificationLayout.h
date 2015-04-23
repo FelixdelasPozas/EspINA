@@ -56,9 +56,6 @@ namespace ESPINA
                                   FilterDelegateFactorySPtr delegateFactory,
                                   Support::Context   &context);
 
-    /** \brief ClassificationLayour class virtual destructor.
-     *
-     */
     virtual ~ClassificationLayout();
 
     virtual void createSpecificControls(QHBoxLayout *specificControlLayout) override;
@@ -85,12 +82,9 @@ namespace ESPINA
 
     virtual QItemDelegate *itemDelegate() const override;
 
-  private:
-    /** \brief Returns selected categories and/or segmentations.
-     * \param[out] categories, list of selected category adapters.
-     * \param[out] segmentations, set of selected segmentation adapters.
-     */
-    bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
+  signals:
+    void categorySelected(bool value);
+    void canCreateCategory(bool value);
 
   private slots:
     /** \brief Creates a category and adds it to the model.
@@ -114,16 +108,16 @@ namespace ESPINA
     void selectCategoryAdapters();
 
     /** \brief Manages the segmentation drag-and-drop into a category.
-     * \param[in] segmentations, list of segmentation adapters raw pointers of the elements that have been dropped.
-     * \param[in] category, category adatpter raw pointer.
+     * \param[in] segmentations list of segmentation adapters raw pointers of the elements that have been dropped.
+     * \param[in] category category adatpter raw pointer.
      *
      */
     void segmentationsDropped(SegmentationAdapterList segmentations,
                               CategoryAdapterPtr      category);
 
     /** \brief Manages the cagories drag-and-drop into another category.
-     * \param[in] subcategories, list of category adapters raw pointers of the elements that have been dropped.
-     * \param[in] category, category adapter raw pointer.
+     * \param[in] subcategories list of category adapters raw pointers of the elements that have been dropped.
+     * \param[in] category category adapter raw pointer.
      *
      */
     void categoriesDropped(CategoryAdapterList subCategories,
@@ -134,19 +128,26 @@ namespace ESPINA
      */
     void updateSelection();
 
-    /** \brief Disconnects the selection model of the view.
-     *
+  private:
+    /** \brief Returns selected categories and/or segmentations.
+     * \param[out] categories list of selected category adapters.
+     * \param[out] segmentations set of selected segmentation adapters.
      */
-    void disconnectSelectionModel();
+    bool selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations);
+
+    void addCreateCategoryButton(QPushButton *button, QHBoxLayout *layout);
+
+    void addCategoryDependentButton(QPushButton *button, QHBoxLayout *layout);
+
+    void addDockButton(QPushButton *button, QHBoxLayout *layout);
+
+    bool hasClassification() const;
 
   private:
     std::shared_ptr<ClassificationProxy> m_proxy;
     std::shared_ptr<SortFilter>          m_sort;
 
     CategoryItemDelegate *m_delegate;
-    QPushButton          *m_createCategory;
-    QPushButton          *m_createSubCategory;
-    QPushButton          *m_changeCategoryColor;
   };
 
 } // namespace ESPINA

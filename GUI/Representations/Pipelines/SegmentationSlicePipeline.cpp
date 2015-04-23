@@ -20,10 +20,12 @@
 // ESPINA
 #include <GUI/Representations/Pipelines/SegmentationSlicePipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::RepresentationUtils;
+using namespace ESPINA::GUI::Model::Utils;
 
 TransparencySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 

@@ -23,21 +23,27 @@
 
 // ESPINA
 #include "ui_SegmentationInspector.h"
+#include <QWidget>
+
 #include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
 #include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Widgets/TabularReport.h>
+#include <Support/Widgets/RepresentationTools.h>
+#include <Support/Representations/RepresentationFactory.h>
+#include <GUI/View/View3D.h>
+#include <GUI/Representations/ManualPipelineSources.h>
 
 // Qt
-#include <QWidget>
 #include <QScrollArea>
 #include <QSortFilterProxyModel>
+#include <QToolBar>
 
 class QUndoStack;
 
+using namespace ESPINA::Support::Widgets;
+
 namespace ESPINA
 {
-  class TabularReport;
-  class View3D;
-
   class SegmentationInspector
   : public QWidget
   , public Ui::SegmentationInspector
@@ -51,7 +57,7 @@ namespace ESPINA
      */
     SegmentationInspector(SegmentationAdapterList   segmentations,
                           FilterDelegateFactorySPtr delegateFactory,
-                          Support::Context   &context);
+                          Support::Context         &context);
 
     /** \brief SegmentationInspector class destructor.
      *
@@ -100,34 +106,13 @@ namespace ESPINA
      */
     virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
-  public slots:
-    /** \brief Updates the representations of the item in the view of the dialog.
-     * \param[in] item item adapter raw pointer of the item to update.
-     *
-     */
-    void updateScene(ItemAdapterPtr item);
-
   signals:
     void inspectorClosed(SegmentationInspector *inspector);
 
   protected:
-    /** \brief Overrides QWidget::showEvent.
-     *
-     */
     virtual void showEvent(QShowEvent *event) override;
 
-    /** \brief Overrides QWidget::closeEvent();
-     *
-     */
     virtual void closeEvent(QCloseEvent *e) override;
-
-  private:
-    /** \brief Helper method that changes the dialog title based on the items shown.
-     *
-     */
-    void generateWindowTitle();
-
-    inline SelectionSPtr selection() const;
 
   private slots:
     /** \brief Updates which information is displayed according to current selection
@@ -135,8 +120,33 @@ namespace ESPINA
      */
     void updateSelection();
 
+    /** \brief Updates the representations of the item in the view of the dialog.
+     * \param[in] item item adapter raw pointer of the item to update.
+     *
+     */
+    void updateScene(ItemAdapterPtr item);
+
   private:
-    Support::Context   &m_context;
+    void updateWindowTitle();
+
+    void initView3D(RepresentationFactorySList representations);
+
+    void initReport();
+
+    void configureLayout();
+
+    void restoreGeometryState();
+
+    void saveGeometryState();
+
+    QVBoxLayout *createViewLayout();
+
+    QHBoxLayout *createReportLayout();
+
+    SelectionSPtr selection() const;
+
+  private:
+    Support::Context         &m_context;
     FilterDelegateFactorySPtr m_delegateFactory;
 
     SegmentationAdapterList m_segmentations;
@@ -144,8 +154,13 @@ namespace ESPINA
 
     SegmentationAdapterPtr  m_selectedSegmentation;
 
-    View3D*        m_view;
-    TabularReport* m_tabularReport;
+    ManualPipelineSources m_channelSources;
+    ManualPipelineSources m_segmentationSources;
+
+    QToolBar            m_toolbar;
+    RepresentationTools m_representations;
+    View3D              m_view;
+    TabularReport       m_tabularReport;
   };
 
 } // namespace ESPINA

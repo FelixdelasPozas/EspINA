@@ -24,8 +24,10 @@
 #include "GUI/Model/SampleAdapter.h"
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 void Selector::setSelectionTag(const Selector::SelectionTag tag, bool selectable)

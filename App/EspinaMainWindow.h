@@ -41,7 +41,6 @@
 #include <Support/Factory/FilterDelegateFactory.h>
 #include <Support/Plugin.h>
 #include <Support/Readers/ChannelReader.h>
-#include <Support/Representations/RepresentationFactory.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/DockWidget.h>
 #include <Support/Context.h>
@@ -382,8 +381,6 @@ namespace ESPINA
     RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
 
     QList<QPluginLoader *>    m_plugins;
-
-    RepresentationFactorySList m_representationFactories;
 
     MenuState m_menuState;
 

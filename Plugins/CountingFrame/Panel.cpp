@@ -30,10 +30,10 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <Extensions/EdgeDistances/EdgeDistance.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
-#include <Extensions/ExtensionUtils.h>
 #include <Extensions/ExtensionUtils.h>
 
 #include <QFileDialog>
@@ -43,6 +43,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------

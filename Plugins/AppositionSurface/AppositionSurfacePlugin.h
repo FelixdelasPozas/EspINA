@@ -76,7 +76,9 @@ namespace ESPINA
 
   public slots:
     void createSASAnalysis();
+
     void segmentationsAdded(ViewItemAdapterSList segmentations);
+
     void finishedTask();
 
   private:

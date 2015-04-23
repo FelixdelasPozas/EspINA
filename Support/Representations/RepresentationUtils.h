@@ -49,6 +49,12 @@ namespace ESPINA
       {
         const RepresentationGroup CHANNELS_GROUP      = "Channel";
         const RepresentationGroup SEGMENTATIONS_GROUP = "Segmentation";
+
+        inline bool isChannelRepresentation(const Representation &representation)
+        { return CHANNELS_GROUP == representation.Group; }
+
+        inline bool isSegmentationRepresentation(const Representation &representation)
+        { return SEGMENTATIONS_GROUP == representation.Group; }
       }
     }
   } // namespace Support

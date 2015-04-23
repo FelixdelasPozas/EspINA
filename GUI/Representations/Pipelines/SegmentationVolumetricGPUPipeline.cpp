@@ -23,6 +23,7 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <GUI/Representations/Pipelines/SegmentationVolumetricGPUPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // VTK
 #include <vtkColorTransferFunction.h>
@@ -33,6 +34,7 @@
 #include <vtkVolumeProperty.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
 
+using namespace ESPINA::GUI::Model::Utils;
 namespace ESPINA
 {
   TransparencySelectionHighlighter SegmentationVolumetricGPUPipeline::s_highlighter;

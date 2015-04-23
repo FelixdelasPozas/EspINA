@@ -49,23 +49,30 @@ SegmentationRepresentationFactory::SegmentationRepresentationFactory()
 }
 
 //----------------------------------------------------------------------------
-Representation SegmentationRepresentationFactory::createRepresentation(Support::Context &context) const
+Representation SegmentationRepresentationFactory::doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const
 {
   Representation representation;
 
   representation.Group = SEGMENTATIONS_GROUP;
 
-  createSliceRepresentation     (representation, context);
-  createContourRepresentation   (representation, context);
-  createSkeletonRepresentation  (representation, context);
-  createVolumetricRepresentation(representation, context);
-  createMeshRepresentation      (representation, context);
+  createSliceRepresentation(representation, context, supportedViews);
+
+  if (supportedViews.testFlag(ESPINA::VIEW_2D))
+  {
+    createContourRepresentation   (representation, context);
+  }
+  //createSkeletonRepresentation  (representation, context);
+  if (supportedViews.testFlag(ESPINA::VIEW_3D))
+  {
+    createVolumetricRepresentation(representation, context);
+    createMeshRepresentation      (representation, context);
+  }
 
   return representation;
 }
 
 //----------------------------------------------------------------------------
-void SegmentationRepresentationFactory::createSliceRepresentation(Representation &representation, Support::Context &context) const
+void SegmentationRepresentationFactory::createSliceRepresentation(Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const
 {
   auto scheduler   = context.scheduler();
   auto colorEngine = context.colorEngine();
@@ -78,28 +85,39 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   auto poolSliceXY     = std::make_shared<BufferedRepresentationPool>(Plane::XY, pipelineSliceXY, scheduler, WINDOW_SIZE);
   auto poolSliceXZ     = std::make_shared<BufferedRepresentationPool>(Plane::XZ, pipelineSliceXZ, scheduler, WINDOW_SIZE);
   auto poolSliceYZ     = std::make_shared<BufferedRepresentationPool>(Plane::YZ, pipelineSliceYZ, scheduler, WINDOW_SIZE);
-  auto sliceManager    = std::make_shared<SliceManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
-  auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer);
-  auto slice3DManager  = std::make_shared<Slice3DManager>(poolSliceXY, poolSliceXZ, poolSliceYZ, RepresentationManager::EXPORTS_3D);
-  auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer);
 
   poolSliceXY->setSettings(sliceSettings);
   poolSliceXZ->setSettings(sliceSettings);
   poolSliceYZ->setSettings(sliceSettings);
 
-  sliceManager->setName(QObject::tr("Segmentation Slice Representation"));
-  sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
-  sliceManager->setDescription(QObject::tr("Segmentation Slice Representation"));
-
-  sliceSwitch->setActive(true);
-
-  slice3DManager->setName(QObject::tr("Slice Representation"));
-  slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
-  slice3DManager->setDescription(QObject::tr("Segmentation 3D Slice Representation"));
-
   representation.Pools    << poolSliceXY << poolSliceXZ << poolSliceYZ;
-  representation.Managers << sliceManager << slice3DManager;
-  representation.Switches << sliceSwitch << slice3DSwitch;
+
+  if (supportedViews.testFlag(ESPINA::VIEW_2D))
+  {
+    auto sliceManager    = std::make_shared<SliceManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
+    auto sliceSwitch     = std::make_shared<BasicRepresentationSwitch>(sliceManager, ViewType::VIEW_2D, timer);
+
+    sliceManager->setName(QObject::tr("Segmentation Slice Representation"));
+    sliceManager->setIcon(QIcon(":espina/segmentations_slice_switch.svg"));
+    sliceManager->setDescription(QObject::tr("Segmentation Slice Representation"));
+
+    sliceSwitch->setActive(true);
+
+    representation.Managers << sliceManager;
+    representation.Switches << sliceSwitch;
+  }
+  if (supportedViews.testFlag(ESPINA::VIEW_3D))
+  {
+    auto slice3DManager  = std::make_shared<Slice3DManager>(poolSliceXY, poolSliceXZ, poolSliceYZ);
+    auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer);
+
+    slice3DManager->setName(QObject::tr("Slice Representation"));
+    slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
+    slice3DManager->setDescription(QObject::tr("Segmentation 3D Slice Representation"));
+
+    representation.Managers << slice3DManager;
+    representation.Switches << slice3DSwitch;
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -23,12 +23,13 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Sample.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Model/Utils/ModelAdapterUtils.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
@@ -57,7 +58,7 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
 //----------------------------------------------------------------------------
 void AddSegmentations::redo()
 {
-  unsigned int number = ModelAdapterUtils::firstUnusedSegmentationNumber(m_model);
+  unsigned int number = firstUnusedSegmentationNumber(m_model);
 
   for(auto segmentation : m_segmentations)
   {

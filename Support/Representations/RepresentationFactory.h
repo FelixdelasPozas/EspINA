@@ -57,7 +57,11 @@ namespace ESPINA
      *         to display an specific type of related elements
      *
      */
-    virtual Representation createRepresentation(Support::Context &context) const = 0;
+    Representation createRepresentation(Support::Context &context, ViewTypeFlags supportedViews = ViewType::VIEW_2D|ViewType::VIEW_3D) const
+    { return doCreateRepresentation(context, supportedViews); }
+
+  private:
+    virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const = 0;
 
   };
 } // namespace ESPINA

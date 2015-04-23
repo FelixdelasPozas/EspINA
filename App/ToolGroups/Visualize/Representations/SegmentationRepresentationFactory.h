@@ -31,10 +31,10 @@ namespace ESPINA
   public:
     explicit SegmentationRepresentationFactory();
 
-    virtual Representation createRepresentation(Support::Context &context) const;
-
   private:
-    void createSliceRepresentation     (Representation &representation, Support::Context &context) const;
+    virtual Representation doCreateRepresentation ( Support::Context& context, ViewTypeFlags supportedViews ) const;
+
+    void createSliceRepresentation     (Representation &representation, Support::Context &context, ViewTypeFlags supportedViews) const;
     void createContourRepresentation   (Representation &representation, Support::Context &context) const;
     void createSkeletonRepresentation  (Representation &representation, Support::Context &context) const;
     void createVolumetricRepresentation(Representation &representation, Support::Context &context) const;

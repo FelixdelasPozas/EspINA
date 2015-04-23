@@ -22,6 +22,7 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton2DPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 // VTK
@@ -36,6 +37,7 @@
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 
+using namespace ESPINA::GUI::Model::Utils;
 namespace ESPINA
 {
   TransparencySelectionHighlighter SegmentationSkeleton2DPipeline::s_highlighter;

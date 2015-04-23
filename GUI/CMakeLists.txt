@@ -103,7 +103,8 @@ set (GUI_SOURCES
   Model/Proxies/InformationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
-  Model/Utils/ModelAdapterUtils.cpp
+  Model/Utils/ModelUtils.cpp
+  Model/Utils/SegmentationUtils.cpp
   Model/Utils/QueryAdapter.cpp
   Model/ViewItemAdapter.cpp
   Model/NeuroItemAdapter.cpp
