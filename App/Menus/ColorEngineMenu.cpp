@@ -29,13 +29,13 @@ using namespace ESPINA;
 const QString COLOR_ENGINE("ColorEngine");
 
 //-----------------------------------------------------------------------------
-ColorEngineMenu::ColorEngineMenu(const QString &title,
-                                 QWidget       *parent)
-: QMenu        {title, parent}
-, m_engine     {new MultiColorEngine()}
+ColorEngineMenu::ColorEngineMenu(const QString        &title,
+                                 MultiColorEngineSPtr colorEngine)
+: QMenu   {title}
+, m_engine{colorEngine}
 {
   connect(this, SIGNAL(triggered(QAction*)),
-          this, SLOT(setColorEngine(QAction*)));
+          this, SLOT(toggleColorEngine(QAction*)));
 }
 
 //-----------------------------------------------------------------------------
@@ -47,7 +47,9 @@ ColorEngineMenu::~ColorEngineMenu()
 void ColorEngineMenu::addColorEngine(const QString& title, ColorEngineSPtr engine)
 {
   auto action = addAction(title);
+
   action->setCheckable(true);
+
   m_availableEngines[action] = engine;
 }
 
@@ -66,7 +68,7 @@ void ColorEngineMenu::restoreUserSettings()
     {
       action->setChecked(true);
 
-      setColorEngine(action);
+      toggleColorEngine(action);
 
       validColorEngine = true;
     }
@@ -76,14 +78,14 @@ void ColorEngineMenu::restoreUserSettings()
   {
     auto action = m_availableEngines.keys().first();
 
-    setColorEngine(action);
+    toggleColorEngine(action);
 
     action->setChecked(true);
   }
 }
 
 //-----------------------------------------------------------------------------
-void ColorEngineMenu::setColorEngine(QAction* action)
+void ColorEngineMenu::toggleColorEngine(QAction* action)
 {
   if (action->isChecked())
   {

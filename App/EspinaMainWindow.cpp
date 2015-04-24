@@ -37,6 +37,7 @@
 #include <Core/MultiTasking/Scheduler.h>
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/CheckAnalysis/CheckAnalysis.h>
 #include "ToolGroups/ToolGroup.h"
 #include <ToolGroups/Visualize/Representations/ChannelRepresentationFactory.h>
@@ -69,6 +70,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::Core::Utils;
 
 const QString AUTOSAVE_FILE     = "espina-autosave.seg";
 const int CONTEXTUAL_BAR_HEIGHT = 44;
@@ -965,6 +967,16 @@ void EspinaMainWindow::redoAction(bool unused)
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::onColorEngineModified()
+{
+  auto  segmentations   = m_context.model()->segmentations();
+  auto  invalidateItems = toRawList<ViewItemAdapter>(segmentations);
+  auto &invalidator     = m_context.representationInvalidator();
+
+  invalidator.invalidateRepresentations(invalidateItems);
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::activateToolGroup(ToolGroup *toolGroup)
 {
   if (m_activeToolGroup != toolGroup)
@@ -1030,7 +1042,12 @@ void EspinaMainWindow::restoreRepresentationSwitchSettings()
 //------------------------------------------------------------------------
 void EspinaMainWindow::initColorEngines(QMenu *parentMenu)
 {
-  m_colorEngineMenu = new ColorEngineMenu(tr("Color By"));
+  auto colorEngine  = std::dynamic_pointer_cast<MultiColorEngine>(m_context.colorEngine());
+
+  m_colorEngineMenu = new ColorEngineMenu(tr("Color By"), colorEngine);
+
+  connect(colorEngine.get(), SIGNAL(modified()),
+          this,              SLOT(onColorEngineModified()));
 
   parentMenu->addMenu(m_colorEngineMenu);
 

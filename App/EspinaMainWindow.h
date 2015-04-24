@@ -210,6 +210,8 @@ namespace ESPINA
      */
     void redoAction(bool);
 
+    void onColorEngineModified();
+
   private:
     void restoreRepresentationSwitchSettings();
 
@@ -330,7 +332,6 @@ namespace ESPINA
     void assignActiveChannel();
 
     void analyzeChannelEdges();
-
 
   private:
     // ESPINA
