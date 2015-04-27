@@ -44,7 +44,7 @@ namespace ESPINA
 
       SchedulerSPtr              scheduler() const;
       ModelAdapterSPtr           model() const;
-      ROIAccumulatorSPtr         activeROI() const;
+      ROIAccumulatorSPtr         roiProvider();
       GUI::View::ViewState      &viewState();
       ColorEngineSPtr            colorEngine() const;
       QUndoStack *               undoStack();
@@ -53,8 +53,6 @@ namespace ESPINA
 
       Timer &timer();
       GUI::View::RepresentationInvalidator &representationInvalidator();
-
-      ChannelAdapterPtr ActiveChannel;//Move to selection
 
     private:
       using Invalidator = GUI::View::RepresentationInvalidator;

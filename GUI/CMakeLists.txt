@@ -44,7 +44,8 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/Measures/MeasureWidget.h
   View/Widgets/Measures/MeasureEventHandler.h
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
-  View/Widgets/OrthogonalRegion/OrthogonalRegion.h
+  View/Widgets/OrthogonalRegion/Widget2D.h
+  View/Widgets/OrthogonalRegion/Representation.h
   View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
@@ -176,10 +177,11 @@ set (GUI_SOURCES
   View/Widgets/PlanarSplit/PlanarSplitWidget.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitRepresentation2D.cpp
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
-  View/Widgets/OrthogonalRegion/OrthogonalRegion.cpp
+  View/Widgets/OrthogonalRegion/Representation.cpp
+  View/Widgets/OrthogonalRegion/Widget2D.cpp
   View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.cpp
-  View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceWidget.cpp
-  View/Widgets/OrthogonalRegion/vtkOrthogonalRegionSliceRepresentation.cpp
+  View/Widgets/OrthogonalRegion/vtkWidget2D.cpp
+  View/Widgets/OrthogonalRegion/vtkRepresentation2D.cpp
   View/Widgets/ROI/ROIWidget.cpp
   View/Widgets/SelectionMeasure/Widget2D.cpp
   View/Widgets/SelectionMeasure/Widget3D.cpp

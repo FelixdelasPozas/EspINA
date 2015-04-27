@@ -20,7 +20,7 @@
 
 // ESPINA
 #include "OrthogonalRegionSliceSelector.h"
-#include "OrthogonalRegion.h"
+#include "Representation.h"
 #include <GUI/View/View2D.h>
 
 // Qt
@@ -30,21 +30,21 @@ using namespace ESPINA;
 
 //----------------------------------------------------------------------------
 OrthogonalRegionSliceSelector::OrthogonalRegionSliceSelector(OrthogonalRegion* region)
-: m_region     {region}
-, m_leftWidget {RenderView::createButton(":/espina/from_slice.svg", "")}
+// : m_region     {region}
+: m_leftWidget {RenderView::createButton(":/espina/from_slice.svg", "")}
 , m_rightWidget{RenderView::createButton(":/espina/to_slice.svg",   "")}
 {
   m_leftWidget ->setEnabled(true);
   m_rightWidget->setEnabled(true);
 
-  connect(region, SIGNAL(modified(Bounds)),
-          this, SLOT(update()));
-  connect(m_leftWidget, SIGNAL(clicked(bool)),
-          this, SLOT(leftWidgetClicked()));
-  connect(m_rightWidget, SIGNAL(clicked(bool)),
-          this, SLOT(rightWidgetClicked()));
-
-  update();
+//   connect(region, SIGNAL(modified(Bounds)),
+//           this, SLOT(update()));
+//   connect(m_leftWidget, SIGNAL(clicked(bool)),
+//           this, SLOT(leftWidgetClicked()));
+//   connect(m_rightWidget, SIGNAL(clicked(bool)),
+//           this, SLOT(rightWidgetClicked()));
+//
+//   update();
 }
 
 //----------------------------------------------------------------------------
@@ -105,8 +105,8 @@ void OrthogonalRegionSliceSelector::update()
 {
   if (m_view)
   {
-    auto bounds = m_region->bounds();
-
+//     auto bounds = m_region->bounds();
+// 
     int i = normalCoordinateIndex(m_plane);
 
     Q_ASSERT(false);
@@ -142,25 +142,25 @@ void OrthogonalRegionSliceSelector::rightWidgetClicked()
 //----------------------------------------------------------------------------
 void OrthogonalRegionSliceSelector::moveEdge(Edge edge)
 {
-  if (m_view)
-  {
-    auto bounds = m_region->bounds();
-
-    int i   = normalCoordinateIndex(m_plane);
-    Nm sign = (Lower==edge)?-0.5:0.5;
-
-    Q_ASSERT(false);
-    //TODO bounds[2*i+edge] = m_view->slicingPosition() + sign*m_view->slicingStep()[i];
-
-    if (bounds[2*i] > bounds[2*i+1])
-    {
-      std::swap(bounds[2*i],bounds[2*i+1]);
-    }
-
-    m_region->setBounds(bounds);
-
-    update();
-  }
+//   if (m_view)
+//   {
+//     auto bounds = m_region->bounds();
+//
+//     int i   = normalCoordinateIndex(m_plane);
+//     Nm sign = (Lower==edge)?-0.5:0.5;
+//
+//     Q_ASSERT(false);
+//     //TODO bounds[2*i+edge] = m_view->slicingPosition() + sign*m_view->slicingStep()[i];
+//
+//     if (bounds[2*i] > bounds[2*i+1])
+//     {
+//       std::swap(bounds[2*i],bounds[2*i+1]);
+//     }
+//
+//     m_region->setBounds(bounds);
+//
+//     update();
+//   }
 }
 
 //----------------------------------------------------------------------------

@@ -92,6 +92,8 @@ namespace ESPINA
 
     void setSettingsVisibility(bool value);
 
+    ChannelAdapterPtr inputChannel() const;
+
   private slots:
   /** \brief Changes the current selector.
    * \param[in] action action associated to the selector.

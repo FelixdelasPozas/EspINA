@@ -18,15 +18,32 @@
 #include "ROIAccumulator.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Support;
 
 //-----------------------------------------------------------------------------
-ROISPtr Support::ROIAccumulator::currentROI()
+ROIAccumulator::ROIAccumulator()
+: m_provider(nullptr)
 {
-  return ROISPtr();
+
 }
 
 //-----------------------------------------------------------------------------
-void Support::ROIAccumulator::clear()
+void ROIAccumulator::setProvider(ROIProviderPtr provider)
 {
+  m_provider = provider;
+}
 
+//-----------------------------------------------------------------------------
+ROISPtr ROIAccumulator::currentROI()
+{
+  return m_provider?m_provider->currentROI():ROISPtr();
+}
+
+//-----------------------------------------------------------------------------
+void ROIAccumulator::clear()
+{
+  if (m_provider)
+  {
+    m_provider->consumeROI();
+  }
 }

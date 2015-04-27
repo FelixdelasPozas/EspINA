@@ -26,8 +26,9 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
+#include <GUI/View/Widgets/WidgetFactory.h>
 #include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
+#include <GUI/View/Widgets/OrthogonalRegion/Representation.h>
 
 // Qt
 #include <QUndoCommand>
@@ -52,9 +53,9 @@ namespace ESPINA
      * \param[in] context
      * \param[in] toolGroup
      */
-    explicit OrthogonalROITool(ROISettings            *settings,
-                               Support::Context &context,
-                               RestrictToolGroup      *toolgroup);
+    explicit OrthogonalROITool(ROISettings       *settings,
+                               Support::Context  &context,
+                               RestrictToolGroup *toolgroup);
 
     /** \brief OrthogonalROITool class virtual destructor.
      *
@@ -77,6 +78,8 @@ namespace ESPINA
     void setVisible(bool visible);
 
     void setColor(const QColor &color);
+
+    static Bounds createRegion(const NmVector3 &centroid, const Nm xSize, const Nm ySize, const Nm zSize);
 
   signals:
     void roiDefined(ROISPtr);
@@ -119,7 +122,7 @@ namespace ESPINA
 
     void updateBounds(Bounds bounds);
 
-    void updateOrthogonalRegion();
+    void updateRegionRepresentation();
 
   private:
     virtual void onToolEnabled(bool enabled);
@@ -134,6 +137,8 @@ namespace ESPINA
      */
     void destroyOrthogonalWidget();
 
+    void disableOrthogonalWidget();
+
     /** \brief Changes Orthogonal ROI action buttons visibility
      *
      *  \param[in] visibliy when visibility is true, action buttons are displayed
@@ -146,9 +151,13 @@ namespace ESPINA
     void setResizeMode(const Mode mode)
     { return setResizable(Mode::RESIZABLE == mode); }
 
-    void updateRepresentationColor();
+    bool invalidSettings() const;
 
   private:
+    using OrthognalSelectorSPtr = std::shared_ptr<OrthogonalRegionSliceSelector>;
+    using Representation        = GUI::View::Widgets::OrthogonalRegion::Representation;
+    using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
+
     Support::Context &m_context;
 
     QAction         *m_activeTool;
@@ -159,15 +168,12 @@ namespace ESPINA
 
     ROISPtr          m_roi;
     Mode             m_mode;
-    QColor           m_color;
 
-    EspinaWidgetSPtr   m_widget;
-    OrthogonalRegion *m_orWidget;
+    Representation    m_roiRepresentation;
+    WidgetFactorySPtr m_factory;
 
     EventHandlerSPtr   m_resizeHandler;
     PixelSelectorSPtr  m_defineHandler;
-
-    using OrthognalSelectorSPtr = std::shared_ptr<OrthogonalRegionSliceSelector>;
 
     OrthognalSelectorSPtr m_sliceSelector;
     ROISettings          *m_settings;

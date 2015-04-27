@@ -65,6 +65,12 @@ namespace ESPINA
            *
            */
           void set(ViewItemAdapterList selection);
+    
+	  void setActiveChannel(ChannelAdapterPtr channel);
+
+    
+	  ChannelAdapterPtr activeChannel() const;
+
 
           /** \brief Returns the list of selected channels.
            *
@@ -112,6 +118,8 @@ namespace ESPINA
           void selectionChanged(SegmentationAdapterList);
           void selectionChanged();
 
+	  void activeChannelChanged(ChannelAdapterPtr);
+
         private:
           /** \brief Helper method to set the given list of channels as selected.
            * \param[in] list, list of channel adapter raw pointers.
@@ -123,14 +131,18 @@ namespace ESPINA
            */
           SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
 
-          ChannelAdapterList m_channels;
-          SegmentationAdapterList m_segmentations;
+          ChannelAdapterList         m_channels;
+          SegmentationAdapterList    m_segmentations;
+	  ChannelAdapterPtr          m_activeChannel;
           RepresentationInvalidator &m_invalidator;
       };
 
       using SelectionSPtr = std::shared_ptr<Selection>;
     }
   }
+
+
+  };
 }
 
 #endif // ESPINA_SELECTION_H

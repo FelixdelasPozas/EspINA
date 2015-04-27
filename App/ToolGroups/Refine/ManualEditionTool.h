@@ -96,6 +96,8 @@ namespace ESPINA
 
     SegmentationAdapterSPtr referenceSegmentation() const;
 
+    ChannelAdapterPtr activeChannel() const;
+
   private slots:
     void onStrokeStarted(BrushPainter *painter, RenderView *view);
 

@@ -146,14 +146,17 @@ namespace ESPINA
     }
     else
     {
-      if(!m_context.ActiveChannel)
+      auto activeChannel = m_context.selection()->activeChannel();
+
+      if(activeChannel)
       {
-        spacing = NmVector3{1,1,1};
+        spacing = activeChannel->output()->spacing();
       }
       else
       {
-        spacing = m_context.ActiveChannel->output()->spacing();
+        spacing = NmVector3{1,1,1};
       }
+
       m_item = nullptr;
       m_itemCategory = m_categorySelector->selectedCategory();
 
@@ -224,7 +227,7 @@ namespace ESPINA
   {
     if (value)
     {
-      auto activeChannel = m_context.ActiveChannel;
+      auto activeChannel = m_context.selection()->activeChannel();
 
       if(!activeChannel) return;
 
@@ -489,7 +492,9 @@ namespace ESPINA
     {
       if(polyData->GetNumberOfLines() == 0) return;
 
-      auto spacing  = m_context.ActiveChannel->output()->spacing();
+      auto activeChannel = m_context.selection()->activeChannel();
+
+      auto spacing  = activeChannel->output()->spacing();
       auto filter   = m_context.factory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
       auto output   = std::make_shared<Output>(filter.get(), 0, spacing);
       auto skeleton = std::make_shared<RawSkeleton>(polyData, spacing);
@@ -503,7 +508,7 @@ namespace ESPINA
       segmentation->setCategory(category);
 
       SampleAdapterSList samples;
-      samples << QueryAdapter::sample(m_context.ActiveChannel);
+      samples << QueryAdapter::sample(activeChannel);
       Q_ASSERT(samples.size() == 1);
 
       m_undoStack->beginMacro(tr("Add Segmentation"));

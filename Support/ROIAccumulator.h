@@ -19,6 +19,7 @@
 #define ESPINA_SUPPORT_ROI_ACCUMULATOR_H
 
 #include <Core/Analysis/Data/Volumetric/ROI.h>
+#include "ROIProvider.h"
 
 namespace ESPINA
 {
@@ -27,17 +28,26 @@ namespace ESPINA
     class ROIAccumulator
     {
     public:
+      explicit ROIAccumulator();
+
+      void setProvider(ROIProviderPtr provider);
+
       /** \brief Returns current ROI reference
        *
        *  After this operation the ROI is still available from the ROI provider
        */
       ROISPtr currentROI();
 
+      operator ROISPtr() const;
+
       /** \brief Release the current ROI
        *
        *  After this operation the ROI won't be available from the ROI provider
        */
       void clear();
+
+    private:
+      ROIProviderPtr m_provider;
     };
 
     using ROIAccumulatorSPtr = std::shared_ptr<ROIAccumulator>;

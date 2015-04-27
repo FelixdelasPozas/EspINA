@@ -106,7 +106,7 @@ namespace ESPINA
        */
       explicit Bounds(const QString &string);
 
-      /** \brief Return whether or not Bounds define a valid region of the 3D space
+      /** \brief Returns whether or not Bounds define a valid region of the 3D space
        *
        *  Any region whose lower bounds are greater than its upper bounds is considered to be an
        *  empty region, and thus invalid.
@@ -141,7 +141,7 @@ namespace ESPINA
       void setLowerInclusion(const bool value)
       { m_lowerInclusion[idx(Axis::X)] = m_lowerInclusion[idx(Axis::Y)] = m_lowerInclusion[idx(Axis::Z)] = value; }
 
-      /** \brief Return wheter or not lower bounds in the given direction should be included in the region defined by the bounds
+      /** \brief Returns wheter or not lower bounds in the given direction should be included in the region defined by the bounds
        * \param[in] dir axis direction.
        *
        */
@@ -163,13 +163,13 @@ namespace ESPINA
       void setUpperInclusion(const bool value)
       { m_upperInclusion[idx(Axis::X)] = m_upperInclusion[idx(Axis::Y)] = m_upperInclusion[idx(Axis::Z)] = value; }
 
-      /** \brief Return wheter or not upper bounds in the given direction should be included in the region defined by the bounds
+      /** \brief Returns wheter or not upper bounds in the given direction should be included in the region defined by the bounds
        * \param[in] dir axis direction.
        */
       bool areUpperIncluded(const Axis dir) const
       { return m_upperInclusion[idx(dir)]; }
 
-      /** \brief Return the distance between both sides of the bounds in a given direction
+      /** \brief Returns the distance between both sides of the bounds in a given direction
        * \param[in] dir axis direction.
        *
        */
@@ -189,7 +189,7 @@ namespace ESPINA
 
   using BoundsList = QList<Bounds>;
 
-  /** \brief Return wether b1 intersects b2 or not.
+  /** \brief Returns wether b1 intersects b2 or not.
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.
@@ -199,7 +199,7 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
-  /** \brief Return the bounds which belong both to b1 and b2.
+  /** \brief Returns the bounds which belong both to b1 and b2.
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.
@@ -209,13 +209,19 @@ namespace ESPINA
    */
   Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
-  /** \brief Return the minimum bouds containing b1 and b2
+  /** \brief Returns the minimum bouds containing b1 and b2
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.
    *
    */
   Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
+
+  /** \brief Returns the centroid of bounds
+   * \param[in] bounds to compute its centroid
+   *
+   */
+  NmVector3 centroid(const Bounds &bounds);
 
   /** \brief Add bounds to boundingBox
    * \param[in] boundingBox to be updated
@@ -224,7 +230,7 @@ namespace ESPINA
    */
   void EspinaCore_EXPORT updateBoundingBox(Bounds &boundingBox, const Bounds &bounds);
 
-  /** \brief Return whether a bound is contained inside another
+  /** \brief Returns whether a bound is contained inside another
    * \param[in] container bounds object.
    * \param[in] contained bounds object.
    * \param[in] spacing
@@ -234,7 +240,7 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained, const NmVector3 &spacing=NmVector3{1,1,1});
 
-  /** \brief Return whether a bound contains a point or not.
+  /** \brief Returns whether a bound contains a point or not.
    * \param[in] bounds bounds object.
    * \param[in] point point object.
    * \param[in] spacing.
@@ -243,6 +249,16 @@ namespace ESPINA
    *  are equally included
    */
   bool EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point, const NmVector3 &spacing=NmVector3{1,1,1});
+
+  /** \brief Returns whether position is inside bounds for the given direction
+   * \param[in] bounds bounds object.
+   * \param[in] axis axis direction
+   * \param[in] pos axis spatial position
+   *
+   *  Boundaires are inside if and only if both boundaries
+   *  are equally included
+   */
+  bool EspinaCore_EXPORT contains(const Bounds &bounds, const Axis axis, const Nm pos);
 
   /** \brief Bounds operator<< for streams.
    *

@@ -495,6 +495,7 @@ void RenderView::onRenderRequest()
 
   refreshViewImplementation();
 
+  qDebug() << viewName() << "Render at" << renderTime;
   mainRenderer()->ResetCameraClippingRange();
   renderWindow()->Render();
   m_view->update();

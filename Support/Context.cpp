@@ -30,8 +30,7 @@ using namespace ESPINA::Support;
 
 //------------------------------------------------------------------------
 Context::Context()
-: ActiveChannel(nullptr)
-, m_invalidator(m_timer)
+: m_invalidator(m_timer)
 , m_viewState(m_timer, m_invalidator)
 , m_model(new ModelAdapter())
 , m_activeROI(new ROIAccumulator())
@@ -61,7 +60,7 @@ ModelAdapterSPtr Context::model() const
 }
 
 //------------------------------------------------------------------------
-ROIAccumulatorSPtr Context::activeROI() const
+ROIAccumulatorSPtr Context::roiProvider()
 {
   return m_activeROI;
 }

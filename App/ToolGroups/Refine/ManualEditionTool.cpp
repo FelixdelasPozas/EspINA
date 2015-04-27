@@ -161,7 +161,7 @@ void ManualEditionTool::updateReferenceItem() const
     {
       auto channels = m_selection->channels();
 
-      m_referenceItem = channels.isEmpty()?m_context.ActiveChannel:channels.first();
+      m_referenceItem = channels.isEmpty()?activeChannel():channels.first();
     }
 
     m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));
@@ -202,6 +202,12 @@ SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
 
   auto segmentation = reinterpret_cast<SegmentationAdapterPtr>(m_referenceItem);
   return m_model->smartPointer(segmentation);
+}
+
+//------------------------------------------------------------------------
+ChannelAdapterPtr ManualEditionTool::activeChannel() const
+{
+  return m_context.selection()->activeChannel();
 }
 
 //------------------------------------------------------------------------

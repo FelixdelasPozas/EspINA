@@ -1406,7 +1406,7 @@ void EspinaMainWindow::assignActiveChannel()
   {
     auto activeChannel = model->channels().first().get();
 
-    m_context.ActiveChannel = activeChannel;
+    m_context.selection()->setActiveChannel(activeChannel);
   }
 }
 

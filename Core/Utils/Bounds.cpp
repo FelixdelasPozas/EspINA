@@ -279,6 +279,14 @@ Bounds ESPINA::boundingBox(const Bounds& b1, const Bounds& b2, NmVector3 spacing
 }
 
 //-----------------------------------------------------------------------------
+NmVector3 ESPINA::centroid(const Bounds &bounds)
+{
+  return NmVector3{(bounds[0]+bounds[1])/2,
+                   (bounds[2]+bounds[3])/2,
+                   (bounds[4]+bounds[5])/2};
+}
+
+//-----------------------------------------------------------------------------
 void ESPINA::updateBoundingBox(Bounds &boundingBox, const Bounds &bounds)
 {
   if (boundingBox.areValid())
@@ -381,6 +389,14 @@ bool ESPINA::contains(const Bounds& bounds, const NmVector3& point, const NmVect
 
   return true;
 
+}
+
+//-----------------------------------------------------------------------------
+bool ESPINA::contains(const Bounds &bounds, const Axis axis, const Nm pos)
+{
+  auto index = idx(axis);
+
+  return bounds[2*index]  <= pos && pos <= bounds[2*index+1];
 }
 
 
