@@ -186,7 +186,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       connect(this,        SIGNAL(analysisChanged()),
               validPlugin, SLOT(onAnalysisChanged()));
-      connect(this,        SIGNAL(analysisClosed()),
+      connect(this,        SIGNAL(analysisAboutToBeClosed()),
               validPlugin, SLOT(onAnalysisClosed()));
 
       for (auto colorEngine : validPlugin->colorEngines())
@@ -386,7 +386,7 @@ void EspinaMainWindow::checkAutosave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* dock)
 {
-  connect(this, SIGNAL(analysisClosed()),
+  connect(this, SIGNAL(analysisAboutToBeClosed()),
           dock, SLOT(reset()));
 
   m_panelsMenu->addAction(dock->toggleViewAction());
@@ -401,7 +401,7 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
   connect(toolGroup, SIGNAL(activated(ToolGroup*)),
           this,      SLOT(activateToolGroup(ToolGroup *)));
 
-  connect(this,      SIGNAL(analysisClosed()),
+  connect(this,      SIGNAL(analysisAboutToBeClosed()),
           toolGroup, SLOT(abortOperations()));
 }
 
@@ -457,7 +457,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     }
   }
 
-  emit analysisClosed();
+  emit analysisAboutToBeClosed();
 
   m_context.selection()->clear();
   m_context.undoStack()->clear();
@@ -468,6 +468,10 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   enableWidgets(false);
 
+  updateSceneState(m_context.viewState(), ViewItemAdapterSList());
+  m_context.viewState().resetCamera();
+  m_context.viewState().refresh();
+
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("ESPINA Interactive Neuron Analyzer"));
@@ -477,6 +481,8 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_mainBar->actions().first()->setChecked(true);
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
   m_filterDelegateFactory->resetDelegates();
+
+  emit analysisClosed();
 
   return true;
 }
@@ -538,7 +544,11 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     updateSceneState(m_context.viewState(), toViewItemList(model->channels()));
     m_context.viewState().resetCamera();
-    m_context.viewState().refresh();
+
+    auto bounds = m_context.viewState().coordinateSystem()->bounds();
+    auto resolution = m_context.viewState().coordinateSystem()->resolution();
+    NmVector3 initialCrosshair{bounds[0] + 0.5*resolution[0], bounds[2] + 0.5*resolution[1], bounds[4] + 0.5*resolution[2]};
+    m_context.viewState().setCrosshair(initialCrosshair);
 
     int secs = timer.elapsed()/1000.0;
     int mins = 0;
@@ -569,17 +579,17 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
-//     if(!m_model->isEmpty())
-//     {
-//       auto problemList = checkAnalysisConsistency();
+//    if (!m_model->isEmpty())
+//    {
+//      auto problemList = checkAnalysisConsistency();
 //
-//       if(!problemList.empty())
-//       {
-//         ProblemListDialog dialog(problemList);
+//      if (!problemList.empty())
+//      {
+//        ProblemListDialog dialog(problemList);
 //
-//         dialog.exec();
-//       }
-//     }
+//        dialog.exec();
+//      }
+//    }
   }
 
   emit analysisChanged();
@@ -1067,7 +1077,7 @@ void EspinaMainWindow::registerColorEngine(const QString   &title,
 //------------------------------------------------------------------------
 void EspinaMainWindow::initRepresentations()
 {
-  //TODO 2015-04-22 registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
+  registerRepresentationFactory(std::make_shared<CrosshairRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<ChannelRepresentationFactory>());
   registerRepresentationFactory(std::make_shared<SegmentationRepresentationFactory>());
 }

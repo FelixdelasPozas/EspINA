@@ -127,6 +127,9 @@ namespace ESPINA {
     const DataSPtr outputData(Data::Type type) const
     { return m_viewItem->data(type); }
 
+    Bounds bounds() const
+    { return output()->bounds(); }
+
     void setTemporalRepresentation(RepresentationPipelineSPtr pipeline);
 
     void clearTemporalRepresentation();

@@ -95,7 +95,7 @@ View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane
 , m_toLayout        {new QHBoxLayout()}
 , m_scrollBar       {new QScrollBar(Qt::Horizontal)}
 , m_spinBox         {new QDoubleSpinBox()}
-, m_zoomButton      {nullptr}
+, m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
 , m_repManagerMenu  {nullptr}
 , m_showThumbnail   {true}
@@ -205,11 +205,6 @@ void View2D::setInvertSliceOrder(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::reset()
-{
-}
-
-//-----------------------------------------------------------------------------
 vtkRenderer *View2D::mainRenderer() const
 {
   return m_renderer;
@@ -250,16 +245,18 @@ void View2D::updateScale()
   double *value;
   Nm left, right;
 
+  int index = (m_plane == Plane::YZ) ? 2 : 0;
+
   auto coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToNormalizedViewport();
 
   coords->SetValue(0, 0); //Viewport Lower Left Corner
   value = coords->GetComputedWorldValue(m_renderer);
-  left = value[0];
+  left = value[index];
 
   coords->SetValue(1, 0); // Viewport Lower Right Corner
   value = coords->GetComputedWorldValue(m_renderer);
-  right = value[0];
+  right = value[index];
 
   Nm rulerLength = 0.07;//viewport coordinates - Configuration file
   Nm viewWidth = fabs(left-right);
@@ -269,21 +266,13 @@ void View2D::updateScale()
   rulerLength = scale / viewWidth;
 
   m_scale->SetRange(0, scale);
-  m_scale->SetPoint2(0.1+rulerLength, 0.1);
-  m_scale->SetVisibility(m_scaleVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
+  m_scale->SetPosition2(0.1+rulerLength, 0.1);
+  m_scale->SetVisibility(sceneBounds().areValid() && m_scaleVisibility && (0.02 < rulerLength) && (rulerLength < 0.8));
 }
 
 //-----------------------------------------------------------------------------
 void View2D::updateThumbnail()
 {
-  // This lambda avoids having to reorder the limits depending on the camera position of the view.
-  auto isOutsideLimits = [] (double coord, double limitA, double limitB)
-  {
-    double lower = std::min(limitA, limitB);
-    double upper = std::max(limitA, limitB);
-    return (coord < lower || upper < coord);
-  };
-
   if (m_showThumbnail)
   {
     double *value;
@@ -320,7 +309,7 @@ void View2D::updateThumbnail()
     bool isUpperHidden = isOutsideLimits(sceneUpper, viewUpper, viewLower);
     bool isLowerHidden = isOutsideLimits(sceneLower, viewUpper, viewLower);
 
-    if (isLeftHidden || isRightHidden || isUpperHidden || isLowerHidden)
+    if (bounds.areValid() && (isLeftHidden || isRightHidden || isUpperHidden || isLowerHidden))
     {
       m_thumbnail->DrawOn();
       updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
@@ -383,14 +372,14 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
       corners->SetPoint(3, left,  lower, zShift); //LL
       break;
     case Plane::XZ:
-      zShift = bounds[2] - widgetDepth();
+      zShift = bounds[3] + widgetDepth();
       corners->SetPoint(0, left,  zShift, upper); //UL
       corners->SetPoint(1, right, zShift, upper); //UR
       corners->SetPoint(2, right, zShift, lower); //LR
       corners->SetPoint(3, left,  zShift, lower); //LL
       break;
     case Plane::YZ:
-      zShift = bounds[0] - widgetDepth();
+      zShift = bounds[1] + widgetDepth();
       corners->SetPoint(0, zShift, upper,  left); //UL
       corners->SetPoint(1, zShift, lower,  left); //UR
       corners->SetPoint(2, zShift, lower, right); //LR
@@ -408,9 +397,9 @@ void View2D::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_zoomButton = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
-  connect(m_zoomButton, SIGNAL(clicked()),
-          this,         SLOT(resetCameraImplementation()));
+  m_cameraReset = createButton(":/espina/zoom_reset.png", tr("Reset Camera"));
+  connect(m_cameraReset, SIGNAL(clicked()),
+          this,          SLOT(onCameraResetPressed()));
 
   m_snapshot = createButton(":/espina/snapshot_scene.svg", tr("Save Scene as Image"));
   connect(m_snapshot, SIGNAL(clicked(bool)),
@@ -434,7 +423,7 @@ void View2D::setupUI()
           this,        SLOT(scrollValueChanged(int)));
 
   m_mainLayout   ->addWidget(m_view);
-  m_controlLayout->addWidget(m_zoomButton);
+  m_controlLayout->addWidget(m_cameraReset);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addLayout(m_fromLayout);
@@ -512,7 +501,7 @@ void View2D::updateViewActions(RepresentationManager::ManagerFlags flags)
 {
   auto hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
 
-  m_zoomButton->setEnabled(hasActors);
+  m_cameraReset->setEnabled(hasActors);
   m_snapshot->setEnabled(hasActors);
 }
 
@@ -535,13 +524,28 @@ void View2D::resetCameraImplementation()
   m_thumbnail->AddViewProp(m_viewportBorder);
 
   updateScaleValue();
+}
 
-  if(nullptr != sender())
-  {
-    // comes from the zoom button -> force a refresh
-    mainRenderer()->ResetCameraClippingRange();
-    renderWindow()->Render();
-  }
+//-----------------------------------------------------------------------------
+bool View2D::isCrosshairPointVisible() const
+{
+  // Only center camera if center is out of the display view
+  auto coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetViewport(m_renderer);
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  double ll[3], ur[3];
+  coords->SetValue(0, 0); //LL
+  memcpy(ll,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+  coords->SetValue(1, 1); //UR
+  memcpy(ur,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+
+  int H = (Plane::YZ == m_plane)?2:0;
+  int V = (Plane::XZ == m_plane)?2:1;
+
+  auto current = crosshair();
+
+  return  !(isOutsideLimits(current[H], ll[H], ur[H]) || isOutsideLimits(current[V], ll[V], ur[V]));
 }
 
 //-----------------------------------------------------------------------------
@@ -607,6 +611,12 @@ void View2D::spinValueChanged(double value /* nm or slices depending on m_fitToS
   auto position = voxelCenter(sliceIndex, m_plane);
 
   emit crosshairPlaneChanged(m_plane, position);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::resetImplementation()
+{
+  m_thumbnail->DrawOff();
 }
 
 //-----------------------------------------------------------------------------
@@ -743,31 +753,15 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::keyPressEvent(QKeyEvent *e)
-{
-  // TODO 2015-04-20 Remove if not needed by new crosshair and toggle segmentation visibility?
-  if (eventHandlerFilterEvent(e))
-  {
-    refresh();
-  }
-};
-
-//-----------------------------------------------------------------------------
-void View2D::keyReleaseEvent(QKeyEvent *e)
-{
-  keyPressEvent(e);
-};
-
-//-----------------------------------------------------------------------------
 void View2D::centerCrosshairOnMousePosition(int x, int y)
 {
   auto pickedChannels = pick(Selector::CHANNEL, x, y);
 
   if (!pickedChannels.isEmpty())
   {
-    auto point = toNormalizeWorldPosition(rendererUnderCuror(), x, y);
+    auto point = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
 
-    emit crosshairChanged(point);
+    emit viewFocusedOn(point);
   }
 }
 
@@ -778,7 +772,7 @@ void View2D::centerViewOnMousePosition(int x, int y)
 
   if (!pickedItems.isEmpty())
   {
-    auto point = toNormalizeWorldPosition(rendererUnderCuror(), x, y);
+    auto point = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
 
     moveCamera(point);
   }
@@ -813,7 +807,7 @@ NmVector3 View2D::toNormalizeWorldPosition(vtkRenderer* renderer, int x, int y) 
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer< vtkRenderer > View2D::rendererUnderCuror() const
+vtkSmartPointer< vtkRenderer > View2D::rendererUnderCursor() const
 {
   return m_inThumbnail?m_thumbnail:m_renderer;
 }
@@ -837,21 +831,28 @@ const QString View2D::viewName() const
 //-----------------------------------------------------------------------------
 void View2D::updateThumbnailBounds(const Bounds &bounds)
 {
-  // reset thumbnail channel border
-  int h = m_plane == Plane::YZ ? 2 : 0;
-  int v = m_plane == Plane::XZ ? 2 : 1;
+  Nm sceneLeft = 0, sceneRight = 0, sceneUpper = 0, sceneLower = 0;
+  if(bounds.areValid())
+  {
+    // reset thumbnail channel border
+    int h = m_plane == Plane::YZ ? 2 : 0;
+    int v = m_plane == Plane::XZ ? 2 : 1;
 
-  double sceneLeft  = bounds[2*h  ];
-  double sceneRight = bounds[2*h+1];
-  double sceneUpper = bounds[2*v  ];
-  double sceneLower = bounds[2*v+1];
+    sceneLeft  = bounds[2*h  ];
+    sceneRight = bounds[2*h+1];
+    sceneUpper = bounds[2*v  ];
+    sceneLower = bounds[2*v+1];
+  }
 
+  m_channelBorder->SetVisibility(bounds.areValid());
   updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
 }
 
 //-----------------------------------------------------------------------------
 void View2D::updateWidgetLimits(const Bounds &bounds)
 {
+//  if(!bounds.areValid()) return;
+
   int sliceMax = voxelSlice(bounds[2*m_normalCoord+1], m_plane) - 1; // [lowerBound, upperBound) upper bound doesn't belong to the voxel
   int sliceMin = voxelSlice(bounds[2*m_normalCoord]  , m_plane);
 
@@ -979,29 +980,6 @@ void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
 }
 
 //-----------------------------------------------------------------------------
-bool View2D::isCrosshairPointVisible() const
-{
-  // Only center camera if center is out of the display view
-  auto coords = vtkSmartPointer<vtkCoordinate>::New();
-  coords->SetViewport(m_renderer);
-  coords->SetCoordinateSystemToNormalizedViewport();
-
-  double ll[3], ur[3];
-  coords->SetValue(0, 0); //LL
-  memcpy(ll,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
-  coords->SetValue(1, 1); //UR
-  memcpy(ur,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
-
-  int H = (Plane::YZ == m_plane)?2:0;
-  int V = (Plane::XZ == m_plane)?2:1;
-
-  auto current = crosshair();
-
-  return  ll[H] <= current[H] && current[H] <= ur[H] // Horizontally in
-       && ll[V] <= current[V] && current[V] >= ur[V];// Vertically in
-}
-
-//-----------------------------------------------------------------------------
 void View2D::updateScaleValue()
 {
   double *world,   worldWidth;
@@ -1048,11 +1026,6 @@ void View2D::onCrosshairChanged(const NmVector3 &point)
 
   m_spinBox  ->blockSignals(false);
   m_scrollBar->blockSignals(false);
-
-  if (isCrosshairPointVisible())
-  {
-    moveCamera(crosshair());
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1078,10 +1051,9 @@ void View2D::onSceneResolutionChanged(const NmVector3 &reslotuion)
 //-----------------------------------------------------------------------------
 void View2D::onSceneBoundsChanged(const Bounds &bounds)
 {
-  if (bounds[1] < bounds[0] || bounds[3] < bounds[2] || bounds[5] < bounds[4])
+  if(m_scaleVisibility)
   {
-    qFatal("View2D: Invalid Slicing Ranges. Ranges not changed");
-    return;
+    m_scale->SetVisibility(bounds.areValid());
   }
 
   updateThumbnailBounds(bounds);
@@ -1163,7 +1135,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
   Selector::Selection finalSelection;
 
   auto picker      = vtkSmartPointer<vtkPropPicker>::New();
-  auto sceneActors = m_renderer->GetViewProps();
+  auto sceneActors = rendererUnderCursor()->GetViewProps();
 
   NeuroItemAdapterList pickedItems;
 
@@ -1175,7 +1147,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
 
   do
   {
-    picked = picker->PickProp(x,y, m_renderer, sceneActors);
+    picked = picker->PickProp(x,y, rendererUnderCursor(), sceneActors);
     pickedProp = picker->GetViewProp();
 
     if(pickedProp)
@@ -1184,7 +1156,7 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
       pickedProps->AddItem(pickedProp);
     }
 
-    auto worldPoint = toNormalizeWorldPosition(m_renderer, x, y);
+    auto worldPoint = toNormalizeWorldPosition(rendererUnderCursor(), x, y);
 
     for(auto manager: m_managers)
     {

@@ -110,9 +110,7 @@ void vtkWidget2D::SetEnabled(int enabled)
 //----------------------------------------------------------------------------
 void vtkWidget2D::drawActors()
 {
-  bool validActors = m_plane != Plane::UNDEFINED
-                  && m_bounds.areValid()
-                  && m_enabled;
+  bool validActors = (m_plane != Plane::UNDEFINED) && m_bounds.areValid() && m_enabled;
   if (validActors)
   {
     // Beware, here be dragons...

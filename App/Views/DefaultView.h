@@ -98,7 +98,7 @@ namespace ESPINA
     void setFitToSlices(bool unused);
 
   private:
-    void initView(RenderView *view);
+    void initView(RenderView *view, QMainWindow *parent);
 
     void addRepresentationManager(RepresentationManagerSPtr manager);
 

@@ -142,9 +142,6 @@ namespace ESPINA
 
     virtual CameraState cameraState();
 
-
-    virtual void reset();
-
     virtual vtkRenderer *mainRenderer() const;
 
   public slots:
@@ -167,11 +164,10 @@ namespace ESPINA
     void segmentationSelected(SegmentationAdapterPtr, bool);
 
   protected:
+
+    virtual void resetImplementation();
+
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
-
-    virtual void keyPressEvent(QKeyEvent *e) override;
-
-    void keyReleaseEvent(QKeyEvent *e);
 
     /** \brief Updates the value of the crosshair to the mouse position and signals the change().
      *
@@ -185,6 +181,10 @@ namespace ESPINA
 
     virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
 
+    virtual void resetCameraImplementation();
+
+    virtual bool isCrosshairPointVisible() const override;
+
     virtual void refreshViewImplementation();
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
@@ -195,7 +195,7 @@ namespace ESPINA
 
     NmVector3 toNormalizeWorldPosition(vtkRenderer *renderer, int x, int y) const;
 
-    vtkSmartPointer<vtkRenderer> rendererUnderCuror() const;
+    vtkSmartPointer<vtkRenderer> rendererUnderCursor() const;
 
     /** \brief Updates the scale widget.
      *
@@ -238,8 +238,6 @@ namespace ESPINA
      */
     double viewHeightLength();
 
-    bool isCrosshairPointVisible() const;
-
     void updateScaleValue();
 
     void updateThumbnailBounds(const Bounds &bounds);
@@ -271,8 +269,6 @@ namespace ESPINA
      */
     virtual void moveCamera(const NmVector3 &point);
 
-    virtual void resetCameraImplementation();
-
     virtual void onSceneResolutionChanged(const NmVector3 &reslotuion);
 
     virtual void onSceneBoundsChanged(const Bounds &bounds);
@@ -303,7 +299,7 @@ namespace ESPINA
     QHBoxLayout    *m_toLayout;
     QScrollBar     *m_scrollBar;
     QDoubleSpinBox *m_spinBox;
-    QPushButton    *m_zoomButton;
+    QPushButton    *m_cameraReset;
     QPushButton    *m_snapshot;
     QPushButton    *m_repManagerMenu;
 

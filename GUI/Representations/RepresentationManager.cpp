@@ -73,6 +73,24 @@ QIcon RepresentationManager::icon() const
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationManager::hasActors() const
+{
+  return m_flags.testFlag(HAS_ACTORS);
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::needsActors() const
+{
+  return m_flags.testFlag(NEEDS_ACTORS);
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::exports3D() const
+{
+  return m_flags.testFlag(EXPORTS_3D);
+}
+
+//-----------------------------------------------------------------------------
 RepresentationManager::ManagerFlags RepresentationManager::flags() const
 {
   return m_flags;
@@ -109,7 +127,6 @@ void RepresentationManager::show(TimeStamp t)
   {
     child->show(t);
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -132,7 +149,6 @@ void RepresentationManager::hide(TimeStamp t)
   {
     child->hide(t);
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -196,6 +212,7 @@ RepresentationManagerSPtr RepresentationManager::clone()
 {
   auto child = cloneImplementation();
 
+  child->m_icon        = m_icon;
   child->m_name        = m_name;
   child->m_description = m_description;
   child->m_isActive    = m_isActive;

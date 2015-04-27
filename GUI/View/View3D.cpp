@@ -22,6 +22,7 @@
 #include "View3D.h"
 #include "GUI/View/Widgets/EspinaWidget.h"
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QApplication>
@@ -55,6 +56,7 @@
 #include <vtkPropPicker.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(GUI::View::ViewState &state, SelectionSPtr selection, bool showCrosshairPlaneSelectors)
@@ -76,28 +78,26 @@ View3D::~View3D()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::reset()
-{
-}
-
-//-----------------------------------------------------------------------------
 void View3D::buildViewActionsButtons()
 {
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
-  m_zoom = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
-  connect(m_zoom, SIGNAL(clicked()), this, SLOT(resetCameraImplementation()));
+  m_cameraReset = createButton(QString(":/espina/zoom_reset.png"), tr("Reset Camera"));
+  connect(m_cameraReset, SIGNAL(clicked()),
+          this,          SLOT(onCameraResetPressed()));
 
   m_snapshot = createButton(QString(":/espina/snapshot_scene.svg"), tr("Save Scene as Image"));
-  connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(onTakeSnapshot()));
+  connect(m_snapshot,  SIGNAL(clicked()),
+          this,        SLOT(onTakeSnapshot()));
 
   m_export = createButton(QString(":/espina/export_scene.svg"), tr("Export 3D Scene"));
-  connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+  connect(m_export,    SIGNAL(clicked()),
+          this,        SLOT(exportScene()));
 
   auto horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-  m_controlLayout->addWidget(m_zoom);
+  m_controlLayout->addWidget(m_cameraReset);
   m_controlLayout->addWidget(m_snapshot);
   m_controlLayout->addWidget(m_export);
   m_controlLayout->addItem(horizontalSpacer);
@@ -297,6 +297,23 @@ void View3D::refreshViewImplementation()
 }
 
 //-----------------------------------------------------------------------------
+void View3D::resetCameraImplementation()
+{
+  auto activeCamera = m_renderer->GetActiveCamera();
+  activeCamera->SetViewUp(0,1,0);
+  activeCamera->SetPosition(0,0,-1);
+  activeCamera->SetFocalPoint(0,0,0);
+  activeCamera->SetRoll(180);
+  m_renderer->ResetCamera();
+}
+
+//-----------------------------------------------------------------------------
+bool View3D::isCrosshairPointVisible() const
+{
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 void View3D::addActor(vtkProp *actor)
 {
   m_renderer->AddActor(actor);
@@ -312,23 +329,6 @@ void View3D::removeActor(vtkProp *actor)
 vtkRenderer *View3D::mainRenderer() const
 {
   return m_renderer;
-}
-
-//-----------------------------------------------------------------------------
-void View3D::resetCameraImplementation()
-{
-  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
-  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
-  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
-  m_renderer->GetActiveCamera()->SetRoll(180);
-  m_renderer->ResetCamera();
-
-  if(nullptr != sender())
-  {
-    // comes from the zoom button -> force a refresh
-    mainRenderer()->ResetCameraClippingRange();
-    renderWindow()->Render();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -353,15 +353,30 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
           {
             Selector::SelectionFlags flags(Selector::SelectionTag::CHANNEL|Selector::SelectionTag::SEGMENTATION);
             auto picked = pick(flags, xPos, yPos, true);
-            if(picked.size() != 0)
+
+            if(!picked.isEmpty() != 0)
             {
               auto element = picked.first();
-              auto bounds = element.first->bounds();
+              auto maskBounds = element.first->bounds();
 
-              NmVector3 point{(bounds[0]+bounds[1])/2,
-                              (bounds[2]+bounds[3])/2,
-                              (bounds[4]+bounds[5])/2};
+              NmVector3 point{(maskBounds[0]+maskBounds[1])/2,
+                              (maskBounds[2]+maskBounds[3])/2,
+                              (maskBounds[4]+maskBounds[5])/2};
 
+              // point is not guaranteed to belong to the picked item, as the vtkPropPicker can
+              // select a point outside the picked point in 3D picking. That's why this method
+              // won't work with 3D channel representation as it's manager won't recognize the
+              // point as part of the actor.
+              Bounds itemBounds = viewItemAdapter(element.second)->bounds();
+              if(!contains(itemBounds, point))
+              {
+                // adjust point to avoid changing the crosshair to a point outside the channel.
+                for(int i: {0,1,2})
+                {
+                  if (point[i] < itemBounds[2*i]) point[i] = itemBounds[2*i];
+                  if (point[i] > itemBounds[(2*i)+1]) point[i] = itemBounds[(2*i)+1];
+                }
+              }
               emit crosshairChanged(point);
             }
           }
@@ -480,9 +495,9 @@ void View3D::updateViewActions(RepresentationManager::ManagerFlags flags)
   bool hasActors = flags.testFlag(RepresentationManager::HAS_ACTORS);
   bool exports3D = flags.testFlag(RepresentationManager::EXPORTS_3D);
 
-  m_zoom    ->setEnabled(hasActors);
-  m_snapshot->setEnabled(hasActors);
-  m_export  ->setEnabled(exports3D);
+  m_cameraReset->setEnabled(hasActors);
+  m_snapshot   ->setEnabled(hasActors);
+  m_export     ->setEnabled(exports3D);
 
   if(m_showCrosshairPlaneSelectors)
   {
@@ -556,6 +571,11 @@ RenderView::CameraState View3D::cameraState()
   state.heightLength = -1;
 
   return state;
+}
+
+//-----------------------------------------------------------------------------
+void View3D::resetImplementation()
+{
 }
 
 //-----------------------------------------------------------------------------

@@ -35,11 +35,16 @@ namespace ESPINA
           {
             Q_OBJECT
           public:
+            MeasureEventHandler()
+            { setCursor(Qt::CrossCursor); }
+
             virtual bool filterEvent(QEvent *e, RenderView *view = nullptr);
 
           signals:
             void clear();
           };
+
+          using MeasureEventHandlerSPtr = std::shared_ptr<MeasureEventHandler>;
         }
       }
     }

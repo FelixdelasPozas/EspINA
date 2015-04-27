@@ -100,11 +100,6 @@ namespace ESPINA
 
         CoordinateSystemSPtr coordinateSystem() const;
 
-        /** \brief Ensure point position is visible
-         *
-         */
-        void focusViewOn(const NmVector3 &point);
-
         void resetCamera();
 
         void refresh();
@@ -120,6 +115,11 @@ namespace ESPINA
          */
         void setCrosshairPlane(const Plane plane, const Nm position);
 
+        /** \brief Ensure point position is visible
+         *
+         */
+        void focusViewOn(const NmVector3 &point);
+
       signals:
         void crosshairChanged(const NmVector3 &point, TimeStamp t);
 
@@ -131,7 +131,7 @@ namespace ESPINA
 
         void widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
 
-        void viewFocusedOn(NmVector3);
+        void viewFocusChanged();
 
         void resetCameraRequested();
 

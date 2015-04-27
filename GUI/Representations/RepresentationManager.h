@@ -96,6 +96,12 @@ namespace ESPINA
      */
     QIcon icon() const;
 
+    bool hasActors() const;
+
+    bool needsActors() const;
+
+    bool exports3D() const;
+
     ManagerFlags flags() const;
 
     ViewTypeFlags supportedViews() const

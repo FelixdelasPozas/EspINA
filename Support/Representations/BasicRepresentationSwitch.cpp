@@ -71,3 +71,9 @@ void BasicRepresentationSwitch::onButtonToggled(bool active)
 {
   setActive(active);
 }
+
+//----------------------------------------------------------------------------
+void BasicRepresentationSwitch::onSwitchValue()
+{
+  switchValue();
+}

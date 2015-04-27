@@ -24,7 +24,7 @@ using namespace ESPINA::GUI::View;
 
 //-----------------------------------------------------------------------------
 CoordinateSystem::CoordinateSystem(const NmVector3 &resolution)
-: CoordinateSystem(resolution, NmVector3{1, 1, 1})
+: CoordinateSystem(resolution, NmVector3{0, 0, 0})
 {
 
 }

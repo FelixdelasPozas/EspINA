@@ -59,6 +59,12 @@ void RepresentationSwitch::setActive(bool value)
 }
 
 //-----------------------------------------------------------------------------
+void RepresentationSwitch::switchValue()
+{
+  setActive(!m_active);
+}
+
+//-----------------------------------------------------------------------------
 bool RepresentationSwitch::isActive() const
 {
   return m_active;

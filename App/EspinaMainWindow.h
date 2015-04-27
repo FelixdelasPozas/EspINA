@@ -93,6 +93,7 @@ namespace ESPINA
 
   signals:
     void analysisChanged();
+    void analysisAboutToBeClosed();
     void analysisClosed();
     void abortOperation();
 

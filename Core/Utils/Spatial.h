@@ -109,6 +109,18 @@ namespace ESPINA {
     return fabs(lhs - rhs) < DELTA;
   }
 
+  /** \brief Returns true if the value is between the limits.
+   * \param[in] value
+   * \param[in] limitA
+   * \param[in] limitB
+   */
+  inline bool isOutsideLimits(double value, double limitA, double limitB)
+  {
+    double lower = std::min(limitA, limitB);
+    double upper = std::max(limitA, limitB);
+    return (value < lower || upper < value);
+  };
+
 }
 
 
