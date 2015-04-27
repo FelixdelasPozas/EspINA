@@ -168,9 +168,6 @@ void CrosshairManager::onHide(TimeStamp t)
 RepresentationManagerSPtr CrosshairManager::cloneImplementation()
 {
   auto manager = std::make_shared<CrosshairManager>();
-  manager->setName(this->name());
-  manager->setDescription(this->description());
-  manager->setIcon(this->icon());
 
   return manager;
 }

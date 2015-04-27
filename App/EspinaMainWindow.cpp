@@ -467,6 +467,8 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   enableWidgets(false);
 
   updateSceneState(m_context.viewState(), ViewItemAdapterSList());
+  m_context.viewState().resetCamera();
+  m_context.viewState().refresh();
 
   m_sessionFile = QFileInfo();
 
@@ -540,7 +542,11 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     updateSceneState(m_context.viewState(), toViewItemList(model->channels()));
     m_context.viewState().resetCamera();
-    m_context.viewState().refresh();
+
+    auto bounds = m_context.viewState().coordinateSystem()->bounds();
+    auto resolution = m_context.viewState().coordinateSystem()->resolution();
+    NmVector3 initialCrosshair{bounds[0] + 0.5*resolution[0], bounds[2] + 0.5*resolution[1], bounds[4] + 0.5*resolution[2]};
+    m_context.viewState().setCrosshair(initialCrosshair);
 
     int secs = timer.elapsed()/1000.0;
     int mins = 0;

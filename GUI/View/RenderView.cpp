@@ -411,7 +411,7 @@ void RenderView::connectSignals()
   connect (&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
            this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
 
-  connect(&m_state, SIGNAL(viewFocusChange()),
+  connect(&m_state, SIGNAL(viewFocusChanged()),
           this,     SLOT(onFocusChanged()));
 
   connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),

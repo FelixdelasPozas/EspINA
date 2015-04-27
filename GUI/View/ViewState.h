@@ -131,7 +131,7 @@ namespace ESPINA
 
         void widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
 
-        void viewFocusChange();
+        void viewFocusChanged();
 
         void resetCameraRequested();
 

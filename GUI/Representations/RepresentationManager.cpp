@@ -212,6 +212,7 @@ RepresentationManagerSPtr RepresentationManager::clone()
 {
   auto child = cloneImplementation();
 
+  child->m_icon        = m_icon;
   child->m_name        = m_name;
   child->m_description = m_description;
   child->m_isActive    = m_isActive;
