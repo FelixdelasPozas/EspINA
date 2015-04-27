@@ -38,7 +38,7 @@ namespace ESPINA
       {};
 
     private:
-      virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags unused) const override;
+      virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const override;
   };
 
 } // namespace ESPINA

@@ -27,12 +27,12 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-Representation CrosshairRepresentationFactory::doCreateRepresentation(Support::Context &context, ViewTypeFlags unused) const
+Representation CrosshairRepresentationFactory::doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const
 {
   Representation representation;
 
   auto crossManager = std::make_shared<CrosshairManager>();
-  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, ViewType::VIEW_2D|ViewType::VIEW_3D, context.timer());
+  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>(crossManager, supportedViews, context.timer());
 
   representation.Group = "Crosshair";
   // representation.Pools;

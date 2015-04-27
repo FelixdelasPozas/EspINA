@@ -73,6 +73,24 @@ QIcon RepresentationManager::icon() const
 }
 
 //-----------------------------------------------------------------------------
+bool RepresentationManager::hasActors() const
+{
+  return m_flags.testFlag(HAS_ACTORS);
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::needsActors() const
+{
+  return m_flags.testFlag(NEEDS_ACTORS);
+}
+
+//-----------------------------------------------------------------------------
+bool RepresentationManager::exports3D() const
+{
+  return m_flags.testFlag(EXPORTS_3D);
+}
+
+//-----------------------------------------------------------------------------
 RepresentationManager::ManagerFlags RepresentationManager::flags() const
 {
   return m_flags;

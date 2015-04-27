@@ -142,9 +142,6 @@ namespace ESPINA
 
     virtual CameraState cameraState();
 
-
-    virtual void reset();
-
     virtual vtkRenderer *mainRenderer() const;
 
   public slots:
@@ -167,11 +164,10 @@ namespace ESPINA
     void segmentationSelected(SegmentationAdapterPtr, bool);
 
   protected:
+
+    virtual void resetImplementation();
+
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
-
-//    virtual void keyPressEvent(QKeyEvent *e) override;
-
-    void keyReleaseEvent(QKeyEvent *e);
 
     /** \brief Updates the value of the crosshair to the mouse position and signals the change().
      *
@@ -185,9 +181,11 @@ namespace ESPINA
 
     virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
 
-    virtual void refreshViewImplementation();
-
     virtual void resetCameraImplementation();
+
+    virtual bool isCrosshairPointVisible() const override;
+
+    virtual void refreshViewImplementation();
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
@@ -197,7 +195,7 @@ namespace ESPINA
 
     NmVector3 toNormalizeWorldPosition(vtkRenderer *renderer, int x, int y) const;
 
-    vtkSmartPointer<vtkRenderer> rendererUnderCuror() const;
+    vtkSmartPointer<vtkRenderer> rendererUnderCursor() const;
 
     /** \brief Updates the scale widget.
      *
@@ -239,8 +237,6 @@ namespace ESPINA
      *
      */
     double viewHeightLength();
-
-    bool isCrosshairPointVisible() const;
 
     void updateScaleValue();
 

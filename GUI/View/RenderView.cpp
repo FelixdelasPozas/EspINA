@@ -62,6 +62,7 @@ RenderView::RenderView(ViewState &state, SelectionSPtr selection, ViewType type)
 , m_selection{selection}
 , m_type {type}
 , m_requiresCameraReset{true}
+, m_requiresFocusChange{false}
 , m_lastRender{Timer::INVALID_TIME_STAMP}
 {
   connectSignals();
@@ -270,7 +271,7 @@ bool RenderView::hasVisibleRepresentations() const
 {
   for (auto manager : m_managers)
   {
-    if (manager->flags().testFlag(RepresentationManager::HAS_ACTORS)) return true;
+    if (manager->hasActors()) return true;
   }
 
   return false;
@@ -336,6 +337,13 @@ NmVector3 RenderView::worldEventPosition(const QPoint &pos)
 }
 
 //-----------------------------------------------------------------------------
+void RenderView::reset()
+{
+  resetImplementation();
+  onRenderRequest();
+}
+
+//-----------------------------------------------------------------------------
 void RenderView::onCameraResetPressed()
 {
   resetCamera();
@@ -382,6 +390,9 @@ void RenderView::connectSignals()
   connect(this,     SIGNAL(crosshairPlaneChanged(Plane,Nm)),
           &m_state, SLOT(setCrosshairPlane(Plane,Nm)));
 
+  connect(this,     SIGNAL(viewFocusedOn(NmVector3)),
+          &m_state, SLOT(focusViewOn(NmVector3)));
+
   connect(&m_state, SIGNAL(resetCameraRequested()),
           this,     SLOT(resetCamera()));
 
@@ -400,13 +411,18 @@ void RenderView::connectSignals()
   connect (&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
            this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
 
-  connect(&m_state, SIGNAL(viewFocusedOn(NmVector3)),
-          this,     SLOT(moveCamera(NmVector3)));
+  connect(&m_state, SIGNAL(viewFocusChange()),
+          this,     SLOT(onFocusChanged()));
 
   connect (m_state.coordinateSystem().get(), SIGNAL(boundsChanged(Bounds)),
            this,                              SLOT(onSceneBoundsChanged(Bounds)));
 }
 
+//-----------------------------------------------------------------------------
+void RenderView::onFocusChanged()
+{
+  m_requiresFocusChange = true;
+}
 //-----------------------------------------------------------------------------
 void RenderView::onWidgetsAdded(WidgetFactorySPtr factory, TimeStamp t)
 {
@@ -463,6 +479,15 @@ void RenderView::onRenderRequest()
     qDebug() << viewName() << ": Reset camera:" << renderTime;
 
     m_requiresCameraReset = false;
+  }
+
+  if(m_requiresFocusChange)
+  {
+    m_requiresFocusChange = false;
+    if(!isCrosshairPointVisible())
+    {
+      moveCamera(crosshair());
+    }
   }
 
   updateViewActions(managerFlags());

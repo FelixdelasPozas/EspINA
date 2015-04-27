@@ -78,11 +78,6 @@ View3D::~View3D()
 }
 
 //-----------------------------------------------------------------------------
-void View3D::reset()
-{
-}
-
-//-----------------------------------------------------------------------------
 void View3D::buildViewActionsButtons()
 {
   m_controlLayout = new QHBoxLayout();
@@ -304,11 +299,18 @@ void View3D::refreshViewImplementation()
 //-----------------------------------------------------------------------------
 void View3D::resetCameraImplementation()
 {
-  m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
-  m_renderer->GetActiveCamera()->SetPosition(0,0,-1);
-  m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
-  m_renderer->GetActiveCamera()->SetRoll(180);
+  auto activeCamera = m_renderer->GetActiveCamera();
+  activeCamera->SetViewUp(0,1,0);
+  activeCamera->SetPosition(0,0,-1);
+  activeCamera->SetFocalPoint(0,0,0);
+  activeCamera->SetRoll(180);
   m_renderer->ResetCamera();
+}
+
+//-----------------------------------------------------------------------------
+bool View3D::isCrosshairPointVisible() const
+{
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -351,8 +353,8 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
           {
             Selector::SelectionFlags flags(Selector::SelectionTag::CHANNEL|Selector::SelectionTag::SEGMENTATION);
             auto picked = pick(flags, xPos, yPos, true);
-            qDebug() << "pick size" << picked.size();
-            if(picked.size() != 0)
+
+            if(!picked.isEmpty() != 0)
             {
               auto element = picked.first();
               auto maskBounds = element.first->bounds();
@@ -365,12 +367,7 @@ bool View3D::eventFilter(QObject* caller, QEvent* e)
               // select a point outside the picked point in 3D picking. That's why this method
               // won't work with 3D channel representation as it's manager won't recognize the
               // point as part of the actor.
-              Bounds itemBounds;
-              if(isSegmentation(element.second))
-                itemBounds = segmentationPtr(element.second)->bounds();
-              else
-                itemBounds = channelPtr(element.second)->bounds();
-
+              Bounds itemBounds = viewItemAdapter(element.second)->bounds();
               if(!contains(itemBounds, point))
               {
                 // adjust point to avoid changing the crosshair to a point outside the channel.
@@ -574,6 +571,11 @@ RenderView::CameraState View3D::cameraState()
   state.heightLength = -1;
 
   return state;
+}
+
+//-----------------------------------------------------------------------------
+void View3D::resetImplementation()
+{
 }
 
 //-----------------------------------------------------------------------------

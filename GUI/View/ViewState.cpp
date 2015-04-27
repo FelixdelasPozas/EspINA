@@ -93,9 +93,9 @@ void ViewState::focusViewOn(const NmVector3 &point)
 {
   auto center = crosshairPoint(point);
 
-  changeCrosshair(center);
+  emit viewFocusChange();
 
-  emit viewFocusedOn(center);
+  changeCrosshair(center);
 }
 
 //----------------------------------------------------------------------------

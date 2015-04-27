@@ -21,6 +21,7 @@
 // ESPINA
 #include "DefaultView.h"
 
+#include <App/EspinaMainWindow.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Context.h>
@@ -82,10 +83,10 @@ DefaultView::DefaultView(Support::Context &context,
   parent->addDockWidget(Qt::RightDockWidgetArea, dockYZ);
   parent->addDockWidget(Qt::RightDockWidgetArea, dockXZ);
 
-  initView(m_viewXY);
-  initView(m_viewXZ);
-  initView(m_viewYZ);
-  initView(m_view3D);
+  initView(m_viewXY, parent);
+  initView(m_viewXZ, parent);
+  initView(m_viewYZ, parent);
+  initView(m_view3D, parent);
 
   parent->setCentralWidget(this);
 }
@@ -209,9 +210,12 @@ void DefaultView::saveSessionSettings(TemporalStorageSPtr storage)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultView::initView(RenderView* view)
+void DefaultView::initView(RenderView* view, QMainWindow *parent)
 {
   m_views << view;
+
+  connect(parent, SIGNAL(analysisClosed()),
+          view,   SLOT(reset()));
 }
 
 //-----------------------------------------------------------------------------

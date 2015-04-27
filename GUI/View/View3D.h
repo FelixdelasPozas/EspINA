@@ -61,8 +61,6 @@ namespace ESPINA
      */
     virtual ~View3D();
 
-    virtual void reset() override;
-
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
@@ -70,6 +68,9 @@ namespace ESPINA
     virtual void setCameraState(CameraState state);
 
     virtual RenderView::CameraState cameraState();
+
+  protected:
+    virtual void resetImplementation();
 
   protected slots:
     /** \brief Updates the view then a crosshair scroll bar changes value.
@@ -107,9 +108,11 @@ namespace ESPINA
 
     virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
 
-    virtual void refreshViewImplementation();
-
     virtual void resetCameraImplementation();
+
+    virtual bool isCrosshairPointVisible() const override;
+
+    virtual void refreshViewImplementation();
 
     /** \brief Helper method to setup the UI.
      *

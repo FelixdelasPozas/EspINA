@@ -184,7 +184,7 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 
       connect(this,        SIGNAL(analysisChanged()),
               validPlugin, SLOT(onAnalysisChanged()));
-      connect(this,        SIGNAL(analysisClosed()),
+      connect(this,        SIGNAL(analysisAboutToBeClosed()),
               validPlugin, SLOT(onAnalysisClosed()));
 
       for (auto colorEngine : validPlugin->colorEngines())
@@ -384,7 +384,7 @@ void EspinaMainWindow::checkAutosave()
 //------------------------------------------------------------------------
 void EspinaMainWindow::registerDockWidget(Qt::DockWidgetArea area, DockWidget* dock)
 {
-  connect(this, SIGNAL(analysisClosed()),
+  connect(this, SIGNAL(analysisAboutToBeClosed()),
           dock, SLOT(reset()));
 
   m_panelsMenu->addAction(dock->toggleViewAction());
@@ -399,7 +399,7 @@ void EspinaMainWindow::registerToolGroup(ToolGroupPtr toolGroup)
   connect(toolGroup, SIGNAL(activated(ToolGroup*)),
           this,      SLOT(activateToolGroup(ToolGroup *)));
 
-  connect(this,      SIGNAL(analysisClosed()),
+  connect(this,      SIGNAL(analysisAboutToBeClosed()),
           toolGroup, SLOT(abortOperations()));
 }
 
@@ -455,7 +455,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
     }
   }
 
-  emit analysisClosed();
+  emit analysisAboutToBeClosed();
 
   m_context.selection()->clear();
   m_context.undoStack()->clear();
@@ -466,6 +466,8 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   enableWidgets(false);
 
+  updateSceneState(m_context.viewState(), ViewItemAdapterSList());
+
   m_sessionFile = QFileInfo();
 
   setWindowTitle(QString("ESPINA Interactive Neuron Analyzer"));
@@ -475,6 +477,8 @@ bool EspinaMainWindow::closeCurrentAnalysis()
   m_mainBar->actions().first()->setChecked(true);
   m_dynamicMenuRoot->submenus.first()->menu->setEnabled(false);
   m_filterDelegateFactory->resetDelegates();
+
+  emit analysisClosed();
 
   return true;
 }
@@ -567,17 +571,17 @@ void EspinaMainWindow::openAnalysis(const QStringList files)
 
     m_view->loadSessionSettings(m_analysis->storage());
 
-//     if(!m_model->isEmpty())
-//     {
-//       auto problemList = checkAnalysisConsistency();
+//    if (!m_model->isEmpty())
+//    {
+//      auto problemList = checkAnalysisConsistency();
 //
-//       if(!problemList.empty())
-//       {
-//         ProblemListDialog dialog(problemList);
+//      if (!problemList.empty())
+//      {
+//        ProblemListDialog dialog(problemList);
 //
-//         dialog.exec();
-//       }
-//     }
+//        dialog.exec();
+//      }
+//    }
   }
 
   emit analysisChanged();

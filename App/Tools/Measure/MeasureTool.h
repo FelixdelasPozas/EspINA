@@ -25,12 +25,15 @@
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Widgets/WidgetFactory.h>
 #include <Support/Widgets/Tool.h>
+#include <Tools/Measure/MeasureTool.h>
+#include <GUI/View/Widgets/Measures/MeasureEventHandler.h>
 
 class QAction;
 
+using namespace ESPINA::GUI::View::Widgets::Measures;
+
 namespace ESPINA
 {
-
   class MeasureTool
   : public Tool
   {
@@ -64,10 +67,10 @@ namespace ESPINA
     using ViewState         = GUI::View::ViewState;
     using WidgetFactorySPtr = GUI::View::Widgets::WidgetFactorySPtr;
 
-    ViewState        &m_viewState;
-    EventHandlerSPtr  m_handler;
-    WidgetFactorySPtr m_factory;
-    QAction          *m_action;
+    ViewState              &m_viewState;
+    MeasureEventHandlerSPtr m_handler;
+    WidgetFactorySPtr       m_factory;
+    QAction                *m_action;
   };
 
   using MeasureToolPtr  = MeasureTool *;

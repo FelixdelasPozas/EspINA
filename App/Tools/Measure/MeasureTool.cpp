@@ -34,7 +34,7 @@ using namespace ESPINA::GUI::View::Widgets::Measures;
 MeasureTool::MeasureTool(ViewState &viewState)
 : m_viewState(viewState)
 , m_handler  {new MeasureEventHandler()}
-, m_factory  {new WidgetFactory(std::make_shared<MeasureWidget>(dynamic_cast<MeasureEventHandler *>(m_handler.get())), EspinaWidget3DSPtr())}
+, m_factory  {new WidgetFactory(std::make_shared<MeasureWidget>(m_handler.get()), EspinaWidget3DSPtr())}
 , m_action   {new QAction(QIcon(":/espina/measure.png"), tr("Segmentation Measures Tool"),this)}
 {
   m_action->setCheckable(true);

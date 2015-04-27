@@ -86,11 +86,6 @@ namespace ESPINA
      */
     void removeRepresentationManager(RepresentationManagerSPtr manager);
 
-    /** \brief Resets the view to it's initial state.
-     *
-     */
-    virtual void reset() = 0;
-
     /** \brief Returns the bounds in world coordinates that contains all of the objects in the view.
      * \param[in] cropToSceneBounds true to crop the bounds to the limits of the actual view, false otherwise.
      *
@@ -219,7 +214,15 @@ namespace ESPINA
 
     void crosshairPlaneChanged(Plane, Nm);
 
+    void viewFocusedOn(NmVector3 focusPoint);
+
   protected slots:
+
+    /** \brief Resets the view to it's initial state.
+     *
+     */
+    virtual void reset();
+
     /** \brief Resets the camera using the camera reset button of the view.
      *
      */
@@ -269,6 +272,8 @@ namespace ESPINA
 
     bool hasChannelSources() const;
 
+    virtual void resetImplementation() = 0;
+
   private:
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
 
@@ -281,6 +286,8 @@ namespace ESPINA
     virtual void resetCameraImplementation() = 0;
 
     virtual void refreshViewImplementation() {}
+
+    virtual bool isCrosshairPointVisible() const = 0;
 
     void connectSignals();
 
@@ -297,6 +304,8 @@ namespace ESPINA
     void deleteInactiveWidgetManagers();
 
   private slots:
+    void onFocusChanged();
+
     virtual void onCrosshairChanged(const NmVector3 &point) = 0;
 
     virtual void moveCamera(const NmVector3 &point) = 0;
@@ -322,6 +331,7 @@ namespace ESPINA
 
     ViewType      m_type;
     bool          m_requiresCameraReset;
+    bool          m_requiresFocusChange;
     TimeStamp     m_lastRender;
     QMap<GUI::View::Widgets::WidgetFactorySPtr, RepresentationManagerSPtr> m_widgetManagers;
 

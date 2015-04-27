@@ -100,7 +100,7 @@ void CrosshairManager::changeCrosshair(const NmVector3 &crosshair, TimeStamp t)
   {
     m_crosshairs.addValue(crosshair, t);
 
-    if(flags().testFlag(HAS_ACTORS))
+    if(hasActors())
     {
       emitRenderRequest(t);
     }
@@ -132,32 +132,26 @@ bool CrosshairManager::acceptSceneBoundsChange(const Bounds &bounds) const
 //-----------------------------------------------------------------------------
 void CrosshairManager::displayRepresentations(TimeStamp t)
 {
-  if(m_view)
+  updateCrosshairs(t);
+
+  if (!hasActors())
   {
-    updateCrosshairs(t);
-
-    if(!flags().testFlag(HAS_ACTORS))
-    {
-      setFlag(HAS_ACTORS, true);
-      m_view->addActor(m_actors[0]);
-      m_view->addActor(m_actors[1]);
-      m_view->addActor(m_actors[2]);
-    }
-
-    m_crosshairs.invalidatePreviousValues(t);
+    setFlag(HAS_ACTORS, true);
+    m_view->addActor(m_actors[0]);
+    m_view->addActor(m_actors[1]);
+    m_view->addActor(m_actors[2]);
   }
+
+  m_crosshairs.invalidatePreviousValues(t);
 }
 
 //-----------------------------------------------------------------------------
 void CrosshairManager::hideRepresentations(TimeStamp t)
 {
-  if(m_view)
-  {
-    setFlag(HAS_ACTORS, false);
-    m_view->removeActor(m_actors[0]);
-    m_view->removeActor(m_actors[1]);
-    m_view->removeActor(m_actors[2]);
-  }
+  setFlag(HAS_ACTORS, false);
+  m_view->removeActor(m_actors[0]);
+  m_view->removeActor(m_actors[1]);
+  m_view->removeActor(m_actors[2]);
 }
 
 //-----------------------------------------------------------------------------
