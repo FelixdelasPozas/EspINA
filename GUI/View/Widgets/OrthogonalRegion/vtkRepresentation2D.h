@@ -96,7 +96,9 @@ namespace ESPINA
 
             //BTX - used to manage the state of the widget
             enum {Outside=0, Inside,
-              MoveLeft, MoveRight, MoveTop, MoveBottom, Translating
+                  MoveLeft,  MoveRight,
+                  MoveTop,   MoveBottom,
+                  Translating
             };
 
             //ETX
@@ -163,6 +165,10 @@ namespace ESPINA
             void Translate(double *p1, double *p2);
 
             double sliceDepth() const;
+
+            void updateEdgeColor  (vtkProperty *edge);
+
+            void updateEdgePattern(vtkProperty *edge);
 
           private:
             vtkRepresentation2D(const vtkRepresentation2D&);  //Not implemented

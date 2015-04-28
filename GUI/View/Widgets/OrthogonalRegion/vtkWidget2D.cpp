@@ -232,22 +232,25 @@ void vtkWidget2D::MoveAction(vtkAbstractWidget *w)
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
-    if (stateAfter == vtkRepresentation2D::Translating
-     || vtkRepresentation2D::Inside < stateAfter)
+
+    if (vtkRepresentation2D::Inside < stateAfter)
+    {
       self->EventCallbackCommand->SetAbortFlag(1);
-    return;
+    }
   }
+  else
+  {
+    // Okay, adjust the representation
+    double e[2];
+    e[0] = static_cast<double>(X);
+    e[1] = static_cast<double>(Y);
+    self->WidgetRep->WidgetInteraction(e);
 
-  // Okay, adjust the representation
-  double e[2];
-  e[0] = static_cast<double>(X);
-  e[1] = static_cast<double>(Y);
-  self->WidgetRep->WidgetInteraction(e);
-
-  // moving something
-  self->EventCallbackCommand->SetAbortFlag(1);
-  self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
-  self->Render();
+    // moving something
+    self->EventCallbackCommand->SetAbortFlag(1);
+    self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
+    self->Render();
+  }
 }
 
 //----------------------------------------------------------------------

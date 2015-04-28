@@ -124,6 +124,8 @@ namespace ESPINA
         void focusViewOn(const NmVector3 &point);
 
       signals:
+        void eventHandlerChanged();
+
         void crosshairChanged(const NmVector3 &point, TimeStamp t);
 
         void sceneResolutionChanged(const NmVector3 &resolution, TimeStamp t);

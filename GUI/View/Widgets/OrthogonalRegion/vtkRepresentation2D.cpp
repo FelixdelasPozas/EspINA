@@ -69,7 +69,7 @@ vtkRepresentation2D::vtkRepresentation2D()
 , m_pattern           {0xFFFF}
 {
   // The initial state
-  this->InteractionState = vtkRepresentation2D::Outside;
+  InteractionState = vtkRepresentation2D::Outside;
 
   memset(m_bounds, 0, sizeof(double)*6);
   memset(m_repBounds, 0, sizeof(double)*6);
@@ -78,37 +78,37 @@ vtkRepresentation2D::vtkRepresentation2D()
   m_color[0] = m_color[1] = 1.0;
   m_color[2] = 0.0;
 
-  this->CreateDefaultProperties();
+  CreateDefaultProperties();
 
   //Manage the picking stuff
-  this->EdgePicker = vtkSmartPointer<vtkCellPicker>::New();
-  this->EdgePicker->SetTolerance(0.01);
-  this->EdgePicker->PickFromListOn();
+  EdgePicker = vtkSmartPointer<vtkCellPicker>::New();
+  EdgePicker->SetTolerance(0.01);
+  EdgePicker->PickFromListOn();
 
   // Build edges
-  this->Vertex = vtkSmartPointer<vtkPoints>::New();
-  this->Vertex->SetDataTypeToDouble();
-  this->Vertex->SetNumberOfPoints(4);//line sides;
+  Vertex = vtkSmartPointer<vtkPoints>::New();
+  Vertex->SetDataTypeToDouble();
+  Vertex->SetNumberOfPoints(4);//line sides;
   for (EDGE i=LEFT; i<=BOTTOM; i = EDGE(i+1))
   {
-    this->EdgePolyData[i] = vtkSmartPointer<vtkPolyData>::New();
-    this->EdgeMapper[i]   = vtkSmartPointer<vtkPolyDataMapper>::New();
-    this->EdgeActor[i]    = vtkSmartPointer<vtkActor>::New();
+    EdgePolyData[i] = vtkSmartPointer<vtkPolyData>::New();
+    EdgeMapper[i]   = vtkSmartPointer<vtkPolyDataMapper>::New();
+    EdgeActor[i]    = vtkSmartPointer<vtkActor>::New();
 
-    this->EdgePolyData[i]->SetPoints(this->Vertex);
-    this->EdgePolyData[i]->SetLines(vtkSmartPointer<vtkCellArray>::New());
-    this->EdgeMapper[i]->SetInputData(this->EdgePolyData[i]);
-    this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
-    this->EdgeActor[i]->SetProperty(this->EdgeProperty);
+    EdgePolyData[i]->SetPoints(Vertex);
+    EdgePolyData[i]->SetLines(vtkSmartPointer<vtkCellArray>::New());
+    EdgeMapper[i]->SetInputData(EdgePolyData[i]);
+    EdgeActor[i]->SetMapper(EdgeMapper[i]);
+    EdgeActor[i]->SetProperty(EdgeProperty);
 
-    this->EdgePicker->AddPickList(this->EdgeActor[i]);
+    EdgePicker->AddPickList(EdgeActor[i]);
   }
 
   // Define the point coordinates
   double bounds[6] = {-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
-  this->PlaceWidget(bounds);
+  PlaceWidget(bounds);
 
-  this->CurrentEdge = nullptr;
+  CurrentEdge = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -116,15 +116,15 @@ vtkRepresentation2D::~vtkRepresentation2D()
 {
   for(int i=0; i<4; i++)
   {
-    this->EdgeActor[i] = nullptr;
-    this->EdgeMapper[i] = nullptr;
-    this->EdgePolyData[i] = nullptr;
+    EdgeActor[i] = nullptr;
+    EdgeMapper[i] = nullptr;
+    EdgePolyData[i] = nullptr;
   }
 
-  this->EdgePicker = nullptr;
-  this->EdgeProperty = nullptr;
-  this->SelectedEdgeProperty = nullptr;
-  this->InvisibleProperty = nullptr;
+  EdgePicker = nullptr;
+  EdgeProperty = nullptr;
+  SelectedEdgeProperty = nullptr;
+  InvisibleProperty = nullptr;
 }
 
 //----------------------------------------------------------------------
@@ -137,23 +137,23 @@ void vtkRepresentation2D::reset()
 void vtkRepresentation2D::StartWidgetInteraction(double e[2])
 {
   // Store the start position
-  this->StartEventPosition[0] = e[0];
-  this->StartEventPosition[1] = e[1];
-  this->StartEventPosition[2] = 0.0;
+  StartEventPosition[0] = e[0];
+  StartEventPosition[1] = e[1];
+  StartEventPosition[2] = 0.0;
 
   // Store the start position
-  this->LastEventPosition[0] = e[0];
-  this->LastEventPosition[1] = e[1];
-  this->LastEventPosition[2] = 0.0;
+  LastEventPosition[0] = e[0];
+  LastEventPosition[1] = e[1];
+  LastEventPosition[2] = 0.0;
 
-  this->ComputeInteractionState(static_cast<int>(e[0]),static_cast<int>(e[1]),0);
+  ComputeInteractionState(static_cast<int>(e[0]),static_cast<int>(e[1]),0);
 }
 
 //----------------------------------------------------------------------
 void vtkRepresentation2D::WidgetInteraction(double e[2])
 {
   // Convert events to appropriate coordinate systems
-  vtkCamera *camera = this->Renderer->GetActiveCamera();
+  vtkCamera *camera = Renderer->GetActiveCamera();
   if ( !camera )
     return;
 
@@ -163,47 +163,47 @@ void vtkRepresentation2D::WidgetInteraction(double e[2])
 
   // Compute the two points defining the motion vector
   double pos[3];
-  if ( this->LastPicker == this->EdgePicker )
+  if ( LastPicker == EdgePicker )
   {
-    this->EdgePicker->GetPickPosition(pos);
+    EdgePicker->GetPickPosition(pos);
   }
-  vtkInteractorObserver::ComputeWorldToDisplay(this->Renderer,
+  vtkInteractorObserver::ComputeWorldToDisplay(Renderer,
                                                pos[0], pos[1], pos[2],
                                                focalPoint);
   z = focalPoint[2];
-  vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer,this->LastEventPosition[0],
-                                               this->LastEventPosition[1], z, prevPickPoint);
-  vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, e[0], e[1], z, pickPoint);
+  vtkInteractorObserver::ComputeDisplayToWorld(Renderer,LastEventPosition[0],
+                                               LastEventPosition[1], z, prevPickPoint);
+  vtkInteractorObserver::ComputeDisplayToWorld(Renderer, e[0], e[1], z, pickPoint);
 
   // Process the motion
-  if ( this->InteractionState == vtkRepresentation2D::MoveLeft )
+  if ( InteractionState == vtkRepresentation2D::MoveLeft )
   {
-    this->MoveLeftEdge(prevPickPoint,pickPoint);
+    MoveLeftEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRepresentation2D::MoveRight )
+  else if ( InteractionState == vtkRepresentation2D::MoveRight )
   {
-    this->MoveRightEdge(prevPickPoint,pickPoint);
+    MoveRightEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRepresentation2D::MoveTop )
+  else if ( InteractionState == vtkRepresentation2D::MoveTop )
   {
-    this->MoveTopEdge(prevPickPoint,pickPoint);
+    MoveTopEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRepresentation2D::MoveBottom )
+  else if ( InteractionState == vtkRepresentation2D::MoveBottom )
   {
-    this->MoveBottomEdge(prevPickPoint,pickPoint);
+    MoveBottomEdge(prevPickPoint,pickPoint);
   }
-  else if ( this->InteractionState == vtkRepresentation2D::Translating )
+  else if ( InteractionState == vtkRepresentation2D::Translating )
   {
-    this->Translate(prevPickPoint,pickPoint);
+    Translate(prevPickPoint,pickPoint);
   }
 
   // Store the start position
-  this->LastEventPosition[0] = e[0];
-  this->LastEventPosition[1] = e[1];
-  this->LastEventPosition[2] = 0.0;
+  LastEventPosition[0] = e[0];
+  LastEventPosition[1] = e[1];
+  LastEventPosition[2] = 0.0;
 }
 
 //----------------------------------------------------------------------------
@@ -254,41 +254,41 @@ void vtkRepresentation2D::Translate(double* p1, double* p2)
 void vtkRepresentation2D::CreateDefaultProperties()
 {
   // Edge properties
-  this->EdgeProperty = vtkSmartPointer<vtkProperty>::New();
-  this->EdgeProperty->SetRepresentationToSurface();
-  this->EdgeProperty->SetOpacity(1.0);
-  this->EdgeProperty->SetColor(m_color);
-  this->EdgeProperty->SetLineWidth(1.0);
-  this->EdgeProperty->SetLineStipplePattern(m_pattern);
+  EdgeProperty = vtkSmartPointer<vtkProperty>::New();
+  EdgeProperty->SetRepresentationToSurface();
+  EdgeProperty->SetOpacity(1.0);
+  EdgeProperty->SetColor(m_color);
+  EdgeProperty->SetLineWidth(1.0);
+  EdgeProperty->SetLineStipplePattern(m_pattern);
 
   // Selected Edge properties
-  this->SelectedEdgeProperty = vtkSmartPointer<vtkProperty>::New();
-  this->SelectedEdgeProperty->SetRepresentationToSurface();
-  this->SelectedEdgeProperty->SetOpacity(1.0);
-  this->SelectedEdgeProperty->SetColor(m_color);
-  this->SelectedEdgeProperty->SetLineWidth(2.0);
-  this->SelectedEdgeProperty->SetLineStipplePattern(m_pattern);
+  SelectedEdgeProperty = vtkSmartPointer<vtkProperty>::New();
+  SelectedEdgeProperty->SetRepresentationToSurface();
+  SelectedEdgeProperty->SetOpacity(1.0);
+  SelectedEdgeProperty->SetColor(m_color);
+  SelectedEdgeProperty->SetLineWidth(2.0);
+  SelectedEdgeProperty->SetLineStipplePattern(m_pattern);
 
-  this->InvisibleProperty = vtkSmartPointer<vtkProperty>::New();
-  this->InvisibleProperty->SetRepresentationToWireframe();
-  this->InvisibleProperty->SetAmbient(0.0);
-  this->InvisibleProperty->SetDiffuse(0.0);
-  this->InvisibleProperty->SetOpacity(0);
+  InvisibleProperty = vtkSmartPointer<vtkProperty>::New();
+  InvisibleProperty->SetRepresentationToWireframe();
+  InvisibleProperty->SetAmbient(0.0);
+  InvisibleProperty->SetDiffuse(0.0);
+  InvisibleProperty->SetOpacity(0);
 }
 
 //----------------------------------------------------------------------------
 void vtkRepresentation2D::CreateRegion()
 {
   // Corners of the rectangular region
-  this->Vertex->SetNumberOfPoints(4);
+  Vertex->SetNumberOfPoints(4);
 
   for(EDGE i=LEFT; i <= BOTTOM; i=EDGE(i+1))
   {
-    this->EdgePolyData[i]->GetLines()->Reset();
-    this->EdgePolyData[i]->GetLines()->Allocate(this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
-    this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
-    this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
+    EdgePolyData[i]->GetLines()->Reset();
+    EdgePolyData[i]->GetLines()->Allocate(EdgePolyData[i]->GetLines()->EstimateSize(1,2));
+    EdgePolyData[i]->GetLines()->InsertNextCell(2);
+    EdgePolyData[i]->GetLines()->InsertCellPoint(i);
+    EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
   }
   UpdateRegion();
 }
@@ -406,6 +406,8 @@ void vtkRepresentation2D::UpdateXZFace()
 void vtkRepresentation2D::SetDepth(double depth)
 {
   m_depth = depth;
+
+  UpdateRegion();
 }
 //----------------------------------------------------------------------------
 void vtkRepresentation2D::SetPlane(Plane plane)
@@ -427,15 +429,14 @@ void vtkRepresentation2D::SetSlice(double pos)
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
-      this->EdgeActor[i]->SetProperty(InvisibleProperty);
+      EdgeActor[i]->SetProperty(InvisibleProperty);
     }
-    return;
   }
   else
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
-      this->EdgeActor[i]->SetProperty(EdgeProperty);
+      EdgeActor[i]->SetProperty(EdgeProperty);
     }
     UpdateRegion();
   }
@@ -451,9 +452,9 @@ void vtkRepresentation2D::SetOrthogonalBounds(double bounds[6])
   TopEdge    = m_repBounds[2] = m_bounds[2*vCoord()];
   BottomEdge = m_repBounds[3] = m_bounds[2*vCoord()+1];
 
-  this->NumPoints = 4;
-  this->NumSlices = 1;
-  this->NumVertex = 4;
+  NumPoints = 4;
+  NumSlices = 1;
+  NumVertex = 4;
 
   SetSlice(m_slice);
 
@@ -473,25 +474,25 @@ void vtkRepresentation2D::PlaceWidget(double bds[6])
   int i;
   double bounds[6], center[3];
 
-  this->AdjustBounds(bds,bounds,center);
+  AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
 //   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
 
-  this->Vertex->SetPoint(0, bounds[0], bounds[2], bounds[4]);
-  this->Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
-  this->Vertex->SetPoint(2, bounds[1], bounds[3], bounds[4]);
-  this->Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
+  Vertex->SetPoint(0, bounds[0], bounds[2], bounds[4]);
+  Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
+  Vertex->SetPoint(2, bounds[1], bounds[3], bounds[4]);
+  Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
 
   for (i=0; i<6; i++)
   {
-    this->InitialBounds[i] = bounds[i];
+    InitialBounds[i] = bounds[i];
   }
 
-  this->InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
+  InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
                              (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
                              (bounds[5]-bounds[4])*(bounds[5]-bounds[4]));
 
-  this->ValidPick = 1; //since we have set up widget
+  ValidPick = 1; //since we have set up widget
 }
 
 //----------------------------------------------------------------------------
@@ -499,40 +500,40 @@ int vtkRepresentation2D::ComputeInteractionState(int X, int Y, int modify)
 {
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
-  if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
+  if (!Renderer || !Renderer->IsInViewport(X, Y))
   {
-    this->InteractionState = vtkRepresentation2D::Outside;
-    return this->InteractionState;
+    InteractionState = vtkRepresentation2D::Outside;
+    return InteractionState;
   }
 
   vtkAssemblyPath *path;
   // Try and pick a handle first
-  this->LastPicker = nullptr;
-  this->CurrentEdge = nullptr;
-  this->EdgePicker->Pick(X,Y,0.0,this->Renderer);
-  path = this->EdgePicker->GetPath();
+  LastPicker = nullptr;
+  CurrentEdge = nullptr;
+  EdgePicker->Pick(X,Y,0.0,Renderer);
+  path = EdgePicker->GetPath();
   if ( path != nullptr )
   {
-    this->LastPicker = this->EdgePicker;
-    this->ValidPick = 1;
+    LastPicker = EdgePicker;
+    ValidPick = 1;
 
-    this->CurrentEdge =
+    CurrentEdge =
       reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
-    if (this->CurrentEdge == this->EdgeActor[LEFT])
+    if (CurrentEdge == EdgeActor[LEFT])
     {
-      this->InteractionState = vtkRepresentation2D::MoveLeft;
+      InteractionState = vtkRepresentation2D::MoveLeft;
     }
-    else if (this->CurrentEdge == this->EdgeActor[RIGHT])
+    else if (CurrentEdge == EdgeActor[RIGHT])
     {
-      this->InteractionState = vtkRepresentation2D::MoveRight;
+      InteractionState = vtkRepresentation2D::MoveRight;
     }
-    else if (this->CurrentEdge == this->EdgeActor[TOP])
+    else if (CurrentEdge == EdgeActor[TOP])
     {
-      this->InteractionState = vtkRepresentation2D::MoveTop;
+      InteractionState = vtkRepresentation2D::MoveTop;
     }
-    else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
+    else if (CurrentEdge == EdgeActor[BOTTOM])
     {
-      this->InteractionState = vtkRepresentation2D::MoveBottom;
+      InteractionState = vtkRepresentation2D::MoveBottom;
     }
     else
     {
@@ -542,19 +543,19 @@ int vtkRepresentation2D::ComputeInteractionState(int X, int Y, int modify)
   else
   {
     double pickPoint[3];
-    vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, X, Y, 0, pickPoint);
+    vtkInteractorObserver::ComputeDisplayToWorld(Renderer, X, Y, 0, pickPoint);
     if ((LeftEdge < pickPoint[hCoord()] && pickPoint[hCoord()] < RightEdge)
      && (TopEdge  < pickPoint[vCoord()] && pickPoint[vCoord()] < BottomEdge))
     {
-      this->InteractionState = vtkRepresentation2D::Inside;
+      InteractionState = vtkRepresentation2D::Inside;
     }
     else
     {
-      this->InteractionState = vtkRepresentation2D::Outside;
+      InteractionState = vtkRepresentation2D::Outside;
     }
   }
 
-  return this->InteractionState;
+  return InteractionState;
 }
 
 //----------------------------------------------------------------------
@@ -564,20 +565,20 @@ void vtkRepresentation2D::SetInteractionState(int state)
   state = state < vtkRepresentation2D::Outside ? vtkRepresentation2D::Outside : state;
 
   // Depending on state, highlight appropriate parts of representation
-  this->InteractionState = state;
+  InteractionState = state;
   switch (state)
     {
     case vtkRepresentation2D::MoveLeft:
     case vtkRepresentation2D::MoveRight:
     case vtkRepresentation2D::MoveTop:
     case vtkRepresentation2D::MoveBottom:
-      this->HighlightEdge(this->CurrentEdge);
+      HighlightEdge(CurrentEdge);
       break;
     case vtkRepresentation2D::Translating:
-      this->Highlight();
+      Highlight();
       break;
     default:
-      this->HighlightEdge(nullptr);
+      HighlightEdge(nullptr);
       break;
     }
 }
@@ -592,12 +593,13 @@ double *vtkRepresentation2D::GetBounds()
 void vtkRepresentation2D::BuildRepresentation()
 {
   // Rebuild only if necessary
-  if ( this->GetMTime() > this->BuildTime ||
-       (this->Renderer && this->Renderer->GetVTKWindow() &&
-        (this->Renderer->GetVTKWindow()->GetMTime() > this->BuildTime ||
-        this->Renderer->GetActiveCamera()->GetMTime() > this->BuildTime)) )
+  if (GetMTime() > BuildTime ||
+    (Renderer && Renderer->GetVTKWindow() &&
+    (Renderer->GetVTKWindow()->GetMTime() > BuildTime ||
+    Renderer->GetActiveCamera()->GetMTime() > BuildTime)) )
   {
-    this->BuildTime.Modified();
+    BuildTime.Modified();
+
     UpdateRegion();
   }
 }
@@ -607,7 +609,7 @@ void vtkRepresentation2D::ReleaseGraphicsResources(vtkWindow *w)
 {
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
-    this->EdgeActor[i]->ReleaseGraphicsResources(w);
+    EdgeActor[i]->ReleaseGraphicsResources(w);
   }
 }
 
@@ -615,11 +617,11 @@ void vtkRepresentation2D::ReleaseGraphicsResources(vtkWindow *w)
 int vtkRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
 {
   int count=0;
-  this->BuildRepresentation();
+  BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
-    count += this->EdgeActor[i]->RenderOpaqueGeometry(v);
+    count += EdgeActor[i]->RenderOpaqueGeometry(v);
   }
 
   return count;
@@ -629,11 +631,11 @@ int vtkRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
 int vtkRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewport *v)
 {
   int count=0;
-  this->BuildRepresentation();
+  BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
-    count += this->EdgeActor[i]->RenderTranslucentPolygonalGeometry(v);
+    count += EdgeActor[i]->RenderTranslucentPolygonalGeometry(v);
   }
 
   return count;
@@ -643,11 +645,12 @@ int vtkRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewport *v)
 int vtkRepresentation2D::HasTranslucentPolygonalGeometry()
 {
   int result=0;
-  this->BuildRepresentation();
+
+  BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
-    result |= this->EdgeActor[i]->HasTranslucentPolygonalGeometry();
+    result |= EdgeActor[i]->HasTranslucentPolygonalGeometry();
   }
 
   return result;
@@ -658,13 +661,13 @@ void vtkRepresentation2D::HighlightEdge(vtkSmartPointer<vtkActor> actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
-    if (this->EdgeActor[edge] == actor)
+    if (EdgeActor[edge] == actor)
     {
-      this->EdgeActor[edge]->SetProperty(this->SelectedEdgeProperty);
+      EdgeActor[edge]->SetProperty(SelectedEdgeProperty);
     }
     else
     {
-      this->EdgeActor[edge]->SetProperty(this->EdgeProperty);
+      EdgeActor[edge]->SetProperty(EdgeProperty);
     }
   }
 }
@@ -674,16 +677,16 @@ void vtkRepresentation2D::Highlight()
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
-    this->EdgeActor[edge]->SetProperty(this->SelectedEdgeProperty);
+    EdgeActor[edge]->SetProperty(SelectedEdgeProperty);
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
 {
-  this->Superclass::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
-  double *bounds=this->InitialBounds;
+  double *bounds=InitialBounds;
   os << indent << "Initial Bounds: "
      << "(" << bounds[0] << "," << bounds[1] << ") "
      << "(" << bounds[2] << "," << bounds[3] << ") "
@@ -693,30 +696,43 @@ void vtkRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkRepresentation2D::setRepresentationColor(double *color)
 {
-  if (0 == memcmp(m_color, color, sizeof(double)*3)) return;
+  if (0 != memcmp(m_color, color, sizeof(double)*3))
+  {
+    memcpy(m_color, color, sizeof(double)*3);
 
-  memcpy(m_color, color, sizeof(double)*3);
-
-  this->EdgeProperty->SetColor(m_color);
-  this->EdgeProperty->Modified();
-  this->SelectedEdgeProperty->SetColor(m_color);
-  this->SelectedEdgeProperty->Modified();
+    updateEdgeColor(EdgeProperty);
+    updateEdgeColor(SelectedEdgeProperty);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkRepresentation2D::setRepresentationPattern(int pattern)
 {
-  if (m_pattern == pattern) return;
+  if (m_pattern != pattern)
+  {
+    m_pattern = pattern;
 
-  m_pattern = pattern;
-  this->EdgeProperty->SetLineStipplePattern(m_pattern);
-  this->EdgeProperty->Modified();
-  this->SelectedEdgeProperty->SetLineStipplePattern(m_pattern);
-  this->SelectedEdgeProperty->Modified();
+    updateEdgePattern(EdgeProperty);
+    updateEdgePattern(SelectedEdgeProperty);
+  }
 }
 
 //----------------------------------------------------------------------------
 double vtkRepresentation2D::sliceDepth() const
 {
   return m_slice + m_depth;
+}
+
+//----------------------------------------------------------------------------
+void vtkRepresentation2D::updateEdgeColor(vtkProperty *edge)
+{
+  edge->SetColor(m_color);
+  edge->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkRepresentation2D::updateEdgePattern(vtkProperty *edge)
+{
+  edge->SetLineStipplePattern(m_pattern);
+  edge->Modified();
 }

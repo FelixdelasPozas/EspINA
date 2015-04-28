@@ -24,6 +24,7 @@
 
 #include <Core/Utils/Bounds.h>
 #include <GUI/View/Widgets/EspinaWidget2.h>
+#include "Representation.h"
 
 // VTK
 #include <vtkAbstractWidget.h>
@@ -41,7 +42,6 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
-          class Representation;
           class vtkWidget2D;
 
           class Widget2D
@@ -72,9 +72,9 @@ namespace ESPINA
           private:
             virtual void setCrosshair(const NmVector3& crosshair) override;
 
-            void updateVisibility();
-
           private slots:
+            void onModeChanged(const Representation::Mode mode);
+
             void onResolutionChanged(const NmVector3 &resolution);
 
             void onBoundsChanged(const Bounds &bounds);

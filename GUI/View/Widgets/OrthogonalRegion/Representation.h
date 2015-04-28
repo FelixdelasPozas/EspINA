@@ -40,9 +40,16 @@ namespace ESPINA
           {
             Q_OBJECT
           public:
+            enum class Mode { FIXED, RESIZABLE };
+
+          public:
             explicit Representation();
 
             explicit Representation(const NmVector3 &resolution, const Bounds &bounds);
+
+            void setMode(const Mode mode);
+
+            Mode mode() const;
 
             void setResolution(const NmVector3 &resolution);
 
@@ -68,6 +75,8 @@ namespace ESPINA
             int representationPattern() const;
 
           signals:
+            void modeChanged(const Representation::Mode mode);
+
             void resolutionChanged(const NmVector3 &resolution);
 
             void boundsChanged(const Bounds &bounds);
@@ -77,6 +86,7 @@ namespace ESPINA
             void patternChanged(const int pattern);
 
           private:
+            Mode      m_mode;
             NmVector3 m_resolution;
             Bounds    m_bounds;
             QColor    m_color;

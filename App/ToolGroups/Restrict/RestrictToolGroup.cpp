@@ -40,9 +40,9 @@ public:
   virtual void undo() override;
 
 private:
-  ROISPtr        m_ROI;
+  ROISPtr            m_ROI;
   RestrictToolGroup *m_tool;
-  ROISPtr        m_prevROI;
+  ROISPtr            m_prevROI;
 };
 
 //-----------------------------------------------------------------------------
@@ -249,7 +249,6 @@ void RestrictToolGroup::setVisible(bool visible)
   }
 
   m_visible = visible;
-  //TODO m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------

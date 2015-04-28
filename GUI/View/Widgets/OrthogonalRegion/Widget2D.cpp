@@ -63,7 +63,6 @@ void Widget2D::Command::Execute(vtkObject *caller, long unsigned int eventId, vo
 }
 
 
-
 //----------------------------------------------------------------------------
 Widget2D::Widget2D(Representation &representation)
 : m_representation(representation)
@@ -110,10 +109,14 @@ bool Widget2D::acceptSceneResolutionChange(const NmVector3 &resolution) const
 //----------------------------------------------------------------------------
 void Widget2D::initializeImplementation(RenderView *view)
 {
+  onModeChanged      (m_representation.mode());
   onResolutionChanged(m_representation.resolution());
   onBoundsChanged    (m_representation.bounds());
   onColorChanged     (m_representation.representationColor());
   onPatternChanged   (m_representation.representationPattern());
+
+  connect(&m_representation, SIGNAL(modeChanged(Representation::Mode)),
+          this,              SLOT(onModeChanged(Representation::Mode)));
 
   connect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
           this,              SLOT(onResolutionChanged(NmVector3)));
@@ -124,8 +127,8 @@ void Widget2D::initializeImplementation(RenderView *view)
   connect(&m_representation, SIGNAL(colorChanged(QColor)),
           this,              SLOT(onColorChanged(QColor)));
 
-  connect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
-          this,              SLOT(onResolutionChanged(NmVector3)));
+  connect(&m_representation, SIGNAL(patternChanged(int)),
+          this,              SLOT(onPatternChanged(int)));
 
   m_widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
 }
@@ -133,6 +136,9 @@ void Widget2D::initializeImplementation(RenderView *view)
 //----------------------------------------------------------------------------
 void Widget2D::uninitializeImplementation()
 {
+  disconnect(&m_representation, SIGNAL(modeChanged(Representation::Mode)),
+             this,              SLOT(onModeChanged(Representation::Mode)));
+
   disconnect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
              this,              SLOT(onResolutionChanged(NmVector3)));
 
@@ -142,8 +148,8 @@ void Widget2D::uninitializeImplementation()
   disconnect(&m_representation, SIGNAL(colorChanged(QColor)),
              this,              SLOT(onColorChanged(QColor)));
 
-  disconnect(&m_representation, SIGNAL(resolutionChanged(NmVector3)),
-             this,              SLOT(onResolutionChanged(NmVector3)));
+  disconnect(&m_representation, SIGNAL(patternChanged(int)),
+             this,              SLOT(onPatternChanged(int)));
 
   m_widget->RemoveObserver(m_command);
 }
@@ -159,16 +165,20 @@ void Widget2D::setCrosshair(const NmVector3 &crosshair)
 {
   m_slice = crosshair[m_index];
 
-  updateVisibility();
+  m_widget->SetSlice(m_slice);
 }
 
 //----------------------------------------------------------------------------
-void Widget2D::updateVisibility()
+void Widget2D::onModeChanged(const Representation::Mode mode)
 {
-  auto axis    = toAxis(m_index);
-  auto visible = contains(m_widget->GetBounds(), axis, m_slice);
-
-  m_widget->SetEnabled(visible);
+  if (mode == Representation::Mode::RESIZABLE)
+  {
+    m_widget->ProcessEventsOn();
+  }
+  else
+  {
+    m_widget->ProcessEventsOff();
+  }
 }
 
 //----------------------------------------------------------------------------

@@ -31,12 +31,30 @@ Representation::Representation()
 
 //----------------------------------------------------------------------------
 Representation::Representation(const NmVector3 &resolution, const Bounds &bounds)
-: m_resolution(resolution)
+: m_mode(Mode::RESIZABLE)
+, m_resolution(resolution)
 , m_bounds(bounds)
 , m_color(Qt::yellow)
 , m_pattern(0xFFFF)
 {
 
+}
+
+//----------------------------------------------------------------------------
+void Representation::setMode(const Representation::Mode mode)
+{
+  if (m_mode != mode)
+  {
+    m_mode = mode;
+
+    emit modeChanged(mode);
+  }
+}
+
+//----------------------------------------------------------------------------
+Representation::Mode Representation::mode() const
+{
+  return m_mode;
 }
 
 //----------------------------------------------------------------------------
@@ -46,7 +64,7 @@ void Representation::setResolution(const NmVector3 &resolution)
   {
     m_resolution = resolution;
 
-    emit resolutionChanged(m_resolution);
+    emit resolutionChanged(resolution);
   }
 }
 

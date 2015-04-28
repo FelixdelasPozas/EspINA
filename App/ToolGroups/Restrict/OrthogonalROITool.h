@@ -46,9 +46,6 @@ namespace ESPINA
   {
     Q_OBJECT
   public:
-    enum class Mode { FIXED, RESIZABLE };
-
-  public:
     /** \brief OrthogonalROITool class constructor.
      * \param[in] context
      * \param[in] toolGroup
@@ -145,11 +142,9 @@ namespace ESPINA
      */
     void setActionVisibility(bool visiblity);
 
-    bool isResizable() const
-    { return Mode::RESIZABLE == m_mode; }
+    bool isResizable() const;
 
-    void setResizeMode(const Mode mode)
-    { return setResizable(Mode::RESIZABLE == mode); }
+    void setRepresentationResizable(const bool value);
 
     bool invalidSettings() const;
 
@@ -166,9 +161,7 @@ namespace ESPINA
 
     bool             m_enabled;
 
-    ROISPtr          m_roi;
-    Mode             m_mode;
-
+    ROISPtr           m_roi;
     Representation    m_roiRepresentation;
     WidgetFactorySPtr m_factory;
 
