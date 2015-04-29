@@ -713,28 +713,29 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
           {
             updateScaleValue();
           }
-
-          // to avoid interfering with ctrl use in the event handler/selector
-          if (!eventHandler())
+          else if (me->button() == Qt::LeftButton)
           {
-            if ((e->type() == QEvent::MouseButtonPress) && (me->button() == Qt::LeftButton))
+            if ((e->type() == QEvent::MouseButtonPress))
             {
               if (me->modifiers() == Qt::CTRL)
               {
                 centerCrosshairOnMousePosition(xPos, yPos);
               }
-              else
+              else if (!eventHandler())
               {
                 bool appendSelectedItems = me->modifiers() == Qt::SHIFT;
                 selectPickedItems(xPos, yPos, appendSelectedItems);
               }
             }
-
-            m_view->setCursor(Qt::ArrowCursor);
+          }
+          // to avoid interfering with ctrl use in the event handler/selector
+          if (eventHandler())
+          {
+            m_view->setCursor(eventHandler()->cursor());
           }
           else
           {
-            m_view->setCursor(eventHandler()->cursor());
+            m_view->setCursor(Qt::ArrowCursor);
           }
         }
 
