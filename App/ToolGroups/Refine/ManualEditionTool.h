@@ -28,10 +28,13 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/EventHandlers/Brush.h>
 #include <GUI/EventHandlers/StrokePainter.h>
+#include <GUI/View/Selection.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include "SliceEditionPipeline.h"
 
 class QUndoStack;
+
+using namespace ESPINA::GUI::View;
 
 namespace ESPINA
 {

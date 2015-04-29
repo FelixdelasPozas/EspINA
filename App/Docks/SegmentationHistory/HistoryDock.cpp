@@ -39,8 +39,8 @@ HistoryDock::HistoryDock(FilterDelegateFactorySPtr delegateFactory,
 
   setWindowTitle(tr("History"));
 
-  connect(m_context.selection().get(), SIGNAL(selectionChanged()),
-          this,                                     SLOT(updateDock()));
+  connect(contextSelection(m_context).get(), SIGNAL(selectionChanged()),
+          this,                              SLOT(updateDock()));
 }
 
 //----------------------------------------------------------------------------
@@ -74,11 +74,11 @@ void HistoryDock::updateDock()
   SegmentationAdapterPtr segmentation = nullptr;
   bool changeWidget = false;
 
-  auto selectedSegmentations = m_context.selection()->segmentations();
+  auto selection = contextSelection(m_context)->segmentations();
 
-  if (selectedSegmentations.size() == 1)
+  if (selection.size() == 1)
   {
-    segmentation = selectedSegmentations.first();
+    segmentation = selection.first();
   }
 
   // Update if segmentation are different

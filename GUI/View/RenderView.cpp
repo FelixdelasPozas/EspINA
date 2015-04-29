@@ -56,10 +56,11 @@ using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
-RenderView::RenderView(ViewState &state, SelectionSPtr selection, ViewType type)
-: m_view {new QVTKWidget()}
+RenderView::RenderView(ViewState &state, ViewType type)
+: SelectableView(state)
+, m_view {new QVTKWidget()}
 , m_state(state)
-, m_selection{selection}
+, m_selection{state.selection()}
 , m_type {type}
 , m_requiresCameraReset{true}
 , m_requiresFocusChange{false}

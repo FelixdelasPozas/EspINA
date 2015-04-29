@@ -76,7 +76,7 @@ ChannelInspector::ChannelInspector(ChannelAdapterSPtr channel, Support::Context 
 , m_scheduler      {context.scheduler()}
 , m_sources        {context.representationInvalidator()}
 , m_viewState      {context.timer(), context.representationInvalidator()}
-, m_view           {new View2D(m_viewState, std::make_shared<Selection>(), Plane::XY)}
+, m_view           {new View2D(m_viewState, Plane::XY)}
 {
   setupUi(this);
 

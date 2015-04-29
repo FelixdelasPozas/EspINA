@@ -48,11 +48,11 @@ namespace ESPINA
       {}
 
     protected:
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const {};
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const        { return false; };
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const {};
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const { return false; };
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const {};
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const            { return false; };
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -66,7 +66,7 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      virtual bool hasRepresentations() const {};
+      virtual bool hasRepresentations() const { return false; };
 
       virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) {};
 

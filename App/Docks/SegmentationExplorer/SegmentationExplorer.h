@@ -60,8 +60,6 @@ namespace ESPINA
     virtual void reset() override;
 
   protected:
-    virtual void onSelectionSet(SelectionSPtr selection);
-
     /** \brief Adds a layout to the view.
      * \param[in] id string that specifies the layout.
      * \param[in] proxy SegmentationExplorer::Layout raw pointer.

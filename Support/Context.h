@@ -46,7 +46,6 @@ namespace ESPINA
       ModelAdapterSPtr           model() const;
       ROIAccumulatorSPtr         activeROI() const;
       GUI::View::ViewState      &viewState();
-      SelectionSPtr              selection() const;
       ColorEngineSPtr            colorEngine() const;
       QUndoStack *               undoStack();
       RepresentationFactorySList &availableRepresentations();
@@ -67,12 +66,13 @@ namespace ESPINA
       ModelAdapterSPtr     m_model;
       ROIAccumulatorSPtr   m_activeROI;
       SchedulerSPtr        m_scheduler;
-      SelectionSPtr        m_selection;
       QUndoStack           m_undoStack;
       RepresentationFactorySList m_availableRepresentations;
       ModelFactorySPtr   m_factory;
       ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)
     };
+
+    ESPINA::GUI::View::SelectionSPtr contextSelection(Context &context);
   }
 }
 

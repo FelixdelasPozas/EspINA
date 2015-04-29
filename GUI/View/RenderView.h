@@ -233,7 +233,7 @@ namespace ESPINA
      * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit RenderView(GUI::View::ViewState &state, SelectionSPtr selection, ViewType type);
+    explicit RenderView(GUI::View::ViewState &state, ViewType type);
 
     NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
 

@@ -98,7 +98,7 @@ namespace ESPINA
       ColorEngineSPtr m_colorEngine;
       Plane           m_plane;
 
-      static TransparencySelectionHighlighter s_highlighter;
+      static ESPINA::GUI::ColorEngines::TransparencySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA

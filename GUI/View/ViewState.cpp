@@ -29,6 +29,7 @@ ViewState::ViewState(Timer &timer, RepresentationInvalidator &invalidator)
 , m_invalidator(invalidator)
 , m_fitToSlices{true}
 , m_coordinateSystem(std::make_shared<CoordinateSystem>())
+, m_selection(new Selection(invalidator))
 {
   connect(m_coordinateSystem.get(), SIGNAL(resolutionChanged(NmVector3)),
           this,                     SLOT(onResolutionChanged(NmVector3)));
@@ -52,6 +53,12 @@ RepresentationInvalidator &ViewState::representationInvalidator() const
 ESPINA::NmVector3 ViewState::crosshair() const
 {
   return m_crosshair;
+}
+
+//----------------------------------------------------------------------------
+SelectionSPtr ViewState::selection() const
+{
+  return m_selection;
 }
 
 //----------------------------------------------------------------------------

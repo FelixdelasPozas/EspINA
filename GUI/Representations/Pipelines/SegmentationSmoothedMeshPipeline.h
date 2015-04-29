@@ -22,7 +22,7 @@
 #define ESPINA_SEGMENTATION_SMOOTHED_MESH_PIPELINE_H_
 
 // ESPINA
-#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 
 namespace ESPINA
@@ -54,7 +54,7 @@ namespace ESPINA
     private:
       ColorEngineSPtr m_colorEngine;
 
-      static TransparencySelectionHighlighter s_highlighter;
+      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA

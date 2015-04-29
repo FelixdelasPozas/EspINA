@@ -25,6 +25,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::RepresentationUtils;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
 TransparencySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
@@ -80,7 +81,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       auto color       = m_colorEngine->color(segmentation);
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
-      mapToColors->SetLookupTable(s_highlighter.lut(color));
+      mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
       mapToColors->SetNumberOfThreads(1);
       mapToColors->Update();
 

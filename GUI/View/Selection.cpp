@@ -20,11 +20,20 @@
  */
 
 // ESPINA
+#include <Core/Utils/ListUtils.hxx>
 #include "Selection.h"
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View;
+using namespace ESPINA::Core::Utils;
+
+//----------------------------------------------------------------------------
+Selection::Selection(RepresentationInvalidator &invalidator)
+: m_invalidator(invalidator)
+{
+}
 
 //----------------------------------------------------------------------------
 ChannelAdapterList Selection::setChannels(ChannelAdapterList channelList)
@@ -57,7 +66,12 @@ void Selection::set(ChannelAdapterList selection)
     auto modifiedChannels = setChannels(selection);
 
     if(!modifiedChannels.empty())
+    {
       emit selectionStateChanged(modifiedChannels);
+
+      auto viewItems = toList<ViewItemAdapter, ChannelAdapter>(modifiedChannels);
+      m_invalidator.invalidateRepresentations(viewItems);
+    }
 
     emit selectionStateChanged();
   }
@@ -94,7 +108,11 @@ void Selection::set(SegmentationAdapterList selection)
     auto modifiedSegmentations = setSegmentations(selection);
 
     if(!modifiedSegmentations.empty())
+    {
       emit selectionStateChanged(modifiedSegmentations);
+      auto viewItems = toList<ViewItemAdapter, SegmentationAdapter>(modifiedSegmentations);
+      m_invalidator.invalidateRepresentations(viewItems);
+    }
 
     emit selectionStateChanged();
   }
@@ -129,15 +147,27 @@ void Selection::set(ViewItemAdapterList selection)
     if (!modifiedChannels.empty() || !modifiedSegmentations.empty())
       emit selectionStateChanged();
 
+    ViewItemAdapterList viewItems;
     if(!modifiedSegmentations.empty())
+    {
       emit selectionStateChanged(modifiedSegmentations);
+      viewItems << toList<ViewItemAdapter, SegmentationAdapter>(modifiedSegmentations);
+    }
 
     if(!modifiedChannels.empty())
+    {
       emit selectionStateChanged(modifiedChannels);
+      viewItems << toList<ViewItemAdapter, ChannelAdapter>(modifiedChannels);
+    }
 
     emit selectionChanged();
     emit selectionChanged(m_channels);
     emit selectionChanged(m_segmentations);
+
+    if(!viewItems.empty())
+    {
+      m_invalidator.invalidateRepresentations(viewItems);
+    }
   }
 }
 

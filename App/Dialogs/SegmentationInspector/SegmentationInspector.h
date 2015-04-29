@@ -120,12 +120,6 @@ namespace ESPINA
      */
     void updateSelection();
 
-    /** \brief Updates the representations of the item in the view of the dialog.
-     * \param[in] item item adapter raw pointer of the item to update.
-     *
-     */
-    void updateScene(ItemAdapterPtr item);
-
   private:
     void updateWindowTitle();
 

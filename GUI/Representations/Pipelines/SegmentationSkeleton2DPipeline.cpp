@@ -37,7 +37,9 @@
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
+
 namespace ESPINA
 {
   TransparencySelectionHighlighter SegmentationSkeleton2DPipeline::s_highlighter;
@@ -144,15 +146,15 @@ namespace ESPINA
 
         auto color = m_colorEngine->color(segmentation);
         double rgba[4];
-        s_highlighter.lut(color)->GetTableValue(1,rgba);
+        s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
         auto actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-        actor->GetProperty()->SetOpacity(opacity(state));
+        actor->GetProperty()->SetOpacity(rgba[3]);
 
-        // TODO: change width if segmentation is/isn't selected. (4 - selected, 2 - not selected);
-        actor->GetProperty()->SetLineWidth(4);
+        auto width = item->isSelected() ? 4 : 2;
+        actor->GetProperty()->SetLineWidth(width);
         actor->Modified();
 
         actors << actor;

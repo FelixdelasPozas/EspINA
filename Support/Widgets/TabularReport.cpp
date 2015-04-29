@@ -37,6 +37,7 @@
 #include <QTableView>
 
 using namespace ESPINA;
+using namespace ESPINA::Support;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
@@ -72,8 +73,8 @@ protected:
 
 //------------------------------------------------------------------------
 TabularReport::TabularReport(Support::Context &context,
-                             QWidget                *parent,
-                             Qt::WindowFlags         flags)
+                             QWidget          *parent,
+                             Qt::WindowFlags   flags)
 : m_context       (context)
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
@@ -106,8 +107,8 @@ TabularReport::TabularReport(Support::Context &context,
 
   setLayout(layout);
 
-  connect(context.selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
-          this, SLOT(updateSelection(SegmentationAdapterList)));
+  connect(contextSelection(context).get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this,                            SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //------------------------------------------------------------------------
@@ -326,7 +327,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     return;
   }
 
-  ViewItemAdapterList selection;
+  ViewItemAdapterList selectedItems;
 
   if (m_multiSelection)
   {
@@ -342,7 +343,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
 
         if (ItemAdapter::Type::SEGMENTATION == sItem->type())
         {
-          selection << segmentationPtr(sItem);
+          selectedItems << segmentationPtr(sItem);
         }
       }
     }
@@ -368,13 +369,13 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
 
       if (ItemAdapter::Type::SEGMENTATION == sItem->type())
       {
-        selection << segmentationPtr(sItem);
+        selectedItems << segmentationPtr(sItem);
       }
     }
   }
 
   blockSignals(true);
-  m_context.selection()->set(selection);
+  contextSelection(m_context)->set(selectedItems);
   blockSignals(false);
 }
 

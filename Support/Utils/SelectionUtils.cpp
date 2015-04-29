@@ -20,6 +20,7 @@
 #include "SelectionUtils.h"
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View;
 
 //----------------------------------------------------------------------------
 SegmentationAdapterList ESPINA::selectSegmentations(SelectionSPtr selection)

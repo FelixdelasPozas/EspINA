@@ -181,11 +181,11 @@ namespace ESPINA
     {
       m_context.viewState().setEventHandler(nullptr);
 
-      auto selectedSegmentations = m_context.selection()->segmentations();
+      auto selection = contextSelection(m_context)->segmentations();
 
-      if (selectedSegmentations.size() > 0)
+      if (selection.size() > 0)
       {
-        for (auto segmentation :  selectedSegmentations)
+        for (auto segmentation :  selection)
         {
           InputSList inputs;
 

@@ -42,7 +42,7 @@ RawInformationDialog::RawInformationDialog(Support::Context &context)
   auto report = new TabularReport(context, this);
   report->setModel(context.model());
 
-  auto segmentations = defaultReportInputSegmentations(context.selection(), context.model());
+  auto segmentations = defaultReportInputSegmentations(contextSelection(context), context.model());
   report->setFilter(segmentations);
 
   setLayout(new QVBoxLayout());

@@ -4,7 +4,7 @@
  *
  * This file is part of ESPINA.
 
-    ESPINA is free software: you can redistribute it and/or modify
+ ESPINA is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
@@ -27,83 +27,98 @@
 // ESPINA
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/View/RepresentationInvalidator.h>
 
 // Qt
 #include <QObject>
 
 namespace ESPINA
 {
-
-  class EspinaGUI_EXPORT Selection
-  : public QObject
+  namespace GUI
   {
-    Q_OBJECT
+    namespace View
+    {
+      class EspinaGUI_EXPORT Selection: public QObject
+      {
+        Q_OBJECT
+        public:
+          /** \brief Selection class constructor.
+           * \param[in] invalidator reference to the view state representation invalidator.
+           *
+           */
+          explicit Selection(RepresentationInvalidator &invalidator);
 
-  public:
-    /** \brief Sets the given list of channels as selected.
-     * \param[in] selection, list of channel adapter raw pointers.
-     *
-     */
-    void set(ChannelAdapterList selection);
+          /** \brief Sets the given list of channels as selected.
+           * \param[in] selection, list of channel adapter raw pointers.
+           *
+           */
+          void set(ChannelAdapterList selection);
 
-    /** \brief Sets the given list of segmentations as selected.
-     * \param[in] selection, list of segmentation adapter raw pointers.
-     *
-     */
-    void set(SegmentationAdapterList selection);
+          /** \brief Sets the given list of segmentations as selected.
+           * \param[in] selection, list of segmentation adapter raw pointers.
+           *
+           */
+          void set(SegmentationAdapterList selection);
 
-    /** \brief Sets the given list of view items as selected.
-     * \param[in] selection, list of view item adapter raw pointers.
-     *
-     */
-    void set(ViewItemAdapterList selection);
+          /** \brief Sets the given list of view items as selected.
+           * \param[in] selection, list of view item adapter raw pointers.
+           *
+           */
+          void set(ViewItemAdapterList selection);
 
-    /** \brief Returns the list of selected channels.
-     *
-     */
-    ChannelAdapterList channels() const
-    { return m_channels; }
+          /** \brief Returns the list of selected channels.
+           *
+           */
+          ChannelAdapterList channels() const
+          {
+            return m_channels;
+          }
 
-    /** \brief Returns the list of selected segmentations.
-     *
-     */
-    SegmentationAdapterList segmentations() const
-    { return m_segmentations; }
+          /** \brief Returns the list of selected segmentations.
+           *
+           */
+          SegmentationAdapterList segmentations() const
+          {
+            return m_segmentations;
+          }
 
-    /** \brief Returns the list of selected items.
-     *
-     */
-    ViewItemAdapterList items() const;
+          /** \brief Returns the list of selected items.
+           *
+           */
+          ViewItemAdapterList items() const;
 
-    /** \brief Clears the selection.
-     *
-     */
-    void clear();
+          /** \brief Clears the selection.
+           *
+           */
+          void clear();
 
-  signals:
-    void selectionStateChanged();
-    void selectionStateChanged(ChannelAdapterList);
-    void selectionStateChanged(SegmentationAdapterList);
-    void selectionChanged(ChannelAdapterList);
-    void selectionChanged(SegmentationAdapterList);
-    void selectionChanged();
+        signals:
+          void selectionStateChanged();
+          void selectionStateChanged(ChannelAdapterList);
+          void selectionStateChanged(SegmentationAdapterList);
+          void selectionChanged(ChannelAdapterList);
+          void selectionChanged(SegmentationAdapterList);
+          void selectionChanged();
 
-  private:
-    /** \brief Helper method to set the given list of channels as selected.
-     * \param[in] list, list of channel adapter raw pointers.
-     */
-    ChannelAdapterList setChannels(ChannelAdapterList list);
+        private:
+          /** \brief Helper method to set the given list of channels as selected.
+           * \param[in] list, list of channel adapter raw pointers.
+           */
+          ChannelAdapterList setChannels(ChannelAdapterList list);
 
-    /** \brief Helper method to set the given list of segmentations as selected.
-     * \param[in] list, list of segmentation adapter raw pointers.
-     */
-    SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
+          /** \brief Helper method to set the given list of segmentations as selected.
+           * \param[in] list, list of segmentation adapter raw pointers.
+           */
+          SegmentationAdapterList setSegmentations(SegmentationAdapterList list);
 
-    ChannelAdapterList      m_channels;
-    SegmentationAdapterList m_segmentations;
-  };
+          ChannelAdapterList m_channels;
+          SegmentationAdapterList m_segmentations;
+          RepresentationInvalidator &m_invalidator;
+      };
 
-  using SelectionSPtr = std::shared_ptr<Selection>;
+      using SelectionSPtr = std::shared_ptr<Selection>;
+    }
+  }
 }
 
 #endif // ESPINA_SELECTION_H

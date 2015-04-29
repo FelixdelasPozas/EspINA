@@ -41,7 +41,7 @@ namespace ESPINA
     /** \brief RulerTool class constructor.
      * \param[in] viewState
      */
-    explicit SelectionMeasureTool(GUI::View::ViewState &viewState, SelectionSPtr selection);
+    explicit SelectionMeasureTool(GUI::View::ViewState &viewState);
 
     /** \brief RulerTool class destructor.
      *

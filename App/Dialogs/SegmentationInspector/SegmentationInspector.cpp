@@ -27,6 +27,7 @@
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
+#include <GUI/View/ViewState.h>
 #include <Support/Settings/EspinaSettings.h>
 #include <Support/FilterHistory.h>
 #include <Support/Representations/RepresentationUtils.h>
@@ -39,6 +40,8 @@
 #include <QStack>
 #include <QHBoxLayout>
 #include <QDebug>
+
+using namespace ESPINA::Support;
 
 namespace ESPINA
 {
@@ -61,7 +64,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 , m_channelSources      {context.representationInvalidator()}
 , m_segmentationSources {context.representationInvalidator()}
 , m_representations     {context.timer()}
-, m_view                {context.viewState(), context.selection(), true}
+, m_view                {context.viewState(), true}
 , m_tabularReport       {context}
 {
   setupUi(this);
@@ -82,8 +85,8 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList   segmentat
 
   restoreGeometryState();
 
-//   connect(selection().get(), SIGNAL(selectionChanged()),
-//           this,              SLOT(updateSelection()));
+   connect(selection().get(), SIGNAL(selectionChanged()),
+           this,              SLOT(updateSelection()));
 
   updateWindowTitle();
 
@@ -103,13 +106,6 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-}
-
-//------------------------------------------------------------------------
-void SegmentationInspector::updateScene(ItemAdapterPtr item)
-{
-  auto segmentation = segmentationPtr(item);
-  m_view.refresh();
 }
 
 //------------------------------------------------------------------------
@@ -250,7 +246,7 @@ void SegmentationInspector::updateWindowTitle()
 //------------------------------------------------------------------------
 SelectionSPtr SegmentationInspector::selection() const
 {
-  return m_context.selection();
+  return ESPINA::Support::contextSelection(m_context);
 }
 
 
@@ -372,7 +368,7 @@ void SegmentationInspector::updateSelection()
     activeHistory = nullptr;
   }
 
-  auto selectedSegmentations = m_context.selection()->segmentations();
+  auto selectedSegmentations = selection()->segmentations();
 
   if (selectedSegmentations.size() == 1)
   {

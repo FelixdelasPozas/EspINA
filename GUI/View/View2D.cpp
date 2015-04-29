@@ -87,8 +87,8 @@ using namespace ESPINA::GUI::Model::Utils;
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-View2D::View2D(GUI::View::ViewState &state, SelectionSPtr selection, Plane plane)
-: RenderView        {state, selection, ViewType::VIEW_2D}
+View2D::View2D(GUI::View::ViewState &state, Plane plane)
+: RenderView        {state, ViewType::VIEW_2D}
 , m_mainLayout      {new QVBoxLayout()}
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
@@ -672,7 +672,7 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
     case QEvent::ContextMenu:
       {
         auto cme = dynamic_cast<QContextMenuEvent*>(e);
-        if (cme->modifiers() == Qt::CTRL && m_contextMenu.get() && selectionEnabled())
+        if (cme->modifiers() == Qt::CTRL && m_contextMenu.get())
         {
           m_contextMenu->setSelection(currentSelection());
           m_contextMenu->exec(mapToGlobal(cme->pos()));
@@ -725,11 +725,8 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
               }
               else
               {
-                if (selectionEnabled())
-                {
-                  bool appendSelectedItems = me->modifiers() == Qt::SHIFT;
-                  selectPickedItems(xPos, yPos, appendSelectedItems);
-                }
+                bool appendSelectedItems = me->modifiers() == Qt::SHIFT;
+                selectPickedItems(xPos, yPos, appendSelectedItems);
               }
             }
 

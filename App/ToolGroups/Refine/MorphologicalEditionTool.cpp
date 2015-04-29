@@ -265,8 +265,8 @@ MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr fil
   connect(&m_erode, SIGNAL(toggled(bool)),
           this,     SLOT(onErodeToggled(bool)));
 
-  connect(m_context.selection().get(), SIGNAL(selectionChanged()),
-          this,                        SLOT(updateAvailableActionsForSelection()));
+  connect(contextSelection(m_context).get(), SIGNAL(selectionChanged()),
+          this,                              SLOT(updateAvailableActionsForSelection()));
 
   m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), this);
   connect(m_fill, SIGNAL(triggered(bool)),
@@ -321,8 +321,8 @@ void MorphologicalEditionTool::mergeSegmentations()
 {
   m_context.viewState().setEventHandler(nullptr);
 
-  auto selection     = m_context.selection();
-  auto segmentations = selection->segmentations();
+  auto selection = contextSelection(m_context);
+  auto segmentations    = selection->segmentations();
 
   if (segmentations.size() > 1)
   {
@@ -358,8 +358,8 @@ void MorphologicalEditionTool::subtractSegmentations()
 {
   m_context.viewState().setEventHandler(nullptr);
 
-  auto selection     = m_context.selection();
-  auto segmentations = selection->segmentations();
+  auto selection = contextSelection(m_context);
+  auto segmentations    = selection->segmentations();
 
   if (segmentations.size() > 1)
   {
@@ -367,7 +367,9 @@ void MorphologicalEditionTool::subtractSegmentations()
 
     InputSList inputs;
     for(auto segmentation: segmentations)
+    {
       inputs << segmentation->asInput();
+    }
 
     auto filter = m_context.factory()->createFilter<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER);
     filter->setOperation(ImageLogicFilter::Operation::SUBTRACTION);
@@ -417,11 +419,11 @@ void MorphologicalEditionTool::fillHoles()
 {
   m_context.viewState().setEventHandler(nullptr); // NOTE: Reconsider unsetActiveEventHandler
 
-  auto selectedSegmentations = m_context.selection()->segmentations();
+  auto selection = contextSelection(m_context)->segmentations();
 
-  if (selectedSegmentations.size() > 0)
+  if (selection.size() > 0)
   {
-    for (auto segmentation :  selectedSegmentations)
+    for (auto segmentation :  selection)
     {
       InputSList inputs;
 
@@ -502,17 +504,17 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  auto selectedSegmentations = m_context.selection()->segmentations();
+  auto selection = contextSelection(m_context)->segmentations();
 
   bool hasRequiredData = true;
 
-  for(auto segmentation : selectedSegmentations)
+  for(auto segmentation : selection)
   {
     hasRequiredData &= hasVolumetricData(segmentation->output());
   }
 
-  auto morphologicalEnabled = isEnabled() && (selectedSegmentations.size() >  0) && hasRequiredData;
-  auto logicalEnabled       = isEnabled() && (selectedSegmentations.size() >= 2) && hasRequiredData;
+  auto morphologicalEnabled = isEnabled() && (selection.size() >  0) && hasRequiredData;
+  auto logicalEnabled       = isEnabled() && (selection.size() >= 2) && hasRequiredData;
 
   m_addition->setEnabled(logicalEnabled);
   m_subtract->setEnabled(logicalEnabled);

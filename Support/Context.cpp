@@ -36,7 +36,6 @@ Context::Context()
 , m_model(new ModelAdapter())
 , m_activeROI(new ROIAccumulator())
 , m_scheduler(new Scheduler(PERIOD_uSEC))
-, m_selection(new Selection())
 , m_factory(new ModelFactory(espinaCoreFactory(m_scheduler), m_scheduler, &m_invalidator))
 , m_colorEngine(std::make_shared<MultiColorEngine>())
 {
@@ -92,12 +91,6 @@ GUI::View::ViewState &Context::viewState()
 }
 
 //------------------------------------------------------------------------
-SelectionSPtr Context::selection() const
-{
-  return m_selection;
-}
-
-//------------------------------------------------------------------------
 ColorEngineSPtr Context::colorEngine() const
 {
   return m_colorEngine;
@@ -114,3 +107,10 @@ RepresentationInvalidator &Context::representationInvalidator()
 {
   return m_viewState.representationInvalidator();
 }
+
+//------------------------------------------------------------------------
+SelectionSPtr Support::contextSelection(Context &context)
+{
+  return context.viewState().selection();
+}
+

@@ -55,7 +55,7 @@ namespace ESPINA
     private:
       ColorEngineSPtr m_colorEngine;
 
-      static TransparencySelectionHighlighter s_highlighter;
+      static ESPINA::GUI::ColorEngines::TransparencySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA
