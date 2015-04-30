@@ -19,6 +19,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/ChannelInspector/ChannelInspector.h
   Dialogs/CheckAnalysis/CheckAnalysis.h
+  Dialogs/HueSelector/HueSelector.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
   Docks/ChannelExplorer/ChannelExplorer.h
@@ -73,6 +74,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ChannelInspector/ChannelInspector.ui
   Dialogs/CheckAnalysis/CheckAnalysisDialog.ui
+  Dialogs/HueSelector/HueSelectorDialog.ui
   Dialogs/ProblemList/ProblemListDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
@@ -104,6 +106,7 @@ set (ESPINA_SOURCES
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   Dialogs/ChannelInspector/ChannelInspector.cpp
   Dialogs/CheckAnalysis/CheckAnalysis.cpp
+  Dialogs/HueSelector/HueSelector.cpp
   Dialogs/ProblemList/ProblemListDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp

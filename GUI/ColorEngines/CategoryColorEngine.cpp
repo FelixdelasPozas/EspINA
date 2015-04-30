@@ -64,7 +64,7 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
     // TODO 2015-04-20: Check signals
     if (lutName != "")
       connect(seg->category().get(), SIGNAL(colorChanged(CategoryElementPtr)),
-              this, SLOT(updateCategoryColor(CategoryElementPtr)));
+              this,                  SLOT(updateCategoryColor(CategoryElementPtr)));
   }
   else
   {

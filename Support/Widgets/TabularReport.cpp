@@ -341,7 +341,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
       {
         auto sItem = itemAdapter(sortFilter->mapToSource(index));
 
-        if (ItemAdapter::Type::SEGMENTATION == sItem->type())
+        if (isSegmentation(sItem))
         {
           selectedItems << segmentationPtr(sItem);
         }
@@ -367,7 +367,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     {
       auto sItem = itemAdapter(sortFilter->mapToSource(index));
 
-      if (ItemAdapter::Type::SEGMENTATION == sItem->type())
+      if (isSegmentation(sItem))
       {
         selectedItems << segmentationPtr(sItem);
       }

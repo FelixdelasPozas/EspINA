@@ -93,9 +93,21 @@ namespace ESPINA
           void clear();
 
         signals:
+          /** \brief These signals are emitted when the selection changes in any way
+           *  (contents, ordering of the selection, etc). The channels or segmentations
+           *  emitted as value are the ones that have changed its state in any way
+           *  (passed from selected to not selected and vice-versa).
+           *
+           */
           void selectionStateChanged();
           void selectionStateChanged(ChannelAdapterList);
           void selectionStateChanged(SegmentationAdapterList);
+
+          /** \brief These signals are emitted when the contents of the selection have
+           * changed. The channels and segmentations emitted as value are the elements
+           * contained in the selection.
+           *
+           */
           void selectionChanged(ChannelAdapterList);
           void selectionChanged(SegmentationAdapterList);
           void selectionChanged();

@@ -43,6 +43,10 @@ namespace ESPINA
 
           virtual QColor color(const QColor &original, bool highlight = false);
       };
+
+      QColor defaultColor(const Hue color);
+
+      QColor selectedColor(const Hue color);
     
     } // namespace ColorEngines
   } // namespace GUI

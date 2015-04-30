@@ -263,7 +263,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   for(auto index: selectedIndexes)
   {
     auto item = m_layout->item(index);
-    if (ItemAdapter::Type::SEGMENTATION == item->type())
+    if (isSegmentation(item))
     {
       currentSelection << viewItemAdapter(item);
     }

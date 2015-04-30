@@ -20,10 +20,10 @@ const QString Category::Z_DIM = "Dim_Z";
 //------------------------------------------------------------------------
 Category::Category(CategoryPtr parent,
                    const QString &name,
-                   const QString &RGBColor)
+                   const Hue color)
 : m_parent(parent)
 , m_name(name)
-, m_color(RGBColor)
+, m_color(color)
 {
 }
 
@@ -58,24 +58,11 @@ QString Category::classificationName() const
 }
 
 //------------------------------------------------------------------------
-void Category::setColor(const QColor &color)
+void Category::setColor(const Hue color)
 {
-  // NOTE: color needs to be modified to allow modifications in intensity for
-  // 3D views, as opacity can't be used in those views.
-  double rgb[3]{color.redF(), color.greenF(), color.blueF()};
-  double hsv[3];
-
-  vtkMath::RGBToHSV(rgb,hsv);
-  if(hsv[2] > 0.75) hsv[2] = 0.75;
-  QColor finalColor;
-  vtkMath::HSVToRGB(hsv,rgb);
-  finalColor.setRedF(rgb[0]);
-  finalColor.setGreenF(rgb[1]);
-  finalColor.setBlueF(rgb[2]);
-
-  if (m_color != finalColor)
+  if (m_color != color)
   {
-    m_color = finalColor;
+    m_color = color;
   }
 }
 

@@ -19,8 +19,10 @@
 */
 
 // ESPINA
+#include <Dialogs/HueSelector/HueSelector.h>
 #include "ClassificationLayout.h"
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/ReparentCategoryCommand.h>
@@ -36,6 +38,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 class RenameCategoryCommand
@@ -571,12 +574,14 @@ void ClassificationLayout::changeCategoryColor()
 
   auto category = categoryPtr(item);
 
-  QColorDialog colorSelector(m_view->parentWidget());
-  colorSelector.setCurrentColor(category->color());
+  HueSelectorDialog hueSelector(category->color().hue());
+  hueSelector.setModal(true);
 
-  if(colorSelector.exec() == QDialog::Accepted)
+  if(hueSelector.exec() == QDialog::Accepted)
   {
-    category->setData(colorSelector.selectedColor(),
+    auto selectedColor = defaultColor(hueSelector.hueValue());
+
+    category->setData(selectedColor,
                       Qt::DecorationRole);
   }
 }

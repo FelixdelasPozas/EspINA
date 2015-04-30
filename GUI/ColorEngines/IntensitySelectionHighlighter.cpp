@@ -48,3 +48,21 @@ QColor IntensitySelectionHighlighter::color(const QColor& original,
 
   return suggestedColor;
 }
+
+//-----------------------------------------------------------------------------
+QColor ESPINA::GUI::ColorEngines::defaultColor(const Hue color)
+{
+  QColor qcolor;
+  qcolor.setHsv(color, 255, 150);
+
+  return qcolor;
+}
+
+//-----------------------------------------------------------------------------
+QColor ESPINA::GUI::ColorEngines::selectedColor(const Hue color)
+{
+  QColor qcolor;
+  qcolor.setHsv(color, 255, 255);
+
+  return qcolor;
+}

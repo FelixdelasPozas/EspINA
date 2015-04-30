@@ -125,7 +125,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
       CategoryObject info(line);
 
       auto category = classification->createNode(info.name);
-      category->setColor(info.color);
+      category->setColor(info.color.hue());
       categories << category;
     }
     else if (infoType == "Counting Brick")
