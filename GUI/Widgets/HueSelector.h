@@ -44,6 +44,9 @@ class EspinaGUI_EXPORT HueSelector
 		 */
 		~HueSelector();
 
+		void reserveInitialValue(bool value)
+		{ m_reserveInitialValue = value; }
+
 	public slots:
 	  /** \brief Sets the hue to the given value and updates the UI.
 	   * \param[in] h, new hue value.
@@ -74,6 +77,7 @@ class EspinaGUI_EXPORT HueSelector
 		int val;
 		int hue;
 		int sat;
+		bool m_reserveInitialValue; // reserves the first value to -1.
 
 		/** \brief Computes the equivalent value from the x value of the slider of the widget.
 		 * \param[in] y, slider value.

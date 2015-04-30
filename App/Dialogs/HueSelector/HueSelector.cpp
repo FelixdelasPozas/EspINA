@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) {year} Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -18,6 +18,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  
  */
+
 #include <Dialogs/HueSelector/HueSelector.h>
 
 namespace ESPINA
@@ -31,9 +32,11 @@ namespace ESPINA
 
     m_selector = new HueSelector();
     m_selector->setFixedHeight(25);
+    m_selector->reserveInitialValue(true);
     m_selector->setHueValue(value);
     m_selector->setVisible(true);
     m_hueSpinbox->setValue(value);
+    m_hueSpinbox->setMaximum(359);
     m_layout->addWidget(m_selector,1);
 
     connect(m_selector, SIGNAL(newHsv(int, int, int)),
@@ -52,7 +55,7 @@ namespace ESPINA
   void HueSelectorDialog::onSelectorValueChanged(int h, int s, int v)
   {
     m_selector->blockSignals(true);
-    m_hueSpinbox->setValue(h+1);
+    m_hueSpinbox->setValue(h);
     m_selector->blockSignals(false);
   }
 

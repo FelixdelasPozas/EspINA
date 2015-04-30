@@ -166,6 +166,7 @@ set (ESPINA_SOURCES
   Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
+  Undo/ChangeCategoryColorCommand.cpp
   Views/DefaultView.cpp
   )
 

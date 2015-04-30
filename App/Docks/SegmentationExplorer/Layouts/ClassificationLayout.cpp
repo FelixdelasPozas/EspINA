@@ -28,6 +28,7 @@
 #include <Undo/ReparentCategoryCommand.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
+#include <Undo/ChangeCategoryColorCommand.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
@@ -579,10 +580,12 @@ void ClassificationLayout::changeCategoryColor()
 
   if(hueSelector.exec() == QDialog::Accepted)
   {
-    auto selectedColor = defaultColor(hueSelector.hueValue());
-
-    category->setData(selectedColor,
-                      Qt::DecorationRole);
+    m_context.undoStack()->beginMacro("Change category color");
+    m_context.undoStack()->push(new ChangeCategoryColorCommand(m_context.model(),
+                                                               m_context.representationInvalidator(),
+                                                               category,
+                                                               hueSelector.hueValue()));
+    m_context.undoStack()->endMacro();
   }
 }
 

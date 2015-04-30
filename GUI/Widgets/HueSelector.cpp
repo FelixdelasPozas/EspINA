@@ -32,7 +32,14 @@ using namespace ESPINA;
 int HueSelector::x2val(int x)
 {
   double value = (x * 360)/width();
-  return static_cast<int>(value--);
+  if(m_reserveInitialValue)
+  {
+    return static_cast<int>(value--);
+  }
+  else
+  {
+    return static_cast<int>(value);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -43,9 +50,10 @@ int HueSelector::val2x(int v)
 
 //------------------------------------------------------------------------
 HueSelector::HueSelector(QWidget* parent)
-    : QWidget(parent)
+: QWidget(parent)
+, m_reserveInitialValue{true}
 {
-  hue = 359;
+  hue = 0;
   val = 255;
   sat = 255;
   pix = 0;
@@ -98,7 +106,7 @@ void HueSelector::paintEvent(QPaintEvent *)
       int value = x2val(X);
       for (int Y = 0; Y < hi; Y++)
       {
-        if (0 == value)
+        if ((0 == value) && m_reserveInitialValue)
           img.setPixel(X, Y, QColor(0,0,0).rgb());
         else
         {
