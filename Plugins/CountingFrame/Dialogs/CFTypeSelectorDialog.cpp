@@ -41,7 +41,7 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
   setupUi(this);
 
   adaptiveRadio->setChecked(true);
-  ortogonalRadio->setChecked(false);
+  orthogonalRadio->setChecked(false);
 
   balckLabel->setEnabled(true);
   colorBox  ->setEnabled(true);
@@ -60,7 +60,7 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
   connect(adaptiveRadio, SIGNAL(toggled(bool)),
           this,          SLOT(radioChanged(bool)));
 
-  connect(ortogonalRadio, SIGNAL(toggled(bool)),
+  connect(orthogonalRadio, SIGNAL(toggled(bool)),
           this,           SLOT(radioChanged(bool)));
 
   connect(useCategoryConstraint, SIGNAL(toggled(bool)),
@@ -90,7 +90,7 @@ void CFTypeSelectorDialog::setType(CFType type)
 {
   if (ORTOGONAL == type)
   {
-    ortogonalRadio->setChecked(true);
+    orthogonalRadio->setChecked(true);
   }
   else
   {
@@ -163,7 +163,7 @@ void CFTypeSelectorDialog::radioChanged(bool value)
   bool adaptiveChecked = sender() == adaptiveRadio;
   if (adaptiveChecked)
   {
-    ortogonalRadio->setChecked(!value);
+    orthogonalRadio->setChecked(!value);
   } else
   {
     adaptiveRadio->setChecked(!value);

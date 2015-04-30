@@ -24,6 +24,7 @@
 #include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
 RepresentationManager::RepresentationManager(ViewTypeFlags supportedViews, ManagerFlags flags)

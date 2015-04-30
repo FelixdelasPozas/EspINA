@@ -60,7 +60,6 @@ void BasicRepresentationPool::setCrosshairImplementation(const NmVector3 &crossh
 //-----------------------------------------------------------------------------
 void BasicRepresentationPool::setSceneResolutionImplementation(const NmVector3 &resolution, TimeStamp t)
 {
-
   m_updater->invalidate();
   m_updater->setResolution(resolution);
   m_updater->setTimeStamp(t);

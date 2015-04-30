@@ -57,6 +57,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Representations;
 
 //-----------------------------------------------------------------------------
 View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors)

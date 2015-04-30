@@ -20,8 +20,9 @@
 #include "Slice3DManager.h"
 #include <vtkProp.h>
 
-using namespace ESPINA;
 using namespace std;
+using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 
 //----------------------------------------------------------------------------
 Slice3DManager::Slice3DManager(RepresentationPoolSPtr poolXY,

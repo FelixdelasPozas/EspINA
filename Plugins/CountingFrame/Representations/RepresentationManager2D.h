@@ -29,8 +29,8 @@ namespace ESPINA
   namespace CF
   {
     class RepresentationManager2D
-    : public RepresentationManager
-    , public ESPINA::RepresentationManager2D
+    : public GUI::Representations::RepresentationManager
+    , public GUI::Representations::RepresentationManager2D
     {
       Q_OBJECT
     public:
@@ -44,15 +44,16 @@ namespace ESPINA
 
       virtual void setPlane(Plane plane) override;
 
-      virtual void setRepresentationDepth(Nm depth) override
-      {}
+      virtual void setRepresentationDepth(Nm depth) override;
 
     protected:
-      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const        { return false; };
+      virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const override;
 
-      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const { return false; };
+      virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const override
+      { return true; }
 
-      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const            { return false; };
+      virtual bool acceptSceneBoundsChange(const Bounds &bounds) const override
+      { return false; }
 
     private slots:
       /** \brief Helper method to update internal data when a CF is created.
@@ -66,25 +67,27 @@ namespace ESPINA
       void onCountingFrameDeleted(CountingFrame *cf);
 
     private:
-      virtual bool hasRepresentations() const { return false; };
+      virtual bool hasRepresentations() const override;
 
-      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) {};
+      virtual void changeCrosshair(const NmVector3& crosshair, TimeStamp t) override;
 
-      virtual void onShow(TimeStamp t);
+      virtual void updateRepresentations(const NmVector3 &crosshair, const NmVector3 &resolution, const Bounds &bounds, TimeStamp t) override;
 
-      virtual void onHide(TimeStamp t);
+      virtual void onShow(TimeStamp t) override;
 
-      virtual void displayRepresentations(TimeStamp t) {};
+      virtual void onHide(TimeStamp t) override;
 
-      virtual void hideRepresentations(TimeStamp t) {};
+      virtual void displayRepresentations(TimeStamp t) override;
 
-      virtual RepresentationManagerSPtr cloneImplementation();
+      virtual void hideRepresentations(TimeStamp t) override;
+
+      virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation() override;
 
       Nm slicingPosition(TimeStamp t) const;
 
       vtkCountingFrameSliceWidget *createWidget(CountingFrame *cf);
 
-      void showWidget(vtkCountingFrameSliceWidget *widget);
+      void showWidget(vtkCountingFrameSliceWidget *widget, TimeStamp t);
 
       void hideWidget(vtkCountingFrameSliceWidget *widget);
 
@@ -94,6 +97,7 @@ namespace ESPINA
 
     private:
       Plane     m_plane;
+      Nm        m_depth;
       NmVector3 m_resolution;
       RangedValue<NmVector3> m_crosshairs;
 

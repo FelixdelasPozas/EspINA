@@ -34,6 +34,9 @@
 #include <vtkProperty.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Managers;
+
 //-----------------------------------------------------------------------------
 CrosshairManager::CrosshairManager()
 : RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}

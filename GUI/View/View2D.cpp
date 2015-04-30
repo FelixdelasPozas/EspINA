@@ -82,6 +82,7 @@
 #include <vtkRendererCollection.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------

@@ -21,8 +21,8 @@ qt4_wrap_cpp(GUI_MOC
   Representations/PipelineSourcesFilter.h
   Representations/PipelineSources.h
   Representations/RepresentationManager.h
-  Representations/PoolManager.h
-  Representations/PassiveActorManager.h
+  Representations/Managers/PoolManager.h
+  Representations/Managers/PassiveActorManager.h
   Representations/RepresentationPool.h
   Representations/RepresentationUpdater.h
   Representations/RepresentationWindow.h
@@ -132,8 +132,8 @@ set (GUI_SOURCES
   Representations/PipelineSources.cpp
   Representations/ManualPipelineSources.cpp
   Representations/RepresentationManager.cpp
-  Representations/PoolManager.cpp
-  Representations/PassiveActorManager.cpp
+  Representations/Managers/PoolManager.cpp
+  Representations/Managers/PassiveActorManager.cpp
   Representations/RepresentationPipeline.cpp
   Representations/RepresentationPool.cpp
   Representations/RepresentationState.cpp

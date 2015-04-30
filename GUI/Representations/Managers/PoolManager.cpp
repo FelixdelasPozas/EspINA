@@ -18,12 +18,13 @@
 */
 
 // ESPINA
-#include <GUI/Representations/PoolManager.h>
+#include <GUI/Representations/Managers/PoolManager.h>
 #include <GUI/View/RenderView.h>
 
 #include <vtkProp.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
 PoolManager::PoolManager(ViewTypeFlags supportedViews, ManagerFlags flags)

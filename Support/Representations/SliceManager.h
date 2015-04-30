@@ -22,13 +22,13 @@
 
 // ESPINA
 #include <GUI/Representations/RepresentationPool.h>
-#include <GUI/Representations/PoolManager.h>
+#include <GUI/Representations/Managers/PoolManager.h>
 
 namespace ESPINA
 {
   class SliceManager
-  : public PoolManager
-  , public RepresentationManager2D
+  : public GUI::Representations::Managers::PoolManager
+  , public GUI::Representations::RepresentationManager2D
   {
   public:
     SliceManager(RepresentationPoolSPtr poolXY,
@@ -68,7 +68,7 @@ namespace ESPINA
 
     void onHide(TimeStamp t);
 
-    virtual RepresentationManagerSPtr cloneImplementation();
+    virtual GUI::Representations::RepresentationManagerSPtr cloneImplementation();
 
     void connectPools();
 

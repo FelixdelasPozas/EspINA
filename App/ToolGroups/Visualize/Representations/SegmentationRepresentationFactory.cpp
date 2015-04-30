@@ -32,7 +32,7 @@
 #include <GUI/Representations/Pools/BasicRepresentationPool.h>
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
 #include <GUI/Representations/Settings/SegmentationSlicePoolSettings.h>
-#include <GUI/Representations/PassiveActorManager.h>
+#include <GUI/Representations/Managers/PassiveActorManager.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -40,6 +40,8 @@
 
 using namespace ESPINA;
 using namespace ESPINA::Support::Representations::Utils;
+using ESPINA::GUI::Representations::Managers::PassiveActorManager;
+using ESPINA::GUI::Representations::RepresentationManager;
 
 const unsigned SegmentationRepresentationFactory::WINDOW_SIZE = 5;
 

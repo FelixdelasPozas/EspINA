@@ -40,6 +40,7 @@
 #include <QMenu>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Support::Representations::Utils;
 
 const QString DEFAULT_VIEW_SETTINGS = "DefaultView";

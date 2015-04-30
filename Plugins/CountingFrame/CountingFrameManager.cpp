@@ -22,7 +22,7 @@
 #include "CountingFrameManager.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/AdaptiveCountingFrame.h"
-#include "CountingFrames/OrtogonalCountingFrame.h"
+#include "CountingFrames/OrthogonalCountingFrame.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
 
@@ -60,7 +60,7 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
 
   if (id.isEmpty())
   {
-    id = "Global";
+    id = tr("Global");
   }
 
   return suggestedId(id);

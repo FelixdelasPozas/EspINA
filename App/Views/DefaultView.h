@@ -100,7 +100,7 @@ namespace ESPINA
   private:
     void initView(RenderView *view, QMainWindow *parent);
 
-    void addRepresentationManager(RepresentationManagerSPtr manager);
+    void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
     void addRepresentationPool(RepresentationPoolSPtr pool, const QString &group);
 
@@ -114,7 +114,7 @@ namespace ESPINA
     RepresentationPoolSList    m_channelPools;
     RepresentationPoolSList    m_segmentationPools;
     RepresentationPoolSList    m_autonomousPools;
-    RepresentationManagerSList m_repManagers;
+    GUI::Representations::RepresentationManagerSList m_repManagers;
 
     View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
     View3D *m_view3D;

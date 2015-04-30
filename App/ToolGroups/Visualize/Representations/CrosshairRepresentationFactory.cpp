@@ -25,6 +25,7 @@
 #include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 
 using namespace ESPINA;
+using ESPINA::GUI::Representations::Managers::CrosshairManager;
 
 //----------------------------------------------------------------------------
 Representation CrosshairRepresentationFactory::doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const

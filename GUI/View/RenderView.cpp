@@ -53,6 +53,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::View::Widgets;
+using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
@@ -165,11 +166,11 @@ void RenderView::selectPickedItems(int x, int y, bool append)
 
     if (isSegmentation(pickedItem))
     {
-      segmentations << pickedItem;
+      segmentations << dynamic_cast<ViewItemAdapterPtr>(pickedItem);
     }
     else if (isChannel(pickedItem))
     {
-      channels << pickedItem;
+      channels << dynamic_cast<ViewItemAdapterPtr>(pickedItem);
     }
   }
 

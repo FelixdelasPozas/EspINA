@@ -305,8 +305,8 @@ Panel::Panel(CountingFrameManager *manager,
   connect(m_context.model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
           this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
 
-// TODO   connect(m_viewManager.get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
-//           this, SLOT(onChannelChanged(ChannelAdapterPtr)));
+  connect(m_context.selection().get(), SIGNAL(activeChannelChanged(ChannelAdapterPtr)),
+          this,                        SLOT(onChannelChanged(ChannelAdapterPtr)));
 }
 
 //------------------------------------------------------------------------
@@ -601,7 +601,7 @@ void Panel::onChannelChanged(ChannelAdapterPtr channel)
 //------------------------------------------------------------------------
 void Panel::showInfo(CountingFrame* activeCF)
 {
-  if (!activeCF || !m_context.ActiveChannel)
+  if (!activeCF || !m_context.selection()->activeChannel())
     return;
 
   m_activeCF = activeCF;

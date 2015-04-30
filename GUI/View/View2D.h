@@ -179,7 +179,7 @@ namespace ESPINA
 
     virtual void removeActor(vtkProp *actor) override;
 
-    virtual void updateViewActions(RepresentationManager::ManagerFlags flags) override;
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
 
     virtual void resetCameraImplementation();
 
@@ -189,7 +189,7 @@ namespace ESPINA
 
     virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
 
-    virtual void configureManager(RepresentationManagerSPtr manager);
+    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager);
 
     virtual void normalizeWorldPosition(NmVector3 &point) const;
 
