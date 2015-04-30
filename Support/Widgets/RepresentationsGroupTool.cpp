@@ -18,6 +18,7 @@
  */
 
 #include "RepresentationsGroupTool.h"
+#include "Styles.h"
 
 #include <QAction>
 #include <QWidgetAction>
@@ -26,10 +27,11 @@
 #include <QLabel>
 #include <QMouseEvent>
 
-using namespace ESPINA;
-
 #include <QDebug>
 #include <QEvent>
+
+using namespace ESPINA;
+using namespace ESPINA::Support::Widgets;
 
 //----------------------------------------------------------------------------
 RepresentationsGroupTool::RepresentationsGroupTool(const QString &icon, const QString &description, Timer &timer)
@@ -61,8 +63,10 @@ RepresentationsGroupTool::RepresentationsGroupTool(const QIcon &icon, const QStr
   auto layout = new QHBoxLayout();
   layout->addLayout(m_layout2D);
   layout->addLayout(m_layout3D);
+  layout->addWidget(createSeparator(""));
 
   m_contentWidget->setLayout(layout);
+  Styles::setNestedStyle(m_contentWidget);
 
   m_content->setDefaultWidget(m_contentWidget);
   m_content->setVisible(m_globalSwitch->isChecked());

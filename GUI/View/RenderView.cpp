@@ -65,6 +65,7 @@ RenderView::RenderView(ViewState &state, ViewType type)
 , m_type {type}
 , m_requiresCameraReset{true}
 , m_requiresFocusChange{false}
+, m_requiresRender{false}
 , m_lastRender{Timer::INVALID_TIME_STAMP}
 {
   connectSignals();
@@ -380,6 +381,8 @@ void RenderView::resetCamera()
 //-----------------------------------------------------------------------------
 void RenderView::refresh()
 {
+  m_requiresRender = true;
+
   onRenderRequest();
 }
 
@@ -404,14 +407,20 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(crosshairChanged(NmVector3,TimeStamp)),
           this,     SLOT(onCrosshairChanged(NmVector3)));
 
-  connect (&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
-           this,     SLOT(onSceneResolutionChanged(NmVector3)));
+  connect(&m_state, SIGNAL(sceneResolutionChanged(NmVector3,TimeStamp)),
+          this,     SLOT(onSceneResolutionChanged(NmVector3)));
 
-  connect (&m_state, SIGNAL(widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
-           this,     SLOT(onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
+          this,     SLOT(onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
 
-  connect (&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
-           this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+  connect(&m_state, SIGNAL(widgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)),
+          this,     SLOT(onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr, TimeStamp)));
+
+  connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
+          this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
+
+  connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
+          this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
 
   connect(&m_state, SIGNAL(viewFocusChanged()),
           this,     SLOT(onFocusChanged()));
@@ -462,15 +471,17 @@ void RenderView::onRenderRequest()
   auto readyManagers = pendingManagers();
   auto renderTime    = latestReadyTimeStamp(readyManagers);
 
-  qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
+  //qDebug() << viewName() << ": Ready Managers:" << readyManagers.size();
   if (m_lastRender < renderTime)
   {
+    qDebug() << viewName() << "Rendering period" << m_timer.elapsed();
+    m_timer.restart();
     display(readyManagers,  renderTime);
 
-    // update actions
-    qDebug() << viewName() << ": Update actors:" << renderTime;
+    //qDebug() << viewName() << ": Update actors:" << renderTime;
 
-    m_lastRender = renderTime;
+    m_requiresRender = true;
+    m_lastRender     = renderTime;
 
     deleteInactiveWidgetManagers();
   }
@@ -478,28 +489,35 @@ void RenderView::onRenderRequest()
   if (hasVisibleRepresentations() && requiresCameraReset())
   {
     resetCameraImplementation();
-    qDebug() << viewName() << ": Reset camera:" << renderTime;
+    //qDebug() << viewName() << ": Reset camera:" << renderTime;
 
     m_requiresCameraReset = false;
+    m_requiresRender      = true;
   }
 
   if(m_requiresFocusChange)
   {
-    m_requiresFocusChange = false;
     if(!isCrosshairPointVisible())
     {
       moveCamera(crosshair());
+      m_requiresRender = true;
     }
+    m_requiresFocusChange = false;
   }
 
   updateViewActions(managerFlags());
 
   refreshViewImplementation();
 
-  qDebug() << viewName() << "Render at" << renderTime;
-  mainRenderer()->ResetCameraClippingRange();
-  renderWindow()->Render();
-  m_view->update();
+  if (m_requiresRender)
+  {
+    qDebug() << viewName() << "Rendering frame" << renderTime;
+    mainRenderer()->ResetCameraClippingRange();
+    renderWindow()->Render();
+    m_view->update();
+
+    m_requiresRender = false;
+  }
 }
 
 //-----------------------------------------------------------------------------

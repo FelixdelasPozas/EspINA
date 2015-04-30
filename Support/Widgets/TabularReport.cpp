@@ -107,8 +107,8 @@ TabularReport::TabularReport(Support::Context &context,
 
   setLayout(layout);
 
-  connect(contextSelection(context).get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
-          this,                            SLOT(updateSelection(SegmentationAdapterList)));
+  connect(getSelection(context).get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this,                        SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //------------------------------------------------------------------------
@@ -375,7 +375,7 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
   }
 
   blockSignals(true);
-  contextSelection(m_context)->set(selectedItems);
+  getSelection(m_context)->set(selectedItems);
   blockSignals(false);
 }
 

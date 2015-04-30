@@ -24,14 +24,11 @@
 #include <Core/Utils/Spatial.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
-#include <GUI/Model/CategoryAdapter.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/Selection.h>
-#include <App/ToolGroups/View/Representations/SegmentationSlice/SegmentationSlicePipeline.h>
 #include <Support/Representations/RepresentationUtils.h>
 
 // Qt

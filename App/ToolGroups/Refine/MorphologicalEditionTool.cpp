@@ -265,7 +265,7 @@ MorphologicalEditionTool::MorphologicalEditionTool(FilterDelegateFactorySPtr fil
   connect(&m_erode, SIGNAL(toggled(bool)),
           this,     SLOT(onErodeToggled(bool)));
 
-  connect(contextSelection(m_context).get(), SIGNAL(selectionChanged()),
+  connect(getSelection(m_context).get(), SIGNAL(selectionChanged()),
           this,                              SLOT(updateAvailableActionsForSelection()));
 
   m_fill = new QAction(QIcon(":/espina/fillHoles.svg"), tr("Fill internal holes in selected segmentations"), this);
@@ -321,7 +321,7 @@ void MorphologicalEditionTool::mergeSegmentations()
 {
   m_context.viewState().setEventHandler(nullptr);
 
-  auto selection = contextSelection(m_context);
+  auto selection = getSelection(m_context);
   auto segmentations    = selection->segmentations();
 
   if (segmentations.size() > 1)
@@ -358,7 +358,7 @@ void MorphologicalEditionTool::subtractSegmentations()
 {
   m_context.viewState().setEventHandler(nullptr);
 
-  auto selection = contextSelection(m_context);
+  auto selection = getSelection(m_context);
   auto segmentations    = selection->segmentations();
 
   if (segmentations.size() > 1)
@@ -419,7 +419,7 @@ void MorphologicalEditionTool::fillHoles()
 {
   m_context.viewState().setEventHandler(nullptr); // NOTE: Reconsider unsetActiveEventHandler
 
-  auto selection = contextSelection(m_context)->segmentations();
+  auto selection = getSelection(m_context)->segmentations();
 
   if (selection.size() > 0)
   {
@@ -504,7 +504,7 @@ void MorphologicalEditionTool::onErodeToggled(bool toggled)
 //------------------------------------------------------------------------
 void MorphologicalEditionTool::updateAvailableActionsForSelection()
 {
-  auto selection = contextSelection(m_context)->segmentations();
+  auto selection = getSelection(m_context)->segmentations();
 
   bool hasRequiredData = true;
 

@@ -459,7 +459,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   emit analysisAboutToBeClosed();
 
-  contextSelection(m_context)->clear();
+  getSelection(m_context)->clear();
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 
@@ -1404,9 +1404,9 @@ void EspinaMainWindow::assignActiveChannel()
 
   if (!model->channels().isEmpty())
   {
-    auto activeChannel = model->channels().first().get();
+    auto channel = model->channels().first().get();
 
-    m_context.selection()->setActiveChannel(activeChannel);
+    getSelection(m_context)->setActiveChannel(channel);
   }
 }
 

@@ -77,6 +77,7 @@ set (Support_SOURCES
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
   Widgets/Tool.cpp
+  Widgets/Styles.cpp
   Widgets/RepresentationsGroupTool.cpp
   Widgets/RepresentationTools.cpp
   )

@@ -108,8 +108,19 @@ RepresentationInvalidator &Context::representationInvalidator()
 }
 
 //------------------------------------------------------------------------
-SelectionSPtr Support::contextSelection(Context &context)
+SelectionSPtr Support::getSelection(Context &context)
 {
   return context.viewState().selection();
 }
 
+//------------------------------------------------------------------------
+ChannelAdapterPtr Support::getActiveChannel(Context &context)
+{
+  return getSelection(context)->activeChannel();
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterList Support::getSelectedSegmentations(Context &context)
+{
+  return getSelection(context)->segmentations();
+}

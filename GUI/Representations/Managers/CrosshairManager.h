@@ -49,7 +49,7 @@ namespace ESPINA
           /** \brief Crosshair class protected constructor.
            *
            */
-          explicit CrosshairManager();
+          explicit CrosshairManager(ViewTypeFlags supportedViews);
 
           virtual TimeRange readyRangeImplementation() const;
 

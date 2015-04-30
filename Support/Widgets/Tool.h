@@ -56,6 +56,8 @@ namespace ESPINA
 
     virtual QList<QAction *> actions() const = 0;
 
+    static QPushButton *createToolButton(const QString &icon, const QString &tooltip);
+
     static QPushButton *createToolButton(const QIcon &icon, const QString &tooltip);
 
     virtual void abortOperation() = 0;

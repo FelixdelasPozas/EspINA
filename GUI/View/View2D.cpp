@@ -938,47 +938,6 @@ void View2D::setScaleVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void View2D::addSliceSelectors(SliceSelectorSPtr widget,
-                               SliceSelectionType selectors)
-{
-  auto sliceSelector = widget->clone();
-
-  sliceSelector->setPlane(m_plane);
-  sliceSelector->setView (this);
-
-  QWidget *fromWidget = sliceSelector->leftWidget();
-  QWidget *toWidget   = sliceSelector->rightWidget();
-
-  bool showFrom = selectors.testFlag(SliceSelectionTypes::From);
-  bool showTo   = selectors.testFlag(SliceSelectionTypes::To  );
-
-  fromWidget->setVisible(showFrom);
-  toWidget  ->setVisible(showTo  );
-
-  m_fromLayout->addWidget (fromWidget );
-  m_toLayout->insertWidget(0, toWidget);
-
-  m_sliceSelectors << SliceSelectorPair(widget, sliceSelector);
-}
-
-//-----------------------------------------------------------------------------
-void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
-{
-  SliceSelectorPair requestedsliceSelectors;
-
-  for (auto sliceSelectors : m_sliceSelectors)
-  {
-    if (sliceSelectors.first == widget)
-    {
-      requestedsliceSelectors = sliceSelectors;
-      break;
-    }
-  }
-
-  m_sliceSelectors.removeOne(requestedsliceSelectors);
-}
-
-//-----------------------------------------------------------------------------
 void View2D::updateScaleValue()
 {
   double *world,   worldWidth;
@@ -1059,6 +1018,41 @@ void View2D::onSceneBoundsChanged(const Bounds &bounds)
 
   updateWidgetLimits(bounds);
 }
+
+//-----------------------------------------------------------------------------
+void View2D::addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type)
+{
+  auto sliceSelector = selector->clone(this, m_plane);
+
+  auto fromWidget = sliceSelector->lowerWidget();
+  auto toWidget   = sliceSelector->rightWidget();
+
+  fromWidget->setVisible(type.testFlag(SliceSelectionTypes::From));
+  toWidget  ->setVisible(type.testFlag(SliceSelectionTypes::To));
+
+  m_fromLayout->addWidget (fromWidget );
+  m_toLayout->insertWidget(0, toWidget);
+
+  m_sliceSelectors << SliceSelectorPair(selector, sliceSelector);
+}
+
+//-----------------------------------------------------------------------------
+void View2D::removeSliceSelectors(SliceSelectorSPtr widget)
+{
+  SliceSelectorPair requestedsliceSelectors;
+
+  for (auto sliceSelectors : m_sliceSelectors)
+  {
+    if (sliceSelectors.first == widget)
+    {
+      requestedsliceSelectors = sliceSelectors;
+      break;
+    }
+  }
+
+  m_sliceSelectors.removeOne(requestedsliceSelectors);
+}
+
 
 //-----------------------------------------------------------------------------
 void View2D::setCameraState(CameraState state)

@@ -175,6 +175,18 @@ void ViewState::removeWidgets(Widgets::WidgetFactorySPtr factory)
 }
 
 //----------------------------------------------------------------------------
+void ViewState::addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type)
+{
+  emit sliceSelectorAdded(selector, type);
+}
+
+//----------------------------------------------------------------------------
+void ViewState::removeSliceSelectors(SliceSelectorSPtr selector)
+{
+  emit sliceSelectorRemoved(selector);
+}
+
+//----------------------------------------------------------------------------
 CoordinateSystemSPtr ViewState::coordinateSystem() const
 {
   return m_coordinateSystem;

@@ -46,7 +46,7 @@ qt4_wrap_cpp(GUI_MOC
   View/Widgets/PlanarSplit/PlanarSplitWidget.h
   View/Widgets/OrthogonalRegion/Widget2D.h
   View/Widgets/OrthogonalRegion/Representation.h
-  View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h
+  View/Widgets/OrthogonalRegion/SliceSelector.h
   View/Widgets/ROI/ROIWidget.h
   View/Widgets/Skeleton/SkeletonWidget.h
   View/CoordinateSystem.h
@@ -179,7 +179,7 @@ set (GUI_SOURCES
   View/Widgets/PlanarSplit/vtkPlanarSplitWidget.cpp
   View/Widgets/OrthogonalRegion/Representation.cpp
   View/Widgets/OrthogonalRegion/Widget2D.cpp
-  View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.cpp
+  View/Widgets/OrthogonalRegion/SliceSelector.cpp
   View/Widgets/OrthogonalRegion/vtkWidget2D.cpp
   View/Widgets/OrthogonalRegion/vtkRepresentation2D.cpp
   View/Widgets/ROI/ROIWidget.cpp

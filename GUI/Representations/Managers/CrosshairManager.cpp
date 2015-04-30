@@ -38,8 +38,8 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
-CrosshairManager::CrosshairManager()
-: RepresentationManager{ViewType::VIEW_2D|ViewType::VIEW_3D, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
+CrosshairManager::CrosshairManager(ViewTypeFlags supportedViews)
+: RepresentationManager{supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
 {
   double colors[3][3]{ { 0, 1, 1 }, { 0, 0, 1 },  { 1, 0, 1 } };
 
@@ -62,10 +62,6 @@ CrosshairManager::CrosshairManager()
     m_actors[index]->GetProperty()->SetColor(colors[index]);
     m_actors[index]->SetPickable(false);
   }
-
-  setName(QObject::tr("Crosshair representation"));
-  setDescription(QObject::tr("Shows/Hides the crosshair in the views."));
-  setIcon(QIcon(":espina/crosshair_planes.svg"));
 }
 
 //-----------------------------------------------------------------------------
@@ -170,9 +166,7 @@ void CrosshairManager::onHide(TimeStamp t)
 //-----------------------------------------------------------------------------
 RepresentationManagerSPtr CrosshairManager::cloneImplementation()
 {
-  auto manager = std::make_shared<CrosshairManager>();
-
-  return manager;
+  return std::make_shared<CrosshairManager>(supportedViews());
 }
 
 //-----------------------------------------------------------------------------

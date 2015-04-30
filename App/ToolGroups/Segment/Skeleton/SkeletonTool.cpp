@@ -95,7 +95,7 @@ namespace ESPINA
     connect(m_action, SIGNAL(triggered(bool)),
             this,     SLOT(initTool(bool)));
 
-    connect(contextSelection(m_context).get(), SIGNAL(selectionChanged()),
+    connect(getSelection(m_context).get(), SIGNAL(selectionChanged()),
             this,                       SLOT(updateState()));
 
     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
@@ -129,7 +129,7 @@ namespace ESPINA
   {
     if(!isEnabled()) return;
 
-    auto selection = contextSelection(m_context)->segmentations();
+    auto selection = getSelection(m_context)->segmentations();
     auto validItem = (selection.size() <= 1);
 
     m_action->setEnabled(validItem);
@@ -146,7 +146,7 @@ namespace ESPINA
     }
     else
     {
-      auto activeChannel = m_context.selection()->activeChannel();
+      auto activeChannel = getActiveChannel(m_context);
 
       if(activeChannel)
       {
@@ -187,7 +187,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateReferenceItem()
   {
-    auto selectedSegs = contextSelection(m_context)->segmentations();
+    auto selectedSegs = getSelection(m_context)->segmentations();
 
     if (selectedSegs.size() != 1)
     {
@@ -227,7 +227,7 @@ namespace ESPINA
   {
     if (value)
     {
-      auto activeChannel = m_context.selection()->activeChannel();
+      auto activeChannel = getActiveChannel(m_context);
 
       if(!activeChannel) return;
 
@@ -247,7 +247,7 @@ namespace ESPINA
 
       auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-      auto selection = contextSelection(m_context)->segmentations();
+      auto selection = getSelection(m_context)->segmentations();
       auto color     = m_categorySelector->selectedCategory()->color();
       if(selection.size() == 1)
       {
@@ -350,7 +350,7 @@ namespace ESPINA
           selection << m_item;
 
           m_item->invalidateRepresentations();
-          contextSelection(m_context)->set(selection);
+          getSelection(m_context)->set(selection);
         }
       }
     }
@@ -492,7 +492,7 @@ namespace ESPINA
     {
       if(polyData->GetNumberOfLines() == 0) return;
 
-      auto activeChannel = m_context.selection()->activeChannel();
+      auto activeChannel = getActiveChannel(m_context);
 
       auto spacing  = activeChannel->output()->spacing();
       auto filter   = m_context.factory()->createFilter<SourceFilter>(InputSList(), SOURCE_FILTER);
@@ -537,7 +537,7 @@ namespace ESPINA
       SegmentationAdapterList selection;
       selection << m_item;
 
-      contextSelection(m_context)->set(selection);
+      getSelection(m_context)->set(selection);
       m_item->invalidateRepresentations();
     }
 

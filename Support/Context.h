@@ -70,7 +70,11 @@ namespace ESPINA
       ColorEngineSPtr    m_colorEngine; //TODO: Decide how to deal with ColorEngines (probably split ColorEngineMenu into ColorEngine and Menu)
     };
 
-    ESPINA::GUI::View::SelectionSPtr contextSelection(Context &context);
+    ESPINA::GUI::View::SelectionSPtr getSelection(Context &context);
+
+    ChannelAdapterPtr getActiveChannel(Context &context);
+
+    SegmentationAdapterList getSelectedSegmentations(Context &context);
   }
 }
 

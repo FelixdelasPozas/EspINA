@@ -81,7 +81,7 @@ ManualEditionTool::ManualEditionTool(Support::Context &context)
 , m_factory      {context.factory()}
 , m_undoStack    {context.undoStack()}
 , m_colorEngine  {context.colorEngine()}
-, m_selection    {contextSelection(context)}
+, m_selection    {getSelection(context)}
 , m_filterFactory{new ManualFilterFactory()}
 , m_context      (context)
 , m_drawingWidget(context)
@@ -207,7 +207,7 @@ SegmentationAdapterSPtr ManualEditionTool::referenceSegmentation() const
 //------------------------------------------------------------------------
 ChannelAdapterPtr ManualEditionTool::activeChannel() const
 {
-  return m_context.selection()->activeChannel();
+  return getActiveChannel(m_context);
 }
 
 //------------------------------------------------------------------------

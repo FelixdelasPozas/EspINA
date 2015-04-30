@@ -36,6 +36,7 @@
 
 // Qt
 #include <QWidget>
+#include <QElapsedTimer>
 
 class vtkRenderer;
 class vtkProp;
@@ -314,6 +315,10 @@ namespace ESPINA
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
 
+    virtual void addSliceSelectors(SliceSelectorSPtr  widget, SliceSelectionType selector) {};
+
+    virtual void removeSliceSelectors(SliceSelectorSPtr widget) {};
+
     void onWidgetsAdded(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
 
     void onWidgetsRemoved(GUI::View::Widgets::WidgetFactorySPtr factory, TimeStamp t);
@@ -329,9 +334,11 @@ namespace ESPINA
     GUI::View::ViewState &m_state;
     SelectionSPtr         m_selection;
 
+    QElapsedTimer m_timer;
     ViewType      m_type;
     bool          m_requiresCameraReset;
     bool          m_requiresFocusChange;
+    bool          m_requiresRender;
     TimeStamp     m_lastRender;
     QMap<GUI::View::Widgets::WidgetFactorySPtr, GUI::Representations::RepresentationManagerSPtr> m_widgetManagers;
 

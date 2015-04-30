@@ -114,7 +114,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
     auto slice3DSwitch   = std::make_shared<BasicRepresentationSwitch>(slice3DManager, ViewType::VIEW_3D, timer);
 
     slice3DManager->setName(QObject::tr("Slice Representation"));
-    slice3DManager->setIcon(QIcon(":espina/show_planes.svg"));
+    slice3DManager->setIcon(QIcon(":espina/segmentations_slice3D_switch.svg"));
     slice3DManager->setDescription(QObject::tr("Segmentation 3D Slice Representation"));
 
     representation.Managers << slice3DManager;

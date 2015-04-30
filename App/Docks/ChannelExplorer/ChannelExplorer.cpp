@@ -515,7 +515,7 @@ void ESPINA::ChannelExplorer::contextMenuEvent(QContextMenuEvent *e)
 
   auto setActive = contextMenu.addAction(tr("Set as the active channel"));
   setActive->setCheckable(true);
-  setActive->setChecked(channels.first() == m_context.selection()->activeChannel());
+  setActive->setChecked(channels.first() == getActiveChannel(m_context));
   connect(setActive, SIGNAL(triggered(bool)),
           this,      SLOT(activateChannel()));
 

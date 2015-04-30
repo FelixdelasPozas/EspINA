@@ -39,6 +39,16 @@ namespace ESPINA
 
     private:
       virtual Representation doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const override;
+
+      void createCrosshair2D(Representation &representation, Support::Context &context);
+
+      void createCrosshair3D(Representation &representation, Support::Context &context);
+
+      void createCrosshair(const QString   &icon,
+                           const QString   &description,
+                           Representation  &representation,
+                           ViewTypeFlags    flags,
+                           Support::Context &context);
   };
 
 } // namespace ESPINA

@@ -442,7 +442,7 @@ void SeedGrowSegmentationTool::setSettingsVisibility(bool value)
 //-----------------------------------------------------------------------------
 ChannelAdapterPtr SeedGrowSegmentationTool::inputChannel() const
 {
-  return m_context.selection()->activeChannel();
+  return getActiveChannel(m_context);
 }
 
 //-----------------------------------------------------------------------------

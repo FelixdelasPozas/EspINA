@@ -27,7 +27,7 @@
 #include <GUI/Selectors/Selector.h>
 #include <GUI/Selectors/PixelSelector.h>
 #include <GUI/View/Widgets/WidgetFactory.h>
-#include <GUI/View/Widgets/OrthogonalRegion/OrthogonalRegionSliceSelector.h>
+#include <GUI/View/Widgets/OrthogonalRegion/SliceSelector.h>
 #include <GUI/View/Widgets/OrthogonalRegion/Representation.h>
 
 // Qt
@@ -36,8 +36,6 @@
 class QAction;
 namespace ESPINA
 {
-  class OrthogonalRegion;
-  class OrthogonalRegionSliceSelector;
   class ROISettings;
   class RestrictToolGroup;
 
@@ -148,8 +146,13 @@ namespace ESPINA
 
     bool invalidSettings() const;
 
+    void showSliceSelectors();
+
+    void hideSliceSelectors();
+
   private:
-    using OrthognalSelectorSPtr = std::shared_ptr<OrthogonalRegionSliceSelector>;
+    using OrthogonalSelector     = GUI::View::Widgets::OrthogonalRegion::SliceSelector;
+    using OrthogonalSelectorSPtr = std::shared_ptr<OrthogonalSelector>;
     using Representation        = GUI::View::Widgets::OrthogonalRegion::Representation;
     using WidgetFactorySPtr     = GUI::View::Widgets::WidgetFactorySPtr;
 
@@ -168,8 +171,8 @@ namespace ESPINA
     EventHandlerSPtr   m_resizeHandler;
     PixelSelectorSPtr  m_defineHandler;
 
-    OrthognalSelectorSPtr m_sliceSelector;
-    ROISettings          *m_settings;
+    OrthogonalSelectorSPtr m_sliceSelector;
+    ROISettings           *m_settings;
   };
 
   using OrthogonalROIToolSPtr = std::shared_ptr<OrthogonalROITool>;
