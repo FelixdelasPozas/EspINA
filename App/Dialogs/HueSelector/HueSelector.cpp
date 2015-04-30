@@ -27,11 +27,14 @@ namespace ESPINA
   : m_hue{value}
   {
     setupUi(this);
+    this->setWindowTitle(QObject::tr("Hue Selection"));
 
     m_selector = new HueSelector();
+    m_selector->setFixedHeight(25);
     m_selector->setHueValue(value);
+    m_selector->setVisible(true);
     m_hueSpinbox->setValue(value);
-    m_layout->addWidget(m_selector, 1, Qt::AlignLeft);
+    m_layout->addWidget(m_selector,1);
 
     connect(m_selector, SIGNAL(newHsv(int, int, int)),
             this,       SLOT(onSelectorValueChanged(int, int, int)));
@@ -48,13 +51,17 @@ namespace ESPINA
   //------------------------------------------------------------------------
   void HueSelectorDialog::onSelectorValueChanged(int h, int s, int v)
   {
-    m_hueSpinbox->setValue(h);
+    m_selector->blockSignals(true);
+    m_hueSpinbox->setValue(h+1);
+    m_selector->blockSignals(false);
   }
 
   //------------------------------------------------------------------------
   void HueSelectorDialog::onSpinboxValueChanged(int h)
   {
+    m_hueSpinbox->blockSignals(true);
     m_selector->setHueValue(h);
+    m_hueSpinbox->blockSignals(false);
   }
 
   //------------------------------------------------------------------------
