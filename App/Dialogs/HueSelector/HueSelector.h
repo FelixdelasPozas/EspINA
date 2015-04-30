@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2015 Félix de las Pozas Álvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -16,34 +16,41 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
  */
 
-#ifndef ESPINA_SEGMENTATION_SLICE_POOL_SETTINGS_H_
-#define ESPINA_SEGMENTATION_SLICE_POOL_SETTINGS_H_
+#ifndef APP_DIALOGS_HUESELECTOR_HUESELECTOR_H_
+#define APP_DIALOGS_HUESELECTOR_HUESELECTOR_H_
 
 // ESPINA
-#include <GUI/Representations/RepresentationPool.h>
+#include <ui_HueSelectorDialog.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
+#include <GUI/Widgets/HueSelector.h>
+
+#include <QDialog>
 
 namespace ESPINA
 {
-  class SegmentationSlicePoolSettings
-  : public RepresentationPool::Settings
+  class HueSelectorDialog
+  : public QDialog
+  , public Ui::HueSelectorDialog
   {
+      Q_OBJECT
     public:
-      explicit SegmentationSlicePoolSettings();
+      HueSelectorDialog(const Hue value);
+      virtual ~HueSelectorDialog();
 
-      void setOpacity(double value);
+      Hue hueValue() const;
 
-      double opacity() const;
+    private slots:
+      void onSelectorValueChanged(int h, int s, int v);
+      void onSpinboxValueChanged(int h);
 
     private:
-      virtual RepresentationState poolSettingsImplementation() const override;
-
-      double m_opacity;
+      Hue m_hue;
+      HueSelector *m_selector;
   };
-
-  using SegmentationSlicePoolSettingsSPtr = std::shared_ptr<SegmentationSlicePoolSettings>;
-
+    
 } // namespace ESPINA
 
-#endif // ESPINA_SEGMENTATION_SLICE_POOL_SETTINGS_H_
+#endif // APP_DIALOGS_HUESELECTOR_HUESELECTOR_H_

@@ -25,6 +25,8 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/Selection.h>
 
+using namespace ESPINA::GUI::View;
+
 namespace ESPINA
 {
   /** \brief Returns the list of current selected segmentations

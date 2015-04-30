@@ -54,7 +54,7 @@ namespace ESPINA
      * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit View3D(GUI::View::ViewState &state, SelectionSPtr selection , bool showCrosshairPlaneSelectors = false);
+    explicit View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors = false);
 
     /** \brief View3D class virtual destructor.
      *

@@ -157,7 +157,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
   auto colorEngine = context.colorEngine();
   auto &timer      = context.timer();
 
-  auto skeletonSettings     = std::make_shared<RepresentationPool::Settings>();
+  auto skeletonSettings     = std::make_shared<SegmentationSlicePoolSettings>(); // TODO: create SkeletonPoolSettings
   auto pipeline2DSkeletonXY = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XY, colorEngine);
   auto pipeline2DSkeletonXZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::XZ, colorEngine);
   auto pipeline2DSkeletonYZ = std::make_shared<SegmentationSkeleton2DPipeline>(Plane::YZ, colorEngine);

@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ Copyright (C) 2015 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -16,10 +16,13 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
  */
 
-#ifndef ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H
-#define ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H
+#ifndef GUI_COLORENGINES_INTENSITYSELECTIONHIGHTLIGHTER_H_
+#define GUI_COLORENGINES_INTENSITYSELECTIONHIGHTLIGHTER_H_
+
+#include "EspinaGUI_Export.h"
 
 // ESPINA
 #include <GUI/ColorEngines/SelectionHighlighter.h>
@@ -30,17 +33,23 @@ namespace ESPINA
   {
     namespace ColorEngines
     {
-      class EspinaGUI_EXPORT TransparencySelectionHighlighter
+      
+      class EspinaGUI_EXPORT IntensitySelectionHighlighter
       : public SelectionHighlighter
       {
         public:
-          virtual ~TransparencySelectionHighlighter()
+          virtual ~IntensitySelectionHighlighter()
           {};
 
           virtual QColor color(const QColor &original, bool highlight = false);
       };
+
+      QColor defaultColor(const Hue color);
+
+      QColor selectedColor(const Hue color);
+    
     } // namespace ColorEngines
   } // namespace GUI
 } // namespace ESPINA
 
-#endif // ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H
+#endif // GUI_COLORENGINES_INTENSITYSELECTIONHIGHTLIGHTER_H_

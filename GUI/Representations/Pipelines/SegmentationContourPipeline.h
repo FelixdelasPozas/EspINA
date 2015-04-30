@@ -24,7 +24,7 @@
 // ESPINA
 #include <Core/Utils/Spatial.h>
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 
 class vtkImageCanvasSource2D;
@@ -98,7 +98,7 @@ namespace ESPINA
       ColorEngineSPtr m_colorEngine;
       Plane           m_plane;
 
-      static TransparencySelectionHighlighter s_highlighter;
+      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA

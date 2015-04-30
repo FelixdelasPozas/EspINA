@@ -36,11 +36,12 @@
 #include <vtkProperty.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {
-  TransparencySelectionHighlighter SegmentationSmoothedMeshPipeline::s_highlighter;
+  IntensitySelectionHighlighter SegmentationSmoothedMeshPipeline::s_highlighter;
 
   //----------------------------------------------------------------------------
   SegmentationSmoothedMeshPipeline::SegmentationSmoothedMeshPipeline(ColorEngineSPtr colorEngine)
@@ -107,7 +108,7 @@ namespace ESPINA
 
       auto color = m_colorEngine->color(segmentation);
       double rgba[4];
-      s_highlighter.lut(color)->GetTableValue(1,rgba);
+      s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
       auto actor = vtkSmartPointer<vtkActor>::New();
       actor->SetMapper(mapper);

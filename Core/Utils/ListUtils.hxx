@@ -25,6 +25,9 @@
 // ESPINA
 #include <QList>
 
+// C++
+#include <memory>
+
 namespace ESPINA
 {
   namespace Core
@@ -76,6 +79,19 @@ namespace ESPINA
       QList<std::shared_ptr<T>> toList(const F &list)
       {
         QList<std::shared_ptr<T>> result;
+
+        for (auto item : list)
+        {
+          result << item;
+        }
+
+        return result;
+      }
+
+      template <typename T, typename F>
+      QList<T *> toList(const QList<F *> &list)
+      {
+        QList<T *> result;
 
         for (auto item : list)
         {

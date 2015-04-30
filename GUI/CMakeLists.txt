@@ -89,6 +89,8 @@ set (GUI_SOURCES
   ColorEngines/CategoryColorEngine.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
+  ColorEngines/SelectionHighlighter.cpp
+  ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
   Dialogs/CategorySelectorDialog.cpp

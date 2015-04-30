@@ -25,6 +25,7 @@
 // Qt
 #include <QStack>
 #include <QXmlStreamReader>
+#include <QColor>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -55,7 +56,8 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
         CategorySPtr category = classification->createNode(name.toString(), parent);
 
-        category->setColor(color.toString());
+        QColor categoryColor(color.toString());
+        category->setColor(categoryColor.hue());
 
         for(auto attrib: stream.attributes())
         {
@@ -82,7 +84,10 @@ void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
 {
   stream.writeStartElement("category");
   stream.writeAttribute("name", category->name());
-  stream.writeAttribute("color", category->color().name());
+
+  QColor color;
+  color.setHsv(category->color(), 255,255);
+  stream.writeAttribute("color", color.name());
 
   for(auto prop: category->properties())
   {

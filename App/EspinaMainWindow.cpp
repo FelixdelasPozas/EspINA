@@ -459,7 +459,7 @@ bool EspinaMainWindow::closeCurrentAnalysis()
 
   emit analysisAboutToBeClosed();
 
-  m_context.selection()->clear();
+  contextSelection(m_context)->clear();
   m_context.undoStack()->clear();
   updateUndoStackIndex();
 

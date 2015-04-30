@@ -34,10 +34,11 @@
 #include <vtkVolumeRayCastCompositeFunction.h>
 #include <vtkVolumeRayCastMapper.h>
 
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 namespace ESPINA
 {
-  TransparencySelectionHighlighter SegmentationVolumetricCPUPipeline::s_highlighter;
+  IntensitySelectionHighlighter SegmentationVolumetricCPUPipeline::s_highlighter;
 
   //----------------------------------------------------------------------------
   SegmentationVolumetricCPUPipeline::SegmentationVolumetricCPUPipeline(ColorEngineSPtr colorEngine)
@@ -85,7 +86,7 @@ namespace ESPINA
 
       auto color = m_colorEngine->color(segmentation);
       double rgba[4], rgb[3], hsv[3];
-      s_highlighter.lut(color)->GetTableValue(1,rgba);
+      s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
       memcpy(rgb, rgba, 3 * sizeof(double));
       vtkMath::RGBToHSV(rgb, hsv);
 

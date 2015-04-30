@@ -95,8 +95,8 @@ namespace ESPINA
     connect(m_action, SIGNAL(triggered(bool)),
             this,     SLOT(initTool(bool)));
 
-    connect(m_context.selection().get(), SIGNAL(selectionChanged()),
-            this,                    SLOT(updateState()));
+    connect(contextSelection(m_context).get(), SIGNAL(selectionChanged()),
+            this,                       SLOT(updateState()));
 
     connect(m_categorySelector, SIGNAL(categoryChanged(CategoryAdapterSPtr)),
             this,               SLOT(categoryChanged(CategoryAdapterSPtr)));
@@ -129,7 +129,7 @@ namespace ESPINA
   {
     if(!isEnabled()) return;
 
-    auto selection = m_context.selection()->segmentations();
+    auto selection = contextSelection(m_context)->segmentations();
     auto validItem = (selection.size() <= 1);
 
     m_action->setEnabled(validItem);
@@ -184,7 +184,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   void SkeletonTool::updateReferenceItem()
   {
-    auto selectedSegs = m_context.selection()->segmentations();
+    auto selectedSegs = contextSelection(m_context)->segmentations();
 
     if (selectedSegs.size() != 1)
     {
@@ -244,7 +244,7 @@ namespace ESPINA
 
       auto minimumDistance = std::max(spacing[0], std::max(spacing[1], spacing[2]));
 
-      auto selection = m_context.selection()->segmentations();
+      auto selection = contextSelection(m_context)->segmentations();
       auto color     = m_categorySelector->selectedCategory()->color();
       if(selection.size() == 1)
       {
@@ -280,7 +280,7 @@ namespace ESPINA
       {
         if(hasSkeletonData(m_item->output()))
         {
-          Q_ASSERT(false);//TODO
+          Q_ASSERT(false);//TODO: disable item skeleton representation.
 //           auto rep = m_item->representation(SkeletonRepresentation::TYPE);
 //           if(rep)
 //           {
@@ -294,7 +294,7 @@ namespace ESPINA
       m_widget->setEnabled(true);
 
       connect(m_context.model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
-              this,          SLOT(checkItemRemoval(SegmentationAdapterSList)));
+              this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
     }
     else
@@ -306,7 +306,7 @@ namespace ESPINA
       m_action->blockSignals(false);
 
       disconnect(m_context.model().get(), SIGNAL(segmentationsRemoved(SegmentationAdapterSList)),
-                 this,          SLOT(checkItemRemoval(SegmentationAdapterSList)));
+                 this,                    SLOT(checkItemRemoval(SegmentationAdapterSList)));
 
       disconnect(m_handler.get(), SIGNAL(eventHandlerInUse(bool)),
                  this,            SLOT(eventHandlerToogled(bool)));
@@ -347,8 +347,7 @@ namespace ESPINA
           selection << m_item;
 
           m_item->invalidateRepresentations();
-          m_context.selection()->set(selection);
-          //TODO m_vm->updateViews();
+          contextSelection(m_context)->set(selection);
         }
       }
     }
@@ -533,7 +532,7 @@ namespace ESPINA
       SegmentationAdapterList selection;
       selection << m_item;
 
-      m_context.selection()->set(selection);
+      contextSelection(m_context)->set(selection);
       m_item->invalidateRepresentations();
     }
 

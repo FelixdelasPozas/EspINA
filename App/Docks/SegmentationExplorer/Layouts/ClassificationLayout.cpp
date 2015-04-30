@@ -19,13 +19,16 @@
 */
 
 // ESPINA
+#include <Dialogs/HueSelector/HueSelector.h>
 #include "ClassificationLayout.h"
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/ReparentCategoryCommand.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
+#include <Undo/ChangeCategoryColorCommand.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
@@ -36,6 +39,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 class RenameCategoryCommand
@@ -571,13 +575,17 @@ void ClassificationLayout::changeCategoryColor()
 
   auto category = categoryPtr(item);
 
-  QColorDialog colorSelector(m_view->parentWidget());
-  colorSelector.setCurrentColor(category->color());
+  HueSelectorDialog hueSelector(category->color().hue());
+  hueSelector.setModal(true);
 
-  if(colorSelector.exec() == QDialog::Accepted)
+  if(hueSelector.exec() == QDialog::Accepted)
   {
-    category->setData(colorSelector.selectedColor(),
-                      Qt::DecorationRole);
+    m_context.undoStack()->beginMacro("Change category color");
+    m_context.undoStack()->push(new ChangeCategoryColorCommand(m_context.model(),
+                                                               m_context.representationInvalidator(),
+                                                               category,
+                                                               hueSelector.hueValue()));
+    m_context.undoStack()->endMacro();
   }
 }
 

@@ -25,9 +25,10 @@
 
 using namespace ESPINA;
 using namespace ESPINA::RepresentationUtils;
+using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-TransparencySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
+IntensitySelectionHighlighter SegmentationSlicePipeline::s_highlighter;
 
 //----------------------------------------------------------------------------
 SegmentationSlicePipeline::SegmentationSlicePipeline(const Plane plane,
@@ -80,7 +81,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       auto color       = m_colorEngine->color(segmentation);
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
-      mapToColors->SetLookupTable(s_highlighter.lut(color));
+      mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
       mapToColors->SetNumberOfThreads(1);
       mapToColors->Update();
 
@@ -88,6 +89,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(const 
       actor->SetInterpolate(false);
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
+      actor->SetOpacity(opacity(state) * color.alphaF());
 
       // need to reposition the actor so it will always be over the channels actors'
       double pos[3];

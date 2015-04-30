@@ -50,7 +50,7 @@ namespace ESPINA
       }
 
     private:
-      virtual RepresentationState poolSettingsImplementation();
+      virtual RepresentationState poolSettingsImplementation() const;
 
     private:
       RepresentationState m_state;

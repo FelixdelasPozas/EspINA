@@ -38,7 +38,7 @@
 
 namespace ESPINA
 {
-  const QString DEFAULT_CATEGORY_COLOR = "#00FF00"; //Red
+  const Hue DEFAULT_CATEGORY_COLOR = 0; //Red
 
   typedef QList<CategorySPtr> CategorySList;
 
@@ -99,12 +99,12 @@ namespace ESPINA
      * \param[in] color new color of the category.
      *
      */
-    void setColor(const QColor &color);
+    void setColor(const Hue color);
 
     /** \brief Returns the color of the category.
      *
      */
-    QColor color() const {return m_color;}
+    Hue color() const {return m_color;}
 
     /** \brief Adds a property to the category.
      * \param[in] prop key of the property.
@@ -195,14 +195,14 @@ namespace ESPINA
      */
     explicit Category(CategoryPtr parent,
                       const QString &name,
-                      const QString &RGBColor = DEFAULT_CATEGORY_COLOR );
+                      const Hue color = DEFAULT_CATEGORY_COLOR);
 
   private:
     CategoryPtr    m_parent; // Parent node can't be a shared pointer to avoid circular dependencies
     CategorySList  m_subCategories;
 
     QString m_name;
-    QColor  m_color;
+    Hue  m_color;
     QMap<QString, QVariant> m_properties;
 
     template<typename T> friend class Tree;

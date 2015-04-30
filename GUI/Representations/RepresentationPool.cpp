@@ -35,7 +35,7 @@ RepresentationState RepresentationPool::Settings::poolSettings()
 }
 
 //-----------------------------------------------------------------------------
-RepresentationState RepresentationPool::Settings::poolSettingsImplementation()
+RepresentationState RepresentationPool::Settings::poolSettingsImplementation() const
 {
   return RepresentationState();
 }

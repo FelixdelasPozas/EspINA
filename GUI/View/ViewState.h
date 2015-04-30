@@ -27,6 +27,7 @@
 #include <GUI/Types.h>
 #include <GUI/View/RepresentationInvalidator.h>
 #include <GUI/Utils/Timer.h>
+#include <GUI/View/Selection.h>
 #include "CoordinateSystem.h"
 #include "EventHandler.h"
 
@@ -55,6 +56,8 @@ namespace ESPINA
         RepresentationInvalidator &representationInvalidator() const;
 
         NmVector3 crosshair() const;
+
+        SelectionSPtr selection() const;
 
         /** \brief Enables/disables the "fit to slices" flag.
          * \param[in] value true to enable false otherwise.
@@ -156,6 +159,7 @@ namespace ESPINA
         bool                 m_fitToSlices;
         NmVector3            m_crosshair;
         CoordinateSystemSPtr m_coordinateSystem;
+        SelectionSPtr        m_selection;
 
         EventHandlerSPtr m_eventHandler;
       };

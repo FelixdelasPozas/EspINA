@@ -75,6 +75,9 @@ namespace ESPINA
   using TimeStamp = unsigned long long;
   using TimeRange = QList<TimeStamp>;
   const TimeStamp MAX_TIMESTAMP = std::numeric_limits<TimeStamp>::max();
+
+  using Hue = unsigned short int;
+
 } // namespace ESPINA
 
 #endif// ESPINATYPES_H

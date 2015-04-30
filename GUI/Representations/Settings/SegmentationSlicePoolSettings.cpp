@@ -28,7 +28,7 @@ namespace ESPINA
 {
   //----------------------------------------------------------------------------
   SegmentationSlicePoolSettings::SegmentationSlicePoolSettings()
-  : m_opacity{0}
+  : m_opacity{0.6}
   {
   }
 
@@ -45,7 +45,7 @@ namespace ESPINA
   }
   
   //----------------------------------------------------------------------------
-  RepresentationState SegmentationSlicePoolSettings::pipelineState() const
+  RepresentationState SegmentationSlicePoolSettings::poolSettingsImplementation() const
   {
     RepresentationState state;
 

@@ -71,7 +71,7 @@ namespace ESPINA
   //----------------------------------------------------------------------------
   double opacity(const RepresentationState &state)
   {
-    if(!state.hasValue(OPACITY)) return 0;
+    if(!state.hasValue(OPACITY)) return 1;
 
     return state.getValue<double>(OPACITY);
   }

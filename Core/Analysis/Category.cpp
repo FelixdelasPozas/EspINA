@@ -2,9 +2,13 @@
 
 // Qt
 #include <QString>
+#include <QColor>
 
 // C++
 #include <iostream>
+
+// VTK
+#include <vtkMath.h>
 
 using namespace ESPINA;
 
@@ -16,10 +20,10 @@ const QString Category::Z_DIM = "Dim_Z";
 //------------------------------------------------------------------------
 Category::Category(CategoryPtr parent,
                    const QString &name,
-                   const QString &RGBColor)
+                   const Hue color)
 : m_parent(parent)
 , m_name(name)
-, m_color(RGBColor)
+, m_color(color)
 {
 }
 
@@ -54,7 +58,7 @@ QString Category::classificationName() const
 }
 
 //------------------------------------------------------------------------
-void Category::setColor(const QColor &color)
+void Category::setColor(const Hue color)
 {
   if (m_color != color)
   {

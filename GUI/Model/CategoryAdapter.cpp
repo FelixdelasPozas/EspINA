@@ -20,6 +20,7 @@
 
 // ESPINA
 #include "CategoryAdapter.h"
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 
 // ESPINA
 #include <Core/Analysis/Category.h>
@@ -27,6 +28,7 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategorySPtr category)
@@ -101,7 +103,7 @@ QString CategoryAdapter::classificationName() const
 //------------------------------------------------------------------------
 QColor CategoryAdapter::color() const
 {
-  return m_category->color();
+  return defaultColor(m_category->color());
 }
 
 //------------------------------------------------------------------------
@@ -196,7 +198,7 @@ void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
 //------------------------------------------------------------------------
 void CategoryAdapter::setColor(const QColor& color)
 {
-  m_category->setColor(color);
+  m_category->setColor(color.hue());
 }
 
 //------------------------------------------------------------------------

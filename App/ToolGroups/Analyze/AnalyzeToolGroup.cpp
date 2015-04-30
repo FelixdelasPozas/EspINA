@@ -29,7 +29,7 @@ AnalyzeToolGroup::AnalyzeToolGroup(Support::Context &context)
 : ToolGroup{":/espina/toolgroup_analyze.svg", tr("Analyze")}
 {
   addTool(std::make_shared<MeasureTool>(context.viewState()));
-  addTool(std::make_shared<SelectionMeasureTool>(context.viewState(), context.selection()));
+  addTool(std::make_shared<SelectionMeasureTool>(context.viewState()));
 }
 
 //----------------------------------------------------------------------------

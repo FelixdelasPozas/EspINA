@@ -61,7 +61,8 @@ public:
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(Support::Context &context,
                                            FilterDelegateFactorySPtr delegateFactory)
-: m_context(context)
+: SelectableView(context.viewState())
+, m_context(context)
 , m_gui    {new GUI()}
 , m_layout {nullptr}
 {
@@ -86,6 +87,9 @@ SegmentationExplorer::SegmentationExplorer(Support::Context &context,
           this, SLOT(deleteSelectedItems()));
   connect(m_gui->searchText, SIGNAL(textChanged(QString)),
           this, SLOT(updateSearchFilter()));
+
+  connect(contextSelection(context).get(), SIGNAL(selectionStateChanged()),
+          this,                     SLOT(onSelectionChanged()));
 
   setWidget(m_gui);
 
@@ -113,13 +117,6 @@ void SegmentationExplorer::reset()
   {
     layout->reset();
   }
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::onSelectionSet(SelectionSPtr selection)
-{
-  connect(selection.get(), SIGNAL(selectionStateChanged()),
-          this, SLOT(onSelectionChanged()));
 }
 
 //------------------------------------------------------------------------
@@ -260,14 +257,16 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QItemSelection deselected)
 {
-  ViewItemAdapterList selection;
+  ViewItemAdapterList currentSelection;
 
   QModelIndexList selectedIndexes = m_gui->view->selectionModel()->selection().indexes();
   for(auto index: selectedIndexes)
   {
     auto item = m_layout->item(index);
-    if (ItemAdapter::Type::SEGMENTATION == item->type())
-      selection << viewItemAdapter(item);
+    if (isSegmentation(item))
+    {
+      currentSelection << viewItemAdapter(item);
+    }
   }
 
   updateGUI(selectedIndexes);
@@ -275,7 +274,7 @@ void SegmentationExplorer::onModelSelectionChanged(QItemSelection selected, QIte
   // signal blocking is necessary because we don't want to change our current selection indices,
   // and that will happen if a updateSelection(ViewManager::Selection) is called.
   this->blockSignals(true);
-  m_context.selection()->set(selection);
+  contextSelection(m_context)->set(currentSelection);
   this->blockSignals(false);
 }
 
