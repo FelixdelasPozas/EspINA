@@ -36,9 +36,9 @@ namespace ESPINA
 
       double opacity() const;
 
-      virtual RepresentationState pipelineState() const;
-
     private:
+      virtual RepresentationState poolSettingsImplementation() const override;
+
       double m_opacity;
   };
 

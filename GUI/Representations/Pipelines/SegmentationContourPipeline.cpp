@@ -44,7 +44,7 @@ namespace ESPINA
   QString SegmentationContourPipeline::WIDTH   = "WIDTH";
   QString SegmentationContourPipeline::PATTERN = "PATTERN";
 
-  TransparencySelectionHighlighter SegmentationContourPipeline::s_highlighter;
+  IntensitySelectionHighlighter SegmentationContourPipeline::s_highlighter;
 
   //----------------------------------------------------------------------------
   SegmentationContourPipeline::SegmentationContourPipeline(Plane plane, ColorEngineSPtr colorEngine)
@@ -111,7 +111,7 @@ namespace ESPINA
         auto actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         actor->GetProperty()->SetColor(rgba[0],rgba[1],rgba[2]);
-        actor->GetProperty()->SetOpacity(rgba[3]);
+        actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
         actor->GetProperty()->Modified();
         actor->SetDragable(false);
 

@@ -42,18 +42,27 @@ namespace ESPINA
       virtual ~SegmentationContourPoolSettings()
       {};
 
-      virtual RepresentationState poolSettingsImplementation() override;
+      virtual RepresentationState poolSettingsImplementation() const override;
 
       /** \brief Sets the Width value.
        *
        */
       void setWidth(SegmentationContourPipeline::Width value);
 
+      SegmentationContourPipeline::Width width() const;
+
       void setPattern(SegmentationContourPipeline::Pattern value);
+
+      SegmentationContourPipeline::Pattern pattern() const;
+
+      void setOpacity(double value);
+
+      double opacity() const;
 
     private:
       SegmentationContourPipeline::Width   m_width;
       SegmentationContourPipeline::Pattern m_pattern;
+      double m_opacity;
   };
 
 } // namespace ESPINA

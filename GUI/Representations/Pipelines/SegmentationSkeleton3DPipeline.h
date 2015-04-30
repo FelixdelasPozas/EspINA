@@ -23,7 +23,7 @@
 
 // ESPINA
 #include <GUI/ColorEngines/ColorEngine.h>
-#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Representations/RepresentationPipeline.h>
 
 namespace ESPINA
@@ -55,7 +55,7 @@ namespace ESPINA
     private:
       ColorEngineSPtr m_colorEngine;
 
-      static ESPINA::GUI::ColorEngines::TransparencySelectionHighlighter s_highlighter;
+      static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 
 } // namespace ESPINA

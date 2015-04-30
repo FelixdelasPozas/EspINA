@@ -35,7 +35,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 
-TransparencySelectionHighlighter SegmentationSkeleton3DPipeline::s_highlighter;
+IntensitySelectionHighlighter SegmentationSkeleton3DPipeline::s_highlighter;
 
 //----------------------------------------------------------------------------
 SegmentationSkeleton3DPipeline::SegmentationSkeleton3DPipeline(ColorEngineSPtr colorEngine)
@@ -78,12 +78,12 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(c
     double rgba[4];
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
 
+    auto width = item->isSelected() ? 4 : 2;
+
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-    actor->GetProperty()->SetOpacity(opacity(state));
-
-    auto width = item->isSelected() ? 4 : 2;
+    actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
     actor->GetProperty()->SetLineWidth(width);
     actor->Modified();
 

@@ -22,7 +22,7 @@
 
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 
 #include <QColor>
 
@@ -56,7 +56,7 @@ namespace ESPINA
     Plane m_plane;
     ColorEngineSPtr m_colorEngine;
 
-    static ESPINA::GUI::ColorEngines::TransparencySelectionHighlighter s_highlighter;
+    static ESPINA::GUI::ColorEngines::IntensitySelectionHighlighter s_highlighter;
   };
 }
 

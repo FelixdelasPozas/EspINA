@@ -20,6 +20,9 @@
 
 // ESPINA
 #include <GUI/Representations/Settings/SegmentationContourPoolSettings.h>
+#include <GUI/Representations/Settings/PipelineStateUtils.h>
+
+using namespace ESPINA::Representations;
 
 namespace ESPINA
 {
@@ -27,16 +30,18 @@ namespace ESPINA
   SegmentationContourPoolSettings::SegmentationContourPoolSettings()
   : m_width  {SegmentationContourPipeline::Width::medium}
   , m_pattern{SegmentationContourPipeline::Pattern::normal}
+  , m_opacity{0.6}
   {
   }
 
   //----------------------------------------------------------------------------
-  RepresentationState SegmentationContourPoolSettings::poolSettingsImplementation()
+  RepresentationState SegmentationContourPoolSettings::poolSettingsImplementation() const
   {
     RepresentationState state;
 
     state.setValue<int>(SegmentationContourPipeline::WIDTH, SegmentationContourPipeline::widthToInteger(m_width));
     state.setValue<int>(SegmentationContourPipeline::PATTERN, SegmentationContourPipeline::patternToInteger(m_pattern));
+    state.setValue<double>(OPACITY, m_opacity);
 
     return state;
   }
@@ -48,8 +53,33 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
+  SegmentationContourPipeline::Width SegmentationContourPoolSettings::width() const
+  {
+    return m_width;
+  }
+
+  //----------------------------------------------------------------------------
   void SegmentationContourPoolSettings::setPattern(SegmentationContourPipeline::Pattern value)
   {
     m_pattern = value;
   }
+
+  //----------------------------------------------------------------------------
+  SegmentationContourPipeline::Pattern SegmentationContourPoolSettings::pattern() const
+  {
+    return m_pattern;
+  }
+
+  //----------------------------------------------------------------------------
+  void SegmentationContourPoolSettings::setOpacity(double value)
+  {
+    m_opacity = value;
+  }
+
+  //----------------------------------------------------------------------------
+  double SegmentationContourPoolSettings::opacity() const
+  {
+    return m_opacity;
+  }
+
 } // namespace ESPINA

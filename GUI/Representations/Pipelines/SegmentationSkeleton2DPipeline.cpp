@@ -42,7 +42,7 @@ using namespace ESPINA::GUI::Model::Utils;
 
 namespace ESPINA
 {
-  TransparencySelectionHighlighter SegmentationSkeleton2DPipeline::s_highlighter;
+  IntensitySelectionHighlighter SegmentationSkeleton2DPipeline::s_highlighter;
 
   //----------------------------------------------------------------------------
   SegmentationSkeleton2DPipeline::SegmentationSkeleton2DPipeline(Plane plane, ColorEngineSPtr colorEngine)
@@ -151,7 +151,7 @@ namespace ESPINA
         auto actor = vtkSmartPointer<vtkActor>::New();
         actor->SetMapper(mapper);
         actor->GetProperty()->SetColor(rgba[0], rgba[1], rgba[2]);
-        actor->GetProperty()->SetOpacity(rgba[3]);
+        actor->GetProperty()->SetOpacity(opacity(state) * color.alphaF());
 
         auto width = item->isSelected() ? 4 : 2;
         actor->GetProperty()->SetLineWidth(width);
