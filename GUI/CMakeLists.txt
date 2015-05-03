@@ -35,6 +35,7 @@ qt4_wrap_cpp(GUI_MOC
   EventHandlers/MaskPainter.h
   EventHandlers/BrushPainter.h
   EventHandlers/StrokePainter.h
+  EventHandlers/ContourPainter.h
   View/RenderView.h
   View/Selection.h
   View/View2D.h
@@ -51,7 +52,7 @@ qt4_wrap_cpp(GUI_MOC
   View/CoordinateSystem.h
   View/Widgets/SelectionMeasure/Widget2D.h
   View/Widgets/SelectionMeasure/Widget3D.h
-  View/Widgets/Contour/ContourWidget.h
+  View/Widgets/Contour/ContourWidget2D.h
   Widgets/ActionSelector.h
   Widgets/ActionSelectorWidget.h
   Widgets/CategorySelector.h
@@ -161,12 +162,10 @@ set (GUI_SOURCES
   View/RepresentationInvalidator.cpp
   View/Widgets/EspinaWidget2.cpp
   View/Widgets/WidgetFactory.cpp
-  View/Widgets/Contour/ContourWidget.cpp
-  View/Widgets/Contour/SliceContourWidget.cpp
+  View/Widgets/Contour/ContourWidget2D.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentation.cpp
   View/Widgets/Contour/vtkPlaneContourRepresentationGlyph.cpp
   View/Widgets/Contour/vtkPlaneContourWidget.cpp
-  View/Widgets/Contour/vtkVoxelContour2D.cpp
   View/Widgets/Contour/vtkContourToPolygonFilter.cxx
   View/Widgets/Zoom/ZoomSelectionWidget.cpp
   View/Widgets/Zoom/vtkZoomSelectionWidget.cpp

@@ -145,7 +145,9 @@ void Selection::set(ViewItemAdapterList selection)
     auto modifiedSegmentations = setSegmentations(segmentations);
 
     if (!modifiedChannels.empty() || !modifiedSegmentations.empty())
+    {
       emit selectionStateChanged();
+    }
 
     ViewItemAdapterList viewItems;
     if(!modifiedSegmentations.empty())
@@ -188,13 +190,5 @@ ViewItemAdapterList Selection::items() const
 //----------------------------------------------------------------------------
 void Selection::clear()
 {
-  for(auto channel: m_channels)
-    channel->setSelected(false);
-
-  m_channels.clear();
-
-  for(auto segmentation: m_segmentations)
-    segmentation->setSelected(false);
-
-  m_segmentations.clear();
+  set(ViewItemAdapterList());
 }

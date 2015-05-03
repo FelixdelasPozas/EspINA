@@ -23,10 +23,10 @@
 
 // ESPINA
 #include <Core/EspinaTypes.h>
+#include <Core/Utils/vtkVoxelContour2D.h>
 #include <Support/Widgets/Tool.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Selectors/BrushSelector.h>
-#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 
 class QUndoStack;
 class vtkPolyData;

@@ -30,7 +30,6 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/Selection.h>
 #include <GUI/ModelFactory.h>
-#include <GUI/View/Widgets/Contour/ContourWidget.h>
 
 class QUndoStack;
 
@@ -42,7 +41,7 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief EditionTools class constructor.
-     * \param[in] context ESPIAN context
+     * \param[in] context ESPINA context
      * \param[in] filterDelegateFactory factory
      *
      */
@@ -64,14 +63,13 @@ namespace ESPINA
     void onVoxelDeletion(ViewItemAdapterPtr item);
 
   private:
-    Support::Context      &m_context;
+    Support::Context            &m_context;
 
     ManualEditionToolSPtr        m_manualEdition;
     SplitToolSPtr                m_split;
     MorphologicalEditionToolSPtr m_morphological;
 
     bool                         m_enabled;
-    ContourWidget::ContourData   m_previousContour;
   };
 
 } // namespace ESPINA

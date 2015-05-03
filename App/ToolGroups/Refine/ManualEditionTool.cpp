@@ -161,7 +161,7 @@ void ManualEditionTool::updateReferenceItem() const
     {
       auto channels = m_selection->channels();
 
-      m_referenceItem = channels.isEmpty()?m_context.ActiveChannel:channels.first();
+      m_referenceItem = channels.isEmpty() ? m_context.ActiveChannel : channels.first();
     }
 
     m_drawingWidget.setBrushImage(QImage(":/espina/brush_new.svg"));

@@ -22,11 +22,13 @@
 
 #include <GUI/EventHandlers/BrushPainter.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <GUI/View/Widgets/Contour/ContourWidget.h>
+#include <GUI/Types.h>
 #include <Support/Context.h>
 
 #include <QAction>
 #include <QMap>
+
+using ESPINA::GUI::View::Widgets::WidgetFactorySPtr;
 
 class ActionSelector;
 
@@ -260,7 +262,8 @@ namespace ESPINA
     // Shared painter widgets needs to retain it's values.
     int m_brushRadius;
     int m_contourDistance;
-    ContourWidgetSPtr m_contourWidget;
+
+    WidgetFactorySPtr m_contourWidgetfactory;
   };
 }
 

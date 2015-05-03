@@ -88,7 +88,6 @@ void PointTracker::setMaximumPointDistance(Nm distance)
 {
   m_distanceHasBeenSet = true;
   m_maxDistance2 = distance * distance;
-  qDebug() << "set max point distance" << distance;
 }
 
 //------------------------------------------------------------------------

@@ -20,7 +20,6 @@
 
 // ESPINA
 #include <GUI/EventHandlers/ContourPainter.h>
-#include <GUI/View/Widgets/Contour/ContourWidget.h>
 
 // Qt
 #include <QKeyEvent>
@@ -33,7 +32,6 @@ namespace ESPINA
   : MaskPainter         {std::make_shared<PointTracker>()}
   , m_minDistance       {40}
   , m_tracking          {false}
-  , m_widget            {nullptr}
   {
     setCursor(Qt::CrossCursor);
     setCanErase(false);
@@ -46,18 +44,30 @@ namespace ESPINA
     // vtk interactor class.
     auto ke = dynamic_cast<QKeyEvent *>(e);
 
-    if(!ke || !canErase()) return false;
+    if(!ke) return false;
 
     switch(e->type())
     {
       case QEvent::KeyPress:
+        if (ke->key() == Qt::Key_Control)
+        {
+          emit rasterize();
+          return true;
+        }
+        if (ke->key() == Qt::Key_Backspace)
+        {
+          emit clear();
+          return true;
+        }
+        // no break
       case QEvent::KeyRelease:
         if(ke->key() == Qt::Key_Shift)
         {
+          if(!canErase()) return false;
+
           auto mode = drawingMode();
           auto newMode = (mode == DrawingMode::PAINTING ? DrawingMode::ERASING : DrawingMode::PAINTING);
           setDrawingMode(newMode);
-          m_widget->setDrawingMode(newMode);
           emit drawingModeChanged(newMode);
           return true;
         }
@@ -70,37 +80,30 @@ namespace ESPINA
   }
 
   //------------------------------------------------------------------------
-  void ContourPainter::setContourWidget(ContourWidget *widget)
-  {
-    if(m_widget)
-    {
-      disconnect(m_widget, SIGNAL(contour(BinaryMaskSPtr<unsigned char>)),
-                 this,     SIGNAL(stopPainting(BinaryMaskSPtr<unsigned char>)));
-    }
-
-    m_widget = widget;
-
-    if(m_widget)
-    {
-      connect(m_widget, SIGNAL(contour(BinaryMaskSPtr<unsigned char>)),
-              this,     SIGNAL(stopPainting(BinaryMaskSPtr<unsigned char>)));
-
-      updateContourWidget();
-    }
-  }
-
-  //------------------------------------------------------------------------
   void ContourPainter::setMinimumPointDistance(Nm distance)
   {
     m_minDistance = distance;
 
-    updateContourWidget();
+    updateWidgetsValues();
+  }
+
+  //------------------------------------------------------------------------
+  void ContourPainter::updateWidgetsValues() const
+  {
+    emit drawingModeChanged(drawingMode());
+    emit configure(m_minDistance, color(), m_maskSpacing);
+  }
+
+  //------------------------------------------------------------------------
+  void ContourPainter::clearContours() const
+  {
+    emit clear();
   }
 
   //------------------------------------------------------------------------
   void ContourPainter::updateCursor(DrawingMode mode)
   {
-    updateContourWidget();
+    updateWidgetsValues();
   }
 
   //------------------------------------------------------------------------
@@ -108,19 +111,7 @@ namespace ESPINA
   {
     m_maskSpacing = spacing;
 
-    updateContourWidget();
-  }
-
-  //------------------------------------------------------------------------
-  void ContourPainter::updateContourWidget()
-  {
-    if(m_widget)
-    {
-      m_widget->setDrawingMode(drawingMode());
-      m_widget->setPolygonColor(color());
-      m_widget->setSpacing(m_maskSpacing);
-      m_widget->setMinimumPointDistance(m_minDistance);
-    }
+    updateWidgetsValues();
   }
 
 } // namespace ESPINA

@@ -19,7 +19,6 @@
  */
 
 // ESPINA
-#include <GUI/View/Widgets/Contour/vtkContourToPolygonFilter.h>
 #include <GUI/View/Widgets/Contour/vtkPlaneContourRepresentation.h>
 
 // C++
@@ -48,6 +47,7 @@
 #include <QtGlobal>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets::Contour;
 
 vtkCxxSetObjectMacro(vtkPlaneContourRepresentation, PointPlacer, vtkPointPlacer);
 vtkCxxSetObjectMacro(vtkPlaneContourRepresentation, LineInterpolator, vtkContourLineInterpolator);

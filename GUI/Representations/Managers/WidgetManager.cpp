@@ -25,8 +25,10 @@ using namespace ESPINA::GUI::Representations::Managers;
 
 //------------------------------------------------------------------------
 WidgetManager::WidgetManager(WidgetFactorySPtr factory, ManagerFlags flags)
-: RepresentationManager(factory->supportedViews(), flags)
-, m_factory(factory)
+: RepresentationManager{factory->supportedViews(), flags}
+, m_factory            {factory}
+, m_plane              {Plane::UNDEFINED}
+, m_depth              {0}
 {
 }
 

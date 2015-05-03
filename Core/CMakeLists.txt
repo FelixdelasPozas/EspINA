@@ -68,6 +68,7 @@ set (CORE_SOURCES
   Utils/TemporalStorage.cpp
   Utils/VolumeBounds.cpp
   Utils/vtkPolyDataUtils.cpp
+  Utils/vtkVoxelContour2D.cpp  
   )
 
 set(CORE_EXTERNAL_LIBS

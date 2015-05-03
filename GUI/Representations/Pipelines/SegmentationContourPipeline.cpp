@@ -20,9 +20,9 @@
 
 // ESPINA
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/vtkVoxelContour2D.h>
 #include <GUI/Representations/Pipelines/SegmentationContourPipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
-#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Support/Representations/RepresentationUtils.h>
 
