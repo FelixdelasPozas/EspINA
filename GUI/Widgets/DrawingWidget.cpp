@@ -45,6 +45,7 @@ DrawingWidget::DrawingWidget(Support::Context &context)
 , m_radiusWidget        {new SliderAction()}
 , m_opacityWidget       {new SliderAction()}
 , m_eraserWidget        {new QAction(QIcon(":/espina/eraser.png"), tr("Erase"), this)}
+, m_rasterizeWidget     {new QAction(QIcon(":/espina/tick.png"), tr("Rasterize the contour"), this)}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}
 , m_showOpacityControls {true}
@@ -81,6 +82,10 @@ DrawingWidget::DrawingWidget(Support::Context &context)
           this,           SLOT(setEraserMode(bool)));
 
   initPainters();
+
+  m_rasterizeWidget->setVisible(false);
+  connect(m_rasterizeWidget,      SIGNAL(triggered()),
+          m_contourPainter.get(), SIGNAL(rasterize()));
 
   m_contourWidgetfactory = std::make_shared<WidgetFactory>(std::make_shared<ContourWidget2D>(m_contourPainter), EspinaWidget3DSPtr());
 
@@ -188,6 +193,7 @@ QList<QAction *> DrawingWidget::actions() const
   actions << m_painterSelector;
   actions << m_categorySelector;
   actions << m_eraserWidget;
+  actions << m_rasterizeWidget;
   actions << m_radiusWidget;
   actions << m_opacityWidget;
 
@@ -208,6 +214,7 @@ void DrawingWidget::stopDrawing()
   {
     if(m_currentPainter.get() == m_contourPainter.get())
     {
+      m_rasterizeWidget->setVisible(false);
       auto contourPainter = std::dynamic_pointer_cast<ContourPainter>(m_contourPainter);
       contourPainter->clearContours();
     }
@@ -489,6 +496,7 @@ void DrawingWidget::selectorInUse(bool value)
 
     if(selector == m_contourPainter.get())
     {
+      m_rasterizeWidget->setVisible(true);
       m_radiusWidget->setLabelText(tr("Minimum Point Distance"));
       m_radiusWidget->setValue(m_contourDistance);
 
@@ -507,6 +515,8 @@ void DrawingWidget::selectorInUse(bool value)
   {
     if(selector == m_contourPainter.get())
     {
+      m_rasterizeWidget->setVisible(false);
+
       m_contourDistance = m_radiusWidget->value();
 
       m_context.viewState().removeWidgets(m_contourWidgetfactory);

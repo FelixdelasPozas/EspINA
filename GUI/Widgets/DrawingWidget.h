@@ -247,6 +247,7 @@ namespace ESPINA
     SliderAction *m_radiusWidget;
     SliderAction *m_opacityWidget;
     QAction      *m_eraserWidget;
+    QAction      *m_rasterizeWidget;
 
     QAction *m_circularPainterAction;
     QAction *m_sphericalPainterAction;
