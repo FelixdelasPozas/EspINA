@@ -765,7 +765,6 @@ void ModelAdapter::clear()
 {
   Q_ASSERT(!m_isBatchMode);
 
-
   emit modelChanged();
 
   emit aboutToBeReset();

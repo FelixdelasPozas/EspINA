@@ -251,6 +251,13 @@ void RepresentationPool::onSourcesRemoved(ViewItemAdapterList sources, TimeStamp
     updateRepresentationsAt(t);
   }
 
+  if(sources.size() == 0)
+  {
+    emit actorsInvalidated();
+
+    onActorsReady(t, RepresentationPipeline::Actors());
+  }
+
   Q_ASSERT(m_sourcesCount - sources.size() >= 0);
 
   m_sourcesCount -= sources.size();
